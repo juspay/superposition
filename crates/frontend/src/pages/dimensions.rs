@@ -7,6 +7,7 @@ use superposition_types::database::models::cac::DimensionType;
 
 use crate::api::dimensions;
 use crate::components::button::ButtonAnchor;
+use crate::components::datetime::DatetimeStr;
 use crate::components::skeleton::Skeleton;
 use crate::components::table::types::{
     default_column_formatter, ColumnSortable, Expandable,
@@ -73,10 +74,23 @@ pub fn dimensions() -> impl IntoView {
                 .into_view()
             },
         ),
-        Column::default("created_at".to_string()),
-        Column::default_with_column_formatter("last_modified_at".to_string(), |_| {
-            default_column_formatter("Modified At")
+        Column::default_with_cell_formatter("created_at".to_string(), |value, _| {
+            view! {
+                <DatetimeStr datetime=value.into() />
+            }
         }),
+        Column::new(
+            "last_modified_at".to_string(),
+            false,
+            |value, _| {
+                view! {
+                    <DatetimeStr datetime=value.into() />
+                }
+            },
+            ColumnSortable::No,
+            Expandable::Enabled(100),
+            |_| default_column_formatter("Modified At"),
+        ),
     ]);
 
     view! {
@@ -88,20 +102,7 @@ pub fn dimensions() -> impl IntoView {
                 let table_rows = value
                     .data
                     .iter()
-                    .map(|ele| {
-                        let mut ele_map = json!(ele).as_object().unwrap().clone();
-                        ele_map
-                            .insert(
-                                "created_at".to_string(),
-                                Value::String(ele.created_at.format("%v %T").to_string()),
-                            );
-                        ele_map
-                            .insert(
-                                "last_modified_at".to_string(),
-                                Value::String(ele.last_modified_at.format("%v %T").to_string()),
-                            );
-                        ele_map
-                    })
+                    .map(|ele| json!(ele).as_object().unwrap().clone())
                     .collect::<Vec<Map<String, Value>>>();
                 let pagination_params = pagination_params_rws.get();
                 let pagination_props = TablePaginationProps {

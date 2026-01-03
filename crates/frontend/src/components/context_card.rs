@@ -9,6 +9,7 @@ use superposition_types::{
 use crate::{
     components::{
         condition_pills::Condition as ConditionComponent,
+        datetime::Datetime,
         description::InfoDescription,
         table::{types::Column, Table},
         tooltip::Tooltip,
@@ -151,10 +152,7 @@ pub fn context_card(
                                 </div>
                                 <div class="flex gap-1 items-center">
                                     <i class="ri-time-line text-gray-950" />
-                                    <span>
-                                        {context
-                                            .with_value(|c| c.created_at.format("%v %T").to_string())}
-                                    </span>
+                                    <Datetime datetime=context.with_value(|c| c.created_at) />
                                 </div>
                             </div>
                             <div class="flex flex-col gap-1">
@@ -167,12 +165,7 @@ pub fn context_card(
                                 </div>
                                 <div class="flex gap-1 items-center">
                                     <i class="ri-time-line text-gray-950" />
-                                    <span>
-                                        {context
-                                            .with_value(|c| {
-                                                c.last_modified_at.format("%v %T").to_string()
-                                            })}
-                                    </span>
+                                    <Datetime datetime=context.with_value(|c| c.last_modified_at) />
                                 </div>
                             </div>
                         </div>

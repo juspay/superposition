@@ -9,6 +9,7 @@ use superposition_types::{
 
 use crate::api::workspaces;
 use crate::components::{
+    datetime::DatetimeStr,
     drawer::{close_drawer, open_drawer, Drawer, DrawerBtn},
     skeleton::Skeleton,
     stat::Stat,
@@ -152,7 +153,11 @@ pub fn workspace() -> impl IntoView {
             Column::default("mandatory_dimensions".to_string()),
             Column::default("strict_mode".to_string()),
             Column::default("created_by".to_string()),
-            Column::default("created_at".to_string()),
+            Column::default_with_cell_formatter("created_at".to_string(), |value, _| {
+                view! {
+                    <DatetimeStr datetime=value.into() />
+                }
+            }),
             Column::default_with_cell_formatter(
                 "actions".to_string(),
                 actions_col_formatter,
@@ -228,15 +233,7 @@ pub fn workspace() -> impl IntoView {
                 let table_rows = workspaces
                     .data
                     .into_iter()
-                    .map(|workspace| {
-                        let mut ele_map = json!(workspace).as_object().unwrap().to_owned();
-                        ele_map
-                            .insert(
-                                "created_at".to_string(),
-                                json!(workspace.created_at.format("%v %T").to_string()),
-                            );
-                        ele_map
-                    })
+                    .map(|workspace| json!(workspace).as_object().unwrap().to_owned())
                     .collect::<Vec<Map<String, Value>>>();
                 let total_workspaces = workspaces.total_items.to_string();
                 let pagination_params = pagination_params_rws.get();
