@@ -17,7 +17,9 @@ pub fn config_version() -> impl IntoView {
 
     let snapshot_resource = create_blocking_resource(
         move || (workspace.get().0, version.clone(), org_id.get().0),
-        |(workspace, version, org_id)| async move { fetch(&version, workspace, org_id).await },
+        |(workspace, version, org_id)| async move {
+            fetch(&version, &workspace, &org_id).await
+        },
     );
 
     view! {

@@ -3,7 +3,9 @@ use superposition_types::{
     database::models::{experimentation::TrafficPercentage, ChangeReason},
 };
 
-use crate::utils::{construct_request_headers, get_host, parse_json_response, request};
+use crate::utils::{
+    construct_request_headers, parse_json_response, request, use_host_server,
+};
 
 pub async fn ramp_experiment(
     exp_id: &str,
@@ -19,7 +21,7 @@ pub async fn ramp_experiment(
         traffic_percentage: TrafficPercentage::try_from(percent as i32)?,
     };
 
-    let host = get_host();
+    let host = use_host_server();
     let url = format!("{host}/experiments/{exp_id}/ramp");
 
     let response = request(

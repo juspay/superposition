@@ -7,6 +7,7 @@ use diesel::{
 use jsonschema::JSONSchema;
 use serde_json::Value;
 use service_utils::service::types::{DbConnection, SchemaName};
+use superposition_derives::authorized;
 use superposition_macros::{bad_argument, db_error};
 use superposition_types::{
     api::type_templates::{
@@ -24,15 +25,16 @@ use crate::helpers::validate_change_reason;
 
 pub fn endpoints() -> Scope {
     Scope::new("")
-        .service(get_type)
-        .service(list_types)
-        .service(create_type)
-        .service(update_type)
-        .service(delete_type)
+        .service(get_handler)
+        .service(list_handler)
+        .service(create_handler)
+        .service(update_handler)
+        .service(delete_handler)
 }
 
+#[authorized]
 #[post("")]
-async fn create_type(
+async fn create_handler(
     request: Json<TypeTemplateCreateRequest>,
     db_conn: DbConnection,
     user: User,
@@ -67,8 +69,9 @@ async fn create_type(
     Ok(Json(type_template))
 }
 
+#[authorized]
 #[get("/{type_name}")]
-async fn get_type(
+async fn get_handler(
     type_name: Path<TypeTemplateName>,
     db_conn: DbConnection,
     schema_name: SchemaName,
@@ -83,10 +86,11 @@ async fn get_type(
     Ok(Json(type_template))
 }
 
+#[authorized]
 #[routes]
 #[put("/{type_name}")]
 #[patch("/{type_name}")]
-async fn update_type(
+async fn update_handler(
     request: Json<TypeTemplateUpdateRequest>,
     path: Path<TypeTemplateName>,
     db_conn: DbConnection,
@@ -149,8 +153,9 @@ async fn update_type(
     Ok(Json(updated_type))
 }
 
+#[authorized]
 #[delete("/{type_name}")]
-async fn delete_type(
+async fn delete_handler(
     path: Path<TypeTemplateName>,
     db_conn: DbConnection,
     user: User,
@@ -174,8 +179,9 @@ async fn delete_type(
     Ok(Json(deleted_type))
 }
 
+#[authorized]
 #[get("")]
-async fn list_types(
+async fn list_handler(
     db_conn: DbConnection,
     filters: Query<PaginationParams>,
     schema_name: SchemaName,

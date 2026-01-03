@@ -7,7 +7,9 @@ use superposition_types::{
     ExtendedMap,
 };
 
-use crate::utils::{construct_request_headers, get_host, parse_json_response, request};
+use crate::utils::{
+    construct_request_headers, parse_json_response, request, use_host_server,
+};
 
 #[allow(clippy::too_many_arguments)]
 pub async fn create_default_config(
@@ -30,7 +32,7 @@ pub async fn create_default_config(
         change_reason: ChangeReason::try_from(change_reason)?,
         value_compute_function_name,
     };
-    let host = get_host();
+    let host = use_host_server();
     let url = format!("{host}/default-config");
 
     let response = request(
@@ -68,7 +70,7 @@ pub async fn update_default_config(
     tenant: &str,
     org_id: &str,
 ) -> Result<serde_json::Value, String> {
-    let host = get_host();
+    let host = use_host_server();
     let url = format!("{host}/default-config/{key}");
 
     let response = request(

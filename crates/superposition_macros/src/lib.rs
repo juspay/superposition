@@ -59,6 +59,16 @@ macro_rules! response_error {
 }
 
 #[macro_export]
+macro_rules! forbidden {
+    ($msg: literal, $($args: tt)*) => {
+        superposition_types::result::AppError::Forbidden(format!($msg, $($args)*))
+    };
+    ($err: tt) => {
+        superposition_types::result::AppError::Forbidden($err.to_string())
+    };
+}
+
+#[macro_export]
 macro_rules! box_params {
     ($($param:expr),* $(,)?) => {
         vec![

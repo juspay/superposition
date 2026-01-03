@@ -30,6 +30,7 @@ use service_utils::{
         AppHeader, AppState, CustomHeaders, DbConnection, SchemaName, WorkspaceContext,
     },
 };
+use superposition_derives::authorized;
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
     api::{
@@ -100,14 +101,14 @@ use super::{
 
 pub fn endpoints(scope: Scope) -> Scope {
     scope
-        .service(create)
+        .service(create_handler)
         .service(conclude_handler)
         .service(discard_handler)
-        .service(list_experiments)
-        .service(get_applicable_variants)
-        .service(get_experiment_handler)
-        .service(ramp)
-        .service(update_overrides)
+        .service(list_handler)
+        .service(get_applicable_variants_handler)
+        .service(get_handler)
+        .service(ramp_handler)
+        .service(update_handler)
         .service(pause_handler)
         .service(resume_handler)
 }
@@ -122,8 +123,9 @@ fn add_config_version_to_header(
 }
 
 #[allow(clippy::too_many_arguments)]
+#[authorized]
 #[post("")]
-async fn create(
+async fn create_handler(
     state: Data<AppState>,
     custom_headers: CustomHeaders,
     req: Json<ExperimentCreateRequest>,
@@ -246,7 +248,7 @@ async fn create(
     //create overrides in CAC, if successfull then create experiment in DB
     let mut cac_operations: Vec<ContextAction> = Vec::new();
     for variant in &mut variants {
-        let variant_id = experiment_id.to_string() + "-" + &variant.id;
+        let variant_id = experiment_id.to_string() + "-" + variant.id.as_ref();
 
         // updating variant.id to => experiment_id + variant.id
         variant.id = variant_id.to_string();
@@ -411,6 +413,7 @@ async fn create(
 }
 
 #[allow(clippy::too_many_arguments)]
+#[authorized]
 #[patch("/{experiment_id}/conclude")]
 async fn conclude_handler(
     state: Data<AppState>,
@@ -695,6 +698,7 @@ pub async fn conclude(
 }
 
 #[allow(clippy::too_many_arguments)]
+#[authorized]
 #[patch("/{experiment_id}/discard")]
 async fn discard_handler(
     state: Data<AppState>,
@@ -917,10 +921,12 @@ pub async fn get_applicable_variants_helper(
     Ok((applicable_variants, exps))
 }
 
+#[allow(clippy::too_many_arguments)]
+#[authorized]
 #[routes]
 #[get("/applicable-variants")]
 #[post("/applicable-variants")]
-async fn get_applicable_variants(
+async fn get_applicable_variants_handler(
     req: HttpRequest,
     state: Data<AppState>,
     db_conn: DbConnection,
@@ -979,8 +985,9 @@ async fn get_applicable_variants(
     }
 }
 
+#[authorized]
 #[get("")]
-async fn list_experiments(
+async fn list_handler(
     req: HttpRequest,
     pagination_params: superposition_query::Query<PaginationParams>,
     filters: superposition_query::Query<ExperimentListFilters>,
@@ -1141,8 +1148,9 @@ async fn list_experiments(
     Ok(HttpResponse::Ok().json(paginated_response))
 }
 
+#[authorized]
 #[get("/{id}")]
-async fn get_experiment_handler(
+async fn get_handler(
     params: web::Path<i64>,
     db_conn: DbConnection,
     schema_name: SchemaName,
@@ -1163,8 +1171,9 @@ pub fn user_allowed_to_ramp(
 }
 
 #[allow(clippy::too_many_arguments)]
+#[authorized]
 #[patch("/{id}/ramp")]
-async fn ramp(
+async fn ramp_handler(
     state: Data<AppState>,
     params: web::Path<i64>,
     req: web::Json<RampRequest>,
@@ -1356,10 +1365,11 @@ async fn ramp(
 }
 
 #[allow(clippy::too_many_arguments)]
+#[authorized]
 #[routes]
 #[put("/{id}/overrides")]
 #[patch("/{id}/overrides")]
-async fn update_overrides(
+async fn update_handler(
     params: web::Path<i64>,
     state: Data<AppState>,
     custom_headers: CustomHeaders,
@@ -1714,6 +1724,7 @@ async fn update_overrides(
     Ok(http_resp.json(experiment_response))
 }
 
+#[authorized]
 #[patch("/{experiment_id}/pause")]
 async fn pause_handler(
     state: Data<AppState>,
@@ -1814,6 +1825,7 @@ pub async fn pause(
     Ok(updated_experiment)
 }
 
+#[authorized]
 #[patch("/{experiment_id}/resume")]
 async fn resume_handler(
     state: Data<AppState>,

@@ -16,7 +16,10 @@ use crate::{
     api::execute_value_compute_function,
     components::alert::AlertType,
     providers::alert_provider::enqueue_alert,
-    types::{Envs, ErrorResponse, FunctionsName, ValueComputeCallback},
+    types::{
+        Envs, ErrorResponse, FunctionsName, SsrSharedHttpRequestHeaders,
+        ValueComputeCallback,
+    },
 };
 
 #[allow(dead_code)]
@@ -65,7 +68,8 @@ pub fn use_host_server() -> String {
     get_host()
 }
 
-pub fn get_host() -> String {
+#[cfg(not(feature = "ssr"))]
+fn get_host() -> String {
     let context = use_context::<Envs>();
     let service_prefix = use_service_prefix();
     let host = context
@@ -233,12 +237,19 @@ pub async fn request_with_skip_error<T>(
 where
     T: serde::Serialize,
 {
+    let ssr_headers = use_context::<Option<SsrSharedHttpRequestHeaders>>().flatten();
+    let cookie = ssr_headers.and_then(|h| h.cookie.clone());
+
     let mut request_builder = HTTP_CLIENT.request(method.clone(), url).headers(headers);
     request_builder = match (method, body) {
         (reqwest::Method::GET | reqwest::Method::DELETE, _) => request_builder,
         (_, Some(data)) => request_builder.json(&data),
         _ => request_builder,
     };
+
+    if let Some(cookie_value) = cookie {
+        request_builder = request_builder.header(reqwest::header::COOKIE, cookie_value);
+    }
 
     let response = request_builder
         .send()
@@ -338,18 +349,18 @@ pub fn value_compute_fn_generator(
             let fn_copy = fn_name.clone();
             let environment = environment.get();
             let org_id = org_id.clone();
-            let tenant = tenant.clone();
+            let workspace = tenant.clone();
             let type_clone = r#type.clone();
             logging::log!("Calling {fn_copy} for {key} {value}");
 
             leptos::spawn_local(async move {
                 match execute_value_compute_function(
-                &key_copy,
-                &value,
-                &type_clone,
-                &environment,
+                key_copy,
+                value,
+                type_clone,
+                environment,
                 &fn_copy,
-                &tenant,
+                &workspace,
                 &org_id,
             )
             .await

@@ -9,7 +9,8 @@ use crate::{
     providers::alert_provider::enqueue_alert,
     types::ErrorResponse,
     utils::{
-        construct_request_headers, get_host, parse_json_response, request_with_skip_error,
+        construct_request_headers, parse_json_response, request_with_skip_error,
+        use_host_server,
     },
 };
 
@@ -26,7 +27,7 @@ pub async fn conclude_experiment(
         description: None,
     };
 
-    let host = get_host();
+    let host = use_host_server();
     let url = format!("{host}/experiments/{exp_id}/conclude");
 
     let response = request_with_skip_error(

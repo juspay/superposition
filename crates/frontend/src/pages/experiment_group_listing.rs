@@ -248,12 +248,12 @@ pub fn experiment_group_listing() -> impl IntoView {
 
     let experiment_groups_resource = create_blocking_resource(
         source,
-        |(filters, pagination, tenant, org_id)| async move {
-            let experiment_groups = fetch_all(&filters, &pagination, &tenant, &org_id)
+        |(filters, pagination, workspace, org_id)| async move {
+            let experiment_groups = fetch_all(&filters, &pagination, &workspace, &org_id)
                 .await
                 .unwrap_or_default();
             let dimensions =
-                dimensions::fetch(&PaginationParams::all_entries(), tenant, org_id)
+                dimensions::fetch(&PaginationParams::all_entries(), &workspace, &org_id)
                     .await
                     .unwrap_or_default()
                     .data

@@ -53,6 +53,8 @@ pub struct User {
     pub username: String,
 }
 
+pub struct InternalUser;
+
 impl User {
     pub fn get_email(&self) -> String {
         self.email.clone()

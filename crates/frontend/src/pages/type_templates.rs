@@ -40,8 +40,8 @@ pub fn types_page() -> impl IntoView {
 
     let types_resource = create_blocking_resource(
         move || (workspace.get().0, org.get().0, pagination_params_rws.get()),
-        |(t, org_id, pagination_params)| async move {
-            fetch_types(&pagination_params, t, org_id)
+        |(workspace, org_id, pagination_params)| async move {
+            fetch_types(&pagination_params, &workspace, &org_id)
                 .await
                 .unwrap_or_default()
         },

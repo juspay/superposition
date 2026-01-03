@@ -6,7 +6,9 @@ use superposition_types::{
     Cac, Overrides,
 };
 
-use crate::utils::{construct_request_headers, get_host, parse_json_response, request};
+use crate::utils::{
+    construct_request_headers, parse_json_response, request, use_host_server,
+};
 
 use super::Conditions;
 
@@ -35,7 +37,7 @@ pub async fn create_context(
     change_reason: String,
     org_id: String,
 ) -> Result<Context, String> {
-    let host = get_host();
+    let host = use_host_server();
     let url = format!("{host}/context");
     let request_payload =
         context_payload(overrides, conditions, description, change_reason);
@@ -69,7 +71,7 @@ pub async fn update_context(
     tenant: String,
     org_id: String,
 ) -> Result<Context, String> {
-    let host = get_host();
+    let host = use_host_server();
     let url = format!("{host}/context/overrides");
     let response = request(
         url,

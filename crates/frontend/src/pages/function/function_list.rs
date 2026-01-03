@@ -50,9 +50,9 @@ pub fn function_list() -> impl IntoView {
                 org.get().0,
             )
         },
-        |(current_tenant, pagination, filters, org)| async move {
+        |(workspace, pagination, filters, org)| async move {
             let functions_future =
-                fetch_functions(&pagination, &filters, current_tenant.to_string(), org);
+                fetch_functions(&pagination, &filters, &workspace, &org);
 
             let functions_result = functions_future.await;
             CombinedResource {

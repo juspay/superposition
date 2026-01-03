@@ -14,6 +14,7 @@ use diesel::{
 };
 use regex::Regex;
 use service_utils::service::types::{DbConnection, OrganisationId, SchemaName};
+use superposition_derives::authorized;
 use superposition_macros::{db_error, unexpected_error, validation_error};
 use superposition_types::{
     api::{
@@ -60,15 +61,16 @@ fn setup_workspace_schema(
 
 pub fn endpoints(scope: Scope) -> Scope {
     scope
-        .service(create_workspace)
-        .service(update_workspace)
-        .service(list_workspaces)
-        .service(get_workspace)
-        .service(migrate_workspace_schema)
+        .service(create_handler)
+        .service(update_handler)
+        .service(list_handler)
+        .service(get_handler)
+        .service(migrate_schema_handler)
 }
 
+#[authorized]
 #[get("/{workspace_name}")]
-async fn get_workspace(
+async fn get_handler(
     workspace_name: Path<String>,
     db_conn: DbConnection,
     org_id: OrganisationId,
@@ -83,8 +85,9 @@ async fn get_workspace(
     Ok(Json(response))
 }
 
+#[authorized]
 #[post("")]
-async fn create_workspace(
+async fn create_handler(
     request: Json<CreateWorkspaceRequest>,
     db_conn: DbConnection,
     org_id: OrganisationId,
@@ -117,14 +120,10 @@ async fn create_workspace(
         #[cfg(not(feature = "jsonlogic"))]
         strict_mode: true,
         metrics: request.metrics.unwrap_or_default(),
-        allow_experiment_self_approval: request
-            .allow_experiment_self_approval
-            .unwrap_or(true),
-        auto_populate_control: request.auto_populate_control.unwrap_or(true),
-        enable_context_validation: request.enable_context_validation.unwrap_or(false),
-        enable_change_reason_validation: request
-            .enable_change_reason_validation
-            .unwrap_or(false),
+        allow_experiment_self_approval: request.allow_experiment_self_approval,
+        auto_populate_control: request.auto_populate_control,
+        enable_context_validation: request.enable_context_validation,
+        enable_change_reason_validation: request.enable_change_reason_validation,
     };
 
     let created_workspace =
@@ -141,10 +140,11 @@ async fn create_workspace(
     Ok(Json(response))
 }
 
+#[authorized]
 #[routes]
 #[put("/{workspace_name}")]
 #[patch("/{workspace_name}")]
-async fn update_workspace(
+async fn update_handler(
     workspace_name: web::Path<String>,
     request: Json<UpdateWorkspaceRequest>,
     db_conn: DbConnection,
@@ -154,7 +154,7 @@ async fn update_workspace(
     let request = request.into_inner();
     let workspace_name = workspace_name.into_inner();
     let timestamp = Utc::now();
-    let schema_name = SchemaName(org_id.clone().0 + "_" + &workspace_name);
+    let schema_name = SchemaName(format!("{}_{}", *org_id, workspace_name));
     // TODO: mandatory dimensions updation needs to be validated
     // for the existance of the dimensions in the workspace
     let DbConnection(mut conn) = db_conn;
@@ -187,8 +187,10 @@ async fn update_workspace(
     let response = WorkspaceResponse::from(updated_workspace);
     Ok(Json(response))
 }
+
+#[authorized]
 #[get("")]
-async fn list_workspaces(
+async fn list_handler(
     db_conn: DbConnection,
     pagination_filters: Query<PaginationParams>,
     filters: Query<WorkspaceListFilters>,
@@ -271,8 +273,9 @@ fn validate_workspace_name(workspace_name: &String) -> superposition::Result<()>
     }
 }
 
+#[authorized]
 #[post("/{workspace_name}/db/migrate")]
-async fn migrate_workspace_schema(
+async fn migrate_schema_handler(
     workspace_name: Path<String>,
     db_conn: DbConnection,
     org_id: OrganisationId,

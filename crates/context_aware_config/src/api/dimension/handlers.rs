@@ -4,14 +4,13 @@ use actix_web::{
     HttpResponse, Scope,
 };
 use chrono::Utc;
-use diesel::{
-    delete, Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
-};
+use diesel::{Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use serde_json::Value;
 use service_utils::{
     helpers::parse_config_tags,
     service::types::{AppHeader, AppState, CustomHeaders, DbConnection, SchemaName},
 };
+use superposition_derives::authorized;
 use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
 use superposition_types::{
     api::dimension::{
@@ -50,15 +49,16 @@ use crate::{
 
 pub fn endpoints() -> Scope {
     Scope::new("")
-        .service(create)
-        .service(update)
-        .service(get)
-        .service(list)
-        .service(delete_dimension)
+        .service(create_handler)
+        .service(update_handler)
+        .service(get_handler)
+        .service(list_handler)
+        .service(delete_handler)
 }
 
+#[authorized]
 #[post("")]
-async fn create(
+async fn create_handler(
     state: Data<AppState>,
     req: web::Json<CreateRequest>,
     user: User,
@@ -231,8 +231,9 @@ async fn create(
     Ok(http_resp.json(DimensionResponse::new(inserted_dimension, is_mandatory)))
 }
 
+#[authorized]
 #[get("/{name}")]
-async fn get(
+async fn get_handler(
     db_conn: DbConnection,
     req: Path<String>,
     schema_name: SchemaName,
@@ -253,10 +254,12 @@ async fn get(
     Ok(Json(DimensionResponse::new(result, is_mandatory)))
 }
 
+#[allow(clippy::too_many_arguments)]
+#[authorized]
 #[routes]
 #[put("/{name}")]
 #[patch("/{name}")]
-async fn update(
+async fn update_handler(
     path: Path<DimensionName>,
     state: Data<AppState>,
     req: web::Json<UpdateRequest>,
@@ -431,8 +434,9 @@ async fn update(
     Ok(http_resp.json(DimensionResponse::new(result, is_mandatory)))
 }
 
+#[authorized]
 #[get("")]
-async fn list(
+async fn list_handler(
     db_conn: DbConnection,
     filters: Query<PaginationParams>,
     schema_name: SchemaName,
@@ -487,8 +491,9 @@ async fn list(
     }))
 }
 
+#[authorized]
 #[delete("/{name}")]
-async fn delete_dimension(
+async fn delete_handler(
     state: Data<AppState>,
     path: Path<DeleteRequest>,
     user: User,
@@ -542,7 +547,7 @@ async fn delete_dimension(
                 .schema_name(&schema_name)
                 .execute(transaction_conn)?;
 
-            let deleted_row = delete(dsl::dimensions.filter(dsl::dimension.eq(&name)))
+            let deleted_row = diesel::delete(dsl::dimensions.filter(dsl::dimension.eq(&name)))
                 .schema_name(&schema_name)
                 .execute(transaction_conn);
 

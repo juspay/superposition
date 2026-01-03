@@ -79,7 +79,7 @@ pub fn experiment_list() -> impl IntoView {
                 org.get().0,
             )
         },
-        |(current_tenant, filters, dimension_params, pagination_params, org_id)| async move {
+        |(workspace, filters, dimension_params, pagination_params, org_id)| async move {
             // Perform all fetch operations concurrently
             let fetch_all_filters = PaginationParams::all_entries();
             let default_config_filters = DefaultConfigFilters::default();
@@ -87,19 +87,16 @@ pub fn experiment_list() -> impl IntoView {
                 &filters,
                 &pagination_params,
                 &dimension_params,
-                &current_tenant,
+                &workspace,
                 &org_id,
             );
-            let dimensions_future = dimensions::fetch(
-                &fetch_all_filters,
-                current_tenant.to_string(),
-                org_id.clone(),
-            );
+            let dimensions_future =
+                dimensions::fetch(&fetch_all_filters, &workspace, &org_id);
             let config_future = fetch_default_config(
                 &fetch_all_filters,
                 &default_config_filters,
-                current_tenant.to_string(),
-                org_id.clone(),
+                &workspace,
+                &org_id,
             );
             let (experiments_result, dimensions_result, config_result) =
                 join!(experiments_future, dimensions_future, config_future,);

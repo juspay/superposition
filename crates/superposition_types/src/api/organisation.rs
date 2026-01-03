@@ -1,9 +1,13 @@
+#[cfg(feature = "diesel_derives")]
+use diesel::AsChangeset;
 use serde::{Deserialize, Serialize};
-use superposition_types::database::models::{NonEmptyString, OrgStatus};
 
-// Request payload for creating an organisation
+use crate::database::models::{NonEmptyString, OrgStatus};
+#[cfg(feature = "diesel_derives")]
+use crate::database::superposition_schema::superposition::organisations;
+
 #[derive(Deserialize)]
-pub struct CreateOrganisationRequest {
+pub struct CreateRequest {
     pub country_code: Option<String>,
     pub contact_email: Option<String>,
     pub contact_phone: Option<String>,
@@ -13,7 +17,9 @@ pub struct CreateOrganisationRequest {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct UpdateOrganisationRequest {
+#[cfg_attr(feature = "diesel_derives", derive(AsChangeset))]
+#[cfg_attr(feature = "diesel_derives", diesel(table_name = organisations))]
+pub struct UpdateRequest {
     pub country_code: Option<String>,
     pub contact_email: Option<String>,
     pub contact_phone: Option<String>,

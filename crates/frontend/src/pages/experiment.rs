@@ -61,22 +61,18 @@ pub fn experiment_page() -> impl IntoView {
     let (show_popup, set_show_popup) = create_signal(PopupType::None);
 
     let combined_resource: Resource<(String, String, String), CombinedResource> =
-        create_blocking_resource(source, |(exp_id, tenant, org_id)| async move {
+        create_blocking_resource(source, |(exp_id, workspace, org_id)| async move {
             // Perform all fetch operations concurrently
             let default_config_filters = DefaultConfigFilters::default();
-            let experiments_future =
-                fetch_experiment(exp_id.to_string(), tenant.to_string(), org_id.clone());
+            let experiments_future = fetch_experiment(exp_id, &workspace, &org_id);
             let empty_list_filters = PaginationParams::all_entries();
-            let dimensions_future = dimensions::fetch(
-                &empty_list_filters,
-                tenant.to_string(),
-                org_id.clone(),
-            );
+            let dimensions_future =
+                dimensions::fetch(&empty_list_filters, &workspace, &org_id);
             let config_future = fetch_default_config(
                 &empty_list_filters,
                 &default_config_filters,
-                tenant.to_string(),
-                org_id.clone(),
+                &workspace,
+                &org_id,
             );
 
             let (experiments_result, dimensions_result, config_result) =

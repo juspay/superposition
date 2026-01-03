@@ -21,6 +21,8 @@ pub enum AppError {
     ResponseError(#[from] ResponseError),
     #[error(transparent)]
     UnexpectedError(anyhow::Error),
+    #[error("forbidden ( `{0}` )")]
+    Forbidden(String),
 }
 
 #[derive(Debug, this_error, Display, Clone)]
@@ -56,7 +58,8 @@ impl AppError {
         match self {
             AppError::ValidationError(msg)
             | AppError::BadArgument(msg)
-            | AppError::NotFound(msg) => msg.to_owned(),
+            | AppError::NotFound(msg)
+            | AppError::Forbidden(msg) => msg.to_owned(),
             AppError::UnexpectedError(_) => String::from("Something went wrong"),
             AppError::ResponseError(error) => error.message.clone(),
             AppError::DbError(diesel_error::InvalidCString(_)) => {
@@ -86,6 +89,9 @@ impl error::ResponseError for AppError {
             }
             AppError::NotFound(msg) => {
                 Self::generate_err_response(StatusCode::NOT_FOUND, msg)
+            }
+            AppError::Forbidden(msg) => {
+                Self::generate_err_response(StatusCode::FORBIDDEN, msg)
             }
             AppError::UnexpectedError(_) => Self::generate_err_response(
                 StatusCode::INTERNAL_SERVER_ERROR,

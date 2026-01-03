@@ -1600,6 +1600,7 @@ dependencies = [
  "serde",
  "serde_json",
  "service_utils",
+ "superposition_derives",
  "superposition_macros",
  "superposition_types",
  "uuid",
@@ -2222,6 +2223,7 @@ dependencies = [
  "serde",
  "serde_json",
  "service_utils",
+ "superposition_derives",
  "superposition_macros",
  "superposition_types",
 ]
@@ -5202,6 +5204,7 @@ dependencies = [
  "serde",
  "serde_json",
  "strum_macros",
+ "superposition_macros",
  "superposition_types",
  "url",
  "urlencoding",

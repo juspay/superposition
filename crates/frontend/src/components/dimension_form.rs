@@ -92,13 +92,13 @@ pub fn dimension_form(
 
     let combined_resources = create_blocking_resource(
         move || (dimensions.clone(), workspace.get().0, org.get().0),
-        |(dimensions, tenant, org_id)| async move {
+        |(dimensions, workspace, org_id)| async move {
             let dimensions_future = async {
                 match dimensions {
                     None => dimensions::fetch(
                         &PaginationParams::all_entries(),
-                        tenant.clone(),
-                        org_id.clone(),
+                        &workspace,
+                        &org_id,
                     )
                     .await
                     .map(|d| d.data)
@@ -109,14 +109,10 @@ pub fn dimension_form(
 
             let all_entries = PaginationParams::all_entries();
             let list_filters = ListFunctionFilters::default();
-            let functions_future = fetch_functions(
-                &all_entries,
-                &list_filters,
-                tenant.clone(),
-                org_id.clone(),
-            );
+            let functions_future =
+                fetch_functions(&all_entries, &list_filters, &workspace, &org_id);
 
-            let types_future = fetch_types(&all_entries, tenant.clone(), org_id.clone());
+            let types_future = fetch_types(&all_entries, &workspace, &org_id);
 
             let (dimensions_result, functions_result, types_result) =
                 join!(dimensions_future, functions_future, types_future);

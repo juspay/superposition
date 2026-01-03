@@ -6,6 +6,7 @@ use actix_web::{
 use diesel::prelude::*;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use service_utils::service::types::{DbConnection, SchemaName};
+use superposition_derives::authorized;
 use superposition_types::{
     api::variables::*,
     custom_query::PaginationParams,
@@ -15,15 +16,16 @@ use superposition_types::{
 
 pub fn endpoints() -> Scope {
     web::scope("")
-        .service(list_variables)
-        .service(create_variable)
-        .service(get_variable)
-        .service(update_variable)
-        .service(delete_variable)
+        .service(list_handler)
+        .service(create_handler)
+        .service(get_handler)
+        .service(update_handler)
+        .service(delete_handler)
 }
 
+#[authorized]
 #[get("")]
-async fn list_variables(
+async fn list_handler(
     db_conn: DbConnection,
     pagination: Query<PaginationParams>,
     filters: Query<VariableFilters>,
@@ -89,8 +91,9 @@ async fn list_variables(
     }))
 }
 
+#[authorized]
 #[post("")]
-async fn create_variable(
+async fn create_handler(
     req: web::Json<CreateVariableRequest>,
     user: User,
     db_conn: DbConnection,
@@ -122,8 +125,9 @@ async fn create_variable(
     Ok(Json(created_var))
 }
 
+#[authorized]
 #[get("/{variable_name}")]
-async fn get_variable(
+async fn get_handler(
     path: web::Path<String>,
     db_conn: DbConnection,
     schema_name: SchemaName,
@@ -140,8 +144,9 @@ async fn get_variable(
     Ok(Json(var))
 }
 
+#[authorized]
 #[patch("/{variable_name}")]
-async fn update_variable(
+async fn update_handler(
     path: web::Path<String>,
     req: web::Json<UpdateVariableRequest>,
     user: User,
@@ -163,8 +168,9 @@ async fn update_variable(
     Ok(Json(updated_var))
 }
 
+#[authorized]
 #[delete("/{variable_name}")]
-async fn delete_variable(
+async fn delete_handler(
     path: web::Path<String>,
     user: User,
     db_conn: DbConnection,

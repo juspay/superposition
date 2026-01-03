@@ -19,6 +19,7 @@ use service_utils::helpers::extract_dimensions;
 #[cfg(feature = "high-performance-mode")]
 use service_utils::service::types::{AppHeader, AppState};
 use service_utils::service::types::{DbConnection, SchemaName, WorkspaceContext};
+use superposition_derives::authorized;
 #[cfg(feature = "high-performance-mode")]
 use superposition_macros::response_error;
 use superposition_macros::{bad_argument, unexpected_error};
@@ -60,13 +61,13 @@ use super::helpers::{apply_prefix_filter_to_config, resolve, setup_query_data};
 #[allow(clippy::let_and_return)]
 pub fn endpoints() -> Scope {
     let scope = Scope::new("")
-        .service(get_config)
-        .service(get_resolved_config)
-        .service(reduce_config)
-        .service(list_config_versions)
-        .service(fetch_config_version);
+        .service(get_handler)
+        .service(resolve_handler)
+        .service(reduce_handler)
+        .service(list_version_handler)
+        .service(get_version_handler);
     #[cfg(feature = "high-performance-mode")]
-    let scope = scope.service(get_config_fast);
+    let scope = scope.service(get_fast_handler);
     scope
 }
 
@@ -429,8 +430,9 @@ async fn reduce_config_key(
     })
 }
 
+#[authorized]
 #[put("/reduce")]
-async fn reduce_config(
+async fn reduce_handler(
     req: HttpRequest,
     user: User,
     db_conn: DbConnection,
@@ -471,8 +473,9 @@ async fn reduce_config(
 }
 
 #[cfg(feature = "high-performance-mode")]
+#[authorized]
 #[get("/fast")]
-async fn get_config_fast(
+async fn get_fast_handler(
     schema_name: SchemaName,
     state: Data<AppState>,
 ) -> superposition::Result<HttpResponse> {
@@ -559,10 +562,11 @@ async fn get_config_fast(
     }
 }
 
+#[authorized]
 #[routes]
 #[get("")]
 #[post("")]
-async fn get_config(
+async fn get_handler(
     req: HttpRequest,
     body: Option<Json<ContextPayload>>,
     db_conn: DbConnection,
@@ -615,10 +619,12 @@ async fn get_config(
     Ok(response.json(config))
 }
 
+#[allow(clippy::too_many_arguments)]
+#[authorized]
 #[routes]
 #[get("/resolve")]
 #[post("/resolve")]
-async fn get_resolved_config(
+async fn resolve_handler(
     req: HttpRequest,
     body: Option<Json<ContextPayload>>,
     merge_strategy: Header<MergeStrategy>,
@@ -663,8 +669,9 @@ async fn get_resolved_config(
     Ok(resp.json(resolved_config))
 }
 
+#[authorized]
 #[get("/versions")]
-async fn list_config_versions(
+async fn list_version_handler(
     db_conn: DbConnection,
     filters: Query<PaginationParams>,
     schema_name: SchemaName,
@@ -705,8 +712,9 @@ async fn list_config_versions(
     }))
 }
 
+#[authorized]
 #[get("/version/{version}")]
-async fn fetch_config_version(
+async fn get_version_handler(
     db_conn: DbConnection,
     version: Path<i64>,
     schema_name: SchemaName,

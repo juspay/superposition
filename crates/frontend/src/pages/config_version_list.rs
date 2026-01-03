@@ -36,8 +36,8 @@ pub fn config_version_list() -> impl IntoView {
         PaginatedResponse<ConfigVersionListItem>,
     > = create_blocking_resource(
         move || (workspace.get().0, pagination_params_rws.get(), org.get().0),
-        |(current_tenant, pagination_params, org_id)| async move {
-            fetch_all(&pagination_params, current_tenant.to_string(), org_id)
+        |(workspace, pagination_params, org_id)| async move {
+            fetch_all(&pagination_params, &workspace, &org_id)
                 .await
                 .unwrap_or_default()
         },
