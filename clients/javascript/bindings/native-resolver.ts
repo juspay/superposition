@@ -349,7 +349,7 @@ export class NativeResolver {
         const errorBuffer = Buffer.alloc(ERROR_BUFFER_SIZE);
         errorBuffer.fill(0);
 
-        // Call the C function - koffi automatically converts the result from char* to string
+        // Call the C function
         const resultJson = this.lib.core_parse_toml_config(tomlContent, errorBuffer);
 
         // Check for errors
@@ -360,13 +360,24 @@ export class NativeResolver {
             throw new Error(`TOML parsing failed: ${errorMsg}`);
         }
 
+        // Decode the result to a JS string if it's not already a string
+        const configStr =
+            typeof resultJson === "string"
+                ? resultJson
+                : this.lib.decode(resultJson, "string");
+
+        // Free the native string if it wasn't already a string
+        if (typeof resultJson !== "string") {
+            this.lib.core_free_string(resultJson);
+        }
+
         // Parse the JSON result
         try {
-            const result = JSON.parse(resultJson);
+            const result = JSON.parse(configStr);
             return result;
         } catch (parseError) {
             console.error("Failed to parse TOML result:", parseError);
-            console.error("Raw result string:", resultJson);
+            console.error("Raw result string:", configStr);
             throw new Error(`Failed to parse TOML result: ${parseError}`);
         }
     }
