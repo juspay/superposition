@@ -57,20 +57,30 @@ where
 }
 
 #[component]
-pub fn gray_pill(
-    #[prop(into)] text: String,
+pub fn gray_pill<T: Display + Clone + 'static>(
+    #[prop(into)] data: T,
+    #[prop(optional_no_strip)] renderer: Option<Callback<T, View>>,
     #[prop(into, default = String::new())] icon_class: String,
     #[prop(default = true)] deletable: bool,
-    #[prop(into, default = Callback::new(move |_| () ))] on_delete: Callback<()>,
+    #[prop(into, default = Callback::new(move |_: T| () ))] on_delete: Callback<T>,
 ) -> impl IntoView {
+    let data_st = StoredValue::new(data);
+
     view! {
         <div class="badge badge-sm !h-fit py-[1px] bg-gray-200 flex gap-1">
             {if !icon_class.is_empty() {
                 view! { <i class=icon_class.clone() /> }.into_view()
             } else {
                 ().into_view()
-            }} {text} <Show when=move || { deletable }>
-                <i class="ri-close-line cursor-pointer" on:click=move |_| { on_delete.call(()) } />
+            }}
+            {match renderer {
+                Some(renderer) => renderer.call(data_st.get_value()),
+                None => view! { <span>{data_st.get_value().to_string()}</span> }.into_view(),
+            }} <Show when=move || { deletable }>
+                <i
+                    class="ri-close-line cursor-pointer"
+                    on:click=move |_| { on_delete.call(data_st.get_value()) }
+                />
             </Show>
         </div>
     }
@@ -80,10 +90,11 @@ pub fn gray_pill(
 pub fn list_pills<T>(
     #[prop(into)] label: String,
     #[prop(into)] items: Vec<T>,
+    #[prop(optional)] pill_renderer: Option<Callback<T, View>>,
     #[prop(into)] on_delete: Callback<usize>,
 ) -> impl IntoView
 where
-    T: Display,
+    T: Display + Clone + 'static,
 {
     if items.is_empty() {
         return ().into_view();
@@ -96,12 +107,13 @@ where
             </div>
             <div class="flex gap-[2px] items-center flex-wrap">
                 {items
-                    .iter()
+                    .into_iter()
                     .enumerate()
                     .map(|(idx, item)| {
                         view! {
                             <GrayPill
-                                text=item.to_string()
+                                data=item
+                                renderer=pill_renderer
                                 on_delete=move |_| on_delete.call(idx)
                             />
                         }

@@ -7,6 +7,7 @@ use superposition_types::database::models::experimentation::{
     ExperimentStatusType, Variant, VariantType,
 };
 
+use crate::components::datetime::Datetime;
 use crate::components::{
     button::Button,
     table::{types::Column, Table},
@@ -53,7 +54,7 @@ fn experiment_info(experiment: StoredValue<ExperimentResponse>) -> impl IntoView
                 <div class="h-fit w-[300px]">
                     <div class="stat-title">Created at</div>
                     <div class="stat-value text-sm">
-                        {format!("{}", experiment.with_value(|v| v.created_at.format("%v %T")))}
+                        <Datetime datetime=experiment.with_value(|v| v.created_at) />
                     </div>
                 </div>
                 <div class="h-fit w-[300px]">
@@ -100,7 +101,7 @@ fn experiment_info(experiment: StoredValue<ExperimentResponse>) -> impl IntoView
                             <div class="h-fit w-[300px]">
                                 <div class="stat-title">Started at</div>
                                 <div class="stat-value text-sm">
-                                    {format!("{}", started_at.format("%v %T"))}
+                                    <Datetime datetime=started_at />
                                 </div>
                             </div>
                         }
@@ -116,7 +117,7 @@ fn experiment_info(experiment: StoredValue<ExperimentResponse>) -> impl IntoView
                 <div class="h-fit w-[300px]">
                     <div class="stat-title">Last Modified at</div>
                     <div class="stat-value text-sm">
-                        {format!("{}", experiment.with_value(|v| v.last_modified.format("%v %T")))}
+                        <Datetime datetime=experiment.with_value(|v| v.last_modified) />
                     </div>
                 </div>
                 <div class="h-fit w-[300px]">

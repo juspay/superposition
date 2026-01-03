@@ -7,6 +7,7 @@ use superposition_types::database::models::others::Webhook;
 
 use crate::api::{delete_webhooks, get_webhook};
 use crate::components::badge::Badge;
+use crate::components::datetime::Datetime;
 use crate::components::description::ContentDescription;
 use crate::components::input::Toggle;
 use crate::components::{
@@ -76,7 +77,7 @@ fn webhook_info(webhook: Webhook) -> impl IntoView {
                                     <div class="h-fit w-[250px] flex gap-4">
                                         <div class="stat-title">"Last Triggered At"</div>
                                         <div class="stat-value text-base">
-                                            {last_triggered_at.format("%v %T").to_string()}
+                                            <Datetime datetime=last_triggered_at />
                                         </div>
                                     </div>
                                 }

@@ -19,7 +19,6 @@ use superposition_types::{
 };
 use types::PageParams;
 
-use crate::api::fetch_function;
 use crate::components::{
     button::Button,
     description::ContentDescription,
@@ -31,6 +30,7 @@ use crate::query_updater::{
 };
 use crate::types::{OrganisationId, Workspace};
 use crate::utils::to_title_case;
+use crate::{api::fetch_function, components::datetime::Datetime};
 
 fn stage_to_action(stage: Stage) -> String {
     match stage {
@@ -77,7 +77,7 @@ fn function_code_info(
                             <div class="h-fit w-[250px]">
                                 <div class="stat-title">{format!("{action_type} At")}</div>
                                 <div class="stat-value text-sm">
-                                    {time.format("%v %T").to_string()}
+                                    <Datetime datetime=time />
                                 </div>
                             </div>
                         }

@@ -235,8 +235,9 @@ pub fn default_config_form(
                             .map(|p| {
                                 view! {
                                     <GrayPill
-                                        text=p
+                                        data=p
                                         deletable=false
+                                        on_delete=Callback::new(|_: String| {})
                                         icon_class="ri-map-pin-2-fill"
                                     />
                                 }

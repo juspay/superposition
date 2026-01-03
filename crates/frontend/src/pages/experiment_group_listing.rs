@@ -27,14 +27,15 @@ use crate::{
     },
     components::{
         condition_pills::Condition as ConditionComponent,
+        datetime::DatetimeStr,
         drawer::{close_drawer, Drawer, DrawerBtn},
         experiment_group_form::{ChangeLogSummary, ChangeType, ExperimentGroupForm},
         skeleton::Skeleton,
         stat::Stat,
         table::{
             types::{
-                default_column_formatter, default_formatter, Column, ColumnSortable,
-                Expandable, TablePaginationProps,
+                default_column_formatter, Column, ColumnSortable, Expandable,
+                TablePaginationProps,
             },
             Table,
         },
@@ -175,8 +176,14 @@ fn table_columns(filters_rws: RwSignal<ExpGroupFilters>) -> Vec<Column> {
             },
         ),
         Column::default("group_type".to_string()),
-        Column::default_with_sort(
+        Column::new(
             "created_at".to_string(),
+            false,
+            |value, _| {
+                view! {
+                    <DatetimeStr datetime=value.into() />
+                }
+            },
             ColumnSortable::Yes {
                 sort_fn: Callback::new(move |_| {
                     let filters = filters_rws.get();
@@ -191,12 +198,18 @@ fn table_columns(filters_rws: RwSignal<ExpGroupFilters>) -> Vec<Column> {
                 sort_by: current_sort_by.clone(),
                 currently_sorted: current_sort_on == SortOn::CreatedAt,
             },
+            Expandable::Enabled(100),
+            default_column_formatter,
         ),
         Column::default("created_by".to_string()),
         Column::new(
             "last_modified_at".to_string(),
             false,
-            default_formatter,
+            |value, _| {
+                view! {
+                    <DatetimeStr datetime=value.into() />
+                }
+            },
             ColumnSortable::Yes {
                 sort_fn: Callback::new(move |_| {
                     let filters = filters_rws.get();
@@ -338,23 +351,7 @@ pub fn experiment_group_listing() -> impl IntoView {
                                         .experiment_groups
                                         .data
                                         .iter()
-                                        .map(|ele| {
-                                            let mut ele_map = json!(ele)
-                                                .as_object()
-                                                .unwrap()
-                                                .to_owned();
-                                            ele_map
-                                                .insert(
-                                                    "created_at".to_string(),
-                                                    json!(ele.created_at.format("%v %T").to_string()),
-                                                );
-                                            ele_map
-                                                .insert(
-                                                    "last_modified_at".to_string(),
-                                                    json!(ele.last_modified_at.format("%v %T").to_string()),
-                                                );
-                                            ele_map
-                                        })
+                                        .map(|ele| json!(ele).as_object().unwrap().to_owned())
                                         .collect::<Vec<Map<String, Value>>>()
                                         .to_owned();
                                     let pagination_props = TablePaginationProps {

@@ -11,6 +11,7 @@ use superposition_types::{
 };
 
 use crate::api::variables;
+use crate::components::datetime::DatetimeStr;
 use crate::components::{
     button::Button,
     drawer::PortalDrawer,
@@ -85,8 +86,14 @@ fn variable_table_columns(
             |_| default_column_formatter("Variable Name"),
         ),
         Column::default("value".to_string()),
-        Column::default_with_sort(
+        Column::new(
             "created_at".to_string(),
+            false,
+            |value, _| {
+                view! {
+                    <DatetimeStr datetime=value.into() />
+                }
+            },
             ColumnSortable::Yes {
                 sort_fn: Callback::new(move |_| {
                     let filters = filters_rws.get();
@@ -107,9 +114,17 @@ fn variable_table_columns(
                 sort_by: current_sort_by.clone(),
                 currently_sorted: current_sort_on == SortOn::CreatedAt,
             },
+            Expandable::Enabled(100),
+            default_column_formatter,
         ),
-        Column::default_with_sort(
+        Column::new(
             "last_modified_at".to_string(),
+            false,
+            |value, _| {
+                view! {
+                    <DatetimeStr datetime=value.into() />
+                }
+            },
             ColumnSortable::Yes {
                 sort_fn: Callback::new(move |_| {
                     let filters = filters_rws.get();
@@ -130,6 +145,8 @@ fn variable_table_columns(
                 sort_by: current_sort_by.clone(),
                 currently_sorted: current_sort_on == SortOn::LastModifiedAt,
             },
+            Expandable::Enabled(100),
+            |_| default_column_formatter("Modified At"),
         ),
     ]
 }
@@ -182,20 +199,7 @@ pub fn variables_list() -> impl IntoView {
                 let table_rows = variables
                     .data
                     .into_iter()
-                    .map(|var| {
-                        let mut ele_map = json!(var).as_object().unwrap().to_owned();
-                        ele_map
-                            .insert(
-                                "created_at".to_string(),
-                                Value::String(var.created_at.format("%v %T").to_string()),
-                            );
-                        ele_map
-                            .insert(
-                                "last_modified_at".to_string(),
-                                Value::String(var.last_modified_at.format("%v %T").to_string()),
-                            );
-                        ele_map
-                    })
+                    .map(|var| json!(var).as_object().unwrap().to_owned())
                     .collect::<Vec<Map<String, Value>>>();
                 let total_variables = variables.total_items.to_string();
                 let pagination_params = pagination_params_rws.get();
