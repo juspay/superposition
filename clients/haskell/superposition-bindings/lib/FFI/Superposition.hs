@@ -124,6 +124,7 @@ parseTomlConfig tomlContent = do
   let peekMaybe p | p /= nullPtr = Just <$> peekCAString p
                   | otherwise = pure Nothing
   result <- peekMaybe res
+  when (res /= nullPtr) (free res)
   free tomlStr
   free ebuf
   pure $ case (result, err) of
