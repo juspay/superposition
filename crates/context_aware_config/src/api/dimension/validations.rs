@@ -248,8 +248,9 @@ pub fn validate_cohort_schema(
         return Err(validation_error!(
             "Please specify a valid dimension that this cohort can derive from. Refer our API docs for examples",
         ));
-    } // Use shared validation from superposition_core for cohort schema structure
-    //
+    }
+
+    // Use shared validation from superposition_core for cohort schema structure
     validate_cohort_schema_structure(cohort_schema).map_err(|errors| {
         validation_error!(
             "schema validation failed: {}",
@@ -271,13 +272,7 @@ pub fn validate_cohort_schema(
         }
         Value::Object(logic) => {
             let cohort_options = logic.keys();
-            if cohort_options.len() != enum_options.len() - 1 {
-                return Err(validation_error!(
-                    "The definition of the cohort and the enum options do not match. Some enum options do not have a definition, found {} cohorts and {} enum options (not including otherwise)",
-                    cohort_options.len(),
-                    enum_options.len() - 1
-                ));
-            }
+
             for cohort in cohort_options {
                 if !enum_options.contains(cohort) {
                     return Err(validation_error!(
