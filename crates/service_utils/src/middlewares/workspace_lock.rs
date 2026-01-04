@@ -172,17 +172,66 @@ fn compute_lock_keys(org_id: &str, workspace_id: &str) -> (i32, i32) {
     (org_hash, workspace_hash)
 }
 
-/// Acquire PostgreSQL advisory lock using two-argument form
+/// Acquire PostgreSQL advisory lock using two-argument form with retry logic
+/// Uses pg_try_advisory_lock() with exponential backoff to avoid indefinite blocking
 fn acquire_advisory_lock(
     conn: &mut PgConnection,
     org_key: i32,
     workspace_key: i32,
 ) -> Result<(), diesel::result::Error> {
-    diesel::sql_query("SELECT pg_advisory_lock($1, $2)")
-        .bind::<diesel::sql_types::Integer, _>(org_key)
-        .bind::<diesel::sql_types::Integer, _>(workspace_key)
-        .execute(conn)?;
-    Ok(())
+    const MAX_RETRIES: u32 = 10;
+    const INITIAL_BACKOFF_MS: u64 = 10;
+    const MAX_BACKOFF_MS: u64 = 500;
+
+    for attempt in 0..MAX_RETRIES {
+        // Try to acquire the lock (non-blocking)
+        let lock_acquired: bool = diesel::sql_query(
+            "SELECT pg_try_advisory_lock($1, $2) as locked"
+        )
+            .bind::<diesel::sql_types::Integer, _>(org_key)
+            .bind::<diesel::sql_types::Integer, _>(workspace_key)
+            .get_result::<LockResult>(conn)?
+            .locked;
+
+        if lock_acquired {
+            if attempt > 0 {
+                log::info!(
+                    "acquired advisory lock after {} attempts (org_key: {}, workspace_key: {})",
+                    attempt + 1, org_key, workspace_key
+                );
+            }
+            return Ok(());
+        }
+
+        // Lock not acquired, wait before retrying
+        if attempt < MAX_RETRIES - 1 {
+            let backoff_ms = std::cmp::min(
+                INITIAL_BACKOFF_MS * 2_u64.pow(attempt),
+                MAX_BACKOFF_MS
+            );
+            log::debug!(
+                "lock contention detected, retrying in {}ms (attempt {}/{}, org_key: {}, workspace_key: {})",
+                backoff_ms, attempt + 1, MAX_RETRIES, org_key, workspace_key
+            );
+            std::thread::sleep(std::time::Duration::from_millis(backoff_ms));
+        }
+    }
+
+    // Failed to acquire lock after all retries
+    Err(diesel::result::Error::DatabaseError(
+        diesel::result::DatabaseErrorKind::Unknown,
+        Box::new(format!(
+            "Failed to acquire workspace lock after {} attempts (high contention)",
+            MAX_RETRIES
+        ))
+    ))
+}
+
+// Helper struct for deserializing pg_try_advisory_lock result
+#[derive(QueryableByName)]
+struct LockResult {
+    #[diesel(sql_type = diesel::sql_types::Bool)]
+    locked: bool,
 }
 
 /// Release PostgreSQL advisory lock using two-argument form
