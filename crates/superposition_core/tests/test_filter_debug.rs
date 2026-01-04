@@ -1,9 +1,10 @@
+use serde_json::Map;
 use superposition_core::parse_toml_config;
 use superposition_core::serialize_to_toml;
 use superposition_types::Config;
-use serde_json::Map;
 
 #[test]
+#[cfg(not(feature = "jsonlogic"))]
 fn test_filter_by_dimensions_debug() {
     let toml = r#"
 [default-config]
@@ -23,9 +24,16 @@ timeout = 90
     println!("\n=== Before filter ===");
     println!("Contexts count: {}", config.contexts.len());
     for ctx in &config.contexts {
-        println!("  - Context id: {}, override_key: {}", ctx.id, ctx.override_with_keys.get_key());
+        println!(
+            "  - Context id: {}, override_key: {}",
+            ctx.id,
+            ctx.override_with_keys.get_key()
+        );
     }
-    println!("Overrides keys: {:?}", config.overrides.keys().collect::<Vec<_>>());
+    println!(
+        "Overrides keys: {:?}",
+        config.overrides.keys().collect::<Vec<_>>()
+    );
 
     // Simulate what API does - filter by empty dimension data
     let empty_dimensions: Map<String, serde_json::Value> = Map::new();
@@ -34,11 +42,19 @@ timeout = 90
     println!("\n=== After filter (empty dimensions) ===");
     println!("Contexts count: {}", filtered_config.contexts.len());
     for ctx in &filtered_config.contexts {
-        println!("  - Context id: {}, override_key: {}", ctx.id, ctx.override_with_keys.get_key());
+        println!(
+            "  - Context id: {}, override_key: {}",
+            ctx.id,
+            ctx.override_with_keys.get_key()
+        );
     }
-    println!("Overrides keys: {:?}", filtered_config.overrides.keys().collect::<Vec<_>>());
+    println!(
+        "Overrides keys: {:?}",
+        filtered_config.overrides.keys().collect::<Vec<_>>()
+    );
 
     println!("\n=== Serialized output ===");
     let serialized = serialize_to_toml(&filtered_config).unwrap();
     println!("{}", serialized);
 }
+
