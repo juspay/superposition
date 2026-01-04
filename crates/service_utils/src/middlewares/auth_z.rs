@@ -1,5 +1,5 @@
 mod authorization;
-// mod casbin;
+mod casbin;
 mod no_auth;
 
 use std::{
@@ -13,7 +13,8 @@ use actix_web::{
 };
 use authorization::Authorizer;
 use aws_sdk_kms::Client;
-// use casbin::CasbinPolicyEngine;
+use casbin::CasbinPolicyEngine;
+use derive_more::Deref;
 use futures_util::future::LocalBoxFuture;
 use no_auth::NoAuth;
 use superposition_macros::{forbidden, unexpected_error};
@@ -122,7 +123,6 @@ impl<A: Action> FromRequest for AuthZ<A> {
 
         Box::pin(async move {
             let is_allowed = auth_z_handler
-                .0
                 .is_allowed(&(org_id, schema_name), &user, &resource, &A::get(), None)
                 .await;
 
@@ -162,7 +162,7 @@ where
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Deref)]
 pub struct AuthZHandler(Arc<dyn Authorizer>);
 
 fn get_auth_z_provider() -> String {
@@ -170,17 +170,35 @@ fn get_auth_z_provider() -> String {
 }
 
 impl AuthZHandler {
-    pub async fn init(_kms_client: &Option<Client>, _app_env: &AppEnv) -> Self {
+    pub async fn init(kms_client: &Option<Client>, app_env: &AppEnv) -> Self {
         let ap: Arc<dyn Authorizer> = match get_auth_z_provider().as_str() {
-            // "CASBIN" => Arc::new(
-            //     CasbinPolicyEngine::new(kms_client, app_env, None)
-            //         .await
-            //         .unwrap(),
-            // ),
+            "CASBIN" => Arc::new(
+                CasbinPolicyEngine::new(kms_client, app_env, None)
+                    .await
+                    .unwrap(),
+            ),
             "DISABLED" => Arc::new(NoAuth),
             _ => panic!("Missing/Unknown authorizer."),
         };
         Self(ap)
+    }
+}
+
+impl FromRequest for AuthZHandler {
+    type Error = superposition::AppError;
+    type Future = Ready<Result<Self, Self::Error>>;
+
+    fn from_request(
+        req: &actix_web::HttpRequest,
+        _: &mut actix_web::dev::Payload,
+    ) -> Self::Future {
+        let result = req
+            .extensions()
+            .get::<Self>()
+            .cloned()
+            .ok_or_else(|| unexpected_error!("AuthZHandler not found"));
+
+        ready(result)
     }
 }
 
@@ -206,17 +224,17 @@ where
 #[derive(Clone)]
 pub enum AuthZManager {
     NoAuth,
-    // Casbin(Arc<CasbinPolicyEngine>),
+    Casbin(Arc<CasbinPolicyEngine>),
 }
 
 impl AuthZManager {
-    pub async fn init(_kms_client: &Option<Client>, _app_env: &AppEnv) -> Self {
+    pub async fn init(kms_client: &Option<Client>, app_env: &AppEnv) -> Self {
         match get_auth_z_provider().as_str() {
-            // "CASBIN" => Self::Casbin(Arc::new(
-            //     CasbinPolicyEngine::management(&kms_client, &app_env)
-            //         .await
-            //         .expect("Failed to initialize Casbin policy engine"),
-            // )),
+            "CASBIN" => Self::Casbin(Arc::new(
+                CasbinPolicyEngine::management(&kms_client, &app_env)
+                    .await
+                    .expect("Failed to initialize Casbin policy engine"),
+            )),
             "DISABLED" => Self::NoAuth,
             _ => panic!("Missing/Unknown authorizer."),
         }
@@ -224,19 +242,19 @@ impl AuthZManager {
 
     pub fn endpoints(&self) -> actix_web::Scope {
         match self {
-            // AuthZManager::Casbin(_) => casbin::endpoints(),
+            AuthZManager::Casbin(_) => casbin::endpoints(),
             AuthZManager::NoAuth => Scope::new(""),
         }
     }
 
-    // pub(self) fn try_get_casbin_policy_engine(
-    //     &self,
-    // ) -> superposition::Result<Arc<CasbinPolicyEngine>> {
-    //     match self {
-    //         AuthZManager::Casbin(engine) => Ok(engine.clone()),
-    //         AuthZManager::NoAuth => {
-    //             Err(unexpected_error!("CasbinPolicyEngine not found."))
-    //         }
-    //     }
-    // }
+    pub(self) fn try_get_casbin_policy_engine(
+        &self,
+    ) -> superposition::Result<Arc<CasbinPolicyEngine>> {
+        match self {
+            AuthZManager::Casbin(engine) => Ok(engine.clone()),
+            AuthZManager::NoAuth => {
+                Err(unexpected_error!("CasbinPolicyEngine not found."))
+            }
+        }
+    }
 }

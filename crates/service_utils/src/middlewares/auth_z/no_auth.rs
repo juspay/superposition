@@ -18,4 +18,8 @@ impl Authorizer for NoAuth {
     ) -> LocalBoxFuture<'_, Result<bool, String>> {
         Box::pin(async { Ok(true) })
     }
+
+    fn on_org_creation(&self, _: &str) -> LocalBoxFuture<'_, Result<bool, String>> {
+        Box::pin(async { Ok(true) })
+    }
 }

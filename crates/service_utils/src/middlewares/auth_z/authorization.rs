@@ -4,11 +4,10 @@ use superposition_types::User;
 use crate::service::types::{OrganisationId, Resource, SchemaName};
 
 pub trait Authorizer: Sync + Send {
-    // fn grant_access_to_admin(
-    //     &self,
-    //     workspace_context: &(OrganisationId, SchemaName),
-    //     admin_email: &str,
-    // ) -> LocalBoxFuture<'_, Result<bool, String>>;
+    fn on_org_creation(
+        &self,
+        organisation_id: &str,
+    ) -> LocalBoxFuture<'_, Result<bool, String>>;
 
     fn is_allowed(
         &self,

@@ -5,8 +5,9 @@ use actix_web::{
 use chrono::Utc;
 use diesel::prelude::*;
 use idgenerator::IdInstance;
-use service_utils::service::types::DbConnection;
+use service_utils::{middlewares::auth_z::AuthZHandler, service::types::DbConnection};
 use superposition_derives::authorized;
+use superposition_macros::unexpected_error;
 use superposition_types::{
     PaginatedResponse, User,
     api::organisation::{CreateRequest, UpdateRequest},
@@ -34,6 +35,7 @@ pub async fn create_handler(
     request: Json<CreateRequest>,
     db_conn: DbConnection,
     user: User,
+    authz_handler: AuthZHandler,
 ) -> superposition::Result<Json<Organisation>> {
     let DbConnection(mut conn) = db_conn;
 
@@ -58,9 +60,15 @@ pub async fn create_handler(
         updated_by: user.get_username(),
     };
 
-    let new_org = diesel::insert_into(organisations::table)
+    let new_org: Organisation = diesel::insert_into(organisations::table)
         .values(&new_org)
         .get_result(&mut conn)?;
+
+    // Notify the AuthZHandler about the new organisation creation
+    authz_handler
+        .on_org_creation(&new_org.id)
+        .await
+        .map_err(|e| unexpected_error!("Failed to notify AuthZHandler: {}", e))?;
 
     Ok(Json(new_org))
 }

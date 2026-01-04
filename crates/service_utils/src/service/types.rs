@@ -97,9 +97,11 @@ pub enum Resource {
 
 impl Resource {
     pub fn workspace_for(&self, workspace_context: &WorkspaceContext) -> String {
-        matches!(self, Self::Workspace | Self::Auth)
-            .then_some(workspace_context.organisation_id.0.clone())
-            .unwrap_or_else(|| workspace_context.schema_name.0.clone())
+        match self {
+            Self::Organisation => "*".to_string(),
+            Self::Workspace => workspace_context.organisation_id.to_string(),
+            _ => workspace_context.schema_name.to_string(),
+        }
     }
 }
 
