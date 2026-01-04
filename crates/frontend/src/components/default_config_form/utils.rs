@@ -13,8 +13,6 @@ use crate::utils::{
 
 #[allow(clippy::too_many_arguments)]
 pub async fn create_default_config(
-    tenant: String,
-    org_id: String,
     key: String,
     value: Value,
     schema: Value,
@@ -22,6 +20,8 @@ pub async fn create_default_config(
     value_compute_function_name: Option<String>,
     description: String,
     change_reason: String,
+    workspace: &str,
+    org_id: &str,
 ) -> Result<serde_json::Value, String> {
     let payload = DefaultConfigCreateRequest {
         key: DefaultConfigKey::try_from(key)?,
@@ -39,7 +39,7 @@ pub async fn create_default_config(
         url,
         reqwest::Method::POST,
         Some(payload),
-        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 
@@ -67,7 +67,7 @@ pub fn try_update_payload(
 pub async fn update_default_config(
     key: String,
     update_payload: DefaultConfigUpdateRequest,
-    tenant: &str,
+    workspace: &str,
     org_id: &str,
 ) -> Result<serde_json::Value, String> {
     let host = use_host_server();
@@ -77,7 +77,7 @@ pub async fn update_default_config(
         url,
         reqwest::Method::PATCH,
         Some(update_payload),
-        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 

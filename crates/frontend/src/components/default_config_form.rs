@@ -39,7 +39,7 @@ use crate::{
 };
 use crate::{
     providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider},
-    types::{OrganisationId, Tenant},
+    types::{OrganisationId, Workspace},
 };
 
 use self::utils::{create_default_config, update_default_config};
@@ -68,7 +68,7 @@ pub fn default_config_form(
     #[prop(default = String::new())] description: String,
     #[prop(into)] handle_submit: Callback<()>,
 ) -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let (config_key_rs, config_key_ws) = create_signal(
@@ -168,8 +168,6 @@ pub fn default_config_form(
                     }
                 }
                 _ => create_default_config(
-                    workspace.0,
-                    org.0,
                     config_key_rs.get_untracked(),
                     f_value,
                     f_schema,
@@ -177,6 +175,8 @@ pub fn default_config_form(
                     value_compute_fn,
                     description,
                     change_reason,
+                    &workspace,
+                    &org,
                 )
                 .await
                 .map(|_| ResponseType::Response),
@@ -539,7 +539,7 @@ pub fn change_log_summary(
     #[prop(into)] on_close: Callback<()>,
     #[prop(into, default = Signal::derive(|| false))] inprogress: Signal<bool>,
 ) -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let default_config = create_local_resource(

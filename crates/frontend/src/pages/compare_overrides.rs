@@ -35,7 +35,7 @@ use crate::{
         condition_collapse_provider::ConditionCollapseProvider,
     },
     query_updater::{use_param_updater, use_signal_from_query, use_update_url_query},
-    types::{OrganisationId, Tenant},
+    types::{OrganisationId, Workspace},
     utils::url_or_string,
 };
 
@@ -106,7 +106,7 @@ fn table_columns(
 #[component]
 pub fn compare_overrides() -> impl IntoView {
     let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let (context_rs, context_ws) = create_signal::<Conditions>(Conditions::default());
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
@@ -137,13 +137,14 @@ pub fn compare_overrides() -> impl IntoView {
     );
 
     let source = move || {
-        let tenant = workspace.get().0;
+        let workspace = workspace.get().0;
         let org_id = org.get().0;
         let contexts = context_vec_rws.get();
-        (tenant, org_id, contexts)
+        (workspace, org_id, contexts)
     };
-    let resolved_config_resource =
-        create_blocking_resource(source, |(tenant, org_id, mut contexts)| async move {
+    let resolved_config_resource = create_blocking_resource(
+        source,
+        |(workspace, org_id, mut contexts)| async move {
             contexts.insert(DEFAULT_CONFIG_COLUMN.to_string(), Map::new());
             let mut contexts_config_vector_map: ComparisonTable = HashMap::new();
             for (context_key, context) in contexts.iter() {
@@ -151,7 +152,7 @@ pub fn compare_overrides() -> impl IntoView {
                 match resolve_config(
                     &context,
                     &ResolveConfigQuery::default(),
-                    &tenant,
+                    &workspace,
                     &org_id,
                 )
                 .await
@@ -189,7 +190,8 @@ pub fn compare_overrides() -> impl IntoView {
                 key_a.to_lowercase().cmp(&key_b.to_lowercase())
             });
             resolved_config_map
-        });
+        },
+    );
 
     let fn_environment = Memo::new(move |_| FunctionEnvironment {
         context: context_rs.get().as_context_json(),

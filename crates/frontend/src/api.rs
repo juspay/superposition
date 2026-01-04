@@ -40,7 +40,7 @@ use crate::utils::{
 pub async fn fetch_default_config(
     pagination: &PaginationParams,
     filters: &DefaultConfigFilters,
-    tenant: &str,
+    workspace: &str,
     org_id: &str,
 ) -> Result<PaginatedResponse<DefaultConfig>, String> {
     let host = use_host_server();
@@ -55,7 +55,7 @@ pub async fn fetch_default_config(
         url,
         reqwest::Method::GET,
         None::<()>,
-        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 
@@ -71,7 +71,7 @@ pub mod snapshots {
 
     pub async fn fetch_all(
         filters: &PaginationParams,
-        tenant: &str,
+        workspace: &str,
         org_id: &str,
     ) -> Result<PaginatedResponse<ConfigVersionListItem>, String> {
         let host = use_host_server();
@@ -81,7 +81,10 @@ pub mod snapshots {
             url,
             reqwest::Method::GET,
             None::<()>,
-            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
         )
         .await?;
 
@@ -90,7 +93,7 @@ pub mod snapshots {
 
     pub async fn fetch(
         id: &str,
-        tenant: &str,
+        workspace: &str,
         org_id: &str,
     ) -> Result<ConfigVersion, String> {
         let host = use_host_server();
@@ -100,7 +103,10 @@ pub mod snapshots {
             url,
             reqwest::Method::GET,
             None::<()>,
-            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
         )
         .await?;
 
@@ -119,7 +125,7 @@ pub mod dimensions {
 
     pub async fn fetch(
         filters: &PaginationParams,
-        tenant: &str,
+        workspace: &str,
         org_id: &str,
     ) -> Result<PaginatedResponse<DimensionResponse>, String> {
         let host = use_host_server();
@@ -129,7 +135,10 @@ pub mod dimensions {
             url,
             reqwest::Method::GET,
             None::<()>,
-            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
         )
         .await?;
 
@@ -138,7 +147,7 @@ pub mod dimensions {
 
     pub async fn get(
         name: &str,
-        tenant: &str,
+        workspace: &str,
         org_id: &str,
     ) -> Result<DimensionResponse, String> {
         let host = use_host_server();
@@ -148,7 +157,10 @@ pub mod dimensions {
             url,
             reqwest::Method::GET,
             None::<()>,
-            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
         )
         .await?;
 
@@ -164,9 +176,9 @@ pub mod dimensions {
         value_compute_function_name: Option<String>,
         description: String,
         change_reason: String,
-        tenant: String,
-        org_id: String,
         dimension_type: DimensionType,
+        workspace: &str,
+        org_id: &str,
     ) -> Result<DimensionResponse, String> {
         let payload = CreateRequest {
             dimension: DimensionName::try_from(dimension)?,
@@ -186,7 +198,10 @@ pub mod dimensions {
             url,
             reqwest::Method::POST,
             Some(payload),
-            construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
         )
         .await?;
 
@@ -194,10 +209,10 @@ pub mod dimensions {
     }
 
     pub async fn update(
-        tenant: String,
         dimension_name: String,
         payload: UpdateRequest,
-        org_id: String,
+        workspace: &str,
+        org_id: &str,
     ) -> Result<DimensionResponse, String> {
         let host = use_host_server();
         let url = format!("{host}/dimension/{dimension_name}");
@@ -206,7 +221,10 @@ pub mod dimensions {
             url,
             reqwest::Method::PATCH,
             Some(payload),
-            construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
         )
         .await?;
 
@@ -215,8 +233,8 @@ pub mod dimensions {
 
     pub async fn delete(
         name: String,
-        tenant: String,
-        org_id: String,
+        workspace: &str,
+        org_id: &str,
     ) -> Result<(), String> {
         let host = use_host_server();
         let url = format!("{host}/dimension/{name}");
@@ -225,7 +243,10 @@ pub mod dimensions {
             url,
             reqwest::Method::DELETE,
             None::<()>,
-            construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
         )
         .await?;
 
@@ -235,7 +256,7 @@ pub mod dimensions {
 
 pub async fn delete_context(
     context_id: String,
-    tenant: &str,
+    workspace: &str,
     org_id: &str,
 ) -> Result<(), String> {
     let host = use_host_server();
@@ -245,7 +266,7 @@ pub async fn delete_context(
         url,
         reqwest::Method::DELETE,
         None::<()>,
-        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 
@@ -256,7 +277,7 @@ pub async fn fetch_experiments(
     filters: &ExperimentListFilters,
     pagination: &PaginationParams,
     dimension_params: &DimensionQuery<QueryMap>,
-    tenant: &str,
+    workspace: &str,
     org_id: &str,
 ) -> Result<PaginatedResponse<ExperimentResponse>, String> {
     let host = use_host_server();
@@ -272,7 +293,7 @@ pub async fn fetch_experiments(
         url,
         reqwest::Method::GET,
         None::<()>,
-        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 
@@ -282,7 +303,7 @@ pub async fn fetch_experiments(
 pub async fn fetch_functions(
     pagination: &PaginationParams,
     filters: &ListFunctionFilters,
-    tenant: &str,
+    workspace: &str,
     org_id: &str,
 ) -> Result<PaginatedResponse<Function>, String> {
     let host = use_host_server();
@@ -297,7 +318,7 @@ pub async fn fetch_functions(
         url,
         reqwest::Method::GET,
         None::<()>,
-        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 
@@ -306,7 +327,7 @@ pub async fn fetch_functions(
 
 pub async fn fetch_function(
     function_name: String,
-    tenant: &str,
+    workspace: &str,
     org_id: &str,
 ) -> Result<Function, String> {
     let host = use_host_server();
@@ -316,7 +337,7 @@ pub async fn fetch_function(
         url,
         reqwest::Method::GET,
         None::<()>,
-        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 
@@ -327,7 +348,7 @@ pub async fn fetch_function(
 pub async fn fetch_config(
     context: &DimensionQuery<QueryMap>,
     config_params: &ConfigQuery,
-    tenant: &str,
+    workspace: &str,
     org_id: &str,
 ) -> Result<Config, String> {
     let host = use_host_server();
@@ -341,7 +362,7 @@ pub async fn fetch_config(
         url,
         reqwest::Method::GET,
         None::<()>,
-        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 
@@ -349,11 +370,11 @@ pub async fn fetch_config(
 }
 
 pub async fn fetch_context(
-    tenant: &str,
-    org_id: &str,
     pagination: &PaginationParams,
     context_filters: &ContextListFilters,
     dimension_params: &DimensionQuery<QueryMap>,
+    workspace: &str,
+    org_id: &str,
 ) -> Result<PaginatedResponse<Context>, String> {
     let host = use_host_server();
     let url = format!(
@@ -367,7 +388,7 @@ pub async fn fetch_context(
         url,
         reqwest::Method::GET,
         None::<()>,
-        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 
@@ -377,7 +398,7 @@ pub async fn fetch_context(
 // #[server(GetExperiment, "/fxn", "GetJson")]
 pub async fn fetch_experiment(
     exp_id: String,
-    tenant: &str,
+    workspace: &str,
     org_id: &str,
 ) -> Result<ExperimentResponse, String> {
     let host = use_host_server();
@@ -387,7 +408,7 @@ pub async fn fetch_experiment(
         url,
         reqwest::Method::GET,
         None::<()>,
-        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 
@@ -396,8 +417,8 @@ pub async fn fetch_experiment(
 
 pub async fn delete_default_config(
     key: String,
-    tenant: String,
-    org_id: String,
+    workspace: &str,
+    org_id: &str,
 ) -> Result<(), String> {
     let host = use_host_server();
     let url = format!("{host}/default-config/{key}");
@@ -406,7 +427,7 @@ pub async fn delete_default_config(
         url,
         reqwest::Method::DELETE,
         None::<()>,
-        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 
@@ -425,7 +446,7 @@ pub async fn fetch_organisations() -> Result<Vec<String>, String> {
 
 pub async fn fetch_types(
     filters: &PaginationParams,
-    tenant: &str,
+    workspace: &str,
     org_id: &str,
 ) -> Result<PaginatedResponse<TypeTemplate>, String> {
     let host = use_host_server();
@@ -435,7 +456,7 @@ pub async fn fetch_types(
         url,
         reqwest::Method::GET,
         None,
-        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 
@@ -540,8 +561,8 @@ pub async fn create_webhook(
     custom_headers: CustomHeaders,
     events: Vec<WebhookEvent>,
     change_reason: String,
-    tenant: String,
-    org_id: String,
+    workspace: &str,
+    org_id: &str,
 ) -> Result<Webhook, String> {
     let payload = CreateWebhookRequest {
         name: WebhookName::try_from(name)?,
@@ -561,7 +582,7 @@ pub async fn create_webhook(
         url,
         reqwest::Method::POST,
         Some(payload),
-        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 
@@ -571,8 +592,8 @@ pub async fn create_webhook(
 pub async fn update_webhook(
     webhook_name: String,
     payload: UpdateWebhookRequest,
-    tenant: String,
-    org_id: String,
+    workspace: &str,
+    org_id: &str,
 ) -> Result<Webhook, String> {
     let host = use_host_server();
     let url = format!("{host}/webhook/{webhook_name}");
@@ -581,7 +602,7 @@ pub async fn update_webhook(
         url,
         reqwest::Method::PATCH,
         Some(payload),
-        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 
@@ -590,7 +611,7 @@ pub async fn update_webhook(
 
 pub async fn fetch_webhooks(
     filters: &PaginationParams,
-    tenant: &str,
+    workspace: &str,
     org_id: &str,
 ) -> Result<PaginatedResponse<Webhook>, String> {
     let host = use_host_server();
@@ -600,7 +621,7 @@ pub async fn fetch_webhooks(
         url,
         reqwest::Method::GET,
         None::<()>,
-        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 
@@ -609,8 +630,8 @@ pub async fn fetch_webhooks(
 
 pub async fn delete_webhooks(
     name: String,
-    tenant: String,
-    org_id: String,
+    workspace: &str,
+    org_id: &str,
 ) -> Result<(), String> {
     let host = use_host_server();
     let url = format!("{host}/webhook/{name}");
@@ -619,7 +640,7 @@ pub async fn delete_webhooks(
         url,
         reqwest::Method::DELETE,
         None::<()>,
-        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 
@@ -629,7 +650,7 @@ pub async fn delete_webhooks(
 pub async fn resolve_config(
     context: &DimensionQuery<QueryMap>,
     resolve_params: &ResolveConfigQuery,
-    tenant: &str,
+    workspace: &str,
     org_id: &str,
 ) -> Result<Map<String, Value>, String> {
     let host = use_host_server();
@@ -643,7 +664,7 @@ pub async fn resolve_config(
         url,
         reqwest::Method::GET,
         None::<()>,
-        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 
@@ -653,7 +674,7 @@ pub async fn resolve_config(
 pub async fn pause_experiment(
     exp_id: &str,
     change_reason: String,
-    tenant: &str,
+    workspace: &str,
     org_id: &str,
 ) -> Result<ExperimentResponse, String> {
     let payload = ExperimentStateChangeRequest {
@@ -667,7 +688,7 @@ pub async fn pause_experiment(
         url,
         reqwest::Method::PATCH,
         Some(payload),
-        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 
@@ -677,7 +698,7 @@ pub async fn pause_experiment(
 pub async fn resume_experiment(
     exp_id: &str,
     change_reason: String,
-    tenant: &str,
+    workspace: &str,
     org_id: &str,
 ) -> Result<ExperimentResponse, String> {
     let payload = ExperimentStateChangeRequest {
@@ -691,7 +712,7 @@ pub async fn resume_experiment(
         url,
         reqwest::Method::PATCH,
         Some(payload),
-        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 
@@ -701,7 +722,7 @@ pub async fn resume_experiment(
 pub async fn discard_experiment(
     exp_id: &str,
     change_reason: String,
-    tenant: &str,
+    workspace: &str,
     org_id: &str,
 ) -> Result<ExperimentResponse, String> {
     let payload = ExperimentStateChangeRequest {
@@ -715,7 +736,7 @@ pub async fn discard_experiment(
         url,
         reqwest::Method::PATCH,
         Some(payload),
-        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 
@@ -724,7 +745,7 @@ pub async fn discard_experiment(
 
 pub async fn get_context(
     context_id: &str,
-    tenant: &str,
+    workspace: &str,
     org_id: &str,
 ) -> Result<Context, String> {
     let host = use_host_server();
@@ -734,7 +755,7 @@ pub async fn get_context(
         url,
         reqwest::Method::GET,
         None::<()>,
-        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 
@@ -743,7 +764,7 @@ pub async fn get_context(
 
 pub async fn get_context_from_condition(
     condition: &Map<String, Value>,
-    tenant: &str,
+    workspace: &str,
     org_id: &str,
 ) -> Result<Context, String> {
     let host = use_host_server();
@@ -753,7 +774,7 @@ pub async fn get_context_from_condition(
         url,
         reqwest::Method::POST,
         Some(condition),
-        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 
@@ -766,7 +787,7 @@ pub async fn execute_value_compute_function(
     r#type: KeyType,
     environment: FunctionEnvironment,
     fn_name: &str,
-    tenant: &str,
+    workspace: &str,
     org_id: &str,
 ) -> Result<Vec<String>, String> {
     let host = use_host_server();
@@ -781,7 +802,7 @@ pub async fn execute_value_compute_function(
         url,
         reqwest::Method::POST,
         Some(payload),
-        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 
@@ -804,7 +825,7 @@ pub async fn execute_value_compute_function(
 
 pub async fn get_default_config(
     key_name: &str,
-    tenant: &str,
+    workspace: &str,
     org_id: &str,
 ) -> Result<DefaultConfig, String> {
     let host = use_host_server();
@@ -814,7 +835,7 @@ pub async fn get_default_config(
         url,
         reqwest::Method::GET,
         None::<()>,
-        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 
@@ -823,7 +844,7 @@ pub async fn get_default_config(
 
 pub async fn get_type_template(
     name: &str,
-    tenant: &str,
+    workspace: &str,
     org_id: &str,
 ) -> Result<TypeTemplate, String> {
     let host = use_host_server();
@@ -833,7 +854,7 @@ pub async fn get_type_template(
         url,
         reqwest::Method::GET,
         None::<()>,
-        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 
@@ -842,7 +863,7 @@ pub async fn get_type_template(
 
 pub async fn get_webhook(
     name: &str,
-    tenant: &str,
+    workspace: &str,
     org_id: &str,
 ) -> Result<Webhook, String> {
     let host = use_host_server();
@@ -852,7 +873,7 @@ pub async fn get_webhook(
         url,
         reqwest::Method::GET,
         None::<()>,
-        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 
@@ -868,7 +889,7 @@ pub mod variables {
     pub async fn fetch(
         filters: &VariableFilters,
         pagination_params: &PaginationParams,
-        tenant: &str,
+        workspace: &str,
         org_id: &str,
     ) -> Result<PaginatedResponse<Variable>, String> {
         let host = use_host_server();
@@ -882,7 +903,10 @@ pub mod variables {
             url,
             reqwest::Method::GET,
             None::<()>,
-            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
         )
         .await?;
 
@@ -894,7 +918,7 @@ pub mod variables {
         value: String,
         description: String,
         change_reason: String,
-        tenant: &str,
+        workspace: &str,
         org_id: &str,
     ) -> Result<Variable, String> {
         let payload = CreateVariableRequest {
@@ -911,7 +935,10 @@ pub mod variables {
             url,
             reqwest::Method::POST,
             Some(payload),
-            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
         )
         .await?;
 
@@ -920,7 +947,7 @@ pub mod variables {
 
     pub async fn get(
         variable_name: &str,
-        tenant: &str,
+        workspace: &str,
         org_id: &str,
     ) -> Result<Variable, String> {
         let host = use_host_server();
@@ -930,7 +957,10 @@ pub mod variables {
             url,
             reqwest::Method::GET,
             None::<()>,
-            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
         )
         .await?;
 
@@ -940,7 +970,7 @@ pub mod variables {
     pub async fn update(
         variable_name: String,
         payload: UpdateVariableRequest,
-        tenant: &str,
+        workspace: &str,
         org_id: &str,
     ) -> Result<Variable, String> {
         let host = use_host_server();
@@ -950,7 +980,10 @@ pub mod variables {
             url,
             reqwest::Method::PATCH,
             Some(payload),
-            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
         )
         .await?;
 
@@ -959,7 +992,7 @@ pub mod variables {
 
     pub async fn delete(
         variable_name: String,
-        tenant: &str,
+        workspace: &str,
         org_id: &str,
     ) -> Result<(), String> {
         let host = use_host_server();
@@ -969,7 +1002,10 @@ pub mod variables {
             url,
             reqwest::Method::DELETE,
             None::<()>,
-            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
         )
         .await?;
 
@@ -989,7 +1025,7 @@ pub mod experiment_groups {
     pub async fn fetch_all(
         filters: &ExpGroupFilters,
         pagination: &PaginationParams,
-        tenant: &str,
+        workspace: &str,
         org_id: &str,
     ) -> Result<PaginatedResponse<ExperimentGroup>, String> {
         let host = use_host_server();
@@ -1004,7 +1040,10 @@ pub mod experiment_groups {
             url,
             reqwest::Method::GET,
             None,
-            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
         )
         .await?;
 
@@ -1013,14 +1052,16 @@ pub mod experiment_groups {
 
     pub async fn fetch(
         group_id: &str,
-        tenant: &str,
+        workspace: &str,
         org_id: &str,
     ) -> Result<ExperimentGroup, String> {
         let host = use_host_server();
         let url = format!("{}/experiment-groups/{}", host, group_id);
 
-        let headers =
-            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?;
+        let headers = construct_request_headers(&[
+            ("x-workspace", workspace),
+            ("x-org-id", org_id),
+        ])?;
 
         let response = request(url, reqwest::Method::GET, None::<()>, headers).await?;
 
@@ -1035,7 +1076,7 @@ pub mod experiment_groups {
         traffic_percentage: i32,
         member_experiment_ids: Option<Vec<i64>>,
         conditions: Conditions,
-        tenant: &str,
+        workspace: &str,
         org_id: &str,
     ) -> Result<ExperimentGroup, String> {
         let payload = ExpGroupCreateRequest {
@@ -1054,7 +1095,10 @@ pub mod experiment_groups {
             url,
             reqwest::Method::POST,
             Some(payload),
-            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
         )
         .await?;
 
@@ -1076,7 +1120,7 @@ pub mod experiment_groups {
     pub async fn update(
         group_id: &str,
         payload: ExpGroupUpdateRequest,
-        tenant: &str,
+        workspace: &str,
         org_id: &str,
     ) -> Result<ExperimentGroup, String> {
         let host = use_host_server();
@@ -1086,7 +1130,10 @@ pub mod experiment_groups {
             url,
             reqwest::Method::PATCH,
             Some(payload),
-            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
         )
         .await?;
 
@@ -1095,7 +1142,7 @@ pub mod experiment_groups {
 
     pub async fn delete(
         group_id: &str,
-        tenant: &str,
+        workspace: &str,
         org_id: &str,
     ) -> Result<ExperimentGroup, String> {
         let host = use_host_server();
@@ -1105,7 +1152,10 @@ pub mod experiment_groups {
             url,
             reqwest::Method::DELETE,
             None::<()>,
-            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
         )
         .await?;
 
@@ -1115,7 +1165,7 @@ pub mod experiment_groups {
     pub async fn add_members(
         group_id: &str,
         payload: ExpGroupMemberRequest,
-        tenant: &str,
+        workspace: &str,
         org_id: &str,
     ) -> Result<ExperimentGroup, String> {
         let host = use_host_server();
@@ -1125,7 +1175,10 @@ pub mod experiment_groups {
             url,
             reqwest::Method::PATCH,
             Some(payload),
-            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
         )
         .await?;
 
@@ -1135,7 +1188,7 @@ pub mod experiment_groups {
     pub async fn remove_members(
         group_id: &str,
         payload: &ExpGroupMemberRequest,
-        tenant: &str,
+        workspace: &str,
         org_id: &str,
     ) -> Result<ExperimentGroup, String> {
         let host = use_host_server();
@@ -1145,7 +1198,10 @@ pub mod experiment_groups {
             url,
             reqwest::Method::PATCH,
             Some(payload),
-            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
         )
         .await?;
 
@@ -1163,7 +1219,7 @@ pub mod audit_log {
     pub async fn fetch(
         filters: &AuditQueryFilters,
         pagination: &PaginationParams,
-        tenant: &str,
+        workspace: &str,
         org_id: &str,
     ) -> Result<PaginatedResponse<EventLog>, String> {
         let host = use_host_server();
@@ -1178,7 +1234,10 @@ pub mod audit_log {
             url,
             reqwest::Method::GET,
             None::<()>,
-            construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
         )
         .await?;
 

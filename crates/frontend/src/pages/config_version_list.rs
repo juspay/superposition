@@ -14,7 +14,7 @@ use crate::components::stat::Stat;
 use crate::components::table::types::{ColumnSortable, Expandable, TablePaginationProps};
 use crate::components::table::{types::Column, Table};
 use crate::query_updater::{use_param_updater, use_signal_from_query};
-use crate::types::{OrganisationId, Tenant};
+use crate::types::{OrganisationId, Workspace};
 use crate::utils::unwrap_or_default_with_error;
 use crate::{
     api::snapshots::fetch_all, components::table::types::default_column_formatter,
@@ -22,7 +22,7 @@ use crate::{
 
 #[component]
 pub fn config_version_list() -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let pagination_params_rws = use_signal_from_query(move |query_string| {

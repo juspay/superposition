@@ -27,7 +27,7 @@ use crate::{
     },
     providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider},
     schema::{JsonSchemaType, SchemaType::Single},
-    types::{OrganisationId, Tenant},
+    types::{OrganisationId, Workspace},
 };
 
 enum ResponseType {
@@ -71,7 +71,7 @@ pub fn webhook_form(
     #[prop(default = Vec::new())] events: Vec<WebhookEvent>,
     #[prop(into)] handle_submit: Callback<()>,
 ) -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let (webhook_name_rs, webhook_name_ws) = create_signal(webhook_name);
@@ -118,8 +118,8 @@ pub fn webhook_form(
                         let future = update_webhook(
                             webhook_name,
                             update_request,
-                            workspace,
-                            org_id,
+                            &workspace,
+                            &org_id,
                         );
                         update_request_rws.set(None);
                         future.await.map(|_| ResponseType::Response)
@@ -153,8 +153,8 @@ pub fn webhook_form(
                         custom_headers,
                         events,
                         change_reason,
-                        workspace,
-                        org_id,
+                        &workspace,
+                        &org_id,
                     )
                     .await
                     .map(|_| ResponseType::Response),
@@ -369,7 +369,7 @@ pub fn change_log_summary(
     #[prop(into)] on_close: Callback<()>,
     #[prop(into, default = Signal::derive(|| false))] inprogress: Signal<bool>,
 ) -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let webhook = create_local_resource(

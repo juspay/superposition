@@ -129,7 +129,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                         }
                     />
 
-                    <Route ssr=SsrMode::Async path="/admin/:org_id/:tenant" view=Layout>
+                    <Route ssr=SsrMode::Async path="/admin/:org_id/:workspace" view=Layout>
                         <Route ssr=SsrMode::Async path="dimensions" view=Dimensions />
                         <Route ssr=SsrMode::Async path="dimensions/create" view=CreateDimension />
                         <Route

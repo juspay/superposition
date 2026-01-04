@@ -19,7 +19,7 @@ use crate::components::{
 };
 use crate::providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider};
 use crate::schema::{JsonSchemaType, SchemaType};
-use crate::types::{OrganisationId, Tenant};
+use crate::types::{OrganisationId, Workspace};
 
 #[component]
 fn type_info(type_template: TypeTemplate) -> impl IntoView {
@@ -59,7 +59,7 @@ enum Action {
 #[component]
 pub fn type_page() -> impl IntoView {
     let path_params = use_params_map();
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let type_name = Memo::new(move |_| {
         path_params.with(|params| params.get("type_name").cloned().unwrap_or("1".into()))
@@ -81,8 +81,8 @@ pub fn type_page() -> impl IntoView {
         spawn_local(async move {
             let result = delete_type(
                 type_name.get_untracked(),
-                workspace.get_untracked().0,
-                org.get_untracked().0,
+                &workspace.get_untracked(),
+                &org.get_untracked(),
             )
             .await;
             delete_inprogress_rws.set(false);

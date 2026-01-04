@@ -14,7 +14,7 @@ use crate::components::context_form::ConditionInput;
 use crate::logic::{jsonlogic, Condition, Conditions, Operator};
 use crate::providers::editor_provider::EditorProvider;
 use crate::schema::{EnumVariants, JsonSchemaType, SchemaType};
-use crate::types::{OrganisationId, Tenant};
+use crate::types::{OrganisationId, Workspace};
 use crate::utils::{to_title_case, value_compute_fn_generator};
 use crate::{
     components::{
@@ -416,7 +416,7 @@ fn cohort_form(
     cohort_based_on: DimensionResponse,
     #[prop(default = false)] edit: bool,
 ) -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org_id = use_context::<Signal<OrganisationId>>().unwrap();
 
     let cohort_name_rws = RwSignal::new(cohort_name.clone());

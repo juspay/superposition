@@ -24,7 +24,7 @@ use crate::{
         },
     },
     query_updater::{use_param_updater, use_signal_from_query},
-    types::{OrganisationId, Tenant},
+    types::{OrganisationId, Workspace},
 };
 
 #[derive(Clone)]
@@ -153,7 +153,7 @@ fn audit_log_table_columns(
 
 #[component]
 pub fn AuditLog() -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let diff_data_rws = RwSignal::new(None as Option<DiffData>);
 

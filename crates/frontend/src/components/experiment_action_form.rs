@@ -9,7 +9,7 @@ use crate::{
     },
     pages::experiment::PopupType,
     providers::alert_provider::enqueue_alert,
-    types::{OrganisationId, Tenant},
+    types::{OrganisationId, Workspace},
 };
 
 fn change_reason(popup_type: &PopupType) -> String {
@@ -27,7 +27,7 @@ pub fn experiment_action_form(
     #[prop(into)] handle_submit: Callback<(), ()>,
     #[prop(into)] handle_close: Callback<(), ()>,
 ) -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let (change_reason_rs, change_reason_ws) = create_signal(change_reason(&popup_type));
     let (req_inprogress_rs, req_inprogress_ws) = create_signal(false);
@@ -76,28 +76,43 @@ pub fn experiment_action_form(
         let change_reason_value = change_reason_rs.get();
 
         spawn_local(async move {
-            let tenant = workspace.get_untracked().0;
+            let workspace = workspace.get_untracked().0;
             let org = org.get_untracked().0;
 
             let result = match popup_type {
                 PopupType::ExperimentPause => {
-                    pause_experiment(&experiment_id, change_reason_value, &tenant, &org)
-                        .await
+                    pause_experiment(
+                        &experiment_id,
+                        change_reason_value,
+                        &workspace,
+                        &org,
+                    )
+                    .await
                 }
                 PopupType::ExperimentResume => {
-                    resume_experiment(&experiment_id, change_reason_value, &tenant, &org)
-                        .await
+                    resume_experiment(
+                        &experiment_id,
+                        change_reason_value,
+                        &workspace,
+                        &org,
+                    )
+                    .await
                 }
                 PopupType::ExperimentDiscard => {
-                    discard_experiment(&experiment_id, change_reason_value, &tenant, &org)
-                        .await
+                    discard_experiment(
+                        &experiment_id,
+                        change_reason_value,
+                        &workspace,
+                        &org,
+                    )
+                    .await
                 }
                 PopupType::ExperimentStart => {
                     ramp_experiment(
                         &experiment_id,
                         0,
                         Some(change_reason_value),
-                        &tenant,
+                        &workspace,
                         &org,
                     )
                     .await

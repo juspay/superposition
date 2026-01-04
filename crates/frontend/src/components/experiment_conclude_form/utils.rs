@@ -17,9 +17,9 @@ use crate::{
 pub async fn conclude_experiment(
     exp_id: String,
     variant_id: String,
-    tenant: &str,
-    org_id: &str,
     change_reason: String,
+    workspace: &str,
+    org_id: &str,
 ) -> Result<Result<ExperimentResponse, String>, String> {
     let payload = ConcludeExperimentRequest {
         change_reason: ChangeReason::try_from(change_reason)?,
@@ -34,7 +34,7 @@ pub async fn conclude_experiment(
         url,
         reqwest::Method::PATCH,
         Some(payload),
-        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
         &[StatusCode::PRECONDITION_FAILED],
     )
     .await?;

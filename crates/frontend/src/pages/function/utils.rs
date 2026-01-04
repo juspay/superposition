@@ -38,7 +38,7 @@ pub fn function_table_columns() -> Vec<Column> {
 pub async fn publish_function(
     function_name: String,
     change_reason: String,
-    tenant: &str,
+    workspace: &str,
     org_id: &str,
 ) -> Result<String, String> {
     let payload = FunctionStateChangeRequest {
@@ -52,7 +52,7 @@ pub async fn publish_function(
         url,
         reqwest::Method::PATCH,
         Some(payload),
-        construct_request_headers(&[("x-tenant", tenant), ("x-org-id", org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
 

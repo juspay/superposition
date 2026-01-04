@@ -30,7 +30,7 @@ use crate::components::{
 use crate::query_updater::{
     use_param_updater, use_signal_from_query, use_update_url_query,
 };
-use crate::types::{OrganisationId, Tenant};
+use crate::types::{OrganisationId, Workspace};
 use crate::{api::fetch_default_config, components::button::Button};
 
 #[derive(Clone)]
@@ -41,7 +41,7 @@ enum Action {
 
 #[component]
 pub fn default_config_list() -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let action_rws = RwSignal::new(Action::None);
     let filters_rws = use_signal_from_query(move |query_string| {

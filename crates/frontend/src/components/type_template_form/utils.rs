@@ -14,8 +14,8 @@ pub async fn create_type(
     type_schema: Value,
     description: String,
     change_reason: String,
-    tenant: String,
-    org_id: String,
+    workspace: &str,
+    org_id: &str,
 ) -> Result<TypeTemplate, String> {
     let payload = TypeTemplateCreateRequest {
         type_name: TypeTemplateName::try_from(type_name)?,
@@ -31,7 +31,7 @@ pub async fn create_type(
         url,
         reqwest::Method::POST,
         Some(payload),
-        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
     response.json().await.map_err(|e| e.to_string())
@@ -51,8 +51,8 @@ pub fn try_update_payload(
 pub async fn update_type(
     type_name: String,
     payload: TypeTemplateUpdateRequest,
-    tenant: String,
-    org_id: String,
+    workspace: &str,
+    org_id: &str,
 ) -> Result<TypeTemplate, String> {
     let host = use_host_server();
     let url = format!("{host}/types/{type_name}");
@@ -61,7 +61,7 @@ pub async fn update_type(
         url,
         reqwest::Method::PATCH,
         Some(payload),
-        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
     response.json().await.map_err(|e| e.to_string())
@@ -69,8 +69,8 @@ pub async fn update_type(
 
 pub async fn delete_type(
     type_name: String,
-    tenant: String,
-    org_id: String,
+    workspace: &str,
+    org_id: &str,
 ) -> Result<Value, String> {
     let host = use_host_server();
     let url = format!("{host}/types/{type_name}");
@@ -81,7 +81,7 @@ pub async fn delete_type(
         url,
         reqwest::Method::DELETE,
         payload,
-        construct_request_headers(&[("x-tenant", &tenant), ("x-org-id", &org_id)])?,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
     )
     .await?;
     response.json().await.map_err(|e| e.to_string())
