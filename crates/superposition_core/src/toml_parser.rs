@@ -786,7 +786,7 @@ pub fn serialize_to_toml(config: &Config) -> Result<String, TomlError> {
     Ok(output)
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "jsonlogic")))]
 mod serialization_tests {
     use super::*;
     use serde_json::json;
@@ -1142,7 +1142,7 @@ timeout = 60
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "jsonlogic")))]
 mod tests {
     use super::*;
 
