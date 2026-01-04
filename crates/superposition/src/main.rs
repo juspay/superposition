@@ -30,6 +30,7 @@ use service_utils::{
         auth_z::{AuthZHandler, AuthZManager},
         request_response_logging::RequestResponseLogger,
         workspace_context::OrgWorkspaceMiddlewareFactory,
+        workspace_lock::WorkspaceLockMiddlewareFactory,
     },
     service::types::{AppEnv, Resource},
 };
@@ -179,53 +180,62 @@ async fn main() -> Result<()> {
                         scope("/context")
                             .app_data(Resource::Context)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                            .wrap(WorkspaceLockMiddlewareFactory::new())
                             .service(context::endpoints()),
                     )
                     .service(
                         scope("/dimension")
                             .app_data(Resource::Dimension)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                            .wrap(WorkspaceLockMiddlewareFactory::new())
                             .service(dimension::endpoints()),
                     )
                     .service(
                         scope("/default-config")
                             .app_data(Resource::DefaultConfig)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                            .wrap(WorkspaceLockMiddlewareFactory::new())
                             .service(default_config::endpoints()),
                     )
                     .service(
                         scope("/config")
                             .app_data(Resource::Config)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                            .wrap(WorkspaceLockMiddlewareFactory::new())
                             .service(config::endpoints()),
                     )
                     .service(
                         scope("/audit")
                             .app_data(Resource::AuditLog)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                            .wrap(WorkspaceLockMiddlewareFactory::new())
                             .service(audit_log::endpoints()),
                     )
                     .service(
                         scope("/function")
                             .app_data(Resource::Function)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                            .wrap(WorkspaceLockMiddlewareFactory::new())
                             .service(functions::endpoints()),
                     )
                     .service(
                         scope("/types")
                             .app_data(Resource::TypeTemplate)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                            .wrap(WorkspaceLockMiddlewareFactory::new())
                             .service(type_templates::endpoints()),
                     )
                     .service(
                         experiments::endpoints(scope("/experiments"))
                             .app_data(Resource::Experiment)
-                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true)),
+                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                            .wrap(WorkspaceLockMiddlewareFactory::new()),
                     )
                     .service(
                         experiment_groups::endpoints(scope("/experiment-groups"))
                             .app_data(Resource::ExperimentGroup)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                            .wrap(WorkspaceLockMiddlewareFactory::new())
                     )
                     .service(
                         scope("/superposition/organisations")
@@ -241,24 +251,28 @@ async fn main() -> Result<()> {
                         scope("/webhook")
                             .app_data(Resource::Webhook)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                            .wrap(WorkspaceLockMiddlewareFactory::new())
                             .service(webhooks::endpoints()),
                     )
                     .service(
                         scope("/variables")
                             .app_data(Resource::Variable)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                            .wrap(WorkspaceLockMiddlewareFactory::new())
                             .service(variables::endpoints())
                     )
                     .service(
                         scope("/resolve")
                             .app_data(Resource::Config)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                            .wrap(WorkspaceLockMiddlewareFactory::new())
                             .service(resolve::endpoints()),
                     )
                     .service(
                         scope("/auth")
                             .app_data(Resource::Auth)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                            .wrap(WorkspaceLockMiddlewareFactory::new())
                             .app_data(Data::new(auth_z_manager.clone()))
                             .service(auth_z_manager.endpoints())
                     )
