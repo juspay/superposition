@@ -3,8 +3,9 @@
 //! This module provides validation functions that can be used across
 //! the codebase for validating values against JSON schemas.
 
-use jsonschema::{Draft, JSONSchema};
+use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::{json, Value};
+use service_utils::helpers::validation_err_to_str;
 
 /// Compile a JSON schema for validation
 ///
@@ -101,9 +102,15 @@ pub fn validate_schema(schema: &Value) -> Result<(), Vec<String>> {
 pub fn validate_cohort_schema_structure(schema: &Value) -> Result<(), Vec<String>> {
     // Get the cohort meta-schema
     let cohort_meta_schema = get_cohort_meta_schema();
-    cohort_meta_schema
-        .validate(schema)
-        .map_err(|errors| errors.map(|e| e.to_string()).collect::<Vec<_>>())?;
+    cohort_meta_schema.validate(schema).map_err(|e| {
+        let verrors = e.collect::<Vec<ValidationError>>();
+        vec![format!(
+            "schema validation failed: {}",
+            validation_err_to_str(verrors)
+                .first()
+                .unwrap_or(&String::new())
+        )]
+    })?;
 
     // Extract enum options
     let enum_options = schema
@@ -491,4 +498,3 @@ mod tests {
         assert!(validate_cohort_schema_structure(&schema).is_err());
     }
 }
-
