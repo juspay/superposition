@@ -501,7 +501,7 @@ def _uniffi_check_api_checksums(lib):
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_superposition_core_checksum_func_ffi_get_applicable_variants() != 58234:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    if lib.uniffi_superposition_core_checksum_func_ffi_parse_toml_config() != 60659:
+    if lib.uniffi_superposition_core_checksum_func_ffi_parse_toml_config() != 62096:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
 
 # A ctypes library to expose the extern-C FFI definitions.
@@ -1647,10 +1647,10 @@ def ffi_parse_toml_config(toml_content: "str") -> "Config":
     timeout = { value = 30, schema = { type = "integer" } }
 
     [dimensions]
-    os = { schema = { type = "string" } }
+    os = { position = 1, schema = { type = "string" } }
 
-    [context]
-    "os=linux" = { timeout = 60 }
+    [context."os=linux"]
+    timeout = 60
     ```
     """
 
