@@ -11,7 +11,6 @@ use actix_web::{
     Error,
 };
 use diesel::prelude::*;
-use diesel::sql_types::BigInt;
 use futures_util::future::LocalBoxFuture;
 
 use crate::{
@@ -92,9 +91,9 @@ where
 
             // If we don't have both IDs, we can't lock - proceed without locking
             // The OrgWorkspaceMiddleware will handle the validation
-            let lock_key = match (org_id, workspace_id) {
+            let lock_keys = match (org_id, workspace_id) {
                 (Some(org), Some(workspace)) => {
-                    Some(compute_lock_key(&org.0, &workspace.0))
+                    Some(compute_lock_keys(&org.0, &workspace.0))
                 }
                 _ => None,
             };
@@ -118,27 +117,39 @@ where
                 }
             };
 
-            // Acquire advisory lock if we have a lock key
-            if let Some(key) = lock_key {
-                if let Err(e) = acquire_advisory_lock(&mut db_conn, key) {
-                    log::error!("failed to acquire advisory lock for key {}: {}", key, e);
+            // Acquire advisory lock if we have lock keys
+            if let Some((org_key, workspace_key)) = lock_keys {
+                if let Err(e) = acquire_advisory_lock(&mut db_conn, org_key, workspace_key) {
+                    log::error!(
+                        "failed to acquire advisory lock for org_key: {}, workspace_key: {}: {}",
+                        org_key, workspace_key, e
+                    );
                     return Err(error::ErrorInternalServerError(
                         "Failed to acquire workspace lock",
                     ));
                 }
-                log::debug!("acquired advisory lock for workspace, key: {}", key);
+                log::debug!(
+                    "acquired advisory lock for workspace (org_key: {}, workspace_key: {})",
+                    org_key, workspace_key
+                );
             }
 
             // Call the actual handler
             let result = srv.call(req).await;
 
             // Release advisory lock if we acquired one
-            if let Some(key) = lock_key {
-                if let Err(e) = release_advisory_lock(&mut db_conn, key) {
-                    log::error!("failed to release advisory lock for key {}: {}", key, e);
+            if let Some((org_key, workspace_key)) = lock_keys {
+                if let Err(e) = release_advisory_lock(&mut db_conn, org_key, workspace_key) {
+                    log::error!(
+                        "failed to release advisory lock for org_key: {}, workspace_key: {}: {}",
+                        org_key, workspace_key, e
+                    );
                     // Continue even if unlock fails - PostgreSQL will auto-release on connection close
                 }
-                log::debug!("released advisory lock for workspace, key: {}", key);
+                log::debug!(
+                    "released advisory lock for workspace (org_key: {}, workspace_key: {})",
+                    org_key, workspace_key
+                );
             }
 
             // Return the result
@@ -147,33 +158,42 @@ where
     }
 }
 
-/// Compute a consistent lock key from org_id and workspace_id
-fn compute_lock_key(org_id: &str, workspace_id: &str) -> i64 {
-    let mut hasher = DefaultHasher::new();
-    format!("{}:{}", org_id, workspace_id).hash(&mut hasher);
-    let hash = hasher.finish();
-    // Convert u64 to i64 for PostgreSQL bigint compatibility
-    hash as i64
+/// Compute a consistent lock key pair from org_id and workspace_id
+/// Returns (org_key, workspace_key) as two i32 values for pg_advisory_lock(int, int)
+fn compute_lock_keys(org_id: &str, workspace_id: &str) -> (i32, i32) {
+    let mut org_hasher = DefaultHasher::new();
+    org_id.hash(&mut org_hasher);
+    let org_hash = org_hasher.finish() as i32;
+
+    let mut workspace_hasher = DefaultHasher::new();
+    workspace_id.hash(&mut workspace_hasher);
+    let workspace_hash = workspace_hasher.finish() as i32;
+
+    (org_hash, workspace_hash)
 }
 
-/// Acquire PostgreSQL advisory lock
+/// Acquire PostgreSQL advisory lock using two-argument form
 fn acquire_advisory_lock(
     conn: &mut PgConnection,
-    lock_key: i64,
+    org_key: i32,
+    workspace_key: i32,
 ) -> Result<(), diesel::result::Error> {
-    diesel::sql_query("SELECT pg_advisory_lock($1)")
-        .bind::<BigInt, _>(lock_key)
+    diesel::sql_query("SELECT pg_advisory_lock($1, $2)")
+        .bind::<diesel::sql_types::Integer, _>(org_key)
+        .bind::<diesel::sql_types::Integer, _>(workspace_key)
         .execute(conn)?;
     Ok(())
 }
 
-/// Release PostgreSQL advisory lock
+/// Release PostgreSQL advisory lock using two-argument form
 fn release_advisory_lock(
     conn: &mut PgConnection,
-    lock_key: i64,
+    org_key: i32,
+    workspace_key: i32,
 ) -> Result<(), diesel::result::Error> {
-    diesel::sql_query("SELECT pg_advisory_unlock($1)")
-        .bind::<BigInt, _>(lock_key)
+    diesel::sql_query("SELECT pg_advisory_unlock($1, $2)")
+        .bind::<diesel::sql_types::Integer, _>(org_key)
+        .bind::<diesel::sql_types::Integer, _>(workspace_key)
         .execute(conn)?;
     Ok(())
 }
@@ -183,20 +203,41 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_compute_lock_key_consistency() {
-        let key1 = compute_lock_key("org1", "workspace1");
-        let key2 = compute_lock_key("org1", "workspace1");
-        assert_eq!(key1, key2, "Same inputs should produce same lock key");
+    fn test_compute_lock_keys_consistency() {
+        let keys1 = compute_lock_keys("org1", "workspace1");
+        let keys2 = compute_lock_keys("org1", "workspace1");
+        assert_eq!(keys1, keys2, "Same inputs should produce same lock keys");
     }
 
     #[test]
-    fn test_compute_lock_key_uniqueness() {
-        let key1 = compute_lock_key("org1", "workspace1");
-        let key2 = compute_lock_key("org1", "workspace2");
-        let key3 = compute_lock_key("org2", "workspace1");
+    fn test_compute_lock_keys_uniqueness() {
+        let keys1 = compute_lock_keys("org1", "workspace1");
+        let keys2 = compute_lock_keys("org1", "workspace2");
+        let keys3 = compute_lock_keys("org2", "workspace1");
+        let keys4 = compute_lock_keys("org2", "workspace2");
 
-        assert_ne!(key1, key2, "Different workspaces should produce different keys");
-        assert_ne!(key1, key3, "Different orgs should produce different keys");
-        assert_ne!(key2, key3, "Different combinations should produce different keys");
+        assert_ne!(keys1, keys2, "Different workspaces should produce different keys");
+        assert_ne!(keys1, keys3, "Different orgs should produce different keys");
+        assert_ne!(keys1, keys4, "Different combinations should produce different keys");
+        assert_ne!(keys2, keys3, "Different org/workspace combos should differ");
+    }
+
+    #[test]
+    fn test_org_and_workspace_components_separate() {
+        let (org_key1, workspace_key1) = compute_lock_keys("org1", "workspace1");
+        let (org_key2, workspace_key2) = compute_lock_keys("org1", "workspace2");
+        let (org_key3, workspace_key3) = compute_lock_keys("org2", "workspace1");
+
+        // Same org should produce same org_key
+        assert_eq!(org_key1, org_key2, "Same org should produce same org_key");
+
+        // Different org should produce different org_key
+        assert_ne!(org_key1, org_key3, "Different org should produce different org_key");
+
+        // Same workspace should produce same workspace_key
+        assert_eq!(workspace_key1, workspace_key3, "Same workspace should produce same workspace_key");
+
+        // Different workspace should produce different workspace_key
+        assert_ne!(workspace_key1, workspace_key2, "Different workspace should produce different workspace_key");
     }
 }
