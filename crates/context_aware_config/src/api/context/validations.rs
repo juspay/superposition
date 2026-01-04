@@ -7,7 +7,7 @@ use superposition_macros::{bad_argument, validation_error};
 use superposition_types::{DBConnection, DimensionInfo, database::schema, result};
 
 #[cfg(feature = "jsonlogic")]
-use jsonschema::{Draft, JSONSchema, ValidationError};
+use jsonschema::ValidationError;
 
 #[cfg(feature = "jsonlogic")]
 use super::types::DimensionCondition;
