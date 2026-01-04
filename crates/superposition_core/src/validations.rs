@@ -51,28 +51,7 @@ pub fn validate_against_compiled_schema(
 /// # Returns
 /// * `Ok(())` if validation succeeds
 /// * `Err(Vec<String>)` containing all error messages (compilation + validation)
-pub fn validate_against_schema(
-    value: &Value,
-    schema: &Value,
-) -> Result<(), Vec<String>> {
-    let compiled_schema = compile_schema(schema).map_err(|e| vec![e])?;
-    validate_against_compiled_schema(value, &compiled_schema)
-}
-
-/// Validate a value against a JSON schema
-///
-/// # Arguments
-/// * `value` - The value to validate
-/// * `schema` - The JSON schema to validate against
-///
-/// # Returns
-/// * `Ok(())` if validation succeeds
-/// * `Err(Vec<String>)` containing all validation error messages
-#[deprecated(note = "Use validate_against_schema instead")]
-pub fn validate_value_against_schema(
-    value: &Value,
-    schema: &Value,
-) -> Result<(), Vec<String>> {
+pub fn validate_against_schema(value: &Value, schema: &Value) -> Result<(), Vec<String>> {
     let compiled_schema = compile_schema(schema).map_err(|e| vec![e])?;
     validate_against_compiled_schema(value, &compiled_schema)
 }
@@ -150,14 +129,15 @@ pub fn validate_cohort_schema_structure(schema: &Value) -> Result<(), Vec<String
         .and_then(|v| v.as_object())
         .ok_or_else(|| {
             vec![
-                "Cohort schema must have a 'definitions' field with jsonlogic rules".to_string(),
+                "Cohort schema must have a 'definitions' field with jsonlogic rules"
+                    .to_string(),
             ]
         })?;
 
     // Check definitions is not empty
     if definitions.is_empty() {
         return Err(vec![
-            "Cohort schema definitions must not be empty".to_string(),
+            "Cohort schema definitions must not be empty".to_string()
         ]);
     }
 
@@ -171,7 +151,7 @@ pub fn validate_cohort_schema_structure(schema: &Value) -> Result<(), Vec<String
         }
         if key == "otherwise" {
             return Err(vec![
-                "Cohort definitions should not contain 'otherwise'".to_string(),
+                "Cohort definitions should not contain 'otherwise'".to_string()
             ]);
         }
     }
@@ -268,7 +248,7 @@ mod tests {
         let value = json!("hello");
         let schema = json!({ "type": "string" });
 
-        let result = validate_value_against_schema(&value, &schema);
+        let result = validate_against_schema(&value, &schema);
         assert!(result.is_ok());
     }
 
@@ -277,7 +257,7 @@ mod tests {
         let value = json!(42);
         let schema = json!({ "type": "string" });
 
-        let result = validate_value_against_schema(&value, &schema);
+        let result = validate_against_schema(&value, &schema);
         assert!(result.is_err());
         let errors = result.unwrap_err();
         assert!(!errors.is_empty());
@@ -288,7 +268,7 @@ mod tests {
         let value = json!(42);
         let schema = json!({ "type": "integer" });
 
-        let result = validate_value_against_schema(&value, &schema);
+        let result = validate_against_schema(&value, &schema);
         assert!(result.is_ok());
     }
 
@@ -297,7 +277,7 @@ mod tests {
         let value = json!("42");
         let schema = json!({ "type": "integer" });
 
-        let result = validate_value_against_schema(&value, &schema);
+        let result = validate_against_schema(&value, &schema);
         assert!(result.is_err());
     }
 
@@ -309,7 +289,7 @@ mod tests {
             "enum": ["linux", "windows", "macos"]
         });
 
-        let result = validate_value_against_schema(&value, &schema);
+        let result = validate_against_schema(&value, &schema);
         assert!(result.is_ok());
     }
 
@@ -321,7 +301,7 @@ mod tests {
             "enum": ["linux", "windows", "macos"]
         });
 
-        let result = validate_value_against_schema(&value, &schema);
+        let result = validate_against_schema(&value, &schema);
         assert!(result.is_err());
     }
 
@@ -333,7 +313,7 @@ mod tests {
             "minimum": 5
         });
 
-        let result = validate_value_against_schema(&value, &schema);
+        let result = validate_against_schema(&value, &schema);
         assert!(result.is_ok());
     }
 
@@ -345,7 +325,7 @@ mod tests {
             "minimum": 5
         });
 
-        let result = validate_value_against_schema(&value, &schema);
+        let result = validate_against_schema(&value, &schema);
         assert!(result.is_err());
     }
 
@@ -354,7 +334,7 @@ mod tests {
         let schema = json!({ "type": "integer" });
         let value = json!("not an integer");
 
-        let result = validate_value_against_schema(&value, &schema);
+        let result = validate_against_schema(&value, &schema);
         assert!(result.is_err());
 
         let errors = result.unwrap_err();
@@ -511,3 +491,4 @@ mod tests {
         assert!(validate_cohort_schema_structure(&schema).is_err());
     }
 }
+
