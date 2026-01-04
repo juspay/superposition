@@ -2,15 +2,12 @@ use std::collections::HashMap;
 
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::{Map, Value};
-use service_utils::{
-    helpers::validation_err_to_str,
-    service::types::SchemaName,
-};
+use service_utils::{helpers::validation_err_to_str, service::types::SchemaName};
 use superposition_macros::{bad_argument, validation_error};
 use superposition_types::{database::schema, result, DBConnection, DimensionInfo};
 
 #[cfg(feature = "jsonlogic")]
-use jsonschema::{Draft, JSONSchema, ValidationError};
+use jsonschema::ValidationError;
 
 #[cfg(feature = "jsonlogic")]
 use super::types::DimensionCondition;
