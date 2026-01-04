@@ -336,6 +336,7 @@
                 buildInputs =
                   [
                     pkgs.openssl
+                    pkgs.postgresql_15
                   ];
               };
             };
