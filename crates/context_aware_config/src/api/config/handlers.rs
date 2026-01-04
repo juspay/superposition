@@ -76,8 +76,6 @@ fn determine_response_format(req: &HttpRequest) -> ResponseFormat {
 
     if accept_header.contains("application/toml") {
         ResponseFormat::Toml
-    } else if accept_header.contains("application/json") {
-        ResponseFormat::Json
     } else {
         ResponseFormat::Json // Default to JSON for backwards compatibility
     }
