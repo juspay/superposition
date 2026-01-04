@@ -266,12 +266,23 @@ pub fn validate_cohort_schema(
         ));
     } // Use shared validation from superposition_core for cohort schema structure
       //
+
+    log::error!(
+        "##### checking validate_cohort_schema_structure {}",
+        cohort_schema
+    );
+
     validate_cohort_schema_structure(cohort_schema).map_err(|errors| {
         validation_error!(
             "schema validation failed: {}",
             errors.first().unwrap_or(&String::new())
         )
     })?;
+
+    log::error!(
+        "##### passed validate_cohort_schema_structure {}",
+        cohort_schema
+    );
 
     let enum_options = get_cohort_enum_options(cohort_schema)?;
 
@@ -287,13 +298,7 @@ pub fn validate_cohort_schema(
         }
         Value::Object(logic) => {
             let cohort_options = logic.keys();
-            if cohort_options.len() != enum_options.len() - 1 {
-                return Err(validation_error!(
-                    "The definition of the cohort and the enum options do not match. Some enum options do not have a definition, found {} cohorts and {} enum options (not including otherwise)",
-                    cohort_options.len(),
-                    enum_options.len() - 1
-                ));
-            }
+
             for cohort in cohort_options {
                 if !enum_options.contains(cohort) {
                     return Err(validation_error!(
