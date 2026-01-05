@@ -5593,7 +5593,6 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
- "service_utils",
  "strum",
  "strum_macros",
  "superposition_types",
