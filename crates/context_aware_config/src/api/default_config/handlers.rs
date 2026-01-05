@@ -10,12 +10,13 @@ use diesel::{
 use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::Value;
 use service_utils::{
-    helpers::{parse_config_tags, validation_err_to_str},
+    helpers::parse_config_tags,
     service::types::{
         AppHeader, AppState, CustomHeaders, DbConnection, EncryptionKey, SchemaName,
         WorkspaceContext,
     },
 };
+use superposition_core::validations::validation_err_to_str;
 use superposition_derives::authorized;
 use superposition_macros::{
     bad_argument, db_error, not_found, unexpected_error, validation_error,
