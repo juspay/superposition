@@ -1,4 +1,4 @@
-use std::{str::FromStr, time::Duration};
+use std::{fmt::Display, str::FromStr, time::Duration};
 
 use chrono::{DateTime, Utc};
 use leptos::{leptos_dom::helpers::debounce, *};
@@ -9,6 +9,7 @@ use crate::{
     components::{
         alert::AlertType,
         badge::GrayPill,
+        datetime::{try_utc_date_from_locale_date, use_format_local_date},
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
         form::label::Label,
         menu::SelectionMenu,
@@ -555,12 +556,11 @@ pub fn date_input(
     #[prop(into)] name: String,
     #[prop(into)] on_change: Callback<DateTime<Utc>, ()>,
     #[prop(into, default = Callback::new(|_| {}))] on_clear: Callback<(), ()>,
-    #[prop(into, default = Utc::now().format("%Y-%m-%d").to_string())] value: String,
+    #[prop(into)] value: Option<DateTime<Utc>>,
     #[prop(default = false)] disabled: bool,
     #[prop(default = false)] required: bool,
-    #[prop(into, default = (Utc::now() - chrono::Duration::weeks(4)).format("%Y-%m-%d").to_string())]
-    min: String,
-    #[prop(into, default = Utc::now().format("%Y-%m-%d").to_string())] max: String,
+    #[prop(into, default = (Utc::now() - chrono::Duration::weeks(4)))] min: DateTime<Utc>,
+    #[prop(into, default = Utc::now())] max: DateTime<Utc>,
 ) -> impl IntoView {
     let (error_rs, error_ws) = create_signal::<String>(String::new());
     view! {
@@ -572,26 +572,21 @@ pub fn date_input(
                 class=format!("input input-bordered {}", class)
                 required=required
                 disabled=disabled
-                min=min
-                max=max
-                value=value
+                min=move || use_format_local_date(&min)
+                max=move || use_format_local_date(&max)
+                value=move || value.as_ref().map(use_format_local_date).unwrap_or_default()
                 on:change=move |e| {
                     let new_value = event_target_value(&e);
                     if new_value.is_empty() {
                         on_clear.call(());
                         return;
                     }
-                    let date = format!("{}T00:00:00Z", event_target_value(&e));
-                    logging::log!("The date selected is: {}", date);
-                    match DateTime::parse_from_rfc3339(&date) {
-                        Ok(v) => {
+                    match try_utc_date_from_locale_date(&new_value) {
+                        Some(v) => {
                             error_ws.set(String::new());
                             on_change.call(v.to_utc());
                         }
-                        Err(e) => {
-                            logging::log!("error occurred: {:?}", e);
-                            error_ws.set(e.to_string());
-                        }
+                        None => error_ws.set("Failed to parse date".to_string()),
                     }
                 }
             />
@@ -662,7 +657,7 @@ pub fn input(
 }
 
 #[component]
-fn array_input<T: Clone + PartialEq + 'static + ToString + FromStr>(
+fn array_input<T: Clone + PartialEq + 'static + Display + FromStr>(
     options: Vec<T>,
     on_change: Callback<Vec<T>>,
     unique: bool,
@@ -714,8 +709,8 @@ fn array_input<T: Clone + PartialEq + 'static + ToString + FromStr>(
                             .map(|(idx, item)| {
                                 view! {
                                     <GrayPill
-                                        text=item.to_string()
-                                        on_delete=move |_| {
+                                        data=item
+                                        on_delete=move |_: T| {
                                             options_rws
                                                 .update(|opts| {
                                                     opts.remove(idx);

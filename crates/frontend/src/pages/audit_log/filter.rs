@@ -1,6 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
-use chrono::{DateTime, Days, Duration, Utc};
+use chrono::{DateTime, Days, Duration, TimeZone, Utc};
 use leptos::*;
 use superposition_types::{
     api::audit_log::AuditQueryFilters,
@@ -10,6 +10,7 @@ use superposition_types::{
 use crate::components::{
     badge::{GlassyPills, GrayPill, ListPills},
     button::{Button, ButtonStyle},
+    datetime::{Datetime, DatetimeFormat},
     drawer::{close_drawer, Drawer, DrawerBtn},
     form::label::Label,
     input::DateInput,
@@ -78,7 +79,13 @@ pub fn filter_summary(filters_rws: RwSignal<AuditQueryFilters>) -> impl IntoView
                                     <div class="flex gap-2 items-center">
                                         <span class="text-xs">"From Date"</span>
                                         <GrayPill
-                                            text=from_date.format("%Y-%m-%d").to_string()
+                                            data=from_date
+                                            renderer=Some(
+                                                Callback::new(move |datetime: DateTime<Utc>| {
+                                                    view! { <Datetime datetime format=DatetimeFormat::Date /> }
+                                                        .into_view()
+                                                }),
+                                            )
                                             on_delete=move |_| {
                                                 filters_rws.update(|f| f.from_date = None);
                                             }
@@ -95,7 +102,13 @@ pub fn filter_summary(filters_rws: RwSignal<AuditQueryFilters>) -> impl IntoView
                                     <div class="flex gap-2 items-center">
                                         <span class="text-xs">"To Date"</span>
                                         <GrayPill
-                                            text=to_date.format("%Y-%m-%d").to_string()
+                                            data=to_date
+                                            renderer=Some(
+                                                Callback::new(move |datetime: DateTime<Utc>| {
+                                                    view! { <Datetime datetime format=DatetimeFormat::Date /> }
+                                                        .into_view()
+                                                }),
+                                            )
                                             on_delete=move |_| {
                                                 filters_rws.update(|f| f.to_date = None);
                                             }
@@ -140,8 +153,8 @@ pub fn filter_summary(filters_rws: RwSignal<AuditQueryFilters>) -> impl IntoView
                                     <div class="flex gap-2 items-center">
                                         <span class="text-xs">"Username"</span>
                                         <GrayPill
-                                            text=username.clone()
-                                            on_delete=move |_| {
+                                            data=username
+                                            on_delete=move |_: String| {
                                                 filters_rws.update(|f| f.username = None);
                                             }
                                         />
@@ -183,11 +196,11 @@ pub fn audit_log_filter_widget(
                         <DateInput
                             id="audit_from_date_input"
                             name="audit_from_date"
-                            min="2020-01-01"
-                            value=filters_buffer_rws
-                                .with(|f| f.from_date)
-                                .map(|s| s.format("%Y-%m-%d").to_string())
+                            min=Utc
+                                .with_ymd_and_hms(2020, 1, 1, 0, 0, 0)
+                                .single()
                                 .unwrap_or_default()
+                            value=filters_buffer_rws.with(|f| f.from_date)
                             on_change=Callback::new(move |new_date: DateTime<Utc>| {
                                 filters_buffer_rws.update(|f| f.from_date = Some(new_date));
                             })
@@ -202,10 +215,7 @@ pub fn audit_log_filter_widget(
                         <DateInput
                             id="audit_to_date_input"
                             name="audit_to_date"
-                            value=filters_buffer_rws
-                                .with(|f| f.to_date)
-                                .map(|s| s.format("%Y-%m-%d").to_string())
-                                .unwrap_or_default()
+                            value=filters_buffer_rws.with(|f| f.to_date)
                             on_change=Callback::new(move |new_date: DateTime<Utc>| {
                                 filters_buffer_rws
                                     .update(|f| {

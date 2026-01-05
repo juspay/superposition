@@ -4,6 +4,7 @@ use leptos_router::use_params_map;
 use crate::api::snapshots::fetch;
 use crate::components::alert::{Alert, AlertType};
 use crate::components::badge::Badge;
+use crate::components::datetime::Datetime;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::components::toast::Toast;
 use crate::types::{OrganisationId, Workspace};
@@ -52,7 +53,7 @@ pub fn config_version() -> impl IntoView {
                                             <div class="h-fit w-[250px]">
                                                 <div class="stat-title">"Created at"</div>
                                                 <div class="stat-value text-sm">
-                                                    {snapshot.created_at.format("%v %T").to_string()}
+                                                    <Datetime datetime=snapshot.created_at />
                                                 </div>
                                             </div>
                                         </div>

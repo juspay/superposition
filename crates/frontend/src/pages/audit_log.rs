@@ -13,6 +13,7 @@ use crate::{
     api::audit_log,
     components::{
         change_summary::{ChangeLogPopup, ChangeSummary},
+        datetime::DatetimeStr,
         skeleton::Skeleton,
         stat::Stat,
         table::{
@@ -53,7 +54,9 @@ fn audit_log_table_columns(
         Column::new(
             "timestamp".to_string(),
             false,
-            default_formatter,
+            move |value, _row| {
+                view! { <DatetimeStr datetime=value.into() /> }
+            },
             ColumnSortable::Yes {
                 sort_fn: Callback::new(move |_| {
                     let filters = filters_rws.get();
@@ -198,15 +201,7 @@ pub fn AuditLog() -> impl IntoView {
                 let table_rows = value
                     .data
                     .iter()
-                    .map(|ele| {
-                        let mut ele_map = json!(ele).as_object().unwrap().clone();
-                        ele_map
-                            .insert(
-                                "timestamp".to_string(),
-                                Value::String(ele.timestamp.format("%v %T").to_string()),
-                            );
-                        ele_map
-                    })
+                    .map(|ele| json!(ele).as_object().unwrap().clone())
                     .collect::<Vec<Map<String, Value>>>();
                 let pagination_params = pagination_params_rws.get();
                 let pagination_props = TablePaginationProps {

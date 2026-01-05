@@ -155,8 +155,8 @@ pub fn context_filter_summary(
                         <div class="flex gap-2 items-center">
                             <span class="text-xs">"Exact match context"</span>
                             <GrayPill
-                                text="Enabled"
-                                on_delete=move |_| {
+                                data="Enabled"
+                                on_delete=move |_: String| {
                                     context_filters_rws
                                         .update(|f| f.dimension_match_strategy = None)
                                 }
@@ -185,8 +185,8 @@ pub fn context_filter_summary(
                                     <div class="flex gap-2 items-center">
                                         <span class="text-xs">"Free text"</span>
                                         <GrayPill
-                                            text=plaintext.clone()
-                                            on_delete=move |_| {
+                                            data=plaintext
+                                            on_delete=move |_: String| {
                                                 context_filters_rws.update(|f| f.plaintext = None);
                                             }
                                         />

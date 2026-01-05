@@ -1,10 +1,8 @@
 use crate::{
     components::{
         condition_pills::Condition as ConditionComponent,
-        table::types::{
-            default_column_formatter, default_formatter, Column, ColumnSortable,
-            Expandable,
-        },
+        datetime::DatetimeStr,
+        table::types::{default_column_formatter, Column, ColumnSortable, Expandable},
     },
     logic::Conditions,
 };
@@ -152,8 +150,14 @@ pub fn experiment_table_columns(
                 .into_view()
             },
         ),
-        Column::default_with_sort(
+        Column::new(
             "created_at".to_string(),
+            false,
+            |value, _| {
+                view! {
+                    <DatetimeStr datetime=value.into() />
+                }
+            },
             ColumnSortable::Yes {
                 sort_fn: Callback::new(move |_| {
                     let filters = filters_rws.get();
@@ -168,11 +172,17 @@ pub fn experiment_table_columns(
                 sort_by: current_sort_by.clone(),
                 currently_sorted: current_sort_on == ExperimentSortOn::CreatedAt,
             },
+            Expandable::Enabled(100),
+            default_column_formatter,
         ),
         Column::new(
             "last_modified".to_string(),
             false,
-            default_formatter,
+            |value, _| {
+                view! {
+                    <DatetimeStr datetime=value.into() />
+                }
+            },
             ColumnSortable::Yes {
                 sort_fn: Callback::new(move |_| {
                     let filters = filters_rws.get();

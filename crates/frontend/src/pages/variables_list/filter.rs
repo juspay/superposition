@@ -81,8 +81,8 @@ pub fn filter_summary(filters_rws: RwSignal<VariableFilters>) -> impl IntoView {
                                             <div class="flex gap-2 items-center">
                                                 <span class="text-xs">"Name"</span>
                                                 <GrayPill
-                                                    text=name.clone()
-                                                    on_delete=move |_| {
+                                                    data=name
+                                                    on_delete=move |_: String| {
                                                         filters_rws
                                                             .update(|f| { f.name = filter_index(&f.name, idx) });
                                                     }
@@ -107,8 +107,8 @@ pub fn filter_summary(filters_rws: RwSignal<VariableFilters>) -> impl IntoView {
                                             <div class="flex gap-2 items-center">
                                                 <span class="text-xs">"Created By"</span>
                                                 <GrayPill
-                                                    text=created_by.clone()
-                                                    on_delete=move |_| {
+                                                    data=created_by
+                                                    on_delete=move |_: String| {
                                                         filters_rws
                                                             .update(|f| {
                                                                 f.created_by = filter_index(&f.created_by, idx)
@@ -135,8 +135,8 @@ pub fn filter_summary(filters_rws: RwSignal<VariableFilters>) -> impl IntoView {
                                             <div class="flex gap-2 items-center">
                                                 <span class="text-xs">"Modified By"</span>
                                                 <GrayPill
-                                                    text=last_modified_by.clone()
-                                                    on_delete=move |_| {
+                                                    data=last_modified_by
+                                                    on_delete=move |_: String| {
                                                         filters_rws
                                                             .update(|f| {
                                                                 f.last_modified_by = filter_index(&f.last_modified_by, idx)

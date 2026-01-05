@@ -1,6 +1,6 @@
 [package]
 name = "frontend"
-description  = "the UI interface that is provided to interact, configure and manage superposition, organisations and application workspaces"
+description = "the UI interface that is provided to interact, configure and manage superposition, organisations and application workspaces"
 version.workspace = true
 edition = "2021"
 include = ["src/**/*", "src-js/**/*"]
@@ -48,6 +48,7 @@ web-sys = { version = "0.3.64", features = [
     "KeyboardEvent",
     "Document",
     "Node",
+    "Navigator",
 ] }
 
 [features]

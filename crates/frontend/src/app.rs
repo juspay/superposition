@@ -3,6 +3,7 @@ use leptos_meta::*;
 use leptos_router::*;
 use serde_json::json;
 
+use crate::components::datetime::DatetimeConversionScript;
 use crate::hoc::layout::{use_org, CommonLayout, Layout, Providers};
 use crate::pages::compare_overrides::CompareOverrides;
 use crate::pages::config_version::ConfigVersion;
@@ -57,6 +58,7 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                     type_="text/javascript"
                     src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"
                 />
+                <DatetimeConversionScript />
                 {move || {
                     if base.is_empty() {
                         view! {}.into_view()

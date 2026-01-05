@@ -5,6 +5,7 @@ use superposition_types::{
     api::functions::FunctionStateChangeRequest, database::models::ChangeReason,
 };
 
+use crate::components::datetime::DatetimeStr;
 use crate::components::table::types::{
     default_column_formatter, Column, ColumnSortable, Expandable,
 };
@@ -30,7 +31,11 @@ pub fn function_table_columns() -> Vec<Column> {
         ),
         Column::default("function_type".to_string()),
         Column::default("published_runtime_version".to_string()),
-        Column::default("published_at".to_string()),
+        Column::default_with_cell_formatter("published_at".to_string(), |value, _| {
+            view! {
+                <DatetimeStr datetime=value.into() />
+            }
+        }),
         Column::default("published_by".to_string()),
     ]
 }

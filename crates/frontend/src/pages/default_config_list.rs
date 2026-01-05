@@ -15,6 +15,7 @@ use types::PageParams;
 use utils::{get_bread_crums, modify_rows, BreadCrums};
 
 use crate::components::{
+    datetime::DatetimeStr,
     default_config_form::DefaultConfigForm,
     drawer::PortalDrawer,
     skeleton::Skeleton,
@@ -135,10 +136,23 @@ pub fn default_config_list() -> impl IntoView {
                 default_column_formatter,
             ),
             Column::default("value".to_string()),
-            Column::default("created_at".to_string()),
-            Column::default_with_column_formatter("last_modified_at".to_string(), |_| {
-                default_column_formatter("Modified At")
+            Column::default_with_cell_formatter("created_at".to_string(), |value, _| {
+                view! {
+                    <DatetimeStr datetime=value.into() />
+                }
             }),
+            Column::new(
+                "last_modified_at".to_string(),
+                false,
+                |value, _| {
+                    view! {
+                        <DatetimeStr datetime=value.into() />
+                    }
+                },
+                ColumnSortable::No,
+                Expandable::Enabled(100),
+                |_| default_column_formatter("Modified At"),
+            ),
         ]
     });
 
@@ -151,20 +165,7 @@ pub fn default_config_list() -> impl IntoView {
                 let table_rows = default_config
                     .data
                     .into_iter()
-                    .map(|config| {
-                        let mut ele_map = json!(config).as_object().unwrap().to_owned();
-                        ele_map
-                            .insert(
-                                "created_at".to_string(),
-                                Value::String(config.created_at.format("%v %T").to_string()),
-                            );
-                        ele_map
-                            .insert(
-                                "last_modified_at".to_string(),
-                                Value::String(config.last_modified_at.format("%v %T").to_string()),
-                            );
-                        ele_map
-                    })
+                    .map(|config| json!(config).as_object().unwrap().to_owned())
                     .collect::<Vec<Map<String, Value>>>();
                 let mut filtered_rows = table_rows;
                 let page_params = page_params_rws.get();

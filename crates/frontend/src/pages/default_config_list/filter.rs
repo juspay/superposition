@@ -77,8 +77,8 @@ pub(super) fn filter_summary(
                                     <div class="flex gap-2 items-center">
                                         <span class="text-xs">"Prefix"</span>
                                         <GrayPill
-                                            text=name
-                                            on_delete=move |_| {
+                                            data=name
+                                            on_delete=move |_: String| {
                                                 filters_rws.update(|f| f.name = None);
                                             }
                                         />

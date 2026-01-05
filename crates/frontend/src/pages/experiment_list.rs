@@ -174,23 +174,7 @@ pub fn experiment_list() -> impl IntoView {
                                         .experiments
                                         .data
                                         .iter()
-                                        .map(|ele| {
-                                            let mut ele_map = json!(ele)
-                                                .as_object()
-                                                .unwrap()
-                                                .to_owned();
-                                            ele_map
-                                                .insert(
-                                                    "created_at".to_string(),
-                                                    json!(ele.created_at.format("%v %T").to_string()),
-                                                );
-                                            ele_map
-                                                .insert(
-                                                    "last_modified".to_string(),
-                                                    json!(ele.last_modified.format("%v %T").to_string()),
-                                                );
-                                            ele_map
-                                        })
+                                        .map(|ele| json!(ele).as_object().unwrap().to_owned())
                                         .collect::<Vec<Map<String, Value>>>()
                                         .to_owned();
                                     let pagination_props = TablePaginationProps {
@@ -200,6 +184,7 @@ pub fn experiment_list() -> impl IntoView {
                                         total_pages: v.experiments.total_pages,
                                         on_page_change: handle_page_change,
                                     };
+
                                     view! {
                                         <ConditionCollapseProvider>
                                             <Table

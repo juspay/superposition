@@ -9,10 +9,10 @@ use superposition_types::{
     PaginatedResponse,
 };
 
-use crate::components::skeleton::Skeleton;
 use crate::components::stat::Stat;
 use crate::components::table::types::{ColumnSortable, Expandable, TablePaginationProps};
 use crate::components::table::{types::Column, Table};
+use crate::components::{datetime::DatetimeStr, skeleton::Skeleton};
 use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::{OrganisationId, Workspace};
 use crate::utils::unwrap_or_default_with_error;
@@ -75,21 +75,10 @@ pub fn config_version_list() -> impl IntoView {
                                     let resp = snapshot_resp
                                         .data
                                         .into_iter()
-                                        .map(|config_version| {
-                                            let mut map = unwrap_or_default_with_error(
-                                                json!(config_version).as_object().cloned(),
-                                                "Failed to parse config version",
-                                            );
-                                            map.insert(
-                                                "id".to_string(),
-                                                Value::String(config_version.id.to_string()),
-                                            );
-                                            map.insert(
-                                                "created_at".to_string(),
-                                                json!(config_version.created_at.format("%v %T").to_string()),
-                                            );
-                                            map
-                                        })
+                                        .map(|config_version| unwrap_or_default_with_error(
+                                            json!(config_version).as_object().cloned(),
+                                            "Failed to parse config version",
+                                        ))
                                         .collect();
                                     let pagination_props = TablePaginationProps {
                                         enabled: true,
@@ -138,7 +127,11 @@ pub fn snapshot_table_columns() -> Vec<Column> {
             default_column_formatter,
         ),
         Column::default("description".to_string()),
-        Column::default_no_collapse("created_at".to_string()),
+        Column::default_with_cell_formatter("created_at".to_string(), |value, _| {
+            view! {
+                <DatetimeStr datetime=value.into() />
+            }
+        }),
         Column::default_with_cell_formatter(
             "tags".to_string(),
             |_value: &str, row: &Map<String, Value>| {
