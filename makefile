@@ -211,6 +211,7 @@ test: setup frontend superposition
 				--retry-all-errors \
 				'http://localhost:8080/health' 2>&1 > /dev/null
 	cd tests && bun test:clean
+	$(MAKE) bindings-test
 	-@pkill -f $(CARGO_TARGET_DIR)/debug/superposition &
 
 ## npm run test
