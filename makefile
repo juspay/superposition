@@ -441,7 +441,7 @@ bindings-test: uniffi-bindings
 	@echo "========================================"
 	@echo "Running JavaScript/TypeScript TOML binding tests"
 	@echo "========================================"
-	cd clients/javascript/bindings && npm run build && node dist/test-toml.js
+	cd clients/javascript/bindings && npm install && npm run build && node dist/test-toml.js
 	@echo ""
 	@echo "========================================"
 	@echo "Running Java/Kotlin TOML binding tests"
