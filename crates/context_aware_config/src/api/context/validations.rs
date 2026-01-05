@@ -2,7 +2,8 @@ use std::collections::HashMap;
 
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::{Map, Value};
-use service_utils::{helpers::validation_err_to_str, service::types::SchemaName};
+use service_utils::service::types::SchemaName;
+use superposition_core::validations::validation_err_to_str;
 use superposition_macros::{bad_argument, validation_error};
 use superposition_types::{DBConnection, DimensionInfo, database::schema, result};
 

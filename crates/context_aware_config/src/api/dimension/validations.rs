@@ -3,11 +3,10 @@ use std::collections::HashSet;
 use diesel::{ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl};
 use jsonschema::{JSONSchema, ValidationError};
 use serde_json::{Map, Value};
-use service_utils::{
-    helpers::fetch_dimensions_info_map, helpers::validation_err_to_str,
-    service::types::SchemaName,
+use service_utils::{helpers::fetch_dimensions_info_map, service::types::SchemaName};
+use superposition_core::validations::{
+    compile_schema, validate_cohort_schema_structure, validation_err_to_str,
 };
-use superposition_core::validations::{compile_schema, validate_cohort_schema_structure};
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
     DBConnection,
