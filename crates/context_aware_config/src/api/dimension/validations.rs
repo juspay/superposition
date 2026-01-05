@@ -5,8 +5,8 @@ use jsonschema::{JSONSchema, ValidationError};
 #[cfg(not(feature = "jsonlogic"))]
 use serde_json::Map;
 use serde_json::Value;
-use service_utils::{helpers::validation_err_to_str, service::types::SchemaName};
-use superposition_core::validations::{compile_schema, validate_cohort_schema_structure};
+use service_utils::service::types::SchemaName;
+use superposition_core::validations::{compile_schema, validate_cohort_schema_structure, validation_err_to_str};
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
     api::dimension::DimensionName,
