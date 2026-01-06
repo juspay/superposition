@@ -166,18 +166,6 @@ fn hash(val: &Value) -> String {
     blake3::hash(sorted.as_bytes()).to_string()
 }
 
-/// Compute priority based on dimension positions (bit-shift calculation)
-fn compute_priority(
-    context_map: &Map<String, Value>,
-    dimensions: &HashMap<String, DimensionInfo>,
-) -> i32 {
-    context_map
-        .keys()
-        .filter_map(|key| dimensions.get(key))
-        .map(|dim_info| 1 << dim_info.position)
-        .sum()
-}
-
 /// Parse context expression string (e.g., "os=linux;region=us-east")
 fn parse_context_expression(
     input: &str,
@@ -552,16 +540,20 @@ fn parse_contexts(
             if let Some(schema) = schemas.get(key) {
                 crate::validations::validate_against_schema(&serde_value, schema)
                     .map_err(|errors: Vec<String>| TomlError::ValidationError {
-                    key: format!("{}.{}", context_expr, key),
-                    errors: crate::validations::format_validation_errors(&errors),
-                })?;
+                        key: format!("{}.{}", context_expr, key),
+                        errors: crate::validations::format_validation_errors(&errors),
+                    })?;
             }
 
             override_config.insert(key.clone(), serde_value);
         }
 
         // Compute priority and hash
-        let priority = compute_priority(&context_map, dimensions);
+        let priority = context_map
+            .keys()
+            .filter_map(|key| dimensions.get(key))
+            .map(|dim_info| crate::helpers::calculate_priority_from_index(dim_info.position))
+            .sum();
         let override_hash = hash(&serde_json::to_value(&override_config).unwrap());
 
         // Create Context
@@ -646,7 +638,13 @@ pub fn parse(toml_content: &str) -> Result<Config, TomlError> {
 fn value_to_toml(value: &Value) -> String {
     match value {
         Value::String(s) => {
-            format!("\"{}\"", s.replace('\\', "\\\\").replace('"', "\\\""))
+            let escaped = s
+                .replace('\\', "\\\\")
+                .replace('"', "\\\"")
+                .replace('\n', "\\n")
+                .replace('\r', "\\r")
+                .replace('\t', "\\t");
+            format!("\"{}\"", escaped)
         }
         Value::Number(n) => n.to_string(),
         Value::Bool(b) => b.to_string(),

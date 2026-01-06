@@ -57,4 +57,3 @@ timeout = 90
     let serialized = serialize_to_toml(&filtered_config).unwrap();
     println!("{}", serialized);
 }
-

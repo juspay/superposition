@@ -5578,6 +5578,7 @@ version = "0.97.4"
 dependencies = [
  "actix-web",
  "anyhow",
+ "bigdecimal",
  "blake3",
  "cbindgen",
  "cfg-if",
@@ -5588,6 +5589,7 @@ dependencies = [
  "juspay_jsonlogic",
  "log",
  "mini-moka",
+ "num-bigint",
  "once_cell",
  "rand 0.9.1",
  "reqwest",
