@@ -22,7 +22,6 @@ itertools = { workspace = true }
 jsonlogic = { workspace = true }
 jsonschema = { workspace = true }
 log = { workspace = true }
-num-bigint = "0.4"
 serde = { workspace = true }
 serde_json = { workspace = true }
 secrecy = { workspace = true }

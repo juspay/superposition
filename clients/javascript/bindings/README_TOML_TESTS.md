@@ -4,11 +4,6 @@ This directory contains JavaScript/Node.js bindings for the TOML parsing functio
 
 > **Note**: JavaScript is not supported by uniffi, so these bindings use the `ffi_legacy` C FFI interface instead.
 
-> **⚠️ Node.js Compatibility**: The `ffi-napi` and `ref-napi` packages have compatibility issues with Node.js v24+. It's recommended to use **Node.js v18 or v20 LTS** for running these bindings. You can use a version manager like `nvm` to switch versions:
-> ```bash
-> nvm use 20  # or nvm use 18
-> ```
-
 ## Prerequisites
 
 1. **Build the superposition_core library:**
@@ -36,9 +31,7 @@ node test.js
 ## Architecture
 
 The JavaScript bindings use:
-- **ffi-napi**: Node.js FFI (Foreign Function Interface) library for calling C functions
-- **ref-napi**: Library for creating and dereferencing pointers
-- **C FFI Functions**: `core_parse_toml_config` and `core_eval_toml_config` from `ffi_legacy.rs`
+- **C FFI Function**: `core_parse_toml_config` from `ffi_legacy.rs`
 
 ## API Reference
 
@@ -129,7 +122,7 @@ Tests 5 scenarios:
 
 When all tests pass:
 
-```
+```text
 ======================================================================
   TEST SUMMARY
 ======================================================================
@@ -230,14 +223,6 @@ char* core_parse_toml_config(
     char* error_buffer
 );
 
-// Evaluate TOML with dimensions
-char* core_eval_toml_config(
-    const char* toml_content,
-    const char* input_dimensions_json,
-    const char* merge_strategy_str,
-    char* error_buffer
-);
-
 // Free strings allocated by the library
 void core_free_string(char* ptr);
 ```
@@ -258,13 +243,6 @@ If you get "Library not found" errors:
 1. Ensure you've built the Rust library: `cargo build --release -p superposition_core`
 2. Check that the library exists in `target/release/`
 3. Verify the library filename matches your platform
-
-### FFI Errors
-
-If you encounter FFI-related errors:
-1. Make sure you have the latest `ffi-napi` and `ref-napi` packages
-2. Try rebuilding native modules: `npm rebuild`
-3. Check Node.js version compatibility (requires Node.js >= 14)
 
 ## Development
 

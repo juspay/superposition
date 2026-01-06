@@ -103,7 +103,7 @@ The `ffi_eval_toml_config` function accepts two merge strategies:
 
 When all tests pass, you should see:
 
-```
+```text
 ======================================================================
   TEST SUMMARY
 ======================================================================

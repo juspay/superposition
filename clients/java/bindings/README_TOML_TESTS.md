@@ -102,7 +102,7 @@ The test suite includes the following test cases:
 
 When tests pass, you should see output like:
 
-```
+```text
 ======================================================================
   TEST: Parse TOML Configuration
 ======================================================================

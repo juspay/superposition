@@ -5,6 +5,8 @@ import koffi from "koffi";
 import { fileURLToPath } from "url";
 import { Buffer } from "buffer";
 
+const ERROR_BUFFER_SIZE = 2048;
+
 export class NativeResolver {
     private lib: any;
     private isAvailable: boolean = false;
@@ -144,7 +146,7 @@ export class NativeResolver {
             throw new Error("queryData serialization failed");
         }
 
-        const ebuf = Buffer.alloc(256);
+        const ebuf = Buffer.alloc(ERROR_BUFFER_SIZE);
         const result = this.lib.core_get_resolved_config(
             defaultConfigsJson,
             contextsJson,
@@ -208,7 +210,7 @@ export class NativeResolver {
             ? JSON.stringify(experimentation)
             : null;
 
-        const ebuf = Buffer.alloc(256);
+        const ebuf = Buffer.alloc(ERROR_BUFFER_SIZE);
         const result = this.lib.core_get_resolved_config_with_reasoning(
             JSON.stringify(defaultConfigs || {}),
             JSON.stringify(contexts),
@@ -281,7 +283,7 @@ export class NativeResolver {
         console.log("  identifier:", identifier);
         console.log("  filterPrefixes:", filterPrefixes);
 
-        const ebuf = Buffer.alloc(256);
+        const ebuf = Buffer.alloc(ERROR_BUFFER_SIZE);
         const result = this.lib.core_get_applicable_variants(
             experimentsJson,
             experimentGroupsJson,
@@ -345,9 +347,7 @@ export class NativeResolver {
         }
 
         // Allocate error buffer (matching the Rust implementation)
-        const ERROR_BUFFER_SIZE = 2048;
         const errorBuffer = Buffer.alloc(ERROR_BUFFER_SIZE);
-        errorBuffer.fill(0);
 
         // Call the C function
         const resultJson = this.lib.core_parse_toml_config(tomlContent, errorBuffer);

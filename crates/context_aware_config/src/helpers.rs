@@ -4,7 +4,7 @@ use actix_web::{
     http::header::{HeaderMap, HeaderName, HeaderValue},
     web::Data,
 };
-use bigdecimal::{BigDecimal, Num};
+use bigdecimal::BigDecimal;
 #[cfg(feature = "high-performance-mode")]
 use chrono::DateTime;
 use chrono::Utc;
@@ -12,12 +12,12 @@ use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 #[cfg(feature = "high-performance-mode")]
 use fred::interfaces::KeysInterface;
 use jsonschema::{Draft, JSONSchema};
-use num_bigint::BigUint;
 use serde_json::{Map, Value, json};
 use service_utils::{
     helpers::{fetch_dimensions_info_map, generate_snowflake_id},
     service::types::{AppState, EncryptionKey, SchemaName, WorkspaceContext},
 };
+use superposition_core::helpers::calculate_weight_from_index;
 use superposition_macros::{db_error, unexpected_error, validation_error};
 #[cfg(feature = "high-performance-mode")]
 use superposition_types::database::schema::event_log::dsl as event_log;
@@ -94,16 +94,6 @@ pub fn get_meta_schema() -> JSONSchema {
         .with_draft(Draft::Draft7)
         .compile(&my_schema)
         .expect("Error encountered: Failed to compile 'context_dimension_schema_value'. Ensure it adheres to the correct format and data type.")
-}
-
-fn calculate_weight_from_index(index: u32) -> Result<BigDecimal, String> {
-    let base = BigUint::from(2u32);
-    let result = base.pow(index);
-    let biguint_str = &result.to_str_radix(10);
-    BigDecimal::from_str_radix(biguint_str, 10).map_err(|err| {
-        log::error!("failed to parse bigdecimal with error: {}", err.to_string());
-        String::from("failed to parse bigdecimal with error")
-    })
 }
 
 pub fn calculate_context_weight(
@@ -512,28 +502,3 @@ pub fn validate_change_reason(
     Ok(())
 }
 
-// ************ Tests *************
-
-#[cfg(test)]
-mod tests {
-    use std::str::FromStr;
-
-    use super::*;
-
-    #[test]
-    fn test_calculate_weight_from_index() {
-        let number_2_100_str = "1267650600228229401496703205376";
-        // test 2^100
-        let big_decimal =
-            BigDecimal::from_str(number_2_100_str).expect("Invalid string format");
-
-        let number_2_200_str =
-            "1606938044258990275541962092341162602522202993782792835301376";
-        // test 2^100
-        let big_decimal_200 =
-            BigDecimal::from_str(number_2_200_str).expect("Invalid string format");
-
-        assert_eq!(Some(big_decimal), calculate_weight_from_index(100).ok());
-        assert_eq!(Some(big_decimal_200), calculate_weight_from_index(200).ok());
-    }
-}
