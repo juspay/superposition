@@ -81,7 +81,7 @@ pub fn gen_change_table(
 }
 
 #[component]
-fn no_change() -> impl IntoView {
+fn NoChange() -> impl IntoView {
     view! { <div class="text-gray-500 text-center text-sm">"No changes detected."</div> }
 }
 

@@ -40,7 +40,7 @@ fn stage_to_action(stage: Stage) -> String {
 }
 
 #[component]
-fn function_code_info(
+fn FunctionCodeInfo(
     version: Option<FunctionRuntimeVersion>,
     action_time: Option<DateTime<Utc>>,
     action_by: Option<String>,

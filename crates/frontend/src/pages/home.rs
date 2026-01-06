@@ -37,7 +37,7 @@ fn gen_name_id(s0: &String, s1: &String, s2: &String) -> String {
 }
 
 #[component]
-fn all_context_view(config: Config) -> impl IntoView {
+fn AllContextView(config: Config) -> impl IntoView {
     let Config {
         contexts,
         overrides,

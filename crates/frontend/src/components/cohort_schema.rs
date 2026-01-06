@@ -405,7 +405,7 @@ enum CohortInputType {
 }
 
 #[component]
-fn cohort_form(
+fn CohortForm(
     #[prop(into, default = String::new())] cohort_name: String,
     value: Value,
     #[prop(into)] on_change: Callback<(String, Value), Result<(), String>>,

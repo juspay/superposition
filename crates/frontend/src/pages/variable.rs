@@ -17,7 +17,7 @@ use crate::providers::alert_provider::enqueue_alert;
 use crate::types::{OrganisationId, Workspace};
 
 #[component]
-fn variable_info(variable: Variable) -> impl IntoView {
+fn VariableInfo(variable: Variable) -> impl IntoView {
     view! {
         <div class="card bg-base-100 max-w-screen shadow">
             <div class="card-body">

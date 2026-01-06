@@ -15,19 +15,19 @@ NC='\033[0m' # No Color
 
 echo "Checking Leptos component naming conventions..."
 
-# Find all component functions with snake_case names
+# Find all component functions with snake_case names (both public and private)
 while IFS= read -r file; do
     if [ -f "$file" ]; then
-        # Look for #[component] followed by pub fn snake_case_name
+        # Look for #[component] followed by fn snake_case_name (pub or private)
         while IFS= read -r line_num; do
             # Get the function name from the line
             func_line=$(sed -n "${line_num}p" "$file")
-            func_name=$(echo "$func_line" | sed -n 's/.*pub fn \([a-z_][a-z0-9_]*\).*/\1/p')
+            func_name=$(echo "$func_line" | sed -n 's/.*fn \([a-z_][a-z0-9_]*\).*/\1/p')
 
             # Check if it starts with lowercase (snake_case)
             if [[ "$func_name" =~ ^[a-z] ]]; then
-                # Convert to PascalCase for the suggestion
-                pascal_name=$(echo "$func_name" | sed -r 's/(^|_)([a-z])/\U\2/g')
+                # Convert to PascalCase for the suggestion (using -E for BSD/macOS compatibility)
+                pascal_name=$(echo "$func_name" | sed -E 's/(^|_)([a-z])/\U\2/g')
 
                 rel_file="${file#./}"
                 echo -e "${RED}✗${NC} Found snake_case component in ${YELLOW}${rel_file}:${line_num}${NC}"
@@ -37,10 +37,13 @@ while IFS= read -r file; do
                 ERRORS=$((ERRORS + 1))
             fi
         done < <(grep -n "#\[component\]" "$file" | while IFS=: read -r line_num _; do
-            # Look at next few lines for the function definition
+            # Look at next few lines for the function definition (pub or private)
+            # Only match top-level function definitions (not nested helpers)
             for offset in 1 2 3 4; do
                 next_line=$((line_num + offset))
-                if sed -n "${next_line}p" "$file" | grep -q "pub fn [a-z_][a-z0-9_]*"; then
+                line_content=$(sed -n "${next_line}p" "$file")
+                # Match fn at start of line or after 'pub ', not indented helper functions
+                if echo "$line_content" | grep -q "^pub fn [a-z_][a-z0-9_]*\|^fn [a-z_][a-z0-9_]*"; then
                     echo "$next_line"
                     break
                 fi

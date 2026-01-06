@@ -378,7 +378,7 @@ pub fn ExperimentForm(
 }
 
 #[component]
-fn change_log_summary(
+fn ChangeLogSummary(
     experiment_id: String,
     update_request: OverrideKeysUpdateRequest,
     #[prop(into)] on_confirm: Callback<()>,

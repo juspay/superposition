@@ -179,7 +179,7 @@ pub fn Select(
 }
 
 #[component]
-fn basic_input(
+fn BasicInput(
     id: String,
     name: String,
     placeholder: String,
@@ -594,7 +594,7 @@ pub fn Input(
 }
 
 #[component]
-fn array_input<T: Clone + PartialEq + 'static + Display + FromStr>(
+fn ArrayInput<T: Clone + PartialEq + 'static + Display + FromStr>(
     options: Vec<T>,
     on_change: Callback<Vec<T>>,
     unique: bool,

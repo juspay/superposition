@@ -1,7 +1,7 @@
 use leptos::*;
 
 #[component]
-fn info_section(
+fn InfoSection(
     title: &'static str,
     icon: &'static str,
     content: String,
