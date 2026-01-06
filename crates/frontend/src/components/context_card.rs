@@ -18,7 +18,7 @@ use crate::{
 };
 
 #[component]
-fn option(
+fn Option(
     label: String,
     icon: String,
     #[prop(into)] on_click: Callback<(), ()>,
@@ -35,7 +35,7 @@ fn option(
 }
 
 #[component]
-fn context_options(
+fn ContextOptions(
     #[prop(into)] handle_create_experiment: Callback<(), ()>,
     #[prop(into)] handle_delete_experiment: Callback<(), ()>,
     #[prop(into)] handle_clone: Callback<(), ()>,

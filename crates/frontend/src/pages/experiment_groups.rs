@@ -127,7 +127,7 @@ fn table_columns(
 }
 
 #[component]
-fn experiment_group_info(group: ExperimentGroup) -> impl IntoView {
+fn ExperimentGroupInfo(group: ExperimentGroup) -> impl IntoView {
     let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let conditions = Conditions::from_context_json(&group.context).unwrap_or_default();
 

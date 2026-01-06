@@ -248,7 +248,7 @@ pub fn FunctionEditor(
 }
 
 #[component]
-fn edit_form(
+fn EditForm(
     edit: bool,
     function_name_rws: RwSignal<String>,
     function_code_rws: RwSignal<String>,

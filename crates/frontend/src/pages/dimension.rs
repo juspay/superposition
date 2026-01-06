@@ -24,7 +24,7 @@ use crate::schema::{JsonSchemaType, SchemaType};
 use crate::types::{DimensionTypeOptions, OrganisationId, Workspace};
 
 #[component]
-fn tree_node(
+fn TreeNode(
     name: String,
     data: DependencyGraph,
     #[prop(default = vec![])] parents_last: Vec<bool>,
@@ -86,7 +86,7 @@ fn tree_node(
 }
 
 #[component]
-fn dimension_info(dimension: DimensionResponse) -> impl IntoView {
+fn DimensionInfo(dimension: DimensionResponse) -> impl IntoView {
     let dimension_type = DimensionTypeOptions::from(&dimension.dimension_type);
     view! {
         <div class="card bg-base-100 max-w-screen shadow">
@@ -191,7 +191,7 @@ fn dimension_info(dimension: DimensionResponse) -> impl IntoView {
 }
 
 #[component]
-fn dimension_data(dimension: DimensionResponse) -> impl IntoView {
+fn DimensionData(dimension: DimensionResponse) -> impl IntoView {
     view! {
         <ContentDescription
             description=dimension.description.clone()

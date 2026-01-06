@@ -22,7 +22,7 @@ use crate::schema::{JsonSchemaType, SchemaType};
 use crate::types::{OrganisationId, Workspace};
 
 #[component]
-fn type_info(type_template: TypeTemplate) -> impl IntoView {
+fn TypeInfo(type_template: TypeTemplate) -> impl IntoView {
     view! {
         <div class="card bg-base-100 max-w-screen shadow">
             <div class="card-body">
