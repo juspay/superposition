@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@juspay/superposition-sdk": "file:../clients/javascript/sdk",
+    "dotenv": "^17.2.3",
     "pg": "^8.16.3"
   },
   "scripts": {

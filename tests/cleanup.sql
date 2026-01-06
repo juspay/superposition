@@ -26,7 +26,7 @@ BEGIN
         LOOP
             RAISE NOTICE '  - Dropping schema: % (workspace: %)', 
                 workspace_record.workspace_schema_name, workspace_record.workspace_name;
-            EXECUTE 'DROP SCHEMA IF EXISTS ' || workspace_record.workspace_schema_name || ' CASCADE';
+            EXECUTE format('DROP SCHEMA IF EXISTS %I CASCADE', workspace_record.workspace_schema_name);
             workspace_count := workspace_count + 1;
         END LOOP;
         

@@ -1,16 +1,19 @@
 import pg from 'pg';
+import { config } from 'dotenv';
 
 const { Client } = pg;
 
+config({ path: '../.env' });
+
 const DB_CONFIG = {
-    host: 'localhost',
-    port: 5432,
-    database: 'config',
-    user: 'postgres',
-    password: 'docker',
+    host: process.env.DB_HOST?.split(':')[0] || 'localhost',
+    port: parseInt(process.env.DB_HOST?.split(':')[1] || '5432'),
+    database: process.env.DB_NAME || 'config',
+    user: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASSWORD || 'docker',
 };
 
-async function runCleanup(): Promise<void> {
+async function runCleanup(): Promise<number> {
     const client = new Client(DB_CONFIG);
     
     try {
@@ -30,10 +33,10 @@ async function runCleanup(): Promise<void> {
         await client.query(sqlContent);
         
         console.log('\n✓ Cleanup completed successfully');
-        process.exit(0);
+        return 0;
     } catch (error) {
         console.error('\n✗ Cleanup failed:', error);
-        process.exit(1);
+        return 1;
     } finally {
         await client.end().catch((err) => {
             console.error('Error closing database connection:', err);
@@ -41,4 +44,6 @@ async function runCleanup(): Promise<void> {
     }
 }
 
-runCleanup();
+runCleanup().then((exitCode) => {
+    process.exit(exitCode);
+});

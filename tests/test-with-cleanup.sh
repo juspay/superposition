@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e
-
 echo "Running tests..."
 bun test
 TEST_EXIT_CODE=$?
