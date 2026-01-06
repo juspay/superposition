@@ -9,6 +9,12 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "@juspay/superposition-sdk": "file:../clients/javascript/sdk"
+    "@juspay/superposition-sdk": "file:../clients/javascript/sdk",
+    "pg": "^8.16.3"
+  },
+  "scripts": {
+    "test": "bun test",
+    "test:clean": "./test-with-cleanup.sh",
+    "cleanup": "bun run-cleanup.ts"
   }
 }
