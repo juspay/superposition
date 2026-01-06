@@ -34,7 +34,7 @@ else ifeq ($(HAS_PODMAN),0)
   DOCKER := podman
   export PODMAN_COMPOSE_WARNING_LOGS = false
 else
-	$(error "Neither docker nor podman found, please install one of them.")
+  $(error "Neither docker nor podman found, please install one of them.")
 endif
 COMPOSE := $(DOCKER) compose
 
@@ -49,31 +49,7 @@ DB_UP = $(shell $(call check-container,$(DB_CONTAINER_NAME)))
 LSTACK_CONTAINER_NAME = $(shell $(call read-container-name,localstack))
 LSTACK_UP = $(shell $(call check-container,$(LSTACK_CONTAINER_NAME)))
 export SMITHY_MAVEN_REPOS = https://repo1.maven.org/maven2|https://sandbox.assets.juspay.in/smithy/m2
-.PHONY:
-	cac
-	ci-test
-	clients
-	db-init
-	grafana-local
-	kill
-	local-docs-view
-	node-dependencies
-	run
-	schema-file
-	setup
-	setup-clients
-	smithy-clean
-	smithy-build
-	smithy-clean-build
-	smithy-api-docs
-	smithy-updates
-	validate-aws-connection
-	validate-psql-connection
-	uniffi-bindings
-	test-js-provider
-	test-py-provider
-	test-kotlin-provider
-	test-rust-provider
+.PHONY: cac check-component-names ci-test clients db-init grafana-local kill local-docs-view node-dependencies run schema-file setup setup-clients smithy-clean smithy-build smithy-clean-build smithy-api-docs smithy-updates validate-aws-connection validate-psql-connection uniffi-bindings test-js-provider test-py-provider test-kotlin-provider test-rust-provider
 
 env-file:
 	@if ! [ -e .env ]; then \
@@ -296,7 +272,10 @@ lint-fix: lint
 check: FMT_FLAGS += --check
 check: LEPTOS_FMT_FLAGS += --check
 check: LINT_FLAGS += -- -Dwarnings
-check: fmt leptosfmt lint
+check: fmt leptosfmt lint check-component-names
+
+check-component-names:
+	@./scripts/check_component_names.sh
 
 
 # Target to run cargo fmt on filtered packages
