@@ -119,7 +119,7 @@ where
 
             // Acquire advisory lock if we have lock keys
             if let Some((org_key, workspace_key)) = lock_keys {
-                if let Err(e) = acquire_advisory_lock(&mut db_conn, org_key, workspace_key) {
+                if let Err(e) = acquire_advisory_lock(&mut db_conn, org_key, workspace_key).await {
                     log::error!(
                         "failed to acquire advisory lock for org_key: {}, workspace_key: {}: {}",
                         org_key, workspace_key, e
@@ -174,7 +174,7 @@ fn compute_lock_keys(org_id: &str, workspace_id: &str) -> (i32, i32) {
 
 /// Acquire PostgreSQL advisory lock using two-argument form with retry logic
 /// Uses pg_try_advisory_lock() with exponential backoff to avoid indefinite blocking
-fn acquire_advisory_lock(
+async fn acquire_advisory_lock(
     conn: &mut PgConnection,
     org_key: i32,
     workspace_key: i32,
@@ -213,17 +213,19 @@ fn acquire_advisory_lock(
                 "lock contention detected, retrying in {}ms (attempt {}/{}, org_key: {}, workspace_key: {})",
                 backoff_ms, attempt + 1, MAX_RETRIES, org_key, workspace_key
             );
-            std::thread::sleep(std::time::Duration::from_millis(backoff_ms));
+            actix_web::rt::time::sleep(std::time::Duration::from_millis(backoff_ms)).await;
         }
     }
 
     // Failed to acquire lock after all retries
     Err(diesel::result::Error::DatabaseError(
         diesel::result::DatabaseErrorKind::Unknown,
-        Box::new(format!(
-            "Failed to acquire workspace lock after {} attempts (high contention)",
-            MAX_RETRIES
-        ))
+        Box::new(
+            format!(
+                "Failed to acquire workspace lock after {} attempts (high contention)",
+                MAX_RETRIES
+            )
+        ),
     ))
 }
 
