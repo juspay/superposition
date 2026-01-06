@@ -117,8 +117,8 @@ where
                 }
             };
 
-            // Acquire advisory lock if we have lock keys
-            if let Some((org_key, workspace_key)) = lock_keys {
+            // Acquire advisory lock if we have lock keys and create guard
+            let _lock_guard = if let Some((org_key, workspace_key)) = lock_keys {
                 if let Err(e) = acquire_advisory_lock(&mut db_conn, org_key, workspace_key).await {
                     log::error!(
                         "failed to acquire advisory lock for org_key: {}, workspace_key: {}: {}",
@@ -132,27 +132,17 @@ where
                     "acquired advisory lock for workspace (org_key: {}, workspace_key: {})",
                     org_key, workspace_key
                 );
-            }
+                Some(AdvisoryLockGuard::new(&mut db_conn, org_key, workspace_key))
+            } else {
+                None
+            };
 
             // Call the actual handler
+            // The lock guard will automatically release the lock when dropped,
+            // even if the handler panics
             let result = srv.call(req).await;
 
-            // Release advisory lock if we acquired one
-            if let Some((org_key, workspace_key)) = lock_keys {
-                if let Err(e) = release_advisory_lock(&mut db_conn, org_key, workspace_key) {
-                    log::error!(
-                        "failed to release advisory lock for org_key: {}, workspace_key: {}: {}",
-                        org_key, workspace_key, e
-                    );
-                    // Continue even if unlock fails - PostgreSQL will auto-release on connection close
-                }
-                log::debug!(
-                    "released advisory lock for workspace (org_key: {}, workspace_key: {})",
-                    org_key, workspace_key
-                );
-            }
-
-            // Return the result
+            // Guard is dropped here, ensuring lock is always released
             result.map(|r| r.map_into_left_body())
         })
     }
@@ -247,6 +237,39 @@ fn release_advisory_lock(
         .bind::<diesel::sql_types::Integer, _>(workspace_key)
         .execute(conn)?;
     Ok(())
+}
+
+/// RAII guard that ensures advisory lock is released even if handler panics
+struct AdvisoryLockGuard<'a> {
+    conn: &'a mut PgConnection,
+    org_key: i32,
+    workspace_key: i32,
+}
+
+impl<'a> AdvisoryLockGuard<'a> {
+    fn new(conn: &'a mut PgConnection, org_key: i32, workspace_key: i32) -> Self {
+        Self {
+            conn,
+            org_key,
+            workspace_key,
+        }
+    }
+}
+
+impl Drop for AdvisoryLockGuard<'_> {
+    fn drop(&mut self) {
+        if let Err(e) = release_advisory_lock(self.conn, self.org_key, self.workspace_key) {
+            log::error!(
+                "failed to release advisory lock in drop guard (org_key: {}, workspace_key: {}): {}",
+                self.org_key, self.workspace_key, e
+            );
+        } else {
+            log::debug!(
+                "released advisory lock via guard (org_key: {}, workspace_key: {})",
+                self.org_key, self.workspace_key
+            );
+        }
+    }
 }
 
 #[cfg(test)]
