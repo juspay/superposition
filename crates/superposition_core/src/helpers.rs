@@ -7,7 +7,7 @@ use num_bigint::BigUint;
 ///
 /// This function computes 2 raised to the power of the given index,
 /// returning the result as a BigDecimal. This is used for calculating
-/// context weights based on dimension positions.
+/// context weights and priorities based on dimension positions.
 ///
 /// # Arguments
 /// * `index` - The position index to calculate 2^index for
@@ -37,35 +37,6 @@ pub fn calculate_weight_from_index(index: u32) -> Result<BigDecimal, String> {
         log::error!("failed to parse bigdecimal with error: {}", err.to_string());
         String::from("failed to parse bigdecimal with error")
     })
-}
-
-/// Calculate priority from a position index using bit-shift (2^index)
-///
-/// This function computes 2 raised to the power of the given index
-/// using bit-shift, returning the result as an i32. This is used for
-/// calculating context priorities based on dimension positions.
-///
-/// # Arguments
-/// * `index` - The position index to calculate 2^index for
-///
-/// # Returns
-/// * `i32` - The calculated priority (2^index)
-///
-/// # Examples
-/// ```
-/// use superposition_core::helpers::calculate_priority_from_index;
-///
-/// // 2^0 = 1
-/// assert_eq!(calculate_priority_from_index(0), 1);
-///
-/// // 2^1 = 2
-/// assert_eq!(calculate_priority_from_index(1), 2);
-///
-/// // 2^10 = 1024
-/// assert_eq!(calculate_priority_from_index(10), 1024);
-/// ```
-pub const fn calculate_priority_from_index(index: i32) -> i32 {
-    1 << index
 }
 
 #[cfg(test)]
@@ -99,19 +70,5 @@ mod tests {
         assert_eq!(calculate_weight_from_index(2).unwrap().to_string(), "4");
         // 2^3 = 8
         assert_eq!(calculate_weight_from_index(3).unwrap().to_string(), "8");
-    }
-
-    #[test]
-    fn test_calculate_priority_from_index() {
-        // 2^0 = 1
-        assert_eq!(calculate_priority_from_index(0), 1);
-        // 2^1 = 2
-        assert_eq!(calculate_priority_from_index(1), 2);
-        // 2^2 = 4
-        assert_eq!(calculate_priority_from_index(2), 4);
-        // 2^3 = 8
-        assert_eq!(calculate_priority_from_index(3), 8);
-        // 2^10 = 1024
-        assert_eq!(calculate_priority_from_index(10), 1024);
     }
 }

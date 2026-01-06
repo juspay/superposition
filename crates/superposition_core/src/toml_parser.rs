@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::fmt;
 
+use bigdecimal::ToPrimitive;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
@@ -552,7 +553,12 @@ fn parse_contexts(
         let priority = context_map
             .keys()
             .filter_map(|key| dimensions.get(key))
-            .map(|dim_info| crate::helpers::calculate_priority_from_index(dim_info.position))
+            .map(|dim_info| {
+                crate::helpers::calculate_weight_from_index(dim_info.position as u32)
+                    .ok()
+                    .and_then(|w| w.to_i32())
+                    .unwrap_or(0)
+            })
             .sum();
         let override_hash = hash(&serde_json::to_value(&override_config).unwrap());
 
