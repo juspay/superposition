@@ -4,6 +4,7 @@ pub mod config;
 pub mod experiment;
 pub mod ffi;
 pub mod ffi_legacy;
+pub mod helpers;
 pub mod toml_parser;
 pub mod validations;
 
