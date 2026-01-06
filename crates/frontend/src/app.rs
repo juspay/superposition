@@ -30,7 +30,7 @@ use crate::pages::{
 use crate::types::Envs;
 
 #[component]
-pub fn app(app_envs: Envs) -> impl IntoView {
+pub fn App(app_envs: Envs) -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
     provide_meta_context();
     let service_prefix = app_envs.service_prefix;

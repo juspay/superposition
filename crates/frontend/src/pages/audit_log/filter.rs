@@ -17,7 +17,7 @@ use crate::components::{
 };
 
 #[component]
-pub fn filter_summary(filters_rws: RwSignal<AuditQueryFilters>) -> impl IntoView {
+pub fn FilterSummary(filters_rws: RwSignal<AuditQueryFilters>) -> impl IntoView {
     let force_open_rws = RwSignal::new(true);
 
     fn filter_index<T: Display + FromStr + Clone>(
@@ -169,7 +169,7 @@ pub fn filter_summary(filters_rws: RwSignal<AuditQueryFilters>) -> impl IntoView
 }
 
 #[component]
-pub fn audit_log_filter_widget(
+pub fn AuditLogFilterWidget(
     filters_rws: RwSignal<AuditQueryFilters>,
     pagination_params_rws: RwSignal<PaginationParams>,
 ) -> impl IntoView {

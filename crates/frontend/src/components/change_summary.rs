@@ -86,7 +86,7 @@ fn no_change() -> impl IntoView {
 }
 
 #[component]
-pub fn change_summary(
+pub fn ChangeSummary(
     #[prop(into)] title: String,
     #[prop(into, default = "Config Key".to_string())] key_column: String,
     old_values: Map<String, Value>,
@@ -107,7 +107,7 @@ pub fn change_summary(
 }
 
 #[component]
-pub fn json_change_summary(
+pub fn JsonChangeSummary(
     #[prop(into)] title: String,
     old_values: Option<Value>,
     new_values: Option<Value>,
@@ -199,7 +199,7 @@ pub fn json_change_summary(
 }
 
 #[component]
-pub fn change_log_popup(
+pub fn ChangeLogPopup(
     #[prop(into)] title: String,
     #[prop(into)] description: String,
     #[prop(into, default = "Yes".to_string())] confirm_text: String,

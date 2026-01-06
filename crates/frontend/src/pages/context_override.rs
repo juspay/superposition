@@ -380,7 +380,7 @@ fn autofill_experiment_form(
 }
 
 #[component]
-pub fn context_override() -> impl IntoView {
+pub fn ContextOverride() -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let (form_mode, set_form_mode) = create_signal::<Option<FormMode>>(None);

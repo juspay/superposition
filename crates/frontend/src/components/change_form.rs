@@ -3,7 +3,7 @@ use leptos::*;
 use crate::components::form::label::Label;
 
 #[component]
-pub fn change_form(
+pub fn ChangeForm(
     #[prop(into)] title: String,
     #[prop(into)] placeholder: String,
     #[prop(into, default = String::new())] class: String,

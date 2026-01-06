@@ -148,7 +148,7 @@ fn all_context_view(config: Config) -> impl IntoView {
 }
 
 #[component]
-pub fn home() -> impl IntoView {
+pub fn Home() -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let config_data = create_blocking_resource(

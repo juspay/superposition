@@ -29,7 +29,7 @@ pub fn use_condition_collapser() -> WindowListenerHandle {
 }
 
 #[component]
-pub fn condition_expression(
+pub fn ConditionExpression(
     #[prop(into)] id: String,
     #[prop(into)] list_id: String,
     condition: Condition,
@@ -87,7 +87,7 @@ pub fn condition_expression(
 }
 
 #[component]
-pub fn condition(
+pub fn Condition(
     #[prop(into)] id: String,
     #[prop(into)] conditions: Conditions,
     #[prop(into, default=String::new())] class: String,

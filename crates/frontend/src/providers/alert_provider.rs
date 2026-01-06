@@ -69,7 +69,7 @@ pub fn enqueue_alert(text: String, alert_type: AlertType, timeout: u64) {
 }
 
 #[component]
-pub fn alert_provider(children: Children) -> impl IntoView {
+pub fn AlertProvider(children: Children) -> impl IntoView {
     let (alert_queue_rs, alert_queue_ws) = create_signal::<AlertQueue>(AlertQueue {
         counter: 0,
         alerts: Vec::new(),

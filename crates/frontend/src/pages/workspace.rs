@@ -27,7 +27,7 @@ use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::OrganisationId;
 
 #[component]
-pub fn workspace() -> impl IntoView {
+pub fn Workspace() -> impl IntoView {
     let org_id = use_context::<Signal<OrganisationId>>().unwrap();
     let pagination_params_rws = use_signal_from_query(move |query_string| {
         Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()

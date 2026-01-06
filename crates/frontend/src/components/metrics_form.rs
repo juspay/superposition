@@ -11,7 +11,7 @@ use crate::{
 };
 
 #[component]
-pub fn metrics_form(
+pub fn MetricsForm(
     #[prop(default = Metrics::default())] metrics: Metrics,
     on_change: Callback<Metrics>,
 ) -> impl IntoView {

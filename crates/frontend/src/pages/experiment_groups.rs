@@ -150,7 +150,7 @@ enum Action {
 }
 
 #[component]
-pub fn experiment_groups() -> impl IntoView {
+pub fn ExperimentGroups() -> impl IntoView {
     let group_params = use_params_map();
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();

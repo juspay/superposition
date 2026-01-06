@@ -82,7 +82,7 @@ fn context_options(
 }
 
 #[component]
-pub fn context_card(
+pub fn ContextCard(
     context: Context,
     overrides: Map<String, Value>,
     #[prop(default = true)] show_actions: bool,

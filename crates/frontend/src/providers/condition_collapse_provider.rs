@@ -3,7 +3,7 @@ use leptos::*;
 use crate::components::condition_pills::{ConditionId, use_condition_collapser};
 
 #[component]
-pub fn condition_collapse_provider(children: Children) -> impl IntoView {
+pub fn ConditionCollapseProvider(children: Children) -> impl IntoView {
     let (condition_id_rs, condition_id_ws) =
         create_signal::<ConditionId>(ConditionId(None));
 

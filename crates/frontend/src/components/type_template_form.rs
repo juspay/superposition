@@ -32,7 +32,7 @@ enum ResponseType {
 }
 
 #[component]
-pub fn type_template_form(
+pub fn TypeTemplateForm(
     #[prop(default = false)] edit: bool,
     #[prop(default = String::new())] type_name: String,
     #[prop(default = json!({"type": "number"}))] type_schema: Value,
@@ -212,7 +212,7 @@ pub enum ChangeType {
 }
 
 #[component]
-pub fn change_log_summary(
+pub fn ChangeLogSummary(
     type_name: String,
     change_type: ChangeType,
     #[prop(into)] on_confirm: Callback<()>,

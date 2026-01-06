@@ -9,7 +9,7 @@ pub enum SkeletonVariant {
 }
 
 #[component]
-pub fn skeleton(
+pub fn Skeleton(
     #[prop(into, default = String::from("w-full"))] style_class: String,
     #[prop(default = SkeletonVariant::Page)] variant: SkeletonVariant,
 ) -> impl IntoView {

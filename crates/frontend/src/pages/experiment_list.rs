@@ -46,7 +46,7 @@ struct CombinedResource {
 }
 
 #[component]
-pub fn experiment_list() -> impl IntoView {
+pub fn ExperimentList() -> impl IntoView {
     let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();

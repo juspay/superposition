@@ -24,7 +24,7 @@ pub fn close_drawer(id: &str) {
 }
 
 #[component]
-pub fn drawer_btn(
+pub fn DrawerBtn(
     #[prop(into)] drawer_id: String,
     #[prop(into)] text: String,
     #[prop(into)] icon_class: String,
@@ -50,7 +50,7 @@ pub fn drawer_btn(
 }
 
 #[component]
-pub fn drawer<NF>(
+pub fn Drawer<NF>(
     #[prop(into)] id: String,
     children: Children,
     #[prop(into, default = String::new())] header: String,
@@ -88,7 +88,7 @@ where
 }
 
 #[component]
-pub fn portal_drawer(
+pub fn PortalDrawer(
     children: ChildrenFn,
     #[prop(into)] title: String,
     #[prop(default = "max-w-[610px] min-w-[560px] w-[35vw]")] width_class: &'static str,

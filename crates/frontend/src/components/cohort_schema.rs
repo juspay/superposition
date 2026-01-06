@@ -68,7 +68,7 @@ fn validate_cohort_info(enum_name: &str, enum_value: &Value) -> Result<String, S
 }
 
 #[component]
-pub fn cohort_schema(
+pub fn CohortSchema(
     dimension_schema: Value,
     #[prop(into)] on_change: Callback<Value>,
     #[prop(optional)] cohort_based_on: Option<DimensionResponse>,

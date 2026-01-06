@@ -47,7 +47,7 @@ pub enum PopupType {
 }
 
 #[component]
-pub fn experiment_page() -> impl IntoView {
+pub fn ExperimentPage() -> impl IntoView {
     let exp_params = use_params_map();
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();

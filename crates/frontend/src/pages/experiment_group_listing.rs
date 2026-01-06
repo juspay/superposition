@@ -229,7 +229,7 @@ fn table_columns(filters_rws: RwSignal<ExpGroupFilters>) -> Vec<Column> {
 }
 
 #[component]
-pub fn experiment_group_listing() -> impl IntoView {
+pub fn ExperimentGroupListing() -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let delete_inprogress_rws = RwSignal::new(false);

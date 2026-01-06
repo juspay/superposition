@@ -269,7 +269,7 @@ enum Action {
 }
 
 #[component]
-pub fn dimension_page() -> impl IntoView {
+pub fn DimensionPage() -> impl IntoView {
     let path_params = use_params_map();
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
@@ -380,7 +380,7 @@ pub fn dimension_page() -> impl IntoView {
 }
 
 #[component]
-pub fn edit_dimension() -> impl IntoView {
+pub fn EditDimension() -> impl IntoView {
     let path_params = use_params_map();
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
@@ -427,6 +427,6 @@ pub fn edit_dimension() -> impl IntoView {
 }
 
 #[component]
-pub fn create_dimension() -> impl IntoView {
+pub fn CreateDimension() -> impl IntoView {
     view! { <DimensionForm redirect_url_cancel="../../dimensions" /> }
 }
