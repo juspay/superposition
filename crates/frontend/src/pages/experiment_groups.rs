@@ -154,7 +154,7 @@ enum Action {
 }
 
 #[component]
-pub fn experiment_groups() -> impl IntoView {
+pub fn ExperimentGroups() -> impl IntoView {
     let group_params = use_params_map();
     let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let workspace = use_context::<Signal<Workspace>>().unwrap();

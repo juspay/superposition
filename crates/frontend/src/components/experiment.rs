@@ -289,7 +289,7 @@ pub fn gen_variant_table(variants: &[Variant]) -> (Vec<Map<String, Value>>, Vec<
 }
 
 #[component]
-pub fn experiment<HS, HR, HC, HE, HD, HP, HRS>(
+pub fn Experiment<HS, HR, HC, HE, HD, HP, HRS>(
     experiment: ExperimentResponse,
     handle_start: HS,
     handle_ramp: HR,

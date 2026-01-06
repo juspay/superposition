@@ -31,7 +31,7 @@ pub fn use_editor() -> (ReadSignal<Editor>, WriteSignal<Editor>) {
 }
 
 #[component]
-pub fn editor_provider(children: Children) -> impl IntoView {
+pub fn EditorProvider(children: Children) -> impl IntoView {
     let (editor_rs, editor_ws) = create_signal(Editor {
         id: String::new(),
         data: String::new(),

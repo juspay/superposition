@@ -8,7 +8,7 @@ pub enum TooltipPosition {
 }
 
 #[component]
-pub fn tooltip(
+pub fn Tooltip(
     #[prop(into)] icon_class: String,
     children: Children,
     #[prop(default = TooltipPosition::Right)] position: TooltipPosition,

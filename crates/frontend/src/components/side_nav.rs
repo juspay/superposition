@@ -86,7 +86,7 @@ fn create_routes(org: &str, workspace: &str) -> Vec<AppRoute> {
 }
 
 #[component]
-pub fn workspace_selector(
+pub fn WorkspaceSelector(
     workspace_resource: Resource<String, PaginatedResponse<WorkspaceResponse>>,
     #[prop(into)] app_routes: Signal<Vec<AppRoute>>,
 ) -> impl IntoView {
@@ -213,7 +213,7 @@ pub fn workspace_selector(
 }
 
 #[component]
-pub fn nav_item(
+pub fn NavItem(
     is_active: bool,
     href: String,
     text: String,
@@ -249,7 +249,7 @@ pub fn nav_item(
 }
 
 #[component]
-pub fn nav_component(
+pub fn NavComponent(
     is_placeholder: bool,
     workspace_resource: Resource<String, PaginatedResponse<WorkspaceResponse>>,
     app_routes: Signal<Vec<AppRoute>>,
@@ -311,7 +311,7 @@ pub fn nav_component(
 }
 
 #[component]
-pub fn side_nav(
+pub fn SideNav(
     workspace_resource: Resource<String, PaginatedResponse<WorkspaceResponse>>,
 ) -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();

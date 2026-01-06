@@ -76,7 +76,7 @@ enum ResponseType {
 }
 
 #[component]
-pub fn experiment_form(
+pub fn ExperimentForm(
     #[prop(optional)] edit_id: Option<String>,
     #[prop(default = String::new())] name: String,
     context: Conditions,

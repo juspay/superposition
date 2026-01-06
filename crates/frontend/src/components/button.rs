@@ -10,7 +10,7 @@ pub enum ButtonStyle {
 }
 
 #[component]
-pub fn button(
+pub fn Button(
     #[prop(into)] text: String,
     #[prop(into)] on_click: Callback<MouseEvent, ()>,
     #[prop(into, default = String::new())] class: String,
@@ -61,7 +61,7 @@ pub fn button(
 }
 
 #[component]
-pub fn button_anchor(
+pub fn ButtonAnchor(
     #[prop(into)] text: String,
     #[prop(into)] href: String,
     #[prop(into, default = String::new())] class: String,

@@ -59,7 +59,7 @@ fn try_update_payload(
 }
 
 #[component]
-pub fn webhook_form(
+pub fn WebhookForm(
     #[prop(default = false)] edit: bool,
     #[prop(default = String::new())] webhook_name: String,
     #[prop(default = String::new())] description: String,
@@ -362,7 +362,7 @@ pub enum ChangeType {
 }
 
 #[component]
-pub fn change_log_summary(
+pub fn ChangeLogSummary(
     webhook_name: String,
     change_type: ChangeType,
     #[prop(into)] on_confirm: Callback<()>,

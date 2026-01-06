@@ -20,7 +20,7 @@ fn info_section(
 }
 
 #[component]
-pub fn info_modal(
+pub fn InfoModal(
     #[prop(default = false)] visible: bool,
     #[prop(default = String::new())] description: String,
     #[prop(default = String::new())] change_reason: String,

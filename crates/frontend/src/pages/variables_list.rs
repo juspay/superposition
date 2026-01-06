@@ -152,7 +152,7 @@ fn variable_table_columns(
 }
 
 #[component]
-pub fn variables_list() -> impl IntoView {
+pub fn VariablesList() -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 

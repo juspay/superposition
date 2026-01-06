@@ -122,7 +122,7 @@ enum Action {
 }
 
 #[component]
-pub fn default_config() -> impl IntoView {
+pub fn DefaultConfig() -> impl IntoView {
     let path_params = use_params_map();
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();

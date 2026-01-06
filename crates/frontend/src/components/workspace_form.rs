@@ -20,7 +20,7 @@ use crate::{
 };
 
 #[component]
-pub fn workspace_form(
+pub fn WorkspaceForm(
     org_id: Signal<OrganisationId>,
     #[prop(default = false)] edit: bool,
     #[prop(default = String::new())] workspace_admin_email: String,

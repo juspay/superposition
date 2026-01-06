@@ -25,7 +25,7 @@ struct CombinedResource {
 }
 
 #[component]
-pub fn function_list() -> impl IntoView {
+pub fn FunctionList() -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let pagination_params_rws = use_signal_from_query(move |query_string| {

@@ -43,7 +43,7 @@ enum Action {
 }
 
 #[component]
-pub fn variable() -> impl IntoView {
+pub fn Variable() -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let params = use_params_map();

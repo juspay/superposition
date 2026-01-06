@@ -1,7 +1,7 @@
 use leptos::*;
 
 #[component]
-pub fn tip(
+pub fn Tip(
     #[prop(into)] message: String,
     #[prop(optional, into)] code_snippet: Option<String>,
     #[prop(optional, into)] example: Option<String>,

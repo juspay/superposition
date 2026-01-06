@@ -116,7 +116,7 @@ fn override_input(
 }
 
 #[component]
-pub fn override_form(
+pub fn OverrideForm(
     overrides: Vec<(String, Value)>,
     default_config: Vec<DefaultConfig>,
     #[prop(into)] handle_change: Callback<Vec<(String, Value)>, ()>,

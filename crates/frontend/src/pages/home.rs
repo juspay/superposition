@@ -150,7 +150,7 @@ fn all_context_view(config: Config, strict_mode: bool) -> impl IntoView {
 }
 
 #[component]
-pub fn home() -> impl IntoView {
+pub fn Home() -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();

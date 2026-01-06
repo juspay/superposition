@@ -29,7 +29,7 @@ impl TooltipPosition {
 }
 
 #[component]
-pub fn label(
+pub fn Label(
     #[prop(into)] title: String,
     #[prop(into, optional)] info: Option<String>,
     #[prop(into, optional)] extra_info: Option<String>,

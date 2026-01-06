@@ -9,7 +9,7 @@ use crate::components::form::label::Label;
 use super::dropdown::utils::DropdownOption;
 
 #[component]
-pub fn badge<T>(
+pub fn Badge<T>(
     #[prop(into)] options: Signal<Vec<T>>,
     #[prop(into, optional)] handle_remove: Option<Callback<T, ()>>,
     #[prop(into, default = String::new())] class: String,
@@ -57,7 +57,7 @@ where
 }
 
 #[component]
-pub fn gray_pill<T: Display + Clone + 'static>(
+pub fn GrayPill<T: Display + Clone + 'static>(
     #[prop(into)] data: T,
     #[prop(optional_no_strip)] renderer: Option<Callback<T, View>>,
     #[prop(into, default = String::new())] icon_class: String,
@@ -87,7 +87,7 @@ pub fn gray_pill<T: Display + Clone + 'static>(
 }
 
 #[component]
-pub fn list_pills<T>(
+pub fn ListPills<T>(
     #[prop(into)] label: String,
     #[prop(into)] items: Vec<T>,
     #[prop(optional)] pill_renderer: Option<Callback<T, View>>,
@@ -126,7 +126,7 @@ where
 }
 
 #[component]
-pub fn glassy_pills<T: IntoEnumIterator + Display + Eq + Hash + Copy + 'static>(
+pub fn GlassyPills<T: IntoEnumIterator + Display + Eq + Hash + Copy + 'static>(
     #[prop(into)] selected: Signal<Vec<T>>,
     #[prop(into)] title: String,
     #[prop(into)] on_click: Callback<Vec<T>, ()>,

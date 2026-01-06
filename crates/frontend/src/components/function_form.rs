@@ -149,7 +149,7 @@ pub enum Mode {
 }
 
 #[component]
-pub fn function_editor(
+pub fn FunctionEditor(
     #[prop(default = true)] edit: bool,
     #[prop(into, default = String::new())] function_name: String,
     #[prop(into, default = String::from(VALUE_VALIDATION_DEFAULT_FN))] function: String,
@@ -457,7 +457,7 @@ fn edit_form(
 }
 
 #[component]
-pub fn test_form(
+pub fn TestForm(
     function_name: String,
     function_args: FunctionExecutionRequest,
     #[prop(into)] stage: Stage,

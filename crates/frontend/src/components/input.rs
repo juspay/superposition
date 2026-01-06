@@ -175,7 +175,7 @@ fn parse_input(
 }
 
 #[component]
-pub fn toggle(
+pub fn Toggle(
     value: bool,
     #[prop(into)] on_change: Callback<bool, ()>,
     #[prop(into, default = String::new())] class: String,
@@ -195,7 +195,7 @@ pub fn toggle(
 }
 
 #[component]
-pub fn select(
+pub fn Select(
     id: String,
     name: String,
     class: String,
@@ -363,7 +363,7 @@ fn basic_input(
 }
 
 #[component]
-pub fn monaco_input(
+pub fn MonacoInput(
     id: String,
     class: String,
     value: Value,
@@ -550,7 +550,7 @@ pub fn monaco_input(
 }
 
 #[component]
-pub fn date_input(
+pub fn DateInput(
     #[prop(into)] id: String,
     #[prop(into, default = String::new())] class: String,
     #[prop(into)] name: String,
@@ -602,7 +602,7 @@ pub fn date_input(
 }
 
 #[component]
-pub fn input(
+pub fn Input(
     value: Value,
     schema_type: SchemaType,
     #[prop(into, default = String::new())] placeholder: String,
@@ -729,7 +729,7 @@ fn array_input<T: Clone + PartialEq + 'static + Display + FromStr>(
 }
 
 #[component]
-pub fn number_array_input(
+pub fn NumberArrayInput(
     options: Vec<f64>,
     #[prop(into)] on_change: Callback<Vec<f64>>,
     #[prop(default = false)] unique: bool,
@@ -738,7 +738,7 @@ pub fn number_array_input(
 }
 
 #[component]
-pub fn string_array_input(
+pub fn StringArrayInput(
     options: Vec<String>,
     #[prop(into)] on_change: Callback<Vec<String>>,
     #[prop(default = false)] unique: bool,
