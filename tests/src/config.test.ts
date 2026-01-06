@@ -2,18 +2,70 @@ import {
     GetConfigCommand,
     ListVersionsCommand,
     UpdateWorkspaceCommand,
+    CreateDefaultConfigCommand,
+    ListDefaultConfigsCommand,
+    DeleteDefaultConfigCommand,
 } from "@juspay/superposition-sdk";
 import { superpositionClient, ENV } from "../env.ts";
-import { describe, test, expect } from "bun:test";
+import { describe, test, expect, beforeAll, afterAll } from "bun:test";
 
 let configVersionId: string | undefined = undefined;
+const testConfigKey = `test-config-${Math.random().toString(36).substring(7)}`;
+
+beforeAll(async () => {
+    // Check if config already exists
+    const listCmd = new ListDefaultConfigsCommand({
+        workspace_id: ENV.workspace_id,
+        org_id: ENV.org_id,
+        name: testConfigKey,
+    });
+
+    try {
+        const existingConfigs = await superpositionClient.send(listCmd);
+
+        if (!existingConfigs.data || existingConfigs.data.length === 0) {
+            // Create default config if it doesn't exist
+            const createCmd = new CreateDefaultConfigCommand({
+                key: testConfigKey,
+                value: { enabled: true, message: "test config" },
+                schema: { type: "object" },
+                description: "Test config for integration tests",
+                change_reason: "Initial setup for tests",
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+            });
+
+            await superpositionClient.send(createCmd);
+            console.log(`Created default config: ${testConfigKey}`);
+        } else {
+            console.log(`Default config already exists: ${testConfigKey}`);
+        }
+    } catch (e: any) {
+        console.error("Error in pre-test setup:", e);
+        throw e;
+    }
+});
+
+afterAll(async () => {
+    try {
+        const deleteCmd = new DeleteDefaultConfigCommand({
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            key: testConfigKey,
+        });
+        await superpositionClient.send(deleteCmd);
+        console.log(`Deleted default config: ${testConfigKey}`);
+    } catch (e: any) {
+        console.error("Error deleting test config:", e);
+    }
+});
 
 describe("Config API - GetConfig and GetConfigFast", () => {
     test("GetConfig: should fetch configuration with context and version", async () => {
         const cmd = new GetConfigCommand({
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,
-            prefix: ["test-prefix"],
+            prefix: [testConfigKey],
             // version: 1,
         });
         try {
@@ -38,14 +90,14 @@ describe("Config API - GetConfig and GetConfigFast", () => {
         expect(resp_c.workspace_admin_email).toBe("admin@example.com");
         expect(resp_c.config_version).toBeDefined();
         expect(resp_c.config_version?.toString()).toBe(
-            configVersionId?.toString() ?? ""
+            configVersionId?.toString() ?? "",
         );
 
         //getConfigandCheck
         const input_1 = {
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,
-            prefix: ["test-prefix"],
+            prefix: [testConfigKey],
             // version: 1,
             context: {},
         };
@@ -55,7 +107,7 @@ describe("Config API - GetConfig and GetConfigFast", () => {
             expect(out).toBeDefined();
             expect(out.version).toBeDefined();
             expect(out.version?.toString()).toBe(
-                configVersionId?.toString() ?? ""
+                configVersionId?.toString() ?? "",
             );
             console.log(out);
         } catch (e: any) {
