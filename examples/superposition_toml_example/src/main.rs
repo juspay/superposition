@@ -44,8 +44,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Value::String("bike".to_string()),
     );
 
+    // Clone default configs once for all evaluations
+    let default_configs = (*config.default_configs).clone();
+
     let result1 = eval_config(
-        (*config.default_configs).clone(),
+        default_configs.clone(),
         &config.contexts,
         &config.overrides,
         &config.dimensions,
@@ -72,7 +75,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     dims2.insert("vehicle_type".to_string(), Value::String("cab".to_string()));
 
     let result2 = eval_config(
-        (*config.default_configs).clone(),
+        default_configs.clone(),
         &config.contexts,
         &config.overrides,
         &config.dimensions,
@@ -100,7 +103,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     dims3.insert("hour_of_day".to_string(), Value::Number(6.into()));
 
     let result3 = eval_config(
-        (*config.default_configs).clone(),
+        default_configs.clone(),
         &config.contexts,
         &config.overrides,
         &config.dimensions,
@@ -129,7 +132,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let result4 = eval_config(
-        (*config.default_configs).clone(),
+        default_configs.clone(),
         &config.contexts,
         &config.overrides,
         &config.dimensions,

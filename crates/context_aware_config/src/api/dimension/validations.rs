@@ -6,7 +6,9 @@ use jsonschema::{JSONSchema, ValidationError};
 use serde_json::Map;
 use serde_json::Value;
 use service_utils::service::types::SchemaName;
-use superposition_core::validations::{compile_schema, validate_cohort_schema_structure, validation_err_to_str};
+use superposition_core::validations::{
+    compile_schema, validate_cohort_schema_structure, validation_err_to_str,
+};
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
     api::dimension::DimensionName,
@@ -264,14 +266,14 @@ pub fn validate_cohort_schema(
         return Err(validation_error!(
             "Please specify a valid dimension that this cohort can derive from. Refer our API docs for examples",
         ));
-    } // Use shared validation from superposition_core for cohort schema structure
-      //
+    }
 
     log::error!(
         "##### checking validate_cohort_schema_structure {}",
         cohort_schema
     );
 
+    // Use shared validation from superposition_core for cohort schema structure
     validate_cohort_schema_structure(cohort_schema).map_err(|errors| {
         validation_error!(
             "schema validation failed: {}",

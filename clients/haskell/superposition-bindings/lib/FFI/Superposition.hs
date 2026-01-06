@@ -76,7 +76,7 @@ defaultResolveParams =
 
 getResolvedConfig :: ResolveConfigParams -> IO (Either String String)
 getResolvedConfig params = do
-  ebuf <- callocBytes 256
+  ebuf <- callocBytes 2048
   let ResolveConfigParams {..} = params
       newOrNull = maybe (pure nullPtr) newCString
       freeNonNull p = when (p /= nullPtr) (free p)
