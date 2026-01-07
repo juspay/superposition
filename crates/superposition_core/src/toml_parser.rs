@@ -3,11 +3,35 @@ use std::fmt;
 
 use bigdecimal::ToPrimitive;
 use itertools::Itertools;
+use percent_encoding::{percent_decode_str, utf8_percent_encode, AsciiSet, CONTROLS};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use superposition_types::database::models::cac::{DependencyGraph, DimensionType};
 use superposition_types::ExtendedMap;
 use superposition_types::{Cac, Condition, Config, Context, DimensionInfo, Overrides};
+
+/// Character set for URL-encoding dimension keys and values.
+/// Encodes: '=', ';', and all control characters.
+const CONTEXT_ENCODE_SET: &AsciiSet = &CONTROLS
+    .add(b'=')
+    .add(b';');
+
+/// Check if a string needs quoting in TOML.
+/// Strings containing special characters like '=', ';', whitespace, or quotes need quoting.
+fn needs_quoting(s: &str) -> bool {
+    s.chars().any(|c| {
+        c.is_whitespace()
+            || c == '='
+            || c == ';'
+            || c == '#'
+            || c == '['
+            || c == ']'
+            || c == '{'
+            || c == '}'
+            || c == '"'
+            || c == '\''
+    })
+}
 
 /// Detailed error type for TOML parsing and serialization
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -168,6 +192,7 @@ fn hash(val: &Value) -> String {
 }
 
 /// Parse context expression string (e.g., "os=linux;region=us-east")
+/// Keys and values are URL-encoded to handle special characters like '=' and ';'.
 fn parse_context_expression(
     input: &str,
     dimensions: &HashMap<String, DimensionInfo>,
@@ -188,20 +213,37 @@ fn parse_context_expression(
             });
         }
 
-        let key = parts[0].trim();
-        let value_str = parts[1].trim();
+        // URL-decode the key
+        let key_encoded = parts[0].trim();
+        let key = percent_decode_str(key_encoded)
+            .decode_utf8()
+            .map_err(|e| TomlError::InvalidContextExpression {
+                expression: input.to_string(),
+                reason: format!("Invalid UTF-8 in encoded key '{}': {}", key_encoded, e),
+            })?
+            .to_string();
 
-        if value_str.is_empty() {
+        // URL-decode the value
+        let value_encoded = parts[1].trim();
+        if value_encoded.is_empty() {
             return Err(TomlError::InvalidContextExpression {
                 expression: input.to_string(),
                 reason: format!("Empty value after equals in: '{}'", pair),
             });
         }
 
+        let value_str = percent_decode_str(value_encoded)
+            .decode_utf8()
+            .map_err(|e| TomlError::InvalidContextExpression {
+                expression: input.to_string(),
+                reason: format!("Invalid UTF-8 in encoded value '{}': {}", value_encoded, e),
+            })?
+            .to_string();
+
         // Validate dimension exists
-        if !dimensions.contains_key(key) {
+        if !dimensions.contains_key(&key) {
             return Err(TomlError::UndeclaredDimension {
-                dimension: key.to_string(),
+                dimension: key.clone(),
                 context: input.to_string(),
             });
         }
@@ -220,7 +262,7 @@ fn parse_context_expression(
         };
 
         // Validate value against dimension schema
-        let dimension_info = dimensions.get(key).unwrap();
+        let dimension_info = dimensions.get(&key).unwrap();
         let schema_json = serde_json::to_value(&dimension_info.schema).map_err(|e| {
             TomlError::ConversionError(format!(
                 "Invalid schema for dimension '{}': {}",
@@ -235,7 +277,7 @@ fn parse_context_expression(
             },
         )?;
 
-        result.insert(key.to_string(), value);
+        result.insert(key, value);
     }
 
     Ok(result)
@@ -670,13 +712,18 @@ fn value_to_toml(value: &Value) -> String {
 }
 
 /// Convert Condition to context expression string (e.g., "city=Bangalore; vehicle_type=cab")
+/// Keys and values are URL-encoded to handle special characters like '=' and ';'.
 fn condition_to_string(condition: &Cac<Condition>) -> Result<String, TomlError> {
     // Clone the condition to get the inner Map
     let condition_inner = condition.clone().into_inner();
 
     let mut pairs: Vec<String> = condition_inner
         .iter()
-        .map(|(key, value)| format!("{}={}", key, value_to_string_simple(value)))
+        .map(|(key, value)| {
+            let key_encoded = utf8_percent_encode(key, CONTEXT_ENCODE_SET).to_string();
+            let value_encoded = utf8_percent_encode(&value_to_string_simple(value), CONTEXT_ENCODE_SET).to_string();
+            format!("{}={}", key_encoded, value_encoded)
+        })
         .collect();
 
     // Sort for deterministic output
@@ -757,9 +804,16 @@ pub fn serialize_to_toml(config: &Config) -> Result<String, TomlError> {
             }
         };
 
+        // Quote dimension name if it contains special characters
+        let quoted_name = if needs_quoting(name) {
+            format!(r#""{}""#, name.replace('"', r#"\""#))
+        } else {
+            name.clone()
+        };
+
         let toml_entry = format!(
             "{} = {{ position = {}, schema = {}, {} }}\n",
-            name,
+            quoted_name,
             info.position,
             value_to_toml(&schema_json),
             type_field
@@ -1560,5 +1614,74 @@ mod tests {
         assert!(matches!(result, Err(TomlError::ValidationError { .. })));
         let err = result.unwrap_err();
         assert!(err.to_string().contains("debug=yes.debug"));
+    }
+
+    #[test]
+    fn test_url_encoding_special_chars() {
+        // Test with dimension keys and values containing '=' and ';'
+        let toml = r#"
+[default-config]
+timeout = { value = 30, schema = { type = "integer" } }
+
+[dimensions]
+"key=with=equals" = { position = 1, schema = { type = "string" } }
+
+[context."key%3Dwith%3Dequals=value%3Bwith%3Bsemicolon"]
+timeout = 60
+"#;
+
+        let config = parse(toml).unwrap();
+
+        // The parsed condition should have the decoded key and value
+        assert_eq!(config.contexts.len(), 1);
+        let context = &config.contexts[0];
+        assert_eq!(
+            context.condition.get("key=with=equals"),
+            Some(&Value::String("value;with;semicolon".to_string()))
+        );
+    }
+
+    #[test]
+    fn test_url_encoding_round_trip() {
+        // Test that serialization and deserialization work with special chars
+        let original_toml = r#"
+[default-config]
+timeout = { value = 30, schema = { type = "integer" } }
+
+[dimensions]
+"key=with=equals" = { position = 1, schema = { type = "string" } }
+"region" = { position = 0, schema = { type = "string" } }
+
+[context."key%3Dwith%3Dequals=value%3Bwith%3Bsemicolon; region=us-east"]
+timeout = 60
+"#;
+
+        // Parse TOML -> Config
+        let config = parse(original_toml).unwrap();
+
+        // Serialize Config -> TOML
+        let serialized = serialize_to_toml(&config).unwrap();
+
+        // The serialized TOML should have URL-encoded keys and values
+        assert!(serialized.contains("key%3Dwith%3Dequals"));
+        assert!(serialized.contains("value%3Bwith%3Bsemicolon"));
+
+        // Parse again
+        let reparsed = parse(&serialized).unwrap();
+
+        // Configs should be functionally equivalent
+        assert_eq!(config.default_configs, reparsed.default_configs);
+        assert_eq!(config.contexts.len(), reparsed.contexts.len());
+
+        // The condition should have the decoded values
+        let context = &reparsed.contexts[0];
+        assert_eq!(
+            context.condition.get("key=with=equals"),
+            Some(&Value::String("value;with;semicolon".to_string()))
+        );
+        assert_eq!(
+            context.condition.get("region"),
+            Some(&Value::String("us-east".to_string()))
+        );
     }
 }
