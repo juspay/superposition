@@ -2,7 +2,6 @@ use std::collections::HashSet;
 
 use diesel::{ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl};
 use jsonschema::{Draft, JSONSchema, ValidationError};
-#[cfg(not(feature = "jsonlogic"))]
 use serde_json::Map;
 use serde_json::{json, Value};
 use service_utils::{helpers::validation_err_to_str, service::types::SchemaName};
@@ -146,7 +145,6 @@ pub fn validate_jsonschema(
     })
 }
 
-#[cfg(not(feature = "jsonlogic"))]
 pub fn allow_primitive_types(schema: &Map<String, Value>) -> superposition::Result<()> {
     match schema.get("type").cloned().unwrap_or_default() {
         Value::String(type_val) if type_val != "array" && type_val != "object" => {

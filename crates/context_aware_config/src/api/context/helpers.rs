@@ -5,11 +5,7 @@ use cac_client::utils::json_to_sorted_string;
 use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use serde_json::{Map, Value};
-#[cfg(feature = "jsonlogic")]
-use service_utils::helpers::{extract_dimensions, get_variable_name_and_value};
 use service_utils::service::types::SchemaName;
-#[cfg(feature = "jsonlogic")]
-use superposition_macros::bad_argument;
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
     api::{
@@ -177,57 +173,6 @@ pub fn validate_condition_with_functions(
             }
         }
     }
-    Ok(())
-}
-
-#[cfg(feature = "jsonlogic")]
-pub fn validate_condition_with_strict_mode(
-    context: &Condition,
-    strict_mode: bool,
-) -> superposition::Result<()> {
-    if !strict_mode {
-        return Ok(());
-    }
-
-    let conditions: Vec<Value> = match (*context).get("and") {
-        Some(conditions_json) => conditions_json
-            .as_array()
-            .ok_or(bad_argument!("Error extracting dimensions, failed parsing conditions as an array. Ensure the context provided obeys the rules of JSON logic"))?
-            .clone(),
-        None => vec![Value::Object(context.to_owned().into())],
-    };
-
-    for condition in &conditions {
-        let condition_obj =
-            condition
-                .as_object()
-                .ok_or(bad_argument!(
-                    "Failed to parse condition as an object. Ensure the context provided obeys the rules of JSON logic"
-                ))?;
-        let operators = condition_obj.keys();
-
-        for operator in operators {
-            let operands = condition_obj[operator].as_array().ok_or(bad_argument!(
-                    "Failed to parse operands as an arrays. Ensure the context provided obeys the rules of JSON logic"
-            ))?;
-
-            let (dimension_name, _) = get_variable_name_and_value(operands)?;
-            // variantIds use 'HAS', and since they are managed internally allow them to bypass strict mode
-            if dimension_name == "variantIds" && operator != "==" && operator != "in" {
-                return Err(bad_argument!(
-                    "Strict mode is enabled, and variantIds is a system dimension that supports IS and IN. Found operator: {}",
-                    operator
-                ));
-            }
-            if dimension_name != "variantIds" && operator != "==" {
-                return Err(bad_argument!(
-                    "Strict mode is enabled, but the context contains unsupported operators. Please use IS operator only. Found operator: {}",
-                    operator
-                ));
-            }
-        }
-    }
-
     Ok(())
 }
 
@@ -493,34 +438,17 @@ pub fn validate_ctx(
 ) -> superposition::Result<HashMap<String, DimensionInfo>> {
     let workspace_settings = get_workspace(schema_name, conn)?;
 
-    cfg_if::cfg_if! {
-        if #[cfg(feature = "jsonlogic")] {
-            validate_condition_with_strict_mode(&condition, workspace_settings.strict_mode)?;
-
-            let context_map = &extract_dimensions(&condition)?;
-            let condition_val = Value::Object(condition.clone().into());
-        } else {
-            let context_map = &condition;
-            let condition_val = condition.clone();
-        }
-    }
-
     validate_condition_with_mandatory_dimensions(
-        context_map,
+        &condition,
         &workspace_settings.mandatory_dimensions.unwrap_or_default(),
     )?;
 
     let dimension_info_map = fetch_dimensions_info_map(conn, schema_name)?;
-    validate_condition_with_dependent_dimensions(&dimension_info_map, context_map)?;
-    validate_dimensions(
-        #[cfg(feature = "jsonlogic")]
-        "context",
-        &condition_val,
-        &dimension_info_map,
-    )?;
+    validate_condition_with_dependent_dimensions(&dimension_info_map, &condition)?;
+    validate_dimensions(&condition, &dimension_info_map)?;
     validate_condition_with_functions(
         conn,
-        context_map,
+        &condition,
         &override_,
         workspace_settings.enable_context_validation,
         schema_name,

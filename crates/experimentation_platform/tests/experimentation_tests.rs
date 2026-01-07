@@ -20,45 +20,6 @@ enum Dimensions {
     VariantIds(String),
 }
 
-#[cfg(feature = "jsonlogic")]
-fn single_dimension_ctx_gen(value: Dimensions) -> Map<String, Value> {
-    let mut map = Map::new();
-    match value {
-        Dimensions::Os(os) => map.insert(
-            "==".to_string(),
-            json!([
-                {"var": "os"},
-                os
-            ]),
-        ),
-        Dimensions::Client(client_id) => map.insert(
-            "==".to_string(),
-            json!([
-                client_id,
-                {"var": "clientId"}
-            ]),
-        ),
-        Dimensions::VariantIds(id) => map.insert(
-            "in".to_string(),
-            json!([
-                id,
-                {"var": "variantIds"},
-            ]),
-        ),
-    };
-    map
-}
-
-#[cfg(feature = "jsonlogic")]
-fn multiple_dimension_ctx_gen(values: Vec<Dimensions>) -> Map<String, Value> {
-    let mut conditions: Vec<Map<String, Value>> = vec![];
-    for val in values {
-        conditions.push(single_dimension_ctx_gen(val));
-    }
-    Map::from_iter(vec![("and".to_string(), json!(conditions))])
-}
-
-#[cfg(not(feature = "jsonlogic"))]
 fn multiple_dimension_ctx_gen(values: Vec<Dimensions>) -> Map<String, Value> {
     values
         .into_iter()
@@ -121,40 +82,6 @@ fn test_unique_override_key_entries() {
         helpers::validate_override_keys(&override_keys),
         Ok(())
     ));
-}
-
-#[cfg(feature = "jsonlogic")]
-#[test]
-fn test_extract_dimensions() -> Result<(), superposition::AppError> {
-    use service_utils::helpers::extract_dimensions;
-    use superposition_types::Cac;
-
-    let context_a = multiple_dimension_ctx_gen(vec![
-        Dimensions::Os("os1".to_string()),
-        Dimensions::Client("testclient1".to_string()),
-    ]);
-    let context_a = Cac::<Condition>::try_from(context_a.clone())
-        .map_err(superposition::AppError::BadArgument)?
-        .into_inner();
-
-    let context_b =
-        multiple_dimension_ctx_gen(vec![Dimensions::Client("testclient1".to_string())]);
-    let context_b = Cac::<Condition>::try_from(context_b.clone())
-        .map_err(superposition::AppError::BadArgument)?
-        .into_inner();
-
-    let expected_dimensions_1 = serde_json::Map::from_iter(vec![
-        ("os".to_string(), json!("os1")),
-        ("clientId".to_string(), json!("testclient1")),
-    ]);
-    let expected_dimensions_2 =
-        serde_json::Map::from_iter(vec![("clientId".to_string(), json!("testclient1"))]);
-
-    // more than one dimension in context
-    assert_eq!(extract_dimensions(&context_a)?, expected_dimensions_1);
-    // only one dimension in context
-    assert_eq!(extract_dimensions(&context_b)?, expected_dimensions_2);
-    Ok(())
 }
 
 #[test]

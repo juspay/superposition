@@ -21,8 +21,6 @@ use crate::{
     utils::get_element_by_id,
 };
 
-use crate::logic::Operator;
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum InputType {
     Text,
@@ -74,20 +72,6 @@ impl From<(SchemaType, EnumVariants)> for InputType {
     }
 }
 
-impl From<(SchemaType, EnumVariants, Operator)> for InputType {
-    fn from(
-        (schema_type, enum_variants, _operator): (SchemaType, EnumVariants, Operator),
-    ) -> Self {
-        #[cfg(feature = "jsonlogic")]
-        if _operator == Operator::In {
-            let EnumVariants(ev) = enum_variants;
-            return InputType::Monaco(ev);
-        }
-
-        InputType::from((schema_type, enum_variants))
-    }
-}
-
 // TODO: Also add schema validation in frontend :::::
 fn parse(s: &str, type_: &JsonSchemaType) -> Result<Value, String> {
     match type_ {
@@ -115,56 +99,14 @@ fn parse(s: &str, type_: &JsonSchemaType) -> Result<Value, String> {
     }
 }
 
-fn parse_with_operator(
-    s: &str,
-    type_: &JsonSchemaType,
-    op: &Operator,
-) -> Result<Value, String> {
-    match op {
-        #[cfg(feature = "jsonlogic")]
-        Operator::In => match type_ {
-            JsonSchemaType::String => serde_json::from_str::<Vec<String>>(s)
-                .map(|v| json!(v))
-                .map_err(|_| "not a valid array of strings".to_string()),
-            JsonSchemaType::Number => serde_json::from_str::<Vec<f64>>(s)
-                .map(|v| json!(v))
-                .map_err(|_| "not a valid array of numbers".to_string()),
-            JsonSchemaType::Integer => serde_json::from_str::<Vec<i64>>(s)
-                .map(|v| json!(v))
-                .map_err(|_| "not a valid array of integers".to_string()),
-            JsonSchemaType::Boolean => serde_json::from_str::<Vec<bool>>(s)
-                .map(|v| json!(v))
-                .map_err(|_| "not a valid array of booleans".to_string()),
-            JsonSchemaType::Array => serde_json::from_str::<Vec<Value>>(s)
-                .map(|v| json!(v))
-                .map_err(|_| "not a valid array of arrays".to_string()),
-            JsonSchemaType::Object => serde_json::from_str::<Vec<Map<String, Value>>>(s)
-                .map(|v| json!(v))
-                .map_err(|_| "not a valid array of objects".to_string()),
-            JsonSchemaType::Null if s == "null" => Ok(Value::Null),
-            JsonSchemaType::Null => Err("not a null value".to_string()),
-        },
-        _ => parse(s, type_),
-    }
-}
-
-fn parse_input(
-    value: String,
-    schema_type: SchemaType,
-    op: &Option<Operator>,
-) -> Result<Value, String> {
-    let parse_single = |r#type: &JsonSchemaType| match op {
-        Some(op) => parse_with_operator(&value, r#type, op),
-        None => parse(&value, r#type),
-    };
-
+fn parse_input(value: String, schema_type: SchemaType) -> Result<Value, String> {
     match schema_type {
-        SchemaType::Single(ref r#type) => parse_single(r#type),
+        SchemaType::Single(ref r#type) => parse(&value, r#type),
         SchemaType::Multiple(mut types) => {
             types.sort_by_key(|a| a.precedence());
 
             for r#type in types.iter() {
-                let v = parse_single(r#type);
+                let v = parse(&value, r#type);
                 if v.is_ok() {
                     return v;
                 }
@@ -249,7 +191,6 @@ fn basic_input(
     schema_type: SchemaType,
     on_change: Callback<Value, ()>,
     #[prop(default = None)] value_compute_function: Option<ValueComputeCallback>,
-    #[prop(default = None)] operator: Option<Operator>,
     #[prop(default = Duration::from_millis(600))] debounce_delay: Duration,
 ) -> impl IntoView {
     let schema_type = store_value(schema_type);
@@ -290,7 +231,7 @@ fn basic_input(
                     )
                     on:change=move |e| {
                         let v = event_target_value(&e);
-                        match parse_input(v, schema_type.get_value(), &operator) {
+                        match parse_input(v, schema_type.get_value()) {
                             Ok(v) => {
                                 on_change.call(v);
                                 error_ws.set(None);
@@ -371,7 +312,6 @@ pub fn monaco_input(
     schema_type: SchemaType,
     #[prop(default = false)] disabled: bool,
     suggestions: Vec<Value>,
-    #[prop(default = None)] operator: Option<Operator>,
 ) -> impl IntoView {
     let id = store_value(id);
     let schema_type = store_value(schema_type);
@@ -402,8 +342,7 @@ pub fn monaco_input(
         let editor_value = editor_rs.with(|v| v.data.clone());
         logging::log!("Saving editor value: {}", editor_value);
 
-        let parsed_value =
-            parse_input(editor_value.clone(), schema_type.get_value(), &operator);
+        let parsed_value = parse_input(editor_value.clone(), schema_type.get_value());
         match parsed_value {
             Ok(v) => {
                 logging::log!("Saving parsed value: {}", editor_value);
@@ -612,7 +551,6 @@ pub fn input(
     #[prop(into, default = String::new())] id: String,
     #[prop(into, default = String::new())] class: String,
     #[prop(into, default = String::new())] name: String,
-    #[prop(default = None)] operator: Option<Operator>,
     #[prop(default = None)] value_compute_function: Option<ValueComputeCallback>,
 ) -> impl IntoView {
     match r#type {
@@ -633,7 +571,7 @@ pub fn input(
         InputType::Select(ref options) => view! { <Select id name class value on_change disabled options=options.0.clone() /> }
         .into_view(),
         InputType::Monaco(suggestions) => {
-            view! { <MonacoInput id class value on_change disabled schema_type suggestions operator /> }.into_view()
+            view! { <MonacoInput id class value on_change disabled schema_type suggestions /> }.into_view()
         }
         _ => {
             view! {
@@ -647,7 +585,6 @@ pub fn input(
                     value
                     schema_type
                     on_change
-                    operator
                     placeholder
                     value_compute_function
                 />

@@ -363,30 +363,20 @@ where
                 <div class="card-body">
                     <h2 class="card-title">"Context"</h2>
                     <div class="flex flex-row flex-wrap gap-2">
-
                         {contexts
                             .iter()
                             .map(|condition| {
                                 let dimension = condition.variable.clone();
-                                let operand_views = condition
-                                    .expression
-                                    .to_constants_vec()
-                                    .iter()
-                                    .map(|c| {
-                                        view! {
-                                            <div class="stat-value text-base">{c.html_display()}</div>
-                                        }
-                                    })
-                                    .collect_view();
                                 view! {
                                     <div class="stat w-3/12">
                                         <div class="stat-title">{dimension}</div>
-                                        {operand_views}
+                                        <div class="stat-value text-base">
+                                            {condition.expression.to_value().html_display()}
+                                        </div>
                                     </div>
                                 }
                             })
                             .collect_view()}
-
                     </div>
                 </div>
             </div>

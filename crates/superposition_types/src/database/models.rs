@@ -274,7 +274,6 @@ pub struct Workspace {
     pub last_modified_at: DateTime<Utc>,
     pub created_at: DateTime<Utc>,
     pub mandatory_dimensions: Option<Vec<String>>,
-    pub strict_mode: bool,
     pub metrics: Metrics,
     pub allow_experiment_self_approval: bool,
     pub auto_populate_control: bool,

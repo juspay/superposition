@@ -1,13 +1,7 @@
-#[cfg(feature = "jsonlogic")]
-pub(crate) mod jsonlogic;
-#[cfg(not(feature = "jsonlogic"))]
 pub(crate) mod map;
 
 use std::collections::{HashMap, HashSet};
 
-#[cfg(feature = "jsonlogic")]
-use jsonlogic::{with_dimensions, without_dimensions};
-#[cfg(not(feature = "jsonlogic"))]
 use map::{with_dimensions, without_dimensions};
 use serde_json::{from_value, json, Map, Number, Value};
 

@@ -11,7 +11,7 @@ use web_sys::MouseEvent;
 
 use crate::components::alert::AlertType;
 use crate::components::context_form::ConditionInput;
-use crate::logic::{jsonlogic, Condition, Conditions, Operator};
+use crate::logic::{jsonlogic, Condition, Conditions};
 use crate::providers::editor_provider::EditorProvider;
 use crate::schema::{EnumVariants, JsonSchemaType, SchemaType};
 use crate::types::{OrganisationId, Workspace};
@@ -528,12 +528,7 @@ fn cohort_form(
                                         )
                                 }
                             });
-                            let operator = Operator::from(&condition.get());
-                            let input_type = InputType::from((
-                                schema_type.clone(),
-                                enum_variants,
-                                operator,
-                            ));
+                            let input_type = InputType::from((schema_type.clone(), enum_variants));
                             let fn_environment = Memo::new(move |_| {
                                 FunctionEnvironment {
                                     context: Conditions(vec![condition.get()]).as_context_json(),
@@ -560,7 +555,6 @@ fn cohort_form(
                                     </span>
                                     <ConditionInput
                                         disabled=false
-                                        resolve_mode=false
                                         allow_remove=false
                                         condition=condition.get()
                                         input_type

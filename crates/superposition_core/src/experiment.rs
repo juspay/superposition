@@ -135,18 +135,10 @@ pub fn get_applicable_buckets_from_group(
             );
             let exp_context = &exp_group.context;
 
-            cfg_if::cfg_if! {
-                if #[cfg(feature = "jsonlogic")] {
-                    let valid_context = exp_context.is_empty()
-                        || jsonlogic::apply(&Value::Object(exp_context.clone().into()), context)
-                            == Ok(Value::Bool(true));
-                } else {
-                    let valid_context = superposition_types::apply(
-                        exp_context,
-                        &context.as_object().cloned().unwrap_or_default(),
-                    );
-                }
-            }
+            let valid_context = superposition_types::apply(
+                exp_context,
+                &context.as_object().cloned().unwrap_or_default(),
+            );
 
             let res =
                 valid_context && exp_group.traffic_percentage >= hashed_percentage as u8;
@@ -183,20 +175,10 @@ pub fn get_applicable_variants_from_group_response(
         .iter()
         .filter_map(|(toss, bucket)| {
             experiments.get(&bucket.experiment_id).and_then(|exp| {
-                cfg_if::cfg_if! {
-                    if #[cfg(feature = "jsonlogic")] {
-                        let valid_context = exp.context.is_empty()
-                            || jsonlogic::apply(
-                                &Value::Object(exp.context.clone().into()),
-                                context,
-                            ) == Ok(Value::Bool(true));
-                    } else {
-                        let valid_context = superposition_types::apply(
-                            &exp.context,
-                            &context.as_object().cloned().unwrap_or_default(),
-                        );
-                    }
-                }
+                let valid_context = superposition_types::apply(
+                    &exp.context,
+                    &context.as_object().cloned().unwrap_or_default(),
+                );
 
                 let res = valid_context
                     && (exp.traffic_percentage as usize * exp.variants.len()) >= *toss;
@@ -221,19 +203,7 @@ pub fn get_satisfied_experiments(
 ) -> Result<Experiments, String> {
     let running_experiments = experiments
         .iter()
-        .filter(|exp| {
-            cfg_if::cfg_if! {
-                if #[cfg(feature = "jsonlogic")] {
-                    exp.context.is_empty()
-                        || jsonlogic::apply(
-                            &Value::Object(exp.context.clone().into()),
-                            &Value::Object(context.clone()),
-                        ) == Ok(Value::Bool(true))
-                } else {
-                    superposition_types::partial_apply(&exp.context, context)
-                }
-            }
-        })
+        .filter(|exp| superposition_types::partial_apply(&exp.context, context))
         .cloned()
         .collect();
 

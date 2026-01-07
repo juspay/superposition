@@ -44,13 +44,6 @@ high-performance-mode = [
     "service_utils/high-performance-mode",
     "dep:fred",
 ]
-jsonlogic = [
-    "context_aware_config/jsonlogic",
-    "experimentation_platform/jsonlogic",
-    "frontend/jsonlogic",
-    "service_utils/jsonlogic",
-    "superposition_types/jsonlogic",
-]
 
 [lints]
 workspace = true

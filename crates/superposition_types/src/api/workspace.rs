@@ -23,7 +23,6 @@ pub struct WorkspaceResponse {
     pub last_modified_at: DateTime<Utc>,
     pub created_at: DateTime<Utc>,
     pub mandatory_dimensions: Option<Vec<String>>,
-    pub strict_mode: bool,
     pub metrics: Metrics,
     pub allow_experiment_self_approval: bool,
     pub auto_populate_control: bool,
@@ -46,10 +45,6 @@ impl From<Workspace> for WorkspaceResponse {
             last_modified_at: workspace.last_modified_at,
             created_at: workspace.created_at,
             mandatory_dimensions: workspace.mandatory_dimensions,
-            #[cfg(feature = "jsonlogic")]
-            strict_mode: workspace.strict_mode,
-            #[cfg(not(feature = "jsonlogic"))]
-            strict_mode: true,
             metrics: workspace.metrics,
             allow_experiment_self_approval: workspace.allow_experiment_self_approval,
             auto_populate_control: workspace.auto_populate_control,
@@ -64,9 +59,6 @@ pub struct CreateWorkspaceRequest {
     pub workspace_admin_email: String,
     pub workspace_name: String,
     pub workspace_status: Option<WorkspaceStatus>,
-    #[cfg(feature = "jsonlogic")]
-    #[serde(alias = "workspace_strict_mode")]
-    pub strict_mode: bool,
     pub metrics: Option<Metrics>,
     #[serde(default)]
     pub allow_experiment_self_approval: bool,

@@ -48,18 +48,10 @@ describe("Experiments API", () => {
     const defaultChangeReason = "Automated Test";
     const defaultDescription = "Created by automated test";
 
-    const experiment1Context: Record<string, DocumentType> =
-        ENV.jsonlogic_enabled
-            ? {
-                  and: [
-                      { "==": [{ var: "os" }, "ios"] },
-                      { "==": [{ var: "clientId" }, "testClientCac1"] },
-                  ],
-              }
-            : {
-                  os: "ios",
-                  clientId: "testClientCac1",
-              };
+    const experiment1Context: Record<string, DocumentType> = {
+        os: "ios",
+        clientId: "testClientCac1",
+    };
     const experiment1InitialVariants: Omit<
         Variant,
         "id" | "context_id" | "override_id"
@@ -77,18 +69,10 @@ describe("Experiments API", () => {
         },
     ];
 
-    const experiment2Context: Record<string, DocumentType> =
-        ENV.jsonlogic_enabled
-            ? {
-                  and: [
-                      { "==": [{ var: "os" }, "ios"] },
-                      { "==": [{ var: "clientId" }, "testClientCac02"] },
-                  ],
-              }
-            : {
-                  os: "ios",
-                  clientId: "testClientCac02",
-              };
+    const experiment2Context: Record<string, DocumentType> = {
+        os: "ios",
+        clientId: "testClientCac02",
+    };
     const experiment2InitialVariants: Omit<
         Variant,
         "id" | "context_id" | "override_id"
@@ -107,18 +91,10 @@ describe("Experiments API", () => {
     ];
 
     // Experiment group context (common base for both experiments)
-    const experimentGroupContext: Record<string, DocumentType> =
-        ENV.jsonlogic_enabled
-            ? {
-                  and: [
-                      { "==": [{ var: "os" }, "ios"] },
-                      { "==": [{ var: "clientId" }, "testClientCac1"] },
-                  ],
-              }
-            : {
-                  os: "ios",
-                  clientId: "testClientCac1",
-              };
+    const experimentGroupContext: Record<string, DocumentType> = {
+        os: "ios",
+        clientId: "testClientCac1",
+    };
 
     const auto_populate_test_workspace = `temptestexp${Date.now() % 10000}`;
 

@@ -7,7 +7,6 @@ use superposition_types::{
     api::{
         experiment_groups::ExpGroupMemberRequest,
         experiments::{ExperimentListFilters, ExperimentResponse},
-        workspace::WorkspaceResponse,
     },
     custom_query::{CommaSeparatedQParams, DimensionQuery, PaginationParams},
     database::models::{experimentation::ExperimentGroup, ChangeReason},
@@ -56,7 +55,6 @@ fn table_columns(
     delete_group_rws: RwSignal<RemoveRequest>,
     delete_modal_ws: WriteSignal<bool>,
     group_id: String,
-    strict_mode: bool,
 ) -> Vec<Column> {
     let group_id = StoredValue::new(group_id);
 
@@ -95,7 +93,7 @@ fn table_columns(
                 let id = row.get("id").map_or(String::from(""), |value| {
                     value.as_str().unwrap_or("").to_string()
                 });
-                view! { <ConditionComponent conditions grouped_view=false id strict_mode /> }
+                view! { <ConditionComponent conditions grouped_view=false id /> }
                     .into_view()
             },
             ColumnSortable::No,
@@ -128,7 +126,6 @@ fn table_columns(
 
 #[component]
 fn experiment_group_info(group: ExperimentGroup) -> impl IntoView {
-    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let conditions = Conditions::from_context_json(&group.context).unwrap_or_default();
 
     view! {
@@ -139,7 +136,6 @@ fn experiment_group_info(group: ExperimentGroup) -> impl IntoView {
                         conditions
                         id="experiment-group-context"
                         class="h-fit w-[300px]"
-                        strict_mode=workspace_settings.with_value(|w| w.strict_mode)
                     />
                 </ConditionCollapseProvider>
             </div>
@@ -156,7 +152,6 @@ enum Action {
 #[component]
 pub fn experiment_groups() -> impl IntoView {
     let group_params = use_params_map();
-    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
@@ -255,7 +250,6 @@ pub fn experiment_groups() -> impl IntoView {
                     delete_group_rws,
                     delete_modal_ws,
                     resource.group.id.to_string(),
-                    workspace_settings.with_value(|w| w.strict_mode),
                 );
                 let data = resource
                     .experiments

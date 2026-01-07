@@ -5,7 +5,6 @@ use serde_json::{Map, Value};
 use superposition_types::api::functions::KeyType;
 use superposition_types::api::{
     dimension::DimensionResponse, functions::FunctionEnvironment,
-    workspace::WorkspaceResponse,
 };
 
 use crate::components::form::label::Label;
@@ -29,7 +28,6 @@ pub enum TooltipType {
 #[component]
 pub fn condition_input(
     disabled: bool,
-    resolve_mode: bool,
     allow_remove: bool,
     condition: Condition,
     input_type: InputType,
@@ -40,87 +38,12 @@ pub fn condition_input(
     #[prop(into)] on_operator_change: Callback<Operator, ()>,
     #[prop(default = TooltipType::None)] tooltip: TooltipType,
 ) -> impl IntoView {
-    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
-    let (dimension, operator) = (condition.variable.clone(), Operator::from(&condition));
+    let (dimension, operator) = (
+        condition.variable.clone(),
+        Operator::from(&condition.expression),
+    );
 
     let value_compute_callback = value_compute_callbacks.get(&dimension).cloned();
-
-    let inputs: Vec<(Value, Callback<Value, ()>)> = match condition.expression.clone() {
-        Expression::Is(c) => {
-            vec![(
-                c,
-                Callback::new(move |value: Value| {
-                    on_value_change.call(Expression::Is(value));
-                }),
-            )]
-        }
-        #[cfg(feature = "jsonlogic")]
-        Expression::In(c) => {
-            vec![(
-                c,
-                Callback::new(move |value: Value| {
-                    on_value_change.call(Expression::In(value));
-                }),
-            )]
-        }
-        Expression::Has(c) => {
-            vec![(
-                c,
-                Callback::new(move |value: Value| {
-                    on_value_change.call(Expression::Has(value));
-                }),
-            )]
-        }
-        #[cfg(feature = "jsonlogic")]
-        Expression::Between(c1, c2) => {
-            let c2_clone = c2.clone();
-            vec![
-                (
-                    c1.clone(),
-                    Callback::new(move |value: Value| {
-                        on_value_change
-                            .call(Expression::Between(value, c2_clone.clone()));
-                    }),
-                ),
-                (
-                    c2.clone(),
-                    Callback::new(move |value: Value| {
-                        on_value_change.call(Expression::Between(c1.clone(), value));
-                    }),
-                ),
-            ]
-        }
-        #[cfg(feature = "jsonlogic")]
-        _ => vec![],
-    };
-
-    let strict_mode = workspace_settings.with_value(|v| v.strict_mode);
-
-    cfg_if::cfg_if!(
-        if #[cfg(feature = "jsonlogic")] {
-           let options = view! {
-                <option value="in" selected=matches!(operator, Operator::In)>
-                    {if strict_mode {
-                        { Operator::In.strict_mode_display().to_uppercase() }
-                    } else {
-                        { Operator::In.to_string().to_uppercase() }
-                    }}
-                </option>
-                <option value="has" selected=matches!(operator, Operator::Has)>
-                    {if strict_mode {
-                        { Operator::Has.strict_mode_display().to_uppercase() }
-                    } else {
-                        { Operator::Has.to_string().to_uppercase() }
-                    }}
-                </option>
-                <option value="<=" selected=matches!(operator, Operator::Between)>
-                    "BETWEEN (inclusive)"
-                </option>
-            }.into_view();
-        } else {
-            let options = ().into_view();
-        }
-    );
 
     view! {
         <div class="flex gap-x-6">
@@ -141,32 +64,15 @@ pub fn condition_input(
                 </label>
 
                 <select
-                    disabled=disabled || resolve_mode || strict_mode
+                    disabled=true
                     value=operator.to_string()
-                    on:input=move |_event| {
-                        cfg_if::cfg_if! {
-                            if #[cfg(feature = "jsonlogic")] {
-                                on_operator_change
-                                    .call(Operator::from_operator_input(event_target_value(&_event)));
-                            } else {
-                                on_operator_change.call(Operator::Is)
-                            }
-                        }
-                    }
+                    on:input=move |_event| { on_operator_change.call(Operator::Is) }
                     name="context-dimension-operator"
                     class="select select-bordered w-full max-w-xs text-sm rounded-lg h-10 px-4 appearance-none leading-tight focus:outline-none focus:shadow-outline"
                 >
-                    <option
-                        value="=="
-                        selected={ matches!(operator, Operator::Is) } || resolve_mode || strict_mode
-                    >
-                        {if strict_mode {
-                            { Operator::Is.strict_mode_display().to_uppercase() }
-                        } else {
-                            { Operator::Is.to_string().to_uppercase() }
-                        }}
+                    <option value="==" selected=true>
+                        {Operator::Is.to_string().to_uppercase()}
                     </option>
-                    {options}
                 </select>
 
             </div>
@@ -176,31 +82,22 @@ pub fn condition_input(
                 <span class="label-text">Value</span>
             </label>
             <div class="flex gap-x-6 items-center">
-                {inputs
-                    .into_iter()
-                    .enumerate()
-                    .map(|(idx, (value, on_change)): (usize, (Value, Callback<Value, ()>))| {
-                        view! {
-                            <Input
-                                value
-                                schema_type=schema_type.clone()
-                                on_change
-                                r#type=input_type.clone()
-                                disabled
-                                id=format!(
-                                    "{}-{}-{}",
-                                    condition.variable.clone(),
-                                    Operator::from(&condition),
-                                    idx,
-                                )
-                                class="w-[450px]"
-                                name=""
-                                operator=Some(operator.clone())
-                                value_compute_function=value_compute_callback
-                            />
-                        }
-                    })
-                    .collect_view()} <Show when=move || allow_remove>
+                <Input
+                    value=condition.expression.to_value().clone()
+                    schema_type=schema_type.clone()
+                    on_change=move |value: Value| on_value_change.call(Expression::Is(value))
+                    r#type=input_type.clone()
+                    disabled
+                    id=format!(
+                        "{}-{}",
+                        condition.variable.clone(),
+                        Operator::from(&condition.expression),
+                    )
+                    class="w-[450px]"
+                    name=""
+                    value_compute_function=value_compute_callback
+                />
+                <Show when=move || allow_remove>
                     <button
                         class="btn btn-ghost btn-circle btn-sm"
                         disabled=disabled
@@ -488,7 +385,6 @@ pub fn context_form(
                                 return view! { <span class="text-sm red">An error occured</span> }
                                     .into_view();
                             };
-                            let operator = Operator::from(&condition);
                             let is_mandatory = mandatory_dimensions_set
                                 .with_value(|v| v.contains(&condition.variable));
                             let allow_remove = if resolve_mode {
@@ -496,11 +392,7 @@ pub fn context_form(
                             } else {
                                 !disabled && !is_mandatory
                             };
-                            let input_type = InputType::from((
-                                schema_type.clone(),
-                                enum_variants,
-                                operator,
-                            ));
+                            let input_type = InputType::from((schema_type.clone(), enum_variants));
                             let on_remove = move |d_name| on_remove.call((idx, d_name));
                             let on_value_change = move |expression| {
                                 on_value_change.call((idx, expression))
@@ -519,7 +411,6 @@ pub fn context_form(
                             view! {
                                 <ConditionInput
                                     disabled
-                                    resolve_mode
                                     allow_remove
                                     condition
                                     input_type

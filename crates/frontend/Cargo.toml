@@ -60,7 +60,6 @@ hydrate = [
     "console_error_panic_hook",
 ]
 ssr = ["leptos/ssr", "leptos_meta/ssr", "leptos_router/ssr"]
-jsonlogic = ["superposition_types/jsonlogic"]
 
 [lints]
 workspace = true
