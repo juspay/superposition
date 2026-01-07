@@ -162,6 +162,17 @@ fn toml_value_to_serde_value(toml_value: toml::Value) -> Value {
     }
 }
 
+/// Parse a TOML string value as JSON (for object type values stored as triple-quoted strings)
+fn parse_toml_string_as_json(toml_value: toml::Value) -> Value {
+    match toml_value {
+        toml::Value::String(s) => {
+            // Try to parse as JSON
+            serde_json::from_str(&s).unwrap_or(Value::String(s))
+        }
+        _ => toml_value_to_serde_value(toml_value),
+    }
+}
+
 /// Convert JSON to deterministic sorted string for consistent hashing
 fn json_to_sorted_string(v: &Value) -> String {
     match v {
@@ -324,8 +335,21 @@ fn parse_default_config(
             });
         }
 
-        let value = toml_value_to_serde_value(table["value"].clone());
         let schema = toml_value_to_serde_value(table["schema"].clone());
+
+        // Check if schema type is "object" - if so, parse value as JSON string
+        let is_object_type = schema
+            .get("type")
+            .and_then(|t| t.as_str())
+            .map(|t| t == "object")
+            .unwrap_or(false);
+
+        let value = if is_object_type {
+            // Parse value as JSON string (for triple-quoted object values)
+            parse_toml_string_as_json(table["value"].clone())
+        } else {
+            toml_value_to_serde_value(table["value"].clone())
+        };
 
         // Validate value against schema
         crate::validations::validate_against_schema(&value, &schema).map_err(
@@ -579,7 +603,19 @@ fn parse_contexts(
                 });
             }
 
-            let serde_value = toml_value_to_serde_value(value.clone());
+            // Check if schema type is "object" - if so, parse value as JSON string
+            let is_object_type = schemas
+                .get(key)
+                .and_then(|s| s.get("type"))
+                .and_then(|t| t.as_str())
+                .map(|t| t == "object")
+                .unwrap_or(false);
+
+            let serde_value = if is_object_type {
+                parse_toml_string_as_json(value.clone())
+            } else {
+                toml_value_to_serde_value(value.clone())
+            };
 
             // Validate override value against schema
             if let Some(schema) = schemas.get(key) {
@@ -685,6 +721,7 @@ pub fn parse(toml_content: &str) -> Result<Config, TomlError> {
 }
 
 /// Convert serde_json::Value to TOML representation string
+/// For config values and overrides, objects are serialized as triple-quoted JSON
 fn value_to_toml(value: &Value) -> String {
     match value {
         Value::String(s) => {
@@ -703,9 +740,41 @@ fn value_to_toml(value: &Value) -> String {
             format!("[{}]", items.join(", "))
         }
         Value::Object(obj) => {
+            // Serialize object as JSON in triple-quoted string for readability
+            let json_str =
+                serde_json::to_string(obj).unwrap_or_else(|_| "{}".to_string());
+            // Pretty-print JSON for better readability
+            let pretty_json =
+                serde_json::to_string_pretty(obj).unwrap_or_else(|_| json_str.clone());
+            format!("'''\n{}'''", pretty_json)
+        }
+        Value::Null => "null".to_string(),
+    }
+}
+
+/// Convert serde_json::Value to TOML representation string for schemas
+/// Schemas use inline TOML tables for objects (not triple-quoted JSON)
+fn schema_to_toml(value: &Value) -> String {
+    match value {
+        Value::String(s) => {
+            let escaped = s
+                .replace('\\', "\\\\")
+                .replace('"', "\\\"")
+                .replace('\n', "\\n")
+                .replace('\r', "\\r")
+                .replace('\t', "\\t");
+            format!("\"{}\"", escaped)
+        }
+        Value::Number(n) => n.to_string(),
+        Value::Bool(b) => b.to_string(),
+        Value::Array(arr) => {
+            let items: Vec<String> = arr.iter().map(schema_to_toml).collect();
+            format!("[{}]", items.join(", "))
+        }
+        Value::Object(obj) => {
             let items: Vec<String> = obj
                 .iter()
-                .map(|(k, v)| format!("{} = {}", k, value_to_toml(v)))
+                .map(|(k, v)| format!("{} = {}", k, schema_to_toml(v)))
                 .collect();
             format!("{{ {} }}", items.join(", "))
         }
@@ -826,7 +895,7 @@ pub fn serialize_to_toml(config: &Config) -> Result<String, TomlError> {
             "{} = {{ position = {}, schema = {}, {} }}\n",
             quoted_name,
             info.position,
-            value_to_toml(&schema_json),
+            schema_to_toml(&schema_json),
             type_field
         );
         output.push_str(&toml_entry);
@@ -894,6 +963,17 @@ mod serialization_tests {
     fn test_value_to_toml_object() {
         let val = json!({"type": "string", "enum": ["a", "b"]});
         let result = value_to_toml(&val);
+        // Object values are now serialized as triple-quoted JSON
+        assert!(result.contains("'''"));
+        assert!(result.contains("\"type\""));
+        assert!(result.contains("\"string\""));
+    }
+
+    #[test]
+    fn test_schema_to_toml_object() {
+        let val = json!({"type": "string", "enum": ["a", "b"]});
+        let result = schema_to_toml(&val);
+        // Schemas use inline TOML format
         assert!(result.contains("type = \"string\""));
         assert!(result.contains("enum = [\"a\", \"b\"]"));
     }
@@ -1699,6 +1779,72 @@ timeout = 60
         assert_eq!(
             context.condition.get("region"),
             Some(&Value::String("us-east".to_string()))
+        );
+    }
+
+    #[test]
+    fn test_object_value_round_trip() {
+        // Test that object values are serialized as triple-quoted JSON and parsed back correctly
+        let original_toml = r#"
+[default-config]
+config = { value = '''
+{
+  "host": "localhost",
+  "port": 8080
+}
+''', schema = { type = "object" } }
+
+[dimensions]
+os = { position = 1, schema = { type = "string" } }
+
+[context."os=linux"]
+config = '''
+{
+  "host": "prod.example.com",
+  "port": 443
+}
+'''
+"#;
+
+        // Parse TOML -> Config
+        let config = parse(original_toml).unwrap();
+
+        // Verify default config object was parsed correctly
+        let default_config_value = config.default_configs.get("config").unwrap();
+        assert_eq!(
+            default_config_value.get("host"),
+            Some(&Value::String("localhost".to_string()))
+        );
+        assert_eq!(
+            default_config_value.get("port"),
+            Some(&Value::Number(serde_json::Number::from(8080)))
+        );
+
+        // Serialize Config -> TOML
+        let serialized = serialize_to_toml(&config).unwrap();
+
+        // The serialized TOML should have triple-quoted JSON for object values
+        assert!(serialized.contains("'''"));
+        assert!(serialized.contains("\"host\""));
+
+        // Parse again
+        let reparsed = parse(&serialized).unwrap();
+
+        // Configs should be functionally equivalent
+        assert_eq!(config.default_configs, reparsed.default_configs);
+        assert_eq!(config.contexts.len(), reparsed.contexts.len());
+
+        // Verify override object was parsed correctly
+        let override_key = config.contexts[0].override_with_keys.get_key();
+        let overrides = config.overrides.get(override_key).unwrap();
+        let override_config = overrides.get("config").unwrap();
+        assert_eq!(
+            override_config.get("host"),
+            Some(&Value::String("prod.example.com".to_string()))
+        );
+        assert_eq!(
+            override_config.get("port"),
+            Some(&Value::Number(serde_json::Number::from(443)))
         );
     }
 }
