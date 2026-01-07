@@ -261,7 +261,9 @@ let default_config_resource = create_blocking_resource(
         navigate(&navigate_to, Default::default());
     });
 
-    let breadcrumb_url = StoredValue::new(format!("{}/admin/{}/{}/default-config", base, org.get().0, workspace.get().0));
+    let breadcrumb_url = Signal::derive(move || {
+        format!("{}/admin/{}/{}/default-config", base, org.get().0, workspace.get().0)
+    });
     view! {
         <Suspense fallback=move || {
             view! { <Skeleton variant=SkeletonVariant::DetailPage /> }
@@ -280,7 +282,7 @@ let default_config_resource = create_blocking_resource(
                                 <div class="breadcrumbs text-sm mt-2">
                                     <ul>
                                         <li>
-                                            <a href=breadcrumb_url.get_value() class="link link-hover">
+                                            <a href=breadcrumb_url.get() class="link link-hover">
                                                 "Default Config"
                                             </a>
                                         </li>
