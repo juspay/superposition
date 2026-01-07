@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.48.0 - 2026-01-07
+#### Features
+- **(UI)** use browser locale time (#815) - (450b010) - Ayush Jain
+- AuthZ setup (#543) - (08b03e0) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.96.0 [skip ci] - (e0ea254) - Superposition Bot
+#### Refactoring
+- **(frontend)** Rename tenant to workspace (#816) - (e7a0eda) - Ayush Jain
+
+- - -
+
 ## frontend-v0.47.2 - 2025-12-27
 #### Bug Fixes
 - Function payload structure (#804) - (b22c28f) - Ankit Kumar Mahato
