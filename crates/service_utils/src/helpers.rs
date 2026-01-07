@@ -485,8 +485,17 @@ where
         &workspace_request.workspace_id,
     );
 
-    webhook.custom_headers.iter().for_each(|(key, value_str)| {
-        let rendered = substitute_variables(value_str, &variables_map);
+    webhook.custom_headers.iter().for_each(|(key, value)| {
+        let value_str = value
+            .as_str()
+            .map(String::from)
+            .unwrap_or_else(|| value.to_string());
+
+        let rendered = if let Some(decrypted) = state.encrypted_keys.get(&value_str) {
+            decrypted.to_string()
+        } else {
+            substitute_variables(value, &variables_map)
+        };
         insert_header(&mut headers, key, &rendered);
     });
 
