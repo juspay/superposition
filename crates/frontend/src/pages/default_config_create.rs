@@ -6,12 +6,12 @@ use crate::components::{
 };
 use crate::providers::alert_provider::enqueue_alert;
 use crate::query_updater::use_signal_from_query;
-use crate::types::{OrganisationId, Tenant};
+use crate::types::{OrganisationId, Workspace};
 use crate::utils::use_url_base;
 
 #[component]
 pub fn CreateDefaultConfig() -> impl IntoView {
-    let workspace = use_context::<Signal<Tenant>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let navigate = use_navigate();
     let base = use_url_base();

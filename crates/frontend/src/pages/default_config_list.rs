@@ -4,7 +4,7 @@ pub mod utils;
 
 use filter::{DefaultConfigFilterWidget, FilterSummary};
 use leptos::*;
-use leptos_router::{use_navigate, A};
+use leptos_router::A;
 use serde_json::{json, Map, Value};
 use superposition_macros::box_params;
 use superposition_types::{
@@ -14,7 +14,9 @@ use superposition_types::{
 use types::PageParams;
 use utils::{get_bread_crums, modify_rows, BreadCrums};
 
+use crate::api::fetch_default_config;
 use crate::components::{
+    button::ButtonAnchor,
     datetime::DatetimeStr,
     skeleton::Skeleton,
     stat::Stat,
@@ -30,15 +32,11 @@ use crate::query_updater::{
     use_param_updater, use_signal_from_query, use_update_url_query,
 };
 use crate::types::{OrganisationId, Workspace};
-use crate::utils::use_url_base;
-use crate::{api::fetch_default_config, components::button::Button};
 
 #[component]
 pub fn default_config_list() -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
-    let navigate = use_navigate();
-    let base = use_url_base();
 
     let filters_rws = use_signal_from_query(move |query_string| {
         Query::<DefaultConfigFilters>::extract_non_empty(&query_string).into_inner()
@@ -68,40 +66,6 @@ pub fn default_config_list() -> impl IntoView {
         )
     });
 
-<<<<<<< HEAD
-    // Create button component outside the main closure
-    let create_key_button = {
-        let nav = navigate.clone();
-        let base_url = base.clone();
-        let org_ref = org.clone();
-        let workspace_ref = workspace.clone();
-        let page_params_ref = page_params_rws.clone();
-
-        view! {
-            <Button
-                on_click=move |_| {
-                    let current_prefix = page_params_ref.with(|p| p.prefix.clone());
-                    let navigate_to = if let Some(prefix) = current_prefix {
-                        format!(
-                            "{}/admin/{}/{}/default-config/create?prefix={}",
-                            base_url, org_ref.get().0, workspace_ref.get().0, prefix
-                        )
-                    } else {
-                        format!(
-                            "{}/admin/{}/{}/default-config/create",
-                            base_url, org_ref.get().0, workspace_ref.get().0
-                        )
-                    };
-                    nav(&navigate_to, Default::default());
-                }
-                text="Create Key"
-                icon_class="ri-add-line"
-            />
-        }
-    };
-
-=======
->>>>>>> 7dbcfc22 (feat: fixed create button visually)
     let default_config_resource = create_blocking_resource(
         move || {
             (
