@@ -12,9 +12,7 @@ use superposition_types::{Cac, Condition, Config, Context, DimensionInfo, Overri
 
 /// Character set for URL-encoding dimension keys and values.
 /// Encodes: '=', ';', and all control characters.
-const CONTEXT_ENCODE_SET: &AsciiSet = &CONTROLS
-    .add(b'=')
-    .add(b';');
+const CONTEXT_ENCODE_SET: &AsciiSet = &CONTROLS.add(b'=').add(b';');
 
 /// Check if a string needs quoting in TOML.
 /// Strings containing special characters like '=', ';', whitespace, or quotes need quoting.
@@ -30,6 +28,7 @@ fn needs_quoting(s: &str) -> bool {
             || c == '}'
             || c == '"'
             || c == '\''
+            || c == '.'
     })
 }
 
@@ -236,7 +235,10 @@ fn parse_context_expression(
             .decode_utf8()
             .map_err(|e| TomlError::InvalidContextExpression {
                 expression: input.to_string(),
-                reason: format!("Invalid UTF-8 in encoded value '{}': {}", value_encoded, e),
+                reason: format!(
+                    "Invalid UTF-8 in encoded value '{}': {}",
+                    value_encoded, e
+                ),
             })?
             .to_string();
 
@@ -721,7 +723,9 @@ fn condition_to_string(condition: &Cac<Condition>) -> Result<String, TomlError> 
         .iter()
         .map(|(key, value)| {
             let key_encoded = utf8_percent_encode(key, CONTEXT_ENCODE_SET).to_string();
-            let value_encoded = utf8_percent_encode(&value_to_string_simple(value), CONTEXT_ENCODE_SET).to_string();
+            let value_encoded =
+                utf8_percent_encode(&value_to_string_simple(value), CONTEXT_ENCODE_SET)
+                    .to_string();
             format!("{}={}", key_encoded, value_encoded)
         })
         .collect();
@@ -759,6 +763,13 @@ pub fn serialize_to_toml(config: &Config) -> Result<String, TomlError> {
     // 1. Serialize [default-config] section
     output.push_str("[default-config]\n");
     for (key, value) in config.default_configs.iter() {
+        // Quote key if it contains special characters
+        let quoted_key = if needs_quoting(key) {
+            format!(r#""{}""#, key.replace('"', r#"\""#))
+        } else {
+            key.clone()
+        };
+
         // Infer a basic schema type based on the value
         let schema = match value {
             Value::String(_) => r#"{ type = "string" }"#,
@@ -776,7 +787,7 @@ pub fn serialize_to_toml(config: &Config) -> Result<String, TomlError> {
         };
         let toml_entry = format!(
             "{} = {{ value = {}, schema = {} }}\n",
-            key,
+            quoted_key,
             value_to_toml(value),
             schema
         );
@@ -835,7 +846,13 @@ pub fn serialize_to_toml(config: &Config) -> Result<String, TomlError> {
         let override_key = context.override_with_keys.get_key();
         if let Some(overrides) = config.overrides.get(override_key) {
             for (key, value) in overrides.clone() {
-                output.push_str(&format!("{} = {}\n", key, value_to_toml(&value)));
+                // Quote key if it contains special characters
+                let quoted_key = if needs_quoting(&key) {
+                    format!(r#""{}""#, key.replace('"', r#"\""#))
+                } else {
+                    key
+                };
+                output.push_str(&format!("{} = {}\n", quoted_key, value_to_toml(&value)));
             }
         }
         output.push('\n');
