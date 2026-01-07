@@ -27,15 +27,14 @@ pub fn CreateDefaultConfig() -> impl IntoView {
             })
             .unwrap_or_default();
         // Debug: log the parsed prefix
-        web_sys::console::log_1(&format!("Extracted prefix: '{}'", parsed).into());
+        logging::log!("Extracted prefix: '{}'", parsed);
         parsed
     });
 
     // Create breadcrumb navigation
     let bread_crumb_items = Signal::derive(move || {
         let current_prefix = prefix.get();
-        if current_prefix.is_empty() {
-            vec!["Default Config".to_string(), "Create".to_string()]
+        if current_prefix.is_empty() { vec!["Default Config".to_string(), "Create".to_string()]
         } else {
             vec![
                 "Default Config".to_string(),
@@ -155,7 +154,7 @@ pub fn CreateDefaultConfig() -> impl IntoView {
                         prefix={
                     let p = prefix.get();
                     // Debug: log what we're passing to the form
-                    web_sys::console::log_1(&format!("Passing prefix to form: {:?}", if p.is_empty() { None } else { Some(if p.ends_with('/') { p.clone() } else { format!("{}/", p.clone()) }) }).into());
+                    logging::log!("Passing prefix to form: {:?}", (if p.is_empty() { None } else { Some(if p.ends_with('/') { p.clone() } else { format!("{}/", p.clone()) }) }));
                     if p.is_empty() {
                         None
                     } else {
@@ -169,4 +168,3 @@ pub fn CreateDefaultConfig() -> impl IntoView {
         </div>
     }
 }
-
