@@ -5570,6 +5570,7 @@ dependencies = [
  "mini-moka",
  "num-bigint",
  "once_cell",
+ "percent-encoding",
  "rand 0.9.1",
  "reqwest",
  "serde",
