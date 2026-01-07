@@ -2,6 +2,28 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.97.0 - 2026-01-07
+### Package updates
+- superposition_derives bumped to superposition_derives-v0.9.0
+- superposition_macros bumped to superposition_macros-v0.7.0
+- superposition_types bumped to superposition_types-v0.38.0
+- context_aware_config bumped to context_aware_config-v0.67.0
+- service_utils bumped to service_utils-v0.36.0
+- frontend bumped to frontend-v0.48.0
+- experimentation_platform bumped to experimentation_platform-v0.47.0
+### Global changes
+#### Bug Fixes
+- package.json (#811) - (1880d0a) - Ayush Jain
+#### Features
+- AuthZ setup (#543) - (08b03e0) - Ayush Jain
+#### Miscellaneous Chores
+- **(deps)** bump qs and express in /docs (#813) - (da8baa6) - dependabot[bot]
+- **(version)** v0.96.1 [skip ci] - (7a4bd7e) - Superposition Bot
+- fix shell warnings due to old macos sdks (#812) - (9cd0a3b) - Natarajan Kannan
+- use self-hosted runner for builds (#787) - (958b055) - Datron
+
+- - -
+
 ## v0.96.1 - 2025-12-28
 ### Package updates
 - context_aware_config bumped to context_aware_config-v0.66.1

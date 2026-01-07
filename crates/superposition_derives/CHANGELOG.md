@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_derives-v0.9.0 - 2026-01-07
+#### Features
+- AuthZ setup (#543) - (08b03e0) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.93.0 [skip ci] - (e13da8c) - Superposition Bot
+
+- - -
+
 ## superposition_derives-v0.8.0 - 2025-11-04
 #### Features
 - Support multi value query params as repeated keys (#737) - (f267ff5) - Ayush Jain

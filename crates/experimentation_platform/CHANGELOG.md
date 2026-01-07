@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.47.0 - 2026-01-07
+#### Features
+- AuthZ setup (#543) - (08b03e0) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.96.0 [skip ci] - (e0ea254) - Superposition Bot
+
+- - -
+
 ## experimentation_platform-v0.46.0 - 2025-12-27
 #### Bug Fixes
 - Function payload structure (#804) - (b22c28f) - Ankit Kumar Mahato

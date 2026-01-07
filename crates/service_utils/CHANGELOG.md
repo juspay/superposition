@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.36.0 - 2026-01-07
+#### Bug Fixes
+- **(webhook)** encrypted key injection (#825) - (bd4f30e) - Ayush Jain
+#### Features
+- AuthZ setup (#543) - (08b03e0) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.96.0 [skip ci] - (e0ea254) - Superposition Bot
+
+- - -
+
 ## service_utils-v0.35.0 - 2025-12-27
 #### Bug Fixes
 - **(OIDC)** Url parsing for issuer paths having no prefix (#793) - (75dee8f) - Ayush Jain

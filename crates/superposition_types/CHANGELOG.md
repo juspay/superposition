@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.38.0 - 2026-01-07
+#### Features
+- AuthZ setup (#543) - (08b03e0) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.96.0 [skip ci] - (e0ea254) - Superposition Bot
+
+- - -
+
 ## superposition_types-v0.37.2 - 2025-12-27
 #### Bug Fixes
 - Function payload structure (#804) - (b22c28f) - Ankit Kumar Mahato
