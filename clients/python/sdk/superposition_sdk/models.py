@@ -6623,7 +6623,6 @@ class CreateWorkspaceInput:
     workspace_admin_email: str | None = None
     workspace_name: str | None = None
     workspace_status: str | None = None
-    strict_mode: bool | None = None
     metrics: Document | None = None
     allow_experiment_self_approval: bool | None = None
     auto_populate_control: bool | None = None
@@ -6642,9 +6641,6 @@ class CreateWorkspaceInput:
 
         if self.workspace_status is not None:
             serializer.write_string(_SCHEMA_CREATE_WORKSPACE_INPUT.members["workspace_status"], self.workspace_status)
-
-        if self.strict_mode is not None:
-            serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["strict_mode"], self.strict_mode)
 
         if self.metrics is not None:
             serializer.write_document(_SCHEMA_CREATE_WORKSPACE_INPUT.members["metrics"], self.metrics)
@@ -6684,21 +6680,18 @@ class CreateWorkspaceInput:
                     kwargs["workspace_status"] = de.read_string(_SCHEMA_CREATE_WORKSPACE_INPUT.members["workspace_status"])
 
                 case 4:
-                    kwargs["strict_mode"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["strict_mode"])
-
-                case 5:
                     kwargs["metrics"] = de.read_document(_SCHEMA_CREATE_WORKSPACE_INPUT.members["metrics"])
 
-                case 6:
+                case 5:
                     kwargs["allow_experiment_self_approval"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["allow_experiment_self_approval"])
 
-                case 7:
+                case 6:
                     kwargs["auto_populate_control"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["auto_populate_control"])
 
-                case 8:
+                case 7:
                     kwargs["enable_context_validation"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["enable_context_validation"])
 
-                case 9:
+                case 8:
                     kwargs["enable_change_reason_validation"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["enable_change_reason_validation"])
 
                 case _:
@@ -6748,8 +6741,6 @@ class CreateWorkspaceOutput:
 
     created_at: datetime
 
-    strict_mode: bool
-
     metrics: Document
 
     allow_experiment_self_approval: bool
@@ -6783,7 +6774,6 @@ class CreateWorkspaceOutput:
         if self.mandatory_dimensions is not None:
             _serialize_list_mandatory_dimensions(serializer, _SCHEMA_CREATE_WORKSPACE_OUTPUT.members["mandatory_dimensions"], self.mandatory_dimensions)
 
-        serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["strict_mode"], self.strict_mode)
         serializer.write_document(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["metrics"], self.metrics)
         serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["allow_experiment_self_approval"], self.allow_experiment_self_approval)
         serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["auto_populate_control"], self.auto_populate_control)
@@ -6837,21 +6827,18 @@ class CreateWorkspaceOutput:
                     kwargs["mandatory_dimensions"] = _deserialize_list_mandatory_dimensions(de, _SCHEMA_CREATE_WORKSPACE_OUTPUT.members["mandatory_dimensions"])
 
                 case 12:
-                    kwargs["strict_mode"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["strict_mode"])
-
-                case 13:
                     kwargs["metrics"] = de.read_document(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["metrics"])
 
-                case 14:
+                case 13:
                     kwargs["allow_experiment_self_approval"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["allow_experiment_self_approval"])
 
-                case 15:
+                case 14:
                     kwargs["auto_populate_control"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["auto_populate_control"])
 
-                case 16:
+                case 15:
                     kwargs["enable_context_validation"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["enable_context_validation"])
 
-                case 17:
+                case 16:
                     kwargs["enable_change_reason_validation"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["enable_change_reason_validation"])
 
                 case _:
@@ -13675,8 +13662,6 @@ class GetWorkspaceOutput:
 
     created_at: datetime
 
-    strict_mode: bool
-
     metrics: Document
 
     allow_experiment_self_approval: bool
@@ -13710,7 +13695,6 @@ class GetWorkspaceOutput:
         if self.mandatory_dimensions is not None:
             _serialize_list_mandatory_dimensions(serializer, _SCHEMA_GET_WORKSPACE_OUTPUT.members["mandatory_dimensions"], self.mandatory_dimensions)
 
-        serializer.write_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["strict_mode"], self.strict_mode)
         serializer.write_document(_SCHEMA_GET_WORKSPACE_OUTPUT.members["metrics"], self.metrics)
         serializer.write_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["allow_experiment_self_approval"], self.allow_experiment_self_approval)
         serializer.write_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["auto_populate_control"], self.auto_populate_control)
@@ -13764,21 +13748,18 @@ class GetWorkspaceOutput:
                     kwargs["mandatory_dimensions"] = _deserialize_list_mandatory_dimensions(de, _SCHEMA_GET_WORKSPACE_OUTPUT.members["mandatory_dimensions"])
 
                 case 12:
-                    kwargs["strict_mode"] = de.read_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["strict_mode"])
-
-                case 13:
                     kwargs["metrics"] = de.read_document(_SCHEMA_GET_WORKSPACE_OUTPUT.members["metrics"])
 
-                case 14:
+                case 13:
                     kwargs["allow_experiment_self_approval"] = de.read_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["allow_experiment_self_approval"])
 
-                case 15:
+                case 14:
                     kwargs["auto_populate_control"] = de.read_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["auto_populate_control"])
 
-                case 16:
+                case 15:
                     kwargs["enable_context_validation"] = de.read_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["enable_context_validation"])
 
-                case 17:
+                case 16:
                     kwargs["enable_change_reason_validation"] = de.read_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["enable_change_reason_validation"])
 
                 case _:
@@ -14610,8 +14591,6 @@ class WorkspaceResponse:
 
     created_at: datetime
 
-    strict_mode: bool
-
     metrics: Document
 
     allow_experiment_self_approval: bool
@@ -14645,7 +14624,6 @@ class WorkspaceResponse:
         if self.mandatory_dimensions is not None:
             _serialize_list_mandatory_dimensions(serializer, _SCHEMA_WORKSPACE_RESPONSE.members["mandatory_dimensions"], self.mandatory_dimensions)
 
-        serializer.write_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["strict_mode"], self.strict_mode)
         serializer.write_document(_SCHEMA_WORKSPACE_RESPONSE.members["metrics"], self.metrics)
         serializer.write_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["allow_experiment_self_approval"], self.allow_experiment_self_approval)
         serializer.write_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["auto_populate_control"], self.auto_populate_control)
@@ -14699,21 +14677,18 @@ class WorkspaceResponse:
                     kwargs["mandatory_dimensions"] = _deserialize_list_mandatory_dimensions(de, _SCHEMA_WORKSPACE_RESPONSE.members["mandatory_dimensions"])
 
                 case 12:
-                    kwargs["strict_mode"] = de.read_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["strict_mode"])
-
-                case 13:
                     kwargs["metrics"] = de.read_document(_SCHEMA_WORKSPACE_RESPONSE.members["metrics"])
 
-                case 14:
+                case 13:
                     kwargs["allow_experiment_self_approval"] = de.read_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["allow_experiment_self_approval"])
 
-                case 15:
+                case 14:
                     kwargs["auto_populate_control"] = de.read_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["auto_populate_control"])
 
-                case 16:
+                case 15:
                     kwargs["enable_context_validation"] = de.read_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["enable_context_validation"])
 
-                case 17:
+                case 16:
                     kwargs["enable_change_reason_validation"] = de.read_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["enable_change_reason_validation"])
 
                 case _:
@@ -14853,8 +14828,6 @@ class MigrateWorkspaceSchemaOutput:
 
     created_at: datetime
 
-    strict_mode: bool
-
     metrics: Document
 
     allow_experiment_self_approval: bool
@@ -14888,7 +14861,6 @@ class MigrateWorkspaceSchemaOutput:
         if self.mandatory_dimensions is not None:
             _serialize_list_mandatory_dimensions(serializer, _SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["mandatory_dimensions"], self.mandatory_dimensions)
 
-        serializer.write_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["strict_mode"], self.strict_mode)
         serializer.write_document(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["metrics"], self.metrics)
         serializer.write_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["allow_experiment_self_approval"], self.allow_experiment_self_approval)
         serializer.write_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["auto_populate_control"], self.auto_populate_control)
@@ -14942,21 +14914,18 @@ class MigrateWorkspaceSchemaOutput:
                     kwargs["mandatory_dimensions"] = _deserialize_list_mandatory_dimensions(de, _SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["mandatory_dimensions"])
 
                 case 12:
-                    kwargs["strict_mode"] = de.read_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["strict_mode"])
-
-                case 13:
                     kwargs["metrics"] = de.read_document(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["metrics"])
 
-                case 14:
+                case 13:
                     kwargs["allow_experiment_self_approval"] = de.read_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["allow_experiment_self_approval"])
 
-                case 15:
+                case 14:
                     kwargs["auto_populate_control"] = de.read_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["auto_populate_control"])
 
-                case 16:
+                case 15:
                     kwargs["enable_context_validation"] = de.read_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["enable_context_validation"])
 
-                case 17:
+                case 16:
                     kwargs["enable_change_reason_validation"] = de.read_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["enable_change_reason_validation"])
 
                 case _:
@@ -15835,8 +15804,6 @@ class UpdateWorkspaceOutput:
 
     created_at: datetime
 
-    strict_mode: bool
-
     metrics: Document
 
     allow_experiment_self_approval: bool
@@ -15870,7 +15837,6 @@ class UpdateWorkspaceOutput:
         if self.mandatory_dimensions is not None:
             _serialize_list_mandatory_dimensions(serializer, _SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["mandatory_dimensions"], self.mandatory_dimensions)
 
-        serializer.write_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["strict_mode"], self.strict_mode)
         serializer.write_document(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["metrics"], self.metrics)
         serializer.write_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["allow_experiment_self_approval"], self.allow_experiment_self_approval)
         serializer.write_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["auto_populate_control"], self.auto_populate_control)
@@ -15924,21 +15890,18 @@ class UpdateWorkspaceOutput:
                     kwargs["mandatory_dimensions"] = _deserialize_list_mandatory_dimensions(de, _SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["mandatory_dimensions"])
 
                 case 12:
-                    kwargs["strict_mode"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["strict_mode"])
-
-                case 13:
                     kwargs["metrics"] = de.read_document(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["metrics"])
 
-                case 14:
+                case 13:
                     kwargs["allow_experiment_self_approval"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["allow_experiment_self_approval"])
 
-                case 15:
+                case 14:
                     kwargs["auto_populate_control"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["auto_populate_control"])
 
-                case 16:
+                case 15:
                     kwargs["enable_context_validation"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["enable_context_validation"])
 
-                case 17:
+                case 16:
                     kwargs["enable_change_reason_validation"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["enable_change_reason_validation"])
 
                 case _:

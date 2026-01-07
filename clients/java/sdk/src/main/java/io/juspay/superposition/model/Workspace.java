@@ -31,7 +31,6 @@ public final class Workspace implements ApiResource {
         Map.entry("organisation_id", PreludeSchemas.STRING),
         Map.entry("allow_experiment_self_approval", PreludeSchemas.BOOLEAN),
         Map.entry("workspace_schema_name", PreludeSchemas.STRING),
-        Map.entry("strict_mode", PreludeSchemas.BOOLEAN),
         Map.entry("metrics", PreludeSchemas.DOCUMENT));
 
     private static final List<Schema> $OPERATIONS = List.of(CreateWorkspace.$SCHEMA,

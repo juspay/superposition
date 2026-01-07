@@ -49,7 +49,6 @@ describe("Workspace API", () => {
             workspace_name: testWorkspaceName,
             description: "Test workspace created by automated tests",
             mandatory_dimensions: ["os", "client"],
-            strict_mode: true,
             allow_experiment_self_approval: true,
             auto_populate_control: false,
             enable_context_validation: true,
@@ -70,7 +69,6 @@ describe("Workspace API", () => {
         expect(response.organisation_id).toBe(ENV.org_id);
         expect(response.workspace_admin_email).toBe("admin@example.com");
         expect(response.workspace_status).toBe(WorkspaceStatus.ENABLED);
-        expect(response.strict_mode).toBe(true);
         expect(response.allow_experiment_self_approval).toBe(true);
         expect(response.auto_populate_control).toBe(false);
         expect(response.enable_context_validation).toBe(true);
@@ -177,7 +175,6 @@ describe("Workspace API", () => {
                 "updated-admin@example.com"
             );
             expect(response.workspace_status).toBe(WorkspaceStatus.ENABLED);
-            expect(response.strict_mode).toBe(true);
             expect(response.allow_experiment_self_approval).toBe(true);
             expect(response.auto_populate_control).toBe(false);
             expect(response.enable_context_validation).toBe(true);
@@ -296,7 +293,6 @@ describe("Workspace API", () => {
             workspace_admin_email: "invalid-email", // Invalid email format
             workspace_name: "", // Empty name
             description: "Test invalid workspace",
-            strict_mode: true,
             allow_experiment_self_approval: true,
             auto_populate_control: false,
             enable_context_validation: true,
@@ -322,7 +318,6 @@ describe("Workspace API", () => {
             // This should fail as the regex only allows letters and numbers
             workspace_name: "test-special-chars@!#",
             description: "Test with special characters",
-            strict_mode: true,
             allow_experiment_self_approval: true,
             auto_populate_control: false,
             enable_context_validation: true,

@@ -1733,4 +1733,6 @@ ALTER TABLE localorg_test.default_configs
 ADD FOREIGN KEY (value_validation_function_name)
 REFERENCES localorg_test.functions(function_name);
 
+ALTER TABLE superposition.workspaces DROP COLUMN IF EXISTS strict_mode;
+
 COMMIT;

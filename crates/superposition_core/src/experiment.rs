@@ -94,19 +94,16 @@ pub fn get_applicable_variants(
     identifier: &str,
     prefix: Option<Vec<String>>,
 ) -> Result<Vec<String>, String> {
-    let context = Value::Object(evaluate_local_cohorts(dimensions_info, query_data));
+    let context = evaluate_local_cohorts(dimensions_info, query_data);
 
     let buckets =
         get_applicable_buckets_from_group(experiment_groups, &context, identifier);
 
-    let experiments: HashMap<String, FfiExperiment> = get_satisfied_experiments(
-        experiments,
-        &context.as_object().cloned().unwrap_or_default(),
-        prefix,
-    )?
-    .into_iter()
-    .map(|exp| (exp.id.clone(), exp.clone()))
-    .collect();
+    let experiments: HashMap<String, FfiExperiment> =
+        get_satisfied_experiments(experiments, &context, prefix)?
+            .into_iter()
+            .map(|exp| (exp.id.clone(), exp))
+            .collect();
 
     let applicable_variants =
         get_applicable_variants_from_group_response(&experiments, &context, &buckets);
@@ -116,7 +113,7 @@ pub fn get_applicable_variants(
 
 pub fn get_applicable_buckets_from_group(
     experiment_groups: &ExperimentGroups,
-    context: &Value,
+    context: &Map<String, Value>,
     identifier: &str,
 ) -> Vec<(usize, Bucket)> {
     if identifier.is_empty() {
@@ -135,10 +132,7 @@ pub fn get_applicable_buckets_from_group(
             );
             let exp_context = &exp_group.context;
 
-            let valid_context = superposition_types::apply(
-                exp_context,
-                &context.as_object().cloned().unwrap_or_default(),
-            );
+            let valid_context = superposition_types::apply(exp_context, context);
 
             let res =
                 valid_context && exp_group.traffic_percentage >= hashed_percentage as u8;
@@ -168,17 +162,14 @@ pub fn get_applicable_buckets_from_group(
 
 pub fn get_applicable_variants_from_group_response(
     experiments: &HashMap<String, FfiExperiment>,
-    context: &Value,
+    context: &Map<String, Value>,
     bucket_response: &[(usize, Bucket)],
 ) -> Vec<String> {
     bucket_response
         .iter()
         .filter_map(|(toss, bucket)| {
             experiments.get(&bucket.experiment_id).and_then(|exp| {
-                let valid_context = superposition_types::apply(
-                    &exp.context,
-                    &context.as_object().cloned().unwrap_or_default(),
-                );
+                let valid_context = superposition_types::apply(&exp.context, context);
 
                 let res = valid_context
                     && (exp.traffic_percentage as usize * exp.variants.len()) >= *toss;

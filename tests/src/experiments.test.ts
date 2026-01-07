@@ -212,7 +212,6 @@ describe("Experiments API", () => {
             org_id: ENV.org_id,
             workspace_admin_email: "admin@example.com",
             workspace_name: auto_populate_test_workspace,
-            strict_mode: true,
             allow_experiment_self_approval: true,
             auto_populate_control: true,
             enable_context_validation: true,

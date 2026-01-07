@@ -6835,9 +6835,6 @@
                     "workspace_status": {
                         "$ref": "#/components/schemas/WorkspaceStatus"
                     },
-                    "strict_mode": {
-                        "type": "boolean"
-                    },
                     "metrics": {},
                     "allow_experiment_self_approval": {
                         "type": "boolean"
@@ -6853,7 +6850,6 @@
                     }
                 },
                 "required": [
-                    "strict_mode",
                     "workspace_admin_email",
                     "workspace_name"
                 ]
@@ -6902,9 +6898,6 @@
                             "type": "string"
                         }
                     },
-                    "strict_mode": {
-                        "type": "boolean"
-                    },
                     "metrics": {},
                     "allow_experiment_self_approval": {
                         "type": "boolean"
@@ -6931,7 +6924,6 @@
                     "metrics",
                     "organisation_id",
                     "organisation_name",
-                    "strict_mode",
                     "workspace_admin_email",
                     "workspace_name",
                     "workspace_schema_name",
@@ -8590,9 +8582,6 @@
                             "type": "string"
                         }
                     },
-                    "strict_mode": {
-                        "type": "boolean"
-                    },
                     "metrics": {},
                     "allow_experiment_self_approval": {
                         "type": "boolean"
@@ -8619,7 +8608,6 @@
                     "metrics",
                     "organisation_id",
                     "organisation_name",
-                    "strict_mode",
                     "workspace_admin_email",
                     "workspace_name",
                     "workspace_schema_name",
@@ -8996,9 +8984,6 @@
                             "type": "string"
                         }
                     },
-                    "strict_mode": {
-                        "type": "boolean"
-                    },
                     "metrics": {},
                     "allow_experiment_self_approval": {
                         "type": "boolean"
@@ -9025,7 +9010,6 @@
                     "metrics",
                     "organisation_id",
                     "organisation_name",
-                    "strict_mode",
                     "workspace_admin_email",
                     "workspace_name",
                     "workspace_schema_name",
@@ -10623,9 +10607,6 @@
                             "type": "string"
                         }
                     },
-                    "strict_mode": {
-                        "type": "boolean"
-                    },
                     "metrics": {},
                     "allow_experiment_self_approval": {
                         "type": "boolean"
@@ -10652,7 +10633,6 @@
                     "metrics",
                     "organisation_id",
                     "organisation_name",
-                    "strict_mode",
                     "workspace_admin_email",
                     "workspace_name",
                     "workspace_schema_name",
@@ -10963,9 +10943,6 @@
                             "type": "string"
                         }
                     },
-                    "strict_mode": {
-                        "type": "boolean"
-                    },
                     "metrics": {},
                     "allow_experiment_self_approval": {
                         "type": "boolean"
@@ -10992,7 +10969,6 @@
                     "metrics",
                     "organisation_id",
                     "organisation_name",
-                    "strict_mode",
                     "workspace_admin_email",
                     "workspace_name",
                     "workspace_schema_name",

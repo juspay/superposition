@@ -11,7 +11,6 @@ module Io.Superposition.Model.MigrateWorkspaceSchemaOutput (
     setLastModifiedAt,
     setCreatedAt,
     setMandatoryDimensions,
-    setStrictMode,
     setMetrics,
     setAllowExperimentSelfApproval,
     setAutoPopulateControl,
@@ -32,7 +31,6 @@ module Io.Superposition.Model.MigrateWorkspaceSchemaOutput (
     last_modified_at,
     created_at,
     mandatory_dimensions,
-    strict_mode,
     metrics,
     allow_experiment_self_approval,
     auto_populate_control,
@@ -67,7 +65,6 @@ data MigrateWorkspaceSchemaOutput = MigrateWorkspaceSchemaOutput {
     last_modified_at :: Data.Time.UTCTime,
     created_at :: Data.Time.UTCTime,
     mandatory_dimensions :: Data.Maybe.Maybe ([] Data.Text.Text),
-    strict_mode :: Bool,
     metrics :: Data.Aeson.Value,
     allow_experiment_self_approval :: Bool,
     auto_populate_control :: Bool,
@@ -93,7 +90,6 @@ instance Data.Aeson.ToJSON MigrateWorkspaceSchemaOutput where
         "last_modified_at" Data.Aeson..= last_modified_at a,
         "created_at" Data.Aeson..= created_at a,
         "mandatory_dimensions" Data.Aeson..= mandatory_dimensions a,
-        "strict_mode" Data.Aeson..= strict_mode a,
         "metrics" Data.Aeson..= metrics a,
         "allow_experiment_self_approval" Data.Aeson..= allow_experiment_self_approval a,
         "auto_populate_control" Data.Aeson..= auto_populate_control a,
@@ -118,7 +114,6 @@ instance Data.Aeson.FromJSON MigrateWorkspaceSchemaOutput where
         Control.Applicative.<*> (v Data.Aeson..: "last_modified_at")
         Control.Applicative.<*> (v Data.Aeson..: "created_at")
         Control.Applicative.<*> (v Data.Aeson..:? "mandatory_dimensions")
-        Control.Applicative.<*> (v Data.Aeson..: "strict_mode")
         Control.Applicative.<*> (v Data.Aeson..: "metrics")
         Control.Applicative.<*> (v Data.Aeson..: "allow_experiment_self_approval")
         Control.Applicative.<*> (v Data.Aeson..: "auto_populate_control")
@@ -141,7 +136,6 @@ data MigrateWorkspaceSchemaOutputBuilderState = MigrateWorkspaceSchemaOutputBuil
     last_modified_atBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     created_atBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     mandatory_dimensionsBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
-    strict_modeBuilderState :: Data.Maybe.Maybe Bool,
     metricsBuilderState :: Data.Maybe.Maybe Data.Aeson.Value,
     allow_experiment_self_approvalBuilderState :: Data.Maybe.Maybe Bool,
     auto_populate_controlBuilderState :: Data.Maybe.Maybe Bool,
@@ -165,7 +159,6 @@ defaultBuilderState = MigrateWorkspaceSchemaOutputBuilderState {
     last_modified_atBuilderState = Data.Maybe.Nothing,
     created_atBuilderState = Data.Maybe.Nothing,
     mandatory_dimensionsBuilderState = Data.Maybe.Nothing,
-    strict_modeBuilderState = Data.Maybe.Nothing,
     metricsBuilderState = Data.Maybe.Nothing,
     allow_experiment_self_approvalBuilderState = Data.Maybe.Nothing,
     auto_populate_controlBuilderState = Data.Maybe.Nothing,
@@ -223,10 +216,6 @@ setMandatoryDimensions :: Data.Maybe.Maybe ([] Data.Text.Text) -> MigrateWorkspa
 setMandatoryDimensions value =
    Control.Monad.State.Strict.modify (\s -> (s { mandatory_dimensionsBuilderState = value }))
 
-setStrictMode :: Bool -> MigrateWorkspaceSchemaOutputBuilder ()
-setStrictMode value =
-   Control.Monad.State.Strict.modify (\s -> (s { strict_modeBuilderState = Data.Maybe.Just value }))
-
 setMetrics :: Data.Aeson.Value -> MigrateWorkspaceSchemaOutputBuilder ()
 setMetrics value =
    Control.Monad.State.Strict.modify (\s -> (s { metricsBuilderState = Data.Maybe.Just value }))
@@ -262,7 +251,6 @@ build builder = do
     last_modified_at' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.MigrateWorkspaceSchemaOutput.MigrateWorkspaceSchemaOutput.last_modified_at is a required property.") Data.Either.Right (last_modified_atBuilderState st)
     created_at' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.MigrateWorkspaceSchemaOutput.MigrateWorkspaceSchemaOutput.created_at is a required property.") Data.Either.Right (created_atBuilderState st)
     mandatory_dimensions' <- Data.Either.Right (mandatory_dimensionsBuilderState st)
-    strict_mode' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.MigrateWorkspaceSchemaOutput.MigrateWorkspaceSchemaOutput.strict_mode is a required property.") Data.Either.Right (strict_modeBuilderState st)
     metrics' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.MigrateWorkspaceSchemaOutput.MigrateWorkspaceSchemaOutput.metrics is a required property.") Data.Either.Right (metricsBuilderState st)
     allow_experiment_self_approval' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.MigrateWorkspaceSchemaOutput.MigrateWorkspaceSchemaOutput.allow_experiment_self_approval is a required property.") Data.Either.Right (allow_experiment_self_approvalBuilderState st)
     auto_populate_control' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.MigrateWorkspaceSchemaOutput.MigrateWorkspaceSchemaOutput.auto_populate_control is a required property.") Data.Either.Right (auto_populate_controlBuilderState st)
@@ -281,7 +269,6 @@ build builder = do
         last_modified_at = last_modified_at',
         created_at = created_at',
         mandatory_dimensions = mandatory_dimensions',
-        strict_mode = strict_mode',
         metrics = metrics',
         allow_experiment_self_approval = allow_experiment_self_approval',
         auto_populate_control = auto_populate_control',
@@ -309,11 +296,10 @@ instance Io.Superposition.Utility.FromResponseParser MigrateWorkspaceSchemaOutpu
         var12 <- Io.Superposition.Utility.deSerField "organisation_id"
         var13 <- Io.Superposition.Utility.deSerField "allow_experiment_self_approval"
         var14 <- Io.Superposition.Utility.deSerField "workspace_schema_name"
-        var15 <- Io.Superposition.Utility.deSerField "strict_mode"
-        var16 <- Io.Superposition.Utility.deSerField "metrics"
-        var17 <- Io.Superposition.Utility.deSerField "workspace_name"
+        var15 <- Io.Superposition.Utility.deSerField "metrics"
+        var16 <- Io.Superposition.Utility.deSerField "workspace_name"
         pure $ MigrateWorkspaceSchemaOutput {
-            workspace_name = var17,
+            workspace_name = var16,
             organisation_id = var12,
             organisation_name = var4,
             workspace_schema_name = var14,
@@ -325,8 +311,7 @@ instance Io.Superposition.Utility.FromResponseParser MigrateWorkspaceSchemaOutpu
             last_modified_at = var11,
             created_at = var3,
             mandatory_dimensions = var8,
-            strict_mode = var15,
-            metrics = var16,
+            metrics = var15,
             allow_experiment_self_approval = var13,
             auto_populate_control = var1,
             enable_context_validation = var2,

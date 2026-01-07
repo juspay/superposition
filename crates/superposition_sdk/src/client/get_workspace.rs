@@ -18,7 +18,6 @@ impl super::Client {
     ///   - [`last_modified_at(DateTime)`](crate::operation::get_workspace::GetWorkspaceOutput::last_modified_at): (undocumented)
     ///   - [`created_at(DateTime)`](crate::operation::get_workspace::GetWorkspaceOutput::created_at): (undocumented)
     ///   - [`mandatory_dimensions(Option<Vec::<String>>)`](crate::operation::get_workspace::GetWorkspaceOutput::mandatory_dimensions): (undocumented)
-    ///   - [`strict_mode(bool)`](crate::operation::get_workspace::GetWorkspaceOutput::strict_mode): (undocumented)
     ///   - [`metrics(Document)`](crate::operation::get_workspace::GetWorkspaceOutput::metrics): (undocumented)
     ///   - [`allow_experiment_self_approval(bool)`](crate::operation::get_workspace::GetWorkspaceOutput::allow_experiment_self_approval): (undocumented)
     ///   - [`auto_populate_control(bool)`](crate::operation::get_workspace::GetWorkspaceOutput::auto_populate_control): (undocumented)
