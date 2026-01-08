@@ -1,5 +1,16 @@
 #!/bin/bash
 
+# Parse flags
+CLEANUP_ONLY=false
+for arg in "$@"; do
+    case $arg in
+        --cleanup-only)
+            CLEANUP_ONLY=true
+            shift
+            ;;
+    esac
+done
+
 # Load environment variables from root .env file
 if [ -f ../.env ]; then
     set -a
@@ -16,16 +27,36 @@ if [ -z "$DATABASE_URL" ]; then
     DATABASE_URL="postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}?sslmode=disable"
 fi
 
+# Function to run cleanup
+run_cleanup() {
+    echo ""
+    echo "========================================"
+    echo "Running cleanup..."
+    echo "========================================"
+    psql "$DATABASE_URL" -f cleanup.sql
+    CLEANUP_EXIT_CODE=$?
+    
+    if [ $CLEANUP_EXIT_CODE -eq 0 ]; then
+        echo ""
+        echo "✓ Cleanup completed"
+    else
+        echo ""
+        echo "✗ Cleanup failed (exit code: $CLEANUP_EXIT_CODE)"
+    fi
+    return $CLEANUP_EXIT_CODE
+}
+
+if [ "$CLEANUP_ONLY" = true ]; then
+    run_cleanup
+    exit $?
+fi
+
 echo "Running tests..."
 bun test
 TEST_EXIT_CODE=$?
 
 if [ $TEST_EXIT_CODE -eq 0 ]; then
-    echo ""
-    echo "========================================"
-    echo "Tests passed. Running cleanup..."
-    echo "========================================"
-    psql "$DATABASE_URL" -f cleanup.sql
+    run_cleanup
     CLEANUP_EXIT_CODE=$?
     
     if [ $CLEANUP_EXIT_CODE -eq 0 ]; then
