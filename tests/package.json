@@ -9,13 +9,11 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "@juspay/superposition-sdk": "file:../clients/javascript/sdk",
-    "dotenv": "^17.2.3",
-    "pg": "^8.16.3"
+    "@juspay/superposition-sdk": "file:../clients/javascript/sdk"
   },
   "scripts": {
     "test": "bun test",
     "test:clean": "./test-with-cleanup.sh",
-    "cleanup": "bun run-cleanup.ts"
+    "cleanup": "psql postgres://postgres:docker@localhost:5432/config -f cleanup.sql"
   }
 }

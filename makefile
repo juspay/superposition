@@ -217,7 +217,7 @@ test: setup frontend superposition
 				--connect-timeout 2 \
 				--retry-all-errors \
 				'http://localhost:8080/health' 2>&1 > /dev/null
-	cd tests && bun test
+	cd tests && bun test:clean
 	-@pkill -f $(CARGO_TARGET_DIR)/debug/superposition &
 
 test_jsonlogic: WASM_PACK_MODE=--profiling
@@ -232,7 +232,7 @@ test_jsonlogic: setup frontend superposition_jsonlogic
 				--connect-timeout 2 \
 				--retry-all-errors \
 				'http://localhost:8080/health' 2>&1 > /dev/null
-	cd tests && export JSONLOGIC_ENABLED=true && bun test
+	cd tests && export JSONLOGIC_ENABLED=true && bun test:clean
 	-@pkill -f $(CARGO_TARGET_DIR)/debug/superposition &
 
 ## npm run test
