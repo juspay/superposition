@@ -1,11 +1,14 @@
 use std::collections::HashSet;
 
 use diesel::{ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl};
-use jsonschema::{Draft, JSONSchema, ValidationError};
+use jsonschema::{JSONSchema, ValidationError};
 #[cfg(not(feature = "jsonlogic"))]
 use serde_json::Map;
-use serde_json::{json, Value};
-use service_utils::{helpers::validation_err_to_str, service::types::SchemaName};
+use serde_json::Value;
+use service_utils::service::types::SchemaName;
+use superposition_core::validations::{
+    compile_schema, validate_cohort_schema_structure, validation_err_to_str,
+};
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
     api::dimension::DimensionName,
@@ -90,34 +93,6 @@ pub fn validate_position_wrt_dependency(
     Ok(())
 }
 
-pub fn get_cohort_meta_schema() -> JSONSchema {
-    let my_schema = json!({
-        "type": "object",
-        "properties": {
-            "type": { "type": "string" },
-            "enum": {
-                "type": "array",
-                "items": { "type": "string" },
-                "contains": { "const": "otherwise" },
-                "minContains": 1,
-                "uniqueItems": true
-            },
-            "definitions": {
-                "type": "object",
-                "not": {
-                    "required": ["otherwise"]
-                }
-            }
-        },
-        "required": ["type", "enum", "definitions"]
-    });
-
-    JSONSchema::options()
-        .with_draft(Draft::Draft7)
-        .compile(&my_schema)
-        .expect("Error encountered: Failed to compile 'context_dimension_schema_value'. Ensure it adheres to the correct format and data type.")
-}
-
 /*
   This step is required because an empty object
   is also a valid JSON schema. So added required
@@ -129,12 +104,12 @@ pub fn validate_jsonschema(
     validation_schema: &JSONSchema,
     schema: &Value,
 ) -> superposition::Result<()> {
-    JSONSchema::options()
-        .with_draft(Draft::Draft7)
-        .compile(schema)
-        .map_err(|e| {
-            validation_error!("Invalid JSON schema (failed to compile): {:?}", e)
-        })?;
+    // Compile schema first - returns specific error message
+    compile_schema(schema).map_err(|e| {
+        validation_error!("Invalid JSON schema (failed to compile): {:?}", e)
+    })?;
+
+    // Additional validation against the provided meta-schema
     validation_schema.validate(schema).map_err(|e| {
         let verrors = e.collect::<Vec<ValidationError>>();
         validation_error!(
@@ -164,23 +139,7 @@ pub fn allow_primitive_types(schema: &Map<String, Value>) -> superposition::Resu
     }
 }
 
-fn validate_cohort_jsonschema(schema: &Value) -> superposition::Result<Vec<String>> {
-    let meta_schema = get_cohort_meta_schema();
-    JSONSchema::options()
-        .with_draft(Draft::Draft7)
-        .compile(schema)
-        .map_err(|e| {
-            validation_error!("Invalid JSON schema (failed to compile): {:?}", e)
-        })?;
-    meta_schema.validate(schema).map_err(|e| {
-        let verrors = e.collect::<Vec<ValidationError>>();
-        validation_error!(
-            "schema validation failed: {}",
-            validation_err_to_str(verrors)
-                .first()
-                .unwrap_or(&String::new())
-        )
-    })?;
+fn get_cohort_enum_options(schema: &Value) -> superposition::Result<Vec<String>> {
     let enum_options = schema
         .get("enum")
         .and_then(|v| v.as_array())
@@ -309,7 +268,25 @@ pub fn validate_cohort_schema(
         ));
     }
 
-    let enum_options = validate_cohort_jsonschema(cohort_schema)?;
+    log::error!(
+        "##### checking validate_cohort_schema_structure {}",
+        cohort_schema
+    );
+
+    // Use shared validation from superposition_core for cohort schema structure
+    validate_cohort_schema_structure(cohort_schema).map_err(|errors| {
+        validation_error!(
+            "schema validation failed: {}",
+            errors.first().unwrap_or(&String::new())
+        )
+    })?;
+
+    log::error!(
+        "##### passed validate_cohort_schema_structure {}",
+        cohort_schema
+    );
+
+    let enum_options = get_cohort_enum_options(cohort_schema)?;
 
     let cohort_schema = cohort_schema.get("definitions").ok_or(validation_error!(
         "Local cohorts require the jsonlogic rules to be written in the `definitions` field. Refer our API docs for examples",
@@ -323,13 +300,7 @@ pub fn validate_cohort_schema(
         }
         Value::Object(logic) => {
             let cohort_options = logic.keys();
-            if cohort_options.len() != enum_options.len() - 1 {
-                return Err(validation_error!(
-                    "The definition of the cohort and the enum options do not match. Some enum options do not have a definition, found {} cohorts and {} enum options (not including otherwise)",
-                    cohort_options.len(),
-                    enum_options.len() - 1
-                ));
-            }
+
             for cohort in cohort_options {
                 if !enum_options.contains(cohort) {
                     return Err(validation_error!(
@@ -408,6 +379,7 @@ pub fn validate_cohort_schema(
 #[cfg(test)]
 mod tests {
     use crate::helpers::get_meta_schema;
+    use serde_json::json;
 
     use super::*;
 

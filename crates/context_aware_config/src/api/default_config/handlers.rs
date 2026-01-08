@@ -11,9 +11,10 @@ use diesel::{
 use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::Value;
 use service_utils::{
-    helpers::{parse_config_tags, validation_err_to_str},
+    helpers::parse_config_tags,
     service::types::{AppHeader, AppState, CustomHeaders, DbConnection, SchemaName},
 };
+use superposition_core::validations::validation_err_to_str;
 use superposition_derives::authorized;
 use superposition_macros::{
     bad_argument, db_error, not_found, unexpected_error, validation_error,
@@ -94,6 +95,7 @@ async fn create_handler(
     };
 
     let schema = Value::from(&default_config.schema);
+
     let schema_compile_result = JSONSchema::options()
         .with_draft(Draft::Draft7)
         .compile(&schema);
@@ -227,7 +229,7 @@ async fn update_handler(
             let verrors = e.collect::<Vec<ValidationError>>();
             validation_error!(
                 "Schema validation failed: {}",
-                validation_err_to_str(verrors)
+                &validation_err_to_str(verrors)
                     .first()
                     .unwrap_or(&String::new())
             )

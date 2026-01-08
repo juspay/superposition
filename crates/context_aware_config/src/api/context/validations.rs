@@ -1,11 +1,14 @@
 use std::collections::HashMap;
 
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
-use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::{Map, Value};
-use service_utils::{helpers::validation_err_to_str, service::types::SchemaName};
+use service_utils::service::types::SchemaName;
+use superposition_core::validations::validation_err_to_str;
 use superposition_macros::{bad_argument, validation_error};
 use superposition_types::{database::schema, result, DBConnection, DimensionInfo};
+
+#[cfg(feature = "jsonlogic")]
+use jsonschema::ValidationError;
 
 #[cfg(feature = "jsonlogic")]
 use super::types::DimensionCondition;
@@ -31,30 +34,25 @@ pub fn validate_override_with_default_configs(
         let schema = map
             .get(key)
             .ok_or(bad_argument!("failed to get schema for config key {}", key))?;
-        let instance = value;
-        let schema_compile_result = JSONSchema::options()
-            .with_draft(Draft::Draft7)
-            .compile(schema);
-        let jschema = match schema_compile_result {
-            Ok(jschema) => jschema,
-            Err(e) => {
-                log::info!("Failed to compile as a Draft-7 JSON schema: {e}");
-                return Err(bad_argument!(
-                    "failed to compile ({}) config key schema",
-                    key
-                ));
-            }
-        };
-        if let Err(e) = jschema.validate(instance) {
-            let verrors = e.collect::<Vec<ValidationError>>();
+
+        let jschema = jsonschema::JSONSchema::options()
+            .with_draft(jsonschema::Draft::Draft7)
+            .compile(schema)
+            .map_err(|e| {
+                log::error!("({key}) schema compilation error: {}", e);
+                bad_argument!("Invalid JSON schema")
+            })?;
+
+        jschema.validate(value).map_err(|e| {
+            let verrors = e.collect::<Vec<jsonschema::ValidationError>>();
             log::error!("({key}) config key validation error: {:?}", verrors);
-            return Err(validation_error!(
+            validation_error!(
                 "schema validation failed for {key}: {}",
-                validation_err_to_str(verrors)
+                &validation_err_to_str(verrors)
                     .first()
                     .unwrap_or(&String::new())
-            ));
-        };
+            )
+        })?;
     }
 
     Ok(())
@@ -148,59 +146,22 @@ pub fn validate_context_jsonschema(
     dimension_value: &Value,
     dimension_schema: &Value,
 ) -> result::Result<()> {
-    let dimension_schema = JSONSchema::options()
-        .with_draft(Draft::Draft7)
-        .compile(dimension_schema)
-        .map_err(|e| {
-            log::error!(
-                "Failed to compile as a Draft-7 JSON schema: {}",
-                e.to_string()
-            );
-            bad_argument!("Error encountered: invalid jsonschema for dimension.")
-        })?;
-    match dimension_value {
-        #[cfg(feature = "jsonlogic")]
-        Value::Array(val_arr) if object_key == "in" => {
-            let mut verrors = Vec::new();
-            val_arr.iter().for_each(|x| {
-                dimension_schema
-                    .validate(x)
-                    .map_err(|e| {
-                        verrors.append(&mut e.collect::<Vec<ValidationError>>());
-                    })
-                    .ok();
-            });
-            if verrors.is_empty() {
-                Ok(())
-            } else {
-                // Check if the array as a whole validates, even with individual errors
-                match dimension_schema.validate(dimension_value) {
-                    Ok(()) => {
-                        log::error!(
-                            "Validation errors for individual dimensions, but array as a whole validates: {:?}",
-                            verrors
-                        );
-                        Ok(())
-                    }
-                    Err(e) => {
-                        verrors.append(&mut e.collect::<Vec<ValidationError>>());
-                        log::error!(
-                            "Validation errors for dimensions in array: {:?}",
-                            verrors
-                        );
-                        Err(validation_error!(
-                            "failed to validate dimension value {}: {}",
-                            dimension_value.to_string(),
-                            validation_err_to_str(verrors)
-                                .first()
-                                .unwrap_or(&String::new())
-                        ))
-                    }
-                }
-            }
-        }
-        _ => dimension_schema.validate(dimension_value).map_err(|e| {
-            let verrors = e.collect::<Vec<ValidationError>>();
+    // Use shared validation from superposition_core for simple cases
+    #[cfg(not(feature = "jsonlogic"))]
+    {
+        let jschema = jsonschema::JSONSchema::options()
+            .with_draft(jsonschema::Draft::Draft7)
+            .compile(dimension_schema)
+            .map_err(|e| {
+                log::error!(
+                    "Failed to compile as a Draft-7 JSON schema: {}",
+                    e.to_string()
+                );
+                bad_argument!("Error encountered: invalid jsonschema for dimension.")
+            })?;
+
+        jschema.validate(dimension_value).map_err(|e| {
+            let verrors = e.collect::<Vec<jsonschema::ValidationError>>();
             log::error!(
                 "failed to validate dimension value {}: {:?}",
                 dimension_value.to_string(),
@@ -209,11 +170,85 @@ pub fn validate_context_jsonschema(
             validation_error!(
                 "failed to validate dimension value {}: {}",
                 dimension_value.to_string(),
-                validation_err_to_str(verrors)
+                &validation_err_to_str(verrors)
                     .first()
                     .unwrap_or(&String::new())
             )
-        }),
+        })
+    }
+
+    // For jsonlogic, we need special handling for array validation
+    #[cfg(feature = "jsonlogic")]
+    {
+        let dimension_schema = jsonschema::JSONSchema::options()
+            .with_draft(jsonschema::Draft::Draft7)
+            .compile(dimension_schema)
+            .map_err(|e| {
+                log::error!(
+                    "Failed to compile as a Draft-7 JSON schema: {}",
+                    e.to_string()
+                );
+                bad_argument!("Error encountered: invalid jsonschema for dimension.")
+            })?;
+        match dimension_value {
+            Value::Array(val_arr) if object_key == "in" => {
+                let mut verrors = Vec::new();
+                val_arr.iter().for_each(|x| {
+                    dimension_schema
+                        .validate(x)
+                        .map_err(|e| {
+                            verrors.append(&mut e.collect::<Vec<ValidationError>>());
+                        })
+                        .ok();
+                });
+                if verrors.is_empty() {
+                    Ok(())
+                } else {
+                    // Check if the array as a whole validates, even with individual errors
+                    match dimension_schema.validate(dimension_value) {
+                        Ok(()) => {
+                            log::error!(
+                                "Validation errors for individual dimensions, but array as a whole validates: {:?}",
+                                verrors
+                            );
+                            Ok(())
+                        }
+                        Err(e) => {
+                            verrors.append(&mut e.collect::<Vec<ValidationError>>());
+                            log::error!(
+                                "Validation errors for dimensions in array: {:?}",
+                                verrors
+                            );
+                            Err(validation_error!(
+                                "failed to validate dimension value {}: {}",
+                                dimension_value.to_string(),
+                                validation_err_to_str(verrors)
+                                    .first()
+                                    .unwrap_or(&String::new())
+                            ))
+                        }
+                    }
+                }
+            }
+            _ => {
+                // Use shared validation for non-array cases
+                dimension_schema.validate(dimension_value).map_err(|e| {
+                    let verrors = e.collect::<Vec<ValidationError>>();
+                    log::error!(
+                        "failed to validate dimension value {}: {:?}",
+                        dimension_value.to_string(),
+                        verrors
+                    );
+                    validation_error!(
+                        "failed to validate dimension value {}: {}",
+                        dimension_value.to_string(),
+                        validation_err_to_str(verrors)
+                            .first()
+                            .unwrap_or(&String::new())
+                    )
+                })
+            }
+        }
     }
 }
 

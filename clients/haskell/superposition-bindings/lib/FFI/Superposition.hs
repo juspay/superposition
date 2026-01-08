@@ -1,7 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
-module FFI.Superposition (getResolvedConfig, ResolveConfigParams (..), defaultResolveParams, MergeStrategy (..)) where
+module FFI.Superposition (getResolvedConfig, ResolveConfigParams (..), defaultResolveParams, MergeStrategy (..), parseTomlConfig) where
 
 import Control.Monad (when)
 import Data.Foldable (traverse_)
@@ -33,6 +33,15 @@ foreign import capi "superposition_core.h core_get_resolved_config"
     -- | error-buffer
     CString ->
     -- | resolved config json
+    IO CString
+
+foreign import capi "superposition_core.h core_parse_toml_config"
+  parse_toml_config ::
+    -- | toml_content
+    CString ->
+    -- | error-buffer
+    CString ->
+    -- | parsed config json
     IO CString
 
 data MergeStrategy = Merge | Replace
@@ -67,7 +76,7 @@ defaultResolveParams =
 
 getResolvedConfig :: ResolveConfigParams -> IO (Either String String)
 getResolvedConfig params = do
-  ebuf <- callocBytes 256
+  ebuf <- callocBytes 2048
   let ResolveConfigParams {..} = params
       newOrNull = maybe (pure nullPtr) newCString
       freeNonNull p = when (p /= nullPtr) (free p)
@@ -96,6 +105,29 @@ getResolvedConfig params = do
   err <- peekCAString ebuf
   traverse_ freeNonNull [dc, ctx, ovrs, qry, mergeS, pfltr, exp, ebuf]
   pure $ case (res, err) of
+    (Just cfg, []) -> Right cfg
+    (Nothing, []) -> Left "null pointer returned"
+    _ -> Left err
+
+-- | Parse TOML configuration string into structured format
+-- Returns JSON with:
+--   - default_config: object with configuration key-value pairs
+--   - contexts_json: JSON string containing array of context objects
+--   - overrides_json: JSON string containing object mapping hashes to override configurations
+--   - dimensions_json: JSON string containing object mapping dimension names to dimension info
+parseTomlConfig :: String -> IO (Either String String)
+parseTomlConfig tomlContent = do
+  ebuf <- callocBytes 2048  -- Error buffer size matches Rust implementation
+  tomlStr <- newCString tomlContent
+  res <- parse_toml_config tomlStr ebuf
+  err <- peekCAString ebuf
+  let peekMaybe p | p /= nullPtr = Just <$> peekCAString p
+                  | otherwise = pure Nothing
+  result <- peekMaybe res
+  when (res /= nullPtr) (free res)
+  free tomlStr
+  free ebuf
+  pure $ case (result, err) of
     (Just cfg, []) -> Right cfg
     (Nothing, []) -> Left "null pointer returned"
     _ -> Left err
