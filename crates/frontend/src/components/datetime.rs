@@ -121,7 +121,7 @@ impl DatetimeFormat {
 /// to local format on the client side using JavaScript on page load.
 /// To ensure proper conversion, include the `DatetimeConversionScript` component is added in the app root.
 #[component]
-pub fn datetime(
+pub fn Datetime(
     datetime: DateTime<Utc>,
     #[prop(into, optional)] class: String,
     #[prop(optional)] format: DatetimeFormat,
@@ -148,7 +148,7 @@ pub fn datetime(
 /// to local format on the client side using JavaScript on page load.
 /// To ensure proper conversion, include the `DatetimeConversionScript` component is added in the app root.
 #[component]
-pub fn datetime_str(
+pub fn DatetimeStr(
     datetime: String,
     #[prop(into, optional)] class: String,
     #[prop(optional)] format: DatetimeFormat,
@@ -168,7 +168,7 @@ pub fn datetime_str(
 /// convert it to local datetime and local date, respectively, from date strings in RFC 3339 format
 /// to avoid hydration mismatches between server and client rendering, leading to a flicker effect.
 #[component]
-pub fn datetime_conversion_script() -> impl IntoView {
+pub fn DatetimeConversionScript() -> impl IntoView {
     view! {
         <Script type_="text/javascript">
             r#"

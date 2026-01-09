@@ -14,7 +14,7 @@ struct CombinedResource {
 }
 
 #[component]
-pub fn create_function_view() -> impl IntoView {
+pub fn CreateFunctionView() -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 

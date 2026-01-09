@@ -8,7 +8,7 @@ use crate::types::BreadCrums;
 use crate::utils::unwrap_option_or_default_with_error;
 
 #[component]
-pub fn bread_crums(
+pub fn BreadCrums(
     bread_crums: Vec<BreadCrums>,
     #[prop(into)] redirect_url: Callback<Option<String>, String>,
     #[prop(default = true)] show_root: bool,

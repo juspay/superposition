@@ -8,7 +8,7 @@ use crate::{
 };
 
 #[component]
-pub fn pagination(
+pub fn Pagination(
     #[prop(default = String::new())] class: String,
     current_page: i64,
     total_pages: i64,

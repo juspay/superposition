@@ -73,7 +73,7 @@ fn set_monaco_suggestions(lang_id: &str, suggestions: &[Value]) -> Option<IDispo
 }
 
 #[component]
-pub fn monaco_editor(
+pub fn MonacoEditor(
     #[prop(into)] node_id: String,
     #[prop(into, default = String::new())] data: String,
     #[prop(into, default = Callback::new(move |_| {}))] on_change: Callback<String, ()>,

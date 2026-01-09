@@ -57,7 +57,7 @@ impl AlertType {
 }
 
 #[component]
-pub fn alert(alert: Alert) -> impl IntoView {
+pub fn Alert(alert: Alert) -> impl IntoView {
     let outer_div_class =
         format!("alert max-w-[90vw] {}", alert.alert_type.to_css_class());
     let content_icon = alert.alert_type.to_icon_class();

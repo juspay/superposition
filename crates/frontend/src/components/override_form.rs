@@ -18,7 +18,7 @@ use crate::{
 };
 
 #[component]
-fn type_badge(r#type: Option<SchemaType>) -> impl IntoView {
+fn TypeBadge(r#type: Option<SchemaType>) -> impl IntoView {
     r#type.map(|t| match t {
         SchemaType::Single(ref r#type) => view! {
             <div class="badge badge-outline text-gray-400 font-medium text-xs">
@@ -40,7 +40,7 @@ fn type_badge(r#type: Option<SchemaType>) -> impl IntoView {
 }
 
 #[component]
-fn override_input(
+fn OverrideInput(
     id: String,
     key: String,
     value: Value,
@@ -116,7 +116,7 @@ fn override_input(
 }
 
 #[component]
-pub fn override_form(
+pub fn OverrideForm(
     overrides: Vec<(String, Value)>,
     default_config: Vec<DefaultConfig>,
     #[prop(into)] handle_change: Callback<Vec<(String, Value)>, ()>,

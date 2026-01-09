@@ -87,7 +87,7 @@ enum ResponseType {
 }
 
 #[component]
-fn form(
+fn Form(
     context: Conditions,
     overrides: Vec<(String, Value)>,
     dimensions: Vec<DimensionResponse>,
@@ -260,7 +260,7 @@ fn use_context_data(
 }
 
 #[component]
-fn autofill_form(
+fn AutofillForm(
     context_id: String,
     #[prop(into)] handle_submit: Callback<bool, ()>,
     dimensions: Vec<DimensionResponse>,
@@ -317,7 +317,7 @@ fn autofill_form(
 }
 
 #[component]
-fn autofill_experiment_form(
+fn AutofillExperimentForm(
     context_id: String,
     #[prop(into)] handle_submit: Callback<String, ()>,
     dimensions: Vec<DimensionResponse>,
@@ -380,7 +380,7 @@ fn autofill_experiment_form(
 }
 
 #[component]
-pub fn context_override() -> impl IntoView {
+pub fn ContextOverride() -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let (form_mode, set_form_mode) = create_signal::<Option<FormMode>>(None);
@@ -819,7 +819,7 @@ enum ChangeType {
 }
 
 #[component]
-fn change_log_summary(
+fn ChangeLogSummary(
     context_id: String,
     change_type: ChangeType,
     #[prop(into)] on_confirm: Callback<()>,

@@ -1,7 +1,7 @@
 use leptos::*;
 
 #[component]
-pub fn modal<NF>(
+pub fn Modal<NF>(
     id: String,
     #[prop(default = String::new())] classnames: String,
     #[prop(default = String::new())] heading: String,
@@ -30,7 +30,7 @@ where
 }
 
 #[component]
-pub fn portal_modal(
+pub fn PortalModal(
     #[prop(into, default = "w-full max-w-md".to_string())] class: String,
     #[prop(into, default = String::new())] heading: String,
     #[prop(into)] handle_close: Callback<(), ()>,

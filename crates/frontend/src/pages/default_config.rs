@@ -20,7 +20,7 @@ use crate::schema::{EnumVariants, JsonSchemaType, SchemaType};
 use crate::types::{OrganisationId, Workspace};
 
 #[component]
-fn config_info(default_config: DefaultConfig) -> impl IntoView {
+fn ConfigInfo(default_config: DefaultConfig) -> impl IntoView {
     let schema: &Map<String, Value> = &default_config.schema;
     let Ok(schema_type) = SchemaType::try_from(schema) else {
         return view! { <span class="text-red-500">"Invalid schema"</span> }.into_view();
@@ -122,7 +122,7 @@ enum Action {
 }
 
 #[component]
-pub fn default_config() -> impl IntoView {
+pub fn DefaultConfig() -> impl IntoView {
     let path_params = use_params_map();
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();

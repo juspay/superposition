@@ -22,7 +22,7 @@ use crate::schema::{JsonSchemaType, SchemaType};
 use crate::types::{OrganisationId, Workspace};
 
 #[component]
-fn type_info(type_template: TypeTemplate) -> impl IntoView {
+fn TypeInfo(type_template: TypeTemplate) -> impl IntoView {
     view! {
         <div class="card bg-base-100 max-w-screen shadow">
             <div class="card-body">
@@ -57,7 +57,7 @@ enum Action {
 }
 
 #[component]
-pub fn type_page() -> impl IntoView {
+pub fn TypePage() -> impl IntoView {
     let path_params = use_params_map();
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();

@@ -1,7 +1,7 @@
 use leptos::*;
 
 #[component]
-pub fn stat(heading: &'static str, icon: &'static str, number: String) -> impl IntoView {
+pub fn Stat(heading: &'static str, icon: &'static str, number: String) -> impl IntoView {
     let icon_class = format!("{} text-5xl", icon);
     view! {
         <div class="stats min-h-fit w-fit shadow">

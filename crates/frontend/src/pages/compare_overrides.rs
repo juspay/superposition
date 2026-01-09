@@ -104,7 +104,7 @@ fn table_columns(
 }
 
 #[component]
-pub fn compare_overrides() -> impl IntoView {
+pub fn CompareOverrides() -> impl IntoView {
     let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();

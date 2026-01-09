@@ -29,7 +29,7 @@ enum Action {
 }
 
 #[component]
-pub fn types_page() -> impl IntoView {
+pub fn TypesPage() -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let action_rws = RwSignal::new(Action::None);

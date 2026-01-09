@@ -3,7 +3,7 @@ use leptos::*;
 use super::dropdown::utils::DropdownOption;
 
 #[component]
-pub fn selection_menu<T>(
+pub fn SelectionMenu<T>(
     options: Vec<T>,
     on_select: Callback<T, ()>,
     #[prop(into, default = String::from("w-96"))] menu_width: String,

@@ -5,7 +5,7 @@ use superposition_types::database::models::{ChangeReason, Description};
 use crate::components::{datetime::Datetime, info_modal::InfoModal};
 
 #[component]
-pub fn info_description(
+pub fn InfoDescription(
     #[prop(into)] description: String,
     #[prop(into)] change_reason: String,
 ) -> impl IntoView {
@@ -46,7 +46,7 @@ pub fn info_description(
 }
 
 #[component]
-pub fn content_description(
+pub fn ContentDescription(
     #[prop(optional, into)] pre_data: Option<ViewFn>,
     description: Description,
     created_by: String,

@@ -23,7 +23,7 @@ pub enum DropdownDirection {
 }
 
 #[component]
-pub fn dropdown<T>(
+pub fn Dropdown<T>(
     dropdown_options: Vec<T>,
     #[prop(into)] on_select: Callback<T, ()>,
     #[prop(into, default = false)] multi_select: bool,

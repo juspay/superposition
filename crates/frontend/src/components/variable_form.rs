@@ -42,7 +42,7 @@ fn try_update_payload(
 }
 
 #[component]
-pub fn variable_form(
+pub fn VariableForm(
     #[prop(default = false)] edit: bool,
     #[prop(default = String::new())] variable_name: String,
     #[prop(default = String::new())] variable_value: String,
@@ -209,7 +209,7 @@ pub enum ChangeType {
 }
 
 #[component]
-pub fn change_log_summary(
+pub fn ChangeLogSummary(
     variable_name: String,
     change_type: ChangeType,
     #[prop(into)] on_confirm: Callback<()>,

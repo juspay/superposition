@@ -17,7 +17,7 @@ use crate::providers::alert_provider::enqueue_alert;
 use crate::types::{OrganisationId, Workspace};
 
 #[component]
-fn variable_info(variable: Variable) -> impl IntoView {
+fn VariableInfo(variable: Variable) -> impl IntoView {
     view! {
         <div class="card bg-base-100 max-w-screen shadow">
             <div class="card-body">
@@ -43,7 +43,7 @@ enum Action {
 }
 
 #[component]
-pub fn variable() -> impl IntoView {
+pub fn Variable() -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let params = use_params_map();

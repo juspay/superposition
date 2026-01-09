@@ -3,7 +3,7 @@ use leptos::*;
 use super::alert::Alert;
 
 #[component]
-pub fn toast(alerts: Vec<Alert>) -> impl IntoView {
+pub fn Toast(alerts: Vec<Alert>) -> impl IntoView {
     view! {
         <div class="toast toast-end z-[999999999]">
 
