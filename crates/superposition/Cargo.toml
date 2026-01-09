@@ -17,6 +17,7 @@ context_aware_config = { path = "../context_aware_config" }
 diesel = { workspace = true }
 dotenv = "0.15.0"
 experimentation_platform = { path = "../experimentation_platform" }
+superposition_core = { workspace = true }
 fred = { workspace = true }
 frontend = { path = "../frontend" }
 idgenerator = "2.0.0"

@@ -38,25 +38,36 @@ pub fn apply_prefix_filter_to_config(
 pub fn get_config_version(
     version: &Option<String>,
     workspace_context: &WorkspaceContext,
-) -> superposition::Result<Option<i64>> {
-    version.as_ref().map_or_else(
-        || Ok(workspace_context.settings.config_version),
-        |version| {
-            if *version == *"latest" {
-                log::trace!("latest config request");
-                return Ok(None);
-            }
-            version.parse::<i64>().map_or_else(
-                |e| {
-                    log::error!(
-                        "failed to decode version as integer: {version}, error: {e}"
-                    );
-                    Err(bad_argument!("version is not of type integer"))
-                },
-                |v| Ok(Some(v)),
-            )
+    conn: &mut DBConnection,
+) -> superposition::Result<i64> {
+    match version.as_ref() {
+        Some(v) if *v != *"latest" => v.parse::<i64>().map_or_else(
+            |e| {
+                log::error!("failed to decode version as integer: {v}, error: {e}");
+                Err(bad_argument!("version is not of type integer"))
+            },
+            Ok,
+        ),
+        _ => match get_config_version_from_workspace(workspace_context, conn) {
+            Some(v) => Ok(v),
+            None => get_config_version_from_db(conn, &workspace_context.schema_name)
+                .map_err(|e| {
+                    log::error!("failed to fetch latest config version from db: {e}");
+                    db_error!(e)
+                }),
         },
-    )
+    }
+}
+
+fn get_config_version_from_db(
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> Result<i64, diesel::result::Error> {
+    config_versions::config_versions
+        .select(config_versions::id)
+        .order_by(config_versions::created_at.desc())
+        .schema_name(schema_name)
+        .first::<i64>(conn)
 }
 
 pub fn add_audit_id_to_header(
