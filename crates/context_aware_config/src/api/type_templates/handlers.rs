@@ -7,6 +7,7 @@ use serde_json::Value;
 use service_utils::service::types::{DbConnection, SchemaName};
 use superposition_derives::authorized;
 use superposition_macros::bad_argument;
+use superposition_types::database::models::Workspace;
 use superposition_types::{
     api::type_templates::{
         TypeTemplateCreateRequest, TypeTemplateName, TypeTemplateUpdateRequest,
@@ -33,6 +34,7 @@ pub fn endpoints() -> Scope {
 #[authorized]
 #[post("")]
 async fn create_handler(
+    workspace_settings: Workspace,
     request: Json<TypeTemplateCreateRequest>,
     db_conn: DbConnection,
     user: User,
@@ -51,8 +53,12 @@ async fn create_handler(
         )
     })?;
 
-    // TODO: if ever workspace settings is fetched in this request lifecycle, pass it here to avoid extra db call.
-    validate_change_reason(None, &request.change_reason, &mut conn, &schema_name)?;
+    validate_change_reason(
+        &workspace_settings,
+        &request.change_reason,
+        &mut conn,
+        &schema_name,
+    )?;
 
     let now = Utc::now();
     let type_template = TypeTemplate {
@@ -96,6 +102,7 @@ async fn get_handler(
 #[put("/{type_name}")]
 #[patch("/{type_name}")]
 async fn update_handler(
+    workspace_settings: Workspace,
     request: Json<TypeTemplateUpdateRequest>,
     path: Path<TypeTemplateName>,
     db_conn: DbConnection,
@@ -116,8 +123,12 @@ async fn update_handler(
         )
     })?;
 
-    // TODO: if ever workspace settings is fetched in this request lifecycle, pass it here to avoid extra db call.
-    validate_change_reason(None, &request.change_reason, &mut conn, &schema_name)?;
+    validate_change_reason(
+        &workspace_settings,
+        &request.change_reason,
+        &mut conn,
+        &schema_name,
+    )?;
 
     let type_name: String = path.into_inner().into();
 

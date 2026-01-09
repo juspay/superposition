@@ -13,7 +13,10 @@ use superposition_types::{
     api::webhook::{CreateWebhookRequest, UpdateWebhookRequest, WebhookName},
     custom_query::PaginationParams,
     database::{
-        models::others::{Webhook, WebhookEvent},
+        models::{
+            others::{Webhook, WebhookEvent},
+            Workspace,
+        },
         schema::webhooks::{self, dsl::*},
     },
     result as superposition, PaginatedResponse, User,
@@ -31,6 +34,7 @@ pub fn endpoints() -> Scope {
 #[authorized]
 #[post("")]
 async fn create_handler(
+    workspace_settings: Workspace,
     request: Json<CreateWebhookRequest>,
     db_conn: DbConnection,
     schema_name: SchemaName,
@@ -39,8 +43,12 @@ async fn create_handler(
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
 
-    // TODO: if ever workspace settings is fetched in this request lifecycle, pass it here to avoid extra db call.
-    validate_change_reason(None, &req.change_reason, &mut conn, &schema_name)?;
+    validate_change_reason(
+        &workspace_settings,
+        &req.change_reason,
+        &mut conn,
+        &schema_name,
+    )?;
 
     validate_events(&req.events, None, &schema_name, &mut conn)?;
     let now = Utc::now();
@@ -73,6 +81,7 @@ async fn create_handler(
 #[authorized]
 #[patch("/{webhook_name}")]
 async fn update_handler(
+    workspace_settings: Workspace,
     params: web::Path<WebhookName>,
     db_conn: DbConnection,
     schema_name: SchemaName,
@@ -83,8 +92,12 @@ async fn update_handler(
     let req = request.into_inner();
     let w_name: String = params.into_inner().into();
 
-    // TODO: if ever workspace settings is fetched in this request lifecycle, pass it here to avoid extra db call.
-    validate_change_reason(None, &req.change_reason, &mut conn, &schema_name)?;
+    validate_change_reason(
+        &workspace_settings,
+        &req.change_reason,
+        &mut conn,
+        &schema_name,
+    )?;
 
     if let Some(webhook_events) = &req.events {
         validate_events(webhook_events, Some(&w_name), &schema_name, &mut conn)?;

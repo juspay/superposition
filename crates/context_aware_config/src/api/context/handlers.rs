@@ -15,7 +15,7 @@ use diesel::{
 };
 use serde_json::{Map, Value};
 use service_utils::{
-    helpers::{get_workspace, parse_config_tags},
+    helpers::parse_config_tags,
     service::types::{AppHeader, AppState, CustomHeaders, DbConnection, SchemaName},
 };
 use superposition_derives::authorized;
@@ -34,7 +34,7 @@ use superposition_types::{
         QueryMap,
     },
     database::{
-        models::{cac::Context, ChangeReason, Description},
+        models::{cac::Context, ChangeReason, Description, Workspace},
         schema::contexts::{self, id},
     },
     result::{self as superposition, AppError},
@@ -70,9 +70,11 @@ pub fn endpoints() -> Scope {
         .service(validate_handler)
 }
 
+#[allow(clippy::too_many_arguments)]
 #[authorized]
 #[put("")]
 async fn create_handler(
+    workspace_settings: Workspace,
     state: Data<AppState>,
     custom_headers: CustomHeaders,
     req: Json<PutRequest>,
@@ -103,10 +105,8 @@ async fn create_handler(
     };
     let req_change_reason = req.change_reason.clone();
 
-    let workspace_settings = get_workspace(&schema_name, &mut db_conn)?;
-
     validate_change_reason(
-        Some(&workspace_settings),
+        &workspace_settings,
         &req_change_reason,
         &mut db_conn,
         &schema_name,
@@ -155,11 +155,13 @@ async fn create_handler(
     Ok(http_resp.json(put_response))
 }
 
+#[allow(clippy::too_many_arguments)]
 #[authorized]
 #[routes]
 #[put("/overrides")]
 #[patch("/overrides")]
 async fn update_handler(
+    workspace_settings: Workspace,
     state: Data<AppState>,
     custom_headers: CustomHeaders,
     req: Json<UpdateRequest>,
@@ -170,8 +172,12 @@ async fn update_handler(
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let req_change_reason = req.change_reason.clone();
 
-    // TODO: if ever workspace settings is fetched in this request lifecycle, pass it here to avoid extra db call.
-    validate_change_reason(None, &req_change_reason, &mut db_conn, &schema_name)?;
+    validate_change_reason(
+        &workspace_settings,
+        &req_change_reason,
+        &mut db_conn,
+        &schema_name,
+    )?;
 
     let (override_resp, version_id) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -215,6 +221,7 @@ async fn update_handler(
 #[allow(clippy::too_many_arguments)]
 #[put("/move/{ctx_id}")]
 async fn move_handler(
+    workspace_settings: Workspace,
     state: Data<AppState>,
     path: Path<String>,
     custom_headers: CustomHeaders,
@@ -246,9 +253,8 @@ async fn move_handler(
         }
     };
 
-    let workspace_settings = get_workspace(&schema_name, &mut db_conn)?;
     validate_change_reason(
-        Some(&workspace_settings),
+        &workspace_settings,
         &req.change_reason,
         &mut db_conn,
         &schema_name,
@@ -509,9 +515,11 @@ async fn delete_handler(
         .finish())
 }
 
+#[allow(clippy::too_many_arguments)]
 #[authorized]
 #[put("/bulk-operations")]
 async fn bulk_operations_handler(
+    workspace_settings: Workspace,
     state: Data<AppState>,
     custom_headers: CustomHeaders,
     req: Either<Json<Vec<ContextAction>>, Json<BulkOperation>>,
@@ -534,8 +542,6 @@ async fn bulk_operations_handler(
     let mut all_descriptions = Vec::new();
     let mut all_change_reasons = Vec::new();
 
-    let workspace_settings = get_workspace(&schema_name, &mut conn)?;
-
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let (response, version_id) =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -548,7 +554,7 @@ async fn bulk_operations_handler(
                             Value::Object(ctx_condition.clone().into());
 
                         validate_change_reason(
-                            Some(&workspace_settings),
+                            &workspace_settings,
                             &put_req.change_reason,
                             transaction_conn,
                             &schema_name,
@@ -807,13 +813,13 @@ async fn weight_recompute_handler(
 #[authorized]
 #[post("/validate")]
 async fn validate_handler(
+    workspace_settings: Workspace,
     db_conn: DbConnection,
     schema_name: SchemaName,
     request: Json<ContextValidationRequest>,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let ctx_condition = request.context.to_owned().into_inner();
-    let workspace_settings = get_workspace(&schema_name, &mut conn)?;
     log::debug!("Context {:?} is being checked for validity", ctx_condition);
     validate_ctx(
         &mut conn,
