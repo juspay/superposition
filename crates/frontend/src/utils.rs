@@ -8,7 +8,10 @@ use reqwest::{
     StatusCode,
 };
 use serde::de::DeserializeOwned;
-use superposition_types::api::functions::{FunctionEnvironment, KeyType};
+use superposition_types::{
+    api::functions::{FunctionEnvironment, KeyType},
+    database::models::cac::{Function, FunctionType},
+};
 use url::Url;
 use wasm_bindgen::JsCast;
 
@@ -17,7 +20,7 @@ use crate::{
     components::alert::AlertType,
     providers::alert_provider::enqueue_alert,
     types::{
-        Envs, ErrorResponse, FunctionsName, SsrSharedHttpRequestHeaders,
+        Envs, ErrorResponse, FunctionName, SsrSharedHttpRequestHeaders,
         ValueComputeCallback,
     },
 };
@@ -322,7 +325,7 @@ pub fn unwrap_or_default_with_error<T: Default>(option: Option<T>, error: &str) 
     })
 }
 
-pub fn set_function(selected_function: FunctionsName, value: &mut Option<String>) {
+pub fn set_function(selected_function: FunctionName, value: &mut Option<String>) {
     let function_name = selected_function.clone();
     leptos::logging::log!("function selected: {:?}", function_name);
     let fun_name = match function_name.as_str() {
@@ -416,4 +419,18 @@ pub fn to_title_case(input: &str) -> String {
         })
         .collect::<Vec<String>>()
         .join(" ")
+}
+
+pub fn get_fn_names_by_type(
+    functions: &[Function],
+    f_type: FunctionType,
+) -> Vec<FunctionName> {
+    std::iter::once("None".to_string())
+        .chain(
+            functions
+                .iter()
+                .filter(|f| f.function_type == f_type)
+                .map(|f| f.function_name.clone()),
+        )
+        .collect::<Vec<_>>()
 }

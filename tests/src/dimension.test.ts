@@ -513,7 +513,7 @@ describe("Dimension API", () => {
 
             // Assertions
             expect(superpositionClient.send(dimensionCmd)).rejects.toThrow(
-                `Function ${valueValidationFunctionName} doesn't exist / function code not published yet.`
+                `Function ${valueValidationFunctionName}'s published code does not exist.`
             );
         } catch (e: any) {
             console.error(e["$response"]);
@@ -591,7 +591,7 @@ describe("Dimension API", () => {
 
             // Assertions
             expect(superpositionClient.send(dimensionCmd)).rejects.toThrow(
-                `Function ${valueComputeFunctionName} doesn't exist / function code not published yet.`
+                `Function ${valueComputeFunctionName}'s published code does not exist.`
             );
         } catch (e: any) {
             console.error(e["$response"]);

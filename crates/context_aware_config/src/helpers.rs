@@ -376,6 +376,7 @@ fn evaluate_remote_cohorts_dependency(
             } = get_published_function_code(
                 conn,
                 value_compute_function_name_,
+                FunctionType::ValueCompute,
                 schema_name,
             )?;
 

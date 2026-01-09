@@ -147,8 +147,12 @@ pub fn validate_condition_with_functions(
         }
     }
 
-    let dimension_functions_map =
-        get_functions_map(conn, new_keys_function_array, schema_name)?;
+    let dimension_functions_map = get_functions_map(
+        conn,
+        new_keys_function_array,
+        FunctionType::ValueValidation,
+        schema_name,
+    )?;
     for (key, value) in context_map.iter() {
         if let Some(functions_map) = dimension_functions_map.get(key) {
             if let (function_name, Some(function_code), Some(published_runtime_version)) = (
@@ -192,8 +196,12 @@ pub fn validate_override_with_functions(
         .filter_map(|(key_, f_name)| f_name.map(|func| (key_, func)))
         .collect();
 
-    let default_config_functions_map =
-        get_functions_map(conn, new_keys_function_array, schema_name)?;
+    let default_config_functions_map = get_functions_map(
+        conn,
+        new_keys_function_array,
+        FunctionType::ValueValidation,
+        schema_name,
+    )?;
     for (key, value) in override_.iter() {
         if let Some(functions_map) = default_config_functions_map.get(key) {
             if let (function_name, Some(function_code), Some(published_runtime_version)) = (
@@ -226,6 +234,7 @@ pub fn validate_override_with_functions(
 fn get_functions_map(
     conn: &mut DBConnection,
     keys_function_array: Vec<(String, String)>,
+    function_type: FunctionType,
     schema_name: &SchemaName,
 ) -> superposition::Result<HashMap<String, FunctionInfo>> {
     let functions_map: HashMap<String, FunctionInfo> = get_published_functions_by_names(
@@ -234,6 +243,7 @@ fn get_functions_map(
             .iter()
             .map(|(_, f_name)| f_name.clone())
             .collect(),
+        function_type,
         schema_name,
     )?
     .into_iter()
