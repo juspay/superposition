@@ -69,7 +69,7 @@ pub fn use_host_server() -> String {
 }
 
 #[cfg(not(feature = "ssr"))]
-fn get_host() -> String {
+pub fn get_host() -> String {
     let context = use_context::<Envs>();
     let service_prefix = use_service_prefix();
     let host = context

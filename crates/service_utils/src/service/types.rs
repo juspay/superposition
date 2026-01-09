@@ -1,3 +1,11 @@
+use actix_web::{error, web::Data, Error, FromRequest, HttpMessage};
+use derive_more::{Deref, DerefMut};
+use diesel::r2d2::{ConnectionManager, PooledConnection};
+use diesel::{Connection, PgConnection};
+use jsonschema::JSONSchema;
+pub use secrecy::SecretString;
+use serde::{Deserialize, Serialize};
+use snowflake::SnowflakeIdGenerator;
 use std::sync::Mutex;
 use std::{
     collections::{HashMap, HashSet},
@@ -5,14 +13,6 @@ use std::{
     str::FromStr,
     sync::Arc,
 };
-
-use actix_web::{error, web::Data, Error, FromRequest, HttpMessage};
-use derive_more::{Deref, DerefMut};
-use diesel::r2d2::{ConnectionManager, PooledConnection};
-use diesel::{Connection, PgConnection};
-use jsonschema::JSONSchema;
-use serde::{Deserialize, Serialize};
-use snowflake::SnowflakeIdGenerator;
 
 use crate::db::PgSchemaConnectionPool;
 
@@ -52,7 +52,10 @@ pub struct AppState {
     #[cfg(feature = "high-performance-mode")]
     pub redis: fred::clients::RedisPool,
     pub http_client: reqwest::Client,
-    pub encrypted_keys: HashMap<String, String>,
+    pub encrypted_keys: HashMap<String, SecretString>,
+    pub kms_client: Option<aws_sdk_kms::Client>,
+    pub master_key: SecretString,
+    pub previous_master_key: SecretString,
 }
 
 impl FromStr for AppEnv {
@@ -86,6 +89,7 @@ pub enum Resource {
     AuditLog,
     Auth,
     Variable,
+    Secret,
 }
 
 impl Resource {

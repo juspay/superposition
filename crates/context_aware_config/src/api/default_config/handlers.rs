@@ -12,7 +12,9 @@ use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::Value;
 use service_utils::{
     helpers::{parse_config_tags, validation_err_to_str},
-    service::types::{AppHeader, AppState, CustomHeaders, DbConnection, SchemaName},
+    service::types::{
+        AppHeader, AppState, CustomHeaders, DbConnection, SchemaName, WorkspaceContext,
+    },
 };
 use superposition_derives::authorized;
 use superposition_macros::{
@@ -75,7 +77,12 @@ async fn create_handler(
         return Err(bad_argument!("Schema cannot be empty."));
     }
 
-    validate_change_reason(&req.change_reason, &mut conn, &schema_name)?;
+    validate_change_reason(
+        &req.change_reason,
+        &mut conn,
+        &schema_name,
+        &state.master_key,
+    )?;
 
     let value = req.value;
 
@@ -125,6 +132,7 @@ async fn create_handler(
         &default_config.key,
         &default_config.value,
         &schema_name,
+        &state.master_key,
     )?;
 
     validate_fn_published(
@@ -186,16 +194,17 @@ async fn update_handler(
     custom_headers: CustomHeaders,
     request: Json<DefaultConfigUpdateRequest>,
     db_conn: DbConnection,
-    schema_name: SchemaName,
+    workspace_context: WorkspaceContext,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
     let key_str = key.into_inner().into();
     let tags = parse_config_tags(custom_headers.config_tags)?;
+    let schema_name = &workspace_context.schema_name;
 
     let existing =
-        fetch_default_key(&key_str, &mut conn, &schema_name).map_err(|e| match e {
+        fetch_default_key(&key_str, &mut conn, schema_name).map_err(|e| match e {
             superposition::AppError::DbError(diesel::NotFound) => {
                 bad_argument!(
                     "No record found for {}. Use create endpoint instead.",
@@ -208,7 +217,12 @@ async fn update_handler(
             }
         })?;
 
-    validate_change_reason(&req.change_reason, &mut conn, &schema_name)?;
+    validate_change_reason(
+        &req.change_reason,
+        &mut conn,
+        &schema_name,
+        &state.master_key,
+    )?;
 
     let value = req.value.clone().unwrap_or_else(|| existing.value.clone());
 
@@ -242,12 +256,13 @@ async fn update_handler(
             validation_function_name,
             &key_str,
             &value,
-            &schema_name,
+            schema_name,
+            &state.master_key,
         )?
     }
 
     if let Some(ref value_compute_function_name) = req.value_compute_function_name {
-        validate_fn_published(value_compute_function_name, &mut conn, &schema_name)?;
+        validate_fn_published(value_compute_function_name, &mut conn, schema_name)?;
     }
 
     let (db_row, version_id) =
@@ -260,7 +275,7 @@ async fn update_handler(
                     dsl::last_modified_at.eq(Utc::now()),
                     dsl::last_modified_by.eq(user.get_email()),
                 ))
-                .schema_name(&schema_name)
+                .schema_name(schema_name)
                 .get_result::<DefaultConfig>(transaction_conn)?;
 
             let version_id = add_config_version(
@@ -268,14 +283,14 @@ async fn update_handler(
                 tags.clone(),
                 change_reason.into(),
                 transaction_conn,
-                &schema_name,
+                schema_name,
             )?;
 
             Ok((val, version_id))
         })?;
 
     #[cfg(feature = "high-performance-mode")]
-    put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
+    put_config_in_redis(version_id, state, schema_name, &mut conn).await?;
 
     let mut http_resp = HttpResponse::Ok();
     http_resp.insert_header((
@@ -312,6 +327,7 @@ fn validate_default_config_with_function(
     key: &str,
     value: &Value,
     schema_name: &SchemaName,
+    master_key: &secrecy::SecretString,
 ) -> superposition::Result<()> {
     if let Some(f_name) = function_name {
         let FunctionInfo {
@@ -337,9 +353,10 @@ fn validate_default_config_with_function(
                 f_version,
                 conn,
                 schema_name,
+                master_key,
             )?;
         }
-    }
+    };
     Ok(())
 }
 

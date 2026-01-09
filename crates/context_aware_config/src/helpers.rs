@@ -2,6 +2,7 @@ use std::collections::HashMap;
 #[cfg(not(feature = "jsonlogic"))]
 use std::collections::HashSet;
 
+
 use actix_web::{
     http::header::{HeaderMap, HeaderName, HeaderValue},
     web::Data,
@@ -320,6 +321,7 @@ fn compute_value_with_function(
     runtime_version: FunctionRuntimeVersion,
     conn: &mut DBConnection,
     schema_name: &SchemaName,
+    master_key: &secrecy::SecretString,
 ) -> superposition::Result<Value> {
     match execute_fn(
         function,
@@ -332,6 +334,7 @@ fn compute_value_with_function(
         runtime_version,
         conn,
         schema_name,
+        master_key,
     ) {
         Err((err, stdout)) => {
             let stdout = stdout.unwrap_or_default();
@@ -372,6 +375,7 @@ fn evaluate_remote_cohorts_dependency(
     modified_context: &mut Map<String, Value>,
     conn: &mut DBConnection,
     schema_name: &SchemaName,
+    master_key: &secrecy::SecretString,
 ) -> superposition::Result<()> {
     let mut stack = dependency_graph
         .get(dimension)
@@ -429,6 +433,7 @@ fn evaluate_remote_cohorts_dependency(
                 published_runtime_version,
                 conn,
                 schema_name,
+                master_key,
             )?;
 
             modified_context.insert(cohort_dimension.clone(), value);
@@ -461,6 +466,7 @@ pub fn evaluate_remote_cohorts(
     query_data: &Map<String, Value>,
     conn: &mut DBConnection,
     schema_name: &SchemaName,
+    master_key: &secrecy::SecretString,
 ) -> superposition::Result<Map<String, Value>> {
     let mut modified_context = Map::new();
 
@@ -479,6 +485,7 @@ pub fn evaluate_remote_cohorts(
                             &mut modified_context,
                             conn,
                             schema_name,
+                            master_key,
                         )?;
                     }
                 }
@@ -502,6 +509,7 @@ pub fn validate_change_reason(
     change_reason: &ChangeReason,
     conn: &mut DBConnection,
     schema_name: &SchemaName,
+    master_key: &secrecy::SecretString,
 ) -> superposition::Result<()> {
     let change_reason_validation_function = get_first_function_by_type(
         FunctionType::ChangeReasonValidation,
@@ -521,6 +529,7 @@ pub fn validate_change_reason(
             published_runtime_version,
             conn,
             schema_name,
+            master_key,
         )?;
     }
     Ok(())

@@ -19,7 +19,7 @@ use service_utils::{
     aws::kms,
     db::utils::{get_superposition_token, init_pool_manager},
     helpers::{get_from_env_or_default, get_from_env_unsafe},
-    service::types::{AppEnv, AppState, ExperimentationFlags},
+    service::types::{AppEnv, AppState, ExperimentationFlags, SecretString},
 };
 use snowflake::SnowflakeIdGenerator;
 
@@ -29,6 +29,8 @@ pub async fn get(
     kms_client: &Option<aws_sdk_kms::Client>,
     service_prefix: String,
     base: &str,
+    master_key: &str,
+    previous_master_key: &str,
 ) -> AppState {
     let cac_host =
         get_from_env_or_default::<String>("CAC_HOST", format!("http://localhost:{port}"))
@@ -124,11 +126,14 @@ pub async fn get(
                             kms::decrypt(kms_client, key).await
                         }
                     };
-                    (key.to_string(), decrypted_value)
+                    (key.to_string(), SecretString::from(decrypted_value))
                 }
             })
         ).await
         .into_iter()
         .collect(),
+        kms_client: kms_client.clone(),
+        master_key: SecretString::from(master_key.to_string()),
+        previous_master_key: SecretString::from(previous_master_key.to_string())
     }
 }

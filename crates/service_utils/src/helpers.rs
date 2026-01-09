@@ -492,7 +492,7 @@ where
             .unwrap_or_else(|| value.to_string());
 
         let rendered = if let Some(decrypted) = state.encrypted_keys.get(&value_str) {
-            decrypted.to_string()
+            decrypted.expose_secret().to_string()
         } else {
             substitute_variables(value, &variables_map)
         };

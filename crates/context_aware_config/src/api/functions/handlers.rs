@@ -1,11 +1,11 @@
 use actix_web::{
     delete, get, patch, post,
-    web::{Json, Path},
+    web::{Data, Json, Path},
     HttpResponse, Result, Scope,
 };
 use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
-use service_utils::service::types::{DbConnection, SchemaName};
+use service_utils::service::types::{AppState, DbConnection, SchemaName};
 use superposition_derives::authorized;
 use superposition_macros::{bad_argument, not_found, unexpected_error};
 use superposition_types::{
@@ -47,6 +47,7 @@ async fn create_handler(
     db_conn: DbConnection,
     user: User,
     schema_name: SchemaName,
+    app_state: Data<AppState>,
 ) -> superposition::Result<Json<Function>> {
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
@@ -64,7 +65,12 @@ async fn create_handler(
         ));
     }
 
-    validate_change_reason(&req.change_reason, &mut conn, &schema_name)?;
+    validate_change_reason(
+        &req.change_reason,
+        &mut conn,
+        &schema_name,
+        &app_state.master_key,
+    )?;
 
     compile_fn(&req.function)?;
 
@@ -127,6 +133,7 @@ async fn update_handler(
     db_conn: DbConnection,
     user: User,
     schema_name: SchemaName,
+    app_state: Data<AppState>,
 ) -> superposition::Result<Json<Function>> {
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
@@ -143,7 +150,12 @@ async fn update_handler(
         compile_fn(function)?;
 
         if function_type != FunctionType::ChangeReasonValidation {
-            validate_change_reason(&req.change_reason, &mut conn, &schema_name)?;
+            validate_change_reason(
+                &req.change_reason,
+                &mut conn,
+                &schema_name,
+                &app_state.master_key,
+            )?;
         }
     }
 
@@ -264,6 +276,7 @@ async fn test_handler(
     request: Json<FunctionExecutionRequest>,
     db_conn: DbConnection,
     schema_name: SchemaName,
+    app_state: Data<AppState>,
 ) -> superposition::Result<Json<FunctionExecutionResponse>> {
     let DbConnection(mut conn) = db_conn;
     let path_params = params.into_inner();
@@ -285,15 +298,21 @@ async fn test_handler(
         }
     };
 
-    let result = execute_fn(&code, &req, version, &mut conn, &schema_name).map_err(
-        |(e, stdout)| {
-            bad_argument!(
-                "Function failed with error: {}, stdout: {:?}",
-                e,
-                stdout.unwrap_or_default()
-            )
-        },
-    )?;
+    let result = execute_fn(
+        &code,
+        &req,
+        version,
+        &mut conn,
+        &schema_name,
+        &app_state.master_key,
+    )
+    .map_err(|(e, stdout)| {
+        bad_argument!(
+            "Function failed with error: {}, stdout: {:?}",
+            e,
+            stdout.unwrap_or_default()
+        )
+    })?;
 
     Ok(Json(result))
 }
@@ -306,6 +325,7 @@ async fn publish_handler(
     db_conn: DbConnection,
     user: User,
     schema_name: SchemaName,
+    app_state: Data<AppState>,
 ) -> superposition::Result<Json<Function>> {
     let DbConnection(mut conn) = db_conn;
     let fun_name: String = params.into_inner().into();
@@ -313,7 +333,12 @@ async fn publish_handler(
     let req = request.into_inner();
 
     if function.function_type != FunctionType::ChangeReasonValidation {
-        validate_change_reason(&req.change_reason, &mut conn, &schema_name)?;
+        validate_change_reason(
+            &req.change_reason,
+            &mut conn,
+            &schema_name,
+            &app_state.master_key,
+        )?;
     }
 
     let updated_function = diesel::update(functions::functions)

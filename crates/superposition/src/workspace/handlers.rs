@@ -13,7 +13,7 @@ use diesel::{
     TextExpressionMethods,
 };
 use regex::Regex;
-use service_utils::service::types::{DbConnection, OrganisationId, SchemaName};
+use service_utils::service::types::{AppState, DbConnection, OrganisationId, SchemaName};
 use superposition_derives::authorized;
 use superposition_macros::{db_error, unexpected_error, validation_error};
 use superposition_types::{
@@ -92,6 +92,7 @@ async fn create_handler(
     db_conn: DbConnection,
     org_id: OrganisationId,
     user: User,
+    app_state: web::Data<AppState>,
 ) -> superposition::Result<Json<WorkspaceResponse>> {
     let DbConnection(mut conn) = db_conn;
     let org_info: Organisation = organisations::dsl::organisations
@@ -102,6 +103,13 @@ async fn create_handler(
     let email = user.get_email();
     validate_workspace_name(&request.workspace_name)?;
     let workspace_schema_name = format!("{}_{}", &org_info.id, &request.workspace_name);
+    let encryption_key = service_utils::encryption::generate_encryption_key();
+    let master_key = &app_state.master_key;
+    let encrypted_key = service_utils::encryption::encrypt_workspace_key(&encryption_key, master_key).map_err(|e| {
+        log::error!("Failed to encrypt workspace key: {}", e);
+        unexpected_error!("Failed to create workspace encryption key")
+    })?;
+
     let workspace = Workspace {
         organisation_id: org_info.id,
         organisation_name: org_info.name,
@@ -124,6 +132,9 @@ async fn create_handler(
         auto_populate_control: request.auto_populate_control,
         enable_context_validation: request.enable_context_validation,
         enable_change_reason_validation: request.enable_change_reason_validation,
+        encryption_key: Some(encrypted_key),
+        previous_encryption_key: None,
+        key_rotation_at: None,
     };
 
     let created_workspace =
