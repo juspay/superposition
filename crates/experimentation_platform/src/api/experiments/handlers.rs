@@ -24,8 +24,7 @@ use reqwest::{Method, StatusCode};
 use serde_json::{Map, Value};
 use service_utils::{
     helpers::{
-        construct_request_headers, execute_webhook_call, generate_snowflake_id,
-        get_workspace, request,
+        construct_request_headers, execute_webhook_call, generate_snowflake_id, request,
     },
     service::types::{
         AppHeader, AppState, CustomHeaders, DbConnection, SchemaName, WorkspaceContext,
@@ -60,7 +59,7 @@ use superposition_types::{
                 TrafficPercentage, Variant, VariantType, Variants,
             },
             others::WebhookEvent,
-            ChangeReason,
+            ChangeReason, Workspace,
         },
         schema::{
             event_log::dsl as event_log, experiment_groups::dsl as experiment_groups,
@@ -126,6 +125,7 @@ fn add_config_version_to_header(
 #[authorized]
 #[post("")]
 async fn create_handler(
+    workspace_settings: Workspace,
     state: Data<AppState>,
     custom_headers: CustomHeaders,
     req: Json<ExperimentCreateRequest>,
@@ -138,8 +138,6 @@ async fn create_handler(
     let DbConnection(mut conn) = db_conn;
     let description = req.description.clone();
     let change_reason = req.change_reason.clone();
-
-    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
 
     fetch_and_validate_change_reason_with_function(
         &workspace_settings,
@@ -415,6 +413,7 @@ async fn create_handler(
 #[authorized]
 #[patch("/{experiment_id}/conclude")]
 async fn conclude_handler(
+    workspace_settings: Workspace,
     state: Data<AppState>,
     path: web::Path<i64>,
     custom_headers: CustomHeaders,
@@ -424,7 +423,6 @@ async fn conclude_handler(
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
-    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
 
     fetch_and_validate_change_reason_with_function(
         &workspace_settings,
@@ -699,6 +697,7 @@ pub async fn conclude(
 #[authorized]
 #[patch("/{experiment_id}/discard")]
 async fn discard_handler(
+    workspace_settings: Workspace,
     state: Data<AppState>,
     path: Path<i64>,
     custom_headers: CustomHeaders,
@@ -708,7 +707,6 @@ async fn discard_handler(
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
-    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
 
     fetch_and_validate_change_reason_with_function(
         &workspace_settings,
@@ -1171,6 +1169,7 @@ pub fn user_allowed_to_ramp(
 #[authorized]
 #[patch("/{id}/ramp")]
 async fn ramp_handler(
+    workspace_settings: Workspace,
     state: Data<AppState>,
     params: web::Path<i64>,
     req: web::Json<RampRequest>,
@@ -1181,7 +1180,6 @@ async fn ramp_handler(
     let DbConnection(mut conn) = db_conn;
     let exp_id = params.into_inner();
     let change_reason = req.change_reason.clone();
-    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
 
     fetch_and_validate_change_reason_with_function(
         &workspace_settings,
@@ -1364,6 +1362,7 @@ async fn ramp_handler(
 #[put("/{id}/overrides")]
 #[patch("/{id}/overrides")]
 async fn update_handler(
+    workspace_settings: Workspace,
     params: web::Path<i64>,
     state: Data<AppState>,
     custom_headers: CustomHeaders,
@@ -1377,7 +1376,6 @@ async fn update_handler(
     let experiment_group_id = req.experiment_group_id.clone();
     let description = req.description.clone();
     let change_reason = req.change_reason.clone();
-    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
 
     fetch_and_validate_change_reason_with_function(
         &workspace_settings,
@@ -1715,9 +1713,11 @@ async fn update_handler(
     Ok(http_resp.json(experiment_response))
 }
 
+#[allow(clippy::too_many_arguments)]
 #[authorized]
 #[patch("/{experiment_id}/pause")]
 async fn pause_handler(
+    workspace_settings: Workspace,
     state: Data<AppState>,
     path: Path<i64>,
     req: Json<ExperimentStateChangeRequest>,
@@ -1726,7 +1726,6 @@ async fn pause_handler(
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
-    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
 
     fetch_and_validate_change_reason_with_function(
         &workspace_settings,
@@ -1815,9 +1814,11 @@ pub async fn pause(
     Ok(updated_experiment)
 }
 
+#[allow(clippy::too_many_arguments)]
 #[authorized]
 #[patch("/{experiment_id}/resume")]
 async fn resume_handler(
+    workspace_settings: Workspace,
     state: Data<AppState>,
     path: Path<i64>,
     req: Json<ExperimentStateChangeRequest>,
@@ -1826,7 +1827,6 @@ async fn resume_handler(
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
-    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
 
     fetch_and_validate_change_reason_with_function(
         &workspace_settings,

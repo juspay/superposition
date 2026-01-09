@@ -16,10 +16,7 @@ use itertools::Itertools;
 use serde_json::{json, Map, Value};
 #[cfg(feature = "high-performance-mode")]
 use service_utils::service::types::{AppHeader, AppState};
-use service_utils::{
-    helpers::get_workspace,
-    service::types::{DbConnection, SchemaName, WorkspaceContext},
-};
+use service_utils::service::types::{DbConnection, SchemaName, WorkspaceContext};
 use superposition_derives::authorized;
 #[cfg(feature = "high-performance-mode")]
 use superposition_macros::response_error;
@@ -424,6 +421,7 @@ async fn reduce_config_key(
 #[put("/reduce")]
 async fn reduce_handler(
     req: HttpRequest,
+    workspace_settings: Workspace,
     user: User,
     db_conn: DbConnection,
     schema_name: SchemaName,
@@ -435,7 +433,6 @@ async fn reduce_handler(
         .and_then(|value| value.to_str().ok().and_then(|s| s.parse::<bool>().ok()))
         .unwrap_or(false);
 
-    let workspace_settings = get_workspace(&schema_name, &mut conn)?;
     let dimensions_info_map = fetch_dimensions_info_map(&mut conn, &schema_name)?;
     let mut config = generate_cac(&mut conn, &schema_name)?;
     let default_config = (config.default_configs).clone();

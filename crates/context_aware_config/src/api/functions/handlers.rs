@@ -16,7 +16,10 @@ use superposition_types::{
     },
     custom_query::{self as superposition_query, PaginationParams},
     database::{
-        models::cac::{Function, FunctionType},
+        models::{
+            cac::{Function, FunctionType},
+            Workspace,
+        },
         schema::{self, functions::dsl as functions},
     },
     result as superposition, PaginatedResponse, User,
@@ -43,6 +46,7 @@ pub fn endpoints() -> Scope {
 #[authorized]
 #[post("")]
 async fn create_handler(
+    workspace_settings: Workspace,
     request: Json<CreateFunctionRequest>,
     db_conn: DbConnection,
     user: User,
@@ -64,8 +68,12 @@ async fn create_handler(
         ));
     }
 
-    // TODO: if ever workspace settings is fetched in this request lifecycle, pass it here to avoid extra db call.
-    validate_change_reason(None, &req.change_reason, &mut conn, &schema_name)?;
+    validate_change_reason(
+        &workspace_settings,
+        &req.change_reason,
+        &mut conn,
+        &schema_name,
+    )?;
 
     compile_fn(&req.function)?;
 
@@ -123,6 +131,7 @@ async fn create_handler(
 #[authorized]
 #[patch("/{function_name}")]
 async fn update_handler(
+    workspace_settings: Workspace,
     params: Path<FunctionName>,
     request: Json<UpdateFunctionRequest>,
     db_conn: DbConnection,
@@ -138,8 +147,12 @@ async fn update_handler(
         compile_fn(function)?;
     }
 
-    // TODO: if ever workspace settings is fetched in this request lifecycle, pass it here to avoid extra db call.
-    validate_change_reason(None, &req.change_reason, &mut conn, &schema_name)?;
+    validate_change_reason(
+        &workspace_settings,
+        &req.change_reason,
+        &mut conn,
+        &schema_name,
+    )?;
 
     let updated_function = diesel::update(functions::functions)
         .filter(schema::functions::function_name.eq(f_name))
@@ -295,6 +308,7 @@ async fn test_handler(
 #[authorized]
 #[patch("/{function_name}/publish")]
 async fn publish_handler(
+    workspace_settings: Workspace,
     params: Path<FunctionName>,
     request: Json<FunctionStateChangeRequest>,
     db_conn: DbConnection,
@@ -306,8 +320,12 @@ async fn publish_handler(
     let function = fetch_function(&fun_name, &mut conn, &schema_name)?;
     let req = request.into_inner();
 
-    // TODO: if ever workspace settings is fetched in this request lifecycle, pass it here to avoid extra db call.
-    validate_change_reason(None, &req.change_reason, &mut conn, &schema_name)?;
+    validate_change_reason(
+        &workspace_settings,
+        &req.change_reason,
+        &mut conn,
+        &schema_name,
+    )?;
 
     let updated_function = diesel::update(functions::functions)
         .filter(functions::function_name.eq(fun_name.clone()))

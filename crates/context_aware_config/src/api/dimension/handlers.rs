@@ -7,7 +7,7 @@ use chrono::Utc;
 use diesel::{Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use serde_json::Value;
 use service_utils::{
-    helpers::{get_workspace, parse_config_tags},
+    helpers::parse_config_tags,
     service::types::{AppHeader, AppState, CustomHeaders, DbConnection, SchemaName},
 };
 use superposition_derives::authorized;
@@ -20,7 +20,7 @@ use superposition_types::{
     database::{
         models::{
             cac::{DependencyGraph, Dimension, DimensionType},
-            Description,
+            Description, Workspace,
         },
         schema::dimensions::{self, dsl::*},
     },
@@ -55,9 +55,11 @@ pub fn endpoints() -> Scope {
         .service(delete_handler)
 }
 
+#[allow(clippy::too_many_arguments)]
 #[authorized]
 #[post("")]
 async fn create_handler(
+    workspace_settings: Workspace,
     state: Data<AppState>,
     req: web::Json<CreateRequest>,
     user: User,
@@ -70,9 +72,8 @@ async fn create_handler(
     let schema_value = Value::from(&create_req.schema);
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
-    let workspace_settings = get_workspace(&schema_name, &mut conn)?;
     validate_change_reason(
-        Some(&workspace_settings),
+        &workspace_settings,
         &create_req.change_reason,
         &mut conn,
         &schema_name,
@@ -235,6 +236,7 @@ async fn create_handler(
 #[authorized]
 #[get("/{name}")]
 async fn get_handler(
+    workspace_settings: Workspace,
     db_conn: DbConnection,
     req: Path<String>,
     schema_name: SchemaName,
@@ -246,7 +248,6 @@ async fn get_handler(
         .schema_name(&schema_name)
         .get_result::<Dimension>(&mut conn)?;
 
-    let workspace_settings = get_workspace(&schema_name, &mut conn)?;
     let is_mandatory = workspace_settings
         .mandatory_dimensions
         .unwrap_or_default()
@@ -261,6 +262,7 @@ async fn get_handler(
 #[put("/{name}")]
 #[patch("/{name}")]
 async fn update_handler(
+    workspace_settings: Workspace,
     path: Path<DimensionName>,
     state: Data<AppState>,
     req: web::Json<UpdateRequest>,
@@ -275,9 +277,8 @@ async fn update_handler(
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let update_req = req.into_inner();
 
-    let workspace_settings = get_workspace(&schema_name, &mut conn)?;
     validate_change_reason(
-        Some(&workspace_settings),
+        &workspace_settings,
         &update_req.change_reason,
         &mut conn,
         &schema_name,
@@ -441,6 +442,7 @@ async fn update_handler(
 #[authorized]
 #[get("")]
 async fn list_handler(
+    workspace_settings: Workspace,
     db_conn: DbConnection,
     filters: Query<PaginationParams>,
     schema_name: SchemaName,
@@ -474,8 +476,6 @@ async fn list_handler(
             (total_pages, n_dimensions, result)
         }
     };
-
-    let workspace_settings = get_workspace(&schema_name, &mut conn)?;
 
     let mandatory_dimensions =
         workspace_settings.mandatory_dimensions.unwrap_or_default();

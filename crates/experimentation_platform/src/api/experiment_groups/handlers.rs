@@ -10,7 +10,7 @@ use diesel::{
 };
 use serde_json::Value;
 use service_utils::{
-    helpers::{generate_snowflake_id, get_from_env_or_default, get_workspace},
+    helpers::{generate_snowflake_id, get_from_env_or_default},
     service::types::{AppState, DbConnection, SchemaName, WorkspaceContext},
 };
 use superposition_derives::authorized;
@@ -27,7 +27,7 @@ use superposition_types::{
                 Buckets, Experiment, ExperimentGroup, ExperimentGroups,
                 ExperimentStatusType, GroupType,
             },
-            ChangeReason,
+            ChangeReason, Workspace,
         },
         schema::{
             experiment_groups::dsl as experiment_groups, experiments::dsl as experiments,
@@ -67,6 +67,7 @@ pub fn endpoints(scope: Scope) -> Scope {
 #[authorized]
 #[post("")]
 async fn create_handler(
+    workspace_settings: Workspace,
     state: Data<AppState>,
     req: Json<ExpGroupCreateRequest>,
     db_conn: DbConnection,
@@ -76,7 +77,7 @@ async fn create_handler(
     let DbConnection(mut conn) = db_conn;
     let req = req.into_inner();
     log::trace!("Creating experiment group with request: {:?}", req);
-    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
+
     let exp_context = req.context.into_inner();
     let member_experiments = if let Some(members) = req.member_experiment_ids {
         fetch_and_validate_members(
@@ -144,9 +145,11 @@ async fn create_handler(
     Ok(Json(new_experiment_group))
 }
 
+#[allow(clippy::too_many_arguments)]
 #[authorized]
 #[patch("/{exp_group_id}")]
 async fn update_handler(
+    workspace_settings: Workspace,
     exp_group_id: web::Path<i64>,
     req: Json<ExpGroupUpdateRequest>,
     db_conn: DbConnection,
@@ -156,7 +159,7 @@ async fn update_handler(
 ) -> superposition::Result<Json<ExperimentGroup>> {
     let DbConnection(mut conn) = db_conn;
     let id = exp_group_id.into_inner();
-    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
+
     let experiment_group =
         fetch_experiment_group(&id, &mut conn, &workspace_request.schema_name)?;
     if experiment_group.group_type == GroupType::SystemGenerated {
@@ -189,9 +192,11 @@ async fn update_handler(
     Ok(Json(updated_group))
 }
 
+#[allow(clippy::too_many_arguments)]
 #[authorized]
 #[patch("/{exp_group_id}/add-members")]
 async fn add_members_handler(
+    workspace_settings: Workspace,
     exp_group_id: web::Path<i64>,
     req: Json<ExpGroupMemberRequest>,
     db_conn: DbConnection,
@@ -201,7 +206,6 @@ async fn add_members_handler(
 ) -> superposition::Result<Json<ExperimentGroup>> {
     let req = req.into_inner();
     let DbConnection(mut conn) = db_conn;
-    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
 
     fetch_and_validate_change_reason_with_function(
         &workspace_settings,
@@ -240,9 +244,11 @@ async fn add_members_handler(
     Ok(experiment_group)
 }
 
+#[allow(clippy::too_many_arguments)]
 #[authorized]
 #[patch("/{exp_group_id}/remove-members")]
 async fn remove_members_handler(
+    workspace_settings: Workspace,
     exp_group_id: web::Path<i64>,
     req: Json<ExpGroupMemberRequest>,
     state: Data<AppState>,
@@ -253,8 +259,6 @@ async fn remove_members_handler(
     let req = req.into_inner();
     let DbConnection(mut conn) = db_conn;
     let id = exp_group_id.into_inner();
-
-    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
 
     fetch_and_validate_change_reason_with_function(
         &workspace_settings,

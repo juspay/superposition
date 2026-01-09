@@ -477,7 +477,7 @@ where
 // for the entire request duration. Doing so, will also allow us to validate workspace
 // existence per request,  which is currently not being done.
 // Caveat: Might not be that frequently used to justify the overhead
-pub fn get_workspace(
+pub(crate) fn get_workspace(
     workspace_schema_name: &SchemaName,
     db_conn: &mut DBConnection,
 ) -> result::Result<Workspace> {

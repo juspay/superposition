@@ -10,7 +10,10 @@ use superposition_derives::authorized;
 use superposition_types::{
     api::variables::*,
     custom_query::PaginationParams,
-    database::{models::others::Variable, schema::variables::dsl::*},
+    database::{
+        models::{others::Variable, Workspace},
+        schema::variables::dsl::*,
+    },
     result as superposition, PaginatedResponse, SortBy, User,
 };
 
@@ -96,6 +99,7 @@ async fn list_handler(
 #[authorized]
 #[post("")]
 async fn create_handler(
+    workspace_settings: Workspace,
     req: web::Json<CreateVariableRequest>,
     user: User,
     db_conn: DbConnection,
@@ -104,8 +108,12 @@ async fn create_handler(
     let DbConnection(mut conn) = db_conn;
     let req = req.into_inner();
 
-    // TODO: if ever workspace settings is fetched in this request lifecycle, pass it here to avoid extra db call.
-    validate_change_reason(None, &req.change_reason, &mut conn, &schema_name)?;
+    validate_change_reason(
+        &workspace_settings,
+        &req.change_reason,
+        &mut conn,
+        &schema_name,
+    )?;
 
     let now = chrono::Utc::now();
 
@@ -151,6 +159,7 @@ async fn get_handler(
 #[authorized]
 #[patch("/{variable_name}")]
 async fn update_handler(
+    workspace_settings: Workspace,
     path: web::Path<String>,
     req: web::Json<UpdateVariableRequest>,
     user: User,
@@ -160,8 +169,12 @@ async fn update_handler(
     let DbConnection(mut conn) = db_conn;
     let var_name = path.into_inner();
 
-    // TODO: if ever workspace settings is fetched in this request lifecycle, pass it here to avoid extra db call.
-    validate_change_reason(None, &req.change_reason, &mut conn, &schema_name)?;
+    validate_change_reason(
+        &workspace_settings,
+        &req.change_reason,
+        &mut conn,
+        &schema_name,
+    )?;
 
     let updated_var = diesel::update(variables)
         .filter(name.eq(var_name))

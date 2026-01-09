@@ -30,7 +30,7 @@ use superposition_types::{
     database::{
         models::{
             cac::{self as models, Context, DefaultConfig},
-            Description,
+            Description, Workspace,
         },
         schema::{self, contexts::dsl::contexts, default_configs::dsl},
     },
@@ -56,9 +56,11 @@ pub fn endpoints() -> Scope {
         .service(delete_handler)
 }
 
+#[allow(clippy::too_many_arguments)]
 #[authorized]
 #[post("")]
 async fn create_handler(
+    workspace_settings: Workspace,
     state: Data<AppState>,
     custom_headers: CustomHeaders,
     request: Json<DefaultConfigCreateRequest>,
@@ -75,8 +77,12 @@ async fn create_handler(
         return Err(bad_argument!("Schema cannot be empty."));
     }
 
-    // TODO: if ever workspace settings is fetched in this request lifecycle, pass it here to avoid extra db call.
-    validate_change_reason(None, &req.change_reason, &mut conn, &schema_name)?;
+    validate_change_reason(
+        &workspace_settings,
+        &req.change_reason,
+        &mut conn,
+        &schema_name,
+    )?;
 
     let value = req.value;
 
@@ -182,6 +188,7 @@ async fn get_handler(
 #[put("/{key}")]
 #[patch("/{key}")]
 async fn update_handler(
+    workspace_settings: Workspace,
     state: Data<AppState>,
     key: Path<DefaultConfigKey>,
     custom_headers: CustomHeaders,
@@ -209,8 +216,12 @@ async fn update_handler(
             }
         })?;
 
-    // TODO: if ever workspace settings is fetched in this request lifecycle, pass it here to avoid extra db call.
-    validate_change_reason(None, &req.change_reason, &mut conn, &schema_name)?;
+    validate_change_reason(
+        &workspace_settings,
+        &req.change_reason,
+        &mut conn,
+        &schema_name,
+    )?;
 
     let value = req.value.clone().unwrap_or_else(|| existing.value.clone());
 

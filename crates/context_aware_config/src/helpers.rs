@@ -15,7 +15,7 @@ use jsonschema::{Draft, JSONSchema};
 use num_bigint::BigUint;
 use serde_json::{json, Map, Value};
 use service_utils::{
-    helpers::{generate_snowflake_id, get_workspace},
+    helpers::generate_snowflake_id,
     service::types::{AppState, SchemaName},
 };
 use superposition_macros::{db_error, unexpected_error, validation_error};
@@ -473,16 +473,12 @@ pub fn evaluate_remote_cohorts(
 }
 
 pub fn validate_change_reason(
-    workspace_settings: Option<&Workspace>,
+    workspace_settings: &Workspace,
     change_reason: &ChangeReason,
     conn: &mut DBConnection,
     schema_name: &SchemaName,
 ) -> superposition::Result<()> {
-    let workspace_setting = match workspace_settings {
-        Some(ws) => ws,
-        None => &get_workspace(schema_name, conn)?,
-    };
-    if !workspace_setting.enable_change_reason_validation {
+    if !workspace_settings.enable_change_reason_validation {
         return Ok(());
     }
 

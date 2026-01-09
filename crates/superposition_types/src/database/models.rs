@@ -5,6 +5,8 @@ pub mod others;
 
 use std::str::FromStr;
 
+#[cfg(all(feature = "server", feature = "result"))]
+use actix_web::{Error, FromRequest, HttpMessage};
 use chrono::{DateTime, Utc};
 use derive_more::{Deref, DerefMut};
 #[cfg(feature = "diesel_derives")]
@@ -279,6 +281,27 @@ pub struct Workspace {
     pub auto_populate_control: bool,
     pub enable_context_validation: bool,
     pub enable_change_reason_validation: bool,
+}
+
+#[cfg(all(feature = "server", feature = "result"))]
+impl FromRequest for Workspace {
+    type Error = Error;
+    type Future = std::future::Ready<Result<Self, Self::Error>>;
+
+    fn from_request(
+        req: &actix_web::HttpRequest,
+        _: &mut actix_web::dev::Payload,
+    ) -> Self::Future {
+        use std::future::ready;
+
+        let result = req.extensions().get::<Self>().cloned().ok_or_else(|| {
+            crate::result::AppError::UnexpectedError(
+                anyhow::anyhow!("Please check that the organisation id and workspace id are being properly sent")
+            ).into()
+        });
+
+        ready(result)
+    }
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
