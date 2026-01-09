@@ -10,5 +10,10 @@
   },
   "dependencies": {
     "@juspay/superposition-sdk": "file:../clients/javascript/sdk"
+  },
+  "scripts": {
+    "test": "bun test",
+    "test:clean": "./test-with-cleanup.sh",
+    "cleanup": "./test-with-cleanup.sh --cleanup-only"
   }
 }
