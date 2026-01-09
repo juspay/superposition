@@ -38,7 +38,7 @@ ruamel.base==1.0.0
 ruamel.yaml==0.17.21
 ruamel.yaml.clib==0.2.7
 six==1.16.0
-urllib3==2.6.0
+urllib3==2.6.3
 wcwidth==0.2.12
 Werkzeug==3.1.5
 zope.event==5.0
