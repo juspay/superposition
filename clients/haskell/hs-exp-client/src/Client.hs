@@ -54,10 +54,10 @@ foreign import ccall unsafe "expt_get_applicable_variant"
     c_get_applicable_variants :: Ptr ExpClient -> CString -> CString -> CString -> CString -> IO CString
 
 foreign import ccall unsafe "expt_get_satisfied_experiments"
-    c_get_satisfied_experiments :: Ptr ExpClient -> CString -> CString -> IO CString
+    c_get_satisfied_experiments :: Ptr ExpClient -> CString -> CString -> CString -> IO CString
 
 foreign import ccall unsafe "expt_get_filtered_satisfied_experiments"
-    c_get_filtered_satisfied_experiments :: Ptr ExpClient -> CString -> CString -> IO CString
+    c_get_filtered_satisfied_experiments :: Ptr ExpClient -> CString -> CString -> CString -> IO CString
 
 foreign import ccall unsafe "expt_get_running_experiments"
     c_get_running_experiments :: Ptr ExpClient -> IO CString
@@ -105,7 +105,7 @@ getApplicableVariants client dimensions query identifier mbPrefix = do
         Just prefix -> newCString prefix
         Nothing     -> return nullPtr
     variants    <- withForeignPtr client (\c -> c_get_applicable_variants c dimensions context identifier' prefix)
-    _           <- cleanup [context]
+    _           <- cleanup [context, dimensions]
     if variants == nullPtr
         then Left <$> getError
         else do
@@ -116,30 +116,32 @@ getApplicableVariants client dimensions query identifier mbPrefix = do
                     -- Error s     -> Left s
                     -- Success vec -> Right vec
 
-getSatisfiedExperiments :: ForeignPtr ExpClient -> String -> Maybe String -> IO (Either Error Value)
-getSatisfiedExperiments client query mbPrefix = do
+getSatisfiedExperiments :: ForeignPtr ExpClient -> String -> String -> Maybe String -> IO (Either Error Value)
+getSatisfiedExperiments client dimensions query mbPrefix = do
     context     <- newCString query
+    dimensions  <- newCString dimensions
     prefix <- case mbPrefix of
         Just prefix -> newCString prefix
         Nothing     -> return nullPtr
-    experiments <- withForeignPtr client $ \client -> c_get_satisfied_experiments client context prefix
-    _           <- cleanup [context]
+    experiments <- withForeignPtr client $ \client -> c_get_satisfied_experiments client dimensions context prefix
+    _           <- cleanup [context, dimensions]
     if experiments == nullPtr
         then Left <$> getError
         else do
             fptrExperiments  <- newForeignPtr c_free_string experiments
             Right . toJSON <$> withForeignPtr fptrExperiments peekCString
 
-getFilteredSatisfiedExperiments :: ForeignPtr ExpClient -> Maybe String -> Maybe String -> IO (Either Error Value)
-getFilteredSatisfiedExperiments client mbFilters mbPrefix = do
+getFilteredSatisfiedExperiments :: ForeignPtr ExpClient -> String -> Maybe String -> Maybe String -> IO (Either Error Value)
+getFilteredSatisfiedExperiments client dimensions mbFilters mbPrefix = do
+    dimensions  <- newCString dimensions
     filters <- case mbFilters of
         Just filters' -> newCString filters'
         Nothing       -> return nullPtr
     prefix <- case mbPrefix of
         Just prefix' -> newCString prefix'
         Nothing      -> return nullPtr
-    experiments <- withForeignPtr client $ \client -> c_get_filtered_satisfied_experiments client filters prefix
-    _           <- cleanup [filters]
+    experiments <- withForeignPtr client $ \client -> c_get_filtered_satisfied_experiments client dimensions filters prefix
+    _           <- cleanup [filters, dimensions]
     if experiments == nullPtr
         then Left <$> getError
         else do
