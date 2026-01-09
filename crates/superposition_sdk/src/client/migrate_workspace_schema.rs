@@ -18,7 +18,6 @@ impl super::Client {
     ///   - [`last_modified_at(DateTime)`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaOutput::last_modified_at): (undocumented)
     ///   - [`created_at(DateTime)`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaOutput::created_at): (undocumented)
     ///   - [`mandatory_dimensions(Option<Vec::<String>>)`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaOutput::mandatory_dimensions): (undocumented)
-    ///   - [`strict_mode(bool)`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaOutput::strict_mode): (undocumented)
     ///   - [`metrics(Document)`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaOutput::metrics): (undocumented)
     ///   - [`allow_experiment_self_approval(bool)`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaOutput::allow_experiment_self_approval): (undocumented)
     ///   - [`auto_populate_control(bool)`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaOutput::auto_populate_control): (undocumented)

@@ -889,7 +889,7 @@ pub async fn get_applicable_variants_helper(
         .schema_name(&workspace_request.schema_name)
         .load::<ExperimentGroup>(db_conn)?;
 
-    let context = Value::Object(evaluate_local_cohorts(&config.dimensions, &context));
+    let context = evaluate_local_cohorts(&config.dimensions, &context);
 
     let buckets =
         get_applicable_buckets_from_group(&experiment_groups, &context, &identifier);

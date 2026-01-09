@@ -55,7 +55,6 @@ pub mod superposition {
             last_modified_at -> Timestamptz,
             created_at -> Timestamptz,
             mandatory_dimensions -> Nullable<Array<Text>>,
-            strict_mode -> Bool,
             metrics -> Json,
             allow_experiment_self_approval -> Bool,
             auto_populate_control -> Bool,

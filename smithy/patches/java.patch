@@ -258,7 +258,6 @@ index a1dfbada..589784f9 100644
 -        "organisation_id", PreludeSchemas.STRING,
 -        "allow_experiment_self_approval", PreludeSchemas.BOOLEAN,
 -        "workspace_schema_name", PreludeSchemas.STRING,
--        "strict_mode", PreludeSchemas.BOOLEAN,
 -        "metrics", PreludeSchemas.DOCUMENT);
 +    private static final Map<String, Schema> $PROPERTIES = Map.ofEntries(
 +        Map.entry("workspace_admin_email", PreludeSchemas.STRING),
@@ -276,7 +275,6 @@ index a1dfbada..589784f9 100644
 +        Map.entry("organisation_id", PreludeSchemas.STRING),
 +        Map.entry("allow_experiment_self_approval", PreludeSchemas.BOOLEAN),
 +        Map.entry("workspace_schema_name", PreludeSchemas.STRING),
-+        Map.entry("strict_mode", PreludeSchemas.BOOLEAN),
 +        Map.entry("metrics", PreludeSchemas.DOCUMENT));
  
      private static final List<Schema> $OPERATIONS = List.of(CreateWorkspace.$SCHEMA,

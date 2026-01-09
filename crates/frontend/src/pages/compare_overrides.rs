@@ -7,10 +7,7 @@ use leptos_router::A;
 use serde_json::{Map, Value};
 use superposition_macros::box_params;
 use superposition_types::{
-    api::{
-        config::ResolveConfigQuery, functions::FunctionEnvironment,
-        workspace::WorkspaceResponse,
-    },
+    api::{config::ResolveConfigQuery, functions::FunctionEnvironment},
     custom_query::{CustomQuery, DimensionQuery, PaginationParams, Query},
 };
 use types::{ComparisonTable, ContextList, PageParams};
@@ -44,7 +41,6 @@ const KEY_COLUMN: &str = "config_key";
 
 fn table_columns(
     contexts_vector_rws: RwSignal<ContextList>,
-    strict_mode: bool,
     expand: Callback<String, View>,
 ) -> Vec<Column> {
     let mut contexts = contexts_vector_rws
@@ -80,7 +76,6 @@ fn table_columns(
                             id=column.get_value()
                             grouped_view=false
                             class="xl:w-[400px] h-fit"
-                            strict_mode
                         />
                     </ConditionCollapseProvider>
                 </div>
@@ -105,7 +100,6 @@ fn table_columns(
 
 #[component]
 pub fn compare_overrides() -> impl IntoView {
-    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let (context_rs, context_ws) = create_signal::<Conditions>(Conditions::default());
@@ -303,11 +297,7 @@ pub fn compare_overrides() -> impl IntoView {
             }>
                 {move || {
                     let mut filtered_rows = resolved_config_resource.get().unwrap_or_default();
-                    let table_columns = table_columns(
-                        context_vec_rws,
-                        workspace_settings.with_value(|w| w.strict_mode),
-                        expand,
-                    );
+                    let table_columns = table_columns(context_vec_rws, expand);
                     let page_params = page_params_rws.get();
                     if page_params.grouped {
                         let cols = filtered_rows

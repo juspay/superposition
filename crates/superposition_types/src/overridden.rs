@@ -39,11 +39,6 @@ mod tests {
 
     use serde_json::Map;
 
-    #[cfg(feature = "jsonlogic")]
-    use crate::config::tests::jsonlogic::with_dimensions::{
-        get_config, get_prefix_filtered_config1, get_prefix_filtered_config2,
-    };
-    #[cfg(not(feature = "jsonlogic"))]
     use crate::config::tests::map::with_dimensions::{
         get_config, get_prefix_filtered_config1, get_prefix_filtered_config2,
     };

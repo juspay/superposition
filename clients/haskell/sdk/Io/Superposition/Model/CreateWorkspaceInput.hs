@@ -3,7 +3,6 @@ module Io.Superposition.Model.CreateWorkspaceInput (
     setWorkspaceAdminEmail,
     setWorkspaceName,
     setWorkspaceStatus,
-    setStrictMode,
     setMetrics,
     setAllowExperimentSelfApproval,
     setAutoPopulateControl,
@@ -16,7 +15,6 @@ module Io.Superposition.Model.CreateWorkspaceInput (
     workspace_admin_email,
     workspace_name,
     workspace_status,
-    strict_mode,
     metrics,
     allow_experiment_self_approval,
     auto_populate_control,
@@ -42,7 +40,6 @@ data CreateWorkspaceInput = CreateWorkspaceInput {
     workspace_admin_email :: Data.Text.Text,
     workspace_name :: Data.Text.Text,
     workspace_status :: Data.Maybe.Maybe Io.Superposition.Model.WorkspaceStatus.WorkspaceStatus,
-    strict_mode :: Bool,
     metrics :: Data.Maybe.Maybe Data.Aeson.Value,
     allow_experiment_self_approval :: Data.Maybe.Maybe Bool,
     auto_populate_control :: Data.Maybe.Maybe Bool,
@@ -60,7 +57,6 @@ instance Data.Aeson.ToJSON CreateWorkspaceInput where
         "workspace_admin_email" Data.Aeson..= workspace_admin_email a,
         "workspace_name" Data.Aeson..= workspace_name a,
         "workspace_status" Data.Aeson..= workspace_status a,
-        "strict_mode" Data.Aeson..= strict_mode a,
         "metrics" Data.Aeson..= metrics a,
         "allow_experiment_self_approval" Data.Aeson..= allow_experiment_self_approval a,
         "auto_populate_control" Data.Aeson..= auto_populate_control a,
@@ -77,7 +73,6 @@ instance Data.Aeson.FromJSON CreateWorkspaceInput where
         Control.Applicative.<*> (v Data.Aeson..: "workspace_admin_email")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_name")
         Control.Applicative.<*> (v Data.Aeson..:? "workspace_status")
-        Control.Applicative.<*> (v Data.Aeson..: "strict_mode")
         Control.Applicative.<*> (v Data.Aeson..:? "metrics")
         Control.Applicative.<*> (v Data.Aeson..:? "allow_experiment_self_approval")
         Control.Applicative.<*> (v Data.Aeson..:? "auto_populate_control")
@@ -92,7 +87,6 @@ data CreateWorkspaceInputBuilderState = CreateWorkspaceInputBuilderState {
     workspace_admin_emailBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     workspace_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     workspace_statusBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.WorkspaceStatus.WorkspaceStatus,
-    strict_modeBuilderState :: Data.Maybe.Maybe Bool,
     metricsBuilderState :: Data.Maybe.Maybe Data.Aeson.Value,
     allow_experiment_self_approvalBuilderState :: Data.Maybe.Maybe Bool,
     auto_populate_controlBuilderState :: Data.Maybe.Maybe Bool,
@@ -108,7 +102,6 @@ defaultBuilderState = CreateWorkspaceInputBuilderState {
     workspace_admin_emailBuilderState = Data.Maybe.Nothing,
     workspace_nameBuilderState = Data.Maybe.Nothing,
     workspace_statusBuilderState = Data.Maybe.Nothing,
-    strict_modeBuilderState = Data.Maybe.Nothing,
     metricsBuilderState = Data.Maybe.Nothing,
     allow_experiment_self_approvalBuilderState = Data.Maybe.Nothing,
     auto_populate_controlBuilderState = Data.Maybe.Nothing,
@@ -133,10 +126,6 @@ setWorkspaceName value =
 setWorkspaceStatus :: Data.Maybe.Maybe Io.Superposition.Model.WorkspaceStatus.WorkspaceStatus -> CreateWorkspaceInputBuilder ()
 setWorkspaceStatus value =
    Control.Monad.State.Strict.modify (\s -> (s { workspace_statusBuilderState = value }))
-
-setStrictMode :: Bool -> CreateWorkspaceInputBuilder ()
-setStrictMode value =
-   Control.Monad.State.Strict.modify (\s -> (s { strict_modeBuilderState = Data.Maybe.Just value }))
 
 setMetrics :: Data.Maybe.Maybe Data.Aeson.Value -> CreateWorkspaceInputBuilder ()
 setMetrics value =
@@ -165,7 +154,6 @@ build builder = do
     workspace_admin_email' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateWorkspaceInput.CreateWorkspaceInput.workspace_admin_email is a required property.") Data.Either.Right (workspace_admin_emailBuilderState st)
     workspace_name' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateWorkspaceInput.CreateWorkspaceInput.workspace_name is a required property.") Data.Either.Right (workspace_nameBuilderState st)
     workspace_status' <- Data.Either.Right (workspace_statusBuilderState st)
-    strict_mode' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateWorkspaceInput.CreateWorkspaceInput.strict_mode is a required property.") Data.Either.Right (strict_modeBuilderState st)
     metrics' <- Data.Either.Right (metricsBuilderState st)
     allow_experiment_self_approval' <- Data.Either.Right (allow_experiment_self_approvalBuilderState st)
     auto_populate_control' <- Data.Either.Right (auto_populate_controlBuilderState st)
@@ -176,7 +164,6 @@ build builder = do
         workspace_admin_email = workspace_admin_email',
         workspace_name = workspace_name',
         workspace_status = workspace_status',
-        strict_mode = strict_mode',
         metrics = metrics',
         allow_experiment_self_approval = allow_experiment_self_approval',
         auto_populate_control = auto_populate_control',
@@ -195,7 +182,6 @@ instance Io.Superposition.Utility.IntoRequestBuilder CreateWorkspaceInput where
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         Io.Superposition.Utility.serField "allow_experiment_self_approval" (allow_experiment_self_approval self)
         Io.Superposition.Utility.serField "workspace_admin_email" (workspace_admin_email self)
-        Io.Superposition.Utility.serField "strict_mode" (strict_mode self)
         Io.Superposition.Utility.serField "auto_populate_control" (auto_populate_control self)
         Io.Superposition.Utility.serField "enable_context_validation" (enable_context_validation self)
         Io.Superposition.Utility.serField "metrics" (metrics self)

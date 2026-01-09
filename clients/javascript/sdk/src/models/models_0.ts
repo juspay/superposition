@@ -1553,7 +1553,6 @@ export interface CreateWorkspaceRequest {
   workspace_admin_email: string | undefined;
   workspace_name: string | undefined;
   workspace_status?: WorkspaceStatus | undefined;
-  strict_mode: boolean | undefined;
   metrics?: __DocumentType | undefined;
   allow_experiment_self_approval?: boolean | undefined;
   auto_populate_control?: boolean | undefined;
@@ -1577,7 +1576,6 @@ export interface WorkspaceResponse {
   last_modified_at: Date | undefined;
   created_at: Date | undefined;
   mandatory_dimensions?: (string)[] | undefined;
-  strict_mode: boolean | undefined;
   metrics: __DocumentType | undefined;
   allow_experiment_self_approval: boolean | undefined;
   auto_populate_control: boolean | undefined;

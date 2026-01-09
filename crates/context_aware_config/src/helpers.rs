@@ -1,6 +1,4 @@
-use std::collections::HashMap;
-#[cfg(not(feature = "jsonlogic"))]
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use actix_web::{
     http::header::{HeaderMap, HeaderName, HeaderValue},
@@ -113,23 +111,10 @@ pub fn calculate_context_weight(
     cond: &Value,
     dimension_position_map: &HashMap<String, DimensionInfo>,
 ) -> Result<BigDecimal, String> {
-    cfg_if::cfg_if! {
-        if #[cfg(feature = "jsonlogic")] {
-            let ast = jsonlogic::expression::Expression::from_json(cond).map_err(|msg| {
-                log::error!("Condition validation error: {}", msg);
-                msg
-            })?;
-            let dimensions =  ast.get_variable_names().map_err(|msg| {
-                log::error!("Error while parsing variable names : {}", msg);
-                msg
-            })?;
-        } else {
-            let dimensions: HashSet<String> = cond
-                .as_object()
-                .map(|o| o.keys().cloned().collect())
-                .unwrap_or_default();
-        }
-    }
+    let dimensions: HashSet<String> = cond
+        .as_object()
+        .map(|o| o.keys().cloned().collect())
+        .unwrap_or_default();
 
     let mut weight = BigDecimal::from(0);
     for dimension in dimensions {

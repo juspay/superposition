@@ -164,10 +164,6 @@ superposition_legacy: CARGO_FLAGS += experimentation_platform/disable_db_data_va
 superposition_legacy:
 	cargo build $(CARGO_FLAGS) --bin superposition
 
-superposition_jsonlogic: CARGO_FLAGS += --features='$(FEATURES) jsonlogic'
-superposition_jsonlogic:
-	cargo build $(CARGO_FLAGS) --bin superposition
-
 superposition_dev: CARGO_FLAGS += --features='$(FEATURES)'
 superposition_dev:
 	# export DB_PASSWORD=`./docker-compose/localstack/get_db_password.sh`
@@ -202,10 +198,6 @@ run: kill db frontend superposition
 run_legacy: kill build db superposition_legacy
 	@$(CARGO_TARGET_DIR)/debug/superposition
 
-run_jsonlogic: FE_FEATURES += jsonlogic
-run_jsonlogic: kill db frontend superposition_jsonlogic
-	@$(CARGO_TARGET_DIR)/debug/superposition
-
 test: WASM_PACK_MODE=--profiling
 test: setup frontend superposition
 	cargo test
@@ -218,21 +210,6 @@ test: setup frontend superposition
 				--retry-all-errors \
 				'http://localhost:8080/health' 2>&1 > /dev/null
 	cd tests && bun test:clean
-	-@pkill -f $(CARGO_TARGET_DIR)/debug/superposition &
-
-test_jsonlogic: WASM_PACK_MODE=--profiling
-test_jsonlogic: FE_FEATURES += jsonlogic
-test_jsonlogic: setup frontend superposition_jsonlogic
-	cargo test --features=jsonlogic
-	@echo "Running superposition"
-	@$(CARGO_TARGET_DIR)/debug/superposition &
-	@echo "Awaiting superposition boot..."
-## FIXME Curl doesn't retry.
-	@curl	--silent --retry 10 \
-				--connect-timeout 2 \
-				--retry-all-errors \
-				'http://localhost:8080/health' 2>&1 > /dev/null
-	cd tests && export JSONLOGIC_ENABLED=true && bun test:clean
 	-@pkill -f $(CARGO_TARGET_DIR)/debug/superposition &
 
 ## npm run test

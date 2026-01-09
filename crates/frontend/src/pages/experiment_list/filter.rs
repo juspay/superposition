@@ -6,7 +6,7 @@ use serde_json::{Map, Value};
 use superposition_types::{
     api::{
         experiments::ExperimentListFilters, functions::FunctionEnvironment,
-        workspace::WorkspaceResponse, DimensionMatchStrategy,
+        DimensionMatchStrategy,
     },
     custom_query::{
         CommaSeparatedQParams, CustomQuery, DimensionQuery, PaginationParams, QueryMap,
@@ -36,7 +36,6 @@ pub(super) fn filter_summary(
     filters_rws: RwSignal<ExperimentListFilters>,
     dimension_params_rws: RwSignal<DimensionQuery<QueryMap>>,
 ) -> impl IntoView {
-    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let force_open_rws = RwSignal::new(true);
     // let force_open_rws = RwSignal::new(scrolled_to_top.get_untracked());
 
@@ -133,7 +132,6 @@ pub(super) fn filter_summary(
                                             id=condition_id
                                             grouped_view=false
                                             class="xl:w-[400px] h-fit"
-                                            strict_mode=workspace_settings.with_value(|w| w.strict_mode)
                                         />
                                     </ConditionCollapseProvider>
                                 </div>
@@ -354,7 +352,7 @@ pub(super) fn experiment_table_filter_widget(
                     view! {
                         <div class="w-fit flex items-center gap-2">
                             <Toggle
-                                name="workspace-strict-mode"
+                                name="dimension-match-strategy-toggle"
                                 disabled=dimension_buffer_rws.with(|d| d.is_empty())
                                     || filters_buffer_rws
                                         .with(|f| f.global_experiments_only.unwrap_or_default())
@@ -382,7 +380,7 @@ pub(super) fn experiment_table_filter_widget(
                     }
                 }} <div class="w-fit flex items-center gap-2">
                     <Toggle
-                        name="workspace-strict-mode"
+                        name="global-experiments-only"
                         value=filters_buffer_rws
                             .with_untracked(|f| f.global_experiments_only.unwrap_or_default())
                         on_change=move |flag| {

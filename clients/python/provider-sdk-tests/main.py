@@ -59,7 +59,6 @@ async def create_workspace(client, org_id: str, workspace_name: str):
         workspace_name=workspace_name,
         workspace_admin_email="test@tests.com",
         workspace_status="ENABLED",
-        strict_mode=True,
         allow_experiment_self_approval=True,
         auto_populate_control=False, # disable auto populate control for testing experiment
         enable_context_validation=True,

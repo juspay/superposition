@@ -2,9 +2,7 @@ use std::ops::Deref;
 
 use leptos::*;
 use serde_json::{Map, Value};
-use superposition_types::{
-    api::workspace::WorkspaceResponse, database::models::cac::Context,
-};
+use superposition_types::database::models::cac::Context;
 
 use crate::{
     components::{
@@ -94,7 +92,6 @@ pub fn context_card(
     #[prop(into)] handle_clone: Callback<String, ()>,
     #[prop(into)] handle_delete: Callback<String, ()>,
 ) -> impl IntoView {
-    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let conditions: Conditions = (&context).try_into().unwrap_or_default();
     let description = context.description.clone();
     let change_reason = context.change_reason.clone();
@@ -119,17 +116,6 @@ pub fn context_card(
 
     let actions_supported =
         show_actions && !conditions.0.iter().any(|c| c.variable == "variantIds");
-
-    cfg_if::cfg_if! {
-        if #[cfg(feature = "jsonlogic")] {
-            let edit_unsupported = conditions
-                .0
-                .iter()
-                .any(|c| matches!(c.expression, crate::logic::Expression::Other(_, _)));
-        } else {
-            let edit_unsupported = false;
-        }
-    }
 
     view! {
         <div class="rounded-lg shadow bg-base-100 p-6 flex flex-col gap-4">
@@ -173,32 +159,23 @@ pub fn context_card(
                 </div>
                 <Show when=move || actions_supported>
                     <div class="h-fit flex gap-4 text-right">
-                        <Show when=move || !edit_unsupported>
-                            <ContextOptions
-                                handle_create_experiment=move |_| {
-                                    handle_create_experiment
-                                        .call(context.with_value(|c| c.id.clone()))
-                                }
-                                handle_delete_experiment=move |_| {
-                                    handle_delete_experiment
-                                        .call(context.with_value(|c| c.id.clone()))
-                                }
-                                handle_clone=move |_| {
-                                    handle_clone.call(context.with_value(|c| c.id.clone()))
-                                }
-                                handle_edit=move |_| {
-                                    handle_edit.call(context.with_value(|c| c.id.clone()))
-                                }
-                                handle_delete=move |_| {
-                                    handle_delete.call(context.with_value(|c| c.id.clone()))
-                                }
-                            />
-                        </Show>
-                        <Show when=move || edit_unsupported>
-                            <span class="badge badge-warning text-xs flex items-center">
-                                {"Edit Unsupported"}
-                            </span>
-                        </Show>
+                        <ContextOptions
+                            handle_create_experiment=move |_| {
+                                handle_create_experiment.call(context.with_value(|c| c.id.clone()))
+                            }
+                            handle_delete_experiment=move |_| {
+                                handle_delete_experiment.call(context.with_value(|c| c.id.clone()))
+                            }
+                            handle_clone=move |_| {
+                                handle_clone.call(context.with_value(|c| c.id.clone()))
+                            }
+                            handle_edit=move |_| {
+                                handle_edit.call(context.with_value(|c| c.id.clone()))
+                            }
+                            handle_delete=move |_| {
+                                handle_delete.call(context.with_value(|c| c.id.clone()))
+                            }
+                        />
                     </div>
                 </Show>
                 <Show when=move || !actions_supported>
@@ -214,7 +191,6 @@ pub fn context_card(
                     conditions=conditions
                     id=context.with_value(|c| c.id.clone())
                     class="xl:w-[400px] h-fit"
-                    strict_mode=workspace_settings.with_value(|w| w.strict_mode)
                 />
                 <Table rows=override_table_rows key_column="KEY" columns=table_columns />
             </div>

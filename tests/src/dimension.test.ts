@@ -299,12 +299,6 @@ describe("Dimension API", () => {
     });
 
     test("CreateDimension: should reject non primitive type for dimension", async () => {
-        if (ENV.jsonlogic_enabled) {
-            console.log(
-                "Skipping non primitive type update test because JSONLogic is enabled"
-            );
-            return;
-        }
         const invalidPositionInput = {
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,
@@ -470,12 +464,6 @@ describe("Dimension API", () => {
     });
 
     test("UpdateDimension: should reject updating to non primitive type", async () => {
-        if (ENV.jsonlogic_enabled) {
-            console.log(
-                "Skipping non primitive type update test because JSONLogic is enabled"
-            );
-            return;
-        }
         const input = {
             workspace_id: ENV.workspace_id,
             org_id: ENV.org_id,

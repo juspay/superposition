@@ -6426,38 +6426,29 @@ CREATE_WORKSPACE_INPUT = Schema.collection(
             "index": 3,
         },
 
-        "strict_mode": {
-            "target": BOOLEAN,
-            "index": 4,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
         "metrics": {
             "target": DOCUMENT,
-            "index": 5,
+            "index": 4,
         },
 
         "allow_experiment_self_approval": {
             "target": BOOLEAN,
-            "index": 6,
+            "index": 5,
         },
 
         "auto_populate_control": {
             "target": BOOLEAN,
-            "index": 7,
+            "index": 6,
         },
 
         "enable_context_validation": {
             "target": BOOLEAN,
-            "index": 8,
+            "index": 7,
         },
 
         "enable_change_reason_validation": {
             "target": BOOLEAN,
-            "index": 9,
+            "index": 8,
         },
 
     }
@@ -6584,18 +6575,9 @@ CREATE_WORKSPACE_OUTPUT = Schema.collection(
             "index": 11,
         },
 
-        "strict_mode": {
-            "target": BOOLEAN,
-            "index": 12,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
         "metrics": {
             "target": DOCUMENT,
-            "index": 13,
+            "index": 12,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6604,7 +6586,7 @@ CREATE_WORKSPACE_OUTPUT = Schema.collection(
 
         "allow_experiment_self_approval": {
             "target": BOOLEAN,
-            "index": 14,
+            "index": 13,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6613,7 +6595,7 @@ CREATE_WORKSPACE_OUTPUT = Schema.collection(
 
         "auto_populate_control": {
             "target": BOOLEAN,
-            "index": 15,
+            "index": 14,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6622,7 +6604,7 @@ CREATE_WORKSPACE_OUTPUT = Schema.collection(
 
         "enable_context_validation": {
             "target": BOOLEAN,
-            "index": 16,
+            "index": 15,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6631,7 +6613,7 @@ CREATE_WORKSPACE_OUTPUT = Schema.collection(
 
         "enable_change_reason_validation": {
             "target": BOOLEAN,
-            "index": 17,
+            "index": 16,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -13857,18 +13839,9 @@ GET_WORKSPACE_OUTPUT = Schema.collection(
             "index": 11,
         },
 
-        "strict_mode": {
-            "target": BOOLEAN,
-            "index": 12,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
         "metrics": {
             "target": DOCUMENT,
-            "index": 13,
+            "index": 12,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -13877,7 +13850,7 @@ GET_WORKSPACE_OUTPUT = Schema.collection(
 
         "allow_experiment_self_approval": {
             "target": BOOLEAN,
-            "index": 14,
+            "index": 13,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -13886,7 +13859,7 @@ GET_WORKSPACE_OUTPUT = Schema.collection(
 
         "auto_populate_control": {
             "target": BOOLEAN,
-            "index": 15,
+            "index": 14,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -13895,7 +13868,7 @@ GET_WORKSPACE_OUTPUT = Schema.collection(
 
         "enable_context_validation": {
             "target": BOOLEAN,
-            "index": 16,
+            "index": 15,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -13904,7 +13877,7 @@ GET_WORKSPACE_OUTPUT = Schema.collection(
 
         "enable_change_reason_validation": {
             "target": BOOLEAN,
-            "index": 17,
+            "index": 16,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -14832,18 +14805,9 @@ WORKSPACE_RESPONSE = Schema.collection(
             "index": 11,
         },
 
-        "strict_mode": {
-            "target": BOOLEAN,
-            "index": 12,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
         "metrics": {
             "target": DOCUMENT,
-            "index": 13,
+            "index": 12,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -14852,7 +14816,7 @@ WORKSPACE_RESPONSE = Schema.collection(
 
         "allow_experiment_self_approval": {
             "target": BOOLEAN,
-            "index": 14,
+            "index": 13,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -14861,7 +14825,7 @@ WORKSPACE_RESPONSE = Schema.collection(
 
         "auto_populate_control": {
             "target": BOOLEAN,
-            "index": 15,
+            "index": 14,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -14870,7 +14834,7 @@ WORKSPACE_RESPONSE = Schema.collection(
 
         "enable_context_validation": {
             "target": BOOLEAN,
-            "index": 16,
+            "index": 15,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -14879,7 +14843,7 @@ WORKSPACE_RESPONSE = Schema.collection(
 
         "enable_change_reason_validation": {
             "target": BOOLEAN,
-            "index": 17,
+            "index": 16,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -15097,18 +15061,9 @@ MIGRATE_WORKSPACE_SCHEMA_OUTPUT = Schema.collection(
             "index": 11,
         },
 
-        "strict_mode": {
-            "target": BOOLEAN,
-            "index": 12,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
         "metrics": {
             "target": DOCUMENT,
-            "index": 13,
+            "index": 12,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -15117,7 +15072,7 @@ MIGRATE_WORKSPACE_SCHEMA_OUTPUT = Schema.collection(
 
         "allow_experiment_self_approval": {
             "target": BOOLEAN,
-            "index": 14,
+            "index": 13,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -15126,7 +15081,7 @@ MIGRATE_WORKSPACE_SCHEMA_OUTPUT = Schema.collection(
 
         "auto_populate_control": {
             "target": BOOLEAN,
-            "index": 15,
+            "index": 14,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -15135,7 +15090,7 @@ MIGRATE_WORKSPACE_SCHEMA_OUTPUT = Schema.collection(
 
         "enable_context_validation": {
             "target": BOOLEAN,
-            "index": 16,
+            "index": 15,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -15144,7 +15099,7 @@ MIGRATE_WORKSPACE_SCHEMA_OUTPUT = Schema.collection(
 
         "enable_change_reason_validation": {
             "target": BOOLEAN,
-            "index": 17,
+            "index": 16,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -16102,18 +16057,9 @@ UPDATE_WORKSPACE_OUTPUT = Schema.collection(
             "index": 11,
         },
 
-        "strict_mode": {
-            "target": BOOLEAN,
-            "index": 12,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
         "metrics": {
             "target": DOCUMENT,
-            "index": 13,
+            "index": 12,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -16122,7 +16068,7 @@ UPDATE_WORKSPACE_OUTPUT = Schema.collection(
 
         "allow_experiment_self_approval": {
             "target": BOOLEAN,
-            "index": 14,
+            "index": 13,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -16131,7 +16077,7 @@ UPDATE_WORKSPACE_OUTPUT = Schema.collection(
 
         "auto_populate_control": {
             "target": BOOLEAN,
-            "index": 15,
+            "index": 14,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -16140,7 +16086,7 @@ UPDATE_WORKSPACE_OUTPUT = Schema.collection(
 
         "enable_context_validation": {
             "target": BOOLEAN,
-            "index": 16,
+            "index": 15,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -16149,7 +16095,7 @@ UPDATE_WORKSPACE_OUTPUT = Schema.collection(
 
         "enable_change_reason_validation": {
             "target": BOOLEAN,
-            "index": 17,
+            "index": 16,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 

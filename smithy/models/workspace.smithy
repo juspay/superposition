@@ -19,7 +19,6 @@ resource Workspace {
         last_modified_at: DateTime
         created_at: DateTime
         mandatory_dimensions: ListMandatoryDimensions
-        strict_mode: Boolean
         metrics: Document
         allow_experiment_self_approval: Boolean
         auto_populate_control: Boolean
@@ -52,9 +51,6 @@ structure CreateWorkspaceRequest for Workspace with [OrganisationMixin] {
     $workspace_name
 
     $workspace_status
-
-    @required
-    $strict_mode
 
     $metrics
 
@@ -133,9 +129,6 @@ structure WorkspaceResponse for Workspace {
     $created_at
 
     $mandatory_dimensions
-
-    @required
-    $strict_mode
 
     @required
     $metrics

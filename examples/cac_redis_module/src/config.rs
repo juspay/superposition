@@ -1,5 +1,7 @@
-use serde_json::{json, Map, Value};
 use std::collections::{HashMap, HashSet};
+
+use serde_json::{json, Map, Value};
+use superposition_types::logic;
 
 // Define the structures locally instead of using superposition_types
 #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
@@ -54,7 +56,8 @@ impl Config {
                 }
             }
             if !filtered_override.is_empty() {
-                filtered_overrides.insert(override_key.clone(), Overrides(filtered_override));
+                filtered_overrides
+                    .insert(override_key.clone(), Overrides(filtered_override));
             }
         }
 
@@ -122,6 +125,7 @@ pub fn eval_config(
     Ok(result_config)
 }
 
+#[allow(dead_code)]
 pub fn eval_config_with_reasoning(
     default_config: Map<String, Value>,
     contexts: &[Context],
@@ -220,13 +224,8 @@ fn get_overrides(
         }
     };
 
-    let query_data_value = Value::Object(query_data.clone());
-
     for context in contexts {
-        if let Ok(Value::Bool(true)) = jsonlogic::apply(
-            &Value::Object(context.condition.clone().into()),
-            &query_data_value,
-        ) {
+        if logic::apply(&context.condition, query_data) {
             for override_key in &context.override_with_keys {
                 if let Some(overriden_value) = overrides.get(override_key) {
                     match merge_strategy {

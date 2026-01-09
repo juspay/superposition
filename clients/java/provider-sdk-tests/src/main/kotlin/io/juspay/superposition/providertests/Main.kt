@@ -57,7 +57,6 @@ class Main {
             .workspaceName(workspaceName)
             .workspaceAdminEmail("test@tests.com")
             .workspaceStatus(WorkspaceStatus.ENABLED)
-            .strictMode(true)
             .allowExperimentSelfApproval(true)
             .autoPopulateControl(false) // disable auto populate control for testing experiment
             .enableContextValidation(true)

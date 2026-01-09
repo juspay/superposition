@@ -151,7 +151,6 @@ pub fn workspace() -> impl IntoView {
             Column::default("workspace_admin_email".to_string()),
             Column::default("config_version".to_string()),
             Column::default("mandatory_dimensions".to_string()),
-            Column::default("strict_mode".to_string()),
             Column::default("created_by".to_string()),
             Column::default_with_cell_formatter("created_at".to_string(), |value, _| {
                 view! {

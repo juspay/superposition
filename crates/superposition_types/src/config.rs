@@ -6,8 +6,6 @@ use std::collections::{HashMap, HashSet};
 use derive_more::{AsRef, Deref, DerefMut, Into};
 #[cfg(feature = "diesel_derives")]
 use diesel::{deserialize::FromSqlRow, expression::AsExpression, sql_types::Json};
-#[cfg(feature = "jsonlogic")]
-use jsonlogic::validation as logic_validation;
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{Map, Value};
 #[cfg(feature = "diesel_derives")]
@@ -150,40 +148,7 @@ uniffi::custom_type!(Condition, HashMap<String, String>, {
     }
 });
 
-#[cfg(feature = "jsonlogic")]
-static CAC_CONDITION_VALIDATION_CONFIG: logic_validation::ValidationConfig =
-    logic_validation::ValidationConfig {
-        require_and_wrapper: Some(logic_validation::RequireAndWrapper {
-            allow_empty: false,
-        }),
-    };
-
-#[cfg(feature = "jsonlogic")]
-static EXP_CONDITION_VALIDATION_CONFIG: logic_validation::ValidationConfig =
-    logic_validation::ValidationConfig {
-        require_and_wrapper: Some(logic_validation::RequireAndWrapper {
-            allow_empty: true,
-        }),
-    };
-
 impl Condition {
-    #[cfg(feature = "jsonlogic")]
-    fn validate_data_for_cac(condition_map: Map<String, Value>) -> Result<Self, String> {
-        let condition_val = serde_json::json!(condition_map);
-        logic_validation::validate(&condition_val, &CAC_CONDITION_VALIDATION_CONFIG)
-            .map_err(|err| {
-                let msg = format!("Condition validation error: {}", err.message);
-                log::error!("{}", msg);
-                msg
-            })?;
-        jsonlogic::expression::Expression::from_json(&condition_val).map_err(|msg| {
-            log::error!("Condition validation error: {}", msg);
-            msg
-        })?;
-        Ok(Self(condition_map))
-    }
-
-    #[cfg(not(feature = "jsonlogic"))]
     fn validate_data_for_cac(condition_map: Map<String, Value>) -> Result<Self, String> {
         if condition_map.is_empty() {
             log::error!("Condition validation error: Context is empty");
@@ -192,38 +157,6 @@ impl Condition {
         Ok(Self(condition_map))
     }
 
-    #[cfg(feature = "jsonlogic")]
-    fn validate_data_for_exp(condition_map: Map<String, Value>) -> Result<Self, String> {
-        let condition_val = serde_json::json!(condition_map);
-        logic_validation::validate(&condition_val, &EXP_CONDITION_VALIDATION_CONFIG)
-            .map_err(|err| {
-                let msg = format!("Condition validation error: {}", err.message);
-                log::error!("{}", msg);
-                msg
-            })?;
-
-        let ast = jsonlogic::expression::Expression::from_json(&condition_val).map_err(
-            |msg| {
-                log::error!("Condition validation error: {}", msg);
-                msg
-            },
-        )?;
-
-        let dimensions = ast.get_variable_names().map_err(|msg| {
-            log::error!("Error while parsing variable names : {}", msg);
-            msg
-        })?;
-        if dimensions.contains("variantIds") {
-            log::error!("experiment's context should not contain variantIds dimension");
-            return Err(
-                "experiment's context should not contain variantIds dimension"
-                    .to_string(),
-            );
-        }
-        Ok(Self(condition_map))
-    }
-
-    #[cfg(not(feature = "jsonlogic"))]
     fn validate_data_for_exp(condition_map: Map<String, Value>) -> Result<Self, String> {
         if condition_map.contains_key("variantIds") {
             return Err(
@@ -234,18 +167,6 @@ impl Condition {
         Ok(Self(condition_map))
     }
 
-    #[cfg(feature = "jsonlogic")]
-    pub fn contains(&self, other_condition: &Condition) -> Result<bool, String> {
-        let condition1 = Value::Object(self.0.clone());
-        let condition1 = jsonlogic::expression::Expression::from_json(&condition1)?
-            .get_variable_names_and_values()?;
-        let condition2 = Value::Object(other_condition.0.clone());
-        let condition2 = jsonlogic::expression::Expression::from_json(&condition2)?
-            .get_variable_names_and_values()?;
-        Ok(condition1.is_superset(&condition2))
-    }
-
-    #[cfg(not(feature = "jsonlogic"))]
     pub fn contains(&self, other_condition: &Condition) -> Result<bool, String> {
         for (key, value) in &other_condition.0 {
             if let Some(val) = self.0.get(key) {

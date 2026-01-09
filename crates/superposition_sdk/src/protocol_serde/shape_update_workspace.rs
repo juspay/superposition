@@ -178,11 +178,6 @@ pub(crate) fn de_update_workspace(value: &[u8], mut builder: crate::operation::u
                             ).transpose()?
                         );
                     }
-                    "strict_mode" => {
-                        builder = builder.set_strict_mode(
-                            ::aws_smithy_json::deserialize::token::expect_bool_or_null(tokens.next())?
-                        );
-                    }
                     "workspace_admin_email" => {
                         builder = builder.set_workspace_admin_email(
                             ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|

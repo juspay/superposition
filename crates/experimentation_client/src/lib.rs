@@ -11,7 +11,7 @@ use std::{
 use chrono::{DateTime, TimeZone, Utc};
 use derive_more::{Deref, DerefMut};
 use reqwest::StatusCode;
-use serde_json::Value;
+use serde_json::{Map, Value};
 use superposition_types::{
     api::experiments::ExperimentListFilters,
     custom_query::{CommaSeparatedQParams, PaginationParams, QueryParam},
@@ -113,7 +113,7 @@ impl Client {
     pub async fn get_applicable_variant(
         &self,
         dimensions_info: &HashMap<String, DimensionInfo>,
-        context: &Value,
+        context: &Map<String, Value>,
         identifier: &str,
         prefix: Option<Vec<String>>,
     ) -> Result<Vec<String>, String> {
@@ -125,10 +125,7 @@ impl Client {
             .map(|(_, exp_group)| exp_group.clone())
             .collect::<Vec<_>>();
 
-        let context = Value::Object(evaluate_local_cohorts(
-            dimensions_info,
-            &context.as_object().cloned().unwrap_or_default(),
-        ));
+        let context = evaluate_local_cohorts(dimensions_info, context);
 
         let buckets =
             get_applicable_buckets_from_group(&experiment_groups, &context, identifier);
@@ -137,7 +134,7 @@ impl Client {
             .get_satisfied_experiments(&context, prefix)
             .await?
             .into_iter()
-            .map(|exp| (exp.id.clone(), exp.clone()))
+            .map(|exp| (exp.id.clone(), exp))
             .collect::<HashMap<_, _>>();
 
         let applicable_variants =
@@ -148,7 +145,7 @@ impl Client {
 
     pub async fn get_satisfied_experiments(
         &self,
-        context: &Value,
+        context: &Map<String, Value>,
         prefix: Option<Vec<String>>,
     ) -> Result<Experiments, String> {
         let running_experiments = self
@@ -156,22 +153,7 @@ impl Client {
             .read()
             .await
             .iter()
-            .filter(|(_, exp)| {
-                cfg_if::cfg_if! {
-                    if #[cfg(feature = "jsonlogic")] {
-                        exp.context.is_empty()
-                            || jsonlogic::apply(
-                                &Value::Object(exp.context.clone().into()),
-                                context,
-                            ) == Ok(Value::Bool(true))
-                    } else {
-                        superposition_types::apply(
-                            &exp.context,
-                            &context.as_object().cloned().unwrap_or_default(),
-                        )
-                    }
-                }
-            })
+            .filter(|(_, exp)| superposition_types::apply(&exp.context, context))
             .map(|(_, exp)| exp.clone())
             .collect::<Experiments>();
 
@@ -187,7 +169,7 @@ impl Client {
 
     pub async fn get_filtered_satisfied_experiments(
         &self,
-        context: &Value,
+        context: &Map<String, Value>,
         prefix: Option<Vec<String>>,
     ) -> Result<Experiments, String> {
         let experiments = self.experiments.read().await;
@@ -198,28 +180,8 @@ impl Client {
                 if exp.context.is_empty() {
                     Some(exp.clone())
                 } else {
-                    cfg_if::cfg_if! {
-                        if #[cfg(feature = "jsonlogic")] {
-                            match jsonlogic::partial_apply(
-                                &Value::Object(exp.context.clone().into()),
-                                context,
-                            ) {
-                                Ok(jsonlogic::PartialApplyOutcome::Resolved(Value::Bool(
-                                    true,
-                                )))
-                                | Ok(jsonlogic::PartialApplyOutcome::Ambiguous) => {
-                                    Some(exp.clone())
-                                }
-                                _ => None,
-                            }
-                        } else {
-                            superposition_types::partial_apply(
-                                &exp.context,
-                                &context.as_object().cloned().unwrap_or_default(),
-                            )
-                            .then(|| exp.clone())
-                        }
-                    }
+                    superposition_types::partial_apply(&exp.context, context)
+                        .then(|| exp.clone())
                 }
             })
             .collect::<Vec<_>>();
@@ -277,7 +239,7 @@ impl Client {
 
 pub fn get_applicable_buckets_from_group(
     experiment_groups: &[ExperimentGroup],
-    context: &Value,
+    context: &Map<String, Value>,
     identifier: &str,
 ) -> Vec<(usize, Bucket)> {
     if identifier.is_empty() {
@@ -294,20 +256,8 @@ pub fn get_applicable_buckets_from_group(
                 exp_group.id,
                 hashed_percentage
             );
-            let exp_context = &exp_group.context;
 
-            cfg_if::cfg_if! {
-                if #[cfg(feature = "jsonlogic")] {
-                    let valid_context = exp_context.is_empty()
-                        || jsonlogic::apply(&Value::Object(exp_context.clone().into()), context)
-                            == Ok(Value::Bool(true));
-                } else {
-                    let valid_context = superposition_types::apply(
-                        exp_context,
-                        &context.as_object().cloned().unwrap_or_default(),
-                    );
-                }
-            }
+            let valid_context = superposition_types::apply(&exp_group.context, context);
 
             let res =
                 valid_context && *exp_group.traffic_percentage >= hashed_percentage as u8;
@@ -324,7 +274,8 @@ pub fn get_applicable_buckets_from_group(
                     Some((hashed_percentage, b))
                 } else if *exp_group.traffic_percentage > 0 {
                     Some((
-                        (hashed_percentage * 100) / *exp_group.traffic_percentage as usize,
+                        (hashed_percentage * 100)
+                            / *exp_group.traffic_percentage as usize,
                         b,
                     ))
                 } else {
@@ -337,27 +288,14 @@ pub fn get_applicable_buckets_from_group(
 
 pub fn get_applicable_variants_from_group_response(
     experiments: &HashMap<String, ExperimentResponse>,
-    context: &Value,
+    context: &Map<String, Value>,
     bucket_response: &[(usize, Bucket)],
 ) -> Vec<String> {
     bucket_response
         .iter()
         .filter_map(|(toss, bucket)| {
             experiments.get(&bucket.experiment_id).and_then(|exp| {
-                cfg_if::cfg_if! {
-                    if #[cfg(feature = "jsonlogic")] {
-                        let valid_context = exp.context.is_empty()
-                            || jsonlogic::apply(
-                                &Value::Object(exp.context.clone().into()),
-                                context,
-                            ) == Ok(Value::Bool(true));
-                    } else {
-                        let valid_context = superposition_types::apply(
-                            &exp.context,
-                            &context.as_object().cloned().unwrap_or_default(),
-                        );
-                    }
-                }
+                let valid_context = superposition_types::apply(&exp.context, context);
 
                 let res = valid_context
                     && (*exp.traffic_percentage as usize * exp.variants.len()) >= *toss;
