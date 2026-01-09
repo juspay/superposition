@@ -1,5 +1,6 @@
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use service_utils::service::types::SchemaName;
+use superposition_macros::validation_error;
 use superposition_types::{
     database::{
         models::cac::{Function, FunctionCode, FunctionType},
@@ -24,6 +25,7 @@ pub fn fetch_function(
 pub fn get_published_function_code(
     conn: &mut DBConnection,
     f_name: &str,
+    f_type: FunctionType,
     schema_name: &SchemaName,
 ) -> superposition::Result<FunctionInfo> {
     let function = functions
@@ -31,12 +33,21 @@ pub fn get_published_function_code(
         .select(FunctionInfo::as_select())
         .schema_name(schema_name)
         .first(conn)?;
+
+    if function.function_type != f_type {
+        return Err(validation_error!(
+            "Function type mismatch for function: {}",
+            f_name
+        ));
+    }
+
     Ok(function)
 }
 
 pub fn get_published_functions_by_names(
     conn: &mut DBConnection,
     function_names: Vec<String>,
+    f_type: FunctionType,
     schema_name: &SchemaName,
 ) -> superposition::Result<Vec<FunctionInfo>> {
     let functions_data = functions
@@ -44,6 +55,12 @@ pub fn get_published_functions_by_names(
         .select(FunctionInfo::as_select())
         .schema_name(schema_name)
         .load::<FunctionInfo>(conn)?;
+
+    functions_data.iter().try_for_each(|f| {
+        (f.function_type == f_type).then_some(()).ok_or_else(|| {
+            validation_error!("Function type mismatch for function: {}", f.function_name)
+        })
+    })?;
 
     Ok(functions_data)
 }
