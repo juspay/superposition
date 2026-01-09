@@ -9,10 +9,7 @@ use actix_web::{
     HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
 };
 use chrono::{DateTime, Timelike, Utc};
-use diesel::{
-    dsl::max, BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl,
-    SelectableHelper,
-};
+use diesel::{dsl::max, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use itertools::Itertools;
 use serde_json::{json, Map, Value};
 #[cfg(feature = "jsonlogic")]
@@ -50,7 +47,6 @@ use superposition_types::{
             cac::{ConfigVersion, ConfigVersionListItem},
         },
         schema::{config_versions::dsl as config_versions, event_log::dsl as event_log},
-        superposition_schema::superposition::workspaces,
     },
     result as superposition,
 };
@@ -66,6 +62,7 @@ use crate::{
     helpers::{generate_cac, generate_detailed_cac, get_config_from_redis},
 =======
 use crate::api::{
+    config::helpers::get_config_version,
     context::{self, helpers::query_description},
     dimension::fetch_dimensions_info_map,
 >>>>>>> 269cf29d (feat: introduce writeback methods for redis)
@@ -91,67 +88,6 @@ pub fn endpoints() -> Scope {
         .service(reduce_handler)
         .service(list_version_handler)
         .service(get_version_handler)
-}
-
-fn get_config_version_from_workspace(
-    workspace_context: &WorkspaceContext,
-    conn: &mut DBConnection,
-) -> Option<i64> {
-    match workspaces::dsl::workspaces
-        .select(workspaces::config_version)
-        .filter(
-            workspaces::organisation_id
-                .eq(&workspace_context.organisation_id.0)
-                .and(workspaces::workspace_name.eq(&workspace_context.workspace_id.0)),
-        )
-        .get_result::<Option<i64>>(conn)
-    {
-        Ok(version) => version,
-        Err(e) => {
-            log::error!(
-                "Failed to get config_version for org_id: {}, workspace_name: {} — {:?}",
-                workspace_context.organisation_id.0,
-                workspace_context.workspace_id.0,
-                e
-            );
-            None
-        }
-    }
-}
-
-fn get_config_version_from_db(
-    conn: &mut DBConnection,
-    schema_name: &SchemaName,
-) -> Result<i64, diesel::result::Error> {
-    config_versions::config_versions
-        .select(config_versions::id)
-        .order_by(config_versions::created_at.desc())
-        .schema_name(schema_name)
-        .first::<i64>(conn)
-}
-
-fn get_config_version(
-    version: &Option<String>,
-    workspace_context: &WorkspaceContext,
-    conn: &mut DBConnection,
-) -> superposition::Result<i64> {
-    match version.as_ref() {
-        Some(v) if *v != *"latest" => v.parse::<i64>().map_or_else(
-            |e| {
-                log::error!("failed to decode version as integer: {v}, error: {e}");
-                Err(bad_argument!("version is not of type integer"))
-            },
-            Ok,
-        ),
-        _ => match get_config_version_from_workspace(workspace_context, conn) {
-            Some(v) => Ok(v),
-            None => get_config_version_from_db(conn, &workspace_context.schema_name)
-                .map_err(|e| {
-                    log::error!("failed to fetch latest config version from db: {e}");
-                    db_error!(e)
-                }),
-        },
-    }
 }
 
 pub fn fetch_audit_id(

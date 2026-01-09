@@ -35,7 +35,8 @@ use superposition_types::{
         models::{
             ChangeReason,
             experimentation::{
-                Experiment, ExperimentStatusType, GroupType, Variant, VariantType,
+                Experiment, ExperimentGroup, ExperimentStatusType, GroupType, Variant,
+                VariantType,
             },
         },
         schema::experiments::dsl as experiments,
