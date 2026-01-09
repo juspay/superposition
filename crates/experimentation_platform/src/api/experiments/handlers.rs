@@ -14,8 +14,8 @@ use actix_web::{
 use chrono::{DateTime, Utc};
 use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
-    BoolExpressionMethods, Connection, ExpressionMethods, PgConnection, QueryDsl,
-    RunQueryDsl, SelectableHelper, TextExpressionMethods,
+    Connection, ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl, SelectableHelper,
+    TextExpressionMethods,
 };
 use experimentation_client::{
     get_applicable_buckets_from_group, get_applicable_variants_from_group_response,
@@ -69,10 +69,7 @@ use superposition_types::{
             others::WebhookEvent,
             ChangeReason,
         },
-        schema::{
-            event_log::dsl as event_log, experiment_groups::dsl as experiment_groups,
-            experiments::dsl as experiments,
-        },
+        schema::{event_log::dsl as event_log, experiments::dsl as experiments},
     },
     logic::evaluate_local_cohorts,
     result as superposition, Cac, Condition, Config, Contextual, DBConnection, Exp,
@@ -86,8 +83,9 @@ use crate::api::{
     },
     experiments::{
         helpers::{
-            fetch_and_validate_change_reason_with_function, fetch_webhook_by_event,
-            get_workspace, put_experiments_in_redis, validate_control_overrides,
+            fetch_and_validate_change_reason_with_function, fetch_experiment_groups,
+            fetch_experiments, fetch_webhook_by_event, get_workspace,
+            put_experiments_in_redis, validate_control_overrides,
             validate_delete_experiment_variants,
         },
         types::StartedByChangeSet,
@@ -921,41 +919,32 @@ pub async fn discard(
 }
 
 pub async fn get_applicable_variants_helper(
-    db_conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    experiments: &Vec<Experiment>,
+    experiment_groups: &Vec<ExperimentGroup>,
     context: Map<String, Value>,
     config: &Config,
     identifier: String,
-    workspace_request: &WorkspaceContext,
 ) -> superposition::Result<(Vec<String>, HashMap<String, ExperimentResponse>)> {
-    use superposition_types::database::schema::experiments::dsl;
-
-    let experiment_groups = experiment_groups::experiment_groups
-        .schema_name(&workspace_request.schema_name)
-        .load::<ExperimentGroup>(db_conn)?;
-
     let context = Value::Object(evaluate_local_cohorts(&config.dimensions, &context));
 
     let buckets =
-        get_applicable_buckets_from_group(&experiment_groups, &context, &identifier);
+        get_applicable_buckets_from_group(experiment_groups, &context, &identifier);
 
     let exp_ids = buckets
         .iter()
         .filter_map(|(_, bucket)| bucket.experiment_id.parse::<i64>().ok())
         .collect::<HashSet<_>>();
 
-    let exps = dsl::experiments
-        .filter(
-            dsl::id
-                .eq_any(exp_ids)
-                .and(dsl::status.eq(ExperimentStatusType::INPROGRESS)),
-        )
-        .schema_name(&workspace_request.schema_name)
-        .load::<Experiment>(db_conn)?
-        .into_iter()
-        .map(|exp| {
-            let exp_response = ExperimentResponse::from(exp);
-            let id = exp_response.id.clone();
-            (id, exp_response)
+    let exps = experiments
+        .iter()
+        .filter_map(|exp| {
+            if exp_ids.contains(&exp.id) {
+                let exp_response = ExperimentResponse::from(exp.clone());
+                let id = exp_response.id.clone();
+                Some((id, exp_response))
+            } else {
+                None
+            }
         })
         .collect::<HashMap<String, ExperimentResponse>>();
 
@@ -973,13 +962,11 @@ pub async fn get_applicable_variants_helper(
 async fn get_applicable_variants_handler(
     req: HttpRequest,
     state: Data<AppState>,
-    db_conn: DbConnection,
     req_body: Option<Json<ApplicableVariantsRequest>>,
     query_data: Option<Query<ApplicableVariantsQuery>>,
     dimension_params: Option<DimensionQuery<QueryMap>>,
-    workspace_request: WorkspaceContext,
+    workspace_context: WorkspaceContext,
 ) -> superposition::Result<Either<Json<Vec<Variant>>, Json<ListResponse<Variant>>>> {
-    let DbConnection(mut conn) = db_conn;
     let (context, identifier) =
         match (req.method().clone(), query_data, dimension_params, req_body) {
             (
@@ -999,14 +986,16 @@ async fn get_applicable_variants_handler(
                 return Err(bad_argument!("Invalid input for the method"));
             }
         };
+    let experiments = fetch_experiments(&state, &workspace_context).await?;
+    let experiment_groups = fetch_experiment_groups(&state, &workspace_context).await?;
+    let (config, _) = fetch_cac_config(&state, &workspace_context).await?;
 
-    let (config, _) = fetch_cac_config(&state, &workspace_request).await?;
     let (applicable_variants, exps) = get_applicable_variants_helper(
-        &mut conn,
+        &experiments,
+        &experiment_groups,
         context,
         &config,
         identifier,
-        &workspace_request,
     )
     .await?;
 
@@ -1433,6 +1422,16 @@ async fn ramp_handler(
 
     let (_, config_version_id) = fetch_cac_config(&state, &workspace_request).await?;
     let experiment_response = ExperimentResponse::from(updated_experiment);
+
+    if let Err(err) = put_experiments_in_redis(
+        state.redis.clone(),
+        &mut conn,
+        &workspace_request.schema_name,
+    )
+    .await
+    {
+        log::error!("Failed to update redis cache for experiments: {}", err);
+    }
 
     let webhook_event = if matches!(experiment.status, ExperimentStatusType::CREATED) {
         WebhookEvent::ExperimentStarted
