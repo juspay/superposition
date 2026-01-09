@@ -11,7 +11,7 @@ use diesel::{
 use serde_json::Value;
 use service_utils::{
     helpers::{generate_snowflake_id, get_from_env_or_default},
-    service::types::{AppState, DbConnection, SchemaName, WorkspaceContext},
+    service::types::{AppState, DbConnection, WorkspaceContext},
 };
 use superposition_derives::authorized;
 use superposition_macros::{bad_argument, unexpected_error};
@@ -27,7 +27,7 @@ use superposition_types::{
                 Buckets, Experiment, ExperimentGroup, ExperimentGroups,
                 ExperimentStatusType, GroupType,
             },
-            ChangeReason, Workspace,
+            ChangeReason,
         },
         schema::{
             experiment_groups::dsl as experiment_groups, experiments::dsl as experiments,
@@ -67,11 +67,10 @@ pub fn endpoints(scope: Scope) -> Scope {
 #[authorized]
 #[post("")]
 async fn create_handler(
-    workspace_settings: Workspace,
+    workspace_request: WorkspaceContext,
     state: Data<AppState>,
     req: Json<ExpGroupCreateRequest>,
     db_conn: DbConnection,
-    workspace_request: WorkspaceContext,
     user: User,
 ) -> superposition::Result<Json<ExperimentGroup>> {
     let DbConnection(mut conn) = db_conn;
@@ -91,10 +90,9 @@ async fn create_handler(
     };
 
     fetch_and_validate_change_reason_with_function(
-        &workspace_settings,
+        &workspace_request,
         &req.change_reason,
         &state,
-        &workspace_request,
     )
     .await?;
 
@@ -145,16 +143,14 @@ async fn create_handler(
     Ok(Json(new_experiment_group))
 }
 
-#[allow(clippy::too_many_arguments)]
 #[authorized]
 #[patch("/{exp_group_id}")]
 async fn update_handler(
-    workspace_settings: Workspace,
+    workspace_request: WorkspaceContext,
     exp_group_id: web::Path<i64>,
     req: Json<ExpGroupUpdateRequest>,
     db_conn: DbConnection,
     user: User,
-    workspace_request: WorkspaceContext,
     state: Data<AppState>,
 ) -> superposition::Result<Json<ExperimentGroup>> {
     let DbConnection(mut conn) = db_conn;
@@ -172,10 +168,9 @@ async fn update_handler(
     let req = req.into_inner();
 
     fetch_and_validate_change_reason_with_function(
-        &workspace_settings,
+        &workspace_request,
         &req.change_reason,
         &state,
-        &workspace_request,
     )
     .await?;
 
@@ -192,26 +187,23 @@ async fn update_handler(
     Ok(Json(updated_group))
 }
 
-#[allow(clippy::too_many_arguments)]
 #[authorized]
 #[patch("/{exp_group_id}/add-members")]
 async fn add_members_handler(
-    workspace_settings: Workspace,
+    workspace_request: WorkspaceContext,
     exp_group_id: web::Path<i64>,
     req: Json<ExpGroupMemberRequest>,
     db_conn: DbConnection,
     user: User,
-    workspace_request: WorkspaceContext,
     state: Data<AppState>,
 ) -> superposition::Result<Json<ExperimentGroup>> {
     let req = req.into_inner();
     let DbConnection(mut conn) = db_conn;
 
     fetch_and_validate_change_reason_with_function(
-        &workspace_settings,
+        &workspace_request,
         &req.change_reason,
         &state,
-        &workspace_request,
     )
     .await?;
 
@@ -244,27 +236,24 @@ async fn add_members_handler(
     Ok(experiment_group)
 }
 
-#[allow(clippy::too_many_arguments)]
 #[authorized]
 #[patch("/{exp_group_id}/remove-members")]
 async fn remove_members_handler(
-    workspace_settings: Workspace,
+    workspace_request: WorkspaceContext,
     exp_group_id: web::Path<i64>,
     req: Json<ExpGroupMemberRequest>,
     state: Data<AppState>,
     db_conn: DbConnection,
     user: User,
-    workspace_request: WorkspaceContext,
 ) -> superposition::Result<Json<ExperimentGroup>> {
     let req = req.into_inner();
     let DbConnection(mut conn) = db_conn;
     let id = exp_group_id.into_inner();
 
     fetch_and_validate_change_reason_with_function(
-        &workspace_settings,
+        &workspace_request,
         &req.change_reason,
         &state,
-        &workspace_request,
     )
     .await?;
 
@@ -292,15 +281,15 @@ async fn remove_members_handler(
 #[authorized]
 #[get("")]
 async fn list_handler(
+    workspace_request: WorkspaceContext,
     pagination_params: superposition_query::Query<PaginationParams>,
     filters: superposition_query::Query<ExpGroupFilters>,
     db_conn: DbConnection,
-    schema_name: SchemaName,
 ) -> superposition::Result<Json<PaginatedResponse<ExperimentGroup>>> {
     let DbConnection(mut conn) = db_conn;
     let query_builder = |filters: &ExpGroupFilters| {
         let mut builder = experiment_groups::experiment_groups
-            .schema_name(&schema_name)
+            .schema_name(&workspace_request.schema_name)
             .into_boxed();
         if let Some(name) = &filters.name {
             builder = builder.filter(experiment_groups::name.like(format!("%{}%", name)));
@@ -355,14 +344,14 @@ async fn list_handler(
 #[authorized]
 #[get("/{exp_group_id}")]
 async fn get_handler(
+    workspace_request: WorkspaceContext,
     exp_group_id: web::Path<i64>,
     db_conn: DbConnection,
-    schema_name: SchemaName,
 ) -> superposition::Result<Json<ExperimentGroup>> {
     let id = exp_group_id.into_inner();
     let DbConnection(mut conn) = db_conn;
     let result = experiment_groups::experiment_groups
-        .schema_name(&schema_name)
+        .schema_name(&workspace_request.schema_name)
         .filter(experiment_groups::id.eq(id))
         .first::<ExperimentGroup>(&mut conn)?;
     Ok(Json(result))
@@ -371,9 +360,9 @@ async fn get_handler(
 #[authorized]
 #[delete("/{exp_group_id}")]
 async fn delete_handler(
+    workspace_request: WorkspaceContext,
     exp_group_id: web::Path<i64>,
     mut db_conn: DbConnection,
-    schema_name: SchemaName,
     user: User,
 ) -> superposition::Result<Json<ExperimentGroup>> {
     let id = exp_group_id.into_inner();
@@ -385,7 +374,7 @@ async fn delete_handler(
                 experiment_groups::last_modified_at.eq(chrono::Utc::now()),
             ))
             .returning(ExperimentGroup::as_returning())
-            .schema_name(&schema_name)
+            .schema_name(&workspace_request.schema_name)
             .get_result(conn)?;
         if !marked_group.member_experiment_ids.is_empty() {
             return Err(bad_argument!(
@@ -395,7 +384,7 @@ async fn delete_handler(
         }
         diesel::delete(experiment_groups::experiment_groups)
             .filter(experiment_groups::id.eq(&id))
-            .schema_name(&schema_name)
+            .schema_name(&workspace_request.schema_name)
             .execute(conn)?;
         Ok(Json(marked_group))
     })
@@ -405,9 +394,9 @@ async fn delete_handler(
 #[authorized]
 #[post("/backfill")]
 async fn backfill_handler(
+    workspace_request: WorkspaceContext,
     state: Data<AppState>,
     db_conn: DbConnection,
-    schema_name: SchemaName,
 ) -> superposition::Result<Json<Vec<ExperimentGroup>>> {
     log::info!("Backfilling experiment groups");
     let DbConnection(mut conn) = db_conn;
@@ -427,7 +416,7 @@ async fn backfill_handler(
                     ExperimentStatusType::PAUSED,
                 ]))
                 .filter(experiments::experiment_group_id.is_null())
-                .schema_name(&schema_name)
+                .schema_name(&workspace_request.schema_name)
                 .load::<Experiment>(transaction_conn)?;
 
             for experiment in experiments {
@@ -436,7 +425,7 @@ async fn backfill_handler(
                     &experiment.traffic_percentage,
                     &state,
                     transaction_conn,
-                    &schema_name,
+                    &workspace_request.schema_name,
                     &user,
                 )?;
 
@@ -452,7 +441,7 @@ async fn backfill_handler(
                         experiments::experiment_group_id.eq(experiment_group.id),
                     ))
                     .returning(Experiment::as_returning())
-                    .schema_name(&schema_name)
+                    .schema_name(&workspace_request.schema_name)
                     .execute(transaction_conn)?;
 
                 results.push(experiment_group);

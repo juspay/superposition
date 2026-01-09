@@ -33,7 +33,7 @@ use superposition_types::{
                 Experiment, ExperimentStatusType, GroupType, Variant, VariantType,
             },
             others::{Webhook, WebhookEvent},
-            ChangeReason, Workspace,
+            ChangeReason,
         },
         schema::experiments::dsl as experiments,
     },
@@ -853,12 +853,11 @@ pub async fn validate_control_overrides(
 }
 
 pub async fn fetch_and_validate_change_reason_with_function(
-    workspace_settings: &Workspace,
+    workspace_request: &WorkspaceContext,
     change_reason: &ChangeReason,
     state: &Data<AppState>,
-    workspace_request: &WorkspaceContext,
 ) -> superposition::Result<()> {
-    if !workspace_settings.enable_change_reason_validation {
+    if !workspace_request.settings.enable_change_reason_validation {
         return Ok(());
     }
 

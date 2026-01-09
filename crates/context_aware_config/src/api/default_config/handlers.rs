@@ -12,7 +12,9 @@ use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::Value;
 use service_utils::{
     helpers::{parse_config_tags, validation_err_to_str},
-    service::types::{AppHeader, AppState, CustomHeaders, DbConnection, SchemaName},
+    service::types::{
+        AppHeader, AppState, CustomHeaders, DbConnection, SchemaName, WorkspaceContext,
+    },
 };
 use superposition_derives::authorized;
 use superposition_macros::{
@@ -30,7 +32,7 @@ use superposition_types::{
     database::{
         models::{
             cac::{self as models, Context, DefaultConfig},
-            Description, Workspace,
+            Description,
         },
         schema::{self, contexts::dsl::contexts, default_configs::dsl},
     },
@@ -56,16 +58,14 @@ pub fn endpoints() -> Scope {
         .service(delete_handler)
 }
 
-#[allow(clippy::too_many_arguments)]
 #[authorized]
 #[post("")]
 async fn create_handler(
-    workspace_settings: Workspace,
+    workspace_request: WorkspaceContext,
     state: Data<AppState>,
     custom_headers: CustomHeaders,
     request: Json<DefaultConfigCreateRequest>,
     db_conn: DbConnection,
-    schema_name: SchemaName,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
@@ -77,12 +77,7 @@ async fn create_handler(
         return Err(bad_argument!("Schema cannot be empty."));
     }
 
-    validate_change_reason(
-        &workspace_settings,
-        &req.change_reason,
-        &mut conn,
-        &schema_name,
-    )?;
+    validate_change_reason(&workspace_request, &req.change_reason, &mut conn)?;
 
     let value = req.value;
 
@@ -131,13 +126,13 @@ async fn create_handler(
         &default_config.value_validation_function_name,
         &default_config.key,
         &default_config.value,
-        &schema_name,
+        &workspace_request.schema_name,
     )?;
 
     validate_fn_published(
         &default_config.value_compute_function_name,
         &mut conn,
-        &schema_name,
+        &workspace_request.schema_name,
     )?;
 
     let version_id =
@@ -145,7 +140,7 @@ async fn create_handler(
             diesel::insert_into(dsl::default_configs)
                 .values(&default_config)
                 .returning(DefaultConfig::as_returning())
-                .schema_name(&schema_name)
+                .schema_name(&workspace_request.schema_name)
                 .execute(transaction_conn)?;
 
             let version_id = add_config_version(
@@ -153,13 +148,14 @@ async fn create_handler(
                 tags,
                 req.change_reason.into(),
                 transaction_conn,
-                &schema_name,
+                &workspace_request.schema_name,
             )?;
             Ok(version_id)
         })?;
 
     #[cfg(feature = "high-performance-mode")]
-    put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
+    put_config_in_redis(version_id, state, &workspace_request.schema_name, &mut conn)
+        .await?;
     let mut http_resp = HttpResponse::Ok();
 
     http_resp.insert_header((
@@ -173,12 +169,12 @@ async fn create_handler(
 #[authorized]
 #[get("/{key}")]
 async fn get_handler(
+    workspace_request: WorkspaceContext,
     key: Path<DefaultConfigKey>,
-    schema_name: SchemaName,
     db_conn: DbConnection,
 ) -> superposition::Result<Json<DefaultConfig>> {
     let DbConnection(mut conn) = db_conn;
-    let res = fetch_default_key(&key, &mut conn, &schema_name)?;
+    let res = fetch_default_key(&key, &mut conn, &workspace_request.schema_name)?;
     Ok(Json(res))
 }
 
@@ -188,13 +184,12 @@ async fn get_handler(
 #[put("/{key}")]
 #[patch("/{key}")]
 async fn update_handler(
-    workspace_settings: Workspace,
+    workspace_request: WorkspaceContext,
     state: Data<AppState>,
     key: Path<DefaultConfigKey>,
     custom_headers: CustomHeaders,
     request: Json<DefaultConfigUpdateRequest>,
     db_conn: DbConnection,
-    schema_name: SchemaName,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
@@ -202,8 +197,8 @@ async fn update_handler(
     let key_str = key.into_inner().into();
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
-    let existing =
-        fetch_default_key(&key_str, &mut conn, &schema_name).map_err(|e| match e {
+    let existing = fetch_default_key(&key_str, &mut conn, &workspace_request.schema_name)
+        .map_err(|e| match e {
             superposition::AppError::DbError(diesel::NotFound) => {
                 bad_argument!(
                     "No record found for {}. Use create endpoint instead.",
@@ -216,12 +211,7 @@ async fn update_handler(
             }
         })?;
 
-    validate_change_reason(
-        &workspace_settings,
-        &req.change_reason,
-        &mut conn,
-        &schema_name,
-    )?;
+    validate_change_reason(&workspace_request, &req.change_reason, &mut conn)?;
 
     let value = req.value.clone().unwrap_or_else(|| existing.value.clone());
 
@@ -255,12 +245,16 @@ async fn update_handler(
             validation_function_name,
             &key_str,
             &value,
-            &schema_name,
+            &workspace_request.schema_name,
         )?
     }
 
     if let Some(ref value_compute_function_name) = req.value_compute_function_name {
-        validate_fn_published(value_compute_function_name, &mut conn, &schema_name)?;
+        validate_fn_published(
+            value_compute_function_name,
+            &mut conn,
+            &workspace_request.schema_name,
+        )?;
     }
 
     let (db_row, version_id) =
@@ -273,7 +267,7 @@ async fn update_handler(
                     dsl::last_modified_at.eq(Utc::now()),
                     dsl::last_modified_by.eq(user.get_email()),
                 ))
-                .schema_name(&schema_name)
+                .schema_name(&workspace_request.schema_name)
                 .get_result::<DefaultConfig>(transaction_conn)?;
 
             let version_id = add_config_version(
@@ -281,7 +275,7 @@ async fn update_handler(
                 tags.clone(),
                 change_reason.into(),
                 transaction_conn,
-                &schema_name,
+                &workspace_request.schema_name,
             )?;
 
             Ok((val, version_id))
@@ -372,17 +366,19 @@ fn fetch_default_key(
 #[authorized]
 #[get("")]
 async fn list_handler(
+    workspace_request: WorkspaceContext,
     db_conn: DbConnection,
     pagination: Query<PaginationParams>,
     filters: Query<DefaultConfigFilters>,
-    schema_name: SchemaName,
 ) -> superposition::Result<Json<PaginatedResponse<DefaultConfig>>> {
     let DbConnection(mut conn) = db_conn;
 
     let filters = filters.into_inner();
 
     let query_builder = |filters: &DefaultConfigFilters| {
-        let mut builder = dsl::default_configs.schema_name(&schema_name).into_boxed();
+        let mut builder = dsl::default_configs
+            .schema_name(&workspace_request.schema_name)
+            .into_boxed();
         if let Some(ref config_name) = filters.name {
             builder = builder
                 .filter(schema::default_configs::key.like(format!["%{}%", config_name]));
@@ -442,11 +438,11 @@ pub fn get_key_usage_context_ids(
 #[authorized]
 #[delete("/{key}")]
 async fn delete_handler(
+    workspace_request: WorkspaceContext,
     state: Data<AppState>,
     path: Path<DefaultConfigKey>,
     custom_headers: CustomHeaders,
     db_conn: DbConnection,
-    schema_name: SchemaName,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
@@ -455,8 +451,9 @@ async fn delete_handler(
     let key: String = path.into_inner().into();
     let mut version_id = 0;
 
-    let context_ids = get_key_usage_context_ids(&key, &mut conn, &schema_name)
-        .map_err(|_| unexpected_error!("Something went wrong"))?;
+    let context_ids =
+        get_key_usage_context_ids(&key, &mut conn, &workspace_request.schema_name)
+            .map_err(|_| unexpected_error!("Something went wrong"))?;
     if context_ids.is_empty() {
         let resp: Result<HttpResponse, superposition::AppError> =
             conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -466,12 +463,12 @@ async fn delete_handler(
                         dsl::last_modified_at.eq(Utc::now()),
                         dsl::last_modified_by.eq(user.get_email()),
                     ))
-                    .schema_name(&schema_name)
+                    .schema_name(&workspace_request.schema_name)
                     .execute(transaction_conn)?;
 
                 let deleted_row =
                     diesel::delete(dsl::default_configs.filter(dsl::key.eq(&key)))
-                        .schema_name(&schema_name)
+                        .schema_name(&workspace_request.schema_name)
                         .execute(transaction_conn);
                 match deleted_row {
                     Ok(0) => {
@@ -488,7 +485,7 @@ async fn delete_handler(
                             tags,
                             config_version_desc,
                             transaction_conn,
-                            &schema_name,
+                            &workspace_request.schema_name,
                         )?;
                         log::info!(
                             "default config key: {key} deleted by {}",
