@@ -16,7 +16,9 @@ use diesel::{
 use serde_json::{Map, Value};
 use service_utils::{
     helpers::parse_config_tags,
-    service::types::{AppHeader, AppState, CustomHeaders, DbConnection, SchemaName},
+    service::types::{
+        AppHeader, AppState, CustomHeaders, DbConnection, WorkspaceContext,
+    },
 };
 use superposition_derives::authorized;
 use superposition_macros::{bad_argument, db_error, unexpected_error};
@@ -34,7 +36,7 @@ use superposition_types::{
         QueryMap,
     },
     database::{
-        models::{cac::Context, ChangeReason, Description, Workspace},
+        models::{cac::Context, ChangeReason, Description},
         schema::contexts::{self, id},
     },
     result::{self as superposition, AppError},
@@ -70,17 +72,15 @@ pub fn endpoints() -> Scope {
         .service(validate_handler)
 }
 
-#[allow(clippy::too_many_arguments)]
 #[authorized]
 #[put("")]
 async fn create_handler(
-    workspace_settings: Workspace,
+    workspace_request: WorkspaceContext,
     state: Data<AppState>,
     custom_headers: CustomHeaders,
     req: Json<PutRequest>,
     mut db_conn: DbConnection,
     user: User,
-    schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let description = match req.description.clone() {
@@ -90,7 +90,7 @@ async fn create_handler(
             let resp = query_description(
                 Value::Object(req.context.clone().into_inner().into()),
                 &mut db_conn,
-                &schema_name,
+                &workspace_request.schema_name,
             );
             match resp {
                 Err(AppError::DbError(diesel::result::Error::NotFound)) => {
@@ -105,12 +105,7 @@ async fn create_handler(
     };
     let req_change_reason = req.change_reason.clone();
 
-    validate_change_reason(
-        &workspace_settings,
-        &req_change_reason,
-        &mut db_conn,
-        &schema_name,
-    )?;
+    validate_change_reason(&workspace_request, &req_change_reason, &mut db_conn)?;
 
     let (put_response, version_id) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -120,8 +115,7 @@ async fn create_handler(
                 transaction_conn,
                 true,
                 &user,
-                &schema_name,
-                &workspace_settings,
+                &workspace_request,
                 false,
             )
             .map_err(|err: superposition::AppError| {
@@ -134,7 +128,7 @@ async fn create_handler(
                 tags,
                 req_change_reason.into(),
                 transaction_conn,
-                &schema_name,
+                &workspace_request.schema_name,
             )?;
             Ok((put_response, version_id))
         })?;
@@ -155,29 +149,22 @@ async fn create_handler(
     Ok(http_resp.json(put_response))
 }
 
-#[allow(clippy::too_many_arguments)]
 #[authorized]
 #[routes]
 #[put("/overrides")]
 #[patch("/overrides")]
 async fn update_handler(
-    workspace_settings: Workspace,
+    workspace_request: WorkspaceContext,
     state: Data<AppState>,
     custom_headers: CustomHeaders,
     req: Json<UpdateRequest>,
     mut db_conn: DbConnection,
     user: User,
-    schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let req_change_reason = req.change_reason.clone();
 
-    validate_change_reason(
-        &workspace_settings,
-        &req_change_reason,
-        &mut db_conn,
-        &schema_name,
-    )?;
+    validate_change_reason(&workspace_request, &req_change_reason, &mut db_conn)?;
 
     let (override_resp, version_id) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -185,7 +172,7 @@ async fn update_handler(
                 req.into_inner(),
                 transaction_conn,
                 &user,
-                &schema_name,
+                &workspace_request.schema_name,
             )
             .map_err(|err: superposition::AppError| {
                 log::error!("context update failed with error: {:?}", err);
@@ -197,7 +184,7 @@ async fn update_handler(
                 tags,
                 req_change_reason.into(),
                 transaction_conn,
-                &schema_name,
+                &workspace_request.schema_name,
             )?;
             Ok((override_resp, version_id))
         })?;
@@ -217,18 +204,17 @@ async fn update_handler(
     Ok(http_resp.json(override_resp))
 }
 
-#[authorized]
 #[allow(clippy::too_many_arguments)]
+#[authorized]
 #[put("/move/{ctx_id}")]
 async fn move_handler(
-    workspace_settings: Workspace,
+    workspace_request: WorkspaceContext,
     state: Data<AppState>,
     path: Path<String>,
     custom_headers: CustomHeaders,
     req: Json<MoveRequest>,
     mut db_conn: DbConnection,
     user: User,
-    schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
@@ -239,7 +225,7 @@ async fn move_handler(
             let resp = query_description(
                 Value::Object(req.context.clone().into_inner().into()),
                 &mut db_conn,
-                &schema_name,
+                &workspace_request.schema_name,
             );
             match resp {
                 Err(AppError::DbError(diesel::result::Error::NotFound)) => {
@@ -253,12 +239,7 @@ async fn move_handler(
         }
     };
 
-    validate_change_reason(
-        &workspace_settings,
-        &req.change_reason,
-        &mut db_conn,
-        &schema_name,
-    )?;
+    validate_change_reason(&workspace_request, &req.change_reason, &mut db_conn)?;
 
     let (move_response, version_id) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -269,8 +250,7 @@ async fn move_handler(
                 transaction_conn,
                 true,
                 &user,
-                &schema_name,
-                &workspace_settings,
+                &workspace_request,
             )
             .map_err(|err| {
                 log::error!("move api failed with error: {:?}", err);
@@ -281,7 +261,7 @@ async fn move_handler(
                 tags,
                 move_response.change_reason.clone().into(),
                 transaction_conn,
-                &schema_name,
+                &workspace_request.schema_name,
             )?;
 
             Ok((move_response, version_id))
@@ -296,7 +276,8 @@ async fn move_handler(
     #[cfg(feature = "high-performance-mode")]
     {
         let DbConnection(mut conn) = db_conn;
-        put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
+        put_config_in_redis(version_id, state, &workspace_request.schema_name, &mut conn)
+            .await?;
     }
 
     Ok(http_resp.json(move_response))
@@ -305,9 +286,9 @@ async fn move_handler(
 #[authorized]
 #[post("/get")]
 async fn get_from_condition_handler(
+    workspace_request: WorkspaceContext,
     db_conn: DbConnection,
     req: Json<Map<String, Value>>,
-    schema_name: SchemaName,
 ) -> superposition::Result<Json<Context>> {
     use superposition_types::database::schema::contexts::dsl::*;
 
@@ -316,7 +297,7 @@ async fn get_from_condition_handler(
 
     let ctx: Context = contexts
         .filter(id.eq(context_id))
-        .schema_name(&schema_name)
+        .schema_name(&workspace_request.schema_name)
         .get_result::<Context>(&mut conn)?;
 
     Ok(Json(ctx))
@@ -325,9 +306,9 @@ async fn get_from_condition_handler(
 #[authorized]
 #[get("/{ctx_id}")]
 async fn get_handler(
+    workspace_request: WorkspaceContext,
     path: Path<String>,
     db_conn: DbConnection,
-    schema_name: SchemaName,
 ) -> superposition::Result<Json<Context>> {
     use superposition_types::database::schema::contexts::dsl::*;
 
@@ -336,7 +317,7 @@ async fn get_handler(
 
     let ctx: Context = contexts
         .filter(id.eq(ctx_id))
-        .schema_name(&schema_name)
+        .schema_name(&workspace_request.schema_name)
         .get_result::<Context>(&mut conn)?;
 
     Ok(Json(ctx))
@@ -347,11 +328,11 @@ async fn get_handler(
 #[get("/list")]
 #[get("")]
 async fn list_handler(
+    workspace_request: WorkspaceContext,
     filter_params: superposition_query::Query<ContextListFilters>,
     pagination_params: superposition_query::Query<PaginationParams>,
     dimension_params: DimensionQuery<QueryMap>,
     db_conn: DbConnection,
-    schema_name: SchemaName,
 ) -> superposition::Result<Json<PaginatedResponse<Context>>> {
     use superposition_types::database::schema::contexts::dsl::*;
     let DbConnection(mut conn) = db_conn;
@@ -367,7 +348,9 @@ async fn list_handler(
     let dimension_params = dimension_params.into_inner();
 
     let get_base_query = || {
-        let mut builder = contexts.schema_name(&schema_name).into_boxed();
+        let mut builder = contexts
+            .schema_name(&workspace_request.schema_name)
+            .into_boxed();
         if let Some(creators) = filter_params.created_by.clone() {
             builder = builder.filter(created_by.eq_any(creators.0))
         }
@@ -469,11 +452,11 @@ async fn list_handler(
 #[authorized]
 #[delete("/{ctx_id}")]
 async fn delete_handler(
+    workspace_request: WorkspaceContext,
     state: Data<AppState>,
     path: Path<String>,
     custom_headers: CustomHeaders,
     user: User,
-    schema_name: SchemaName,
     mut db_conn: DbConnection,
 ) -> superposition::Result<HttpResponse> {
     use superposition_types::database::schema::contexts::dsl::{
@@ -485,9 +468,14 @@ async fn delete_handler(
         db_conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
             contexts_table
                 .filter(context_id.eq(ctx_id.clone()))
-                .schema_name(&schema_name)
+                .schema_name(&workspace_request.schema_name)
                 .first::<Context>(transaction_conn)?;
-            operations::delete(ctx_id.clone(), &user, transaction_conn, &schema_name)?;
+            operations::delete(
+                ctx_id.clone(),
+                &user,
+                transaction_conn,
+                &workspace_request.schema_name,
+            )?;
             let config_version_desc =
                 Description::try_from(format!("Deleted context by {}", user.username))
                     .map_err(|e| unexpected_error!(e))?;
@@ -496,7 +484,7 @@ async fn delete_handler(
                 tags,
                 config_version_desc,
                 transaction_conn,
-                &schema_name,
+                &workspace_request.schema_name,
             )?;
             Ok(version_id)
         })?;
@@ -504,7 +492,8 @@ async fn delete_handler(
     #[cfg(feature = "high-performance-mode")]
     {
         let DbConnection(mut conn) = db_conn;
-        put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
+        put_config_in_redis(version_id, state, &workspace_request.schema_name, &mut conn)
+            .await?;
     }
 
     Ok(HttpResponse::NoContent()
@@ -515,19 +504,18 @@ async fn delete_handler(
         .finish())
 }
 
-#[allow(clippy::too_many_arguments)]
 #[authorized]
 #[put("/bulk-operations")]
 async fn bulk_operations_handler(
-    workspace_settings: Workspace,
+    workspace_request: WorkspaceContext,
     state: Data<AppState>,
     custom_headers: CustomHeaders,
     req: Either<Json<Vec<ContextAction>>, Json<BulkOperation>>,
     db_conn: DbConnection,
     user: User,
-    schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
     use contexts::dsl::contexts;
+
     let DbConnection(mut conn) = db_conn;
     let mut is_v2 = false;
     let ops = match req {
@@ -554,17 +542,16 @@ async fn bulk_operations_handler(
                             Value::Object(ctx_condition.clone().into());
 
                         validate_change_reason(
-                            &workspace_settings,
+                            &workspace_request,
                             &put_req.change_reason,
                             transaction_conn,
-                            &schema_name,
                         )?;
 
                         let description = if put_req.description.is_none() {
                             query_description(
                                 ctx_condition_value,
                                 transaction_conn,
-                                &schema_name,
+                                &workspace_request.schema_name,
                             )?
                         } else {
                             put_req
@@ -579,8 +566,7 @@ async fn bulk_operations_handler(
                             transaction_conn,
                             true,
                             &user,
-                            &schema_name,
-                            &workspace_settings,
+                            &workspace_request,
                             false,
                         )
                         .map_err(|err| {
@@ -601,7 +587,7 @@ async fn bulk_operations_handler(
                             update_request,
                             transaction_conn,
                             &user,
-                            &schema_name,
+                            &workspace_request.schema_name,
                         )
                         .map_err(|err| {
                             log::error!(
@@ -616,12 +602,12 @@ async fn bulk_operations_handler(
                     ContextAction::Delete(ctx_id) => {
                         let context: Context = contexts
                             .filter(id.eq(&ctx_id))
-                            .schema_name(&schema_name)
+                            .schema_name(&workspace_request.schema_name)
                             .first::<Context>(transaction_conn)?;
 
                         let deleted_row = delete(contexts)
                             .filter(id.eq(&ctx_id))
-                            .schema_name(&schema_name)
+                            .schema_name(&workspace_request.schema_name)
                             .execute(transaction_conn);
 
                         let description = context.description;
@@ -666,7 +652,7 @@ async fn bulk_operations_handler(
                                     move_req.context.clone().into_inner().into(),
                                 ),
                                 transaction_conn,
-                                &schema_name,
+                                &workspace_request.schema_name,
                             )?,
                         };
 
@@ -677,8 +663,7 @@ async fn bulk_operations_handler(
                             transaction_conn,
                             true,
                             &user,
-                            &schema_name,
-                            &workspace_settings,
+                            &workspace_request,
                         )
                         .map_err(|err| {
                             log::error!(
@@ -700,7 +685,7 @@ async fn bulk_operations_handler(
                 Description::try_from_change_reasons(all_change_reasons)
                     .unwrap_or_default(),
                 transaction_conn,
-                &schema_name,
+                &workspace_request.schema_name,
             )?;
             Ok((response, version_id))
         })?;
@@ -725,26 +710,28 @@ async fn bulk_operations_handler(
 #[authorized]
 #[put("/weight/recompute")]
 async fn weight_recompute_handler(
+    workspace_request: WorkspaceContext,
     state: Data<AppState>,
     custom_headers: CustomHeaders,
     db_conn: DbConnection,
-    schema_name: SchemaName,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     use superposition_types::database::schema::contexts::dsl::{
         contexts, last_modified_at, last_modified_by, weight,
     };
+
     let DbConnection(mut conn) = db_conn;
 
     let result: Vec<Context> = contexts
-        .schema_name(&schema_name)
+        .schema_name(&workspace_request.schema_name)
         .load(&mut conn)
         .map_err(|err| {
             log::error!("failed to fetch contexts with error: {}", err);
             unexpected_error!("Something went wrong")
         })?;
 
-    let dimension_info_map = fetch_dimensions_info_map(&mut conn, &schema_name)?;
+    let dimension_info_map =
+        fetch_dimensions_info_map(&mut conn, &workspace_request.schema_name)?;
     let mut response: Vec<WeightRecomputeResponse> = vec![];
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
@@ -786,7 +773,7 @@ async fn weight_recompute_handler(
                         last_modified_at.eq(last_modified_time),
                         last_modified_by.eq(user.get_email())
                     ))
-                    .schema_name(&schema_name)
+                    .schema_name(&workspace_request.schema_name)
                     .returning(Context::as_returning())
                     .execute(transaction_conn).map_err(|err| {
                         log::error!(
@@ -796,7 +783,7 @@ async fn weight_recompute_handler(
                     })?;
             }
             let config_version_desc = Description::try_from("Recomputed weight".to_string()).map_err(|e| unexpected_error!(e))?;
-            let version_id = add_config_version(&state, tags, config_version_desc, transaction_conn, &schema_name)?;
+            let version_id = add_config_version(&state, tags, config_version_desc, transaction_conn, &workspace_request.schema_name)?;
             Ok(version_id)
         })?;
     #[cfg(feature = "high-performance-mode")]
@@ -813,9 +800,8 @@ async fn weight_recompute_handler(
 #[authorized]
 #[post("/validate")]
 async fn validate_handler(
-    workspace_settings: Workspace,
+    workspace_request: WorkspaceContext,
     db_conn: DbConnection,
-    schema_name: SchemaName,
     request: Json<ContextValidationRequest>,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
@@ -823,10 +809,9 @@ async fn validate_handler(
     log::debug!("Context {:?} is being checked for validity", ctx_condition);
     validate_ctx(
         &mut conn,
-        &schema_name,
+        &workspace_request,
         ctx_condition.clone(),
         Overrides::default(),
-        &workspace_settings,
     )?;
     log::debug!("Context {:?} is valid", ctx_condition);
     Ok(HttpResponse::Ok().finish())

@@ -7,16 +7,15 @@ use actix_web::{
 };
 use cac_client::{eval_cac, eval_cac_with_reasoning};
 use chrono::{DateTime, Timelike, Utc};
-use diesel::{dsl::max, BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
+use diesel::{dsl::max, ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::{Map, Value};
 use service_utils::service::types::{AppHeader, SchemaName, WorkspaceContext};
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
     api::config::{ContextPayload, MergeStrategy, ResolveConfigQuery},
     custom_query::{DimensionQuery, QueryMap},
-    database::{
-        schema::{config_versions::dsl as config_versions, event_log::dsl as event_log},
-        superposition_schema::superposition::workspaces,
+    database::schema::{
+        config_versions::dsl as config_versions, event_log::dsl as event_log,
     },
     result as superposition, Config, DBConnection,
 };
@@ -35,39 +34,12 @@ pub fn apply_prefix_filter_to_config(
     Ok(config)
 }
 
-fn get_config_version_from_workspace(
-    workspace_context: &WorkspaceContext,
-    conn: &mut DBConnection,
-) -> Option<i64> {
-    match workspaces::dsl::workspaces
-        .select(workspaces::config_version)
-        .filter(
-            workspaces::organisation_id
-                .eq(&workspace_context.organisation_id.0)
-                .and(workspaces::workspace_name.eq(&workspace_context.workspace_id.0)),
-        )
-        .get_result::<Option<i64>>(conn)
-    {
-        Ok(version) => version,
-        Err(e) => {
-            log::error!(
-                "Failed to get config_version for org_id: {}, workspace_name: {} — {:?}",
-                workspace_context.organisation_id.0,
-                workspace_context.workspace_id.0,
-                e
-            );
-            None
-        }
-    }
-}
-
 pub fn get_config_version(
     version: &Option<String>,
-    workspace_context: &WorkspaceContext,
-    conn: &mut DBConnection,
+    workspace_request: &WorkspaceContext,
 ) -> superposition::Result<Option<i64>> {
     version.as_ref().map_or_else(
-        || Ok(get_config_version_from_workspace(workspace_context, conn)),
+        || Ok(workspace_request.settings.config_version),
         |version| {
             if *version == *"latest" {
                 log::trace!("latest config request");
@@ -235,7 +207,7 @@ pub fn resolve(
     merge_strategy: Header<MergeStrategy>,
     conn: &mut DBConnection,
     query_filters: &ResolveConfigQuery,
-    workspace_context: &WorkspaceContext,
+    workspace_request: &WorkspaceContext,
 ) -> superposition::Result<Map<String, Value>> {
     if let Some(context_id) = &query_filters.context_id {
         config.contexts = if let Some(index) = config
@@ -257,7 +229,7 @@ pub fn resolve(
             &config.dimensions,
             &query_data,
             conn,
-            &workspace_context.schema_name,
+            &workspace_request.schema_name,
         )?);
     }
 

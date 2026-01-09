@@ -473,10 +473,6 @@ where
     }
 }
 
-// TODO: Consider moving this to middleware in such a way that it does not block db connection
-// for the entire request duration. Doing so, will also allow us to validate workspace
-// existence per request,  which is currently not being done.
-// Caveat: Might not be that frequently used to justify the overhead
 pub(crate) fn get_workspace(
     workspace_schema_name: &SchemaName,
     db_conn: &mut DBConnection,

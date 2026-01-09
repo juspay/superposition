@@ -11,6 +11,7 @@ const TEST_ORG_NAME = "testorg";
 const TEST_WORKSPACE = "testworkspace";
 
 async function setupWorkspace() {
+    console.log("Setting up test workspace");
     const listWorkspaceCommand = new ListWorkspaceCommand({
         org_id: ENV.org_id,
     });
@@ -21,6 +22,7 @@ async function setupWorkspace() {
     );
 
     if (!testWorkspace) {
+        console.log("No existing test workspace found. Creating new one.");
         const createWorkspaceCommand = new CreateWorkspaceCommand({
             org_id: ENV.org_id,
             workspace_admin_email: "admin@example.com",
@@ -44,6 +46,7 @@ async function setupWorkspace() {
 }
 
 async function setupOrg() {
+    console.log("Setting up test organisation");
     const listCommand = new ListOrganisationCommand({});
     const response = await superpositionClient.send(listCommand);
     const orgs = response.data;
@@ -51,6 +54,7 @@ async function setupOrg() {
         (org) => org.name?.startsWith(TEST_ORG_NAME) || false
     );
     if (!testOrg) {
+        console.log("No existing test org found. Creating new one.");
         const createCommand = new CreateOrganisationCommand({
             admin_email: "test@gmail.com",
             name: TEST_ORG_NAME,

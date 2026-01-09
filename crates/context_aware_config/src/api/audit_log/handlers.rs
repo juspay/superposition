@@ -1,7 +1,7 @@
 use actix_web::{get, web::Json, Scope};
 use chrono::{Duration, Utc};
 use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
-use service_utils::service::types::{DbConnection, SchemaName};
+use service_utils::service::types::{DbConnection, WorkspaceContext};
 use superposition_derives::authorized;
 use superposition_types::{
     api::audit_log::AuditQueryFilters,
@@ -17,10 +17,10 @@ pub fn endpoints() -> Scope {
 #[authorized]
 #[get("")]
 async fn list_handler(
+    workspace_request: WorkspaceContext,
     filters: superposition_query::Query<AuditQueryFilters>,
     pagination_params: superposition_query::Query<PaginationParams>,
     db_conn: DbConnection,
-    schema_name: SchemaName,
 ) -> superposition::Result<Json<PaginatedResponse<EventLog>>> {
     let now = Utc::now();
     let from_date = filters.from_date.unwrap_or(now - Duration::days(7));
@@ -33,7 +33,9 @@ async fn list_handler(
     let DbConnection(mut conn) = db_conn;
 
     let query_builder = |filters: &AuditQueryFilters| {
-        let mut builder = event_log::event_log.schema_name(&schema_name).into_boxed();
+        let mut builder = event_log::event_log
+            .schema_name(&workspace_request.schema_name)
+            .into_boxed();
         if let Some(tables) = filters.table.clone() {
             builder = builder.filter(event_log::table_name.eq_any(tables.0));
         }

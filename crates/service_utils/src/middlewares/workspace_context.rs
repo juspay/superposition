@@ -15,9 +15,7 @@ use superposition_macros::{bad_argument, unexpected_error};
 use crate::helpers::get_workspace;
 use crate::{
     extensions::HttpRequestExt,
-    service::types::{
-        AppState, OrganisationId, SchemaName, WorkspaceContext, WorkspaceId,
-    },
+    service::types::{AppState, OrganisationId, SchemaName, WorkspaceContext},
 };
 
 pub struct OrgWorkspaceMiddlewareFactory {
@@ -123,10 +121,11 @@ where
                     (true, Some(org_id)) => org_id,
                     (false, _) => OrganisationId::default(),
                 };
+                req.extensions_mut().insert(organisation.clone());
 
                 let workspace = req.request().get_workspace_id();
 
-                let schema_name = match (enable_workspace_id, &workspace) {
+                let schema_name = match (enable_workspace_id, workspace) {
                     (true, None) => {
                         let error: Error = bad_argument!(
                             "The parameter workspace id is required, and must be passed through headers/url params/query params."
@@ -136,7 +135,7 @@ where
                         ));
                     }
                     (true, Some(workspace_id)) => {
-                        let schema = format!("{}_{}", *organisation, **workspace_id);
+                        let schema = format!("{}_{}", *organisation, *workspace_id);
                         let schema_name = SchemaName(schema);
                         let workspace_settings = {
                             let mut db_conn = app_state
@@ -146,23 +145,21 @@ where
 
                             get_workspace(&schema_name, &mut db_conn)?
                         };
-                        req.extensions_mut().insert(workspace_settings);
+
+                        req.extensions_mut().insert(workspace_id.clone());
+                        req.extensions_mut().insert(WorkspaceContext {
+                            organisation_id: organisation,
+                            workspace_id,
+                            schema_name: schema_name.clone(),
+                            settings: workspace_settings,
+                        });
+
                         schema_name
                     }
                     (false, _) => SchemaName::default(),
                 };
 
-                let workspace_id =
-                    workspace.unwrap_or_else(|| WorkspaceId(String::from("test")));
-
-                req.extensions_mut().insert(schema_name.clone());
-                req.extensions_mut().insert(workspace_id.clone());
-                req.extensions_mut().insert(organisation.clone());
-                req.extensions_mut().insert(WorkspaceContext {
-                    organisation_id: organisation,
-                    workspace_id,
-                    schema_name,
-                });
+                req.extensions_mut().insert(schema_name);
             }
 
             let res = srv.call(req).await?.map_into_left_body();

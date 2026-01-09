@@ -1,18 +1,18 @@
 use futures_util::future::LocalBoxFuture;
 use superposition_types::User;
 
-use crate::service::types::{Resource, WorkspaceContext};
+use crate::service::types::{OrganisationId, Resource, SchemaName};
 
 pub trait Authorizer: Sync + Send {
     // fn grant_access_to_admin(
     //     &self,
-    //     workspace_request: &WorkspaceContext,
+    //     workspace_request: &(OrganisationId, SchemaName),
     //     admin_email: &str,
     // ) -> LocalBoxFuture<'_, Result<bool, String>>;
 
     fn is_allowed(
         &self,
-        workspace_context: &WorkspaceContext,
+        workspace_context: &(OrganisationId, SchemaName),
         user: &User,
         resource: &Resource,
         action: &str,
@@ -21,7 +21,7 @@ pub trait Authorizer: Sync + Send {
 
     // async fn get_permitted_attributes(
     //     &self,
-    //     workspace_request: &WorkspaceContext,
+    //     workspace_request: &(OrganisationId, SchemaName),
     //     user: &User,
     //     resource: &ResourceContext,
     //     action: &Action,
@@ -29,7 +29,7 @@ pub trait Authorizer: Sync + Send {
 
     // async fn enforce_with_context(
     //     &self,
-    //     workspace_request: &WorkspaceContext,
+    //     workspace_request: &(OrganisationId, SchemaName),
     //     user: &User,
     //     resource: &ResourceContext,
     //     action: &Action,

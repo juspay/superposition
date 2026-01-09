@@ -16,7 +16,7 @@ use num_bigint::BigUint;
 use serde_json::{json, Map, Value};
 use service_utils::{
     helpers::generate_snowflake_id,
-    service::types::{AppState, SchemaName},
+    service::types::{AppState, SchemaName, WorkspaceContext},
 };
 use superposition_macros::{db_error, unexpected_error, validation_error};
 #[cfg(feature = "high-performance-mode")]
@@ -32,7 +32,7 @@ use superposition_types::{
                 ConfigVersion, DependencyGraph, DimensionType, FunctionCode,
                 FunctionRuntimeVersion, FunctionType,
             },
-            ChangeReason, Description, Workspace,
+            ChangeReason, Description,
         },
         schema::{
             config_versions,
@@ -473,19 +473,18 @@ pub fn evaluate_remote_cohorts(
 }
 
 pub fn validate_change_reason(
-    workspace_settings: &Workspace,
+    workspace_request: &WorkspaceContext,
     change_reason: &ChangeReason,
     conn: &mut DBConnection,
-    schema_name: &SchemaName,
 ) -> superposition::Result<()> {
-    if !workspace_settings.enable_change_reason_validation {
+    if !workspace_request.settings.enable_change_reason_validation {
         return Ok(());
     }
 
     let change_reason_validation_function = get_first_function_by_type(
         FunctionType::ChangeReasonValidation,
         conn,
-        schema_name,
+        &workspace_request.schema_name,
     )?;
     if let (Some(function_code), Some(published_runtime_version)) = (
         change_reason_validation_function.published_code,
@@ -499,7 +498,7 @@ pub fn validate_change_reason(
             },
             published_runtime_version,
             conn,
-            schema_name,
+            &workspace_request.schema_name,
         )?;
     }
     Ok(())

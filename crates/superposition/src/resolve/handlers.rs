@@ -37,12 +37,12 @@ async fn resolve_with_exp_handler(
     dimension_params: DimensionQuery<QueryMap>,
     query_filters: superposition_query::Query<ResolveConfigQuery>,
     identifier_query: superposition_query::Query<IdentifierQuery>,
-    workspace_context: WorkspaceContext,
+    workspace_request: WorkspaceContext,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let query_filters = query_filters.into_inner();
     let identifier_query = identifier_query.into_inner();
-    let max_created_at = get_max_created_at(&mut conn, &workspace_context.schema_name)
+    let max_created_at = get_max_created_at(&mut conn, &workspace_request.schema_name)
         .map_err(|e| log::error!("failed to fetch max timestamp from event_log : {e}"))
         .ok();
 
@@ -52,7 +52,7 @@ async fn resolve_with_exp_handler(
 
     let (is_smithy, mut query_data) = setup_query_data(&req, &body, &dimension_params)?;
     let mut config_version =
-        get_config_version(&query_filters.version, &workspace_context, &mut conn)?;
+        get_config_version(&query_filters.version, &workspace_request)?;
 
     // This is needed as `generate_config_from_version` updates config_version value
     // in case nothing was found either from query params or workspace settings
@@ -62,7 +62,7 @@ async fn resolve_with_exp_handler(
     let mut config = generate_config_from_version(
         &mut config_version,
         &mut conn,
-        &workspace_context.schema_name,
+        &workspace_request.schema_name,
     )?;
 
     if let (None, Some(identifier)) = (config_ver, identifier_query.identifier) {
@@ -72,7 +72,7 @@ async fn resolve_with_exp_handler(
             context_map.clone(),
             &config,
             identifier,
-            &workspace_context,
+            &workspace_request,
         )
         .await?;
         query_data.insert("variantIds".to_string(), applicable_variants.into());
@@ -84,12 +84,12 @@ async fn resolve_with_exp_handler(
         merge_strategy,
         &mut conn,
         &query_filters,
-        &workspace_context,
+        &workspace_request,
     )?;
 
     let mut resp = HttpResponse::Ok();
     add_last_modified_to_header(max_created_at, is_smithy, &mut resp);
-    add_audit_id_to_header(&mut conn, &mut resp, &workspace_context.schema_name);
+    add_audit_id_to_header(&mut conn, &mut resp, &workspace_request.schema_name);
     add_config_version_to_header(&config_version, &mut resp);
     Ok(resp.json(resolved_config))
 }
