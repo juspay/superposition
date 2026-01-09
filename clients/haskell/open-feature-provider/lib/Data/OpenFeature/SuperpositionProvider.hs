@@ -161,11 +161,13 @@ instance FeatureProvider SuperpositionProvider where
   getMetadata _ =  ProviderMetadata "SuperpositionProvider"
   -- TODO
 
-  getStatus SuperpositionProvider{..} = do
-    dc <- readTVarIO _initContext
+  getStatus provider = do
+    dc <- getTaskOutput (configRefreshTask provider)
     pure $ case dc of
         Just _ -> Ready
         _ -> NotReady
+    where
+        getTaskOutput (DynRefreshTask t) = getCurrent t
 
   initialize SuperpositionProvider {..} ec = do
     init <- isJust <$> readTVarIO _initContext
