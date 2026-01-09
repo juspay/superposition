@@ -230,11 +230,55 @@ pub fn get_satisfied_experiments(
                             &Value::Object(context.clone()),
                         ) == Ok(Value::Bool(true))
                 } else {
-                    superposition_types::partial_apply(&exp.context, context)
+                    superposition_types::apply(&exp.context, context)
                 }
             }
         })
         .cloned()
+        .collect();
+
+    if let Some(prefix_list) = filter_prefixes {
+        return Ok(filter_experiments_by_prefix(
+            running_experiments,
+            prefix_list,
+        ));
+    }
+
+    Ok(running_experiments)
+}
+
+pub fn get_filtered_satisfied_experiments(
+    experiments: &Experiments,
+    context: &Map<String, Value>,
+    filter_prefixes: Option<Vec<String>>,
+) -> Result<Experiments, String> {
+    let running_experiments = experiments
+        .iter()
+        .filter_map(|exp| {
+            if exp.context.is_empty() {
+                Some(exp.clone())
+            } else {
+                cfg_if::cfg_if! {
+                    if #[cfg(feature = "jsonlogic")] {
+                        match jsonlogic::partial_apply(
+                            &Value::Object(exp.context.clone().into()),
+                            context,
+                        ) {
+                            Ok(jsonlogic::PartialApplyOutcome::Resolved(Value::Bool(
+                                true,
+                            )))
+                            | Ok(jsonlogic::PartialApplyOutcome::Ambiguous) => {
+                                Some(exp.clone())
+                            }
+                            _ => None,
+                        }
+                    } else {
+                        superposition_types::partial_apply(&exp.context, &context)
+                            .then(|| exp.clone())
+                    }
+                }
+            }
+        })
         .collect();
 
     if let Some(prefix_list) = filter_prefixes {

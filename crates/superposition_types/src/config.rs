@@ -16,7 +16,7 @@ use uniffi::deps::anyhow;
 
 use crate::{
     database::models::cac::{DependencyGraph, DimensionType},
-    logic::evaluate_local_cohorts,
+    logic::evaluate_local_cohorts_skip_unresolved,
     overridden::filter_config_keys_by_prefix,
     Cac, Contextual, Exp, ExtendedMap,
 };
@@ -360,7 +360,8 @@ pub struct Config {
 
 impl Config {
     pub fn filter_by_dimensions(&self, dimension_data: &Map<String, Value>) -> Self {
-        let modified_context = evaluate_local_cohorts(&self.dimensions, dimension_data);
+        let modified_context =
+            evaluate_local_cohorts_skip_unresolved(&self.dimensions, dimension_data);
 
         let filtered_context =
             Context::filter_by_eval(self.contexts.clone(), &modified_context);

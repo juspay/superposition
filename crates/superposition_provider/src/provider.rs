@@ -207,9 +207,31 @@ impl SuperpositionProvider {
                 "Experimentation config not initialized".into(),
             ));
         };
+        let dimensions_info = self.get_dimensions_info().await;
         let (context_map, _) = self.get_context_from_evaluation_context(context);
         exp_client
-            .get_satisfied_experiments(&context_map, filter_prefixes)
+            .get_satisfied_experiments(&dimensions_info, &context_map, filter_prefixes)
+            .await
+    }
+
+    pub async fn get_filtered_satisfied_experiments(
+        &self,
+        context: &EvaluationContext,
+        filter_prefixes: Option<Vec<String>>,
+    ) -> Result<Experiments> {
+        let Some(ref exp_client) = self.exp_client else {
+            return Err(SuperpositionError::ProviderError(
+                "Experimentation config not initialized".into(),
+            ));
+        };
+        let dimensions_info = self.get_dimensions_info().await;
+        let (context_map, _) = self.get_context_from_evaluation_context(context);
+        exp_client
+            .get_filtered_satisfied_experiments(
+                &dimensions_info,
+                &context_map,
+                filter_prefixes,
+            )
             .await
     }
 

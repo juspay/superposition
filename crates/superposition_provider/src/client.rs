@@ -7,6 +7,9 @@ use superposition_core::experiment::ExperimentGroups;
 use superposition_core::{
     eval_config, get_applicable_variants, Experiments, MergeStrategy,
 };
+use superposition_types::logic::{
+    evaluate_local_cohorts, evaluate_local_cohorts_skip_unresolved,
+};
 use superposition_types::{Config, DimensionInfo};
 use tokio::join;
 use tokio::sync::RwLock;
@@ -545,6 +548,7 @@ impl ExperimentationClient {
 
     pub async fn get_satisfied_experiments(
         &self,
+        dimensions_info: &HashMap<String, DimensionInfo>,
         context: &Map<String, Value>,
         filter_prefixes: Option<Vec<String>>,
     ) -> Result<Experiments> {
@@ -558,9 +562,42 @@ impl ExperimentationClient {
             }
         };
 
+        let context = evaluate_local_cohorts(dimensions_info, context);
+
         superposition_core::experiment::get_satisfied_experiments(
             experiments,
-            context,
+            &context,
+            filter_prefixes,
+        )
+        .map_err(|e| {
+            SuperpositionError::ConfigError(format!(
+                "Failed to get satisfied experiments: {}",
+                e
+            ))
+        })
+    }
+
+    pub async fn get_filtered_satisfied_experiments(
+        &self,
+        dimensions_info: &HashMap<String, DimensionInfo>,
+        context: &Map<String, Value>,
+        filter_prefixes: Option<Vec<String>>,
+    ) -> Result<Experiments> {
+        let cached_experiments = self.cached_experiments.read().await;
+        let experiments = match cached_experiments.as_ref() {
+            Some(experiments) => experiments,
+            None => {
+                return Err(SuperpositionError::ConfigError(
+                    "No cached experiments available, please check if the experimentation settings are configured correctly".into(),
+                ))
+            }
+        };
+
+        let context = evaluate_local_cohorts_skip_unresolved(dimensions_info, context);
+
+        superposition_core::experiment::get_filtered_satisfied_experiments(
+            experiments,
+            &context,
             filter_prefixes,
         )
         .map_err(|e| {
