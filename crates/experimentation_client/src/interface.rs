@@ -11,7 +11,10 @@ use std::{
     cell::RefCell,
     ffi::{c_int, CString},
 };
-use superposition_types::DimensionInfo;
+use superposition_types::{
+    logic::{evaluate_local_cohorts, evaluate_local_cohorts_skip_unresolved},
+    DimensionInfo,
+};
 use tokio::{runtime::Runtime, task};
 
 thread_local! {
@@ -216,6 +219,7 @@ pub extern "C" fn expt_get_applicable_variant(
 #[no_mangle]
 pub extern "C" fn expt_get_satisfied_experiments(
     client: *mut Arc<Client>,
+    c_dimensions: *const c_char,
     c_context: *const c_char,
     filter_prefix: *const c_char,
 ) -> *mut c_char {
@@ -224,6 +228,16 @@ pub extern "C" fn expt_get_satisfied_experiments(
 
     let context = unwrap_safe!(
         serde_json::from_str::<Map<String, Value>>(context.as_str()),
+        return std::ptr::null_mut()
+    );
+
+    let dimensions = unwrap_safe!(
+        cstring_to_rstring(c_dimensions),
+        return std::ptr::null_mut()
+    );
+
+    let dimensions = unwrap_safe!(
+        serde_json::from_str::<HashMap<String, DimensionInfo>>(dimensions.as_str()),
         return std::ptr::null_mut()
     );
 
@@ -237,6 +251,8 @@ pub extern "C" fn expt_get_satisfied_experiments(
         let prefix_list = filter_string.split(',').map(String::from).collect();
         Some(prefix_list)
     };
+
+    let context = evaluate_local_cohorts(&dimensions, &context);
 
     let local = task::LocalSet::new();
     local.block_on(&Runtime::new().unwrap(), async move {
@@ -258,6 +274,7 @@ pub extern "C" fn expt_get_satisfied_experiments(
 #[no_mangle]
 pub extern "C" fn expt_get_filtered_satisfied_experiments(
     client: *mut Arc<Client>,
+    c_dimensions: *const c_char,
     c_context: *const c_char,
     filter_prefix: *const c_char,
 ) -> *mut c_char {
@@ -268,6 +285,17 @@ pub extern "C" fn expt_get_filtered_satisfied_experiments(
         serde_json::from_str::<Map<String, Value>>(context.as_str()),
         return std::ptr::null_mut()
     );
+
+    let dimensions = unwrap_safe!(
+        cstring_to_rstring(c_dimensions),
+        return std::ptr::null_mut()
+    );
+
+    let dimensions = unwrap_safe!(
+        serde_json::from_str::<HashMap<String, DimensionInfo>>(dimensions.as_str()),
+        return std::ptr::null_mut()
+    );
+
     let prefix_list = if filter_prefix.is_null() {
         None
     } else {
@@ -280,6 +308,9 @@ pub extern "C" fn expt_get_filtered_satisfied_experiments(
 
         Some(prefix_list).filter(|list| !list.is_empty())
     };
+
+    let context = evaluate_local_cohorts_skip_unresolved(&dimensions, &context);
+
     let local = task::LocalSet::new();
     local.block_on(&Runtime::new().unwrap(), async move {
         unsafe {
