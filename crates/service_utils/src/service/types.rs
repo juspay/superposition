@@ -9,7 +9,7 @@ use std::{
 use actix_web::{error, web::Data, Error, FromRequest, HttpMessage};
 use derive_more::{Deref, DerefMut};
 use diesel::r2d2::{ConnectionManager, PooledConnection};
-use diesel::{Connection, PgConnection};
+use diesel::PgConnection;
 use jsonschema::JSONSchema;
 use serde::{Deserialize, Serialize};
 use snowflake::SnowflakeIdGenerator;
@@ -49,8 +49,7 @@ pub struct AppState {
     pub tenant_middleware_exclusion_list: HashSet<String>,
     pub service_prefix: String,
     pub superposition_token: String,
-    #[cfg(feature = "high-performance-mode")]
-    pub redis: fred::clients::RedisPool,
+    pub redis: Option<fred::clients::RedisPool>,
     pub http_client: reqwest::Client,
     pub encrypted_keys: HashMap<String, String>,
 }
@@ -212,18 +211,12 @@ impl FromRequest for DbConnection {
             }
         };
 
-        let result = match app_state.db_pool.get() {
-            Ok(mut conn) => {
-                conn.set_prepared_statement_cache_size(
-                    diesel::connection::CacheSize::Disabled,
-                );
-                Ok(DbConnection(conn))
-            }
-            Err(e) => {
-                log::info!("Unable to get db connection from pool, error: {e}");
-                Err(error::ErrorInternalServerError(""))
-            }
-        };
+        let result = super::get_db_connection(app_state.db_pool.clone()).map_err(|e| {
+            log::error!("Failed to inject DB connection, error: {}", e);
+            error::ErrorInternalServerError(
+                "A database error occurred, please contact an admin or check logs",
+            )
+        });
 
         ready(result)
     }

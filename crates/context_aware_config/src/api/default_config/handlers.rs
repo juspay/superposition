@@ -37,14 +37,12 @@ use superposition_types::{
     result as superposition, DBConnection, PaginatedResponse, User,
 };
 
-#[cfg(feature = "high-performance-mode")]
-use crate::helpers::put_config_in_redis;
 use crate::{
     api::{
         context::helpers::validation_function_executor,
         functions::{helpers::get_published_function_code, types::FunctionInfo},
     },
-    helpers::{add_config_version, validate_change_reason},
+    helpers::{add_config_version, put_config_in_redis, validate_change_reason},
 };
 
 pub fn endpoints() -> Scope {
@@ -151,8 +149,10 @@ async fn create_handler(
             Ok(version_id)
         })?;
 
-    #[cfg(feature = "high-performance-mode")]
-    put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
+    if let Err(e) = put_config_in_redis(version_id, state, &schema_name, &mut conn).await
+    {
+        log::error!("Failed to update redis cache with new context: {}", e);
+    }
     let mut http_resp = HttpResponse::Ok();
 
     http_resp.insert_header((
@@ -274,8 +274,10 @@ async fn update_handler(
             Ok((val, version_id))
         })?;
 
-    #[cfg(feature = "high-performance-mode")]
-    put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
+    if let Err(e) = put_config_in_redis(version_id, state, &schema_name, &mut conn).await
+    {
+        log::error!("Failed to update redis cache with new context: {}", e);
+    }
 
     let mut http_resp = HttpResponse::Ok();
     http_resp.insert_header((
@@ -496,8 +498,11 @@ async fn delete_handler(
             });
 
         if resp.is_ok() {
-            #[cfg(feature = "high-performance-mode")]
-            put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
+            if let Err(e) =
+                put_config_in_redis(version_id, state, &schema_name, &mut conn).await
+            {
+                log::error!("Failed to update redis cache with new context: {}", e);
+            }
         }
         resp
     } else {

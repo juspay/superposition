@@ -7,12 +7,9 @@ use actix_web::{
     web::Data,
 };
 use bigdecimal::{BigDecimal, Num};
-#[cfg(feature = "high-performance-mode")]
-use chrono::DateTime;
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
-#[cfg(feature = "high-performance-mode")]
-use fred::interfaces::KeysInterface;
+use fred::{interfaces::KeysInterface, types::Expiration};
 use jsonschema::{Draft, JSONSchema};
 use num_bigint::BigUint;
 use serde_json::{json, Map, Value};
@@ -20,8 +17,14 @@ use service_utils::{
     helpers::generate_snowflake_id,
     service::types::{AppState, SchemaName},
 };
+use service_utils::{
+    helpers::get_from_env_or_default,
+    redis::{
+        AUDIT_ID_KEY_SUFFIX, CONFIG_KEY_SUFFIX, CONFIG_VERSION_KEY_SUFFIX,
+        LAST_MODIFIED_KEY_SUFFIX,
+    },
+};
 use superposition_macros::{db_error, unexpected_error, validation_error};
-#[cfg(feature = "high-performance-mode")]
 use superposition_types::database::schema::event_log::dsl as event_log;
 use superposition_types::{
     api::functions::{
@@ -47,8 +50,6 @@ use superposition_types::{
     result as superposition, Cac, Condition, Config, Context, DBConnection,
     DimensionInfo, OverrideWithKeys, Overrides,
 };
-
-#[cfg(feature = "high-performance-mode")]
 use uuid::Uuid;
 
 use crate::{
@@ -267,45 +268,75 @@ pub fn get_workspace(
     Ok(workspace)
 }
 
-#[cfg(feature = "high-performance-mode")]
 pub async fn put_config_in_redis(
     version_id: i64,
     state: Data<AppState>,
     schema_name: &SchemaName,
     db_conn: &mut DBConnection,
 ) -> superposition::Result<()> {
+    // Only perform Redis operations if Redis is configured
+    let redis_pool = match &state.redis {
+        Some(pool) => pool,
+        None => {
+            log::debug!("Redis not configured, skipping cache update");
+            return Ok(());
+        }
+    };
+    let key_ttl: i64 = get_from_env_or_default("REDIS_KEY_TTL", 604800);
+    let expiration = Some(Expiration::EX(key_ttl));
     let raw_config = generate_cac(db_conn, schema_name)?;
     let parsed_config = serde_json::to_string(&json!(raw_config)).map_err(|e| {
         log::error!("failed to convert cac config to string: {}", e);
         unexpected_error!("could not convert cac config to string")
     })?;
-    let config_key = format!("{}::cac_config", **schema_name);
-    let last_modified_at_key = format!("{}::cac_config::last_modified_at", **schema_name);
-    let audit_id_key = format!("{}::cac_config::audit_id", **schema_name);
-    let config_version_key = format!("{}::cac_config::config_version", **schema_name);
+    let config_key = format!("{}::{}{CONFIG_KEY_SUFFIX}", **schema_name, version_id);
+    let last_modified_at_key = format!("{}{LAST_MODIFIED_KEY_SUFFIX}", **schema_name);
+    let audit_id_key = format!("{}{AUDIT_ID_KEY_SUFFIX}", **schema_name);
+    let config_version_key = format!("{}{CONFIG_VERSION_KEY_SUFFIX}", **schema_name);
     let last_modified = DateTime::to_rfc2822(&Utc::now());
-    let _ = state
-        .redis
-        .set::<(), String, String>(config_key, parsed_config, None, None, false)
+    let _ = redis_pool
+        .set::<(), String, String>(
+            config_key,
+            parsed_config,
+            expiration.clone(),
+            None,
+            false,
+        )
         .await;
-    let _ = state
-        .redis
-        .set::<(), String, String>(last_modified_at_key, last_modified, None, None, false)
+    let _ = redis_pool
+        .set::<(), String, String>(
+            last_modified_at_key,
+            last_modified,
+            expiration.clone(),
+            None,
+            false,
+        )
         .await;
     if let Ok(uuid) = event_log::event_log
         .select(event_log::id)
         .filter(event_log::table_name.eq("contexts"))
+        .schema_name(schema_name)
         .order_by(event_log::timestamp.desc())
         .first::<Uuid>(db_conn)
     {
-        let _ = state
-            .redis
-            .set::<(), String, String>(audit_id_key, uuid.to_string(), None, None, false)
+        let _ = redis_pool
+            .set::<(), String, String>(
+                audit_id_key,
+                uuid.to_string(),
+                expiration.clone(),
+                None,
+                false,
+            )
             .await;
     }
-    let _ = state
-        .redis
-        .set::<(), String, i64>(config_version_key, version_id, None, None, false)
+    let _ = redis_pool
+        .set::<(), String, i64>(
+            config_version_key,
+            version_id,
+            expiration.clone(),
+            None,
+            false,
+        )
         .await;
     Ok(())
 }

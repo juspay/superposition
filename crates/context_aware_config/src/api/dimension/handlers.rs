@@ -29,7 +29,6 @@ use superposition_types::{
 
 #[cfg(not(feature = "jsonlogic"))]
 use crate::api::dimension::validations::allow_primitive_types;
-#[cfg(feature = "high-performance-mode")]
 use crate::helpers::put_config_in_redis;
 use crate::{
     api::dimension::{
@@ -220,8 +219,10 @@ async fn create_handler(
             }
         })?;
 
-    #[cfg(feature = "high-performance-mode")]
-    put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
+    if let Err(e) = put_config_in_redis(version_id, state, &schema_name, &mut conn).await
+    {
+        log::error!("Failed to update redis cache with new context: {}", e);
+    }
 
     let mut http_resp = HttpResponse::Created();
     http_resp.insert_header((
@@ -423,8 +424,10 @@ async fn update_handler(
             Ok((result, is_mandatory, version_id))
         })?;
 
-    #[cfg(feature = "high-performance-mode")]
-    put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
+    if let Err(e) = put_config_in_redis(version_id, state, &schema_name, &mut conn).await
+    {
+        log::error!("Failed to update redis cache with new context: {}", e);
+    }
 
     let mut http_resp = HttpResponse::Ok();
     http_resp.insert_header((
@@ -591,8 +594,11 @@ async fn delete_handler(
             }
         })?;
 
-        #[cfg(feature = "high-performance-mode")]
-        put_config_in_redis(_version_id, state, &schema_name, &mut conn).await?;
+        if let Err(e) =
+            put_config_in_redis(_version_id, state, &schema_name, &mut conn).await
+        {
+            log::error!("Failed to update redis cache with new context: {}", e);
+        }
         Ok(resp)
     } else {
         Err(bad_argument!(
