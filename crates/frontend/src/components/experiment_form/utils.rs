@@ -67,7 +67,6 @@ pub async fn create_experiment(
     parse_json_response(response).await
 }
 
-#[allow(clippy::too_many_arguments)]
 pub fn try_update_payload(
     variants: Vec<VariantFormT>,
     metrics: Option<Metrics>,

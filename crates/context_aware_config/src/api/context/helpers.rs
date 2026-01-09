@@ -7,7 +7,7 @@ use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use serde_json::{Map, Value};
 #[cfg(feature = "jsonlogic")]
 use service_utils::helpers::{extract_dimensions, get_variable_name_and_value};
-use service_utils::service::types::SchemaName;
+use service_utils::service::types::{SchemaName, WorkspaceContext};
 #[cfg(feature = "jsonlogic")]
 use superposition_macros::bad_argument;
 use superposition_macros::{unexpected_error, validation_error};
@@ -33,8 +33,7 @@ use superposition_types::{
 
 use crate::api::functions::helpers::get_first_function_by_type;
 use crate::{
-    api::dimension::fetch_dimensions_info_map,
-    helpers::{calculate_context_weight, get_workspace},
+    api::dimension::fetch_dimensions_info_map, helpers::calculate_context_weight,
 };
 use crate::{
     api::functions::{helpers::get_published_functions_by_names, types::FunctionInfo},
@@ -372,23 +371,31 @@ pub fn create_ctx_from_put_req(
     req_description: Description,
     conn: &mut DBConnection,
     user: &User,
-    schema_name: &SchemaName,
+    workspace_request: &WorkspaceContext,
 ) -> superposition::Result<Context> {
     let ctx_condition = req.context.to_owned().into_inner();
     let condition_val = Value::Object(ctx_condition.clone().into());
     let r_override = req.r#override.clone().into_inner();
     let ctx_override = Value::Object(r_override.clone().into());
 
-    let dimension_data_map =
-        validate_ctx(conn, schema_name, ctx_condition.clone(), r_override.clone())?;
+    let dimension_data_map = validate_ctx(
+        conn,
+        workspace_request,
+        ctx_condition.clone(),
+        r_override.clone(),
+    )?;
     let change_reason = req.change_reason.clone();
 
-    validate_override_with_default_configs(conn, &r_override, schema_name)?;
+    validate_override_with_default_configs(
+        conn,
+        &r_override,
+        &workspace_request.schema_name,
+    )?;
     validate_override_with_functions(
         conn,
         &r_override,
         &ctx_condition.clone(),
-        schema_name,
+        &workspace_request.schema_name,
     )?;
 
     let weight = calculate_context_weight(&condition_val, &dimension_data_map)
@@ -487,15 +494,13 @@ pub fn update_override_of_existing_ctx(
 
 pub fn validate_ctx(
     conn: &mut DBConnection,
-    schema_name: &SchemaName,
+    workspace_request: &WorkspaceContext,
     condition: Condition,
     override_: Overrides,
 ) -> superposition::Result<HashMap<String, DimensionInfo>> {
-    let workspace_settings = get_workspace(schema_name, conn)?;
-
     cfg_if::cfg_if! {
         if #[cfg(feature = "jsonlogic")] {
-            validate_condition_with_strict_mode(&condition, workspace_settings.strict_mode)?;
+            validate_condition_with_strict_mode(&condition, workspace_request.settings.strict_mode)?;
 
             let context_map = &extract_dimensions(&condition)?;
             let condition_val = Value::Object(condition.clone().into());
@@ -507,10 +512,15 @@ pub fn validate_ctx(
 
     validate_condition_with_mandatory_dimensions(
         context_map,
-        &workspace_settings.mandatory_dimensions.unwrap_or_default(),
+        workspace_request
+            .settings
+            .mandatory_dimensions
+            .as_ref()
+            .unwrap_or(&vec![]),
     )?;
 
-    let dimension_info_map = fetch_dimensions_info_map(conn, schema_name)?;
+    let dimension_info_map =
+        fetch_dimensions_info_map(conn, &workspace_request.schema_name)?;
     validate_condition_with_dependent_dimensions(&dimension_info_map, context_map)?;
     validate_dimensions(
         #[cfg(feature = "jsonlogic")]
@@ -522,8 +532,8 @@ pub fn validate_ctx(
         conn,
         context_map,
         &override_,
-        workspace_settings.enable_context_validation,
-        schema_name,
+        workspace_request.settings.enable_context_validation,
+        &workspace_request.schema_name,
     )?;
     Ok(dimension_info_map)
 }

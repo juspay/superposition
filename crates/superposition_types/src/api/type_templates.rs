@@ -1,6 +1,10 @@
 use derive_more::{AsRef, Deref, DerefMut, Into};
+#[cfg(feature = "diesel_derives")]
+use diesel::AsChangeset;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "diesel_derives")]
+use crate::database::schema::type_templates;
 use crate::{
     database::models::{ChangeReason, Description},
     ExtendedMap, RegexEnum,
@@ -15,6 +19,8 @@ pub struct TypeTemplateCreateRequest {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
+#[cfg_attr(feature = "diesel_derives", derive(AsChangeset))]
+#[cfg_attr(feature = "diesel_derives", diesel(table_name = type_templates))]
 pub struct TypeTemplateUpdateRequest {
     pub type_schema: ExtendedMap,
     pub description: Option<Description>,

@@ -36,15 +36,15 @@ pub fn apply_prefix_filter_to_config(
 }
 
 fn get_config_version_from_workspace(
-    workspace_context: &WorkspaceContext,
+    workspace_request: &WorkspaceContext,
     conn: &mut DBConnection,
 ) -> Option<i64> {
     match workspaces::dsl::workspaces
         .select(workspaces::config_version)
         .filter(
             workspaces::organisation_id
-                .eq(&workspace_context.organisation_id.0)
-                .and(workspaces::workspace_name.eq(&workspace_context.workspace_id.0)),
+                .eq(&workspace_request.organisation_id.0)
+                .and(workspaces::workspace_name.eq(&workspace_request.workspace_id.0)),
         )
         .get_result::<Option<i64>>(conn)
     {
@@ -52,8 +52,8 @@ fn get_config_version_from_workspace(
         Err(e) => {
             log::error!(
                 "Failed to get config_version for org_id: {}, workspace_name: {} — {:?}",
-                workspace_context.organisation_id.0,
-                workspace_context.workspace_id.0,
+                workspace_request.organisation_id.0,
+                workspace_request.workspace_id.0,
                 e
             );
             None
@@ -63,11 +63,11 @@ fn get_config_version_from_workspace(
 
 pub fn get_config_version(
     version: &Option<String>,
-    workspace_context: &WorkspaceContext,
+    workspace_request: &WorkspaceContext,
     conn: &mut DBConnection,
 ) -> superposition::Result<Option<i64>> {
     version.as_ref().map_or_else(
-        || Ok(get_config_version_from_workspace(workspace_context, conn)),
+        || Ok(get_config_version_from_workspace(workspace_request, conn)),
         |version| {
             if *version == *"latest" {
                 log::trace!("latest config request");
@@ -235,7 +235,7 @@ pub fn resolve(
     merge_strategy: Header<MergeStrategy>,
     conn: &mut DBConnection,
     query_filters: &ResolveConfigQuery,
-    workspace_context: &WorkspaceContext,
+    workspace_request: &WorkspaceContext,
 ) -> superposition::Result<Map<String, Value>> {
     if let Some(context_id) = &query_filters.context_id {
         config.contexts = if let Some(index) = config
@@ -257,7 +257,7 @@ pub fn resolve(
             &config.dimensions,
             &query_data,
             conn,
-            &workspace_context.schema_name,
+            &workspace_request.schema_name,
         )?);
     }
 
