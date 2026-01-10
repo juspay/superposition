@@ -19,26 +19,29 @@ use superposition_types::{
 use utils::try_update_payload;
 use web_sys::MouseEvent;
 
-use crate::components::{
-    alert::AlertType,
-    button::{Button, ButtonAnchor},
-    change_form::ChangeForm,
-    change_summary::{ChangeLogPopup, ChangeSummary, JsonChangeSummary},
-    cohort_schema::CohortSchema,
-    dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
-    form::label::Label,
-    input::{Input, InputType},
-    skeleton::{Skeleton, SkeletonVariant},
-};
-use crate::providers::alert_provider::enqueue_alert;
 use crate::providers::editor_provider::EditorProvider;
 use crate::schema::{JsonSchemaType, SchemaType};
-use crate::types::{DimensionTypeOptions, FunctionsName, OrganisationId, Workspace};
+use crate::types::{DimensionTypeOptions, OrganisationId, Workspace};
 use crate::utils::set_function;
 use crate::{
     api::{dimensions, fetch_functions, fetch_types},
     components::cohort_schema::CohortSchemaFormat,
 };
+use crate::{
+    components::{
+        alert::AlertType,
+        button::{Button, ButtonAnchor},
+        change_form::ChangeForm,
+        change_summary::{ChangeLogPopup, ChangeSummary, JsonChangeSummary},
+        cohort_schema::CohortSchema,
+        dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
+        form::label::Label,
+        input::{Input, InputType},
+        skeleton::{Skeleton, SkeletonVariant},
+    },
+    utils::get_fn_names_by_type,
+};
+use crate::{providers::alert_provider::enqueue_alert, types::FunctionName};
 
 enum ResponseType {
     UpdatePrecheck,
@@ -125,11 +128,11 @@ pub fn dimension_form(
         },
     );
 
-    let handle_validation_fn_select = move |selected_function: FunctionsName| {
+    let handle_validation_fn_select = move |selected_function: FunctionName| {
         validation_fn_name_ws.update(|v| set_function(selected_function, v));
     };
 
-    let handle_value_compute_fn_select = move |selected_function: FunctionsName| {
+    let handle_value_compute_fn_select = move |selected_function: FunctionName| {
         value_compute_function_name_ws.update(|v| set_function(selected_function, v));
     };
 
@@ -525,23 +528,16 @@ pub fn dimension_form(
                             let mut functions = combined_resources
                                 .with(|c| c.as_ref().map(|c| c.functions.clone()))
                                 .unwrap_or_default();
-                            let mut validation_function_names: Vec<FunctionsName> = vec![
-                                "None".to_string(),
-                            ];
-                            let mut value_compute_function_names: Vec<FunctionsName> = vec![
-                                "None".to_string(),
-                            ];
                             functions.sort_by(|a, b| a.function_name.cmp(&b.function_name));
-                            functions
-                                .iter()
-                                .for_each(|ele| {
-                                    if ele.function_type == FunctionType::ValueValidation {
-                                        validation_function_names.push(ele.function_name.clone());
-                                    } else {
-                                        value_compute_function_names
-                                            .push(ele.function_name.clone());
-                                    }
-                                });
+                            let validation_function_names = get_fn_names_by_type(
+                                &functions,
+                                FunctionType::ValueValidation,
+                            );
+                            let value_compute_function_names = get_fn_names_by_type(
+                                &functions,
+                                FunctionType::ValueCompute,
+                            );
+
                             view! {
                                 <div class="flex flex-wrap gap-x-10 gap-y-5">
                                     <div class="form-control">
