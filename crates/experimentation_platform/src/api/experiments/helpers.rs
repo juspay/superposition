@@ -9,17 +9,24 @@ use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
     BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
 };
+use fred::{
+    prelude::{KeysInterface, RedisPool},
+    types::Expiration,
+};
 use serde_json::{Map, Value};
 #[cfg(feature = "jsonlogic")]
 use service_utils::helpers::extract_dimensions;
-use service_utils::service::types::{
-    AppState, ExperimentationFlags, SchemaName, WorkspaceContext,
+use service_utils::{
+    helpers::get_from_env_or_default,
+    redis::EXPERIMENTS_LIST_KEY_SUFFIX,
+    service::types::{AppState, ExperimentationFlags, SchemaName, WorkspaceContext},
 };
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
     api::{
         config::{ConfigQuery, ResolveConfigQuery},
         experiment_groups::ExpGroupMemberRequest,
+        experiments::ExperimentResponse,
         functions::{
             FunctionExecutionRequest, FunctionExecutionResponse, Stage,
             CHANGE_REASON_VALIDATION_FN_NAME,
@@ -30,7 +37,8 @@ use superposition_types::{
     database::{
         models::{
             experimentation::{
-                Experiment, ExperimentStatusType, GroupType, Variant, VariantType,
+                Experiment, ExperimentGroup, ExperimentStatusType, GroupType, Variant,
+                VariantType,
             },
             others::{Webhook, WebhookEvent},
             ChangeReason, Workspace,
@@ -38,7 +46,8 @@ use superposition_types::{
         schema::experiments::dsl as experiments,
         superposition_schema::superposition::workspaces,
     },
-    result as superposition, Condition, Config, DBConnection, Exp, Overrides, User,
+    result as superposition, Condition, Config, DBConnection, Exp, Overrides,
+    PaginatedResponse, User,
 };
 
 pub fn get_workspace(
@@ -499,6 +508,123 @@ pub async fn fetch_cac_config(
     }
 }
 
+pub async fn fetch_experiments(
+    state: &Data<AppState>,
+    workspace_request: &WorkspaceContext,
+) -> superposition::Result<Vec<Experiment>> {
+    let http_client = reqwest::Client::new();
+    let url = format!("{}/experiments", state.cac_host);
+    let headers_map = construct_header_map(
+        &workspace_request.workspace_id,
+        &workspace_request.organisation_id,
+        vec![],
+    )?;
+
+    let response = http_client
+        .get(&url)
+        .headers(headers_map.into())
+        .header(
+            header::AUTHORIZATION,
+            format!("Internal {}", state.superposition_token),
+        )
+        .send()
+        .await;
+
+    match response {
+        Ok(res) => {
+            let experiments = res
+                .json::<PaginatedResponse<ExperimentResponse>>()
+                .await
+                .map(|experiments| {
+                    experiments
+                        .data
+                        .iter()
+                        .map(|experiment| Experiment {
+                            id: experiment.id.parse::<i64>().unwrap_or_default(),
+                            created_at: experiment.created_at,
+                            created_by: experiment.created_by.clone(),
+                            last_modified: experiment.last_modified,
+                            name: experiment.name.clone(),
+                            experiment_type: experiment.experiment_type.clone(),
+                            override_keys: experiment.override_keys.clone(),
+                            status: experiment.status.clone(),
+                            traffic_percentage: experiment.traffic_percentage,
+                            started_at: experiment.started_at,
+                            started_by: experiment.started_by.clone(),
+                            context: experiment.context.clone(),
+                            variants: experiment.variants.clone(),
+                            last_modified_by: experiment.last_modified_by.clone(),
+                            chosen_variant: experiment.chosen_variant.clone(),
+                            description: experiment.description.clone(),
+                            change_reason: experiment.change_reason.clone(),
+                            metrics: experiment.metrics.clone(),
+                            experiment_group_id: experiment
+                                .experiment_group_id
+                                .as_ref()
+                                .and_then(|id_str| id_str.parse::<i64>().ok()),
+                        })
+                        .collect::<Vec<Experiment>>()
+                })
+                .map_err(|err| {
+                    log::error!(
+                        "failed to parse experiments response with error: {}",
+                        err
+                    );
+                    unexpected_error!("Failed to parse experiments.")
+                })?;
+            Ok(experiments)
+        }
+        Err(error) => {
+            log::error!("Failed to fetch experiments with error: {:?}", error);
+            Err(unexpected_error!(error))
+        }
+    }
+}
+
+pub async fn fetch_experiment_groups(
+    state: &Data<AppState>,
+    workspace_request: &WorkspaceContext,
+) -> superposition::Result<Vec<ExperimentGroup>> {
+    let http_client = reqwest::Client::new();
+    let url = format!("{}/experiment-groups", state.cac_host);
+    let headers_map = construct_header_map(
+        &workspace_request.workspace_id,
+        &workspace_request.organisation_id,
+        vec![],
+    )?;
+
+    let response = http_client
+        .get(&url)
+        .headers(headers_map.into())
+        .header(
+            header::AUTHORIZATION,
+            format!("Internal {}", state.superposition_token),
+        )
+        .send()
+        .await;
+
+    match response {
+        Ok(res) => {
+            let experiment_groups = res
+                .json::<PaginatedResponse<ExperimentGroup>>()
+                .await
+                .map(|experiment_groups| experiment_groups.data)
+                .map_err(|err| {
+                    log::error!(
+                        "failed to parse experiment groups response with error: {}",
+                        err
+                    );
+                    unexpected_error!("Failed to parse experiment groups.")
+                })?;
+            Ok(experiment_groups)
+        }
+        Err(error) => {
+            log::error!("Failed to fetch experiment groups with error: {:?}", error);
+            Err(unexpected_error!(error))
+        }
+    }
+}
+
 pub async fn fetch_webhook_by_event(
     state: &Data<AppState>,
     user: &User,
@@ -911,4 +1037,52 @@ pub async fn fetch_and_validate_change_reason_with_function(
             Err(unexpected_error!(error))
         }
     }
+}
+
+pub async fn put_experiments_in_redis(
+    redis_pool: Option<RedisPool>,
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> superposition::Result<()> {
+    let pool = match redis_pool {
+        Some(pool) => pool,
+        None => {
+            log::debug!("Redis not configured, skipping experiments cache update");
+            return Ok(());
+        }
+    };
+
+    let active_statuses = ExperimentStatusType::active_list();
+
+    let experiment_list: Vec<Experiment> = experiments::experiments
+        .filter(experiments::status.eq_any(active_statuses))
+        .order(experiments::last_modified.desc())
+        .schema_name(schema_name)
+        .load::<Experiment>(conn)?;
+
+    let experiment_responses: Vec<ExperimentResponse> = experiment_list
+        .into_iter()
+        .map(ExperimentResponse::from)
+        .collect();
+
+    let paginated_response = PaginatedResponse::all(experiment_responses);
+
+    let serialized = serde_json::to_string(&paginated_response).map_err(|e| {
+        log::error!("Failed to serialize experiments for redis: {}", e);
+        unexpected_error!("Failed to serialize experiments for redis: {}", e)
+    })?;
+
+    let key = format!("{}{EXPERIMENTS_LIST_KEY_SUFFIX}", **schema_name);
+    let key_ttl: i64 = get_from_env_or_default("REDIS_KEY_TTL", 604800);
+    let expiration = Some(Expiration::EX(key_ttl));
+    pool.next_connected()
+        .set::<(), String, String>(key, serialized, expiration, None, false)
+        .await
+        .map_err(|e| {
+            log::error!("Failed to write experiments to redis: {}", e);
+            unexpected_error!("Failed to write experiments to redis: {}", e)
+        })?;
+
+    log::debug!("Successfully updated experiments cache in Redis");
+    Ok(())
 }
