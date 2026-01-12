@@ -161,12 +161,6 @@ jobs:
                   make test CI=1
               env:
                   APP_ENV: "TEST"
-            - name: run jsonlogic tests
-              shell: bash
-              run: |
-                  make test_jsonlogic CI=1
-              env:
-                  APP_ENV: "TEST"
 
             - name: save/update cache for future runs
               uses: actions/cache/save@v4

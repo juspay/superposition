@@ -5,8 +5,6 @@ use actix_web::web::Data;
 use reqwest::{Response, StatusCode};
 use serde::de::DeserializeOwned;
 use serde_json::{Map, Value};
-#[cfg(feature = "jsonlogic")]
-use service_utils::helpers::extract_dimensions;
 use service_utils::service::types::{
     AppState, OrganisationId, WorkspaceContext, WorkspaceId,
 };
@@ -144,18 +142,12 @@ pub async fn get_partial_resolve_config(
     context_id: &str,
     workspace_request: &WorkspaceContext,
 ) -> superposition::Result<Map<String, Value>> {
-    cfg_if::cfg_if! {
-        if #[cfg(feature = "jsonlogic")] {
-            let exp_context_dimension_value = extract_dimensions(exp_context)?;
-        } else {
-            let exp_context_dimension_value: Map<String, Value> = exp_context.clone().into();
-        }
-    }
+    let exp_context_dimension_value: &Map<String, Value> = exp_context;
 
     get_resolved_config(
         user,
         state,
-        &DimensionQuery::from(exp_context_dimension_value),
+        &DimensionQuery::from(exp_context_dimension_value.clone()),
         ResolveConfigQuery {
             context_id: Some(context_id.to_string()),
             ..Default::default()

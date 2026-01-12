@@ -3,7 +3,6 @@ const path = require("path");
 module.exports = {
     entry: {
         index: "./dist/index.js",
-        indexJsonlogic: "./dist/indexJsonlogic.js",
     },
     output: {
         path: path.resolve(__dirname),

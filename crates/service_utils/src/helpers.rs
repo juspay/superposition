@@ -17,11 +17,7 @@ use reqwest::{
     StatusCode,
 };
 use serde::Serialize;
-#[cfg(feature = "jsonlogic")]
-use serde_json::Map;
 use serde_json::Value;
-#[cfg(feature = "jsonlogic")]
-use superposition_types::Condition;
 use superposition_types::{
     api::webhook::{HeadersEnum, WebhookEventInfo, WebhookResponse},
     database::models::others::{HttpMethod, Variable, Webhook, WebhookEvent},
@@ -112,75 +108,6 @@ pub fn get_pod_info() -> (String, String) {
         tokens.next().unwrap().to_owned(),
     );
     (pod_id, deployment_id)
-}
-
-#[cfg(feature = "jsonlogic")]
-pub fn extract_dimensions(context: &Condition) -> result::Result<Map<String, Value>> {
-    // Assuming max 2-level nesting in context json logic
-
-    let conditions: Vec<Value> = match (*context).get("and") {
-        Some(conditions_json) => conditions_json
-            .as_array()
-            .ok_or(result::AppError::BadArgument("Error extracting dimensions, failed parsing conditions as an array. Ensure the context provided obeys the rules of JSON logic".into()))?
-            .clone(),
-        None => vec![Value::Object(context.to_owned().into())],
-    };
-
-    let mut dimension_tuples = Vec::new();
-    for condition in &conditions {
-        let condition_obj =
-            condition
-                .as_object()
-                .ok_or(result::AppError::BadArgument(
-                    "Failed to parse condition as an object. Ensure the context provided obeys the rules of JSON logic".to_string()
-                ))?;
-        let operators = condition_obj.keys();
-
-        for operator in operators {
-            let operands = condition_obj[operator].as_array().ok_or(result::AppError::BadArgument(
-                    "Failed to parse operands as an arrays. Ensure the context provided obeys the rules of JSON logic"
-                            .into()
-            ))?;
-
-            let (variable_name, variable_value) = get_variable_name_and_value(operands)?;
-
-            dimension_tuples.push((String::from(variable_name), variable_value.clone()));
-        }
-    }
-
-    Ok(Map::from_iter(dimension_tuples))
-}
-
-#[cfg(feature = "jsonlogic")]
-pub fn get_variable_name_and_value(operands: &[Value]) -> result::Result<(&str, &Value)> {
-    let (obj_pos, variable_obj) = operands
-        .iter()
-        .enumerate()
-        .find(|(_, operand)| {
-            operand.is_object() && operand.as_object().unwrap().get("var").is_some()
-        })
-        .ok_or(result::AppError::BadArgument(
-            "Failed to get variable name from operands list. Ensure the context provided obeys the rules of JSON logic"
-                .into()
-        ))?;
-
-    let variable_name = variable_obj
-        .as_object().and_then(|obj| obj.get("var")).and_then(|value| value.as_str())
-        .ok_or(result::AppError::BadArgument(
-            "Failed to get variable name as string. Ensure the context provided obeys the rules of JSON logic"
-                .into()
-        ))?;
-
-    let value_pos = (obj_pos + 1) % 2;
-    let variable_value =
-        operands
-            .get(value_pos)
-            .ok_or(result::AppError::BadArgument(
-                "Failed to get variable value from operands list. Ensure the context provided obeys the rules of JSON logic"
-                    .into()
-            ))?;
-
-    Ok((variable_name, variable_value))
 }
 
 pub fn validation_err_to_str(errors: Vec<ValidationError>) -> Vec<String> {

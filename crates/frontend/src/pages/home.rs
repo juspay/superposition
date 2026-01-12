@@ -7,7 +7,6 @@ use superposition_types::{
     api::{
         config::{ConfigQuery, ResolveConfigQuery},
         functions::FunctionEnvironment,
-        workspace::WorkspaceResponse,
     },
     custom_query::{DimensionQuery, PaginationParams},
     Config,
@@ -38,7 +37,7 @@ fn gen_name_id(s0: &String, s1: &String, s2: &String) -> String {
 }
 
 #[component]
-fn all_context_view(config: Config, strict_mode: bool) -> impl IntoView {
+fn all_context_view(config: Config) -> impl IntoView {
     let Config {
         contexts,
         overrides,
@@ -106,7 +105,6 @@ fn all_context_view(config: Config, strict_mode: bool) -> impl IntoView {
                                         conditions=conditions
                                         id=context.id.clone()
                                         class="xl:w-[400px] h-fit"
-                                        strict_mode
                                     />
                                     <div class="overflow-auto pt-5">
                                         <table class="table table-zebra">
@@ -153,7 +151,6 @@ fn all_context_view(config: Config, strict_mode: bool) -> impl IntoView {
 pub fn home() -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
-    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let config_data = create_blocking_resource(
         move || (workspace.get().0, org.get().0),
         |(workspace, org)| async move {
@@ -454,12 +451,7 @@ pub fn home() -> impl IntoView {
                                                 match result {
                                                     Some(Ok(config)) => {
                                                         vec![
-                                                            view! {
-                                                                <AllContextView
-                                                                    config=config.clone()
-                                                                    strict_mode=workspace_settings.with_value(|w| w.strict_mode)
-                                                                />
-                                                            }
+                                                            view! { <AllContextView config=config.clone() /> }
                                                                 .into_view(),
                                                         ]
                                                     }

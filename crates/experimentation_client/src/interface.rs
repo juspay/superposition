@@ -6,7 +6,7 @@ use std::{
 
 use crate::{Client, CLIENT_FACTORY};
 use once_cell::sync::Lazy;
-use serde_json::Value;
+use serde_json::{Map, Value};
 use std::{
     cell::RefCell,
     ffi::{c_int, CString},
@@ -188,7 +188,7 @@ pub extern "C" fn expt_get_applicable_variant(
         return std::ptr::null_mut()
     );
     let context = unwrap_safe!(
-        serde_json::from_str::<Value>(context.as_str()),
+        serde_json::from_str::<Map<String, Value>>(context.as_str()),
         return std::ptr::null_mut()
     );
     let prefix_list = if filter_prefix.is_null() {
@@ -223,7 +223,7 @@ pub extern "C" fn expt_get_satisfied_experiments(
         unwrap_safe!(cstring_to_rstring(c_context), return std::ptr::null_mut());
 
     let context = unwrap_safe!(
-        serde_json::from_str::<Value>(context.as_str()),
+        serde_json::from_str::<Map<String, Value>>(context.as_str()),
         return std::ptr::null_mut()
     );
 
@@ -265,7 +265,7 @@ pub extern "C" fn expt_get_filtered_satisfied_experiments(
         unwrap_safe!(cstring_to_rstring(c_context), return std::ptr::null_mut());
 
     let context = unwrap_safe!(
-        serde_json::from_str::<Value>(context.as_str()),
+        serde_json::from_str::<Map<String, Value>>(context.as_str()),
         return std::ptr::null_mut()
     );
     let prefix_list = if filter_prefix.is_null() {

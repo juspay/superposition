@@ -26,13 +26,16 @@
     },
     "raw_json_formatted": {
       "workspace_admin_email": "test@gmail.com",
-      "workspace_name": "test",
-      "strict_mode": true
+      "workspace_name": "test"
     }
   },
   "url": {
     "raw": "{{host}}/workspaces",
-    "host": ["{{host}}"],
-    "path": ["workspaces"]
+    "host": [
+      "{{host}}"
+    ],
+    "path": [
+      "workspaces"
+    ]
   }
 }

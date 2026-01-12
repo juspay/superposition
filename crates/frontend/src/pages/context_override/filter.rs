@@ -5,8 +5,7 @@ use serde_json::{Map, Value};
 use superposition_types::{
     api::{
         context::ContextListFilters, dimension::DimensionResponse,
-        functions::FunctionEnvironment, workspace::WorkspaceResponse,
-        DimensionMatchStrategy,
+        functions::FunctionEnvironment, DimensionMatchStrategy,
     },
     custom_query::{
         CommaSeparatedStringQParams, CustomQuery, DimensionQuery, PaginationParams,
@@ -36,7 +35,6 @@ pub fn context_filter_summary(
     dimension_params_rws: RwSignal<DimensionQuery<QueryMap>>,
     filter_node_ref: NodeRef<html::Div>,
 ) -> impl IntoView {
-    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let force_open_rws = RwSignal::new(true);
     // let force_open_rws = RwSignal::new(scrolled_to_top.get_untracked());
 
@@ -135,7 +133,6 @@ pub fn context_filter_summary(
                                             id=condition_id
                                             grouped_view=false
                                             class="xl:w-[400px] h-fit"
-                                            strict_mode=workspace_settings.with_value(|w| w.strict_mode)
                                         />
                                     </ConditionCollapseProvider>
                                 </div>
@@ -291,7 +288,7 @@ pub fn context_filter_drawer(
                     view! {
                         <div class="w-fit flex items-center gap-2">
                             <Toggle
-                                name="workspace-strict-mode"
+                                name="dimension-match-strategy-toggle"
                                 disabled=dimension_buffer_rws.with(|d| d.is_empty())
                                 value=filters_buffer_rws
                                     .with(|f| {

@@ -78,13 +78,18 @@ describe("Resolve Config API - GetResolvedConfigWithIdentifier", () => {
                     change_reason: "Automated Test - Bucketing default config",
                 });
                 await superpositionClient.send(createDefaultCmd);
-                console.log(`Default config created: ${configKey} = ${defaultValue}`);
+                console.log(
+                    `Default config created: ${configKey} = ${defaultValue}`
+                );
             } catch (e: any) {
                 // If default config already exists (409 conflict), continue
                 const statusCode = e.$response?.statusCode || e.statusCode;
                 const errorMessage = e.$response?.body || e.message || "";
 
-                if (statusCode === 409 || errorMessage.includes("already exists")) {
+                if (
+                    statusCode === 409 ||
+                    errorMessage.includes("already exists")
+                ) {
                     console.log(
                         `Default config ${configKey} already exists, continuing...`
                     );
@@ -99,13 +104,9 @@ describe("Resolve Config API - GetResolvedConfigWithIdentifier", () => {
 
             // 3. Create experiment
             console.log("Creating experiment...");
-            const experimentContext = ENV.jsonlogic_enabled
-                ? {
-                      and: [{ "==": [{ var: dimensionName }, testClientId] }],
-                  }
-                : {
-                      [dimensionName]: testClientId,
-                  };
+            const experimentContext = {
+                [dimensionName]: testClientId,
+            };
 
             const experimentVariants: Omit<
                 Variant,
@@ -175,7 +176,9 @@ describe("Resolve Config API - GetResolvedConfigWithIdentifier", () => {
                     id: experimentId,
                     change_reason: "Discarding experiment after bucketing test",
                 });
-                const out: ExperimentResponse = await superpositionClient.send(cmd);
+                const out: ExperimentResponse = await superpositionClient.send(
+                    cmd
+                );
                 expect(out).toBeDefined();
                 expect(out.id).toBe(experimentId);
                 expect(out.status).toBe(ExperimentStatusType.DISCARDED);
@@ -221,7 +224,10 @@ describe("Resolve Config API - GetResolvedConfigWithIdentifier", () => {
                 console.log("Dimension deleted");
             }
         } catch (e: any) {
-            console.error("Error in afterAll cleanup:", e?.$response || e.message);
+            console.error(
+                "Error in afterAll cleanup:",
+                e?.$response || e.message
+            );
         }
     });
 
@@ -256,7 +262,7 @@ describe("Resolve Config API - GetResolvedConfigWithIdentifier", () => {
             expect(out.config).toBeDefined();
             expect(out.config).toHaveProperty(configKey);
 
-            const receivedValue = (out.config as any)[configKey] as string;            
+            const receivedValue = (out.config as any)[configKey] as string;
             console.log(`Received value for ${configKey}: ${receivedValue}`);
 
             // Based on bucketing, we should get either default or experimental value
@@ -268,13 +274,18 @@ describe("Resolve Config API - GetResolvedConfigWithIdentifier", () => {
             if (isExperimentalValue) {
                 console.log("✓ Identifier bucketed into EXPERIMENTAL variant");
             } else {
-                console.log("✓ Identifier bucketed into CONTROL variant (default value)");
+                console.log(
+                    "✓ Identifier bucketed into CONTROL variant (default value)"
+                );
             }
 
             // Store version for next test
             configVersionId = out.version;
         } catch (e: any) {
-            console.error("Error in bucketing test:", e?.$response || e.message);
+            console.error(
+                "Error in bucketing test:",
+                e?.$response || e.message
+            );
             throw e;
         }
     });

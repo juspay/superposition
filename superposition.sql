@@ -141,3 +141,5 @@ END $$;
 ALTER TABLE superposition.workspaces
 ADD COLUMN IF NOT EXISTS enable_context_validation BOOLEAN DEFAULT FALSE,
 ADD COLUMN IF NOT EXISTS enable_change_reason_validation BOOLEAN DEFAULT FALSE;
+
+ALTER TABLE superposition.workspaces DROP COLUMN IF EXISTS strict_mode;

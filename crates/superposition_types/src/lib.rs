@@ -392,54 +392,12 @@ mod tests {
 
     #[test]
     fn fail_test_deserialize_condition() {
-        #[cfg(feature = "jsonlogic")]
-        let request_condition_map: Map<String, Value> = Map::from_iter(vec![(
-            "and".to_string(),
-            json!([
-                {
-                ".": [
-                    {
-                        "var": "clientId"
-                    },
-                    "meesho"
-                ]
-                }
-            ]),
-        )]);
-
-        #[cfg(feature = "jsonlogic")]
-        let exp_condition_map: Map<String, Value> = Map::from_iter(vec![(
-            "and".to_string(),
-            json!([
-                {
-                "in": [
-                    "variant-id",
-                    {
-                        "var": "variantIds"
-                    }
-                ]
-                }
-            ]),
-        )]);
-
-        #[cfg(not(feature = "jsonlogic"))]
         let exp_condition_map: Map<String, Value> =
             Map::from_iter(vec![("variantIds".to_string(), json!("variant-id"))]);
-
-        #[cfg(feature = "jsonlogic")]
-        let fail_condition = serde_json::from_str::<Cac<Condition>>(
-            &json!(request_condition_map).to_string(),
-        )
-        .map_err(|_| "Invalid operation".to_owned());
 
         let fail_exp_condition = Exp::<Condition>::try_from(exp_condition_map.clone())
             .map(|a| a.into_inner())
             .map_err(|_| "variantIds should not be present".to_owned());
-
-        #[cfg(feature = "jsonlogic")]
-        assert!(json!(fail_condition)
-            .to_string()
-            .contains("Invalid operation"));
 
         assert!(json!(fail_exp_condition)
             .to_string()

@@ -28,8 +28,6 @@ pub struct UpdateWorkspaceOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub mandatory_dimensions: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     #[allow(missing_docs)] // documentation missing in model
-    pub strict_mode: bool,
-    #[allow(missing_docs)] // documentation missing in model
     pub metrics: ::aws_smithy_types::Document,
     #[allow(missing_docs)] // documentation missing in model
     pub allow_experiment_self_approval: bool,
@@ -93,10 +91,6 @@ impl  UpdateWorkspaceOutput  {
         .unwrap_or_default()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn strict_mode(&self) -> bool {
-        self.strict_mode
-    }
-    #[allow(missing_docs)] // documentation missing in model
     pub fn metrics(&self) -> &::aws_smithy_types::Document {
         &self.metrics
     }
@@ -140,7 +134,6 @@ pub struct UpdateWorkspaceOutputBuilder {
     pub(crate) last_modified_at: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) created_at: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) mandatory_dimensions: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
-    pub(crate) strict_mode: ::std::option::Option<bool>,
     pub(crate) metrics: ::std::option::Option<::aws_smithy_types::Document>,
     pub(crate) allow_experiment_self_approval: ::std::option::Option<bool>,
     pub(crate) auto_populate_control: ::std::option::Option<bool>,
@@ -321,20 +314,6 @@ impl UpdateWorkspaceOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn strict_mode(mut self, input: bool) -> Self {
-        self.strict_mode = ::std::option::Option::Some(input);
-        self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_strict_mode(mut self, input: ::std::option::Option<bool>) -> Self {
-        self.strict_mode = input; self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_strict_mode(&self) -> &::std::option::Option<bool> {
-        &self.strict_mode
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    /// This field is required.
     pub fn metrics(mut self, input: ::aws_smithy_types::Document) -> Self {
         self.metrics = ::std::option::Option::Some(input);
         self
@@ -415,7 +394,6 @@ impl UpdateWorkspaceOutputBuilder {
     /// - [`last_modified_by`](crate::operation::update_workspace::builders::UpdateWorkspaceOutputBuilder::last_modified_by)
     /// - [`last_modified_at`](crate::operation::update_workspace::builders::UpdateWorkspaceOutputBuilder::last_modified_at)
     /// - [`created_at`](crate::operation::update_workspace::builders::UpdateWorkspaceOutputBuilder::created_at)
-    /// - [`strict_mode`](crate::operation::update_workspace::builders::UpdateWorkspaceOutputBuilder::strict_mode)
     /// - [`metrics`](crate::operation::update_workspace::builders::UpdateWorkspaceOutputBuilder::metrics)
     /// - [`allow_experiment_self_approval`](crate::operation::update_workspace::builders::UpdateWorkspaceOutputBuilder::allow_experiment_self_approval)
     /// - [`auto_populate_control`](crate::operation::update_workspace::builders::UpdateWorkspaceOutputBuilder::auto_populate_control)
@@ -477,11 +455,6 @@ impl UpdateWorkspaceOutputBuilder {
                     )?
                 ,
                 mandatory_dimensions: self.mandatory_dimensions
-                ,
-                strict_mode: self.strict_mode
-                    .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("strict_mode", "strict_mode was not specified but it is required when building UpdateWorkspaceOutput")
-                    )?
                 ,
                 metrics: self.metrics
                     .ok_or_else(||

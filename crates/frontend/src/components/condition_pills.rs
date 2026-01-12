@@ -33,7 +33,6 @@ pub fn condition_expression(
     #[prop(into)] id: String,
     #[prop(into)] list_id: String,
     condition: Condition,
-    strict_mode: bool,
 ) -> impl IntoView {
     let id = store_value(id);
     let condition = store_value(condition);
@@ -62,13 +61,8 @@ pub fn condition_expression(
                 .with_value(|v| {
                     (
                         v.variable.clone(),
-                        Operator::from(v),
-                        v
-                            .expression
-                            .to_constants_vec()
-                            .iter()
-                            .map(|c| c.html_display())
-                            .collect::<Vec<_>>(),
+                        Operator::from(&v.expression),
+                        v.expression.to_value().html_display(),
                     )
                 });
             view! {
@@ -81,40 +75,11 @@ pub fn condition_expression(
                         }
                     }
                 >
-
                     <span class="font-medium context_condition text-gray-500">{dimension}</span>
                     <span class="font-medium text-gray-650 context_condition">
-                        {if strict_mode {
-                            operator.strict_mode_display()
-                        } else {
-                            operator.to_string()
-                        }}
+                        {operator.to_string()}
                     </span>
-
-                    {match condition.get_value().expression {
-                        #[cfg(feature = "jsonlogic")]
-                        crate::logic::Expression::Between(c1, c2) => {
-                            view! {
-                                <>
-                                    <span class="font-semibold context_condition">
-                                        {c1.html_display()}
-                                    </span>
-                                    <span class="font-medium text-gray-650 context_condition">
-                                        {"and"}
-                                    </span>
-                                    <span class="font-semibold context_condition">
-                                        {c2.html_display()}
-                                    </span>
-                                </>
-                            }
-                                .into_view()
-                        }
-                        _ => {
-                            let rendered_value = operands.join(", ");
-                            view! { <span class=value_class>{rendered_value}</span> }.into_view()
-                        }
-                    }}
-
+                    <span class=value_class>{operands}</span>
                 </li>
             }
         }}
@@ -127,7 +92,6 @@ pub fn condition(
     #[prop(into)] conditions: Conditions,
     #[prop(into, default=String::new())] class: String,
     #[prop(default = true)] grouped_view: bool,
-    strict_mode: bool,
 ) -> impl IntoView {
     let conditions = store_value(conditions);
 
@@ -152,7 +116,6 @@ pub fn condition(
                                 condition=condition.clone()
                                 id=item_id
                                 list_id=id.clone()
-                                strict_mode
                             />
                         }
                     })

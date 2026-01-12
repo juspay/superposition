@@ -27,7 +27,6 @@ use superposition_types::{
     result as superposition, PaginatedResponse, User,
 };
 
-#[cfg(not(feature = "jsonlogic"))]
 use crate::api::dimension::validations::allow_primitive_types;
 #[cfg(feature = "high-performance-mode")]
 use crate::helpers::put_config_in_redis;
@@ -90,12 +89,10 @@ async fn create_handler(
 
     match create_req.dimension_type {
         DimensionType::Regular {} => {
-            #[cfg(not(feature = "jsonlogic"))]
             allow_primitive_types(&create_req.schema)?;
             validate_jsonschema(&state.meta_schema, &schema_value)?;
         }
         DimensionType::RemoteCohort(ref cohort_based_on) => {
-            #[cfg(not(feature = "jsonlogic"))]
             allow_primitive_types(&create_req.schema)?;
             validate_jsonschema(&state.meta_schema, &schema_value)?;
             let based_on_dimension = does_dimension_exist_for_cohorting(
@@ -294,7 +291,6 @@ async fn update_handler(
         let schema_value = Value::from(new_schema);
         match dimension_data.dimension_type {
             DimensionType::Regular {} | DimensionType::RemoteCohort(_) => {
-                #[cfg(not(feature = "jsonlogic"))]
                 allow_primitive_types(new_schema)?;
                 validate_jsonschema(&state.meta_schema, &schema_value)?;
             }

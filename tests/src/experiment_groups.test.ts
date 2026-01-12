@@ -107,41 +107,18 @@ describe("Experiment Groups API Integration Tests", () => {
     ];
 
     // Contexts using the ensured dimensions
-    const groupContext: Record<string, DocumentType> = ENV.jsonlogic_enabled
-        ? {
-              and: [
-                  { "==": [{ var: "os" }, "ios"] },
-                  { "==": [{ var: "clientId" }, "clientForExpGroup"] },
-              ],
-          }
-        : {
-              os: "ios",
-              clientId: "clientForExpGroup",
-          };
+    const groupContext: Record<string, DocumentType> = {
+        os: "ios",
+        clientId: "clientForExpGroup",
+    };
     const expValid1Context: Record<string, DocumentType> = { ...groupContext }; // Exact match
-    const expValid2Context: Record<string, DocumentType> = ENV.jsonlogic_enabled
-        ? {
-              and: [
-                  ...(groupContext.and as any[]),
-                  { "==": [{ var: "app_version" }, "2.0.0"] },
-              ],
-          }
-        : { ...groupContext, app_version: "2.0.0" }; // Superset
-    const expInvalidContextConflict: Record<string, DocumentType> =
-        ENV.jsonlogic_enabled
-            ? {
-                  and: [
-                      {
-                          "==": [
-                              { var: "device_specific_id" },
-                              "devSpecificXYZ",
-                          ],
-                      },
-                  ],
-              }
-            : {
-                  device_specific_id: "devSpecificXYZ",
-              };
+    const expValid2Context: Record<string, DocumentType> = {
+        ...groupContext,
+        app_version: "2.0.0",
+    }; // Superset
+    const expInvalidContextConflict: Record<string, DocumentType> = {
+        device_specific_id: "devSpecificXYZ",
+    };
 
     // Variants using the ensured default configs (matching CreateExperimentCommandInput['variants'] structure)
     const defaultVariantInputsForGroupExperiments: CreateExperimentCommandInput["variants"] =
@@ -343,9 +320,7 @@ describe("Experiment Groups API Integration Tests", () => {
         console.log(`Created expValid2Id: ${expValid2Id}`);
 
         const expInvalidProgName = uniqueName("exp-invalid-prog");
-        const context: Record<string, DocumentType> = ENV.jsonlogic_enabled
-            ? { and: [{ "==": [{ var: "os" }, "android"] }] } // Use an ensured dimension
-            : { os: "android" };
+        const context: Record<string, DocumentType> = { os: "android" };
         const createExp3Input: CreateExperimentCommandInput = {
             // Context for this one can be simple as status is the key
             workspace_id: ENV.workspace_id,

@@ -12,7 +12,6 @@ use superposition_types::{
     api::{
         dimension::DimensionResponse,
         experiment_groups::{ExpGroupFilters, SortOn},
-        workspace::WorkspaceResponse,
     },
     custom_query::{CustomQuery, PaginationParams, Query},
     database::models::experimentation::ExperimentGroup,
@@ -65,7 +64,6 @@ pub struct RowData {
 }
 
 fn table_columns(filters_rws: RwSignal<ExpGroupFilters>) -> Vec<Column> {
-    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let current_filters = filters_rws.get();
     let current_sort_on = current_filters.sort_on.unwrap_or_default();
     let current_sort_by = current_filters.sort_by.unwrap_or_default();
@@ -155,7 +153,7 @@ fn table_columns(filters_rws: RwSignal<ExpGroupFilters>) -> Vec<Column> {
                     Conditions::from_context_json(&context).unwrap_or_default();
 
                 view! {
-                    <ConditionComponent conditions grouped_view=false id class="w-[300px]" strict_mode=workspace_settings.with_value(|w| w.strict_mode)  />
+                    <ConditionComponent conditions grouped_view=false id class="w-[300px]"   />
                 }
                 .into_view()
             },

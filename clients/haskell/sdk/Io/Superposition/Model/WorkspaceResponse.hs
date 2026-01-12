@@ -11,7 +11,6 @@ module Io.Superposition.Model.WorkspaceResponse (
     setLastModifiedAt,
     setCreatedAt,
     setMandatoryDimensions,
-    setStrictMode,
     setMetrics,
     setAllowExperimentSelfApproval,
     setAutoPopulateControl,
@@ -32,7 +31,6 @@ module Io.Superposition.Model.WorkspaceResponse (
     last_modified_at,
     created_at,
     mandatory_dimensions,
-    strict_mode,
     metrics,
     allow_experiment_self_approval,
     auto_populate_control,
@@ -66,7 +64,6 @@ data WorkspaceResponse = WorkspaceResponse {
     last_modified_at :: Data.Time.UTCTime,
     created_at :: Data.Time.UTCTime,
     mandatory_dimensions :: Data.Maybe.Maybe ([] Data.Text.Text),
-    strict_mode :: Bool,
     metrics :: Data.Aeson.Value,
     allow_experiment_self_approval :: Bool,
     auto_populate_control :: Bool,
@@ -92,7 +89,6 @@ instance Data.Aeson.ToJSON WorkspaceResponse where
         "last_modified_at" Data.Aeson..= last_modified_at a,
         "created_at" Data.Aeson..= created_at a,
         "mandatory_dimensions" Data.Aeson..= mandatory_dimensions a,
-        "strict_mode" Data.Aeson..= strict_mode a,
         "metrics" Data.Aeson..= metrics a,
         "allow_experiment_self_approval" Data.Aeson..= allow_experiment_self_approval a,
         "auto_populate_control" Data.Aeson..= auto_populate_control a,
@@ -117,7 +113,6 @@ instance Data.Aeson.FromJSON WorkspaceResponse where
         Control.Applicative.<*> (v Data.Aeson..: "last_modified_at")
         Control.Applicative.<*> (v Data.Aeson..: "created_at")
         Control.Applicative.<*> (v Data.Aeson..:? "mandatory_dimensions")
-        Control.Applicative.<*> (v Data.Aeson..: "strict_mode")
         Control.Applicative.<*> (v Data.Aeson..: "metrics")
         Control.Applicative.<*> (v Data.Aeson..: "allow_experiment_self_approval")
         Control.Applicative.<*> (v Data.Aeson..: "auto_populate_control")
@@ -140,7 +135,6 @@ data WorkspaceResponseBuilderState = WorkspaceResponseBuilderState {
     last_modified_atBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     created_atBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     mandatory_dimensionsBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
-    strict_modeBuilderState :: Data.Maybe.Maybe Bool,
     metricsBuilderState :: Data.Maybe.Maybe Data.Aeson.Value,
     allow_experiment_self_approvalBuilderState :: Data.Maybe.Maybe Bool,
     auto_populate_controlBuilderState :: Data.Maybe.Maybe Bool,
@@ -164,7 +158,6 @@ defaultBuilderState = WorkspaceResponseBuilderState {
     last_modified_atBuilderState = Data.Maybe.Nothing,
     created_atBuilderState = Data.Maybe.Nothing,
     mandatory_dimensionsBuilderState = Data.Maybe.Nothing,
-    strict_modeBuilderState = Data.Maybe.Nothing,
     metricsBuilderState = Data.Maybe.Nothing,
     allow_experiment_self_approvalBuilderState = Data.Maybe.Nothing,
     auto_populate_controlBuilderState = Data.Maybe.Nothing,
@@ -222,10 +215,6 @@ setMandatoryDimensions :: Data.Maybe.Maybe ([] Data.Text.Text) -> WorkspaceRespo
 setMandatoryDimensions value =
    Control.Monad.State.Strict.modify (\s -> (s { mandatory_dimensionsBuilderState = value }))
 
-setStrictMode :: Bool -> WorkspaceResponseBuilder ()
-setStrictMode value =
-   Control.Monad.State.Strict.modify (\s -> (s { strict_modeBuilderState = Data.Maybe.Just value }))
-
 setMetrics :: Data.Aeson.Value -> WorkspaceResponseBuilder ()
 setMetrics value =
    Control.Monad.State.Strict.modify (\s -> (s { metricsBuilderState = Data.Maybe.Just value }))
@@ -261,7 +250,6 @@ build builder = do
     last_modified_at' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.WorkspaceResponse.WorkspaceResponse.last_modified_at is a required property.") Data.Either.Right (last_modified_atBuilderState st)
     created_at' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.WorkspaceResponse.WorkspaceResponse.created_at is a required property.") Data.Either.Right (created_atBuilderState st)
     mandatory_dimensions' <- Data.Either.Right (mandatory_dimensionsBuilderState st)
-    strict_mode' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.WorkspaceResponse.WorkspaceResponse.strict_mode is a required property.") Data.Either.Right (strict_modeBuilderState st)
     metrics' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.WorkspaceResponse.WorkspaceResponse.metrics is a required property.") Data.Either.Right (metricsBuilderState st)
     allow_experiment_self_approval' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.WorkspaceResponse.WorkspaceResponse.allow_experiment_self_approval is a required property.") Data.Either.Right (allow_experiment_self_approvalBuilderState st)
     auto_populate_control' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.WorkspaceResponse.WorkspaceResponse.auto_populate_control is a required property.") Data.Either.Right (auto_populate_controlBuilderState st)
@@ -280,7 +268,6 @@ build builder = do
         last_modified_at = last_modified_at',
         created_at = created_at',
         mandatory_dimensions = mandatory_dimensions',
-        strict_mode = strict_mode',
         metrics = metrics',
         allow_experiment_self_approval = allow_experiment_self_approval',
         auto_populate_control = auto_populate_control',

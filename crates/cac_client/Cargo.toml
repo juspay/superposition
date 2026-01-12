@@ -9,11 +9,9 @@ build = "build.rs"
 
 [dependencies]
 actix-web = { workspace = true }
-cfg-if = { workspace = true }
 chrono = { workspace = true }
 derive_more = { workspace = true }
 itertools = { workspace = true }
-jsonlogic = { workspace = true, optional = true }
 log = { workspace = true }
 mini-moka = { version = "0.10.3" }
 once_cell = { workspace = true }
@@ -22,8 +20,6 @@ serde_json = { workspace = true }
 superposition_types = { workspace = true, features = ["api"] }
 tokio = { version = "1.29.1", features = ["full"] }
 
-[features]
-jsonlogic = ["dep:jsonlogic", "superposition_types/jsonlogic"]
 
 [lib]
 name = "cac_client"

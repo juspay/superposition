@@ -1,5 +1,6 @@
+#![deny(unused_crate_dependencies)]
 use redis_module::{redis_module, Context, RedisError, RedisResult, RedisString};
-use serde_json::{json, Value, Map};
+use serde_json::{json, Map, Value};
 use std::collections::HashMap;
 use std::fs;
 
@@ -27,10 +28,10 @@ fn load_config() -> Result<ConfigData, String> {
     let config_path = "src/cac_config.json";
     let config_content = fs::read_to_string(config_path)
         .map_err(|e| format!("Failed to read config file: {}", e))?;
-    
+
     let config: ConfigData = serde_json::from_str(&config_content)
         .map_err(|e| format!("Failed to parse config JSON: {}", e))?;
-    
+
     Ok(config)
 }
 
@@ -75,22 +76,26 @@ fn eval_config_with_file(query_data: &Value) -> RedisResult {
             return Ok(error_result.to_string().into());
         }
     };
-    
+
     // Convert ConfigContext to the format expected by config.rs
-    let contexts: Vec<config::Context> = config_data.contexts.iter().map(|ctx| {
-        config::Context {
+    let contexts: Vec<config::Context> = config_data
+        .contexts
+        .iter()
+        .map(|ctx| config::Context {
             id: ctx.id.clone(),
             condition: ctx.condition.clone(),
             priority: ctx.priority,
             weight: ctx.weight,
             override_with_keys: ctx.override_with_keys.clone(),
-        }
-    }).collect();
+        })
+        .collect();
 
     // Convert overrides to the expected format
-    let overrides: HashMap<String, config::Overrides> = config_data.overrides.iter().map(|(key, value)| {
-        (key.clone(), config::Overrides::from(value.clone()))
-    }).collect();
+    let overrides: HashMap<String, config::Overrides> = config_data
+        .overrides
+        .iter()
+        .map(|(key, value)| (key.clone(), config::Overrides::from(value.clone())))
+        .collect();
 
     // Use the eval_config function from config.rs
     match config::eval_config(
@@ -113,7 +118,7 @@ fn eval_config_with_file(query_data: &Value) -> RedisResult {
                 "eval_type": "config_evaluation_with_file"
             });
             Ok(response.to_string().into())
-        },
+        }
         Err(e) => {
             let error_result = json!({
                 "status": "error",
@@ -136,7 +141,7 @@ fn cac_hello(_: &Context, args: Vec<RedisString>) -> RedisResult {
     } else {
         "World"
     };
-    
+
     let response = format!("Hello from CAC module, {}!", name);
     Ok(response.into())
 }
@@ -146,9 +151,9 @@ fn cac_eval(_: &Context, args: Vec<RedisString>) -> RedisResult {
     if args.len() < 2 {
         return Err(RedisError::WrongArity);
     }
-    
+
     let json_str = args[1].try_as_str().unwrap_or("");
-    
+
     // Parse the JSON string
     match serde_json::from_str::<Value>(json_str) {
         Ok(json_obj) => eval_config_with_file(&json_obj),

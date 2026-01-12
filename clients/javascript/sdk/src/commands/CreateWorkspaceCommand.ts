@@ -47,7 +47,6 @@ export interface CreateWorkspaceCommandOutput extends WorkspaceResponse, __Metad
  *   workspace_admin_email: "STRING_VALUE", // required
  *   workspace_name: "STRING_VALUE", // required
  *   workspace_status: "ENABLED" || "DISABLED",
- *   strict_mode: true || false, // required
  *   metrics: "DOCUMENT_VALUE",
  *   allow_experiment_self_approval: true || false,
  *   auto_populate_control: true || false,
@@ -71,7 +70,6 @@ export interface CreateWorkspaceCommandOutput extends WorkspaceResponse, __Metad
  * //   mandatory_dimensions: [ // ListMandatoryDimensions
  * //     "STRING_VALUE",
  * //   ],
- * //   strict_mode: true || false, // required
  * //   metrics: "DOCUMENT_VALUE", // required
  * //   allow_experiment_self_approval: true || false, // required
  * //   auto_populate_control: true || false, // required

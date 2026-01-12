@@ -49,7 +49,6 @@ async fn create_workspace(client: &Client, org_id: &str, workspace_name: &str) {
         .workspace_name(workspace_name)
         .workspace_admin_email("test@tests.com")
         .workspace_status(WorkspaceStatus::Enabled)
-        .strict_mode(true)
         .allow_experiment_self_approval(true)
         .auto_populate_control(false) // disable auto populate control for testing experiment
         .enable_context_validation(true)

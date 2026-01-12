@@ -15,7 +15,6 @@ cfg-if = { workspace = true }
 chrono = { workspace = true }
 derive_more = { workspace = true }
 itertools = { workspace = true }
-jsonlogic = { workspace = true, optional = true }
 log = { workspace = true }
 mini-moka = { version = "0.10.3" }
 once_cell = { workspace = true }
@@ -32,9 +31,6 @@ superposition_types = { workspace = true, features = [
 thiserror = { version = "1.0.57" }
 tokio = { version = "1.29.1", features = ["full"] }
 uniffi = { workspace = true }
-
-[features]
-jsonlogic = ["dep:jsonlogic", "superposition_types/jsonlogic"]
 
 [dev-dependencies]
 uniffi = { workspace = true }

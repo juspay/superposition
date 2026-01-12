@@ -150,21 +150,8 @@ fn get_overrides(
         }
     };
 
-    #[cfg(feature = "jsonlogic")]
-    let query_data_value = Value::Object(query_data.clone());
-
     for context in contexts {
-        cfg_if::cfg_if! {
-            if #[cfg(feature = "jsonlogic")] {
-                let valid_context = Ok(Value::Bool(true))
-                    == jsonlogic::apply(
-                        &Value::Object(context.condition.clone().into()),
-                        &query_data_value,
-                    );
-            } else {
-                let valid_context = superposition_types::apply(&context.condition, query_data);
-            }
-        }
+        let valid_context = superposition_types::apply(&context.condition, query_data);
 
         if valid_context {
             let override_key = context.override_with_keys.get_key();
