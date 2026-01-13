@@ -1,13 +1,13 @@
 use leptos::*;
 
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value, json};
 use superposition_macros::box_params;
 use superposition_types::{
+    PaginatedResponse,
     api::functions::ListFunctionFilters,
     custom_query::{CustomQuery, PaginationParams, Query},
     database::models::cac::Function,
-    PaginatedResponse,
 };
 
 use crate::components::skeleton::Skeleton;

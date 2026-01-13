@@ -3,7 +3,7 @@ name = "experimentation_client"
 description = "experimentation Client provides interfaces for applications to interact with the experimentation module in superposition. Note: this is deprecated, please use the provider"
 version.workspace = true
 edition = "2021"
-rust-version.workspace = true
+rust-version = "1.82.0"
 
 [dependencies]
 chrono = { workspace = true }

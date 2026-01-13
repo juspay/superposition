@@ -1,8 +1,7 @@
 use super::helper::{fetch_webhook, validate_events};
 use actix_web::{
-    delete, get, patch, post,
+    HttpResponse, Scope, delete, get, patch, post,
     web::{self, Json, Query},
-    HttpResponse, Scope,
 };
 use chrono::Utc;
 use context_aware_config::helpers::validate_change_reason;
@@ -10,13 +9,14 @@ use diesel::{ExpressionMethods, PgArrayExpressionMethods, QueryDsl, RunQueryDsl}
 use service_utils::service::types::{DbConnection, WorkspaceContext};
 use superposition_derives::authorized;
 use superposition_types::{
+    PaginatedResponse, User,
     api::webhook::{CreateWebhookRequest, UpdateWebhookRequest, WebhookName},
     custom_query::PaginationParams,
     database::{
         models::others::{Webhook, WebhookEvent},
         schema::webhooks::{self, dsl::*},
     },
-    result as superposition, PaginatedResponse, User,
+    result as superposition,
 };
 pub fn endpoints() -> Scope {
     Scope::new("")

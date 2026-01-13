@@ -2,13 +2,13 @@ use leptos::*;
 use serde_json::{Map, Value};
 
 use crate::api::fetch_organisations;
-use crate::components::table::types::{default_column_formatter, Expandable};
+use crate::components::table::types::{Expandable, default_column_formatter};
 use crate::components::{
     skeleton::Skeleton,
     stat::Stat,
     table::{
-        types::{Column, ColumnSortable},
         Table,
+        types::{Column, ColumnSortable},
     },
 };
 use crate::utils::use_url_base;

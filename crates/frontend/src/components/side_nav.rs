@@ -1,6 +1,6 @@
 use leptos::*;
-use leptos_router::{use_location, use_route, A};
-use superposition_types::{api::workspace::WorkspaceResponse, PaginatedResponse};
+use leptos_router::{A, use_location, use_route};
+use superposition_types::{PaginatedResponse, api::workspace::WorkspaceResponse};
 
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::providers::csr_provider::use_client_side_ready;
@@ -223,7 +223,7 @@ pub fn nav_item(
         (
             "active",
             "text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 shadow-lg shadow-purple-500/50 dark:shadow-lg dark:shadow-purple-800/80",
-            "text-white"
+            "text-white",
         )
     } else {
         ("", "shadow-xl shadow-slate-300 bg-white", "text-purple-800")

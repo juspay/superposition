@@ -1,4 +1,4 @@
-use actix_web::{error, HttpRequest, HttpResponse, Scope};
+use actix_web::{HttpRequest, HttpResponse, Scope, error};
 use futures_util::future::LocalBoxFuture;
 use superposition_types::User;
 

@@ -1,28 +1,28 @@
 use std::fs;
 
 use actix_web::{
-    get, post, routes,
+    Scope, get, post, routes,
     web::{self, Json, Path, Query},
-    Scope,
 };
 use chrono::Utc;
 use diesel::{
-    connection::SimpleConnection,
-    r2d2::{ConnectionManager, PooledConnection},
     Connection, ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
     TextExpressionMethods,
+    connection::SimpleConnection,
+    r2d2::{ConnectionManager, PooledConnection},
 };
 use regex::Regex;
 use service_utils::service::types::{DbConnection, OrganisationId, SchemaName};
 use superposition_derives::authorized;
 use superposition_macros::{db_error, unexpected_error, validation_error};
 use superposition_types::{
+    PaginatedResponse, User,
     api::{
+        I64Update,
         workspace::{
             CreateWorkspaceRequest, UpdateWorkspaceRequest, WorkspaceListFilters,
             WorkspaceResponse,
         },
-        I64Update,
     },
     custom_query::PaginationParams,
     database::{
@@ -30,7 +30,7 @@ use superposition_types::{
         schema::config_versions::dsl as config_versions,
         superposition_schema::superposition::{organisations, workspaces},
     },
-    result as superposition, PaginatedResponse, User,
+    result as superposition,
 };
 
 const WORKSPACE_TEMPLATE_PATH: &str = "workspace_template.sql";
@@ -250,7 +250,11 @@ fn validate_workspace_name(workspace_name: &String) -> superposition::Result<()>
     })?;
     match workspace_name {
         w_name if w_name.len() > 25 => {
-            log::error!("the workspace name {} was larger than 25 bytes/characters, the actual length was {}", w_name, w_name.len());
+            log::error!(
+                "the workspace name {} was larger than 25 bytes/characters, the actual length was {}",
+                w_name,
+                w_name.len()
+            );
             Err(validation_error!(
                 "the workspace name cannot be larger than 25 characters"
             ))

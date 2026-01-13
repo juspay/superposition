@@ -1,5 +1,5 @@
 use serde_json::Value;
-use superposition_types::{api::context::SortOn as SortContextOn, SortBy};
+use superposition_types::{SortBy, api::context::SortOn as SortContextOn};
 
 use crate::schema::HtmlDisplay;
 

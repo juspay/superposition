@@ -6,8 +6,8 @@ use strum::IntoEnumIterator;
 use superposition_types::{
     api::webhook::UpdateWebhookRequest,
     database::models::{
-        others::{CustomHeaders, HttpMethod, PayloadVersion, WebhookEvent},
         ChangeReason, Description, NonEmptyString,
+        others::{CustomHeaders, HttpMethod, PayloadVersion, WebhookEvent},
     },
 };
 use web_sys::MouseEvent;

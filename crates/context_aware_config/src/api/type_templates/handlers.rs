@@ -1,5 +1,5 @@
 use actix_web::web::{Json, Path, Query};
-use actix_web::{delete, get, post, routes, Scope};
+use actix_web::{Scope, delete, get, post, routes};
 use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use jsonschema::JSONSchema;
@@ -8,6 +8,7 @@ use service_utils::service::types::{DbConnection, WorkspaceContext};
 use superposition_derives::authorized;
 use superposition_macros::bad_argument;
 use superposition_types::{
+    PaginatedResponse, User,
     api::type_templates::{
         TypeTemplateCreateRequest, TypeTemplateName, TypeTemplateUpdateRequest,
     },
@@ -16,7 +17,7 @@ use superposition_types::{
         models::cac::TypeTemplate,
         schema::type_templates::{self, dsl},
     },
-    result as superposition, PaginatedResponse, User,
+    result as superposition,
 };
 
 use crate::helpers::validate_change_reason;

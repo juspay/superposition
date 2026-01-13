@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use leptos::{view, Callback, IntoView, View};
+use leptos::{Callback, IntoView, View, view};
 use serde_json::{Map, Value};
 use superposition_types::SortBy;
 

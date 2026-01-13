@@ -4,7 +4,7 @@ use crate::{components::pagination::Pagination, schema::HtmlDisplay};
 
 use self::types::{Column, Expandable, TablePaginationProps};
 use leptos::*;
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value, json};
 use superposition_types::SortBy;
 
 #[component]

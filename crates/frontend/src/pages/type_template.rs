@@ -14,7 +14,7 @@ use crate::components::{
     input::{Input, InputType},
     skeleton::{Skeleton, SkeletonVariant},
     type_template_form::{
-        utils::delete_type, ChangeLogSummary, ChangeType, TypeTemplateForm,
+        ChangeLogSummary, ChangeType, TypeTemplateForm, utils::delete_type,
     },
 };
 use crate::providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider};

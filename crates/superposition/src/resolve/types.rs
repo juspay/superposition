@@ -1,6 +1,6 @@
 use serde::Deserialize;
 use superposition_derives::{IsEmpty, QueryParam};
-use superposition_types::{custom_query::QueryParam, IsEmpty};
+use superposition_types::{IsEmpty, custom_query::QueryParam};
 
 #[derive(Deserialize, IsEmpty, QueryParam, Default)]
 pub struct IdentifierQuery {

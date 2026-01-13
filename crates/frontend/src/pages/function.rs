@@ -8,7 +8,7 @@ use std::ops::Deref;
 
 use chrono::{DateTime, Utc};
 use leptos::*;
-use leptos_router::{use_params_map, A};
+use leptos_router::{A, use_params_map};
 use publish_form::PublishForm;
 use strum::IntoEnumIterator;
 use superposition_macros::box_params;

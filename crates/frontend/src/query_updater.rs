@@ -1,5 +1,5 @@
 use leptos::*;
-use leptos_router::{use_location, use_navigate, NavigateOptions};
+use leptos_router::{NavigateOptions, use_location, use_navigate};
 use superposition_types::custom_query::QueryParam;
 
 use crate::utils::use_service_prefix;

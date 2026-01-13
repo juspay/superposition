@@ -2,7 +2,7 @@ mod filter;
 
 use filter::{AuditLogFilterWidget, FilterSummary};
 use leptos::*;
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value, json};
 use superposition_macros::box_params;
 use superposition_types::{
     api::audit_log::AuditQueryFilters,
@@ -17,11 +17,11 @@ use crate::{
         skeleton::Skeleton,
         stat::Stat,
         table::{
-            types::{
-                default_column_formatter, default_formatter, Column, ColumnSortable,
-                Expandable, TablePaginationProps,
-            },
             Table,
+            types::{
+                Column, ColumnSortable, Expandable, TablePaginationProps,
+                default_column_formatter, default_formatter,
+            },
         },
     },
     query_updater::{use_param_updater, use_signal_from_query},

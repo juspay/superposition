@@ -1,10 +1,10 @@
 use serde_json::Value;
 use superposition_types::{
+    ExtendedMap,
     api::type_templates::{
         TypeTemplateCreateRequest, TypeTemplateName, TypeTemplateUpdateRequest,
     },
-    database::models::{cac::TypeTemplate, ChangeReason, Description},
-    ExtendedMap,
+    database::models::{ChangeReason, Description, cac::TypeTemplate},
 };
 
 use crate::utils::{construct_request_headers, request, use_host_server};

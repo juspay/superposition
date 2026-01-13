@@ -3,7 +3,7 @@ pub mod utils;
 use std::ops::Deref;
 
 use leptos::*;
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value, json};
 use superposition_types::api::type_templates::TypeTemplateUpdateRequest;
 use utils::try_update_payload;
 use web_sys::MouseEvent;

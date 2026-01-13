@@ -1,7 +1,7 @@
 use std::ops::Deref;
 
 use leptos::*;
-use leptos_router::{use_navigate, use_params_map, A};
+use leptos_router::{A, use_navigate, use_params_map};
 use serde_json::Value;
 use superposition_types::database::models::cac::DimensionType;
 use superposition_types::{

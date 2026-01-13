@@ -4,17 +4,16 @@ mod types;
 mod utils;
 
 use actix_web::{
-    cookie::{time::Duration, Cookie},
+    HttpRequest, HttpResponse,
+    cookie::{Cookie, time::Duration},
     error::ErrorInternalServerError,
     http::header,
     web::{Data, Query},
-    HttpRequest, HttpResponse,
 };
-use base64::{engine::general_purpose, Engine};
+use base64::{Engine, engine::general_purpose};
 use openidconnect::{
-    self as oidcrs,
+    self as oidcrs, AuthenticationFlow, CsrfToken, Nonce, TokenResponse,
     core::{CoreClient, CoreResponseType},
-    AuthenticationFlow, CsrfToken, Nonce, TokenResponse,
 };
 pub use saas_authenticator::SaasOIDCAuthenticator;
 pub use simple_authenticator::SimpleOIDCAuthenticator;

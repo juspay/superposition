@@ -1,6 +1,6 @@
 mod types;
 
-use std::collections::{hash_map::Entry, HashMap};
+use std::collections::{HashMap, hash_map::Entry};
 
 use leptos::*;
 use leptos_router::A;
@@ -21,12 +21,12 @@ use crate::{
         context_form::ContextForm,
         skeleton::{Skeleton, SkeletonVariant},
         table::{
-            types::{Column, ColumnSortable, Expandable},
             Table,
+            types::{Column, ColumnSortable, Expandable},
         },
     },
     logic::Conditions,
-    pages::default_config_list::utils::{get_bread_crums, modify_rows, BreadCrums},
+    pages::default_config_list::utils::{BreadCrums, get_bread_crums, modify_rows},
     providers::{
         alert_provider::enqueue_alert,
         condition_collapse_provider::ConditionCollapseProvider,
@@ -43,8 +43,8 @@ fn table_columns(
     contexts_vector_rws: RwSignal<ContextList>,
     expand: Callback<String, View>,
 ) -> Vec<Column> {
-    let mut contexts = contexts_vector_rws
-        .with(|contexts| contexts.iter().map(|(k, _)| k.clone()).collect::<Vec<_>>());
+    let mut contexts =
+        contexts_vector_rws.with(|contexts| contexts.keys().cloned().collect::<Vec<_>>());
     contexts.push(DEFAULT_CONFIG_COLUMN.to_string());
 
     let mut fixed_columns = vec![Column::default_with_cell_formatter(

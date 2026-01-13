@@ -1,17 +1,17 @@
 use actix_web::{
-    delete, get, patch, post,
+    Scope, delete, get, patch, post,
     web::{self, Json, Query},
-    Scope,
 };
 use diesel::prelude::*;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use service_utils::service::types::{DbConnection, WorkspaceContext};
 use superposition_derives::authorized;
 use superposition_types::{
+    PaginatedResponse, SortBy, User,
     api::variables::*,
     custom_query::PaginationParams,
     database::{models::others::Variable, schema::variables::dsl::*},
-    result as superposition, PaginatedResponse, SortBy, User,
+    result as superposition,
 };
 
 use crate::helpers::validate_change_reason;

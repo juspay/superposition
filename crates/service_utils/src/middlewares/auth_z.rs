@@ -3,13 +3,13 @@ mod authorization;
 mod no_auth;
 
 use std::{
-    future::{ready, Ready},
+    future::{Ready, ready},
     sync::Arc,
 };
 
 use actix_web::{
-    dev::{forward_ready, Payload, Service, ServiceRequest, ServiceResponse, Transform},
     Error, FromRequest, HttpMessage, HttpRequest, Scope,
+    dev::{Payload, Service, ServiceRequest, ServiceResponse, Transform, forward_ready},
 };
 use authorization::Authorizer;
 use aws_sdk_kms::Client;
@@ -17,7 +17,7 @@ use aws_sdk_kms::Client;
 use futures_util::future::LocalBoxFuture;
 use no_auth::NoAuth;
 use superposition_macros::{forbidden, unexpected_error};
-use superposition_types::{result as superposition, InternalUser, User};
+use superposition_types::{InternalUser, User, result as superposition};
 
 use crate::{
     helpers::get_from_env_unsafe,
@@ -57,7 +57,7 @@ impl<A: Action> FromRequest for AuthZ<A> {
                     Err(unexpected_error!(
                         "AuthZHandler not found in request extensions."
                     ))
-                })
+                });
             }
         };
 
@@ -113,7 +113,7 @@ impl<A: Action> FromRequest for AuthZ<A> {
         let user = match req.extensions().get::<User>() {
             Some(user) => user.clone(),
             None => {
-                return Box::pin(async { Err(forbidden!("User not authenticated.")) })
+                return Box::pin(async { Err(forbidden!("User not authenticated.")) });
             }
         };
 

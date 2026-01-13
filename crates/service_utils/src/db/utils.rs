@@ -1,7 +1,7 @@
 use aws_sdk_kms::Client;
 use diesel::{
-    r2d2::{ConnectionManager, Pool},
     PgConnection,
+    r2d2::{ConnectionManager, Pool},
 };
 use urlencoding::encode;
 

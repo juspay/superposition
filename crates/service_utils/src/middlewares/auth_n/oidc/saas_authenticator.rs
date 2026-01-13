@@ -1,19 +1,18 @@
 use std::sync::Arc;
 
 use actix_web::{
-    cookie::{time::Duration, Cookie},
+    HttpRequest, HttpResponse,
+    cookie::{Cookie, time::Duration},
     error::{ErrorBadRequest, ErrorInternalServerError},
     http::header,
-    web::{self, get, resource, Data, Json},
-    HttpRequest, HttpResponse,
+    web::{self, Data, Json, get, resource},
 };
 use derive_more::{Deref, DerefMut};
 use futures_util::future::LocalBoxFuture;
 use openidconnect::{
-    self as oidcrs,
+    self as oidcrs, ClientId, ClientSecret, IssuerUrl, RedirectUrl,
+    ResourceOwnerPassword, ResourceOwnerUsername, Scope, TokenResponse, TokenUrl,
     core::{CoreClient, CoreProviderMetadata},
-    ClientId, ClientSecret, IssuerUrl, RedirectUrl, ResourceOwnerPassword,
-    ResourceOwnerUsername, Scope, TokenResponse, TokenUrl,
 };
 use superposition_types::User;
 
@@ -23,12 +22,12 @@ use crate::{
     middlewares::auth_n::{
         authentication::{Authenticator, Login},
         oidc::{
+            OIDCAuthenticator,
             types::{
                 GlobalUserClaims, GlobalUserTokenResponse, OrgUserClaims,
                 OrgUserTokenResponse,
             },
             utils::{presence_no_check, try_user_from, verify_presence},
-            OIDCAuthenticator,
         },
     },
 };

@@ -4,11 +4,11 @@ use superposition_types::{
     result as superposition,
 };
 
-use diesel::{
-    r2d2::{ConnectionManager, PooledConnection},
-    PgConnection,
-};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
+use diesel::{
+    PgConnection,
+    r2d2::{ConnectionManager, PooledConnection},
+};
 use superposition_types::database::schema::webhooks::{self, dsl};
 
 pub fn validate_events(

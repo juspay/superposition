@@ -13,7 +13,7 @@ use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use fred::interfaces::KeysInterface;
 use jsonschema::{Draft, JSONSchema};
 use num_bigint::BigUint;
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value, json};
 use service_utils::{
     helpers::generate_snowflake_id,
     service::types::{AppState, SchemaName, WorkspaceContext},
@@ -22,17 +22,19 @@ use superposition_macros::{db_error, unexpected_error, validation_error};
 #[cfg(feature = "high-performance-mode")]
 use superposition_types::database::schema::event_log::dsl as event_log;
 use superposition_types::{
+    Cac, Condition, Config, Context, DBConnection, DimensionInfo, OverrideWithKeys,
+    Overrides,
     api::functions::{
-        FunctionEnvironment, FunctionExecutionRequest, FunctionExecutionResponse,
-        KeyType, CHANGE_REASON_VALIDATION_FN_NAME,
+        CHANGE_REASON_VALIDATION_FN_NAME, FunctionEnvironment, FunctionExecutionRequest,
+        FunctionExecutionResponse, KeyType,
     },
     database::{
         models::{
+            ChangeReason, Description,
             cac::{
                 ConfigVersion, DependencyGraph, DimensionType, FunctionCode,
                 FunctionRuntimeVersion, FunctionType,
             },
-            ChangeReason, Description,
         },
         schema::{
             config_versions,
@@ -41,8 +43,7 @@ use superposition_types::{
         },
     },
     logic::dimensions_to_start_from,
-    result as superposition, Cac, Condition, Config, Context, DBConnection,
-    DimensionInfo, OverrideWithKeys, Overrides,
+    result as superposition,
 };
 
 #[cfg(feature = "high-performance-mode")]

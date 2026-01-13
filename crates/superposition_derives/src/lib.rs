@@ -2,7 +2,7 @@ extern crate proc_macro;
 
 use proc_macro::TokenStream;
 use quote::{format_ident, quote};
-use syn::{parse_macro_input, Data, DeriveInput, Fields, ItemFn, LitStr, Type};
+use syn::{Data, DeriveInput, Fields, ItemFn, LitStr, Type, parse_macro_input};
 
 /// Implements `FromSql` trait for converting `Json` type to the type for `Pg` backend
 ///
@@ -135,7 +135,7 @@ pub fn derive_is_empty(input: TokenStream) -> TokenStream {
                     "IsEmpty can only be derived for structs with named fields",
                 )
                 .to_compile_error()
-                .into()
+                .into();
             }
         }
     } else {
@@ -218,7 +218,7 @@ pub fn derive_query_param(input: TokenStream) -> TokenStream {
                     "QueryParam can only be derived for structs with named fields",
                 )
                 .to_compile_error()
-                .into()
+                .into();
             }
         }
     } else {

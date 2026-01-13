@@ -7,7 +7,7 @@ use superposition_types::{
 
 use crate::components::datetime::DatetimeStr;
 use crate::components::table::types::{
-    default_column_formatter, Column, ColumnSortable, Expandable,
+    Column, ColumnSortable, Expandable, default_column_formatter,
 };
 use crate::utils::{construct_request_headers, request, use_host_server};
 

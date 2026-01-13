@@ -4,8 +4,8 @@ use leptos::*;
 use serde_json::{Map, Value};
 use superposition_types::{
     api::{
-        context::ContextListFilters, dimension::DimensionResponse,
-        functions::FunctionEnvironment, DimensionMatchStrategy,
+        DimensionMatchStrategy, context::ContextListFilters,
+        dimension::DimensionResponse, functions::FunctionEnvironment,
     },
     custom_query::{
         CommaSeparatedStringQParams, CustomQuery, DimensionQuery, PaginationParams,
@@ -20,7 +20,7 @@ use crate::{
         button::Button,
         condition_pills::Condition,
         context_form::ContextForm,
-        drawer::{close_drawer, Drawer},
+        drawer::{Drawer, close_drawer},
         form::label::Label,
         input::Toggle,
     },

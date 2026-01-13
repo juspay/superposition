@@ -1,13 +1,15 @@
 use actix_web::{
-    get, post, routes,
+    Scope, get, post, routes,
     web::{Json, Path, Query},
-    Scope,
 };
 use chrono::Utc;
 use diesel::prelude::*;
 use idgenerator::IdInstance;
 use service_utils::service::types::DbConnection;
 use superposition_derives::authorized;
+use superposition_types::{
+    PaginatedResponse, User, custom_query::PaginationParams, result as superposition,
+};
 use superposition_types::{
     api::organisation::{CreateRequest, UpdateRequest},
     database::{
@@ -16,9 +18,6 @@ use superposition_types::{
             self, updated_at, updated_by,
         },
     },
-};
-use superposition_types::{
-    custom_query::PaginationParams, result as superposition, PaginatedResponse, User,
 };
 
 pub fn endpoints() -> Scope {

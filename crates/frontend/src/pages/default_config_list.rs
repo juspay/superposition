@@ -5,14 +5,14 @@ pub mod utils;
 use filter::{DefaultConfigFilterWidget, FilterSummary};
 use leptos::*;
 use leptos_router::A;
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value, json};
 use superposition_macros::box_params;
 use superposition_types::{
     api::default_config::DefaultConfigFilters,
     custom_query::{CustomQuery, PaginationParams, Query},
 };
 use types::PageParams;
-use utils::{get_bread_crums, modify_rows, BreadCrums};
+use utils::{BreadCrums, get_bread_crums, modify_rows};
 
 use crate::components::{
     datetime::DatetimeStr,
@@ -21,11 +21,11 @@ use crate::components::{
     skeleton::Skeleton,
     stat::Stat,
     table::{
-        types::{
-            default_column_formatter, Column, ColumnSortable, Expandable,
-            TablePaginationProps,
-        },
         Table,
+        types::{
+            Column, ColumnSortable, Expandable, TablePaginationProps,
+            default_column_formatter,
+        },
     },
 };
 use crate::query_updater::{

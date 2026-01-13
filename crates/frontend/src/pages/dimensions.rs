@@ -1,6 +1,6 @@
 use leptos::*;
 use leptos_router::A;
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value, json};
 use superposition_macros::box_params;
 use superposition_types::custom_query::{CustomQuery, PaginationParams, Query};
 use superposition_types::database::models::cac::DimensionType;
@@ -10,13 +10,13 @@ use crate::components::button::ButtonAnchor;
 use crate::components::datetime::DatetimeStr;
 use crate::components::skeleton::Skeleton;
 use crate::components::table::types::{
-    default_column_formatter, ColumnSortable, Expandable,
+    ColumnSortable, Expandable, default_column_formatter,
 };
 use crate::components::{
     stat::Stat,
     table::{
-        types::{Column, TablePaginationProps},
         Table,
+        types::{Column, TablePaginationProps},
     },
 };
 use crate::query_updater::{use_param_updater, use_signal_from_query};

@@ -2,11 +2,11 @@ use chrono::{DateTime, Utc};
 use diesel::prelude::AsChangeset;
 use serde::Serialize;
 use superposition_types::{
+    Overrides,
     database::{
         models::{ChangeReason, Description},
         schema::contexts,
     },
-    Overrides,
 };
 
 #[derive(Serialize, AsChangeset)]

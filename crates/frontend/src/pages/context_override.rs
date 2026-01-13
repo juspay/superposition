@@ -12,6 +12,7 @@ use serde_json::{Map, Value};
 use strum::IntoEnumIterator;
 use superposition_macros::box_params;
 use superposition_types::{
+    PaginatedResponse, SortBy,
     api::{
         context::{ContextListFilters, SortOn, UpdateRequest},
         default_config::DefaultConfigFilters,
@@ -24,7 +25,6 @@ use superposition_types::{
         cac::{Context, DefaultConfig},
         experimentation::ExperimentType,
     },
-    PaginatedResponse, SortBy,
 };
 use utils::{create_context, try_update_context_payload, update_context};
 use wasm_bindgen::JsCast;
@@ -39,7 +39,7 @@ use crate::{
         change_summary::{ChangeLogPopup, ChangeSummary},
         context_card::ContextCard,
         context_form::ContextForm,
-        drawer::{close_drawer, open_drawer, Drawer, DrawerBtn},
+        drawer::{Drawer, DrawerBtn, close_drawer, open_drawer},
         dropdown::{Dropdown, DropdownBtnType},
         experiment_form::{ExperimentForm, ExperimentFormType},
         override_form::OverrideForm,

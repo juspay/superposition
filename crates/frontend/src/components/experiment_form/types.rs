@@ -1,5 +1,5 @@
 use serde_json::Map;
-use superposition_types::{api::experiments::VariantUpdateRequest, Exp, Overrides};
+use superposition_types::{Exp, Overrides, api::experiments::VariantUpdateRequest};
 
 use crate::types::VariantFormT;
 

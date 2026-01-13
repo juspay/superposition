@@ -7,15 +7,15 @@ use std::{
 
 use actix_http::header;
 use actix_web::{
-    get, patch, post, routes,
+    Either, HttpRequest, HttpResponse, HttpResponseBuilder, Scope, get, patch, post,
+    routes,
     web::{self, Data, Json, Path, Query},
-    Either, HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
 };
 use chrono::{DateTime, Utc};
 use diesel::{
-    r2d2::{ConnectionManager, PooledConnection},
     BoolExpressionMethods, Connection, ExpressionMethods, PgConnection, QueryDsl,
     RunQueryDsl, SelectableHelper, TextExpressionMethods,
+    r2d2::{ConnectionManager, PooledConnection},
 };
 use experimentation_client::{
     get_applicable_buckets_from_group, get_applicable_variants_from_group_response,
@@ -33,7 +33,10 @@ use service_utils::{
 use superposition_derives::authorized;
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
+    Cac, Condition, Config, Contextual, Exp, ListResponse, Overrides, PaginatedResponse,
+    SortBy, User,
     api::{
+        DimensionMatchStrategy,
         context::{
             ContextAction, ContextBulkResponse, Identifier, MoveRequest, PutRequest,
             UpdateRequest,
@@ -46,7 +49,6 @@ use superposition_types::{
             ExperimentResponse, ExperimentSortOn, ExperimentStateChangeRequest,
             OverrideKeysUpdateRequest, RampRequest,
         },
-        DimensionMatchStrategy,
     },
     custom_query::{
         self as superposition_query, CustomQuery, DimensionQuery, PaginationParams,
@@ -54,12 +56,12 @@ use superposition_types::{
     },
     database::{
         models::{
+            ChangeReason,
             experimentation::{
                 Experiment, ExperimentGroup, ExperimentStatusType, ExperimentType,
                 TrafficPercentage, Variant, VariantType, Variants,
             },
             others::WebhookEvent,
-            ChangeReason,
         },
         schema::{
             event_log::dsl as event_log, experiment_groups::dsl as experiment_groups,
@@ -67,8 +69,7 @@ use superposition_types::{
         },
     },
     logic::evaluate_local_cohorts,
-    result as superposition, Cac, Condition, Config, Contextual, Exp, ListResponse,
-    Overrides, PaginatedResponse, SortBy, User,
+    result as superposition,
 };
 
 use crate::api::{
@@ -180,9 +181,8 @@ async fn create_handler(
             if !are_valid_variants {
                 return Err(bad_argument!(
                     "all variants should contain the keys mentioned in override_keys. Check if any of the following keys [{}] are missing from keys in your variants",
-                        unique_override_keys.join(",")
-                    )
-                );
+                    unique_override_keys.join(",")
+                ));
             }
 
             // Validate control overrides against resolved config when auto-populate is enabled
@@ -362,7 +362,7 @@ async fn create_handler(
             if let Some(experiment_group_id) = &req.experiment_group_id {
                 add_members(
                     experiment_group_id,
-                    &[inserted_experiment.clone()],
+                    std::slice::from_ref(&inserted_experiment),
                     ExpGroupMemberRequest {
                         change_reason: ChangeReason::try_from(format!("Adding experiment {experiment_id} to the group, while creating the experiment.")).map_err(|e| unexpected_error!(e))?,
                         member_experiment_ids: vec![experiment_id],
@@ -1477,12 +1477,10 @@ async fn update_handler(
             let are_valid_variants =
                 check_variants_override_coverage(&variant_overrides, &override_keys);
             if !are_valid_variants {
-                return Err(
-                    bad_argument!(
-                        "All variants should contain the keys mentioned in override_keys. Check if any of the following keys [{}] are missing from keys in your variants",
-                        override_keys.join(",")
-                    )
-                )?;
+                return Err(bad_argument!(
+                    "All variants should contain the keys mentioned in override_keys. Check if any of the following keys [{}] are missing from keys in your variants",
+                    override_keys.join(",")
+                ))?;
             }
 
             // Validate control overrides against resolved config when auto-populate is enabled

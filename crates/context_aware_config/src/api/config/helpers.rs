@@ -2,22 +2,23 @@ use superposition_types::custom_query::CommaSeparatedStringQParams;
 
 use actix_http::header::HeaderValue;
 use actix_web::{
-    web::{Header, Json},
     HttpRequest, HttpResponseBuilder,
+    web::{Header, Json},
 };
 use cac_client::{eval_cac, eval_cac_with_reasoning};
 use chrono::{DateTime, Timelike, Utc};
-use diesel::{dsl::max, ExpressionMethods, QueryDsl, RunQueryDsl};
+use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, dsl::max};
 use serde_json::{Map, Value};
 use service_utils::service::types::{AppHeader, SchemaName, WorkspaceContext};
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
+    Config, DBConnection,
     api::config::{ContextPayload, MergeStrategy, ResolveConfigQuery},
     custom_query::{DimensionQuery, QueryMap},
     database::schema::{
         config_versions::dsl as config_versions, event_log::dsl as event_log,
     },
-    result as superposition, Config, DBConnection,
+    result as superposition,
 };
 use uuid::Uuid;
 

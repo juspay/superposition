@@ -4,12 +4,12 @@ use std::rc::Rc;
 
 use leptos::*;
 use monaco::api::CodeEditor;
-use monaco::sys::editor::{IEditorMinimapOptions, IStandaloneEditorConstructionOptions};
-use monaco::sys::languages::{register_completion_item_provider, CompletionItemProvider};
 use monaco::sys::IDisposable;
+use monaco::sys::editor::{IEditorMinimapOptions, IStandaloneEditorConstructionOptions};
+use monaco::sys::languages::{CompletionItemProvider, register_completion_item_provider};
 use serde_json::Value;
-use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
+use wasm_bindgen::prelude::*;
 
 #[derive(Debug, Clone, strum_macros::Display)]
 #[strum(serialize_all = "lowercase")]
@@ -45,10 +45,10 @@ fn set_monaco_suggestions(lang_id: &str, suggestions: &[Value]) -> Option<IDispo
         };
     }
     logging::debug_warn!(
-            "Trying to set monaco suggestions: {:?}, for lang-id: {lang_id}, w/ triggers: {:?}",
-            suggestions,
-            &triggers
-        );
+        "Trying to set monaco suggestions: {:?}, for lang-id: {lang_id}, w/ triggers: {:?}",
+        suggestions,
+        &triggers
+    );
     let triggers = JsValue::from(
         triggers
             .into_iter()

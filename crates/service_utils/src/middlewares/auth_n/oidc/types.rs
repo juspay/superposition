@@ -1,13 +1,13 @@
 use actix_web::HttpRequest;
-use base64::{engine::general_purpose, Engine};
+use base64::{Engine, engine::general_purpose};
 use openidconnect::{
+    AdditionalClaims, AuthorizationCode, CsrfToken, EmptyExtraTokenFields, IdTokenClaims,
+    IdTokenFields, Nonce, StandardTokenResponse,
     core::{
         CoreGenderClaim, CoreIdTokenClaims, CoreJsonWebKeyType,
         CoreJweContentEncryptionAlgorithm, CoreJwsSigningAlgorithm, CoreTokenResponse,
         CoreTokenType,
     },
-    AdditionalClaims, AuthorizationCode, CsrfToken, EmptyExtraTokenFields, IdTokenClaims,
-    IdTokenFields, Nonce, StandardTokenResponse,
 };
 use serde::{Deserialize, Deserializer, Serialize};
 

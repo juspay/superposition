@@ -11,7 +11,7 @@ use crate::components::{
     badge::{GlassyPills, GrayPill, ListPills},
     button::{Button, ButtonStyle},
     datetime::{Datetime, DatetimeFormat},
-    drawer::{close_drawer, Drawer, DrawerBtn},
+    drawer::{Drawer, DrawerBtn, close_drawer},
     form::label::Label,
     input::DateInput,
 };

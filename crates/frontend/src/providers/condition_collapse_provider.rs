@@ -1,6 +1,6 @@
 use leptos::*;
 
-use crate::components::condition_pills::{use_condition_collapser, ConditionId};
+use crate::components::condition_pills::{ConditionId, use_condition_collapser};
 
 #[component]
 pub fn condition_collapse_provider(children: Children) -> impl IntoView {

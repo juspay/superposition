@@ -4,8 +4,8 @@ use std::str::FromStr;
 
 use leptos::*;
 use reqwest::{
-    header::{HeaderMap, HeaderName, HeaderValue},
     StatusCode,
+    header::{HeaderMap, HeaderName, HeaderValue},
 };
 use serde::de::DeserializeOwned;
 use superposition_types::{
@@ -103,29 +103,26 @@ fn get_host() -> String {
 pub fn use_env() -> Envs {
     let context = use_context::<Envs>();
     context
-        .or_else(|| {
-            let envs = match js_sys::eval("__APP_ENVS") {
-                Ok(value) => {
-                    let env_obj = value
-                        .dyn_into::<js_sys::Object>()
-                        .expect("__APP_ENVS is not an object");
-                    let env_str: &'static str = Box::leak(
-                        js_sys::JSON::stringify(&env_obj)
-                            .ok()
-                            .map(String::from)
-                            .unwrap_or_default()
-                            .into_boxed_str(),
-                    );
-                    let envs = serde_json::from_str::<Envs>(env_str)
-                        .expect("unable to parse to Envs struct");
-                    Some(envs)
-                }
-                Err(e) => {
-                    logging::log!("Unable to fetch __APP_ENVS: {:?}", e);
-                    None
-                }
-            };
-            envs
+        .or_else(|| match js_sys::eval("__APP_ENVS") {
+            Ok(value) => {
+                let env_obj = value
+                    .dyn_into::<js_sys::Object>()
+                    .expect("__APP_ENVS is not an object");
+                let env_str: &'static str = Box::leak(
+                    js_sys::JSON::stringify(&env_obj)
+                        .ok()
+                        .map(String::from)
+                        .unwrap_or_default()
+                        .into_boxed_str(),
+                );
+                let envs = serde_json::from_str::<Envs>(env_str)
+                    .expect("unable to parse to Envs struct");
+                Some(envs)
+            }
+            Err(e) => {
+                logging::log!("Unable to fetch __APP_ENVS: {:?}", e);
+                None
+            }
         })
         .expect("unable to get envs")
 }
@@ -358,20 +355,22 @@ pub fn value_compute_fn_generator(
 
             leptos::spawn_local(async move {
                 match execute_value_compute_function(
-                key_copy,
-                value,
-                type_clone,
-                environment,
-                &fn_copy,
-                &workspace,
-                &org_id,
-            )
-            .await
-            {
-                Ok(vec) => suggestions.set(vec),
-                // TODO: Handle error properly, in case of error the loader is stuck
-                Err(err) => logging::error!("An error occurred while running the value_compute function: {err}"),
-            };
+                    key_copy,
+                    value,
+                    type_clone,
+                    environment,
+                    &fn_copy,
+                    &workspace,
+                    &org_id,
+                )
+                .await
+                {
+                    Ok(vec) => suggestions.set(vec),
+                    // TODO: Handle error properly, in case of error the loader is stuck
+                    Err(err) => logging::error!(
+                        "An error occurred while running the value_compute function: {err}"
+                    ),
+                };
             });
         },
     );

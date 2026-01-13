@@ -1,6 +1,6 @@
 use superposition_types::{
     api::experiments::{ExperimentResponse, RampRequest},
-    database::models::{experimentation::TrafficPercentage, ChangeReason},
+    database::models::{ChangeReason, experimentation::TrafficPercentage},
 };
 
 use crate::utils::{

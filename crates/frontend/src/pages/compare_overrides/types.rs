@@ -5,8 +5,8 @@ use serde::{Deserialize, Deserializer};
 use serde_json::{Map, Value};
 use superposition_derives::{IsEmpty, QueryParam};
 use superposition_types::{
-    custom_query::{CustomQuery, DimensionQuery, QueryParam},
     IsEmpty,
+    custom_query::{CustomQuery, DimensionQuery, QueryParam},
 };
 
 #[derive(PartialEq, Clone, IsEmpty, QueryParam)]

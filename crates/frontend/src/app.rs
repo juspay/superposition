@@ -4,7 +4,7 @@ use leptos_router::*;
 use serde_json::json;
 
 use crate::components::datetime::DatetimeConversionScript;
-use crate::hoc::layout::{use_org, CommonLayout, Layout, Providers};
+use crate::hoc::layout::{CommonLayout, Layout, Providers, use_org};
 use crate::pages::compare_overrides::CompareOverrides;
 use crate::pages::config_version::ConfigVersion;
 use crate::pages::config_version_list::ConfigVersionList;
@@ -14,7 +14,7 @@ use crate::pages::experiment_group_listing::ExperimentGroupListing;
 use crate::pages::experiment_groups::ExperimentGroups;
 use crate::pages::experiment_list::ExperimentList;
 use crate::pages::function::{
-    function_create::CreateFunctionView, function_list::FunctionList, FunctionPage,
+    FunctionPage, function_create::CreateFunctionView, function_list::FunctionList,
 };
 use crate::pages::variable::Variable;
 use crate::pages::variables_list::VariablesList;

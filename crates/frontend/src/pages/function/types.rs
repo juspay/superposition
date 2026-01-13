@@ -1,6 +1,6 @@
 use serde::Deserialize;
 use superposition_derives::{IsEmpty, QueryParam};
-use superposition_types::{api::functions::Stage, custom_query::QueryParam, IsEmpty};
+use superposition_types::{IsEmpty, api::functions::Stage, custom_query::QueryParam};
 
 #[derive(Deserialize, PartialEq, Clone, IsEmpty, QueryParam)]
 pub(super) struct PageParams {

@@ -5,8 +5,8 @@ use leptos::*;
 use serde_json::{Map, Value};
 use superposition_types::{
     api::{
-        experiments::ExperimentListFilters, functions::FunctionEnvironment,
-        DimensionMatchStrategy,
+        DimensionMatchStrategy, experiments::ExperimentListFilters,
+        functions::FunctionEnvironment,
     },
     custom_query::{
         CommaSeparatedQParams, CustomQuery, DimensionQuery, PaginationParams, QueryMap,
@@ -21,7 +21,7 @@ use crate::{
         condition_pills::Condition,
         context_form::ContextForm,
         datetime::{Datetime, DatetimeFormat},
-        drawer::{close_drawer, Drawer, DrawerBtn},
+        drawer::{Drawer, DrawerBtn, close_drawer},
         form::label::Label,
         input::{DateInput, Toggle},
     },

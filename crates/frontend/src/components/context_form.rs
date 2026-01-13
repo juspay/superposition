@@ -19,6 +19,7 @@ use crate::{
     schema::SchemaType,
 };
 
+#[allow(clippy::large_enum_variant)]
 pub enum TooltipType {
     Info(String),
     Error(View),

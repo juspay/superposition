@@ -10,9 +10,9 @@ use superposition_macros::bad_argument;
 
 use actix_files::Files;
 use actix_web::{
-    middleware::{Compress, Condition, Logger},
-    web::{self, get, scope, Data, PathConfig, QueryConfig},
     App, HttpRequest, HttpResponse, HttpServer,
+    middleware::{Compress, Condition, Logger},
+    web::{self, Data, PathConfig, QueryConfig, get, scope},
 };
 use context_aware_config::api::*;
 use experimentation_platform::api::*;
@@ -20,8 +20,8 @@ use frontend::app::*;
 use frontend::types::{Envs as UIEnvs, SsrSharedHttpRequestHeaders};
 use idgenerator::{IdGeneratorOptions, IdInstance};
 use leptos::*;
-use leptos_actix::{generate_route_list, LeptosRoutes};
-use log::{log_enabled, Level};
+use leptos_actix::{LeptosRoutes, generate_route_list};
+use log::{Level, log_enabled};
 use service_utils::{
     aws::kms,
     helpers::{get_from_env_or_default, get_from_env_unsafe},

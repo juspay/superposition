@@ -1,6 +1,6 @@
 use leptos::*;
 use leptos_router::A;
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value, json};
 use superposition_macros::box_params;
 use superposition_types::{
     custom_query::{CustomQuery, PaginationParams, Query},
@@ -10,17 +10,17 @@ use superposition_types::{
 use crate::api::workspaces;
 use crate::components::{
     datetime::DatetimeStr,
-    drawer::{close_drawer, open_drawer, Drawer, DrawerBtn},
+    drawer::{Drawer, DrawerBtn, close_drawer, open_drawer},
     skeleton::Skeleton,
     stat::Stat,
     table::{
-        types::{
-            default_column_formatter, Column, ColumnSortable, Expandable,
-            TablePaginationProps,
-        },
         Table,
+        types::{
+            Column, ColumnSortable, Expandable, TablePaginationProps,
+            default_column_formatter,
+        },
     },
-    workspace_form::{types::RowData, WorkspaceForm},
+    workspace_form::{WorkspaceForm, types::RowData},
 };
 use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::OrganisationId;

@@ -157,7 +157,7 @@ pub fn glassy_pills<T: IntoEnumIterator + Display + Eq + Hash + Copy + 'static>(
                                     type="checkbox"
                                     id=&input_id
                                     class="peer hidden"
-                                    checked=selected.get().iter().any(|it| *it == item)
+                                    checked=selected.get().contains(&item)
                                     on:change=move |event| {
                                         let checked = event_target_checked(&event);
                                         on_click.call(get_updated_items(checked, item));

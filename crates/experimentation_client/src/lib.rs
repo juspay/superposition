@@ -121,8 +121,8 @@ impl Client {
             .experiment_groups
             .read()
             .await
-            .iter()
-            .map(|(_, exp_group)| exp_group.clone())
+            .values()
+            .cloned()
             .collect::<Vec<_>>();
 
         let context = evaluate_local_cohorts(dimensions_info, context);

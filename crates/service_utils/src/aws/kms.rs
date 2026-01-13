@@ -1,6 +1,6 @@
 use crate::helpers::get_from_env_unsafe;
-use aws_sdk_kms::{primitives::Blob, Client};
-use base64::{engine::general_purpose, Engine};
+use aws_sdk_kms::{Client, primitives::Blob};
+use base64::{Engine, engine::general_purpose};
 
 pub async fn decrypt(aws_kms_cli: Client, key: &str) -> String {
     let key_value_env: String =
