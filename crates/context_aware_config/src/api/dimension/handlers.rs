@@ -60,7 +60,7 @@ pub fn endpoints() -> Scope {
 #[authorized]
 #[post("")]
 async fn create_handler(
-    workspace_request: WorkspaceContext,
+    workspace_context: WorkspaceContext,
     state: Data<AppState>,
     req: web::Json<CreateRequest>,
     user: User,
@@ -72,11 +72,11 @@ async fn create_handler(
     let schema_value = Value::from(&create_req.schema);
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
-    validate_change_reason(&workspace_request, &create_req.change_reason, &mut conn)?;
+    validate_change_reason(&workspace_context, &create_req.change_reason, &mut conn)?;
 
     let num_rows = dimensions
         .count()
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result::<i64>(&mut conn)
         .map_err(|err| {
             log::error!("failed to fetch number of dimension with error: {}", err);
@@ -99,7 +99,7 @@ async fn create_handler(
             validate_jsonschema(&state.meta_schema, &schema_value)?;
             let based_on_dimension = does_dimension_exist_for_cohorting(
                 cohort_based_on,
-                &workspace_request.schema_name,
+                &workspace_context.schema_name,
                 &mut conn,
             )?;
             validate_cohort_position(&create_req.position, &based_on_dimension, true)?;
@@ -108,7 +108,7 @@ async fn create_handler(
             let based_on_dimension = validate_cohort_schema(
                 &schema_value,
                 cohort_based_on,
-                &workspace_request.schema_name,
+                &workspace_context.schema_name,
                 &mut conn,
             )?;
             validate_cohort_position(&create_req.position, &based_on_dimension, true)?;
@@ -118,14 +118,14 @@ async fn create_handler(
     validate_validation_function(
         &create_req.value_validation_function_name,
         &mut conn,
-        &workspace_request.schema_name,
+        &workspace_context.schema_name,
     )?;
 
     validate_value_compute_function(
         &create_req.dimension_type,
         &create_req.value_compute_function_name,
         &mut conn,
-        &workspace_request.schema_name,
+        &workspace_context.schema_name,
     )?;
 
     let dimension_data = Dimension {
@@ -154,7 +154,7 @@ async fn create_handler(
                     dimensions::position.eq(dimensions::position + 1),
                 ))
                 .returning(Dimension::as_returning())
-                .schema_name(&workspace_request.schema_name)
+                .schema_name(&workspace_context.schema_name)
                 .execute(transaction_conn)?;
 
             match dimension_data.dimension_type {
@@ -167,7 +167,7 @@ async fn create_handler(
                         cohort_based_on,
                         &dimension_data.dimension,
                         &user.get_email(),
-                        &workspace_request.schema_name,
+                        &workspace_context.schema_name,
                         transaction_conn,
                     )?
                 }
@@ -177,12 +177,12 @@ async fn create_handler(
             let insert_resp = diesel::insert_into(dimensions::table)
                 .values(&dimension_data)
                 .returning(Dimension::as_returning())
-                .schema_name(&workspace_request.schema_name)
+                .schema_name(&workspace_context.schema_name)
                 .get_result(transaction_conn);
 
             match insert_resp {
                 Ok(inserted_dimension) => {
-                    let is_mandatory = workspace_request
+                    let is_mandatory = workspace_context
                         .settings
                         .mandatory_dimensions
                         .unwrap_or_default()
@@ -193,7 +193,7 @@ async fn create_handler(
                         tags,
                         dimension_data.change_reason.into(),
                         transaction_conn,
-                        &workspace_request.schema_name,
+                        &workspace_context.schema_name,
                     )?;
                     Ok((inserted_dimension, is_mandatory, version_id))
                 }
@@ -232,7 +232,7 @@ async fn create_handler(
 #[authorized]
 #[get("/{name}")]
 async fn get_handler(
-    workspace_request: WorkspaceContext,
+    workspace_context: WorkspaceContext,
     db_conn: DbConnection,
     req: Path<String>,
 ) -> superposition::Result<Json<DimensionResponse>> {
@@ -240,10 +240,10 @@ async fn get_handler(
 
     let result: Dimension = dimensions::dsl::dimensions
         .filter(dimensions::dimension.eq(req.into_inner()))
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result::<Dimension>(&mut conn)?;
 
-    let is_mandatory = workspace_request
+    let is_mandatory = workspace_context
         .settings
         .mandatory_dimensions
         .unwrap_or_default()
@@ -258,7 +258,7 @@ async fn get_handler(
 #[put("/{name}")]
 #[patch("/{name}")]
 async fn update_handler(
-    workspace_request: WorkspaceContext,
+    workspace_context: WorkspaceContext,
     path: Path<DimensionName>,
     state: Data<AppState>,
     req: web::Json<UpdateRequest>,
@@ -272,16 +272,16 @@ async fn update_handler(
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let update_req = req.into_inner();
 
-    validate_change_reason(&workspace_request, &update_req.change_reason, &mut conn)?;
+    validate_change_reason(&workspace_context, &update_req.change_reason, &mut conn)?;
 
     let dimension_data: Dimension = dimensions::dsl::dimensions
         .filter(dimensions::dimension.eq(name.clone()))
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result::<Dimension>(&mut conn)?;
 
     let num_rows = dimensions
         .count()
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result::<i64>(&mut conn)
         .map_err(|err| {
             log::error!("failed to fetch number of dimension with error: {}", err);
@@ -299,7 +299,7 @@ async fn update_handler(
                 validate_cohort_schema(
                     &schema_value,
                     cohort_based_on,
-                    &workspace_request.schema_name,
+                    &workspace_context.schema_name,
                     &mut conn,
                 )?;
             }
@@ -313,7 +313,7 @@ async fn update_handler(
             | DimensionType::LocalCohort(ref cohort_based_on) => {
                 let based_on_dimension = does_dimension_exist_for_cohorting(
                     cohort_based_on,
-                    &workspace_request.schema_name,
+                    &workspace_context.schema_name,
                     &mut conn,
                 )?;
                 validate_cohort_position(new_position, &based_on_dimension, false)?;
@@ -322,7 +322,7 @@ async fn update_handler(
     }
 
     if let Some(ref fn_name) = update_req.value_validation_function_name {
-        validate_validation_function(fn_name, &mut conn, &workspace_request.schema_name)?;
+        validate_validation_function(fn_name, &mut conn, &workspace_context.schema_name)?;
     }
 
     if let Some(ref value_compute_function_name_) = update_req.value_compute_function_name
@@ -331,7 +331,7 @@ async fn update_handler(
             &dimension_data.dimension_type,
             value_compute_function_name_,
             &mut conn,
-            &workspace_request.schema_name,
+            &workspace_context.schema_name,
         )?;
     }
 
@@ -348,7 +348,7 @@ async fn update_handler(
                     &name,
                     &position_val,
                     transaction_conn,
-                    &workspace_request.schema_name,
+                    &workspace_context.schema_name,
                 )?;
                 let previous_position = dimension_data.position;
 
@@ -360,7 +360,7 @@ async fn update_handler(
                         dimensions::position.eq((num_rows + 100) as i32),
                     ))
                     .returning(Dimension::as_returning())
-                    .schema_name(&workspace_request.schema_name)
+                    .schema_name(&workspace_context.schema_name)
                     .get_result::<Dimension>(transaction_conn)?;
 
                 if previous_position < new_position {
@@ -373,7 +373,7 @@ async fn update_handler(
                             dimensions::position.eq(dimensions::position - 1),
                         ))
                         .returning(Dimension::as_returning())
-                        .schema_name(&workspace_request.schema_name)
+                        .schema_name(&workspace_context.schema_name)
                         .execute(transaction_conn)?
                 } else {
                     diesel::update(dsl::dimensions)
@@ -385,7 +385,7 @@ async fn update_handler(
                             dimensions::position.eq(dimensions::position + 1),
                         ))
                         .returning(Dimension::as_returning())
-                        .schema_name(&workspace_request.schema_name)
+                        .schema_name(&workspace_context.schema_name)
                         .execute(transaction_conn)?
                 };
             }
@@ -398,11 +398,11 @@ async fn update_handler(
                     dimensions::last_modified_by.eq(user.get_email()),
                 ))
                 .returning(Dimension::as_returning())
-                .schema_name(&workspace_request.schema_name)
+                .schema_name(&workspace_context.schema_name)
                 .get_result::<Dimension>(transaction_conn)
                 .map_err(|err| db_error!(err))?;
 
-            let is_mandatory = workspace_request
+            let is_mandatory = workspace_context
                 .settings
                 .mandatory_dimensions
                 .unwrap_or_default()
@@ -413,7 +413,7 @@ async fn update_handler(
                 tags,
                 dimension_data.change_reason.into(),
                 transaction_conn,
-                &workspace_request.schema_name,
+                &workspace_context.schema_name,
             )?;
 
             Ok((result, is_mandatory, version_id))
@@ -433,7 +433,7 @@ async fn update_handler(
 #[authorized]
 #[get("")]
 async fn list_handler(
-    workspace_request: WorkspaceContext,
+    workspace_context: WorkspaceContext,
     db_conn: DbConnection,
     filters: Query<PaginationParams>,
 ) -> superposition::Result<Json<PaginatedResponse<DimensionResponse>>> {
@@ -442,18 +442,18 @@ async fn list_handler(
     let (total_pages, total_items, result) = match filters.all {
         Some(true) => {
             let result: Vec<Dimension> = dimensions
-                .schema_name(&workspace_request.schema_name)
+                .schema_name(&workspace_context.schema_name)
                 .get_results(&mut conn)?;
             (1, result.len() as i64, result)
         }
         _ => {
             let n_dimensions: i64 = dimensions
                 .count()
-                .schema_name(&workspace_request.schema_name)
+                .schema_name(&workspace_context.schema_name)
                 .get_result(&mut conn)?;
             let limit = filters.count.unwrap_or(10);
             let mut builder = dimensions
-                .schema_name(&workspace_request.schema_name)
+                .schema_name(&workspace_context.schema_name)
                 .order(created_at.desc())
                 .limit(limit)
                 .into_boxed();
@@ -467,7 +467,7 @@ async fn list_handler(
         }
     };
 
-    let mandatory_dimensions = workspace_request
+    let mandatory_dimensions = workspace_context
         .settings
         .mandatory_dimensions
         .unwrap_or_default();
@@ -490,7 +490,7 @@ async fn list_handler(
 #[authorized]
 #[delete("/{name}")]
 async fn delete_handler(
-    workspace_request: WorkspaceContext,
+    workspace_context: WorkspaceContext,
     state: Data<AppState>,
     path: Path<DeleteRequest>,
     user: User,
@@ -504,13 +504,13 @@ async fn delete_handler(
     let dimension_data: Dimension = dimensions::dsl::dimensions
         .filter(dimensions::dimension.eq(&name))
         .select(Dimension::as_select())
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result(&mut conn)?;
 
     let context_ids = get_dimension_usage_context_ids(
         &name,
         &mut conn,
-        &workspace_request.schema_name,
+        &workspace_context.schema_name,
     )?;
 
     if context_ids.is_empty() {
@@ -531,7 +531,7 @@ async fn delete_handler(
                         &dimension_data.dimension,
                         cohort_based_on,
                         &user.get_email(),
-                        &workspace_request.schema_name,
+                        &workspace_context.schema_name,
                         transaction_conn,
                     )?
                 }
@@ -544,18 +544,18 @@ async fn delete_handler(
                     dsl::last_modified_by.eq(user.get_email()),
                 ))
                 .returning(Dimension::as_returning())
-                .schema_name(&workspace_request.schema_name)
+                .schema_name(&workspace_context.schema_name)
                 .execute(transaction_conn)?;
 
             let deleted_row = diesel::delete(dsl::dimensions.filter(dsl::dimension.eq(&name)))
-                .schema_name(&workspace_request.schema_name)
+                .schema_name(&workspace_context.schema_name)
                 .execute(transaction_conn);
 
             diesel::update(dimensions::dsl::dimensions)
                 .filter(dimensions::position.gt(dimension_data.position))
                 .set(dimensions::position.eq(dimensions::position - 1))
                 .returning(Dimension::as_returning())
-                .schema_name(&workspace_request.schema_name)
+                .schema_name(&workspace_context.schema_name)
                 .execute(transaction_conn)?;
 
             match deleted_row {
@@ -571,7 +571,7 @@ async fn delete_handler(
                         tags,
                         config_version_desc,
                         transaction_conn,
-                        &workspace_request.schema_name,
+                        &workspace_context.schema_name,
                     )?;
                     log::info!(
                         "Dimension: {name} deleted by {}",
@@ -595,7 +595,7 @@ async fn delete_handler(
         put_config_in_redis(
             _version_id,
             state,
-            &workspace_request.schema_name,
+            &workspace_context.schema_name,
             &mut conn,
         )
         .await?;

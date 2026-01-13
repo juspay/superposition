@@ -36,10 +36,10 @@ pub fn apply_prefix_filter_to_config(
 
 pub fn get_config_version(
     version: &Option<String>,
-    workspace_request: &WorkspaceContext,
+    workspace_context: &WorkspaceContext,
 ) -> superposition::Result<Option<i64>> {
     version.as_ref().map_or_else(
-        || Ok(workspace_request.settings.config_version),
+        || Ok(workspace_context.settings.config_version),
         |version| {
             if *version == *"latest" {
                 log::trace!("latest config request");
@@ -207,7 +207,7 @@ pub fn resolve(
     merge_strategy: Header<MergeStrategy>,
     conn: &mut DBConnection,
     query_filters: &ResolveConfigQuery,
-    workspace_request: &WorkspaceContext,
+    workspace_context: &WorkspaceContext,
 ) -> superposition::Result<Map<String, Value>> {
     if let Some(context_id) = &query_filters.context_id {
         config.contexts = if let Some(index) = config
@@ -229,7 +229,7 @@ pub fn resolve(
             &config.dimensions,
             &query_data,
             conn,
-            &workspace_request.schema_name,
+            &workspace_context.schema_name,
         )?);
     }
 

@@ -278,7 +278,7 @@ async fn reduce_config_key(
     dimension_schema_map: &HashMap<String, DimensionInfo>,
     default_config: Map<String, Value>,
     is_approve: bool,
-    workspace_request: &WorkspaceContext,
+    workspace_context: &WorkspaceContext,
 ) -> superposition::Result<Config> {
     let default_config_val =
         default_config
@@ -343,7 +343,7 @@ async fn reduce_config_key(
                             cid.clone(),
                             user,
                             conn,
-                            &workspace_request.schema_name,
+                            &workspace_context.schema_name,
                         );
                     }
                     og_contexts.retain(|x| x.id != *cid);
@@ -353,7 +353,7 @@ async fn reduce_config_key(
                             cid.clone(),
                             user,
                             conn,
-                            &workspace_request.schema_name,
+                            &workspace_context.schema_name,
                         );
                         if let Ok(put_req) = construct_new_payload(request_payload) {
                             let description = match put_req.description.clone() {
@@ -363,7 +363,7 @@ async fn reduce_config_key(
                                         put_req.context.clone().into_inner().into(),
                                     ),
                                     conn,
-                                    &workspace_request.schema_name,
+                                    &workspace_context.schema_name,
                                 )?,
                             };
 
@@ -373,7 +373,7 @@ async fn reduce_config_key(
                                 conn,
                                 false,
                                 user,
-                                workspace_request,
+                                workspace_context,
                                 false,
                             );
                         }
@@ -428,7 +428,7 @@ async fn reduce_config_key(
 #[authorized]
 #[put("/reduce")]
 async fn reduce_handler(
-    workspace_request: WorkspaceContext,
+    workspace_context: WorkspaceContext,
     req: HttpRequest,
     user: User,
     db_conn: DbConnection,
@@ -441,8 +441,8 @@ async fn reduce_handler(
         .unwrap_or(false);
 
     let dimensions_info_map =
-        fetch_dimensions_info_map(&mut conn, &workspace_request.schema_name)?;
-    let mut config = generate_cac(&mut conn, &workspace_request.schema_name)?;
+        fetch_dimensions_info_map(&mut conn, &workspace_context.schema_name)?;
+    let mut config = generate_cac(&mut conn, &workspace_context.schema_name)?;
     let default_config = (config.default_configs).clone();
     for (key, _) in default_config {
         let contexts = config.contexts;
@@ -457,11 +457,11 @@ async fn reduce_handler(
             &dimensions_info_map,
             default_config.clone(),
             is_approve,
-            &workspace_request,
+            &workspace_context,
         )
         .await?;
         if is_approve {
-            config = generate_cac(&mut conn, &workspace_request.schema_name)?;
+            config = generate_cac(&mut conn, &workspace_context.schema_name)?;
         }
     }
 
@@ -565,11 +565,11 @@ async fn get_handler(
     db_conn: DbConnection,
     dimension_params: DimensionQuery<QueryMap>,
     query_filters: superposition_query::Query<ConfigQuery>,
-    workspace_request: WorkspaceContext,
+    workspace_context: WorkspaceContext,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
 
-    let max_created_at = get_max_created_at(&mut conn, &workspace_request.schema_name)
+    let max_created_at = get_max_created_at(&mut conn, &workspace_context.schema_name)
         .map_err(|e| log::error!("failed to fetch max timestamp from event_log: {e}"))
         .ok();
 
@@ -582,12 +582,12 @@ async fn get_handler(
     }
 
     let query_filters = query_filters.into_inner();
-    let mut version = get_config_version(&query_filters.version, &workspace_request)?;
+    let mut version = get_config_version(&query_filters.version, &workspace_context)?;
 
     let mut config = generate_config_from_version(
         &mut version,
         &mut conn,
-        &workspace_request.schema_name,
+        &workspace_context.schema_name,
     )?;
 
     config = apply_prefix_filter_to_config(&query_filters.prefix, config)?;
@@ -606,7 +606,7 @@ async fn get_handler(
 
     let mut response = HttpResponse::Ok();
     add_last_modified_to_header(max_created_at, is_smithy, &mut response);
-    add_audit_id_to_header(&mut conn, &mut response, &workspace_request.schema_name);
+    add_audit_id_to_header(&mut conn, &mut response, &workspace_context.schema_name);
     add_config_version_to_header(&version, &mut response);
     Ok(response.json(config))
 }
@@ -623,12 +623,12 @@ async fn resolve_handler(
     db_conn: DbConnection,
     dimension_params: DimensionQuery<QueryMap>,
     query_filters: superposition_query::Query<ResolveConfigQuery>,
-    workspace_request: WorkspaceContext,
+    workspace_context: WorkspaceContext,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let query_filters = query_filters.into_inner();
 
-    let max_created_at = get_max_created_at(&mut conn, &workspace_request.schema_name)
+    let max_created_at = get_max_created_at(&mut conn, &workspace_context.schema_name)
         .map_err(|e| log::error!("failed to fetch max timestamp from event_log : {e}"))
         .ok();
 
@@ -637,11 +637,11 @@ async fn resolve_handler(
     }
 
     let mut config_version =
-        get_config_version(&query_filters.version, &workspace_request)?;
+        get_config_version(&query_filters.version, &workspace_context)?;
     let mut config = generate_config_from_version(
         &mut config_version,
         &mut conn,
-        &workspace_request.schema_name,
+        &workspace_context.schema_name,
     )?;
     let (is_smithy, query_data) = setup_query_data(&req, &body, &dimension_params)?;
 
@@ -651,12 +651,12 @@ async fn resolve_handler(
         merge_strategy,
         &mut conn,
         &query_filters,
-        &workspace_request,
+        &workspace_context,
     )?;
 
     let mut resp = HttpResponse::Ok();
     add_last_modified_to_header(max_created_at, is_smithy, &mut resp);
-    add_audit_id_to_header(&mut conn, &mut resp, &workspace_request.schema_name);
+    add_audit_id_to_header(&mut conn, &mut resp, &workspace_context.schema_name);
     add_config_version_to_header(&config_version, &mut resp);
     Ok(resp.json(resolved_config))
 }
@@ -664,7 +664,7 @@ async fn resolve_handler(
 #[authorized]
 #[get("/versions")]
 async fn list_version_handler(
-    workspace_request: WorkspaceContext,
+    workspace_context: WorkspaceContext,
     db_conn: DbConnection,
     filters: Query<PaginationParams>,
 ) -> superposition::Result<Json<PaginatedResponse<ConfigVersionListItem>>> {
@@ -672,7 +672,7 @@ async fn list_version_handler(
 
     if let Some(true) = filters.all {
         let config_versions = config_versions::config_versions
-            .schema_name(&workspace_request.schema_name)
+            .schema_name(&workspace_context.schema_name)
             .select(ConfigVersionListItem::as_select())
             .get_results(&mut conn)?;
         return Ok(Json(PaginatedResponse::all(config_versions)));
@@ -680,12 +680,12 @@ async fn list_version_handler(
 
     let n_version: i64 = config_versions::config_versions
         .count()
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result(&mut conn)?;
 
     let limit = filters.count.unwrap_or(10);
     let mut builder = config_versions::config_versions
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .into_boxed()
         .order(config_versions::created_at.desc())
         .limit(limit);
@@ -707,14 +707,14 @@ async fn list_version_handler(
 #[authorized]
 #[get("/version/{version}")]
 async fn get_version_handler(
-    workspace_request: WorkspaceContext,
+    workspace_context: WorkspaceContext,
     db_conn: DbConnection,
     version: Path<i64>,
 ) -> superposition::Result<Json<ConfigVersion>> {
     let DbConnection(mut conn) = db_conn;
 
     let config_version = config_versions::config_versions
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .find(version.into_inner())
         .get_result::<ConfigVersion>(&mut conn)?;
 

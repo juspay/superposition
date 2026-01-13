@@ -28,7 +28,7 @@ pub fn endpoints() -> Scope {
 #[authorized]
 #[get("")]
 async fn list_handler(
-    workspace_request: WorkspaceContext,
+    workspace_context: WorkspaceContext,
     db_conn: DbConnection,
     pagination: Query<PaginationParams>,
     filters: Query<VariableFilters>,
@@ -39,7 +39,7 @@ async fn list_handler(
 
     let query_builder = |filters: &VariableFilters| {
         let mut builder = variables
-            .schema_name(&workspace_request.schema_name)
+            .schema_name(&workspace_context.schema_name)
             .into_boxed();
 
         if let Some(ref var_names) = filters.name {
@@ -98,7 +98,7 @@ async fn list_handler(
 #[authorized]
 #[post("")]
 async fn create_handler(
-    workspace_request: WorkspaceContext,
+    workspace_context: WorkspaceContext,
     req: web::Json<CreateVariableRequest>,
     user: User,
     db_conn: DbConnection,
@@ -106,7 +106,7 @@ async fn create_handler(
     let DbConnection(mut conn) = db_conn;
     let req = req.into_inner();
 
-    validate_change_reason(&workspace_request, &req.change_reason, &mut conn)?;
+    validate_change_reason(&workspace_context, &req.change_reason, &mut conn)?;
 
     let now = chrono::Utc::now();
 
@@ -124,7 +124,7 @@ async fn create_handler(
     let created_var = diesel::insert_into(variables)
         .values(&new_var)
         .returning(Variable::as_returning())
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result(&mut conn)?;
 
     Ok(Json(created_var))
@@ -133,7 +133,7 @@ async fn create_handler(
 #[authorized]
 #[get("/{variable_name}")]
 async fn get_handler(
-    workspace_request: WorkspaceContext,
+    workspace_context: WorkspaceContext,
     path: web::Path<String>,
     db_conn: DbConnection,
 ) -> superposition::Result<Json<Variable>> {
@@ -143,7 +143,7 @@ async fn get_handler(
 
     let var = variables
         .filter(name.eq(var_name))
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result::<Variable>(&mut conn)?;
 
     Ok(Json(var))
@@ -152,7 +152,7 @@ async fn get_handler(
 #[authorized]
 #[patch("/{variable_name}")]
 async fn update_handler(
-    workspace_request: WorkspaceContext,
+    workspace_context: WorkspaceContext,
     path: web::Path<String>,
     req: web::Json<UpdateVariableRequest>,
     user: User,
@@ -161,7 +161,7 @@ async fn update_handler(
     let DbConnection(mut conn) = db_conn;
     let var_name = path.into_inner();
 
-    validate_change_reason(&workspace_request, &req.change_reason, &mut conn)?;
+    validate_change_reason(&workspace_context, &req.change_reason, &mut conn)?;
 
     let updated_var = diesel::update(variables)
         .filter(name.eq(var_name))
@@ -170,7 +170,7 @@ async fn update_handler(
             last_modified_at.eq(chrono::Utc::now()),
             last_modified_by.eq(user.get_email()),
         ))
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result::<Variable>(&mut conn)?;
     Ok(Json(updated_var))
 }
@@ -178,7 +178,7 @@ async fn update_handler(
 #[authorized]
 #[delete("/{variable_name}")]
 async fn delete_handler(
-    workspace_request: WorkspaceContext,
+    workspace_context: WorkspaceContext,
     path: web::Path<String>,
     user: User,
     db_conn: DbConnection,
@@ -192,12 +192,12 @@ async fn delete_handler(
             last_modified_at.eq(chrono::Utc::now()),
             last_modified_by.eq(user.get_email()),
         ))
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .execute(&mut conn)?;
 
     let deleted_variable = diesel::delete(variables)
         .filter(name.eq(&var_name))
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result::<Variable>(&mut conn)?;
 
     Ok(Json(deleted_variable))

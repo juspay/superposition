@@ -140,7 +140,7 @@ pub async fn get_partial_resolve_config(
     state: &Data<AppState>,
     exp_context: &Condition,
     context_id: &str,
-    workspace_request: &WorkspaceContext,
+    workspace_context: &WorkspaceContext,
 ) -> superposition::Result<Map<String, Value>> {
     let exp_context_dimension_value: &Map<String, Value> = exp_context;
 
@@ -152,7 +152,7 @@ pub async fn get_partial_resolve_config(
             context_id: Some(context_id.to_string()),
             ..Default::default()
         },
-        workspace_request,
+        workspace_context,
     )
     .await
 }
@@ -162,7 +162,7 @@ pub async fn get_resolved_config(
     state: &Data<AppState>,
     dimension_query: &DimensionQuery<QueryMap>,
     resolve_params: ResolveConfigQuery,
-    workspace_request: &WorkspaceContext,
+    workspace_context: &WorkspaceContext,
 ) -> superposition::Result<Map<String, Value>> {
     let http_client = state.http_client.clone();
     let resolve_params = ResolveConfigQuery {
@@ -191,8 +191,8 @@ pub async fn get_resolved_config(
     let extra_headers = vec![("x-user", user_str)];
 
     let headers_map = construct_header_map(
-        &workspace_request.workspace_id,
-        &workspace_request.organisation_id,
+        &workspace_context.workspace_id,
+        &workspace_context.organisation_id,
         extra_headers,
     )?;
     let response = http_client
@@ -211,7 +211,7 @@ pub async fn get_resolved_config(
 pub async fn get_context_override(
     user: &User,
     state: &Data<AppState>,
-    workspace_request: &WorkspaceContext,
+    workspace_context: &WorkspaceContext,
     context_id: String,
 ) -> superposition::Result<ContextResp> {
     let http_client = state.http_client.clone();
@@ -227,8 +227,8 @@ pub async fn get_context_override(
     let extra_headers = vec![("x-user", user_str)];
 
     let headers_map = construct_header_map(
-        &workspace_request.workspace_id,
-        &workspace_request.organisation_id,
+        &workspace_context.workspace_id,
+        &workspace_context.organisation_id,
         extra_headers,
     )?;
     let response = http_client
@@ -255,7 +255,7 @@ pub async fn get_context_override(
 pub async fn validate_context(
     state: &Data<AppState>,
     condition: &Condition,
-    workspace_request: &WorkspaceContext,
+    workspace_context: &WorkspaceContext,
     user: &User,
 ) -> superposition::Result<()> {
     let http_client = state.http_client.clone();
@@ -271,8 +271,8 @@ pub async fn validate_context(
     let extra_headers = vec![("x-user", user_str)];
 
     let headers_map = construct_header_map(
-        &workspace_request.workspace_id,
-        &workspace_request.organisation_id,
+        &workspace_context.workspace_id,
+        &workspace_context.organisation_id,
         extra_headers,
     )?;
     let payload = Cac::<Condition>::try_from((**condition).clone()).map_err(|err| {

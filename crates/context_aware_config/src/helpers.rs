@@ -473,18 +473,18 @@ pub fn evaluate_remote_cohorts(
 }
 
 pub fn validate_change_reason(
-    workspace_request: &WorkspaceContext,
+    workspace_context: &WorkspaceContext,
     change_reason: &ChangeReason,
     conn: &mut DBConnection,
 ) -> superposition::Result<()> {
-    if !workspace_request.settings.enable_change_reason_validation {
+    if !workspace_context.settings.enable_change_reason_validation {
         return Ok(());
     }
 
     let change_reason_validation_function = get_first_function_by_type(
         FunctionType::ChangeReasonValidation,
         conn,
-        &workspace_request.schema_name,
+        &workspace_context.schema_name,
     )?;
     if let (Some(function_code), Some(published_runtime_version)) = (
         change_reason_validation_function.published_code,
@@ -498,7 +498,7 @@ pub fn validate_change_reason(
             },
             published_runtime_version,
             conn,
-            &workspace_request.schema_name,
+            &workspace_context.schema_name,
         )?;
     }
     Ok(())

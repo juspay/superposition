@@ -33,7 +33,7 @@ pub fn endpoints() -> Scope {
 #[authorized]
 #[post("")]
 async fn create_handler(
-    workspace_request: WorkspaceContext,
+    workspace_context: WorkspaceContext,
     request: Json<TypeTemplateCreateRequest>,
     db_conn: DbConnection,
     user: User,
@@ -51,7 +51,7 @@ async fn create_handler(
         )
     })?;
 
-    validate_change_reason(&workspace_request, &request.change_reason, &mut conn)?;
+    validate_change_reason(&workspace_context, &request.change_reason, &mut conn)?;
 
     let now = Utc::now();
     let type_template = TypeTemplate {
@@ -68,7 +68,7 @@ async fn create_handler(
     let type_template = diesel::insert_into(type_templates::table)
         .values(&type_template)
         .returning(TypeTemplate::as_returning())
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result::<TypeTemplate>(&mut conn)?;
     Ok(Json(type_template))
 }
@@ -76,7 +76,7 @@ async fn create_handler(
 #[authorized]
 #[get("/{type_name}")]
 async fn get_handler(
-    workspace_request: WorkspaceContext,
+    workspace_context: WorkspaceContext,
     type_name: Path<TypeTemplateName>,
     db_conn: DbConnection,
 ) -> superposition::Result<Json<TypeTemplate>> {
@@ -84,7 +84,7 @@ async fn get_handler(
     let type_name: String = type_name.into_inner().into();
     let type_template = type_templates::table
         .filter(type_templates::type_name.eq(type_name))
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .first::<TypeTemplate>(&mut conn)?;
 
     Ok(Json(type_template))
@@ -95,7 +95,7 @@ async fn get_handler(
 #[put("/{type_name}")]
 #[patch("/{type_name}")]
 async fn update_handler(
-    workspace_request: WorkspaceContext,
+    workspace_context: WorkspaceContext,
     request: Json<TypeTemplateUpdateRequest>,
     path: Path<TypeTemplateName>,
     db_conn: DbConnection,
@@ -115,7 +115,7 @@ async fn update_handler(
         )
     })?;
 
-    validate_change_reason(&workspace_request, &request.change_reason, &mut conn)?;
+    validate_change_reason(&workspace_context, &request.change_reason, &mut conn)?;
 
     let type_name: String = path.into_inner().into();
 
@@ -128,7 +128,7 @@ async fn update_handler(
             type_templates::last_modified_by.eq(user.email.clone()),
         ))
         .returning(TypeTemplate::as_returning())
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result::<TypeTemplate>(&mut conn)?;
     Ok(Json(updated_type))
 }
@@ -136,7 +136,7 @@ async fn update_handler(
 #[authorized]
 #[delete("/{type_name}")]
 async fn delete_handler(
-    workspace_request: WorkspaceContext,
+    workspace_context: WorkspaceContext,
     path: Path<TypeTemplateName>,
     db_conn: DbConnection,
     user: User,
@@ -150,11 +150,11 @@ async fn delete_handler(
             dsl::last_modified_by.eq(user.email.clone()),
         ))
         .returning(TypeTemplate::as_returning())
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .execute(&mut conn)?;
     let deleted_type =
         diesel::delete(dsl::type_templates.filter(dsl::type_name.eq(type_name)))
-            .schema_name(&workspace_request.schema_name)
+            .schema_name(&workspace_context.schema_name)
             .get_result::<TypeTemplate>(&mut conn)?;
     Ok(Json(deleted_type))
 }
@@ -162,7 +162,7 @@ async fn delete_handler(
 #[authorized]
 #[get("")]
 async fn list_handler(
-    workspace_request: WorkspaceContext,
+    workspace_context: WorkspaceContext,
     db_conn: DbConnection,
     filters: Query<PaginationParams>,
 ) -> superposition::Result<Json<PaginatedResponse<TypeTemplate>>> {
@@ -170,18 +170,18 @@ async fn list_handler(
 
     if let Some(true) = filters.all {
         let result: Vec<TypeTemplate> = type_templates::dsl::type_templates
-            .schema_name(&workspace_request.schema_name)
+            .schema_name(&workspace_context.schema_name)
             .get_results(&mut conn)?;
         return Ok(Json(PaginatedResponse::all(result)));
     };
 
     let n_types: i64 = type_templates::dsl::type_templates
         .count()
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result(&mut conn)?;
     let limit = filters.count.unwrap_or(10);
     let mut builder = type_templates::dsl::type_templates
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .order(type_templates::dsl::created_at.desc())
         .limit(limit)
         .into_boxed();

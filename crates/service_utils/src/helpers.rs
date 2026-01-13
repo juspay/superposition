@@ -326,7 +326,7 @@ pub async fn execute_webhook_call<T>(
     webhook: &Webhook,
     payload: &T,
     config_version_opt: &Option<String>,
-    workspace_request: &WorkspaceContext,
+    workspace_context: &WorkspaceContext,
     event: WebhookEvent,
     state: &Data<AppState>,
 ) -> bool
@@ -363,8 +363,8 @@ where
         let variables_url = format!("{}/variables", state.cac_host);
 
         let headers = match construct_request_headers(&[
-            ("x-tenant", &workspace_request.workspace_id),
-            ("x-org-id", &workspace_request.organisation_id),
+            ("x-tenant", &workspace_context.workspace_id),
+            ("x-org-id", &workspace_context.organisation_id),
             (
                 "Authorization",
                 &format!("Internal {}", state.superposition_token),
@@ -416,7 +416,7 @@ where
     insert_header(
         &mut headers,
         &HeadersEnum::WorkspaceId.to_string(),
-        &workspace_request.workspace_id,
+        &workspace_context.workspace_id,
     );
 
     webhook.custom_headers.iter().for_each(|(key, value)| {
@@ -448,8 +448,8 @@ where
             event_info: WebhookEventInfo {
                 webhook_event: event,
                 time: Utc::now().to_string(),
-                workspace_id: workspace_request.workspace_id.to_string(),
-                organisation_id: workspace_request.organisation_id.to_string(),
+                workspace_id: workspace_context.workspace_id.to_string(),
+                organisation_id: workspace_context.organisation_id.to_string(),
                 config_version: config_version_opt.clone(),
             },
             payload,

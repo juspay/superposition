@@ -36,12 +36,12 @@ pub fn upsert(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     already_under_txn: bool,
     user: &User,
-    workspace_request: &WorkspaceContext,
+    workspace_context: &WorkspaceContext,
     replace: bool,
 ) -> result::Result<Context> {
     use contexts::dsl::contexts;
     let new_ctx =
-        create_ctx_from_put_req(req, description, conn, user, workspace_request)?;
+        create_ctx_from_put_req(req, description, conn, user, workspace_context)?;
 
     if already_under_txn {
         diesel::sql_query("SAVEPOINT put_ctx_savepoint").execute(conn)?;
@@ -49,7 +49,7 @@ pub fn upsert(
     let insert = diesel::insert_into(contexts)
         .values(&new_ctx)
         .returning(Context::as_returning())
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .execute(conn);
 
     match insert {
@@ -63,14 +63,14 @@ pub fn upsert(
                     conn,
                     new_ctx,
                     user,
-                    &workspace_request.schema_name,
+                    &workspace_context.schema_name,
                 )
             } else {
                 update_override_of_existing_ctx(
                     conn,
                     new_ctx,
                     user,
-                    &workspace_request.schema_name,
+                    &workspace_context.schema_name,
                 )
             }
         }
@@ -132,7 +132,7 @@ pub fn r#move(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     already_under_txn: bool,
     user: &User,
-    workspace_request: &WorkspaceContext,
+    workspace_context: &WorkspaceContext,
 ) -> result::Result<Context> {
     use contexts::dsl;
     let req = req.into_inner();
@@ -144,7 +144,7 @@ pub fn r#move(
 
     let dimension_data_map = validate_ctx(
         conn,
-        workspace_request,
+        workspace_context,
         ctx_condition.clone(),
         Overrides::default(),
     )?;
@@ -167,7 +167,7 @@ pub fn r#move(
             dsl::change_reason.eq(change_reason.clone()),
         ))
         .returning(Context::as_returning())
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result::<Context>(conn);
 
     let contruct_new_ctx_with_old_overrides = |ctx: Context| Context {
@@ -189,7 +189,7 @@ pub fn r#move(
             if already_under_txn {
                 let deleted_ctxt = diesel::delete(dsl::contexts)
                     .filter(dsl::id.eq(&old_ctx_id))
-                    .schema_name(&workspace_request.schema_name)
+                    .schema_name(&workspace_context.schema_name)
                     .get_result(db_conn)?;
 
                 let ctx = contruct_new_ctx_with_old_overrides(deleted_ctxt);
@@ -197,20 +197,20 @@ pub fn r#move(
                     db_conn,
                     ctx,
                     user,
-                    &workspace_request.schema_name,
+                    &workspace_context.schema_name,
                 )
             } else {
                 db_conn.transaction(|conn| {
                     let deleted_ctxt = diesel::delete(dsl::contexts)
                         .filter(dsl::id.eq(&old_ctx_id))
-                        .schema_name(&workspace_request.schema_name)
+                        .schema_name(&workspace_context.schema_name)
                         .get_result(conn)?;
                     let ctx = contruct_new_ctx_with_old_overrides(deleted_ctxt);
                     update_override_of_existing_ctx(
                         conn,
                         ctx,
                         user,
-                        &workspace_request.schema_name,
+                        &workspace_context.schema_name,
                     )
                 })
             }

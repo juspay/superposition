@@ -316,7 +316,7 @@ pub fn create_ctx_from_put_req(
     req_description: Description,
     conn: &mut DBConnection,
     user: &User,
-    workspace_request: &WorkspaceContext,
+    workspace_context: &WorkspaceContext,
 ) -> superposition::Result<Context> {
     let ctx_condition = req.context.to_owned().into_inner();
     let condition_val = Value::Object(ctx_condition.clone().into());
@@ -325,7 +325,7 @@ pub fn create_ctx_from_put_req(
 
     let dimension_data_map = validate_ctx(
         conn,
-        workspace_request,
+        workspace_context,
         ctx_condition.clone(),
         r_override.clone(),
     )?;
@@ -334,13 +334,13 @@ pub fn create_ctx_from_put_req(
     validate_override_with_default_configs(
         conn,
         &r_override,
-        &workspace_request.schema_name,
+        &workspace_context.schema_name,
     )?;
     validate_override_with_functions(
         conn,
         &r_override,
         &ctx_condition.clone(),
-        &workspace_request.schema_name,
+        &workspace_context.schema_name,
     )?;
 
     let weight = calculate_context_weight(&condition_val, &dimension_data_map)
@@ -439,13 +439,13 @@ pub fn update_override_of_existing_ctx(
 
 pub fn validate_ctx(
     conn: &mut DBConnection,
-    workspace_request: &WorkspaceContext,
+    workspace_context: &WorkspaceContext,
     condition: Condition,
     override_: Overrides,
 ) -> superposition::Result<HashMap<String, DimensionInfo>> {
     validate_condition_with_mandatory_dimensions(
         &condition,
-        workspace_request
+        workspace_context
             .settings
             .mandatory_dimensions
             .as_ref()
@@ -453,15 +453,15 @@ pub fn validate_ctx(
     )?;
 
     let dimension_info_map =
-        fetch_dimensions_info_map(conn, &workspace_request.schema_name)?;
+        fetch_dimensions_info_map(conn, &workspace_context.schema_name)?;
     validate_condition_with_dependent_dimensions(&dimension_info_map, &condition)?;
     validate_dimensions(&condition, &dimension_info_map)?;
     validate_condition_with_functions(
         conn,
         &condition,
         &override_,
-        workspace_request.settings.enable_context_validation,
-        &workspace_request.schema_name,
+        workspace_context.settings.enable_context_validation,
+        &workspace_context.schema_name,
     )?;
     Ok(dimension_info_map)
 }

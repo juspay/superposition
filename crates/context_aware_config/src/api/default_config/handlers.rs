@@ -61,7 +61,7 @@ pub fn endpoints() -> Scope {
 #[authorized]
 #[post("")]
 async fn create_handler(
-    workspace_request: WorkspaceContext,
+    workspace_context: WorkspaceContext,
     state: Data<AppState>,
     custom_headers: CustomHeaders,
     request: Json<DefaultConfigCreateRequest>,
@@ -77,7 +77,7 @@ async fn create_handler(
         return Err(bad_argument!("Schema cannot be empty."));
     }
 
-    validate_change_reason(&workspace_request, &req.change_reason, &mut conn)?;
+    validate_change_reason(&workspace_context, &req.change_reason, &mut conn)?;
 
     let value = req.value;
 
@@ -126,13 +126,13 @@ async fn create_handler(
         &default_config.value_validation_function_name,
         &default_config.key,
         &default_config.value,
-        &workspace_request.schema_name,
+        &workspace_context.schema_name,
     )?;
 
     validate_fn_published(
         &default_config.value_compute_function_name,
         &mut conn,
-        &workspace_request.schema_name,
+        &workspace_context.schema_name,
     )?;
 
     let version_id =
@@ -140,7 +140,7 @@ async fn create_handler(
             diesel::insert_into(dsl::default_configs)
                 .values(&default_config)
                 .returning(DefaultConfig::as_returning())
-                .schema_name(&workspace_request.schema_name)
+                .schema_name(&workspace_context.schema_name)
                 .execute(transaction_conn)?;
 
             let version_id = add_config_version(
@@ -148,13 +148,13 @@ async fn create_handler(
                 tags,
                 req.change_reason.into(),
                 transaction_conn,
-                &workspace_request.schema_name,
+                &workspace_context.schema_name,
             )?;
             Ok(version_id)
         })?;
 
     #[cfg(feature = "high-performance-mode")]
-    put_config_in_redis(version_id, state, &workspace_request.schema_name, &mut conn)
+    put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
         .await?;
     let mut http_resp = HttpResponse::Ok();
 
@@ -169,12 +169,12 @@ async fn create_handler(
 #[authorized]
 #[get("/{key}")]
 async fn get_handler(
-    workspace_request: WorkspaceContext,
+    workspace_context: WorkspaceContext,
     key: Path<DefaultConfigKey>,
     db_conn: DbConnection,
 ) -> superposition::Result<Json<DefaultConfig>> {
     let DbConnection(mut conn) = db_conn;
-    let res = fetch_default_key(&key, &mut conn, &workspace_request.schema_name)?;
+    let res = fetch_default_key(&key, &mut conn, &workspace_context.schema_name)?;
     Ok(Json(res))
 }
 
@@ -184,7 +184,7 @@ async fn get_handler(
 #[put("/{key}")]
 #[patch("/{key}")]
 async fn update_handler(
-    workspace_request: WorkspaceContext,
+    workspace_context: WorkspaceContext,
     state: Data<AppState>,
     key: Path<DefaultConfigKey>,
     custom_headers: CustomHeaders,
@@ -197,7 +197,7 @@ async fn update_handler(
     let key_str = key.into_inner().into();
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
-    let existing = fetch_default_key(&key_str, &mut conn, &workspace_request.schema_name)
+    let existing = fetch_default_key(&key_str, &mut conn, &workspace_context.schema_name)
         .map_err(|e| match e {
             superposition::AppError::DbError(diesel::NotFound) => {
                 bad_argument!(
@@ -211,7 +211,7 @@ async fn update_handler(
             }
         })?;
 
-    validate_change_reason(&workspace_request, &req.change_reason, &mut conn)?;
+    validate_change_reason(&workspace_context, &req.change_reason, &mut conn)?;
 
     let value = req.value.clone().unwrap_or_else(|| existing.value.clone());
 
@@ -245,7 +245,7 @@ async fn update_handler(
             validation_function_name,
             &key_str,
             &value,
-            &workspace_request.schema_name,
+            &workspace_context.schema_name,
         )?
     }
 
@@ -253,7 +253,7 @@ async fn update_handler(
         validate_fn_published(
             value_compute_function_name,
             &mut conn,
-            &workspace_request.schema_name,
+            &workspace_context.schema_name,
         )?;
     }
 
@@ -267,7 +267,7 @@ async fn update_handler(
                     dsl::last_modified_at.eq(Utc::now()),
                     dsl::last_modified_by.eq(user.get_email()),
                 ))
-                .schema_name(&workspace_request.schema_name)
+                .schema_name(&workspace_context.schema_name)
                 .get_result::<DefaultConfig>(transaction_conn)?;
 
             let version_id = add_config_version(
@@ -275,7 +275,7 @@ async fn update_handler(
                 tags.clone(),
                 change_reason.into(),
                 transaction_conn,
-                &workspace_request.schema_name,
+                &workspace_context.schema_name,
             )?;
 
             Ok((val, version_id))
@@ -366,7 +366,7 @@ fn fetch_default_key(
 #[authorized]
 #[get("")]
 async fn list_handler(
-    workspace_request: WorkspaceContext,
+    workspace_context: WorkspaceContext,
     db_conn: DbConnection,
     pagination: Query<PaginationParams>,
     filters: Query<DefaultConfigFilters>,
@@ -377,7 +377,7 @@ async fn list_handler(
 
     let query_builder = |filters: &DefaultConfigFilters| {
         let mut builder = dsl::default_configs
-            .schema_name(&workspace_request.schema_name)
+            .schema_name(&workspace_context.schema_name)
             .into_boxed();
         if let Some(ref config_name) = filters.name {
             builder = builder
@@ -438,7 +438,7 @@ pub fn get_key_usage_context_ids(
 #[authorized]
 #[delete("/{key}")]
 async fn delete_handler(
-    workspace_request: WorkspaceContext,
+    workspace_context: WorkspaceContext,
     state: Data<AppState>,
     path: Path<DefaultConfigKey>,
     custom_headers: CustomHeaders,
@@ -452,7 +452,7 @@ async fn delete_handler(
     let mut version_id = 0;
 
     let context_ids =
-        get_key_usage_context_ids(&key, &mut conn, &workspace_request.schema_name)
+        get_key_usage_context_ids(&key, &mut conn, &workspace_context.schema_name)
             .map_err(|_| unexpected_error!("Something went wrong"))?;
     if context_ids.is_empty() {
         let resp: Result<HttpResponse, superposition::AppError> =
@@ -463,12 +463,12 @@ async fn delete_handler(
                         dsl::last_modified_at.eq(Utc::now()),
                         dsl::last_modified_by.eq(user.get_email()),
                     ))
-                    .schema_name(&workspace_request.schema_name)
+                    .schema_name(&workspace_context.schema_name)
                     .execute(transaction_conn)?;
 
                 let deleted_row =
                     diesel::delete(dsl::default_configs.filter(dsl::key.eq(&key)))
-                        .schema_name(&workspace_request.schema_name)
+                        .schema_name(&workspace_context.schema_name)
                         .execute(transaction_conn);
                 match deleted_row {
                     Ok(0) => {
@@ -485,7 +485,7 @@ async fn delete_handler(
                             tags,
                             config_version_desc,
                             transaction_conn,
-                            &workspace_request.schema_name,
+                            &workspace_context.schema_name,
                         )?;
                         log::info!(
                             "default config key: {key} deleted by {}",

@@ -17,7 +17,7 @@ pub fn endpoints() -> Scope {
 #[authorized]
 #[get("")]
 async fn list_handler(
-    workspace_request: WorkspaceContext,
+    workspace_context: WorkspaceContext,
     filters: superposition_query::Query<AuditQueryFilters>,
     pagination_params: superposition_query::Query<PaginationParams>,
     db_conn: DbConnection,
@@ -34,7 +34,7 @@ async fn list_handler(
 
     let query_builder = |filters: &AuditQueryFilters| {
         let mut builder = event_log::event_log
-            .schema_name(&workspace_request.schema_name)
+            .schema_name(&workspace_context.schema_name)
             .into_boxed();
         if let Some(tables) = filters.table.clone() {
             builder = builder.filter(event_log::table_name.eq_any(tables.0));

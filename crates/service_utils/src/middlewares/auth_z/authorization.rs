@@ -6,7 +6,7 @@ use crate::service::types::{OrganisationId, Resource, SchemaName};
 pub trait Authorizer: Sync + Send {
     // fn grant_access_to_admin(
     //     &self,
-    //     workspace_request: &(OrganisationId, SchemaName),
+    //     workspace_context: &(OrganisationId, SchemaName),
     //     admin_email: &str,
     // ) -> LocalBoxFuture<'_, Result<bool, String>>;
 
@@ -21,7 +21,7 @@ pub trait Authorizer: Sync + Send {
 
     // async fn get_permitted_attributes(
     //     &self,
-    //     workspace_request: &(OrganisationId, SchemaName),
+    //     workspace_context: &(OrganisationId, SchemaName),
     //     user: &User,
     //     resource: &ResourceContext,
     //     action: &Action,
@@ -29,7 +29,7 @@ pub trait Authorizer: Sync + Send {
 
     // async fn enforce_with_context(
     //     &self,
-    //     workspace_request: &(OrganisationId, SchemaName),
+    //     workspace_context: &(OrganisationId, SchemaName),
     //     user: &User,
     //     resource: &ResourceContext,
     //     action: &Action,
