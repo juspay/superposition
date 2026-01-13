@@ -1,14 +1,12 @@
 use actix_web::web::{Json, Path, Query};
 use actix_web::{delete, get, post, routes, Scope};
 use chrono::Utc;
-use diesel::{
-    ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl, SelectableHelper,
-};
+use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use jsonschema::JSONSchema;
 use serde_json::Value;
-use service_utils::service::types::{DbConnection, SchemaName};
+use service_utils::service::types::{DbConnection, WorkspaceContext};
 use superposition_derives::authorized;
-use superposition_macros::{bad_argument, db_error};
+use superposition_macros::bad_argument;
 use superposition_types::{
     api::type_templates::{
         TypeTemplateCreateRequest, TypeTemplateName, TypeTemplateUpdateRequest,
@@ -35,10 +33,10 @@ pub fn endpoints() -> Scope {
 #[authorized]
 #[post("")]
 async fn create_handler(
+    workspace_context: WorkspaceContext,
     request: Json<TypeTemplateCreateRequest>,
     db_conn: DbConnection,
     user: User,
-    schema_name: SchemaName,
 ) -> superposition::Result<Json<TypeTemplate>> {
     let DbConnection(mut conn) = db_conn;
     JSONSchema::compile(&Value::from(&request.type_schema)).map_err(|err| {
@@ -52,19 +50,25 @@ async fn create_handler(
             err.to_string()
         )
     })?;
-    validate_change_reason(&request.change_reason, &mut conn, &schema_name)?;
-    let type_name: String = request.type_name.clone().into();
+
+    validate_change_reason(&workspace_context, &request.change_reason, &mut conn)?;
+
+    let now = Utc::now();
+    let type_template = TypeTemplate {
+        type_schema: request.type_schema.clone(),
+        type_name: request.type_name.clone().into(),
+        created_at: now,
+        created_by: user.email.clone(),
+        last_modified_at: now,
+        last_modified_by: user.email.clone(),
+        description: request.description.clone(),
+        change_reason: request.change_reason.clone(),
+    };
+
     let type_template = diesel::insert_into(type_templates::table)
-        .values((
-            type_templates::type_schema.eq(request.type_schema.clone()),
-            type_templates::type_name.eq(type_name),
-            type_templates::created_by.eq(user.email.clone()),
-            type_templates::last_modified_by.eq(user.email.clone()),
-            type_templates::description.eq(request.description.clone()),
-            type_templates::change_reason.eq(request.change_reason.clone()),
-        ))
+        .values(&type_template)
         .returning(TypeTemplate::as_returning())
-        .schema_name(&schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result::<TypeTemplate>(&mut conn)?;
     Ok(Json(type_template))
 }
@@ -72,15 +76,15 @@ async fn create_handler(
 #[authorized]
 #[get("/{type_name}")]
 async fn get_handler(
+    workspace_context: WorkspaceContext,
     type_name: Path<TypeTemplateName>,
     db_conn: DbConnection,
-    schema_name: SchemaName,
 ) -> superposition::Result<Json<TypeTemplate>> {
     let DbConnection(mut conn) = db_conn;
     let type_name: String = type_name.into_inner().into();
     let type_template = type_templates::table
         .filter(type_templates::type_name.eq(type_name))
-        .schema_name(&schema_name)
+        .schema_name(&workspace_context.schema_name)
         .first::<TypeTemplate>(&mut conn)?;
 
     Ok(Json(type_template))
@@ -91,11 +95,11 @@ async fn get_handler(
 #[put("/{type_name}")]
 #[patch("/{type_name}")]
 async fn update_handler(
+    workspace_context: WorkspaceContext,
     request: Json<TypeTemplateUpdateRequest>,
     path: Path<TypeTemplateName>,
     db_conn: DbConnection,
     user: User,
-    schema_name: SchemaName,
 ) -> superposition::Result<Json<TypeTemplate>> {
     let DbConnection(mut conn) = db_conn;
     let request = request.into_inner();
@@ -111,44 +115,20 @@ async fn update_handler(
         )
     })?;
 
-    validate_change_reason(&request.change_reason, &mut conn, &schema_name)?;
+    validate_change_reason(&workspace_context, &request.change_reason, &mut conn)?;
 
-    let description = request.description;
     let type_name: String = path.into_inner().into();
-    let final_description = if let Some(description) = description {
-        description
-    } else {
-        let existing_template = type_templates::table
-            .filter(type_templates::type_name.eq(&type_name))
-            .schema_name(&schema_name)
-            .first::<TypeTemplate>(&mut conn)
-            .optional()
-            .map_err(|err| {
-                log::error!("Failed to fetch existing type template: {}", err);
-                db_error!(err)
-            })?;
 
-        match existing_template {
-            Some(template) => template.description.clone(), // Use existing description
-            None => {
-                return Err(bad_argument!(
-                    "Description is required as the type template does not exist."
-                ));
-            }
-        }
-    };
     let timestamp = Utc::now();
     let updated_type = diesel::update(type_templates::table)
         .filter(type_templates::type_name.eq(type_name))
         .set((
-            type_templates::type_schema.eq(request.type_schema),
+            request,
             type_templates::last_modified_at.eq(timestamp),
             type_templates::last_modified_by.eq(user.email.clone()),
-            type_templates::description.eq(final_description),
-            type_templates::change_reason.eq(request.change_reason),
         ))
         .returning(TypeTemplate::as_returning())
-        .schema_name(&schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result::<TypeTemplate>(&mut conn)?;
     Ok(Json(updated_type))
 }
@@ -156,10 +136,10 @@ async fn update_handler(
 #[authorized]
 #[delete("/{type_name}")]
 async fn delete_handler(
+    workspace_context: WorkspaceContext,
     path: Path<TypeTemplateName>,
     db_conn: DbConnection,
     user: User,
-    schema_name: SchemaName,
 ) -> superposition::Result<Json<TypeTemplate>> {
     let DbConnection(mut conn) = db_conn;
     let type_name: String = path.into_inner().into();
@@ -170,11 +150,11 @@ async fn delete_handler(
             dsl::last_modified_by.eq(user.email.clone()),
         ))
         .returning(TypeTemplate::as_returning())
-        .schema_name(&schema_name)
+        .schema_name(&workspace_context.schema_name)
         .execute(&mut conn)?;
     let deleted_type =
         diesel::delete(dsl::type_templates.filter(dsl::type_name.eq(type_name)))
-            .schema_name(&schema_name)
+            .schema_name(&workspace_context.schema_name)
             .get_result::<TypeTemplate>(&mut conn)?;
     Ok(Json(deleted_type))
 }
@@ -182,26 +162,26 @@ async fn delete_handler(
 #[authorized]
 #[get("")]
 async fn list_handler(
+    workspace_context: WorkspaceContext,
     db_conn: DbConnection,
     filters: Query<PaginationParams>,
-    schema_name: SchemaName,
 ) -> superposition::Result<Json<PaginatedResponse<TypeTemplate>>> {
     let DbConnection(mut conn) = db_conn;
 
     if let Some(true) = filters.all {
         let result: Vec<TypeTemplate> = type_templates::dsl::type_templates
-            .schema_name(&schema_name)
+            .schema_name(&workspace_context.schema_name)
             .get_results(&mut conn)?;
         return Ok(Json(PaginatedResponse::all(result)));
     };
 
     let n_types: i64 = type_templates::dsl::type_templates
         .count()
-        .schema_name(&schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result(&mut conn)?;
     let limit = filters.count.unwrap_or(10);
     let mut builder = type_templates::dsl::type_templates
-        .schema_name(&schema_name)
+        .schema_name(&workspace_context.schema_name)
         .order(type_templates::dsl::created_at.desc())
         .limit(limit)
         .into_boxed();

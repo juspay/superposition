@@ -13,6 +13,7 @@ use diesel::{Connection, PgConnection};
 use jsonschema::JSONSchema;
 use serde::{Deserialize, Serialize};
 use snowflake::SnowflakeIdGenerator;
+use superposition_types::database::models::Workspace;
 
 use crate::db::PgSchemaConnectionPool;
 
@@ -173,6 +174,7 @@ pub struct WorkspaceContext {
     pub workspace_id: WorkspaceId,
     pub organisation_id: OrganisationId,
     pub schema_name: SchemaName,
+    pub settings: Workspace,
 }
 
 impl FromRequest for WorkspaceContext {

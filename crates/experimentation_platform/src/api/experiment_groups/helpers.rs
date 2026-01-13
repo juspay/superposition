@@ -302,13 +302,13 @@ pub fn detach_experiment_from_group(
     experiment: &Experiment,
     experiment_group_id: i64,
     conn: &mut DBConnection,
-    workspace_request: &WorkspaceContext,
+    workspace_context: &WorkspaceContext,
     user: &User,
 ) -> superposition::Result<()> {
     let experiment_group = fetch_experiment_group(
         &experiment_group_id,
         conn,
-        &workspace_request.schema_name,
+        &workspace_context.schema_name,
     )?;
 
     let mut buckets = experiment_group.buckets;
@@ -331,13 +331,13 @@ pub fn detach_experiment_from_group(
             experiment_groups::last_modified_at.eq(chrono::Utc::now()),
         ))
         .returning(ExperimentGroup::as_returning())
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .execute(conn)?;
 
     if experiment_group.group_type == GroupType::SystemGenerated {
         diesel::delete(experiment_groups::experiment_groups)
             .filter(experiment_groups::id.eq(&experiment_group_id))
-            .schema_name(&workspace_request.schema_name)
+            .schema_name(&workspace_context.schema_name)
             .execute(conn)?;
     }
 

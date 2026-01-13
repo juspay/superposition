@@ -16,7 +16,7 @@ use itertools::Itertools;
 use serde_json::{json, Map, Value};
 #[cfg(feature = "high-performance-mode")]
 use service_utils::service::types::{AppHeader, AppState};
-use service_utils::service::types::{DbConnection, SchemaName, WorkspaceContext};
+use service_utils::service::types::{DbConnection, WorkspaceContext};
 use superposition_derives::authorized;
 #[cfg(feature = "high-performance-mode")]
 use superposition_macros::response_error;
@@ -278,7 +278,7 @@ async fn reduce_config_key(
     dimension_schema_map: &HashMap<String, DimensionInfo>,
     default_config: Map<String, Value>,
     is_approve: bool,
-    schema_name: &SchemaName,
+    workspace_context: &WorkspaceContext,
 ) -> superposition::Result<Config> {
     let default_config_val =
         default_config
@@ -339,12 +339,22 @@ async fn reduce_config_key(
             ) => {
                 if *to_be_deleted {
                     if is_approve {
-                        let _ = context::delete(cid.clone(), user, conn, schema_name);
+                        let _ = context::delete(
+                            cid.clone(),
+                            user,
+                            conn,
+                            &workspace_context.schema_name,
+                        );
                     }
                     og_contexts.retain(|x| x.id != *cid);
                 } else {
                     if is_approve {
-                        let _ = context::delete(cid.clone(), user, conn, schema_name);
+                        let _ = context::delete(
+                            cid.clone(),
+                            user,
+                            conn,
+                            &workspace_context.schema_name,
+                        );
                         if let Ok(put_req) = construct_new_payload(request_payload) {
                             let description = match put_req.description.clone() {
                                 Some(val) => val,
@@ -353,16 +363,17 @@ async fn reduce_config_key(
                                         put_req.context.clone().into_inner().into(),
                                     ),
                                     conn,
-                                    schema_name,
+                                    &workspace_context.schema_name,
                                 )?,
                             };
+
                             let _ = context::upsert(
                                 put_req,
                                 description,
                                 conn,
                                 false,
                                 user,
-                                schema_name,
+                                workspace_context,
                                 false,
                             );
                         }
@@ -417,10 +428,10 @@ async fn reduce_config_key(
 #[authorized]
 #[put("/reduce")]
 async fn reduce_handler(
+    workspace_context: WorkspaceContext,
     req: HttpRequest,
     user: User,
     db_conn: DbConnection,
-    schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let is_approve = req
@@ -429,8 +440,9 @@ async fn reduce_handler(
         .and_then(|value| value.to_str().ok().and_then(|s| s.parse::<bool>().ok()))
         .unwrap_or(false);
 
-    let dimensions_info_map = fetch_dimensions_info_map(&mut conn, &schema_name)?;
-    let mut config = generate_cac(&mut conn, &schema_name)?;
+    let dimensions_info_map =
+        fetch_dimensions_info_map(&mut conn, &workspace_context.schema_name)?;
+    let mut config = generate_cac(&mut conn, &workspace_context.schema_name)?;
     let default_config = (config.default_configs).clone();
     for (key, _) in default_config {
         let contexts = config.contexts;
@@ -445,11 +457,11 @@ async fn reduce_handler(
             &dimensions_info_map,
             default_config.clone(),
             is_approve,
-            &schema_name,
+            &workspace_context,
         )
         .await?;
         if is_approve {
-            config = generate_cac(&mut conn, &schema_name)?;
+            config = generate_cac(&mut conn, &workspace_context.schema_name)?;
         }
     }
 
@@ -459,10 +471,7 @@ async fn reduce_handler(
 #[cfg(feature = "high-performance-mode")]
 #[authorized]
 #[get("/fast")]
-async fn get_fast_handler(
-    schema_name: SchemaName,
-    state: Data<AppState>,
-) -> superposition::Result<HttpResponse> {
+async fn get_fast_handler(state: Data<AppState>) -> superposition::Result<HttpResponse> {
     use fred::interfaces::MetricsInterface;
 
     log::debug!("Started redis fetch");
@@ -573,8 +582,7 @@ async fn get_handler(
     }
 
     let query_filters = query_filters.into_inner();
-    let mut version =
-        get_config_version(&query_filters.version, &workspace_context, &mut conn)?;
+    let mut version = get_config_version(&query_filters.version, &workspace_context)?;
 
     let mut config = generate_config_from_version(
         &mut version,
@@ -629,7 +637,7 @@ async fn resolve_handler(
     }
 
     let mut config_version =
-        get_config_version(&query_filters.version, &workspace_context, &mut conn)?;
+        get_config_version(&query_filters.version, &workspace_context)?;
     let mut config = generate_config_from_version(
         &mut config_version,
         &mut conn,
@@ -656,15 +664,15 @@ async fn resolve_handler(
 #[authorized]
 #[get("/versions")]
 async fn list_version_handler(
+    workspace_context: WorkspaceContext,
     db_conn: DbConnection,
     filters: Query<PaginationParams>,
-    schema_name: SchemaName,
 ) -> superposition::Result<Json<PaginatedResponse<ConfigVersionListItem>>> {
     let DbConnection(mut conn) = db_conn;
 
     if let Some(true) = filters.all {
         let config_versions = config_versions::config_versions
-            .schema_name(&schema_name)
+            .schema_name(&workspace_context.schema_name)
             .select(ConfigVersionListItem::as_select())
             .get_results(&mut conn)?;
         return Ok(Json(PaginatedResponse::all(config_versions)));
@@ -672,12 +680,12 @@ async fn list_version_handler(
 
     let n_version: i64 = config_versions::config_versions
         .count()
-        .schema_name(&schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result(&mut conn)?;
 
     let limit = filters.count.unwrap_or(10);
     let mut builder = config_versions::config_versions
-        .schema_name(&schema_name)
+        .schema_name(&workspace_context.schema_name)
         .into_boxed()
         .order(config_versions::created_at.desc())
         .limit(limit);
@@ -699,14 +707,14 @@ async fn list_version_handler(
 #[authorized]
 #[get("/version/{version}")]
 async fn get_version_handler(
+    workspace_context: WorkspaceContext,
     db_conn: DbConnection,
     version: Path<i64>,
-    schema_name: SchemaName,
 ) -> superposition::Result<Json<ConfigVersion>> {
     let DbConnection(mut conn) = db_conn;
 
     let config_version = config_versions::config_versions
-        .schema_name(&schema_name)
+        .schema_name(&workspace_context.schema_name)
         .find(version.into_inner())
         .get_result::<ConfigVersion>(&mut conn)?;
 

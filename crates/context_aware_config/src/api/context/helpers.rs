@@ -5,7 +5,7 @@ use cac_client::utils::json_to_sorted_string;
 use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use serde_json::{Map, Value};
-use service_utils::service::types::SchemaName;
+use service_utils::service::types::{SchemaName, WorkspaceContext};
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
     api::{
@@ -29,8 +29,7 @@ use superposition_types::{
 
 use crate::api::functions::helpers::get_first_function_by_type;
 use crate::{
-    api::dimension::fetch_dimensions_info_map,
-    helpers::{calculate_context_weight, get_workspace},
+    api::dimension::fetch_dimensions_info_map, helpers::calculate_context_weight,
 };
 use crate::{
     api::functions::{helpers::get_published_functions_by_names, types::FunctionInfo},
@@ -317,23 +316,31 @@ pub fn create_ctx_from_put_req(
     req_description: Description,
     conn: &mut DBConnection,
     user: &User,
-    schema_name: &SchemaName,
+    workspace_context: &WorkspaceContext,
 ) -> superposition::Result<Context> {
     let ctx_condition = req.context.to_owned().into_inner();
     let condition_val = Value::Object(ctx_condition.clone().into());
     let r_override = req.r#override.clone().into_inner();
     let ctx_override = Value::Object(r_override.clone().into());
 
-    let dimension_data_map =
-        validate_ctx(conn, schema_name, ctx_condition.clone(), r_override.clone())?;
+    let dimension_data_map = validate_ctx(
+        conn,
+        workspace_context,
+        ctx_condition.clone(),
+        r_override.clone(),
+    )?;
     let change_reason = req.change_reason.clone();
 
-    validate_override_with_default_configs(conn, &r_override, schema_name)?;
+    validate_override_with_default_configs(
+        conn,
+        &r_override,
+        &workspace_context.schema_name,
+    )?;
     validate_override_with_functions(
         conn,
         &r_override,
         &ctx_condition.clone(),
-        schema_name,
+        &workspace_context.schema_name,
     )?;
 
     let weight = calculate_context_weight(&condition_val, &dimension_data_map)
@@ -432,26 +439,29 @@ pub fn update_override_of_existing_ctx(
 
 pub fn validate_ctx(
     conn: &mut DBConnection,
-    schema_name: &SchemaName,
+    workspace_context: &WorkspaceContext,
     condition: Condition,
     override_: Overrides,
 ) -> superposition::Result<HashMap<String, DimensionInfo>> {
-    let workspace_settings = get_workspace(schema_name, conn)?;
-
     validate_condition_with_mandatory_dimensions(
         &condition,
-        &workspace_settings.mandatory_dimensions.unwrap_or_default(),
+        workspace_context
+            .settings
+            .mandatory_dimensions
+            .as_ref()
+            .unwrap_or(&vec![]),
     )?;
 
-    let dimension_info_map = fetch_dimensions_info_map(conn, schema_name)?;
+    let dimension_info_map =
+        fetch_dimensions_info_map(conn, &workspace_context.schema_name)?;
     validate_condition_with_dependent_dimensions(&dimension_info_map, &condition)?;
     validate_dimensions(&condition, &dimension_info_map)?;
     validate_condition_with_functions(
         conn,
         &condition,
         &override_,
-        workspace_settings.enable_context_validation,
-        schema_name,
+        workspace_context.settings.enable_context_validation,
+        &workspace_context.schema_name,
     )?;
     Ok(dimension_info_map)
 }

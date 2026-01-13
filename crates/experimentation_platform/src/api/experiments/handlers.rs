@@ -27,7 +27,7 @@ use service_utils::{
         construct_request_headers, execute_webhook_call, generate_snowflake_id, request,
     },
     service::types::{
-        AppHeader, AppState, CustomHeaders, DbConnection, SchemaName, WorkspaceContext,
+        AppHeader, AppState, CustomHeaders, DbConnection, WorkspaceContext,
     },
 };
 use superposition_derives::authorized;
@@ -79,8 +79,7 @@ use crate::api::{
     experiments::{
         helpers::{
             fetch_and_validate_change_reason_with_function, fetch_webhook_by_event,
-            get_workspace, validate_control_overrides,
-            validate_delete_experiment_variants,
+            validate_control_overrides, validate_delete_experiment_variants,
         },
         types::StartedByChangeSet,
     },
@@ -122,15 +121,14 @@ fn add_config_version_to_header(
     }
 }
 
-#[allow(clippy::too_many_arguments)]
 #[authorized]
 #[post("")]
 async fn create_handler(
+    workspace_context: WorkspaceContext,
     state: Data<AppState>,
     custom_headers: CustomHeaders,
     req: Json<ExperimentCreateRequest>,
     db_conn: DbConnection,
-    workspace_request: WorkspaceContext,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     use superposition_types::database::schema::experiments::dsl::experiments;
@@ -139,16 +137,12 @@ async fn create_handler(
     let description = req.description.clone();
     let change_reason = req.change_reason.clone();
 
-    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
-
-    if workspace_settings.enable_change_reason_validation {
-        fetch_and_validate_change_reason_with_function(
-            &change_reason,
-            &state,
-            &workspace_request,
-        )
-        .await?;
-    }
+    fetch_and_validate_change_reason_with_function(
+        &workspace_context,
+        &change_reason,
+        &state,
+    )
+    .await?;
 
     // Checking if experiment has exactly 1 control variant, and
     // atleast 1 experimental variant
@@ -192,7 +186,7 @@ async fn create_handler(
             }
 
             // Validate control overrides against resolved config when auto-populate is enabled
-            if workspace_settings.auto_populate_control {
+            if workspace_context.settings.auto_populate_control {
                 let control_variant = variants
                     .iter()
                     .find(|v| v.variant_type == VariantType::CONTROL)
@@ -208,7 +202,7 @@ async fn create_handler(
                 validate_control_overrides(
                     &control_variant.overrides,
                     &exp_context,
-                    &workspace_request,
+                    &workspace_context,
                     &user,
                     &state,
                 )
@@ -222,7 +216,7 @@ async fn create_handler(
                 &unique_override_keys,
                 None,
                 flags,
-                &workspace_request.schema_name,
+                &workspace_context.schema_name,
                 &mut conn,
             )?;
             if !valid {
@@ -235,7 +229,7 @@ async fn create_handler(
                 &state,
                 &exp_context,
                 &exp_context_id,
-                &workspace_request,
+                &workspace_context,
                 &variants,
             )
             .await?;
@@ -290,8 +284,8 @@ async fn create_handler(
     .collect::<Vec<_>>();
 
     let headers_map = construct_header_map(
-        &workspace_request.workspace_id,
-        &workspace_request.organisation_id,
+        &workspace_context.workspace_id,
+        &workspace_context.organisation_id,
         extra_headers,
     )?;
 
@@ -350,7 +344,10 @@ async fn create_handler(
         chosen_variant: None,
         description,
         change_reason,
-        metrics: req.metrics.clone().unwrap_or(workspace_settings.metrics),
+        metrics: req
+            .metrics
+            .clone()
+            .unwrap_or(workspace_context.settings.metrics.clone()),
         experiment_group_id: req.experiment_group_id,
     };
 
@@ -359,7 +356,7 @@ async fn create_handler(
             let inserted_experiment = diesel::insert_into(experiments)
                 .values(&new_experiment)
                 .returning(Experiment::as_returning())
-                .schema_name(&workspace_request.schema_name)
+                .schema_name(&workspace_context.schema_name)
                 .get_result(transaction_conn)?;
 
             if let Some(experiment_group_id) = &req.experiment_group_id {
@@ -371,7 +368,7 @@ async fn create_handler(
                         member_experiment_ids: vec![experiment_id],
                     },
                     transaction_conn,
-                    &workspace_request.schema_name,
+                    &workspace_context.schema_name,
                     &user,
                 )?;
             }
@@ -384,7 +381,7 @@ async fn create_handler(
         &state,
         &user,
         &WebhookEvent::ExperimentCreated,
-        &workspace_request,
+        &workspace_context,
     )
     .await
     {
@@ -392,7 +389,7 @@ async fn create_handler(
             &webhook,
             &response,
             &config_version_id,
-            &workspace_request,
+            &workspace_context,
             WebhookEvent::ExperimentCreated,
             &state,
         )
@@ -416,25 +413,22 @@ async fn create_handler(
 #[authorized]
 #[patch("/{experiment_id}/conclude")]
 async fn conclude_handler(
+    workspace_context: WorkspaceContext,
     state: Data<AppState>,
     path: web::Path<i64>,
     custom_headers: CustomHeaders,
     req: web::Json<ConcludeExperimentRequest>,
     db_conn: DbConnection,
-    workspace_request: WorkspaceContext,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
-    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
 
-    if workspace_settings.enable_change_reason_validation {
-        fetch_and_validate_change_reason_with_function(
-            &req.change_reason,
-            &state,
-            &workspace_request,
-        )
-        .await?;
-    }
+    fetch_and_validate_change_reason_with_function(
+        &workspace_context,
+        &req.change_reason,
+        &state,
+    )
+    .await?;
 
     let (response, config_version_id) = conclude(
         &state,
@@ -442,7 +436,7 @@ async fn conclude_handler(
         custom_headers.config_tags,
         req.into_inner(),
         &mut conn,
-        &workspace_request,
+        &workspace_context,
         &user,
     )
     .await?;
@@ -453,7 +447,7 @@ async fn conclude_handler(
         &state,
         &user,
         &WebhookEvent::ExperimentConcluded,
-        &workspace_request,
+        &workspace_context,
     )
     .await
     {
@@ -461,7 +455,7 @@ async fn conclude_handler(
             &webhook,
             &experiment_response,
             &config_version_id,
-            &workspace_request,
+            &workspace_context,
             WebhookEvent::ExperimentConcluded,
             &state,
         )
@@ -482,14 +476,13 @@ async fn conclude_handler(
     Ok(http_resp.json(experiment_response))
 }
 
-#[allow(clippy::too_many_arguments)]
 pub async fn conclude(
     state: &Data<AppState>,
     experiment_id: i64,
     config_tags: Option<String>,
     req: ConcludeExperimentRequest,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
-    workspace_request: &WorkspaceContext,
+    workspace_context: &WorkspaceContext,
     user: &User,
 ) -> superposition::Result<(Experiment, Option<String>)> {
     use superposition_types::database::schema::experiments::dsl;
@@ -500,7 +493,7 @@ pub async fn conclude(
 
     let experiment: Experiment = dsl::experiments
         .find(experiment_id)
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result::<Experiment>(conn)?;
 
     let exp_context_id = hash(&Value::Object(experiment.context.clone().into()));
@@ -554,7 +547,7 @@ pub async fn conclude(
                     let current_context = get_context_override(
                         user,
                         state,
-                        workspace_request,
+                        workspace_context,
                         exp_context_id.clone(),
                     )
                     .await?;
@@ -604,13 +597,13 @@ pub async fn conclude(
                 let url = format!("{}/default-config/{}", state.cac_host, key);
 
                 let headers = construct_request_headers(&[
-                    ("x-tenant", &workspace_request.workspace_id),
+                    ("x-tenant", &workspace_context.workspace_id),
                     (
                         "Authorization",
                         &format!("Internal {}", state.superposition_token),
                     ),
                     ("x-user", user_str.as_str()),
-                    ("x-org-id", &workspace_request.organisation_id),
+                    ("x-org-id", &workspace_context.organisation_id),
                 ])
                 .map_err(|err| unexpected_error!(err))?;
 
@@ -647,8 +640,8 @@ pub async fn conclude(
         .collect::<Vec<_>>();
 
     let headers_map = construct_header_map(
-        &workspace_request.workspace_id,
-        &workspace_request.organisation_id,
+        &workspace_context.workspace_id,
+        &workspace_context.organisation_id,
         extra_headers,
     )?;
 
@@ -673,7 +666,7 @@ pub async fn conclude(
                     &experiment,
                     experiment_group_id,
                     transaction_conn,
-                    workspace_request,
+                    workspace_context,
                     user,
                 )?;
             }
@@ -689,7 +682,7 @@ pub async fn conclude(
                     dsl::experiment_group_id.eq(None as Option<i64>),
                 ))
                 .returning(Experiment::as_returning())
-                .schema_name(&workspace_request.schema_name)
+                .schema_name(&workspace_context.schema_name)
                 .get_result::<Experiment>(transaction_conn)?;
             Ok(updated_experiment)
         })?;
@@ -701,25 +694,22 @@ pub async fn conclude(
 #[authorized]
 #[patch("/{experiment_id}/discard")]
 async fn discard_handler(
+    workspace_context: WorkspaceContext,
     state: Data<AppState>,
     path: Path<i64>,
     custom_headers: CustomHeaders,
     req: Json<ExperimentStateChangeRequest>,
     db_conn: DbConnection,
-    workspace_request: WorkspaceContext,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
-    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
 
-    if workspace_settings.enable_change_reason_validation {
-        fetch_and_validate_change_reason_with_function(
-            &req.change_reason,
-            &state,
-            &workspace_request,
-        )
-        .await?;
-    }
+    fetch_and_validate_change_reason_with_function(
+        &workspace_context,
+        &req.change_reason,
+        &state,
+    )
+    .await?;
 
     let (response, config_version_id) = discard(
         &state,
@@ -727,7 +717,7 @@ async fn discard_handler(
         custom_headers.config_tags,
         req.into_inner(),
         &mut conn,
-        &workspace_request,
+        &workspace_context,
         &user,
     )
     .await?;
@@ -738,7 +728,7 @@ async fn discard_handler(
         &state,
         &user,
         &WebhookEvent::ExperimentDiscarded,
-        &workspace_request,
+        &workspace_context,
     )
     .await
     {
@@ -746,7 +736,7 @@ async fn discard_handler(
             &webhook,
             &experiment_response,
             &config_version_id,
-            &workspace_request,
+            &workspace_context,
             WebhookEvent::ExperimentDiscarded,
             &state,
         )
@@ -772,14 +762,14 @@ pub async fn discard(
     config_tags: Option<String>,
     req: ExperimentStateChangeRequest,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
-    workspace_request: &WorkspaceContext,
+    workspace_context: &WorkspaceContext,
     user: &User,
 ) -> superposition::Result<(Experiment, Option<String>)> {
     use superposition_types::database::schema::experiments::dsl;
 
     let experiment: Experiment = dsl::experiments
         .find(experiment_id)
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result::<Experiment>(conn)?;
 
     if !experiment.status.discardable() {
@@ -824,8 +814,8 @@ pub async fn discard(
         .collect::<Vec<_>>();
 
     let headers_map = construct_header_map(
-        &workspace_request.workspace_id,
-        &workspace_request.organisation_id,
+        &workspace_context.workspace_id,
+        &workspace_context.organisation_id,
         extra_headers,
     )?;
 
@@ -850,7 +840,7 @@ pub async fn discard(
                     &experiment,
                     experiment_group_id,
                     transaction_conn,
-                    workspace_request,
+                    workspace_context,
                     user,
                 )?;
             }
@@ -867,7 +857,7 @@ pub async fn discard(
                     dsl::experiment_group_id.eq(None as Option<i64>),
                 ))
                 .returning(Experiment::as_returning())
-                .schema_name(&workspace_request.schema_name)
+                .schema_name(&workspace_context.schema_name)
                 .get_result::<Experiment>(transaction_conn)?;
 
             Ok(updated_experiment)
@@ -881,12 +871,12 @@ pub async fn get_applicable_variants_helper(
     context: Map<String, Value>,
     config: &Config,
     identifier: String,
-    workspace_request: &WorkspaceContext,
+    workspace_context: &WorkspaceContext,
 ) -> superposition::Result<(Vec<String>, HashMap<String, ExperimentResponse>)> {
     use superposition_types::database::schema::experiments::dsl;
 
     let experiment_groups = experiment_groups::experiment_groups
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .load::<ExperimentGroup>(db_conn)?;
 
     let context = evaluate_local_cohorts(&config.dimensions, &context);
@@ -905,7 +895,7 @@ pub async fn get_applicable_variants_helper(
                 .eq_any(exp_ids)
                 .and(dsl::status.eq(ExperimentStatusType::INPROGRESS)),
         )
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .load::<Experiment>(db_conn)?
         .into_iter()
         .map(|exp| {
@@ -927,13 +917,13 @@ pub async fn get_applicable_variants_helper(
 #[get("/applicable-variants")]
 #[post("/applicable-variants")]
 async fn get_applicable_variants_handler(
+    workspace_context: WorkspaceContext,
     req: HttpRequest,
     state: Data<AppState>,
     db_conn: DbConnection,
     req_body: Option<Json<ApplicableVariantsRequest>>,
     query_data: Option<Query<ApplicableVariantsQuery>>,
     dimension_params: Option<DimensionQuery<QueryMap>>,
-    workspace_request: WorkspaceContext,
 ) -> superposition::Result<Either<Json<Vec<Variant>>, Json<ListResponse<Variant>>>> {
     let DbConnection(mut conn) = db_conn;
     let (context, identifier) =
@@ -956,13 +946,13 @@ async fn get_applicable_variants_handler(
             }
         };
 
-    let (config, _) = fetch_cac_config(&state, &workspace_request).await?;
+    let (config, _) = fetch_cac_config(&state, &workspace_context).await?;
     let (applicable_variants, exps) = get_applicable_variants_helper(
         &mut conn,
         context,
         &config,
         identifier,
-        &workspace_request,
+        &workspace_context,
     )
     .await?;
 
@@ -988,19 +978,19 @@ async fn get_applicable_variants_handler(
 #[authorized]
 #[get("")]
 async fn list_handler(
+    workspace_context: WorkspaceContext,
     req: HttpRequest,
     pagination_params: superposition_query::Query<PaginationParams>,
     filters: superposition_query::Query<ExperimentListFilters>,
     dimension_params: DimensionQuery<QueryMap>,
     db_conn: DbConnection,
-    schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
 
     let max_event_timestamp: Option<DateTime<Utc>> = event_log::event_log
         .filter(event_log::table_name.eq("experiments"))
         .select(diesel::dsl::max(event_log::timestamp))
-        .schema_name(&schema_name)
+        .schema_name(&workspace_context.schema_name)
         .first(&mut conn)?;
 
     let last_modified = req
@@ -1021,7 +1011,7 @@ async fn list_handler(
 
     let query_builder = |filters: &ExperimentListFilters| {
         let mut builder = experiments::experiments
-            .schema_name(&schema_name)
+            .schema_name(&workspace_context.schema_name)
             .into_boxed();
         if let Some(ref states) = filters.status {
             builder = builder.filter(experiments::status.eq_any(states.0.clone()));
@@ -1151,12 +1141,16 @@ async fn list_handler(
 #[authorized]
 #[get("/{id}")]
 async fn get_handler(
+    workspace_context: WorkspaceContext,
     params: web::Path<i64>,
     db_conn: DbConnection,
-    schema_name: SchemaName,
 ) -> superposition::Result<Json<ExperimentResponse>> {
     let DbConnection(mut conn) = db_conn;
-    let response = fetch_experiment(&params.into_inner(), &mut conn, &schema_name)?;
+    let response = fetch_experiment(
+        &params.into_inner(),
+        &mut conn,
+        &workspace_context.schema_name,
+    )?;
     Ok(Json(ExperimentResponse::from(response)))
 }
 
@@ -1170,34 +1164,30 @@ pub fn user_allowed_to_ramp(
             && experiment.created_by == user.get_email())
 }
 
-#[allow(clippy::too_many_arguments)]
 #[authorized]
 #[patch("/{id}/ramp")]
 async fn ramp_handler(
+    workspace_context: WorkspaceContext,
     state: Data<AppState>,
     params: web::Path<i64>,
     req: web::Json<RampRequest>,
     db_conn: DbConnection,
     user: User,
-    workspace_request: WorkspaceContext,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let exp_id = params.into_inner();
     let change_reason = req.change_reason.clone();
-    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
 
-    if workspace_settings.enable_change_reason_validation {
-        fetch_and_validate_change_reason_with_function(
-            &change_reason,
-            &state,
-            &workspace_request,
-        )
-        .await?;
-    }
+    fetch_and_validate_change_reason_with_function(
+        &workspace_context,
+        &change_reason,
+        &state,
+    )
+    .await?;
 
     let experiment: Experiment = experiments::experiments
         .find(exp_id)
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result::<Experiment>(&mut conn)?;
 
     if !experiment.status.active() {
@@ -1206,12 +1196,10 @@ async fn ramp_handler(
         ));
     }
 
-    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
-
     if !user_allowed_to_ramp(
         &experiment,
         &user,
-        workspace_settings.allow_experiment_self_approval,
+        workspace_context.settings.allow_experiment_self_approval,
     ) {
         return Err(bad_argument!(
             "Experiment creator is not allowed to start experiment, if this is not intended, please change the workspace settings to allow self-approval"
@@ -1223,7 +1211,7 @@ async fn ramp_handler(
     match experiment.experiment_type {
         ExperimentType::Default => {
             // Validate control overrides against resolved config when auto-populate is enabled and experiment is in CREATED state
-            if workspace_settings.auto_populate_control
+            if workspace_context.settings.auto_populate_control
                 && experiment.status == ExperimentStatusType::CREATED
             {
                 let control_variant = experiment_variants
@@ -1241,7 +1229,7 @@ async fn ramp_handler(
                 validate_control_overrides(
                     &control_variant.overrides,
                     &experiment.context,
-                    &workspace_request,
+                    &workspace_context,
                     &user,
                     &state,
                 )
@@ -1254,7 +1242,7 @@ async fn ramp_handler(
                 &state,
                 &experiment.context,
                 &hash(&Value::Object(experiment.context.clone().into())),
-                &workspace_request,
+                &workspace_context,
                 &experiment.variants,
             )
             .await?;
@@ -1298,7 +1286,7 @@ async fn ramp_handler(
                     new_traffic_percentage,
                     &state,
                     transaction_conn,
-                    &workspace_request.schema_name,
+                    &workspace_context.schema_name,
                     &user,
                 )?;
                 experiment_group_id = Some(experiment_group.id);
@@ -1308,7 +1296,7 @@ async fn ramp_handler(
                     &experiment_group_id,
                     new_traffic_percentage,
                     transaction_conn,
-                    &workspace_request.schema_name,
+                    &workspace_context.schema_name,
                     &user,
                 )?;
             }
@@ -1325,12 +1313,12 @@ async fn ramp_handler(
                     experiments::experiment_group_id.eq(experiment_group_id),
                 ))
                 .returning(Experiment::as_returning())
-                .schema_name(&workspace_request.schema_name)
+                .schema_name(&workspace_context.schema_name)
                 .get_result(transaction_conn)?;
             Ok(updated_experiment)
         })?;
 
-    let (_, config_version_id) = fetch_cac_config(&state, &workspace_request).await?;
+    let (_, config_version_id) = fetch_cac_config(&state, &workspace_context).await?;
     let experiment_response = ExperimentResponse::from(updated_experiment);
 
     let webhook_event = if matches!(experiment.status, ExperimentStatusType::CREATED) {
@@ -1339,13 +1327,13 @@ async fn ramp_handler(
         WebhookEvent::ExperimentInprogress
     };
     let webhook_status = if let Ok(webhook) =
-        fetch_webhook_by_event(&state, &user, &webhook_event, &workspace_request).await
+        fetch_webhook_by_event(&state, &user, &webhook_event, &workspace_context).await
     {
         execute_webhook_call(
             &webhook,
             &experiment_response,
             &config_version_id,
-            &workspace_request,
+            &workspace_context,
             webhook_event,
             &state,
         )
@@ -1370,12 +1358,12 @@ async fn ramp_handler(
 #[put("/{id}/overrides")]
 #[patch("/{id}/overrides")]
 async fn update_handler(
+    workspace_context: WorkspaceContext,
     params: web::Path<i64>,
     state: Data<AppState>,
     custom_headers: CustomHeaders,
     db_conn: DbConnection,
     req: Json<OverrideKeysUpdateRequest>,
-    workspace_request: WorkspaceContext,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
@@ -1383,16 +1371,13 @@ async fn update_handler(
     let experiment_group_id = req.experiment_group_id.clone();
     let description = req.description.clone();
     let change_reason = req.change_reason.clone();
-    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
 
-    if workspace_settings.enable_change_reason_validation {
-        fetch_and_validate_change_reason_with_function(
-            &change_reason,
-            &state,
-            &workspace_request,
-        )
-        .await?;
-    }
+    fetch_and_validate_change_reason_with_function(
+        &workspace_context,
+        &change_reason,
+        &state,
+    )
+    .await?;
 
     let payload = req.into_inner();
     let variants = payload.variants;
@@ -1408,7 +1393,7 @@ async fn update_handler(
     // fetch the current variants of the experiment
     let experiment = experiments::experiments
         .find(experiment_id)
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .first::<Experiment>(&mut conn)?;
 
     if experiment.status != ExperimentStatusType::CREATED {
@@ -1432,8 +1417,6 @@ async fn update_handler(
             "Number of variants passed in the request does not match with existing experiment variants"
         ))?;
     }
-
-    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
 
     /****************** Validating override_keys and variant overrides *********************/
 
@@ -1503,7 +1486,7 @@ async fn update_handler(
             }
 
             // Validate control overrides against resolved config when auto-populate is enabled
-            if workspace_settings.auto_populate_control {
+            if workspace_context.settings.auto_populate_control {
                 let control_variant_id = experiment
                     .variants
                     .iter()
@@ -1529,7 +1512,7 @@ async fn update_handler(
                 validate_control_overrides(
                     &req_control_variant.overrides,
                     &experiment.context,
-                    &workspace_request,
+                    &workspace_context,
                     &user,
                     &state,
                 )
@@ -1543,7 +1526,7 @@ async fn update_handler(
                 &override_keys,
                 Some(experiment_id),
                 flags,
-                &workspace_request.schema_name,
+                &workspace_context.schema_name,
                 &mut conn,
             )?;
             if !valid {
@@ -1556,7 +1539,7 @@ async fn update_handler(
                 &state,
                 &experiment_condition,
                 &exp_context_id,
-                &workspace_request,
+                &workspace_context,
                 &new_variants,
             )
             .await?;
@@ -1602,8 +1585,8 @@ async fn update_handler(
     .collect::<Vec<_>>();
 
     let headers_map = construct_header_map(
-        &workspace_request.workspace_id,
-        &workspace_request.organisation_id,
+        &workspace_context.workspace_id,
+        &workspace_context.organisation_id,
         extra_headers,
     )?;
 
@@ -1666,7 +1649,7 @@ async fn update_handler(
                 &experiment.experiment_group_id,
                 &state,
                 transaction_conn,
-                &workspace_request.schema_name,
+                &workspace_context.schema_name,
                 &user,
             )?;
 
@@ -1684,7 +1667,7 @@ async fn update_handler(
                         experiments::experiment_group_id.eq(experiment_group_id_result),
                     ))
                     .returning(Experiment::as_returning())
-                    .schema_name(&workspace_request.schema_name)
+                    .schema_name(&workspace_context.schema_name)
                     .get_result::<Experiment>(transaction_conn)?;
 
             Ok(updated_experiment)
@@ -1696,7 +1679,7 @@ async fn update_handler(
         &state,
         &user,
         &WebhookEvent::ExperimentUpdated,
-        &workspace_request,
+        &workspace_context,
     )
     .await
     {
@@ -1704,7 +1687,7 @@ async fn update_handler(
             &webhook,
             &experiment_response,
             &config_version_id,
-            &workspace_request,
+            &workspace_context,
             WebhookEvent::ExperimentUpdated,
             &state,
         )
@@ -1727,30 +1710,27 @@ async fn update_handler(
 #[authorized]
 #[patch("/{experiment_id}/pause")]
 async fn pause_handler(
+    workspace_context: WorkspaceContext,
     state: Data<AppState>,
     path: Path<i64>,
     req: Json<ExperimentStateChangeRequest>,
     db_conn: DbConnection,
-    workspace_request: WorkspaceContext,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
-    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
 
-    if workspace_settings.enable_change_reason_validation {
-        fetch_and_validate_change_reason_with_function(
-            &req.change_reason,
-            &state,
-            &workspace_request,
-        )
-        .await?;
-    }
+    fetch_and_validate_change_reason_with_function(
+        &workspace_context,
+        &req.change_reason,
+        &state,
+    )
+    .await?;
 
     let response = pause(
         path.into_inner(),
         req.into_inner(),
         &mut conn,
-        &workspace_request,
+        &workspace_context,
         &user,
     )
     .await?;
@@ -1761,7 +1741,7 @@ async fn pause_handler(
         &state,
         &user,
         &WebhookEvent::ExperimentPaused,
-        &workspace_request,
+        &workspace_context,
     )
     .await
     {
@@ -1769,7 +1749,7 @@ async fn pause_handler(
             &webhook,
             &experiment_response,
             &None,
-            &workspace_request,
+            &workspace_context,
             WebhookEvent::ExperimentPaused,
             &state,
         )
@@ -1792,14 +1772,14 @@ pub async fn pause(
     experiment_id: i64,
     req: ExperimentStateChangeRequest,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
-    workspace_request: &WorkspaceContext,
+    workspace_context: &WorkspaceContext,
     user: &User,
 ) -> superposition::Result<Experiment> {
     use superposition_types::database::schema::experiments::dsl;
 
     let experiment: Experiment = dsl::experiments
         .find(experiment_id)
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result::<Experiment>(conn)?;
 
     if !experiment.status.pausable() {
@@ -1819,7 +1799,7 @@ pub async fn pause(
             dsl::last_modified_by.eq(user.get_email()),
         ))
         .returning(Experiment::as_returning())
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result::<Experiment>(conn)?;
 
     Ok(updated_experiment)
@@ -1828,30 +1808,27 @@ pub async fn pause(
 #[authorized]
 #[patch("/{experiment_id}/resume")]
 async fn resume_handler(
+    workspace_context: WorkspaceContext,
     state: Data<AppState>,
     path: Path<i64>,
     req: Json<ExperimentStateChangeRequest>,
     db_conn: DbConnection,
-    workspace_request: WorkspaceContext,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
-    let workspace_settings = get_workspace(&workspace_request.schema_name, &mut conn)?;
 
-    if workspace_settings.enable_change_reason_validation {
-        fetch_and_validate_change_reason_with_function(
-            &req.change_reason,
-            &state,
-            &workspace_request,
-        )
-        .await?;
-    }
+    fetch_and_validate_change_reason_with_function(
+        &workspace_context,
+        &req.change_reason,
+        &state,
+    )
+    .await?;
 
     let response = resume(
         path.into_inner(),
         req.into_inner(),
         &mut conn,
-        &workspace_request,
+        &workspace_context,
         &user,
     )
     .await?;
@@ -1862,7 +1839,7 @@ async fn resume_handler(
         &state,
         &user,
         &WebhookEvent::ExperimentInprogress,
-        &workspace_request,
+        &workspace_context,
     )
     .await
     {
@@ -1870,7 +1847,7 @@ async fn resume_handler(
             &webhook,
             &experiment_response,
             &None,
-            &workspace_request,
+            &workspace_context,
             WebhookEvent::ExperimentInprogress,
             &state,
         )
@@ -1893,14 +1870,14 @@ pub async fn resume(
     experiment_id: i64,
     req: ExperimentStateChangeRequest,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
-    workspace_request: &WorkspaceContext,
+    workspace_context: &WorkspaceContext,
     user: &User,
 ) -> superposition::Result<Experiment> {
     use superposition_types::database::schema::experiments::dsl;
 
     let experiment: Experiment = dsl::experiments
         .find(experiment_id)
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result::<Experiment>(conn)?;
 
     if !experiment.status.resumable() {
@@ -1919,7 +1896,7 @@ pub async fn resume(
             dsl::last_modified_by.eq(user.get_email()),
         ))
         .returning(Experiment::as_returning())
-        .schema_name(&workspace_request.schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result::<Experiment>(conn)?;
 
     Ok(updated_experiment)

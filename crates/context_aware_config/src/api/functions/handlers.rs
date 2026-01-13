@@ -5,7 +5,7 @@ use actix_web::{
 };
 use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
-use service_utils::service::types::{DbConnection, SchemaName};
+use service_utils::service::types::{DbConnection, WorkspaceContext};
 use superposition_derives::authorized;
 use superposition_macros::{bad_argument, not_found, unexpected_error};
 use superposition_types::{
@@ -43,10 +43,10 @@ pub fn endpoints() -> Scope {
 #[authorized]
 #[post("")]
 async fn create_handler(
+    workspace_context: WorkspaceContext,
     request: Json<CreateFunctionRequest>,
     db_conn: DbConnection,
     user: User,
-    schema_name: SchemaName,
 ) -> superposition::Result<Json<Function>> {
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
@@ -64,7 +64,7 @@ async fn create_handler(
         ));
     }
 
-    validate_change_reason(&req.change_reason, &mut conn, &schema_name)?;
+    validate_change_reason(&workspace_context, &req.change_reason, &mut conn)?;
 
     compile_fn(&req.function)?;
 
@@ -92,7 +92,7 @@ async fn create_handler(
         diesel::insert_into(functions::functions)
             .values(&function)
             .returning(Function::as_returning())
-            .schema_name(&schema_name)
+            .schema_name(&workspace_context.schema_name)
             .get_result(&mut conn);
 
     match insert {
@@ -122,11 +122,11 @@ async fn create_handler(
 #[authorized]
 #[patch("/{function_name}")]
 async fn update_handler(
+    workspace_context: WorkspaceContext,
     params: Path<FunctionName>,
     request: Json<UpdateFunctionRequest>,
     db_conn: DbConnection,
     user: User,
-    schema_name: SchemaName,
 ) -> superposition::Result<Json<Function>> {
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
@@ -134,18 +134,10 @@ async fn update_handler(
 
     // Function Linter Check
     if let Some(function) = &req.draft_code {
-        let function_type = functions::functions
-            .select(schema::functions::function_type)
-            .filter(schema::functions::function_name.eq(&f_name))
-            .schema_name(&schema_name)
-            .get_result::<FunctionType>(&mut conn)?;
-
         compile_fn(function)?;
-
-        if function_type != FunctionType::ChangeReasonValidation {
-            validate_change_reason(&req.change_reason, &mut conn, &schema_name)?;
-        }
     }
+
+    validate_change_reason(&workspace_context, &req.change_reason, &mut conn)?;
 
     let updated_function = diesel::update(functions::functions)
         .filter(schema::functions::function_name.eq(f_name))
@@ -157,7 +149,7 @@ async fn update_handler(
             functions::last_modified_at.eq(Utc::now()),
         ))
         .returning(Function::as_returning())
-        .schema_name(&schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result::<Function>(&mut conn)?;
 
     Ok(Json(updated_function))
@@ -166,13 +158,13 @@ async fn update_handler(
 #[authorized]
 #[get("/{function_name}")]
 async fn get_handler(
+    workspace_context: WorkspaceContext,
     params: Path<FunctionName>,
     db_conn: DbConnection,
-    schema_name: SchemaName,
 ) -> superposition::Result<Json<Function>> {
     let DbConnection(mut conn) = db_conn;
     let f_name: String = params.into_inner().into();
-    let function = fetch_function(&f_name, &mut conn, &schema_name)?;
+    let function = fetch_function(&f_name, &mut conn, &workspace_context.schema_name)?;
 
     Ok(Json(function))
 }
@@ -180,14 +172,16 @@ async fn get_handler(
 #[authorized]
 #[get("")]
 async fn list_handler(
+    workspace_context: WorkspaceContext,
     db_conn: DbConnection,
     pagination: superposition_query::Query<PaginationParams>,
     filters: superposition_query::Query<ListFunctionFilters>,
-    schema_name: SchemaName,
 ) -> superposition::Result<Json<PaginatedResponse<Function>>> {
     let DbConnection(mut conn) = db_conn;
     let query_builder = |f: &ListFunctionFilters| {
-        let mut builder = functions::functions.schema_name(&schema_name).into_boxed();
+        let mut builder = functions::functions
+            .schema_name(&workspace_context.schema_name)
+            .into_boxed();
         if let Some(ref fntype) = f.function_type {
             builder = builder.filter(functions::function_type.eq_any(fntype.0.clone()));
         }
@@ -216,15 +210,15 @@ async fn list_handler(
 #[authorized]
 #[delete("/{function_name}")]
 async fn delete_handler(
+    workspace_context: WorkspaceContext,
     params: Path<FunctionName>,
     db_conn: DbConnection,
     user: User,
-    schema_name: SchemaName,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let f_name: String = params.into_inner().into();
 
-    let function = fetch_function(&f_name, &mut conn, &schema_name)?;
+    let function = fetch_function(&f_name, &mut conn, &workspace_context.schema_name)?;
     match function.function_type {
         FunctionType::ContextValidation | FunctionType::ChangeReasonValidation => {
             return Err(bad_argument!(
@@ -242,11 +236,11 @@ async fn delete_handler(
             functions::last_modified_by.eq(user.get_email()),
         ))
         .returning(Function::as_returning())
-        .schema_name(&schema_name)
+        .schema_name(&workspace_context.schema_name)
         .execute(&mut conn)?;
     let deleted_row =
         diesel::delete(functions::functions.filter(functions::function_name.eq(&f_name)))
-            .schema_name(&schema_name)
+            .schema_name(&workspace_context.schema_name)
             .execute(&mut conn)?;
     match deleted_row {
         0 => Err(not_found!("Function {} doesn't exists", f_name)),
@@ -260,16 +254,16 @@ async fn delete_handler(
 #[authorized]
 #[post("/{function_name}/{stage}/test")]
 async fn test_handler(
+    workspace_context: WorkspaceContext,
     params: Path<TestParam>,
     request: Json<FunctionExecutionRequest>,
     db_conn: DbConnection,
-    schema_name: SchemaName,
 ) -> superposition::Result<Json<FunctionExecutionResponse>> {
     let DbConnection(mut conn) = db_conn;
     let path_params = params.into_inner();
     let fun_name: &String = &path_params.function_name.into();
     let req = request.into_inner();
-    let function = fetch_function(fun_name, &mut conn, &schema_name)?;
+    let function = fetch_function(fun_name, &mut conn, &workspace_context.schema_name)?;
 
     let (code, version) = match path_params.stage {
         Stage::Draft => (function.draft_code, function.draft_runtime_version),
@@ -285,15 +279,20 @@ async fn test_handler(
         }
     };
 
-    let result = execute_fn(&code, &req, version, &mut conn, &schema_name).map_err(
-        |(e, stdout)| {
-            bad_argument!(
-                "Function failed with error: {}, stdout: {:?}",
-                e,
-                stdout.unwrap_or_default()
-            )
-        },
-    )?;
+    let result = execute_fn(
+        &code,
+        &req,
+        version,
+        &mut conn,
+        &workspace_context.schema_name,
+    )
+    .map_err(|(e, stdout)| {
+        bad_argument!(
+            "Function failed with error: {}, stdout: {:?}",
+            e,
+            stdout.unwrap_or_default()
+        )
+    })?;
 
     Ok(Json(result))
 }
@@ -301,20 +300,18 @@ async fn test_handler(
 #[authorized]
 #[patch("/{function_name}/publish")]
 async fn publish_handler(
+    workspace_context: WorkspaceContext,
     params: Path<FunctionName>,
     request: Json<FunctionStateChangeRequest>,
     db_conn: DbConnection,
     user: User,
-    schema_name: SchemaName,
 ) -> superposition::Result<Json<Function>> {
     let DbConnection(mut conn) = db_conn;
     let fun_name: String = params.into_inner().into();
-    let function = fetch_function(&fun_name, &mut conn, &schema_name)?;
+    let function = fetch_function(&fun_name, &mut conn, &workspace_context.schema_name)?;
     let req = request.into_inner();
 
-    if function.function_type != FunctionType::ChangeReasonValidation {
-        validate_change_reason(&req.change_reason, &mut conn, &schema_name)?;
-    }
+    validate_change_reason(&workspace_context, &req.change_reason, &mut conn)?;
 
     let updated_function = diesel::update(functions::functions)
         .filter(functions::function_name.eq(fun_name.clone()))
@@ -324,9 +321,11 @@ async fn publish_handler(
             functions::published_runtime_version.eq(Some(function.draft_runtime_version)),
             functions::published_by.eq(Some(user.get_email())),
             functions::published_at.eq(Some(Utc::now())),
+            functions::last_modified_by.eq(user.get_email()),
+            functions::last_modified_at.eq(Utc::now()),
         ))
         .returning(Function::as_returning())
-        .schema_name(&schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result::<Function>(&mut conn)?;
 
     Ok(Json(updated_function))

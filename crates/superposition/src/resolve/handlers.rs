@@ -52,7 +52,7 @@ async fn resolve_with_exp_handler(
 
     let (is_smithy, mut query_data) = setup_query_data(&req, &body, &dimension_params)?;
     let mut config_version =
-        get_config_version(&query_filters.version, &workspace_context, &mut conn)?;
+        get_config_version(&query_filters.version, &workspace_context)?;
 
     // This is needed as `generate_config_from_version` updates config_version value
     // in case nothing was found either from query params or workspace settings

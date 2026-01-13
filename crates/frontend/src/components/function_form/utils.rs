@@ -46,7 +46,6 @@ pub async fn create_function(
     parse_json_response(response).await
 }
 
-#[allow(clippy::too_many_arguments)]
 pub async fn update_function(
     function_name: String,
     function: String,

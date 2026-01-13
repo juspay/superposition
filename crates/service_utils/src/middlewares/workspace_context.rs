@@ -10,13 +10,12 @@ use actix_web::{
 };
 use futures_util::future::LocalBoxFuture;
 use regex::Regex;
-use superposition_macros::bad_argument;
+use superposition_macros::{bad_argument, unexpected_error};
 
+use crate::helpers::get_workspace;
 use crate::{
     extensions::HttpRequestExt,
-    service::types::{
-        AppState, OrganisationId, SchemaName, WorkspaceContext, WorkspaceId,
-    },
+    service::types::{AppState, OrganisationId, SchemaName, WorkspaceContext},
 };
 
 pub struct OrgWorkspaceMiddlewareFactory {
@@ -107,46 +106,60 @@ where
                 || assets_regex.is_match(&request_path);
 
             if !is_excluded {
-                let workspace_id = match (
-                    enable_workspace_id,
-                    req.request().get_workspace_id(),
+                let organisation = match (
+                    enable_org_id,
+                    req.request().get_organisation_id(),
                 ) {
                     (true, None) => {
-                        let error: Error = bad_argument!("The parameter workspace id is required, and must be passed through headers/url params/query params.").into();
+                        let error: Error = bad_argument!(
+                            "The parameter org id is required, and must be passed through headers/url params/query params."
+                        ).into();
                         return Ok(req.into_response(
                             error.error_response().map_into_right_body(),
                         ));
                     }
-                    (true, Some(workspace_id)) => workspace_id,
-                    (false, _) => WorkspaceId(String::from("test")),
+                    (true, Some(org_id)) => org_id,
+                    (false, _) => OrganisationId::default(),
                 };
+                req.extensions_mut().insert(organisation.clone());
 
-                let org = req.request().get_organisation_id();
-                // TODO: validate the workspace
-                let schema_name = match (enable_org_id, &org) {
+                let workspace = req.request().get_workspace_id();
+
+                let schema_name = match (enable_workspace_id, workspace) {
                     (true, None) => {
-                        let error: Error = bad_argument!("The parameter org id is required, and must be passed through headers/url params/query params.").into();
+                        let error: Error = bad_argument!(
+                            "The parameter workspace id is required, and must be passed through headers/url params/query params."
+                        ).into();
                         return Ok(req.into_response(
                             error.error_response().map_into_right_body(),
                         ));
                     }
-                    (true, Some(OrganisationId(org_id))) => {
-                        let schema = format!("{org_id}_{}", *workspace_id);
-                        SchemaName(schema)
+                    (true, Some(workspace_id)) => {
+                        let schema = format!("{}_{}", *organisation, *workspace_id);
+                        let schema_name = SchemaName(schema);
+                        let workspace_settings = {
+                            let mut db_conn = app_state
+                                .db_pool
+                                .get()
+                                .map_err(|err| unexpected_error!("{}", err))?;
+
+                            get_workspace(&schema_name, &mut db_conn)?
+                        };
+
+                        req.extensions_mut().insert(workspace_id.clone());
+                        req.extensions_mut().insert(WorkspaceContext {
+                            organisation_id: organisation,
+                            workspace_id,
+                            schema_name: schema_name.clone(),
+                            settings: workspace_settings,
+                        });
+
+                        schema_name
                     }
                     (false, _) => SchemaName::default(),
                 };
 
-                let organisation = org.unwrap_or_default();
-
-                req.extensions_mut().insert(schema_name.clone());
-                req.extensions_mut().insert(workspace_id.clone());
-                req.extensions_mut().insert(organisation.clone());
-                req.extensions_mut().insert(WorkspaceContext {
-                    organisation_id: organisation,
-                    workspace_id,
-                    schema_name,
-                });
+                req.extensions_mut().insert(schema_name);
             }
 
             let res = srv.call(req).await?.map_into_left_body();

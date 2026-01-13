@@ -6,7 +6,7 @@ use diesel::{
     Connection, ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl, SelectableHelper,
 };
 use serde_json::{Map, Value};
-use service_utils::service::types::SchemaName;
+use service_utils::service::types::{SchemaName, WorkspaceContext};
 use superposition_macros::{db_error, not_found, unexpected_error};
 use superposition_types::{
     api::context::{Identifier, MoveRequest, PutRequest, UpdateRequest},
@@ -36,11 +36,12 @@ pub fn upsert(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     already_under_txn: bool,
     user: &User,
-    schema_name: &SchemaName,
+    workspace_context: &WorkspaceContext,
     replace: bool,
 ) -> result::Result<Context> {
     use contexts::dsl::contexts;
-    let new_ctx = create_ctx_from_put_req(req, description, conn, user, schema_name)?;
+    let new_ctx =
+        create_ctx_from_put_req(req, description, conn, user, workspace_context)?;
 
     if already_under_txn {
         diesel::sql_query("SAVEPOINT put_ctx_savepoint").execute(conn)?;
@@ -48,7 +49,7 @@ pub fn upsert(
     let insert = diesel::insert_into(contexts)
         .values(&new_ctx)
         .returning(Context::as_returning())
-        .schema_name(schema_name)
+        .schema_name(&workspace_context.schema_name)
         .execute(conn);
 
     match insert {
@@ -58,9 +59,19 @@ pub fn upsert(
                 diesel::sql_query("ROLLBACK TO put_ctx_savepoint").execute(conn)?;
             }
             if replace {
-                replace_override_of_existing_ctx(conn, new_ctx, user, schema_name)
+                replace_override_of_existing_ctx(
+                    conn,
+                    new_ctx,
+                    user,
+                    &workspace_context.schema_name,
+                )
             } else {
-                update_override_of_existing_ctx(conn, new_ctx, user, schema_name)
+                update_override_of_existing_ctx(
+                    conn,
+                    new_ctx,
+                    user,
+                    &workspace_context.schema_name,
+                )
             }
         }
         Err(e) => {
@@ -121,7 +132,7 @@ pub fn r#move(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     already_under_txn: bool,
     user: &User,
-    schema_name: &SchemaName,
+    workspace_context: &WorkspaceContext,
 ) -> result::Result<Context> {
     use contexts::dsl;
     let req = req.into_inner();
@@ -133,7 +144,7 @@ pub fn r#move(
 
     let dimension_data_map = validate_ctx(
         conn,
-        schema_name,
+        workspace_context,
         ctx_condition.clone(),
         Overrides::default(),
     )?;
@@ -156,7 +167,7 @@ pub fn r#move(
             dsl::change_reason.eq(change_reason.clone()),
         ))
         .returning(Context::as_returning())
-        .schema_name(schema_name)
+        .schema_name(&workspace_context.schema_name)
         .get_result::<Context>(conn);
 
     let contruct_new_ctx_with_old_overrides = |ctx: Context| Context {
@@ -178,19 +189,29 @@ pub fn r#move(
             if already_under_txn {
                 let deleted_ctxt = diesel::delete(dsl::contexts)
                     .filter(dsl::id.eq(&old_ctx_id))
-                    .schema_name(schema_name)
+                    .schema_name(&workspace_context.schema_name)
                     .get_result(db_conn)?;
 
                 let ctx = contruct_new_ctx_with_old_overrides(deleted_ctxt);
-                update_override_of_existing_ctx(db_conn, ctx, user, schema_name)
+                update_override_of_existing_ctx(
+                    db_conn,
+                    ctx,
+                    user,
+                    &workspace_context.schema_name,
+                )
             } else {
                 db_conn.transaction(|conn| {
                     let deleted_ctxt = diesel::delete(dsl::contexts)
                         .filter(dsl::id.eq(&old_ctx_id))
-                        .schema_name(schema_name)
+                        .schema_name(&workspace_context.schema_name)
                         .get_result(conn)?;
                     let ctx = contruct_new_ctx_with_old_overrides(deleted_ctxt);
-                    update_override_of_existing_ctx(conn, ctx, user, schema_name)
+                    update_override_of_existing_ctx(
+                        conn,
+                        ctx,
+                        user,
+                        &workspace_context.schema_name,
+                    )
                 })
             }
         };

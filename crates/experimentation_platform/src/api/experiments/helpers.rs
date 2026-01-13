@@ -31,23 +31,13 @@ use superposition_types::{
                 Experiment, ExperimentStatusType, GroupType, Variant, VariantType,
             },
             others::{Webhook, WebhookEvent},
-            ChangeReason, Workspace,
+            ChangeReason,
         },
         schema::experiments::dsl as experiments,
-        superposition_schema::superposition::workspaces,
     },
     result as superposition, Condition, Config, DBConnection, Exp, Overrides, User,
 };
 
-pub fn get_workspace(
-    workspace_schema_name: &SchemaName,
-    db_conn: &mut DBConnection,
-) -> superposition::Result<Workspace> {
-    let workspace = workspaces::dsl::workspaces
-        .filter(workspaces::workspace_schema_name.eq(workspace_schema_name.to_string()))
-        .get_result::<Workspace>(db_conn)?;
-    Ok(workspace)
-}
 use crate::api::experiment_groups::helpers::{
     add_members, create_system_generated_experiment_group, fetch_experiment_group,
     remove_members,
@@ -225,11 +215,11 @@ pub async fn validate_delete_experiment_variants(
     state: &Data<AppState>,
     exp_context: &Condition,
     context_id: &str,
-    workspace_request: &WorkspaceContext,
+    workspace_context: &WorkspaceContext,
     variants: &[Variant],
 ) -> superposition::Result<()> {
     let current_context =
-        get_context_override(user, state, workspace_request, context_id.to_owned())
+        get_context_override(user, state, workspace_context, context_id.to_owned())
             .await?;
 
     let partial_resolved_config = get_partial_resolve_config(
@@ -237,7 +227,7 @@ pub async fn validate_delete_experiment_variants(
         state,
         exp_context,
         context_id,
-        workspace_request,
+        workspace_context,
     )
     .await?;
 
@@ -398,7 +388,7 @@ pub fn extract_override_keys(overrides: &Map<String, Value>) -> HashSet<String> 
 
 pub async fn fetch_cac_config(
     state: &Data<AppState>,
-    workspace_request: &WorkspaceContext,
+    workspace_context: &WorkspaceContext,
 ) -> superposition::Result<(Config, Option<String>)> {
     let http_client = reqwest::Client::new();
     let query_params = ConfigQuery {
@@ -413,8 +403,8 @@ pub async fn fetch_cac_config(
         query_params.to_query_param(),
     );
     let headers_map = construct_header_map(
-        &workspace_request.workspace_id,
-        &workspace_request.organisation_id,
+        &workspace_context.workspace_id,
+        &workspace_context.organisation_id,
         vec![],
     )?;
 
@@ -451,7 +441,7 @@ pub async fn fetch_webhook_by_event(
     state: &Data<AppState>,
     user: &User,
     event: &WebhookEvent,
-    workspace_request: &WorkspaceContext,
+    workspace_context: &WorkspaceContext,
 ) -> superposition::Result<Webhook> {
     let http_client = reqwest::Client::new();
     let url = format!("{}/webhook/event/{event}", state.cac_host);
@@ -464,8 +454,8 @@ pub async fn fetch_webhook_by_event(
     })?;
 
     let headers_map = construct_header_map(
-        &workspace_request.workspace_id,
-        &workspace_request.organisation_id,
+        &workspace_context.workspace_id,
+        &workspace_context.organisation_id,
         vec![("x-user", user_str)],
     )?;
 
@@ -768,7 +758,7 @@ pub fn fetch_experiment(
 pub async fn validate_control_overrides(
     control_overrides: &Exp<Overrides>,
     exp_context: &Condition,
-    workspace_request: &WorkspaceContext,
+    workspace_context: &WorkspaceContext,
     user: &User,
     state: &Data<AppState>,
 ) -> superposition::Result<()> {
@@ -779,7 +769,7 @@ pub async fn validate_control_overrides(
         state,
         &DimensionQuery::from(context.clone()),
         ResolveConfigQuery::default(),
-        workspace_request,
+        workspace_context,
     )
     .await?;
     let control_variant_overrides = control_overrides.clone().into_inner();
@@ -805,10 +795,14 @@ pub async fn validate_control_overrides(
 }
 
 pub async fn fetch_and_validate_change_reason_with_function(
+    workspace_context: &WorkspaceContext,
     change_reason: &ChangeReason,
     state: &Data<AppState>,
-    workspace_request: &WorkspaceContext,
 ) -> superposition::Result<()> {
+    if !workspace_context.settings.enable_change_reason_validation {
+        return Ok(());
+    }
+
     let http_client = reqwest::Client::new();
     let url = format!(
         "{}/function/{}/{}/test",
@@ -822,8 +816,8 @@ pub async fn fetch_and_validate_change_reason_with_function(
     };
 
     let headers_map = construct_header_map(
-        &workspace_request.workspace_id,
-        &workspace_request.organisation_id,
+        &workspace_context.workspace_id,
+        &workspace_context.organisation_id,
         vec![],
     )?;
 

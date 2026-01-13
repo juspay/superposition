@@ -1,7 +1,7 @@
 use futures_util::future::LocalBoxFuture;
 use superposition_types::User;
 
-use crate::service::types::{Resource, WorkspaceContext};
+use crate::service::types::{OrganisationId, Resource, SchemaName};
 
 use super::authorization::Authorizer;
 
@@ -10,7 +10,7 @@ pub struct NoAuth;
 impl Authorizer for NoAuth {
     fn is_allowed(
         &self,
-        _: &WorkspaceContext,
+        _: &(OrganisationId, SchemaName),
         _: &User,
         _: &Resource,
         _: &str,

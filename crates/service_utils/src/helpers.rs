@@ -8,6 +8,7 @@ use std::{
 use actix_web::{error::ErrorInternalServerError, web::Data, Error};
 use anyhow::anyhow;
 use chrono::Utc;
+use diesel::{query_dsl::methods::FilterDsl, ExpressionMethods, RunQueryDsl};
 use jsonschema::{error::ValidationErrorKind, ValidationError};
 use log::info;
 use once_cell::sync::Lazy;
@@ -20,12 +21,18 @@ use serde::Serialize;
 use serde_json::Value;
 use superposition_types::{
     api::webhook::{HeadersEnum, WebhookEventInfo, WebhookResponse},
-    database::models::others::{HttpMethod, Variable, Webhook, WebhookEvent},
+    database::{
+        models::{
+            others::{HttpMethod, Variable, Webhook, WebhookEvent},
+            Workspace,
+        },
+        superposition_schema::superposition::workspaces,
+    },
     result::{self},
-    PaginatedResponse,
+    DBConnection, PaginatedResponse,
 };
 
-use crate::service::types::{AppState, WorkspaceContext};
+use crate::service::types::{AppState, SchemaName, WorkspaceContext};
 
 static VAR_REGEX: Lazy<regex::Regex> = Lazy::new(|| {
     regex::Regex::new(r"\{\{VARS\.([A-Z0-9_]+)\}\}")
@@ -319,7 +326,7 @@ pub async fn execute_webhook_call<T>(
     webhook: &Webhook,
     payload: &T,
     config_version_opt: &Option<String>,
-    workspace_request: &WorkspaceContext,
+    workspace_context: &WorkspaceContext,
     event: WebhookEvent,
     state: &Data<AppState>,
 ) -> bool
@@ -356,8 +363,8 @@ where
         let variables_url = format!("{}/variables", state.cac_host);
 
         let headers = match construct_request_headers(&[
-            ("x-tenant", &workspace_request.workspace_id),
-            ("x-org-id", &workspace_request.organisation_id),
+            ("x-tenant", &workspace_context.workspace_id),
+            ("x-org-id", &workspace_context.organisation_id),
             (
                 "Authorization",
                 &format!("Internal {}", state.superposition_token),
@@ -409,7 +416,7 @@ where
     insert_header(
         &mut headers,
         &HeadersEnum::WorkspaceId.to_string(),
-        &workspace_request.workspace_id,
+        &workspace_context.workspace_id,
     );
 
     webhook.custom_headers.iter().for_each(|(key, value)| {
@@ -441,8 +448,8 @@ where
             event_info: WebhookEventInfo {
                 webhook_event: event,
                 time: Utc::now().to_string(),
-                workspace_id: workspace_request.workspace_id.to_string(),
-                organisation_id: workspace_request.organisation_id.to_string(),
+                workspace_id: workspace_context.workspace_id.to_string(),
+                organisation_id: workspace_context.organisation_id.to_string(),
                 config_version: config_version_opt.clone(),
             },
             payload,
@@ -464,4 +471,14 @@ where
             false
         }
     }
+}
+
+pub(crate) fn get_workspace(
+    workspace_schema_name: &SchemaName,
+    db_conn: &mut DBConnection,
+) -> result::Result<Workspace> {
+    let workspace = workspaces::dsl::workspaces
+        .filter(workspaces::workspace_schema_name.eq(workspace_schema_name.to_string()))
+        .get_result::<Workspace>(db_conn)?;
+    Ok(workspace)
 }
