@@ -282,7 +282,8 @@ async fn update_handler(
         })?;
 
     #[cfg(feature = "high-performance-mode")]
-    put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
+    put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
+        .await?;
 
     let mut http_resp = HttpResponse::Ok();
     http_resp.insert_header((
@@ -507,7 +508,13 @@ async fn delete_handler(
 
         if resp.is_ok() {
             #[cfg(feature = "high-performance-mode")]
-            put_config_in_redis(version_id, state, &schema_name, &mut conn).await?;
+            put_config_in_redis(
+                version_id,
+                state,
+                &workspace_context.schema_name,
+                &mut conn,
+            )
+            .await?;
         }
         resp
     } else {

@@ -8,7 +8,7 @@ FE_FEATURES ?= hydrate
 CARGO_FLAGS := --color always --no-default-features
 EXCLUDE_PACKAGES := experimentation_client_integration_example superposition_sdk
 FMT_EXCLUDE_PACKAGES_REGEX := $(shell echo "$(EXCLUDE_PACKAGES)" | sed "s/ /|/g")
-LINT_FLAGS := --workspace --all-targets $(addprefix --exclude ,$(EXCLUDE_PACKAGES)) --no-deps
+LINT_FLAGS := --workspace --all-targets --all-features $(addprefix --exclude ,$(EXCLUDE_PACKAGES)) --no-deps
 CARGO_TARGET_DIR := $(shell cargo metadata --no-deps --format-version 1 | jq -r .target_directory)
 
 # Get all workspace members and filter out excluded ones
