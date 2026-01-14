@@ -1,0 +1,27 @@
+[package]
+name = "smithy_transpiler"
+version = "0.1.0"
+edition = "2021"
+description = "A Rust-based DSL for writing API interfaces that transpile to Smithy IDL"
+license = "Apache-2.0"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+proc-macro2 = "1.0"
+quote = "1.0"
+syn = { version = "2.0", features = ["full", "extra-traits"] }
+
+[lib]
+proc-macro = true
+
+[dev-dependencies]
+trybuild = "1.0"
+
+[features]
+default = ["proc-macro"]
+proc-macro = []
+
+[[example]]
+name = "simple"
+required-features = []
