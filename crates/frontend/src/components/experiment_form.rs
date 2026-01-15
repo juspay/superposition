@@ -133,7 +133,7 @@ pub fn ExperimentForm(
         };
 
     let fn_environment = Memo::new(move |_| {
-        let context = context_rs.get().as_context_json();
+        let context = context_rs.get().into();
         let overrides = variants_rs
             .get()
             .iter()

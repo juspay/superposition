@@ -25,7 +25,7 @@ use crate::{
         experiment_groups::{delete, fetch_all},
     },
     components::{
-        condition_pills::Condition as ConditionComponent,
+        condition_pills::Condition,
         datetime::DatetimeStr,
         drawer::{Drawer, DrawerBtn, close_drawer},
         experiment_group_form::{ChangeLogSummary, ChangeType, ExperimentGroupForm},
@@ -149,11 +149,10 @@ fn table_columns(filters_rws: RwSignal<ExpGroupFilters>) -> Vec<Column> {
                     .and_then(|v| v.as_object().cloned())
                     .unwrap_or_default();
                 let id = get_row_string_fn(row, "id");
-                let conditions =
-                    Conditions::from_context_json(&context).unwrap_or_default();
+                let conditions = Conditions::from_iter(context);
 
                 view! {
-                    <ConditionComponent conditions grouped_view=false id class="w-[300px]"   />
+                    <Condition conditions grouped_view=false id class="w-[300px]" />
                 }
                 .into_view()
             },
@@ -267,10 +266,7 @@ pub fn ExperimentGroupListing() -> impl IntoView {
                 dimensions::fetch(&PaginationParams::all_entries(), &workspace, &org_id)
                     .await
                     .unwrap_or_default()
-                    .data
-                    .into_iter()
-                    .filter(|d| d.dimension != "variantIds")
-                    .collect();
+                    .data;
             CombinedResource {
                 experiment_groups,
                 dimensions,
