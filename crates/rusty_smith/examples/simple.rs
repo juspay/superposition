@@ -1,9 +1,9 @@
-// Simple example showing the transpiler API usage
+// Simple example showing Rusty Smith API usage
 //
 // This demonstrates how to programmatically build a Smithy specification
 // from Rust data structures.
 
-use smithy_transpiler::{
+use rusty_smith::{
     codegen::generate_smithy_idl, EnumMeta, EnumVariantMeta, FieldMeta, HttpBinding, HttpMethod,
     OperationMeta, ServiceMeta, SmithyRegistry, StructMeta,
 };

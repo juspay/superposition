@@ -1,8 +1,8 @@
-# Smithy Transpiler for Superposition
+# Rusty Smith for Superposition
 
 ## Overview
 
-This guide explains the new Smithy Transpiler system that allows you to write API interfaces in Rust and automatically transpile them to Smithy IDL specifications.
+This guide explains Rusty Smith, a Rust-based system that allows you to write API interfaces in Rust and automatically transpile them to Smithy IDL specifications.
 
 ## Architecture
 
@@ -56,9 +56,9 @@ The Superposition project currently uses Smithy as the source of truth for API d
 
 ## Key Components
 
-### 1. Core Crate: `smithy_transpiler`
+### 1. Core Crate: `rusty-smith`
 
-Location: `/crates/smithy_transpiler/`
+Location: `/crates/rusty_smith/`
 
 This crate provides:
 - Procedural macros for annotating Rust code
@@ -173,7 +173,7 @@ pub enum UserRole {
 
 ```rust
 // api_definitions.rs
-use smithy_transpiler::{smithy_service, smithy_operation, SmithyShape, SmithyEnum};
+use rusty_smith::{smithy_service, smithy_operation, SmithyShape, SmithyEnum};
 
 #[smithy_service(
     namespace = "io.superposition.features",
@@ -223,7 +223,7 @@ pub struct CreateFeature {
 Option A: Build Script (`build.rs`):
 
 ```rust
-use smithy_transpiler::{SmithyRegistry, generate_smithy_idl};
+use rusty_smith::{SmithyRegistry, generate_smithy_idl};
 
 fn main() {
     let mut registry = SmithyRegistry::new();
@@ -325,12 +325,12 @@ This transpiler complements (doesn't replace) the existing Smithy workflow:
 
 ### New Transpiler Workflow (Additional)
 ```
-Rust API defs → smithy_transpiler → .smithy files
+Rust API defs → rusty_smith → .smithy files
 ```
 
 ### Combined Workflow
 ```
-Rust API defs → smithy_transpiler → .smithy files → smithy-build → SDKs
+Rust API defs → rusty_smith → .smithy files → smithy-build → SDKs
 ```
 
 You can:
@@ -353,7 +353,7 @@ You can:
 - No compile-time checking of Smithy files
 - Limited IDE support for .smithy files
 
-### New: Rust → Smithy
+### New: Rust → Smithy (Rusty Smith)
 
 **Pros:**
 - Define APIs in Rust with full type checking
@@ -369,7 +369,7 @@ You can:
 
 ## Best Use Cases
 
-Use the transpiler when:
+Use Rusty Smith when:
 
 1. **Prototyping**: Quickly define APIs in Rust during development
 2. **Rust-Only Services**: Internal services that don't need multi-language SDKs
@@ -387,12 +387,12 @@ Keep using traditional Smithy when:
 
 See these examples for complete working code:
 
-1. **Simple Example**: `/crates/smithy_transpiler/examples/simple.rs`
+1. **Simple Example**: `/crates/rusty_smith/examples/simple.rs`
    - Direct API usage
    - Programmatic Smithy generation
    - Weather API example
 
-2. **Full Example**: `/examples/smithy_transpiler_example/`
+2. **Full Example**: `/examples/rusty_smith_example/`
    - Blog API with CRUD operations
    - Build script integration
    - Complete service definition
@@ -401,10 +401,10 @@ Run examples:
 
 ```bash
 # Simple programmatic example
-cargo run --example simple --manifest-path crates/smithy_transpiler/Cargo.toml
+cargo run --example simple --manifest-path crates/rusty_smith/Cargo.toml
 
 # Full example with build integration
-cd examples/smithy_transpiler_example
+cd examples/rusty_smith_example
 cargo build
 cargo run
 ```
@@ -435,7 +435,7 @@ Potential improvements:
 
 ## Contributing
 
-The transpiler is designed to be extensible. Key extension points:
+Rusty Smith is designed to be extensible. Key extension points:
 
 1. **Parser** (`parser.rs`): Add new attribute parsing
 2. **Metadata** (`metadata.rs`): Add new metadata types
@@ -446,4 +446,4 @@ The transpiler is designed to be extensible. Key extension points:
 - [Smithy Specification](https://smithy.io/2.0/spec/)
 - [Smithy IDL](https://smithy.io/2.0/spec/idl.html)
 - [Superposition Smithy Models](./smithy/models/)
-- [Transpiler README](./crates/smithy_transpiler/README.md)
+- [Transpiler README](./crates/rusty_smith/README.md)

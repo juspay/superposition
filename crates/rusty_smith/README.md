@@ -1,4 +1,4 @@
-# Smithy Transpiler
+# Rusty Smith 🦀
 
 A Rust-based DSL for writing API interfaces that transpile to [Smithy IDL](https://smithy.io) specifications.
 
@@ -31,7 +31,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-smithy_transpiler = { path = "path/to/smithy_transpiler" }
+rusty-smith = { path = "path/to/rusty_smith" }
 ```
 
 ## Quick Start
@@ -39,7 +39,7 @@ smithy_transpiler = { path = "path/to/smithy_transpiler" }
 ### 1. Define a Service
 
 ```rust
-use smithy_transpiler::smithy_service;
+use rusty_smith::smithy_service;
 
 #[smithy_service(
     namespace = "com.example.myapi",
@@ -52,7 +52,7 @@ pub struct MyApiService;
 ### 2. Define Data Structures
 
 ```rust
-use smithy_transpiler::SmithyShape;
+use rusty_smith::SmithyShape;
 
 /// A user in the system
 #[derive(SmithyShape)]
@@ -77,7 +77,7 @@ pub struct User {
 ### 3. Define Enums
 
 ```rust
-use smithy_transpiler::SmithyEnum;
+use rusty_smith::SmithyEnum;
 
 #[derive(SmithyEnum)]
 #[smithy(namespace = "com.example.myapi")]
@@ -93,7 +93,7 @@ pub enum UserStatus {
 ### 4. Define Operations
 
 ```rust
-use smithy_transpiler::smithy_operation;
+use rusty_smith::smithy_operation;
 
 /// Creates a new user
 #[smithy_operation(
@@ -128,7 +128,7 @@ pub struct GetUser {
 ### 5. Define Resources
 
 ```rust
-use smithy_transpiler::smithy_resource;
+use rusty_smith::smithy_resource;
 
 #[smithy_resource(
     identifiers = "id: String",
@@ -306,7 +306,7 @@ Rust types are automatically mapped to Smithy types:
 Create a `build.rs` file to automatically generate Smithy files:
 
 ```rust
-use smithy_transpiler::{SmithyRegistry, generate_smithy_idl};
+use rusty_smith::{SmithyRegistry, generate_smithy_idl};
 use std::fs;
 
 fn main() {
@@ -362,7 +362,7 @@ fn main() {
 
 See the `examples/` directory for complete examples:
 
-- `smithy_transpiler_example`: Blog API example with CRUD operations
+- `rusty_smith_example`: Blog API example with CRUD operations
 
 ## Contributing
 

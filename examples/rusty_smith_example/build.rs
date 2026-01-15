@@ -1,4 +1,5 @@
 // Build script to automatically transpile Rust API definitions to Smithy IDL
+// using Rusty Smith
 //
 // This script runs during cargo build and generates .smithy files from
 // your Rust API definitions.

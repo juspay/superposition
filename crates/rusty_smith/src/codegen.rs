@@ -19,8 +19,8 @@ pub fn generate_service_code(meta: ServiceMeta, original: ItemStruct) -> TokenSt
         #original
 
         impl #name {
-            pub fn register_smithy_service(registry: &mut smithy_transpiler::SmithyRegistry) {
-                registry.register_service(smithy_transpiler::ServiceMeta {
+            pub fn register_smithy_service(registry: &mut rusty_smith::SmithyRegistry) {
+                registry.register_service(rusty_smith::ServiceMeta {
                     name: stringify!(#name).to_string(),
                     namespace: #namespace.to_string(),
                     version: #version.to_string(),

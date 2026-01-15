@@ -1,5 +1,5 @@
 [package]
-name = "smithy_transpiler"
+name = "rusty-smith"
 version = "0.1.0"
 edition = "2021"
 description = "A Rust-based DSL for writing API interfaces that transpile to Smithy IDL"

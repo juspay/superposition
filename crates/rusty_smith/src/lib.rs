@@ -1,4 +1,4 @@
-// Smithy Transpiler - A Rust-based DSL for writing API interfaces that transpile to Smithy IDL
+// Rusty Smith - A Rust-based DSL for writing API interfaces that transpile to Smithy IDL
 //
 // This crate provides procedural macros and types to define APIs in Rust and generate
 // Smithy specification files.

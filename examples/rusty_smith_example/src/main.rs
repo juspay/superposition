@@ -1,9 +1,9 @@
-// Example: Using the Smithy Transpiler to define APIs in Rust
+// Example: Using Rusty Smith to define APIs in Rust
 //
 // This example shows how to define API interfaces in Rust using macros
 // and transpile them to Smithy IDL format.
 
-use smithy_transpiler::{
+use rusty_smith::{
     smithy_operation, smithy_resource, smithy_service, SmithyEnum, SmithyShape,
 };
 use std::collections::HashMap;
@@ -194,8 +194,8 @@ pub struct PostResource {
 }
 
 fn main() {
-    println!("Smithy Transpiler Example");
-    println!("=========================\n");
+    println!("Rusty Smith Example");
+    println!("===================\n");
 
     println!("This example demonstrates how to define APIs in Rust that can be");
     println!("transpiled to Smithy IDL format.\n");
