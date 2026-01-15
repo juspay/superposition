@@ -109,7 +109,7 @@ fn form(
     let update_request_rws = RwSignal::new(None);
 
     let fn_environment = Memo::new(move |_| FunctionEnvironment {
-        context: context_rs.get().as_context_json(),
+        context: context_rs.get().into(),
         overrides: Map::from_iter(overrides_rs.get()),
     });
 
@@ -250,10 +250,10 @@ fn use_context_data(
         |(workspace, org, context_id)| async move {
             get_context(&context_id, &workspace, &org)
                 .await
-                .and_then(|context| {
-                    Conditions::from_context_json(&context.value)
-                        .map(|condition| (context, condition))
-                        .map_err(String::from)
+                .map(|context| {
+                    let conditions =
+                        Conditions::from_iter(context.value.clone().into_inner());
+                    (context, conditions)
                 })
         },
     )
@@ -445,12 +445,7 @@ pub fn context_override() -> impl IntoView {
             );
             PageResource {
                 contexts: contexts_result.unwrap_or_default(),
-                dimensions: dimensions_result
-                    .unwrap_or_default()
-                    .data
-                    .into_iter()
-                    .filter(|d| d.dimension != "variantIds")
-                    .collect(),
+                dimensions: dimensions_result.unwrap_or_default().data,
                 default_config: default_config_result.unwrap_or_default().data,
             }
         },
