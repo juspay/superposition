@@ -92,7 +92,7 @@ pub fn ContextCard(
     #[prop(into)] handle_clone: Callback<String, ()>,
     #[prop(into)] handle_delete: Callback<String, ()>,
 ) -> impl IntoView {
-    let conditions: Conditions = (&context).try_into().unwrap_or_default();
+    let conditions = Conditions::from_iter(context.value.clone().into_inner());
     let description = context.description.clone();
     let change_reason = context.change_reason.clone();
 
