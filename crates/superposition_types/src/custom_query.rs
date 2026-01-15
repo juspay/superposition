@@ -192,6 +192,15 @@ impl IsEmpty for QueryMap {
     }
 }
 
+impl IntoIterator for QueryMap {
+    type Item = (String, Value);
+    type IntoIter = <Map<String, Value> as IntoIterator>::IntoIter;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
 impl From<Map<String, Value>> for QueryMap {
     fn from(value: Map<String, Value>) -> Self {
         Self(value)

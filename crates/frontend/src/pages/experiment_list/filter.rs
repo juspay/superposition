@@ -25,7 +25,7 @@ use crate::{
         form::label::Label,
         input::{DateInput, Toggle},
     },
-    logic::{Condition, Conditions, Expression},
+    logic::Conditions,
     providers::condition_collapse_provider::ConditionCollapseProvider,
 };
 
@@ -110,15 +110,9 @@ pub(super) fn FilterSummary(
                                 .into_view()
                         } else if !dimension_params_rws.with(|d| d.is_empty()) {
                             let dimension_params = dimension_params_rws.get();
-                            let conditions = dimension_params
-                                .clone()
-                                .into_inner()
-                                .iter()
-                                .map(|(k, v)| Condition {
-                                    variable: k.clone(),
-                                    expression: Expression::Is(v.clone()),
-                                })
-                                .collect::<Conditions>();
+                            let conditions = Conditions::from_iter(
+                                dimension_params.clone().into_inner(),
+                            );
                             let condition_id = serde_json::to_string(
                                     dimension_params.clone().into_inner().deref(),
                                 )
@@ -131,6 +125,7 @@ pub(super) fn FilterSummary(
                                             conditions
                                             id=condition_id
                                             grouped_view=false
+                                            resolve_summary=true
                                             class="xl:w-[400px] h-fit"
                                         />
                                     </ConditionCollapseProvider>
@@ -288,20 +283,12 @@ pub(super) fn ExperimentTableFilterWidget(
 ) -> impl IntoView {
     let filters_buffer_rws = RwSignal::new(filters_rws.get_untracked());
     let dimension_buffer_rws = RwSignal::new(dimension_params_rws.get_untracked());
-    let context_rws = RwSignal::new(
-        dimension_params_rws
-            .get_untracked()
-            .into_inner()
-            .iter()
-            .map(|(k, v)| Condition {
-                variable: k.clone(),
-                expression: Expression::Is(v.clone()),
-            })
-            .collect::<Conditions>(),
-    );
+    let context_rws = RwSignal::new(Conditions::from_iter(
+        dimension_params_rws.get_untracked().into_inner(),
+    ));
 
     let fn_environment = Memo::new(move |_| FunctionEnvironment {
-        context: context_rws.get().as_context_json(),
+        context: context_rws.get().into(),
         overrides: Map::new(),
     });
 
@@ -327,18 +314,7 @@ pub(super) fn ExperimentTableFilterWidget(
                             context=context_rws.get_untracked()
                             on_context_change=move |context: Conditions| {
                                 context_rws.set(context.clone());
-                                let map = context
-                                    .iter()
-                                    .filter_map(|condition| {
-                                        match condition.expression.clone() {
-                                            Expression::Is(value) => {
-                                                Some((condition.variable.clone(), value))
-                                            }
-                                            _ => None,
-                                        }
-                                    })
-                                    .collect::<Map<_, _>>();
-                                dimension_buffer_rws.set(DimensionQuery::from(map));
+                                dimension_buffer_rws.set(DimensionQuery::from(Map::from(context)));
                             }
                             heading_sub_text="Search By Context"
                             resolve_mode=true

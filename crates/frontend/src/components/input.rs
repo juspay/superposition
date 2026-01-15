@@ -18,7 +18,6 @@ use crate::{
     providers::{alert_provider::enqueue_alert, editor_provider::use_editor},
     schema::{EnumVariants, HtmlDisplay, JsonSchemaType, SchemaType},
     types::ValueComputeCallback,
-    utils::get_element_by_id,
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -195,6 +194,7 @@ fn BasicInput(
 ) -> impl IntoView {
     let schema_type = store_value(schema_type);
     let (error_rs, error_ws) = create_signal::<Option<String>>(None);
+    let input_node_ref = create_node_ref::<html::Input>();
 
     if r#type == InputType::Number && value.as_f64().is_none() {
         error_ws.set(Some(format!("{} is not a valid number", value)));
@@ -210,7 +210,7 @@ fn BasicInput(
         <div class="flex flex-col gap-1">
             <label class=format!("input input-bordered flex justify-between {}", class)>
                 <input
-                    id=id.clone()
+                    ref_=input_node_ref
                     name=name
                     placeholder=placeholder
                     required=required
@@ -271,7 +271,6 @@ fn BasicInput(
                         if value_compute_function.is_some() && !suggestions.is_empty()
                             && show_suggestions_rws.get()
                         {
-                            let target_id = id.clone();
                             let dropdown_id = format!("{}-value-compute", id);
                             suggestions_loading_rws.set(false);
                             // TODO: Handle loading state properly, this is not the correct way
@@ -280,10 +279,7 @@ fn BasicInput(
                                     id=dropdown_id
                                     options=suggestions.to_owned()
                                     on_select=Callback::new(move |selected: String| {
-                                        let input = get_element_by_id::<
-                                            web_sys::HtmlInputElement,
-                                        >(&target_id);
-                                        if let Some(input) = input {
+                                        if let Some(input) = input_node_ref.get() {
                                             input.set_value(&selected);
                                         }
                                         on_change.call(Value::String(selected));
@@ -298,7 +294,6 @@ fn BasicInput(
                         }
                     })
             }}
-
         </div>
     }
 }
@@ -397,7 +392,7 @@ pub fn MonacoInput(
                             show-copy="true"
                             show-size="false"
                             data=display_value
-                        ></andypf-json-viewer>
+                        />
                     }
                 }}
 
@@ -427,7 +422,6 @@ pub fn MonacoInput(
                                 node_id=editor_rs.with(|v| v.id.clone())
                                 data=editor_rs.with(|v| v.data.clone())
                                 on_change=on_edit
-
                                 language=Languages::Json
                                 classes=vec!["h-full"]
                                 suggestions=suggestions.get_value()
@@ -439,7 +433,6 @@ pub fn MonacoInput(
                                         expand_ws.update(|v| *v = !*v);
                                     }
                                 >
-
                                     <i class="ri-expand-diagonal-line ri-lg cursor-pointer"></i>
                                 </button>
                             </div>
@@ -450,7 +443,6 @@ pub fn MonacoInput(
                                     hide_class="animate-slide-out-bottom"
                                     hide_delay=Duration::from_millis(5000)
                                 >
-
                                     <span class="flex gap-2 px-4 text-xs font-semibold text-red-600">
                                         <i class="ri-close-circle-line"></i>
                                         {move || { error_rs.get().unwrap_or(String::new()) }}
@@ -463,7 +455,6 @@ pub fn MonacoInput(
                                             on_save.call(e);
                                         }
                                     >
-
                                         <i class="ri-check-line text-gray-500 cursor-pointer"></i>
                                         Save
                                     </button>
@@ -473,7 +464,6 @@ pub fn MonacoInput(
                                             on_cancel.call(e);
                                         }
                                     >
-
                                         <i class="ri-close-line text-gray-500 cursor-pointer"></i>
                                         Cancel
                                     </button>
@@ -598,17 +588,22 @@ fn ArrayInput<T: Clone + PartialEq + 'static + Display + FromStr>(
     options: Vec<T>,
     on_change: Callback<Vec<T>>,
     unique: bool,
+    show_label: bool,
 ) -> impl IntoView {
     let options_rws = RwSignal::new(options);
+    let input_node_ref = create_node_ref::<html::Input>();
 
     view! {
         <div class="form-control">
-            <Label title="Options" description="Press enter to add option" class="max-w-md" />
+            <Show when=move || show_label>
+                <Label title="Options" description="Press enter to add option" class="max-w-md" />
+            </Show>
             <div class="flex flex-col gap-2">
                 <input
+                    ref_=input_node_ref
                     type="text"
-                    placeholder="Press enter to add"
-                    class="input input-bordered w-full max-w-md"
+                    placeholder="Press enter to add option"
+                    class="input input-bordered flex justify-between w-[450px]"
                     on:keydown=move |ev| {
                         let value = event_target_value(&ev);
                         if ev.key() == "Enter" {
@@ -624,6 +619,9 @@ fn ArrayInput<T: Clone + PartialEq + 'static + Display + FromStr>(
                                     return;
                                 };
                                 if !unique || !options_rws.get().contains(&value_t) {
+                                    if let Some(input) = input_node_ref.get() {
+                                        input.set_value("");
+                                    }
                                     options_rws.update(|opts| opts.push(value_t));
                                     on_change.call(options_rws.get());
                                 } else {
@@ -669,16 +667,18 @@ fn ArrayInput<T: Clone + PartialEq + 'static + Display + FromStr>(
 pub fn NumberArrayInput(
     options: Vec<f64>,
     #[prop(into)] on_change: Callback<Vec<f64>>,
-    #[prop(default = false)] unique: bool,
+    #[prop(optional)] unique: bool,
+    #[prop(default = true)] show_label: bool,
 ) -> impl IntoView {
-    view! { <ArrayInput options on_change unique /> }
+    view! { <ArrayInput options on_change unique show_label /> }
 }
 
 #[component]
 pub fn StringArrayInput(
     options: Vec<String>,
     #[prop(into)] on_change: Callback<Vec<String>>,
-    #[prop(default = false)] unique: bool,
+    #[prop(optional)] unique: bool,
+    #[prop(default = true)] show_label: bool,
 ) -> impl IntoView {
-    view! { <ArrayInput options on_change unique /> }
+    view! { <ArrayInput options on_change unique show_label /> }
 }

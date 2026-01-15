@@ -81,12 +81,7 @@ pub fn ExperimentPage() -> impl IntoView {
             // Construct the combined result, handling errors as needed
             CombinedResource {
                 experiment: experiments_result.ok(),
-                dimensions: dimensions_result
-                    .unwrap_or_default()
-                    .data
-                    .into_iter()
-                    .filter(|d| d.dimension != "variantIds")
-                    .collect(),
+                dimensions: dimensions_result.unwrap_or_default().data,
                 default_config: config_result.unwrap_or_default().data,
             }
         });
@@ -153,10 +148,9 @@ pub fn ExperimentPage() -> impl IntoView {
                                                         <ExperimentForm
                                                             edit_id=experiment_ef.id.clone()
                                                             name=experiment_ef.name
-                                                            context=Conditions::from_context_json(
-                                                                    &experiment_ef.context,
-                                                                )
-                                                                .unwrap_or_default()
+                                                            context=Conditions::from_iter(
+                                                                experiment_ef.context.into_inner(),
+                                                            )
                                                             variants=FromIterator::from_iter(
                                                                 experiment_ef.variants.into_inner(),
                                                             )

@@ -95,7 +95,7 @@ where
         },
         |(context, workspace, org_id, auto_populate_control)| async move {
             if auto_populate_control {
-                let context = DimensionQuery::from(context.as_resolve_context());
+                let context = DimensionQuery::from(Map::from(context));
                 resolve_config(
                     &context,
                     &ResolveConfigQuery {
@@ -641,7 +641,7 @@ where
             let context_data = match context_data {
                 Some(data) => Ok(data),
                 None => get_context_from_condition(
-                    &context.as_context_json(),
+                    &context.clone().into(),
                     &workspace,
                     &org_id,
                 )
@@ -650,7 +650,7 @@ where
             };
             match context_data {
                 Ok((context_id, overrides)) => {
-                    let context = DimensionQuery::from(context.as_resolve_context());
+                    let context = DimensionQuery::from(Map::from(context));
                     let resolved_config = resolve_config(
                         &context,
                         &ResolveConfigQuery {

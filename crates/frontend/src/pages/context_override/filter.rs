@@ -24,7 +24,7 @@ use crate::{
         form::label::Label,
         input::Toggle,
     },
-    logic::{Condition, Conditions, Expression},
+    logic::Conditions,
     providers::condition_collapse_provider::ConditionCollapseProvider,
 };
 
@@ -111,15 +111,9 @@ pub fn ContextFilterSummary(
                     {move || {
                         if !dimension_params_rws.with(|d| d.is_empty()) {
                             let dimension_params = dimension_params_rws.get();
-                            let conditions = dimension_params
-                                .clone()
-                                .into_inner()
-                                .iter()
-                                .map(|(k, v)| Condition {
-                                    variable: k.clone(),
-                                    expression: Expression::Is(v.clone()),
-                                })
-                                .collect::<Conditions>();
+                            let conditions = Conditions::from_iter(
+                                dimension_params.clone().into_inner(),
+                            );
                             let condition_id = serde_json::to_string(
                                     dimension_params.clone().into_inner().deref(),
                                 )
@@ -132,6 +126,7 @@ pub fn ContextFilterSummary(
                                             conditions
                                             id=condition_id
                                             grouped_view=false
+                                            resolve_summary=true
                                             class="xl:w-[400px] h-fit"
                                         />
                                     </ConditionCollapseProvider>
@@ -236,20 +231,12 @@ pub fn ContextFilterDrawer(
 ) -> impl IntoView {
     let filters_buffer_rws = RwSignal::new(context_filters_rws.get_untracked());
     let dimension_buffer_rws = RwSignal::new(dimension_params_rws.get_untracked());
-    let (context_rs, context_ws) = create_signal(
-        dimension_params_rws
-            .get_untracked()
-            .into_inner()
-            .iter()
-            .map(|(k, v)| Condition {
-                variable: k.clone(),
-                expression: Expression::Is(v.clone()),
-            })
-            .collect::<Conditions>(),
-    );
+    let (context_rs, context_ws) = create_signal(Conditions::from_iter(
+        dimension_params_rws.get_untracked().into_inner(),
+    ));
 
     let fn_environment = Memo::new(move |_| FunctionEnvironment {
-        context: context_rs.get().as_context_json(),
+        context: context_rs.get().into(),
         overrides: Map::new(),
     });
 
@@ -268,18 +255,7 @@ pub fn ContextFilterDrawer(
                     resolve_mode=true
                     on_context_change=move |context: Conditions| {
                         context_ws.set(context.clone());
-                        let map = context
-                            .iter()
-                            .filter_map(|condition| {
-                                match condition.expression.clone() {
-                                    Expression::Is(value) => {
-                                        Some((condition.variable.clone(), value))
-                                    }
-                                    _ => None,
-                                }
-                            })
-                            .collect::<Map<_, _>>();
-                        dimension_buffer_rws.set(DimensionQuery::from(map));
+                        dimension_buffer_rws.set(DimensionQuery::from(Map::from(context)));
                     }
                     heading_sub_text="Get matching overrides based on the context, this search ensures that the failing conditions are filtered out, and the shown overrides may contain conditions which are not matching but are not in conflict with the context"
                         .to_string()

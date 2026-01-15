@@ -1,93 +1,10 @@
-use std::fmt::Display;
-
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use superposition_types::{Context as ConfigContext, database::models::cac::Context};
-
-use crate::schema::{HtmlDisplay, SchemaType};
-
-/// The `Expression` enum represents a JSONLogic expression and ensures
-/// the correct construction of expressions by tying operators and operands together.
-///
-/// This enum provides a way to enforce the proper order and number of operands
-/// for each operator, ensuring the resulting JSONLogic expression is well-formed.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub enum Expression {
-    Is(serde_json::Value),
-    Has(serde_json::Value),
-}
-
-impl Expression {
-    fn to_expression_query_str(&self, var: &str) -> Option<String> {
-        match self {
-            Expression::Is(c) => Some(format!("{var}={value}", value = c.html_display())),
-            _ => None,
-        }
-    }
-
-    pub fn to_operator(&self) -> Operator {
-        Operator::from(self)
-    }
-
-    pub fn to_value(&self) -> &Value {
-        match self {
-            Expression::Is(c) | Expression::Has(c) => c,
-        }
-    }
-}
-
-impl From<(SchemaType, Operator)> for Expression {
-    fn from((r#type, operator): (SchemaType, Operator)) -> Self {
-        match operator {
-            Operator::Is => Expression::Is(r#type.default_value()),
-            Operator::Has => Expression::Has(r#type.default_value()),
-        }
-    }
-}
-
-/// This a copy of `Expression` enum, to prevent copying/moving of data
-/// where just the operator information is needed.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub enum Operator {
-    Is,
-    Has,
-}
-
-impl From<&Expression> for Operator {
-    fn from(value: &Expression) -> Self {
-        match value {
-            Expression::Is(_) => Operator::Is,
-            Expression::Has(_) => Operator::Has,
-        }
-    }
-}
-
-impl Display for Operator {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Has => f.write_str("has"),
-            Self::Is => f.write_str("=="),
-        }
-    }
-}
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Condition {
     pub variable: String,
-    pub expression: Expression,
-}
-
-impl Condition {
-    pub fn new_with_default_expression(var: String, r#type: SchemaType) -> Self {
-        Condition {
-            variable: var,
-            expression: Expression::Is(r#type.default_value()),
-        }
-    }
-
-    pub fn to_condition_query_str(&self) -> Option<String> {
-        self.expression.to_expression_query_str(&self.variable)
-    }
+    pub value: Value,
 }
 
 #[derive(
@@ -103,78 +20,41 @@ impl Condition {
 pub struct Conditions(pub Vec<Condition>);
 
 impl Conditions {
-    pub fn includes(&self, variable: &String) -> bool {
-        self.iter().any(|c| c.variable == *variable)
-    }
-
-    pub fn from_context_json(
-        context: &Map<String, serde_json::Value>,
-    ) -> Result<Self, &'static str> {
-        Ok(Conditions(
-            context
-                .iter()
-                .map(|(k, v)| Condition {
-                    variable: k.clone(),
-                    expression: if k == "variantIds" {
-                        Expression::Has(v.clone())
-                    } else {
-                        Expression::Is(v.clone())
-                    },
-                })
-                .collect::<Vec<_>>(),
-        ))
-    }
-
-    pub fn from_resolve_context(context: &Map<String, serde_json::Value>) -> Self {
-        Self(
-            context
-                .iter()
-                .map(|(k, v)| Condition {
-                    variable: k.clone(),
-                    expression: Expression::Is(v.clone()),
-                })
-                .collect::<Vec<_>>(),
-        )
+    pub fn includes(&self, variable: &str) -> bool {
+        self.iter().any(|c| c.variable == variable)
     }
 
     pub fn try_from_resolve_context_str(context: &str) -> Result<Self, &'static str> {
         let parsed: Value = serde_json::from_str(context)
             .map_err(|_| "failed to parse context string as JSON")?;
-        Ok(Self::from_resolve_context(
-            parsed.as_object().ok_or("not a valid context JSON")?,
+        Ok(Self::from_iter(
+            parsed
+                .as_object()
+                .ok_or("not a valid context JSON")?
+                .clone(),
         ))
-    }
-
-    pub fn as_context_json(&self) -> Map<String, Value> {
-        self.iter()
-            .map(|c| (c.variable.clone(), c.expression.to_value().clone()))
-            .collect()
-    }
-
-    pub fn as_resolve_context(&self) -> Map<String, Value> {
-        self.iter()
-            .map(|c| (c.variable.clone(), c.expression.to_value().clone()))
-            .collect()
     }
 }
 
 impl FromIterator<Condition> for Conditions {
     fn from_iter<T: IntoIterator<Item = Condition>>(iter: T) -> Self {
-        Conditions(iter.into_iter().collect::<Vec<Condition>>())
+        Conditions(iter.into_iter().collect::<Vec<_>>())
     }
 }
 
-impl TryFrom<&Context> for Conditions {
-    type Error = &'static str;
-    fn try_from(context: &Context) -> Result<Self, Self::Error> {
-        Self::from_context_json(&context.value)
+impl FromIterator<(String, Value)> for Conditions {
+    fn from_iter<T: IntoIterator<Item = (String, Value)>>(iter: T) -> Self {
+        Self(
+            iter.into_iter()
+                .map(|(variable, value)| Condition { variable, value })
+                .collect::<Vec<_>>(),
+        )
     }
 }
 
-impl TryFrom<&ConfigContext> for Conditions {
-    type Error = &'static str;
-    fn try_from(context: &ConfigContext) -> Result<Self, Self::Error> {
-        Self::from_context_json(&context.condition)
+impl From<Conditions> for Map<String, Value> {
+    fn from(value: Conditions) -> Self {
+        value.0.into_iter().map(|c| (c.variable, c.value)).collect()
     }
 }
 
@@ -193,9 +73,10 @@ pub mod jsonlogic {
                     .ok_or("Invalid operands list for context")?
                     .iter()
                     .find_map(|o| {
-                        o.as_object().and_then(|v| {
-                            v.get("var").and_then(|s| s.as_str().map(|s| s.to_owned()))
-                        })
+                        o.as_object()
+                            .and_then(|v| v.get("var"))
+                            .and_then(|s| s.as_str())
+                            .map(|s| s.to_owned())
                     })
                     .ok_or("variable doesn't exist in operands");
             }
@@ -206,12 +87,9 @@ pub mod jsonlogic {
             source: &Map<String, serde_json::Value>,
         ) -> Result<Condition, &'static str> {
             let variable = try_var_from_condition_map(source)?;
-            let expression = expression::try_from_expression_map(source)?;
+            let value = expression::try_from_condition_map(source)?;
 
-            Ok(Condition {
-                variable,
-                expression,
-            })
+            Ok(Condition { variable, value })
         }
 
         pub fn try_from_condition_json(
@@ -224,7 +102,7 @@ pub mod jsonlogic {
         }
 
         pub fn to_condition_json(value: &Condition) -> serde_json::Value {
-            expression::to_expression_json(&value.expression, &value.variable)
+            expression::to_condition_json(&value.value, &value.variable)
         }
     }
 
@@ -244,9 +122,9 @@ pub mod jsonlogic {
             !is_variable(v)
         }
 
-        pub(super) fn try_from_expression_map(
+        pub(super) fn try_from_condition_map(
             source: &Map<String, serde_json::Value>,
-        ) -> Result<Expression, &'static str> {
+        ) -> Result<Value, &'static str> {
             if let Some(operator) = source.keys().next() {
                 let operands = source[operator]
                     .as_array()
@@ -261,12 +139,7 @@ pub mod jsonlogic {
                     ("==", Some(o1), Some(o2), None)
                         if is_variable(o1) && is_constant(o2) =>
                     {
-                        return Ok(Expression::Is(o2.clone()));
-                    }
-                    ("in", Some(o1), Some(o2), None)
-                        if is_variable(o2) && is_constant(o1) =>
-                    {
-                        return Ok(Expression::Has(o1.clone()));
+                        return Ok(o2.clone());
                     }
                     _ => return Err("unsupported operator"),
                 }
@@ -275,28 +148,13 @@ pub mod jsonlogic {
             Err("not a valid expression map")
         }
 
-        pub(crate) fn to_expression_json(
-            expr: &Expression,
-            var: &str,
-        ) -> serde_json::Value {
-            match expr {
-                Expression::Is(c) => {
-                    json!({
-                        "==": [
-                            {"var": var},
-                            c
-                        ]
-                    })
-                }
-                Expression::Has(c) => {
-                    json!({
-                        "in": [
-                            c,
-                            {"var": var}
-                        ]
-                    })
-                }
-            }
+        pub(crate) fn to_condition_json(value: &Value, var: &str) -> Value {
+            json!({
+                "==": [
+                    {"var": var},
+                    value
+                ]
+            })
         }
     }
 }

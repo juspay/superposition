@@ -17,7 +17,7 @@ use crate::{
     components::{
         alert::AlertType,
         button::Button,
-        condition_pills::Condition as ConditionComponent,
+        condition_pills::Condition,
         delete_modal::DeleteModal,
         description::ContentDescription,
         drawer::PortalDrawer,
@@ -85,13 +85,11 @@ fn table_columns(
                     .get("context")
                     .and_then(|v| v.as_object().cloned())
                     .unwrap_or_default();
-                let conditions =
-                    Conditions::from_context_json(&context).unwrap_or_default();
+                let conditions = Conditions::from_iter(context);
                 let id = row.get("id").map_or(String::from(""), |value| {
                     value.as_str().unwrap_or("").to_string()
                 });
-                view! { <ConditionComponent conditions grouped_view=false id /> }
-                    .into_view()
+                view! { <Condition conditions grouped_view=false id /> }.into_view()
             },
             ColumnSortable::No,
             Expandable::Disabled,
@@ -123,17 +121,13 @@ fn table_columns(
 
 #[component]
 fn ExperimentGroupInfo(group: ExperimentGroup) -> impl IntoView {
-    let conditions = Conditions::from_context_json(&group.context).unwrap_or_default();
+    let conditions = Conditions::from_iter(group.context.into_inner());
 
     view! {
         <div class="-mt-5 card bg-base-100 max-w-screen shadow">
             <div class="card-body flex flex-row gap-2 flex-wrap">
                 <ConditionCollapseProvider>
-                    <ConditionComponent
-                        conditions
-                        id="experiment-group-context"
-                        class="h-fit w-[300px]"
-                    />
+                    <Condition conditions id="experiment-group-context" class="h-fit w-[300px]" />
                 </ConditionCollapseProvider>
             </div>
         </div>

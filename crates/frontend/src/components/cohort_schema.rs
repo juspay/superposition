@@ -516,18 +516,16 @@ fn CohortForm(
                                 let schema_type = schema_type.clone();
                                 move || {
                                     jsonlogic::condition::try_from_condition_json(&value_rws.get())
-                                        .unwrap_or(
-                                            Condition::new_with_default_expression(
-                                                dimension.clone(),
-                                                schema_type.clone(),
-                                            ),
-                                        )
+                                        .unwrap_or_else(|_| Condition {
+                                            variable: dimension.clone(),
+                                            value: schema_type.default_value(),
+                                        })
                                 }
                             });
                             let input_type = InputType::from((schema_type.clone(), enum_variants));
                             let fn_environment = Memo::new(move |_| {
                                 FunctionEnvironment {
-                                    context: Conditions(vec![condition.get()]).as_context_json(),
+                                    context: Conditions(vec![condition.get()]).into(),
                                     overrides: Map::new(),
                                 }
                             });
@@ -554,19 +552,18 @@ fn CohortForm(
                                         allow_remove=false
                                         condition=condition.get()
                                         input_type
-                                        schema_type=schema_type.clone()
+                                        schema_type
                                         value_compute_callbacks
                                         on_remove=|_| ()
                                         on_value_change=move |new_expr| {
                                             value_rws
                                                 .set(
-                                                    jsonlogic::expression::to_expression_json(
+                                                    jsonlogic::expression::to_condition_json(
                                                         &new_expr,
                                                         &condition.get().variable,
                                                     ),
                                                 );
                                         }
-                                        on_operator_change=|_| ()
                                     />
                                 </div>
                             }
@@ -585,7 +582,7 @@ fn CohortForm(
                                     <NumberArrayInput
                                         unique=true
                                         options=value_rws
-                                            .with(|v| {
+                                            .with_untracked(|v| {
                                                 v.as_object()
                                                     .and_then(|obj| obj.get("in"))
                                                     .and_then(Value::as_array)
@@ -626,7 +623,7 @@ fn CohortForm(
                                     <StringArrayInput
                                         unique=true
                                         options=value_rws
-                                            .with(|v| {
+                                            .with_untracked(|v| {
                                                 v.as_object()
                                                     .and_then(|obj| obj.get("in"))
                                                     .and_then(Value::as_array)
