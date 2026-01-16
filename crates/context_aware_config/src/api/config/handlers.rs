@@ -471,14 +471,24 @@ async fn reduce_handler(
 #[cfg(feature = "high-performance-mode")]
 #[authorized]
 #[get("/fast")]
-async fn get_fast_handler(state: Data<AppState>) -> superposition::Result<HttpResponse> {
+async fn get_fast_handler(
+    workspace_context: WorkspaceContext,
+    state: Data<AppState>,
+) -> superposition::Result<HttpResponse> {
     use fred::interfaces::MetricsInterface;
 
     log::debug!("Started redis fetch");
-    let config_key = format!("{}::cac_config", *schema_name);
-    let last_modified_at_key = format!("{}::cac_config::last_modified_at", *schema_name);
-    let audit_id_key = format!("{}::cac_config::audit_id", *schema_name);
-    let config_version_key = format!("{}::cac_config::config_version", *schema_name);
+    let config_key = format!("{}::cac_config", *workspace_context.schema_name);
+    let last_modified_at_key = format!(
+        "{}::cac_config::last_modified_at",
+        *workspace_context.schema_name
+    );
+    let audit_id_key =
+        format!("{}::cac_config::audit_id", *workspace_context.schema_name);
+    let config_version_key = format!(
+        "{}::cac_config::config_version",
+        *workspace_context.schema_name
+    );
     let client = state.redis.next_connected();
     let config = client.get::<String, String>(config_key).await;
     let metrics = client.take_latency_metrics();

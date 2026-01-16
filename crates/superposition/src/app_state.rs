@@ -45,9 +45,9 @@ pub async fn get(
         let redis_max_attempts = get_from_env_or_default("REDIS_MAX_ATTEMPTS", 10);
         let redis_connection_timeout =
             get_from_env_or_default("REDIS_CONN_TIMEOUT", 1000);
-        let config = RedisConfig::from_url(&redis_url).expect(
-            format!("Failed to create RedisConfig from url {}", redis_url).as_str(),
-        );
+        let config = RedisConfig::from_url(&redis_url).unwrap_or_else(|_| {
+            panic!("Failed to create RedisConfig from url {}", redis_url)
+        });
         let reconnect_policy = ReconnectPolicy::new_constant(redis_max_attempts, 100);
         let redis_pool = RedisPool::new(
             config,
