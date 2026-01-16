@@ -313,14 +313,10 @@ pub fn cohort_schema(
                                     })
                                 on_change=move |(mut enum_name, enum_definition): (String, Value)| {
                                     enum_name = validate_cohort_info(&enum_name, &enum_definition)?;
-                                    let mut new_schema = cohort_schema_format_rws.get();
-                                    new_schema
-                                        .definitions
-                                        .insert(enum_name.clone(), enum_definition);
-                                    new_schema
-                                        .r#enum
-                                        .insert(new_schema.r#enum.len() - 1, enum_name);
-                                    cohort_schema_format_rws.set(new_schema);
+                                    cohort_schema_format_rws
+                                        .update(|s| {
+                                            s.definitions.insert(enum_name.clone(), enum_definition);
+                                        });
                                     action_rws.set(Action::None);
                                     Ok(())
                                 }
