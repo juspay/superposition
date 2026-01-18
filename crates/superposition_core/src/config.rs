@@ -3,7 +3,8 @@ use std::collections::{HashMap, HashSet};
 use serde_json::{json, Map, Value};
 pub use superposition_types::api::config::MergeStrategy;
 use superposition_types::{
-    logic::evaluate_local_cohorts, Config, Context, DimensionInfo, Overrides,
+    database::models::cac::ResponseTemplate, logic::evaluate_local_cohorts, Config,
+    Context, DimensionInfo, Overrides,
 };
 
 pub fn eval_config(
@@ -198,4 +199,30 @@ fn merge_overrides_on_default_config(
             log::error!("Config: found non-default_config key: {key} in overrides");
         }
     })
+}
+
+pub fn evaluate_response_templates(
+    templates: &[ResponseTemplate],
+    query_data: &Map<String, Value>,
+) -> Option<ResponseTemplate> {
+    templates
+        .iter()
+        .filter(|template| context_matches(template, query_data))
+        .collect::<Vec<&ResponseTemplate>>()
+        .first()
+        .map(|t| (*t).clone())
+}
+
+fn context_matches(template: &ResponseTemplate, query_data: &Map<String, Value>) -> bool {
+    for (key, template_value) in template.context.iter() {
+        if let Some(query_value) = query_data.get(key) {
+            if template_value != query_value {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    true
 }

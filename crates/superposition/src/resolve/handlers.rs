@@ -8,13 +8,17 @@ use context_aware_config::api::config::helpers::{
     generate_config_from_version, get_config_version, get_max_created_at,
     is_not_modified, resolve, setup_query_data,
 };
+use diesel::{QueryDsl, RunQueryDsl};
 use experimentation_platform::api::experiments::handlers::get_applicable_variants_helper;
+use handlebars::Handlebars;
 use serde_json::{Map, Value};
 use service_utils::service::types::{DbConnection, WorkspaceContext};
+use superposition_core::config::evaluate_response_templates;
 use superposition_derives::authorized;
 use superposition_types::{
     api::config::{ContextPayload, MergeStrategy, ResolveConfigQuery},
     custom_query::{self as superposition_query, CustomQuery, DimensionQuery, QueryMap},
+    database::{models::cac::ResponseTemplate, schema::response_templates},
     result as superposition,
 };
 
@@ -80,12 +84,48 @@ async fn resolve_with_exp_handler(
 
     let resolved_config = resolve(
         &mut config,
-        query_data,
+        query_data.clone(),
         merge_strategy,
         &mut conn,
         &query_filters,
         &workspace_context,
     )?;
+
+    // Check for x-render-template header
+    let render_template = req
+        .headers()
+        .get("x-render-template")
+        .and_then(|v| v.to_str().ok())
+        .map(|s| s.eq_ignore_ascii_case("true"))
+        .unwrap_or(false);
+
+    if render_template {
+        // Fetch all response templates
+        let templates: Vec<ResponseTemplate> =
+            response_templates::dsl::response_templates
+                .schema_name(&workspace_context.schema_name)
+                .get_results(&mut conn)?;
+
+        // Find matching template based on query_data context
+        if let Some(template) = evaluate_response_templates(&templates, &query_data) {
+            let handlebars = Handlebars::new();
+            let rendered = handlebars
+                .render_template(&template.template, &resolved_config)
+                .map_err(|e| {
+                    log::error!("Failed to render template: {}", e);
+                    superposition::AppError::UnexpectedError(anyhow::anyhow!(
+                        "Failed to render template: {}",
+                        e
+                    ))
+                })?;
+
+            let mut resp = HttpResponse::Ok();
+            add_last_modified_to_header(max_created_at, is_smithy, &mut resp);
+            add_audit_id_to_header(&mut conn, &mut resp, &workspace_context.schema_name);
+            add_config_version_to_header(&config_version, &mut resp);
+            return Ok(resp.content_type(template.content_type).body(rendered));
+        }
+    }
 
     let mut resp = HttpResponse::Ok();
     add_last_modified_to_header(max_created_at, is_smithy, &mut resp);

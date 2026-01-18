@@ -125,6 +125,7 @@ pub enum RegexEnum {
     DefaultConfigKey,
     DimensionName,
     FunctionName,
+    ResponseTemplateName,
     TypeTemplateName,
     VariableName,
 }
@@ -153,6 +154,7 @@ impl RegexEnum {
             Self::DefaultConfigKey => ALPHANUMERIC_WITH_DOT_WORDS,
             Self::DimensionName => ALPHANUMERIC_WITH_DOT_WORDS,
             Self::FunctionName => ALPHANUMERIC_WITHOUT_DOT_WORDS,
+            Self::ResponseTemplateName => ALPHANUMERIC_WITHOUT_DOT_WORDS,
             Self::TypeTemplateName => ALPHANUMERIC_WITHOUT_DOT_WORDS,
             Self::VariableName => UPPERCASE_ALPHANUMERIC_WORDS,
         }
@@ -166,6 +168,7 @@ impl Display for RegexEnum {
             Self::DefaultConfigKey => ALPHANUMERIC_WITH_DOT,
             Self::DimensionName => ALPHANUMERIC_WITH_DOT,
             Self::FunctionName => ALPHANUMERIC_WITHOUT_DOT,
+            Self::ResponseTemplateName => ALPHANUMERIC_WITHOUT_DOT,
             Self::TypeTemplateName => ALPHANUMERIC_WITHOUT_DOT,
             Self::VariableName => UPPERCASE_ALPHANUMERIC,
         }

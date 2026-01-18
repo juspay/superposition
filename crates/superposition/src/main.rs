@@ -202,6 +202,12 @@ async fn main() -> Result<()> {
                             .service(type_templates::endpoints()),
                     )
                     .service(
+                        scope("/response-templates")
+                            .app_data(Resource::ResponseTemplate)
+                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                            .service(response_templates::endpoints()),
+                    )
+                    .service(
                         experiments::endpoints(scope("/experiments"))
                             .app_data(Resource::Experiment)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true)),

@@ -78,6 +78,7 @@ pub enum Resource {
     Context,
     Function,
     TypeTemplate,
+    ResponseTemplate,
     Config,
     Experiment,
     ExperimentGroup,

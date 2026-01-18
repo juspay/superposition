@@ -17,10 +17,12 @@ cac_client = { path = "../cac_client" }
 chrono = { workspace = true }
 diesel = { workspace = true, features = ["numeric"] }
 fred = { workspace = true, optional = true, features = ["metrics"] }
+handlebars = "6.4.0"
 itertools = { workspace = true }
 jsonlogic = { workspace = true }
 jsonschema = { workspace = true }
 log = { workspace = true }
+mime = "0.3.17"
 num-bigint = "0.4"
 serde = { workspace = true }
 serde_json = { workspace = true }

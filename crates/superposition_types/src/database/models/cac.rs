@@ -26,7 +26,7 @@ use crate::{Cac, Condition, Contextual, ExtendedMap, Overridden, Overrides};
 #[cfg(feature = "diesel_derives")]
 use super::super::schema::{
     config_versions, contexts, default_configs, dimensions, event_log, functions,
-    type_templates,
+    response_templates, type_templates,
 };
 use super::{i64_formatter, ChangeReason, Description};
 
@@ -494,6 +494,27 @@ where
             ))
         }
     }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(Queryable, Selectable, Insertable, AsChangeset)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(check_for_backend(diesel::pg::Pg)))]
+#[cfg_attr(feature = "diesel_derives", diesel(primary_key(name)))]
+pub struct ResponseTemplate {
+    pub name: String,
+    pub context_id: String,
+    pub description: Description,
+    pub change_reason: ChangeReason,
+    pub context: ExtendedMap,
+    pub content_type: String,
+    pub template: String,
+    pub created_at: DateTime<Utc>,
+    pub created_by: String,
+    pub last_modified_at: DateTime<Utc>,
+    pub last_modified_by: String,
 }
 
 #[derive(

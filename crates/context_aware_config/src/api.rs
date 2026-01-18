@@ -4,5 +4,6 @@ pub mod context;
 pub mod default_config;
 pub mod dimension;
 pub mod functions;
+pub mod response_templates;
 pub mod type_templates;
 pub mod variables;

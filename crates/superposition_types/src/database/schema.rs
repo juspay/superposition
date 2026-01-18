@@ -762,6 +762,25 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    use diesel::sql_types::*;
+
+    response_templates (name) {
+        #[max_length = 20]
+        name -> Varchar,
+        context_id -> Text,
+        description -> Text,
+        change_reason -> Text,
+        context -> Json,
+        content_type -> Varchar,
+        template -> Text,
+        created_at -> Timestamptz,
+        created_by -> Text,
+        last_modified_at -> Timestamptz,
+        last_modified_by -> Text,
+    }
+}
+
 diesel::joinable!(default_configs -> functions (value_validation_function_name));
 diesel::joinable!(dimensions -> functions (value_validation_function_name));
 
@@ -818,4 +837,5 @@ diesel::allow_tables_to_appear_in_same_query!(
     type_templates,
     webhooks,
     variables,
+    response_templates,
 );
