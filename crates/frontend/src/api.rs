@@ -23,7 +23,7 @@ use superposition_types::{
     },
     custom_query::{DimensionQuery, PaginationParams, QueryMap, QueryParam},
     database::models::{
-        cac::{Context, DefaultConfig, Function, TypeTemplate},
+        cac::{Context, DefaultConfig, Function, ResponseTemplate, TypeTemplate},
         experimentation::ExperimentGroup,
         others::{CustomHeaders, HttpMethod, PayloadVersion, Webhook, WebhookEvent},
         others::{Variable, VariableName},
@@ -1242,5 +1242,139 @@ pub mod audit_log {
         .await?;
 
         parse_json_response(response).await
+    }
+}
+
+pub mod response_templates {
+    use superposition_types::ExtendedMap;
+
+    use super::*;
+
+    pub async fn fetch(
+        filters: &PaginationParams,
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<PaginatedResponse<ResponseTemplate>, String> {
+        let host = use_host_server();
+        let url = format!("{}/response-templates?{}", host, filters.to_query_param());
+
+        let response = request(
+            url,
+            reqwest::Method::GET,
+            None::<()>,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn get(
+        name: &str,
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<ResponseTemplate, String> {
+        let host = use_host_server();
+        let url = format!("{host}/response-templates/{name}");
+
+        let response = request(
+            url,
+            reqwest::Method::GET,
+            None::<()>,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub async fn create(
+        name: String,
+        description: String,
+        change_reason: String,
+        context: Value,
+        content_type: String,
+        template: String,
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<ResponseTemplate, String> {
+        let payload = superposition_types::api::response_templates::ResponseTemplateCreateRequest {
+            name: superposition_types::api::response_templates::ResponseTemplateName::try_from(
+                name,
+            )?,
+            description: Description::try_from(description)?,
+            change_reason: ChangeReason::try_from(change_reason)?,
+            context: ExtendedMap::try_from(context)?,
+            content_type,
+            template,
+        };
+
+        let host = use_host_server();
+        let url = format!("{host}/response-templates");
+
+        let response = request(
+            url,
+            reqwest::Method::POST,
+            Some(payload),
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn update(
+        name: String,
+        payload: superposition_types::api::response_templates::ResponseTemplateUpdateRequest,
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<ResponseTemplate, String> {
+        let host = use_host_server();
+        let url = format!("{host}/response-templates/{name}");
+
+        let response = request(
+            url,
+            reqwest::Method::PATCH,
+            Some(payload),
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn delete(
+        name: String,
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<(), String> {
+        let host = use_host_server();
+        let url = format!("{host}/response-templates/{name}");
+
+        request(
+            url,
+            reqwest::Method::DELETE,
+            None::<()>,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
+        )
+        .await?;
+
+        Ok(())
     }
 }

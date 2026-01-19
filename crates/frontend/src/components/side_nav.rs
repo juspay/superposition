@@ -71,6 +71,12 @@ fn create_routes(org: &str, workspace: &str) -> Vec<AppRoute> {
             label: "Webhooks".to_string(),
         },
         AppRoute {
+            key: format!("{base}/admin/{org}/{workspace}/response-templates"),
+            path: format!("{base}/admin/{org}/{workspace}/response-templates"),
+            icon: "ri-file-text-fill".to_string(),
+            label: "Response Templates".to_string(),
+        },
+        AppRoute {
             key: format!("{base}/admin/{org}/{workspace}/config/versions"),
             path: format!("{base}/admin/{org}/{workspace}/config/versions"),
             icon: "ri-camera-lens-fill".to_string(),

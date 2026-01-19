@@ -6,7 +6,8 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "diesel_derives")]
 use crate::database::schema::response_templates;
 use crate::{
-    database::models::{ChangeReason, Description}, ExtendedMap, RegexEnum
+    database::models::{ChangeReason, Description},
+    ExtendedMap, RegexEnum,
 };
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

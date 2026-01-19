@@ -30,6 +30,7 @@ pub mod modal;
 pub mod monaco_editor;
 pub mod override_form;
 pub mod pagination;
+pub mod response_template_form;
 pub mod side_nav;
 pub mod skeleton;
 pub mod sortable;

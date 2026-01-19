@@ -15,6 +15,8 @@ pub mod function;
 pub mod home;
 pub mod not_found;
 pub mod organisations;
+pub mod response_template;
+pub mod response_templates;
 pub mod type_template;
 pub mod type_templates;
 pub mod variable;
