@@ -34,7 +34,7 @@ else ifeq ($(HAS_PODMAN),0)
   DOCKER := podman
   export PODMAN_COMPOSE_WARNING_LOGS = false
 else
-	$(error "Neither docker nor podman found, please install one of them.")
+  $(error "Neither docker nor podman found, please install one of them.")
 endif
 COMPOSE := $(DOCKER) compose
 
@@ -49,31 +49,7 @@ DB_UP = $(shell $(call check-container,$(DB_CONTAINER_NAME)))
 LSTACK_CONTAINER_NAME = $(shell $(call read-container-name,localstack))
 LSTACK_UP = $(shell $(call check-container,$(LSTACK_CONTAINER_NAME)))
 export SMITHY_MAVEN_REPOS = https://repo1.maven.org/maven2|https://sandbox.assets.juspay.in/smithy/m2
-.PHONY:
-	cac
-	ci-test
-	clients
-	db-init
-	grafana-local
-	kill
-	local-docs-view
-	node-dependencies
-	run
-	schema-file
-	setup
-	setup-clients
-	smithy-clean
-	smithy-build
-	smithy-clean-build
-	smithy-api-docs
-	smithy-updates
-	validate-aws-connection
-	validate-psql-connection
-	uniffi-bindings
-	test-js-provider
-	test-py-provider
-	test-kotlin-provider
-	test-rust-provider
+.PHONY: cac ci-test clients db-init grafana-local kill local-docs-view node-dependencies npm-package run schema-file setup setup-clients smithy-clean smithy-build smithy-clean-build smithy-api-docs smithy-updates validate-aws-connection validate-psql-connection uniffi-bindings test-js-provider test-py-provider test-kotlin-provider test-rust-provider
 
 env-file:
 	@if ! [ -e .env ]; then \
@@ -179,6 +155,43 @@ frontend:
 	mkdir -p $(CARGO_TARGET_DIR)/site/pkg
 	mv crates/frontend/pkg $(CARGO_TARGET_DIR)/site/
 	cp -a crates/frontend/assets/. $(CARGO_TARGET_DIR)/site/
+
+npm-package: FE_FEATURES=hydrate
+npm-package: WASM_PACK_MODE=--release
+npm-package:
+	@echo "Building frontend for npm package..."
+	cd crates/frontend && \
+		wasm-pack build --target web --release --no-default-features --features 'hydrate'
+	@echo "Compiling Tailwind CSS..."
+	cd crates/frontend && \
+		npx tailwindcss -i ./styles/tailwind.css -o ./pkg/style.css --minify
+	@echo "Preparing npm package structure..."
+	-rm -rf crates/frontend/npm/pkg
+	-rm -rf crates/frontend/npm/assets
+	mkdir -p crates/frontend/npm/pkg
+	mkdir -p crates/frontend/npm/assets
+	@echo "Copying WASM artifacts..."
+	cp crates/frontend/pkg/frontend.js crates/frontend/npm/pkg/
+	cp crates/frontend/pkg/frontend_bg.wasm crates/frontend/npm/pkg/
+	cp crates/frontend/pkg/style.css crates/frontend/npm/pkg/
+	@echo "Copying assets..."
+	cp -a crates/frontend/assets/. crates/frontend/npm/assets/
+	@echo "Copying license files..."
+	-cp LICENSE-MIT crates/frontend/npm/ 2>/dev/null || cp LICENSE crates/frontend/npm/ 2>/dev/null || true
+	-cp LICENSE-APACHE crates/frontend/npm/ 2>/dev/null || true
+	@echo ""
+	@echo "✅ npm package prepared successfully!"
+	@echo ""
+	@echo "Package location: crates/frontend/npm/"
+	@echo ""
+	@echo "To publish:"
+	@echo "  cd crates/frontend/npm"
+	@echo "  npm publish"
+	@echo ""
+	@echo "To test locally:"
+	@echo "  cd crates/frontend/npm"
+	@echo "  npm pack"
+	@echo ""
 
 backend: CARGO_FLAGS += --features='$(FEATURES)' --color always
 backend:

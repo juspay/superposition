@@ -1,0 +1,48 @@
+{
+  "name": "@juspay/superposition-admin",
+  "version": "0.97.0",
+  "description": "Embeddable admin interface for Superposition configuration management",
+  "main": "index.js",
+  "module": "index.js",
+  "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "pkg/**/*",
+    "assets/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "superposition",
+    "admin",
+    "configuration",
+    "feature-flags",
+    "experimentation",
+    "a/b-testing",
+    "context-aware",
+    "wasm",
+    "webassembly",
+    "rust"
+  ],
+  "author": "superposition@juspay.in",
+  "license": "MIT OR Apache-2.0",
+  "homepage": "https://juspay.io/open-source/superposition",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/juspay/superposition.git",
+    "directory": "crates/frontend"
+  },
+  "bugs": {
+    "url": "https://github.com/juspay/superposition/issues"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "scripts": {
+    "prepublishOnly": "echo 'Please run make npm-package from the repository root'"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
