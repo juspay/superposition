@@ -1,16 +1,14 @@
 use leptos::*;
-use leptos_router::A;
+use leptos_router::{use_navigate, A};
 use serde_json::{json, Map, Value};
 use superposition_macros::box_params;
 use superposition_types::custom_query::{CustomQuery, PaginationParams, Query};
 
 use crate::api::response_templates;
 use crate::components::datetime::DatetimeStr;
-use crate::components::drawer::PortalDrawer;
 use crate::components::table::types::TablePaginationProps;
 use crate::components::{
     button::Button,
-    response_template_form::ResponseTemplateForm,
     skeleton::Skeleton,
     stat::Stat,
     table::{
@@ -22,17 +20,10 @@ use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::{OrganisationId, Workspace};
 use crate::utils::unwrap_option_or_default_with_error;
 
-#[derive(Clone)]
-enum Action {
-    Create,
-    None,
-}
-
 #[component]
 pub fn ResponseTemplates() -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
-    let action_rws = RwSignal::new(Action::None);
     let pagination_params_rws = use_signal_from_query(move |query_string| {
         Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
     });
@@ -90,6 +81,16 @@ pub fn ResponseTemplates() -> impl IntoView {
         pagination_params_rws.update(|f| f.page = Some(page));
     });
 
+    let handle_create = move |_| {
+        let navigate = use_navigate();
+        let url = format!(
+            "/admin/{}/{}/response-templates/create",
+            org.get().0,
+            workspace.get().0
+        );
+        navigate(&url, Default::default());
+    };
+
     view! {
         <Suspense fallback=move || {
             view! { <Skeleton /> }
@@ -126,7 +127,7 @@ pub fn ResponseTemplates() -> impl IntoView {
                                 class="self-end"
                                 text="Create Response Template"
                                 icon_class="ri-add-line"
-                                on_click=move |_| action_rws.set(Action::Create)
+                                on_click=handle_create
                             />
                         </div>
                         <div class="card w-full bg-base-100 rounded-xl overflow-hidden shadow">
@@ -142,24 +143,6 @@ pub fn ResponseTemplates() -> impl IntoView {
                         </div>
                     </div>
                 }
-            }}
-            {move || match action_rws.get() {
-                Action::Create => {
-                    view! {
-                        <PortalDrawer
-                            title="Create New Response Template"
-                            handle_close=move |_| action_rws.set(Action::None)
-                        >
-                            <ResponseTemplateForm handle_submit=move |_| {
-                                pagination_params_rws.update(|f| f.reset_page());
-                                templates_resource.refetch();
-                                action_rws.set(Action::None);
-                            } />
-                        </PortalDrawer>
-                    }
-                        .into_view()
-                }
-                Action::None => view! {}.into_view(),
             }}
         </Suspense>
     }

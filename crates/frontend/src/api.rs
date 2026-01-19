@@ -1246,9 +1246,22 @@ pub mod audit_log {
 }
 
 pub mod response_templates {
-    use superposition_types::ExtendedMap;
-
     use super::*;
+    use superposition_types::{
+        api::response_templates::ResponseTemplateUpdateRequest, ExtendedMap,
+    };
+
+    pub fn try_update_payload(
+        content_type: String,
+        template: String,
+        change_reason: String,
+    ) -> Result<ResponseTemplateUpdateRequest, String> {
+        Ok(ResponseTemplateUpdateRequest {
+            content_type: Some(content_type),
+            template: Some(template),
+            change_reason: ChangeReason::try_from(change_reason)?,
+        })
+    }
 
     pub async fn fetch(
         filters: &PaginationParams,

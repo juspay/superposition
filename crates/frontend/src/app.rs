@@ -22,9 +22,11 @@ use crate::pages::{
     audit_log::AuditLog, context_override::ContextOverride,
     default_config::DefaultConfig, default_config_list::DefaultConfigList,
     experiment::ExperimentPage, home::Home, organisations::Organisations,
-    response_template::ResponseTemplate, response_templates::ResponseTemplates,
-    type_template::TypePage, type_templates::TypesPage, webhook::Webhook,
-    webhooks::Webhooks, workspace::Workspace,
+    response_template::ResponseTemplate,
+    response_template_form::ResponseTemplateFormPage,
+    response_templates::ResponseTemplates, type_template::TypePage,
+    type_templates::TypesPage, webhook::Webhook, webhooks::Webhooks,
+    workspace::Workspace,
 };
 use crate::types::Envs;
 
@@ -201,6 +203,16 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                         <Route ssr=SsrMode::Async path="variables/:variable_name" view=Variable />
 
                         <Route ssr=SsrMode::Async path="response-templates" view=ResponseTemplates />
+                        <Route
+                            ssr=SsrMode::Async
+                            path="response-templates/create"
+                            view=ResponseTemplateFormPage
+                        />
+                        <Route
+                            ssr=SsrMode::Async
+                            path="response-templates/:name/edit"
+                            view=ResponseTemplateFormPage
+                        />
                         <Route
                             ssr=SsrMode::Async
                             path="response-templates/:name"
