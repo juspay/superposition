@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Theme - Superposition Example</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <style>
+        .theme-showcase {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .theme-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .theme-card:hover {
+            border-color: #2563eb;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .theme-card.active {
+            border-color: #2563eb;
+            background: #eff6ff;
+        }
+
+        .theme-preview {
+            height: 100px;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+        }
+
+        .theme-light .theme-preview {
+            background: linear-gradient(135deg, #f9fafb 0%, #e5e7eb 100%);
+            color: #1f2937;
+        }
+
+        .theme-dark .theme-preview {
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+        }
+
+        .theme-cupcake .theme-preview {
+            background: linear-gradient(135deg, #fce7f3 0%, #f9a8d4 100%);
+            color: #831843;
+        }
+
+        .theme-dim .theme-preview {
+            background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+        }
+
+        .theme-info h4 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.125rem;
+        }
+
+        .theme-info p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .current-theme-display {
+            background: #f3f4f6;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            text-align: center;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Navigation Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                        <rect width="32" height="32" rx="6" fill="#2563eb"/>
+                        <path d="M8 16L14 10L20 16L14 22L8 16Z" fill="white"/>
+                        <path d="M14 10L20 16L26 10" stroke="white" stroke-width="2"/>
+                    </svg>
+                    <h1>My Control Plane</h1>
+                </div>
+                <nav class="main-nav">
+                    <a href="index.html" class="nav-link">Dashboard</a>
+                    <a href="embedded.html" class="nav-link">Configuration</a>
+                    <a href="custom-theme.html" class="nav-link active">Custom Theme</a>
+                    <a href="dynamic.html" class="nav-link">Dynamic Loading</a>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <section class="hero">
+                <h2>Theme Customization</h2>
+                <p class="subtitle">
+                    Choose from multiple built-in themes or customize to match your brand
+                </p>
+            </section>
+
+            <div class="current-theme-display">
+                Current Theme: <span id="current-theme-name">None (Admin not mounted)</span>
+            </div>
+
+            <div class="control-panel">
+                <div class="control-group">
+                    <label for="backend-host">Backend Host:</label>
+                    <input type="text" id="backend-host" value="http://localhost:8080">
+                </div>
+                <div class="control-group">
+                    <button id="mount-btn" class="btn-primary">Mount Admin Interface</button>
+                    <button id="unmount-btn" class="btn-secondary" disabled>Unmount</button>
+                </div>
+                <div class="status-indicator">
+                    <span id="status-text">Not loaded</span>
+                </div>
+            </div>
+
+            <!-- Theme Selection -->
+            <section class="theme-showcase">
+                <div class="theme-card theme-light" data-theme="light">
+                    <div class="theme-preview">Light</div>
+                    <div class="theme-info">
+                        <h4>Light Theme</h4>
+                        <p>Clean and bright interface perfect for daytime use</p>
+                    </div>
+                </div>
+
+                <div class="theme-card theme-dark" data-theme="dark">
+                    <div class="theme-preview">Dark</div>
+                    <div class="theme-info">
+                        <h4>Dark Theme</h4>
+                        <p>Easy on the eyes for extended use and low-light environments</p>
+                    </div>
+                </div>
+
+                <div class="theme-card theme-cupcake" data-theme="cupcake">
+                    <div class="theme-preview">Cupcake</div>
+                    <div class="theme-info">
+                        <h4>Cupcake Theme</h4>
+                        <p>Playful and colorful with pink and purple accents</p>
+                    </div>
+                </div>
+
+                <div class="theme-card theme-dim" data-theme="dim">
+                    <div class="theme-preview">Dim</div>
+                    <div class="theme-info">
+                        <h4>Dim Theme</h4>
+                        <p>Balanced dark theme with reduced contrast</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Admin Container -->
+            <div class="admin-container">
+                <div id="superposition-admin" class="admin-wrapper">
+                    <div class="placeholder">
+                        <div class="placeholder-icon">🎨</div>
+                        <h3>Mount the admin interface to see themes in action</h3>
+                        <p>Click the button above to get started</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import SuperpositionAdmin from './node_modules/@juspay/superposition-admin/index.js';
+
+        let admin = null;
+        let currentTheme = 'light';
+
+        // UI Elements
+        const mountBtn = document.getElementById('mount-btn');
+        const unmountBtn = document.getElementById('unmount-btn');
+        const hostInput = document.getElementById('backend-host');
+        const statusText = document.getElementById('status-text');
+        const currentThemeName = document.getElementById('current-theme-name');
+        const placeholder = document.querySelector('.placeholder');
+        const themeCards = document.querySelectorAll('.theme-card');
+
+        function setStatus(message, type = 'info') {
+            statusText.textContent = message;
+            statusText.className = `status-${type}`;
+        }
+
+        function updateThemeUI(theme) {
+            currentTheme = theme;
+            currentThemeName.textContent = theme.charAt(0).toUpperCase() + theme.slice(1);
+
+            // Update active state on cards
+            themeCards.forEach(card => {
+                if (card.dataset.theme === theme) {
+                    card.classList.add('active');
+                } else {
+                    card.classList.remove('active');
+                }
+            });
+        }
+
+        // Mount admin
+        mountBtn.addEventListener('click', async () => {
+            if (admin) return;
+
+            try {
+                setStatus('Loading...', 'loading');
+                mountBtn.disabled = true;
+
+                if (placeholder) {
+                    placeholder.style.display = 'none';
+                }
+
+                admin = new SuperpositionAdmin({
+                    host: hostInput.value,
+                    theme: currentTheme,
+                    containerId: 'superposition-admin',
+                    pkgPath: './node_modules/@juspay/superposition-admin/pkg'
+                });
+
+                await admin.mount();
+
+                setStatus('Mounted - Click a theme to change', 'success');
+                mountBtn.style.display = 'none';
+                unmountBtn.disabled = false;
+                hostInput.disabled = true;
+                updateThemeUI(currentTheme);
+
+                console.log('✅ Admin mounted with theme:', currentTheme);
+            } catch (error) {
+                console.error('❌ Failed to mount:', error);
+                setStatus(`Error: ${error.message}`, 'error');
+                mountBtn.disabled = false;
+
+                if (placeholder) {
+                    placeholder.style.display = 'flex';
+                }
+
+                admin = null;
+            }
+        });
+
+        // Unmount admin
+        unmountBtn.addEventListener('click', () => {
+            if (admin) {
+                admin.unmount();
+                admin = null;
+
+                setStatus('Unmounted', 'info');
+                mountBtn.style.display = 'inline-block';
+                mountBtn.disabled = false;
+                unmountBtn.disabled = true;
+                hostInput.disabled = false;
+                currentThemeName.textContent = 'None (Admin not mounted)';
+
+                themeCards.forEach(card => card.classList.remove('active'));
+
+                if (placeholder) {
+                    placeholder.style.display = 'flex';
+                }
+
+                console.log('🔄 Admin unmounted');
+            }
+        });
+
+        // Theme selection
+        themeCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const theme = card.dataset.theme;
+
+                if (admin) {
+                    // Admin is mounted, change theme dynamically
+                    admin.setTheme(theme);
+                    updateThemeUI(theme);
+                    setStatus(`Theme changed to ${theme}`, 'success');
+                    console.log('🎨 Theme changed to:', theme);
+                } else {
+                    // Admin not mounted, just update selection for next mount
+                    currentTheme = theme;
+                    updateThemeUI(theme);
+                    currentThemeName.textContent = `${theme.charAt(0).toUpperCase() + theme.slice(1)} (will apply on mount)`;
+                    console.log('🎨 Theme selected for next mount:', theme);
+                }
+            });
+        });
+
+        // Initialize with light theme selected
+        updateThemeUI('light');
+    </script>
+</body>
+</html>

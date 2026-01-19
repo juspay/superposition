@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Loading - Superposition Example</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <style>
+        .tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid #e5e7eb;
+            margin: 2rem 0 0 0;
+        }
+
+        .tab {
+            padding: 1rem 2rem;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #6b7280;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            color: #2563eb;
+            background: #f9fafb;
+        }
+
+        .tab.active {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 2rem 0;
+            animation: fadeIn 0.3s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2563eb;
+            margin: 0.5rem 0;
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .info-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .info-box h4 {
+            margin: 0 0 0.5rem 0;
+            color: #1e40af;
+        }
+
+        .info-box p {
+            margin: 0;
+            color: #1e3a8a;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Navigation Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                        <rect width="32" height="32" rx="6" fill="#2563eb"/>
+                        <path d="M8 16L14 10L20 16L14 22L8 16Z" fill="white"/>
+                        <path d="M14 10L20 16L26 10" stroke="white" stroke-width="2"/>
+                    </svg>
+                    <h1>My Control Plane</h1>
+                </div>
+                <nav class="main-nav">
+                    <a href="index.html" class="nav-link">Dashboard</a>
+                    <a href="embedded.html" class="nav-link">Configuration</a>
+                    <a href="custom-theme.html" class="nav-link">Custom Theme</a>
+                    <a href="dynamic.html" class="nav-link active">Dynamic Loading</a>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Main Content with Tabs -->
+        <main class="main-content">
+            <section class="hero">
+                <h2>Dynamic Loading Example</h2>
+                <p class="subtitle">
+                    Load the admin interface on-demand only when needed
+                </p>
+            </section>
+
+            <div class="info-box">
+                <h4>💡 Performance Tip</h4>
+                <p>
+                    Loading the admin interface only when the Configuration tab is accessed
+                    reduces initial page load time and saves bandwidth. The interface is loaded
+                    once and cached for subsequent visits to the tab.
+                </p>
+            </div>
+
+            <!-- Tab Navigation -->
+            <div class="tabs">
+                <button class="tab active" data-tab="overview">Overview</button>
+                <button class="tab" data-tab="analytics">Analytics</button>
+                <button class="tab" data-tab="config">Configuration</button>
+                <button class="tab" data-tab="settings">Settings</button>
+            </div>
+
+            <!-- Tab Content -->
+            <div id="overview-tab" class="tab-content active">
+                <h3>Application Overview</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Requests</div>
+                        <div class="stat-value">1.2M</div>
+                        <div class="stat-label">↑ 12% from last week</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Active Users</div>
+                        <div class="stat-value">8,432</div>
+                        <div class="stat-label">↑ 5% from last week</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Avg Response Time</div>
+                        <div class="stat-value">124ms</div>
+                        <div class="stat-label">↓ 8% from last week</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Success Rate</div>
+                        <div class="stat-value">99.8%</div>
+                        <div class="stat-label">→ Same as last week</div>
+                    </div>
+                </div>
+                <p style="margin-top: 2rem; color: #6b7280;">
+                    This tab loads immediately without the admin interface.
+                    The admin is only loaded when you click the "Configuration" tab.
+                </p>
+            </div>
+
+            <div id="analytics-tab" class="tab-content">
+                <h3>Analytics Dashboard</h3>
+                <p style="color: #6b7280;">
+                    This is a placeholder for your analytics dashboard.
+                    The admin interface hasn't been loaded yet, keeping this page light and fast.
+                </p>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Page Views</div>
+                        <div class="stat-value">456K</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Bounce Rate</div>
+                        <div class="stat-value">32%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Avg Session</div>
+                        <div class="stat-value">4m 23s</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Conversion</div>
+                        <div class="stat-value">3.2%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="config-tab" class="tab-content">
+                <div class="control-panel">
+                    <div class="control-group">
+                        <label for="backend-host">Backend Host:</label>
+                        <input type="text" id="backend-host" value="http://localhost:8080">
+                    </div>
+                    <div class="control-group">
+                        <label for="theme-select">Theme:</label>
+                        <select id="theme-select">
+                            <option value="light">Light</option>
+                            <option value="dark">Dark</option>
+                            <option value="cupcake">Cupcake</option>
+                            <option value="dim">Dim</option>
+                        </select>
+                    </div>
+                    <div class="status-indicator">
+                        <span id="status-text">Not loaded yet</span>
+                    </div>
+                </div>
+
+                <!-- Admin Container -->
+                <div class="admin-container">
+                    <div id="superposition-admin" class="admin-wrapper">
+                        <div class="placeholder">
+                            <div class="placeholder-icon">⚡</div>
+                            <h3>Loading on demand...</h3>
+                            <p>The admin interface will load automatically when you visit this tab</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="settings-tab" class="tab-content">
+                <h3>Application Settings</h3>
+                <p style="color: #6b7280; margin-bottom: 2rem;">
+                    This is a placeholder for application settings.
+                    Notice how switching between tabs is instant because the admin interface
+                    is only loaded on the Configuration tab.
+                </p>
+                <div class="code-section">
+                    <h4>Dynamic Loading Code</h4>
+                    <div class="code-block">
+                        <pre><code>// Load admin only when Configuration tab is clicked
+configTab.addEventListener('click', async () => {
+  if (!admin) {
+    admin = new SuperpositionAdmin({
+      host: 'http://localhost:8080',
+      theme: 'light'
+    });
+    await admin.mount();
+  }
+});</code></pre>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import SuperpositionAdmin from './node_modules/@juspay/superposition-admin/index.js';
+
+        let admin = null;
+        let adminLoaded = false;
+
+        // UI Elements
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const statusText = document.getElementById('status-text');
+        const hostInput = document.getElementById('backend-host');
+        const themeSelect = document.getElementById('theme-select');
+        const placeholder = document.querySelector('.placeholder');
+
+        function setStatus(message, type = 'info') {
+            statusText.textContent = message;
+            statusText.className = `status-${type}`;
+        }
+
+        async function loadAdmin() {
+            if (adminLoaded) return;
+
+            try {
+                setStatus('Loading admin interface...', 'loading');
+
+                if (placeholder) {
+                    placeholder.querySelector('h3').textContent = 'Loading...';
+                }
+
+                admin = new SuperpositionAdmin({
+                    host: hostInput.value,
+                    theme: themeSelect.value,
+                    containerId: 'superposition-admin',
+                    pkgPath: './node_modules/@juspay/superposition-admin/pkg'
+                });
+
+                await admin.mount();
+
+                adminLoaded = true;
+                setStatus('Loaded successfully', 'success');
+
+                if (placeholder) {
+                    placeholder.style.display = 'none';
+                }
+
+                console.log('✅ Admin loaded dynamically');
+            } catch (error) {
+                console.error('❌ Failed to load admin:', error);
+                setStatus(`Error: ${error.message}`, 'error');
+
+                if (placeholder) {
+                    placeholder.querySelector('h3').textContent = 'Failed to load';
+                    placeholder.querySelector('p').textContent = error.message;
+                }
+            }
+        }
+
+        // Tab switching
+        tabs.forEach(tab => {
+            tab.addEventListener('click', async () => {
+                const tabName = tab.dataset.tab;
+
+                // Update active tab
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                // Update active content
+                tabContents.forEach(content => content.classList.remove('active'));
+                document.getElementById(`${tabName}-tab`).classList.add('active');
+
+                // Load admin only when Configuration tab is clicked
+                if (tabName === 'config' && !adminLoaded) {
+                    await loadAdmin();
+                }
+
+                console.log('📑 Switched to tab:', tabName);
+            });
+        });
+
+        // Theme change (only if admin is loaded)
+        themeSelect.addEventListener('change', (e) => {
+            if (admin) {
+                admin.setTheme(e.target.value);
+                setStatus(`Theme changed to ${e.target.value}`, 'success');
+                console.log('🎨 Theme changed to:', e.target.value);
+            }
+        });
+
+        // Host change handling
+        hostInput.addEventListener('change', () => {
+            if (adminLoaded) {
+                setStatus('Host changed - reload page to apply', 'warning');
+            }
+        });
+
+        console.log('💡 Admin will be loaded dynamically when you visit the Configuration tab');
+    </script>
+</body>
+</html>

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Embedded Admin - Superposition Example</title>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Navigation Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                        <rect width="32" height="32" rx="6" fill="#2563eb"/>
+                        <path d="M8 16L14 10L20 16L14 22L8 16Z" fill="white"/>
+                        <path d="M14 10L20 16L26 10" stroke="white" stroke-width="2"/>
+                    </svg>
+                    <h1>My Control Plane</h1>
+                </div>
+                <nav class="main-nav">
+                    <a href="index.html" class="nav-link">Dashboard</a>
+                    <a href="embedded.html" class="nav-link active">Configuration</a>
+                    <a href="custom-theme.html" class="nav-link">Custom Theme</a>
+                    <a href="dynamic.html" class="nav-link">Dynamic Loading</a>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <div class="control-group">
+                <label for="backend-host">Backend Host:</label>
+                <input type="text" id="backend-host" value="http://localhost:8080" placeholder="http://localhost:8080">
+            </div>
+            <div class="control-group">
+                <label for="theme-select">Theme:</label>
+                <select id="theme-select">
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                    <option value="cupcake">Cupcake</option>
+                    <option value="dim">Dim</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <button id="mount-btn" class="btn-primary">Mount Admin</button>
+                <button id="unmount-btn" class="btn-secondary" disabled>Unmount</button>
+                <button id="reload-btn" class="btn-secondary" disabled>Reload</button>
+            </div>
+            <div class="status-indicator">
+                <span id="status-text">Not loaded</span>
+            </div>
+        </div>
+
+        <!-- Admin Container -->
+        <main class="admin-container">
+            <div id="superposition-admin" class="admin-wrapper">
+                <div class="placeholder">
+                    <div class="placeholder-icon">📦</div>
+                    <h3>Superposition Admin</h3>
+                    <p>Click "Mount Admin" to load the configuration interface</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import SuperpositionAdmin from './node_modules/@juspay/superposition-admin/index.js';
+
+        let admin = null;
+
+        // UI Elements
+        const mountBtn = document.getElementById('mount-btn');
+        const unmountBtn = document.getElementById('unmount-btn');
+        const reloadBtn = document.getElementById('reload-btn');
+        const hostInput = document.getElementById('backend-host');
+        const themeSelect = document.getElementById('theme-select');
+        const statusText = document.getElementById('status-text');
+        const placeholder = document.querySelector('.placeholder');
+
+        // Update status
+        function setStatus(message, type = 'info') {
+            statusText.textContent = message;
+            statusText.className = `status-${type}`;
+        }
+
+        // Mount admin interface
+        mountBtn.addEventListener('click', async () => {
+            if (admin) {
+                setStatus('Already mounted', 'warning');
+                return;
+            }
+
+            const host = hostInput.value.trim();
+            if (!host) {
+                setStatus('Please enter a backend host', 'error');
+                return;
+            }
+
+            try {
+                setStatus('Loading...', 'loading');
+                mountBtn.disabled = true;
+                mountBtn.textContent = 'Loading...';
+
+                // Hide placeholder
+                if (placeholder) {
+                    placeholder.style.display = 'none';
+                }
+
+                admin = new SuperpositionAdmin({
+                    host: host,
+                    servicePrefix: '',
+                    containerId: 'superposition-admin',
+                    theme: themeSelect.value,
+                    pkgPath: './node_modules/@juspay/superposition-admin/pkg'
+                });
+
+                await admin.mount();
+
+                setStatus('Mounted successfully', 'success');
+                mountBtn.style.display = 'none';
+                unmountBtn.disabled = false;
+                reloadBtn.disabled = false;
+                hostInput.disabled = true;
+
+                console.log('✅ Admin interface mounted');
+            } catch (error) {
+                console.error('❌ Failed to mount:', error);
+                setStatus(`Error: ${error.message}`, 'error');
+                mountBtn.disabled = false;
+                mountBtn.textContent = 'Mount Admin';
+
+                // Show placeholder again
+                if (placeholder) {
+                    placeholder.style.display = 'flex';
+                }
+
+                admin = null;
+            }
+        });
+
+        // Unmount admin interface
+        unmountBtn.addEventListener('click', () => {
+            if (admin) {
+                admin.unmount();
+                admin = null;
+
+                setStatus('Unmounted', 'info');
+                mountBtn.style.display = 'inline-block';
+                mountBtn.disabled = false;
+                unmountBtn.disabled = true;
+                reloadBtn.disabled = true;
+                hostInput.disabled = false;
+
+                // Show placeholder
+                if (placeholder) {
+                    placeholder.style.display = 'flex';
+                }
+
+                console.log('🔄 Admin interface unmounted');
+            }
+        });
+
+        // Reload admin interface
+        reloadBtn.addEventListener('click', async () => {
+            if (admin) {
+                setStatus('Reloading...', 'loading');
+                reloadBtn.disabled = true;
+
+                // Unmount
+                admin.unmount();
+                admin = null;
+
+                // Wait a bit
+                await new Promise(resolve => setTimeout(resolve, 300));
+
+                // Remount
+                try {
+                    admin = new SuperpositionAdmin({
+                        host: hostInput.value,
+                        servicePrefix: '',
+                        containerId: 'superposition-admin',
+                        theme: themeSelect.value,
+                        pkgPath: './node_modules/@juspay/superposition-admin/pkg'
+                    });
+
+                    await admin.mount();
+                    setStatus('Reloaded successfully', 'success');
+                    reloadBtn.disabled = false;
+                    console.log('🔄 Admin interface reloaded');
+                } catch (error) {
+                    console.error('❌ Failed to reload:', error);
+                    setStatus(`Error: ${error.message}`, 'error');
+
+                    // Reset UI
+                    mountBtn.style.display = 'inline-block';
+                    mountBtn.disabled = false;
+                    unmountBtn.disabled = true;
+                    reloadBtn.disabled = true;
+                    hostInput.disabled = false;
+
+                    if (placeholder) {
+                        placeholder.style.display = 'flex';
+                    }
+                }
+            }
+        });
+
+        // Theme change
+        themeSelect.addEventListener('change', (e) => {
+            if (admin) {
+                admin.setTheme(e.target.value);
+                setStatus(`Theme changed to ${e.target.value}`, 'success');
+                console.log('🎨 Theme changed to:', e.target.value);
+            }
+        });
+
+        // Load from localStorage if available
+        const savedHost = localStorage.getItem('superposition-host');
+        const savedTheme = localStorage.getItem('superposition-theme');
+
+        if (savedHost) {
+            hostInput.value = savedHost;
+        }
+
+        if (savedTheme) {
+            themeSelect.value = savedTheme;
+        }
+
+        // Save on change
+        hostInput.addEventListener('change', () => {
+            localStorage.setItem('superposition-host', hostInput.value);
+        });
+
+        themeSelect.addEventListener('change', () => {
+            localStorage.setItem('superposition-theme', themeSelect.value);
+        });
+    </script>
+</body>
+</html>

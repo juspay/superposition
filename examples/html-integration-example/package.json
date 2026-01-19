@@ -1,0 +1,16 @@
+{
+  "name": "superposition-html-integration-example",
+  "version": "1.0.0",
+  "description": "Example HTML/JS project demonstrating Superposition admin frontend integration",
+  "private": true,
+  "scripts": {
+    "dev": "npx http-server -p 8000 -o",
+    "start": "npm run dev"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "dependencies": {
+    "@juspay/superposition-admin": "file:../../crates/frontend/npm"
+  }
+}
