@@ -185,8 +185,8 @@ const admin = new SuperpositionAdmin({
     host: 'http://localhost:8080',      // Backend API URL
     servicePrefix: '',                   // Optional URL prefix
     containerId: 'superposition-admin',  // Where to mount
-    theme: 'light',                      // Initial theme
-    pkgPath: './pkg'                     // Path to WASM files
+    theme: 'light'                       // Initial theme
+    // pkgPath is automatically resolved to the correct location
 });
 
 // 3. Mount the interface

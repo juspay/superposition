@@ -102,7 +102,7 @@ new SuperpositionAdmin(options?: SuperpositionAdminOptions)
 | `servicePrefix` | `string` | `''` | Service prefix for routing (e.g., '/admin') |
 | `containerId` | `string` | `'superposition-admin'` | Container element ID for mounting |
 | `theme` | `'light' \| 'dark' \| 'cupcake' \| 'dim'` | `'light'` | UI theme |
-| `pkgPath` | `string` | `'./pkg'` | Path to WASM artifacts directory |
+| `pkgPath` | `string` | `'./node_modules/@juspay/superposition-admin/pkg'` | Path to WASM artifacts directory (auto-resolved) |
 
 ### Methods
 

@@ -140,13 +140,22 @@ class SuperpositionAdmin {
      * @private
      */
     async _initWasm() {
-        const pkgPath = this.options.pkgPath || './pkg';
+        const pkgPath = this.options.pkgPath || './node_modules/@juspay/superposition-admin/pkg';
 
-        // Dynamically import the WASM module
-        const wasmModule = await import(`${pkgPath}/frontend.js`);
+        // Convert relative path to absolute URL to avoid module resolution issues
+        // This ensures the path is resolved relative to the HTML document, not this module
+        const baseUrl = window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+        const absolutePkgPath = new URL(pkgPath, baseUrl).href;
+
+        const jsUrl = `${absolutePkgPath}/frontend.js`;
+        const wasmUrl = `${absolutePkgPath}/frontend_bg.wasm`;
+
+        // Dynamically import the WASM module using absolute URL
+        // @vite-ignore comment prevents Vite from trying to pre-bundle this
+        const wasmModule = await import(/* @vite-ignore */ jsUrl);
 
         // Initialize WASM with the .wasm file
-        await wasmModule.default(`${pkgPath}/frontend_bg.wasm`);
+        await wasmModule.default(wasmUrl);
 
         // Call the hydrate function to mount the app
         wasmModule.hydrate();
