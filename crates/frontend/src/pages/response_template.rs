@@ -1,8 +1,5 @@
-use std::ops::Deref;
-
 use leptos::*;
-use leptos_router::{use_navigate, use_params_map};
-use serde_json::Value;
+use leptos_router::{use_navigate, use_params_map, A};
 use superposition_types::database::models::cac::ResponseTemplate;
 
 use crate::api::response_templates::{self, get};
@@ -10,58 +7,58 @@ use crate::components::description::ContentDescription;
 use crate::components::{
     alert::AlertType,
     button::Button,
-    drawer::PortalDrawer,
-    input::{Input, InputType},
-    response_template_form::{ChangeLogSummary, ChangeType, ResponseTemplateForm},
+    condition_pills::Condition as ConditionComponent,
+    form::label::Label,
+    monaco_editor::{Languages, MonacoEditor},
+    response_template_form::{ChangeLogSummary, ChangeType},
     skeleton::{Skeleton, SkeletonVariant},
 };
-use crate::providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider};
-use crate::schema::{JsonSchemaType, SchemaType};
+use crate::logic::Conditions;
+use crate::providers::alert_provider::enqueue_alert;
+use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::types::{OrganisationId, Workspace};
 
 #[component]
 fn response_template_info(response_template: ResponseTemplate) -> impl IntoView {
+    let conditions =
+        Conditions::from_context_json(&response_template.context).unwrap_or_default();
+
     view! {
-        <div class="card bg-base-100 max-w-screen shadow">
-            <div class="card-body">
-                <h2 class="card-title">"Info"</h2>
-                <div class="flex flex-col gap-4">
-                    <div class="flex gap-4">
-                        <div class="stat-title">"Context ID"</div>
-                        <div class="stat-value">{response_template.context_id}</div>
+        <div class="flex gap-10">
+            // Left side - Info
+            <div class="w-1/2 card bg-base-100 shadow">
+                <div class="card-body">
+                    <h2 class="card-title">"Info"</h2>
+                    <div class="flex flex-col gap-4">
+                        <div class="flex flex-col gap-2">
+                            <div class="stat-title">"Context"</div>
+                            <ConditionCollapseProvider>
+                                <ConditionComponent
+                                    conditions=conditions
+                                    id="response-template-context"
+                                    grouped_view=false
+                                    class="xl:w-[400px] h-fit"
+                                />
+                            </ConditionCollapseProvider>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="stat-title">"Content Type"</div>
+                            <div class="stat-value text-sm">{response_template.content_type}</div>
+                        </div>
                     </div>
-                    <div class="flex flex-col gap-2">
-                        <div class="stat-title">"Context"</div>
-                        <EditorProvider>
-                            <Input
-                                disabled=true
-                                id="response-context"
-                                class="rounded-md resize-y w-full max-w-md"
-                                schema_type=SchemaType::Single(JsonSchemaType::Object)
-                                value=Value::from(&response_template.context)
-                                on_change=move |_| {}
-                                r#type=InputType::Monaco(vec![])
-                            />
-                        </EditorProvider>
-                    </div>
-                    <div class="flex gap-4">
-                        <div class="stat-title">"Content Type"</div>
-                        <div class="stat-value">{response_template.content_type}</div>
-                    </div>
-                    <div class="flex flex-col gap-2">
-                        <div class="stat-title">"Template"</div>
-                        <EditorProvider>
-                            <Input
-                                disabled=true
-                                id="response-template"
-                                class="rounded-md resize-y w-full max-w-md"
-                                schema_type=SchemaType::Single(JsonSchemaType::String)
-                                value=Value::String(response_template.template.clone())
-                                on_change=move |_| {}
-                                r#type=InputType::Monaco(vec![])
-                            />
-                        </EditorProvider>
-                    </div>
+                </div>
+            </div>
+
+            <div class="w-1/2 flex flex-col gap-2">
+                <Label title="Template" />
+                <div class="h-[calc(100vh-300px)] border border-gray-300 rounded-lg overflow-hidden">
+                    <MonacoEditor
+                        node_id="response-template-viewer"
+                        data=response_template.template.clone()
+                        language=Languages::Json
+                        classes=vec!["h-full", "w-full"]
+                        read_only=true
+                    />
                 </div>
             </div>
         </div>
@@ -72,7 +69,6 @@ fn response_template_info(response_template: ResponseTemplate) -> impl IntoView 
 #[derive(Clone)]
 enum Action {
     None,
-    Edit,
     Delete,
 }
 
@@ -135,7 +131,6 @@ pub fn ResponseTemplate() -> impl IntoView {
                     Some(Some(rt)) => rt,
                     _ => return view! { <h1>"Error fetching response template"</h1> }.into_view(),
                 };
-                let response_template_st = StoredValue::new(response_template.clone());
                 view! {
                     <div class="flex flex-col gap-4">
                         <div class="flex justify-between items-center">
@@ -143,12 +138,18 @@ pub fn ResponseTemplate() -> impl IntoView {
                                 {response_template.name.clone()}
                             </h1>
                             <div class="flex flex-row join">
-                                <Button
-                                    force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg rounded-lg"
-                                    on_click=move |_| action_rws.set(Action::Edit)
-                                    icon_class="ri-edit-line"
-                                    text="Edit"
-                                />
+                                <A
+                                    href=format!(
+                                        "/admin/{}/{}/response-templates/{}/edit",
+                                        org.get().0,
+                                        workspace.get().0,
+                                        response_template.name.clone()
+                                    )
+                                    class="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg rounded-lg"
+                                >
+                                    <i class="ri-edit-line"></i>
+                                    "Edit"
+                                </A>
                                 <Button
                                     force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg rounded-lg"
                                     on_click=move |_| action_rws.set(Action::Delete)
@@ -169,33 +170,6 @@ pub fn ResponseTemplate() -> impl IntoView {
                     </div>
                     {match action_rws.get() {
                         Action::None => ().into_view(),
-                        Action::Edit => {
-                            view! {
-                                <PortalDrawer
-                                    title="Edit Response Template"
-                                    handle_close=move |_| action_rws.set(Action::None)
-                                >
-                                    <ResponseTemplateForm
-                                        edit=true
-                                        name=response_template_st
-                                            .with_value(|rt| rt.name.clone())
-                                        context=response_template_st
-                                            .with_value(|rt| Value::from(&rt.context))
-                                        content_type=response_template_st
-                                            .with_value(|rt| rt.content_type.clone())
-                                        template=response_template_st
-                                            .with_value(|rt| rt.template.clone())
-                                        description=response_template_st
-                                            .with_value(|rt| rt.description.deref().to_string())
-                                        handle_submit=move |_| {
-                                            response_template_resource.refetch();
-                                            action_rws.set(Action::None);
-                                        }
-                                    />
-                                </PortalDrawer>
-                            }
-                                .into_view()
-                        }
                         Action::Delete => {
                             view! {
                                 <ChangeLogSummary

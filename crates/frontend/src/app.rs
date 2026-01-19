@@ -19,13 +19,20 @@ use crate::pages::function::{
 use crate::pages::variable::Variable;
 use crate::pages::variables_list::VariablesList;
 use crate::pages::{
-    audit_log::AuditLog, context_override::ContextOverride,
-    default_config::DefaultConfig, default_config_list::DefaultConfigList,
-    experiment::ExperimentPage, home::Home, organisations::Organisations,
+    audit_log::AuditLog,
+    context_override::ContextOverride,
+    default_config::DefaultConfig,
+    default_config_list::DefaultConfigList,
+    experiment::ExperimentPage,
+    home::Home,
+    organisations::Organisations,
     response_template::ResponseTemplate,
-    response_template_form::ResponseTemplateFormPage,
-    response_templates::ResponseTemplates, type_template::TypePage,
-    type_templates::TypesPage, webhook::Webhook, webhooks::Webhooks,
+    response_template_form::{CreateResponseTemplate, EditResponseTemplate},
+    response_templates::ResponseTemplates,
+    type_template::TypePage,
+    type_templates::TypesPage,
+    webhook::Webhook,
+    webhooks::Webhooks,
     workspace::Workspace,
 };
 use crate::types::Envs;
@@ -206,12 +213,12 @@ pub fn app(app_envs: Envs) -> impl IntoView {
                         <Route
                             ssr=SsrMode::Async
                             path="response-templates/create"
-                            view=ResponseTemplateFormPage
+                            view=CreateResponseTemplate
                         />
                         <Route
                             ssr=SsrMode::Async
                             path="response-templates/:name/edit"
-                            view=ResponseTemplateFormPage
+                            view=EditResponseTemplate
                         />
                         <Route
                             ssr=SsrMode::Async

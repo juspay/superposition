@@ -53,9 +53,9 @@ async fn create_handler(
         bad_argument!("Invalid content_type: {}", e)
     })?;
 
-    let handlebars = Handlebars::new();
+    let mut handlebars = Handlebars::new();
     handlebars
-        .render_template(&request.template, &serde_json::json!({}))
+        .register_template_string("template", &request.template)
         .map_err(|e| {
             log::error!(
                 "Invalid template syntax: {}, error: {}",
