@@ -328,7 +328,7 @@ describe("Default Config API Integration Tests", () => {
             };
             const cmd = new CreateDefaultConfigCommand(input);
             expect(superpositionClient.send(cmd)).rejects.toThrow(
-                "Function non_existent_function doesn't exist / function code not published yet."
+                "Function non_existent_function's published code does not exist."
             );
         });
     });

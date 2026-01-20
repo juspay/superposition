@@ -9,16 +9,14 @@ use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
     api::dimension::DimensionName,
     database::{
-        models::cac::{Dimension, DimensionType, Position},
+        models::cac::{Dimension, DimensionType, FunctionType, Position},
         schema::dimensions,
     },
     result as superposition, DBConnection,
 };
 
-use crate::api::{
-    dimension::fetch_dimensions_info_map,
-    functions::{helpers::get_published_function_code, types::FunctionInfo},
-};
+use crate::api::dimension::fetch_dimensions_info_map;
+use crate::api::functions::helpers::check_fn_published;
 
 pub fn validate_dimension_position(
     dimension_name: DimensionName,
@@ -238,36 +236,20 @@ pub fn validate_cohort_position(
     Ok(())
 }
 
-fn check_fn_published(
-    fn_name: &str,
-    conn: &mut DBConnection,
-    schema_name: &SchemaName,
-) -> superposition::Result<()> {
-    let FunctionInfo { published_code, .. } =
-        get_published_function_code(conn, fn_name, schema_name)?;
-    if published_code.is_some() {
-        Ok(())
-    } else {
-        Err(validation_error!(
-            "Function {} doesn't exist / function code not published yet.",
-            fn_name
-        ))
-    }
-}
-
 pub fn validate_value_compute_function(
     dimension_type: &DimensionType,
     function: &Option<String>,
     conn: &mut DBConnection,
     schema_name: &SchemaName,
 ) -> superposition::Result<()> {
+    let fn_type = FunctionType::ValueCompute;
     match dimension_type {
         DimensionType::LocalCohort(_) if function.is_some() => Err(validation_error!(
             "Value Compute function should not be provided for local cohort dimensions"
         )),
         DimensionType::RemoteCohort(_) => {
             if let Some(func_name) = function {
-                check_fn_published(func_name, conn, schema_name)
+                check_fn_published(func_name, fn_type, conn, schema_name)
             } else {
                 Err(validation_error!(
                     "Value Compute function must be provided for remote cohort dimensions"
@@ -276,7 +258,7 @@ pub fn validate_value_compute_function(
         }
         _ => {
             if let Some(func_name) = function {
-                check_fn_published(func_name, conn, schema_name)
+                check_fn_published(func_name, fn_type, conn, schema_name)
             } else {
                 Ok(())
             }
@@ -289,7 +271,7 @@ pub fn validate_validation_function(
     schema_name: &SchemaName,
 ) -> superposition::Result<()> {
     if let Some(func_name) = function {
-        check_fn_published(func_name, conn, schema_name)
+        check_fn_published(func_name, FunctionType::ValueValidation, conn, schema_name)
     } else {
         Ok(())
     }

@@ -31,7 +31,7 @@ use superposition_types::{
     custom_query::PaginationParams,
     database::{
         models::{
-            cac::{self as models, Context, DefaultConfig},
+            cac::{self as models, Context, DefaultConfig, FunctionType},
             Description,
         },
         schema::{self, contexts::dsl::contexts, default_configs::dsl},
@@ -44,7 +44,10 @@ use crate::helpers::put_config_in_redis;
 use crate::{
     api::{
         context::helpers::validation_function_executor,
-        functions::{helpers::get_published_function_code, types::FunctionInfo},
+        functions::{
+            helpers::{check_fn_published, get_published_function_code},
+            types::FunctionInfo,
+        },
     },
     helpers::{add_config_version, validate_change_reason},
 };
@@ -131,6 +134,7 @@ async fn create_handler(
 
     validate_fn_published(
         &default_config.value_compute_function_name,
+        FunctionType::ValueCompute,
         &mut conn,
         &workspace_context.schema_name,
     )?;
@@ -252,6 +256,7 @@ async fn update_handler(
     if let Some(ref value_compute_function_name) = req.value_compute_function_name {
         validate_fn_published(
             value_compute_function_name,
+            FunctionType::ValueCompute,
             &mut conn,
             &workspace_context.schema_name,
         )?;
@@ -295,23 +300,14 @@ async fn update_handler(
 
 fn validate_fn_published(
     function: &Option<String>,
+    f_type: FunctionType,
     conn: &mut DBConnection,
     schema_name: &SchemaName,
 ) -> superposition::Result<()> {
-    if let Some(func_name) = function {
-        let FunctionInfo { published_code, .. } =
-            get_published_function_code(conn, func_name, schema_name)?;
-        if published_code.is_some() {
-            Ok(())
-        } else {
-            Err(validation_error!(
-                "Function {} doesn't exist / function code not published yet.",
-                func_name
-            ))
-        }
-    } else {
-        Ok(())
-    }
+    let Some(func_name) = function else {
+        return Ok(());
+    };
+    check_fn_published(func_name, f_type, conn, schema_name)
 }
 
 fn validate_default_config_with_function(
@@ -326,11 +322,14 @@ fn validate_default_config_with_function(
             published_code: function_code,
             published_runtime_version: function_version,
             ..
-        } = get_published_function_code(conn, f_name, schema_name).map_err(|_| {
-            bad_argument!(
-                "Function {} doesn't exist / function code not published yet.",
-                f_name
-            )
+        } = get_published_function_code(
+            conn,
+            f_name,
+            FunctionType::ValueValidation,
+            schema_name,
+        )
+        .map_err(|_| {
+            bad_argument!("Function {}'s published code does not exist.", f_name)
         })?;
         if let (Some(f_code), Some(f_version)) = (function_code, function_version) {
             validation_function_executor(

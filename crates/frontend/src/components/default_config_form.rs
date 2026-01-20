@@ -34,8 +34,8 @@ use crate::{
         skeleton::{Skeleton, SkeletonVariant},
     },
     schema::{EnumVariants, HtmlDisplay, JsonSchemaType, SchemaType},
-    types::FunctionsName,
-    utils::set_function,
+    types::FunctionName,
+    utils::{get_fn_names_by_type, set_function},
 };
 use crate::{
     providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider},
@@ -117,14 +117,14 @@ pub fn default_config_form(
     );
 
     let handle_select_dropdown_option_validation =
-        Callback::new(move |selected_function: FunctionsName| {
+        move |selected_function: FunctionName| {
             validation_fn_name_ws.update(|v| set_function(selected_function, v));
-        });
+        };
 
     let handle_select_dropdown_option_value_compute =
-        Callback::new(move |selected_function: FunctionsName| {
+        move |selected_function: FunctionName| {
             value_compute_function_name_ws.update(|v| set_function(selected_function, v));
-        });
+        };
 
     let on_submit = Callback::new(move |_| {
         req_inprogress_ws.set(true);
@@ -436,22 +436,16 @@ pub fn default_config_form(
                         let mut functions = combined_resources
                             .with(|c| c.as_ref().map(|c| c.functions.clone()))
                             .unwrap_or_default();
-                        let mut validation_function_names: Vec<FunctionsName> = vec![
-                            "None".to_string(),
-                        ];
-                        let mut value_compute_function_names: Vec<FunctionsName> = vec![
-                            "None".to_string(),
-                        ];
                         functions.sort_by(|a, b| a.function_name.cmp(&b.function_name));
-                        functions
-                            .iter()
-                            .for_each(|ele| {
-                                if ele.function_type == FunctionType::ValueValidation {
-                                    validation_function_names.push(ele.function_name.clone());
-                                } else {
-                                    value_compute_function_names.push(ele.function_name.clone());
-                                }
-                            });
+                        let validation_function_names = get_fn_names_by_type(
+                            &functions,
+                            FunctionType::ValueValidation,
+                        );
+                        let value_compute_function_names = get_fn_names_by_type(
+                            &functions,
+                            FunctionType::ValueCompute,
+                        );
+
                         view! {
                             <div class="form-control">
                                 <Label

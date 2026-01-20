@@ -142,8 +142,8 @@ impl DropdownOption for DefaultConfig {
     }
 }
 
-pub type FunctionsName = String;
-impl DropdownOption for FunctionsName {
+pub type FunctionName = String;
+impl DropdownOption for FunctionName {
     fn key(&self) -> String {
         self.clone()
     }
