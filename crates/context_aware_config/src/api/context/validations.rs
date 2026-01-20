@@ -1,17 +1,12 @@
 use std::collections::HashMap;
 
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
+use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::{Map, Value};
 use service_utils::service::types::SchemaName;
 use superposition_core::validations::validation_err_to_str;
 use superposition_macros::{bad_argument, validation_error};
 use superposition_types::{DBConnection, DimensionInfo, database::schema, result};
-
-#[cfg(feature = "jsonlogic")]
-use jsonschema::ValidationError;
-
-#[cfg(feature = "jsonlogic")]
-use super::types::DimensionCondition;
 
 pub fn validate_override_with_default_configs(
     conn: &mut DBConnection,
@@ -36,7 +31,7 @@ pub fn validate_override_with_default_configs(
             .ok_or(bad_argument!("failed to get schema for config key {}", key))?;
 
         let jschema = jsonschema::JSONSchema::options()
-            .with_draft(jsonschema::Draft::Draft7)
+            .with_draft(Draft::Draft7)
             .compile(schema)
             .map_err(|e| {
                 log::error!("({key}) schema compilation error: {}", e);

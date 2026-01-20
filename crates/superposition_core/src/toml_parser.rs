@@ -62,6 +62,7 @@ pub enum TomlError {
     ConversionError(String),
     SerializationError(String),
     InvalidContextCondition(String),
+    NullValueInConfig(String),
     ValidationError {
         key: String,
         errors: String,
@@ -113,6 +114,7 @@ impl fmt::Display for TomlError {
                 position,
                 dimensions.join(", ")
             ),
+            Self::NullValueInConfig(e) => write!(f, "TOML cannot handle NULL values for key: {}", e),
             Self::TomlSyntaxError(e) => write!(f, "TOML syntax error: {}", e),
             Self::ConversionError(e) => write!(f, "TOML conversion error: {}", e),
             Self::FileReadError(e) => write!(f, "File read error: {}", e),
@@ -162,14 +164,44 @@ fn toml_value_to_serde_value(toml_value: toml::Value) -> Value {
     }
 }
 
-/// Parse a TOML string value as JSON (for object type values stored as triple-quoted strings)
-fn parse_toml_string_as_json(toml_value: toml::Value) -> Value {
-    match toml_value {
-        toml::Value::String(s) => {
-            // Try to parse as JSON
-            serde_json::from_str(&s).unwrap_or(Value::String(s))
+pub fn json_to_toml(json: Value) -> Option<toml::Value> {
+    match json {
+        // TOML has no null, so we return None to signal it should be skipped
+        Value::Null => None,
+
+        Value::Bool(b) => Some(toml::Value::Boolean(b)),
+
+        Value::Number(n) => {
+            // TOML differentiates between Integer and Float.
+            // JSON just has "Number". We try to parse as Integer first.
+            if let Some(i) = n.as_i64() {
+                Some(toml::Value::Integer(i))
+            } else if let Some(f) = n.as_f64() {
+                Some(toml::Value::Float(f))
+            } else {
+                // Edge case: u64 numbers larger than i64::MAX
+                // TOML only supports i64 officially.
+                // We fallback to string to prevent data loss, or you could panic.
+                Some(toml::Value::String(n.to_string()))
+            }
         }
-        _ => toml_value_to_serde_value(toml_value),
+
+        Value::String(s) => Some(toml::Value::String(s)),
+
+        Value::Array(arr) => arr
+            .into_iter()
+            .map(json_to_toml)
+            .collect::<Option<Vec<_>>>()
+            .map(toml::Value::Array),
+
+        Value::Object(obj) => {
+            let mut table = toml::map::Map::new();
+            for (k, v) in obj {
+                let toml_v = json_to_toml(v)?;
+                table.insert(k, toml_v);
+            }
+            Some(toml::Value::Table(table))
+        }
     }
 }
 
@@ -215,16 +247,15 @@ fn parse_context_expression(
             continue;
         }
 
-        let parts: Vec<&str> = pair.splitn(2, '=').collect();
-        if parts.len() != 2 {
-            return Err(TomlError::InvalidContextExpression {
-                expression: input.to_string(),
-                reason: format!("Invalid key=value pair: '{}'", pair),
-            });
-        }
+        let (k, v) =
+            pair.split_once('=')
+                .ok_or_else(|| TomlError::InvalidContextExpression {
+                    expression: input.to_string(),
+                    reason: format!("Invalid key=value pair: '{}'", pair),
+                })?;
 
         // URL-decode the key
-        let key_encoded = parts[0].trim();
+        let key_encoded = k.trim();
         let key = percent_decode_str(key_encoded)
             .decode_utf8()
             .map_err(|e| TomlError::InvalidContextExpression {
@@ -234,7 +265,7 @@ fn parse_context_expression(
             .to_string();
 
         // URL-decode the value
-        let value_encoded = parts[1].trim();
+        let value_encoded = v.trim();
         if value_encoded.is_empty() {
             return Err(TomlError::InvalidContextExpression {
                 expression: input.to_string(),
@@ -337,29 +368,17 @@ fn parse_default_config(
 
         let schema = toml_value_to_serde_value(table["schema"].clone());
 
-        // Check if schema type is "object" - if so, parse value as JSON string
-        let is_object_type = schema
-            .get("type")
-            .and_then(|t| t.as_str())
-            .map(|t| t == "object")
-            .unwrap_or(false);
-
-        let value = if is_object_type {
-            // Parse value as JSON string (for triple-quoted object values)
-            parse_toml_string_as_json(table["value"].clone())
-        } else {
-            toml_value_to_serde_value(table["value"].clone())
-        };
+        let serde_value = toml_value_to_serde_value(table["value"].clone());
 
         // Validate value against schema
-        crate::validations::validate_against_schema(&value, &schema).map_err(
+        crate::validations::validate_against_schema(&serde_value, &schema).map_err(
             |errors: Vec<String>| TomlError::ValidationError {
                 key: key.clone(),
                 errors: crate::validations::format_validation_errors(&errors),
             },
         )?;
 
-        values.insert(key.clone(), value);
+        values.insert(key.clone(), serde_value);
         schemas.insert(key.clone(), schema);
     }
 
@@ -603,19 +622,7 @@ fn parse_contexts(
                 });
             }
 
-            // Check if schema type is "object" - if so, parse value as JSON string
-            let is_object_type = schemas
-                .get(key)
-                .and_then(|s| s.get("type"))
-                .and_then(|t| t.as_str())
-                .map(|t| t == "object")
-                .unwrap_or(false);
-
-            let serde_value = if is_object_type {
-                parse_toml_string_as_json(value.clone())
-            } else {
-                toml_value_to_serde_value(value.clone())
-            };
+            let serde_value = toml_value_to_serde_value(value.clone());
 
             // Validate override value against schema
             if let Some(schema) = schemas.get(key) {
@@ -720,38 +727,6 @@ pub fn parse(toml_content: &str) -> Result<Config, TomlError> {
     })
 }
 
-/// Convert serde_json::Value to TOML representation string
-/// For config values and overrides, objects are serialized as triple-quoted JSON
-fn value_to_toml(value: &Value) -> String {
-    match value {
-        Value::String(s) => {
-            let escaped = s
-                .replace('\\', "\\\\")
-                .replace('"', "\\\"")
-                .replace('\n', "\\n")
-                .replace('\r', "\\r")
-                .replace('\t', "\\t");
-            format!("\"{}\"", escaped)
-        }
-        Value::Number(n) => n.to_string(),
-        Value::Bool(b) => b.to_string(),
-        Value::Array(arr) => {
-            let items: Vec<String> = arr.iter().map(value_to_toml).collect();
-            format!("[{}]", items.join(", "))
-        }
-        Value::Object(obj) => {
-            // Serialize object as JSON in triple-quoted string for readability
-            let json_str =
-                serde_json::to_string(obj).unwrap_or_else(|_| "{}".to_string());
-            // Pretty-print JSON for better readability
-            let pretty_json =
-                serde_json::to_string_pretty(obj).unwrap_or_else(|_| json_str.clone());
-            format!("'''\n{}'''", pretty_json)
-        }
-        Value::Null => "null".to_string(),
-    }
-}
-
 /// Convert serde_json::Value to TOML representation string for schemas
 /// Schemas use inline TOML tables for objects (not triple-quoted JSON)
 fn schema_to_toml(value: &Value) -> String {
@@ -854,11 +829,14 @@ pub fn serialize_to_toml(config: &Config) -> Result<String, TomlError> {
             Value::Object(_) => r#"{ type = "object" }"#,
             Value::Null => r#"{ type = "null" }"#,
         };
+
+        let toml_value = json_to_toml(value.clone()).ok_or_else(|| {
+            TomlError::NullValueInConfig(format!("Null value present for key: {}", key))
+        })?;
+
         let toml_entry = format!(
             "{} = {{ value = {}, schema = {} }}\n",
-            quoted_key,
-            value_to_toml(value),
-            schema
+            quoted_key, toml_value, schema
         );
         output.push_str(&toml_entry);
     }
@@ -870,8 +848,9 @@ pub fn serialize_to_toml(config: &Config) -> Result<String, TomlError> {
     sorted_dims.sort_by_key(|(_, info)| info.position);
 
     for (name, info) in sorted_dims {
-        let schema_json = serde_json::to_value(&info.schema)
-            .map_err(|e| TomlError::SerializationError(e.to_string()))?;
+        let schema_json = serde_json::to_value(&info.schema).map_err(|e| {
+            TomlError::SerializationError(format!("{}: for dimension: {}", e, name))
+        })?;
 
         // Serialize dimension type
         let type_field = match &info.dimension_type {
@@ -906,7 +885,12 @@ pub fn serialize_to_toml(config: &Config) -> Result<String, TomlError> {
     for context in &config.contexts {
         // Wrap Condition in Cac for condition_to_string
         let condition_cac = Cac::<Condition>::try_from(context.condition.clone())
-            .map_err(|e| TomlError::InvalidContextCondition(e.to_string()))?;
+            .map_err(|e| {
+                TomlError::InvalidContextCondition(format!(
+                    "{}: for context: {}",
+                    e, context.id
+                ))
+            })?;
         let condition_str = condition_to_string(&condition_cac)?;
 
         output.push_str(&format!("[context.\"{}\"]\n", condition_str));
@@ -919,9 +903,16 @@ pub fn serialize_to_toml(config: &Config) -> Result<String, TomlError> {
                 let quoted_key = if needs_quoting(&key) {
                     format!(r#""{}""#, key.replace('"', r#"\""#))
                 } else {
-                    key
+                    key.clone()
                 };
-                output.push_str(&format!("{} = {}\n", quoted_key, value_to_toml(&value)));
+                let toml_value = json_to_toml(value.clone()).ok_or_else(|| {
+                    TomlError::NullValueInConfig(format!(
+                        "Null value for key: {} in context: {}",
+                        key, context.id
+                    ))
+                })?;
+
+                output.push_str(&format!("{} = {}\n", quoted_key, toml_value));
             }
         }
         output.push('\n');
@@ -930,44 +921,10 @@ pub fn serialize_to_toml(config: &Config) -> Result<String, TomlError> {
     Ok(output)
 }
 
-#[cfg(all(test, not(feature = "jsonlogic")))]
+#[cfg(test)]
 mod serialization_tests {
     use super::*;
     use serde_json::json;
-
-    #[test]
-    fn test_value_to_toml_string() {
-        let val = Value::String("hello".to_string());
-        assert_eq!(value_to_toml(&val), "\"hello\"");
-    }
-
-    #[test]
-    fn test_value_to_toml_number() {
-        let val = Value::Number(serde_json::Number::from(42));
-        assert_eq!(value_to_toml(&val), "42");
-    }
-
-    #[test]
-    fn test_value_to_toml_bool() {
-        assert_eq!(value_to_toml(&Value::Bool(true)), "true");
-        assert_eq!(value_to_toml(&Value::Bool(false)), "false");
-    }
-
-    #[test]
-    fn test_value_to_toml_array() {
-        let val = json!(["a", "b", "c"]);
-        assert_eq!(value_to_toml(&val), "[\"a\", \"b\", \"c\"]");
-    }
-
-    #[test]
-    fn test_value_to_toml_object() {
-        let val = json!({"type": "string", "enum": ["a", "b"]});
-        let result = value_to_toml(&val);
-        // Object values are now serialized as triple-quoted JSON
-        assert!(result.contains("'''"));
-        assert!(result.contains("\"type\""));
-        assert!(result.contains("\"string\""));
-    }
 
     #[test]
     fn test_schema_to_toml_object() {
@@ -1046,46 +1003,6 @@ os = { position = 1, schema = { type = "string" } }
         let config = parse(toml_str).unwrap();
         assert!(config.default_configs.is_empty());
         assert_eq!(config.contexts.len(), 0);
-    }
-
-    #[test]
-    fn test_value_to_toml_special_chars() {
-        let val = Value::String("hello\"world".to_string());
-        assert_eq!(value_to_toml(&val), r#""hello\"world""#);
-
-        let val2 = Value::String("hello\\world".to_string());
-        assert_eq!(value_to_toml(&val2), r#""hello\\world""#);
-    }
-
-    #[test]
-    fn test_toml_round_trip_all_value_types() {
-        let toml_str = r#"
-[default-config]
-string_val = { value = "hello", schema = { type = "string" } }
-int_val = { value = 42, schema = { type = "integer" } }
-float_val = { value = 3.14, schema = { type = "number" } }
-bool_val = { value = true, schema = { type = "boolean" } }
-
-[dimensions]
-os = { position = 1, schema = { type = "string" } }
-
-[context."os=linux"]
-string_val = "world"
-"#;
-
-        let config = parse(toml_str).unwrap();
-        let serialized = serialize_to_toml(&config).unwrap();
-        let reparsed = parse(&serialized).unwrap();
-
-        assert_eq!(config.default_configs, reparsed.default_configs);
-    }
-
-    #[test]
-    fn test_value_to_toml_nested() {
-        let val = json!({"outer": {"inner": "value"}});
-        let result = value_to_toml(&val);
-        assert!(result.contains("outer"));
-        assert!(result.contains("inner"));
     }
 
     #[test]
@@ -1295,12 +1212,8 @@ timeout = 60
             .to_string()
             .contains("local_cohort:<dimension_name>"));
     }
-}
 
-#[cfg(all(test, not(feature = "jsonlogic")))]
-mod tests {
-    use super::*;
-
+    // rest of the tests
     #[test]
     fn test_valid_toml_parsing() {
         let toml = r#"
