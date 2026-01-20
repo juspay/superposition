@@ -17,27 +17,16 @@ const CONTEXT_ENCODE_SET: &AsciiSet = &CONTROLS.add(b'=').add(b';');
 /// Check if a string needs quoting in TOML.
 /// Strings containing special characters like '=', ';', whitespace, or quotes need quoting.
 fn needs_quoting(s: &str) -> bool {
-    s.chars().any(|c| {
-        c.is_whitespace()
-            || c == '='
-            || c == ';'
-            || c == '#'
-            || c == '['
-            || c == ']'
-            || c == '{'
-            || c == '}'
-            || c == '"'
-            || c == '\''
-            || c == '.'
-    })
+    s.chars()
+        .any(|c| !c.is_ascii_alphanumeric() && c != '_' && c != '-')
 }
 
 /// Detailed error type for TOML parsing and serialization
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum TomlError {
-    FileReadError(String),
     TomlSyntaxError(String),
     MissingSection(String),
+    InvalidDimension(String),
     MissingField {
         section: String,
         key: String,
@@ -117,9 +106,9 @@ impl fmt::Display for TomlError {
             Self::NullValueInConfig(e) => write!(f, "TOML cannot handle NULL values for key: {}", e),
             Self::TomlSyntaxError(e) => write!(f, "TOML syntax error: {}", e),
             Self::ConversionError(e) => write!(f, "TOML conversion error: {}", e),
-            Self::FileReadError(e) => write!(f, "File read error: {}", e),
             Self::SerializationError(msg) => write!(f, "TOML serialization error: {}", msg),
             Self::InvalidContextCondition(cond) => write!(f, "Cannot serialize context condition: {}", cond),
+            Self::InvalidDimension(d) => write!(f, "Dimension does not exist: {}", d),
             Self::ValidationError { key, errors } => {
                 write!(f, "Schema validation failed for key '{}': {}", key, errors)
             }
@@ -284,14 +273,6 @@ fn parse_context_expression(
             })?
             .to_string();
 
-        // Validate dimension exists
-        if !dimensions.contains_key(&key) {
-            return Err(TomlError::UndeclaredDimension {
-                dimension: key.clone(),
-                context: input.to_string(),
-            });
-        }
-
         // Type conversion: try to parse as different types
         let value = if let Ok(i) = value_str.parse::<i64>() {
             Value::Number(i.into())
@@ -306,7 +287,13 @@ fn parse_context_expression(
         };
 
         // Validate value against dimension schema
-        let dimension_info = dimensions.get(&key).unwrap();
+        let Some(dimension_info) = dimensions.get(&key) else {
+            return Err(TomlError::UndeclaredDimension {
+                dimension: key.clone(),
+                context: input.to_string(),
+            });
+        };
+
         let schema_json = serde_json::to_value(&dimension_info.schema).map_err(|e| {
             TomlError::ConversionError(format!(
                 "Invalid schema for dimension '{}': {}",
@@ -468,7 +455,9 @@ fn parse_dimensions(
 
     // Second pass: parse dimension types and validate schemas based on type
     for (key, value) in section {
-        let table = value.as_table().unwrap();
+        let table = value.as_table().ok_or_else(|| {
+            TomlError::ConversionError(format!("Invalid data for dimension: {}", key))
+        })?;
 
         // Parse dimension type (optional, defaults to "regular")
         let dimension_type = if let Some(type_value) = table.get("type") {
@@ -577,8 +566,15 @@ fn parse_dimensions(
             DimensionType::Regular {}
         };
 
+        let Some(dimension_info) = result.get_mut(key) else {
+            return Err(TomlError::InvalidDimension(format!(
+                "Dimension {} not available in second pass",
+                key.clone()
+            )));
+        };
+
         // Update the dimension info with the parsed type
-        result.get_mut(key).unwrap().dimension_type = dimension_type;
+        dimension_info.dimension_type = dimension_type;
     }
 
     Ok(result)
@@ -647,7 +643,8 @@ fn parse_contexts(
                     .unwrap_or(0)
             })
             .sum();
-        let override_hash = hash(&serde_json::to_value(&override_config).unwrap());
+        // TODO:: we can possibly operate on the Map instead of converting into a Value::Object
+        let override_hash = hash(&Value::Object(override_config.clone()));
 
         // Create Context
         let condition = Cac::<Condition>::try_from(context_map).map_err(|e| {
@@ -725,36 +722,6 @@ pub fn parse(toml_content: &str) -> Result<Config, TomlError> {
         overrides,
         dimensions,
     })
-}
-
-/// Convert serde_json::Value to TOML representation string for schemas
-/// Schemas use inline TOML tables for objects (not triple-quoted JSON)
-fn schema_to_toml(value: &Value) -> String {
-    match value {
-        Value::String(s) => {
-            let escaped = s
-                .replace('\\', "\\\\")
-                .replace('"', "\\\"")
-                .replace('\n', "\\n")
-                .replace('\r', "\\r")
-                .replace('\t', "\\t");
-            format!("\"{}\"", escaped)
-        }
-        Value::Number(n) => n.to_string(),
-        Value::Bool(b) => b.to_string(),
-        Value::Array(arr) => {
-            let items: Vec<String> = arr.iter().map(schema_to_toml).collect();
-            format!("[{}]", items.join(", "))
-        }
-        Value::Object(obj) => {
-            let items: Vec<String> = obj
-                .iter()
-                .map(|(k, v)| format!("{} = {}", k, schema_to_toml(v)))
-                .collect();
-            format!("{{ {} }}", items.join(", "))
-        }
-        Value::Null => "null".to_string(),
-    }
 }
 
 /// Convert Condition to context expression string (e.g., "city=Bangalore; vehicle_type=cab")
@@ -870,12 +837,16 @@ pub fn serialize_to_toml(config: &Config) -> Result<String, TomlError> {
             name.clone()
         };
 
+        let Some(schema_toml) = json_to_toml(schema_json) else {
+            return Err(TomlError::NullValueInConfig(format!(
+                "schema for dimensions: {} contains null values",
+                name
+            )));
+        };
+
         let toml_entry = format!(
             "{} = {{ position = {}, schema = {}, {} }}\n",
-            quoted_name,
-            info.position,
-            schema_to_toml(&schema_json),
-            type_field
+            quoted_name, info.position, schema_toml, type_field
         );
         output.push_str(&toml_entry);
     }
@@ -925,15 +896,6 @@ pub fn serialize_to_toml(config: &Config) -> Result<String, TomlError> {
 mod serialization_tests {
     use super::*;
     use serde_json::json;
-
-    #[test]
-    fn test_schema_to_toml_object() {
-        let val = json!({"type": "string", "enum": ["a", "b"]});
-        let result = schema_to_toml(&val);
-        // Schemas use inline TOML format
-        assert!(result.contains("type = \"string\""));
-        assert!(result.contains("enum = [\"a\", \"b\"]"));
-    }
 
     #[test]
     fn test_condition_to_string_simple() {

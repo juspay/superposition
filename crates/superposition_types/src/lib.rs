@@ -260,6 +260,16 @@ pub type DBConnection = PooledConnection<ConnectionManager<PgConnection>>;
 pub struct ExtendedMap(Map<String, Value>);
 uniffi::custom_type!(ExtendedMap, HashMap<String, String>);
 
+impl ExtendedMap {
+    pub fn into_inner(self) -> Map<String, Value> {
+        self.0
+    }
+
+    pub fn inner(&self) -> &Map<String, Value> {
+        &self.0
+    }
+}
+
 impl TryFrom<HashMap<String, String>> for ExtendedMap {
     type Error = std::io::Error;
     fn try_from(value: HashMap<String, String>) -> Result<Self, Self::Error> {

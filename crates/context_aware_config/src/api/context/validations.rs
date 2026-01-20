@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
-use jsonschema::{Draft, JSONSchema, ValidationError};
+use jsonschema::ValidationError;
 use serde_json::{Map, Value};
 use service_utils::service::types::SchemaName;
-use superposition_core::validations::validation_err_to_str;
+use superposition_core::validations::{compile_schema, validation_err_to_str};
 use superposition_macros::{bad_argument, validation_error};
 use superposition_types::{DBConnection, DimensionInfo, database::schema, result};
 
@@ -30,13 +30,10 @@ pub fn validate_override_with_default_configs(
             .get(key)
             .ok_or(bad_argument!("failed to get schema for config key {}", key))?;
 
-        let jschema = jsonschema::JSONSchema::options()
-            .with_draft(Draft::Draft7)
-            .compile(schema)
-            .map_err(|e| {
-                log::error!("({key}) schema compilation error: {}", e);
-                bad_argument!("Invalid JSON schema")
-            })?;
+        let jschema = compile_schema(schema).map_err(|e| {
+            log::error!("({key}) schema compilation error: {}", e);
+            bad_argument!("Invalid JSON schema")
+        })?;
 
         jschema.validate(value).map_err(|e| {
             let verrors = e.collect::<Vec<jsonschema::ValidationError>>();
@@ -72,16 +69,13 @@ pub fn validate_context_jsonschema(
     dimension_value: &Value,
     dimension_schema: &Value,
 ) -> result::Result<()> {
-    let dimension_schema = JSONSchema::options()
-        .with_draft(Draft::Draft7)
-        .compile(dimension_schema)
-        .map_err(|e| {
-            log::error!(
-                "Failed to compile as a Draft-7 JSON schema: {}",
-                e.to_string()
-            );
-            bad_argument!("Error encountered: invalid jsonschema for dimension.")
-        })?;
+    let dimension_schema = compile_schema(dimension_schema).map_err(|e| {
+        log::error!(
+            "Failed to compile as a Draft-7 JSON schema: {}",
+            e.to_string()
+        );
+        bad_argument!("Error encountered: invalid jsonschema for dimension.")
+    })?;
 
     dimension_schema.validate(dimension_value).map_err(|e| {
         let verrors = e.collect::<Vec<ValidationError>>();

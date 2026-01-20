@@ -11,13 +11,15 @@ use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 #[cfg(feature = "high-performance-mode")]
 use fred::interfaces::KeysInterface;
-use jsonschema::{Draft, JSONSchema};
+use jsonschema::JSONSchema;
 use serde_json::{Map, Value, json};
 use service_utils::{
     helpers::{fetch_dimensions_info_map, generate_snowflake_id},
     service::types::{AppState, EncryptionKey, SchemaName, WorkspaceContext},
 };
-use superposition_core::helpers::calculate_weight_from_index;
+use superposition_core::{
+    helpers::calculate_weight_from_index, validations::compile_schema,
+};
 use superposition_macros::{db_error, unexpected_error, validation_error};
 #[cfg(feature = "high-performance-mode")]
 use superposition_types::database::schema::event_log::dsl as event_log;
@@ -90,9 +92,7 @@ pub fn get_meta_schema() -> JSONSchema {
         "required": ["type"],
     });
 
-    JSONSchema::options()
-        .with_draft(Draft::Draft7)
-        .compile(&my_schema)
+    compile_schema(&my_schema)
         .expect("Error encountered: Failed to compile 'context_dimension_schema_value'. Ensure it adheres to the correct format and data type.")
 }
 
@@ -501,4 +501,3 @@ pub fn validate_change_reason(
     }
     Ok(())
 }
-

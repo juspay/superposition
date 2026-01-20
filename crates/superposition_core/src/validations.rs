@@ -21,24 +21,6 @@ pub fn compile_schema(schema: &Value) -> Result<JSONSchema, String> {
         .map_err(|e| e.to_string())
 }
 
-/// Validate a value against a pre-compiled JSON schema
-///
-/// # Arguments
-/// * `value` - The value to validate
-/// * `compiled_schema` - The pre-compiled JSONSchema
-///
-/// # Returns
-/// * `Ok(())` if validation succeeds
-/// * `Err(Vec<String>)` containing validation error messages
-pub fn validate_against_compiled_schema(
-    value: &Value,
-    compiled_schema: &JSONSchema,
-) -> Result<(), Vec<String>> {
-    compiled_schema
-        .validate(value)
-        .map_err(|errors| errors.map(|e| e.to_string()).collect())
-}
-
 /// Validate a value against a raw JSON schema (compiles and validates)
 ///
 /// This is a convenience function that combines compilation and validation.
@@ -53,7 +35,9 @@ pub fn validate_against_compiled_schema(
 /// * `Err(Vec<String>)` containing all error messages (compilation + validation)
 pub fn validate_against_schema(value: &Value, schema: &Value) -> Result<(), Vec<String>> {
     let compiled_schema = compile_schema(schema).map_err(|e| vec![e])?;
-    validate_against_compiled_schema(value, &compiled_schema)
+    compiled_schema
+        .validate(value)
+        .map_err(|errors| errors.map(|e| e.to_string()).collect())
 }
 
 /// Validate that a JSON schema is well-formed
@@ -204,10 +188,7 @@ pub fn get_cohort_meta_schema() -> JSONSchema {
         "required": ["type", "enum", "definitions"]
     });
 
-    JSONSchema::options()
-        .with_draft(Draft::Draft7)
-        .compile(&meta_schema)
-        .expect("Failed to compile cohort meta-schema")
+    compile_schema(&meta_schema).expect("Failed to compile cohort meta-schema")
 }
 
 /// Format validation errors into a human-readable string
@@ -239,10 +220,7 @@ pub fn get_meta_schema() -> JSONSchema {
         "required": ["type"],
     });
 
-    JSONSchema::options()
-        .with_draft(Draft::Draft7)
-        .compile(&meta_schema)
-        .expect("Failed to compile meta-schema")
+    compile_schema(&meta_schema).expect("Failed to compile meta-schema")
 }
 
 /// Format jsonschema ValidationError instances into human-readable strings
