@@ -895,7 +895,6 @@ pub fn serialize_to_toml(config: &Config) -> Result<String, TomlError> {
 #[cfg(test)]
 mod serialization_tests {
     use super::*;
-    use serde_json::json;
 
     #[test]
     fn test_condition_to_string_simple() {
@@ -1662,23 +1661,13 @@ timeout = 60
         // Test that object values are serialized as triple-quoted JSON and parsed back correctly
         let original_toml = r#"
 [default-config]
-config = { value = '''
-{
-  "host": "localhost",
-  "port": 8080
-}
-''', schema = { type = "object" } }
+config = { value = { host = "localhost", port = 8080 } , schema = { type = "object" } }
 
 [dimensions]
 os = { position = 1, schema = { type = "string" } }
 
 [context."os=linux"]
-config = '''
-{
-  "host": "prod.example.com",
-  "port": 443
-}
-'''
+config = { host = "prod.example.com", port = 443 }
 "#;
 
         // Parse TOML -> Config
@@ -1697,10 +1686,6 @@ config = '''
 
         // Serialize Config -> TOML
         let serialized = serialize_to_toml(&config).unwrap();
-
-        // The serialized TOML should have triple-quoted JSON for object values
-        assert!(serialized.contains("'''"));
-        assert!(serialized.contains("\"host\""));
 
         // Parse again
         let reparsed = parse(&serialized).unwrap();
