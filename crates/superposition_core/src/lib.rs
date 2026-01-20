@@ -15,7 +15,7 @@ pub use experiment::{
 pub use ffi_legacy::{
     core_free_string, core_get_resolved_config, core_get_resolved_config_with_reasoning,
 };
-pub use superposition_types::Config as ParsedTomlConfig;
+pub use superposition_types::Config;
 pub use toml_parser::{serialize_to_toml, TomlError};
 
 /// Parse TOML configuration string into structured components
@@ -27,7 +27,7 @@ pub use toml_parser::{serialize_to_toml, TomlError};
 /// * `toml_content` - TOML string containing default-config, dimensions, and context sections
 ///
 /// # Returns
-/// * `Ok(ParsedTomlConfig)` - Successfully parsed configuration with:
+/// * `Ok(Config)` - Successfully parsed configuration with:
 ///   - `default_config`: Map of configuration keys to values
 ///   - `contexts`: Vector of context conditions
 ///   - `overrides`: HashMap of override configurations
@@ -68,6 +68,6 @@ pub use toml_parser::{serialize_to_toml, TomlError};
 /// println!("Parsed {} contexts", parsed.contexts.len());
 /// # Ok::<(), superposition_core::TomlError>(())
 /// ```
-pub fn parse_toml_config(toml_content: &str) -> Result<ParsedTomlConfig, TomlError> {
+pub fn parse_toml_config(toml_content: &str) -> Result<Config, TomlError> {
     toml_parser::parse(toml_content)
 }

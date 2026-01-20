@@ -42,10 +42,10 @@ pub fn eval_config(
     )?;
 
     // Apply overrides to default config
-    let mut result_config = (*config.default_configs).clone();
+    let mut result_config = config.default_configs;
     merge_overrides_on_default_config(&mut result_config, overrides_map, &merge_strategy);
 
-    Ok(result_config)
+    Ok(result_config.into_inner())
 }
 
 pub fn eval_config_with_reasoning(
@@ -90,13 +90,13 @@ pub fn eval_config_with_reasoning(
         Some(&mut reasoning_collector),
     )?;
 
-    let mut result_config = (*config.default_configs).clone();
+    let mut result_config = config.default_configs;
     merge_overrides_on_default_config(&mut result_config, overrides_map, &merge_strategy);
 
     // Add reasoning metadata
     result_config.insert("metadata".into(), json!(reasoning));
 
-    Ok(result_config)
+    Ok(result_config.into_inner())
 }
 
 pub fn merge(doc: &mut Value, patch: &Value) {
