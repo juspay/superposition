@@ -1639,7 +1639,6 @@ dependencies = [
  "juspay_diesel",
  "juspay_jsonlogic",
  "log",
- "num-bigint",
  "secrecy",
  "serde",
  "serde_json",
