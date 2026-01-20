@@ -88,7 +88,7 @@ pub type ExperimentGroups = Vec<FfiExperimentGroup>;
 
 pub fn get_applicable_variants(
     dimensions_info: &HashMap<String, DimensionInfo>,
-    experiments: &Experiments,
+    experiments: Experiments,
     experiment_groups: &ExperimentGroups,
     query_data: &Map<String, Value>,
     identifier: &str,
@@ -188,14 +188,13 @@ pub fn calculate_bucket_index(identifier: &str, group_id: &str) -> usize {
 }
 
 pub fn get_satisfied_experiments(
-    experiments: &Experiments,
+    experiments: Experiments,
     context: &Map<String, Value>,
     filter_prefixes: Option<Vec<String>>,
 ) -> Result<Experiments, String> {
     let running_experiments = experiments
-        .iter()
+        .into_iter()
         .filter(|exp| superposition_types::apply(&exp.context, context))
-        .cloned()
         .collect();
 
     if let Some(prefix_list) = filter_prefixes {
@@ -208,19 +207,18 @@ pub fn get_satisfied_experiments(
     Ok(running_experiments)
 }
 
-pub fn get_filtered_satisfied_experiments(
-    experiments: &Experiments,
+pub fn filter_experiments_by_context(
+    experiments: Experiments,
     context: &Map<String, Value>,
     filter_prefixes: Option<Vec<String>>,
 ) -> Result<Experiments, String> {
     let running_experiments = experiments
-        .iter()
+        .into_iter()
         .filter_map(|exp| {
             if exp.context.is_empty() {
-                Some(exp.clone())
+                Some(exp)
             } else {
-                superposition_types::partial_apply(&exp.context, context)
-                    .then(|| exp.clone())
+                superposition_types::partial_apply(&exp.context, context).then_some(exp)
             }
         })
         .collect();
