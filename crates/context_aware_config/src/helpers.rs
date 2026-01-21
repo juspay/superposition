@@ -24,8 +24,8 @@ use superposition_macros::{db_error, unexpected_error, validation_error};
 #[cfg(feature = "high-performance-mode")]
 use superposition_types::database::schema::event_log::dsl as event_log;
 use superposition_types::{
-    Cac, Condition, Config, Context, DBConnection, DimensionInfo, OverrideWithKeys,
-    Overrides,
+    Cac, Condition, Config, Context, DBConnection, DefaultConfigInfo,
+    DefaultConfigWithSchema, DetailedConfig, DimensionInfo, OverrideWithKeys, Overrides,
     api::functions::{
         CHANGE_REASON_VALIDATION_FN_NAME, FunctionEnvironment, FunctionExecutionRequest,
         FunctionExecutionResponse, KeyType,
@@ -198,6 +198,98 @@ pub fn generate_cac(
         contexts,
         overrides,
         default_configs: default_configs.into(),
+        dimensions,
+    })
+}
+
+/// Generate a DetailedConfig from the database.
+/// This is similar to generate_cac but includes schema information for default configs.
+pub fn generate_detailed_cac(
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> superposition::Result<DetailedConfig> {
+    let contexts_vec: Vec<(String, Condition, String, Overrides)> = ctxt::contexts
+        .select((ctxt::id, ctxt::value, ctxt::override_id, ctxt::override_))
+        .order_by((ctxt::weight.asc(), ctxt::created_at.asc()))
+        .schema_name(schema_name)
+        .load::<(String, Condition, String, Overrides)>(conn)
+        .map_err(|err| {
+            log::error!("failed to fetch contexts with error: {}", err);
+            db_error!(err)
+        })?;
+    let contexts_vec: Vec<(String, Condition, i32, String, Overrides)> = contexts_vec
+        .iter()
+        .enumerate()
+        .map(|(index, (id, value, override_id, override_))| {
+            (
+                id.clone(),
+                value.clone(),
+                index as i32,
+                override_id.clone(),
+                override_.clone(),
+            )
+        })
+        .collect();
+
+    let mut contexts = Vec::new();
+    let mut overrides: HashMap<String, Overrides> = HashMap::new();
+
+    for (id, condition, weight, override_id, override_) in contexts_vec.iter() {
+        let condition = Cac::<Condition>::validate_db_data(condition.clone().into())
+            .map_err(|err| {
+                log::error!(
+                    "generate_detailed_cac : failed to decode context from db {}",
+                    err
+                );
+                unexpected_error!(err)
+            })?
+            .into_inner();
+
+        let override_ = Cac::<Overrides>::validate_db_data(override_.clone().into())
+            .map_err(|err| {
+                log::error!(
+                    "generate_detailed_cac : failed to decode overrides from db {}",
+                    err
+                );
+                unexpected_error!(err)
+            })?
+            .into_inner();
+        let ctxt = Context {
+            id: id.to_owned(),
+            condition,
+            priority: weight.to_owned(),
+            weight: weight.to_owned(),
+            override_with_keys: OverrideWithKeys::new(override_id.to_owned()),
+        };
+        contexts.push(ctxt);
+        overrides.insert(override_id.to_owned(), override_);
+    }
+
+    // Fetch default_configs with both value and schema
+    let default_config_vec = def_conf::default_configs
+        .select((def_conf::key, def_conf::value, def_conf::schema))
+        .schema_name(schema_name)
+        .load::<(String, Value, Value)>(conn)
+        .map_err(|err| {
+            log::error!("failed to fetch default_configs with error: {}", err);
+            db_error!(err)
+        })?;
+
+    let default_configs = default_config_vec.into_iter().fold(
+        std::collections::BTreeMap::new(),
+        |mut acc, (key, value, schema)| {
+            acc.insert(key, DefaultConfigInfo { value, schema });
+            acc
+        },
+    );
+
+    let dimensions: HashMap<String, DimensionInfo> =
+        fetch_dimensions_info_map(conn, schema_name)?;
+
+    Ok(DetailedConfig {
+        contexts,
+        overrides,
+        default_configs: DefaultConfigWithSchema(default_configs),
         dimensions,
     })
 }
