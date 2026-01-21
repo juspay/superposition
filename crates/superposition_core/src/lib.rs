@@ -5,7 +5,7 @@ pub mod experiment;
 pub mod ffi;
 pub mod ffi_legacy;
 pub mod helpers;
-pub mod toml_parser;
+pub mod toml;
 pub mod validations;
 
 pub use config::{eval_config, eval_config_with_reasoning, merge, MergeStrategy};
@@ -16,7 +16,7 @@ pub use ffi_legacy::{
     core_free_string, core_get_resolved_config, core_get_resolved_config_with_reasoning,
 };
 pub use superposition_types::Config;
-pub use toml_parser::{serialize_to_toml, TomlError};
+pub use toml::{serialize_to_toml, TomlError};
 
 /// Parse TOML configuration string into structured components
 ///
@@ -69,5 +69,5 @@ pub use toml_parser::{serialize_to_toml, TomlError};
 /// # Ok::<(), superposition_core::TomlError>(())
 /// ```
 pub fn parse_toml_config(toml_content: &str) -> Result<Config, TomlError> {
-    toml_parser::parse(toml_content)
+    toml::parse(toml_content)
 }

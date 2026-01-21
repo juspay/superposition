@@ -8,7 +8,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use superposition_types::database::models::cac::{DependencyGraph, DimensionType};
 use superposition_types::ExtendedMap;
-use superposition_types::{Cac, Condition, Config, Context, DimensionInfo, Overrides};
+use superposition_types::{
+    Cac, Condition, Config, Context, DefaultConfigInfo, DefaultConfigWithSchema,
+    DetailedConfig, DimensionInfo, Overrides,
+};
 
 /// Character set for URL-encoding dimension keys and values.
 /// Encodes: '=', ';', and all control characters.
@@ -118,25 +121,6 @@ impl fmt::Display for TomlError {
 
 impl std::error::Error for TomlError {}
 
-pub struct DefaultConfigInfo {
-    value: Value,
-    schema: Value,
-}
-
-pub struct DefaultConfigWithSchema(
-    pub std::collections::BTreeMap<String, DefaultConfigInfo>,
-);
-
-impl DefaultConfigWithSchema {
-    pub fn get(&self, key: &str) -> Option<&DefaultConfigInfo> {
-        self.0.get(key)
-    }
-
-    pub fn into_inner(self) -> std::collections::BTreeMap<String, DefaultConfigInfo> {
-        self.0
-    }
-}
-
 /// Convert TOML value to serde_json Value
 fn toml_value_to_serde_value(toml_value: toml::Value) -> Value {
     match toml_value {
@@ -170,7 +154,7 @@ fn toml_value_to_serde_value(toml_value: toml::Value) -> Value {
 }
 
 /// Convert serde_json::Value to toml::Value - return None for NULL
-pub fn serde_value_to_toml_value(json: Value) -> Option<toml::Value> {
+fn serde_value_to_toml_value(json: Value) -> Option<toml::Value> {
     match json {
         // TOML has no null, so we return None to signal it should be skipped
         Value::Null => None,
@@ -779,23 +763,23 @@ fn value_to_string_simple(value: &Value) -> String {
     }
 }
 
-/// Serialize Config structure to TOML format
+/// Serialize DetailedConfig structure to TOML format
 ///
-/// Converts a Config object back to TOML string format matching the input specification.
+/// Converts a DetailedConfig object back to TOML string format matching the input specification.
 /// The output can be parsed by `parse()` to recreate an equivalent Config.
 ///
 /// # Arguments
-/// * `config` - The Config structure to serialize
+/// * `config` - The DetailedConfig structure to serialize
 ///
 /// # Returns
 /// * `Ok(String)` - TOML formatted string
 /// * `Err(TomlError)` - Serialization error
-pub fn serialize_to_toml(config: &Config) -> Result<String, TomlError> {
+pub fn serialize_to_toml(config: &DetailedConfig) -> Result<String, TomlError> {
     let mut output = String::new();
 
     // 1. Serialize [default-config] section
     output.push_str("[default-config]\n");
-    for (key, value) in config.default_configs.iter() {
+    for (key, config_info) in config.default_configs.iter() {
         // Quote key if it contains special characters
         let quoted_key = if needs_quoting(key) {
             format!(r#""{}""#, key.replace('"', r#"\""#))
@@ -803,29 +787,26 @@ pub fn serialize_to_toml(config: &Config) -> Result<String, TomlError> {
             key.clone()
         };
 
-        // Infer a basic schema type based on the value
-        let schema = match value {
-            Value::String(_) => r#"{ type = "string" }"#,
-            Value::Number(n) => {
-                if n.is_i64() {
-                    r#"{ type = "integer" }"#
-                } else {
-                    r#"{ type = "number" }"#
-                }
-            }
-            Value::Bool(_) => r#"{ type = "boolean" }"#,
-            Value::Array(_) => r#"{ type = "array" }"#,
-            Value::Object(_) => r#"{ type = "object" }"#,
-            Value::Null => r#"{ type = "null" }"#,
-        };
+        // Use the actual schema from the database
+        let schema_toml = serde_value_to_toml_value(config_info.schema.clone())
+            .ok_or_else(|| {
+                TomlError::NullValueInConfig(format!(
+                    "Null value in schema for key: {}",
+                    key
+                ))
+            })?;
 
-        let toml_value = serde_value_to_toml_value(value.clone()).ok_or_else(|| {
-            TomlError::NullValueInConfig(format!("Null value present for key: {}", key))
-        })?;
+        let toml_value = serde_value_to_toml_value(config_info.value.clone())
+            .ok_or_else(|| {
+                TomlError::NullValueInConfig(format!(
+                    "Null value present for key: {}",
+                    key
+                ))
+            })?;
 
         let toml_entry = format!(
             "{} = {{ value = {}, schema = {} }}\n",
-            quoted_key, toml_value, schema
+            quoted_key, toml_value, schema_toml
         );
         output.push_str(&toml_entry);
     }
@@ -919,6 +900,47 @@ pub fn serialize_to_toml(config: &Config) -> Result<String, TomlError> {
 mod serialization_tests {
     use super::*;
 
+    /// Helper function to convert Config to DetailedConfig by inferring schema from value.
+    /// This is used for testing purposes only.
+    fn config_to_detailed(config: &Config) -> DetailedConfig {
+        let default_configs: std::collections::BTreeMap<String, DefaultConfigInfo> =
+            config
+                .default_configs
+                .iter()
+                .map(|(key, value)| {
+                    // Infer schema from value
+                    let schema = match value {
+                        Value::String(_) => serde_json::json!({ "type": "string" }),
+                        Value::Number(n) => {
+                            if n.is_i64() {
+                                serde_json::json!({ "type": "integer" })
+                            } else {
+                                serde_json::json!({ "type": "number" })
+                            }
+                        }
+                        Value::Bool(_) => serde_json::json!({ "type": "boolean" }),
+                        Value::Array(_) => serde_json::json!({ "type": "array" }),
+                        Value::Object(_) => serde_json::json!({ "type": "object" }),
+                        Value::Null => serde_json::json!({ "type": "null" }),
+                    };
+                    (
+                        key.clone(),
+                        DefaultConfigInfo {
+                            value: value.clone(),
+                            schema,
+                        },
+                    )
+                })
+                .collect();
+
+        DetailedConfig {
+            contexts: config.contexts.clone(),
+            overrides: config.overrides.clone(),
+            default_configs: DefaultConfigWithSchema(default_configs),
+            dimensions: config.dimensions.clone(),
+        }
+    }
+
     #[test]
     fn test_condition_to_string_simple() {
         let mut condition_map = Map::new();
@@ -961,7 +983,7 @@ timeout = 60
         let config = parse(original_toml).unwrap();
 
         // Serialize Config -> TOML
-        let serialized = serialize_to_toml(&config).unwrap();
+        let serialized = serialize_to_toml(&config_to_detailed(&config)).unwrap();
 
         // Parse again
         let reparsed = parse(&serialized).unwrap();
@@ -1003,7 +1025,7 @@ timeout = 60
 "#;
 
         let config = parse(toml).unwrap();
-        let serialized = serialize_to_toml(&config).unwrap();
+        let serialized = serialize_to_toml(&config_to_detailed(&config)).unwrap();
         let reparsed = parse(&serialized).unwrap();
 
         assert!(serialized.contains(r#"type = "regular""#));
@@ -1027,7 +1049,7 @@ timeout = 60
 "#;
 
         let config = parse(toml).unwrap();
-        let serialized = serialize_to_toml(&config).unwrap();
+        let serialized = serialize_to_toml(&config_to_detailed(&config)).unwrap();
         let reparsed = parse(&serialized).unwrap();
 
         assert!(serialized.contains(r#"type = "local_cohort:os""#));
@@ -1087,7 +1109,7 @@ timeout = 60
 "#;
 
         let config = parse(toml).unwrap();
-        let serialized = serialize_to_toml(&config).unwrap();
+        let serialized = serialize_to_toml(&config_to_detailed(&config)).unwrap();
         let reparsed = parse(&serialized).unwrap();
 
         assert!(serialized.contains(r#"type = "remote_cohort:os""#));
@@ -1168,7 +1190,7 @@ timeout = 60
 "#;
 
         let config = parse(toml).unwrap();
-        let serialized = serialize_to_toml(&config).unwrap();
+        let serialized = serialize_to_toml(&config_to_detailed(&config)).unwrap();
         let reparsed = parse(&serialized).unwrap();
 
         // Default should be regular
@@ -1654,7 +1676,7 @@ timeout = 60
         let config = parse(original_toml).unwrap();
 
         // Serialize Config -> TOML
-        let serialized = serialize_to_toml(&config).unwrap();
+        let serialized = serialize_to_toml(&config_to_detailed(&config)).unwrap();
 
         // The serialized TOML should have URL-encoded keys and values
         assert!(serialized.contains("key%3Dwith%3Dequals"));
@@ -1708,7 +1730,7 @@ config = { host = "prod.example.com", port = 443 }
         );
 
         // Serialize Config -> TOML
-        let serialized = serialize_to_toml(&config).unwrap();
+        let serialized = serialize_to_toml(&config_to_detailed(&config)).unwrap();
 
         // Parse again
         let reparsed = parse(&serialized).unwrap();

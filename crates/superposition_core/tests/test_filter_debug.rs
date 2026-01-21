@@ -1,7 +1,48 @@
-use serde_json::Map;
+use serde_json::{Map, Value};
 use superposition_core::parse_toml_config;
 use superposition_core::serialize_to_toml;
-use superposition_types::Config;
+use superposition_types::{
+    Config, DefaultConfigInfo, DefaultConfigWithSchema, DetailedConfig,
+};
+
+/// Helper function to convert Config to DetailedConfig by inferring schema from value.
+fn config_to_detailed(config: &Config) -> DetailedConfig {
+    let default_configs: std::collections::BTreeMap<String, DefaultConfigInfo> = config
+        .default_configs
+        .iter()
+        .map(|(key, value)| {
+            // Infer schema from value
+            let schema = match value {
+                Value::String(_) => serde_json::json!({ "type": "string" }),
+                Value::Number(n) => {
+                    if n.is_i64() {
+                        serde_json::json!({ "type": "integer" })
+                    } else {
+                        serde_json::json!({ "type": "number" })
+                    }
+                }
+                Value::Bool(_) => serde_json::json!({ "type": "boolean" }),
+                Value::Array(_) => serde_json::json!({ "type": "array" }),
+                Value::Object(_) => serde_json::json!({ "type": "object" }),
+                Value::Null => serde_json::json!({ "type": "null" }),
+            };
+            (
+                key.clone(),
+                DefaultConfigInfo {
+                    value: value.clone(),
+                    schema,
+                },
+            )
+        })
+        .collect();
+
+    DetailedConfig {
+        contexts: config.contexts.clone(),
+        overrides: config.overrides.clone(),
+        default_configs: DefaultConfigWithSchema(default_configs),
+        dimensions: config.dimensions.clone(),
+    }
+}
 
 #[test]
 #[cfg(not(feature = "jsonlogic"))]
@@ -54,6 +95,7 @@ timeout = 90
     );
 
     println!("\n=== Serialized output ===");
-    let serialized = serialize_to_toml(&filtered_config).unwrap();
+    let detailed_config = config_to_detailed(&filtered_config);
+    let serialized = serialize_to_toml(&detailed_config).unwrap();
     println!("{}", serialized);
 }
