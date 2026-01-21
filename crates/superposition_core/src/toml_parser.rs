@@ -121,6 +121,13 @@ impl std::error::Error for TomlError {}
 type DefaultConfigValueMap = Map<String, Value>;
 type DefaultConfigSchemaMap = Map<String, Value>;
 
+pub struct DefaultConfigInfo {
+    value: Value,
+    schema: Value,
+}
+
+pub struct DefaultConfigWithSchema(Map<String, DefaultConfigInfo>);
+
 /// Convert TOML value to serde_json Value
 fn toml_value_to_serde_value(toml_value: toml::Value) -> Value {
     match toml_value {
@@ -153,7 +160,8 @@ fn toml_value_to_serde_value(toml_value: toml::Value) -> Value {
     }
 }
 
-pub fn json_to_toml(json: Value) -> Option<toml::Value> {
+/// Convert serde_json::Value to toml::Value - return None for NULL
+pub fn serde_value_to_toml_value(json: Value) -> Option<toml::Value> {
     match json {
         // TOML has no null, so we return None to signal it should be skipped
         Value::Null => None,
@@ -179,14 +187,14 @@ pub fn json_to_toml(json: Value) -> Option<toml::Value> {
 
         Value::Array(arr) => arr
             .into_iter()
-            .map(json_to_toml)
+            .map(serde_value_to_toml_value)
             .collect::<Option<Vec<_>>>()
             .map(toml::Value::Array),
 
         Value::Object(obj) => {
             let mut table = toml::map::Map::new();
             for (k, v) in obj {
-                let toml_v = json_to_toml(v)?;
+                let toml_v = serde_value_to_toml_value(v)?;
                 table.insert(k, toml_v);
             }
             Some(toml::Value::Table(table))
@@ -797,7 +805,7 @@ pub fn serialize_to_toml(config: &Config) -> Result<String, TomlError> {
             Value::Null => r#"{ type = "null" }"#,
         };
 
-        let toml_value = json_to_toml(value.clone()).ok_or_else(|| {
+        let toml_value = serde_value_to_toml_value(value.clone()).ok_or_else(|| {
             TomlError::NullValueInConfig(format!("Null value present for key: {}", key))
         })?;
 
@@ -837,7 +845,7 @@ pub fn serialize_to_toml(config: &Config) -> Result<String, TomlError> {
             name.clone()
         };
 
-        let Some(schema_toml) = json_to_toml(schema_json) else {
+        let Some(schema_toml) = serde_value_to_toml_value(schema_json) else {
             return Err(TomlError::NullValueInConfig(format!(
                 "schema for dimensions: {} contains null values",
                 name
@@ -876,12 +884,13 @@ pub fn serialize_to_toml(config: &Config) -> Result<String, TomlError> {
                 } else {
                     key.clone()
                 };
-                let toml_value = json_to_toml(value.clone()).ok_or_else(|| {
-                    TomlError::NullValueInConfig(format!(
-                        "Null value for key: {} in context: {}",
-                        key, context.id
-                    ))
-                })?;
+                let toml_value =
+                    serde_value_to_toml_value(value.clone()).ok_or_else(|| {
+                        TomlError::NullValueInConfig(format!(
+                            "Null value for key: {} in context: {}",
+                            key, context.id
+                        ))
+                    })?;
 
                 output.push_str(&format!("{} = {}\n", quoted_key, toml_value));
             }
