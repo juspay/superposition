@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.36.1 - 2026-01-21
+#### Bug Fixes
+- workspace settings usage for change reason validation (#814) - (73fe5af) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.97.0 [skip ci] - (23c354d) - Superposition Bot
+- deprecate jsonlogic context (#827) - (1236863) - Ayush Jain
+
+- - -
+
 ## service_utils-v0.36.0 - 2026-01-07
 #### Bug Fixes
 - **(webhook)** encrypted key injection (#825) - (bd4f30e) - Ayush Jain
