@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.48.1 - 2026-01-21
+#### Bug Fixes
+- **(UI)** Cohort enum update behaviour (#836) - (f7da361) - Ayush Jain
+- function attachment logic for dimension and default config (#832) - (c950770) - Ayush Jain
+- workspace settings usage for change reason validation (#814) - (73fe5af) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.97.0 [skip ci] - (23c354d) - Superposition Bot
+- deprecate jsonlogic context (#827) - (1236863) - Ayush Jain
+
+- - -
+
 ## frontend-v0.48.0 - 2026-01-07
 #### Features
 - **(UI)** use browser locale time (#815) - (450b010) - Ayush Jain

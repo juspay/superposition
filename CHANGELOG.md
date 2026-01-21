@@ -2,6 +2,29 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.97.1 - 2026-01-21
+### Package updates
+- superposition_types bumped to superposition_types-v0.38.1
+- context_aware_config bumped to context_aware_config-v0.67.1
+- frontend bumped to frontend-v0.48.1
+- service_utils bumped to service_utils-v0.36.1
+- experimentation_platform bumped to experimentation_platform-v0.47.1
+### Global changes
+#### Bug Fixes
+- workspace settings usage for change reason validation (#814) - (73fe5af) - Ayush Jain
+- compilation error in high-performance-mode and update build check (#834) - (8355849) - Ayush Jain
+- function attachment logic for dimension and default config (#832) - (c950770) - Ayush Jain
+#### Miscellaneous Chores
+- **(deps)** bump rsa from 0.9.7 to 0.9.10 (#824) - (2e3bad1) - dependabot[bot]
+- **(deps)** bump werkzeug from 3.1.4 to 3.1.5 in /locust (#830) - (d330be5) - dependabot[bot]
+- **(deps)** bump urllib3 from 2.6.0 to 2.6.3 in /locust (#828) - (ac19e62) - dependabot[bot]
+- **(version)** v0.97.0 [skip ci] - (23c354d) - Superposition Bot
+- deprecate jsonlogic context (#827) - (1236863) - Ayush Jain
+#### Tests
+- add test cleanup script for organizations and workspaces (#823) - (b60b389) - Natarajan Kannan
+
+- - -
+
 ## v0.97.0 - 2026-01-07
 ### Package updates
 - superposition_derives bumped to superposition_derives-v0.9.0

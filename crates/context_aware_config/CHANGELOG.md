@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.67.1 - 2026-01-21
+#### Bug Fixes
+- function attachment logic for dimension and default config (#832) - (c950770) - Ayush Jain
+- compilation error in high-performance-mode and update build check (#834) - (8355849) - Ayush Jain
+- workspace settings usage for change reason validation (#814) - (73fe5af) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.97.0 [skip ci] - (23c354d) - Superposition Bot
+- deprecate jsonlogic context (#827) - (1236863) - Ayush Jain
+
+- - -
+
 ## context_aware_config-v0.67.0 - 2026-01-07
 #### Features
 - AuthZ setup (#543) - (08b03e0) - Ayush Jain

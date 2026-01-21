@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.47.1 - 2026-01-21
+#### Bug Fixes
+- workspace settings usage for change reason validation (#814) - (73fe5af) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.97.0 [skip ci] - (23c354d) - Superposition Bot
+- deprecate jsonlogic context (#827) - (1236863) - Ayush Jain
+
+- - -
+
 ## experimentation_platform-v0.47.0 - 2026-01-07
 #### Features
 - AuthZ setup (#543) - (08b03e0) - Ayush Jain
