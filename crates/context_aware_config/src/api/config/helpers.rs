@@ -209,6 +209,8 @@ pub fn resolve(
     query_filters: &ResolveConfigQuery,
     workspace_context: &WorkspaceContext,
 ) -> superposition::Result<Map<String, Value>> {
+    *config = apply_prefix_filter_to_config(&query_filters.prefix, config.clone())?;
+
     if let Some(context_id) = &query_filters.context_id {
         config.contexts = if let Some(index) = config
             .contexts
