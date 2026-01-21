@@ -118,15 +118,24 @@ impl fmt::Display for TomlError {
 
 impl std::error::Error for TomlError {}
 
-type DefaultConfigValueMap = Map<String, Value>;
-type DefaultConfigSchemaMap = Map<String, Value>;
-
 pub struct DefaultConfigInfo {
     value: Value,
     schema: Value,
 }
 
-pub struct DefaultConfigWithSchema(Map<String, DefaultConfigInfo>);
+pub struct DefaultConfigWithSchema(
+    pub std::collections::BTreeMap<String, DefaultConfigInfo>,
+);
+
+impl DefaultConfigWithSchema {
+    pub fn get(&self, key: &str) -> Option<&DefaultConfigInfo> {
+        self.0.get(key)
+    }
+
+    pub fn into_inner(self) -> std::collections::BTreeMap<String, DefaultConfigInfo> {
+        self.0
+    }
+}
 
 /// Convert TOML value to serde_json Value
 fn toml_value_to_serde_value(toml_value: toml::Value) -> Value {
@@ -323,10 +332,9 @@ fn parse_context_expression(
 }
 
 /// Parse the default-config section
-/// Returns (values, schemas) where schemas are stored for validating overrides
 fn parse_default_config(
     table: &toml::Table,
-) -> Result<(DefaultConfigValueMap, DefaultConfigSchemaMap), TomlError> {
+) -> Result<DefaultConfigWithSchema, TomlError> {
     let section = table
         .get("default-config")
         .ok_or_else(|| TomlError::MissingSection("default-config".into()))?
@@ -335,8 +343,7 @@ fn parse_default_config(
             TomlError::ConversionError("default-config must be a table".into())
         })?;
 
-    let mut values = Map::new();
-    let mut schemas = Map::new();
+    let mut result = std::collections::BTreeMap::new();
     for (key, value) in section {
         let table = value.as_table().ok_or_else(|| {
             TomlError::ConversionError(format!(
@@ -345,7 +352,6 @@ fn parse_default_config(
             ))
         })?;
 
-        // Validate required fields
         if !table.contains_key("value") {
             return Err(TomlError::MissingField {
                 section: "default-config".into(),
@@ -362,10 +368,8 @@ fn parse_default_config(
         }
 
         let schema = toml_value_to_serde_value(table["schema"].clone());
-
         let serde_value = toml_value_to_serde_value(table["value"].clone());
 
-        // Validate value against schema
         crate::validations::validate_against_schema(&serde_value, &schema).map_err(
             |errors: Vec<String>| TomlError::ValidationError {
                 key: key.clone(),
@@ -373,11 +377,16 @@ fn parse_default_config(
             },
         )?;
 
-        values.insert(key.clone(), serde_value);
-        schemas.insert(key.clone(), schema);
+        result.insert(
+            key.clone(),
+            DefaultConfigInfo {
+                value: serde_value,
+                schema,
+            },
+        );
     }
 
-    Ok((values, schemas))
+    Ok(DefaultConfigWithSchema(result))
 }
 
 /// Parse the dimensions section
@@ -591,8 +600,7 @@ fn parse_dimensions(
 /// Parse the context section
 fn parse_contexts(
     table: &toml::Table,
-    default_config: &Map<String, Value>,
-    schemas: &Map<String, Value>,
+    default_config: &DefaultConfigWithSchema,
     dimensions: &HashMap<String, DimensionInfo>,
 ) -> Result<(Vec<Context>, HashMap<String, Overrides>), TomlError> {
     let section = table
@@ -618,24 +626,24 @@ fn parse_contexts(
 
         let mut override_config = Map::new();
         for (key, value) in override_table {
-            // Validate key exists in default_config
-            if !default_config.contains_key(key) {
-                return Err(TomlError::InvalidOverrideKey {
-                    key: key.clone(),
-                    context: context_expr.clone(),
-                });
-            }
+            let config_info =
+                default_config
+                    .get(key)
+                    .ok_or_else(|| TomlError::InvalidOverrideKey {
+                        key: key.clone(),
+                        context: context_expr.clone(),
+                    })?;
 
             let serde_value = toml_value_to_serde_value(value.clone());
 
-            // Validate override value against schema
-            if let Some(schema) = schemas.get(key) {
-                crate::validations::validate_against_schema(&serde_value, schema)
-                    .map_err(|errors: Vec<String>| TomlError::ValidationError {
-                        key: format!("{}.{}", context_expr, key),
-                        errors: crate::validations::format_validation_errors(&errors),
-                    })?;
-            }
+            crate::validations::validate_against_schema(
+                &serde_value,
+                &config_info.schema,
+            )
+            .map_err(|errors: Vec<String>| TomlError::ValidationError {
+                key: format!("{}.{}", context_expr, key),
+                errors: crate::validations::format_validation_errors(&errors),
+            })?;
 
             override_config.insert(key.clone(), serde_value);
         }
@@ -715,17 +723,23 @@ pub fn parse(toml_content: &str) -> Result<Config, TomlError> {
         .map_err(|e| TomlError::TomlSyntaxError(e.to_string()))?;
 
     // 2. Extract and validate "default-config" section
-    let (default_config, schemas) = parse_default_config(&toml_table)?;
+    let default_config_info = parse_default_config(&toml_table)?;
 
     // 3. Extract and validate "dimensions" section
     let dimensions = parse_dimensions(&toml_table)?;
 
     // 4. Extract and parse "context" section
     let (contexts, overrides) =
-        parse_contexts(&toml_table, &default_config, &schemas, &dimensions)?;
+        parse_contexts(&toml_table, &default_config_info, &dimensions)?;
+
+    let default_config_map: Map<String, Value> = default_config_info
+        .into_inner()
+        .into_iter()
+        .map(|(k, v)| (k, v.value))
+        .collect();
 
     Ok(Config {
-        default_configs: default_config.into(),
+        default_configs: ExtendedMap::from(default_config_map),
         contexts,
         overrides,
         dimensions,
