@@ -37,7 +37,8 @@ use serde_json::{Map, Value};
 use superposition_derives::{JsonFromSql, JsonToSql};
 
 pub use config::{
-    Condition, Config, Context, DimensionInfo, OverrideWithKeys, Overrides,
+    Condition, Config, Context, DefaultConfigInfo, DefaultConfigWithSchema, DetailedConfig,
+    DimensionInfo, OverrideWithKeys, Overrides,
 };
 pub use contextual::Contextual;
 pub use logic::{apply, partial_apply};
