@@ -51,14 +51,14 @@ function testParseTomlConfig(): boolean {
     // Display default config
     console.log('Default Configuration:');
     console.log('-'.repeat(50));
-    Object.entries(result.default_config).forEach(([key, value]) => {
+    Object.entries(result.default_configs).forEach(([key, value]) => {
       console.log(`  ${key}: ${value}`);
     });
 
-    // Parse JSON strings
-    const contexts = JSON.parse(result.contexts_json);
-    const overrides = JSON.parse(result.overrides_json);
-    const dimensions = JSON.parse(result.dimensions_json);
+    // Access parsed objects directly (no JSON.parse needed - they're already objects)
+    const contexts = result.contexts;
+    const overrides = result.overrides;
+    const dimensions = result.dimensions;
 
     // Display contexts
     console.log('\nContexts:');
@@ -116,15 +116,12 @@ function testWithExternalFile(): boolean | null {
 
     console.log('\n✓ Successfully parsed external TOML file!');
     console.log('\nParsed configuration summary:');
-    console.log(`  - Default config keys: ${Object.keys(result.default_config).length}`);
+    console.log(`  - Default config keys: ${Object.keys(result.default_configs).length}`);
 
-    const contexts = JSON.parse(result.contexts_json);
-    const overrides = JSON.parse(result.overrides_json);
-    const dimensions = JSON.parse(result.dimensions_json);
-
-    console.log(`  - Contexts: ${contexts.length}`);
-    console.log(`  - Overrides: ${Object.keys(overrides).length}`);
-    console.log(`  - Dimensions: ${Object.keys(dimensions).length}`);
+    // Access parsed objects directly (no JSON.parse needed - they're already objects)
+    console.log(`  - Contexts: ${result.contexts.length}`);
+    console.log(`  - Overrides: ${Object.keys(result.overrides).length}`);
+    console.log(`  - Dimensions: ${Object.keys(result.dimensions).length}`);
 
     return true;
   } catch (error: any) {
