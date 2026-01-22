@@ -110,11 +110,11 @@ getResolvedConfig params = do
     _ -> Left err
 
 -- | Parse TOML configuration string into structured format
--- Returns JSON with:
---   - default_config: object with configuration key-value pairs
---   - contexts_json: JSON string containing array of context objects
---   - overrides_json: JSON string containing object mapping hashes to override configurations
---   - dimensions_json: JSON string containing object mapping dimension names to dimension info
+-- Returns JSON matching the Config type with:
+--   - contexts: array of context objects with id, condition, priority, weight, override_with_keys
+--   - overrides: object mapping override IDs to override key-value pairs
+--   - default_configs: object with configuration key-value pairs
+--   - dimensions: object mapping dimension names to dimension info (schema, position, etc.)
 parseTomlConfig :: String -> IO (Either String String)
 parseTomlConfig tomlContent = do
   ebuf <- callocBytes 2048  -- Error buffer size matches Rust implementation
