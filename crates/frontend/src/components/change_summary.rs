@@ -8,7 +8,7 @@ use crate::components::{button::Button, table::Table};
 use super::{
     form::label::Label,
     table::types::{
-        default_column_formatter, default_formatter, Column, ColumnSortable, Expandable,
+        Column, ColumnSortable, Expandable, default_column_formatter, default_formatter,
     },
 };
 

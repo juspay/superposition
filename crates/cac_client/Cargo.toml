@@ -3,6 +3,7 @@ name = "cac_client"
 description = "CAC Client provides interfaces for applications to interact with the context-aware-config module in superposition. Note: this is deprecated, please use the provider"
 version.workspace = true
 edition = "2021"
+rust-version = "1.82.0"
 build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

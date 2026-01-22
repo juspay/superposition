@@ -3,16 +3,17 @@ use std::collections::HashSet;
 use diesel::{ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl};
 use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::Map;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use service_utils::{helpers::validation_err_to_str, service::types::SchemaName};
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
+    DBConnection,
     api::dimension::DimensionName,
     database::{
         models::cac::{Dimension, DimensionType, FunctionType, Position},
         schema::dimensions,
     },
-    result as superposition, DBConnection,
+    result as superposition,
 };
 
 use crate::api::dimension::fetch_dimensions_info_map;
@@ -38,7 +39,9 @@ pub fn validate_dimension_position(
             Err(validation_error!("Oth position is reserved for variantIds"))
         }
         (_, d_position) if d_position as i64 > max_allowed => {
-            log::error!("position {d_position} value exceeds total number of dimensions {max_allowed}");
+            log::error!(
+                "position {d_position} value exceeds total number of dimensions {max_allowed}"
+            );
             Err(validation_error!(
                 "position value exceeds total number of dimensions"
             ))
@@ -77,10 +80,10 @@ pub fn validate_position_wrt_dependency(
 
         if dep_dimension_info.position >= **position {
             return Err(validation_error!(
-                    "Position value invalid: position must be greater than the position of dependent dimension {} which is {}",
-                    dep_dimension,
-                    dep_dimension_info.position,
-                ));
+                "Position value invalid: position must be greater than the position of dependent dimension {} which is {}",
+                dep_dimension,
+                dep_dimension_info.position,
+            ));
         }
     }
 
@@ -145,18 +148,18 @@ pub fn validate_jsonschema(
 
 pub fn allow_primitive_types(schema: &Map<String, Value>) -> superposition::Result<()> {
     match schema.get("type").cloned().unwrap_or_default() {
-        Value::String(type_val) if type_val != "array" && type_val != "object" => {
+        Value::String(type_val) if type_val != "array" && type_val != "object" => Ok(()),
+        Value::Array(arr)
+            if arr
+                .iter()
+                .all(|v| v.as_str().is_some_and(|s| s != "array" && s != "object")) =>
+        {
             Ok(())
         }
-        Value::Array(arr) if arr.iter().all(|v| v.as_str().is_some_and(|s| s != "array" && s != "object")) => {
-            Ok(())
-        }
-        _ => {
-            Err(validation_error!(
-                "Invalid schema: expected a primitive type or an array of primitive types, found: {:?}",
-                schema
-            ))
-        }
+        _ => Err(validation_error!(
+            "Invalid schema: expected a primitive type or an array of primitive types, found: {:?}",
+            schema
+        )),
     }
 }
 
@@ -222,16 +225,16 @@ pub fn validate_cohort_position(
 ) -> superposition::Result<()> {
     if create && *position > based_on_dimension.position {
         return Err(validation_error!(
-                "While creating dimension, Cohort dimension position {} must be less than or equal to the position {} of the dimension it is based on",
-                **position,
-                *based_on_dimension.position
-            ));
+            "While creating dimension, Cohort dimension position {} must be less than or equal to the position {} of the dimension it is based on",
+            **position,
+            *based_on_dimension.position
+        ));
     } else if !create && *position >= based_on_dimension.position {
         return Err(validation_error!(
-                "While updating dimension, Cohort dimension position {} must be less than the position {} of the dimension it is based on",
-                **position,
-                *based_on_dimension.position
-            ));
+            "While updating dimension, Cohort dimension position {} must be less than the position {} of the dimension it is based on",
+            **position,
+            *based_on_dimension.position
+        ));
     }
     Ok(())
 }

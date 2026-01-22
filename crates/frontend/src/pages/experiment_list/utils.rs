@@ -2,7 +2,7 @@ use crate::{
     components::{
         condition_pills::Condition as ConditionComponent,
         datetime::DatetimeStr,
-        table::types::{default_column_formatter, Column, ColumnSortable, Expandable},
+        table::types::{Column, ColumnSortable, Expandable, default_column_formatter},
     },
     logic::Conditions,
 };

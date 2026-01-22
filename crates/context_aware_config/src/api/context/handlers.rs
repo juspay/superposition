@@ -1,17 +1,15 @@
 use std::{cmp::min, collections::HashSet};
 
 use actix_web::{
-    delete, get, post, put, routes,
+    Either, HttpResponse, Scope, delete, get, post, put, routes,
     web::{Data, Json, Path},
-    Either, HttpResponse, Scope,
 };
 use bigdecimal::BigDecimal;
 use chrono::Utc;
 use diesel::{
-    delete,
+    Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper, delete,
     dsl::sql,
     sql_types::{Bool, Text},
-    Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
 };
 use serde_json::{Map, Value};
 use service_utils::{
@@ -23,24 +21,24 @@ use service_utils::{
 use superposition_derives::authorized;
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
+    Contextual, ListResponse, Overridden, Overrides, PaginatedResponse, SortBy, User,
     api::{
+        DimensionMatchStrategy,
         context::{
             BulkOperation, BulkOperationResponse, ContextAction, ContextBulkResponse,
             ContextListFilters, ContextValidationRequest, MoveRequest, PutRequest,
             SortOn, UpdateRequest, WeightRecomputeResponse,
         },
-        DimensionMatchStrategy,
     },
     custom_query::{
         self as superposition_query, CustomQuery, DimensionQuery, PaginationParams,
         QueryMap,
     },
     database::{
-        models::{cac::Context, ChangeReason, Description},
+        models::{ChangeReason, Description, cac::Context},
         schema::contexts::{self, id},
     },
     result::{self as superposition, AppError},
-    Contextual, ListResponse, Overridden, Overrides, PaginatedResponse, SortBy, User,
 };
 
 #[cfg(feature = "high-performance-mode")]
@@ -629,7 +627,7 @@ async fn bulk_operations_handler(
                                 return Err(bad_argument!(
                                     "context with id {} not found",
                                     ctx_id
-                                ))
+                                ));
                             }
                             Ok(_) => {
                                 log::info!("{ctx_id} context deleted by {email}");

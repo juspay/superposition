@@ -1,6 +1,6 @@
 #[cfg(target_arch = "wasm32")]
 use chrono::Datelike;
-use chrono::{offset::Utc, DateTime, NaiveDate};
+use chrono::{DateTime, NaiveDate, offset::Utc};
 #[cfg(target_arch = "wasm32")]
 use js_sys::{Date, Object};
 use leptos::*;

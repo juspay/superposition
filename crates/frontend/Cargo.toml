@@ -2,7 +2,8 @@
 name = "frontend"
 description = "the UI interface that is provided to interact, configure and manage superposition, organisations and application workspaces"
 version.workspace = true
-edition = "2021"
+edition.workspace = true
+rust-version.workspace = true
 include = ["src/**/*", "src-js/**/*"]
 
 [lib]

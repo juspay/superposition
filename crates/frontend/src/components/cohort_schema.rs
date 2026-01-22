@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use leptos::*;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value, json};
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 use superposition_types::api::functions::FunctionEnvironment;
@@ -11,7 +11,7 @@ use web_sys::MouseEvent;
 
 use crate::components::alert::AlertType;
 use crate::components::context_form::ConditionInput;
-use crate::logic::{jsonlogic, Condition, Conditions};
+use crate::logic::{Condition, Conditions, jsonlogic};
 use crate::providers::editor_provider::EditorProvider;
 use crate::schema::{EnumVariants, JsonSchemaType, SchemaType};
 use crate::types::{OrganisationId, Workspace};

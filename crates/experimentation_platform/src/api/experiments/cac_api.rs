@@ -10,13 +10,14 @@ use service_utils::service::types::{
 };
 use superposition_macros::{bad_argument, response_error, unexpected_error};
 use superposition_types::{
+    Cac, Condition, User,
     api::{
         config::ResolveConfigQuery,
         context::{ContextBulkResponse, ContextValidationRequest},
     },
     custom_query::{DimensionQuery, QueryMap, QueryParam},
     database::models::cac::Context as ContextResp,
-    result as superposition, Cac, Condition, User,
+    result as superposition,
 };
 
 pub fn construct_header_map(

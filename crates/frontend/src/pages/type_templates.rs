@@ -1,6 +1,6 @@
 use leptos::*;
 use leptos_router::A;
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value, json};
 use superposition_macros::box_params;
 use superposition_types::custom_query::{CustomQuery, PaginationParams, Query};
 
@@ -13,8 +13,8 @@ use crate::components::{
     skeleton::Skeleton,
     stat::Stat,
     table::{
-        types::{default_column_formatter, Column, ColumnSortable, Expandable},
         Table,
+        types::{Column, ColumnSortable, Expandable, default_column_formatter},
     },
     type_template_form::TypeTemplateForm,
 };

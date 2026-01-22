@@ -9,7 +9,7 @@ use crate::{
         condition_pills::Condition as ConditionComponent,
         datetime::Datetime,
         description::InfoDescription,
-        table::{types::Column, Table},
+        table::{Table, types::Column},
         tooltip::Tooltip,
     },
     logic::Conditions,

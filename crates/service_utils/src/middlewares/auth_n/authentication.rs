@@ -1,10 +1,10 @@
 use std::fmt::Display;
 
 use actix_web::{
-    cookie::{time::Duration, Cookie},
+    HttpRequest, HttpResponse, Scope,
+    cookie::{Cookie, time::Duration},
     http::header,
     web::Path,
-    HttpRequest, HttpResponse, Scope,
 };
 use futures_util::future::LocalBoxFuture;
 use serde::Deserialize;

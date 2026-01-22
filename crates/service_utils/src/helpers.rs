@@ -5,31 +5,31 @@ use std::{
     str::FromStr,
 };
 
-use actix_web::{error::ErrorInternalServerError, web::Data, Error};
+use actix_web::{Error, error::ErrorInternalServerError, web::Data};
 use anyhow::anyhow;
 use chrono::Utc;
-use diesel::{query_dsl::methods::FilterDsl, ExpressionMethods, RunQueryDsl};
-use jsonschema::{error::ValidationErrorKind, ValidationError};
+use diesel::{ExpressionMethods, RunQueryDsl, query_dsl::methods::FilterDsl};
+use jsonschema::{ValidationError, error::ValidationErrorKind};
 use log::info;
 use once_cell::sync::Lazy;
 use regex::Regex;
 use reqwest::{
-    header::{HeaderMap, HeaderName, HeaderValue},
     StatusCode,
+    header::{HeaderMap, HeaderName, HeaderValue},
 };
 use serde::Serialize;
 use serde_json::Value;
 use superposition_types::{
+    DBConnection, PaginatedResponse,
     api::webhook::{HeadersEnum, WebhookEventInfo, WebhookResponse},
     database::{
         models::{
-            others::{HttpMethod, Variable, Webhook, WebhookEvent},
             Workspace,
+            others::{HttpMethod, Variable, Webhook, WebhookEvent},
         },
         superposition_schema::superposition::workspaces,
     },
     result::{self},
-    DBConnection, PaginatedResponse,
 };
 
 use crate::service::types::{AppState, SchemaName, WorkspaceContext};

@@ -1,7 +1,6 @@
 use actix_web::{
-    delete, get, patch, post,
+    Scope, delete, get, patch, post,
     web::{self, Data, Json},
-    Scope,
 };
 use chrono::Utc;
 use diesel::{
@@ -16,6 +15,7 @@ use service_utils::{
 use superposition_derives::authorized;
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
+    PaginatedResponse, SortBy, User,
     api::experiment_groups::{
         ExpGroupCreateRequest, ExpGroupFilters, ExpGroupMemberRequest,
         ExpGroupUpdateRequest, SortOn,
@@ -23,17 +23,17 @@ use superposition_types::{
     custom_query::{self as superposition_query, CustomQuery, PaginationParams},
     database::{
         models::{
+            ChangeReason,
             experimentation::{
                 Buckets, Experiment, ExperimentGroup, ExperimentGroups,
                 ExperimentStatusType, GroupType,
             },
-            ChangeReason,
         },
         schema::{
             experiment_groups::dsl as experiment_groups, experiments::dsl as experiments,
         },
     },
-    result as superposition, PaginatedResponse, SortBy, User,
+    result as superposition,
 };
 
 use crate::api::{

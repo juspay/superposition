@@ -5,9 +5,10 @@ use filter::{ExperimentTableFilterWidget, FilterSummary};
 use futures::join;
 use leptos::*;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value, json};
 use superposition_macros::box_params;
 use superposition_types::{
+    PaginatedResponse,
     api::{
         default_config::DefaultConfigFilters,
         dimension::DimensionResponse,
@@ -16,18 +17,17 @@ use superposition_types::{
     },
     custom_query::{CustomQuery, DimensionQuery, PaginationParams, Query, QueryMap},
     database::models::cac::DefaultConfig,
-    PaginatedResponse,
 };
 use utils::experiment_table_columns;
 
 use crate::{
     api::{dimensions, fetch_default_config, fetch_experiments},
     components::{
-        drawer::{close_drawer, Drawer, DrawerBtn},
+        drawer::{Drawer, DrawerBtn, close_drawer},
         experiment_form::ExperimentForm,
         skeleton::Skeleton,
         stat::Stat,
-        table::{types::TablePaginationProps, Table},
+        table::{Table, types::TablePaginationProps},
     },
     logic::Conditions,
     providers::{

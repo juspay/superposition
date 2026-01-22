@@ -1,7 +1,7 @@
-use actix_web::{web::Data, HttpRequest};
+use actix_web::{HttpRequest, web::Data};
 use diesel::{
-    query_dsl::methods::{OrderDsl, SelectDsl},
     Connection, ExpressionMethods, RunQueryDsl,
+    query_dsl::methods::{OrderDsl, SelectDsl},
 };
 use superposition_types::database::superposition_schema::superposition::organisations;
 

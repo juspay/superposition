@@ -5,9 +5,9 @@ use actix_web::web::Data;
 use cac_client::utils::json_to_sorted_string;
 use chrono::Utc;
 use diesel::{
+    BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
     pg::PgConnection,
     r2d2::{ConnectionManager, PooledConnection},
-    BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
 };
 use serde_json::{Map, Value};
 use service_utils::service::types::{
@@ -15,27 +15,28 @@ use service_utils::service::types::{
 };
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
+    Condition, Config, DBConnection, Exp, Overrides, User,
     api::{
+        I64Update,
         config::{ConfigQuery, ResolveConfigQuery},
         experiment_groups::ExpGroupMemberRequest,
         functions::{
-            FunctionExecutionRequest, FunctionExecutionResponse, Stage,
-            CHANGE_REASON_VALIDATION_FN_NAME,
+            CHANGE_REASON_VALIDATION_FN_NAME, FunctionExecutionRequest,
+            FunctionExecutionResponse, Stage,
         },
-        I64Update,
     },
     custom_query::{DimensionQuery, QueryParam},
     database::{
         models::{
+            ChangeReason,
             experimentation::{
                 Experiment, ExperimentStatusType, GroupType, Variant, VariantType,
             },
             others::{Webhook, WebhookEvent},
-            ChangeReason,
         },
         schema::experiments::dsl as experiments,
     },
-    result as superposition, Condition, Config, DBConnection, Exp, Overrides, User,
+    result as superposition,
 };
 
 use crate::api::experiment_groups::helpers::{
@@ -258,15 +259,17 @@ pub async fn validate_delete_experiment_variants(
     if !are_valid_variants {
         log::error!("validate_delete_experiment : Variant delete keys are not valid");
         return Err(bad_argument!(
-                "Variant delete keys are not valid. Ensure the keys are present in the context"
-            ));
+            "Variant delete keys are not valid. Ensure the keys are present in the context"
+        ));
     }
 
     if !(validate_variants_delete_override_value(
         &other_variants_overrides,
         &partial_resolved_config,
     )) {
-        log::error!("validate_delete_experiment: Inconsistent value for variant's overrides delete keys");
+        log::error!(
+            "validate_delete_experiment: Inconsistent value for variant's overrides delete keys"
+        );
         return Err(bad_argument!(
             "Inconsistent value for variant's overrides delete keys"
         ));
@@ -518,7 +521,7 @@ pub fn handle_experiment_group_membership(
         (Some(I64Update::Add(experiment_group_id)), None) => {
             add_members(
                 experiment_group_id,
-                &[experiment.clone()],
+                std::slice::from_ref(experiment),
                 create_member_request("Adding", experiment_id)?,
                 transaction_conn,
                 schema_name,
@@ -543,7 +546,7 @@ pub fn handle_experiment_group_membership(
             // Add to new group
             add_members(
                 experiment_group_id,
-                &[experiment.clone()],
+                std::slice::from_ref(experiment),
                 create_member_request("Adding", experiment_id)?,
                 transaction_conn,
                 schema_name,
@@ -835,7 +838,11 @@ pub async fn fetch_and_validate_change_reason_with_function(
                 Ok(())
             }
             Err(err) => {
-                log::error!("Change reason validation function returned false for change reason: {:?} with error: {:?}", change_reason, err);
+                log::error!(
+                    "Change reason validation function returned false for change reason: {:?} with error: {:?}",
+                    change_reason,
+                    err
+                );
                 Err(bad_argument!("Change reason validation failed."))
             }
         },

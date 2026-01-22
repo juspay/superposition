@@ -4,12 +4,12 @@ use leptos::*;
 use serde_json::{Map, Value};
 use strum_macros::Display;
 use superposition_types::{
+    Config,
     api::{
         config::{ConfigQuery, ResolveConfigQuery},
         functions::FunctionEnvironment,
     },
     custom_query::{DimensionQuery, PaginationParams},
-    Config,
 };
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlButtonElement, HtmlSpanElement, MouseEvent};

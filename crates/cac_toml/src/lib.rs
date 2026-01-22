@@ -5,8 +5,8 @@ use std::fs;
 use std::path::Path;
 use std::string::String;
 
-use pest::iterators::Pair;
 use pest::Parser;
+use pest::iterators::Pair;
 use pest_derive::Parser;
 use toml::Value;
 

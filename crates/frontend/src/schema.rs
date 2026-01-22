@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use derive_more::{Deref, DerefMut};
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value, json};
 
 pub trait HtmlDisplay: ToString {
     fn html_display(&self) -> String;

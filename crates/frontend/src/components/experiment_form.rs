@@ -14,9 +14,9 @@ use superposition_types::{
     },
     custom_query::PaginationParams,
     database::models::{
+        Metrics,
         cac::DefaultConfig,
         experimentation::{ExperimentGroup, ExperimentType, VariantType},
-        Metrics,
     },
 };
 use utils::{create_experiment, try_update_payload, update_experiment};
@@ -70,6 +70,7 @@ impl From<ExperimentType> for ExperimentFormType {
     }
 }
 
+#[allow(clippy::large_enum_variant)]
 enum ResponseType {
     UpdatePrecheck,
     Response(ExperimentResponse),

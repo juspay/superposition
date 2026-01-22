@@ -1,8 +1,8 @@
 use serde_json::Value;
 use superposition_types::{
-    api::dimension::UpdateRequest,
-    database::models::{cac::Position, ChangeReason, Description},
     ExtendedMap,
+    api::dimension::UpdateRequest,
+    database::models::{ChangeReason, Description, cac::Position},
 };
 
 pub fn try_update_payload(

@@ -8,23 +8,23 @@ use serde_json::{Map, Value};
 use service_utils::service::types::{SchemaName, WorkspaceContext};
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
+    Cac, Condition, DBConnection, DimensionInfo, Overrides, User,
     api::{
         context::PutRequest,
         functions::{
-            FunctionEnvironment, FunctionExecutionRequest, FunctionExecutionResponse,
-            KeyType, CONTEXT_VALIDATION_FN_NAME,
+            CONTEXT_VALIDATION_FN_NAME, FunctionEnvironment, FunctionExecutionRequest,
+            FunctionExecutionResponse, KeyType,
         },
     },
     database::{
         models::{
-            cac::{Context, FunctionCode, FunctionRuntimeVersion, FunctionType},
             Description,
+            cac::{Context, FunctionCode, FunctionRuntimeVersion, FunctionType},
         },
         schema::{contexts, default_configs::dsl, dimensions},
     },
     logic::dimensions_to_start_from,
-    result as superposition, Cac, Condition, DBConnection, DimensionInfo, Overrides,
-    User,
+    result as superposition,
 };
 
 use crate::api::functions::helpers::get_first_function_by_type;

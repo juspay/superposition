@@ -1,20 +1,21 @@
 use actix_web::web::Json;
 use chrono::Utc;
 use diesel::{
+    Connection, ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl, SelectableHelper,
     r2d2::{ConnectionManager, PooledConnection},
     result::{DatabaseErrorKind::*, Error::DatabaseError},
-    Connection, ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl, SelectableHelper,
 };
 use serde_json::{Map, Value};
 use service_utils::service::types::{SchemaName, WorkspaceContext};
 use superposition_macros::{db_error, not_found, unexpected_error};
 use superposition_types::{
+    DBConnection, Overrides, User,
     api::context::{Identifier, MoveRequest, PutRequest, UpdateRequest},
     database::{
-        models::{cac::Context, Description},
+        models::{Description, cac::Context},
         schema::contexts::{self, dsl},
     },
-    result, DBConnection, Overrides, User,
+    result,
 };
 
 use crate::{

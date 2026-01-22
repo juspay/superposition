@@ -2,12 +2,12 @@ mod filter;
 
 use leptos::*;
 use leptos_router::A;
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value, json};
 use superposition_macros::box_params;
 use superposition_types::api::variables::{SortOn, VariableFilters};
 use superposition_types::{
-    custom_query::{CustomQuery, PaginationParams, Query},
     SortBy,
+    custom_query::{CustomQuery, PaginationParams, Query},
 };
 
 use crate::api::variables;
@@ -18,11 +18,11 @@ use crate::components::{
     skeleton::Skeleton,
     stat::Stat,
     table::{
-        types::{
-            default_column_formatter, Column, ColumnSortable, Expandable,
-            TablePaginationProps,
-        },
         Table,
+        types::{
+            Column, ColumnSortable, Expandable, TablePaginationProps,
+            default_column_formatter,
+        },
     },
     variable_form::VariableForm,
 };

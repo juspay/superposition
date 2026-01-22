@@ -1,17 +1,17 @@
 use leptos::*;
 
 use leptos_router::A;
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value, json};
 use superposition_macros::box_params;
 use superposition_types::{
+    PaginatedResponse,
     custom_query::{CustomQuery, PaginationParams, Query},
     database::models::cac::ConfigVersionListItem,
-    PaginatedResponse,
 };
 
 use crate::components::stat::Stat;
 use crate::components::table::types::{ColumnSortable, Expandable, TablePaginationProps};
-use crate::components::table::{types::Column, Table};
+use crate::components::table::{Table, types::Column};
 use crate::components::{datetime::DatetimeStr, skeleton::Skeleton};
 use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::{OrganisationId, Workspace};

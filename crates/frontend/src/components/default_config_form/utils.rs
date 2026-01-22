@@ -1,10 +1,10 @@
 use serde_json::Value;
 use superposition_types::{
+    ExtendedMap,
     api::default_config::{
         DefaultConfigCreateRequest, DefaultConfigKey, DefaultConfigUpdateRequest,
     },
     database::models::{ChangeReason, Description},
-    ExtendedMap,
 };
 
 use crate::utils::{

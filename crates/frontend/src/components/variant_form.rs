@@ -356,7 +356,7 @@ where
                                                         {
                                                             let variant_to_be_updated = current_variants.get_mut(idx);
                                                             match variant_to_be_updated {
-                                                                Some((_, ref mut variant)) => {
+                                                                Some((_, variant)) => {
                                                                     variant.id = variant_id;
                                                                 }
                                                                 None => {
@@ -727,7 +727,7 @@ where
                 .iter()
                 .position(|(_, v)| v.variant_type == VariantType::CONTROL)
             {
-                if let Some((_, ref mut control_variant)) = curr_variants.get_mut(idx) {
+                if let Some((_, control_variant)) = curr_variants.get_mut(idx) {
                     control_variant.overrides = control_keys
                         .iter()
                         .filter_map(|k| overrides.get(k).map(|v| (k.clone(), v.clone())))

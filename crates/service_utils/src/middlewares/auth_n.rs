@@ -5,18 +5,18 @@ mod oidc;
 
 use std::{
     collections::HashSet,
-    future::{ready, Ready},
+    future::{Ready, ready},
     rc::Rc,
     sync::Arc,
 };
 
 use actix_web::{
+    Error, HttpMessage, HttpRequest, HttpResponse, Scope,
     body::{BoxBody, EitherBody},
-    dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
+    dev::{Service, ServiceRequest, ServiceResponse, Transform, forward_ready},
     get,
     http::header,
     web::{self, Data, Path},
-    Error, HttpMessage, HttpRequest, HttpResponse, Scope,
 };
 use authentication::{Authenticator, Login, SwitchOrgParams};
 use aws_sdk_kms::Client;

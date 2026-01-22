@@ -2,7 +2,7 @@ pub mod types;
 pub mod utils;
 
 use leptos::*;
-use serde_json::{to_string, Value};
+use serde_json::{Value, to_string};
 use superposition_types::api::workspace::CreateWorkspaceRequest;
 use superposition_types::database::models::{Metrics, WorkspaceStatus};
 use web_sys::MouseEvent;

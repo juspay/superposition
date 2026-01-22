@@ -1,17 +1,10 @@
 use leptos::*;
 use leptos_router::use_navigate;
-use serde::{Deserialize, Serialize};
-use superposition_types::database::models::cac::Function;
 
 use crate::{
     components::function_form::FunctionEditor,
     types::{OrganisationId, Workspace},
 };
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-struct CombinedResource {
-    function: Option<Function>,
-}
 
 #[component]
 pub fn create_function_view() -> impl IntoView {

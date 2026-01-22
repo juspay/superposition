@@ -1,12 +1,12 @@
 use std::sync::Mutex;
 use std::{
     collections::{HashMap, HashSet},
-    future::{ready, Ready},
+    future::{Ready, ready},
     str::FromStr,
     sync::Arc,
 };
 
-use actix_web::{error, web::Data, Error, FromRequest, HttpMessage};
+use actix_web::{Error, FromRequest, HttpMessage, error, web::Data};
 use derive_more::{Deref, DerefMut};
 use diesel::r2d2::{ConnectionManager, PooledConnection};
 use diesel::{Connection, PgConnection};

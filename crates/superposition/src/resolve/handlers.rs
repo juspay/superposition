@@ -1,7 +1,6 @@
 use actix_web::{
-    routes,
+    HttpRequest, HttpResponse, Scope, routes,
     web::{Header, Json},
-    HttpRequest, HttpResponse, Scope,
 };
 use context_aware_config::api::config::helpers::{
     add_audit_id_to_header, add_config_version_to_header, add_last_modified_to_header,

@@ -1,12 +1,12 @@
-use std::future::{ready, Ready};
+use std::future::{Ready, ready};
 use std::rc::Rc;
 
 use actix_web::{
+    Error, HttpMessage,
     body::EitherBody,
-    dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
+    dev::{Service, ServiceRequest, ServiceResponse, Transform, forward_ready},
     error,
     web::Data,
-    Error, HttpMessage,
 };
 use futures_util::future::LocalBoxFuture;
 use regex::Regex;

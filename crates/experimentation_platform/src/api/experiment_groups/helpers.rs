@@ -11,20 +11,21 @@ use service_utils::{
 };
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
+    Condition, DBConnection, User,
     api::experiment_groups::ExpGroupMemberRequest,
     database::{
         models::{
+            ChangeReason, Description,
             experimentation::{
                 Bucket, Buckets, Experiment, ExperimentGroup, ExperimentStatusType,
                 GroupType, TrafficPercentage,
             },
-            ChangeReason, Description,
         },
         schema::{
             experiment_groups::dsl as experiment_groups, experiments::dsl as experiments,
         },
     },
-    result as superposition, Condition, DBConnection, User,
+    result as superposition,
 };
 
 use crate::api::experiments::helpers::{ensure_experiments_exist, hash};

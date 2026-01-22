@@ -2,7 +2,8 @@
 name = "cac_toml"
 description = "cac_toml is a DSL built to help use context-aware-config concepts at the file level "
 version.workspace = true
-edition = "2021"
+edition.workspace = true
+rust-version.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

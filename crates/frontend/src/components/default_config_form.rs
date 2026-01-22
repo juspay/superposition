@@ -8,13 +8,13 @@ use leptos::{html::Div, *};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use superposition_types::{
+    ExtendedMap,
     api::{default_config::DefaultConfigUpdateRequest, functions::ListFunctionFilters},
     custom_query::PaginationParams,
     database::models::{
-        cac::{Function, FunctionType, TypeTemplate},
         ChangeReason, Description,
+        cac::{Function, FunctionType, TypeTemplate},
     },
-    ExtendedMap,
 };
 use utils::try_update_payload;
 use wasm_bindgen::JsCast;

@@ -1,5 +1,6 @@
 use serde_json::Value;
 use superposition_types::{
+    Condition, Exp,
     api::{
         experiments::{
             ExperimentCreateRequest, ExperimentResponse, OverrideKeysUpdateRequest,
@@ -8,10 +9,9 @@ use superposition_types::{
         option_i64_from_value,
     },
     database::models::{
-        experimentation::{ExperimentType, Variant},
         ChangeReason, Description, Metrics,
+        experimentation::{ExperimentType, Variant},
     },
-    Condition, Exp,
 };
 
 use crate::logic::Conditions;

@@ -1,6 +1,6 @@
 use js_sys::Object;
-use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
+use wasm_bindgen::prelude::*;
 use web_sys::Element;
 
 #[wasm_bindgen]

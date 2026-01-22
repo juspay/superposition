@@ -10,7 +10,7 @@ use superposition_types::database::models::experimentation::{
 use crate::components::datetime::Datetime;
 use crate::components::{
     button::Button,
-    table::{types::Column, Table},
+    table::{Table, types::Column},
 };
 use crate::logic::Conditions;
 use crate::schema::HtmlDisplay;

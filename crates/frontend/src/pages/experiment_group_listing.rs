@@ -6,16 +6,16 @@ use filter::{ExperimentGroupFilterWidget, FilterSummary};
 use leptos::*;
 use leptos_router::A;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value, json};
 use superposition_macros::box_params;
 use superposition_types::{
+    PaginatedResponse,
     api::{
         dimension::DimensionResponse,
         experiment_groups::{ExpGroupFilters, SortOn},
     },
     custom_query::{CustomQuery, PaginationParams, Query},
     database::models::experimentation::ExperimentGroup,
-    PaginatedResponse,
 };
 use web_sys::MouseEvent;
 
@@ -27,16 +27,16 @@ use crate::{
     components::{
         condition_pills::Condition as ConditionComponent,
         datetime::DatetimeStr,
-        drawer::{close_drawer, Drawer, DrawerBtn},
+        drawer::{Drawer, DrawerBtn, close_drawer},
         experiment_group_form::{ChangeLogSummary, ChangeType, ExperimentGroupForm},
         skeleton::Skeleton,
         stat::Stat,
         table::{
-            types::{
-                default_column_formatter, Column, ColumnSortable, Expandable,
-                TablePaginationProps,
-            },
             Table,
+            types::{
+                Column, ColumnSortable, Expandable, TablePaginationProps,
+                default_column_formatter,
+            },
         },
     },
     logic::Conditions,

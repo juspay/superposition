@@ -10,7 +10,7 @@ use web_sys::MouseEvent;
 use crate::components::{
     badge::{GlassyPills, GrayPill, ListPills},
     button::{Button, ButtonStyle},
-    drawer::{close_drawer, Drawer, DrawerBtn},
+    drawer::{Drawer, DrawerBtn, close_drawer},
     form::label::Label,
 };
 

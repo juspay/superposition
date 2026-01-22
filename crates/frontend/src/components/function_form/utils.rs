@@ -4,8 +4,8 @@ use superposition_types::{
         FunctionName, Stage, UpdateFunctionRequest,
     },
     database::models::{
-        cac::{Function, FunctionCode, FunctionRuntimeVersion, FunctionType},
         ChangeReason, Description,
+        cac::{Function, FunctionCode, FunctionRuntimeVersion, FunctionType},
     },
 };
 

@@ -1,15 +1,15 @@
 use futures::join;
 use leptos::*;
-use leptos_router::{use_params_map, A};
+use leptos_router::{A, use_params_map};
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value, json};
 use superposition_types::{
     api::{
         experiment_groups::ExpGroupMemberRequest,
         experiments::{ExperimentListFilters, ExperimentResponse},
     },
     custom_query::{CommaSeparatedQParams, DimensionQuery, PaginationParams},
-    database::models::{experimentation::ExperimentGroup, ChangeReason},
+    database::models::{ChangeReason, experimentation::ExperimentGroup},
 };
 
 use crate::{
@@ -27,8 +27,8 @@ use crate::{
         experiment_group_form::AddExperimentToGroupForm,
         skeleton::{Skeleton, SkeletonVariant},
         table::{
-            types::{default_column_formatter, Column, ColumnSortable, Expandable},
             Table,
+            types::{Column, ColumnSortable, Expandable, default_column_formatter},
         },
     },
     logic::Conditions,

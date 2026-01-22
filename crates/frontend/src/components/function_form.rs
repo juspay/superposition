@@ -1,7 +1,7 @@
 pub mod utils;
 
 use leptos::*;
-use serde_json::{from_str, Value};
+use serde_json::{Value, from_str};
 use strum::IntoEnumIterator;
 use superposition_types::api::functions::{
     FunctionEnvironment, FunctionExecutionRequest, FunctionExecutionResponse, KeyType,

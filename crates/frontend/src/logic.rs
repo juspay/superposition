@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use superposition_types::{database::models::cac::Context, Context as ConfigContext};
+use superposition_types::{Context as ConfigContext, database::models::cac::Context};
 
 use crate::schema::{HtmlDisplay, SchemaType};
 

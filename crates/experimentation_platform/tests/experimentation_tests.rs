@@ -1,16 +1,17 @@
 use chrono::Utc;
 use experimentation_platform::api::experiments::helpers;
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value, json};
 use service_utils::service::types::ExperimentationFlags;
 use superposition_types::{
+    Condition, Exp, Overrides,
     database::models::{
+        ChangeReason, Description, Metrics,
         experimentation::{
             Experiment, ExperimentStatusType, ExperimentType, TrafficPercentage, Variant,
             Variants,
         },
-        ChangeReason, Description, Metrics,
     },
-    result as superposition, Condition, Exp, Overrides,
+    result as superposition,
 };
 
 enum Dimensions {
@@ -176,8 +177,8 @@ fn test_check_variants_override_coverage() -> Result<(), superposition::AppError
 /************************* No Restrictions *****************************************/
 
 #[test]
-fn test_is_valid_experiment_no_restrictions_overlapping_experiment(
-) -> Result<(), superposition::AppError> {
+fn test_is_valid_experiment_no_restrictions_overlapping_experiment()
+-> Result<(), superposition::AppError> {
     let experiment_context = multiple_dimension_ctx_gen(vec![
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
@@ -213,8 +214,8 @@ fn test_is_valid_experiment_no_restrictions_overlapping_experiment(
 }
 
 #[test]
-fn test_is_valid_experiment_no_restrictions_non_overlapping_experiment(
-) -> Result<(), superposition::AppError> {
+fn test_is_valid_experiment_no_restrictions_non_overlapping_experiment()
+-> Result<(), superposition::AppError> {
     let experiment_context = multiple_dimension_ctx_gen(vec![
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
@@ -257,8 +258,8 @@ fn test_is_valid_experiment_no_restrictions_non_overlapping_experiment(
 /************************* Restrict Same Keys Overlapping Context *****************************************/
 
 #[test]
-fn test_is_valid_experiment_restrict_same_keys_overlapping_ctx_overlapping_experiment_same_keys(
-) -> Result<(), superposition::AppError> {
+fn test_is_valid_experiment_restrict_same_keys_overlapping_ctx_overlapping_experiment_same_keys()
+-> Result<(), superposition::AppError> {
     let experiment_context = multiple_dimension_ctx_gen(vec![
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
@@ -294,8 +295,8 @@ fn test_is_valid_experiment_restrict_same_keys_overlapping_ctx_overlapping_exper
 }
 
 #[test]
-fn test_is_valid_experiment_restrict_same_keys_overlapping_ctx_overlapping_experiment_one_same_key(
-) -> Result<(), superposition::AppError> {
+fn test_is_valid_experiment_restrict_same_keys_overlapping_ctx_overlapping_experiment_one_same_key()
+-> Result<(), superposition::AppError> {
     let experiment_context = multiple_dimension_ctx_gen(vec![
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
@@ -331,8 +332,8 @@ fn test_is_valid_experiment_restrict_same_keys_overlapping_ctx_overlapping_exper
 }
 
 #[test]
-fn test_is_valid_experiment_restrict_same_keys_overlapping_ctx_overlapping_experiment_diff_keys(
-) -> Result<(), superposition::AppError> {
+fn test_is_valid_experiment_restrict_same_keys_overlapping_ctx_overlapping_experiment_diff_keys()
+-> Result<(), superposition::AppError> {
     let experiment_context = multiple_dimension_ctx_gen(vec![
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
@@ -370,8 +371,8 @@ fn test_is_valid_experiment_restrict_same_keys_overlapping_ctx_overlapping_exper
 /************************* Restrict Different Keys Overlapping Context *****************************************/
 
 #[test]
-fn test_is_valid_experiment_restrict_diff_keys_overlapping_ctx_overlapping_experiment_same_keys(
-) -> Result<(), superposition::AppError> {
+fn test_is_valid_experiment_restrict_diff_keys_overlapping_ctx_overlapping_experiment_same_keys()
+-> Result<(), superposition::AppError> {
     let experiment_context = multiple_dimension_ctx_gen(vec![
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
@@ -407,8 +408,8 @@ fn test_is_valid_experiment_restrict_diff_keys_overlapping_ctx_overlapping_exper
 }
 
 #[test]
-fn test_is_valid_experiment_restrict_diff_keys_overlapping_ctx_overlapping_experiment_one_diff_key(
-) -> Result<(), superposition::AppError> {
+fn test_is_valid_experiment_restrict_diff_keys_overlapping_ctx_overlapping_experiment_one_diff_key()
+-> Result<(), superposition::AppError> {
     let experiment_context = multiple_dimension_ctx_gen(vec![
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
@@ -444,8 +445,8 @@ fn test_is_valid_experiment_restrict_diff_keys_overlapping_ctx_overlapping_exper
 }
 
 #[test]
-fn test_is_valid_experiment_restrict_diff_keys_overlapping_ctx_overlapping_experiment_diff_keys(
-) -> Result<(), superposition::AppError> {
+fn test_is_valid_experiment_restrict_diff_keys_overlapping_ctx_overlapping_experiment_diff_keys()
+-> Result<(), superposition::AppError> {
     let experiment_context = multiple_dimension_ctx_gen(vec![
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
@@ -483,8 +484,8 @@ fn test_is_valid_experiment_restrict_diff_keys_overlapping_ctx_overlapping_exper
 /************************* Restrict Same Keys Non Overlapping Context *****************************************/
 
 #[test]
-fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlapping_experiment_same_keys(
-) -> Result<(), superposition::AppError> {
+fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlapping_experiment_same_keys()
+-> Result<(), superposition::AppError> {
     let experiment_context = multiple_dimension_ctx_gen(vec![
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
@@ -525,8 +526,8 @@ fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlappi
 }
 
 #[test]
-fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlapping_experiment_one_diff_key(
-) -> Result<(), superposition::AppError> {
+fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlapping_experiment_one_diff_key()
+-> Result<(), superposition::AppError> {
     let experiment_context = multiple_dimension_ctx_gen(vec![
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),
@@ -567,8 +568,8 @@ fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlappi
 }
 
 #[test]
-fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlapping_experiment_diff_keys(
-) -> Result<(), superposition::AppError> {
+fn test_is_valid_experiment_restrict_same_keys_non_overlapping_ctx_non_overlapping_experiment_diff_keys()
+-> Result<(), superposition::AppError> {
     let experiment_context = multiple_dimension_ctx_gen(vec![
         Dimensions::Os("os1".to_string()),
         Dimensions::Client("testclient1".to_string()),

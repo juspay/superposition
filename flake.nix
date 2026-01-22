@@ -68,6 +68,7 @@
               nixpkgs-fmt
               bacon
               cargo-watch
+              cargo-msrv
               diesel-cli
               leptosfmt
               wasm-pack

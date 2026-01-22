@@ -6,6 +6,8 @@ package.repository = "https://github.com/juspay/superposition"
 package.readme = "README.md"
 package.authors = ["superposition@juspay.in"]
 package.version = "0.97.1"
+package.rust-version = "1.85.0"
+package.edition = "2024"
 
 members = [
     "crates/service_utils",

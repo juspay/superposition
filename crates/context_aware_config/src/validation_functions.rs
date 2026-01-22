@@ -4,9 +4,10 @@ use serde::Serialize;
 use service_utils::service::types::SchemaName;
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
+    DBConnection,
     api::functions::{FunctionExecutionRequest, FunctionExecutionResponse},
     database::models::cac::{FunctionCode, FunctionRuntimeVersion, FunctionType},
-    result as superposition, DBConnection,
+    result as superposition,
 };
 
 use crate::api::functions::helpers::inject_variables_into_code;

@@ -2,6 +2,7 @@
 name = "superposition_provider"
 version.workspace = true
 edition = "2021"
+rust-version = "1.82.0"
 license = { workspace = true }
 homepage = { workspace = true }
 repository = { workspace = true }
