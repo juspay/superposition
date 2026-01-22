@@ -453,7 +453,7 @@ pub unsafe extern "C" fn core_get_applicable_variants(
     }
 }
 
-/// Parse TOML configuration and return structured JSON
+/// Parse TOML configuration and return JSON representation of Config type
 ///
 /// # Safety
 ///
@@ -465,11 +465,11 @@ pub unsafe extern "C" fn core_get_applicable_variants(
 /// * `ebuf` - Error buffer (2048 bytes) for error messages
 ///
 /// # Returns
-/// * Success: JSON string containing parsed structures with keys:
-///   - "default_config": object with configuration key-value pairs
-///   - "contexts": array of context objects
-///   - "overrides": object mapping hashes to override configurations
-///   - "dimensions": object mapping dimension names to dimension info
+/// * Success: JSON string matching the Config type structure with keys:
+///   - "contexts": array of context objects with id, condition, priority, weight, override_with_keys
+///   - "overrides": object mapping override IDs to override key-value pairs
+///   - "default_configs": object with configuration key-value pairs
+///   - "dimensions": object mapping dimension names to dimension info (schema, position, etc.)
 /// * Failure: NULL pointer, error written to ebuf
 ///
 /// # Memory Management
@@ -503,22 +503,12 @@ pub unsafe extern "C" fn core_parse_toml_config(
         }
     };
 
-    // Create result with default_config as Map and others as JSON strings
-    let result = serde_json::json!({
-        "default_config": &*parsed.default_configs,
-        "contexts_json": parsed.contexts,
-        "overrides_json": parsed.overrides,
-        "dimensions_json": parsed.dimensions,
-    });
-
-    let result_str = match serde_json::to_string(&result) {
-        Ok(s) => s,
+    // Serialize the Config directly to JSON (consistent with other FFI functions)
+    match serde_json::to_string(&parsed) {
+        Ok(json_str) => string_to_c_str(json_str),
         Err(e) => {
             copy_string(ebuf, format!("JSON serialization error: {}", e));
-            return ptr::null_mut();
+            ptr::null_mut()
         }
-    };
-
-    // Convert to C string
-    string_to_c_str(result_str)
+    }
 }

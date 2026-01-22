@@ -324,17 +324,17 @@ export class NativeResolver {
     }
 
     /**
-     * Parse TOML configuration into structured format
+     * Parse TOML configuration into structured format matching the Config type
      *
      * @param tomlContent - TOML configuration string
-     * @returns Parsed configuration with default_config, contexts_json, overrides_json, dimensions_json
+     * @returns Parsed Config object with contexts, overrides, default_configs, dimensions
      * @throws Error if parsing fails
      */
     parseTomlConfig(tomlContent: string): {
-        default_config: Record<string, any>;
-        contexts_json: string;
-        overrides_json: string;
-        dimensions_json: string;
+        contexts: any[];
+        overrides: Record<string, Record<string, any>>;
+        default_configs: Record<string, any>;
+        dimensions: Record<string, any>;
     } {
         if (!this.isAvailable) {
             throw new Error(
