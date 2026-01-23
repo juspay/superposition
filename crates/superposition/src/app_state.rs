@@ -18,8 +18,9 @@ use futures_util::future::join_all;
 use service_utils::{
     aws::kms,
     db::utils::{get_superposition_token, init_pool_manager},
+    encryption::get_master_encryption_keys,
     helpers::{get_from_env_or_default, get_from_env_unsafe},
-    service::types::{AppEnv, AppState, ExperimentationFlags},
+    service::types::{AppEnv, AppState, ExperimentationFlags, SecretString},
 };
 use snowflake::SnowflakeIdGenerator;
 
@@ -30,6 +31,13 @@ pub async fn get(
     service_prefix: String,
     base: &str,
 ) -> AppState {
+    let (master_key, prev_master_key) =
+        match get_master_encryption_keys(kms_client, &app_env).await {
+            Ok((master_key, prev_master_key)) => (master_key, prev_master_key),
+            Err(e) => {
+                panic!("Master Key Encryption Error: {e}");
+            }
+        };
     let cac_host =
         get_from_env_or_default::<String>("CAC_HOST", format!("http://localhost:{port}"))
             + base;
@@ -124,11 +132,13 @@ pub async fn get(
                             kms::decrypt(kms_client, key).await
                         }
                     };
-                    (key.to_string(), decrypted_value)
+                    (key.to_string(), SecretString::from(decrypted_value))
                 }
             })
         ).await
         .into_iter()
         .collect(),
+        master_key,
+        previous_master_key: prev_master_key
     }
 }
