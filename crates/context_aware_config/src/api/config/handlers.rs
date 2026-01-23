@@ -47,7 +47,10 @@ use crate::{
             generate_config_from_version, get_config_version, get_max_created_at,
             is_not_modified,
         },
-        context::{self, helpers::query_description},
+        context::{
+            self,
+            helpers::{create_ctx_from_put_req, query_description},
+        },
     },
     helpers::{generate_cac, generate_detailed_cac},
 };
@@ -366,17 +369,23 @@ async fn reduce_config_key(
                                     &workspace_context.schema_name,
                                 )?,
                             };
-
-                            let _ = context::upsert(
+                            let new_ctx = create_ctx_from_put_req(
                                 put_req,
                                 description,
+                                conn,
+                                user,
+                                workspace_context,
+                                &state.master_encryption_key,
+                                &internal_user,
+                            )
+                            .await?;
+                            let _ = context::upsert(
                                 conn,
                                 false,
                                 user,
                                 workspace_context,
                                 false,
-                                &state.master_encryption_key,
-                                &internal_user,
+                                new_ctx,
                             );
                         }
                     }
