@@ -79,6 +79,100 @@ async fn main() {
 }
 ```
 
+## New: Local Resolution Provider
+
+In addition to the original `SuperpositionProvider` (which remains fully supported), we now offer `LocalResolutionProvider` - a more flexible provider that supports:
+
+- **Pluggable Data Sources**: HTTP, File-based (CAC TOML), or custom implementations
+- **Bulk Configuration Resolution**: Resolve all features at once with the `AllFeatureProvider` trait
+- **Experiment Metadata**: Access detailed experiment information via `FeatureExperimentMeta` trait
+- **File-based Configuration**: Load configuration from local `.cac.toml` files with optional file watching
+
+### Using LocalResolutionProvider with HTTP
+
+```rust
+use std::sync::Arc;
+use superposition_provider::{
+    HttpDataSource, LocalResolutionProvider, LocalResolutionProviderOptions,
+    PollingStrategy, RefreshStrategy, SuperpositionOptions,
+};
+use open_feature::OpenFeature;
+
+#[tokio::main]
+async fn main() {
+    // Create HTTP data source
+    let superposition_options = SuperpositionOptions::new(
+        "http://localhost:8080".to_string(),
+        "your_token".to_string(),
+        "your_org".to_string(),
+        "your_workspace".to_string(),
+    );
+    let data_source = Arc::new(HttpDataSource::new(superposition_options));
+
+    // Create provider with polling
+    let provider_options = LocalResolutionProviderOptions {
+        refresh_strategy: RefreshStrategy::Polling(PollingStrategy {
+            interval_seconds: 30,
+        }),
+        fallback_config: None,
+        enable_experiments: true,
+    };
+
+    let provider = Arc::new(LocalResolutionProvider::new(
+        data_source,
+        provider_options,
+    ));
+
+    // Initialize and register with OpenFeature
+    provider.init().await.unwrap();
+    let mut api = OpenFeature::singleton_mut().await;
+    api.set_provider(provider.clone()).await;
+
+    // Use like normal OpenFeature client
+    let client = api.create_client();
+    let value = client.get_bool_value("feature_flag", None, None).await.unwrap();
+}
+```
+
+
+### Migration from SuperpositionProvider
+
+The original `SuperpositionProvider` continues to work without any changes. To migrate to the new `LocalResolutionProvider`:
+
+**Before (SuperpositionProvider):**
+```rust
+let provider = SuperpositionProvider::new(SuperpositionProviderOptions {
+    endpoint: "http://localhost:8080".to_string(),
+    token: "token".to_string(),
+    org_id: "org".to_string(),
+    workspace_id: "workspace".to_string(),
+    refresh_strategy: RefreshStrategy::Polling(PollingStrategy { interval_seconds: 60 }),
+    fallback_config: None,
+    evaluation_cache: None,
+    experimentation_options: None,
+});
+```
+
+**After (LocalResolutionProvider):**
+```rust
+let superposition_options = SuperpositionOptions::new(
+    "http://localhost:8080".to_string(),
+    "token".to_string(),
+    "org".to_string(),
+    "workspace".to_string(),
+);
+let data_source = Arc::new(HttpDataSource::new(superposition_options));
+let provider = Arc::new(LocalResolutionProvider::new(
+    data_source,
+    LocalResolutionProviderOptions {
+        refresh_strategy: RefreshStrategy::Polling(PollingStrategy { interval_seconds: 60 }),
+        fallback_config: None,
+        enable_experiments: true,
+    },
+));
+provider.init().await.unwrap();
+```
+
 ## Configuration Options
 
 ### SuperpositionOptions
@@ -270,4 +364,18 @@ RUST_LOG=debug cargo run
 
 ## Examples
 
-See the `example.rs` file for a complete working example demonstrating basic usage with OpenFeature integration.
+The `examples/` directory contains several examples demonstrating different usage patterns:
+
+- **`local_http.rs`**: LocalResolutionProvider with HTTP data source and polling
+- **`all_features.rs`**: Using AllFeatureProvider trait for bulk configuration resolution
+
+Run an example:
+```bash
+For the HTTP example, set environment variables:
+```bash
+export SUPERPOSITION_ENDPOINT="http://localhost:8080"
+export SUPERPOSITION_TOKEN="your_token"
+export SUPERPOSITION_ORG_ID="your_org"
+export SUPERPOSITION_WORKSPACE_ID="your_workspace"
+cargo run --example local_http
+```
