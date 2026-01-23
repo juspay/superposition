@@ -2,12 +2,11 @@ use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use service_utils::service::types::SchemaName;
 use superposition_macros::validation_error;
 use superposition_types::{
-    DBConnection,
     database::{
         models::cac::{Function, FunctionCode, FunctionType},
         schema::{self, functions::dsl::functions, variables::dsl as variables},
     },
-    result as superposition,
+    result as superposition, DBConnection,
 };
 
 use super::types::FunctionInfo;

@@ -3,8 +3,9 @@ use std::collections::HashMap;
 #[cfg(feature = "high-performance-mode")]
 use actix_http::StatusCode;
 use actix_web::{
-    HttpRequest, HttpResponse, Scope, get, put, routes,
+    get, put, routes,
     web::{Header, Json, Path, Query},
+    HttpRequest, HttpResponse, Scope,
 };
 #[cfg(feature = "high-performance-mode")]
 use actix_web::{http::header::ContentType, web::Data};
@@ -12,7 +13,7 @@ use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 #[cfg(feature = "high-performance-mode")]
 use fred::interfaces::KeysInterface;
 use itertools::Itertools;
-use serde_json::{Map, Value, json};
+use serde_json::{json, Map, Value};
 #[cfg(feature = "high-performance-mode")]
 use service_utils::service::types::{AppHeader, AppState};
 use service_utils::service::types::{DbConnection, WorkspaceContext};
@@ -21,8 +22,6 @@ use superposition_derives::authorized;
 use superposition_macros::response_error;
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
-    Cac, Condition, Config, Context, DBConnection, DimensionInfo, OverrideWithKeys,
-    Overrides, PaginatedResponse, User,
     api::{
         config::{ConfigQuery, ContextPayload, MergeStrategy, ResolveConfigQuery},
         context::PutRequest,
@@ -33,12 +32,13 @@ use superposition_types::{
     },
     database::{
         models::{
-            ChangeReason,
             cac::{ConfigVersion, ConfigVersionListItem},
+            ChangeReason,
         },
         schema::config_versions::dsl as config_versions,
     },
-    result as superposition,
+    result as superposition, Cac, Condition, Config, Context, DBConnection,
+    DimensionInfo, OverrideWithKeys, Overrides, PaginatedResponse, User,
 };
 
 use crate::api::{
@@ -379,16 +379,15 @@ async fn reduce_config_key(
                         }
                     }
 
-                    let override_val = Cac::<Overrides>::validate_db_data(
-                        override_val.clone(),
-                    )
-                    .map_err(|err| {
-                        log::error!(
+                    let override_val =
+                        Cac::<Overrides>::validate_db_data(override_val.clone())
+                            .map_err(|err| {
+                                log::error!(
                             "reduce_config_key: failed to decode overrides from db {err}"
                         );
-                        unexpected_error!(err)
-                    })?
-                    .into_inner();
+                                unexpected_error!(err)
+                            })?
+                            .into_inner();
 
                     let new_id =
                         context::hash(&Value::Object(override_val.clone().into()));
