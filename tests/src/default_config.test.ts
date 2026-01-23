@@ -279,8 +279,8 @@ describe("Default Config API Integration Tests", () => {
             };
 
             const cmd = new CreateDefaultConfigCommand(input);
-            await expect(superpositionClient.send(cmd)).rejects.toThrow(
-                "Function false_validation validation failed for test-key-2 with error Error: The function did not return a value that was expected. Check the return type and logic of the function\n. ",
+            expect(superpositionClient.send(cmd)).rejects.toThrow(
+                "Validation function false_validation returned false for key test-key-2, with error: The function did not return a value that was expected. Check the return type and logic of the function\n. ",
             );
         });
 
