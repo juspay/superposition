@@ -1,6 +1,7 @@
 use actix_web::{
-    HttpResponse, Result, Scope, delete, get, patch, post,
+    delete, get, patch, post,
     web::{Json, Path},
+    HttpResponse, Result, Scope,
 };
 use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
@@ -8,7 +9,6 @@ use service_utils::service::types::{DbConnection, WorkspaceContext};
 use superposition_derives::authorized;
 use superposition_macros::{bad_argument, not_found, unexpected_error};
 use superposition_types::{
-    PaginatedResponse, User,
     api::functions::{
         CreateFunctionRequest, FunctionExecutionRequest, FunctionExecutionResponse,
         FunctionName, FunctionStateChangeRequest, ListFunctionFilters, Stage, TestParam,
@@ -19,7 +19,7 @@ use superposition_types::{
         models::cac::{Function, FunctionType},
         schema::{self, functions::dsl as functions},
     },
-    result as superposition,
+    result as superposition, PaginatedResponse, User,
 };
 
 use crate::{

@@ -1,4 +1,4 @@
-use diesel::{Selectable, prelude::Queryable};
+use diesel::{prelude::Queryable, Selectable};
 use superposition_types::database::{
     models::cac::{FunctionCode, FunctionRuntimeVersion, FunctionType},
     schema::functions,

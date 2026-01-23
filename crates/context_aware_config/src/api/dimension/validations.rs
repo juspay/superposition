@@ -3,17 +3,16 @@ use std::collections::HashSet;
 use diesel::{ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl};
 use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::Map;
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 use service_utils::{helpers::validation_err_to_str, service::types::SchemaName};
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
-    DBConnection,
     api::dimension::DimensionName,
     database::{
         models::cac::{Dimension, DimensionType, FunctionType, Position},
         schema::dimensions,
     },
-    result as superposition,
+    result as superposition, DBConnection,
 };
 
 use crate::api::dimension::fetch_dimensions_info_map;

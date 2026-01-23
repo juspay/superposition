@@ -1,14 +1,13 @@
-use actix_web::{Scope, get, web::Json};
+use actix_web::{get, web::Json, Scope};
 use chrono::{Duration, Utc};
 use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
 use service_utils::service::types::{DbConnection, WorkspaceContext};
 use superposition_derives::authorized;
 use superposition_types::{
-    PaginatedResponse, SortBy,
     api::audit_log::AuditQueryFilters,
     custom_query::{self as superposition_query, PaginationParams},
     database::{models::cac::EventLog, schema::event_log::dsl as event_log},
-    result as superposition,
+    result as superposition, PaginatedResponse, SortBy,
 };
 
 pub fn endpoints() -> Scope {

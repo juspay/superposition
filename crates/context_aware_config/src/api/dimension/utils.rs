@@ -5,15 +5,14 @@ use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use service_utils::service::types::SchemaName;
 use superposition_macros::unexpected_error;
 use superposition_types::{
-    Cac, Condition, DBConnection, DimensionInfo, ExtendedMap,
     database::{
         models::{
-            ChangeReason,
             cac::{Context, DependencyGraph, Dimension, DimensionType},
+            ChangeReason,
         },
         schema::{contexts::dsl::contexts, dimensions::dsl::*},
     },
-    result as superposition,
+    result as superposition, Cac, Condition, DBConnection, DimensionInfo, ExtendedMap,
 };
 
 pub fn get_dimensions_data(

@@ -1,6 +1,7 @@
 use actix_web::{
-    HttpResponse, Scope, delete, get, post, routes,
+    delete, get, post, routes,
     web::{Data, Json, Path, Query},
+    HttpResponse, Scope,
 };
 use chrono::Utc;
 use diesel::{
@@ -20,7 +21,6 @@ use superposition_macros::{
     bad_argument, db_error, not_found, unexpected_error, validation_error,
 };
 use superposition_types::{
-    DBConnection, PaginatedResponse, User,
     api::{
         default_config::{
             DefaultConfigCreateRequest, DefaultConfigFilters, DefaultConfigKey,
@@ -31,12 +31,12 @@ use superposition_types::{
     custom_query::PaginationParams,
     database::{
         models::{
-            Description,
             cac::{self as models, Context, DefaultConfig, FunctionType},
+            Description,
         },
         schema::{self, contexts::dsl::contexts, default_configs::dsl},
     },
-    result as superposition,
+    result as superposition, DBConnection, PaginatedResponse, User,
 };
 
 #[cfg(feature = "high-performance-mode")]

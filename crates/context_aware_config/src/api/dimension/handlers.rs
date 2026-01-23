@@ -1,6 +1,7 @@
 use actix_web::{
-    HttpResponse, Scope, delete, get, post, routes,
+    delete, get, post, routes,
     web::{self, Data, Json, Path, Query},
+    HttpResponse, Scope,
 };
 use chrono::Utc;
 use diesel::{Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
@@ -14,19 +15,18 @@ use service_utils::{
 use superposition_derives::authorized;
 use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
 use superposition_types::{
-    PaginatedResponse, User,
     api::dimension::{
         CreateRequest, DeleteRequest, DimensionName, DimensionResponse, UpdateRequest,
     },
     custom_query::PaginationParams,
     database::{
         models::{
-            Description,
             cac::{DependencyGraph, Dimension, DimensionType},
+            Description,
         },
         schema::dimensions::{self, dsl::*},
     },
-    result as superposition,
+    result as superposition, PaginatedResponse, User,
 };
 
 use crate::api::dimension::validations::allow_primitive_types;
