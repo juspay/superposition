@@ -15,7 +15,10 @@ use itertools::Itertools;
 use serde_json::{Map, Value, json};
 #[cfg(feature = "high-performance-mode")]
 use service_utils::service::types::{AppHeader, AppState};
-use service_utils::service::types::{DbConnection, WorkspaceContext};
+use service_utils::{
+    helpers::fetch_dimensions_info_map,
+    service::types::{DbConnection, WorkspaceContext},
+};
 use superposition_derives::authorized;
 #[cfg(feature = "high-performance-mode")]
 use superposition_macros::response_error;
@@ -41,10 +44,7 @@ use superposition_types::{
     result as superposition,
 };
 
-use crate::api::{
-    context::{self, helpers::query_description},
-    dimension::fetch_dimensions_info_map,
-};
+use crate::api::context::{self, helpers::query_description};
 use crate::{
     api::config::helpers::{
         add_audit_id_to_header, add_config_version_to_header,

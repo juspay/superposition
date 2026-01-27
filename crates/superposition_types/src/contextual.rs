@@ -36,10 +36,10 @@ pub trait Contextual: Clone {
         contexts
             .into_iter()
             .filter(|context| {
-                let variables: Map<String, Value> = context.get_condition().into();
-                dimension_keys
-                    .iter()
-                    .all(|dimension| variables.contains_key(dimension))
+                !context
+                    .get_condition()
+                    .keys()
+                    .all(|key| !dimension_keys.contains(key))
             })
             .collect()
     }
@@ -97,7 +97,7 @@ mod tests {
                 config.contexts.clone(),
                 &get_dimension_data2().keys().cloned().collect::<Vec<_>>()
             ),
-            get_dimension_filtered_contexts2()
+            get_dimension_filtered_contexts1()
         );
 
         assert_eq!(
@@ -105,7 +105,7 @@ mod tests {
                 config.contexts,
                 &get_dimension_data3().keys().cloned().collect::<Vec<_>>()
             ),
-            Vec::new()
+            get_dimension_filtered_contexts2()
         );
     }
 }

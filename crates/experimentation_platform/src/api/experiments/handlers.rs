@@ -24,7 +24,8 @@ use reqwest::{Method, StatusCode};
 use serde_json::{Map, Value};
 use service_utils::{
     helpers::{
-        construct_request_headers, execute_webhook_call, generate_snowflake_id, request,
+        construct_request_headers, execute_webhook_call, fetch_dimensions_info_map,
+        generate_snowflake_id, request,
     },
     service::types::{
         AppHeader, AppState, CustomHeaders, DbConnection, WorkspaceContext,
@@ -33,8 +34,8 @@ use service_utils::{
 use superposition_derives::authorized;
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
-    Cac, Condition, Config, Contextual, Exp, ListResponse, Overrides, PaginatedResponse,
-    SortBy, User,
+    Cac, Condition, Contextual, DimensionInfo, Exp, ListResponse, Overrides,
+    PaginatedResponse, SortBy, User,
     api::{
         DimensionMatchStrategy,
         context::{
@@ -68,7 +69,7 @@ use superposition_types::{
             experiments::dsl as experiments,
         },
     },
-    logic::evaluate_local_cohorts,
+    logic::{evaluate_local_cohorts, evaluate_local_cohorts_skip_unresolved},
     result as superposition,
 };
 
@@ -869,7 +870,7 @@ pub async fn discard(
 pub async fn get_applicable_variants_helper(
     db_conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     context: Map<String, Value>,
-    config: &Config,
+    dimensions_info: &HashMap<String, DimensionInfo>,
     identifier: String,
     workspace_context: &WorkspaceContext,
 ) -> superposition::Result<(Vec<String>, HashMap<String, ExperimentResponse>)> {
@@ -879,7 +880,7 @@ pub async fn get_applicable_variants_helper(
         .schema_name(&workspace_context.schema_name)
         .load::<ExperimentGroup>(db_conn)?;
 
-    let context = evaluate_local_cohorts(&config.dimensions, &context);
+    let context = evaluate_local_cohorts(dimensions_info, &context);
 
     let buckets =
         get_applicable_buckets_from_group(&experiment_groups, &context, &identifier);
@@ -911,7 +912,6 @@ pub async fn get_applicable_variants_helper(
     Ok((applicable_variants, exps))
 }
 
-#[allow(clippy::too_many_arguments)]
 #[authorized]
 #[routes]
 #[get("/applicable-variants")]
@@ -919,7 +919,6 @@ pub async fn get_applicable_variants_helper(
 async fn get_applicable_variants_handler(
     workspace_context: WorkspaceContext,
     req: HttpRequest,
-    state: Data<AppState>,
     db_conn: DbConnection,
     req_body: Option<Json<ApplicableVariantsRequest>>,
     query_data: Option<Query<ApplicableVariantsQuery>>,
@@ -946,11 +945,12 @@ async fn get_applicable_variants_handler(
             }
         };
 
-    let (config, _) = fetch_cac_config(&state, &workspace_context).await?;
+    let dimensions_info =
+        fetch_dimensions_info_map(&mut conn, &workspace_context.schema_name)?;
     let (applicable_variants, exps) = get_applicable_variants_helper(
         &mut conn,
         context,
-        &config,
+        &dimensions_info,
         identifier,
         &workspace_context,
     )
@@ -1082,16 +1082,26 @@ async fn list_handler(
                 .filter(|experiment| experiment.context.is_empty())
                 .collect()
         } else {
+            let dimensions_info =
+                fetch_dimensions_info_map(&mut conn, &workspace_context.schema_name)?;
+            let dimension_params = evaluate_local_cohorts_skip_unresolved(
+                &dimensions_info,
+                &dimension_params,
+            );
             let dimension_keys = dimension_params.keys().cloned().collect::<Vec<_>>();
-            let dimension_filtered_experiments =
-                Experiment::filter_by_dimension(all_experiments, &dimension_keys);
 
             let filter_fn = match filters.dimension_match_strategy.unwrap_or_default() {
                 DimensionMatchStrategy::Exact => Experiment::filter_exact_match,
                 DimensionMatchStrategy::Subset => Experiment::filter_by_eval,
             };
 
-            filter_fn(dimension_filtered_experiments, &dimension_params)
+            let dimension_filtered_experiments =
+                filter_fn(all_experiments, &dimension_params);
+
+            Experiment::filter_by_dimension(
+                dimension_filtered_experiments,
+                &dimension_keys,
+            )
         };
 
         let experiments = filtered_experiments

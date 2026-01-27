@@ -1,15 +1,13 @@
-use std::collections::HashMap;
-
 use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use service_utils::service::types::SchemaName;
 use superposition_macros::unexpected_error;
 use superposition_types::{
-    Cac, Condition, DBConnection, DimensionInfo, ExtendedMap,
+    Cac, Condition, DBConnection,
     database::{
         models::{
             ChangeReason,
-            cac::{Context, DependencyGraph, Dimension, DimensionType},
+            cac::{Context, Dimension},
         },
         schema::{contexts::dsl::contexts, dimensions::dsl::*},
     },
@@ -128,47 +126,4 @@ fn update_dimensions_in_db(
         .schema_name(schema_name)
         .execute(conn)?;
     Ok(())
-}
-
-pub fn fetch_dimensions_info_map(
-    conn: &mut DBConnection,
-    schema_name: &SchemaName,
-) -> superposition::Result<HashMap<String, DimensionInfo>> {
-    let dimensions_map = dimensions
-        .select((
-            dimension,
-            schema,
-            position,
-            dimension_type,
-            dependency_graph,
-            value_compute_function_name,
-        ))
-        .order_by(position.asc())
-        .schema_name(schema_name)
-        .load::<(
-            String,
-            ExtendedMap,
-            i32,
-            DimensionType,
-            DependencyGraph,
-            Option<String>,
-        )>(conn)?
-        .into_iter()
-        .map(
-            |(key, schema_value, pos, dim_type, dep_graph, value_compute_fn)| {
-                (
-                    key,
-                    DimensionInfo {
-                        schema: schema_value,
-                        position: pos,
-                        dimension_type: dim_type,
-                        dependency_graph: dep_graph,
-                        value_compute_function_name: value_compute_fn,
-                    },
-                )
-            },
-        )
-        .collect();
-
-    Ok(dimensions_map)
 }

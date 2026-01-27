@@ -15,7 +15,7 @@ use jsonschema::{Draft, JSONSchema};
 use num_bigint::BigUint;
 use serde_json::{Map, Value, json};
 use service_utils::{
-    helpers::generate_snowflake_id,
+    helpers::{fetch_dimensions_info_map, generate_snowflake_id},
     service::types::{AppState, SchemaName, WorkspaceContext},
 };
 use superposition_macros::{db_error, unexpected_error, validation_error};
@@ -52,7 +52,6 @@ use uuid::Uuid;
 use crate::{
     api::{
         context::helpers::validation_function_executor,
-        dimension::fetch_dimensions_info_map,
         functions::{
             helpers::{get_first_function_by_type, get_published_function_code},
             types::FunctionInfo,
@@ -203,8 +202,7 @@ pub fn generate_cac(
                 acc
             });
 
-    let dimensions: HashMap<String, DimensionInfo> =
-        fetch_dimensions_info_map(conn, schema_name)?;
+    let dimensions = fetch_dimensions_info_map(conn, schema_name)?;
 
     Ok(Config {
         contexts,
