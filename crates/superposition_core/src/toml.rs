@@ -195,32 +195,29 @@ fn serde_value_to_toml_value(json: Value) -> Option<toml::Value> {
     }
 }
 
-/// Convert JSON to deterministic sorted string for consistent hashing
-fn json_to_sorted_string(v: &Value) -> String {
+/// Recursively sort JSON object keys for deterministic serialization
+fn sort_json_value(v: &Value) -> Value {
     match v {
-        Value::Null => "null".to_string(),
-        Value::Bool(b) => b.to_string(),
-        Value::Number(n) => n.to_string(),
-        Value::String(s) => format!("\"{}\"", s),
-        Value::Array(arr) => {
-            let items: Vec<String> = arr.iter().map(json_to_sorted_string).collect();
-            format!("[{}]", items.join(","))
-        }
         Value::Object(map) => {
-            let items: Vec<String> = map
+            let sorted: Map<String, Value> = map
                 .iter()
                 .sorted_by_key(|(k, _)| *k)
-                .map(|(k, v)| format!("\"{}\":{}", k, json_to_sorted_string(v)))
+                .map(|(k, v)| (k.clone(), sort_json_value(v)))
                 .collect();
-            format!("{{{}}}", items.join(","))
+            Value::Object(sorted)
         }
+        Value::Array(arr) => Value::Array(arr.iter().map(sort_json_value).collect()),
+        other => other.clone(),
     }
 }
 
 /// Hash a serde_json Value using BLAKE3
-fn hash(val: &Value) -> String {
-    let sorted = json_to_sorted_string(val);
-    blake3::hash(sorted.as_bytes()).to_string()
+fn hash(val: &Value) -> Result<String, TomlError> {
+    let sorted = sort_json_value(val);
+    let bytes = serde_json::to_vec(&sorted).map_err(|e| {
+        TomlError::SerializationError(format!("Failed to serialize JSON for hashing: {}", e))
+    })?;
+    Ok(blake3::hash(&bytes).to_string())
 }
 
 /// Parse context expression string (e.g., "os=linux;region=us-east")
@@ -644,7 +641,7 @@ fn parse_contexts(
             })
             .sum();
         // TODO:: we can possibly operate on the Map instead of converting into a Value::Object
-        let override_hash = hash(&Value::Object(override_config.clone()));
+        let override_hash = hash(&Value::Object(override_config.clone()))?;
 
         // Create Context
         let condition = Cac::<Condition>::try_from(context_map).map_err(|e| {
@@ -1312,7 +1309,7 @@ timeout = 60
     fn test_hash_consistency() {
         let val1 = serde_json::json!({"a": 1, "b": 2});
         let val2 = serde_json::json!({"b": 2, "a": 1});
-        assert_eq!(hash(&val1), hash(&val2));
+        assert_eq!(hash(&val1).unwrap(), hash(&val2).unwrap());
     }
 
     #[test]

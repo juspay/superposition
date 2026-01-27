@@ -310,11 +310,8 @@ impl Config {
         }
     }
 
-    pub fn filter_default_by_prefix(
-        &self,
-        prefix_list: &HashSet<String>,
-    ) -> Map<String, Value> {
-        filter_config_keys_by_prefix(&self.default_configs, prefix_list)
+    pub fn filter_default_by_prefix(&self, prefix_list: &HashSet<String>) -> ExtendedMap {
+        filter_config_keys_by_prefix(&self.default_configs, prefix_list).into()
     }
 
     pub fn filter_by_prefix(&self, prefix_list: &HashSet<String>) -> Self {
@@ -346,7 +343,7 @@ impl Config {
         Self {
             contexts: filtered_context,
             overrides: filtered_overrides,
-            default_configs: ExtendedMap(filtered_default_config),
+            default_configs: filtered_default_config,
             dimensions: self.dimensions.clone(),
         }
     }
@@ -376,7 +373,9 @@ pub struct DefaultConfigInfo {
 /// A map of config keys to their values and schemas
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[cfg_attr(test, derive(PartialEq))]
-pub struct DefaultConfigWithSchema(pub std::collections::BTreeMap<String, DefaultConfigInfo>);
+pub struct DefaultConfigWithSchema(
+    pub std::collections::BTreeMap<String, DefaultConfigInfo>,
+);
 
 impl DefaultConfigWithSchema {
     pub fn get(&self, key: &str) -> Option<&DefaultConfigInfo> {
