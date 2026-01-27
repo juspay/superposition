@@ -639,14 +639,6 @@ async fn resolve_handler(
     let DbConnection(mut conn) = db_conn;
     let query_filters = query_filters.into_inner();
 
-    let max_created_at = get_max_created_at(&mut conn, &workspace_context.schema_name)
-        .map_err(|e| log::error!("failed to fetch max timestamp from event_log : {e}"))
-        .ok();
-
-    if is_not_modified(max_created_at, &req) {
-        return Ok(HttpResponse::NotModified().finish());
-    }
-
     let mut config_version =
         get_config_version(&query_filters.version, &workspace_context)?;
     let mut config = generate_config_from_version(
@@ -654,7 +646,7 @@ async fn resolve_handler(
         &mut conn,
         &workspace_context.schema_name,
     )?;
-    let (is_smithy, query_data) = setup_query_data(&req, &body, &dimension_params)?;
+    let (_, query_data) = setup_query_data(&req, &body, &dimension_params)?;
 
     let resolved_config = resolve(
         &mut config,
@@ -666,7 +658,6 @@ async fn resolve_handler(
     )?;
 
     let mut resp = HttpResponse::Ok();
-    add_last_modified_to_header(max_created_at, is_smithy, &mut resp);
     add_audit_id_to_header(&mut conn, &mut resp, &workspace_context.schema_name);
     add_config_version_to_header(&config_version, &mut resp);
     Ok(resp.json(resolved_config))
