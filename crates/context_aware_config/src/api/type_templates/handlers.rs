@@ -2,9 +2,9 @@ use actix_web::web::{Json, Path, Query};
 use actix_web::{Scope, delete, get, post, routes};
 use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
-use jsonschema::JSONSchema;
 use serde_json::Value;
 use service_utils::service::types::{DbConnection, WorkspaceContext};
+use superposition_core::validations::compile_schema;
 use superposition_derives::authorized;
 use superposition_macros::bad_argument;
 use superposition_types::{
@@ -40,7 +40,7 @@ async fn create_handler(
     user: User,
 ) -> superposition::Result<Json<TypeTemplate>> {
     let DbConnection(mut conn) = db_conn;
-    JSONSchema::compile(&Value::from(&request.type_schema)).map_err(|err| {
+    compile_schema(&Value::from(&request.type_schema)).map_err(|err| {
         log::error!(
             "Invalid jsonschema sent in the request, schema: {:?} error: {}",
             request.type_schema,
@@ -104,7 +104,7 @@ async fn update_handler(
 ) -> superposition::Result<Json<TypeTemplate>> {
     let DbConnection(mut conn) = db_conn;
     let request = request.into_inner();
-    JSONSchema::compile(&Value::from(&request.type_schema)).map_err(|err| {
+    compile_schema(&Value::from(&request.type_schema)).map_err(|err| {
         log::error!(
             "Invalid jsonschema sent in the request, schema: {:?} error: {}",
             request,
