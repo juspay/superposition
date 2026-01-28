@@ -1,4 +1,4 @@
-use serde_json::Value;
+use serde_json::{Map, Value};
 use superposition_types::{
     Condition, Exp,
     api::{
@@ -44,7 +44,7 @@ pub async fn create_experiment(
         name,
         experiment_type,
         variants: Result::<Vec<Variant>, String>::from_iter(variants)?,
-        context: Exp::<Condition>::try_from(conditions.as_context_json())?,
+        context: Exp::<Condition>::try_from(Map::from(conditions))?,
         metrics,
         description: Description::try_from(description)?,
         change_reason: ChangeReason::try_from(change_reason)?,
