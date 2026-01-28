@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use log::{debug, error, info, warn};
-use serde_json::Value;
+use serde_json::{Map, Value};
 use superposition_core::experiment::ExperimentGroups;
 use superposition_core::{
     eval_config, get_applicable_variants, Experiments, MergeStrategy,
@@ -22,17 +22,17 @@ pub use open_feature::{
 };
 
 #[derive(Debug)]
-pub struct CacConfig {
+pub struct CacClient {
     superposition_options: SuperpositionOptions,
     options: ConfigurationOptions,
     fallback_config: Option<serde_json::Map<String, Value>>,
     cached_config: Arc<RwLock<Option<Config>>>,
-    last_updated: Arc<RwLock<Option<chrono::DateTime<chrono::Utc>>>>,
+    pub last_updated: Arc<RwLock<Option<chrono::DateTime<chrono::Utc>>>>,
     evaluation_cache: RwLock<HashMap<String, HashMap<String, Value>>>,
     polling_task: RwLock<Option<JoinHandle<()>>>,
 }
 
-impl CacConfig {
+impl CacClient {
     pub fn new(
         superposition_options: SuperpositionOptions,
         options: ConfigurationOptions,
@@ -217,7 +217,7 @@ impl CacConfig {
     pub async fn evaluate_config(
         &self,
         query_data: &serde_json::Map<String, Value>,
-        prefix_filter: Option<&[String]>,
+        prefix_filter: Option<Vec<String>>,
     ) -> Result<serde_json::Map<String, Value>> {
         let cached_config = self.cached_config.read().await;
         match cached_config.as_ref() {
@@ -264,17 +264,17 @@ impl CacConfig {
 
 /// Experimentation Configuration client
 #[derive(Debug)]
-pub struct ExperimentationConfig {
+pub struct ExperimentationClient {
     superposition_options: SuperpositionOptions,
     options: ExperimentationOptions,
     cached_experiments: Arc<RwLock<Option<Experiments>>>,
     cached_experiment_groups: Arc<RwLock<Option<ExperimentGroups>>>,
-    last_updated: Arc<RwLock<Option<chrono::DateTime<chrono::Utc>>>>,
+    pub last_updated: Arc<RwLock<Option<chrono::DateTime<chrono::Utc>>>>,
     evaluation_cache: RwLock<HashMap<String, HashMap<String, Value>>>,
     polling_task: RwLock<Option<JoinHandle<()>>>,
 }
 
-impl ExperimentationConfig {
+impl ExperimentationClient {
     pub fn new(
         superposition_options: SuperpositionOptions,
         options: ExperimentationOptions,
@@ -483,8 +483,8 @@ impl ExperimentationConfig {
             .await
             .map_err(|e| {
                 SuperpositionError::NetworkError(format!(
-                    "Failed to list experiments: {}",
-                    e
+                    "Failed to list experiments: {:?}",
+                    e.raw_response()
                 ))
             })?;
 
@@ -523,8 +523,8 @@ impl ExperimentationConfig {
             .await
             .map_err(|e| {
                 SuperpositionError::NetworkError(format!(
-                    "Failed to list experiment groups: {}",
-                    e
+                    "Failed to list experiment groups: {:?}",
+                    e.raw_response()
                 ))
             })?;
 
@@ -541,6 +541,34 @@ impl ExperimentationConfig {
     pub async fn get_cached_experiments(&self) -> Option<Experiments> {
         let cached_experiments = self.cached_experiments.read().await;
         cached_experiments.clone()
+    }
+
+    pub async fn get_satisfied_experiments(
+        &self,
+        context: &Map<String, Value>,
+        filter_prefixes: Option<Vec<String>>,
+    ) -> Result<Experiments> {
+        let cached_experiments = self.cached_experiments.read().await;
+        let experiments = match cached_experiments.as_ref() {
+            Some(experiments) => experiments,
+            None => {
+                return Err(SuperpositionError::ConfigError(
+                    "No cached experiments available, please check if the experimentation settings are configured correctly".into(),
+                ))
+            }
+        };
+
+        superposition_core::experiment::get_satisfied_experiments(
+            experiments,
+            context,
+            filter_prefixes,
+        )
+        .map_err(|e| {
+            SuperpositionError::ConfigError(format!(
+                "Failed to get satisfied experiments: {}",
+                e
+            ))
+        })
     }
 
     pub async fn get_cached_experiment_groups(&self) -> Option<ExperimentGroups> {
