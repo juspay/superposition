@@ -11,6 +11,7 @@ import {
     OpenFeature,
     Hook,
     Logger,
+    StandardResolutionReasons,
 } from "@openfeature/server-sdk";
 
 import { ConfigurationClient } from "./configuration-client";
@@ -197,7 +198,7 @@ export class SuperpositionProvider implements Provider {
             ) {
                 return {
                     value: defaultValue,
-                    reason: "ERROR",
+                    reason: StandardResolutionReasons.DEFAULT,
                     errorCode:
                         this.status === ProviderStatus.FATAL
                             ? ErrorCode.PROVIDER_FATAL
@@ -213,17 +214,19 @@ export class SuperpositionProvider implements Provider {
                     context,
                     type
                 );
+
                 return {
                     value,
-                    reason:
-                        this.status === ProviderStatus.STALE
-                            ? "STALE"
-                            : "TARGETING_MATCH",
+                    reason: this.status === ProviderStatus.STALE
+                        ? StandardResolutionReasons.STALE
+                        : value === defaultValue
+                            ? StandardResolutionReasons.DEFAULT
+                            : StandardResolutionReasons.TARGETING_MATCH,
                 };
             } catch (error) {
                 return {
                     value: defaultValue,
-                    reason: "ERROR",
+                    reason: StandardResolutionReasons.ERROR,
                     errorCode: ErrorCode.GENERAL,
                     errorMessage:
                         error instanceof Error
