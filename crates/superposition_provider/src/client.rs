@@ -581,7 +581,7 @@ impl ExperimentationConfig {
                 // Use get_applicable_variants from superposition_core
                 get_applicable_variants(
                     dimensions_info,
-                    experiments,
+                    experiments.clone(),
                     experiment_groups,
                     contexts,
                     &identifier.unwrap_or_default(),

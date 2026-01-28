@@ -69,7 +69,7 @@ async fn resolve_with_exp_handler(
         let (applicable_variants, _) = get_applicable_variants_helper(
             &mut conn,
             context_map.clone(),
-            &config,
+            &config.dimensions,
             identifier,
             &workspace_context,
         )

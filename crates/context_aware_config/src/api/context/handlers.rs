@@ -13,7 +13,7 @@ use diesel::{
 };
 use serde_json::{Map, Value};
 use service_utils::{
-    helpers::parse_config_tags,
+    helpers::{fetch_dimensions_info_map, parse_config_tags},
     service::types::{
         AppHeader, AppState, CustomHeaders, DbConnection, WorkspaceContext,
     },
@@ -38,6 +38,7 @@ use superposition_types::{
         models::{ChangeReason, Description, cac::Context},
         schema::contexts::{self, id},
     },
+    logic::evaluate_local_cohorts_skip_unresolved,
     result::{self as superposition, AppError},
 };
 
@@ -45,13 +46,10 @@ use superposition_types::{
 use crate::helpers::put_config_in_redis;
 use crate::helpers::{add_config_version, calculate_context_weight};
 use crate::{
-    api::{
-        context::{
-            hash,
-            helpers::{query_description, validate_ctx},
-            operations,
-        },
-        dimension::fetch_dimensions_info_map,
+    api::context::{
+        hash,
+        helpers::{query_description, validate_ctx},
+        operations,
     },
     helpers::validate_change_reason,
 };
@@ -400,16 +398,21 @@ async fn list_handler(
                 })
                 .collect()
         }
+        let dimensions_info =
+            fetch_dimensions_info_map(&mut conn, &workspace_context.schema_name)?;
+        let dimension_params =
+            evaluate_local_cohorts_skip_unresolved(&dimensions_info, &dimension_params);
         let dimension_keys = dimension_params.keys().cloned().collect::<Vec<_>>();
-        let dimension_filtered_contexts =
-            Context::filter_by_dimension(all_contexts, &dimension_keys);
 
         let filter_fn = match filter_params.dimension_match_strategy.unwrap_or_default() {
             DimensionMatchStrategy::Exact => Context::filter_exact_match,
             DimensionMatchStrategy::Subset => Context::filter_by_eval,
         };
+
+        let eval_filter_contexts = filter_fn(all_contexts, &dimension_params);
+
         let eval_filter_contexts =
-            filter_fn(dimension_filtered_contexts, &dimension_params);
+            Context::filter_by_dimension(eval_filter_contexts, &dimension_keys);
 
         if show_all {
             PaginatedResponse::all(eval_filter_contexts)

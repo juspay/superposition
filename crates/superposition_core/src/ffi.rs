@@ -59,7 +59,7 @@ fn ffi_eval_logic(
         let identifier = e_args.targeting_key;
         let variants = get_applicable_variants(
             &dimensions,
-            &e_args.experiments,
+            e_args.experiments,
             &e_args.experiment_groups,
             &_q,
             &identifier,
@@ -146,7 +146,7 @@ fn ffi_get_applicable_variants(
     let identifier = eargs.targeting_key;
     let r = get_applicable_variants(
         &dimensions_info,
-        &eargs.experiments,
+        eargs.experiments,
         &eargs.experiment_groups,
         &_query_data,
         &identifier,

@@ -5,16 +5,21 @@ use std::collections::{HashMap, HashSet};
 
 use derive_more::{AsRef, Deref, DerefMut, Into};
 #[cfg(feature = "diesel_derives")]
-use diesel::{deserialize::FromSqlRow, expression::AsExpression, sql_types::Json};
+use diesel::{
+    deserialize::FromSqlRow, expression::AsExpression, sql_types::Json, Queryable,
+    Selectable,
+};
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{Map, Value};
 #[cfg(feature = "diesel_derives")]
 use superposition_derives::{JsonFromSql, JsonToSql};
 use uniffi::deps::anyhow;
 
+#[cfg(feature = "diesel_derives")]
+use crate::database::schema::dimensions;
 use crate::{
     database::models::cac::{DependencyGraph, DimensionType},
-    logic::evaluate_local_cohorts,
+    logic::evaluate_local_cohorts_skip_unresolved,
     overridden::filter_config_keys_by_prefix,
     Cac, Contextual, Exp, ExtendedMap,
 };
@@ -281,7 +286,8 @@ pub struct Config {
 
 impl Config {
     pub fn filter_by_dimensions(&self, dimension_data: &Map<String, Value>) -> Self {
-        let modified_context = evaluate_local_cohorts(&self.dimensions, dimension_data);
+        let modified_context =
+            evaluate_local_cohorts_skip_unresolved(&self.dimensions, dimension_data);
 
         let filtered_context =
             Context::filter_by_eval(self.contexts.clone(), &modified_context);
@@ -347,6 +353,8 @@ impl Config {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, uniffi::Record)]
+#[cfg_attr(feature = "diesel_derives", derive(Selectable, Queryable))]
+#[cfg_attr(feature = "diesel_derives", diesel(table_name = dimensions))]
 #[cfg_attr(test, derive(PartialEq))]
 pub struct DimensionInfo {
     pub schema: ExtendedMap,

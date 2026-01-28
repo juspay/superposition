@@ -8,7 +8,7 @@ use std::{
 use actix_web::{Error, error::ErrorInternalServerError, web::Data};
 use anyhow::anyhow;
 use chrono::Utc;
-use diesel::{ExpressionMethods, RunQueryDsl, query_dsl::methods::FilterDsl};
+use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use jsonschema::{ValidationError, error::ValidationErrorKind};
 use log::info;
 use once_cell::sync::Lazy;
@@ -20,13 +20,14 @@ use reqwest::{
 use serde::Serialize;
 use serde_json::Value;
 use superposition_types::{
-    DBConnection, PaginatedResponse,
+    DBConnection, DimensionInfo, PaginatedResponse,
     api::webhook::{HeadersEnum, WebhookEventInfo, WebhookResponse},
     database::{
         models::{
             Workspace,
             others::{HttpMethod, Variable, Webhook, WebhookEvent},
         },
+        schema::dimensions::{self, dimension},
         superposition_schema::superposition::workspaces,
     },
     result::{self},
@@ -481,4 +482,18 @@ pub(crate) fn get_workspace(
         .filter(workspaces::workspace_schema_name.eq(workspace_schema_name.to_string()))
         .get_result::<Workspace>(db_conn)?;
     Ok(workspace)
+}
+
+pub fn fetch_dimensions_info_map(
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> result::Result<HashMap<String, DimensionInfo>> {
+    let dimensions_map = dimensions::table
+        .select((dimension, DimensionInfo::as_select()))
+        .schema_name(schema_name)
+        .load::<(String, DimensionInfo)>(conn)?
+        .into_iter()
+        .collect();
+
+    Ok(dimensions_map)
 }

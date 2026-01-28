@@ -5,7 +5,10 @@ use cac_client::utils::json_to_sorted_string;
 use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use serde_json::{Map, Value};
-use service_utils::service::types::{SchemaName, WorkspaceContext};
+use service_utils::{
+    helpers::fetch_dimensions_info_map,
+    service::types::{SchemaName, WorkspaceContext},
+};
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
     Cac, Condition, DBConnection, DimensionInfo, Overrides, User,
@@ -28,9 +31,7 @@ use superposition_types::{
 };
 
 use crate::api::functions::helpers::get_first_function_by_type;
-use crate::{
-    api::dimension::fetch_dimensions_info_map, helpers::calculate_context_weight,
-};
+use crate::helpers::calculate_context_weight;
 use crate::{
     api::functions::{helpers::get_published_functions_by_names, types::FunctionInfo},
     validation_functions::execute_fn,

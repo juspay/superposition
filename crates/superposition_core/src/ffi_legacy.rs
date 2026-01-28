@@ -149,7 +149,7 @@ pub unsafe extern "C" fn core_get_resolved_config(
 
         match get_applicable_variants(
             &dimensions,
-            &e_args.experiments,
+            e_args.experiments,
             &e_args.experiment_groups,
             &query_data,
             &identifier,
@@ -299,7 +299,7 @@ pub unsafe extern "C" fn core_get_resolved_config_with_reasoning(
 
         match get_applicable_variants(
             &dimensions,
-            &e_args.experiments,
+            e_args.experiments,
             &e_args.experiment_groups,
             &query_data,
             &identifier,
@@ -433,7 +433,7 @@ pub unsafe extern "C" fn core_get_applicable_variants(
     // Call the experimentation logic
     match get_applicable_variants(
         &dimensions,
-        &experiments,
+        experiments,
         &experiment_groups,
         &query_data,
         &identifier,

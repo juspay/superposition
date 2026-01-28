@@ -10,6 +10,7 @@ use crate::{
     DimensionInfo,
 };
 
+#[inline]
 fn apply_logic(
     condition: &Map<String, Value>,
     context: &Map<String, Value>,
@@ -37,15 +38,42 @@ fn apply_logic(
     true
 }
 
+/// Core context application logic - checks if all dimensions in condition are satisfied by context
+/// Only exact matches are considered valid, except for "variantIds" dimension where containment is checked
+/// Returns true if condition is satisfied by context, false otherwise
 pub fn apply(condition: &Map<String, Value>, context: &Map<String, Value>) -> bool {
     apply_logic(condition, context, false)
 }
 
+/// Filtering logic that allows partial matching of context
+/// For dimensions present in context, performs the same checks as `apply`
+/// For dimensions absent in context, skips the check (allows partial matching)
+/// This is useful for matching contexts that may not have all dimensions defined
+/// For array context values, checks for containment - added behaviour over `apply`
+/// Returns false if there is a mismatch, true otherwise
 pub fn partial_apply(
     condition: &Map<String, Value>,
     context: &Map<String, Value>,
 ) -> bool {
-    apply_logic(condition, context, true)
+    for (dimension, value) in condition {
+        let Some(context_value) = context.get(dimension) else {
+            continue; // Skip dimensions not in context (partial matching)
+        };
+
+        // For array context values, check containment
+        if let Value::Array(context_values) = context_value {
+            if !context_values.contains(value) {
+                return false;
+            }
+        } else if dimension == "variantIds" {
+            // variantIds must always be an array - fail if scalar
+            return false;
+        } else if *context_value != *value {
+            // For non-array values, check equality
+            return false;
+        }
+    }
+    true
 }
 
 fn _evaluate_local_cohort_dimension(
@@ -141,16 +169,10 @@ fn evaluate_local_cohorts_dependency(
     }
 }
 
-/// Evaluates all local cohort dimensions based on the provided query data and dimension definitions
-/// First all local cohorts which are computable from the query data are evaluated, then any remaining local cohorts are set to "otherwise"
-/// Computation starts from such a point, such that dependencies can be resolved in a depth-first manner
-///
-/// Values of regular and remote cohort dimensions in query_data are retained as is.
-/// Returned value, might have a different value for local cohort dimensions based on its based on dimensions,
-/// if the value provided for the local cohort was incorrect in the query data.
-pub fn evaluate_local_cohorts(
+fn _evaluate_local_cohorts(
     dimensions: &HashMap<String, DimensionInfo>,
     query_data: &Map<String, Value>,
+    skip_unresolved: bool,
 ) -> Map<String, Value> {
     if dimensions.is_empty() {
         return query_data.clone();
@@ -175,6 +197,10 @@ pub fn evaluate_local_cohorts(
         }
     }
 
+    if skip_unresolved {
+        return modified_context;
+    }
+
     // For any local cohort dimension not yet set, set it to "otherwise"
     for dimension_key in dimensions.keys() {
         if let Some(dimension_info) = dimensions.get(dimension_key) {
@@ -190,6 +216,28 @@ pub fn evaluate_local_cohorts(
     }
 
     modified_context
+}
+
+/// Evaluates all local cohort dimensions based on the provided query data and dimension definitions
+/// First all local cohorts which are computable from the query data are evaluated, then any remaining local cohorts are set to "otherwise"
+/// Computation starts from such a point, such that dependencies can be resolved in a depth-first manner
+///
+/// Values of regular and remote cohort dimensions in query_data are retained as is.
+/// Returned value, might have a different value for local cohort dimensions based on its based on dimensions,
+/// if the value provided for the local cohort was incorrect in the query data.
+pub fn evaluate_local_cohorts(
+    dimensions: &HashMap<String, DimensionInfo>,
+    query_data: &Map<String, Value>,
+) -> Map<String, Value> {
+    _evaluate_local_cohorts(dimensions, query_data, false)
+}
+
+/// Same as evaluate_local_cohorts but does not set unresolved local cohorts to "otherwise"
+pub fn evaluate_local_cohorts_skip_unresolved(
+    dimensions: &HashMap<String, DimensionInfo>,
+    query_data: &Map<String, Value>,
+) -> Map<String, Value> {
+    _evaluate_local_cohorts(dimensions, query_data, true)
 }
 
 /// Identifies starting dimensions for evaluation based on query data and dimension definitions

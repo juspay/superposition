@@ -2,9 +2,11 @@ use std::collections::HashSet;
 
 use diesel::{ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl};
 use jsonschema::{Draft, JSONSchema, ValidationError};
-use serde_json::Map;
-use serde_json::{Value, json};
-use service_utils::{helpers::validation_err_to_str, service::types::SchemaName};
+use serde_json::{Map, Value, json};
+use service_utils::{
+    helpers::{fetch_dimensions_info_map, validation_err_to_str},
+    service::types::SchemaName,
+};
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
     DBConnection,
@@ -16,7 +18,6 @@ use superposition_types::{
     result as superposition,
 };
 
-use crate::api::dimension::fetch_dimensions_info_map;
 use crate::api::functions::helpers::check_fn_published;
 
 pub fn validate_dimension_position(
