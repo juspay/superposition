@@ -16,7 +16,6 @@ chrono = { workspace = true }
 context_aware_config = { path = "../context_aware_config" }
 diesel = { workspace = true }
 dotenv = "0.15.0"
-env_logger = "0.8"
 experimentation_platform = { path = "../experimentation_platform" }
 fred = { workspace = true, optional = true }
 frontend = { path = "../frontend" }
@@ -37,6 +36,11 @@ superposition_types = { workspace = true, features = [
     "diesel_derives",
     "server",
 ] }
+actix-http = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+tracing-actix-web = { workspace = true }
+json-subscriber = "0.2.7"
 
 [features]
 high-performance-mode = [
