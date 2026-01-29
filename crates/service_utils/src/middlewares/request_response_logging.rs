@@ -3,6 +3,7 @@ use actix_web::body::MessageBody;
 use actix_web::dev::{
     Payload, Service, ServiceRequest, ServiceResponse, Transform, forward_ready,
 };
+use actix_web::http::header::ContentType;
 use actix_web::web::Bytes;
 use actix_web::{Error, error::PayloadError, http::header};
 use futures_util::future::{Ready, ok};
@@ -15,6 +16,27 @@ use std::rc::Rc;
 use std::task::{Context, Poll};
 use std::time::Instant;
 use tracing::{info, warn};
+
+const SENSITIVE_HEADERS: &[&str] = &[
+    "authorization",
+    "cookie",
+    "x-api-key",
+    "x-auth-token",
+    "set-cookie",
+];
+
+fn redact_header(name: &str, value: String) -> (String, String) {
+    let name_lower = name.to_lowercase();
+    let is_sensitive = SENSITIVE_HEADERS
+        .iter()
+        .any(|sensitive| name_lower == *sensitive);
+
+    if is_sensitive {
+        (name.to_string(), "[REDACTED]".to_string())
+    } else {
+        (name.to_string(), value)
+    }
+}
 
 #[derive(Default)]
 pub struct RequestResponseLogger;
@@ -122,10 +144,7 @@ fn is_json_response(res: &ServiceResponse<impl MessageBody>) -> bool {
     res.headers()
         .get(header::CONTENT_TYPE)
         .and_then(|ct| ct.to_str().ok())
-        .map(|ct| {
-            ct.starts_with("application/json")
-                || ct.starts_with("application/problem+json")
-        })
+        .map(|ct| ct.starts_with(&ContentType::json().to_string()))
         .unwrap_or(false)
 }
 
@@ -172,12 +191,16 @@ where
 
             let query_string = req.query_string().to_string();
 
-            let mut headers = HashMap::new();
-            for (name, value) in req.headers().iter() {
-                if let Ok(value_str) = value.to_str() {
-                    headers.insert(name.as_str().to_string(), value_str.to_string());
-                }
-            }
+            let headers: HashMap<String, String> = req
+                .headers()
+                .iter()
+                .filter_map(|(name, value)| {
+                    value
+                        .to_str()
+                        .ok()
+                        .map(|v| redact_header(name.as_str(), v.to_string()))
+                })
+                .collect();
 
             let request_id = req
                 .extensions()
@@ -248,20 +271,22 @@ where
             };
             let new_req = ServiceRequest::from_parts(http_req, new_payload);
             let start_time = Instant::now();
-            // let _guard = span.enter();
             res = service.call(new_req).await?;
 
             if let Some(Ok(request_id)) = request_id {
                 res.headers_mut()
                     .insert(header::HeaderName::from_static("x-request-id"), request_id);
             }
-            let mut response_headers = HashMap::new();
-            for (name, value) in res.headers().iter() {
-                if let Ok(value_str) = value.to_str() {
-                    response_headers
-                        .insert(name.as_str().to_string(), value_str.to_string());
-                }
-            }
+            let response_headers: HashMap<String, String> = res
+                .headers()
+                .iter()
+                .filter_map(|(name, value)| {
+                    value
+                        .to_str()
+                        .ok()
+                        .map(|v| redact_header(name.as_str(), v.to_string()))
+                })
+                .collect();
 
             // Only log body as JSON for JSON content types
             let log_body_as_json = is_json_response(&res);
