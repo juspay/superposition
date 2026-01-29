@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_provider-v0.6.5 - 2026-01-29
+#### Bug Fixes
+- exp and config partial apply (#831) - (0fceab3) - Ayush Jain
+#### Build system
+- setup msrv and edition consistently in all Cargo.toml (#706) - (8c6e51a) - Natarajan Kannan
+#### Miscellaneous Chores
+- **(version)** v0.96.0 [skip ci] - (e0ea254) - Superposition Bot
+- deprecate jsonlogic context (#827) - (1236863) - Ayush Jain
+
+- - -
+
 ## superposition_provider-v0.6.4 - 2025-12-27
 #### Bug Fixes
 - Add status in FfiExperiment type (#788) - (1fb6c8e) - Ayush Jain

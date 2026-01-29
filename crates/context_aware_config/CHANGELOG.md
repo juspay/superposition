@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.67.2 - 2026-01-29
+#### Bug Fixes
+- exp and config partial apply (#831) - (0fceab3) - Ayush Jain
+- resolve endpoint (#838) - (996577b) - Ankit Kumar Mahato
+#### Build system
+- setup msrv and edition consistently in all Cargo.toml (#706) - (8c6e51a) - Natarajan Kannan
+#### Miscellaneous Chores
+- **(version)** v0.97.1 [skip ci] - (578b46e) - Superposition Bot
+
+- - -
+
 ## context_aware_config-v0.67.1 - 2026-01-21
 #### Bug Fixes
 - function attachment logic for dimension and default config (#832) - (c950770) - Ayush Jain
