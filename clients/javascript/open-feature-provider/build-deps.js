@@ -25,6 +25,9 @@ function copyDependencies() {
 
     // Copy built dependencies
     execSync('cp -r ../sdk/dist-cjs node_modules/superposition-sdk', { stdio: 'inherit' });
+    // Copy SDK package.json to node_modules/ for ../package.json resolution
+    execSync('cp ../sdk/package.json node_modules/', { stdio: 'inherit' });
+
     execSync('cp -r ../bindings/dist node_modules/superposition-bindings', { stdio: 'inherit' });
 
     console.log('Dependencies copied successfully!');

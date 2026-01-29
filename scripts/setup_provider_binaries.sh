@@ -9,12 +9,7 @@ if [ $in_nix == 0 ]; then
     echo "Inside nix shell, doing some stuff"
 fi
 
-if [[ $1 == "js"  ]]; then
-    if [[ "$OSTYPE" == "darwin"* && $in_nix != 0 ]]; then
-    	sed -i '' "s/import require\$\$1\$3 from '\.\.\/package\.json';/import require\$\$1\$3 from '..\/package.json' with {type: \"json\"};/" ./clients/javascript/open-feature-provider/dist/index.esm.js
-    else
-    	sed -i "s/import require\$\$1\$3 from '\.\.\/package\.json';/import require\$\$1\$3 from '..\/package.json' with {type: \"json\"};/" ./clients/javascript/open-feature-provider/dist/index.esm.js
-    fi
+if [[ $1 == "js" ]]; then
     mkdir -p clients/javascript/open-feature-provider/dist/native-lib
 fi
 
