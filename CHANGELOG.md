@@ -2,6 +2,29 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.97.2 - 2026-01-29
+### Package updates
+- experimentation_platform bumped to experimentation_platform-v0.47.2
+- superposition_types bumped to superposition_types-v0.38.2
+- superposition_core bumped to superposition_core-v0.9.1
+- context_aware_config bumped to context_aware_config-v0.67.2
+- haskell_client bumped to haskell_client-v0.11.1
+- service_utils bumped to service_utils-v0.36.2
+- experimentation_client bumped to experimentation_client-v0.20.4
+- superposition_provider bumped to superposition_provider-v0.6.5
+### Global changes
+#### Bug Fixes
+- exp and config partial apply (#831) - (0fceab3) - Ayush Jain
+- return proper resolution reasons in the JS provider (#841) - (0609dad) - Datron
+- copy package.json for sdk version access (#844) - (6068ec3) - Natarajan Kannan
+#### Build system
+- setup msrv and edition consistently in all Cargo.toml (#706) - (8c6e51a) - Natarajan Kannan
+#### Miscellaneous Chores
+- **(deps)** bump diff from 5.2.0 to 5.2.2 in /docs (#837) - (1e60c29) - dependabot[bot]
+- **(version)** v0.97.1 [skip ci] - (578b46e) - Superposition Bot
+
+- - -
+
 ## v0.97.1 - 2026-01-21
 ### Package updates
 - superposition_types bumped to superposition_types-v0.38.1

@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_client-v0.20.4 - 2026-01-29
+#### Bug Fixes
+- exp and config partial apply (#831) - (0fceab3) - Ayush Jain
+#### Build system
+- setup msrv and edition consistently in all Cargo.toml (#706) - (8c6e51a) - Natarajan Kannan
+#### Miscellaneous Chores
+- **(version)** v0.93.2 [skip ci] - (49705df) - Superposition Bot
+- deprecate jsonlogic context (#827) - (1236863) - Ayush Jain
+- Flake update (#775) - (4a2eaa2) - Datron
+
+- - -
+
 ## experimentation_client-v0.20.3 - 2025-11-07
 #### Bug Fixes
 - **(cohort)** Update cohort related restrictions (#740) - (f4f96dc) - Ayush Jain

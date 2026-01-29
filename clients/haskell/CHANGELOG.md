@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## haskell_client-v0.11.1 - 2026-01-29
+#### Bug Fixes
+- exp and config partial apply (#831) - (0fceab3) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.96.0 [skip ci] - (e0ea254) - Superposition Bot
+- deprecate jsonlogic context (#827) - (1236863) - Ayush Jain
+
+- - -
+
 ## haskell_client-v0.11.0 - 2025-12-27
 #### Bug Fixes
 - Function payload structure (#804) - (b22c28f) - Ankit Kumar Mahato

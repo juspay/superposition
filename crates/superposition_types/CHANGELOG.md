@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.38.2 - 2026-01-29
+#### Bug Fixes
+- exp and config partial apply (#831) - (0fceab3) - Ayush Jain
+#### Build system
+- setup msrv and edition consistently in all Cargo.toml (#706) - (8c6e51a) - Natarajan Kannan
+#### Miscellaneous Chores
+- **(version)** v0.97.1 [skip ci] - (578b46e) - Superposition Bot
+
+- - -
+
 ## superposition_types-v0.38.1 - 2026-01-21
 #### Bug Fixes
 - workspace settings usage for change reason validation (#814) - (73fe5af) - Ayush Jain
