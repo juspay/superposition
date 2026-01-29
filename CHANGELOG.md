@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.97.3 - 2026-01-29
+### Package updates
+- context_aware_config bumped to context_aware_config-v0.67.3
+### Global changes
+#### Bug Fixes
+- **(build)** Update rust version in all the places (#846) - (8725d59) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.97.2 [skip ci] - (b6f916b) - Superposition Bot
+
+- - -
+
 ## v0.97.2 - 2026-01-29
 ### Package updates
 - experimentation_platform bumped to experimentation_platform-v0.47.2
