@@ -40,5 +40,6 @@ uuid = { workspace = true }
 disable_db_data_validation = ["superposition_types/disable_db_data_validation"]
 high-performance-mode = ["dep:fred"]
 
+
 [lints]
 workspace = true
