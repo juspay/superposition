@@ -45,6 +45,7 @@ from .deserialize import (
     _deserialize_create_experiment_group,
     _deserialize_create_function,
     _deserialize_create_organisation,
+    _deserialize_create_secret,
     _deserialize_create_type_templates,
     _deserialize_create_variable,
     _deserialize_create_webhook,
@@ -54,10 +55,12 @@ from .deserialize import (
     _deserialize_delete_dimension,
     _deserialize_delete_experiment_group,
     _deserialize_delete_function,
+    _deserialize_delete_secret,
     _deserialize_delete_type_templates,
     _deserialize_delete_variable,
     _deserialize_delete_webhook,
     _deserialize_discard_experiment,
+    _deserialize_generate_master_key,
     _deserialize_get_config,
     _deserialize_get_config_fast,
     _deserialize_get_context,
@@ -70,6 +73,7 @@ from .deserialize import (
     _deserialize_get_organisation,
     _deserialize_get_resolved_config,
     _deserialize_get_resolved_config_with_identifier,
+    _deserialize_get_secret,
     _deserialize_get_type_template,
     _deserialize_get_type_templates_list,
     _deserialize_get_variable,
@@ -85,6 +89,7 @@ from .deserialize import (
     _deserialize_list_experiment_groups,
     _deserialize_list_function,
     _deserialize_list_organisation,
+    _deserialize_list_secrets,
     _deserialize_list_variables,
     _deserialize_list_versions,
     _deserialize_list_webhook,
@@ -96,6 +101,7 @@ from .deserialize import (
     _deserialize_ramp_experiment,
     _deserialize_remove_members_from_group,
     _deserialize_resume_experiment,
+    _deserialize_rotate_master_key,
     _deserialize_test,
     _deserialize_update_default_config,
     _deserialize_update_dimension,
@@ -104,6 +110,7 @@ from .deserialize import (
     _deserialize_update_organisation,
     _deserialize_update_override,
     _deserialize_update_overrides_experiment,
+    _deserialize_update_secret,
     _deserialize_update_type_templates,
     _deserialize_update_variable,
     _deserialize_update_webhook,
@@ -129,6 +136,7 @@ from .models import (
     CREATE_EXPERIMENT_GROUP,
     CREATE_FUNCTION,
     CREATE_ORGANISATION,
+    CREATE_SECRET,
     CREATE_TYPE_TEMPLATES,
     CREATE_VARIABLE,
     CREATE_WEBHOOK,
@@ -149,6 +157,8 @@ from .models import (
     CreateFunctionOutput,
     CreateOrganisationInput,
     CreateOrganisationOutput,
+    CreateSecretInput,
+    CreateSecretOutput,
     CreateTypeTemplatesInput,
     CreateTypeTemplatesOutput,
     CreateVariableInput,
@@ -162,6 +172,7 @@ from .models import (
     DELETE_DIMENSION,
     DELETE_EXPERIMENT_GROUP,
     DELETE_FUNCTION,
+    DELETE_SECRET,
     DELETE_TYPE_TEMPLATES,
     DELETE_VARIABLE,
     DELETE_WEBHOOK,
@@ -176,6 +187,8 @@ from .models import (
     DeleteExperimentGroupOutput,
     DeleteFunctionInput,
     DeleteFunctionOutput,
+    DeleteSecretInput,
+    DeleteSecretOutput,
     DeleteTypeTemplatesInput,
     DeleteTypeTemplatesOutput,
     DeleteVariableInput,
@@ -184,6 +197,7 @@ from .models import (
     DeleteWebhookOutput,
     DiscardExperimentInput,
     DiscardExperimentOutput,
+    GENERATE_MASTER_KEY,
     GET_CONFIG,
     GET_CONFIG_FAST,
     GET_CONTEXT,
@@ -196,6 +210,7 @@ from .models import (
     GET_ORGANISATION,
     GET_RESOLVED_CONFIG,
     GET_RESOLVED_CONFIG_WITH_IDENTIFIER,
+    GET_SECRET,
     GET_TYPE_TEMPLATE,
     GET_TYPE_TEMPLATES_LIST,
     GET_VARIABLE,
@@ -203,6 +218,8 @@ from .models import (
     GET_WEBHOOK,
     GET_WEBHOOK_BY_EVENT,
     GET_WORKSPACE,
+    GenerateMasterKeyInput,
+    GenerateMasterKeyOutput,
     GetConfigFastInput,
     GetConfigFastOutput,
     GetConfigInput,
@@ -227,6 +244,8 @@ from .models import (
     GetResolvedConfigOutput,
     GetResolvedConfigWithIdentifierInput,
     GetResolvedConfigWithIdentifierOutput,
+    GetSecretInput,
+    GetSecretOutput,
     GetTypeTemplateInput,
     GetTypeTemplateOutput,
     GetTypeTemplatesListInput,
@@ -249,6 +268,7 @@ from .models import (
     LIST_EXPERIMENT_GROUPS,
     LIST_FUNCTION,
     LIST_ORGANISATION,
+    LIST_SECRETS,
     LIST_VARIABLES,
     LIST_VERSIONS,
     LIST_WEBHOOK,
@@ -269,6 +289,8 @@ from .models import (
     ListFunctionOutput,
     ListOrganisationInput,
     ListOrganisationOutput,
+    ListSecretsInput,
+    ListSecretsOutput,
     ListVariablesInput,
     ListVariablesOutput,
     ListVersionsInput,
@@ -292,12 +314,15 @@ from .models import (
     RAMP_EXPERIMENT,
     REMOVE_MEMBERS_FROM_GROUP,
     RESUME_EXPERIMENT,
+    ROTATE_MASTER_KEY,
     RampExperimentInput,
     RampExperimentOutput,
     RemoveMembersFromGroupInput,
     RemoveMembersFromGroupOutput,
     ResumeExperimentInput,
     ResumeExperimentOutput,
+    RotateMasterKeyInput,
+    RotateMasterKeyOutput,
     ServiceError,
     TEST,
     TestInput,
@@ -309,6 +334,7 @@ from .models import (
     UPDATE_ORGANISATION,
     UPDATE_OVERRIDE,
     UPDATE_OVERRIDES_EXPERIMENT,
+    UPDATE_SECRET,
     UPDATE_TYPE_TEMPLATES,
     UPDATE_VARIABLE,
     UPDATE_WEBHOOK,
@@ -327,6 +353,8 @@ from .models import (
     UpdateOverrideOutput,
     UpdateOverridesExperimentInput,
     UpdateOverridesExperimentOutput,
+    UpdateSecretInput,
+    UpdateSecretOutput,
     UpdateTypeTemplatesInput,
     UpdateTypeTemplatesOutput,
     UpdateVariableInput,
@@ -354,6 +382,7 @@ from .serialize import (
     _serialize_create_experiment_group,
     _serialize_create_function,
     _serialize_create_organisation,
+    _serialize_create_secret,
     _serialize_create_type_templates,
     _serialize_create_variable,
     _serialize_create_webhook,
@@ -363,10 +392,12 @@ from .serialize import (
     _serialize_delete_dimension,
     _serialize_delete_experiment_group,
     _serialize_delete_function,
+    _serialize_delete_secret,
     _serialize_delete_type_templates,
     _serialize_delete_variable,
     _serialize_delete_webhook,
     _serialize_discard_experiment,
+    _serialize_generate_master_key,
     _serialize_get_config,
     _serialize_get_config_fast,
     _serialize_get_context,
@@ -379,6 +410,7 @@ from .serialize import (
     _serialize_get_organisation,
     _serialize_get_resolved_config,
     _serialize_get_resolved_config_with_identifier,
+    _serialize_get_secret,
     _serialize_get_type_template,
     _serialize_get_type_templates_list,
     _serialize_get_variable,
@@ -394,6 +426,7 @@ from .serialize import (
     _serialize_list_experiment_groups,
     _serialize_list_function,
     _serialize_list_organisation,
+    _serialize_list_secrets,
     _serialize_list_variables,
     _serialize_list_versions,
     _serialize_list_webhook,
@@ -405,6 +438,7 @@ from .serialize import (
     _serialize_ramp_experiment,
     _serialize_remove_members_from_group,
     _serialize_resume_experiment,
+    _serialize_rotate_master_key,
     _serialize_test,
     _serialize_update_default_config,
     _serialize_update_dimension,
@@ -413,6 +447,7 @@ from .serialize import (
     _serialize_update_organisation,
     _serialize_update_override,
     _serialize_update_overrides_experiment,
+    _serialize_update_secret,
     _serialize_update_type_templates,
     _serialize_update_variable,
     _serialize_update_webhook,
@@ -745,6 +780,34 @@ class Superposition:
             operation=CREATE_ORGANISATION,
         )
 
+    async def create_secret(self, input: CreateSecretInput, plugins: list[Plugin] | None = None) -> CreateSecretOutput:
+        """
+        Creates a new encrypted secret with the specified name and value. The secret is
+        encrypted with the workspace's current encryption key. Secret values are never
+        returned in responses for security.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_create_secret,
+            deserialize=_deserialize_create_secret,
+            config=self._config,
+            operation=CREATE_SECRET,
+        )
+
     async def create_type_templates(self, input: CreateTypeTemplatesInput, plugins: list[Plugin] | None = None) -> CreateTypeTemplatesOutput:
         """
         Creates a new type template with specified schema definition, providing reusable
@@ -989,6 +1052,33 @@ class Superposition:
             operation=DELETE_FUNCTION,
         )
 
+    async def delete_secret(self, input: DeleteSecretInput, plugins: list[Plugin] | None = None) -> DeleteSecretOutput:
+        """
+        Permanently deletes a secret from the workspace. The encrypted value is removed
+        and cannot be recovered.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_delete_secret,
+            deserialize=_deserialize_delete_secret,
+            config=self._config,
+            operation=DELETE_SECRET,
+        )
+
     async def delete_type_templates(self, input: DeleteTypeTemplatesInput, plugins: list[Plugin] | None = None) -> DeleteTypeTemplatesOutput:
         """
         Permanently removes a type template from the workspace. No checks performed
@@ -1094,6 +1184,32 @@ class Superposition:
             deserialize=_deserialize_discard_experiment,
             config=self._config,
             operation=DISCARD_EXPERIMENT,
+        )
+
+    async def generate_master_key(self, input: GenerateMasterKeyInput, plugins: list[Plugin] | None = None) -> GenerateMasterKeyOutput:
+        """
+        Generates a new master encryption key
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_generate_master_key,
+            deserialize=_deserialize_generate_master_key,
+            config=self._config,
+            operation=GENERATE_MASTER_KEY,
         )
 
     async def get_config(self, input: GetConfigInput, plugins: list[Plugin] | None = None) -> GetConfigOutput:
@@ -1416,6 +1532,33 @@ class Superposition:
             deserialize=_deserialize_get_resolved_config_with_identifier,
             config=self._config,
             operation=GET_RESOLVED_CONFIG_WITH_IDENTIFIER,
+        )
+
+    async def get_secret(self, input: GetSecretInput, plugins: list[Plugin] | None = None) -> GetSecretOutput:
+        """
+        Retrieves detailed information about a specific secret by its name. The value is
+        masked for security.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_get_secret,
+            deserialize=_deserialize_get_secret,
+            config=self._config,
+            operation=GET_SECRET,
         )
 
     async def get_type_template(self, input: GetTypeTemplateInput, plugins: list[Plugin] | None = None) -> GetTypeTemplateOutput:
@@ -1822,6 +1965,33 @@ class Superposition:
             operation=LIST_ORGANISATION,
         )
 
+    async def list_secrets(self, input: ListSecretsInput, plugins: list[Plugin] | None = None) -> ListSecretsOutput:
+        """
+        Retrieves a paginated list of all secrets in the workspace with optional
+        filtering and sorting. All secret values are masked.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_list_secrets,
+            deserialize=_deserialize_list_secrets,
+            config=self._config,
+            operation=LIST_SECRETS,
+        )
+
     async def list_variables(self, input: ListVariablesInput, plugins: list[Plugin] | None = None) -> ListVariablesOutput:
         """
         Retrieves a paginated list of all variables in the workspace with optional
@@ -2120,6 +2290,32 @@ class Superposition:
             operation=RESUME_EXPERIMENT,
         )
 
+    async def rotate_master_key(self, input: RotateMasterKeyInput, plugins: list[Plugin] | None = None) -> RotateMasterKeyOutput:
+        """
+        Rotates the master key encryption key across all workspaces
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_rotate_master_key,
+            deserialize=_deserialize_rotate_master_key,
+            config=self._config,
+            operation=ROTATE_MASTER_KEY,
+        )
+
     async def test(self, input: TestInput, plugins: list[Plugin] | None = None) -> TestOutput:
         """
         Executes a function in test mode with provided input parameters to validate its
@@ -2337,6 +2533,33 @@ class Superposition:
             deserialize=_deserialize_update_overrides_experiment,
             config=self._config,
             operation=UPDATE_OVERRIDES_EXPERIMENT,
+        )
+
+    async def update_secret(self, input: UpdateSecretInput, plugins: list[Plugin] | None = None) -> UpdateSecretOutput:
+        """
+        Updates an existing secret's value or description. The value is re-encrypted
+        with the current workspace encryption key. Returns masked value.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_update_secret,
+            deserialize=_deserialize_update_secret,
+            config=self._config,
+            operation=UPDATE_SECRET,
         )
 
     async def update_type_templates(self, input: UpdateTypeTemplatesInput, plugins: list[Plugin] | None = None) -> UpdateTypeTemplatesOutput:

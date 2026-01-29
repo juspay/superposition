@@ -17,27 +17,36 @@ use reqwest::{
     StatusCode,
     header::{HeaderMap, HeaderName, HeaderValue},
 };
+use secrecy::ExposeSecret;
 use serde::Serialize;
-use serde_json::Value;
 use superposition_types::{
-    DBConnection, DimensionInfo, PaginatedResponse,
+    DBConnection, DimensionInfo,
     api::webhook::{HeadersEnum, WebhookEventInfo, WebhookResponse},
     database::{
         models::{
             Workspace,
-            others::{HttpMethod, Variable, Webhook, WebhookEvent},
+            others::{
+                CustomHeaders, HttpMethod, Secret, Variable, Webhook, WebhookEvent,
+            },
         },
-        schema::dimensions::{self, dimension},
+        schema::{
+            dimensions::{self, dimension},
+            secrets::dsl,
+            variables::dsl as variable_dsl,
+        },
         superposition_schema::superposition::workspaces,
     },
     result::{self},
 };
 
+use crate::encryption::{decrypt_secret, decrypt_workspace_key, require_master_key};
 use crate::service::types::{AppState, SchemaName, WorkspaceContext};
 
-static VAR_REGEX: Lazy<regex::Regex> = Lazy::new(|| {
-    regex::Regex::new(r"\{\{VARS\.([A-Z0-9_]+)\}\}")
-        .expect("Invalid variable regex pattern")
+// using named group to capture which type (secrets/variables) the regex was
+//because variables and secrets need to be handled differently inside webhook execution
+static CONFIG_REFERENCE_REGEX: Lazy<regex::Regex> = Lazy::new(|| {
+    regex::Regex::new(r"\{\{(?P<type>VARS|SECRETS)\.(?P<name>[A-Z0-9_]+)\}\}")
+        .expect("Invalid config pattern")
 });
 
 const CONFIG_TAG_REGEX: &str = "^[a-zA-Z0-9_-]{1,64}$";
@@ -323,6 +332,95 @@ pub fn parse_config_tags(
     }
 }
 
+pub(crate) fn get_workspace(
+    workspace_schema_name: &SchemaName,
+    db_conn: &mut DBConnection,
+) -> result::Result<Workspace> {
+    let workspace = workspaces::dsl::workspaces
+        .filter(workspaces::workspace_schema_name.eq(workspace_schema_name.to_string()))
+        .get_result::<Workspace>(db_conn)?;
+    Ok(workspace)
+}
+
+fn has_pattern_in_headers(headers: &CustomHeaders, ref_type: &str) -> bool {
+    headers.values().any(|v| {
+        v.as_str()
+            .map(|s| {
+                CONFIG_REFERENCE_REGEX.captures(s).is_some_and(|caps| {
+                    caps.name("type").map(|m| m.as_str()) == Some(ref_type)
+                })
+            })
+            .unwrap_or(false)
+    })
+}
+
+fn substitute_templates(
+    template: &str,
+    variables: &HashMap<String, String>,
+    secrets: &HashMap<String, String>,
+) -> String {
+    CONFIG_REFERENCE_REGEX
+        .replace_all(template, |caps: &regex::Captures| {
+            let ref_type = caps.name("type").map(|m| m.as_str());
+            let ref_name = caps.name("name").map(|m| m.as_str());
+
+            match (ref_type, ref_name) {
+                (Some("VARS"), Some(name)) => variables.get(name).cloned(),
+                (Some("SECRETS"), Some(name)) => secrets.get(name).cloned(),
+                _ => None,
+            }
+            .unwrap_or_else(|| caps[0].to_string())
+        })
+        .into_owned()
+}
+
+fn fetch_secrets(
+    workspace_context: &WorkspaceContext,
+    state: &Data<AppState>,
+    conn: &mut DBConnection,
+) -> HashMap<String, String> {
+    let encryption_key = workspace_context.settings.encryption_key.as_str();
+
+    let master_key = match require_master_key(&state.master_key) {
+        Ok(key) => key,
+        Err(e) => {
+            log::error!("Master key not configured, skipping secrets: {}", e);
+            return HashMap::new();
+        }
+    };
+
+    let workspace_key = match decrypt_workspace_key(encryption_key, master_key) {
+        Ok(key) => key,
+        Err(e) => {
+            log::error!("Failed to decrypt workspace key: {}", e);
+            return HashMap::new();
+        }
+    };
+
+    let db_secrets: Vec<Secret> = dsl::secrets
+        .schema_name(&workspace_context.schema_name)
+        .load(conn)
+        .map_err(|e| {
+            log::error!("Failed to load secrets: {}", e);
+            Vec::<Secret>::new()
+        })
+        .unwrap_or_default();
+
+    db_secrets
+        .into_iter()
+        .filter_map(|secret| {
+            decrypt_secret(&secret.encrypted_value, &workspace_key)
+                .map(|decrypted| {
+                    (secret.name.0.clone(), decrypted.expose_secret().to_string())
+                })
+                .map_err(|e| {
+                    log::error!("Failed to decrypt secret '{}': {}", secret.name.0, e)
+                })
+                .ok()
+        })
+        .collect()
+}
+
 pub async fn execute_webhook_call<T>(
     webhook: &Webhook,
     payload: &T,
@@ -330,6 +428,7 @@ pub async fn execute_webhook_call<T>(
     workspace_context: &WorkspaceContext,
     event: WebhookEvent,
     state: &Data<AppState>,
+    conn: &mut DBConnection,
 ) -> bool
 where
     T: Serialize,
@@ -339,63 +438,26 @@ where
         return true;
     }
 
-    let substitute_variables =
-        |template: &Value, variables: &HashMap<String, String>| -> String {
-            match template {
-                Value::String(s) => VAR_REGEX
-                    .replace_all(s, |caps: &regex::Captures| {
-                        caps.get(1)
-                            .map(|m| m.as_str())
-                            .and_then(|key| variables.get(key).map(String::as_str))
-                            .unwrap_or(s.as_str())
-                    })
-                    .into_owned(),
-                other => other.to_string(),
-            }
-        };
-    let has_variables = webhook.custom_headers.values().any(|value_json| {
-        value_json
-            .as_str()
-            .map(|s| VAR_REGEX.is_match(s))
-            .unwrap_or_default()
-    });
+    let variables = if has_pattern_in_headers(&webhook.custom_headers, "VARS") {
+        let db_variables: Vec<Variable> = variable_dsl::variables
+            .schema_name(&workspace_context.schema_name)
+            .load(conn)
+            .map_err(|e| {
+                log::error!("Failed to load variables: {}", e);
+                Vec::<Secret>::new()
+            })
+            .unwrap_or_default();
 
-    let variables_map = if has_variables {
-        let variables_url = format!("{}/variables", state.cac_host);
+        db_variables
+            .into_iter()
+            .map(|variable| (variable.name.0.clone(), variable.value.clone()))
+            .collect()
+    } else {
+        HashMap::new()
+    };
 
-        let headers = match construct_request_headers(&[
-            ("x-tenant", &workspace_context.workspace_id),
-            ("x-org-id", &workspace_context.organisation_id),
-            (
-                "Authorization",
-                &format!("Internal {}", state.superposition_token),
-            ),
-        ]) {
-            Ok(h) => h,
-            Err(e) => {
-                log::error!("Failed to construct request headers: {}", e);
-                return false;
-            }
-        };
-
-        match request::<(), PaginatedResponse<Variable>>(
-            variables_url,
-            reqwest::Method::GET,
-            None,
-            headers,
-        )
-        .await
-        {
-            Ok(res) => res
-                .data
-                .into_iter()
-                .map(|v| (v.name.to_string(), v.value))
-                .collect::<HashMap<_, _>>(),
-            Err(e) => {
-                log::error!("Failed to fetch variables: {}", e);
-                HashMap::new()
-            }
-        }
+    let secrets = if has_pattern_in_headers(&webhook.custom_headers, "SECRETS") {
+        fetch_secrets(workspace_context, state, conn)
     } else {
         HashMap::new()
     };
@@ -420,19 +482,14 @@ where
         &workspace_context.workspace_id,
     );
 
-    webhook.custom_headers.iter().for_each(|(key, value)| {
+    for (key, value) in webhook.custom_headers.iter() {
         let value_str = value
             .as_str()
             .map(String::from)
             .unwrap_or_else(|| value.to_string());
-
-        let rendered = if let Some(decrypted) = state.encrypted_keys.get(&value_str) {
-            decrypted.to_string()
-        } else {
-            substitute_variables(value, &variables_map)
-        };
+        let rendered = substitute_templates(&value_str, &variables, &secrets);
         insert_header(&mut headers, key, &rendered);
-    });
+    }
 
     let request_builder = match webhook.method {
         HttpMethod::Post => state.http_client.post(&*webhook.url),
@@ -472,16 +529,6 @@ where
             false
         }
     }
-}
-
-pub(crate) fn get_workspace(
-    workspace_schema_name: &SchemaName,
-    db_conn: &mut DBConnection,
-) -> result::Result<Workspace> {
-    let workspace = workspaces::dsl::workspaces
-        .filter(workspaces::workspace_schema_name.eq(workspace_schema_name.to_string()))
-        .get_result::<Workspace>(db_conn)?;
-    Ok(workspace)
 }
 
 pub fn fetch_dimensions_info_map(

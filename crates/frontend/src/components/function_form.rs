@@ -201,9 +201,9 @@ pub fn function_editor(
                         <div class="w-full min-w-[800px] flex flex-col gap-3">
                             <Show when=move || mode.get() == Mode::Editor>
                                 <Tip
-                                    message="Reference variables using"
-                                    code_snippet="VARS.KEY_NAME"
-                                    example="VARS.API_KEY"
+                                    message="Reference variables/secrets using"
+                                    code_snippet="VARS.{VARIABLE_NAME} or SECRETS.{SECRET_NAME}"
+                                    example="VARS.FOO_VAR or SECRETS.API_KEY"
                                     code_signature=function_code_signature
                                 />
                             </Show>

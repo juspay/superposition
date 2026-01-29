@@ -1,12 +1,12 @@
 use super::helper::{fetch_webhook, validate_events};
 use actix_web::{
     HttpResponse, Scope, delete, get, patch, post,
-    web::{self, Json, Query},
+    web::{self, Data, Json, Query},
 };
 use chrono::Utc;
 use context_aware_config::helpers::validate_change_reason;
 use diesel::{ExpressionMethods, PgArrayExpressionMethods, QueryDsl, RunQueryDsl};
-use service_utils::service::types::{DbConnection, WorkspaceContext};
+use service_utils::service::types::{AppState, DbConnection, WorkspaceContext};
 use superposition_derives::authorized;
 use superposition_types::{
     PaginatedResponse, User,
@@ -35,11 +35,17 @@ async fn create_handler(
     request: Json<CreateWebhookRequest>,
     db_conn: DbConnection,
     user: User,
+    app_state: Data<AppState>,
 ) -> superposition::Result<Json<Webhook>> {
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
 
-    validate_change_reason(&workspace_context, &req.change_reason, &mut conn)?;
+    validate_change_reason(
+        &workspace_context,
+        &req.change_reason,
+        &mut conn,
+        app_state.master_key.as_ref(),
+    )?;
 
     validate_events(&req.events, None, &workspace_context.schema_name, &mut conn)?;
     let now = Utc::now();
@@ -77,12 +83,18 @@ async fn update_handler(
     db_conn: DbConnection,
     user: User,
     request: Json<UpdateWebhookRequest>,
+    app_state: Data<AppState>,
 ) -> superposition::Result<Json<Webhook>> {
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
     let w_name: String = params.into_inner().into();
 
-    validate_change_reason(&workspace_context, &req.change_reason, &mut conn)?;
+    validate_change_reason(
+        &workspace_context,
+        &req.change_reason,
+        &mut conn,
+        app_state.master_key.as_ref(),
+    )?;
 
     if let Some(webhook_events) = &req.events {
         validate_events(

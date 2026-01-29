@@ -23,6 +23,8 @@ import io.juspay.superposition.model.CreateFunctionInput;
 import io.juspay.superposition.model.CreateFunctionOutput;
 import io.juspay.superposition.model.CreateOrganisationInput;
 import io.juspay.superposition.model.CreateOrganisationOutput;
+import io.juspay.superposition.model.CreateSecretInput;
+import io.juspay.superposition.model.CreateSecretOutput;
 import io.juspay.superposition.model.CreateTypeTemplatesInput;
 import io.juspay.superposition.model.CreateTypeTemplatesOutput;
 import io.juspay.superposition.model.CreateVariableInput;
@@ -41,6 +43,8 @@ import io.juspay.superposition.model.DeleteExperimentGroupInput;
 import io.juspay.superposition.model.DeleteExperimentGroupOutput;
 import io.juspay.superposition.model.DeleteFunctionInput;
 import io.juspay.superposition.model.DeleteFunctionOutput;
+import io.juspay.superposition.model.DeleteSecretInput;
+import io.juspay.superposition.model.DeleteSecretOutput;
 import io.juspay.superposition.model.DeleteTypeTemplatesInput;
 import io.juspay.superposition.model.DeleteTypeTemplatesOutput;
 import io.juspay.superposition.model.DeleteVariableInput;
@@ -49,6 +53,8 @@ import io.juspay.superposition.model.DeleteWebhookInput;
 import io.juspay.superposition.model.DeleteWebhookOutput;
 import io.juspay.superposition.model.DiscardExperimentInput;
 import io.juspay.superposition.model.DiscardExperimentOutput;
+import io.juspay.superposition.model.GenerateMasterKeyInput;
+import io.juspay.superposition.model.GenerateMasterKeyOutput;
 import io.juspay.superposition.model.GetConfigFastInput;
 import io.juspay.superposition.model.GetConfigFastOutput;
 import io.juspay.superposition.model.GetConfigInput;
@@ -73,6 +79,8 @@ import io.juspay.superposition.model.GetResolvedConfigInput;
 import io.juspay.superposition.model.GetResolvedConfigOutput;
 import io.juspay.superposition.model.GetResolvedConfigWithIdentifierInput;
 import io.juspay.superposition.model.GetResolvedConfigWithIdentifierOutput;
+import io.juspay.superposition.model.GetSecretInput;
+import io.juspay.superposition.model.GetSecretOutput;
 import io.juspay.superposition.model.GetTypeTemplateInput;
 import io.juspay.superposition.model.GetTypeTemplateOutput;
 import io.juspay.superposition.model.GetTypeTemplatesListInput;
@@ -104,6 +112,8 @@ import io.juspay.superposition.model.ListFunctionInput;
 import io.juspay.superposition.model.ListFunctionOutput;
 import io.juspay.superposition.model.ListOrganisationInput;
 import io.juspay.superposition.model.ListOrganisationOutput;
+import io.juspay.superposition.model.ListSecretsInput;
+import io.juspay.superposition.model.ListSecretsOutput;
 import io.juspay.superposition.model.ListVariablesInput;
 import io.juspay.superposition.model.ListVariablesOutput;
 import io.juspay.superposition.model.ListVersionsInput;
@@ -127,6 +137,8 @@ import io.juspay.superposition.model.RemoveMembersFromGroupOutput;
 import io.juspay.superposition.model.ResourceNotFound;
 import io.juspay.superposition.model.ResumeExperimentInput;
 import io.juspay.superposition.model.ResumeExperimentOutput;
+import io.juspay.superposition.model.RotateMasterKeyInput;
+import io.juspay.superposition.model.RotateMasterKeyOutput;
 import io.juspay.superposition.model.TestInput;
 import io.juspay.superposition.model.TestOutput;
 import io.juspay.superposition.model.UpdateDefaultConfigInput;
@@ -143,6 +155,8 @@ import io.juspay.superposition.model.UpdateOverrideInput;
 import io.juspay.superposition.model.UpdateOverrideOutput;
 import io.juspay.superposition.model.UpdateOverridesExperimentInput;
 import io.juspay.superposition.model.UpdateOverridesExperimentOutput;
+import io.juspay.superposition.model.UpdateSecretInput;
+import io.juspay.superposition.model.UpdateSecretOutput;
 import io.juspay.superposition.model.UpdateTypeTemplatesInput;
 import io.juspay.superposition.model.UpdateTypeTemplatesOutput;
 import io.juspay.superposition.model.UpdateVariableInput;
@@ -377,6 +391,24 @@ public interface SuperpositionAsyncClient {
     CompletableFuture<CreateOrganisationOutput> createOrganisation(CreateOrganisationInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Creates a new encrypted secret with the specified name and value. The secret is encrypted with the
+     * workspace's current encryption key. Secret values are never returned in responses for security.
+     *
+     * @throws InternalServerError
+     */
+    default CompletableFuture<CreateSecretOutput> createSecret(CreateSecretInput input) {
+        return createSecret(input, null);
+    }
+
+    /**
+     * Creates a new encrypted secret with the specified name and value. The secret is encrypted with the
+     * workspace's current encryption key. Secret values are never returned in responses for security.
+     *
+     * @throws InternalServerError
+     */
+    CompletableFuture<CreateSecretOutput> createSecret(CreateSecretInput input, RequestOverrideConfig overrideConfig);
+
+    /**
      * Creates a new type template with specified schema definition, providing reusable type definitions
      * for config validation.
      *
@@ -545,6 +577,26 @@ public interface SuperpositionAsyncClient {
     CompletableFuture<DeleteFunctionOutput> deleteFunction(DeleteFunctionInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Permanently deletes a secret from the workspace. The encrypted value is removed and cannot be
+     * recovered.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    default CompletableFuture<DeleteSecretOutput> deleteSecret(DeleteSecretInput input) {
+        return deleteSecret(input, null);
+    }
+
+    /**
+     * Permanently deletes a secret from the workspace. The encrypted value is removed and cannot be
+     * recovered.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    CompletableFuture<DeleteSecretOutput> deleteSecret(DeleteSecretInput input, RequestOverrideConfig overrideConfig);
+
+    /**
      * Permanently removes a type template from the workspace. No checks performed while deleting
      *
      * @throws ResourceNotFound
@@ -619,6 +671,22 @@ public interface SuperpositionAsyncClient {
      * @throws InternalServerError
      */
     CompletableFuture<DiscardExperimentOutput> discardExperiment(DiscardExperimentInput input, RequestOverrideConfig overrideConfig);
+
+    /**
+     * Generates a new master encryption key
+     *
+     * @throws InternalServerError
+     */
+    default CompletableFuture<GenerateMasterKeyOutput> generateMasterKey(GenerateMasterKeyInput input) {
+        return generateMasterKey(input, null);
+    }
+
+    /**
+     * Generates a new master encryption key
+     *
+     * @throws InternalServerError
+     */
+    CompletableFuture<GenerateMasterKeyOutput> generateMasterKey(GenerateMasterKeyInput input, RequestOverrideConfig overrideConfig);
 
     /**
      * Retrieves config data with context evaluation, including applicable contexts, overrides, and default
@@ -847,6 +915,26 @@ public interface SuperpositionAsyncClient {
      * @throws InternalServerError
      */
     CompletableFuture<GetResolvedConfigWithIdentifierOutput> getResolvedConfigWithIdentifier(GetResolvedConfigWithIdentifierInput input, RequestOverrideConfig overrideConfig);
+
+    /**
+     * Retrieves detailed information about a specific secret by its name. The value is masked for
+     * security.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    default CompletableFuture<GetSecretOutput> getSecret(GetSecretInput input) {
+        return getSecret(input, null);
+    }
+
+    /**
+     * Retrieves detailed information about a specific secret by its name. The value is masked for
+     * security.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    CompletableFuture<GetSecretOutput> getSecret(GetSecretInput input, RequestOverrideConfig overrideConfig);
 
     /**
      * Retrieves detailed information about a specific type template including its schema and metadata.
@@ -1121,6 +1209,24 @@ public interface SuperpositionAsyncClient {
     CompletableFuture<ListOrganisationOutput> listOrganisation(ListOrganisationInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Retrieves a paginated list of all secrets in the workspace with optional filtering and sorting. All
+     * secret values are masked.
+     *
+     * @throws InternalServerError
+     */
+    default CompletableFuture<ListSecretsOutput> listSecrets(ListSecretsInput input) {
+        return listSecrets(input, null);
+    }
+
+    /**
+     * Retrieves a paginated list of all secrets in the workspace with optional filtering and sorting. All
+     * secret values are masked.
+     *
+     * @throws InternalServerError
+     */
+    CompletableFuture<ListSecretsOutput> listSecrets(ListSecretsInput input, RequestOverrideConfig overrideConfig);
+
+    /**
      * Retrieves a paginated list of all variables in the workspace with optional filtering and sorting.
      *
      * @throws InternalServerError
@@ -1327,6 +1433,22 @@ public interface SuperpositionAsyncClient {
     CompletableFuture<ResumeExperimentOutput> resumeExperiment(ResumeExperimentInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Rotates the master key encryption key across all workspaces
+     *
+     * @throws InternalServerError
+     */
+    default CompletableFuture<RotateMasterKeyOutput> rotateMasterKey(RotateMasterKeyInput input) {
+        return rotateMasterKey(input, null);
+    }
+
+    /**
+     * Rotates the master key encryption key across all workspaces
+     *
+     * @throws InternalServerError
+     */
+    CompletableFuture<RotateMasterKeyOutput> rotateMasterKey(RotateMasterKeyInput input, RequestOverrideConfig overrideConfig);
+
+    /**
      * Executes a function in test mode with provided input parameters to validate its behavior before
      * publishing or deployment.
      *
@@ -1485,6 +1607,26 @@ public interface SuperpositionAsyncClient {
      * @throws InternalServerError
      */
     CompletableFuture<UpdateOverridesExperimentOutput> updateOverridesExperiment(UpdateOverridesExperimentInput input, RequestOverrideConfig overrideConfig);
+
+    /**
+     * Updates an existing secret's value or description. The value is re-encrypted with the current
+     * workspace encryption key. Returns masked value.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    default CompletableFuture<UpdateSecretOutput> updateSecret(UpdateSecretInput input) {
+        return updateSecret(input, null);
+    }
+
+    /**
+     * Updates an existing secret's value or description. The value is re-encrypted with the current
+     * workspace encryption key. Returns masked value.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    CompletableFuture<UpdateSecretOutput> updateSecret(UpdateSecretInput input, RequestOverrideConfig overrideConfig);
 
     /**
      * Updates an existing type template's schema definition and metadata while preserving its identifier

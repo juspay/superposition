@@ -16,6 +16,8 @@ use crate::pages::experiment_list::ExperimentList;
 use crate::pages::function::{
     FunctionPage, function_create::CreateFunctionView, function_list::FunctionList,
 };
+use crate::pages::secret::Secret;
+use crate::pages::secrets_list::SecretsList;
 use crate::pages::variable::Variable;
 use crate::pages::variables_list::VariablesList;
 use crate::pages::{
@@ -198,6 +200,9 @@ pub fn app(app_envs: Envs) -> impl IntoView {
 
                         <Route ssr=SsrMode::Async path="variables" view=VariablesList />
                         <Route ssr=SsrMode::Async path="variables/:variable_name" view=Variable />
+
+                        <Route ssr=SsrMode::Async path="secrets" view=SecretsList />
+                        <Route ssr=SsrMode::Async path="secrets/:secret_name" view=Secret />
                     </Route>
                 // <Route
                 // path="/*any"

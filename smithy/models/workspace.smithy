@@ -203,3 +203,30 @@ operation MigrateWorkspaceSchema with [GetOperation] {
     input: MigrateWorkspaceSchemaRequest
     output: WorkspaceResponse
 }
+
+@documentation("Status response for encryption key rotation operation.")
+structure KeyRotationStatus {
+    @required
+    @notProperty
+    @documentation("Number of secrets that were re-encrypted with the new key.")
+    total_secrets_re_encrypted: Long
+
+    @required
+    @notProperty
+    @documentation("Timestamp when the rotation was completed.")
+    rotation_timestamp: DateTime
+}
+
+@documentation("Rotates the workspace encryption key. Generates a new encryption key, re-encrypts all secrets with the new key, and stores the old key as previous_encryption_key for graceful migration. This is a critical operation that should be done during low-traffic periods.")
+@http(method: "POST", uri: "/workspaces/rotate-key")
+@tags(["Workspace Management"])
+operation RotateWorkspaceKey {
+    input := with [WorkspaceMixin] {
+        @required
+        @notProperty
+        @documentation("Reason for rotating the encryption key (e.g., 'Scheduled rotation', 'Security incident').")
+        change_reason: String
+    }
+
+    output: KeyRotationStatus
+}

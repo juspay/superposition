@@ -209,6 +209,7 @@ pub fn resolve(
     conn: &mut DBConnection,
     query_filters: &ResolveConfigQuery,
     workspace_context: &WorkspaceContext,
+    master_key: Option<&secrecy::SecretString>,
 ) -> superposition::Result<Map<String, Value>> {
     *config = apply_prefix_filter_to_config(&query_filters.prefix, config.clone())?;
 
@@ -232,7 +233,8 @@ pub fn resolve(
             &config.dimensions,
             &query_data,
             conn,
-            &workspace_context.schema_name,
+            workspace_context,
+            master_key,
         )?);
     }
 

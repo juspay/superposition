@@ -26,6 +26,7 @@ from .models import (
     CreateExperimentInput,
     CreateFunctionInput,
     CreateOrganisationInput,
+    CreateSecretInput,
     CreateTypeTemplatesInput,
     CreateVariableInput,
     CreateWebhookInput,
@@ -35,10 +36,12 @@ from .models import (
     DeleteDimensionInput,
     DeleteExperimentGroupInput,
     DeleteFunctionInput,
+    DeleteSecretInput,
     DeleteTypeTemplatesInput,
     DeleteVariableInput,
     DeleteWebhookInput,
     DiscardExperimentInput,
+    GenerateMasterKeyInput,
     GetConfigFastInput,
     GetConfigInput,
     GetContextFromConditionInput,
@@ -51,6 +54,7 @@ from .models import (
     GetOrganisationInput,
     GetResolvedConfigInput,
     GetResolvedConfigWithIdentifierInput,
+    GetSecretInput,
     GetTypeTemplateInput,
     GetTypeTemplatesListInput,
     GetVariableInput,
@@ -66,6 +70,7 @@ from .models import (
     ListExperimentInput,
     ListFunctionInput,
     ListOrganisationInput,
+    ListSecretsInput,
     ListVariablesInput,
     ListVersionsInput,
     ListWebhookInput,
@@ -77,6 +82,7 @@ from .models import (
     RampExperimentInput,
     RemoveMembersFromGroupInput,
     ResumeExperimentInput,
+    RotateMasterKeyInput,
     ServiceError,
     TestInput,
     UpdateDefaultConfigInput,
@@ -86,6 +92,7 @@ from .models import (
     UpdateOrganisationInput,
     UpdateOverrideInput,
     UpdateOverridesExperimentInput,
+    UpdateSecretInput,
     UpdateTypeTemplatesInput,
     UpdateVariableInput,
     UpdateWebhookInput,
@@ -505,6 +512,42 @@ async def _serialize_create_organisation(input: CreateOrganisationInput, config:
         body=body,
     )
 
+async def _serialize_create_secret(input: CreateSecretInput, config: Config) -> HTTPRequest:
+    path = "/secrets"
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+    content = codec.serialize(input)
+    if not content:
+        content = b"{}"
+    content_length = len(content)
+    body = SeekableAsyncBytesReader(content)
+
+    headers = Fields(
+        [
+            Field(name="Content-Type", values=["application/json"]),
+            Field(name="Content-Length", values=[str(content_length)]),
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="POST",
+        fields=headers,
+        body=body,
+    )
+
 async def _serialize_create_type_templates(input: CreateTypeTemplatesInput, config: Config) -> HTTPRequest:
     path = "/types"
     query: str = f''
@@ -809,6 +852,38 @@ async def _serialize_delete_function(input: DeleteFunctionInput, config: Config)
         body=body,
     )
 
+async def _serialize_delete_secret(input: DeleteSecretInput, config: Config) -> HTTPRequest:
+    if not input.name:
+        raise ServiceError("name must not be empty.")
+
+    path = "/secrets/{name}".format(
+        name=urlquote(input.name, safe=''),
+    )
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    headers = Fields(
+        [
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="DELETE",
+        fields=headers,
+        body=body,
+    )
+
 async def _serialize_delete_type_templates(input: DeleteTypeTemplatesInput, config: Config) -> HTTPRequest:
     if not input.type_name:
         raise ServiceError("type_name must not be empty.")
@@ -942,6 +1017,29 @@ async def _serialize_discard_experiment(input: DiscardExperimentInput, config: C
             query=query,
         ),
         method="PATCH",
+        fields=headers,
+        body=body,
+    )
+
+async def _serialize_generate_master_key(input: GenerateMasterKeyInput, config: Config) -> HTTPRequest:
+    path = "/master-key/generate"
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    headers = Fields(
+        [
+
+        ]
+    )
+
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="POST",
         fields=headers,
         body=body,
     )
@@ -1375,6 +1473,38 @@ async def _serialize_get_resolved_config_with_identifier(input: GetResolvedConfi
             query=query,
         ),
         method="POST",
+        fields=headers,
+        body=body,
+    )
+
+async def _serialize_get_secret(input: GetSecretInput, config: Config) -> HTTPRequest:
+    if not input.name:
+        raise ServiceError("name must not be empty.")
+
+    path = "/secrets/{name}".format(
+        name=urlquote(input.name, safe=''),
+    )
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    headers = Fields(
+        [
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="GET",
         fields=headers,
         body=body,
     )
@@ -1962,6 +2092,53 @@ async def _serialize_list_organisation(input: ListOrganisationInput, config: Con
         body=body,
     )
 
+async def _serialize_list_secrets(input: ListSecretsInput, config: Config) -> HTTPRequest:
+    path = "/secrets"
+    query: str = f''
+
+    query_params: list[tuple[str, str | None]] = []
+    if input.count is not None:
+        query_params.append(("count", str(input.count)))
+    if input.page is not None:
+        query_params.append(("page", str(input.page)))
+    if input.all is not None:
+        query_params.append(("all", ('true' if input.all else 'false')))
+    if input.name is not None:
+        query_params.append(("name", input.name))
+    if input.created_by is not None:
+        query_params.append(("created_by", input.created_by))
+    if input.last_modified_by is not None:
+        query_params.append(("last_modified_by", input.last_modified_by))
+    if input.sort_on is not None:
+        query_params.append(("sort_on", input.sort_on))
+    if input.sort_by is not None:
+        query_params.append(("sort_by", input.sort_by))
+
+    query = join_query_params(params=query_params, prefix=query)
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    headers = Fields(
+        [
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="GET",
+        fields=headers,
+        body=body,
+    )
+
 async def _serialize_list_variables(input: ListVariablesInput, config: Config) -> HTTPRequest:
     path = "/variables"
     query: str = f''
@@ -2396,6 +2573,29 @@ async def _serialize_resume_experiment(input: ResumeExperimentInput, config: Con
         body=body,
     )
 
+async def _serialize_rotate_master_key(input: RotateMasterKeyInput, config: Config) -> HTTPRequest:
+    path = "/master-key/rotate"
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    headers = Fields(
+        [
+
+        ]
+    )
+
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="POST",
+        fields=headers,
+        body=body,
+    )
+
 async def _serialize_test(input: TestInput, config: Config) -> HTTPRequest:
     if not input.function_name:
         raise ServiceError("function_name must not be empty.")
@@ -2690,6 +2890,47 @@ async def _serialize_update_overrides_experiment(input: UpdateOverridesExperimen
 
     path = "/experiments/{id}/overrides".format(
         id=urlquote(input.id, safe=''),
+    )
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+    content = codec.serialize(input)
+    if not content:
+        content = b"{}"
+    content_length = len(content)
+    body = SeekableAsyncBytesReader(content)
+
+    headers = Fields(
+        [
+            Field(name="Content-Type", values=["application/json"]),
+            Field(name="Content-Length", values=[str(content_length)]),
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="PATCH",
+        fields=headers,
+        body=body,
+    )
+
+async def _serialize_update_secret(input: UpdateSecretInput, config: Config) -> HTTPRequest:
+    if not input.name:
+        raise ServiceError("name must not be empty.")
+
+    path = "/secrets/{name}".format(
+        name=urlquote(input.name, safe=''),
     )
     query: str = f''
 

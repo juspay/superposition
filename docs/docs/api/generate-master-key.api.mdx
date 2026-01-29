@@ -1,0 +1,63 @@
+---
+id: generate-master-key
+title: "GenerateMasterKey"
+description: "Generates a new master encryption key"
+sidebar_label: "GenerateMasterKey"
+hide_title: true
+hide_table_of_contents: true
+api: eJytVMtu2zAQ/BWCZzkWXPiSW1oUaVAUDWr3ZBgFTW8tphLFLCmngqB/7y4lWXatBjn0pAdnZ3dmR2rkHrxG44IprbyV92ABVQAvlLDwIgrlA6AAq7GOGPELapnI0jGMnh/2Z1VfIvpzRCB4V1oPXt42cpGmfJnudaoSBBNDHVHo0gawgSuVc7nRseP8yXN5I73OoFB8F2oHRFjunkAHKrzs861nFMynjDX2wNryWhz6CfaDzk6cQ5YXTDd7d/SDj8ZWPiDRyDaRxtJ9pbmXnwS8KOSWE2ctu/RcGQQycXPJlJz3HUm2iQwm5DBl36DzQ29b23KH5ZT1D4RAq/IV4BHwI2KJYvmfzP/LPfBeHWBa/SBlYpwpMVRRQMhKjpwrfWymQkZP886sGZk1H5ZKpx50hSbQ4jY0cWFCVt8oZ26yENx75Y2+q7h8s22T63NQCHgCbEe2FUvv1P2b8ySX319F8tN6/SgiWiiCk8DeXx460hNox+ecoFcme0ubCH+tTwTEhRj7s4yk/WJWFa2SrDZ9DW3Hd9SLdLGcpe9m6ZIn5G0UKgbDquI8naKLp+h+ChfjNWPG3vzf6dUG+B3mLqePmbtXmDNbl4WNHLNABac00AIzzgwBmoashe+Yty2/fq4AOSJ0e1Ro1I6lcyZkBmpPznB64ucv77QGx7k7qrziQa4+DQ7KKaSPX1dr8vUPUNnnkA==
+sidebar_class_name: "post api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"GenerateMasterKey"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/master-key/generate"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Generates a new master encryption key
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"GenerateMasterKey 200 response","content":{"application/json":{"schema":{"type":"object","description":"Response containing newly generated master key","properties":{"master_key":{"type":"string"},"instructions":{"type":"string"},"warning":{"type":"string"}},"required":["instructions","master_key","warning"],"title":"GenerateMasterKeyResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

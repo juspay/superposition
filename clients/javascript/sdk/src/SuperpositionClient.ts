@@ -50,6 +50,10 @@ import {
   CreateOrganisationCommandOutput,
 } from "./commands/CreateOrganisationCommand";
 import {
+  CreateSecretCommandInput,
+  CreateSecretCommandOutput,
+} from "./commands/CreateSecretCommand";
+import {
   CreateTypeTemplatesCommandInput,
   CreateTypeTemplatesCommandOutput,
 } from "./commands/CreateTypeTemplatesCommand";
@@ -86,6 +90,10 @@ import {
   DeleteFunctionCommandOutput,
 } from "./commands/DeleteFunctionCommand";
 import {
+  DeleteSecretCommandInput,
+  DeleteSecretCommandOutput,
+} from "./commands/DeleteSecretCommand";
+import {
   DeleteTypeTemplatesCommandInput,
   DeleteTypeTemplatesCommandOutput,
 } from "./commands/DeleteTypeTemplatesCommand";
@@ -101,6 +109,10 @@ import {
   DiscardExperimentCommandInput,
   DiscardExperimentCommandOutput,
 } from "./commands/DiscardExperimentCommand";
+import {
+  GenerateMasterKeyCommandInput,
+  GenerateMasterKeyCommandOutput,
+} from "./commands/GenerateMasterKeyCommand";
 import {
   GetConfigCommandInput,
   GetConfigCommandOutput,
@@ -149,6 +161,10 @@ import {
   GetResolvedConfigWithIdentifierCommandInput,
   GetResolvedConfigWithIdentifierCommandOutput,
 } from "./commands/GetResolvedConfigWithIdentifierCommand";
+import {
+  GetSecretCommandInput,
+  GetSecretCommandOutput,
+} from "./commands/GetSecretCommand";
 import {
   GetTypeTemplateCommandInput,
   GetTypeTemplateCommandOutput,
@@ -210,6 +226,10 @@ import {
   ListOrganisationCommandOutput,
 } from "./commands/ListOrganisationCommand";
 import {
+  ListSecretsCommandInput,
+  ListSecretsCommandOutput,
+} from "./commands/ListSecretsCommand";
+import {
   ListVariablesCommandInput,
   ListVariablesCommandOutput,
 } from "./commands/ListVariablesCommand";
@@ -254,6 +274,10 @@ import {
   ResumeExperimentCommandOutput,
 } from "./commands/ResumeExperimentCommand";
 import {
+  RotateMasterKeyCommandInput,
+  RotateMasterKeyCommandOutput,
+} from "./commands/RotateMasterKeyCommand";
+import {
   TestCommandInput,
   TestCommandOutput,
 } from "./commands/TestCommand";
@@ -285,6 +309,10 @@ import {
   UpdateOverridesExperimentCommandInput,
   UpdateOverridesExperimentCommandOutput,
 } from "./commands/UpdateOverridesExperimentCommand";
+import {
+  UpdateSecretCommandInput,
+  UpdateSecretCommandOutput,
+} from "./commands/UpdateSecretCommand";
 import {
   UpdateTypeTemplatesCommandInput,
   UpdateTypeTemplatesCommandOutput,
@@ -386,6 +414,7 @@ export type ServiceInputTypes =
   | CreateExperimentGroupCommandInput
   | CreateFunctionCommandInput
   | CreateOrganisationCommandInput
+  | CreateSecretCommandInput
   | CreateTypeTemplatesCommandInput
   | CreateVariableCommandInput
   | CreateWebhookCommandInput
@@ -395,10 +424,12 @@ export type ServiceInputTypes =
   | DeleteDimensionCommandInput
   | DeleteExperimentGroupCommandInput
   | DeleteFunctionCommandInput
+  | DeleteSecretCommandInput
   | DeleteTypeTemplatesCommandInput
   | DeleteVariableCommandInput
   | DeleteWebhookCommandInput
   | DiscardExperimentCommandInput
+  | GenerateMasterKeyCommandInput
   | GetConfigCommandInput
   | GetConfigFastCommandInput
   | GetContextCommandInput
@@ -411,6 +442,7 @@ export type ServiceInputTypes =
   | GetOrganisationCommandInput
   | GetResolvedConfigCommandInput
   | GetResolvedConfigWithIdentifierCommandInput
+  | GetSecretCommandInput
   | GetTypeTemplateCommandInput
   | GetTypeTemplatesListCommandInput
   | GetVariableCommandInput
@@ -426,6 +458,7 @@ export type ServiceInputTypes =
   | ListExperimentGroupsCommandInput
   | ListFunctionCommandInput
   | ListOrganisationCommandInput
+  | ListSecretsCommandInput
   | ListVariablesCommandInput
   | ListVersionsCommandInput
   | ListWebhookCommandInput
@@ -437,6 +470,7 @@ export type ServiceInputTypes =
   | RampExperimentCommandInput
   | RemoveMembersFromGroupCommandInput
   | ResumeExperimentCommandInput
+  | RotateMasterKeyCommandInput
   | TestCommandInput
   | UpdateDefaultConfigCommandInput
   | UpdateDimensionCommandInput
@@ -445,6 +479,7 @@ export type ServiceInputTypes =
   | UpdateOrganisationCommandInput
   | UpdateOverrideCommandInput
   | UpdateOverridesExperimentCommandInput
+  | UpdateSecretCommandInput
   | UpdateTypeTemplatesCommandInput
   | UpdateVariableCommandInput
   | UpdateWebhookCommandInput
@@ -467,6 +502,7 @@ export type ServiceOutputTypes =
   | CreateExperimentGroupCommandOutput
   | CreateFunctionCommandOutput
   | CreateOrganisationCommandOutput
+  | CreateSecretCommandOutput
   | CreateTypeTemplatesCommandOutput
   | CreateVariableCommandOutput
   | CreateWebhookCommandOutput
@@ -476,10 +512,12 @@ export type ServiceOutputTypes =
   | DeleteDimensionCommandOutput
   | DeleteExperimentGroupCommandOutput
   | DeleteFunctionCommandOutput
+  | DeleteSecretCommandOutput
   | DeleteTypeTemplatesCommandOutput
   | DeleteVariableCommandOutput
   | DeleteWebhookCommandOutput
   | DiscardExperimentCommandOutput
+  | GenerateMasterKeyCommandOutput
   | GetConfigCommandOutput
   | GetConfigFastCommandOutput
   | GetContextCommandOutput
@@ -492,6 +530,7 @@ export type ServiceOutputTypes =
   | GetOrganisationCommandOutput
   | GetResolvedConfigCommandOutput
   | GetResolvedConfigWithIdentifierCommandOutput
+  | GetSecretCommandOutput
   | GetTypeTemplateCommandOutput
   | GetTypeTemplatesListCommandOutput
   | GetVariableCommandOutput
@@ -507,6 +546,7 @@ export type ServiceOutputTypes =
   | ListExperimentGroupsCommandOutput
   | ListFunctionCommandOutput
   | ListOrganisationCommandOutput
+  | ListSecretsCommandOutput
   | ListVariablesCommandOutput
   | ListVersionsCommandOutput
   | ListWebhookCommandOutput
@@ -518,6 +558,7 @@ export type ServiceOutputTypes =
   | RampExperimentCommandOutput
   | RemoveMembersFromGroupCommandOutput
   | ResumeExperimentCommandOutput
+  | RotateMasterKeyCommandOutput
   | TestCommandOutput
   | UpdateDefaultConfigCommandOutput
   | UpdateDimensionCommandOutput
@@ -526,6 +567,7 @@ export type ServiceOutputTypes =
   | UpdateOrganisationCommandOutput
   | UpdateOverrideCommandOutput
   | UpdateOverridesExperimentCommandOutput
+  | UpdateSecretCommandOutput
   | UpdateTypeTemplatesCommandOutput
   | UpdateVariableCommandOutput
   | UpdateWebhookCommandOutput

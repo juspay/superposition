@@ -3587,6 +3587,62 @@
                 ]
             }
         },
+        "/master-key/generate": {
+            "post": {
+                "description": "Generates a new master encryption key",
+                "operationId": "GenerateMasterKey",
+                "responses": {
+                    "200": {
+                        "description": "GenerateMasterKey 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GenerateMasterKeyResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/master-key/rotate": {
+            "post": {
+                "description": "Rotates the master key encryption key across all workspaces",
+                "operationId": "RotateMasterKey",
+                "responses": {
+                    "200": {
+                        "description": "RotateMasterKey 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RotateMasterKeyResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/resolve": {
             "post": {
                 "description": "Resolves and merges config values based on context conditions and identifier, applying overrides and merge strategies to produce the final configuration.",
@@ -3718,6 +3774,353 @@
                 "tags": [
                     "Configuration Management"
                 ]
+            }
+        },
+        "/secrets": {
+            "get": {
+                "description": "Retrieves a paginated list of all secrets in the workspace with optional filtering and sorting. All secret values are masked.",
+                "operationId": "ListSecrets",
+                "parameters": [
+                    {
+                        "name": "count",
+                        "in": "query",
+                        "description": "Number of items to be returned in each page.",
+                        "schema": {
+                            "type": "number",
+                            "description": "Number of items to be returned in each page."
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number to retrieve, starting from 1.",
+                        "schema": {
+                            "type": "number",
+                            "description": "Page number to retrieve, starting from 1."
+                        }
+                    },
+                    {
+                        "name": "all",
+                        "in": "query",
+                        "description": "If true, returns all requested items, ignoring pagination parameters page and count.",
+                        "schema": {
+                            "type": "boolean",
+                            "description": "If true, returns all requested items, ignoring pagination parameters page and count."
+                        }
+                    },
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "description": "Filter by secret name.",
+                        "schema": {
+                            "type": "string",
+                            "description": "Filter by secret name."
+                        }
+                    },
+                    {
+                        "name": "created_by",
+                        "in": "query",
+                        "description": "Filter by the user who created the secret.",
+                        "schema": {
+                            "type": "string",
+                            "description": "Filter by the user who created the secret."
+                        }
+                    },
+                    {
+                        "name": "last_modified_by",
+                        "in": "query",
+                        "description": "Filter by the user who last modified the secret.",
+                        "schema": {
+                            "type": "string",
+                            "description": "Filter by the user who last modified the secret."
+                        }
+                    },
+                    {
+                        "name": "sort_on",
+                        "in": "query",
+                        "description": "Field to sort the results by.",
+                        "schema": {
+                            "$ref": "#/components/schemas/SecretSortOn"
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "description": "Sort order (ascending or descending).",
+                        "schema": {
+                            "$ref": "#/components/schemas/SortBy"
+                        }
+                    },
+                    {
+                        "name": "x-org-id",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-workspace",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ListSecrets 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListSecretsResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new encrypted secret with the specified name and value. The secret is encrypted with the workspace's current encryption key. Secret values are never returned in responses for security.",
+                "operationId": "CreateSecret",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateSecretRequestContent"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "parameters": [
+                    {
+                        "name": "x-org-id",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-workspace",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "CreateSecret 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CreateSecretResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/secrets/{name}": {
+            "delete": {
+                "description": "Permanently deletes a secret from the workspace. The encrypted value is removed and cannot be recovered.",
+                "operationId": "DeleteSecret",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-org-id",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-workspace",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "DeleteSecret 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeleteSecretResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "ResourceNotFound 404 response"
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "description": "Retrieves detailed information about a specific secret by its name. The value is masked for security.",
+                "operationId": "GetSecret",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-org-id",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-workspace",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "GetSecret 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetSecretResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "ResourceNotFound 404 response"
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Updates an existing secret's value or description. The value is re-encrypted with the current workspace encryption key. Returns masked value.",
+                "operationId": "UpdateSecret",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateSecretRequestContent"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-org-id",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-workspace",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "UpdateSecret 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UpdateSecretResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "ResourceNotFound 404 response"
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "/superposition/organisations": {
@@ -6580,6 +6983,68 @@
                     "updated_by"
                 ]
             },
+            "CreateSecretRequestContent": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "value": {
+                        "type": "string",
+                        "description": "Plaintext value to be encrypted and stored."
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "change_reason": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "change_reason",
+                    "description",
+                    "name",
+                    "value"
+                ]
+            },
+            "CreateSecretResponseContent": {
+                "type": "object",
+                "description": "Response structure for secret operations. Secret values are never returned for security.",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "change_reason": {
+                        "type": "string"
+                    },
+                    "created_by": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "last_modified_by": {
+                        "type": "string"
+                    },
+                    "last_modified_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "change_reason",
+                    "created_at",
+                    "created_by",
+                    "description",
+                    "last_modified_at",
+                    "last_modified_by",
+                    "name"
+                ]
+            },
             "CreateTypeTemplatesRequestContent": {
                 "type": "object",
                 "properties": {
@@ -7051,6 +7516,44 @@
                     "member_experiment_ids",
                     "name",
                     "traffic_percentage"
+                ]
+            },
+            "DeleteSecretResponseContent": {
+                "type": "object",
+                "description": "Response structure for secret operations. Secret values are never returned for security.",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "change_reason": {
+                        "type": "string"
+                    },
+                    "created_by": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "last_modified_by": {
+                        "type": "string"
+                    },
+                    "last_modified_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "change_reason",
+                    "created_at",
+                    "created_by",
+                    "description",
+                    "last_modified_at",
+                    "last_modified_by",
+                    "name"
                 ]
             },
             "DeleteTypeTemplatesResponseContent": {
@@ -7709,6 +8212,26 @@
                     "CHANGE_REASON_VALIDATION"
                 ]
             },
+            "GenerateMasterKeyResponseContent": {
+                "type": "object",
+                "description": "Response containing newly generated master key",
+                "properties": {
+                    "master_key": {
+                        "type": "string"
+                    },
+                    "instructions": {
+                        "type": "string"
+                    },
+                    "warning": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "instructions",
+                    "master_key",
+                    "warning"
+                ]
+            },
             "GetConfigFastOutputPayload": {},
             "GetConfigRequestContent": {
                 "type": "object",
@@ -8260,6 +8783,44 @@
                     }
                 }
             },
+            "GetSecretResponseContent": {
+                "type": "object",
+                "description": "Response structure for secret operations. Secret values are never returned for security.",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "change_reason": {
+                        "type": "string"
+                    },
+                    "created_by": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "last_modified_by": {
+                        "type": "string"
+                    },
+                    "last_modified_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "change_reason",
+                    "created_at",
+                    "created_by",
+                    "description",
+                    "last_modified_at",
+                    "last_modified_by",
+                    "name"
+                ]
+            },
             "GetTypeTemplateResponseContent": {
                 "type": "object",
                 "properties": {
@@ -8808,6 +9369,28 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/OrganisationResponse"
+                        }
+                    }
+                },
+                "required": [
+                    "data",
+                    "total_items",
+                    "total_pages"
+                ]
+            },
+            "ListSecretsResponseContent": {
+                "type": "object",
+                "properties": {
+                    "total_pages": {
+                        "type": "number"
+                    },
+                    "total_items": {
+                        "type": "number"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SecretResponse"
                         }
                     }
                 },
@@ -9616,6 +10199,77 @@
                     "variants"
                 ]
             },
+            "RotateMasterKeyResponseContent": {
+                "type": "object",
+                "description": "Response after generating the master key",
+                "properties": {
+                    "workspaces_rotated": {
+                        "type": "number"
+                    },
+                    "total_secrets_re_encrypted": {
+                        "type": "number"
+                    },
+                    "rotated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "new_master_key": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "new_master_key",
+                    "rotated_at",
+                    "total_secrets_re_encrypted",
+                    "workspaces_rotated"
+                ]
+            },
+            "SecretResponse": {
+                "type": "object",
+                "description": "Response structure for secret operations. Secret values are never returned for security.",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "change_reason": {
+                        "type": "string"
+                    },
+                    "created_by": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "last_modified_by": {
+                        "type": "string"
+                    },
+                    "last_modified_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "change_reason",
+                    "created_at",
+                    "created_by",
+                    "description",
+                    "last_modified_at",
+                    "last_modified_by",
+                    "name"
+                ]
+            },
+            "SecretSortOn": {
+                "type": "string",
+                "enum": [
+                    "name",
+                    "created_at",
+                    "last_modified_at"
+                ]
+            },
             "SortBy": {
                 "type": "string",
                 "description": "Sort order enumeration for list operations.",
@@ -10301,6 +10955,62 @@
                     "status",
                     "traffic_percentage",
                     "variants"
+                ]
+            },
+            "UpdateSecretRequestContent": {
+                "type": "object",
+                "properties": {
+                    "value": {
+                        "type": "string",
+                        "description": "New plaintext value to encrypt and store. If provided, will be encrypted with current key."
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "change_reason": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "change_reason"
+                ]
+            },
+            "UpdateSecretResponseContent": {
+                "type": "object",
+                "description": "Response structure for secret operations. Secret values are never returned for security.",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "change_reason": {
+                        "type": "string"
+                    },
+                    "created_by": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "last_modified_by": {
+                        "type": "string"
+                    },
+                    "last_modified_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "change_reason",
+                    "created_at",
+                    "created_by",
+                    "description",
+                    "last_modified_at",
+                    "last_modified_by",
+                    "name"
                 ]
             },
             "UpdateTypeTemplatesRequestContent": {

@@ -159,6 +159,10 @@ final class SharedSchemas {
         .putMember("member", OrganisationResponse.$SCHEMA)
         .build();
 
+    static final Schema SECRET_LIST = Schema.listBuilder(ShapeId.from("io.superposition#SecretList"))
+        .putMember("member", SecretResponse.$SCHEMA)
+        .build();
+
     static final Schema VARIABLE_LIST = Schema.listBuilder(ShapeId.from("io.superposition#VariableList"))
         .putMember("member", VariableResponse.$SCHEMA)
         .build();

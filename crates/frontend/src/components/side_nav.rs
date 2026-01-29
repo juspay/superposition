@@ -59,6 +59,12 @@ fn create_routes(org: &str, workspace: &str) -> Vec<AppRoute> {
             label: "Variables".to_string(),
         },
         AppRoute {
+            key: format!("{base}/admin/{org}/{workspace}/secrets"),
+            path: format!("{base}/admin/{org}/{workspace}/secrets"),
+            icon: "ri-key-2-line".to_string(),
+            label: "Secrets".to_string(),
+        },
+        AppRoute {
             key: format!("{base}/admin/{org}/{workspace}/function"),
             path: format!("{base}/admin/{org}/{workspace}/function"),
             icon: "ri-code-box-fill".to_string(),

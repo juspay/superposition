@@ -629,6 +629,62 @@ const sidebar: SidebarsConfig = {
         },
       ],
     },
+    {
+      type: "category",
+      label: "UNTAGGED",
+      collapsed: false,
+      items: [
+        {
+          type: "doc",
+          id: "api/generate-master-key",
+          label: "GenerateMasterKey",
+          customProps: {},
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "api/rotate-master-key",
+          label: "RotateMasterKey",
+          customProps: {},
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "api/list-secrets",
+          label: "ListSecrets",
+          customProps: {},
+          className: "api-method get",
+        },
+        {
+          type: "doc",
+          id: "api/create-secret",
+          label: "CreateSecret",
+          customProps: {},
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "api/delete-secret",
+          label: "DeleteSecret",
+          customProps: {},
+          className: "api-method delete",
+        },
+        {
+          type: "doc",
+          id: "api/get-secret",
+          label: "GetSecret",
+          customProps: {},
+          className: "api-method get",
+        },
+        {
+          type: "doc",
+          id: "api/update-secret",
+          label: "UpdateSecret",
+          customProps: {},
+          className: "api-method patch",
+        },
+      ],
+    },
   ],
 };
 

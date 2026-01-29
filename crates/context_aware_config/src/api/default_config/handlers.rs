@@ -80,7 +80,12 @@ async fn create_handler(
         return Err(bad_argument!("Schema cannot be empty."));
     }
 
-    validate_change_reason(&workspace_context, &req.change_reason, &mut conn)?;
+    validate_change_reason(
+        &workspace_context,
+        &req.change_reason,
+        &mut conn,
+        state.master_key.as_ref(),
+    )?;
 
     let value = req.value;
 
@@ -125,11 +130,12 @@ async fn create_handler(
     }
 
     validate_default_config_with_function(
+        &workspace_context,
         &mut conn,
         &default_config.value_validation_function_name,
         &default_config.key,
         &default_config.value,
-        &workspace_context.schema_name,
+        state.master_key.as_ref(),
     )?;
 
     validate_fn_published(
@@ -215,7 +221,12 @@ async fn update_handler(
             }
         })?;
 
-    validate_change_reason(&workspace_context, &req.change_reason, &mut conn)?;
+    validate_change_reason(
+        &workspace_context,
+        &req.change_reason,
+        &mut conn,
+        state.master_key.as_ref(),
+    )?;
 
     let value = req.value.clone().unwrap_or_else(|| existing.value.clone());
 
@@ -245,11 +256,12 @@ async fn update_handler(
         let value = req.value.clone().unwrap_or_else(|| existing.value.clone());
 
         validate_default_config_with_function(
+            &workspace_context,
             &mut conn,
             validation_function_name,
             &key_str,
             &value,
-            &workspace_context.schema_name,
+            state.master_key.as_ref(),
         )?
     }
 
@@ -311,11 +323,12 @@ fn validate_fn_published(
 }
 
 fn validate_default_config_with_function(
+    workspace_context: &WorkspaceContext,
     conn: &mut DBConnection,
     function_name: &Option<String>,
     key: &str,
     value: &Value,
-    schema_name: &SchemaName,
+    master_key: Option<&secrecy::SecretString>,
 ) -> superposition::Result<()> {
     if let Some(f_name) = function_name {
         let FunctionInfo {
@@ -326,13 +339,14 @@ fn validate_default_config_with_function(
             conn,
             f_name,
             FunctionType::ValueValidation,
-            schema_name,
+            &workspace_context.schema_name,
         )
         .map_err(|_| {
             bad_argument!("Function {}'s published code does not exist.", f_name)
         })?;
         if let (Some(f_code), Some(f_version)) = (function_code, function_version) {
             validation_function_executor(
+                workspace_context,
                 f_name.as_str(),
                 &f_code,
                 &FunctionExecutionRequest::ValueValidationFunctionRequest {
@@ -343,10 +357,10 @@ fn validate_default_config_with_function(
                 },
                 f_version,
                 conn,
-                schema_name,
+                master_key,
             )?;
         }
-    }
+    };
     Ok(())
 }
 

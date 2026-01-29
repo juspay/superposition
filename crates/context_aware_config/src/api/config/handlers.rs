@@ -2,22 +2,22 @@ use std::collections::HashMap;
 
 #[cfg(feature = "high-performance-mode")]
 use actix_http::StatusCode;
+#[cfg(feature = "high-performance-mode")]
+use actix_web::http::header::ContentType;
 use actix_web::{
     HttpRequest, HttpResponse, Scope, get, put, routes,
-    web::{Header, Json, Path, Query},
+    web::{Data, Header, Json, Path, Query},
 };
-#[cfg(feature = "high-performance-mode")]
-use actix_web::{http::header::ContentType, web::Data};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 #[cfg(feature = "high-performance-mode")]
 use fred::interfaces::KeysInterface;
 use itertools::Itertools;
 use serde_json::{Map, Value, json};
 #[cfg(feature = "high-performance-mode")]
-use service_utils::service::types::{AppHeader, AppState};
+use service_utils::service::types::AppHeader;
 use service_utils::{
     helpers::fetch_dimensions_info_map,
-    service::types::{DbConnection, WorkspaceContext},
+    service::types::{AppState, DbConnection, WorkspaceContext},
 };
 use superposition_derives::authorized;
 #[cfg(feature = "high-performance-mode")]
@@ -279,6 +279,7 @@ async fn reduce_config_key(
     default_config: Map<String, Value>,
     is_approve: bool,
     workspace_context: &WorkspaceContext,
+    app_state: &AppState,
 ) -> superposition::Result<Config> {
     let default_config_val =
         default_config
@@ -375,6 +376,7 @@ async fn reduce_config_key(
                                 user,
                                 workspace_context,
                                 false,
+                                app_state.master_key.as_ref(),
                             );
                         }
                     }
@@ -433,6 +435,7 @@ async fn reduce_handler(
     req: HttpRequest,
     user: User,
     db_conn: DbConnection,
+    app_state: Data<AppState>,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let is_approve = req
@@ -459,6 +462,7 @@ async fn reduce_handler(
             default_config.clone(),
             is_approve,
             &workspace_context,
+            &app_state,
         )
         .await?;
         if is_approve {
@@ -635,6 +639,7 @@ async fn resolve_handler(
     dimension_params: DimensionQuery<QueryMap>,
     query_filters: superposition_query::Query<ResolveConfigQuery>,
     workspace_context: WorkspaceContext,
+    app_state: Data<AppState>,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let query_filters = query_filters.into_inner();
@@ -663,6 +668,7 @@ async fn resolve_handler(
         &mut conn,
         &query_filters,
         &workspace_context,
+        app_state.master_key.as_ref(),
     )?;
 
     let mut resp = HttpResponse::Ok();

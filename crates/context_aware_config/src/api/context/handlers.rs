@@ -101,7 +101,12 @@ async fn create_handler(
     };
     let req_change_reason = req.change_reason.clone();
 
-    validate_change_reason(&workspace_context, &req_change_reason, &mut db_conn)?;
+    validate_change_reason(
+        &workspace_context,
+        &req_change_reason,
+        &mut db_conn,
+        state.master_key.as_ref(),
+    )?;
 
     let (put_response, version_id) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -113,6 +118,7 @@ async fn create_handler(
                 &user,
                 &workspace_context,
                 false,
+                state.master_key.as_ref(),
             )
             .map_err(|err: superposition::AppError| {
                 log::error!("context put failed with error: {:?}", err);
@@ -161,15 +167,21 @@ async fn update_handler(
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let req_change_reason = req.change_reason.clone();
 
-    validate_change_reason(&workspace_context, &req_change_reason, &mut db_conn)?;
+    validate_change_reason(
+        &workspace_context,
+        &req_change_reason,
+        &mut db_conn,
+        state.master_key.as_ref(),
+    )?;
 
     let (override_resp, version_id) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
             let override_resp = operations::update(
+                &workspace_context,
                 req.into_inner(),
                 transaction_conn,
                 &user,
-                &workspace_context.schema_name,
+                state.master_key.as_ref(),
             )
             .map_err(|err: superposition::AppError| {
                 log::error!("context update failed with error: {:?}", err);
@@ -237,18 +249,24 @@ async fn move_handler(
         }
     };
 
-    validate_change_reason(&workspace_context, &req.change_reason, &mut db_conn)?;
+    validate_change_reason(
+        &workspace_context,
+        &req.change_reason,
+        &mut db_conn,
+        state.master_key.as_ref(),
+    )?;
 
     let (move_response, version_id) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
             let move_response = operations::r#move(
+                &workspace_context,
                 path.into_inner(),
                 req,
                 description,
                 transaction_conn,
                 true,
                 &user,
-                &workspace_context,
+                state.master_key.as_ref(),
             )
             .map_err(|err| {
                 log::error!("move api failed with error: {:?}", err);
@@ -548,6 +566,7 @@ async fn bulk_operations_handler(
                             &workspace_context,
                             &put_req.change_reason,
                             transaction_conn,
+                            state.master_key.as_ref(),
                         )?;
 
                         let description = if put_req.description.is_none() {
@@ -571,6 +590,7 @@ async fn bulk_operations_handler(
                             &user,
                             &workspace_context,
                             false,
+                            state.master_key.as_ref(),
                         )
                         .map_err(|err| {
                             log::error!(
@@ -587,10 +607,11 @@ async fn bulk_operations_handler(
                     ContextAction::Replace(update_request) => {
                         all_change_reasons.push(update_request.change_reason.clone());
                         let update_resp = operations::update(
+                            &workspace_context,
                             update_request,
                             transaction_conn,
                             &user,
-                            &workspace_context.schema_name,
+                            state.master_key.as_ref(),
                         )
                         .map_err(|err| {
                             log::error!(
@@ -660,13 +681,14 @@ async fn bulk_operations_handler(
                         };
 
                         let move_context_resp = operations::r#move(
+                            &workspace_context,
                             old_ctx_id,
                             Json(move_req),
                             description,
                             transaction_conn,
                             true,
                             &user,
-                            &workspace_context,
+                            state.master_key.as_ref(),
                         )
                         .map_err(|err| {
                             log::error!(
@@ -813,15 +835,19 @@ async fn validate_handler(
     workspace_context: WorkspaceContext,
     db_conn: DbConnection,
     request: Json<ContextValidationRequest>,
+    app_state: Data<AppState>,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let ctx_condition = request.context.to_owned().into_inner();
     log::debug!("Context {:?} is being checked for validity", ctx_condition);
+    let master_key = &app_state.master_key;
+
     validate_ctx(
         &mut conn,
         &workspace_context,
         ctx_condition.clone(),
         Overrides::default(),
+        master_key.as_ref(),
     )?;
     log::debug!("Context {:?} is valid", ctx_condition);
     Ok(HttpResponse::Ok().finish())

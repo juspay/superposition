@@ -59,6 +59,11 @@ import {
   CreateOrganisationCommandOutput,
 } from "./commands/CreateOrganisationCommand";
 import {
+  CreateSecretCommand,
+  CreateSecretCommandInput,
+  CreateSecretCommandOutput,
+} from "./commands/CreateSecretCommand";
+import {
   CreateTypeTemplatesCommand,
   CreateTypeTemplatesCommandInput,
   CreateTypeTemplatesCommandOutput,
@@ -104,6 +109,11 @@ import {
   DeleteFunctionCommandOutput,
 } from "./commands/DeleteFunctionCommand";
 import {
+  DeleteSecretCommand,
+  DeleteSecretCommandInput,
+  DeleteSecretCommandOutput,
+} from "./commands/DeleteSecretCommand";
+import {
   DeleteTypeTemplatesCommand,
   DeleteTypeTemplatesCommandInput,
   DeleteTypeTemplatesCommandOutput,
@@ -123,6 +133,11 @@ import {
   DiscardExperimentCommandInput,
   DiscardExperimentCommandOutput,
 } from "./commands/DiscardExperimentCommand";
+import {
+  GenerateMasterKeyCommand,
+  GenerateMasterKeyCommandInput,
+  GenerateMasterKeyCommandOutput,
+} from "./commands/GenerateMasterKeyCommand";
 import {
   GetConfigCommand,
   GetConfigCommandInput,
@@ -183,6 +198,11 @@ import {
   GetResolvedConfigWithIdentifierCommandInput,
   GetResolvedConfigWithIdentifierCommandOutput,
 } from "./commands/GetResolvedConfigWithIdentifierCommand";
+import {
+  GetSecretCommand,
+  GetSecretCommandInput,
+  GetSecretCommandOutput,
+} from "./commands/GetSecretCommand";
 import {
   GetTypeTemplateCommand,
   GetTypeTemplateCommandInput,
@@ -259,6 +279,11 @@ import {
   ListOrganisationCommandOutput,
 } from "./commands/ListOrganisationCommand";
 import {
+  ListSecretsCommand,
+  ListSecretsCommandInput,
+  ListSecretsCommandOutput,
+} from "./commands/ListSecretsCommand";
+import {
   ListVariablesCommand,
   ListVariablesCommandInput,
   ListVariablesCommandOutput,
@@ -314,6 +339,11 @@ import {
   ResumeExperimentCommandOutput,
 } from "./commands/ResumeExperimentCommand";
 import {
+  RotateMasterKeyCommand,
+  RotateMasterKeyCommandInput,
+  RotateMasterKeyCommandOutput,
+} from "./commands/RotateMasterKeyCommand";
+import {
   TestCommand,
   TestCommandInput,
   TestCommandOutput,
@@ -353,6 +383,11 @@ import {
   UpdateOverridesExperimentCommandInput,
   UpdateOverridesExperimentCommandOutput,
 } from "./commands/UpdateOverridesExperimentCommand";
+import {
+  UpdateSecretCommand,
+  UpdateSecretCommandInput,
+  UpdateSecretCommandOutput,
+} from "./commands/UpdateSecretCommand";
 import {
   UpdateTypeTemplatesCommand,
   UpdateTypeTemplatesCommandInput,
@@ -398,6 +433,7 @@ const commands = {
   CreateExperimentGroupCommand,
   CreateFunctionCommand,
   CreateOrganisationCommand,
+  CreateSecretCommand,
   CreateTypeTemplatesCommand,
   CreateVariableCommand,
   CreateWebhookCommand,
@@ -407,10 +443,12 @@ const commands = {
   DeleteDimensionCommand,
   DeleteExperimentGroupCommand,
   DeleteFunctionCommand,
+  DeleteSecretCommand,
   DeleteTypeTemplatesCommand,
   DeleteVariableCommand,
   DeleteWebhookCommand,
   DiscardExperimentCommand,
+  GenerateMasterKeyCommand,
   GetConfigCommand,
   GetConfigFastCommand,
   GetContextCommand,
@@ -423,6 +461,7 @@ const commands = {
   GetOrganisationCommand,
   GetResolvedConfigCommand,
   GetResolvedConfigWithIdentifierCommand,
+  GetSecretCommand,
   GetTypeTemplateCommand,
   GetTypeTemplatesListCommand,
   GetVariableCommand,
@@ -438,6 +477,7 @@ const commands = {
   ListExperimentGroupsCommand,
   ListFunctionCommand,
   ListOrganisationCommand,
+  ListSecretsCommand,
   ListVariablesCommand,
   ListVersionsCommand,
   ListWebhookCommand,
@@ -449,6 +489,7 @@ const commands = {
   RampExperimentCommand,
   RemoveMembersFromGroupCommand,
   ResumeExperimentCommand,
+  RotateMasterKeyCommand,
   TestCommand,
   UpdateDefaultConfigCommand,
   UpdateDimensionCommand,
@@ -457,6 +498,7 @@ const commands = {
   UpdateOrganisationCommand,
   UpdateOverrideCommand,
   UpdateOverridesExperimentCommand,
+  UpdateSecretCommand,
   UpdateTypeTemplatesCommand,
   UpdateVariableCommand,
   UpdateWebhookCommand,
@@ -654,6 +696,23 @@ export interface Superposition {
   ): void;
 
   /**
+   * @see {@link CreateSecretCommand}
+   */
+  createSecret(
+    args: CreateSecretCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<CreateSecretCommandOutput>;
+  createSecret(
+    args: CreateSecretCommandInput,
+    cb: (err: any, data?: CreateSecretCommandOutput) => void
+  ): void;
+  createSecret(
+    args: CreateSecretCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: CreateSecretCommandOutput) => void
+  ): void;
+
+  /**
    * @see {@link CreateTypeTemplatesCommand}
    */
   createTypeTemplates(
@@ -807,6 +866,23 @@ export interface Superposition {
   ): void;
 
   /**
+   * @see {@link DeleteSecretCommand}
+   */
+  deleteSecret(
+    args: DeleteSecretCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<DeleteSecretCommandOutput>;
+  deleteSecret(
+    args: DeleteSecretCommandInput,
+    cb: (err: any, data?: DeleteSecretCommandOutput) => void
+  ): void;
+  deleteSecret(
+    args: DeleteSecretCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: DeleteSecretCommandOutput) => void
+  ): void;
+
+  /**
    * @see {@link DeleteTypeTemplatesCommand}
    */
   deleteTypeTemplates(
@@ -872,6 +948,24 @@ export interface Superposition {
     args: DiscardExperimentCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: DiscardExperimentCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link GenerateMasterKeyCommand}
+   */
+  generateMasterKey(): Promise<GenerateMasterKeyCommandOutput>;
+  generateMasterKey(
+    args: GenerateMasterKeyCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<GenerateMasterKeyCommandOutput>;
+  generateMasterKey(
+    args: GenerateMasterKeyCommandInput,
+    cb: (err: any, data?: GenerateMasterKeyCommandOutput) => void
+  ): void;
+  generateMasterKey(
+    args: GenerateMasterKeyCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: GenerateMasterKeyCommandOutput) => void
   ): void;
 
   /**
@@ -1076,6 +1170,23 @@ export interface Superposition {
     args: GetResolvedConfigWithIdentifierCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: GetResolvedConfigWithIdentifierCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link GetSecretCommand}
+   */
+  getSecret(
+    args: GetSecretCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<GetSecretCommandOutput>;
+  getSecret(
+    args: GetSecretCommandInput,
+    cb: (err: any, data?: GetSecretCommandOutput) => void
+  ): void;
+  getSecret(
+    args: GetSecretCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: GetSecretCommandOutput) => void
   ): void;
 
   /**
@@ -1335,6 +1446,23 @@ export interface Superposition {
   ): void;
 
   /**
+   * @see {@link ListSecretsCommand}
+   */
+  listSecrets(
+    args: ListSecretsCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<ListSecretsCommandOutput>;
+  listSecrets(
+    args: ListSecretsCommandInput,
+    cb: (err: any, data?: ListSecretsCommandOutput) => void
+  ): void;
+  listSecrets(
+    args: ListSecretsCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: ListSecretsCommandOutput) => void
+  ): void;
+
+  /**
    * @see {@link ListVariablesCommand}
    */
   listVariables(
@@ -1522,6 +1650,24 @@ export interface Superposition {
   ): void;
 
   /**
+   * @see {@link RotateMasterKeyCommand}
+   */
+  rotateMasterKey(): Promise<RotateMasterKeyCommandOutput>;
+  rotateMasterKey(
+    args: RotateMasterKeyCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<RotateMasterKeyCommandOutput>;
+  rotateMasterKey(
+    args: RotateMasterKeyCommandInput,
+    cb: (err: any, data?: RotateMasterKeyCommandOutput) => void
+  ): void;
+  rotateMasterKey(
+    args: RotateMasterKeyCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: RotateMasterKeyCommandOutput) => void
+  ): void;
+
+  /**
    * @see {@link TestCommand}
    */
   test(
@@ -1655,6 +1801,23 @@ export interface Superposition {
     args: UpdateOverridesExperimentCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: UpdateOverridesExperimentCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link UpdateSecretCommand}
+   */
+  updateSecret(
+    args: UpdateSecretCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<UpdateSecretCommandOutput>;
+  updateSecret(
+    args: UpdateSecretCommandInput,
+    cb: (err: any, data?: UpdateSecretCommandOutput) => void
+  ): void;
+  updateSecret(
+    args: UpdateSecretCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: UpdateSecretCommandOutput) => void
   ): void;
 
   /**

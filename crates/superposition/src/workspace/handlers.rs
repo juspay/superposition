@@ -2,7 +2,7 @@ use std::fs;
 
 use actix_web::{
     Scope, get, post, routes,
-    web::{self, Json, Path, Query},
+    web::{self, Data, Json, Path, Query},
 };
 use chrono::Utc;
 use diesel::{
@@ -12,13 +12,23 @@ use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
 };
 use regex::Regex;
-use service_utils::service::types::{DbConnection, OrganisationId, SchemaName};
+use service_utils::{
+    encryption::{
+        encrypt_workspace_key, generate_encryption_key, require_master_key,
+        rotate_workspace_encryption_key_helper,
+    },
+    service::types::{
+        AppState, DbConnection, OrganisationId, SchemaName, WorkspaceContext,
+    },
+};
 use superposition_derives::authorized;
-use superposition_macros::{db_error, unexpected_error, validation_error};
+use superposition_macros::{bad_argument, db_error, unexpected_error, validation_error};
+use superposition_types::database::superposition_schema::superposition::workspaces::dsl as ws;
 use superposition_types::{
     PaginatedResponse, User,
     api::{
         I64Update,
+        secrets::KeyRotationStatus,
         workspace::{
             CreateWorkspaceRequest, UpdateWorkspaceRequest, WorkspaceListFilters,
             WorkspaceResponse,
@@ -66,6 +76,7 @@ pub fn endpoints(scope: Scope) -> Scope {
         .service(list_handler)
         .service(get_handler)
         .service(migrate_schema_handler)
+        .service(rotate_workspace_key_handler)
 }
 
 #[authorized]
@@ -92,6 +103,7 @@ async fn create_handler(
     db_conn: DbConnection,
     org_id: OrganisationId,
     user: User,
+    app_state: web::Data<AppState>,
 ) -> superposition::Result<Json<WorkspaceResponse>> {
     let DbConnection(mut conn) = db_conn;
     let org_info: Organisation = organisations::dsl::organisations
@@ -102,6 +114,23 @@ async fn create_handler(
     let email = user.get_email();
     validate_workspace_name(&request.workspace_name)?;
     let workspace_schema_name = format!("{}_{}", &org_info.id, &request.workspace_name);
+    let encryption_key = service_utils::encryption::generate_encryption_key();
+    let encrypted_key = match require_master_key(&app_state.master_key) {
+        Ok(master_key) => {
+            encrypt_workspace_key(&encryption_key, master_key).map_err(|e| {
+                log::error!("Failed to encrypt workspace key: {}", e);
+                superposition_macros::unexpected_error!("Failed to encrypt workspace key")
+            })?
+        }
+        Err(e) => {
+            log::info!(
+                "Master key not configured, workspace will be created without encryption: {}",
+                e
+            );
+            String::new()
+        }
+    };
+
     let workspace = Workspace {
         organisation_id: org_info.id,
         organisation_name: org_info.name,
@@ -120,6 +149,9 @@ async fn create_handler(
         auto_populate_control: request.auto_populate_control,
         enable_context_validation: request.enable_context_validation,
         enable_change_reason_validation: request.enable_change_reason_validation,
+        encryption_key: encrypted_key,
+        previous_encryption_key: None,
+        key_rotated_at: None,
     };
 
     let created_workspace =
@@ -279,20 +311,89 @@ async fn migrate_schema_handler(
     workspace_name: Path<String>,
     db_conn: DbConnection,
     org_id: OrganisationId,
+    app_state: Data<AppState>,
 ) -> superposition::Result<Json<WorkspaceResponse>> {
     let workspace_name = workspace_name.into_inner();
     let DbConnection(mut conn) = db_conn;
 
     let workspace: Workspace = workspaces::dsl::workspaces
         .filter(workspaces::organisation_id.eq(&org_id.0))
-        .filter(workspaces::workspace_name.eq(workspace_name))
+        .filter(workspaces::workspace_name.eq(&workspace_name))
         .get_result(&mut conn)?;
 
     conn.transaction::<(), superposition::AppError, _>(|transaction_conn| {
         setup_workspace_schema(transaction_conn, &workspace.workspace_schema_name)?;
+        if workspace.encryption_key.is_empty() {
+            match require_master_key(&app_state.master_key) {
+                Ok(master_key) => {
+                    let new_key = generate_encryption_key();
+                    let encrypted_key =
+                        encrypt_workspace_key(&new_key, master_key).map_err(|e| {
+                            log::error!("Failed to encrypt workspace key: {}", e);
+                            unexpected_error!("Failed to encrypt workspace key")
+                        })?;
+
+                    diesel::update(ws::workspaces.filter(ws::organisation_id.eq(&org_id.0)))
+                        .filter(ws::workspace_name.eq(&workspace_name))
+                        .set(ws::encryption_key.eq(encrypted_key))
+                        .execute(transaction_conn)
+                        .map_err(|e| {
+                            log::error!("Failed to update encryption key: {}", e);
+                            db_error!(e)
+                        })?;
+                }
+                Err(e) => {
+                    log::warn!(
+                        "Master key not configured, skipping encryption setup for workspace '{}': {}. \
+                        Secrets will not be available for this workspace.",
+                        workspace_name, e
+                    );
+                }
+            }
+        }
         Ok(())
     })?;
 
     let response = WorkspaceResponse::from(workspace);
     Ok(Json(response))
+}
+
+#[authorized]
+#[post("/rotate-key")]
+pub async fn rotate_workspace_key_handler(
+    user: User,
+    db_conn: DbConnection,
+    workspace_context: WorkspaceContext,
+    app_state: Data<AppState>,
+) -> superposition::Result<Json<KeyRotationStatus>> {
+    let DbConnection(mut conn) = db_conn;
+
+    let master_key = require_master_key(&app_state.master_key).map_err(|e| {
+        log::error!("Master key not configured: {}", e);
+        bad_argument!(
+            "Master key not configured. Configure MASTER_ENCRYPTION_KEY to rotate keys"
+        )
+    })?;
+
+    let user_email = user.get_email();
+
+    let (total_secrets_re_encrypted, rotation_timestamp) = conn.transaction::<(
+        i64,
+        chrono::DateTime<chrono::Utc>,
+    ), superposition::AppError, _>(
+        |conn| {
+            rotate_workspace_encryption_key_helper(
+                &workspace_context,
+                conn,
+                master_key,
+                master_key, // Same master key for both encrypt/decrypt in workspace rotation
+                &user_email,
+            )
+        },
+    )?;
+
+    Ok(Json(KeyRotationStatus {
+        total_secrets_re_encrypted,
+        rotation_timestamp,
+    }))
 }
