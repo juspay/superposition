@@ -1,4 +1,4 @@
-name: CI Checks on PRs
+name: Test Legacy Libc Build
 
 permissions:
     contents: read
