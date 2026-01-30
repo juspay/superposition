@@ -15,6 +15,7 @@ jobs:
         if: github.ref == 'refs/heads/main'
         outputs:
             version: ${{ steps.git_tag.outputs.version }}
+            updated_ref: ${{ steps.push_main.outputs.updated_ref }}
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
@@ -83,11 +84,13 @@ jobs:
                   git commit --amend --no-edit
 
             - name: Push code to main
+              id: push_main
               shell: bash
               run: |
                   git pull --rebase origin main
                   git push origin main
                   git push origin --tags
+                  echo "updated_ref=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
 
     docker-build:
         needs: tag-release
@@ -592,6 +595,7 @@ jobs:
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
+                  ref: ${{ needs.tag-release.outputs.updated_ref }}
 
             - name: Install Rust
               uses: dtolnay/rust-toolchain@master
@@ -608,15 +612,6 @@ jobs:
 
             - name: Build and package superposition
               run: |
-                  cargo set-version --workspace ${{ env.VERSION }}
-                  cargo upgrade --package superposition_types@${{ env.VERSION }}
-                  cargo upgrade --package superposition_derives@${{ env.VERSION }}
-                  cargo upgrade --package superposition_macros@${{ env.VERSION }}
-                  cargo upgrade --package superposition_core@${{ env.VERSION }}
-                  cargo upgrade --package superposition_provider@${{ env.VERSION }}
-                  cargo upgrade --package superposition_sdk@${{ env.VERSION }}
-                  cargo upgrade --package service_utils@${{ env.VERSION }}
-
                   cargo login ${{ secrets.CRATES_IO_TOKEN }}
                   cargo publish --package superposition_derives
                   cargo publish --package superposition_sdk
