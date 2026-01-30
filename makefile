@@ -9,6 +9,7 @@ CARGO_FLAGS := --color always --no-default-features
 EXCLUDE_PACKAGES := experimentation_client_integration_example superposition_sdk
 FMT_EXCLUDE_PACKAGES_REGEX := $(shell echo "$(EXCLUDE_PACKAGES)" | sed "s/ /|/g")
 LINT_FLAGS := --workspace --all-targets --all-features $(addprefix --exclude ,$(EXCLUDE_PACKAGES)) --no-deps
+COMPONENT_NAME_FLAGS := 
 CARGO_TARGET_DIR := $(shell cargo metadata --no-deps --format-version 1 | jq -r .target_directory)
 
 # Get all workspace members and filter out excluded ones
@@ -49,7 +50,57 @@ DB_UP = $(shell $(call check-container,$(DB_CONTAINER_NAME)))
 LSTACK_CONTAINER_NAME = $(shell $(call read-container-name,localstack))
 LSTACK_UP = $(shell $(call check-container,$(LSTACK_CONTAINER_NAME)))
 export SMITHY_MAVEN_REPOS = https://repo1.maven.org/maven2|https://sandbox.assets.juspay.in/smithy/m2
-.PHONY: cac check-component-names ci-test clients db-init grafana-local kill local-docs-view node-dependencies run schema-file setup setup-clients smithy-clean smithy-build smithy-clean-build smithy-api-docs smithy-updates validate-aws-connection validate-psql-connection uniffi-bindings test-js-provider test-py-provider test-kotlin-provider test-rust-provider
+
+.PHONY: amend \
+	amend-no-edit \
+	backend \
+	build \
+	check \
+	cleanup \
+	clients \
+	commit \
+	db \
+	db-init \
+	default \
+	env-file \
+	fmt \
+	frontend \
+	get-password \
+	grafana-local \
+	kill \
+	legacy_db_setup \
+	leptosfmt \
+	lint \
+	lint-fix \
+	local-docs-view \
+	localstack \
+	migration \
+	node-dependencies \
+	provider-template \
+	run \
+	run_legacy \
+	schema-file \
+	setup \
+	setup-clients \
+	smithy-api-docs \
+	smithy-build \
+	smithy-clean \
+	smithy-clean-build \
+	smithy-clients \
+	smithy-updates \
+	superposition \
+	superposition-example \
+	superposition_dev \
+	superposition_legacy \
+	tailwind \
+	test \
+	test-js-provider \
+	test-kotlin-provider \
+	test-py-provider \
+	test-rust-provider \
+	uniffi-bindings \
+	validate-aws-connection \
+	validate-psql-connection
 
 env-file:
 	@if ! [ -e .env ]; then \
@@ -267,16 +318,13 @@ leptosfmt:
 
 
 lint-fix: LINT_FLAGS += --fix --allow-dirty --allow-staged
+lint-fix: COMPONENT_NAME_FLAGS = --fix
 lint-fix: lint
 
 check: FMT_FLAGS += --check
 check: LEPTOS_FMT_FLAGS += --check
 check: LINT_FLAGS += -- -Dwarnings
-check: fmt leptosfmt lint check-component-names
-
-check-component-names:
-	@./scripts/check_component_names.sh
-
+check: fmt leptosfmt lint
 
 # Target to run cargo fmt on filtered packages
 fmt:
@@ -285,7 +333,7 @@ fmt:
 
 lint:
 	cargo clippy $(LINT_FLAGS)
-
+	@./scripts/check_component_names.sh $(COMPONENT_NAME_FLAGS)
 
 commit: check
 	git commit $(COMMIT_FLAGS)

@@ -8,7 +8,7 @@ use crate::{
 };
 
 #[component]
-pub fn key_rotation_modal(
+pub fn KeyRotationModal(
     #[prop(default = false)] visible: bool,
     #[prop(into)] on_close: Callback<()>,
     #[prop(into)] on_success: Callback<()>,

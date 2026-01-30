@@ -15,7 +15,7 @@ use crate::components::{
 };
 
 #[component]
-pub(super) fn filter_summary(filters_rws: RwSignal<ExpGroupFilters>) -> impl IntoView {
+pub(super) fn FilterSummary(filters_rws: RwSignal<ExpGroupFilters>) -> impl IntoView {
     let force_open_rws = RwSignal::new(true);
     // let force_open_rws = RwSignal::new(scrolled_to_top.get_untracked());
 
@@ -147,7 +147,7 @@ pub(super) fn filter_summary(filters_rws: RwSignal<ExpGroupFilters>) -> impl Int
 }
 
 #[component]
-pub(super) fn experiment_group_filter_widget(
+pub(super) fn ExperimentGroupFilterWidget(
     pagination_params_rws: RwSignal<PaginationParams>,
     filters_rws: RwSignal<ExpGroupFilters>,
 ) -> impl IntoView {
