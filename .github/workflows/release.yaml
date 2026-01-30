@@ -15,6 +15,7 @@ jobs:
         if: github.ref == 'refs/heads/main'
         outputs:
             version: ${{ steps.git_tag.outputs.version }}
+            updated_ref: ${{ steps.push_main.outputs.updated_ref }}
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
@@ -83,6 +84,7 @@ jobs:
                   git commit --amend --no-edit
 
             - name: Push code to main
+              id: push_main
               shell: bash
               run: |
                   git pull --rebase origin main
