@@ -42,15 +42,24 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: ubuntu:18.04
     steps:
       - uses: actions/checkout@v4
-      - name: Install dependencies
+
+      - name: Build inside ubuntu:18.04 (glibc 2.27)
         run: |
-          apt-get update
-          apt-get install -y curl build-essential
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-      - name: Build
-        run: cargo build --release
+          docker run --rm \
+            -v "$PWD:/work" -w /work \
+            -e CARGO_INCREMENTAL=0 \
+            -e CARGO_NET_RETRY=10 \
+            -e RUSTUP_MAX_RETRIES=10 \
+            -e RUST_BACKTRACE=short \
+            -e CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse \
+            ubuntu:18.04 bash -lc '
+              set -euo pipefail
+              apt-get update
+              apt-get install -y --no-install-recommends \
+                ca-certificates curl build-essential git pkg-config
+              curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+              export PATH="$HOME/.cargo/bin:$PATH"
+              cargo build --release
+            '
