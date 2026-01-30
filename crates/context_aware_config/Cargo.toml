@@ -9,7 +9,7 @@ rust-version.workspace = true
 
 
 [dependencies]
-actix-http = "3.3.1"
+actix-http = { workspace = true }
 actix-web = { workspace = true }
 anyhow = { workspace = true }
 bigdecimal = { workspace = true }
