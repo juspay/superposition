@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.67.4 - 2026-01-30
+#### Bug Fixes
+- redundant cargo upgrades (#848) - (0444af4) - Natarajan Kannan
+#### Miscellaneous Chores
+- **(version)** v0.97.3 [skip ci] - (bc54118) - Superposition Bot
+
+- - -
+
 ## context_aware_config-v0.67.3 - 2026-01-29
 #### Bug Fixes
 - **(build)** Update rust version in all the places (#846) - (8725d59) - Ayush Jain

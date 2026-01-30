@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.97.4 - 2026-01-30
+### Package updates
+- context_aware_config bumped to context_aware_config-v0.67.4
+### Global changes
+#### Bug Fixes
+- redundant cargo upgrades (#848) - (0444af4) - Natarajan Kannan
+#### Miscellaneous Chores
+- **(version)** v0.97.3 [skip ci] - (bc54118) - Superposition Bot
+
+- - -
+
 ## v0.97.3 - 2026-01-29
 ### Package updates
 - context_aware_config bumped to context_aware_config-v0.67.3
