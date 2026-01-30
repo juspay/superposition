@@ -53,14 +53,27 @@ jobs:
             -e CARGO_NET_RETRY=10 \
             -e RUSTUP_MAX_RETRIES=10 \
             -e RUST_BACKTRACE=short \
+            -e DEBIAN_FRONTEND=noninteractive \
+            -e TZ=Etc/UTC \
             -e CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse \
             ubuntu:18.04 bash -lc '
               set -euo pipefail
               apt-get update
               apt-get install -y --no-install-recommends \
-                ca-certificates curl build-essential git pkg-config libssl-dev
+                binutils ca-certificates curl build-essential git pkg-config libssl-dev postgresql libpq-dev
               curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
               export PATH="$HOME/.cargo/bin:$PATH"
               cargo build --release
-              ls -lR target
+              objdump -T target/release/libsuperposition_core.so | grep GLIBC_ | sort -Vu
             '
+          mkdir -p artifacts
+          cp target/release/libsuperposition_core.so artifacts
+          cp target/include/superposition_core.h artifacts
+          cd artifacts; zip -r superposition_core-x86_64-unknown-linux-gnu.zip libsuperposition_core.so superposition_core.h
+
+      - name: Upload superposition_core artifacts
+        uses: actions/upload-artifact@v4
+        with:
+            name: superposition_core-x86_64-unknown-linux-gnu
+            path: artifacts/superposition_core-x86_64-unknown-linux-gnu.zip
+
