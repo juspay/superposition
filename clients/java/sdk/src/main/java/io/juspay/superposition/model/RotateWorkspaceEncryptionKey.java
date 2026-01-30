@@ -13,16 +13,17 @@ import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
 /**
- * Generates a new master encryption key
+ * Rotates the workspace encryption key. Generates a new encryption key and re-encrypts all secrets
+ * with the new key. This is a critical operation that should be done during low-traffic periods.
  */
 @SmithyGenerated
-public final class GenerateMasterKey implements ApiOperation<GenerateMasterKeyInput, GenerateMasterKeyOutput> {
-    public static final ShapeId $ID = ShapeId.from("io.superposition#GenerateMasterKey");
+public final class RotateWorkspaceEncryptionKey implements ApiOperation<RotateWorkspaceEncryptionKeyInput, RotateWorkspaceEncryptionKeyOutput> {
+    public static final ShapeId $ID = ShapeId.from("io.superposition#RotateWorkspaceEncryptionKey");
 
-    private static final GenerateMasterKey $INSTANCE = new GenerateMasterKey();
+    private static final RotateWorkspaceEncryptionKey $INSTANCE = new RotateWorkspaceEncryptionKey();
 
     static final Schema $SCHEMA = Schema.createOperation($ID,
-            HttpTrait.builder().method("POST").code(200).uri(UriPattern.parse("/master-key/generate")).build());
+            HttpTrait.builder().method("POST").code(200).uri(UriPattern.parse("/workspaces/{workspace_name}/rotate-encryption-key")).build());
 
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
         .putType(InternalServerError.$ID, InternalServerError.class, InternalServerError::builder)
@@ -35,20 +36,20 @@ public final class GenerateMasterKey implements ApiOperation<GenerateMasterKeyIn
      *
      * @return An instance of this class.
      */
-    public static GenerateMasterKey instance() {
+    public static RotateWorkspaceEncryptionKey instance() {
         return $INSTANCE;
     }
 
-    private GenerateMasterKey() {}
+    private RotateWorkspaceEncryptionKey() {}
 
     @Override
-    public ShapeBuilder<GenerateMasterKeyInput> inputBuilder() {
-        return GenerateMasterKeyInput.builder();
+    public ShapeBuilder<RotateWorkspaceEncryptionKeyInput> inputBuilder() {
+        return RotateWorkspaceEncryptionKeyInput.builder();
     }
 
     @Override
-    public ShapeBuilder<GenerateMasterKeyOutput> outputBuilder() {
-        return GenerateMasterKeyOutput.builder();
+    public ShapeBuilder<RotateWorkspaceEncryptionKeyOutput> outputBuilder() {
+        return RotateWorkspaceEncryptionKeyOutput.builder();
     }
 
     @Override
@@ -58,12 +59,12 @@ public final class GenerateMasterKey implements ApiOperation<GenerateMasterKeyIn
 
     @Override
     public Schema inputSchema() {
-        return GenerateMasterKeyInput.$SCHEMA;
+        return RotateWorkspaceEncryptionKeyInput.$SCHEMA;
     }
 
     @Override
     public Schema outputSchema() {
-        return GenerateMasterKeyOutput.$SCHEMA;
+        return RotateWorkspaceEncryptionKeyOutput.$SCHEMA;
     }
 
     @Override
@@ -93,7 +94,7 @@ public final class GenerateMasterKey implements ApiOperation<GenerateMasterKeyIn
 
     @Override
     public ApiResource boundResource() {
-        return MasterKey.instance();
+        return Workspace.instance();
     }
 }
 

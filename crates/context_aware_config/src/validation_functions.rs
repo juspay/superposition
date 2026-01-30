@@ -1,7 +1,7 @@
 use std::{process::Command, str};
 
 use serde::Serialize;
-use service_utils::service::types::WorkspaceContext;
+use service_utils::service::types::{EncryptionKey, WorkspaceContext};
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
     DBConnection,
@@ -180,13 +180,13 @@ pub fn execute_fn(
     args: &FunctionExecutionRequest,
     runtime_version: FunctionRuntimeVersion,
     conn: &mut DBConnection,
-    master_key: Option<&secrecy::SecretString>,
+    master_encryption_key: &Option<EncryptionKey>,
 ) -> Result<FunctionExecutionResponse, (String, Option<String>)> {
     let code = inject_secrets_and_variables_into_code(
         code_str,
         conn,
         workspace_context,
-        master_key,
+        master_encryption_key,
     )
     .map_err(|err| {
         let err_msg = format!("Failed to inject variables/secrets: {:?}", err);

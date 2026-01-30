@@ -40,7 +40,7 @@ async fn create_handler(
     request: Json<TypeTemplateCreateRequest>,
     db_conn: DbConnection,
     user: User,
-    app_state: Data<AppState>,
+    state: Data<AppState>,
 ) -> superposition::Result<Json<TypeTemplate>> {
     let DbConnection(mut conn) = db_conn;
     JSONSchema::compile(&Value::from(&request.type_schema)).map_err(|err| {
@@ -59,7 +59,7 @@ async fn create_handler(
         &workspace_context,
         &request.change_reason,
         &mut conn,
-        app_state.master_key.as_ref(),
+        &state.master_encryption_key,
     )?;
 
     let now = Utc::now();
@@ -109,7 +109,7 @@ async fn update_handler(
     path: Path<TypeTemplateName>,
     db_conn: DbConnection,
     user: User,
-    app_state: Data<AppState>,
+    state: Data<AppState>,
 ) -> superposition::Result<Json<TypeTemplate>> {
     let DbConnection(mut conn) = db_conn;
     let request = request.into_inner();
@@ -129,7 +129,7 @@ async fn update_handler(
         &workspace_context,
         &request.change_reason,
         &mut conn,
-        app_state.master_key.as_ref(),
+        &state.master_encryption_key,
     )?;
 
     let type_name: String = path.into_inner().into();

@@ -35,7 +35,7 @@ async fn create_handler(
     request: Json<CreateWebhookRequest>,
     db_conn: DbConnection,
     user: User,
-    app_state: Data<AppState>,
+    state: Data<AppState>,
 ) -> superposition::Result<Json<Webhook>> {
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
@@ -44,7 +44,7 @@ async fn create_handler(
         &workspace_context,
         &req.change_reason,
         &mut conn,
-        app_state.master_key.as_ref(),
+        &state.master_encryption_key,
     )?;
 
     validate_events(&req.events, None, &workspace_context.schema_name, &mut conn)?;
@@ -83,7 +83,7 @@ async fn update_handler(
     db_conn: DbConnection,
     user: User,
     request: Json<UpdateWebhookRequest>,
-    app_state: Data<AppState>,
+    state: Data<AppState>,
 ) -> superposition::Result<Json<Webhook>> {
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
@@ -93,7 +93,7 @@ async fn update_handler(
         &workspace_context,
         &req.change_reason,
         &mut conn,
-        app_state.master_key.as_ref(),
+        &state.master_encryption_key,
     )?;
 
     if let Some(webhook_events) = &req.events {

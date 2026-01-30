@@ -11,7 +11,7 @@ use derive_more::{Deref, DerefMut};
 use diesel::r2d2::{ConnectionManager, PooledConnection};
 use diesel::{Connection, PgConnection};
 use jsonschema::JSONSchema;
-pub use secrecy::SecretString;
+use secrecy::SecretString;
 use serde::{Deserialize, Serialize};
 use snowflake::SnowflakeIdGenerator;
 use superposition_types::database::models::Workspace;
@@ -40,6 +40,11 @@ pub enum AppHeader {
     LastModified,
 }
 
+pub struct EncryptionKey {
+    pub current_key: SecretString,
+    pub previous_key: Option<SecretString>,
+}
+
 pub struct AppState {
     pub cac_host: String,
     pub app_env: AppEnv,
@@ -54,8 +59,7 @@ pub struct AppState {
     #[cfg(feature = "high-performance-mode")]
     pub redis: fred::clients::RedisPool,
     pub http_client: reqwest::Client,
-    pub master_key: Option<SecretString>,
-    pub previous_master_key: Option<SecretString>,
+    pub master_encryption_key: Option<EncryptionKey>,
 }
 
 impl FromStr for AppEnv {
@@ -90,7 +94,7 @@ pub enum Resource {
     Auth,
     Variable,
     Secret,
-    MasterKey,
+    MasterEncryptionKey,
 }
 
 impl Resource {
@@ -153,12 +157,6 @@ pub struct SchemaName(pub String);
 impl Default for SchemaName {
     fn default() -> Self {
         Self(String::from("superposition"))
-    }
-}
-
-impl From<String> for SchemaName {
-    fn from(val: String) -> Self {
-        Self(val)
     }
 }
 

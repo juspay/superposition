@@ -3587,45 +3587,17 @@
                 ]
             }
         },
-        "/master-key/generate": {
+        "/master-encryption-key/rotate": {
             "post": {
-                "description": "Generates a new master encryption key",
-                "operationId": "GenerateMasterKey",
+                "description": "Rotates the master encryption key across all workspaces",
+                "operationId": "RotateMasterEncryptionKey",
                 "responses": {
                     "200": {
-                        "description": "GenerateMasterKey 200 response",
+                        "description": "RotateMasterEncryptionKey 200 response",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/GenerateMasterKeyResponseContent"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "InternalServerError 500 response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/master-key/rotate": {
-            "post": {
-                "description": "Rotates the master key encryption key across all workspaces",
-                "operationId": "RotateMasterKey",
-                "responses": {
-                    "200": {
-                        "description": "RotateMasterKey 200 response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/RotateMasterKeyResponseContent"
+                                    "$ref": "#/components/schemas/RotateMasterEncryptionKeyResponseContent"
                                 }
                             }
                         }
@@ -5694,6 +5666,55 @@
                     },
                     "404": {
                         "description": "ResourceNotFound 404 response"
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Workspace Management"
+                ]
+            }
+        },
+        "/workspaces/{workspace_name}/rotate-encryption-key": {
+            "post": {
+                "description": "Rotates the workspace encryption key. Generates a new encryption key and re-encrypts all secrets with the new key. This is a critical operation that should be done during low-traffic periods.",
+                "operationId": "RotateWorkspaceEncryptionKey",
+                "parameters": [
+                    {
+                        "name": "workspace_name",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-org-id",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "RotateWorkspaceEncryptionKey 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RotateWorkspaceEncryptionKeyResponseContent"
+                                }
+                            }
+                        }
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -8212,26 +8233,6 @@
                     "CHANGE_REASON_VALIDATION"
                 ]
             },
-            "GenerateMasterKeyResponseContent": {
-                "type": "object",
-                "description": "Response containing newly generated master key",
-                "properties": {
-                    "master_key": {
-                        "type": "string"
-                    },
-                    "instructions": {
-                        "type": "string"
-                    },
-                    "warning": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "instructions",
-                    "master_key",
-                    "warning"
-                ]
-            },
             "GetConfigFastOutputPayload": {},
             "GetConfigRequestContent": {
                 "type": "object",
@@ -10199,29 +10200,31 @@
                     "variants"
                 ]
             },
-            "RotateMasterKeyResponseContent": {
+            "RotateMasterEncryptionKeyResponseContent": {
                 "type": "object",
-                "description": "Response after generating the master key",
                 "properties": {
                     "workspaces_rotated": {
                         "type": "number"
                     },
                     "total_secrets_re_encrypted": {
                         "type": "number"
-                    },
-                    "rotated_at": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "new_master_key": {
-                        "type": "string"
                     }
                 },
                 "required": [
-                    "new_master_key",
-                    "rotated_at",
                     "total_secrets_re_encrypted",
                     "workspaces_rotated"
+                ]
+            },
+            "RotateWorkspaceEncryptionKeyResponseContent": {
+                "type": "object",
+                "properties": {
+                    "total_secrets_re_encrypted": {
+                        "type": "number",
+                        "description": "Number of secrets that were re-encrypted with the new key."
+                    }
+                },
+                "required": [
+                    "total_secrets_re_encrypted"
                 ]
             },
             "SecretResponse": {

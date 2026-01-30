@@ -79,9 +79,6 @@ import io.juspay.superposition.model.DeleteWebhookOutput;
 import io.juspay.superposition.model.DiscardExperiment;
 import io.juspay.superposition.model.DiscardExperimentInput;
 import io.juspay.superposition.model.DiscardExperimentOutput;
-import io.juspay.superposition.model.GenerateMasterKey;
-import io.juspay.superposition.model.GenerateMasterKeyInput;
-import io.juspay.superposition.model.GenerateMasterKeyOutput;
 import io.juspay.superposition.model.GetConfig;
 import io.juspay.superposition.model.GetConfigFast;
 import io.juspay.superposition.model.GetConfigFastInput;
@@ -202,9 +199,12 @@ import io.juspay.superposition.model.RemoveMembersFromGroupOutput;
 import io.juspay.superposition.model.ResumeExperiment;
 import io.juspay.superposition.model.ResumeExperimentInput;
 import io.juspay.superposition.model.ResumeExperimentOutput;
-import io.juspay.superposition.model.RotateMasterKey;
-import io.juspay.superposition.model.RotateMasterKeyInput;
-import io.juspay.superposition.model.RotateMasterKeyOutput;
+import io.juspay.superposition.model.RotateMasterEncryptionKey;
+import io.juspay.superposition.model.RotateMasterEncryptionKeyInput;
+import io.juspay.superposition.model.RotateMasterEncryptionKeyOutput;
+import io.juspay.superposition.model.RotateWorkspaceEncryptionKey;
+import io.juspay.superposition.model.RotateWorkspaceEncryptionKeyInput;
+import io.juspay.superposition.model.RotateWorkspaceEncryptionKeyOutput;
 import io.juspay.superposition.model.Test;
 import io.juspay.superposition.model.TestInput;
 import io.juspay.superposition.model.TestOutput;
@@ -266,8 +266,8 @@ import software.amazon.smithy.utils.SmithyGenerated;
 @SmithyGenerated
 final class SuperpositionClientImpl extends Client implements SuperpositionClient {
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
-        .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
         .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
+        .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
         .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
         .putType(InternalFailureException.$ID, InternalFailureException.class, InternalFailureException::builder)
         .putType(UnknownOperationException.$ID, UnknownOperationException.class, UnknownOperationException::builder)
@@ -508,15 +508,6 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
     public DiscardExperimentOutput discardExperiment(DiscardExperimentInput input, RequestOverrideConfig overrideConfig) {
         try {
             return call(input, DiscardExperiment.instance(), overrideConfig).join();
-        } catch (CompletionException e) {
-            throw unwrapAndThrow(e);
-        }
-    }
-
-    @Override
-    public GenerateMasterKeyOutput generateMasterKey(GenerateMasterKeyInput input, RequestOverrideConfig overrideConfig) {
-        try {
-            return call(input, GenerateMasterKey.instance(), overrideConfig).join();
         } catch (CompletionException e) {
             throw unwrapAndThrow(e);
         }
@@ -883,9 +874,18 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
     }
 
     @Override
-    public RotateMasterKeyOutput rotateMasterKey(RotateMasterKeyInput input, RequestOverrideConfig overrideConfig) {
+    public RotateMasterEncryptionKeyOutput rotateMasterEncryptionKey(RotateMasterEncryptionKeyInput input, RequestOverrideConfig overrideConfig) {
         try {
-            return call(input, RotateMasterKey.instance(), overrideConfig).join();
+            return call(input, RotateMasterEncryptionKey.instance(), overrideConfig).join();
+        } catch (CompletionException e) {
+            throw unwrapAndThrow(e);
+        }
+    }
+
+    @Override
+    public RotateWorkspaceEncryptionKeyOutput rotateWorkspaceEncryptionKey(RotateWorkspaceEncryptionKeyInput input, RequestOverrideConfig overrideConfig) {
+        try {
+            return call(input, RotateWorkspaceEncryptionKey.instance(), overrideConfig).join();
         } catch (CompletionException e) {
             throw unwrapAndThrow(e);
         }

@@ -7,5 +7,4 @@ DROP TABLE IF EXISTS public.secrets;
 
 ALTER TABLE superposition.workspaces
 DROP COLUMN IF EXISTS key_rotated_at,
-DROP COLUMN IF EXISTS previous_encryption_key,
 DROP COLUMN IF EXISTS encryption_key;

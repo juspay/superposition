@@ -227,7 +227,7 @@ pub struct Variable {
     derive(AsExpression, FromSqlRow, TextFromSql, TextToSql)
 )]
 #[cfg_attr(feature = "diesel_derives", diesel(sql_type = Text))]
-pub struct SecretName(pub String);
+pub struct SecretName(String);
 
 impl SecretName {
     pub fn validate(name: String) -> Result<Self, String> {

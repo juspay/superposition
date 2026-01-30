@@ -134,11 +134,6 @@ import {
   DiscardExperimentCommandOutput,
 } from "./commands/DiscardExperimentCommand";
 import {
-  GenerateMasterKeyCommand,
-  GenerateMasterKeyCommandInput,
-  GenerateMasterKeyCommandOutput,
-} from "./commands/GenerateMasterKeyCommand";
-import {
   GetConfigCommand,
   GetConfigCommandInput,
   GetConfigCommandOutput,
@@ -339,10 +334,15 @@ import {
   ResumeExperimentCommandOutput,
 } from "./commands/ResumeExperimentCommand";
 import {
-  RotateMasterKeyCommand,
-  RotateMasterKeyCommandInput,
-  RotateMasterKeyCommandOutput,
-} from "./commands/RotateMasterKeyCommand";
+  RotateMasterEncryptionKeyCommand,
+  RotateMasterEncryptionKeyCommandInput,
+  RotateMasterEncryptionKeyCommandOutput,
+} from "./commands/RotateMasterEncryptionKeyCommand";
+import {
+  RotateWorkspaceEncryptionKeyCommand,
+  RotateWorkspaceEncryptionKeyCommandInput,
+  RotateWorkspaceEncryptionKeyCommandOutput,
+} from "./commands/RotateWorkspaceEncryptionKeyCommand";
 import {
   TestCommand,
   TestCommandInput,
@@ -448,7 +448,6 @@ const commands = {
   DeleteVariableCommand,
   DeleteWebhookCommand,
   DiscardExperimentCommand,
-  GenerateMasterKeyCommand,
   GetConfigCommand,
   GetConfigFastCommand,
   GetContextCommand,
@@ -489,7 +488,8 @@ const commands = {
   RampExperimentCommand,
   RemoveMembersFromGroupCommand,
   ResumeExperimentCommand,
-  RotateMasterKeyCommand,
+  RotateMasterEncryptionKeyCommand,
+  RotateWorkspaceEncryptionKeyCommand,
   TestCommand,
   UpdateDefaultConfigCommand,
   UpdateDimensionCommand,
@@ -948,24 +948,6 @@ export interface Superposition {
     args: DiscardExperimentCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: DiscardExperimentCommandOutput) => void
-  ): void;
-
-  /**
-   * @see {@link GenerateMasterKeyCommand}
-   */
-  generateMasterKey(): Promise<GenerateMasterKeyCommandOutput>;
-  generateMasterKey(
-    args: GenerateMasterKeyCommandInput,
-    options?: __HttpHandlerOptions,
-  ): Promise<GenerateMasterKeyCommandOutput>;
-  generateMasterKey(
-    args: GenerateMasterKeyCommandInput,
-    cb: (err: any, data?: GenerateMasterKeyCommandOutput) => void
-  ): void;
-  generateMasterKey(
-    args: GenerateMasterKeyCommandInput,
-    options: __HttpHandlerOptions,
-    cb: (err: any, data?: GenerateMasterKeyCommandOutput) => void
   ): void;
 
   /**
@@ -1650,21 +1632,38 @@ export interface Superposition {
   ): void;
 
   /**
-   * @see {@link RotateMasterKeyCommand}
+   * @see {@link RotateMasterEncryptionKeyCommand}
    */
-  rotateMasterKey(): Promise<RotateMasterKeyCommandOutput>;
-  rotateMasterKey(
-    args: RotateMasterKeyCommandInput,
+  rotateMasterEncryptionKey(): Promise<RotateMasterEncryptionKeyCommandOutput>;
+  rotateMasterEncryptionKey(
+    args: RotateMasterEncryptionKeyCommandInput,
     options?: __HttpHandlerOptions,
-  ): Promise<RotateMasterKeyCommandOutput>;
-  rotateMasterKey(
-    args: RotateMasterKeyCommandInput,
-    cb: (err: any, data?: RotateMasterKeyCommandOutput) => void
+  ): Promise<RotateMasterEncryptionKeyCommandOutput>;
+  rotateMasterEncryptionKey(
+    args: RotateMasterEncryptionKeyCommandInput,
+    cb: (err: any, data?: RotateMasterEncryptionKeyCommandOutput) => void
   ): void;
-  rotateMasterKey(
-    args: RotateMasterKeyCommandInput,
+  rotateMasterEncryptionKey(
+    args: RotateMasterEncryptionKeyCommandInput,
     options: __HttpHandlerOptions,
-    cb: (err: any, data?: RotateMasterKeyCommandOutput) => void
+    cb: (err: any, data?: RotateMasterEncryptionKeyCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link RotateWorkspaceEncryptionKeyCommand}
+   */
+  rotateWorkspaceEncryptionKey(
+    args: RotateWorkspaceEncryptionKeyCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<RotateWorkspaceEncryptionKeyCommandOutput>;
+  rotateWorkspaceEncryptionKey(
+    args: RotateWorkspaceEncryptionKeyCommandInput,
+    cb: (err: any, data?: RotateWorkspaceEncryptionKeyCommandOutput) => void
+  ): void;
+  rotateWorkspaceEncryptionKey(
+    args: RotateWorkspaceEncryptionKeyCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: RotateWorkspaceEncryptionKeyCommandOutput) => void
   ): void;
 
   /**

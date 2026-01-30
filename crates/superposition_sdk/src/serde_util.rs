@@ -293,13 +293,6 @@ if builder.change_reason.is_none() { builder.change_reason = Some(Default::defau
                 builder
             }
 
-pub(crate) fn generate_master_key_output_output_correct_errors(mut builder: crate::operation::generate_master_key::builders::GenerateMasterKeyOutputBuilder) -> crate::operation::generate_master_key::builders::GenerateMasterKeyOutputBuilder {
-                if builder.master_key.is_none() { builder.master_key = Some(Default::default()) }
-if builder.instructions.is_none() { builder.instructions = Some(Default::default()) }
-if builder.warning.is_none() { builder.warning = Some(Default::default()) }
-                builder
-            }
-
 pub(crate) fn get_config_output_output_correct_errors(mut builder: crate::operation::get_config::builders::GetConfigOutputBuilder) -> crate::operation::get_config::builders::GetConfigOutputBuilder {
                 if builder.contexts.is_none() { builder.contexts = Some(Default::default()) }
 if builder.overrides.is_none() { builder.overrides = Some(Default::default()) }
@@ -760,11 +753,14 @@ if builder.change_reason.is_none() { builder.change_reason = Some(Default::defau
                 builder
             }
 
-pub(crate) fn rotate_master_key_output_output_correct_errors(mut builder: crate::operation::rotate_master_key::builders::RotateMasterKeyOutputBuilder) -> crate::operation::rotate_master_key::builders::RotateMasterKeyOutputBuilder {
+pub(crate) fn rotate_master_encryption_key_output_output_correct_errors(mut builder: crate::operation::rotate_master_encryption_key::builders::RotateMasterEncryptionKeyOutputBuilder) -> crate::operation::rotate_master_encryption_key::builders::RotateMasterEncryptionKeyOutputBuilder {
                 if builder.workspaces_rotated.is_none() { builder.workspaces_rotated = Some(Default::default()) }
 if builder.total_secrets_re_encrypted.is_none() { builder.total_secrets_re_encrypted = Some(Default::default()) }
-if builder.rotated_at.is_none() { builder.rotated_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
-if builder.new_master_key.is_none() { builder.new_master_key = Some(Default::default()) }
+                builder
+            }
+
+pub(crate) fn rotate_workspace_encryption_key_output_output_correct_errors(mut builder: crate::operation::rotate_workspace_encryption_key::builders::RotateWorkspaceEncryptionKeyOutputBuilder) -> crate::operation::rotate_workspace_encryption_key::builders::RotateWorkspaceEncryptionKeyOutputBuilder {
+                if builder.total_secrets_re_encrypted.is_none() { builder.total_secrets_re_encrypted = Some(Default::default()) }
                 builder
             }
 

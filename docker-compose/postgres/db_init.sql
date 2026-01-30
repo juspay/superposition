@@ -1769,7 +1769,6 @@ CREATE TRIGGER secrets_audit AFTER INSERT OR DELETE OR UPDATE ON localorg_test.s
 
 ALTER TABLE superposition.workspaces
 ADD COLUMN IF NOT EXISTS encryption_key TEXT NOT NULL DEFAULT '',
-ADD COLUMN IF NOT EXISTS previous_encryption_key TEXT,
 ADD COLUMN IF NOT EXISTS key_rotated_at TIMESTAMPTZ;
 
 COMMIT;

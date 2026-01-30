@@ -1,2 +1,2 @@
-pub mod handlers;
+mod handlers;
 pub use handlers::endpoints;

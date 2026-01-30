@@ -53,8 +53,6 @@ import io.juspay.superposition.model.DeleteWebhookInput;
 import io.juspay.superposition.model.DeleteWebhookOutput;
 import io.juspay.superposition.model.DiscardExperimentInput;
 import io.juspay.superposition.model.DiscardExperimentOutput;
-import io.juspay.superposition.model.GenerateMasterKeyInput;
-import io.juspay.superposition.model.GenerateMasterKeyOutput;
 import io.juspay.superposition.model.GetConfigFastInput;
 import io.juspay.superposition.model.GetConfigFastOutput;
 import io.juspay.superposition.model.GetConfigInput;
@@ -137,8 +135,10 @@ import io.juspay.superposition.model.RemoveMembersFromGroupOutput;
 import io.juspay.superposition.model.ResourceNotFound;
 import io.juspay.superposition.model.ResumeExperimentInput;
 import io.juspay.superposition.model.ResumeExperimentOutput;
-import io.juspay.superposition.model.RotateMasterKeyInput;
-import io.juspay.superposition.model.RotateMasterKeyOutput;
+import io.juspay.superposition.model.RotateMasterEncryptionKeyInput;
+import io.juspay.superposition.model.RotateMasterEncryptionKeyOutput;
+import io.juspay.superposition.model.RotateWorkspaceEncryptionKeyInput;
+import io.juspay.superposition.model.RotateWorkspaceEncryptionKeyOutput;
 import io.juspay.superposition.model.TestInput;
 import io.juspay.superposition.model.TestOutput;
 import io.juspay.superposition.model.UpdateDefaultConfigInput;
@@ -671,22 +671,6 @@ public interface SuperpositionAsyncClient {
      * @throws InternalServerError
      */
     CompletableFuture<DiscardExperimentOutput> discardExperiment(DiscardExperimentInput input, RequestOverrideConfig overrideConfig);
-
-    /**
-     * Generates a new master encryption key
-     *
-     * @throws InternalServerError
-     */
-    default CompletableFuture<GenerateMasterKeyOutput> generateMasterKey(GenerateMasterKeyInput input) {
-        return generateMasterKey(input, null);
-    }
-
-    /**
-     * Generates a new master encryption key
-     *
-     * @throws InternalServerError
-     */
-    CompletableFuture<GenerateMasterKeyOutput> generateMasterKey(GenerateMasterKeyInput input, RequestOverrideConfig overrideConfig);
 
     /**
      * Retrieves config data with context evaluation, including applicable contexts, overrides, and default
@@ -1433,20 +1417,38 @@ public interface SuperpositionAsyncClient {
     CompletableFuture<ResumeExperimentOutput> resumeExperiment(ResumeExperimentInput input, RequestOverrideConfig overrideConfig);
 
     /**
-     * Rotates the master key encryption key across all workspaces
+     * Rotates the master encryption key across all workspaces
      *
      * @throws InternalServerError
      */
-    default CompletableFuture<RotateMasterKeyOutput> rotateMasterKey(RotateMasterKeyInput input) {
-        return rotateMasterKey(input, null);
+    default CompletableFuture<RotateMasterEncryptionKeyOutput> rotateMasterEncryptionKey(RotateMasterEncryptionKeyInput input) {
+        return rotateMasterEncryptionKey(input, null);
     }
 
     /**
-     * Rotates the master key encryption key across all workspaces
+     * Rotates the master encryption key across all workspaces
      *
      * @throws InternalServerError
      */
-    CompletableFuture<RotateMasterKeyOutput> rotateMasterKey(RotateMasterKeyInput input, RequestOverrideConfig overrideConfig);
+    CompletableFuture<RotateMasterEncryptionKeyOutput> rotateMasterEncryptionKey(RotateMasterEncryptionKeyInput input, RequestOverrideConfig overrideConfig);
+
+    /**
+     * Rotates the workspace encryption key. Generates a new encryption key and re-encrypts all secrets
+     * with the new key. This is a critical operation that should be done during low-traffic periods.
+     *
+     * @throws InternalServerError
+     */
+    default CompletableFuture<RotateWorkspaceEncryptionKeyOutput> rotateWorkspaceEncryptionKey(RotateWorkspaceEncryptionKeyInput input) {
+        return rotateWorkspaceEncryptionKey(input, null);
+    }
+
+    /**
+     * Rotates the workspace encryption key. Generates a new encryption key and re-encrypts all secrets
+     * with the new key. This is a critical operation that should be done during low-traffic periods.
+     *
+     * @throws InternalServerError
+     */
+    CompletableFuture<RotateWorkspaceEncryptionKeyOutput> rotateWorkspaceEncryptionKey(RotateWorkspaceEncryptionKeyInput input, RequestOverrideConfig overrideConfig);
 
     /**
      * Executes a function in test mode with provided input parameters to validate its behavior before

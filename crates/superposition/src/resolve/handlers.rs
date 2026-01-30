@@ -37,7 +37,7 @@ async fn resolve_with_exp_handler(
     query_filters: superposition_query::Query<ResolveConfigQuery>,
     identifier_query: superposition_query::Query<IdentifierQuery>,
     workspace_context: WorkspaceContext,
-    app_state: Data<AppState>,
+    state: Data<AppState>,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let query_filters = query_filters.into_inner();
@@ -85,7 +85,7 @@ async fn resolve_with_exp_handler(
         &mut conn,
         &query_filters,
         &workspace_context,
-        app_state.master_key.as_ref(),
+        &state.master_encryption_key,
     )?;
 
     let mut resp = HttpResponse::Ok();

@@ -978,7 +978,6 @@ UPDATE {replaceme}.functions
 SET published_runtime_version = '1.0'
 WHERE published_runtime_version = '1.0.0';
 
--- Secrets table for storing encrypted secrets
 CREATE TABLE IF NOT EXISTS {replaceme}.secrets (
     name VARCHAR PRIMARY KEY,
     encrypted_value TEXT NOT NULL,
@@ -990,11 +989,9 @@ CREATE TABLE IF NOT EXISTS {replaceme}.secrets (
     last_modified_by TEXT NOT NULL
 );
 
--- Create indexes for faster queries on secrets
 CREATE INDEX IF NOT EXISTS idx_secrets_created_at ON {replaceme}.secrets(created_at);
 CREATE INDEX IF NOT EXISTS idx_secrets_last_modified_at ON {replaceme}.secrets(last_modified_at);
 
--- Add audit trigger for the secrets table
 DO $$ BEGIN
     CREATE TRIGGER secrets_audit AFTER INSERT OR DELETE OR UPDATE ON {replaceme}.secrets FOR EACH ROW EXECUTE FUNCTION {replaceme}.event_logger();
 EXCEPTION

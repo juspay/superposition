@@ -78,9 +78,6 @@ pub mod delete_webhook;
 /// Types for the `DiscardExperiment` operation.
 pub mod discard_experiment;
 
-/// Types for the `GenerateMasterKey` operation.
-pub mod generate_master_key;
-
 /// Types for the `GetConfig` operation.
 pub mod get_config;
 
@@ -201,8 +198,11 @@ pub mod remove_members_from_group;
 /// Types for the `ResumeExperiment` operation.
 pub mod resume_experiment;
 
-/// Types for the `RotateMasterKey` operation.
-pub mod rotate_master_key;
+/// Types for the `RotateMasterEncryptionKey` operation.
+pub mod rotate_master_encryption_key;
+
+/// Types for the `RotateWorkspaceEncryptionKey` operation.
+pub mod rotate_workspace_encryption_key;
 
 /// Types for the `Test` operation.
 pub mod test;

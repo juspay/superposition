@@ -113,9 +113,6 @@ from ._private.schemas import (
     EXPERIMENT_RESPONSE as _SCHEMA_EXPERIMENT_RESPONSE,
     FUNCTION_EXECUTION_REQUEST as _SCHEMA_FUNCTION_EXECUTION_REQUEST,
     FUNCTION_RESPONSE as _SCHEMA_FUNCTION_RESPONSE,
-    GENERATE_MASTER_KEY as _SCHEMA_GENERATE_MASTER_KEY,
-    GENERATE_MASTER_KEY_INPUT as _SCHEMA_GENERATE_MASTER_KEY_INPUT,
-    GENERATE_MASTER_KEY_OUTPUT as _SCHEMA_GENERATE_MASTER_KEY_OUTPUT,
     GET_CONFIG as _SCHEMA_GET_CONFIG,
     GET_CONFIG_FAST as _SCHEMA_GET_CONFIG_FAST,
     GET_CONFIG_FAST_INPUT as _SCHEMA_GET_CONFIG_FAST_INPUT,
@@ -240,9 +237,12 @@ from ._private.schemas import (
     RESUME_EXPERIMENT as _SCHEMA_RESUME_EXPERIMENT,
     RESUME_EXPERIMENT_INPUT as _SCHEMA_RESUME_EXPERIMENT_INPUT,
     RESUME_EXPERIMENT_OUTPUT as _SCHEMA_RESUME_EXPERIMENT_OUTPUT,
-    ROTATE_MASTER_KEY as _SCHEMA_ROTATE_MASTER_KEY,
-    ROTATE_MASTER_KEY_INPUT as _SCHEMA_ROTATE_MASTER_KEY_INPUT,
-    ROTATE_MASTER_KEY_OUTPUT as _SCHEMA_ROTATE_MASTER_KEY_OUTPUT,
+    ROTATE_MASTER_ENCRYPTION_KEY as _SCHEMA_ROTATE_MASTER_ENCRYPTION_KEY,
+    ROTATE_MASTER_ENCRYPTION_KEY_INPUT as _SCHEMA_ROTATE_MASTER_ENCRYPTION_KEY_INPUT,
+    ROTATE_MASTER_ENCRYPTION_KEY_OUTPUT as _SCHEMA_ROTATE_MASTER_ENCRYPTION_KEY_OUTPUT,
+    ROTATE_WORKSPACE_ENCRYPTION_KEY as _SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY,
+    ROTATE_WORKSPACE_ENCRYPTION_KEY_INPUT as _SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY_INPUT,
+    ROTATE_WORKSPACE_ENCRYPTION_KEY_OUTPUT as _SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY_OUTPUT,
     SECRET_RESPONSE as _SCHEMA_SECRET_RESPONSE,
     TEST as _SCHEMA_TEST,
     TEST_INPUT as _SCHEMA_TEST_INPUT,
@@ -12931,93 +12931,6 @@ ShapeID("smithy.api#httpBearerAuth")
 )
 
 @dataclass(kw_only=True)
-class GenerateMasterKeyInput:
-
-    def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_GENERATE_MASTER_KEY_INPUT, self)
-
-    def serialize_members(self, serializer: ShapeSerializer):
-        pass
-
-    @classmethod
-    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(**cls.deserialize_kwargs(deserializer))
-
-    @classmethod
-    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
-        kwargs: dict[str, Any] = {}
-
-        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
-            match schema.expect_member_index():
-
-                case _:
-                    logger.debug("Unexpected member schema: %s", schema)
-
-        deserializer.read_struct(_SCHEMA_GENERATE_MASTER_KEY_INPUT, consumer=_consumer)
-        return kwargs
-
-@dataclass(kw_only=True)
-class GenerateMasterKeyOutput:
-    """
-    Response containing newly generated master key
-
-    """
-
-    master_key: str
-
-    instructions: str
-
-    warning: str
-
-    def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_GENERATE_MASTER_KEY_OUTPUT, self)
-
-    def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_GENERATE_MASTER_KEY_OUTPUT.members["master_key"], self.master_key)
-        serializer.write_string(_SCHEMA_GENERATE_MASTER_KEY_OUTPUT.members["instructions"], self.instructions)
-        serializer.write_string(_SCHEMA_GENERATE_MASTER_KEY_OUTPUT.members["warning"], self.warning)
-
-    @classmethod
-    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(**cls.deserialize_kwargs(deserializer))
-
-    @classmethod
-    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
-        kwargs: dict[str, Any] = {}
-
-        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
-            match schema.expect_member_index():
-                case 0:
-                    kwargs["master_key"] = de.read_string(_SCHEMA_GENERATE_MASTER_KEY_OUTPUT.members["master_key"])
-
-                case 1:
-                    kwargs["instructions"] = de.read_string(_SCHEMA_GENERATE_MASTER_KEY_OUTPUT.members["instructions"])
-
-                case 2:
-                    kwargs["warning"] = de.read_string(_SCHEMA_GENERATE_MASTER_KEY_OUTPUT.members["warning"])
-
-                case _:
-                    logger.debug("Unexpected member schema: %s", schema)
-
-        deserializer.read_struct(_SCHEMA_GENERATE_MASTER_KEY_OUTPUT, consumer=_consumer)
-        return kwargs
-
-GENERATE_MASTER_KEY = APIOperation(
-        input = GenerateMasterKeyInput,
-        output = GenerateMasterKeyOutput,
-        schema = _SCHEMA_GENERATE_MASTER_KEY,
-        input_schema = _SCHEMA_GENERATE_MASTER_KEY_INPUT,
-        output_schema = _SCHEMA_GENERATE_MASTER_KEY_OUTPUT,
-        error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
-        }),
-        effective_auth_schemes = [
-            ShapeID("smithy.api#httpBasicAuth"),
-ShapeID("smithy.api#httpBearerAuth")
-        ]
-)
-
-@dataclass(kw_only=True)
 class GetOrganisationInput:
 
     id: str | None = None
@@ -15527,10 +15440,10 @@ ShapeID("smithy.api#httpBearerAuth")
 )
 
 @dataclass(kw_only=True)
-class RotateMasterKeyInput:
+class RotateMasterEncryptionKeyInput:
 
     def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_ROTATE_MASTER_KEY_INPUT, self)
+        serializer.write_struct(_SCHEMA_ROTATE_MASTER_ENCRYPTION_KEY_INPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
         pass
@@ -15549,32 +15462,22 @@ class RotateMasterKeyInput:
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_ROTATE_MASTER_KEY_INPUT, consumer=_consumer)
+        deserializer.read_struct(_SCHEMA_ROTATE_MASTER_ENCRYPTION_KEY_INPUT, consumer=_consumer)
         return kwargs
 
 @dataclass(kw_only=True)
-class RotateMasterKeyOutput:
-    """
-    Response after generating the master key
-
-    """
+class RotateMasterEncryptionKeyOutput:
 
     workspaces_rotated: int
 
     total_secrets_re_encrypted: int
 
-    rotated_at: datetime
-
-    new_master_key: str
-
     def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_ROTATE_MASTER_KEY_OUTPUT, self)
+        serializer.write_struct(_SCHEMA_ROTATE_MASTER_ENCRYPTION_KEY_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_long(_SCHEMA_ROTATE_MASTER_KEY_OUTPUT.members["workspaces_rotated"], self.workspaces_rotated)
-        serializer.write_long(_SCHEMA_ROTATE_MASTER_KEY_OUTPUT.members["total_secrets_re_encrypted"], self.total_secrets_re_encrypted)
-        serializer.write_timestamp(_SCHEMA_ROTATE_MASTER_KEY_OUTPUT.members["rotated_at"], self.rotated_at)
-        serializer.write_string(_SCHEMA_ROTATE_MASTER_KEY_OUTPUT.members["new_master_key"], self.new_master_key)
+        serializer.write_long(_SCHEMA_ROTATE_MASTER_ENCRYPTION_KEY_OUTPUT.members["workspaces_rotated"], self.workspaces_rotated)
+        serializer.write_long(_SCHEMA_ROTATE_MASTER_ENCRYPTION_KEY_OUTPUT.members["total_secrets_re_encrypted"], self.total_secrets_re_encrypted)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -15587,29 +15490,23 @@ class RotateMasterKeyOutput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["workspaces_rotated"] = de.read_long(_SCHEMA_ROTATE_MASTER_KEY_OUTPUT.members["workspaces_rotated"])
+                    kwargs["workspaces_rotated"] = de.read_long(_SCHEMA_ROTATE_MASTER_ENCRYPTION_KEY_OUTPUT.members["workspaces_rotated"])
 
                 case 1:
-                    kwargs["total_secrets_re_encrypted"] = de.read_long(_SCHEMA_ROTATE_MASTER_KEY_OUTPUT.members["total_secrets_re_encrypted"])
-
-                case 2:
-                    kwargs["rotated_at"] = de.read_timestamp(_SCHEMA_ROTATE_MASTER_KEY_OUTPUT.members["rotated_at"])
-
-                case 3:
-                    kwargs["new_master_key"] = de.read_string(_SCHEMA_ROTATE_MASTER_KEY_OUTPUT.members["new_master_key"])
+                    kwargs["total_secrets_re_encrypted"] = de.read_long(_SCHEMA_ROTATE_MASTER_ENCRYPTION_KEY_OUTPUT.members["total_secrets_re_encrypted"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
-        deserializer.read_struct(_SCHEMA_ROTATE_MASTER_KEY_OUTPUT, consumer=_consumer)
+        deserializer.read_struct(_SCHEMA_ROTATE_MASTER_ENCRYPTION_KEY_OUTPUT, consumer=_consumer)
         return kwargs
 
-ROTATE_MASTER_KEY = APIOperation(
-        input = RotateMasterKeyInput,
-        output = RotateMasterKeyOutput,
-        schema = _SCHEMA_ROTATE_MASTER_KEY,
-        input_schema = _SCHEMA_ROTATE_MASTER_KEY_INPUT,
-        output_schema = _SCHEMA_ROTATE_MASTER_KEY_OUTPUT,
+ROTATE_MASTER_ENCRYPTION_KEY = APIOperation(
+        input = RotateMasterEncryptionKeyInput,
+        output = RotateMasterEncryptionKeyOutput,
+        schema = _SCHEMA_ROTATE_MASTER_ENCRYPTION_KEY,
+        input_schema = _SCHEMA_ROTATE_MASTER_ENCRYPTION_KEY_INPUT,
+        output_schema = _SCHEMA_ROTATE_MASTER_ENCRYPTION_KEY_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
@@ -15978,6 +15875,91 @@ UPDATE_ORGANISATION = APIOperation(
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+            ShapeID("smithy.api#httpBasicAuth"),
+ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
+@dataclass(kw_only=True)
+class RotateWorkspaceEncryptionKeyInput:
+
+    org_id: str | None = None
+    workspace_name: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY_INPUT.members["org_id"])
+
+                case 1:
+                    kwargs["workspace_name"] = de.read_string(_SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY_INPUT.members["workspace_name"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class RotateWorkspaceEncryptionKeyOutput:
+    """
+
+    :param total_secrets_re_encrypted:
+        **[Required]** - Number of secrets that were re-encrypted with the new key.
+
+    """
+
+    total_secrets_re_encrypted: int
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_long(_SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY_OUTPUT.members["total_secrets_re_encrypted"], self.total_secrets_re_encrypted)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["total_secrets_re_encrypted"] = de.read_long(_SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY_OUTPUT.members["total_secrets_re_encrypted"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY_OUTPUT, consumer=_consumer)
+        return kwargs
+
+ROTATE_WORKSPACE_ENCRYPTION_KEY = APIOperation(
+        input = RotateWorkspaceEncryptionKeyInput,
+        output = RotateWorkspaceEncryptionKeyOutput,
+        schema = _SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY,
+        input_schema = _SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY_INPUT,
+        output_schema = _SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBasicAuth"),

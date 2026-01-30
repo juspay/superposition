@@ -79,9 +79,6 @@ import io.juspay.superposition.model.DeleteWebhookOutput;
 import io.juspay.superposition.model.DiscardExperiment;
 import io.juspay.superposition.model.DiscardExperimentInput;
 import io.juspay.superposition.model.DiscardExperimentOutput;
-import io.juspay.superposition.model.GenerateMasterKey;
-import io.juspay.superposition.model.GenerateMasterKeyInput;
-import io.juspay.superposition.model.GenerateMasterKeyOutput;
 import io.juspay.superposition.model.GetConfig;
 import io.juspay.superposition.model.GetConfigFast;
 import io.juspay.superposition.model.GetConfigFastInput;
@@ -202,9 +199,12 @@ import io.juspay.superposition.model.RemoveMembersFromGroupOutput;
 import io.juspay.superposition.model.ResumeExperiment;
 import io.juspay.superposition.model.ResumeExperimentInput;
 import io.juspay.superposition.model.ResumeExperimentOutput;
-import io.juspay.superposition.model.RotateMasterKey;
-import io.juspay.superposition.model.RotateMasterKeyInput;
-import io.juspay.superposition.model.RotateMasterKeyOutput;
+import io.juspay.superposition.model.RotateMasterEncryptionKey;
+import io.juspay.superposition.model.RotateMasterEncryptionKeyInput;
+import io.juspay.superposition.model.RotateMasterEncryptionKeyOutput;
+import io.juspay.superposition.model.RotateWorkspaceEncryptionKey;
+import io.juspay.superposition.model.RotateWorkspaceEncryptionKeyInput;
+import io.juspay.superposition.model.RotateWorkspaceEncryptionKeyOutput;
 import io.juspay.superposition.model.Test;
 import io.juspay.superposition.model.TestInput;
 import io.juspay.superposition.model.TestOutput;
@@ -266,8 +266,8 @@ import software.amazon.smithy.utils.SmithyGenerated;
 @SmithyGenerated
 final class SuperpositionAsyncClientImpl extends Client implements SuperpositionAsyncClient {
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
-        .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
         .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
+        .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
         .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
         .putType(InternalFailureException.$ID, InternalFailureException.class, InternalFailureException::builder)
         .putType(UnknownOperationException.$ID, UnknownOperationException.class, UnknownOperationException::builder)
@@ -381,10 +381,6 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
 
     @Override
     public CompletableFuture<DiscardExperimentOutput> discardExperiment(DiscardExperimentInput input, RequestOverrideConfig overrideConfig) {return call(input, DiscardExperiment.instance(), overrideConfig);
-    }
-
-    @Override
-    public CompletableFuture<GenerateMasterKeyOutput> generateMasterKey(GenerateMasterKeyInput input, RequestOverrideConfig overrideConfig) {return call(input, GenerateMasterKey.instance(), overrideConfig);
     }
 
     @Override
@@ -548,7 +544,11 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
     }
 
     @Override
-    public CompletableFuture<RotateMasterKeyOutput> rotateMasterKey(RotateMasterKeyInput input, RequestOverrideConfig overrideConfig) {return call(input, RotateMasterKey.instance(), overrideConfig);
+    public CompletableFuture<RotateMasterEncryptionKeyOutput> rotateMasterEncryptionKey(RotateMasterEncryptionKeyInput input, RequestOverrideConfig overrideConfig) {return call(input, RotateMasterEncryptionKey.instance(), overrideConfig);
+    }
+
+    @Override
+    public CompletableFuture<RotateWorkspaceEncryptionKeyOutput> rotateWorkspaceEncryptionKey(RotateWorkspaceEncryptionKeyInput input, RequestOverrideConfig overrideConfig) {return call(input, RotateWorkspaceEncryptionKey.instance(), overrideConfig);
     }
 
     @Override

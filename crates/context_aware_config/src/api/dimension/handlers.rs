@@ -76,7 +76,7 @@ async fn create_handler(
         &workspace_context,
         &create_req.change_reason,
         &mut conn,
-        state.master_key.as_ref(),
+        &state.master_encryption_key,
     )?;
 
     let num_rows = dimensions
@@ -282,7 +282,7 @@ async fn update_handler(
         &workspace_context,
         &update_req.change_reason,
         &mut conn,
-        state.master_key.as_ref(),
+        &state.master_encryption_key,
     )?;
 
     let dimension_data: Dimension = dimensions::dsl::dimensions

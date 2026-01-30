@@ -15,46 +15,34 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.RequiredTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
-/**
- * Response containing newly generated master key
- */
 @SmithyGenerated
-public final class GenerateMasterKeyOutput implements SerializableStruct {
-    public static final ShapeId $ID = ShapeId.from("io.superposition#GenerateMasterKeyResponse");
+public final class RotateMasterEncryptionKeyOutput implements SerializableStruct {
+    public static final ShapeId $ID = ShapeId.from("io.superposition#RotateMasterEncryptionKeyOutput");
 
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
-        .putMember("master_key", PreludeSchemas.STRING,
+        .putMember("workspaces_rotated", PreludeSchemas.LONG,
                 new RequiredTrait())
-        .putMember("instructions", PreludeSchemas.STRING,
-                new RequiredTrait())
-        .putMember("warning", PreludeSchemas.STRING,
+        .putMember("total_secrets_re_encrypted", PreludeSchemas.LONG,
                 new RequiredTrait())
         .build();
 
-    private static final Schema $SCHEMA_MASTER_KEY = $SCHEMA.member("master_key");
-    private static final Schema $SCHEMA_INSTRUCTIONS = $SCHEMA.member("instructions");
-    private static final Schema $SCHEMA_WARNING = $SCHEMA.member("warning");
+    private static final Schema $SCHEMA_WORKSPACES_ROTATED = $SCHEMA.member("workspaces_rotated");
+    private static final Schema $SCHEMA_TOTAL_SECRETS_RE_ENCRYPTED = $SCHEMA.member("total_secrets_re_encrypted");
 
-    private final transient String masterKey;
-    private final transient String instructions;
-    private final transient String warning;
+    private final transient long workspacesRotated;
+    private final transient long totalSecretsReEncrypted;
 
-    private GenerateMasterKeyOutput(Builder builder) {
-        this.masterKey = builder.masterKey;
-        this.instructions = builder.instructions;
-        this.warning = builder.warning;
+    private RotateMasterEncryptionKeyOutput(Builder builder) {
+        this.workspacesRotated = builder.workspacesRotated;
+        this.totalSecretsReEncrypted = builder.totalSecretsReEncrypted;
     }
 
-    public String masterKey() {
-        return masterKey;
+    public long workspacesRotated() {
+        return workspacesRotated;
     }
 
-    public String instructions() {
-        return instructions;
-    }
-
-    public String warning() {
-        return warning;
+    public long totalSecretsReEncrypted() {
+        return totalSecretsReEncrypted;
     }
 
     @Override
@@ -70,15 +58,14 @@ public final class GenerateMasterKeyOutput implements SerializableStruct {
         if (other == null || getClass() != other.getClass()) {
             return false;
         }
-        GenerateMasterKeyOutput that = (GenerateMasterKeyOutput) other;
-        return Objects.equals(this.masterKey, that.masterKey)
-               && Objects.equals(this.instructions, that.instructions)
-               && Objects.equals(this.warning, that.warning);
+        RotateMasterEncryptionKeyOutput that = (RotateMasterEncryptionKeyOutput) other;
+        return this.workspacesRotated == that.workspacesRotated
+               && this.totalSecretsReEncrypted == that.totalSecretsReEncrypted;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(masterKey, instructions, warning);
+        return Objects.hash(workspacesRotated, totalSecretsReEncrypted);
     }
 
     @Override
@@ -88,18 +75,16 @@ public final class GenerateMasterKeyOutput implements SerializableStruct {
 
     @Override
     public void serializeMembers(ShapeSerializer serializer) {
-        serializer.writeString($SCHEMA_MASTER_KEY, masterKey);
-        serializer.writeString($SCHEMA_INSTRUCTIONS, instructions);
-        serializer.writeString($SCHEMA_WARNING, warning);
+        serializer.writeLong($SCHEMA_WORKSPACES_ROTATED, workspacesRotated);
+        serializer.writeLong($SCHEMA_TOTAL_SECRETS_RE_ENCRYPTED, totalSecretsReEncrypted);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public <T> T getMemberValue(Schema member) {
         return switch (member.memberIndex()) {
-            case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_MASTER_KEY, member, masterKey);
-            case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_INSTRUCTIONS, member, instructions);
-            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_WARNING, member, warning);
+            case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACES_ROTATED, member, workspacesRotated);
+            case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_TOTAL_SECRETS_RE_ENCRYPTED, member, totalSecretsReEncrypted);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -109,13 +94,12 @@ public final class GenerateMasterKeyOutput implements SerializableStruct {
      *
      * <p><strong>Note:</strong> This method performs only a shallow copy of the original properties.
      *
-     * @return a builder for {@link GenerateMasterKeyOutput}.
+     * @return a builder for {@link RotateMasterEncryptionKeyOutput}.
      */
     public Builder toBuilder() {
         var builder = new Builder();
-        builder.masterKey(this.masterKey);
-        builder.instructions(this.instructions);
-        builder.warning(this.warning);
+        builder.workspacesRotated(this.workspacesRotated);
+        builder.totalSecretsReEncrypted(this.totalSecretsReEncrypted);
         return builder;
     }
 
@@ -127,13 +111,12 @@ public final class GenerateMasterKeyOutput implements SerializableStruct {
     }
 
     /**
-     * Builder for {@link GenerateMasterKeyOutput}.
+     * Builder for {@link RotateMasterEncryptionKeyOutput}.
      */
-    public static final class Builder implements ShapeBuilder<GenerateMasterKeyOutput> {
+    public static final class Builder implements ShapeBuilder<RotateMasterEncryptionKeyOutput> {
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
-        private String masterKey;
-        private String instructions;
-        private String warning;
+        private long workspacesRotated;
+        private long totalSecretsReEncrypted;
 
         private Builder() {}
 
@@ -146,9 +129,9 @@ public final class GenerateMasterKeyOutput implements SerializableStruct {
          * <p><strong>Required</strong>
          * @return this builder.
          */
-        public Builder masterKey(String masterKey) {
-            this.masterKey = Objects.requireNonNull(masterKey, "masterKey cannot be null");
-            tracker.setMember($SCHEMA_MASTER_KEY);
+        public Builder workspacesRotated(long workspacesRotated) {
+            this.workspacesRotated = workspacesRotated;
+            tracker.setMember($SCHEMA_WORKSPACES_ROTATED);
             return this;
         }
 
@@ -156,52 +139,38 @@ public final class GenerateMasterKeyOutput implements SerializableStruct {
          * <p><strong>Required</strong>
          * @return this builder.
          */
-        public Builder instructions(String instructions) {
-            this.instructions = Objects.requireNonNull(instructions, "instructions cannot be null");
-            tracker.setMember($SCHEMA_INSTRUCTIONS);
-            return this;
-        }
-
-        /**
-         * <p><strong>Required</strong>
-         * @return this builder.
-         */
-        public Builder warning(String warning) {
-            this.warning = Objects.requireNonNull(warning, "warning cannot be null");
-            tracker.setMember($SCHEMA_WARNING);
+        public Builder totalSecretsReEncrypted(long totalSecretsReEncrypted) {
+            this.totalSecretsReEncrypted = totalSecretsReEncrypted;
+            tracker.setMember($SCHEMA_TOTAL_SECRETS_RE_ENCRYPTED);
             return this;
         }
 
         @Override
-        public GenerateMasterKeyOutput build() {
+        public RotateMasterEncryptionKeyOutput build() {
             tracker.validate();
-            return new GenerateMasterKeyOutput(this);
+            return new RotateMasterEncryptionKeyOutput(this);
         }
 
         @Override
         @SuppressWarnings("unchecked")
         public void setMemberValue(Schema member, Object value) {
             switch (member.memberIndex()) {
-                case 0 -> masterKey((String) SchemaUtils.validateSameMember($SCHEMA_MASTER_KEY, member, value));
-                case 1 -> instructions((String) SchemaUtils.validateSameMember($SCHEMA_INSTRUCTIONS, member, value));
-                case 2 -> warning((String) SchemaUtils.validateSameMember($SCHEMA_WARNING, member, value));
+                case 0 -> workspacesRotated((long) SchemaUtils.validateSameMember($SCHEMA_WORKSPACES_ROTATED, member, value));
+                case 1 -> totalSecretsReEncrypted((long) SchemaUtils.validateSameMember($SCHEMA_TOTAL_SECRETS_RE_ENCRYPTED, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
 
         @Override
-        public ShapeBuilder<GenerateMasterKeyOutput> errorCorrection() {
+        public ShapeBuilder<RotateMasterEncryptionKeyOutput> errorCorrection() {
             if (tracker.allSet()) {
                 return this;
             }
-            if (!tracker.checkMember($SCHEMA_MASTER_KEY)) {
-                masterKey("");
+            if (!tracker.checkMember($SCHEMA_WORKSPACES_ROTATED)) {
+                tracker.setMember($SCHEMA_WORKSPACES_ROTATED);
             }
-            if (!tracker.checkMember($SCHEMA_INSTRUCTIONS)) {
-                instructions("");
-            }
-            if (!tracker.checkMember($SCHEMA_WARNING)) {
-                warning("");
+            if (!tracker.checkMember($SCHEMA_TOTAL_SECRETS_RE_ENCRYPTED)) {
+                tracker.setMember($SCHEMA_TOTAL_SECRETS_RE_ENCRYPTED);
             }
             return this;
         }
@@ -224,9 +193,8 @@ public final class GenerateMasterKeyOutput implements SerializableStruct {
             @Override
             public void accept(Builder builder, Schema member, ShapeDeserializer de) {
                 switch (member.memberIndex()) {
-                    case 0 -> builder.masterKey(de.readString(member));
-                    case 1 -> builder.instructions(de.readString(member));
-                    case 2 -> builder.warning(de.readString(member));
+                    case 0 -> builder.workspacesRotated(de.readLong(member));
+                    case 1 -> builder.totalSecretsReEncrypted(de.readLong(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

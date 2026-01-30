@@ -12,7 +12,8 @@ use serde_json::Value;
 use service_utils::{
     helpers::{parse_config_tags, validation_err_to_str},
     service::types::{
-        AppHeader, AppState, CustomHeaders, DbConnection, SchemaName, WorkspaceContext,
+        AppHeader, AppState, CustomHeaders, DbConnection, EncryptionKey, SchemaName,
+        WorkspaceContext,
     },
 };
 use superposition_derives::authorized;
@@ -84,7 +85,7 @@ async fn create_handler(
         &workspace_context,
         &req.change_reason,
         &mut conn,
-        state.master_key.as_ref(),
+        &state.master_encryption_key,
     )?;
 
     let value = req.value;
@@ -135,7 +136,7 @@ async fn create_handler(
         &default_config.value_validation_function_name,
         &default_config.key,
         &default_config.value,
-        state.master_key.as_ref(),
+        &state.master_encryption_key,
     )?;
 
     validate_fn_published(
@@ -225,7 +226,7 @@ async fn update_handler(
         &workspace_context,
         &req.change_reason,
         &mut conn,
-        state.master_key.as_ref(),
+        &state.master_encryption_key,
     )?;
 
     let value = req.value.clone().unwrap_or_else(|| existing.value.clone());
@@ -261,7 +262,7 @@ async fn update_handler(
             validation_function_name,
             &key_str,
             &value,
-            state.master_key.as_ref(),
+            &state.master_encryption_key,
         )?
     }
 
@@ -328,7 +329,7 @@ fn validate_default_config_with_function(
     function_name: &Option<String>,
     key: &str,
     value: &Value,
-    master_key: Option<&secrecy::SecretString>,
+    master_encryption_key: &Option<EncryptionKey>,
 ) -> superposition::Result<()> {
     if let Some(f_name) = function_name {
         let FunctionInfo {
@@ -357,7 +358,7 @@ fn validate_default_config_with_function(
                 },
                 f_version,
                 conn,
-                master_key,
+                master_encryption_key,
             )?;
         }
     };

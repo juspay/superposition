@@ -464,7 +464,7 @@ pub async fn fetch_types(
 }
 
 pub mod workspaces {
-    use superposition_types::api::secrets::KeyRotationStatus;
+    use superposition_types::api::workspace::KeyRotationResponse;
 
     use super::*;
 
@@ -554,18 +554,15 @@ pub mod workspaces {
     pub async fn rotate_key(
         workspace: &str,
         org_id: &str,
-    ) -> Result<KeyRotationStatus, String> {
+    ) -> Result<KeyRotationResponse, String> {
         let host = use_host_server();
-        let url = format!("{host}/workspaces/rotate-key");
+        let url = format!("{host}/workspaces/{workspace}/rotate-encryption-key");
 
         let response = request(
             url,
             reqwest::Method::POST,
             None::<()>,
-            construct_request_headers(&[
-                ("x-workspace", workspace),
-                ("x-org-id", org_id),
-            ])?,
+            construct_request_headers(&[("x-org-id", org_id)])?,
         )
         .await?;
 
@@ -1154,11 +1151,11 @@ pub mod secrets {
         secret_name: String,
         workspace: &str,
         org_id: &str,
-    ) -> Result<(), String> {
+    ) -> Result<SecretResponse, String> {
         let host = use_host_server();
         let url = format!("{host}/secrets/{secret_name}");
 
-        request(
+        let response = request(
             url,
             reqwest::Method::DELETE,
             None::<()>,
@@ -1169,7 +1166,7 @@ pub mod secrets {
         )
         .await?;
 
-        Ok(())
+        parse_json_response(response).await
     }
 }
 
@@ -1405,25 +1402,13 @@ pub mod audit_log {
     }
 }
 
-pub mod master_key {
+pub mod master_encryption_key {
     use super::*;
-    use superposition_types::api::secrets::{
-        GenerateMasterKeyResponse, MasterKeyRotationStatus,
-    };
+    use superposition_types::api::secrets::MasterEncryptionKeyRotationResponse;
 
-    pub async fn generate() -> Result<GenerateMasterKeyResponse, String> {
+    pub async fn rotate() -> Result<MasterEncryptionKeyRotationResponse, String> {
         let host = use_host_server();
-        let url = format!("{host}/master-key/generate");
-
-        let response =
-            request(url, reqwest::Method::POST, None::<()>, HeaderMap::new()).await?;
-
-        parse_json_response(response).await
-    }
-
-    pub async fn rotate() -> Result<MasterKeyRotationStatus, String> {
-        let host = use_host_server();
-        let url = format!("{host}/master-key/rotate");
+        let url = format!("{host}/master-encryption-key/rotate");
 
         let response =
             request(url, reqwest::Method::POST, None::<()>, HeaderMap::new()).await?;

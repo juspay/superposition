@@ -12966,73 +12966,6 @@ UPDATE_FUNCTION = Schema(
 
 )
 
-GENERATE_MASTER_KEY_INPUT = Schema.collection(
-    id=ShapeID("io.superposition#GenerateMasterKeyInput"),
-
-    traits=[
-        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="smithy.api#Unit"),
-        Trait.new(id=ShapeID("smithy.api#input")),
-
-    ],
-
-)
-
-GENERATE_MASTER_KEY_OUTPUT = Schema.collection(
-    id=ShapeID("io.superposition#GenerateMasterKeyOutput"),
-
-    traits=[
-        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#GenerateMasterKeyResponse"),
-        Trait.new(id=ShapeID("smithy.api#output")),
-
-    ],
-    members={
-        "master_key": {
-            "target": STRING,
-            "index": 0,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
-        "instructions": {
-            "target": STRING,
-            "index": 1,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
-        "warning": {
-            "target": STRING,
-            "index": 2,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
-    }
-)
-
-GENERATE_MASTER_KEY = Schema(
-    id=ShapeID("io.superposition#GenerateMasterKey"),
-    shape_type=ShapeType.OPERATION,
-    traits=[
-        Trait.new(id=ShapeID("smithy.api#tags"), value=(
-                "Admin",
-                "Encryption",
-            )),
-        Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
-                "method": "POST",
-                "uri": "/master-key/generate",
-            })),
-
-    ],
-
-)
-
 GET_ORGANISATION_INPUT = Schema.collection(
     id=ShapeID("io.superposition#GetOrganisationInput"),
 
@@ -15688,8 +15621,8 @@ LIST_WORKSPACE = Schema(
 
 )
 
-ROTATE_MASTER_KEY_INPUT = Schema.collection(
-    id=ShapeID("io.superposition#RotateMasterKeyInput"),
+ROTATE_MASTER_ENCRYPTION_KEY_INPUT = Schema.collection(
+    id=ShapeID("io.superposition#RotateMasterEncryptionKeyInput"),
 
     traits=[
         Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="smithy.api#Unit"),
@@ -15699,11 +15632,10 @@ ROTATE_MASTER_KEY_INPUT = Schema.collection(
 
 )
 
-ROTATE_MASTER_KEY_OUTPUT = Schema.collection(
-    id=ShapeID("io.superposition#RotateMasterKeyOutput"),
+ROTATE_MASTER_ENCRYPTION_KEY_OUTPUT = Schema.collection(
+    id=ShapeID("io.superposition#RotateMasterEncryptionKeyOutput"),
 
     traits=[
-        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#RotateMasterKeyResponse"),
         Trait.new(id=ShapeID("smithy.api#output")),
 
     ],
@@ -15726,38 +15658,21 @@ ROTATE_MASTER_KEY_OUTPUT = Schema.collection(
             ],
         },
 
-        "rotated_at": {
-            "target": DATE_TIME,
-            "index": 2,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
-        "new_master_key": {
-            "target": STRING,
-            "index": 3,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
     }
 )
 
-ROTATE_MASTER_KEY = Schema(
-    id=ShapeID("io.superposition#RotateMasterKey"),
+ROTATE_MASTER_ENCRYPTION_KEY = Schema(
+    id=ShapeID("io.superposition#RotateMasterEncryptionKey"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#idempotent")),
         Trait.new(id=ShapeID("smithy.api#tags"), value=(
                 "Admin",
                 "Encryption",
             )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "POST",
-                "uri": "/master-key/rotate",
+                "uri": "/master-encryption-key/rotate",
             })),
 
     ],
@@ -15768,7 +15683,7 @@ MIGRATE_WORKSPACE_SCHEMA_INPUT = Schema.collection(
     id=ShapeID("io.superposition#MigrateWorkspaceSchemaInput"),
 
     traits=[
-        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#MigrateWorkspaceSchemaRequest"),
+        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#WorkspaceSelectorRequest"),
         Trait.new(id=ShapeID("smithy.api#input")),
 
     ],
@@ -15957,6 +15872,7 @@ MIGRATE_WORKSPACE_SCHEMA = Schema(
     id=ShapeID("io.superposition#MigrateWorkspaceSchema"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#idempotent")),
         Trait.new(id=ShapeID("smithy.api#tags"), value=(
                 "Workspace Management",
             )),
@@ -15964,7 +15880,6 @@ MIGRATE_WORKSPACE_SCHEMA = Schema(
                 "method": "POST",
                 "uri": "/workspaces/{workspace_name}/db/migrate",
             })),
-        Trait.new(id=ShapeID("smithy.api#readonly")),
 
     ],
 
@@ -16137,6 +16052,76 @@ UPDATE_ORGANISATION = Schema(
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "PATCH",
                 "uri": "/superposition/organisations/{id}",
+            })),
+
+    ],
+
+)
+
+ROTATE_WORKSPACE_ENCRYPTION_KEY_INPUT = Schema.collection(
+    id=ShapeID("io.superposition#RotateWorkspaceEncryptionKeyInput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#WorkspaceSelectorRequest"),
+        Trait.new(id=ShapeID("smithy.api#input")),
+
+    ],
+    members={
+        "org_id": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "workspace_name": {
+            "target": STRING,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(id=ShapeID("smithy.api#httpLabel")),
+
+            ],
+        },
+
+    }
+)
+
+ROTATE_WORKSPACE_ENCRYPTION_KEY_OUTPUT = Schema.collection(
+    id=ShapeID("io.superposition#RotateWorkspaceEncryptionKeyOutput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#output")),
+
+    ],
+    members={
+        "total_secrets_re_encrypted": {
+            "target": LONG,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
+ROTATE_WORKSPACE_ENCRYPTION_KEY = Schema(
+    id=ShapeID("io.superposition#RotateWorkspaceEncryptionKey"),
+    shape_type=ShapeType.OPERATION,
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#idempotent")),
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Workspace Management",
+            )),
+        Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
+                "method": "POST",
+                "uri": "/workspaces/{workspace_name}/rotate-encryption-key",
             })),
 
     ],

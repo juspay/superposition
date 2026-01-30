@@ -71,8 +71,6 @@ pub(crate) mod shape_delete_webhook;
 
 pub(crate) mod shape_discard_experiment;
 
-pub(crate) mod shape_generate_master_key;
-
 pub(crate) mod shape_get_config;
 
 pub(crate) mod shape_get_config_fast;
@@ -163,7 +161,9 @@ pub(crate) mod shape_remove_members_from_group;
 
 pub(crate) mod shape_resume_experiment;
 
-pub(crate) mod shape_rotate_master_key;
+pub(crate) mod shape_rotate_master_encryption_key;
+
+pub(crate) mod shape_rotate_workspace_encryption_key;
 
 pub(crate) mod shape_test;
 

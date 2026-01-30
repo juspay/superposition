@@ -183,8 +183,6 @@ mod delete_webhook;
 
 mod discard_experiment;
 
-mod generate_master_key;
-
 mod get_config;
 
 mod get_config_fast;
@@ -265,7 +263,9 @@ mod remove_members_from_group;
 
 mod resume_experiment;
 
-mod rotate_master_key;
+mod rotate_master_encryption_key;
+
+mod rotate_workspace_encryption_key;
 
 mod test;
 

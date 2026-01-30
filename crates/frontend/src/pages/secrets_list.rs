@@ -130,6 +130,7 @@ fn secret_table_columns(
                 currently_sorted: current_sort_on == SortOn::LastModifiedAt,
             },
         ),
+        Column::default("last_modified_by".to_string()),
     ]
 }
 

@@ -174,48 +174,20 @@ resource MasterKey {
     identifiers: {}
     properties: {}
     operations: [
-        GenerateMasterKey
-        RotateMasterKey
+        RotateMasterEncryptionKey
     ]
 }
 
-@documentation("Response containing newly generated master key")
-structure GenerateMasterKeyResponse {
-    @required
-    master_key: String
-
-    @required
-    instructions: String
-
-    @required
-    warning: String
-}
-
-@documentation("Response after generating the master key")
-structure RotateMasterKeyResponse {
-    @required
-    workspaces_rotated: Long
-
-    @required
-    total_secrets_re_encrypted: Long
-
-    @required
-    rotated_at: DateTime
-
-    @required
-    new_master_key: String
-}
-
-@documentation("Generates a new master encryption key")
-@http(method: "POST", uri: "/master-key/generate")
+@documentation("Rotates the master encryption key across all workspaces")
+@idempotent
+@http(method: "POST", uri: "/master-encryption-key/rotate")
 @tags(["Admin", "Encryption"])
-operation GenerateMasterKey {
-    output: GenerateMasterKeyResponse
-}
+operation RotateMasterEncryptionKey {
+    output := {
+        @required
+        workspaces_rotated: Long
 
-@documentation("Rotates the master key encryption key across all workspaces")
-@http(method: "POST", uri: "/master-key/rotate")
-@tags(["Admin", "Encryption"])
-operation RotateMasterKey {
-    output: RotateMasterKeyResponse
+        @required
+        total_secrets_re_encrypted: Long
+    }
 }

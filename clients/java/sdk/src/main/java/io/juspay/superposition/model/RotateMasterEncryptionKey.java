@@ -13,16 +13,16 @@ import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
 /**
- * Rotates the master key encryption key across all workspaces
+ * Rotates the master encryption key across all workspaces
  */
 @SmithyGenerated
-public final class RotateMasterKey implements ApiOperation<RotateMasterKeyInput, RotateMasterKeyOutput> {
-    public static final ShapeId $ID = ShapeId.from("io.superposition#RotateMasterKey");
+public final class RotateMasterEncryptionKey implements ApiOperation<RotateMasterEncryptionKeyInput, RotateMasterEncryptionKeyOutput> {
+    public static final ShapeId $ID = ShapeId.from("io.superposition#RotateMasterEncryptionKey");
 
-    private static final RotateMasterKey $INSTANCE = new RotateMasterKey();
+    private static final RotateMasterEncryptionKey $INSTANCE = new RotateMasterEncryptionKey();
 
     static final Schema $SCHEMA = Schema.createOperation($ID,
-            HttpTrait.builder().method("POST").code(200).uri(UriPattern.parse("/master-key/rotate")).build());
+            HttpTrait.builder().method("POST").code(200).uri(UriPattern.parse("/master-encryption-key/rotate")).build());
 
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
         .putType(InternalServerError.$ID, InternalServerError.class, InternalServerError::builder)
@@ -35,20 +35,20 @@ public final class RotateMasterKey implements ApiOperation<RotateMasterKeyInput,
      *
      * @return An instance of this class.
      */
-    public static RotateMasterKey instance() {
+    public static RotateMasterEncryptionKey instance() {
         return $INSTANCE;
     }
 
-    private RotateMasterKey() {}
+    private RotateMasterEncryptionKey() {}
 
     @Override
-    public ShapeBuilder<RotateMasterKeyInput> inputBuilder() {
-        return RotateMasterKeyInput.builder();
+    public ShapeBuilder<RotateMasterEncryptionKeyInput> inputBuilder() {
+        return RotateMasterEncryptionKeyInput.builder();
     }
 
     @Override
-    public ShapeBuilder<RotateMasterKeyOutput> outputBuilder() {
-        return RotateMasterKeyOutput.builder();
+    public ShapeBuilder<RotateMasterEncryptionKeyOutput> outputBuilder() {
+        return RotateMasterEncryptionKeyOutput.builder();
     }
 
     @Override
@@ -58,12 +58,12 @@ public final class RotateMasterKey implements ApiOperation<RotateMasterKeyInput,
 
     @Override
     public Schema inputSchema() {
-        return RotateMasterKeyInput.$SCHEMA;
+        return RotateMasterEncryptionKeyInput.$SCHEMA;
     }
 
     @Override
     public Schema outputSchema() {
-        return RotateMasterKeyOutput.$SCHEMA;
+        return RotateMasterEncryptionKeyOutput.$SCHEMA;
     }
 
     @Override

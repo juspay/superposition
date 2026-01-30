@@ -19,8 +19,7 @@ public final class MasterKey implements ApiResource {
     private static final Map<String, Schema> $IDENTIFIERS = Map.of();
     private static final Map<String, Schema> $PROPERTIES = Map.of();
 
-    private static final List<Schema> $OPERATIONS = List.of(GenerateMasterKey.$SCHEMA,
-        RotateMasterKey.$SCHEMA);
+    private static final List<Schema> $OPERATIONS = List.of(RotateMasterEncryptionKey.$SCHEMA);
     private static final Schema $SCHEMA = Schema.createResource($ID);
 
     /**

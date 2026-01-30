@@ -12,12 +12,12 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.utils.SmithyGenerated;
 
 @SmithyGenerated
-public final class RotateMasterKeyInput implements SerializableStruct {
+public final class RotateMasterEncryptionKeyInput implements SerializableStruct {
     public static final ShapeId $ID = ShapeId.from("smithy.api#Unit");
 
     public static final Schema $SCHEMA = Schema.structureBuilder($ID).build();
 
-    private RotateMasterKeyInput(Builder builder) {
+    private RotateMasterEncryptionKeyInput(Builder builder) {
     }
 
     @Override
@@ -59,7 +59,7 @@ public final class RotateMasterKeyInput implements SerializableStruct {
      *
      * <p><strong>Note:</strong> This method performs only a shallow copy of the original properties.
      *
-     * @return a builder for {@link RotateMasterKeyInput}.
+     * @return a builder for {@link RotateMasterEncryptionKeyInput}.
      */
     public Builder toBuilder() {
         var builder = new Builder();
@@ -74,9 +74,9 @@ public final class RotateMasterKeyInput implements SerializableStruct {
     }
 
     /**
-     * Builder for {@link RotateMasterKeyInput}.
+     * Builder for {@link RotateMasterEncryptionKeyInput}.
      */
-    public static final class Builder implements ShapeBuilder<RotateMasterKeyInput> {
+    public static final class Builder implements ShapeBuilder<RotateMasterEncryptionKeyInput> {
 
         private Builder() {}
 
@@ -86,8 +86,8 @@ public final class RotateMasterKeyInput implements SerializableStruct {
         }
 
         @Override
-        public RotateMasterKeyInput build() {
-            return new RotateMasterKeyInput(this);
+        public RotateMasterEncryptionKeyInput build() {
+            return new RotateMasterEncryptionKeyInput(this);
         }
 
         @Override

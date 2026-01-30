@@ -6,7 +6,7 @@ use diesel::{
     result::{DatabaseErrorKind::*, Error::DatabaseError},
 };
 use serde_json::{Map, Value};
-use service_utils::service::types::{SchemaName, WorkspaceContext};
+use service_utils::service::types::{EncryptionKey, SchemaName, WorkspaceContext};
 use superposition_macros::{db_error, not_found, unexpected_error};
 use superposition_types::{
     DBConnection, Overrides, User,
@@ -40,7 +40,7 @@ pub fn upsert(
     user: &User,
     workspace_context: &WorkspaceContext,
     replace: bool,
-    master_key: Option<&secrecy::SecretString>,
+    master_encryption_key: &Option<EncryptionKey>,
 ) -> result::Result<Context> {
     use contexts::dsl::contexts;
     let new_ctx = create_ctx_from_put_req(
@@ -49,7 +49,7 @@ pub fn upsert(
         conn,
         user,
         workspace_context,
-        master_key,
+        master_encryption_key,
     )?;
 
     if already_under_txn {
@@ -95,7 +95,7 @@ pub fn update(
     req: UpdateRequest,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     user: &User,
-    master_key: Option<&secrecy::SecretString>,
+    master_encryption_key: &Option<EncryptionKey>,
 ) -> result::Result<Context> {
     let (context_id, context) = match req.context {
         Identifier::Context(context) => {
@@ -124,7 +124,7 @@ pub fn update(
         conn,
         &r_override,
         &context,
-        master_key,
+        master_encryption_key,
     )?;
 
     let update_request = UpdateContextOverridesChangeset {
@@ -154,7 +154,7 @@ pub fn r#move(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     already_under_txn: bool,
     user: &User,
-    master_key: Option<&secrecy::SecretString>,
+    master_encryption_key: &Option<EncryptionKey>,
 ) -> result::Result<Context> {
     use contexts::dsl;
     let req = req.into_inner();
@@ -169,7 +169,7 @@ pub fn r#move(
         workspace_context,
         ctx_condition.clone(),
         Overrides::default(),
-        master_key,
+        master_encryption_key,
     )?;
     let weight = calculate_context_weight(&ctx_condition_value, &dimension_data_map)
         .map_err(|_| unexpected_error!("Something Went Wrong"))?;

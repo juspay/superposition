@@ -102,7 +102,7 @@ async fn create_handler(
     req: web::Json<CreateVariableRequest>,
     user: User,
     db_conn: DbConnection,
-    app_state: Data<AppState>,
+    state: Data<AppState>,
 ) -> superposition::Result<Json<Variable>> {
     let DbConnection(mut conn) = db_conn;
     let req = req.into_inner();
@@ -111,7 +111,7 @@ async fn create_handler(
         &workspace_context,
         &req.change_reason,
         &mut conn,
-        app_state.master_key.as_ref(),
+        &state.master_encryption_key,
     )?;
 
     let now = chrono::Utc::now();
@@ -163,7 +163,7 @@ async fn update_handler(
     req: web::Json<UpdateVariableRequest>,
     user: User,
     db_conn: DbConnection,
-    app_state: Data<AppState>,
+    state: Data<AppState>,
 ) -> superposition::Result<Json<Variable>> {
     let DbConnection(mut conn) = db_conn;
     let var_name = path.into_inner();
@@ -172,7 +172,7 @@ async fn update_handler(
         &workspace_context,
         &req.change_reason,
         &mut conn,
-        app_state.master_key.as_ref(),
+        &state.master_encryption_key,
     )?;
 
     let updated_var = diesel::update(variables)

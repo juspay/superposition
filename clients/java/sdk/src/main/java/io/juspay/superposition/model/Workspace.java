@@ -34,7 +34,8 @@ public final class Workspace implements ApiResource {
         Map.entry("metrics", PreludeSchemas.DOCUMENT));
 
     private static final List<Schema> $OPERATIONS = List.of(CreateWorkspace.$SCHEMA,
-        MigrateWorkspaceSchema.$SCHEMA);
+        MigrateWorkspaceSchema.$SCHEMA,
+        RotateWorkspaceEncryptionKey.$SCHEMA);
     private static final Schema $SCHEMA = Schema.createResource($ID);
 
     /**

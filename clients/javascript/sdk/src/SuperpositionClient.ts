@@ -110,10 +110,6 @@ import {
   DiscardExperimentCommandOutput,
 } from "./commands/DiscardExperimentCommand";
 import {
-  GenerateMasterKeyCommandInput,
-  GenerateMasterKeyCommandOutput,
-} from "./commands/GenerateMasterKeyCommand";
-import {
   GetConfigCommandInput,
   GetConfigCommandOutput,
 } from "./commands/GetConfigCommand";
@@ -274,9 +270,13 @@ import {
   ResumeExperimentCommandOutput,
 } from "./commands/ResumeExperimentCommand";
 import {
-  RotateMasterKeyCommandInput,
-  RotateMasterKeyCommandOutput,
-} from "./commands/RotateMasterKeyCommand";
+  RotateMasterEncryptionKeyCommandInput,
+  RotateMasterEncryptionKeyCommandOutput,
+} from "./commands/RotateMasterEncryptionKeyCommand";
+import {
+  RotateWorkspaceEncryptionKeyCommandInput,
+  RotateWorkspaceEncryptionKeyCommandOutput,
+} from "./commands/RotateWorkspaceEncryptionKeyCommand";
 import {
   TestCommandInput,
   TestCommandOutput,
@@ -429,7 +429,6 @@ export type ServiceInputTypes =
   | DeleteVariableCommandInput
   | DeleteWebhookCommandInput
   | DiscardExperimentCommandInput
-  | GenerateMasterKeyCommandInput
   | GetConfigCommandInput
   | GetConfigFastCommandInput
   | GetContextCommandInput
@@ -470,7 +469,8 @@ export type ServiceInputTypes =
   | RampExperimentCommandInput
   | RemoveMembersFromGroupCommandInput
   | ResumeExperimentCommandInput
-  | RotateMasterKeyCommandInput
+  | RotateMasterEncryptionKeyCommandInput
+  | RotateWorkspaceEncryptionKeyCommandInput
   | TestCommandInput
   | UpdateDefaultConfigCommandInput
   | UpdateDimensionCommandInput
@@ -517,7 +517,6 @@ export type ServiceOutputTypes =
   | DeleteVariableCommandOutput
   | DeleteWebhookCommandOutput
   | DiscardExperimentCommandOutput
-  | GenerateMasterKeyCommandOutput
   | GetConfigCommandOutput
   | GetConfigFastCommandOutput
   | GetContextCommandOutput
@@ -558,7 +557,8 @@ export type ServiceOutputTypes =
   | RampExperimentCommandOutput
   | RemoveMembersFromGroupCommandOutput
   | ResumeExperimentCommandOutput
-  | RotateMasterKeyCommandOutput
+  | RotateMasterEncryptionKeyCommandOutput
+  | RotateWorkspaceEncryptionKeyCommandOutput
   | TestCommandOutput
   | UpdateDefaultConfigCommandOutput
   | UpdateDimensionCommandOutput

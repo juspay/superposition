@@ -1,27 +1,27 @@
-module Io.Superposition.Command.GenerateMasterKey (
-    GenerateMasterKeyError (..),
-    generateMasterKey
+module Io.Superposition.Command.RotateWorkspaceEncryptionKey (
+    RotateWorkspaceEncryptionKeyError (..),
+    rotateWorkspaceEncryptionKey
 ) where
 import qualified Data.Aeson
 import qualified Data.Maybe
 import qualified Data.Text
 import qualified GHC.Generics
 import qualified GHC.Show
-import qualified Io.Superposition.Model.GenerateMasterKeyInput
-import qualified Io.Superposition.Model.GenerateMasterKeyOutput
 import qualified Io.Superposition.Model.InternalServerError
+import qualified Io.Superposition.Model.RotateWorkspaceEncryptionKeyInput
+import qualified Io.Superposition.Model.RotateWorkspaceEncryptionKeyOutput
 import qualified Io.Superposition.SuperpositionClient
 import qualified Io.Superposition.Utility
 
-data GenerateMasterKeyError =
+data RotateWorkspaceEncryptionKeyError =
     InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | DeSerializationError Io.Superposition.Utility.HttpMetadata Data.Text.Text
     | UnexpectedError (Data.Maybe.Maybe Io.Superposition.Utility.HttpMetadata) Data.Text.Text
        deriving (GHC.Generics.Generic, GHC.Show.Show)
 
-instance Data.Aeson.ToJSON GenerateMasterKeyError
-instance Io.Superposition.Utility.OperationError GenerateMasterKeyError where
+instance Data.Aeson.ToJSON RotateWorkspaceEncryptionKeyError
+instance Io.Superposition.Utility.OperationError RotateWorkspaceEncryptionKeyError where
     mkBuilderError = BuilderError
     mkDeSerializationError = DeSerializationError
     mkUnexpectedError = UnexpectedError
@@ -31,10 +31,10 @@ instance Io.Superposition.Utility.OperationError GenerateMasterKeyError where
         | otherwise = Nothing
 
 
-generateMasterKey :: Io.Superposition.SuperpositionClient.SuperpositionClient -> Io.Superposition.Model.GenerateMasterKeyInput.GenerateMasterKeyInputBuilder () -> IO (Either GenerateMasterKeyError Io.Superposition.Model.GenerateMasterKeyOutput.GenerateMasterKeyOutput)
-generateMasterKey client builder =
+rotateWorkspaceEncryptionKey :: Io.Superposition.SuperpositionClient.SuperpositionClient -> Io.Superposition.Model.RotateWorkspaceEncryptionKeyInput.RotateWorkspaceEncryptionKeyInputBuilder () -> IO (Either RotateWorkspaceEncryptionKeyError Io.Superposition.Model.RotateWorkspaceEncryptionKeyOutput.RotateWorkspaceEncryptionKeyOutput)
+rotateWorkspaceEncryptionKey client builder =
     let endpoint = Io.Superposition.SuperpositionClient.endpointUri client
         manager = Io.Superposition.SuperpositionClient.httpManager client
         auth = Io.Superposition.SuperpositionClient.getAuth client
-    in Io.Superposition.Utility.runOperation endpoint manager auth (Io.Superposition.Model.GenerateMasterKeyInput.build builder)
+    in Io.Superposition.Utility.runOperation endpoint manager auth (Io.Superposition.Model.RotateWorkspaceEncryptionKeyInput.build builder)
 

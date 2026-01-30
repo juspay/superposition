@@ -280,7 +280,6 @@ pub struct Workspace {
     pub enable_context_validation: bool,
     pub enable_change_reason_validation: bool,
     pub encryption_key: String,
-    pub previous_encryption_key: Option<String>,
     pub key_rotated_at: Option<DateTime<Utc>>,
 }
 

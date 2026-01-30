@@ -16,7 +16,7 @@ use num_bigint::BigUint;
 use serde_json::{Map, Value, json};
 use service_utils::{
     helpers::{fetch_dimensions_info_map, generate_snowflake_id},
-    service::types::{AppState, SchemaName, WorkspaceContext},
+    service::types::{AppState, EncryptionKey, SchemaName, WorkspaceContext},
 };
 use superposition_macros::{db_error, unexpected_error, validation_error};
 #[cfg(feature = "high-performance-mode")]
@@ -293,7 +293,7 @@ fn compute_value_with_function(
     overrides: Map<String, Value>,
     runtime_version: FunctionRuntimeVersion,
     conn: &mut DBConnection,
-    master_key: Option<&secrecy::SecretString>,
+    master_encryption_key: &Option<EncryptionKey>,
 ) -> superposition::Result<Value> {
     match execute_fn(
         workspace_context,
@@ -306,7 +306,7 @@ fn compute_value_with_function(
         },
         runtime_version,
         conn,
-        master_key,
+        master_encryption_key,
     ) {
         Err((err, stdout)) => {
             let stdout = stdout.unwrap_or_default();
@@ -347,7 +347,7 @@ fn evaluate_remote_cohorts_dependency(
     modified_context: &mut Map<String, Value>,
     conn: &mut DBConnection,
     workspace_context: &WorkspaceContext,
-    master_key: Option<&secrecy::SecretString>,
+    master_encryption_key: &Option<EncryptionKey>,
 ) -> superposition::Result<()> {
     let mut stack = dependency_graph
         .get(dimension)
@@ -406,7 +406,7 @@ fn evaluate_remote_cohorts_dependency(
                 Map::new(),
                 published_runtime_version,
                 conn,
-                master_key,
+                master_encryption_key,
             )?;
 
             modified_context.insert(cohort_dimension.clone(), value);
@@ -439,7 +439,7 @@ pub fn evaluate_remote_cohorts(
     query_data: &Map<String, Value>,
     conn: &mut DBConnection,
     workspace_context: &WorkspaceContext,
-    master_key: Option<&secrecy::SecretString>,
+    master_encryption_key: &Option<EncryptionKey>,
 ) -> superposition::Result<Map<String, Value>> {
     let mut modified_context = Map::new();
 
@@ -458,7 +458,7 @@ pub fn evaluate_remote_cohorts(
                             &mut modified_context,
                             conn,
                             workspace_context,
-                            master_key,
+                            master_encryption_key,
                         )?;
                     }
                 }
@@ -482,7 +482,7 @@ pub fn validate_change_reason(
     workspace_context: &WorkspaceContext,
     change_reason: &ChangeReason,
     conn: &mut DBConnection,
-    master_key: Option<&secrecy::SecretString>,
+    master_encryption_key: &Option<EncryptionKey>,
 ) -> superposition::Result<()> {
     if !workspace_context.settings.enable_change_reason_validation {
         return Ok(());
@@ -506,7 +506,7 @@ pub fn validate_change_reason(
             },
             published_runtime_version,
             conn,
-            master_key,
+            master_encryption_key,
         )?;
     }
     Ok(())

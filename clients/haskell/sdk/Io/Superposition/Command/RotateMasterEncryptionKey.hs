@@ -1,6 +1,6 @@
-module Io.Superposition.Command.RotateMasterKey (
-    RotateMasterKeyError (..),
-    rotateMasterKey
+module Io.Superposition.Command.RotateMasterEncryptionKey (
+    RotateMasterEncryptionKeyError (..),
+    rotateMasterEncryptionKey
 ) where
 import qualified Data.Aeson
 import qualified Data.Maybe
@@ -8,20 +8,20 @@ import qualified Data.Text
 import qualified GHC.Generics
 import qualified GHC.Show
 import qualified Io.Superposition.Model.InternalServerError
-import qualified Io.Superposition.Model.RotateMasterKeyInput
-import qualified Io.Superposition.Model.RotateMasterKeyOutput
+import qualified Io.Superposition.Model.RotateMasterEncryptionKeyInput
+import qualified Io.Superposition.Model.RotateMasterEncryptionKeyOutput
 import qualified Io.Superposition.SuperpositionClient
 import qualified Io.Superposition.Utility
 
-data RotateMasterKeyError =
+data RotateMasterEncryptionKeyError =
     InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | DeSerializationError Io.Superposition.Utility.HttpMetadata Data.Text.Text
     | UnexpectedError (Data.Maybe.Maybe Io.Superposition.Utility.HttpMetadata) Data.Text.Text
        deriving (GHC.Generics.Generic, GHC.Show.Show)
 
-instance Data.Aeson.ToJSON RotateMasterKeyError
-instance Io.Superposition.Utility.OperationError RotateMasterKeyError where
+instance Data.Aeson.ToJSON RotateMasterEncryptionKeyError
+instance Io.Superposition.Utility.OperationError RotateMasterEncryptionKeyError where
     mkBuilderError = BuilderError
     mkDeSerializationError = DeSerializationError
     mkUnexpectedError = UnexpectedError
@@ -31,10 +31,10 @@ instance Io.Superposition.Utility.OperationError RotateMasterKeyError where
         | otherwise = Nothing
 
 
-rotateMasterKey :: Io.Superposition.SuperpositionClient.SuperpositionClient -> Io.Superposition.Model.RotateMasterKeyInput.RotateMasterKeyInputBuilder () -> IO (Either RotateMasterKeyError Io.Superposition.Model.RotateMasterKeyOutput.RotateMasterKeyOutput)
-rotateMasterKey client builder =
+rotateMasterEncryptionKey :: Io.Superposition.SuperpositionClient.SuperpositionClient -> Io.Superposition.Model.RotateMasterEncryptionKeyInput.RotateMasterEncryptionKeyInputBuilder () -> IO (Either RotateMasterEncryptionKeyError Io.Superposition.Model.RotateMasterEncryptionKeyOutput.RotateMasterEncryptionKeyOutput)
+rotateMasterEncryptionKey client builder =
     let endpoint = Io.Superposition.SuperpositionClient.endpointUri client
         manager = Io.Superposition.SuperpositionClient.httpManager client
         auth = Io.Superposition.SuperpositionClient.getAuth client
-    in Io.Superposition.Utility.runOperation endpoint manager auth (Io.Superposition.Model.RotateMasterKeyInput.build builder)
+    in Io.Superposition.Utility.runOperation endpoint manager auth (Io.Superposition.Model.RotateMasterEncryptionKeyInput.build builder)
 

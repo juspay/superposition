@@ -7,7 +7,7 @@ use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use serde_json::{Map, Value};
 use service_utils::{
     helpers::fetch_dimensions_info_map,
-    service::types::{SchemaName, WorkspaceContext},
+    service::types::{EncryptionKey, SchemaName, WorkspaceContext},
 };
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
@@ -108,7 +108,7 @@ pub fn validate_condition_with_functions(
     context_map: &Map<String, Value>,
     override_: &Map<String, Value>,
     is_context_validation_enabled: bool,
-    master_key: Option<&secrecy::SecretString>,
+    master_encryption_key: &Option<EncryptionKey>,
 ) -> superposition::Result<()> {
     use dimensions::dsl;
     let dimensions_list: Vec<String> = context_map.keys().cloned().collect();
@@ -148,7 +148,7 @@ pub fn validate_condition_with_functions(
                 },
                 published_runtime_version,
                 conn,
-                master_key,
+                master_encryption_key,
             )?;
         }
     }
@@ -178,7 +178,7 @@ pub fn validate_condition_with_functions(
                     },
                     published_runtime_version,
                     conn,
-                    master_key,
+                    master_encryption_key,
                 )?;
             }
         }
@@ -191,7 +191,7 @@ pub fn validate_override_with_functions(
     conn: &mut DBConnection,
     override_: &Map<String, Value>,
     context: &Map<String, Value>,
-    master_key: Option<&secrecy::SecretString>,
+    master_encryption_key: &Option<EncryptionKey>,
 ) -> superposition::Result<()> {
     let default_config_keys: Vec<String> = override_.keys().cloned().collect();
     let keys_function_array: Vec<(String, Option<String>)> = dsl::default_configs
@@ -232,7 +232,7 @@ pub fn validate_override_with_functions(
                     },
                     published_runtime_version,
                     conn,
-                    master_key,
+                    master_encryption_key,
                 )?;
             }
         }
@@ -280,7 +280,7 @@ pub fn validation_function_executor(
     args: &FunctionExecutionRequest,
     runtime_version: FunctionRuntimeVersion,
     conn: &mut DBConnection,
-    master_key: Option<&secrecy::SecretString>,
+    master_encryption_key: &Option<EncryptionKey>,
 ) -> superposition::Result<()> {
     match execute_fn(
         workspace_context,
@@ -288,7 +288,7 @@ pub fn validation_function_executor(
         args,
         runtime_version,
         conn,
-        master_key,
+        master_encryption_key,
     ) {
         Err((err, stdout)) => {
             let stdout = stdout.unwrap_or_default();
@@ -344,7 +344,7 @@ pub fn create_ctx_from_put_req(
     conn: &mut DBConnection,
     user: &User,
     workspace_context: &WorkspaceContext,
-    master_key: Option<&secrecy::SecretString>,
+    master_encryption_key: &Option<EncryptionKey>,
 ) -> superposition::Result<Context> {
     let ctx_condition = req.context.to_owned().into_inner();
     let condition_val = Value::Object(ctx_condition.clone().into());
@@ -356,7 +356,7 @@ pub fn create_ctx_from_put_req(
         workspace_context,
         ctx_condition.clone(),
         r_override.clone(),
-        master_key,
+        master_encryption_key,
     )?;
     let change_reason = req.change_reason.clone();
 
@@ -370,7 +370,7 @@ pub fn create_ctx_from_put_req(
         conn,
         &r_override,
         &ctx_condition.clone(),
-        master_key,
+        master_encryption_key,
     )?;
 
     let weight = calculate_context_weight(&condition_val, &dimension_data_map)
@@ -472,7 +472,7 @@ pub fn validate_ctx(
     workspace_context: &WorkspaceContext,
     condition: Condition,
     override_: Overrides,
-    master_key: Option<&secrecy::SecretString>,
+    master_encryption_key: &Option<EncryptionKey>,
 ) -> superposition::Result<HashMap<String, DimensionInfo>> {
     validate_condition_with_mandatory_dimensions(
         &condition,
@@ -493,7 +493,7 @@ pub fn validate_ctx(
         &condition,
         &override_,
         workspace_context.settings.enable_context_validation,
-        master_key,
+        master_encryption_key,
     )?;
     Ok(dimension_info_map)
 }

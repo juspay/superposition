@@ -2315,16 +2315,6 @@ export interface UpdateFunctionRequest {
 }
 
 /**
- * Response containing newly generated master key
- * @public
- */
-export interface GenerateMasterKeyResponse {
-  master_key: string | undefined;
-  instructions: string | undefined;
-  warning: string | undefined;
-}
-
-/**
  * @public
  */
 export interface GetOrganisationInput {
@@ -2677,20 +2667,17 @@ export interface ListWorkspaceOutput {
 }
 
 /**
- * Response after generating the master key
  * @public
  */
-export interface RotateMasterKeyResponse {
+export interface RotateMasterEncryptionKeyOutput {
   workspaces_rotated: number | undefined;
   total_secrets_re_encrypted: number | undefined;
-  rotated_at: Date | undefined;
-  new_master_key: string | undefined;
 }
 
 /**
  * @public
  */
-export interface MigrateWorkspaceSchemaRequest {
+export interface WorkspaceSelectorRequest {
   org_id: string | undefined;
   workspace_name: string | undefined;
 }
@@ -2706,6 +2693,17 @@ export interface UpdateOrganisationRequest {
   sector?: string | undefined;
   id: string | undefined;
   status?: OrgStatus | undefined;
+}
+
+/**
+ * @public
+ */
+export interface RotateWorkspaceEncryptionKeyOutput {
+  /**
+   * Number of secrets that were re-encrypted with the new key.
+   * @public
+   */
+  total_secrets_re_encrypted: number | undefined;
 }
 
 /**

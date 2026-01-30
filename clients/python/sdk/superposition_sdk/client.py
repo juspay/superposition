@@ -60,7 +60,6 @@ from .deserialize import (
     _deserialize_delete_variable,
     _deserialize_delete_webhook,
     _deserialize_discard_experiment,
-    _deserialize_generate_master_key,
     _deserialize_get_config,
     _deserialize_get_config_fast,
     _deserialize_get_context,
@@ -101,7 +100,8 @@ from .deserialize import (
     _deserialize_ramp_experiment,
     _deserialize_remove_members_from_group,
     _deserialize_resume_experiment,
-    _deserialize_rotate_master_key,
+    _deserialize_rotate_master_encryption_key,
+    _deserialize_rotate_workspace_encryption_key,
     _deserialize_test,
     _deserialize_update_default_config,
     _deserialize_update_dimension,
@@ -197,7 +197,6 @@ from .models import (
     DeleteWebhookOutput,
     DiscardExperimentInput,
     DiscardExperimentOutput,
-    GENERATE_MASTER_KEY,
     GET_CONFIG,
     GET_CONFIG_FAST,
     GET_CONTEXT,
@@ -218,8 +217,6 @@ from .models import (
     GET_WEBHOOK,
     GET_WEBHOOK_BY_EVENT,
     GET_WORKSPACE,
-    GenerateMasterKeyInput,
-    GenerateMasterKeyOutput,
     GetConfigFastInput,
     GetConfigFastOutput,
     GetConfigInput,
@@ -314,15 +311,18 @@ from .models import (
     RAMP_EXPERIMENT,
     REMOVE_MEMBERS_FROM_GROUP,
     RESUME_EXPERIMENT,
-    ROTATE_MASTER_KEY,
+    ROTATE_MASTER_ENCRYPTION_KEY,
+    ROTATE_WORKSPACE_ENCRYPTION_KEY,
     RampExperimentInput,
     RampExperimentOutput,
     RemoveMembersFromGroupInput,
     RemoveMembersFromGroupOutput,
     ResumeExperimentInput,
     ResumeExperimentOutput,
-    RotateMasterKeyInput,
-    RotateMasterKeyOutput,
+    RotateMasterEncryptionKeyInput,
+    RotateMasterEncryptionKeyOutput,
+    RotateWorkspaceEncryptionKeyInput,
+    RotateWorkspaceEncryptionKeyOutput,
     ServiceError,
     TEST,
     TestInput,
@@ -397,7 +397,6 @@ from .serialize import (
     _serialize_delete_variable,
     _serialize_delete_webhook,
     _serialize_discard_experiment,
-    _serialize_generate_master_key,
     _serialize_get_config,
     _serialize_get_config_fast,
     _serialize_get_context,
@@ -438,7 +437,8 @@ from .serialize import (
     _serialize_ramp_experiment,
     _serialize_remove_members_from_group,
     _serialize_resume_experiment,
-    _serialize_rotate_master_key,
+    _serialize_rotate_master_encryption_key,
+    _serialize_rotate_workspace_encryption_key,
     _serialize_test,
     _serialize_update_default_config,
     _serialize_update_dimension,
@@ -1184,32 +1184,6 @@ class Superposition:
             deserialize=_deserialize_discard_experiment,
             config=self._config,
             operation=DISCARD_EXPERIMENT,
-        )
-
-    async def generate_master_key(self, input: GenerateMasterKeyInput, plugins: list[Plugin] | None = None) -> GenerateMasterKeyOutput:
-        """
-        Generates a new master encryption key
-
-        :param input: The operation's input.
-
-        :param plugins: A list of callables that modify the configuration dynamically.
-            Changes made by these plugins only apply for the duration of the operation
-            execution and will not affect any other operation invocations.
-
-        """
-        operation_plugins: list[Plugin] = [
-
-        ]
-        if plugins:
-            operation_plugins.extend(plugins)
-
-        return await self._execute_operation(
-            input=input,
-            plugins=operation_plugins,
-            serialize=_serialize_generate_master_key,
-            deserialize=_deserialize_generate_master_key,
-            config=self._config,
-            operation=GENERATE_MASTER_KEY,
         )
 
     async def get_config(self, input: GetConfigInput, plugins: list[Plugin] | None = None) -> GetConfigOutput:
@@ -2290,9 +2264,9 @@ class Superposition:
             operation=RESUME_EXPERIMENT,
         )
 
-    async def rotate_master_key(self, input: RotateMasterKeyInput, plugins: list[Plugin] | None = None) -> RotateMasterKeyOutput:
+    async def rotate_master_encryption_key(self, input: RotateMasterEncryptionKeyInput, plugins: list[Plugin] | None = None) -> RotateMasterEncryptionKeyOutput:
         """
-        Rotates the master key encryption key across all workspaces
+        Rotates the master encryption key across all workspaces
 
         :param input: The operation's input.
 
@@ -2310,10 +2284,38 @@ class Superposition:
         return await self._execute_operation(
             input=input,
             plugins=operation_plugins,
-            serialize=_serialize_rotate_master_key,
-            deserialize=_deserialize_rotate_master_key,
+            serialize=_serialize_rotate_master_encryption_key,
+            deserialize=_deserialize_rotate_master_encryption_key,
             config=self._config,
-            operation=ROTATE_MASTER_KEY,
+            operation=ROTATE_MASTER_ENCRYPTION_KEY,
+        )
+
+    async def rotate_workspace_encryption_key(self, input: RotateWorkspaceEncryptionKeyInput, plugins: list[Plugin] | None = None) -> RotateWorkspaceEncryptionKeyOutput:
+        """
+        Rotates the workspace encryption key. Generates a new encryption key and
+        re-encrypts all secrets with the new key. This is a critical operation that
+        should be done during low-traffic periods.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_rotate_workspace_encryption_key,
+            deserialize=_deserialize_rotate_workspace_encryption_key,
+            config=self._config,
+            operation=ROTATE_WORKSPACE_ENCRYPTION_KEY,
         )
 
     async def test(self, input: TestInput, plugins: list[Plugin] | None = None) -> TestOutput:

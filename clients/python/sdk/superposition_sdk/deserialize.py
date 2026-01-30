@@ -41,7 +41,6 @@ from .models import (
     DeleteVariableOutput,
     DeleteWebhookOutput,
     DiscardExperimentOutput,
-    GenerateMasterKeyOutput,
     GetConfigFastOutput,
     GetConfigOutput,
     GetContextFromConditionOutput,
@@ -84,7 +83,8 @@ from .models import (
     RemoveMembersFromGroupOutput,
     ResourceNotFound,
     ResumeExperimentOutput,
-    RotateMasterKeyOutput,
+    RotateMasterEncryptionKeyOutput,
+    RotateWorkspaceEncryptionKeyOutput,
     TestOutput,
     UnknownApiError,
     UpdateDefaultConfigOutput,
@@ -757,31 +757,6 @@ async def _deserialize_error_discard_experiment(http_response: HTTPResponse, con
 
         case "resourcenotfound":
             return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
-
-        case _:
-            return UnknownApiError(f"{code}: {message}")
-
-async def _deserialize_generate_master_key(http_response: HTTPResponse, config: Config) -> GenerateMasterKeyOutput:
-    if http_response.status != 200 and http_response.status >= 300:
-        raise await _deserialize_error_generate_master_key(http_response, config)
-
-    kwargs: dict[str, Any] = {}
-
-    body = await http_response.consume_body_async()
-    if body:
-        codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
-        deserializer = codec.create_deserializer(body)
-        body_kwargs = GenerateMasterKeyOutput.deserialize_kwargs(deserializer)
-        kwargs.update(body_kwargs)
-
-    return GenerateMasterKeyOutput(**kwargs)
-
-async def _deserialize_error_generate_master_key(http_response: HTTPResponse, config: Config) -> ApiError:
-    code, message, parsed_body = await parse_rest_json_error_info(http_response)
-
-    match code.lower():
-        case "internalservererror":
-            return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
 
         case _:
             return UnknownApiError(f"{code}: {message}")
@@ -1913,9 +1888,9 @@ async def _deserialize_error_resume_experiment(http_response: HTTPResponse, conf
         case _:
             return UnknownApiError(f"{code}: {message}")
 
-async def _deserialize_rotate_master_key(http_response: HTTPResponse, config: Config) -> RotateMasterKeyOutput:
+async def _deserialize_rotate_master_encryption_key(http_response: HTTPResponse, config: Config) -> RotateMasterEncryptionKeyOutput:
     if http_response.status != 200 and http_response.status >= 300:
-        raise await _deserialize_error_rotate_master_key(http_response, config)
+        raise await _deserialize_error_rotate_master_encryption_key(http_response, config)
 
     kwargs: dict[str, Any] = {}
 
@@ -1923,12 +1898,37 @@ async def _deserialize_rotate_master_key(http_response: HTTPResponse, config: Co
     if body:
         codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
         deserializer = codec.create_deserializer(body)
-        body_kwargs = RotateMasterKeyOutput.deserialize_kwargs(deserializer)
+        body_kwargs = RotateMasterEncryptionKeyOutput.deserialize_kwargs(deserializer)
         kwargs.update(body_kwargs)
 
-    return RotateMasterKeyOutput(**kwargs)
+    return RotateMasterEncryptionKeyOutput(**kwargs)
 
-async def _deserialize_error_rotate_master_key(http_response: HTTPResponse, config: Config) -> ApiError:
+async def _deserialize_error_rotate_master_encryption_key(http_response: HTTPResponse, config: Config) -> ApiError:
+    code, message, parsed_body = await parse_rest_json_error_info(http_response)
+
+    match code.lower():
+        case "internalservererror":
+            return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
+
+        case _:
+            return UnknownApiError(f"{code}: {message}")
+
+async def _deserialize_rotate_workspace_encryption_key(http_response: HTTPResponse, config: Config) -> RotateWorkspaceEncryptionKeyOutput:
+    if http_response.status != 200 and http_response.status >= 300:
+        raise await _deserialize_error_rotate_workspace_encryption_key(http_response, config)
+
+    kwargs: dict[str, Any] = {}
+
+    body = await http_response.consume_body_async()
+    if body:
+        codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+        deserializer = codec.create_deserializer(body)
+        body_kwargs = RotateWorkspaceEncryptionKeyOutput.deserialize_kwargs(deserializer)
+        kwargs.update(body_kwargs)
+
+    return RotateWorkspaceEncryptionKeyOutput(**kwargs)
+
+async def _deserialize_error_rotate_workspace_encryption_key(http_response: HTTPResponse, config: Config) -> ApiError:
     code, message, parsed_body = await parse_rest_json_error_info(http_response)
 
     match code.lower():

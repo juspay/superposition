@@ -86,7 +86,7 @@ pub fn secret() -> impl IntoView {
                 view! {
                     <div class="flex flex-col gap-4">
                         <div class="flex justify-between items-center">
-                            <h1 class="text-2xl font-extrabold">{secret.name.clone()}</h1>
+                            <h1 class="text-2xl font-extrabold">{secret.name.to_string()}</h1>
                             <div class="flex flex-row join">
                                 <Button
                                     force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg rounded-lg"
@@ -121,7 +121,7 @@ pub fn secret() -> impl IntoView {
                                 >
                                     <SecretForm
                                         edit=true
-                                        secret_name=secret_st.with_value(|s| s.name.clone())
+                                        secret_name=secret_st.with_value(|s| s.name.to_string())
                                         secret_value=String::new()
                                         description=secret_st
                                             .with_value(|s| s.description.deref().to_string())

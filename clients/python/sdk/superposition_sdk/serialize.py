@@ -41,7 +41,6 @@ from .models import (
     DeleteVariableInput,
     DeleteWebhookInput,
     DiscardExperimentInput,
-    GenerateMasterKeyInput,
     GetConfigFastInput,
     GetConfigInput,
     GetContextFromConditionInput,
@@ -82,7 +81,8 @@ from .models import (
     RampExperimentInput,
     RemoveMembersFromGroupInput,
     ResumeExperimentInput,
-    RotateMasterKeyInput,
+    RotateMasterEncryptionKeyInput,
+    RotateWorkspaceEncryptionKeyInput,
     ServiceError,
     TestInput,
     UpdateDefaultConfigInput,
@@ -1017,29 +1017,6 @@ async def _serialize_discard_experiment(input: DiscardExperimentInput, config: C
             query=query,
         ),
         method="PATCH",
-        fields=headers,
-        body=body,
-    )
-
-async def _serialize_generate_master_key(input: GenerateMasterKeyInput, config: Config) -> HTTPRequest:
-    path = "/master-key/generate"
-    query: str = f''
-
-    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
-    headers = Fields(
-        [
-
-        ]
-    )
-
-    return _HTTPRequest(
-        destination=_URI(
-            host="",
-            path=path,
-            scheme="https",
-            query=query,
-        ),
-        method="POST",
         fields=headers,
         body=body,
     )
@@ -2573,8 +2550,8 @@ async def _serialize_resume_experiment(input: ResumeExperimentInput, config: Con
         body=body,
     )
 
-async def _serialize_rotate_master_key(input: RotateMasterKeyInput, config: Config) -> HTTPRequest:
-    path = "/master-key/rotate"
+async def _serialize_rotate_master_encryption_key(input: RotateMasterEncryptionKeyInput, config: Config) -> HTTPRequest:
+    path = "/master-encryption-key/rotate"
     query: str = f''
 
     body: AsyncIterable[bytes] = AsyncBytesReader(b'')
@@ -2584,6 +2561,36 @@ async def _serialize_rotate_master_key(input: RotateMasterKeyInput, config: Conf
         ]
     )
 
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="POST",
+        fields=headers,
+        body=body,
+    )
+
+async def _serialize_rotate_workspace_encryption_key(input: RotateWorkspaceEncryptionKeyInput, config: Config) -> HTTPRequest:
+    if not input.workspace_name:
+        raise ServiceError("workspace_name must not be empty.")
+
+    path = "/workspaces/{workspace_name}/rotate-encryption-key".format(
+        workspace_name=urlquote(input.workspace_name, safe=''),
+    )
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    headers = Fields(
+        [
+
+        ]
+    )
+
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     return _HTTPRequest(
         destination=_URI(
             host="",

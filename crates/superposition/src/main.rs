@@ -247,8 +247,8 @@ async fn main() -> Result<()> {
                             .service(auth_z_manager.endpoints())
                     )
                     .service(
-                        scope("/master-key")
-                            .app_data(Resource::MasterKey)
+                        scope("/master-encryption-key")
+                            .app_data(Resource::MasterEncryptionKey)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(false, false))
                             .service(secrets::master_key_endpoints())
                     )

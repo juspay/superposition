@@ -47,7 +47,7 @@ async fn create_handler(
     request: Json<CreateFunctionRequest>,
     db_conn: DbConnection,
     user: User,
-    app_state: Data<AppState>,
+    state: Data<AppState>,
 ) -> superposition::Result<Json<Function>> {
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
@@ -69,7 +69,7 @@ async fn create_handler(
         &workspace_context,
         &req.change_reason,
         &mut conn,
-        app_state.master_key.as_ref(),
+        &state.master_encryption_key,
     )?;
 
     compile_fn(&req.function)?;
@@ -133,7 +133,7 @@ async fn update_handler(
     request: Json<UpdateFunctionRequest>,
     db_conn: DbConnection,
     user: User,
-    app_state: Data<AppState>,
+    state: Data<AppState>,
 ) -> superposition::Result<Json<Function>> {
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
@@ -148,7 +148,7 @@ async fn update_handler(
         &workspace_context,
         &req.change_reason,
         &mut conn,
-        app_state.master_key.as_ref(),
+        &state.master_encryption_key,
     )?;
 
     let updated_function = diesel::update(functions::functions)
@@ -270,7 +270,7 @@ async fn test_handler(
     params: Path<TestParam>,
     request: Json<FunctionExecutionRequest>,
     db_conn: DbConnection,
-    app_state: Data<AppState>,
+    state: Data<AppState>,
 ) -> superposition::Result<Json<FunctionExecutionResponse>> {
     let DbConnection(mut conn) = db_conn;
     let path_params = params.into_inner();
@@ -298,7 +298,7 @@ async fn test_handler(
         &req,
         version,
         &mut conn,
-        app_state.master_key.as_ref(),
+        &state.master_encryption_key,
     )
     .map_err(|(e, stdout)| {
         bad_argument!(
@@ -319,7 +319,7 @@ async fn publish_handler(
     request: Json<FunctionStateChangeRequest>,
     db_conn: DbConnection,
     user: User,
-    app_state: Data<AppState>,
+    state: Data<AppState>,
 ) -> superposition::Result<Json<Function>> {
     let DbConnection(mut conn) = db_conn;
     let fun_name: String = params.into_inner().into();
@@ -330,7 +330,7 @@ async fn publish_handler(
         &workspace_context,
         &req.change_reason,
         &mut conn,
-        app_state.master_key.as_ref(),
+        &state.master_encryption_key,
     )?;
 
     let updated_function = diesel::update(functions::functions)

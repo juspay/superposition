@@ -6,7 +6,7 @@ use superposition_derives::{IsEmpty, QueryParam};
 use crate::custom_query::{CommaSeparatedStringQParams, QueryParam};
 use crate::database::models::{
     others::{Secret, SecretName},
-    {ChangeReason, Description},
+    ChangeReason, Description,
 };
 use crate::{IsEmpty, SortBy};
 
@@ -58,7 +58,7 @@ pub struct UpdateSecretRequest {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SecretResponse {
-    pub name: String,
+    pub name: SecretName,
     pub description: Description,
     pub change_reason: ChangeReason,
     pub created_at: DateTime<Utc>,
@@ -70,7 +70,7 @@ pub struct SecretResponse {
 impl From<Secret> for SecretResponse {
     fn from(secret: Secret) -> Self {
         Self {
-            name: secret.name.0,
+            name: secret.name,
             description: secret.description,
             change_reason: secret.change_reason,
             created_at: secret.created_at,
@@ -82,22 +82,7 @@ impl From<Secret> for SecretResponse {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct KeyRotationStatus {
-    pub total_secrets_re_encrypted: i64,
-    pub rotation_timestamp: DateTime<Utc>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MasterKeyRotationStatus {
+pub struct MasterEncryptionKeyRotationResponse {
     pub workspaces_rotated: i64,
-    pub total_workspaces: i64,
     pub total_secrets_re_encrypted: i64,
-    pub rotation_timestamp: chrono::DateTime<chrono::Utc>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct GenerateMasterKeyResponse {
-    pub master_key: String,
-    pub instructions: String,
-    pub warning: String,
 }

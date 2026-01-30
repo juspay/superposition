@@ -627,6 +627,13 @@ const sidebar: SidebarsConfig = {
           customProps: {},
           className: "api-method post",
         },
+        {
+          type: "doc",
+          id: "api/rotate-workspace-encryption-key",
+          label: "RotateWorkspaceEncryptionKey",
+          customProps: {},
+          className: "api-method post",
+        },
       ],
     },
     {
@@ -636,15 +643,8 @@ const sidebar: SidebarsConfig = {
       items: [
         {
           type: "doc",
-          id: "api/generate-master-key",
-          label: "GenerateMasterKey",
-          customProps: {},
-          className: "api-method post",
-        },
-        {
-          type: "doc",
-          id: "api/rotate-master-key",
-          label: "RotateMasterKey",
+          id: "api/rotate-master-encryption-key",
+          label: "RotateMasterEncryptionKey",
           customProps: {},
           className: "api-method post",
         },

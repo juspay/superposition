@@ -29,13 +29,11 @@ pub async fn get(
     service_prefix: String,
     base: &str,
 ) -> AppState {
-    let (master_key, prev_master_key) =
-        match get_master_encryption_keys(kms_client, &app_env).await {
-            Ok((master_key, prev_master_key)) => (master_key, prev_master_key),
-            Err(e) => {
-                panic!("Master Key Encryption Error: {e}");
-            }
-        };
+    let master_encryption_key = get_master_encryption_keys(kms_client, &app_env)
+        .await
+        .unwrap_or_else(|e| {
+            panic!("Error getting encryption keys: {e}");
+        });
     let cac_host =
         get_from_env_or_default::<String>("CAC_HOST", format!("http://localhost:{port}"))
             + base;
@@ -114,7 +112,6 @@ pub async fn get(
         #[cfg(feature = "high-performance-mode")]
         redis: redis_pool,
         http_client: reqwest::Client::new(),
-        master_key,
-        previous_master_key: prev_master_key,
+        master_encryption_key,
     }
 }

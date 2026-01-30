@@ -104,10 +104,6 @@ import {
   DiscardExperimentCommandOutput,
 } from "../commands/DiscardExperimentCommand";
 import {
-  GenerateMasterKeyCommandInput,
-  GenerateMasterKeyCommandOutput,
-} from "../commands/GenerateMasterKeyCommand";
-import {
   GetConfigCommandInput,
   GetConfigCommandOutput,
 } from "../commands/GetConfigCommand";
@@ -268,9 +264,13 @@ import {
   ResumeExperimentCommandOutput,
 } from "../commands/ResumeExperimentCommand";
 import {
-  RotateMasterKeyCommandInput,
-  RotateMasterKeyCommandOutput,
-} from "../commands/RotateMasterKeyCommand";
+  RotateMasterEncryptionKeyCommandInput,
+  RotateMasterEncryptionKeyCommandOutput,
+} from "../commands/RotateMasterEncryptionKeyCommand";
+import {
+  RotateWorkspaceEncryptionKeyCommandInput,
+  RotateWorkspaceEncryptionKeyCommandOutput,
+} from "../commands/RotateWorkspaceEncryptionKeyCommand";
 import {
   TestCommandInput,
   TestCommandOutput,
@@ -1069,24 +1069,6 @@ export const se_DiscardExperimentCommand = async(
     'change_reason': [],
   }));
   b.m("PATCH")
-  .h(headers)
-  .b(body);
-  return b.build();
-}
-
-/**
- * serializeAws_restJson1GenerateMasterKeyCommand
- */
-export const se_GenerateMasterKeyCommand = async(
-  input: GenerateMasterKeyCommandInput,
-  context: __SerdeContext
-): Promise<__HttpRequest> => {
-  const b = rb(input, context);
-  const headers: any = {
-  };
-  b.bp("/master-key/generate");
-  let body: any;
-  b.m("POST")
   .h(headers)
   .b(body);
   return b.build();
@@ -2107,16 +2089,36 @@ export const se_ResumeExperimentCommand = async(
 }
 
 /**
- * serializeAws_restJson1RotateMasterKeyCommand
+ * serializeAws_restJson1RotateMasterEncryptionKeyCommand
  */
-export const se_RotateMasterKeyCommand = async(
-  input: RotateMasterKeyCommandInput,
+export const se_RotateMasterEncryptionKeyCommand = async(
+  input: RotateMasterEncryptionKeyCommandInput,
   context: __SerdeContext
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
   const headers: any = {
   };
-  b.bp("/master-key/rotate");
+  b.bp("/master-encryption-key/rotate");
+  let body: any;
+  b.m("POST")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
+ * serializeAws_restJson1RotateWorkspaceEncryptionKeyCommand
+ */
+export const se_RotateWorkspaceEncryptionKeyCommand = async(
+  input: RotateWorkspaceEncryptionKeyCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/workspaces/{workspace_name}/rotate-encryption-key");
+  b.p('workspace_name', () => input.workspace_name!, '{workspace_name}', false)
   let body: any;
   b.m("POST")
   .h(headers)
@@ -3295,29 +3297,6 @@ export const de_DiscardExperimentCommand = async(
 }
 
 /**
- * deserializeAws_restJson1GenerateMasterKeyCommand
- */
-export const de_GenerateMasterKeyCommand = async(
-  output: __HttpResponse,
-  context: __SerdeContext
-): Promise<GenerateMasterKeyCommandOutput> => {
-  if (output.statusCode !== 200 && output.statusCode >= 300) {
-    return de_CommandError(output, context);
-  }
-  const contents: any = map({
-    $metadata: deserializeMetadata(output),
-  });
-  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
-  const doc = take(data, {
-    'instructions': __expectString,
-    'master_key': __expectString,
-    'warning': __expectString,
-  });
-  Object.assign(contents, doc);
-  return contents;
-}
-
-/**
  * deserializeAws_restJson1GetConfigCommand
  */
 export const de_GetConfigCommand = async(
@@ -4472,12 +4451,12 @@ export const de_ResumeExperimentCommand = async(
 }
 
 /**
- * deserializeAws_restJson1RotateMasterKeyCommand
+ * deserializeAws_restJson1RotateMasterEncryptionKeyCommand
  */
-export const de_RotateMasterKeyCommand = async(
+export const de_RotateMasterEncryptionKeyCommand = async(
   output: __HttpResponse,
   context: __SerdeContext
-): Promise<RotateMasterKeyCommandOutput> => {
+): Promise<RotateMasterEncryptionKeyCommandOutput> => {
   if (output.statusCode !== 200 && output.statusCode >= 300) {
     return de_CommandError(output, context);
   }
@@ -4486,10 +4465,29 @@ export const de_RotateMasterKeyCommand = async(
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
-    'new_master_key': __expectString,
-    'rotated_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'total_secrets_re_encrypted': __expectLong,
     'workspaces_rotated': __expectLong,
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
+ * deserializeAws_restJson1RotateWorkspaceEncryptionKeyCommand
+ */
+export const de_RotateWorkspaceEncryptionKeyCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<RotateWorkspaceEncryptionKeyCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'total_secrets_re_encrypted': __expectLong,
   });
   Object.assign(contents, doc);
   return contents;

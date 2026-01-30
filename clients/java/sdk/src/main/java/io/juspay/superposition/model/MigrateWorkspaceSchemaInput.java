@@ -19,7 +19,7 @@ import software.amazon.smithy.utils.SmithyGenerated;
 
 @SmithyGenerated
 public final class MigrateWorkspaceSchemaInput implements SerializableStruct {
-    public static final ShapeId $ID = ShapeId.from("io.superposition#MigrateWorkspaceSchemaRequest");
+    public static final ShapeId $ID = ShapeId.from("io.superposition#WorkspaceSelectorRequest");
 
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
         .putMember("org_id", PreludeSchemas.STRING,

@@ -1,17 +1,14 @@
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use secrecy::ExposeSecret;
 use service_utils::{
-    encryption::{decrypt_with_fallback, decrypt_workspace_key},
-    service::types::{SchemaName, WorkspaceContext},
+    encryption::{decrypt_secret, decrypt_workspace_key},
+    service::types::{EncryptionKey, SchemaName, WorkspaceContext},
 };
-use superposition_macros::{bad_argument, validation_error};
+use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
     DBConnection,
     database::{
-        models::{
-            cac::{Function, FunctionCode, FunctionType},
-            others::Secret,
-        },
+        models::cac::{Function, FunctionCode, FunctionType},
         schema::{
             self, functions::dsl::functions, secrets::dsl as secrets_dsl,
             variables::dsl as variables,
@@ -126,58 +123,47 @@ pub fn inject_secrets_into_code(
     workspace_context: &WorkspaceContext,
     code: &str,
     conn: &mut DBConnection,
-    master_key: Option<&secrecy::SecretString>,
+    master_encryption_key: &Option<EncryptionKey>,
 ) -> superposition::Result<FunctionCode> {
-    let all_secrets: Vec<Secret> = secrets_dsl::secrets
+    let all_secrets: Vec<(String, String)> = secrets_dsl::secrets
+        .select((secrets_dsl::name, secrets_dsl::encrypted_value))
         .schema_name(&workspace_context.schema_name)
         .load(conn)?;
 
     if all_secrets.is_empty() {
-        return Ok(FunctionCode(code.to_string()));
+        let secrets_template = generate_template("SECRETS", &[]);
+        let processed_code = format!("{}\n\n{}", secrets_template, code);
+        return Ok(FunctionCode(processed_code));
     }
 
-    // If master_key is not available, we cannot decrypt secrets
-    let master_key = match master_key {
-        Some(key) => key,
-        None => {
-            log::warn!(
-                "Master key not configured, skipping secret injection in function code"
-            );
-            return Ok(FunctionCode(code.to_string()));
-        }
+    // If master_encryption_key is not available, we cannot decrypt secrets
+    let Some(master_encryption_key) = master_encryption_key else {
+        log::warn!(
+            "Master encryption key not configured, skipping secret injection in function code"
+        );
+        let secrets_template = generate_template("SECRETS", &[]);
+        let processed_code = format!("{}\n\n{}", secrets_template, code);
+        return Ok(FunctionCode(processed_code));
     };
 
     let workspace = &workspace_context.settings;
 
-    let workspace_key = decrypt_workspace_key(&workspace.encryption_key, master_key)
-        .map_err(|e| bad_argument!("Failed to decrypt workspace key: {}", e))?;
-
-    let previous_workspace_key: Option<secrecy::SecretString> =
-        if let Some(ref prev_key) = workspace.previous_encryption_key {
-            Some(decrypt_workspace_key(prev_key, master_key).map_err(|e| {
-                bad_argument!("Failed to decrypt previous workspace key: {}", e)
-            })?)
-        } else {
-            None
-        };
+    let workspace_key =
+        decrypt_workspace_key(&workspace.encryption_key, master_encryption_key)
+            .map_err(|e| unexpected_error!("Failed to decrypt workspace key: {}", e))?;
 
     let decrypted_secrets: superposition::Result<Vec<(String, String)>> = all_secrets
         .into_iter()
-        .map(|secret| {
-            let decrypted_value = decrypt_with_fallback(
-                &secret.encrypted_value,
-                &workspace_key,
-                previous_workspace_key.as_ref(),
-            )
-            .map_err(|e| {
-                bad_argument!("Failed to decrypt secret '{}': {}", secret.name.0, e)
-            })?;
-            Ok((secret.name.0, decrypted_value.expose_secret().to_string()))
+        .map(|(name, encrypted_value)| {
+            let decrypted_value = decrypt_secret(&encrypted_value, &workspace_key)
+                .map_err(|e| {
+                    unexpected_error!("Failed to decrypt secret '{}': {}", name, e)
+                })?;
+            Ok((name, decrypted_value.expose_secret().to_string()))
         })
         .collect();
 
-    let decrypted_secrets = decrypted_secrets?;
-    let secrets_template = generate_template("SECRETS", &decrypted_secrets);
+    let secrets_template = generate_template("SECRETS", &decrypted_secrets?);
     let processed_code = format!("{}\n\n{}", secrets_template, code);
 
     Ok(FunctionCode(processed_code))
@@ -200,10 +186,10 @@ pub fn inject_secrets_and_variables_into_code(
     code: &str,
     conn: &mut DBConnection,
     workspace_context: &WorkspaceContext,
-    master_key: Option<&secrecy::SecretString>,
+    master_encryption_key: &Option<EncryptionKey>,
 ) -> superposition::Result<FunctionCode> {
     let code_with_secrets =
-        inject_secrets_into_code(workspace_context, code, conn, master_key)?;
+        inject_secrets_into_code(workspace_context, code, conn, master_encryption_key)?;
 
     let final_code = inject_variables_into_code(
         &code_with_secrets,

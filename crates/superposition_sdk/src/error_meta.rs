@@ -603,27 +603,6 @@ impl From<crate::operation::discard_experiment::DiscardExperimentError> for Erro
         }
     }
 }
-impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::generate_master_key::GenerateMasterKeyError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
-    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::generate_master_key::GenerateMasterKeyError, R>) -> Self {
-        match err {
-            ::aws_smithy_runtime_api::client::result::SdkError::ServiceError(context) => Self::from(context.into_err()),
-            _ => Error::Unhandled(
-                                        crate::error::sealed_unhandled::Unhandled {
-                                            meta: ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(&err).clone(),
-                                            source: err.into(),
-                                        }
-                                    ),
-        }
-    }
-}
-impl From<crate::operation::generate_master_key::GenerateMasterKeyError> for Error {
-    fn from(err: crate::operation::generate_master_key::GenerateMasterKeyError) -> Self {
-        match err {
-            crate::operation::generate_master_key::GenerateMasterKeyError::InternalServerError(inner) => Error::InternalServerError(inner),
-            crate::operation::generate_master_key::GenerateMasterKeyError::Unhandled(inner) => Error::Unhandled(inner),
-        }
-    }
-}
 impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_config::GetConfigError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
     fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_config::GetConfigError, R>) -> Self {
         match err {
@@ -1486,8 +1465,8 @@ impl From<crate::operation::resume_experiment::ResumeExperimentError> for Error 
         }
     }
 }
-impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::rotate_master_key::RotateMasterKeyError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
-    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::rotate_master_key::RotateMasterKeyError, R>) -> Self {
+impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
+    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyError, R>) -> Self {
         match err {
             ::aws_smithy_runtime_api::client::result::SdkError::ServiceError(context) => Self::from(context.into_err()),
             _ => Error::Unhandled(
@@ -1499,11 +1478,32 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
         }
     }
 }
-impl From<crate::operation::rotate_master_key::RotateMasterKeyError> for Error {
-    fn from(err: crate::operation::rotate_master_key::RotateMasterKeyError) -> Self {
+impl From<crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyError> for Error {
+    fn from(err: crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyError) -> Self {
         match err {
-            crate::operation::rotate_master_key::RotateMasterKeyError::InternalServerError(inner) => Error::InternalServerError(inner),
-            crate::operation::rotate_master_key::RotateMasterKeyError::Unhandled(inner) => Error::Unhandled(inner),
+            crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyError::InternalServerError(inner) => Error::InternalServerError(inner),
+            crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyError::Unhandled(inner) => Error::Unhandled(inner),
+        }
+    }
+}
+impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::rotate_workspace_encryption_key::RotateWorkspaceEncryptionKeyError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
+    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::rotate_workspace_encryption_key::RotateWorkspaceEncryptionKeyError, R>) -> Self {
+        match err {
+            ::aws_smithy_runtime_api::client::result::SdkError::ServiceError(context) => Self::from(context.into_err()),
+            _ => Error::Unhandled(
+                                        crate::error::sealed_unhandled::Unhandled {
+                                            meta: ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(&err).clone(),
+                                            source: err.into(),
+                                        }
+                                    ),
+        }
+    }
+}
+impl From<crate::operation::rotate_workspace_encryption_key::RotateWorkspaceEncryptionKeyError> for Error {
+    fn from(err: crate::operation::rotate_workspace_encryption_key::RotateWorkspaceEncryptionKeyError) -> Self {
+        match err {
+            crate::operation::rotate_workspace_encryption_key::RotateWorkspaceEncryptionKeyError::InternalServerError(inner) => Error::InternalServerError(inner),
+            crate::operation::rotate_workspace_encryption_key::RotateWorkspaceEncryptionKeyError::Unhandled(inner) => Error::Unhandled(inner),
         }
     }
 }

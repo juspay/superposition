@@ -105,7 +105,7 @@ async fn create_handler(
         &workspace_context,
         &req_change_reason,
         &mut db_conn,
-        state.master_key.as_ref(),
+        &state.master_encryption_key,
     )?;
 
     let (put_response, version_id) = db_conn
@@ -118,7 +118,7 @@ async fn create_handler(
                 &user,
                 &workspace_context,
                 false,
-                state.master_key.as_ref(),
+                &state.master_encryption_key,
             )
             .map_err(|err: superposition::AppError| {
                 log::error!("context put failed with error: {:?}", err);
@@ -171,7 +171,7 @@ async fn update_handler(
         &workspace_context,
         &req_change_reason,
         &mut db_conn,
-        state.master_key.as_ref(),
+        &state.master_encryption_key,
     )?;
 
     let (override_resp, version_id) = db_conn
@@ -181,7 +181,7 @@ async fn update_handler(
                 req.into_inner(),
                 transaction_conn,
                 &user,
-                state.master_key.as_ref(),
+                &state.master_encryption_key,
             )
             .map_err(|err: superposition::AppError| {
                 log::error!("context update failed with error: {:?}", err);
@@ -253,7 +253,7 @@ async fn move_handler(
         &workspace_context,
         &req.change_reason,
         &mut db_conn,
-        state.master_key.as_ref(),
+        &state.master_encryption_key,
     )?;
 
     let (move_response, version_id) = db_conn
@@ -266,7 +266,7 @@ async fn move_handler(
                 transaction_conn,
                 true,
                 &user,
-                state.master_key.as_ref(),
+                &state.master_encryption_key,
             )
             .map_err(|err| {
                 log::error!("move api failed with error: {:?}", err);
@@ -566,7 +566,7 @@ async fn bulk_operations_handler(
                             &workspace_context,
                             &put_req.change_reason,
                             transaction_conn,
-                            state.master_key.as_ref(),
+                            &state.master_encryption_key,
                         )?;
 
                         let description = if put_req.description.is_none() {
@@ -590,7 +590,7 @@ async fn bulk_operations_handler(
                             &user,
                             &workspace_context,
                             false,
-                            state.master_key.as_ref(),
+                            &state.master_encryption_key,
                         )
                         .map_err(|err| {
                             log::error!(
@@ -611,7 +611,7 @@ async fn bulk_operations_handler(
                             update_request,
                             transaction_conn,
                             &user,
-                            state.master_key.as_ref(),
+                            &state.master_encryption_key,
                         )
                         .map_err(|err| {
                             log::error!(
@@ -688,7 +688,7 @@ async fn bulk_operations_handler(
                             transaction_conn,
                             true,
                             &user,
-                            state.master_key.as_ref(),
+                            &state.master_encryption_key,
                         )
                         .map_err(|err| {
                             log::error!(
@@ -835,19 +835,18 @@ async fn validate_handler(
     workspace_context: WorkspaceContext,
     db_conn: DbConnection,
     request: Json<ContextValidationRequest>,
-    app_state: Data<AppState>,
+    state: Data<AppState>,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let ctx_condition = request.context.to_owned().into_inner();
     log::debug!("Context {:?} is being checked for validity", ctx_condition);
-    let master_key = &app_state.master_key;
 
     validate_ctx(
         &mut conn,
         &workspace_context,
         ctx_condition.clone(),
         Overrides::default(),
-        master_key.as_ref(),
+        &state.master_encryption_key,
     )?;
     log::debug!("Context {:?} is valid", ctx_condition);
     Ok(HttpResponse::Ok().finish())
