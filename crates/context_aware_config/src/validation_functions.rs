@@ -1,7 +1,7 @@
 use std::{process::Command, str};
 
 use serde::Serialize;
-use service_utils::service::types::SchemaName;
+use service_utils::service::types::{EncryptionKey, WorkspaceContext};
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
     DBConnection,
@@ -10,7 +10,7 @@ use superposition_types::{
     result as superposition,
 };
 
-use crate::api::functions::helpers::inject_variables_into_code;
+use crate::api::functions::helpers::inject_secrets_and_variables_into_code;
 
 static FUNCTION_ENV_VARIABLES: &str =
     "HTTP_PROXY,HTTPS_PROXY,HTTP_PROXY_HOST,HTTP_PROXY_PORT,NO_PROXY";
@@ -175,18 +175,24 @@ fn generate_wrapper_runtime(code_str: &str) -> String {
 }
 
 pub fn execute_fn(
+    workspace_context: &WorkspaceContext,
     code_str: &FunctionCode,
     args: &FunctionExecutionRequest,
     runtime_version: FunctionRuntimeVersion,
     conn: &mut DBConnection,
-    schema_name: &SchemaName,
+    master_encryption_key: &Option<EncryptionKey>,
 ) -> Result<FunctionExecutionResponse, (String, Option<String>)> {
-    let code =
-        inject_variables_into_code(code_str, conn, schema_name).map_err(|err| {
-            let err_msg = format!("Failed to inject variables: {:?}", err);
-            log::error!("{}", err_msg);
-            (err_msg, None)
-        })?;
+    let code = inject_secrets_and_variables_into_code(
+        code_str,
+        conn,
+        workspace_context,
+        master_encryption_key,
+    )
+    .map_err(|err| {
+        let err_msg = format!("Failed to inject variables/secrets: {:?}", err);
+        log::error!("{}", err_msg);
+        (err_msg, None)
+    })?;
     let exec_code = generate_fn_code(&code, args, runtime_version);
     log::trace!("{}", format!("Running function code: {:?}", exec_code));
     let output = Command::new("node")

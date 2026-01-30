@@ -1396,6 +1396,37 @@ export interface OrganisationResponse {
 /**
  * @public
  */
+export interface CreateSecretInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  name: string | undefined;
+  /**
+   * Plaintext value to be encrypted and stored.
+   * @public
+   */
+  value: string | undefined;
+
+  description: string | undefined;
+  change_reason: string | undefined;
+}
+
+/**
+ * Response structure for secret operations. Secret values are never returned for security.
+ * @public
+ */
+export interface SecretResponse {
+  name: string | undefined;
+  description: string | undefined;
+  change_reason: string | undefined;
+  created_by: string | undefined;
+  created_at: Date | undefined;
+  last_modified_by: string | undefined;
+  last_modified_at: Date | undefined;
+}
+
+/**
+ * @public
+ */
 export interface CreateTypeTemplatesRequest {
   workspace_id: string | undefined;
   org_id: string | undefined;
@@ -1691,6 +1722,15 @@ export interface DeleteFunctionInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
   function_name: string | undefined;
+}
+
+/**
+ * @public
+ */
+export interface DeleteSecretInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  name: string | undefined;
 }
 
 /**
@@ -2284,6 +2324,15 @@ export interface GetOrganisationInput {
 /**
  * @public
  */
+export interface GetSecretInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  name: string | undefined;
+}
+
+/**
+ * @public
+ */
 export interface GetTypeTemplateInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
@@ -2390,6 +2439,84 @@ export interface ListOrganisationOutput {
   total_pages: number | undefined;
   total_items: number | undefined;
   data: (OrganisationResponse)[] | undefined;
+}
+
+/**
+ * @public
+ * @enum
+ */
+export const SecretSortOn = {
+  CREATED_AT: "created_at",
+  LAST_MODIFIED_AT: "last_modified_at",
+  NAME: "name",
+} as const
+/**
+ * @public
+ */
+export type SecretSortOn = typeof SecretSortOn[keyof typeof SecretSortOn]
+
+/**
+ * @public
+ */
+export interface ListSecretsInput {
+  /**
+   * Number of items to be returned in each page.
+   * @public
+   */
+  count?: number | undefined;
+
+  /**
+   * Page number to retrieve, starting from 1.
+   * @public
+   */
+  page?: number | undefined;
+
+  /**
+   * If true, returns all requested items, ignoring pagination parameters page and count.
+   * @public
+   */
+  all?: boolean | undefined;
+
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  /**
+   * Filter by secret name.
+   * @public
+   */
+  name?: string | undefined;
+
+  /**
+   * Filter by the user who created the secret.
+   * @public
+   */
+  created_by?: string | undefined;
+
+  /**
+   * Filter by the user who last modified the secret.
+   * @public
+   */
+  last_modified_by?: string | undefined;
+
+  /**
+   * Field to sort the results by.
+   * @public
+   */
+  sort_on?: SecretSortOn | undefined;
+
+  /**
+   * Sort order (ascending or descending).
+   * @public
+   */
+  sort_by?: SortBy | undefined;
+}
+
+/**
+ * @public
+ */
+export interface ListSecretsOutput {
+  total_pages: number | undefined;
+  total_items: number | undefined;
+  data: (SecretResponse)[] | undefined;
 }
 
 /**
@@ -2542,7 +2669,15 @@ export interface ListWorkspaceOutput {
 /**
  * @public
  */
-export interface MigrateWorkspaceSchemaRequest {
+export interface RotateMasterEncryptionKeyOutput {
+  workspaces_rotated: number | undefined;
+  total_secrets_re_encrypted: number | undefined;
+}
+
+/**
+ * @public
+ */
+export interface WorkspaceSelectorRequest {
   org_id: string | undefined;
   workspace_name: string | undefined;
 }
@@ -2558,6 +2693,34 @@ export interface UpdateOrganisationRequest {
   sector?: string | undefined;
   id: string | undefined;
   status?: OrgStatus | undefined;
+}
+
+/**
+ * @public
+ */
+export interface RotateWorkspaceEncryptionKeyOutput {
+  /**
+   * Number of secrets that were re-encrypted with the new key.
+   * @public
+   */
+  total_secrets_re_encrypted: number | undefined;
+}
+
+/**
+ * @public
+ */
+export interface UpdateSecretInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  name: string | undefined;
+  /**
+   * New plaintext value to encrypt and store. If provided, will be encrypted with current key.
+   * @public
+   */
+  value?: string | undefined;
+
+  description?: string | undefined;
+  change_reason: string | undefined;
 }
 
 /**

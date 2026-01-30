@@ -96,6 +96,9 @@ impl<A: Action> FromRequest for AuthZ<A> {
 
                 (org_id, schema_name)
             }
+            Resource::MasterEncryptionKey => {
+                (OrganisationId::default(), SchemaName::default())
+            }
             _ => match req.extensions().get::<WorkspaceContext>() {
                 Some(context) => {
                     (context.organisation_id.clone(), context.schema_name.clone())

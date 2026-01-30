@@ -8,16 +8,16 @@ use idgenerator::IdInstance;
 use service_utils::service::types::DbConnection;
 use superposition_derives::authorized;
 use superposition_types::{
-    PaginatedResponse, User, custom_query::PaginationParams, result as superposition,
-};
-use superposition_types::{
+    PaginatedResponse, User,
     api::organisation::{CreateRequest, UpdateRequest},
+    custom_query::PaginationParams,
     database::{
         models::{OrgStatus, Organisation},
         superposition_schema::superposition::organisations::{
             self, updated_at, updated_by,
         },
     },
+    result as superposition,
 };
 
 pub fn endpoints() -> Scope {

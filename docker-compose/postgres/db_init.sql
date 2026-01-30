@@ -1735,4 +1735,40 @@ REFERENCES localorg_test.functions(function_name);
 
 ALTER TABLE superposition.workspaces DROP COLUMN IF EXISTS strict_mode;
 
+CREATE TABLE IF NOT EXISTS localorg_dev.secrets (
+    name VARCHAR PRIMARY KEY,
+    encrypted_value TEXT NOT NULL,
+    description TEXT NOT NULL,
+    change_reason TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    last_modified_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_by VARCHAR NOT NULL,
+    last_modified_by VARCHAR NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_secrets_created_at ON localorg_dev.secrets(created_at);
+CREATE INDEX IF NOT EXISTS idx_secrets_last_modified_at ON localorg_dev.secrets(last_modified_at);
+
+CREATE TRIGGER secrets_audit AFTER INSERT OR DELETE OR UPDATE ON localorg_dev.secrets FOR EACH ROW EXECUTE FUNCTION localorg_dev.event_logger();
+
+CREATE TABLE IF NOT EXISTS localorg_test.secrets (
+    name VARCHAR PRIMARY KEY,
+    encrypted_value TEXT NOT NULL,
+    description TEXT NOT NULL,
+    change_reason TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    last_modified_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_by VARCHAR NOT NULL,
+    last_modified_by VARCHAR NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_secrets_created_at ON localorg_test.secrets(created_at);
+CREATE INDEX IF NOT EXISTS idx_secrets_last_modified_at ON localorg_test.secrets(last_modified_at);
+
+CREATE TRIGGER secrets_audit AFTER INSERT OR DELETE OR UPDATE ON localorg_test.secrets FOR EACH ROW EXECUTE FUNCTION localorg_test.event_logger();
+
+ALTER TABLE superposition.workspaces
+ADD COLUMN IF NOT EXISTS encryption_key TEXT NOT NULL DEFAULT '',
+ADD COLUMN IF NOT EXISTS key_rotated_at TIMESTAMPTZ;
+
 COMMIT;

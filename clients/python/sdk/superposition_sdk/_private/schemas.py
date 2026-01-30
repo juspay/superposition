@@ -2,7 +2,7 @@
 
 from types import MappingProxyType
 
-from smithy_core.prelude import BOOLEAN, DOCUMENT, INTEGER, STRING, UNIT
+from smithy_core.prelude import BOOLEAN, DOCUMENT, INTEGER, LONG, STRING, UNIT
 from smithy_core.schemas import Schema
 from smithy_core.shapes import ShapeID, ShapeType
 from smithy_core.traits import Trait
@@ -5676,6 +5676,164 @@ CREATE_ORGANISATION = Schema(
 
 )
 
+CREATE_SECRET_INPUT = Schema.collection(
+    id=ShapeID("io.superposition#CreateSecretInput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#input")),
+
+    ],
+    members={
+        "workspace_id": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-workspace"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "org_id": {
+            "target": STRING,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "name": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "value": {
+            "target": STRING,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "description": {
+            "target": STRING,
+            "index": 4,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "change_reason": {
+            "target": STRING,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
+CREATE_SECRET_OUTPUT = Schema.collection(
+    id=ShapeID("io.superposition#CreateSecretOutput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#SecretResponse"),
+        Trait.new(id=ShapeID("smithy.api#output")),
+
+    ],
+    members={
+        "name": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "description": {
+            "target": STRING,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "change_reason": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "created_by": {
+            "target": STRING,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "created_at": {
+            "target": DATE_TIME,
+            "index": 4,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "last_modified_by": {
+            "target": STRING,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "last_modified_at": {
+            "target": DATE_TIME,
+            "index": 6,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
+CREATE_SECRET = Schema(
+    id=ShapeID("io.superposition#CreateSecret"),
+    shape_type=ShapeType.OPERATION,
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Secrets",
+            )),
+        Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
+                "method": "POST",
+                "uri": "/secrets",
+            })),
+
+    ],
+
+)
+
 CREATE_TYPE_TEMPLATES_INPUT = Schema.collection(
     id=ShapeID("io.superposition#CreateTypeTemplatesInput"),
 
@@ -7632,6 +7790,139 @@ DELETE_FUNCTION = Schema(
                 "method": "DELETE",
                 "uri": "/function/{function_name}",
                 "code": 204,
+            })),
+
+    ],
+
+)
+
+DELETE_SECRET_INPUT = Schema.collection(
+    id=ShapeID("io.superposition#DeleteSecretInput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#input")),
+
+    ],
+    members={
+        "workspace_id": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-workspace"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "org_id": {
+            "target": STRING,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "name": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(id=ShapeID("smithy.api#httpLabel")),
+
+            ],
+        },
+
+    }
+)
+
+DELETE_SECRET_OUTPUT = Schema.collection(
+    id=ShapeID("io.superposition#DeleteSecretOutput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#SecretResponse"),
+        Trait.new(id=ShapeID("smithy.api#output")),
+
+    ],
+    members={
+        "name": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "description": {
+            "target": STRING,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "change_reason": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "created_by": {
+            "target": STRING,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "created_at": {
+            "target": DATE_TIME,
+            "index": 4,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "last_modified_by": {
+            "target": STRING,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "last_modified_at": {
+            "target": DATE_TIME,
+            "index": 6,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
+DELETE_SECRET = Schema(
+    id=ShapeID("io.superposition#DeleteSecret"),
+    shape_type=ShapeType.OPERATION,
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#idempotent")),
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Secrets",
+            )),
+        Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
+                "method": "DELETE",
+                "uri": "/secrets/{name}",
             })),
 
     ],
@@ -12817,6 +13108,139 @@ GET_ORGANISATION = Schema(
 
 )
 
+GET_SECRET_INPUT = Schema.collection(
+    id=ShapeID("io.superposition#GetSecretInput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#input")),
+
+    ],
+    members={
+        "workspace_id": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-workspace"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "org_id": {
+            "target": STRING,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "name": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(id=ShapeID("smithy.api#httpLabel")),
+
+            ],
+        },
+
+    }
+)
+
+GET_SECRET_OUTPUT = Schema.collection(
+    id=ShapeID("io.superposition#GetSecretOutput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#SecretResponse"),
+        Trait.new(id=ShapeID("smithy.api#output")),
+
+    ],
+    members={
+        "name": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "description": {
+            "target": STRING,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "change_reason": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "created_by": {
+            "target": STRING,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "created_at": {
+            "target": DATE_TIME,
+            "index": 4,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "last_modified_by": {
+            "target": STRING,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "last_modified_at": {
+            "target": DATE_TIME,
+            "index": 6,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
+GET_SECRET = Schema(
+    id=ShapeID("io.superposition#GetSecret"),
+    shape_type=ShapeType.OPERATION,
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Secrets",
+            )),
+        Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
+                "method": "GET",
+                "uri": "/secrets/{name}",
+            })),
+        Trait.new(id=ShapeID("smithy.api#readonly")),
+
+    ],
+
+)
+
 GET_TYPE_TEMPLATE_INPUT = Schema.collection(
     id=ShapeID("io.superposition#GetTypeTemplateInput"),
 
@@ -14108,6 +14532,283 @@ LIST_ORGANISATION = Schema(
 
 )
 
+SECRET_SORT_ON = Schema.collection(
+    id=ShapeID("io.superposition#SecretSortOn"),
+    shape_type=ShapeType.ENUM,
+    members={
+        "NAME": {
+            "target": UNIT,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="name"),
+
+            ],
+        },
+
+        "CREATED_AT": {
+            "target": UNIT,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="created_at"),
+
+            ],
+        },
+
+        "LAST_MODIFIED_AT": {
+            "target": UNIT,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="last_modified_at"),
+
+            ],
+        },
+
+    }
+)
+
+LIST_SECRETS_INPUT = Schema.collection(
+    id=ShapeID("io.superposition#ListSecretsInput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#input")),
+
+    ],
+    members={
+        "count": {
+            "target": INTEGER,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="count"),
+
+            ],
+        },
+
+        "page": {
+            "target": INTEGER,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="page"),
+
+            ],
+        },
+
+        "all": {
+            "target": BOOLEAN,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="all"),
+
+            ],
+        },
+
+        "workspace_id": {
+            "target": STRING,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-workspace"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "org_id": {
+            "target": STRING,
+            "index": 4,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "name": {
+            "target": STRING,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="name"),
+
+            ],
+        },
+
+        "created_by": {
+            "target": STRING,
+            "index": 6,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="created_by"),
+
+            ],
+        },
+
+        "last_modified_by": {
+            "target": STRING,
+            "index": 7,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="last_modified_by"),
+
+            ],
+        },
+
+        "sort_on": {
+            "target": SECRET_SORT_ON,
+            "index": 8,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="sort_on"),
+
+            ],
+        },
+
+        "sort_by": {
+            "target": SORT_BY,
+            "index": 9,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="sort_by"),
+
+            ],
+        },
+
+    }
+)
+
+SECRET_RESPONSE = Schema.collection(
+    id=ShapeID("io.superposition#SecretResponse"),
+
+    members={
+        "name": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "description": {
+            "target": STRING,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "change_reason": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "created_by": {
+            "target": STRING,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "created_at": {
+            "target": DATE_TIME,
+            "index": 4,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "last_modified_by": {
+            "target": STRING,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "last_modified_at": {
+            "target": DATE_TIME,
+            "index": 6,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
+SECRET_LIST = Schema.collection(
+    id=ShapeID("io.superposition#SecretList"),
+    shape_type=ShapeType.LIST,
+    members={
+        "member": {
+            "target": SECRET_RESPONSE,
+            "index": 0,
+        },
+
+    }
+)
+
+LIST_SECRETS_OUTPUT = Schema.collection(
+    id=ShapeID("io.superposition#ListSecretsOutput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#output")),
+
+    ],
+    members={
+        "total_pages": {
+            "target": INTEGER,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "total_items": {
+            "target": INTEGER,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "data": {
+            "target": SECRET_LIST,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
+LIST_SECRETS = Schema(
+    id=ShapeID("io.superposition#ListSecrets"),
+    shape_type=ShapeType.OPERATION,
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Secrets",
+            )),
+        Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
+                "method": "GET",
+                "uri": "/secrets",
+            })),
+        Trait.new(id=ShapeID("smithy.api#readonly")),
+
+    ],
+
+)
+
 VARIABLE_SORT_ON = Schema.collection(
     id=ShapeID("io.superposition#VariableSortOn"),
     shape_type=ShapeType.ENUM,
@@ -14920,11 +15621,69 @@ LIST_WORKSPACE = Schema(
 
 )
 
+ROTATE_MASTER_ENCRYPTION_KEY_INPUT = Schema.collection(
+    id=ShapeID("io.superposition#RotateMasterEncryptionKeyInput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="smithy.api#Unit"),
+        Trait.new(id=ShapeID("smithy.api#input")),
+
+    ],
+
+)
+
+ROTATE_MASTER_ENCRYPTION_KEY_OUTPUT = Schema.collection(
+    id=ShapeID("io.superposition#RotateMasterEncryptionKeyOutput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#output")),
+
+    ],
+    members={
+        "workspaces_rotated": {
+            "target": LONG,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "total_secrets_re_encrypted": {
+            "target": LONG,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
+ROTATE_MASTER_ENCRYPTION_KEY = Schema(
+    id=ShapeID("io.superposition#RotateMasterEncryptionKey"),
+    shape_type=ShapeType.OPERATION,
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#idempotent")),
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Admin",
+                "Encryption",
+            )),
+        Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
+                "method": "POST",
+                "uri": "/master-encryption-key/rotate",
+            })),
+
+    ],
+
+)
+
 MIGRATE_WORKSPACE_SCHEMA_INPUT = Schema.collection(
     id=ShapeID("io.superposition#MigrateWorkspaceSchemaInput"),
 
     traits=[
-        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#MigrateWorkspaceSchemaRequest"),
+        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#WorkspaceSelectorRequest"),
         Trait.new(id=ShapeID("smithy.api#input")),
 
     ],
@@ -15113,6 +15872,7 @@ MIGRATE_WORKSPACE_SCHEMA = Schema(
     id=ShapeID("io.superposition#MigrateWorkspaceSchema"),
     shape_type=ShapeType.OPERATION,
     traits=[
+        Trait.new(id=ShapeID("smithy.api#idempotent")),
         Trait.new(id=ShapeID("smithy.api#tags"), value=(
                 "Workspace Management",
             )),
@@ -15120,7 +15880,6 @@ MIGRATE_WORKSPACE_SCHEMA = Schema(
                 "method": "POST",
                 "uri": "/workspaces/{workspace_name}/db/migrate",
             })),
-        Trait.new(id=ShapeID("smithy.api#readonly")),
 
     ],
 
@@ -15293,6 +16052,228 @@ UPDATE_ORGANISATION = Schema(
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "PATCH",
                 "uri": "/superposition/organisations/{id}",
+            })),
+
+    ],
+
+)
+
+ROTATE_WORKSPACE_ENCRYPTION_KEY_INPUT = Schema.collection(
+    id=ShapeID("io.superposition#RotateWorkspaceEncryptionKeyInput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#WorkspaceSelectorRequest"),
+        Trait.new(id=ShapeID("smithy.api#input")),
+
+    ],
+    members={
+        "org_id": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "workspace_name": {
+            "target": STRING,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(id=ShapeID("smithy.api#httpLabel")),
+
+            ],
+        },
+
+    }
+)
+
+ROTATE_WORKSPACE_ENCRYPTION_KEY_OUTPUT = Schema.collection(
+    id=ShapeID("io.superposition#RotateWorkspaceEncryptionKeyOutput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#output")),
+
+    ],
+    members={
+        "total_secrets_re_encrypted": {
+            "target": LONG,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
+ROTATE_WORKSPACE_ENCRYPTION_KEY = Schema(
+    id=ShapeID("io.superposition#RotateWorkspaceEncryptionKey"),
+    shape_type=ShapeType.OPERATION,
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#idempotent")),
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Workspace Management",
+            )),
+        Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
+                "method": "POST",
+                "uri": "/workspaces/{workspace_name}/rotate-encryption-key",
+            })),
+
+    ],
+
+)
+
+UPDATE_SECRET_INPUT = Schema.collection(
+    id=ShapeID("io.superposition#UpdateSecretInput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#input")),
+
+    ],
+    members={
+        "workspace_id": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-workspace"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "org_id": {
+            "target": STRING,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "name": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(id=ShapeID("smithy.api#httpLabel")),
+
+            ],
+        },
+
+        "value": {
+            "target": STRING,
+            "index": 3,
+        },
+
+        "description": {
+            "target": STRING,
+            "index": 4,
+        },
+
+        "change_reason": {
+            "target": STRING,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
+UPDATE_SECRET_OUTPUT = Schema.collection(
+    id=ShapeID("io.superposition#UpdateSecretOutput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#SecretResponse"),
+        Trait.new(id=ShapeID("smithy.api#output")),
+
+    ],
+    members={
+        "name": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "description": {
+            "target": STRING,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "change_reason": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "created_by": {
+            "target": STRING,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "created_at": {
+            "target": DATE_TIME,
+            "index": 4,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "last_modified_by": {
+            "target": STRING,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "last_modified_at": {
+            "target": DATE_TIME,
+            "index": 6,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
+UPDATE_SECRET = Schema(
+    id=ShapeID("io.superposition#UpdateSecret"),
+    shape_type=ShapeType.OPERATION,
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#idempotent")),
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Secrets",
+            )),
+        Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
+                "method": "PATCH",
+                "uri": "/secrets/{name}",
             })),
 
     ],

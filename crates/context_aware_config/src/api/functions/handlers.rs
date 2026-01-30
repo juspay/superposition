@@ -1,10 +1,10 @@
 use actix_web::{
     HttpResponse, Result, Scope, delete, get, patch, post,
-    web::{Json, Path},
+    web::{Data, Json, Path},
 };
 use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
-use service_utils::service::types::{DbConnection, WorkspaceContext};
+use service_utils::service::types::{AppState, DbConnection, WorkspaceContext};
 use superposition_derives::authorized;
 use superposition_macros::{bad_argument, not_found, unexpected_error};
 use superposition_types::{
@@ -47,6 +47,7 @@ async fn create_handler(
     request: Json<CreateFunctionRequest>,
     db_conn: DbConnection,
     user: User,
+    state: Data<AppState>,
 ) -> superposition::Result<Json<Function>> {
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
@@ -64,7 +65,12 @@ async fn create_handler(
         ));
     }
 
-    validate_change_reason(&workspace_context, &req.change_reason, &mut conn)?;
+    validate_change_reason(
+        &workspace_context,
+        &req.change_reason,
+        &mut conn,
+        &state.master_encryption_key,
+    )?;
 
     compile_fn(&req.function)?;
 
@@ -127,6 +133,7 @@ async fn update_handler(
     request: Json<UpdateFunctionRequest>,
     db_conn: DbConnection,
     user: User,
+    state: Data<AppState>,
 ) -> superposition::Result<Json<Function>> {
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
@@ -137,7 +144,12 @@ async fn update_handler(
         compile_fn(function)?;
     }
 
-    validate_change_reason(&workspace_context, &req.change_reason, &mut conn)?;
+    validate_change_reason(
+        &workspace_context,
+        &req.change_reason,
+        &mut conn,
+        &state.master_encryption_key,
+    )?;
 
     let updated_function = diesel::update(functions::functions)
         .filter(schema::functions::function_name.eq(f_name))
@@ -258,6 +270,7 @@ async fn test_handler(
     params: Path<TestParam>,
     request: Json<FunctionExecutionRequest>,
     db_conn: DbConnection,
+    state: Data<AppState>,
 ) -> superposition::Result<Json<FunctionExecutionResponse>> {
     let DbConnection(mut conn) = db_conn;
     let path_params = params.into_inner();
@@ -280,11 +293,12 @@ async fn test_handler(
     };
 
     let result = execute_fn(
+        &workspace_context,
         &code,
         &req,
         version,
         &mut conn,
-        &workspace_context.schema_name,
+        &state.master_encryption_key,
     )
     .map_err(|(e, stdout)| {
         bad_argument!(
@@ -305,13 +319,19 @@ async fn publish_handler(
     request: Json<FunctionStateChangeRequest>,
     db_conn: DbConnection,
     user: User,
+    state: Data<AppState>,
 ) -> superposition::Result<Json<Function>> {
     let DbConnection(mut conn) = db_conn;
     let fun_name: String = params.into_inner().into();
     let function = fetch_function(&fun_name, &mut conn, &workspace_context.schema_name)?;
     let req = request.into_inner();
 
-    validate_change_reason(&workspace_context, &req.change_reason, &mut conn)?;
+    validate_change_reason(
+        &workspace_context,
+        &req.change_reason,
+        &mut conn,
+        &state.master_encryption_key,
+    )?;
 
     let updated_function = diesel::update(functions::functions)
         .filter(functions::function_name.eq(fun_name.clone()))

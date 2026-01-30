@@ -1,5 +1,3 @@
-use superposition_types::custom_query::CommaSeparatedStringQParams;
-
 use actix_http::header::HeaderValue;
 use actix_web::{
     HttpRequest, HttpResponseBuilder,
@@ -9,12 +7,14 @@ use cac_client::{eval_cac, eval_cac_with_reasoning};
 use chrono::{DateTime, Timelike, Utc};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, dsl::max};
 use serde_json::{Map, Value};
-use service_utils::service::types::{AppHeader, SchemaName, WorkspaceContext};
+use service_utils::service::types::{
+    AppHeader, EncryptionKey, SchemaName, WorkspaceContext,
+};
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
     Config, DBConnection,
     api::config::{ContextPayload, MergeStrategy, ResolveConfigQuery},
-    custom_query::{DimensionQuery, QueryMap},
+    custom_query::{CommaSeparatedStringQParams, DimensionQuery, QueryMap},
     database::schema::{
         config_versions::dsl as config_versions, event_log::dsl as event_log,
     },
@@ -209,6 +209,7 @@ pub fn resolve(
     conn: &mut DBConnection,
     query_filters: &ResolveConfigQuery,
     workspace_context: &WorkspaceContext,
+    master_encryption_key: &Option<EncryptionKey>,
 ) -> superposition::Result<Map<String, Value>> {
     *config = apply_prefix_filter_to_config(&query_filters.prefix, config.clone())?;
 
@@ -232,7 +233,8 @@ pub fn resolve(
             &config.dimensions,
             &query_data,
             conn,
-            &workspace_context.schema_name,
+            workspace_context,
+            master_encryption_key,
         )?);
     }
 

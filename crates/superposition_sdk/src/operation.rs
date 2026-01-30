@@ -33,6 +33,9 @@ pub mod create_function;
 /// Types for the `CreateOrganisation` operation.
 pub mod create_organisation;
 
+/// Types for the `CreateSecret` operation.
+pub mod create_secret;
+
 /// Types for the `CreateTypeTemplates` operation.
 pub mod create_type_templates;
 
@@ -59,6 +62,9 @@ pub mod delete_experiment_group;
 
 /// Types for the `DeleteFunction` operation.
 pub mod delete_function;
+
+/// Types for the `DeleteSecret` operation.
+pub mod delete_secret;
 
 /// Types for the `DeleteTypeTemplates` operation.
 pub mod delete_type_templates;
@@ -108,6 +114,9 @@ pub mod get_resolved_config;
 /// Types for the `GetResolvedConfigWithIdentifier` operation.
 pub mod get_resolved_config_with_identifier;
 
+/// Types for the `GetSecret` operation.
+pub mod get_secret;
+
 /// Types for the `GetTypeTemplate` operation.
 pub mod get_type_template;
 
@@ -153,6 +162,9 @@ pub mod list_function;
 /// Types for the `ListOrganisation` operation.
 pub mod list_organisation;
 
+/// Types for the `ListSecrets` operation.
+pub mod list_secrets;
+
 /// Types for the `ListVariables` operation.
 pub mod list_variables;
 
@@ -186,6 +198,12 @@ pub mod remove_members_from_group;
 /// Types for the `ResumeExperiment` operation.
 pub mod resume_experiment;
 
+/// Types for the `RotateMasterEncryptionKey` operation.
+pub mod rotate_master_encryption_key;
+
+/// Types for the `RotateWorkspaceEncryptionKey` operation.
+pub mod rotate_workspace_encryption_key;
+
 /// Types for the `Test` operation.
 pub mod test;
 
@@ -209,6 +227,9 @@ pub mod update_override;
 
 /// Types for the `UpdateOverridesExperiment` operation.
 pub mod update_overrides_experiment;
+
+/// Types for the `UpdateSecret` operation.
+pub mod update_secret;
 
 /// Types for the `UpdateTypeTemplates` operation.
 pub mod update_type_templates;

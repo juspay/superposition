@@ -1,0 +1,71 @@
+---
+id: rotate-workspace-encryption-key
+title: "RotateWorkspaceEncryptionKey"
+description: "Rotates the workspace encryption key. Generates a new encryption key and re-encrypts all secrets with the new key. This is a critical operation that should be done during low-traffic periods."
+sidebar_label: "RotateWorkspaceEncryptionKey"
+hide_title: true
+hide_table_of_contents: true
+api: eJzdVVFv2jAQ/iuWnzaJAOrEC2/dVG3VtK0qTHtAFTLJQdwGOz07pSjKf9+dExIolG3S9rIXcOy7z3fffXcuZQIuRp17bY0cy1vrlQcnfApiY/HB5SoGASbGbTARD7Dti49gAIOdEgY2L86FMolAiJpdMsoy4SBGoPVG+zSgs18Am6baCc1QFIfXscqEzRme4XyqvHCpLbJELEAk1tBPgdqsRGY3kUe1XOpYkL22ievLnmx9r5M2nx+7TK7aQD/DloxzhWoNHtDJ8ayUhj7IqU18HjZ6UjM1ufIprV2cwlrJcSn9Nmdr5zkcWfUkwmOhEehejwVUvRbwObK4inSyg0pBJYB/BHbHOy63xoFj+4vhkP9OVe90toI8xA6Cro6t8WA8g6g8z4h3NhzcO0YqjyOzi3uIPXOGTLHXdRyerszmTXXnCPOm6hx462uK9SLkexju17At7LJVRyj3BhD29APJsWhkdcDQ7FwYxJzXPoNf8HPbUPOh4aWq+I7RKZqvyQKNyiaAT4BXiBbF6J+wuwbn1ApOCKTqsjoRzqlk2EOtWOiyZUB8UYbw12xDPFErpJbbJrcuBMOSH8tB2xBuUB42RzXAwGnUjYDoIbQW1YL61G9DY7k1VXDbV7nup97n75XT8WXB4LM77pOX56AQsDW469AmTFzNzeuYLVm8f6S6T9PpjQjWQpE5pd5UZ9eP7Lngc27DM5H9zjXB/Nw9wSCUU5ulDaBNWScFCYEKoRsfqq2roS+GF6No+C4ajjhCrtVaBVk146aWueiq3Ald1HPvINSyU+t/MP+bmnh49oM8UzRviaMCM86z1vOsG/COHMZH4/60pEmFKbcF+Zcl6QO+Y1ZVvP1YALLOafmkUKsF149Un2jHa2qopcocnKH9zW0zy96K11JoNpXh+j2prOAvWnJoR09WRV21e2X+eiT1jXtvWhsNt3J9ehnHkPu9s6MpWO3Pm5tvkyk1wU/LnAlr
+sidebar_class_name: "post api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"RotateWorkspaceEncryptionKey"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/workspaces/{workspace_name}/rotate-encryption-key"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Rotates the workspace encryption key. Generates a new encryption key and re-encrypts all secrets with the new key. This is a critical operation that should be done during low-traffic periods.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"workspace_name","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"RotateWorkspaceEncryptionKey 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"total_secrets_re_encrypted":{"type":"number","description":"Number of secrets that were re-encrypted with the new key."}},"required":["total_secrets_re_encrypted"],"title":"RotateWorkspaceEncryptionKeyResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

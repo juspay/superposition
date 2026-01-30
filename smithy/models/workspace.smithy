@@ -31,6 +31,7 @@ resource Workspace {
     operations: [
         CreateWorkspace
         MigrateWorkspaceSchema
+        RotateWorkspaceEncryptionKey
     ]
 }
 
@@ -89,7 +90,7 @@ structure UpdateWorkspaceRequest for Workspace with [OrganisationMixin] {
     $enable_change_reason_validation
 }
 
-structure MigrateWorkspaceSchemaRequest for Workspace with [OrganisationMixin] {
+structure WorkspaceSelectorRequest for Workspace with [OrganisationMixin] {
     @httpLabel
     @required
     $workspace_name
@@ -196,10 +197,25 @@ operation ListWorkspace {
 }
 
 @documentation("Migrates the workspace database schema to the new version of the template")
-@readonly
+@idempotent
 @http(method: "POST", uri: "/workspaces/{workspace_name}/db/migrate")
 @tags(["Workspace Management"])
 operation MigrateWorkspaceSchema with [GetOperation] {
-    input: MigrateWorkspaceSchemaRequest
+    input: WorkspaceSelectorRequest
     output: WorkspaceResponse
+}
+
+@documentation("Rotates the workspace encryption key. Generates a new encryption key and re-encrypts all secrets with the new key. This is a critical operation that should be done during low-traffic periods.")
+@http(method: "POST", uri: "/workspaces/{workspace_name}/rotate-encryption-key")
+@idempotent
+@tags(["Workspace Management"])
+operation RotateWorkspaceEncryptionKey {
+    input: WorkspaceSelectorRequest
+
+    output := {
+        @required
+        @notProperty
+        @documentation("Number of secrets that were re-encrypted with the new key.")
+        total_secrets_re_encrypted: Long
+    }
 }

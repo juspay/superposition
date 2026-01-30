@@ -464,6 +464,8 @@ pub async fn fetch_types(
 }
 
 pub mod workspaces {
+    use superposition_types::api::workspace::KeyRotationResponse;
+
     use super::*;
 
     pub async fn fetch_all(
@@ -542,6 +544,24 @@ pub mod workspaces {
             url,
             reqwest::Method::PATCH,
             Some(payload),
+            construct_request_headers(&[("x-org-id", org_id)])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn rotate_key(
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<KeyRotationResponse, String> {
+        let host = use_host_server();
+        let url = format!("{host}/workspaces/{workspace}/rotate-encryption-key");
+
+        let response = request(
+            url,
+            reqwest::Method::POST,
+            None::<()>,
             construct_request_headers(&[("x-org-id", org_id)])?,
         )
         .await?;
@@ -1013,6 +1033,143 @@ pub mod variables {
     }
 }
 
+pub mod secrets {
+    use superposition_types::{
+        api::secrets::{
+            CreateSecretRequest, SecretFilters, SecretResponse, UpdateSecretRequest,
+        },
+        database::models::others::SecretName,
+    };
+
+    use super::*;
+
+    pub async fn fetch(
+        filters: &SecretFilters,
+        pagination_params: &PaginationParams,
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<PaginatedResponse<SecretResponse>, String> {
+        let host = use_host_server();
+        let url = format!(
+            "{host}/secrets?{}&{}",
+            filters.to_query_param(),
+            pagination_params.to_query_param()
+        );
+
+        let response = request(
+            url,
+            reqwest::Method::GET,
+            None::<()>,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn create(
+        name: String,
+        value: String,
+        description: String,
+        change_reason: String,
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<SecretResponse, String> {
+        let payload = CreateSecretRequest {
+            name: SecretName::try_from(name)?,
+            value,
+            description: Description::try_from(description)?,
+            change_reason: ChangeReason::try_from(change_reason)?,
+        };
+
+        let host = use_host_server();
+        let url = format!("{host}/secrets");
+
+        let response = request(
+            url,
+            reqwest::Method::POST,
+            Some(payload),
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn get(
+        secret_name: &str,
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<SecretResponse, String> {
+        let host = use_host_server();
+        let url = format!("{host}/secrets/{}", secret_name);
+
+        let response = request(
+            url,
+            reqwest::Method::GET,
+            None::<()>,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn update(
+        secret_name: String,
+        payload: UpdateSecretRequest,
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<SecretResponse, String> {
+        let host = use_host_server();
+        let url = format!("{host}/secrets/{secret_name}");
+
+        let response = request(
+            url,
+            reqwest::Method::PATCH,
+            Some(payload),
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn delete(
+        secret_name: String,
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<SecretResponse, String> {
+        let host = use_host_server();
+        let url = format!("{host}/secrets/{secret_name}");
+
+        let response = request(
+            url,
+            reqwest::Method::DELETE,
+            None::<()>,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+}
+
 pub mod experiment_groups {
     use superposition_types::{
         Condition, Exp, database::models::experimentation::TrafficPercentage,
@@ -1240,6 +1397,21 @@ pub mod audit_log {
             ])?,
         )
         .await?;
+
+        parse_json_response(response).await
+    }
+}
+
+pub mod master_encryption_key {
+    use super::*;
+    use superposition_types::api::secrets::MasterEncryptionKeyRotationResponse;
+
+    pub async fn rotate() -> Result<MasterEncryptionKeyRotationResponse, String> {
+        let host = use_host_server();
+        let url = format!("{host}/master-encryption-key/rotate");
+
+        let response =
+            request(url, reqwest::Method::POST, None::<()>, HeaderMap::new()).await?;
 
         parse_json_response(response).await
     }

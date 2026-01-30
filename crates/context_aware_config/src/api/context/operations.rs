@@ -6,7 +6,7 @@ use diesel::{
     result::{DatabaseErrorKind::*, Error::DatabaseError},
 };
 use serde_json::{Map, Value};
-use service_utils::service::types::{SchemaName, WorkspaceContext};
+use service_utils::service::types::{EncryptionKey, SchemaName, WorkspaceContext};
 use superposition_macros::{db_error, not_found, unexpected_error};
 use superposition_types::{
     DBConnection, Overrides, User,
@@ -31,6 +31,7 @@ use super::{
     validations::validate_override_with_default_configs,
 };
 
+#[allow(clippy::too_many_arguments)]
 pub fn upsert(
     req: PutRequest,
     description: Description,
@@ -39,10 +40,17 @@ pub fn upsert(
     user: &User,
     workspace_context: &WorkspaceContext,
     replace: bool,
+    master_encryption_key: &Option<EncryptionKey>,
 ) -> result::Result<Context> {
     use contexts::dsl::contexts;
-    let new_ctx =
-        create_ctx_from_put_req(req, description, conn, user, workspace_context)?;
+    let new_ctx = create_ctx_from_put_req(
+        req,
+        description,
+        conn,
+        user,
+        workspace_context,
+        master_encryption_key,
+    )?;
 
     if already_under_txn {
         diesel::sql_query("SAVEPOINT put_ctx_savepoint").execute(conn)?;
@@ -83,10 +91,11 @@ pub fn upsert(
 }
 
 pub fn update(
+    workspace_context: &WorkspaceContext,
     req: UpdateRequest,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     user: &User,
-    schema_name: &SchemaName,
+    master_encryption_key: &Option<EncryptionKey>,
 ) -> result::Result<Context> {
     let (context_id, context) = match req.context {
         Identifier::Context(context) => {
@@ -96,7 +105,7 @@ pub fn update(
         Identifier::Id(id) => {
             let ctx_value: Context = dsl::contexts
                 .filter(dsl::id.eq(id.clone()))
-                .schema_name(schema_name)
+                .schema_name(&workspace_context.schema_name)
                 .get_result::<Context>(conn)?;
             (id.clone(), ctx_value.value.into())
         }
@@ -105,8 +114,18 @@ pub fn update(
     let r_override = req.override_.clone().into_inner();
     let ctx_override = Value::Object(r_override.clone().into());
 
-    validate_override_with_default_configs(conn, &r_override, schema_name)?;
-    validate_override_with_functions(conn, &r_override, &context, schema_name)?;
+    validate_override_with_default_configs(
+        conn,
+        &r_override,
+        &workspace_context.schema_name,
+    )?;
+    validate_override_with_functions(
+        workspace_context,
+        conn,
+        &r_override,
+        &context,
+        master_encryption_key,
+    )?;
 
     let update_request = UpdateContextOverridesChangeset {
         override_id: hash(&ctx_override),
@@ -120,20 +139,22 @@ pub fn update(
     diesel::update(dsl::contexts)
         .filter(dsl::id.eq(context_id))
         .set(update_request)
-        .schema_name(schema_name)
+        .schema_name(&workspace_context.schema_name)
         .returning(Context::as_returning())
         .get_result(conn)
         .map_err(|e| db_error!(e))
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn r#move(
+    workspace_context: &WorkspaceContext,
     old_ctx_id: String,
     req: Json<MoveRequest>,
     req_description: Description,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     already_under_txn: bool,
     user: &User,
-    workspace_context: &WorkspaceContext,
+    master_encryption_key: &Option<EncryptionKey>,
 ) -> result::Result<Context> {
     use contexts::dsl;
     let req = req.into_inner();
@@ -148,6 +169,7 @@ pub fn r#move(
         workspace_context,
         ctx_condition.clone(),
         Overrides::default(),
+        master_encryption_key,
     )?;
     let weight = calculate_context_weight(&ctx_condition_value, &dimension_data_map)
         .map_err(|_| unexpected_error!("Something Went Wrong"))?;

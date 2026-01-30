@@ -2,9 +2,7 @@ use crate::helpers::get_from_env_unsafe;
 use aws_sdk_kms::{Client, primitives::Blob};
 use base64::{Engine, engine::general_purpose};
 
-pub async fn decrypt(aws_kms_cli: Client, key: &str) -> String {
-    let key_value_env: String =
-        get_from_env_unsafe(key).unwrap_or_else(|_| panic!("{key} not present in env"));
+async fn decrypt_helper(aws_kms_cli: Client, key: &str, key_value_env: String) -> String {
     let key_value_enc = general_purpose::STANDARD
         .decode(key_value_env)
         .expect("Input string does not contain valid base 64 characters.");
@@ -24,6 +22,17 @@ pub async fn decrypt(aws_kms_cli: Client, key: &str) -> String {
     )
     .expect("Could not convert to UTF-8");
     key_value
+}
+
+pub async fn decrypt(aws_kms_cli: Client, key: &str) -> String {
+    let key_value_env: String =
+        get_from_env_unsafe(key).unwrap_or_else(|_| panic!("{key} not present in env"));
+    decrypt_helper(aws_kms_cli, key, key_value_env).await
+}
+
+pub async fn decrypt_opt(aws_kms_cli: Client, key: &str) -> Option<String> {
+    let key_value_env: String = get_from_env_unsafe(key).ok()?;
+    Some(decrypt_helper(aws_kms_cli, key, key_value_env).await)
 }
 
 pub async fn new_client() -> Client {

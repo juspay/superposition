@@ -19,7 +19,7 @@ use superposition_derives::{TextFromSql, TextToSql};
 use crate::RegexEnum;
 
 #[cfg(feature = "diesel_derives")]
-use super::super::schema::{variables, webhooks};
+use super::super::schema::{secrets, variables, webhooks};
 use super::{ChangeReason, Description, NonEmptyString};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Default)]
@@ -210,6 +210,58 @@ impl From<&VariableName> for String {
 pub struct Variable {
     pub name: VariableName,
     pub value: String,
+    pub description: Description,
+    pub change_reason: ChangeReason,
+    pub created_at: DateTime<Utc>,
+    pub last_modified_at: DateTime<Utc>,
+    pub created_by: String,
+    pub last_modified_by: String,
+}
+
+#[derive(
+    Debug, Serialize, Deserialize, AsRef, Deref, DerefMut, Clone, PartialEq, Into,
+)]
+#[serde(try_from = "String")]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(AsExpression, FromSqlRow, TextFromSql, TextToSql)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(sql_type = Text))]
+pub struct SecretName(String);
+
+impl SecretName {
+    pub fn validate(name: String) -> Result<Self, String> {
+        let name = name.trim();
+
+        RegexEnum::VariableName
+            .match_regex(name)
+            .map(|_| Self(name.to_string()))
+    }
+}
+
+impl TryFrom<String> for SecretName {
+    type Error = String;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Self::validate(value)
+    }
+}
+
+impl From<&SecretName> for String {
+    fn from(value: &SecretName) -> Self {
+        value.0.clone()
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(Queryable, Selectable, Insertable, AsChangeset)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(check_for_backend(diesel::pg::Pg)))]
+#[cfg_attr(feature = "diesel_derives", diesel(primary_key(name)))]
+pub struct Secret {
+    pub name: SecretName,
+    pub encrypted_value: String,
     pub description: Description,
     pub change_reason: ChangeReason,
     pub created_at: DateTime<Utc>,

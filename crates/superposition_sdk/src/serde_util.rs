@@ -151,6 +151,17 @@ if builder.updated_by.is_none() { builder.updated_by = Some(Default::default()) 
                 builder
             }
 
+pub(crate) fn create_secret_output_output_correct_errors(mut builder: crate::operation::create_secret::builders::CreateSecretOutputBuilder) -> crate::operation::create_secret::builders::CreateSecretOutputBuilder {
+                if builder.name.is_none() { builder.name = Some(Default::default()) }
+if builder.description.is_none() { builder.description = Some(Default::default()) }
+if builder.change_reason.is_none() { builder.change_reason = Some(Default::default()) }
+if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
+if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
+if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+                builder
+            }
+
 pub(crate) fn create_type_templates_output_output_correct_errors(mut builder: crate::operation::create_type_templates::builders::CreateTypeTemplatesOutputBuilder) -> crate::operation::create_type_templates::builders::CreateTypeTemplatesOutputBuilder {
                 if builder.type_name.is_none() { builder.type_name = Some(Default::default()) }
 if builder.type_schema.is_none() { builder.type_schema = Some(Default::default()) }
@@ -226,6 +237,17 @@ if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_sm
 if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
 if builder.buckets.is_none() { builder.buckets = Some(Default::default()) }
 if builder.group_type.is_none() { builder.group_type = "no value was set".parse::<crate::types::GroupType>().ok() }
+                builder
+            }
+
+pub(crate) fn delete_secret_output_output_correct_errors(mut builder: crate::operation::delete_secret::builders::DeleteSecretOutputBuilder) -> crate::operation::delete_secret::builders::DeleteSecretOutputBuilder {
+                if builder.name.is_none() { builder.name = Some(Default::default()) }
+if builder.description.is_none() { builder.description = Some(Default::default()) }
+if builder.change_reason.is_none() { builder.change_reason = Some(Default::default()) }
+if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
+if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
+if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
                 builder
             }
 
@@ -416,6 +438,17 @@ if builder.last_modified.is_none() { builder.last_modified = Some(::aws_smithy_t
                 builder
             }
 
+pub(crate) fn get_secret_output_output_correct_errors(mut builder: crate::operation::get_secret::builders::GetSecretOutputBuilder) -> crate::operation::get_secret::builders::GetSecretOutputBuilder {
+                if builder.name.is_none() { builder.name = Some(Default::default()) }
+if builder.description.is_none() { builder.description = Some(Default::default()) }
+if builder.change_reason.is_none() { builder.change_reason = Some(Default::default()) }
+if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
+if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
+if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+                builder
+            }
+
 pub(crate) fn get_type_template_output_output_correct_errors(mut builder: crate::operation::get_type_template::builders::GetTypeTemplateOutputBuilder) -> crate::operation::get_type_template::builders::GetTypeTemplateOutputBuilder {
                 if builder.type_name.is_none() { builder.type_name = Some(Default::default()) }
 if builder.type_schema.is_none() { builder.type_schema = Some(Default::default()) }
@@ -559,6 +592,13 @@ if builder.data.is_none() { builder.data = Some(Default::default()) }
             }
 
 pub(crate) fn list_organisation_output_output_correct_errors(mut builder: crate::operation::list_organisation::builders::ListOrganisationOutputBuilder) -> crate::operation::list_organisation::builders::ListOrganisationOutputBuilder {
+                if builder.total_pages.is_none() { builder.total_pages = Some(Default::default()) }
+if builder.total_items.is_none() { builder.total_items = Some(Default::default()) }
+if builder.data.is_none() { builder.data = Some(Default::default()) }
+                builder
+            }
+
+pub(crate) fn list_secrets_output_output_correct_errors(mut builder: crate::operation::list_secrets::builders::ListSecretsOutputBuilder) -> crate::operation::list_secrets::builders::ListSecretsOutputBuilder {
                 if builder.total_pages.is_none() { builder.total_pages = Some(Default::default()) }
 if builder.total_items.is_none() { builder.total_items = Some(Default::default()) }
 if builder.data.is_none() { builder.data = Some(Default::default()) }
@@ -713,6 +753,17 @@ if builder.change_reason.is_none() { builder.change_reason = Some(Default::defau
                 builder
             }
 
+pub(crate) fn rotate_master_encryption_key_output_output_correct_errors(mut builder: crate::operation::rotate_master_encryption_key::builders::RotateMasterEncryptionKeyOutputBuilder) -> crate::operation::rotate_master_encryption_key::builders::RotateMasterEncryptionKeyOutputBuilder {
+                if builder.workspaces_rotated.is_none() { builder.workspaces_rotated = Some(Default::default()) }
+if builder.total_secrets_re_encrypted.is_none() { builder.total_secrets_re_encrypted = Some(Default::default()) }
+                builder
+            }
+
+pub(crate) fn rotate_workspace_encryption_key_output_output_correct_errors(mut builder: crate::operation::rotate_workspace_encryption_key::builders::RotateWorkspaceEncryptionKeyOutputBuilder) -> crate::operation::rotate_workspace_encryption_key::builders::RotateWorkspaceEncryptionKeyOutputBuilder {
+                if builder.total_secrets_re_encrypted.is_none() { builder.total_secrets_re_encrypted = Some(Default::default()) }
+                builder
+            }
+
 pub(crate) fn test_output_output_correct_errors(mut builder: crate::operation::test::builders::TestOutputBuilder) -> crate::operation::test::builders::TestOutputBuilder {
                 if builder.fn_output.is_none() { builder.fn_output = Some(Default::default()) }
 if builder.stdout.is_none() { builder.stdout = Some(Default::default()) }
@@ -823,6 +874,17 @@ if builder.variants.is_none() { builder.variants = Some(Default::default()) }
 if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
 if builder.description.is_none() { builder.description = Some(Default::default()) }
 if builder.change_reason.is_none() { builder.change_reason = Some(Default::default()) }
+                builder
+            }
+
+pub(crate) fn update_secret_output_output_correct_errors(mut builder: crate::operation::update_secret::builders::UpdateSecretOutputBuilder) -> crate::operation::update_secret::builders::UpdateSecretOutputBuilder {
+                if builder.name.is_none() { builder.name = Some(Default::default()) }
+if builder.description.is_none() { builder.description = Some(Default::default()) }
+if builder.change_reason.is_none() { builder.change_reason = Some(Default::default()) }
+if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
+if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
+if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
                 builder
             }
 
@@ -1030,6 +1092,17 @@ if builder.status.is_none() { builder.status = "no value was set".parse::<crate:
 if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.updated_at.is_none() { builder.updated_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.updated_by.is_none() { builder.updated_by = Some(Default::default()) }
+                builder
+            }
+
+pub(crate) fn secret_response_correct_errors(mut builder: crate::types::builders::SecretResponseBuilder) -> crate::types::builders::SecretResponseBuilder {
+                if builder.name.is_none() { builder.name = Some(Default::default()) }
+if builder.description.is_none() { builder.description = Some(Default::default()) }
+if builder.change_reason.is_none() { builder.change_reason = Some(Default::default()) }
+if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
+if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
+if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
                 builder
             }
 

@@ -5,8 +5,8 @@ import {
   SuperpositionClientResolvedConfig,
 } from "../SuperpositionClient";
 import {
-  MigrateWorkspaceSchemaRequest,
   WorkspaceResponse,
+  WorkspaceSelectorRequest,
 } from "../models/models_0";
 import {
   de_MigrateWorkspaceSchemaCommand,
@@ -26,7 +26,7 @@ export { $Command };
  *
  * The input for {@link MigrateWorkspaceSchemaCommand}.
  */
-export interface MigrateWorkspaceSchemaCommandInput extends MigrateWorkspaceSchemaRequest {}
+export interface MigrateWorkspaceSchemaCommandInput extends WorkspaceSelectorRequest {}
 /**
  * @public
  *
@@ -42,7 +42,7 @@ export interface MigrateWorkspaceSchemaCommandOutput extends WorkspaceResponse, 
  * import { SuperpositionClient, MigrateWorkspaceSchemaCommand } from "superposition-sdk"; // ES Modules import
  * // const { SuperpositionClient, MigrateWorkspaceSchemaCommand } = require("superposition-sdk"); // CommonJS import
  * const client = new SuperpositionClient(config);
- * const input = { // MigrateWorkspaceSchemaRequest
+ * const input = { // WorkspaceSelectorRequest
  *   org_id: "STRING_VALUE", // required
  *   workspace_name: "STRING_VALUE", // required
  * };
@@ -105,7 +105,7 @@ export class MigrateWorkspaceSchemaCommand extends $Command.classBuilder<Migrate
 /** @internal type navigation helper, not in runtime. */
 declare protected static __types: {
   api: {
-      input: MigrateWorkspaceSchemaRequest;
+      input: WorkspaceSelectorRequest;
       output: WorkspaceResponse;
   };
   sdk: {

@@ -7,7 +7,7 @@ use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use serde_json::{Map, Value};
 use service_utils::{
     helpers::fetch_dimensions_info_map,
-    service::types::{SchemaName, WorkspaceContext},
+    service::types::{EncryptionKey, SchemaName, WorkspaceContext},
 };
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
@@ -103,26 +103,30 @@ fn validate_condition_with_dependent_dimensions(
 }
 
 pub fn validate_condition_with_functions(
+    workspace_context: &WorkspaceContext,
     conn: &mut DBConnection,
     context_map: &Map<String, Value>,
     override_: &Map<String, Value>,
     is_context_validation_enabled: bool,
-    schema_name: &SchemaName,
+    master_encryption_key: &Option<EncryptionKey>,
 ) -> superposition::Result<()> {
     use dimensions::dsl;
     let dimensions_list: Vec<String> = context_map.keys().cloned().collect();
     let keys_function_array: Vec<(String, Option<String>)> = dsl::dimensions
         .filter(dsl::dimension.eq_any(dimensions_list))
         .select((dsl::dimension, dsl::value_validation_function_name))
-        .schema_name(schema_name)
+        .schema_name(&workspace_context.schema_name)
         .load(conn)?;
     let new_keys_function_array: Vec<(String, String)> = keys_function_array
         .into_iter()
         .filter_map(|(key, f_name)| f_name.map(|func| (key, func)))
         .collect();
 
-    let context_validation_function =
-        get_first_function_by_type(FunctionType::ContextValidation, conn, schema_name)?;
+    let context_validation_function = get_first_function_by_type(
+        FunctionType::ContextValidation,
+        conn,
+        &workspace_context.schema_name,
+    )?;
 
     let environment = FunctionEnvironment {
         context: context_map.clone(),
@@ -136,6 +140,7 @@ pub fn validate_condition_with_functions(
             context_validation_function.published_runtime_version,
         ) {
             validation_function_executor(
+                workspace_context,
                 CONTEXT_VALIDATION_FN_NAME,
                 &function_code,
                 &FunctionExecutionRequest::ContextValidationFunctionRequest {
@@ -143,7 +148,7 @@ pub fn validate_condition_with_functions(
                 },
                 published_runtime_version,
                 conn,
-                schema_name,
+                master_encryption_key,
             )?;
         }
     }
@@ -152,7 +157,7 @@ pub fn validate_condition_with_functions(
         conn,
         new_keys_function_array,
         FunctionType::ValueValidation,
-        schema_name,
+        &workspace_context.schema_name,
     )?;
     for (key, value) in context_map.iter() {
         if let Some(functions_map) = dimension_functions_map.get(key) {
@@ -162,6 +167,7 @@ pub fn validate_condition_with_functions(
                 functions_map.published_runtime_version,
             ) {
                 validation_function_executor(
+                    workspace_context,
                     &function_name,
                     &function_code,
                     &FunctionExecutionRequest::ValueValidationFunctionRequest {
@@ -172,7 +178,7 @@ pub fn validate_condition_with_functions(
                     },
                     published_runtime_version,
                     conn,
-                    schema_name,
+                    master_encryption_key,
                 )?;
             }
         }
@@ -181,16 +187,17 @@ pub fn validate_condition_with_functions(
 }
 
 pub fn validate_override_with_functions(
+    workspace_context: &WorkspaceContext,
     conn: &mut DBConnection,
     override_: &Map<String, Value>,
     context: &Map<String, Value>,
-    schema_name: &SchemaName,
+    master_encryption_key: &Option<EncryptionKey>,
 ) -> superposition::Result<()> {
     let default_config_keys: Vec<String> = override_.keys().cloned().collect();
     let keys_function_array: Vec<(String, Option<String>)> = dsl::default_configs
         .filter(dsl::key.eq_any(default_config_keys))
         .select((dsl::key, dsl::value_validation_function_name))
-        .schema_name(schema_name)
+        .schema_name(&workspace_context.schema_name)
         .load(conn)?;
     let new_keys_function_array: Vec<(String, String)> = keys_function_array
         .into_iter()
@@ -201,7 +208,7 @@ pub fn validate_override_with_functions(
         conn,
         new_keys_function_array,
         FunctionType::ValueValidation,
-        schema_name,
+        &workspace_context.schema_name,
     )?;
     for (key, value) in override_.iter() {
         if let Some(functions_map) = default_config_functions_map.get(key) {
@@ -211,6 +218,7 @@ pub fn validate_override_with_functions(
                 functions_map.published_runtime_version,
             ) {
                 validation_function_executor(
+                    workspace_context,
                     &function_name,
                     &function_code,
                     &FunctionExecutionRequest::ValueValidationFunctionRequest {
@@ -224,7 +232,7 @@ pub fn validate_override_with_functions(
                     },
                     published_runtime_version,
                     conn,
-                    schema_name,
+                    master_encryption_key,
                 )?;
             }
         }
@@ -266,14 +274,22 @@ fn get_functions_map(
 }
 
 pub fn validation_function_executor(
+    workspace_context: &WorkspaceContext,
     fun_name: &str,
     function: &FunctionCode,
     args: &FunctionExecutionRequest,
     runtime_version: FunctionRuntimeVersion,
     conn: &mut DBConnection,
-    schema_name: &SchemaName,
+    master_encryption_key: &Option<EncryptionKey>,
 ) -> superposition::Result<()> {
-    match execute_fn(function, args, runtime_version, conn, schema_name) {
+    match execute_fn(
+        workspace_context,
+        function,
+        args,
+        runtime_version,
+        conn,
+        master_encryption_key,
+    ) {
         Err((err, stdout)) => {
             let stdout = stdout.unwrap_or_default();
             let key = args.function_identifier();
@@ -328,6 +344,7 @@ pub fn create_ctx_from_put_req(
     conn: &mut DBConnection,
     user: &User,
     workspace_context: &WorkspaceContext,
+    master_encryption_key: &Option<EncryptionKey>,
 ) -> superposition::Result<Context> {
     let ctx_condition = req.context.to_owned().into_inner();
     let condition_val = Value::Object(ctx_condition.clone().into());
@@ -339,6 +356,7 @@ pub fn create_ctx_from_put_req(
         workspace_context,
         ctx_condition.clone(),
         r_override.clone(),
+        master_encryption_key,
     )?;
     let change_reason = req.change_reason.clone();
 
@@ -348,10 +366,11 @@ pub fn create_ctx_from_put_req(
         &workspace_context.schema_name,
     )?;
     validate_override_with_functions(
+        workspace_context,
         conn,
         &r_override,
         &ctx_condition.clone(),
-        &workspace_context.schema_name,
+        master_encryption_key,
     )?;
 
     let weight = calculate_context_weight(&condition_val, &dimension_data_map)
@@ -453,6 +472,7 @@ pub fn validate_ctx(
     workspace_context: &WorkspaceContext,
     condition: Condition,
     override_: Overrides,
+    master_encryption_key: &Option<EncryptionKey>,
 ) -> superposition::Result<HashMap<String, DimensionInfo>> {
     validate_condition_with_mandatory_dimensions(
         &condition,
@@ -468,11 +488,12 @@ pub fn validate_ctx(
     validate_condition_with_dependent_dimensions(&dimension_info_map, &condition)?;
     validate_dimensions(&condition, &dimension_info_map)?;
     validate_condition_with_functions(
+        workspace_context,
         conn,
         &condition,
         &override_,
         workspace_context.settings.enable_context_validation,
-        &workspace_context.schema_name,
+        master_encryption_key,
     )?;
     Ok(dimension_info_map)
 }

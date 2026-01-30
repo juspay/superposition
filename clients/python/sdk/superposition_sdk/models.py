@@ -60,6 +60,9 @@ from ._private.schemas import (
     CREATE_ORGANISATION as _SCHEMA_CREATE_ORGANISATION,
     CREATE_ORGANISATION_INPUT as _SCHEMA_CREATE_ORGANISATION_INPUT,
     CREATE_ORGANISATION_OUTPUT as _SCHEMA_CREATE_ORGANISATION_OUTPUT,
+    CREATE_SECRET as _SCHEMA_CREATE_SECRET,
+    CREATE_SECRET_INPUT as _SCHEMA_CREATE_SECRET_INPUT,
+    CREATE_SECRET_OUTPUT as _SCHEMA_CREATE_SECRET_OUTPUT,
     CREATE_TYPE_TEMPLATES as _SCHEMA_CREATE_TYPE_TEMPLATES,
     CREATE_TYPE_TEMPLATES_INPUT as _SCHEMA_CREATE_TYPE_TEMPLATES_INPUT,
     CREATE_TYPE_TEMPLATES_OUTPUT as _SCHEMA_CREATE_TYPE_TEMPLATES_OUTPUT,
@@ -88,6 +91,9 @@ from ._private.schemas import (
     DELETE_FUNCTION as _SCHEMA_DELETE_FUNCTION,
     DELETE_FUNCTION_INPUT as _SCHEMA_DELETE_FUNCTION_INPUT,
     DELETE_FUNCTION_OUTPUT as _SCHEMA_DELETE_FUNCTION_OUTPUT,
+    DELETE_SECRET as _SCHEMA_DELETE_SECRET,
+    DELETE_SECRET_INPUT as _SCHEMA_DELETE_SECRET_INPUT,
+    DELETE_SECRET_OUTPUT as _SCHEMA_DELETE_SECRET_OUTPUT,
     DELETE_TYPE_TEMPLATES as _SCHEMA_DELETE_TYPE_TEMPLATES,
     DELETE_TYPE_TEMPLATES_INPUT as _SCHEMA_DELETE_TYPE_TEMPLATES_INPUT,
     DELETE_TYPE_TEMPLATES_OUTPUT as _SCHEMA_DELETE_TYPE_TEMPLATES_OUTPUT,
@@ -143,6 +149,9 @@ from ._private.schemas import (
     GET_RESOLVED_CONFIG_WITH_IDENTIFIER as _SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER,
     GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT as _SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT,
     GET_RESOLVED_CONFIG_WITH_IDENTIFIER_OUTPUT as _SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_OUTPUT,
+    GET_SECRET as _SCHEMA_GET_SECRET,
+    GET_SECRET_INPUT as _SCHEMA_GET_SECRET_INPUT,
+    GET_SECRET_OUTPUT as _SCHEMA_GET_SECRET_OUTPUT,
     GET_TYPE_TEMPLATE as _SCHEMA_GET_TYPE_TEMPLATE,
     GET_TYPE_TEMPLATES_LIST as _SCHEMA_GET_TYPE_TEMPLATES_LIST,
     GET_TYPE_TEMPLATES_LIST_INPUT as _SCHEMA_GET_TYPE_TEMPLATES_LIST_INPUT,
@@ -189,6 +198,9 @@ from ._private.schemas import (
     LIST_ORGANISATION as _SCHEMA_LIST_ORGANISATION,
     LIST_ORGANISATION_INPUT as _SCHEMA_LIST_ORGANISATION_INPUT,
     LIST_ORGANISATION_OUTPUT as _SCHEMA_LIST_ORGANISATION_OUTPUT,
+    LIST_SECRETS as _SCHEMA_LIST_SECRETS,
+    LIST_SECRETS_INPUT as _SCHEMA_LIST_SECRETS_INPUT,
+    LIST_SECRETS_OUTPUT as _SCHEMA_LIST_SECRETS_OUTPUT,
     LIST_VARIABLES as _SCHEMA_LIST_VARIABLES,
     LIST_VARIABLES_INPUT as _SCHEMA_LIST_VARIABLES_INPUT,
     LIST_VARIABLES_OUTPUT as _SCHEMA_LIST_VARIABLES_OUTPUT,
@@ -225,6 +237,13 @@ from ._private.schemas import (
     RESUME_EXPERIMENT as _SCHEMA_RESUME_EXPERIMENT,
     RESUME_EXPERIMENT_INPUT as _SCHEMA_RESUME_EXPERIMENT_INPUT,
     RESUME_EXPERIMENT_OUTPUT as _SCHEMA_RESUME_EXPERIMENT_OUTPUT,
+    ROTATE_MASTER_ENCRYPTION_KEY as _SCHEMA_ROTATE_MASTER_ENCRYPTION_KEY,
+    ROTATE_MASTER_ENCRYPTION_KEY_INPUT as _SCHEMA_ROTATE_MASTER_ENCRYPTION_KEY_INPUT,
+    ROTATE_MASTER_ENCRYPTION_KEY_OUTPUT as _SCHEMA_ROTATE_MASTER_ENCRYPTION_KEY_OUTPUT,
+    ROTATE_WORKSPACE_ENCRYPTION_KEY as _SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY,
+    ROTATE_WORKSPACE_ENCRYPTION_KEY_INPUT as _SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY_INPUT,
+    ROTATE_WORKSPACE_ENCRYPTION_KEY_OUTPUT as _SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY_OUTPUT,
+    SECRET_RESPONSE as _SCHEMA_SECRET_RESPONSE,
     TEST as _SCHEMA_TEST,
     TEST_INPUT as _SCHEMA_TEST_INPUT,
     TEST_OUTPUT as _SCHEMA_TEST_OUTPUT,
@@ -251,6 +270,9 @@ from ._private.schemas import (
     UPDATE_OVERRIDES_EXPERIMENT_OUTPUT as _SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT,
     UPDATE_OVERRIDE_INPUT as _SCHEMA_UPDATE_OVERRIDE_INPUT,
     UPDATE_OVERRIDE_OUTPUT as _SCHEMA_UPDATE_OVERRIDE_OUTPUT,
+    UPDATE_SECRET as _SCHEMA_UPDATE_SECRET,
+    UPDATE_SECRET_INPUT as _SCHEMA_UPDATE_SECRET_INPUT,
+    UPDATE_SECRET_OUTPUT as _SCHEMA_UPDATE_SECRET_OUTPUT,
     UPDATE_TYPE_TEMPLATES as _SCHEMA_UPDATE_TYPE_TEMPLATES,
     UPDATE_TYPE_TEMPLATES_INPUT as _SCHEMA_UPDATE_TYPE_TEMPLATES_INPUT,
     UPDATE_TYPE_TEMPLATES_OUTPUT as _SCHEMA_UPDATE_TYPE_TEMPLATES_OUTPUT,
@@ -6035,6 +6057,158 @@ ShapeID("smithy.api#httpBearerAuth")
 )
 
 @dataclass(kw_only=True)
+class CreateSecretInput:
+    """
+
+    :param value:
+        **[Required]** - Plaintext value to be encrypted and stored.
+
+    """
+
+    workspace_id: str | None = None
+    org_id: str | None = None
+    name: str | None = None
+    value: str | None = None
+    description: str | None = None
+    change_reason: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CREATE_SECRET_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.name is not None:
+            serializer.write_string(_SCHEMA_CREATE_SECRET_INPUT.members["name"], self.name)
+
+        if self.value is not None:
+            serializer.write_string(_SCHEMA_CREATE_SECRET_INPUT.members["value"], self.value)
+
+        if self.description is not None:
+            serializer.write_string(_SCHEMA_CREATE_SECRET_INPUT.members["description"], self.description)
+
+        if self.change_reason is not None:
+            serializer.write_string(_SCHEMA_CREATE_SECRET_INPUT.members["change_reason"], self.change_reason)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_CREATE_SECRET_INPUT.members["workspace_id"])
+
+                case 1:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_CREATE_SECRET_INPUT.members["org_id"])
+
+                case 2:
+                    kwargs["name"] = de.read_string(_SCHEMA_CREATE_SECRET_INPUT.members["name"])
+
+                case 3:
+                    kwargs["value"] = de.read_string(_SCHEMA_CREATE_SECRET_INPUT.members["value"])
+
+                case 4:
+                    kwargs["description"] = de.read_string(_SCHEMA_CREATE_SECRET_INPUT.members["description"])
+
+                case 5:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_CREATE_SECRET_INPUT.members["change_reason"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_CREATE_SECRET_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class CreateSecretOutput:
+    """
+    Response structure for secret operations. Secret values are never returned for
+    security.
+
+    """
+
+    name: str
+
+    description: str
+
+    change_reason: str
+
+    created_by: str
+
+    created_at: datetime
+
+    last_modified_by: str
+
+    last_modified_at: datetime
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CREATE_SECRET_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_CREATE_SECRET_OUTPUT.members["name"], self.name)
+        serializer.write_string(_SCHEMA_CREATE_SECRET_OUTPUT.members["description"], self.description)
+        serializer.write_string(_SCHEMA_CREATE_SECRET_OUTPUT.members["change_reason"], self.change_reason)
+        serializer.write_string(_SCHEMA_CREATE_SECRET_OUTPUT.members["created_by"], self.created_by)
+        serializer.write_timestamp(_SCHEMA_CREATE_SECRET_OUTPUT.members["created_at"], self.created_at)
+        serializer.write_string(_SCHEMA_CREATE_SECRET_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        serializer.write_timestamp(_SCHEMA_CREATE_SECRET_OUTPUT.members["last_modified_at"], self.last_modified_at)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["name"] = de.read_string(_SCHEMA_CREATE_SECRET_OUTPUT.members["name"])
+
+                case 1:
+                    kwargs["description"] = de.read_string(_SCHEMA_CREATE_SECRET_OUTPUT.members["description"])
+
+                case 2:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_CREATE_SECRET_OUTPUT.members["change_reason"])
+
+                case 3:
+                    kwargs["created_by"] = de.read_string(_SCHEMA_CREATE_SECRET_OUTPUT.members["created_by"])
+
+                case 4:
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_CREATE_SECRET_OUTPUT.members["created_at"])
+
+                case 5:
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_CREATE_SECRET_OUTPUT.members["last_modified_by"])
+
+                case 6:
+                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_CREATE_SECRET_OUTPUT.members["last_modified_at"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_CREATE_SECRET_OUTPUT, consumer=_consumer)
+        return kwargs
+
+CREATE_SECRET = APIOperation(
+        input = CreateSecretInput,
+        output = CreateSecretOutput,
+        schema = _SCHEMA_CREATE_SECRET,
+        input_schema = _SCHEMA_CREATE_SECRET_INPUT,
+        output_schema = _SCHEMA_CREATE_SECRET_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+            ShapeID("smithy.api#httpBasicAuth"),
+ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
+@dataclass(kw_only=True)
 class CreateTypeTemplatesInput:
     """
 
@@ -7860,6 +8034,131 @@ DELETE_FUNCTION = APIOperation(
         schema = _SCHEMA_DELETE_FUNCTION,
         input_schema = _SCHEMA_DELETE_FUNCTION_INPUT,
         output_schema = _SCHEMA_DELETE_FUNCTION_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+            ShapeID("smithy.api#httpBasicAuth"),
+ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
+@dataclass(kw_only=True)
+class DeleteSecretInput:
+
+    workspace_id: str | None = None
+    org_id: str | None = None
+    name: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_DELETE_SECRET_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_DELETE_SECRET_INPUT.members["workspace_id"])
+
+                case 1:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_DELETE_SECRET_INPUT.members["org_id"])
+
+                case 2:
+                    kwargs["name"] = de.read_string(_SCHEMA_DELETE_SECRET_INPUT.members["name"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_DELETE_SECRET_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class DeleteSecretOutput:
+    """
+    Response structure for secret operations. Secret values are never returned for
+    security.
+
+    """
+
+    name: str
+
+    description: str
+
+    change_reason: str
+
+    created_by: str
+
+    created_at: datetime
+
+    last_modified_by: str
+
+    last_modified_at: datetime
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_DELETE_SECRET_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_DELETE_SECRET_OUTPUT.members["name"], self.name)
+        serializer.write_string(_SCHEMA_DELETE_SECRET_OUTPUT.members["description"], self.description)
+        serializer.write_string(_SCHEMA_DELETE_SECRET_OUTPUT.members["change_reason"], self.change_reason)
+        serializer.write_string(_SCHEMA_DELETE_SECRET_OUTPUT.members["created_by"], self.created_by)
+        serializer.write_timestamp(_SCHEMA_DELETE_SECRET_OUTPUT.members["created_at"], self.created_at)
+        serializer.write_string(_SCHEMA_DELETE_SECRET_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        serializer.write_timestamp(_SCHEMA_DELETE_SECRET_OUTPUT.members["last_modified_at"], self.last_modified_at)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["name"] = de.read_string(_SCHEMA_DELETE_SECRET_OUTPUT.members["name"])
+
+                case 1:
+                    kwargs["description"] = de.read_string(_SCHEMA_DELETE_SECRET_OUTPUT.members["description"])
+
+                case 2:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_DELETE_SECRET_OUTPUT.members["change_reason"])
+
+                case 3:
+                    kwargs["created_by"] = de.read_string(_SCHEMA_DELETE_SECRET_OUTPUT.members["created_by"])
+
+                case 4:
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_DELETE_SECRET_OUTPUT.members["created_at"])
+
+                case 5:
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_DELETE_SECRET_OUTPUT.members["last_modified_by"])
+
+                case 6:
+                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_DELETE_SECRET_OUTPUT.members["last_modified_at"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_DELETE_SECRET_OUTPUT, consumer=_consumer)
+        return kwargs
+
+DELETE_SECRET = APIOperation(
+        input = DeleteSecretInput,
+        output = DeleteSecretOutput,
+        schema = _SCHEMA_DELETE_SECRET,
+        input_schema = _SCHEMA_DELETE_SECRET_INPUT,
+        output_schema = _SCHEMA_DELETE_SECRET_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
@@ -12779,6 +13078,131 @@ ShapeID("smithy.api#httpBearerAuth")
 )
 
 @dataclass(kw_only=True)
+class GetSecretInput:
+
+    workspace_id: str | None = None
+    org_id: str | None = None
+    name: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_SECRET_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_GET_SECRET_INPUT.members["workspace_id"])
+
+                case 1:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_GET_SECRET_INPUT.members["org_id"])
+
+                case 2:
+                    kwargs["name"] = de.read_string(_SCHEMA_GET_SECRET_INPUT.members["name"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_SECRET_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class GetSecretOutput:
+    """
+    Response structure for secret operations. Secret values are never returned for
+    security.
+
+    """
+
+    name: str
+
+    description: str
+
+    change_reason: str
+
+    created_by: str
+
+    created_at: datetime
+
+    last_modified_by: str
+
+    last_modified_at: datetime
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_SECRET_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_GET_SECRET_OUTPUT.members["name"], self.name)
+        serializer.write_string(_SCHEMA_GET_SECRET_OUTPUT.members["description"], self.description)
+        serializer.write_string(_SCHEMA_GET_SECRET_OUTPUT.members["change_reason"], self.change_reason)
+        serializer.write_string(_SCHEMA_GET_SECRET_OUTPUT.members["created_by"], self.created_by)
+        serializer.write_timestamp(_SCHEMA_GET_SECRET_OUTPUT.members["created_at"], self.created_at)
+        serializer.write_string(_SCHEMA_GET_SECRET_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        serializer.write_timestamp(_SCHEMA_GET_SECRET_OUTPUT.members["last_modified_at"], self.last_modified_at)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["name"] = de.read_string(_SCHEMA_GET_SECRET_OUTPUT.members["name"])
+
+                case 1:
+                    kwargs["description"] = de.read_string(_SCHEMA_GET_SECRET_OUTPUT.members["description"])
+
+                case 2:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_GET_SECRET_OUTPUT.members["change_reason"])
+
+                case 3:
+                    kwargs["created_by"] = de.read_string(_SCHEMA_GET_SECRET_OUTPUT.members["created_by"])
+
+                case 4:
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_GET_SECRET_OUTPUT.members["created_at"])
+
+                case 5:
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_GET_SECRET_OUTPUT.members["last_modified_by"])
+
+                case 6:
+                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_GET_SECRET_OUTPUT.members["last_modified_at"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_SECRET_OUTPUT, consumer=_consumer)
+        return kwargs
+
+GET_SECRET = APIOperation(
+        input = GetSecretInput,
+        output = GetSecretOutput,
+        schema = _SCHEMA_GET_SECRET,
+        input_schema = _SCHEMA_GET_SECRET_INPUT,
+        output_schema = _SCHEMA_GET_SECRET_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+            ShapeID("smithy.api#httpBasicAuth"),
+ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
+@dataclass(kw_only=True)
 class GetTypeTemplateInput:
 
     workspace_id: str | None = None
@@ -14010,6 +14434,250 @@ ShapeID("smithy.api#httpBearerAuth")
         ]
 )
 
+class SecretSortOn(StrEnum):
+    NAME = "name"
+    CREATED_AT = "created_at"
+    LAST_MODIFIED_AT = "last_modified_at"
+
+@dataclass(kw_only=True)
+class ListSecretsInput:
+    """
+
+    :param count:
+         Number of items to be returned in each page.
+
+    :param page:
+         Page number to retrieve, starting from 1.
+
+    :param all:
+         If true, returns all requested items, ignoring pagination parameters page and
+         count.
+
+    :param name:
+         Filter by secret name.
+
+    :param created_by:
+         Filter by the user who created the secret.
+
+    :param last_modified_by:
+         Filter by the user who last modified the secret.
+
+    :param sort_on:
+         Field to sort the results by.
+
+    :param sort_by:
+         Sort order (ascending or descending).
+
+    """
+
+    count: int | None = None
+    page: int | None = None
+    all: bool | None = None
+    workspace_id: str | None = None
+    org_id: str | None = None
+    name: str | None = None
+    created_by: str | None = None
+    last_modified_by: str | None = None
+    sort_on: str | None = None
+    sort_by: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_LIST_SECRETS_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["count"] = de.read_integer(_SCHEMA_LIST_SECRETS_INPUT.members["count"])
+
+                case 1:
+                    kwargs["page"] = de.read_integer(_SCHEMA_LIST_SECRETS_INPUT.members["page"])
+
+                case 2:
+                    kwargs["all"] = de.read_boolean(_SCHEMA_LIST_SECRETS_INPUT.members["all"])
+
+                case 3:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_LIST_SECRETS_INPUT.members["workspace_id"])
+
+                case 4:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_LIST_SECRETS_INPUT.members["org_id"])
+
+                case 5:
+                    kwargs["name"] = de.read_string(_SCHEMA_LIST_SECRETS_INPUT.members["name"])
+
+                case 6:
+                    kwargs["created_by"] = de.read_string(_SCHEMA_LIST_SECRETS_INPUT.members["created_by"])
+
+                case 7:
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_LIST_SECRETS_INPUT.members["last_modified_by"])
+
+                case 8:
+                    kwargs["sort_on"] = de.read_string(_SCHEMA_LIST_SECRETS_INPUT.members["sort_on"])
+
+                case 9:
+                    kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_SECRETS_INPUT.members["sort_by"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_LIST_SECRETS_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class SecretResponse:
+    """
+    Response structure for secret operations. Secret values are never returned for
+    security.
+
+    """
+
+    name: str
+
+    description: str
+
+    change_reason: str
+
+    created_by: str
+
+    created_at: datetime
+
+    last_modified_by: str
+
+    last_modified_at: datetime
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_SECRET_RESPONSE, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_SECRET_RESPONSE.members["name"], self.name)
+        serializer.write_string(_SCHEMA_SECRET_RESPONSE.members["description"], self.description)
+        serializer.write_string(_SCHEMA_SECRET_RESPONSE.members["change_reason"], self.change_reason)
+        serializer.write_string(_SCHEMA_SECRET_RESPONSE.members["created_by"], self.created_by)
+        serializer.write_timestamp(_SCHEMA_SECRET_RESPONSE.members["created_at"], self.created_at)
+        serializer.write_string(_SCHEMA_SECRET_RESPONSE.members["last_modified_by"], self.last_modified_by)
+        serializer.write_timestamp(_SCHEMA_SECRET_RESPONSE.members["last_modified_at"], self.last_modified_at)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["name"] = de.read_string(_SCHEMA_SECRET_RESPONSE.members["name"])
+
+                case 1:
+                    kwargs["description"] = de.read_string(_SCHEMA_SECRET_RESPONSE.members["description"])
+
+                case 2:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_SECRET_RESPONSE.members["change_reason"])
+
+                case 3:
+                    kwargs["created_by"] = de.read_string(_SCHEMA_SECRET_RESPONSE.members["created_by"])
+
+                case 4:
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_SECRET_RESPONSE.members["created_at"])
+
+                case 5:
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_SECRET_RESPONSE.members["last_modified_by"])
+
+                case 6:
+                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_SECRET_RESPONSE.members["last_modified_at"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_SECRET_RESPONSE, consumer=_consumer)
+        return kwargs
+
+def _serialize_secret_list(serializer: ShapeSerializer, schema: Schema, value: list[SecretResponse]) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_struct(member_schema, e)
+
+def _deserialize_secret_list(deserializer: ShapeDeserializer, schema: Schema) -> list[SecretResponse]:
+    result: list[SecretResponse] = []
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(SecretResponse.deserialize(d))
+    deserializer.read_list(schema, _read_value)
+    return result
+
+@dataclass(kw_only=True)
+class ListSecretsOutput:
+
+    total_pages: int
+
+    total_items: int
+
+    data: list[SecretResponse]
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_LIST_SECRETS_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_integer(_SCHEMA_LIST_SECRETS_OUTPUT.members["total_pages"], self.total_pages)
+        serializer.write_integer(_SCHEMA_LIST_SECRETS_OUTPUT.members["total_items"], self.total_items)
+        _serialize_secret_list(serializer, _SCHEMA_LIST_SECRETS_OUTPUT.members["data"], self.data)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["total_pages"] = de.read_integer(_SCHEMA_LIST_SECRETS_OUTPUT.members["total_pages"])
+
+                case 1:
+                    kwargs["total_items"] = de.read_integer(_SCHEMA_LIST_SECRETS_OUTPUT.members["total_items"])
+
+                case 2:
+                    kwargs["data"] = _deserialize_secret_list(de, _SCHEMA_LIST_SECRETS_OUTPUT.members["data"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_LIST_SECRETS_OUTPUT, consumer=_consumer)
+        return kwargs
+
+LIST_SECRETS = APIOperation(
+        input = ListSecretsInput,
+        output = ListSecretsOutput,
+        schema = _SCHEMA_LIST_SECRETS,
+        input_schema = _SCHEMA_LIST_SECRETS_INPUT,
+        output_schema = _SCHEMA_LIST_SECRETS_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+            ShapeID("smithy.api#httpBasicAuth"),
+ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
 class VariableSortOn(StrEnum):
     NAME = "name"
     CREATED_AT = "created_at"
@@ -14772,6 +15440,83 @@ ShapeID("smithy.api#httpBearerAuth")
 )
 
 @dataclass(kw_only=True)
+class RotateMasterEncryptionKeyInput:
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_ROTATE_MASTER_ENCRYPTION_KEY_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_ROTATE_MASTER_ENCRYPTION_KEY_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class RotateMasterEncryptionKeyOutput:
+
+    workspaces_rotated: int
+
+    total_secrets_re_encrypted: int
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_ROTATE_MASTER_ENCRYPTION_KEY_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_long(_SCHEMA_ROTATE_MASTER_ENCRYPTION_KEY_OUTPUT.members["workspaces_rotated"], self.workspaces_rotated)
+        serializer.write_long(_SCHEMA_ROTATE_MASTER_ENCRYPTION_KEY_OUTPUT.members["total_secrets_re_encrypted"], self.total_secrets_re_encrypted)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["workspaces_rotated"] = de.read_long(_SCHEMA_ROTATE_MASTER_ENCRYPTION_KEY_OUTPUT.members["workspaces_rotated"])
+
+                case 1:
+                    kwargs["total_secrets_re_encrypted"] = de.read_long(_SCHEMA_ROTATE_MASTER_ENCRYPTION_KEY_OUTPUT.members["total_secrets_re_encrypted"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_ROTATE_MASTER_ENCRYPTION_KEY_OUTPUT, consumer=_consumer)
+        return kwargs
+
+ROTATE_MASTER_ENCRYPTION_KEY = APIOperation(
+        input = RotateMasterEncryptionKeyInput,
+        output = RotateMasterEncryptionKeyOutput,
+        schema = _SCHEMA_ROTATE_MASTER_ENCRYPTION_KEY,
+        input_schema = _SCHEMA_ROTATE_MASTER_ENCRYPTION_KEY_INPUT,
+        output_schema = _SCHEMA_ROTATE_MASTER_ENCRYPTION_KEY_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+            ShapeID("smithy.api#httpBasicAuth"),
+ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
+@dataclass(kw_only=True)
 class MigrateWorkspaceSchemaInput:
 
     org_id: str | None = None
@@ -15127,6 +15872,242 @@ UPDATE_ORGANISATION = APIOperation(
         schema = _SCHEMA_UPDATE_ORGANISATION,
         input_schema = _SCHEMA_UPDATE_ORGANISATION_INPUT,
         output_schema = _SCHEMA_UPDATE_ORGANISATION_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+            ShapeID("smithy.api#httpBasicAuth"),
+ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
+@dataclass(kw_only=True)
+class RotateWorkspaceEncryptionKeyInput:
+
+    org_id: str | None = None
+    workspace_name: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY_INPUT.members["org_id"])
+
+                case 1:
+                    kwargs["workspace_name"] = de.read_string(_SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY_INPUT.members["workspace_name"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class RotateWorkspaceEncryptionKeyOutput:
+    """
+
+    :param total_secrets_re_encrypted:
+        **[Required]** - Number of secrets that were re-encrypted with the new key.
+
+    """
+
+    total_secrets_re_encrypted: int
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_long(_SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY_OUTPUT.members["total_secrets_re_encrypted"], self.total_secrets_re_encrypted)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["total_secrets_re_encrypted"] = de.read_long(_SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY_OUTPUT.members["total_secrets_re_encrypted"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY_OUTPUT, consumer=_consumer)
+        return kwargs
+
+ROTATE_WORKSPACE_ENCRYPTION_KEY = APIOperation(
+        input = RotateWorkspaceEncryptionKeyInput,
+        output = RotateWorkspaceEncryptionKeyOutput,
+        schema = _SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY,
+        input_schema = _SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY_INPUT,
+        output_schema = _SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+            ShapeID("smithy.api#httpBasicAuth"),
+ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
+@dataclass(kw_only=True)
+class UpdateSecretInput:
+    """
+
+    :param value:
+         New plaintext value to encrypt and store. If provided, will be encrypted with
+         current key.
+
+    """
+
+    workspace_id: str | None = None
+    org_id: str | None = None
+    name: str | None = None
+    value: str | None = None
+    description: str | None = None
+    change_reason: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_UPDATE_SECRET_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.value is not None:
+            serializer.write_string(_SCHEMA_UPDATE_SECRET_INPUT.members["value"], self.value)
+
+        if self.description is not None:
+            serializer.write_string(_SCHEMA_UPDATE_SECRET_INPUT.members["description"], self.description)
+
+        if self.change_reason is not None:
+            serializer.write_string(_SCHEMA_UPDATE_SECRET_INPUT.members["change_reason"], self.change_reason)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_UPDATE_SECRET_INPUT.members["workspace_id"])
+
+                case 1:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_UPDATE_SECRET_INPUT.members["org_id"])
+
+                case 2:
+                    kwargs["name"] = de.read_string(_SCHEMA_UPDATE_SECRET_INPUT.members["name"])
+
+                case 3:
+                    kwargs["value"] = de.read_string(_SCHEMA_UPDATE_SECRET_INPUT.members["value"])
+
+                case 4:
+                    kwargs["description"] = de.read_string(_SCHEMA_UPDATE_SECRET_INPUT.members["description"])
+
+                case 5:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_SECRET_INPUT.members["change_reason"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_UPDATE_SECRET_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class UpdateSecretOutput:
+    """
+    Response structure for secret operations. Secret values are never returned for
+    security.
+
+    """
+
+    name: str
+
+    description: str
+
+    change_reason: str
+
+    created_by: str
+
+    created_at: datetime
+
+    last_modified_by: str
+
+    last_modified_at: datetime
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_UPDATE_SECRET_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_UPDATE_SECRET_OUTPUT.members["name"], self.name)
+        serializer.write_string(_SCHEMA_UPDATE_SECRET_OUTPUT.members["description"], self.description)
+        serializer.write_string(_SCHEMA_UPDATE_SECRET_OUTPUT.members["change_reason"], self.change_reason)
+        serializer.write_string(_SCHEMA_UPDATE_SECRET_OUTPUT.members["created_by"], self.created_by)
+        serializer.write_timestamp(_SCHEMA_UPDATE_SECRET_OUTPUT.members["created_at"], self.created_at)
+        serializer.write_string(_SCHEMA_UPDATE_SECRET_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        serializer.write_timestamp(_SCHEMA_UPDATE_SECRET_OUTPUT.members["last_modified_at"], self.last_modified_at)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["name"] = de.read_string(_SCHEMA_UPDATE_SECRET_OUTPUT.members["name"])
+
+                case 1:
+                    kwargs["description"] = de.read_string(_SCHEMA_UPDATE_SECRET_OUTPUT.members["description"])
+
+                case 2:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_SECRET_OUTPUT.members["change_reason"])
+
+                case 3:
+                    kwargs["created_by"] = de.read_string(_SCHEMA_UPDATE_SECRET_OUTPUT.members["created_by"])
+
+                case 4:
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_UPDATE_SECRET_OUTPUT.members["created_at"])
+
+                case 5:
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_UPDATE_SECRET_OUTPUT.members["last_modified_by"])
+
+                case 6:
+                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_UPDATE_SECRET_OUTPUT.members["last_modified_at"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_UPDATE_SECRET_OUTPUT, consumer=_consumer)
+        return kwargs
+
+UPDATE_SECRET = APIOperation(
+        input = UpdateSecretInput,
+        output = UpdateSecretOutput,
+        schema = _SCHEMA_UPDATE_SECRET,
+        input_schema = _SCHEMA_UPDATE_SECRET_INPUT,
+        output_schema = _SCHEMA_UPDATE_SECRET_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,

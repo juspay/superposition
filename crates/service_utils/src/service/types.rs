@@ -1,6 +1,6 @@
 use std::sync::Mutex;
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashSet,
     future::{Ready, ready},
     str::FromStr,
     sync::Arc,
@@ -11,6 +11,7 @@ use derive_more::{Deref, DerefMut};
 use diesel::r2d2::{ConnectionManager, PooledConnection};
 use diesel::{Connection, PgConnection};
 use jsonschema::JSONSchema;
+use secrecy::SecretString;
 use serde::{Deserialize, Serialize};
 use snowflake::SnowflakeIdGenerator;
 use superposition_types::database::models::Workspace;
@@ -39,6 +40,11 @@ pub enum AppHeader {
     LastModified,
 }
 
+pub struct EncryptionKey {
+    pub current_key: SecretString,
+    pub previous_key: Option<SecretString>,
+}
+
 pub struct AppState {
     pub cac_host: String,
     pub app_env: AppEnv,
@@ -53,7 +59,7 @@ pub struct AppState {
     #[cfg(feature = "high-performance-mode")]
     pub redis: fred::clients::RedisPool,
     pub http_client: reqwest::Client,
-    pub encrypted_keys: HashMap<String, String>,
+    pub master_encryption_key: Option<EncryptionKey>,
 }
 
 impl FromStr for AppEnv {
@@ -87,6 +93,8 @@ pub enum Resource {
     AuditLog,
     Auth,
     Variable,
+    Secret,
+    MasterEncryptionKey,
 }
 
 impl Resource {

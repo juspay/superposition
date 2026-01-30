@@ -1,6 +1,6 @@
 use actix_web::{
     HttpRequest, HttpResponse, Scope, routes,
-    web::{Header, Json},
+    web::{Data, Header, Json},
 };
 use context_aware_config::api::config::helpers::{
     add_audit_id_to_header, add_config_version_to_header, add_last_modified_to_header,
@@ -9,7 +9,7 @@ use context_aware_config::api::config::helpers::{
 };
 use experimentation_platform::api::experiments::handlers::get_applicable_variants_helper;
 use serde_json::{Map, Value};
-use service_utils::service::types::{DbConnection, WorkspaceContext};
+use service_utils::service::types::{AppState, DbConnection, WorkspaceContext};
 use superposition_derives::authorized;
 use superposition_types::{
     api::config::{ContextPayload, MergeStrategy, ResolveConfigQuery},
@@ -37,6 +37,7 @@ async fn resolve_with_exp_handler(
     query_filters: superposition_query::Query<ResolveConfigQuery>,
     identifier_query: superposition_query::Query<IdentifierQuery>,
     workspace_context: WorkspaceContext,
+    state: Data<AppState>,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let query_filters = query_filters.into_inner();
@@ -84,6 +85,7 @@ async fn resolve_with_exp_handler(
         &mut conn,
         &query_filters,
         &workspace_context,
+        &state.master_encryption_key,
     )?;
 
     let mut resp = HttpResponse::Ok();

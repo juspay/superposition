@@ -90,3 +90,8 @@ pub struct UpdateWorkspaceRequest {
 pub struct WorkspaceListFilters {
     pub workspace_name: Option<String>,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KeyRotationResponse {
+    pub total_secrets_re_encrypted: i64,
+}

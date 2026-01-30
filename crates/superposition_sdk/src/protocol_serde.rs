@@ -41,6 +41,8 @@ pub(crate) mod shape_create_function;
 
 pub(crate) mod shape_create_organisation;
 
+pub(crate) mod shape_create_secret;
+
 pub(crate) mod shape_create_type_templates;
 
 pub(crate) mod shape_create_variable;
@@ -58,6 +60,8 @@ pub(crate) mod shape_delete_dimension;
 pub(crate) mod shape_delete_experiment_group;
 
 pub(crate) mod shape_delete_function;
+
+pub(crate) mod shape_delete_secret;
 
 pub(crate) mod shape_delete_type_templates;
 
@@ -99,6 +103,8 @@ pub(crate) mod shape_get_resolved_config;
 
 pub(crate) mod shape_get_resolved_config_with_identifier;
 
+pub(crate) mod shape_get_secret;
+
 pub(crate) mod shape_get_type_template;
 
 pub(crate) mod shape_get_type_templates_list;
@@ -129,6 +135,8 @@ pub(crate) mod shape_list_function;
 
 pub(crate) mod shape_list_organisation;
 
+pub(crate) mod shape_list_secrets;
+
 pub(crate) mod shape_list_variables;
 
 pub(crate) mod shape_list_versions;
@@ -153,6 +161,10 @@ pub(crate) mod shape_remove_members_from_group;
 
 pub(crate) mod shape_resume_experiment;
 
+pub(crate) mod shape_rotate_master_encryption_key;
+
+pub(crate) mod shape_rotate_workspace_encryption_key;
+
 pub(crate) mod shape_test;
 
 pub fn rest_json_unset_union_payload() -> ::std::vec::Vec<u8> { ::std::vec::Vec::new() }
@@ -174,6 +186,8 @@ pub(crate) mod shape_update_override;
 pub(crate) mod shape_update_override_input;
 
 pub(crate) mod shape_update_overrides_experiment;
+
+pub(crate) mod shape_update_secret;
 
 pub(crate) mod shape_update_type_templates;
 
@@ -214,6 +228,8 @@ pub(crate) mod shape_create_experiment_input;
 pub(crate) mod shape_create_function_input;
 
 pub(crate) mod shape_create_organisation_input;
+
+pub(crate) mod shape_create_secret_input;
 
 pub(crate) mod shape_create_type_templates_input;
 
@@ -264,6 +280,8 @@ pub(crate) mod shape_update_function_input;
 pub(crate) mod shape_update_organisation_input;
 
 pub(crate) mod shape_update_overrides_experiment_input;
+
+pub(crate) mod shape_update_secret_input;
 
 pub(crate) mod shape_update_type_templates_input;
 
@@ -331,6 +349,8 @@ pub(crate) mod shape_overrides;
 
 pub(crate) mod shape_overrides_map;
 
+pub(crate) mod shape_secret_list;
+
 pub(crate) mod shape_string_list;
 
 pub(crate) mod shape_type_templates_list;
@@ -382,6 +402,8 @@ pub(crate) mod shape_function_response;
 pub(crate) mod shape_list_versions_member;
 
 pub(crate) mod shape_organisation_response;
+
+pub(crate) mod shape_secret_response;
 
 pub(crate) mod shape_type_templates_response;
 

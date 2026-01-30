@@ -762,6 +762,19 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    secrets (name) {
+        name -> Varchar,
+        encrypted_value -> Text,
+        description -> Text,
+        change_reason -> Text,
+        created_at -> Timestamptz,
+        last_modified_at -> Timestamptz,
+        created_by -> Varchar,
+        last_modified_by -> Varchar,
+    }
+}
+
 diesel::joinable!(default_configs -> functions (value_validation_function_name));
 diesel::joinable!(dimensions -> functions (value_validation_function_name));
 

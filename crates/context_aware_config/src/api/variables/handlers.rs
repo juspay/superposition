@@ -1,10 +1,10 @@
 use actix_web::{
     Scope, delete, get, patch, post,
-    web::{self, Json, Query},
+    web::{self, Data, Json, Query},
 };
 use diesel::prelude::*;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
-use service_utils::service::types::{DbConnection, WorkspaceContext};
+use service_utils::service::types::{AppState, DbConnection, WorkspaceContext};
 use superposition_derives::authorized;
 use superposition_types::{
     PaginatedResponse, SortBy, User,
@@ -102,11 +102,17 @@ async fn create_handler(
     req: web::Json<CreateVariableRequest>,
     user: User,
     db_conn: DbConnection,
+    state: Data<AppState>,
 ) -> superposition::Result<Json<Variable>> {
     let DbConnection(mut conn) = db_conn;
     let req = req.into_inner();
 
-    validate_change_reason(&workspace_context, &req.change_reason, &mut conn)?;
+    validate_change_reason(
+        &workspace_context,
+        &req.change_reason,
+        &mut conn,
+        &state.master_encryption_key,
+    )?;
 
     let now = chrono::Utc::now();
 
@@ -157,11 +163,17 @@ async fn update_handler(
     req: web::Json<UpdateVariableRequest>,
     user: User,
     db_conn: DbConnection,
+    state: Data<AppState>,
 ) -> superposition::Result<Json<Variable>> {
     let DbConnection(mut conn) = db_conn;
     let var_name = path.into_inner();
 
-    validate_change_reason(&workspace_context, &req.change_reason, &mut conn)?;
+    validate_change_reason(
+        &workspace_context,
+        &req.change_reason,
+        &mut conn,
+        &state.master_encryption_key,
+    )?;
 
     let updated_var = diesel::update(variables)
         .filter(name.eq(var_name))

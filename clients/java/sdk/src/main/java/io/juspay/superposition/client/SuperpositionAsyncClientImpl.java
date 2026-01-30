@@ -34,6 +34,9 @@ import io.juspay.superposition.model.CreateFunctionOutput;
 import io.juspay.superposition.model.CreateOrganisation;
 import io.juspay.superposition.model.CreateOrganisationInput;
 import io.juspay.superposition.model.CreateOrganisationOutput;
+import io.juspay.superposition.model.CreateSecret;
+import io.juspay.superposition.model.CreateSecretInput;
+import io.juspay.superposition.model.CreateSecretOutput;
 import io.juspay.superposition.model.CreateTypeTemplates;
 import io.juspay.superposition.model.CreateTypeTemplatesInput;
 import io.juspay.superposition.model.CreateTypeTemplatesOutput;
@@ -61,6 +64,9 @@ import io.juspay.superposition.model.DeleteExperimentGroupOutput;
 import io.juspay.superposition.model.DeleteFunction;
 import io.juspay.superposition.model.DeleteFunctionInput;
 import io.juspay.superposition.model.DeleteFunctionOutput;
+import io.juspay.superposition.model.DeleteSecret;
+import io.juspay.superposition.model.DeleteSecretInput;
+import io.juspay.superposition.model.DeleteSecretOutput;
 import io.juspay.superposition.model.DeleteTypeTemplates;
 import io.juspay.superposition.model.DeleteTypeTemplatesInput;
 import io.juspay.superposition.model.DeleteTypeTemplatesOutput;
@@ -109,6 +115,9 @@ import io.juspay.superposition.model.GetResolvedConfigOutput;
 import io.juspay.superposition.model.GetResolvedConfigWithIdentifier;
 import io.juspay.superposition.model.GetResolvedConfigWithIdentifierInput;
 import io.juspay.superposition.model.GetResolvedConfigWithIdentifierOutput;
+import io.juspay.superposition.model.GetSecret;
+import io.juspay.superposition.model.GetSecretInput;
+import io.juspay.superposition.model.GetSecretOutput;
 import io.juspay.superposition.model.GetTypeTemplate;
 import io.juspay.superposition.model.GetTypeTemplateInput;
 import io.juspay.superposition.model.GetTypeTemplateOutput;
@@ -154,6 +163,9 @@ import io.juspay.superposition.model.ListFunctionOutput;
 import io.juspay.superposition.model.ListOrganisation;
 import io.juspay.superposition.model.ListOrganisationInput;
 import io.juspay.superposition.model.ListOrganisationOutput;
+import io.juspay.superposition.model.ListSecrets;
+import io.juspay.superposition.model.ListSecretsInput;
+import io.juspay.superposition.model.ListSecretsOutput;
 import io.juspay.superposition.model.ListVariables;
 import io.juspay.superposition.model.ListVariablesInput;
 import io.juspay.superposition.model.ListVariablesOutput;
@@ -187,6 +199,12 @@ import io.juspay.superposition.model.RemoveMembersFromGroupOutput;
 import io.juspay.superposition.model.ResumeExperiment;
 import io.juspay.superposition.model.ResumeExperimentInput;
 import io.juspay.superposition.model.ResumeExperimentOutput;
+import io.juspay.superposition.model.RotateMasterEncryptionKey;
+import io.juspay.superposition.model.RotateMasterEncryptionKeyInput;
+import io.juspay.superposition.model.RotateMasterEncryptionKeyOutput;
+import io.juspay.superposition.model.RotateWorkspaceEncryptionKey;
+import io.juspay.superposition.model.RotateWorkspaceEncryptionKeyInput;
+import io.juspay.superposition.model.RotateWorkspaceEncryptionKeyOutput;
 import io.juspay.superposition.model.Test;
 import io.juspay.superposition.model.TestInput;
 import io.juspay.superposition.model.TestOutput;
@@ -211,6 +229,9 @@ import io.juspay.superposition.model.UpdateOverrideOutput;
 import io.juspay.superposition.model.UpdateOverridesExperiment;
 import io.juspay.superposition.model.UpdateOverridesExperimentInput;
 import io.juspay.superposition.model.UpdateOverridesExperimentOutput;
+import io.juspay.superposition.model.UpdateSecret;
+import io.juspay.superposition.model.UpdateSecretInput;
+import io.juspay.superposition.model.UpdateSecretOutput;
 import io.juspay.superposition.model.UpdateTypeTemplates;
 import io.juspay.superposition.model.UpdateTypeTemplatesInput;
 import io.juspay.superposition.model.UpdateTypeTemplatesOutput;
@@ -245,9 +266,9 @@ import software.amazon.smithy.utils.SmithyGenerated;
 @SmithyGenerated
 final class SuperpositionAsyncClientImpl extends Client implements SuperpositionAsyncClient {
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
-        .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
         .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
         .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
+        .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
         .putType(InternalFailureException.$ID, InternalFailureException.class, InternalFailureException::builder)
         .putType(UnknownOperationException.$ID, UnknownOperationException.class, UnknownOperationException::builder)
         .putType(MalformedRequestException.$ID, MalformedRequestException.class, MalformedRequestException::builder)
@@ -303,6 +324,10 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
     }
 
     @Override
+    public CompletableFuture<CreateSecretOutput> createSecret(CreateSecretInput input, RequestOverrideConfig overrideConfig) {return call(input, CreateSecret.instance(), overrideConfig);
+    }
+
+    @Override
     public CompletableFuture<CreateTypeTemplatesOutput> createTypeTemplates(CreateTypeTemplatesInput input, RequestOverrideConfig overrideConfig) {return call(input, CreateTypeTemplates.instance(), overrideConfig);
     }
 
@@ -336,6 +361,10 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
 
     @Override
     public CompletableFuture<DeleteFunctionOutput> deleteFunction(DeleteFunctionInput input, RequestOverrideConfig overrideConfig) {return call(input, DeleteFunction.instance(), overrideConfig);
+    }
+
+    @Override
+    public CompletableFuture<DeleteSecretOutput> deleteSecret(DeleteSecretInput input, RequestOverrideConfig overrideConfig) {return call(input, DeleteSecret.instance(), overrideConfig);
     }
 
     @Override
@@ -403,6 +432,10 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
     }
 
     @Override
+    public CompletableFuture<GetSecretOutput> getSecret(GetSecretInput input, RequestOverrideConfig overrideConfig) {return call(input, GetSecret.instance(), overrideConfig);
+    }
+
+    @Override
     public CompletableFuture<GetTypeTemplateOutput> getTypeTemplate(GetTypeTemplateInput input, RequestOverrideConfig overrideConfig) {return call(input, GetTypeTemplate.instance(), overrideConfig);
     }
 
@@ -463,6 +496,10 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
     }
 
     @Override
+    public CompletableFuture<ListSecretsOutput> listSecrets(ListSecretsInput input, RequestOverrideConfig overrideConfig) {return call(input, ListSecrets.instance(), overrideConfig);
+    }
+
+    @Override
     public CompletableFuture<ListVariablesOutput> listVariables(ListVariablesInput input, RequestOverrideConfig overrideConfig) {return call(input, ListVariables.instance(), overrideConfig);
     }
 
@@ -507,6 +544,14 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
     }
 
     @Override
+    public CompletableFuture<RotateMasterEncryptionKeyOutput> rotateMasterEncryptionKey(RotateMasterEncryptionKeyInput input, RequestOverrideConfig overrideConfig) {return call(input, RotateMasterEncryptionKey.instance(), overrideConfig);
+    }
+
+    @Override
+    public CompletableFuture<RotateWorkspaceEncryptionKeyOutput> rotateWorkspaceEncryptionKey(RotateWorkspaceEncryptionKeyInput input, RequestOverrideConfig overrideConfig) {return call(input, RotateWorkspaceEncryptionKey.instance(), overrideConfig);
+    }
+
+    @Override
     public CompletableFuture<TestOutput> test(TestInput input, RequestOverrideConfig overrideConfig) {return call(input, Test.instance(), overrideConfig);
     }
 
@@ -536,6 +581,10 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
 
     @Override
     public CompletableFuture<UpdateOverridesExperimentOutput> updateOverridesExperiment(UpdateOverridesExperimentInput input, RequestOverrideConfig overrideConfig) {return call(input, UpdateOverridesExperiment.instance(), overrideConfig);
+    }
+
+    @Override
+    public CompletableFuture<UpdateSecretOutput> updateSecret(UpdateSecretInput input, RequestOverrideConfig overrideConfig) {return call(input, UpdateSecret.instance(), overrideConfig);
     }
 
     @Override
