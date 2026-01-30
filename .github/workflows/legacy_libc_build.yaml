@@ -1,0 +1,79 @@
+name: Test Legacy Libc Build
+
+permissions:
+    contents: read
+
+on:
+    push:
+        branches: [breeze-v0.94.2]
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+env:
+    # Disable incremental compilation.
+    #
+    # Incremental compilation is useful as part of an edit-build-test-edit cycle,
+    # as it lets the compiler avoid recompiling code that hasn't changed. However,
+    # on CI, we're not making small edits; we're almost always building the entire
+    # project from scratch. Thus, incremental compilation on CI actually
+    # introduces *additional* overhead to support making future builds
+    # faster...but no future builds will ever occur in any given CI environment.
+    #
+    # See https://matklad.github.io/2021/09/04/fast-rust-builds.html#ci-workflow
+    # for details.
+    CARGO_INCREMENTAL: 0
+    # Allow more retries for network requests in cargo (downloading crates) and
+    # rustup (installing toolchains). This should help to reduce flaky CI failures
+    # from transient network timeouts or other issues.
+    CARGO_NET_RETRY: 10
+    RUSTUP_MAX_RETRIES: 10
+    # Don't emit giant backtraces in the CI logs.
+    RUST_BACKTRACE: short
+    # Use cargo's sparse index protocol
+    CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+    AWS_ACCESS_KEY_ID: test
+    AWS_SECRET_ACCESS_KEY: test
+    AWS_SESSION_TOKEN: test
+    AWS_REGION: ap-south-1
+    APP_ENV: "TEST"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build inside ubuntu:18.04 (glibc 2.27)
+        run: |
+          docker run --rm \
+            -v "$PWD:/work" -w /work \
+            -e CARGO_INCREMENTAL=0 \
+            -e CARGO_NET_RETRY=10 \
+            -e RUSTUP_MAX_RETRIES=10 \
+            -e RUST_BACKTRACE=short \
+            -e DEBIAN_FRONTEND=noninteractive \
+            -e TZ=Etc/UTC \
+            -e CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse \
+            ubuntu:18.04 bash -lc '
+              set -euo pipefail
+              apt-get update
+              apt-get install -y --no-install-recommends \
+                binutils ca-certificates curl build-essential git pkg-config libssl-dev postgresql libpq-dev
+              curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+              export PATH="$HOME/.cargo/bin:$PATH"
+              cargo build --release
+              objdump -T target/release/libsuperposition_core.so | grep GLIBC_ | sort -Vu
+            '
+          mkdir -p artifacts
+          cp target/release/libsuperposition_core.so artifacts
+          cp target/include/superposition_core.h artifacts/core.h
+          cd artifacts; zip -r superposition_core-x86_64-unknown-linux-gnu.zip libsuperposition_core.so core.h
+
+      - name: Upload superposition_core artifacts
+        uses: actions/upload-artifact@v4
+        with:
+            name: superposition_core-x86_64-unknown-linux-gnu
+            path: artifacts/superposition_core-x86_64-unknown-linux-gnu.zip
+
