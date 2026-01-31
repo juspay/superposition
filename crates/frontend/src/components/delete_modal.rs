@@ -3,7 +3,7 @@ use leptos::*;
 use crate::components::change_form::ChangeForm;
 
 #[component]
-pub fn delete_modal(
+pub fn DeleteModal(
     modal_visible: ReadSignal<bool>,
     confirm_delete: Callback<String>,
     set_modal_visible: WriteSignal<bool>,

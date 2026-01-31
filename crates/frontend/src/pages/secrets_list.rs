@@ -135,7 +135,7 @@ fn secret_table_columns(
 }
 
 #[component]
-pub fn secrets_list() -> impl IntoView {
+pub fn SecretsList() -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 

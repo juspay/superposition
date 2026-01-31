@@ -14,7 +14,7 @@ use crate::{
 };
 
 #[component]
-pub fn experiment_conclude_form(
+pub fn ExperimentConcludeForm(
     experiment: ExperimentResponse,
     #[prop(into)] handle_submit: Callback<(), ()>,
 ) -> impl IntoView {

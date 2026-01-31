@@ -41,7 +41,7 @@ enum Action {
 }
 
 #[component]
-pub fn default_config_list() -> impl IntoView {
+pub fn DefaultConfigList() -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let action_rws = RwSignal::new(Action::None);

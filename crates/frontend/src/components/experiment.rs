@@ -26,7 +26,7 @@ fn badge_class(status_type: ExperimentStatusType) -> &'static str {
 }
 
 #[component]
-fn experiment_info(experiment: StoredValue<ExperimentResponse>) -> impl IntoView {
+fn ExperimentInfo(experiment: StoredValue<ExperimentResponse>) -> impl IntoView {
     view! {
         <div class="card bg-base-100 max-w-screen shadow">
             <div class="card-body flex flex-row gap-2 flex-wrap">
@@ -145,7 +145,7 @@ fn experiment_info(experiment: StoredValue<ExperimentResponse>) -> impl IntoView
 }
 
 #[component]
-fn create_actions<HS, HD, HE>(
+fn CreateActions<HS, HD, HE>(
     handle_start: HS,
     handle_discard: HD,
     handle_edit: HE,
@@ -178,7 +178,7 @@ where
 }
 
 #[component]
-fn inprogress_actions<HR, HC, HD, HP>(
+fn InprogressActions<HR, HC, HD, HP>(
     handle_ramp: HR,
     handle_conclude: HC,
     handle_discard: HD,
@@ -219,7 +219,7 @@ where
 }
 
 #[component]
-fn conclude_actions(experiment: StoredValue<ExperimentResponse>) -> impl IntoView {
+fn ConcludeActions(experiment: StoredValue<ExperimentResponse>) -> impl IntoView {
     view! {
         <div class="stat">
             <div class="stat-title">Chosen Variant</div>
@@ -234,12 +234,12 @@ fn conclude_actions(experiment: StoredValue<ExperimentResponse>) -> impl IntoVie
 }
 
 #[component]
-fn discard_actions() -> impl IntoView {
+fn DiscardActions() -> impl IntoView {
     ().into_view()
 }
 
 #[component]
-fn pause_actions<HR, HD>(handle_resume: HR, handle_discard: HD) -> impl IntoView
+fn PauseActions<HR, HD>(handle_resume: HR, handle_discard: HD) -> impl IntoView
 where
     HR: Fn() + 'static + Clone,
     HD: Fn() + 'static + Clone,
@@ -289,7 +289,7 @@ pub fn gen_variant_table(variants: &[Variant]) -> (Vec<Map<String, Value>>, Vec<
 }
 
 #[component]
-pub fn experiment<HS, HR, HC, HE, HD, HP, HRS>(
+pub fn Experiment<HS, HR, HC, HE, HD, HP, HRS>(
     experiment: ExperimentResponse,
     handle_start: HS,
     handle_ramp: HR,

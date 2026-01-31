@@ -116,7 +116,7 @@ impl SortableConfig {
 ///     use leptos::*;
 ///
 ///     #[component]
-///     fn demo_component() -> impl IntoView {
+///     fn DemoComponent() -> impl IntoView {
 ///         Effect::new(move |_| {
 ///             let window = web_sys::window().unwrap();
 ///             let document = window.document().unwrap();

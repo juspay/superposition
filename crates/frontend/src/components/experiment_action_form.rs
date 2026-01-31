@@ -21,7 +21,7 @@ fn change_reason(popup_type: &PopupType) -> String {
 }
 
 #[component]
-pub fn experiment_action_form(
+pub fn ExperimentActionForm(
     experiment_id: String,
     popup_type: PopupType,
     #[prop(into)] handle_submit: Callback<(), ()>,

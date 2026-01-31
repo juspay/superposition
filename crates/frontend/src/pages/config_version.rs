@@ -10,7 +10,7 @@ use crate::components::toast::Toast;
 use crate::types::{OrganisationId, Workspace};
 
 #[component]
-pub fn config_version() -> impl IntoView {
+pub fn ConfigVersion() -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org_id = use_context::<Signal<OrganisationId>>().unwrap();
     let params = use_params_map();

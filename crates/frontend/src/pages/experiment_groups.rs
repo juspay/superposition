@@ -125,7 +125,7 @@ fn table_columns(
 }
 
 #[component]
-fn experiment_group_info(group: ExperimentGroup) -> impl IntoView {
+fn ExperimentGroupInfo(group: ExperimentGroup) -> impl IntoView {
     let conditions = Conditions::from_context_json(&group.context).unwrap_or_default();
 
     view! {
@@ -150,7 +150,7 @@ enum Action {
 }
 
 #[component]
-pub fn experiment_groups() -> impl IntoView {
+pub fn ExperimentGroups() -> impl IntoView {
     let group_params = use_params_map();
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();

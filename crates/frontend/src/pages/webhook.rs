@@ -23,7 +23,7 @@ use crate::schema::{JsonSchemaType, SchemaType};
 use crate::types::{OrganisationId, Workspace};
 
 #[component]
-fn webhook_info(webhook: Webhook) -> impl IntoView {
+fn WebhookInfo(webhook: Webhook) -> impl IntoView {
     view! {
         <div class="card bg-base-100 max-w-screen shadow">
             <div class="card-body">
@@ -111,7 +111,7 @@ enum Action {
 }
 
 #[component]
-pub fn webhook() -> impl IntoView {
+pub fn Webhook() -> impl IntoView {
     let path_params = use_params_map();
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();

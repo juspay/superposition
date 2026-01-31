@@ -8,7 +8,7 @@ use serde_json::{Map, Value, json};
 use superposition_types::SortBy;
 
 #[component]
-pub fn expandable_text(
+pub fn ExpandableText(
     value: String,
     formatter: types::CellFormatter,
     row: Map<String, Value>,
@@ -59,7 +59,7 @@ pub fn expandable_text(
 }
 
 #[component]
-pub fn table(
+pub fn Table(
     #[prop(into)] key_column: String,
     columns: Vec<Column>,
     rows: Vec<Map<String, Value>>,

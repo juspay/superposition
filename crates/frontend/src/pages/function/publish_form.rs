@@ -9,7 +9,7 @@ use crate::{
 };
 
 #[component]
-pub fn publish_form(
+pub fn PublishForm(
     function_name: String,
     #[prop(into)] handle_submit: Callback<(), ()>,
     #[prop(into)] handle_close: Callback<(), ()>,

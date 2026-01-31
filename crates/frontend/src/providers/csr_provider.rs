@@ -5,7 +5,7 @@ use leptos::*;
 pub struct Csr(bool);
 
 #[component]
-pub fn client_side_ready_provider(children: Children) -> impl IntoView {
+pub fn ClientSideReadyProvider(children: Children) -> impl IntoView {
     let csr_rws = RwSignal::new(Csr(false));
     Effect::new(move |_| csr_rws.set(Csr(true)));
     provide_context(Signal::<Csr>::from(csr_rws));

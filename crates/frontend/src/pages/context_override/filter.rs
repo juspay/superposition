@@ -29,7 +29,7 @@ use crate::{
 };
 
 #[component]
-pub fn context_filter_summary(
+pub fn ContextFilterSummary(
     #[prop(into)] scrolled_to_top: Signal<bool>,
     context_filters_rws: RwSignal<ContextListFilters>,
     dimension_params_rws: RwSignal<DimensionQuery<QueryMap>>,
@@ -228,7 +228,7 @@ pub fn context_filter_summary(
 }
 
 #[component]
-pub fn context_filter_drawer(
+pub fn ContextFilterDrawer(
     pagination_params_rws: RwSignal<PaginationParams>,
     context_filters_rws: RwSignal<ContextListFilters>,
     dimension_params_rws: RwSignal<DimensionQuery<QueryMap>>,

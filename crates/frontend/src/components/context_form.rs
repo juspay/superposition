@@ -27,7 +27,7 @@ pub enum TooltipType {
 }
 
 #[component]
-pub fn condition_input(
+pub fn ConditionInput(
     disabled: bool,
     allow_remove: bool,
     condition: Condition,
@@ -140,7 +140,7 @@ pub fn condition_input(
 }
 
 #[component]
-pub fn context_form(
+pub fn ContextForm(
     context: Conditions,
     dimensions: Vec<DimensionResponse>,
     fn_environment: Memo<FunctionEnvironment>,

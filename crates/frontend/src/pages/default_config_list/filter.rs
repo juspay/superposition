@@ -15,7 +15,7 @@ use crate::components::{
 };
 
 #[component]
-pub(super) fn filter_summary(
+pub(super) fn FilterSummary(
     filters_rws: RwSignal<DefaultConfigFilters>,
 ) -> impl IntoView {
     let force_open_rws = RwSignal::new(true);
@@ -92,7 +92,7 @@ pub(super) fn filter_summary(
     }
 }
 #[component]
-pub(super) fn default_config_filter_widget(
+pub(super) fn DefaultConfigFilterWidget(
     pagination_params_rws: RwSignal<PaginationParams>,
     filters_rws: RwSignal<DefaultConfigFilters>,
     #[prop(into)] prefix: Option<String>,

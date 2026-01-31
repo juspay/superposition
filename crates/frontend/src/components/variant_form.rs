@@ -45,7 +45,7 @@ fn get_init_state(variants: &[(String, VariantFormT)]) -> HashSet<String> {
 }
 
 #[component]
-pub fn variant_form<HC>(
+pub fn VariantForm<HC>(
     edit: bool,
     #[prop(into)] context: Signal<Conditions>,
     variants: Vec<(String, VariantFormT)>,
@@ -460,7 +460,7 @@ where
 }
 
 #[component]
-pub fn delete_variant(
+pub fn DeleteVariant(
     edit: bool,
     key: String,
     variant: VariantFormT,
@@ -611,7 +611,7 @@ struct CombinedResource {
 }
 
 #[component]
-pub fn delete_variant_form<HC>(
+pub fn DeleteVariantForm<HC>(
     edit: bool,
     context: Conditions,
     #[prop(default = None)] context_data: Option<(String, Map<String, Value>)>,

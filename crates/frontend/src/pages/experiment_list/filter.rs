@@ -32,7 +32,7 @@ use crate::{
 use super::CombinedResource;
 
 #[component]
-pub(super) fn filter_summary(
+pub(super) fn FilterSummary(
     filters_rws: RwSignal<ExperimentListFilters>,
     dimension_params_rws: RwSignal<DimensionQuery<QueryMap>>,
 ) -> impl IntoView {
@@ -280,7 +280,7 @@ pub(super) fn filter_summary(
 }
 
 #[component]
-pub(super) fn experiment_table_filter_widget(
+pub(super) fn ExperimentTableFilterWidget(
     pagination_params_rws: RwSignal<PaginationParams>,
     filters_rws: RwSignal<ExperimentListFilters>,
     dimension_params_rws: RwSignal<DimensionQuery<QueryMap>>,

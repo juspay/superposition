@@ -56,7 +56,7 @@ pub struct CombinedResource {
 }
 
 #[component]
-pub fn default_config_form(
+pub fn DefaultConfigForm(
     #[prop(default = false)] edit: bool,
     #[prop(default = String::new())] config_key: String,
     #[prop(default = String::new())] config_type: String,
@@ -527,7 +527,7 @@ pub enum ChangeType {
 }
 
 #[component]
-pub fn change_log_summary(
+pub fn ChangeLogSummary(
     key_name: String,
     change_type: ChangeType,
     #[prop(into)] on_confirm: Callback<()>,

@@ -14,7 +14,7 @@ use crate::components::{
 };
 
 #[component]
-pub fn filter_summary(filters_rws: RwSignal<VariableFilters>) -> impl IntoView {
+pub fn FilterSummary(filters_rws: RwSignal<VariableFilters>) -> impl IntoView {
     let force_open_rws = RwSignal::new(true);
 
     fn filter_index(
@@ -156,7 +156,7 @@ pub fn filter_summary(filters_rws: RwSignal<VariableFilters>) -> impl IntoView {
 }
 
 #[component]
-pub fn variable_filter_widget(
+pub fn VariableFilterWidget(
     pagination_params_rws: RwSignal<PaginationParams>,
     filters_rws: RwSignal<VariableFilters>,
 ) -> impl IntoView {

@@ -23,7 +23,7 @@ use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::{DimensionTypeOptions, OrganisationId, Workspace};
 
 #[component]
-pub fn dimensions() -> impl IntoView {
+pub fn Dimensions() -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let pagination_params_rws = use_signal_from_query(move |query_string| {

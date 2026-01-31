@@ -56,7 +56,7 @@ pub struct CombinedResource {
 }
 
 #[component]
-pub fn dimension_form(
+pub fn DimensionForm(
     #[prop(default = false)] edit: bool,
     #[prop(default = 0)] position: u32,
     #[prop(default = String::new())] dimension_name: String,
@@ -607,7 +607,7 @@ pub enum ChangeType {
 }
 
 #[component]
-pub fn change_log_summary(
+pub fn ChangeLogSummary(
     dimension_name: String,
     change_type: ChangeType,
     #[prop(into)] on_confirm: Callback<()>,

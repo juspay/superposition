@@ -37,7 +37,7 @@ fn gen_name_id(s0: &String, s1: &String, s2: &String) -> String {
 }
 
 #[component]
-fn all_context_view(config: Config) -> impl IntoView {
+fn AllContextView(config: Config) -> impl IntoView {
     let Config {
         contexts,
         overrides,
@@ -148,7 +148,7 @@ fn all_context_view(config: Config) -> impl IntoView {
 }
 
 #[component]
-pub fn home() -> impl IntoView {
+pub fn Home() -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let config_data = create_blocking_resource(

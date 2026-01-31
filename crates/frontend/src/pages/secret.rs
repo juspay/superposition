@@ -23,7 +23,7 @@ enum Action {
 }
 
 #[component]
-pub fn secret() -> impl IntoView {
+pub fn Secret() -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let params = use_params_map();

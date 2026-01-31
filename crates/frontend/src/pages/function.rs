@@ -40,7 +40,7 @@ fn stage_to_action(stage: Stage) -> String {
 }
 
 #[component]
-fn function_code_info(
+fn FunctionCodeInfo(
     version: Option<FunctionRuntimeVersion>,
     action_time: Option<DateTime<Utc>>,
     action_by: Option<String>,
@@ -88,7 +88,7 @@ fn function_code_info(
 }
 
 #[component]
-pub fn function_page() -> impl IntoView {
+pub fn FunctionPage() -> impl IntoView {
     let path_params = use_params_map();
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();

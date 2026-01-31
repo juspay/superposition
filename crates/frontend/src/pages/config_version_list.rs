@@ -21,7 +21,7 @@ use crate::{
 };
 
 #[component]
-pub fn config_version_list() -> impl IntoView {
+pub fn ConfigVersionList() -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 

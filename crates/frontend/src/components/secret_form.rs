@@ -40,7 +40,7 @@ fn try_update_payload(
 }
 
 #[component]
-pub fn secret_form(
+pub fn SecretForm(
     #[prop(default = false)] edit: bool,
     #[prop(default = String::new())] secret_name: String,
     #[prop(default = String::new())] secret_value: String,
@@ -220,7 +220,7 @@ pub enum ChangeType {
 }
 
 #[component]
-pub fn change_log_summary(
+pub fn ChangeLogSummary(
     secret_name: String,
     change_type: ChangeType,
     #[prop(into)] on_confirm: Callback<()>,

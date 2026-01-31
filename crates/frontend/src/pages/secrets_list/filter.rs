@@ -14,7 +14,7 @@ use crate::components::{
 };
 
 #[component]
-pub fn filter_summary(filters_rws: RwSignal<SecretFilters>) -> impl IntoView {
+pub fn FilterSummary(filters_rws: RwSignal<SecretFilters>) -> impl IntoView {
     let force_open_rws = RwSignal::new(true);
 
     fn filter_index(
@@ -105,7 +105,7 @@ pub fn filter_summary(filters_rws: RwSignal<SecretFilters>) -> impl IntoView {
 }
 
 #[component]
-pub fn secret_filter_widget(
+pub fn SecretFilterWidget(
     pagination_params_rws: RwSignal<PaginationParams>,
     filters_rws: RwSignal<SecretFilters>,
 ) -> impl IntoView {

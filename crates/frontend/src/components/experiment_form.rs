@@ -77,7 +77,7 @@ enum ResponseType {
 }
 
 #[component]
-pub fn experiment_form(
+pub fn ExperimentForm(
     #[prop(optional)] edit_id: Option<String>,
     #[prop(default = String::new())] name: String,
     context: Conditions,
@@ -378,7 +378,7 @@ pub fn experiment_form(
 }
 
 #[component]
-fn change_log_summary(
+fn ChangeLogSummary(
     experiment_id: String,
     update_request: OverrideKeysUpdateRequest,
     #[prop(into)] on_confirm: Callback<()>,

@@ -31,7 +31,7 @@ use crate::{
 };
 
 #[component]
-pub fn add_experiment_to_group_form(
+pub fn AddExperimentToGroupForm(
     experiment_group_id: i64,
     #[prop(into)] handle_submit: Callback<()>,
 ) -> impl IntoView {
@@ -168,7 +168,7 @@ enum ResponseType {
 }
 
 #[component]
-pub fn experiment_group_form(
+pub fn ExperimentGroupForm(
     group_id: String,
     context: Conditions,
     group_name: String,
@@ -430,7 +430,7 @@ pub enum ChangeType {
 }
 
 #[component]
-pub fn change_log_summary(
+pub fn ChangeLogSummary(
     group_id: String,
     change_type: ChangeType,
     #[prop(into)] on_confirm: Callback<()>,

@@ -14,7 +14,7 @@ use crate::{
 };
 
 #[component]
-pub fn experiment_ramp_form<NF>(
+pub fn ExperimentRampForm<NF>(
     experiment: ExperimentResponse,
     handle_submit: NF,
 ) -> impl IntoView

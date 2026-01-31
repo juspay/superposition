@@ -19,7 +19,7 @@ use crate::providers::alert_provider::enqueue_alert;
 use crate::utils::use_url_base;
 
 #[component]
-pub fn organisations() -> impl IntoView {
+pub fn Organisations() -> impl IntoView {
     let base = use_url_base();
     // this has to remain as `create_local_resource` as this calls needs to be made from the client side, as long as cookie forwarding is not supported
     let organisation_resource = create_local_resource(
