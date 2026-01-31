@@ -232,357 +232,358 @@ pub fn DimensionForm(
     });
 
     view! {
-        <Suspense fallback=move || view! { <Skeleton variant=SkeletonVariant::Block /> }>
-            <form class="flex flex-col gap-10">
-                <div class="flex justify-between items-center gap-2">
-                    <h1 class="text-2xl font-extrabold">
-                        {if edit {
-                            dimension_name_rs.get()
-                        } else {
-                            "Create Dimension".to_string()
-                        }}
-                    </h1>
-                    <div class="w-full max-w-fit flex flex-row join">
-                        <Button
-                            force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg rounded-lg"
-                            on_click=move |ev: MouseEvent| {
-                                ev.prevent_default();
-                                on_submit.call(());
+        <form class="flex flex-col gap-10">
+            <div class="flex justify-between items-center gap-2">
+                <h1 class="text-2xl font-extrabold">
+                    {if edit { dimension_name_rs.get() } else { "Create Dimension".to_string() }}
+                </h1>
+                <div class="w-full max-w-fit flex flex-row join">
+                    <Button
+                        force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg rounded-lg"
+                        on_click=move |ev: MouseEvent| {
+                            ev.prevent_default();
+                            on_submit.call(());
+                        }
+                        icon_class="ri-send-plane-line"
+                        text="Submit"
+                        loading=req_inprogress_rs.get()
+                    />
+                    <ButtonAnchor
+                        force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg rounded-lg"
+                        href=redirect_url_cancel.clone()
+                        icon_class="ri-forbid-line"
+                        text="Cancel"
+                        loading=req_inprogress_rs.get()
+                    />
+                </div>
+            </div>
+            <div class="form-control w-full flex flex-col gap-5 text-gray-700">
+                <Show when=move || !edit>
+                    <div class="form-control">
+                        <Label title="Dimension" />
+                        <input
+                            type="text"
+                            placeholder="Dimension"
+                            class="input input-bordered w-full max-w-md"
+                            value=move || dimension_name_rs.get()
+                            on:change=move |ev| {
+                                let value = event_target_value(&ev);
+                                dimension_name_ws.set(value);
                             }
-                            icon_class="ri-send-plane-line"
-                            text="Submit"
-                            loading=req_inprogress_rs.get()
-                        />
-                        <ButtonAnchor
-                            force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg rounded-lg"
-                            href=redirect_url_cancel.clone()
-                            icon_class="ri-forbid-line"
-                            text="Cancel"
-                            loading=req_inprogress_rs.get()
                         />
                     </div>
+                </Show>
+
+                <div class="flex flex-wrap gap-x-10 gap-y-5">
+                    <ChangeForm
+                        title="Description".to_string()
+                        placeholder="Enter a description".to_string()
+                        value=description_rs.get_untracked()
+                        on_change=move |new_description| { description_ws.set(new_description) }
+                    />
+                    <ChangeForm
+                        title="Reason for Change".to_string()
+                        placeholder="Enter a reason for this change".to_string()
+                        value=change_reason_rs.get_untracked()
+                        on_change=move |new_change_reason| {
+                            change_reason_ws.set(new_change_reason)
+                        }
+                    />
                 </div>
-                <div class="form-control w-full flex flex-col gap-5 text-gray-700">
-                    <Show when=move || !edit>
+
+                <div class="flex flex-wrap gap-x-10 gap-y-5">
+                    <div class="flex flex-col gap-5">
                         <div class="form-control">
-                            <Label title="Dimension" />
+                            <Label title="Dimension Type" />
+                            <Dropdown
+                                disabled=edit
+                                dropdown_width="w-100"
+                                dropdown_icon="".to_string()
+                                dropdown_text=dimension_type_rs.get().to_string()
+                                dropdown_direction=DropdownDirection::Down
+                                dropdown_btn_type=DropdownBtnType::Select
+                                dropdown_options=DimensionTypeOptions::iter().collect()
+                                on_select=Callback::new(move |selected_item: DimensionTypeOptions| {
+                                    logging::log!("selected item {}", selected_item);
+                                    if selected_item == DimensionTypeOptions::LocalCohort {
+                                        dimension_schema_ws
+                                            .set(
+                                                serde_json::to_value(CohortSchemaFormat::default())
+                                                    .unwrap_or_default(),
+                                            );
+                                    } else {
+                                        dimension_schema_ws.set(Value::Null);
+                                        dimension_type_template_ws.set(String::new());
+                                    }
+                                    if selected_item == DimensionTypeOptions::Regular {
+                                        cohort_based_on_ws.set(String::new());
+                                    }
+                                    dimension_type_ws.set(selected_item);
+                                })
+                            />
+                        </div>
+                        <div class="form-control">
+                            <Label title="Position" />
                             <input
-                                type="text"
-                                placeholder="Dimension"
+                                type="Number"
+                                min=0
+                                placeholder="Position"
                                 class="input input-bordered w-full max-w-md"
-                                value=move || dimension_name_rs.get()
+                                value=position_rs.get()
+                                on:keypress=move |ev| {
+                                    let char_code = ev.char_code();
+                                    if char_code != 0 && char_code != 8 && char_code != 13
+                                        && !(char_code >= 48 && char_code <= 57)
+                                    {
+                                        ev.prevent_default();
+                                    }
+                                }
                                 on:change=move |ev| {
-                                    let value = event_target_value(&ev);
-                                    dimension_name_ws.set(value);
+                                    logging::log!(
+                                        "{:?}", event_target_value(& ev).parse::< u32 > ()
+                                    );
+                                    match event_target_value(&ev).parse::<u32>() {
+                                        Ok(i_prio) => position_ws.set(i_prio),
+                                        Err(e) => {
+                                            position_ws.set(0);
+                                            logging::log!("{e}");
+                                        }
+                                    };
                                 }
                             />
                         </div>
-                    </Show>
-
-                    <div class="flex flex-wrap gap-x-10 gap-y-5">
-                        <ChangeForm
-                            title="Description".to_string()
-                            placeholder="Enter a description".to_string()
-                            value=description_rs.get_untracked()
-                            on_change=move |new_description| { description_ws.set(new_description) }
-                        />
-                        <ChangeForm
-                            title="Reason for Change".to_string()
-                            placeholder="Enter a reason for this change".to_string()
-                            value=change_reason_rs.get_untracked()
-                            on_change=move |new_change_reason| {
-                                change_reason_ws.set(new_change_reason)
-                            }
-                        />
                     </div>
-
-                    <div class="flex flex-wrap gap-x-10 gap-y-5">
-                        <div class="flex flex-col gap-5">
-                            <div class="form-control">
-                                <Label title="Dimension Type" />
-                                <Dropdown
-                                    disabled=edit
-                                    dropdown_width="w-100"
-                                    dropdown_icon="".to_string()
-                                    dropdown_text=dimension_type_rs.get().to_string()
-                                    dropdown_direction=DropdownDirection::Down
-                                    dropdown_btn_type=DropdownBtnType::Select
-                                    dropdown_options=DimensionTypeOptions::iter().collect()
-                                    on_select=Callback::new(move |
-                                        selected_item: DimensionTypeOptions|
-                                    {
-                                        logging::log!("selected item {}", selected_item);
-                                        if selected_item == DimensionTypeOptions::LocalCohort {
-                                            dimension_schema_ws
-                                                .set(
-                                                    serde_json::to_value(CohortSchemaFormat::default())
-                                                        .unwrap_or_default(),
-                                                );
-                                        } else {
-                                            dimension_schema_ws.set(Value::Null);
-                                            dimension_type_template_ws.set(String::new());
-                                        }
-                                        if selected_item == DimensionTypeOptions::Regular {
-                                            cohort_based_on_ws.set(String::new());
-                                        }
-                                        dimension_type_ws.set(selected_item);
-                                    })
-                                />
-                            </div>
-                            <div class="form-control">
-                                <Label title="Position" />
-                                <input
-                                    type="Number"
-                                    min=0
-                                    placeholder="Position"
-                                    class="input input-bordered w-full max-w-md"
-                                    value=position_rs.get()
-                                    on:keypress=move |ev| {
-                                        let char_code = ev.char_code();
-                                        if char_code != 0 && char_code != 8 && char_code != 13
-                                            && !(char_code >= 48 && char_code <= 57)
+                    <Suspense fallback=move || {
+                        view! {
+                            <Skeleton
+                                variant=SkeletonVariant::Block
+                                style_class="h-[200px] max-w-md w-full"
+                            />
+                        }
+                    }>
+                        {move || {
+                            view! {
+                                <div class="flex flex-col gap-5">
+                                    <Show when=move || {
+                                        !matches!(
+                                            dimension_type_rs.get(),
+                                            DimensionTypeOptions::Regular
+                                        )
+                                    }>
                                         {
-                                            ev.prevent_default();
-                                        }
-                                    }
-                                    on:change=move |ev| {
-                                        logging::log!(
-                                            "{:?}", event_target_value(& ev).parse::< u32 > ()
-                                        );
-                                        match event_target_value(&ev).parse::<u32>() {
-                                            Ok(i_prio) => position_ws.set(i_prio),
-                                            Err(e) => {
-                                                position_ws.set(0);
-                                                logging::log!("{e}");
+                                            let dimension_name = dimension_name_rs.get();
+                                            let dimension_options = combined_resources
+                                                .with(|c| c.as_ref().map(|c| c.dimensions.clone()))
+                                                .unwrap_or_default()
+                                                .iter()
+                                                .filter_map(|d| {
+                                                    (d.dimension != dimension_name
+                                                        && !matches!(
+                                                            d.dimension_type,
+                                                            DimensionType::LocalCohort(_)
+                                                        ))
+                                                        .then_some(d.dimension.clone())
+                                                })
+                                                .collect::<Vec<_>>();
+                                            let dimension_options = StoredValue::new(dimension_options);
+                                            let current_cohort = cohort_based_on_rs.get();
+                                            let dropdown_text = if current_cohort.is_empty() {
+                                                "choose a dimension".into()
+                                            } else {
+                                                current_cohort
+                                            };
+
+                                            view! {
+                                                <div class="form-control">
+                                                    <Label title="Derived from" />
+                                                    <Dropdown
+                                                        disabled=edit
+                                                        dropdown_text
+                                                        dropdown_direction=DropdownDirection::Down
+                                                        dropdown_btn_type=DropdownBtnType::Select
+                                                        dropdown_options=dimension_options.get_value()
+                                                        on_select=move |selected_item: String| {
+                                                            logging::log!("selected item {:?}", selected_item);
+                                                            if cohort_based_on_rs.get() != selected_item
+                                                                && dimension_type_rs.get()
+                                                                    == DimensionTypeOptions::LocalCohort
+                                                            {
+                                                                dimension_schema_ws
+                                                                    .set(
+                                                                        serde_json::to_value(CohortSchemaFormat::default())
+                                                                            .unwrap_or_default(),
+                                                                    );
+                                                            }
+                                                            cohort_based_on_ws.set(selected_item);
+                                                        }
+                                                    />
+                                                </div>
                                             }
-                                        };
-                                    }
-                                />
-                            </div>
-                        </div>
-                        <Suspense>
-                            {move || {
-                                view! {
-                                    <div class="flex flex-col gap-5">
-                                        <Show when=move || {
-                                            !matches!(
-                                                dimension_type_rs.get(),
-                                                DimensionTypeOptions::Regular
-                                            )
-                                        }>
-                                            {
-                                                let dimension_name = dimension_name_rs.get();
-                                                let dimension_options = combined_resources
+                                        }
+                                    </Show>
+                                    {move || {
+                                        match dimension_type_rs.get() {
+                                            DimensionTypeOptions::LocalCohort => {
+                                                let cohort_based_on_name = cohort_based_on_rs.get();
+                                                let cohort_based_on = combined_resources
                                                     .with(|c| c.as_ref().map(|c| c.dimensions.clone()))
                                                     .unwrap_or_default()
                                                     .iter()
-                                                    .filter_map(|d| {
-                                                        (d.dimension != dimension_name
-                                                            && !matches!(
-                                                                d.dimension_type,
-                                                                DimensionType::LocalCohort(_)
-                                                            ))
-                                                            .then_some(d.dimension.clone())
-                                                    })
-                                                    .collect::<Vec<_>>();
-                                                let dimension_options = StoredValue::new(dimension_options);
-                                                let current_cohort = cohort_based_on_rs.get();
-                                                let dropdown_text = if current_cohort.is_empty() {
-                                                    "choose a dimension".into()
+                                                    .find(|d| d.dimension == cohort_based_on_name)
+                                                    .cloned();
+                                                let Some(cohort_based_on) = cohort_based_on else {
+                                                    return ().into_view();
+                                                };
+
+                                                view! {
+                                                    <CohortSchema
+                                                        dimension_schema=dimension_schema_rs.get_untracked()
+                                                        on_change=move |new_schema| {
+                                                            dimension_schema_ws.set(new_schema);
+                                                        }
+                                                        cohort_based_on
+                                                    />
+                                                }
+                                            }
+                                            DimensionTypeOptions::Regular
+                                            | DimensionTypeOptions::RemoteCohort => {
+                                                let options = combined_resources
+                                                    .with(|c| c.as_ref().map(|c| c.type_templates.clone()))
+                                                    .unwrap_or_default();
+                                                let dimension_t = if dimension_type_template_rs
+                                                    .get()
+                                                    .is_empty() && edit
+                                                {
+                                                    "change current type template".into()
+                                                } else if dimension_type_template_rs.get().is_empty()
+                                                    && !edit
+                                                {
+                                                    "choose a type template".into()
                                                 } else {
-                                                    current_cohort
+                                                    dimension_type_template_rs.get()
+                                                };
+                                                let dimension_type_schema = SchemaType::Single(
+                                                    JsonSchemaType::from(&dimension_schema_rs.get()),
+                                                );
+                                                let monaco_margin = if matches!(
+                                                    dimension_type_rs.get(),
+                                                    DimensionTypeOptions::LocalCohort
+                                                ) {
+                                                    ""
+                                                } else {
+                                                    "mt-3"
                                                 };
 
                                                 view! {
                                                     <div class="form-control">
-                                                        <Label title="Derived from" />
+                                                        <Label title="Set Schema" />
                                                         <Dropdown
-                                                            disabled=edit
-                                                            dropdown_text
+                                                            dropdown_width="w-100"
+                                                            dropdown_icon="".to_string()
+                                                            dropdown_text=dimension_t
                                                             dropdown_direction=DropdownDirection::Down
                                                             dropdown_btn_type=DropdownBtnType::Select
-                                                            dropdown_options=dimension_options.get_value()
-                                                            on_select=move |selected_item: String| {
+                                                            dropdown_options=options
+                                                            on_select=move |selected_item: TypeTemplate| {
                                                                 logging::log!("selected item {:?}", selected_item);
-                                                                if cohort_based_on_rs.get() != selected_item
-                                                                    && dimension_type_rs.get()
-                                                                        == DimensionTypeOptions::LocalCohort
-                                                                {
-                                                                    dimension_schema_ws
-                                                                        .set(
-                                                                            serde_json::to_value(CohortSchemaFormat::default())
-                                                                                .unwrap_or_default(),
-                                                                        );
-                                                                }
-                                                                cohort_based_on_ws.set(selected_item);
+                                                                dimension_type_template_ws.set(selected_item.type_name);
+                                                                dimension_schema_ws
+                                                                    .set(Value::from(selected_item.type_schema));
                                                             }
                                                         />
+                                                        <EditorProvider>
+                                                            <Input
+                                                                id="type-schema"
+                                                                class=format!(
+                                                                    "{monaco_margin} rounded-md resize-y w-full max-w-md pt-3",
+                                                                )
+                                                                schema_type=dimension_type_schema
+                                                                value=dimension_schema_rs.get_untracked()
+                                                                on_change=move |new_type_schema| {
+                                                                    dimension_schema_ws.set(new_type_schema)
+                                                                }
+                                                                r#type=InputType::Monaco(vec![])
+                                                                disabled=matches!(
+                                                                    dimension_type_rs.get(),
+                                                                    DimensionTypeOptions::LocalCohort
+                                                                )
+                                                            />
+                                                        </EditorProvider>
                                                     </div>
                                                 }
+                                                    .into_view()
                                             }
-                                        </Show>
-                                        {move || {
-                                            match dimension_type_rs.get() {
-                                                DimensionTypeOptions::LocalCohort => {
-                                                    let cohort_based_on_name = cohort_based_on_rs.get();
-                                                    let cohort_based_on = combined_resources
-                                                        .with(|c| c.as_ref().map(|c| c.dimensions.clone()))
-                                                        .unwrap_or_default()
-                                                        .iter()
-                                                        .find(|d| d.dimension == cohort_based_on_name)
-                                                        .cloned();
-                                                    let Some(cohort_based_on) = cohort_based_on else {
-                                                        return ().into_view();
-                                                    };
-
-                                                    view! {
-                                                        <CohortSchema
-                                                            dimension_schema=dimension_schema_rs.get_untracked()
-                                                            on_change=move |new_schema| {
-                                                                dimension_schema_ws.set(new_schema);
-                                                            }
-                                                            cohort_based_on
-                                                        />
-                                                    }
-                                                }
-                                                DimensionTypeOptions::Regular
-                                                | DimensionTypeOptions::RemoteCohort => {
-                                                    let options = combined_resources
-                                                        .with(|c| c.as_ref().map(|c| c.type_templates.clone()))
-                                                        .unwrap_or_default();
-                                                    let dimension_t = if dimension_type_template_rs
-                                                        .get()
-                                                        .is_empty() && edit
-                                                    {
-                                                        "change current type template".into()
-                                                    } else if dimension_type_template_rs.get().is_empty()
-                                                        && !edit
-                                                    {
-                                                        "choose a type template".into()
-                                                    } else {
-                                                        dimension_type_template_rs.get()
-                                                    };
-                                                    let dimension_type_schema = SchemaType::Single(
-                                                        JsonSchemaType::from(&dimension_schema_rs.get()),
-                                                    );
-                                                    let monaco_margin = if matches!(
-                                                        dimension_type_rs.get(),
-                                                        DimensionTypeOptions::LocalCohort
-                                                    ) {
-                                                        ""
-                                                    } else {
-                                                        "mt-3"
-                                                    };
-
-                                                    view! {
-                                                        <div class="form-control">
-                                                            <Label title="Set Schema" />
-                                                            <Dropdown
-                                                                dropdown_width="w-100"
-                                                                dropdown_icon="".to_string()
-                                                                dropdown_text=dimension_t
-                                                                dropdown_direction=DropdownDirection::Down
-                                                                dropdown_btn_type=DropdownBtnType::Select
-                                                                dropdown_options=options
-                                                                on_select=move |selected_item: TypeTemplate| {
-                                                                    logging::log!("selected item {:?}", selected_item);
-                                                                    dimension_type_template_ws.set(selected_item.type_name);
-                                                                    dimension_schema_ws
-                                                                        .set(Value::from(selected_item.type_schema));
-                                                                }
-                                                            />
-                                                            <EditorProvider>
-                                                                <Input
-                                                                    id="type-schema"
-                                                                    class=format!(
-                                                                        "{monaco_margin} rounded-md resize-y w-full max-w-md pt-3",
-                                                                    )
-                                                                    schema_type=dimension_type_schema
-                                                                    value=dimension_schema_rs.get_untracked()
-                                                                    on_change=move |new_type_schema| {
-                                                                        dimension_schema_ws.set(new_type_schema)
-                                                                    }
-                                                                    r#type=InputType::Monaco(vec![])
-                                                                    disabled=matches!(
-                                                                        dimension_type_rs.get(),
-                                                                        DimensionTypeOptions::LocalCohort
-                                                                    )
-                                                                />
-                                                            </EditorProvider>
-                                                        </div>
-                                                    }
-                                                        .into_view()
-                                                }
-                                            }
-                                        }}
-                                    </div>
-                                }
-                            }}
-                        </Suspense>
-                    </div>
-
-                    <Suspense fallback=move || {
-                        view! { <Skeleton variant=SkeletonVariant::Block style_class="h-10" /> }
-                    }>
-                        {move || {
-                            let mut functions = combined_resources
-                                .with(|c| c.as_ref().map(|c| c.functions.clone()))
-                                .unwrap_or_default();
-                            functions.sort_by(|a, b| a.function_name.cmp(&b.function_name));
-                            let validation_function_names = get_fn_names_by_type(
-                                &functions,
-                                FunctionType::ValueValidation,
-                            );
-                            let value_compute_function_names = get_fn_names_by_type(
-                                &functions,
-                                FunctionType::ValueCompute,
-                            );
-
-                            view! {
-                                <div class="flex flex-wrap gap-x-10 gap-y-5">
-                                    <div class="form-control">
-                                        <Label
-                                            title="Validation Function"
-                                            description="Function to add validation logic to your dimension"
-                                        />
-                                        <Dropdown
-                                            dropdown_width="w-100"
-                                            dropdown_icon="".to_string()
-                                            dropdown_text=validation_fn_name_rs
-                                                .get()
-                                                .map_or("Add Function".to_string(), |v| v.to_string())
-                                            dropdown_direction=DropdownDirection::Down
-                                            dropdown_btn_type=DropdownBtnType::Select
-                                            dropdown_options=validation_function_names
-                                            on_select=handle_validation_fn_select
-                                        />
-                                    </div>
-
-                                    <div class="form-control">
-                                        <Label
-                                            title="Value Compute Function"
-                                            description="Function to add value compute suggestion to your dimension"
-                                        />
-                                        <Dropdown
-                                            dropdown_width="w-100"
-                                            dropdown_icon="".to_string()
-                                            dropdown_text=value_compute_function_name_rs
-                                                .get()
-                                                .map_or("Add Function".to_string(), |v| v.to_string())
-                                            dropdown_direction=DropdownDirection::Down
-                                            dropdown_btn_type=DropdownBtnType::Select
-                                            dropdown_options=value_compute_function_names
-                                            on_select=handle_value_compute_fn_select
-                                        />
-                                    </div>
+                                        }
+                                    }}
                                 </div>
                             }
                         }}
                     </Suspense>
-                    <p class="text-red-500">{move || error_message.get()}</p>
                 </div>
-            </form>
-        </Suspense>
+
+                <Suspense fallback=move || {
+                    view! {
+                        <Skeleton variant=SkeletonVariant::Block style_class="h-20 max-w-[936px]" />
+                    }
+                }>
+                    {move || {
+                        let mut functions = combined_resources
+                            .with(|c| c.as_ref().map(|c| c.functions.clone()))
+                            .unwrap_or_default();
+                        functions.sort_by(|a, b| a.function_name.cmp(&b.function_name));
+                        let validation_function_names = get_fn_names_by_type(
+                            &functions,
+                            FunctionType::ValueValidation,
+                        );
+                        let value_compute_function_names = get_fn_names_by_type(
+                            &functions,
+                            FunctionType::ValueCompute,
+                        );
+
+                        view! {
+                            <div class="flex flex-wrap gap-x-10 gap-y-5">
+                                <div class="form-control">
+                                    <Label
+                                        title="Validation Function"
+                                        description="Function to add validation logic to your dimension"
+                                    />
+                                    <Dropdown
+                                        dropdown_width="w-100"
+                                        dropdown_icon="".to_string()
+                                        dropdown_text=validation_fn_name_rs
+                                            .get()
+                                            .map_or("Add Function".to_string(), |v| v.to_string())
+                                        dropdown_direction=DropdownDirection::Down
+                                        dropdown_btn_type=DropdownBtnType::Select
+                                        dropdown_options=validation_function_names
+                                        on_select=handle_validation_fn_select
+                                    />
+                                </div>
+
+                                <div class="form-control">
+                                    <Label
+                                        title="Value Compute Function"
+                                        description="Function to add value compute suggestion to your dimension"
+                                    />
+                                    <Dropdown
+                                        dropdown_width="w-100"
+                                        dropdown_icon="".to_string()
+                                        dropdown_text=value_compute_function_name_rs
+                                            .get()
+                                            .map_or("Add Function".to_string(), |v| v.to_string())
+                                        dropdown_direction=DropdownDirection::Down
+                                        dropdown_btn_type=DropdownBtnType::Select
+                                        dropdown_options=value_compute_function_names
+                                        on_select=handle_value_compute_fn_select
+                                    />
+                                </div>
+                            </div>
+                        }
+                    }}
+                </Suspense>
+                <p class="text-red-500">{move || error_message.get()}</p>
+            </div>
+        </form>
         {move || match update_request_rws.get() {
             None => ().into_view(),
             Some((dimension_name, update_request)) => {
@@ -651,7 +652,7 @@ pub fn ChangeLogSummary(
             inprogress
         >
             <Suspense fallback=move || {
-                view! { <Skeleton variant=SkeletonVariant::Block style_class="h-10".to_string() /> }
+                view! { <Skeleton variant=SkeletonVariant::Block style_class="h-10" /> }
             }>
                 {
                     Effect::new(move |_| {

@@ -21,11 +21,18 @@ use crate::pages::secrets_list::SecretsList;
 use crate::pages::variable::Variable;
 use crate::pages::variables_list::VariablesList;
 use crate::pages::{
-    audit_log::AuditLog, context_override::ContextOverride,
-    default_config::DefaultConfig, default_config_list::DefaultConfigList,
-    experiment::ExperimentPage, home::Home, organisations::Organisations,
-    type_template::TypePage, type_templates::TypesPage, webhook::Webhook,
-    webhooks::Webhooks, workspace::Workspace,
+    audit_log::AuditLog,
+    context_override::ContextOverride,
+    default_config::{CreateDefaultConfig, DefaultConfig, EditDefaultConfig},
+    default_config_list::DefaultConfigList,
+    experiment::ExperimentPage,
+    home::Home,
+    organisations::Organisations,
+    type_template::TypePage,
+    type_templates::TypesPage,
+    webhook::Webhook,
+    webhooks::Webhooks,
+    workspace::Workspace,
 };
 use crate::types::Envs;
 
@@ -135,7 +142,11 @@ pub fn App(app_envs: Envs) -> impl IntoView {
 
                     <Route ssr=SsrMode::Async path="/admin/:org_id/:workspace" view=Layout>
                         <Route ssr=SsrMode::Async path="dimensions" view=Dimensions />
-                        <Route ssr=SsrMode::Async path="dimensions/create" view=CreateDimension />
+                        <Route
+                            ssr=SsrMode::Async
+                            path="dimensions/action/create"
+                            view=CreateDimension
+                        />
                         <Route
                             ssr=SsrMode::Async
                             path="dimensions/:dimension_name/edit"
@@ -148,7 +159,11 @@ pub fn App(app_envs: Envs) -> impl IntoView {
                         />
 
                         <Route ssr=SsrMode::Async path="function" view=FunctionList />
-                        <Route ssr=SsrMode::Async path="function/create" view=CreateFunctionView />
+                        <Route
+                            ssr=SsrMode::Async
+                            path="function/action/create"
+                            view=CreateFunctionView
+                        />
                         <Route
                             ssr=SsrMode::Async
                             path="function/:function_name"
@@ -170,6 +185,16 @@ pub fn App(app_envs: Envs) -> impl IntoView {
                         />
 
                         <Route ssr=SsrMode::Async path="default-config" view=DefaultConfigList />
+                        <Route
+                            ssr=SsrMode::Async
+                            path="default-config/action/create"
+                            view=CreateDefaultConfig
+                        />
+                        <Route
+                            ssr=SsrMode::Async
+                            path="default-config/:config_key/edit"
+                            view=EditDefaultConfig
+                        />
                         <Route
                             ssr=SsrMode::Async
                             path="default-config/:config_key"

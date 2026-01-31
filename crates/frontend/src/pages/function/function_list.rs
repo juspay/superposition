@@ -79,7 +79,7 @@ pub fn FunctionList() -> impl IntoView {
                         <div class="flex justify-between">
                             <Stat heading="Functions" icon="ri-code-box-fill" number=total_items />
                             <ButtonAnchor
-                                href="create"
+                                href="action/create"
                                 text="Create Function"
                                 class="self-end h-10"
                                 icon_class="ri-add-line"

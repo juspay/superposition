@@ -5,12 +5,6 @@ use superposition_types::{
     api::{
         config::{ConfigQuery, ResolveConfigQuery},
         context::ContextListFilters,
-        default_config::DefaultConfigFilters,
-        dimension::DimensionResponse,
-        experiment_groups::{
-            ExpGroupCreateRequest, ExpGroupFilters, ExpGroupMemberRequest,
-            ExpGroupUpdateRequest,
-        },
         experiments::{
             ExperimentListFilters, ExperimentResponse, ExperimentStateChangeRequest,
         },
@@ -18,49 +12,19 @@ use superposition_types::{
             FunctionEnvironment, FunctionExecutionRequest, FunctionExecutionResponse,
             KeyType, ListFunctionFilters, Stage,
         },
-        variables::{CreateVariableRequest, UpdateVariableRequest},
         webhook::{CreateWebhookRequest, UpdateWebhookRequest, WebhookName},
-        workspace::{CreateWorkspaceRequest, UpdateWorkspaceRequest, WorkspaceResponse},
     },
     custom_query::{DimensionQuery, PaginationParams, QueryMap, QueryParam},
     database::models::{
-        ChangeReason, Description, Metrics, NonEmptyString, WorkspaceStatus,
-        cac::{Context, DefaultConfig, Function, TypeTemplate},
-        experimentation::ExperimentGroup,
+        ChangeReason, Description, Metrics, NonEmptyString,
+        cac::{Context, Function, TypeTemplate},
         others::{CustomHeaders, HttpMethod, PayloadVersion, Webhook, WebhookEvent},
-        others::{Variable, VariableName},
     },
 };
 
 use crate::utils::{
     construct_request_headers, parse_json_response, request, use_host_server,
 };
-
-// #[server(GetDefaultConfig, "/fxn", "GetJson")]
-pub async fn fetch_default_config(
-    pagination: &PaginationParams,
-    filters: &DefaultConfigFilters,
-    workspace: &str,
-    org_id: &str,
-) -> Result<PaginatedResponse<DefaultConfig>, String> {
-    let host = use_host_server();
-    let url = format!(
-        "{}/default-config?{}&{}",
-        host,
-        pagination.to_query_param(),
-        filters.to_query_param()
-    );
-
-    let response = request(
-        url,
-        reqwest::Method::GET,
-        None::<()>,
-        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
-    )
-    .await?;
-
-    parse_json_response(response).await
-}
 
 pub mod snapshots {
     use superposition_types::database::models::cac::{
@@ -117,7 +81,9 @@ pub mod snapshots {
 pub mod dimensions {
     use superposition_types::{
         ExtendedMap,
-        api::dimension::{CreateRequest, DimensionName, UpdateRequest},
+        api::dimension::{
+            CreateRequest, DimensionName, DimensionResponse, UpdateRequest,
+        },
         database::models::cac::{DimensionType, Position},
     };
 
@@ -415,23 +381,84 @@ pub async fn fetch_experiment(
     parse_json_response(response).await
 }
 
-pub async fn delete_default_config(
-    key: String,
-    workspace: &str,
-    org_id: &str,
-) -> Result<(), String> {
-    let host = use_host_server();
-    let url = format!("{host}/default-config/{key}");
+pub mod default_configs {
+    use superposition_types::{
+        api::default_config::DefaultConfigFilters, database::models::cac::DefaultConfig,
+    };
 
-    request(
-        url,
-        reqwest::Method::DELETE,
-        None::<()>,
-        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
-    )
-    .await?;
+    use super::*;
 
-    Ok(())
+    pub async fn get(
+        key_name: &str,
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<DefaultConfig, String> {
+        let host = use_host_server();
+        let url = format!("{host}/default-config/{key_name}");
+
+        let response = request(
+            url,
+            reqwest::Method::GET,
+            None::<()>,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn delete(
+        key: String,
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<(), String> {
+        let host = use_host_server();
+        let url = format!("{host}/default-config/{key}");
+
+        request(
+            url,
+            reqwest::Method::DELETE,
+            None::<()>,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
+        )
+        .await?;
+
+        Ok(())
+    }
+
+    pub async fn fetch(
+        pagination: &PaginationParams,
+        filters: &DefaultConfigFilters,
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<PaginatedResponse<DefaultConfig>, String> {
+        let host = use_host_server();
+        let url = format!(
+            "{}/default-config?{}&{}",
+            host,
+            pagination.to_query_param(),
+            filters.to_query_param()
+        );
+
+        let response = request(
+            url,
+            reqwest::Method::GET,
+            None::<()>,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
 }
 
 pub async fn fetch_organisations() -> Result<Vec<String>, String> {
@@ -464,7 +491,13 @@ pub async fn fetch_types(
 }
 
 pub mod workspaces {
-    use superposition_types::api::workspace::KeyRotationResponse;
+    use superposition_types::{
+        api::workspace::{
+            CreateWorkspaceRequest, KeyRotationResponse, UpdateWorkspaceRequest,
+            WorkspaceResponse,
+        },
+        database::models::WorkspaceStatus,
+    };
 
     use super::*;
 
@@ -843,25 +876,6 @@ pub async fn execute_value_compute_function(
     Ok(result)
 }
 
-pub async fn get_default_config(
-    key_name: &str,
-    workspace: &str,
-    org_id: &str,
-) -> Result<DefaultConfig, String> {
-    let host = use_host_server();
-    let url = format!("{host}/default-config/{key_name}");
-
-    let response = request(
-        url,
-        reqwest::Method::GET,
-        None::<()>,
-        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
-    )
-    .await?;
-
-    parse_json_response(response).await
-}
-
 pub async fn get_type_template(
     name: &str,
     workspace: &str,
@@ -901,8 +915,10 @@ pub async fn get_webhook(
 }
 
 pub mod variables {
-
-    use superposition_types::api::variables::VariableFilters;
+    use superposition_types::{
+        api::variables::{CreateVariableRequest, UpdateVariableRequest, VariableFilters},
+        database::models::others::{Variable, VariableName},
+    };
 
     use super::*;
 
@@ -1172,7 +1188,12 @@ pub mod secrets {
 
 pub mod experiment_groups {
     use superposition_types::{
-        Condition, Exp, database::models::experimentation::TrafficPercentage,
+        Condition, Exp,
+        api::experiment_groups::{
+            ExpGroupCreateRequest, ExpGroupFilters, ExpGroupMemberRequest,
+            ExpGroupUpdateRequest,
+        },
+        database::models::experimentation::{ExperimentGroup, TrafficPercentage},
     };
 
     use crate::logic::Conditions;
