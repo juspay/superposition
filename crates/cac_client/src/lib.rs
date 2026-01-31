@@ -18,7 +18,7 @@ use mini_moka::sync::Cache;
 use reqwest::{RequestBuilder, Response, StatusCode};
 use serde_json::{Map, Value};
 pub use superposition_types::api::config::MergeStrategy;
-use superposition_types::{Config, Context};
+use superposition_types::{Config, Context, ExtendedMap};
 use tokio::sync::RwLock;
 use utils::{core::MapError, json_to_sorted_string};
 
@@ -213,12 +213,12 @@ impl Client {
     pub async fn get_default_config(
         &self,
         filter_keys: Option<Vec<String>>,
-    ) -> Result<Map<String, Value>, String> {
+    ) -> Result<ExtendedMap, String> {
         let configs = self.config.read().await;
-        let mut default_configs = (*configs.default_configs).clone();
-        if let Some(keys) = filter_keys {
-            default_configs = configs.filter_default_by_prefix(&HashSet::from_iter(keys));
-        }
+        let default_configs = match filter_keys {
+            Some(keys) => configs.filter_default_by_prefix(&HashSet::from_iter(keys)),
+            _ => configs.default_configs.clone(),
+        };
         Ok(default_configs)
     }
 }
