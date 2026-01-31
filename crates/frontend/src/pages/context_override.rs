@@ -31,7 +31,7 @@ use wasm_bindgen::JsCast;
 use web_sys::{Element, Event};
 
 use crate::{
-    api::{delete_context, dimensions, fetch_context, fetch_default_config, get_context},
+    api::{default_configs, delete_context, dimensions, fetch_context, get_context},
     components::{
         alert::AlertType,
         button::{Button, ButtonStyle},
@@ -436,7 +436,7 @@ pub fn ContextOverride() -> impl IntoView {
                     &org_id,
                 ),
                 dimensions::fetch(&empty_list_filters, &workspace, &org_id),
-                fetch_default_config(
+                default_configs::fetch(
                     &empty_list_filters,
                     &default_config_filters,
                     &workspace,

@@ -124,7 +124,7 @@ pub fn Dimensions() -> impl IntoView {
                                 class="self-end h-10"
                                 text="Create Dimension"
                                 icon_class="ri-add-line"
-                                href="create"
+                                href="action/create"
                             />
                         </div>
                         <div class="card w-full bg-base-100 rounded-xl overflow-hidden shadow">

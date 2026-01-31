@@ -21,7 +21,7 @@ use superposition_types::{
 use utils::experiment_table_columns;
 
 use crate::{
-    api::{dimensions, fetch_default_config, fetch_experiments},
+    api::{default_configs, dimensions, fetch_experiments},
     components::{
         drawer::{Drawer, DrawerBtn, close_drawer},
         experiment_form::ExperimentForm,
@@ -92,7 +92,7 @@ pub fn ExperimentList() -> impl IntoView {
             );
             let dimensions_future =
                 dimensions::fetch(&fetch_all_filters, &workspace, &org_id);
-            let config_future = fetch_default_config(
+            let config_future = default_configs::fetch(
                 &fetch_all_filters,
                 &default_config_filters,
                 &workspace,
