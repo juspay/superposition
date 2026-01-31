@@ -17,7 +17,7 @@ use crate::{
     components::{
         alert::AlertType,
         button::Button,
-        condition_pills::Condition as ConditionComponent,
+        condition_pills::Condition,
         context_form::ContextForm,
         skeleton::{Skeleton, SkeletonVariant},
         table::{
@@ -71,10 +71,11 @@ fn table_columns(
                         }
                     />
                     <ConditionCollapseProvider>
-                        <ConditionComponent
+                        <Condition
                             conditions
                             id=column.get_value()
                             grouped_view=false
+                            resolve_summary=true
                             class="xl:w-[400px] h-fit"
                         />
                     </ConditionCollapseProvider>
@@ -188,7 +189,7 @@ pub fn compare_overrides() -> impl IntoView {
     );
 
     let fn_environment = Memo::new(move |_| FunctionEnvironment {
-        context: context_rs.get().as_context_json(),
+        context: context_rs.get().into(),
         overrides: Map::new(),
     });
 
@@ -268,7 +269,7 @@ pub fn compare_overrides() -> impl IntoView {
                                                 req_inprogress_ws.set(false);
                                                 return;
                                             }
-                                            let context = context.as_resolve_context();
+                                            let context = Map::from(context);
                                             let query = Value::Object(context.clone()).to_string();
                                             context_vec_rws
                                                 .update(|value| {

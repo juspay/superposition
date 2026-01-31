@@ -103,12 +103,7 @@ pub fn experiment_list() -> impl IntoView {
             // Construct the combined result, handling errors as needed
             CombinedResource {
                 experiments: experiments_result.unwrap_or_default(),
-                dimensions: dimensions_result
-                    .unwrap_or_default()
-                    .data
-                    .into_iter()
-                    .filter(|d| d.dimension != "variantIds")
-                    .collect(),
+                dimensions: dimensions_result.unwrap_or_default().data,
                 default_config: config_result.unwrap_or_default().data,
             }
         },
