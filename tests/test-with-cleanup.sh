@@ -12,10 +12,18 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         --org-pattern)
+            if [[ -z "$2" || "$2" == --* ]]; then
+                echo "Error: --org-pattern requires a value"
+                exit 1
+            fi
             ORG_PATTERN="$2"
             shift 2
             ;;
         --workspace)
+            if [[ -z "$2" || "$2" == --* ]]; then
+                echo "Error: --workspace requires a value"
+                exit 1
+            fi
             WORKSPACE_NAME="$2"
             shift 2
             ;;
