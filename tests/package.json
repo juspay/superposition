@@ -14,6 +14,6 @@
   "scripts": {
     "test": "bun test",
     "test:clean": "./test-with-cleanup.sh",
-    "cleanup": "./test-with-cleanup.sh --cleanup-only"
+    "cleanup": "./test-with-cleanup.sh --cleanup-only --org-pattern \"org%\""
   }
 }
