@@ -36,9 +36,27 @@ pub struct DiffData {
     pub new_data: Map<String, Value>,
 }
 
+fn sort_callback(
+    filters_rws: RwSignal<AuditQueryFilters>,
+    pagination_params_rws: RwSignal<PaginationParams>,
+) -> Callback<()> {
+    Callback::new(move |_| {
+        let filters = filters_rws.get();
+        let sort_by = filters.sort_by.unwrap_or_default().flip();
+
+        let new_filters = AuditQueryFilters {
+            sort_by: Some(sort_by),
+            ..filters
+        };
+        pagination_params_rws.update(|f| f.reset_page());
+        filters_rws.set(new_filters);
+    })
+}
+
 fn audit_log_table_columns(
     filters_rws: RwSignal<AuditQueryFilters>,
     diff_data_rws: RwSignal<Option<DiffData>>,
+    pagination_params_rws: RwSignal<PaginationParams>,
 ) -> Vec<Column> {
     let current_sort_by = filters_rws.with(|f| f.sort_by.clone().unwrap_or_default());
 
@@ -58,15 +76,7 @@ fn audit_log_table_columns(
                 view! { <DatetimeStr datetime=value.into() /> }
             },
             ColumnSortable::Yes {
-                sort_fn: Callback::new(move |_| {
-                    let filters = filters_rws.get();
-                    let sort_by = filters.sort_by.unwrap_or_default().flip();
-                    let new_filters = AuditQueryFilters {
-                        sort_by: Some(sort_by),
-                        ..filters
-                    };
-                    filters_rws.set(new_filters);
-                }),
+                sort_fn: sort_callback(filters_rws, pagination_params_rws),
                 sort_by: current_sort_by.clone(),
                 currently_sorted: true,
             },
@@ -230,7 +240,11 @@ pub fn AuditLog() -> impl IntoView {
                                     class="!overflow-y-auto"
                                     rows=table_rows
                                     key_column="id"
-                                    columns=audit_log_table_columns(filters_rws, diff_data_rws)
+                                    columns=audit_log_table_columns(
+                                        filters_rws,
+                                        diff_data_rws,
+                                        pagination_params_rws,
+                                    )
                                     pagination=pagination_props
                                 />
                             </div>

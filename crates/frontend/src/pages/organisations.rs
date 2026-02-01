@@ -2,9 +2,11 @@ use leptos::*;
 use serde_json::{Map, Value};
 use web_sys::{Crypto, MouseEvent};
 
-use crate::api::{fetch_organisations, master_encryption_key};
+use crate::api::fetch_organisations;
 use crate::components::alert::AlertType;
 use crate::components::button::Button;
+use crate::components::form::label::Label;
+use crate::components::key_rotation_modal::MasterKeyRotationModal;
 use crate::components::modal::PortalModal;
 use crate::components::table::types::{Expandable, default_column_formatter};
 use crate::components::{
@@ -18,6 +20,56 @@ use crate::components::{
 use crate::providers::alert_provider::enqueue_alert;
 use crate::utils::use_url_base;
 
+fn key_generation_instructions() -> [View; 5] {
+    [
+        view! {
+            "Copy this key immediately - it will "
+            <strong>"NOT"</strong>
+            " be shown again."
+        }
+        .into_view(),
+        view! { "Store it securely in your secrets manager." }.into_view(),
+        view! {
+            <p>"Set it as environment variable:"</p>
+            <code class="block mt-1 p-2 bg-base-300 rounded text-xs font-mono">
+                "MASTER_ENCRYPTION_KEY=<key>"
+            </code>
+        }
+        .into_view(),
+        view! { "Restart the service for the key to take effect." }.into_view(),
+        view! {
+            "Run the "
+            <code class="px-1 py-0.5 bg-base-300 rounded text-xs font-mono">"db/migrate"</code>
+            " endpoint for each workspace to initialize workspace-level encryption keys."
+        }
+        .into_view(),
+    ]
+}
+
+fn try_generate_master_key() -> Option<String> {
+    let mut key_bytes = [0u8; 32];
+    web_sys::window()
+        .and_then(|win| win.crypto().ok())
+        .and_then(|c| {
+            Crypto::get_random_values_with_u8_array(&c, &mut key_bytes)
+                .map_err(|e| logging::log!("Error from crypto {e:?}"))
+                .ok()
+        })
+        .and_then(|_| {
+            web_sys::window().and_then(|win| {
+                let u16_array: Vec<u16> =
+                    key_bytes.into_iter().map(|b| b as u16).collect::<Vec<_>>();
+                win.btoa(
+                    &js_sys::JsString::from_char_code(&u16_array)
+                        .as_string()
+                        .unwrap_or_default(),
+                )
+                .map_err(|e| logging::log!("Error from btoa {e:?}"))
+                .ok()
+            })
+        })
+}
+
 #[component]
 pub fn Organisations() -> impl IntoView {
     let base = use_url_base();
@@ -27,60 +79,20 @@ pub fn Organisations() -> impl IntoView {
         |_| async { fetch_organisations().await.unwrap_or_default() },
     );
 
-    let (generated_key, set_generated_key) = create_signal::<Option<String>>(None);
-    let (is_generating, set_is_generating) = create_signal(false);
-    let (show_master_key_generate_modal, set_show_master_key_generate_modal) =
-        create_signal(false);
+    let key_generation_rws = RwSignal::new(None);
+    let show_master_rotation_modal = RwSignal::new(false);
 
-    let generate_master_key_action = create_action(move |_: &()| async move {
-        set_is_generating.set(true);
-        set_generated_key.set(None);
-
-        let mut keyBytes = [0u8; 32];
-        let result = web_sys::window()
-            .and_then(|win| win.crypto().ok())
-            .and_then(|c| {
-                Crypto::get_random_values_with_u8_array(&c, &mut keyBytes)
-                    .map_err(|e| logging::log!("Error from crypto {e:?}"))
-                    .ok()
-            })
-            .and_then(|_| {
-                web_sys::window().and_then(|win| {
-                    let u16_array: Vec<u16> =
-                        keyBytes.into_iter().map(|b| b as u16).collect::<Vec<_>>();
-                    win.btoa(
-                        &js_sys::JsString::from_char_code(&u16_array)
-                            .as_string()
-                            .unwrap_or_default(),
-                    )
-                    .map_err(|e| logging::log!("Error from btoa {e:?}"))
-                    .ok()
-                })
-            });
-
-        set_is_generating.set(false);
-
-        match result {
-            Some(resp) => set_generated_key.set(Some(resp)),
-            None => {
-                enqueue_alert(
-                    "Failed to generate encryption key".to_string(),
-                    AlertType::Warning,
-                    5000,
-                );
-                logging::log!("Failed to generate master encryption key");
-            }
+    let generate_master_key = move || match try_generate_master_key() {
+        Some(resp) => key_generation_rws.set(Some(Some(resp))),
+        None => {
+            enqueue_alert(
+                "Failed to generate encryption key".to_string(),
+                AlertType::Warning,
+                5000,
+            );
+            logging::log!("Failed to generate master encryption key");
         }
-    });
-
-    let rotate_master_key_action = create_action(move |_: &()| async move {
-        let result = master_encryption_key::rotate().await;
-
-        match result {
-            Ok(_) => (),
-            Err(e) => logging::log!("Failed to rotate master encryption key: {}", e),
-        }
-    });
+    };
 
     let table_columns = StoredValue::new({
         let base = base.clone();
@@ -124,32 +136,30 @@ pub fn Organisations() -> impl IntoView {
                     .collect::<Vec<Map<String, Value>>>();
                 view! {
                     <form class="h-full flex flex-col gap-4">
-                        <Stat
-                            heading="Oraganisations"
-                            icon="ri-building-fill"
-                            number=organisations.len().to_string()
-                        />
-
-                        // Master Key Management Buttons
-                        <div class="flex gap-2 mb-2 ml-auto">
-                            <Button
-                                text="Generate MasterKey"
-                                icon_class="ri-key-2-line"
-                                on_click=move |ev: MouseEvent| {
-                                    ev.prevent_default();
-                                    set_show_master_key_generate_modal.set(true)
-                                }
+                        <div class="flex justify-between">
+                            <Stat
+                                heading="Organisations"
+                                icon="ri-building-fill"
+                                number=organisations.len().to_string()
                             />
-
-                            <Button
-                                text="Rotate Master Key"
-                                icon_class="ri-refresh-line"
-                                on_click=move |ev: MouseEvent| {
-                                    ev.prevent_default();
-                                    rotate_master_key_action.dispatch(())
-                                }
-                            />
-
+                            <div class="flex items-end gap-4">
+                                <Button
+                                    text="Generate MasterKey"
+                                    icon_class="ri-key-2-line"
+                                    on_click=move |ev: MouseEvent| {
+                                        ev.prevent_default();
+                                        key_generation_rws.set(Some(None));
+                                    }
+                                />
+                                <Button
+                                    text="Rotate Master Key"
+                                    icon_class="ri-refresh-line"
+                                    on_click=move |ev: MouseEvent| {
+                                        ev.prevent_default();
+                                        show_master_rotation_modal.set(true);
+                                    }
+                                />
+                            </div>
                         </div>
 
                         <div class="card w-full bg-base-100 rounded-xl overflow-hidden shadow">
@@ -167,69 +177,130 @@ pub fn Organisations() -> impl IntoView {
             }}
         </Suspense>
 
-        // Master Key Generate Modal
-        {move || {
-            show_master_key_generate_modal
-                .get()
-                .then(|| {
-                    view! {
-                        <PortalModal
-                            heading="Generate Master Encryption Key"
-                            handle_close=Callback::new(move |_| {
-                                set_show_master_key_generate_modal.set(false);
-                                set_generated_key.set(None);
-                            })
-                        >
-                            <div class="alert alert-warning mb-4">
-                                <i class="ri-alert-line"></i>
-                                <span>
-                                    "This will generate a new master encryption key. Save it securely - it will not be shown again."
-                                </span>
-                            </div>
-
-                            {move || {
-                                if let Some(generated_key) = generated_key.get() {
-                                    view! {
-                                        <>
-                                            <div class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm mt-2 break-all select-all">
-                                                {generated_key}
-                                            </div>
-                                            <pre class="text-sm mt-2 whitespace-pre-wrap bg-base-200 p-3 rounded">
-                                                {"1. Copy this key immediately - it will NOT be shown again.\n2. Store it securely in your secrets manager.\n3. Set it as environment variable: MASTER_ENCRYPTION_KEY=<key>\n4. Restart the service for the key to take effect."}
-                                            </pre>
-                                            <Button
-                                                text="Close"
-                                                on_click=move |_| {
-                                                    set_show_master_key_generate_modal.set(false);
-                                                    set_generated_key.set(None);
+        {move || match key_generation_rws.get() {
+            Some(popup_state) => {
+                view! {
+                    <PortalModal
+                        heading="Generate Master Encryption Key"
+                        handle_close=move |_| key_generation_rws.set(None)
+                    >
+                        <div class="alert alert-warning">
+                            <i class="ri-alert-line" />
+                            <span>
+                                "This will generate a new master encryption key. Save it securely - it will not be shown again."
+                            </span>
+                        </div>
+                        {match popup_state.clone() {
+                            Some(generated_key) => {
+                                let key_to_copy = generated_key.clone();
+                                let copy_to_clipboard = move |_| {
+                                    let key = key_to_copy.clone();
+                                    if let Some(window) = web_sys::window() {
+                                        let promise = window
+                                            .navigator()
+                                            .clipboard()
+                                            .write_text(&key);
+                                        wasm_bindgen_futures::spawn_local(async move {
+                                            match wasm_bindgen_futures::JsFuture::from(promise).await {
+                                                Ok(_) => {
+                                                    enqueue_alert(
+                                                        "Key copied to clipboard".to_string(),
+                                                        AlertType::Success,
+                                                        3000,
+                                                    )
                                                 }
-                                                icon_class="ri-close-line"
-                                                class="mt-4 w-full"
-                                            />
-                                        </>
+                                                Err(_) => {
+                                                    enqueue_alert(
+                                                        "Failed to copy key to clipboard".to_string(),
+                                                        AlertType::Error,
+                                                        3000,
+                                                    )
+                                                }
+                                            }
+                                        });
                                     }
-                                } else {
-                                    view! {
-                                        <>
-                                            <button
-                                                class="btn btn-primary w-full"
-                                                disabled=is_generating.get()
-                                                on:click=move |_| generate_master_key_action.dispatch(())
-                                            >
-                                                {if is_generating.get() {
-                                                    "Generating..."
-                                                } else {
-                                                    "Generate Key"
-                                                }}
-                                                <i class="ri-key-2-line"></i>
-                                            </button>
-                                        </>
-                                    }
+                                };
+
+                                view! {
+                                    <div class="flex flex-col gap-2">
+                                        <div class="control-form">
+                                            <Label title="Generated Key" />
+                                            <div class="p-4 flex justify-between items-center bg-gray-900 text-green-400 rounded-lg">
+                                                <div class="font-mono text-[14px] break-all select-all">
+                                                    {generated_key}
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    class="px-1 bg-gray-800 hover:bg-gray-700 text-white rounded transition-colors"
+                                                    on:click=copy_to_clipboard
+                                                    title="Copy to clipboard"
+                                                >
+                                                    <i class="ri-file-copy-line" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="control-form">
+                                            <Label title="Instructions" />
+                                            <ol class="p-4 flex flex-col gap-3 bg-base-200 rounded-lg list-none">
+                                                {key_generation_instructions()
+                                                    .into_iter()
+                                                    .enumerate()
+                                                    .map(|(index, instruction)| {
+                                                        view! {
+                                                            <li class="flex gap-3 items-center">
+                                                                <span class="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-primary text-primary-content rounded-full text-xs font-semibold">
+                                                                    {(index + 1).to_string()}
+                                                                </span>
+                                                                <div class="text-[14px] flex-1">{instruction}</div>
+                                                            </li>
+                                                        }
+                                                    })
+                                                    .collect_view()}
+                                            </ol>
+                                        </div>
+                                    </div>
                                 }
-                            }}
-                        </PortalModal>
-                    }
-                })
+                                    .into_view()
+                            }
+                            None => ().into_view(),
+                        }}
+                        {match popup_state.clone() {
+                            Some(_) => {
+                                view! {
+                                    <Button
+                                        class="h-12 w-48 self-end"
+                                        text="Close"
+                                        on_click=move |_| key_generation_rws.set(None)
+                                        icon_class="ri-close-line"
+                                    />
+                                }
+                            }
+                            None => {
+                                view! {
+                                    <Button
+                                        class="h-12 w-48 self-end"
+                                        text="Generate Key"
+                                        on_click=move |_| generate_master_key()
+                                        icon_class="ri-key-2-line"
+                                    />
+                                }
+                            }
+                        }}
+                    </PortalModal>
+                }
+            }
+            None => ().into_view(),
+        }}
+
+        {move || {
+            view! {
+                <Show when=move || show_master_rotation_modal.get()>
+                    <MasterKeyRotationModal
+                        on_close=move |_| show_master_rotation_modal.set(false)
+                        on_success=move |_| show_master_rotation_modal.set(false)
+                    />
+                </Show>
+            }
         }}
     }
 }

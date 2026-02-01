@@ -14,6 +14,7 @@ use crate::{
         button::Button,
         datetime::DatetimeStr,
         drawer::PortalDrawer,
+        input::Toggle,
         skeleton::Skeleton,
         stat::Stat,
         table::{
@@ -75,7 +76,19 @@ pub fn Webhooks() -> impl IntoView {
             Expandable::Disabled,
             default_column_formatter,
         ),
-        Column::default("enabled".to_string()),
+        Column::default_with_cell_formatter(
+            "enabled".to_string(),
+            |_, row: &Map<String, Value>| {
+                let value = row
+                    .get("enabled")
+                    .and_then(Value::as_bool)
+                    .unwrap_or_default();
+
+                view! {
+                    <Toggle value disabled=true on_change=|_| () />
+                }
+            },
+        ),
         Column::new(
             "events".to_string(),
             false,

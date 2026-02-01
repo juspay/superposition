@@ -1,14 +1,12 @@
 mod filter;
 
+use filter::{FilterSummary, VariableFilterWidget};
 use leptos::*;
 use leptos_router::A;
 use serde_json::{Map, Value, json};
 use superposition_macros::box_params;
 use superposition_types::api::variables::{SortOn, VariableFilters};
-use superposition_types::{
-    SortBy,
-    custom_query::{CustomQuery, PaginationParams, Query},
-};
+use superposition_types::custom_query::{CustomQuery, PaginationParams, Query};
 
 use crate::api::variables;
 use crate::components::datetime::DatetimeStr;
@@ -26,9 +24,6 @@ use crate::components::{
     },
     variable_form::VariableForm,
 };
-
-use filter::{FilterSummary, VariableFilterWidget};
-
 use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::{OrganisationId, Workspace};
 
@@ -36,6 +31,25 @@ use crate::types::{OrganisationId, Workspace};
 enum Action {
     Create,
     None,
+}
+
+fn sort_callback(
+    sort_on: SortOn,
+    filters_rws: RwSignal<VariableFilters>,
+    pagination_params_rws: RwSignal<PaginationParams>,
+) -> Callback<()> {
+    Callback::new(move |_| {
+        let filters = filters_rws.get();
+        let sort_by = filters.sort_by.unwrap_or_default().flip();
+
+        let new_filters = VariableFilters {
+            sort_on: Some(sort_on.clone()),
+            sort_by: Some(sort_by),
+            ..filters
+        };
+        pagination_params_rws.update(|f| f.reset_page());
+        filters_rws.set(new_filters);
+    })
 }
 
 fn variable_table_columns(
@@ -63,22 +77,7 @@ fn variable_table_columns(
             false,
             expand,
             ColumnSortable::Yes {
-                sort_fn: Callback::new(move |_| {
-                    let filters = filters_rws.get();
-                    let current_sort_on = filters.sort_on.unwrap_or_default();
-                    let sort_by = if current_sort_on == SortOn::Name {
-                        filters.sort_by.unwrap_or_default().flip()
-                    } else {
-                        SortBy::Desc
-                    };
-                    let new_filters = VariableFilters {
-                        sort_on: Some(SortOn::Name),
-                        sort_by: Some(sort_by),
-                        ..filters
-                    };
-                    pagination_params_rws.update(|f| f.reset_page());
-                    filters_rws.set(new_filters);
-                }),
+                sort_fn: sort_callback(SortOn::Name, filters_rws, pagination_params_rws),
                 sort_by: current_sort_by.clone(),
                 currently_sorted: current_sort_on == SortOn::Name,
             },
@@ -95,22 +94,11 @@ fn variable_table_columns(
                 }
             },
             ColumnSortable::Yes {
-                sort_fn: Callback::new(move |_| {
-                    let filters = filters_rws.get();
-                    let current_sort_on = filters.sort_on.unwrap_or_default();
-                    let sort_by = if current_sort_on == SortOn::CreatedAt {
-                        filters.sort_by.unwrap_or_default().flip()
-                    } else {
-                        SortBy::Desc
-                    };
-                    let new_filters = VariableFilters {
-                        sort_on: Some(SortOn::CreatedAt),
-                        sort_by: Some(sort_by),
-                        ..filters
-                    };
-                    pagination_params_rws.update(|f| f.reset_page());
-                    filters_rws.set(new_filters);
-                }),
+                sort_fn: sort_callback(
+                    SortOn::CreatedAt,
+                    filters_rws,
+                    pagination_params_rws,
+                ),
                 sort_by: current_sort_by.clone(),
                 currently_sorted: current_sort_on == SortOn::CreatedAt,
             },
@@ -126,22 +114,11 @@ fn variable_table_columns(
                 }
             },
             ColumnSortable::Yes {
-                sort_fn: Callback::new(move |_| {
-                    let filters = filters_rws.get();
-                    let current_sort_on = filters.sort_on.unwrap_or_default();
-                    let sort_by = if current_sort_on == SortOn::LastModifiedAt {
-                        filters.sort_by.unwrap_or_default().flip()
-                    } else {
-                        SortBy::Desc
-                    };
-                    let new_filters = VariableFilters {
-                        sort_on: Some(SortOn::LastModifiedAt),
-                        sort_by: Some(sort_by),
-                        ..filters
-                    };
-                    pagination_params_rws.update(|f| f.reset_page());
-                    filters_rws.set(new_filters);
-                }),
+                sort_fn: sort_callback(
+                    SortOn::LastModifiedAt,
+                    filters_rws,
+                    pagination_params_rws,
+                ),
                 sort_by: current_sort_by.clone(),
                 currently_sorted: current_sort_on == SortOn::LastModifiedAt,
             },

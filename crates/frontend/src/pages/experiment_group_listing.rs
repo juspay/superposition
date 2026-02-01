@@ -63,7 +63,28 @@ pub struct RowData {
     pub traffic_percentage: i32,
 }
 
-fn table_columns(filters_rws: RwSignal<ExpGroupFilters>) -> Vec<Column> {
+fn sort_callback(
+    sort_on: SortOn,
+    filters_rws: RwSignal<ExpGroupFilters>,
+    pagination_params_rws: RwSignal<PaginationParams>,
+) -> Callback<()> {
+    Callback::new(move |_| {
+        let filters = filters_rws.get();
+        let sort_by = filters.sort_by.unwrap_or_default().flip();
+        let new_filters = ExpGroupFilters {
+            sort_on: Some(sort_on.clone()),
+            sort_by: Some(sort_by),
+            ..filters
+        };
+        pagination_params_rws.update(|f| f.reset_page());
+        filters_rws.set(new_filters);
+    })
+}
+
+fn table_columns(
+    filters_rws: RwSignal<ExpGroupFilters>,
+    pagination_params_rws: RwSignal<PaginationParams>,
+) -> Vec<Column> {
     let current_filters = filters_rws.get();
     let current_sort_on = current_filters.sort_on.unwrap_or_default();
     let current_sort_by = current_filters.sort_by.unwrap_or_default();
@@ -124,16 +145,7 @@ fn table_columns(filters_rws: RwSignal<ExpGroupFilters>) -> Vec<Column> {
                 }.into_view()
             },
             ColumnSortable::Yes {
-                sort_fn: Callback::new(move |_| {
-                    let filters = filters_rws.get();
-                    let sort_by = filters.sort_by.unwrap_or_default().flip();
-                    let new_filters = ExpGroupFilters {
-                        sort_on: Some(SortOn::Name),
-                        sort_by: Some(sort_by),
-                        ..filters
-                    };
-                    filters_rws.set(new_filters);
-                }),
+                sort_fn: sort_callback(SortOn::Name, filters_rws, pagination_params_rws),
                 sort_by: current_sort_by.clone(),
                 currently_sorted: current_sort_on == SortOn::Name,
             },
@@ -183,16 +195,11 @@ fn table_columns(filters_rws: RwSignal<ExpGroupFilters>) -> Vec<Column> {
                 }
             },
             ColumnSortable::Yes {
-                sort_fn: Callback::new(move |_| {
-                    let filters = filters_rws.get();
-                    let sort_by = filters.sort_by.unwrap_or_default().flip();
-                    let new_filters = ExpGroupFilters {
-                        sort_on: Some(SortOn::CreatedAt),
-                        sort_by: Some(sort_by),
-                        ..filters
-                    };
-                    filters_rws.set(new_filters);
-                }),
+                sort_fn: sort_callback(
+                    SortOn::CreatedAt,
+                    filters_rws,
+                    pagination_params_rws,
+                ),
                 sort_by: current_sort_by.clone(),
                 currently_sorted: current_sort_on == SortOn::CreatedAt,
             },
@@ -209,16 +216,11 @@ fn table_columns(filters_rws: RwSignal<ExpGroupFilters>) -> Vec<Column> {
                 }
             },
             ColumnSortable::Yes {
-                sort_fn: Callback::new(move |_| {
-                    let filters = filters_rws.get();
-                    let sort_by = filters.sort_by.unwrap_or_default().flip();
-                    let new_filters = ExpGroupFilters {
-                        sort_on: Some(SortOn::LastModifiedAt),
-                        sort_by: Some(sort_by),
-                        ..filters
-                    };
-                    filters_rws.set(new_filters);
-                }),
+                sort_fn: sort_callback(
+                    SortOn::LastModifiedAt,
+                    filters_rws,
+                    pagination_params_rws,
+                ),
                 sort_by: current_sort_by.clone(),
                 currently_sorted: current_sort_on == SortOn::LastModifiedAt,
             },
@@ -342,7 +344,7 @@ pub fn ExperimentGroupListing() -> impl IntoView {
                         {move || {
                             let value = experiment_groups_resource.get();
                             let pagination_params = pagination_params_rws.get();
-                            let table_columns = table_columns(filters_rws);
+                            let table_columns = table_columns(filters_rws, pagination_params_rws);
                             match value {
                                 Some(v) => {
                                     let data = v

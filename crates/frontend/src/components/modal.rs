@@ -32,10 +32,11 @@ where
 #[component]
 pub fn PortalModal(
     #[prop(into, default = "w-full max-w-md".to_string())] class: String,
-    #[prop(into, default = String::new())] heading: String,
-    #[prop(into)] handle_close: Callback<(), ()>,
+    #[prop(into, optional)] heading: String,
+    #[prop(into)] handle_close: Callback<()>,
     children: ChildrenFn,
 ) -> impl IntoView {
+    let heading = StoredValue::new(heading);
     view! {
         <Portal>
             <div class="fixed inset-0 bg-black bg-opacity-50 z-[1500] flex items-center justify-center">
@@ -48,7 +49,9 @@ pub fn PortalModal(
                     >
                         <i class="ri-close-line"></i>
                     </button>
-                    <h3 class="font-bold text-lg">{heading.clone()}</h3>
+                    <Show when=move || heading.with_value(|h| !h.is_empty())>
+                        <h3 class="font-bold text-lg">{heading.get_value()}</h3>
+                    </Show>
                     {children()}
                 </dialog>
             </div>

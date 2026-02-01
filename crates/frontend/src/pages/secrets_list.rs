@@ -1,18 +1,19 @@
 mod filter;
 
+use filter::{FilterSummary, SecretFilterWidget};
 use leptos::*;
 use leptos_router::A;
 use serde_json::{Map, Value, json};
 use superposition_macros::box_params;
-use superposition_types::api::secrets::{SecretFilters, SortOn};
 use superposition_types::{
-    SortBy,
+    api::secrets::{SecretFilters, SortOn},
     custom_query::{CustomQuery, PaginationParams, Query},
 };
 
 use crate::api::secrets;
 use crate::components::{
     button::Button,
+    datetime::DatetimeStr,
     drawer::PortalDrawer,
     secret_form::SecretForm,
     skeleton::Skeleton,
@@ -25,9 +26,6 @@ use crate::components::{
         },
     },
 };
-
-use filter::{FilterSummary, SecretFilterWidget};
-
 use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::{OrganisationId, Workspace};
 
@@ -35,6 +33,25 @@ use crate::types::{OrganisationId, Workspace};
 enum Action {
     Create,
     None,
+}
+
+fn sort_callback(
+    sort_on: SortOn,
+    filters_rws: RwSignal<SecretFilters>,
+    pagination_params_rws: RwSignal<PaginationParams>,
+) -> Callback<()> {
+    Callback::new(move |_| {
+        let filters = filters_rws.get();
+        let sort_by = filters.sort_by.unwrap_or_default().flip();
+
+        let new_filters = SecretFilters {
+            sort_on: Some(sort_on.clone()),
+            sort_by: Some(sort_by),
+            ..filters
+        };
+        pagination_params_rws.update(|f| f.reset_page());
+        filters_rws.set(new_filters);
+    })
 }
 
 fn secret_table_columns(
@@ -62,73 +79,52 @@ fn secret_table_columns(
             false,
             expand,
             ColumnSortable::Yes {
-                sort_fn: Callback::new(move |_| {
-                    let filters = filters_rws.get();
-                    let current_sort_on = filters.sort_on.unwrap_or_default();
-                    let sort_by = if current_sort_on == SortOn::Name {
-                        filters.sort_by.unwrap_or_default().flip()
-                    } else {
-                        SortBy::Desc
-                    };
-                    let new_filters = SecretFilters {
-                        sort_on: Some(SortOn::Name),
-                        sort_by: Some(sort_by),
-                        ..filters
-                    };
-                    pagination_params_rws.update(|f| f.reset_page());
-                    filters_rws.set(new_filters);
-                }),
+                sort_fn: sort_callback(SortOn::Name, filters_rws, pagination_params_rws),
                 sort_by: current_sort_by.clone(),
                 currently_sorted: current_sort_on == SortOn::Name,
             },
             Expandable::Disabled,
             |_| default_column_formatter("Secret Name"),
         ),
-        Column::default_with_sort(
+        Column::new(
             "created_at".to_string(),
+            false,
+            |value, _| {
+                view! {
+                    <DatetimeStr datetime=value.into() />
+                }
+            },
             ColumnSortable::Yes {
-                sort_fn: Callback::new(move |_| {
-                    let filters = filters_rws.get();
-                    let current_sort_on = filters.sort_on.unwrap_or_default();
-                    let sort_by = if current_sort_on == SortOn::CreatedAt {
-                        filters.sort_by.unwrap_or_default().flip()
-                    } else {
-                        SortBy::Desc
-                    };
-                    let new_filters = SecretFilters {
-                        sort_on: Some(SortOn::CreatedAt),
-                        sort_by: Some(sort_by),
-                        ..filters
-                    };
-                    pagination_params_rws.update(|f| f.reset_page());
-                    filters_rws.set(new_filters);
-                }),
+                sort_fn: sort_callback(
+                    SortOn::CreatedAt,
+                    filters_rws,
+                    pagination_params_rws,
+                ),
                 sort_by: current_sort_by.clone(),
                 currently_sorted: current_sort_on == SortOn::CreatedAt,
             },
+            Expandable::Enabled(100),
+            default_column_formatter,
         ),
-        Column::default_with_sort(
+        Column::new(
             "last_modified_at".to_string(),
+            false,
+            |value, _| {
+                view! {
+                    <DatetimeStr datetime=value.into() />
+                }
+            },
             ColumnSortable::Yes {
-                sort_fn: Callback::new(move |_| {
-                    let filters = filters_rws.get();
-                    let current_sort_on = filters.sort_on.unwrap_or_default();
-                    let sort_by = if current_sort_on == SortOn::LastModifiedAt {
-                        filters.sort_by.unwrap_or_default().flip()
-                    } else {
-                        SortBy::Desc
-                    };
-                    let new_filters = SecretFilters {
-                        sort_on: Some(SortOn::LastModifiedAt),
-                        sort_by: Some(sort_by),
-                        ..filters
-                    };
-                    pagination_params_rws.update(|f| f.reset_page());
-                    filters_rws.set(new_filters);
-                }),
+                sort_fn: sort_callback(
+                    SortOn::LastModifiedAt,
+                    filters_rws,
+                    pagination_params_rws,
+                ),
                 sort_by: current_sort_by.clone(),
                 currently_sorted: current_sort_on == SortOn::LastModifiedAt,
             },
+            Expandable::Enabled(100),
+            |_| default_column_formatter("Modified At"),
         ),
         Column::default("last_modified_by".to_string()),
     ]
@@ -182,20 +178,7 @@ pub fn SecretsList() -> impl IntoView {
                 let table_rows = secrets
                     .data
                     .into_iter()
-                    .map(|secret| {
-                        let mut ele_map = json!(secret).as_object().cloned().unwrap_or_default();
-                        ele_map
-                            .insert(
-                                "created_at".to_string(),
-                                Value::String(secret.created_at.format("%v %T").to_string()),
-                            );
-                        ele_map
-                            .insert(
-                                "last_modified_at".to_string(),
-                                Value::String(secret.last_modified_at.format("%v %T").to_string()),
-                            );
-                        ele_map
-                    })
+                    .map(|secret| json!(secret).as_object().cloned().unwrap_or_default())
                     .collect::<Vec<Map<String, Value>>>();
                 let total_secrets = secrets.total_items.to_string();
                 let pagination_params = pagination_params_rws.get();

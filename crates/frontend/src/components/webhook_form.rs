@@ -263,7 +263,7 @@ pub fn WebhookForm(
             </div>
 
             <div class="form-control">
-                <Label title="Paylaod Version" />
+                <Label title="Payload Version" />
                 <Dropdown
                     dropdown_width="w-100"
                     dropdown_icon="".to_string()
@@ -301,9 +301,9 @@ pub fn WebhookForm(
                     description="Custom headers are optional and can be used to pass additional information with the webhook request."
                 />
                 <Tip
-                    message="Reference variables using"
-                    code_snippet="{{VARS.KEY_NAME}}"
-                    example="{{VARS.API_KEY}}"
+                    message="Reference variables/secrets using"
+                    code_snippet="{{VARS.KEY_NAME}} or {{SECRETS.SECRET_NAME}}"
+                    example="\"x-my-key\": \"{{VARS.MY_KEY}}\" or \"Authorization\": \"{{SECRETS.API_KEY}}\""
                 />
 
                 <EditorProvider>

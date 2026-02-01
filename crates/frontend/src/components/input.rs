@@ -130,7 +130,7 @@ pub fn Toggle(
             on:click=move |e| on_change.call(event_target_checked(&e))
             type="checkbox"
             name=name
-            class=format!("toggle toggle-primary !w-[3rem] {class}")
+            class=format!("toggle toggle-primary disabled:!bg-[currentColor] !w-[3rem] {class}")
             checked=value
         />
     }
