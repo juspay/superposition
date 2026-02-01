@@ -27,7 +27,6 @@ regex = { workspace = true }
 reqwest = { workspace = true }
 rs-snowflake = { workspace = true }
 serde = { workspace = true }
-serde_json = { workspace = true }
 service_utils = { workspace = true }
 superposition_derives = { workspace = true }
 superposition_macros = { workspace = true }

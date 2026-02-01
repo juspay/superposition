@@ -88,6 +88,10 @@ impl Overrides {
         }
         Ok(Self(override_map))
     }
+
+    pub fn into_inner(self) -> Map<String, Value> {
+        self.0
+    }
 }
 
 impl IntoIterator for Overrides {
@@ -289,28 +293,30 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn filter_by_dimensions(&self, dimension_data: &Map<String, Value>) -> Self {
-        let modified_context =
-            evaluate_local_cohorts_skip_unresolved(&self.dimensions, dimension_data);
+    pub fn filter_by_dimensions(self, dimension_data: Map<String, Value>) -> Self {
+        let modified_context = evaluate_local_cohorts_skip_unresolved(
+            self.dimensions.clone(),
+            dimension_data,
+        );
 
-        let filtered_context =
-            Context::filter_by_eval(self.contexts.clone(), &modified_context);
+        let filtered_context = Context::filter_by_eval(self.contexts, &modified_context);
 
+        let mut overrides = self.overrides;
         let filtered_overrides: HashMap<String, Overrides> = filtered_context
             .iter()
             .flat_map(|ele| {
                 let override_with_key = ele.override_with_keys.get_key();
-                self.overrides
-                    .get(override_with_key)
-                    .map(|value| (override_with_key.to_string(), value.clone()))
+                overrides
+                    .remove(override_with_key)
+                    .map(|value| (override_with_key.to_string(), value))
             })
             .collect();
 
         Self {
             contexts: filtered_context,
             overrides: filtered_overrides,
-            default_configs: self.default_configs.clone(),
-            dimensions: self.dimensions.clone(),
+            default_configs: self.default_configs,
+            dimensions: self.dimensions,
         }
     }
 

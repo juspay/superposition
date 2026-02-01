@@ -43,16 +43,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "vehicle_type".to_string(),
         Value::String("bike".to_string()),
     );
-
-    // Clone default configs once for all evaluations
-    let default_configs = (*config.default_configs).clone();
-
+    let config1 = config.clone(); // Clone the config for each eval to avoid ownership issues
     let result1 = eval_config(
-        default_configs.clone(),
-        &config.contexts,
-        &config.overrides,
-        &config.dimensions,
-        &dims1,
+        config1.default_configs,
+        config1.contexts,
+        config1.overrides,
+        config1.dimensions,
+        dims1,
         MergeStrategy::MERGE,
         None,
     )?;
@@ -74,12 +71,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     dims2.insert("city".to_string(), Value::String("Bangalore".to_string()));
     dims2.insert("vehicle_type".to_string(), Value::String("cab".to_string()));
 
+    let config2 = config.clone(); // Clone the config for each eval to avoid ownership issues
     let result2 = eval_config(
-        default_configs.clone(),
-        &config.contexts,
-        &config.overrides,
-        &config.dimensions,
-        &dims2,
+        config2.default_configs,
+        config2.contexts,
+        config2.overrides,
+        config2.dimensions,
+        dims2,
         MergeStrategy::MERGE,
         None,
     )?;
@@ -102,12 +100,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     dims3.insert("vehicle_type".to_string(), Value::String("cab".to_string()));
     dims3.insert("hour_of_day".to_string(), Value::Number(6.into()));
 
+    let config3 = config.clone(); // Clone the config for each eval to avoid ownership issues
     let result3 = eval_config(
-        default_configs.clone(),
-        &config.contexts,
-        &config.overrides,
-        &config.dimensions,
-        &dims3,
+        config3.default_configs,
+        config3.contexts,
+        config3.overrides,
+        config3.dimensions,
+        dims3,
         MergeStrategy::MERGE,
         None,
     )?;
@@ -131,12 +130,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Value::String("auto".to_string()),
     );
 
+    let config4 = config.clone(); // Clone the config for each eval to avoid ownership issues
     let result4 = eval_config(
-        default_configs.clone(),
-        &config.contexts,
-        &config.overrides,
-        &config.dimensions,
-        &dims4,
+        config4.default_configs,
+        config4.contexts,
+        config4.overrides,
+        config4.dimensions,
+        dims4,
         MergeStrategy::MERGE,
         None,
     )?;
@@ -158,11 +158,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     dims5.insert("city".to_string(), Value::String("Chennai".to_string()));
 
     let result5 = eval_config(
-        default_configs.clone(),
-        &config.contexts,
-        &config.overrides,
-        &config.dimensions,
-        &dims5,
+        config.default_configs,
+        config.contexts,
+        config.overrides,
+        config.dimensions,
+        dims5,
         MergeStrategy::MERGE,
         None,
     )?;

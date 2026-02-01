@@ -5574,7 +5574,6 @@ dependencies = [
  "reqwest",
  "rs-snowflake",
  "serde",
- "serde_json",
  "service_utils",
  "superposition_derives",
  "superposition_macros",

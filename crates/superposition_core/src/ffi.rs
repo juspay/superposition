@@ -1,6 +1,6 @@
 use serde_json::{Map, Value};
 use std::collections::HashMap;
-use superposition_types::{Config, Context, DimensionInfo, Overrides};
+use superposition_types::{Config, Context, DimensionInfo, ExtendedMap, Overrides};
 use thiserror::Error;
 
 use crate::{
@@ -27,19 +27,19 @@ fn json_from_map(m: HashMap<String, String>) -> serde_json::Result<Map<String, V
 }
 
 type EvalFn = fn(
+    ExtendedMap,
+    Vec<Context>,
+    HashMap<String, Overrides>,
+    HashMap<String, DimensionInfo>,
     Map<String, Value>,
-    &[Context],
-    &HashMap<String, Overrides>,
-    &HashMap<String, DimensionInfo>,
-    &Map<String, Value>,
     MergeStrategy,
     Option<Vec<String>>,
 ) -> Result<Map<String, Value>, String>;
 
 #[allow(clippy::too_many_arguments)]
 fn ffi_eval_logic(
-    default_config: HashMap<String, String>,
-    contexts: &[Context],
+    default_config: ExtendedMap,
+    contexts: Vec<Context>,
     overrides: HashMap<String, Overrides>,
     dimensions: HashMap<String, DimensionInfo>,
     query_data: HashMap<String, String>,
@@ -48,8 +48,6 @@ fn ffi_eval_logic(
     experimentation: Option<ExperimentationArgs>,
     eval_fn: EvalFn,
 ) -> Result<HashMap<String, String>, OperationError> {
-    let _d = json_from_map(default_config)
-        .map_err(|err| OperationError::Unexpected(err.to_string()))?;
     let mut _q = json_from_map(query_data)
         .map_err(|err| OperationError::Unexpected(err.to_string()))?;
 
@@ -58,10 +56,10 @@ fn ffi_eval_logic(
         // bucketing procedure.
         let identifier = e_args.targeting_key;
         let variants = get_applicable_variants(
-            &dimensions,
+            dimensions.clone(),
             e_args.experiments,
             &e_args.experiment_groups,
-            &_q,
+            _q.clone(),
             &identifier,
             filter_prefixes.clone(),
         )
@@ -70,11 +68,11 @@ fn ffi_eval_logic(
     }
 
     let r = eval_fn(
-        _d,
+        default_config,
         contexts,
-        &overrides,
-        &dimensions,
-        &_q,
+        overrides,
+        dimensions,
+        _q,
         merge_strategy,
         filter_prefixes,
     )
@@ -86,8 +84,8 @@ fn ffi_eval_logic(
 #[allow(clippy::too_many_arguments)]
 #[uniffi::export]
 fn ffi_eval_config(
-    default_config: HashMap<String, String>,
-    contexts: &[Context],
+    default_config: ExtendedMap,
+    contexts: Vec<Context>,
     overrides: HashMap<String, Overrides>,
     dimensions: HashMap<String, DimensionInfo>,
     query_data: HashMap<String, String>,
@@ -111,8 +109,8 @@ fn ffi_eval_config(
 #[allow(clippy::too_many_arguments)]
 #[uniffi::export]
 fn ffi_eval_config_with_reasoning(
-    default_config: HashMap<String, String>,
-    contexts: &[Context],
+    default_config: ExtendedMap,
+    contexts: Vec<Context>,
     overrides: HashMap<String, Overrides>,
     dimensions: HashMap<String, DimensionInfo>,
     query_data: HashMap<String, String>,
@@ -140,15 +138,15 @@ fn ffi_get_applicable_variants(
     query_data: HashMap<String, String>,
     prefix: Option<Vec<String>>,
 ) -> Result<Vec<String>, OperationError> {
-    let _query_data = json_from_map(query_data.clone())
+    let _query_data = json_from_map(query_data)
         .map_err(|err| OperationError::Unexpected(err.to_string()))?;
 
     let identifier = eargs.targeting_key;
     let r = get_applicable_variants(
-        &dimensions_info,
+        dimensions_info,
         eargs.experiments,
         &eargs.experiment_groups,
-        &_query_data,
+        _query_data,
         &identifier,
         prefix,
     )

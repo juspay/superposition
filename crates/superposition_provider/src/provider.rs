@@ -143,7 +143,7 @@ impl SuperpositionProvider {
         let dimensions_info = self.get_dimensions_info().await;
         let variant_ids = if let Some(exp_config) = &self.exp_config {
             exp_config
-                .get_applicable_variants(&dimensions_info, &context, targeting_key)
+                .get_applicable_variants(dimensions_info, context.clone(), targeting_key)
                 .await?
         } else {
             vec![]
@@ -155,7 +155,7 @@ impl SuperpositionProvider {
         );
 
         match &self.cac_config {
-            Some(cac_config) => cac_config.evaluate_config(&context, None).await,
+            Some(cac_config) => cac_config.evaluate_config(context, None).await,
             None => Err(SuperpositionError::ConfigError(
                 "CAC config not initialized".into(),
             )),
@@ -186,7 +186,7 @@ impl SuperpositionProvider {
         if let Some(dimension_filter) =
             dimension_filter.filter(|query_map| !query_map.is_empty())
         {
-            cached_config = cached_config.filter_by_dimensions(&dimension_filter);
+            cached_config = cached_config.filter_by_dimensions(dimension_filter);
         };
 
         Ok(cached_config)
