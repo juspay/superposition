@@ -205,7 +205,7 @@ pub extern "C" fn expt_get_applicable_variant(
         Some(prefix_list)
     };
     let variants_result = EXP_RUNTIME.block_on(unsafe {
-        (*client).get_applicable_variant(&dimensions, &context, &identifier, prefix_list)
+        (*client).get_applicable_variant(dimensions, context, &identifier, prefix_list)
     });
     variants_result
         .map(|result| {
@@ -252,7 +252,7 @@ pub extern "C" fn expt_get_satisfied_experiments(
         Some(prefix_list)
     };
 
-    let context = evaluate_local_cohorts(&dimensions, &context);
+    let context = evaluate_local_cohorts(dimensions, context);
 
     let local = task::LocalSet::new();
     local.block_on(&Runtime::new().unwrap(), async move {
@@ -309,7 +309,7 @@ pub extern "C" fn expt_get_filtered_satisfied_experiments(
         Some(prefix_list).filter(|list| !list.is_empty())
     };
 
-    let context = evaluate_local_cohorts_skip_unresolved(&dimensions, &context);
+    let context = evaluate_local_cohorts_skip_unresolved(dimensions, context);
 
     let local = task::LocalSet::new();
     local.block_on(&Runtime::new().unwrap(), async move {

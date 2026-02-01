@@ -8,7 +8,6 @@ use context_aware_config::api::config::helpers::{
     is_not_modified, resolve, setup_query_data,
 };
 use experimentation_platform::api::experiments::handlers::get_applicable_variants_helper;
-use serde_json::{Map, Value};
 use service_utils::service::types::{AppState, DbConnection, WorkspaceContext};
 use superposition_derives::authorized;
 use superposition_types::{
@@ -59,18 +58,17 @@ async fn resolve_with_exp_handler(
     // This value is separately needed, as in the following check the value before the modification is required
     let config_ver = config_version.to_owned();
 
-    let mut config = generate_config_from_version(
+    let config = generate_config_from_version(
         &mut config_version,
         &mut conn,
         &workspace_context.schema_name,
     )?;
 
     if let (None, Some(identifier)) = (config_ver, identifier_query.identifier) {
-        let context_map: &Map<String, Value> = &query_data;
         let (applicable_variants, _) = get_applicable_variants_helper(
             &mut conn,
-            context_map.clone(),
-            &config.dimensions,
+            query_data.clone().into_inner(),
+            config.dimensions.clone(),
             identifier,
             &workspace_context,
         )
@@ -79,7 +77,7 @@ async fn resolve_with_exp_handler(
     }
 
     let resolved_config = resolve(
-        &mut config,
+        config,
         query_data,
         merge_strategy,
         &mut conn,
