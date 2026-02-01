@@ -155,6 +155,15 @@ jobs:
               shell: bash
               run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
+            - name: Set up JDK
+              uses: actions/setup-java@v4
+              with:
+                java-version: '17'
+                distribution: 'temurin'
+
+            - name: Setup Gradle
+              uses: gradle/actions/setup-gradle@v3
+
             - name: run tests
               shell: bash
               run: |
