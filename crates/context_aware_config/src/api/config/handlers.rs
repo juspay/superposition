@@ -650,7 +650,8 @@ async fn get_toml_handler(
         return Ok(HttpResponse::NotModified().finish());
     }
 
-    let detailed_config = generate_detailed_cac(&mut conn, &workspace_context.schema_name)?;
+    let detailed_config =
+        generate_detailed_cac(&mut conn, &workspace_context.schema_name)?;
 
     let toml_str = serialize_to_toml(&detailed_config).map_err(|e| {
         log::error!("Failed to serialize config to TOML: {}", e);

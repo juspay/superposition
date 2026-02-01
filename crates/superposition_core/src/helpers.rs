@@ -47,14 +47,14 @@ mod tests {
     fn test_calculate_weight_from_index() {
         let number_2_100_str = "1267650600228229401496703205376";
         // test 2^100
-        let big_decimal =
-            BigDecimal::from_str_radix(number_2_100_str, 10).expect("Invalid string format");
+        let big_decimal = BigDecimal::from_str_radix(number_2_100_str, 10)
+            .expect("Invalid string format");
 
         let number_2_200_str =
             "1606938044258990275541962092341162602522202993782792835301376";
         // test 2^200
-        let big_decimal_200 =
-            BigDecimal::from_str_radix(number_2_200_str, 10).expect("Invalid string format");
+        let big_decimal_200 = BigDecimal::from_str_radix(number_2_200_str, 10)
+            .expect("Invalid string format");
 
         assert_eq!(Some(big_decimal), calculate_weight_from_index(100).ok());
         assert_eq!(Some(big_decimal_200), calculate_weight_from_index(200).ok());

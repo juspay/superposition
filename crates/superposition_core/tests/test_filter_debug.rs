@@ -45,7 +45,6 @@ fn config_to_detailed(config: &Config) -> DetailedConfig {
 }
 
 #[test]
-#[cfg(not(feature = "jsonlogic"))]
 fn test_filter_by_dimensions_debug() {
     let toml = r#"
 [default-config]

@@ -215,7 +215,10 @@ fn sort_json_value(v: &Value) -> Value {
 fn hash(val: &Value) -> Result<String, TomlError> {
     let sorted = sort_json_value(val);
     let bytes = serde_json::to_vec(&sorted).map_err(|e| {
-        TomlError::SerializationError(format!("Failed to serialize JSON for hashing: {}", e))
+        TomlError::SerializationError(format!(
+            "Failed to serialize JSON for hashing: {}",
+            e
+        ))
     })?;
     Ok(blake3::hash(&bytes).to_string())
 }
