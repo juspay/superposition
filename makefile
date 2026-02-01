@@ -9,7 +9,7 @@ CARGO_FLAGS := --color always --no-default-features
 EXCLUDE_PACKAGES := experimentation_client_integration_example superposition_sdk
 FMT_EXCLUDE_PACKAGES_REGEX := $(shell echo "$(EXCLUDE_PACKAGES)" | sed "s/ /|/g")
 LINT_FLAGS := --workspace --all-targets --all-features $(addprefix --exclude ,$(EXCLUDE_PACKAGES)) --no-deps
-COMPONENT_NAME_FLAGS := 
+COMPONENT_NAME_FLAGS :=
 CARGO_TARGET_DIR := $(shell cargo metadata --no-deps --format-version 1 | jq -r .target_directory)
 
 # Get all workspace members and filter out excluded ones
@@ -92,6 +92,7 @@ export SMITHY_MAVEN_REPOS = https://repo1.maven.org/maven2|https://sandbox.asset
 	superposition-example \
 	superposition_dev \
 	superposition_legacy \
+	symlink-target \
 	tailwind \
 	test \
 	test-js-provider \
@@ -171,10 +172,15 @@ setup-clients:
 clients: smithy-clients setup-clients
 
 kill:
-	-@pkill -f $(CARGO_TARGET_DIR)/debug/superposition &
+	-@pkill -f $(CARGO_TARGET_DIR)/debug/superposition
 
 get-password:
 	export DB_PASSWORD=`./docker-compose/localstack/get_db_password.sh` && echo $$DB_PASSWORD
+
+symlink-target:
+	@if [ ! -e target ] && [ ! -L target ] && [ "$(CARGO_TARGET_DIR)" != "$$(pwd)/target" ]; then \
+		ln -s $(CARGO_TARGET_DIR) target; \
+	fi
 
 superposition: CARGO_FLAGS += --features='$(FEATURES)'
 superposition:
@@ -216,7 +222,7 @@ backend:
 
 build: frontend backend
 
-run: kill db frontend superposition
+run: kill db frontend superposition symlink-target
 	@$(CARGO_TARGET_DIR)/debug/superposition
 
 %_run: kill db frontend superposition
@@ -229,7 +235,7 @@ test: WASM_PACK_MODE=--profiling
 test: setup frontend superposition
 	cargo test
 	@echo "Running superposition"
-	@$(CARGO_TARGET_DIR)/debug/superposition &
+	$(MAKE) run &
 	@echo "Awaiting superposition boot..."
 ## FIXME Curl doesn't retry.
 	@curl	--silent --retry 10 \
@@ -237,7 +243,7 @@ test: setup frontend superposition
 				--retry-all-errors \
 				'http://localhost:8080/health' 2>&1 > /dev/null
 	cd tests && bun test:clean
-	-@pkill -f $(CARGO_TARGET_DIR)/debug/superposition &
+	$(MAKE) kill
 
 ## npm run test
 ## FIXME Broken as requires hardcoded 'org_id'. Current test setup doesn't create
@@ -379,7 +385,7 @@ uniffi-bindings:
 	git apply uniffi/patches/*.patch
 
 provider-template: setup superposition
-	@$(CARGO_TARGET_DIR)/debug/superposition &
+	$(MAKE) run &
 	@echo "Awaiting superposition boot..."
 	@curl	--silent --retry 10 \
 				--connect-timeout 2 \
@@ -390,19 +396,19 @@ test-js-provider: provider-template
 	cd clients/javascript/provider-sdk-tests && npm ci
 	bash ./scripts/setup_provider_binaries.sh js
 	node clients/javascript/provider-sdk-tests/index.js
-	-@pkill -f $(CARGO_TARGET_DIR)/debug/superposition
+	$(MAKE) kill
 
 test-py-provider: provider-template
 	bash ./scripts/setup_provider_binaries.sh py
 	cd clients/python/provider-sdk-tests && VERSION=1.0.0 uv sync
 	VERSION=1.0.0 uv run --directory clients/python/provider-sdk-tests python main.py
-	-@pkill -f $(CARGO_TARGET_DIR)/debug/superposition
+	$(MAKE) kill
 
 test-kotlin-provider: provider-template
 	bash ./scripts/setup_provider_binaries.sh kotlin
 	cd clients/java && ./gradlew :provider-sdk-tests:run
-	-@pkill -f $(CARGO_TARGET_DIR)/debug/superposition
+	$(MAKE) kill
 
 test-rust-provider: provider-template
 	cargo test --package superposition_provider --test integration_test -- --nocapture --ignored
-	-@pkill -f $(CARGO_TARGET_DIR)/debug/superposition
+	$(MAKE) kill
