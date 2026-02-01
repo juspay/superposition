@@ -1,10 +1,11 @@
-// src/ffi.rs
-use std::collections::HashMap;
-use std::ffi::{c_char, CStr, CString};
-use std::ptr;
+use std::{
+    collections::HashMap,
+    ffi::{c_char, CStr, CString},
+    ptr,
+};
 
 use serde_json::{Map, Value};
-use superposition_types::{Context, DimensionInfo, Overrides};
+use superposition_types::{Context, DimensionInfo, ExtendedMap, Overrides};
 
 use crate::config::{self, MergeStrategy};
 use crate::experiment::{ExperimentConfig, ExperimentGroups, ExperimentationArgs};
@@ -226,7 +227,7 @@ pub unsafe extern "C" fn core_provider_cache_eval_config(
                 &data.config.dimensions,
                 experiment_config.experiments.clone(),
                 &experiment_config.experiment_groups,
-                &query_data,
+                query_data.clone(),
                 tkey.as_deref().unwrap_or(""),
                 filter_prefixes.clone(),
                 filter_exclude_prefixes.clone(),
@@ -235,12 +236,13 @@ pub unsafe extern "C" fn core_provider_cache_eval_config(
         }
     }
 
+    let config = data.config.clone();
     match config::eval_config(
-        data.config.default_configs.inner().clone(),
-        &data.config.contexts,
-        &data.config.overrides,
-        &data.config.dimensions,
-        &query_data,
+        config.default_configs,
+        config.contexts,
+        config.overrides,
+        config.dimensions,
+        query_data,
         merge_strategy,
         filter_prefixes,
         filter_exclude_prefixes,
@@ -320,7 +322,7 @@ pub unsafe extern "C" fn core_get_resolved_config(
 
     // Parse all parameters
     let default_config = match parse_json::<Map<String, Value>>(default_config_json) {
-        Ok(config) => config,
+        Ok(config) => ExtendedMap::from(config),
         Err(e) => {
             copy_string(ebuf, format!("Failed to parse default_config: {}", e));
             return ptr::null_mut();
@@ -417,7 +419,7 @@ pub unsafe extern "C" fn core_get_resolved_config(
             &dimensions,
             e_args.experiments,
             &e_args.experiment_groups,
-            &query_data,
+            query_data.clone(),
             &identifier,
             filter_prefixes.clone(),
             filter_exclude_prefixes.clone(),
@@ -429,10 +431,10 @@ pub unsafe extern "C" fn core_get_resolved_config(
     // Call pure config resolution logic
     match config::eval_config(
         default_config,
-        &contexts,
-        &overrides,
-        &dimensions,
-        &query_data,
+        contexts,
+        overrides,
+        dimensions,
+        query_data,
         merge_strategy,
         filter_prefixes,
         filter_exclude_prefixes,
@@ -482,7 +484,7 @@ pub unsafe extern "C" fn core_get_resolved_config_with_reasoning(
 
     // Parse parameters (same logic as above)
     let default_config = match parse_json::<Map<String, Value>>(default_config_json) {
-        Ok(config) => config,
+        Ok(config) => ExtendedMap::from(config),
         Err(e) => {
             copy_string(ebuf, format!("Failed to parse default_config: {}", e));
             return ptr::null_mut();
@@ -580,7 +582,7 @@ pub unsafe extern "C" fn core_get_resolved_config_with_reasoning(
             &dimensions,
             e_args.experiments,
             &e_args.experiment_groups,
-            &query_data,
+            query_data.clone(),
             &identifier,
             filter_prefixes.clone(),
             filter_exclude_prefixes.clone(),
@@ -592,10 +594,10 @@ pub unsafe extern "C" fn core_get_resolved_config_with_reasoning(
     // Call config resolution with reasoning
     match config::eval_config_with_reasoning(
         default_config,
-        &contexts,
-        &overrides,
-        &dimensions,
-        &query_data,
+        contexts,
+        overrides,
+        dimensions,
+        query_data,
         merge_strategy,
         filter_prefixes,
         filter_exclude_prefixes,
@@ -727,7 +729,7 @@ pub unsafe extern "C" fn core_get_applicable_variants(
         &dimensions,
         experiments,
         &experiment_groups,
-        &query_data,
+        query_data,
         &identifier,
         filter_prefixes,
         filter_exclude_prefixes,

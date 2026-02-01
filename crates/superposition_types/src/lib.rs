@@ -384,6 +384,12 @@ impl From<Map<String, Value>> for ExtendedMap {
     }
 }
 
+impl FromIterator<(String, Value)> for ExtendedMap {
+    fn from_iter<T: IntoIterator<Item = (String, Value)>>(iter: T) -> Self {
+        Self(Map::from_iter(iter))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

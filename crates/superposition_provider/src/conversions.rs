@@ -217,7 +217,9 @@ pub fn value_to_struct(value: Value) -> Result<open_feature::StructValue> {
 /// `open_feature::Value` has no null variant. Dropping the key leaves the rest of the
 /// object readable; erroring would make one null field render the entire flag
 /// unresolvable, which is what this used to do.
-fn object_fields(map: Map<String, Value>) -> Result<HashMap<String, open_feature::Value>> {
+fn object_fields(
+    map: Map<String, Value>,
+) -> Result<HashMap<String, open_feature::Value>> {
     let mut fields = HashMap::new();
     for (k, v) in map {
         if v.is_null() {
@@ -253,9 +255,11 @@ pub fn value_to_openfeature_value(value: Value) -> Result<open_feature::Value> {
                 .map(value_to_openfeature_value)
                 .collect::<Result<Vec<_>>>()?,
         )),
-        Value::Object(map) => Ok(open_feature::Value::Struct(open_feature::StructValue {
-            fields: object_fields(map)?,
-        })),
+        Value::Object(map) => {
+            Ok(open_feature::Value::Struct(open_feature::StructValue {
+                fields: object_fields(map)?,
+            }))
+        }
         // Reachable only for a null *array element*: object fields are filtered out by
         // `object_fields` first. Dropping it here would shift every later index, so this
         // stays an error.

@@ -53,8 +53,10 @@ async fn list_handler(
     } else {
         let dimensions_info =
             fetch_dimensions_info_map(&mut conn, &workspace_context.schema_name)?;
-        let evaluated_context =
-            evaluate_local_cohorts_skip_unresolved(&dimensions_info, &dimension_params);
+        let evaluated_context = evaluate_local_cohorts_skip_unresolved(
+            &dimensions_info,
+            dimension_params.into_inner(),
+        );
         Some(serde_json::to_string(&evaluated_context).map_err(|err| {
             unexpected_error!("failed to serialize audit context filter: {}", err)
         })?)

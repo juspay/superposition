@@ -5,7 +5,7 @@ use serde_json::{Map, Value};
 use crate::config::Condition;
 use crate::{logic, DimensionInfo};
 
-pub trait Contextual: Clone {
+pub trait Contextual: Sized {
     fn get_condition(&self) -> &Condition;
 
     fn filter_by_eval(

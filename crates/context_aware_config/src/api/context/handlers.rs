@@ -627,10 +627,10 @@ async fn list_handler(
             let dimensions_info =
                 fetch_dimensions_info_map(&mut conn, &workspace_context.schema_name)?;
 
-            let original_req_keys = dimension_params.keys().collect::<Vec<_>>();
+            let original_req_keys = dimension_params.keys().cloned().collect::<Vec<_>>();
             let evaluated_params = evaluate_local_cohorts_skip_unresolved(
                 &dimensions_info,
-                &dimension_params,
+                dimension_params.into_inner(),
             );
 
             let strategy = filter_params.dimension_match_strategy.unwrap_or_default();
@@ -649,7 +649,7 @@ async fn list_handler(
                 DimensionMatchStrategy::NonConflicting => eval_filtered,
                 _ => Context::filter_by_dimension(
                     eval_filtered,
-                    &original_req_keys,
+                    &original_req_keys.iter().collect::<Vec<_>>(),
                     &dimensions_info,
                 ),
             }

@@ -116,7 +116,7 @@ impl SuperpositionDataSource for FileDataSource {
         })?;
 
         config = config.filter(
-            context.as_ref(),
+            context,
             prefix_filter.map(PrefixList::from_iter).as_ref(),
             exclude_prefix_filter.map(PrefixList::from_iter).as_ref(),
         );

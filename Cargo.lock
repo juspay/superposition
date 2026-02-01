@@ -9039,6 +9039,7 @@ dependencies = [
  "criterion",
  "itertools 0.10.5",
  "jsonschema 0.17.0",
+ "juspay_jsonlogic",
  "log",
  "num-bigint",
  "serde",

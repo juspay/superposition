@@ -915,7 +915,7 @@ pub async fn discard(
 }
 
 pub async fn get_applicable_variants_helper(
-    context: &Map<String, Value>,
+    context: Map<String, Value>,
     dimensions_info: &HashMap<String, DimensionInfo>,
     identifier: String,
     prefix_filter: Option<Vec<String>>,
@@ -1037,7 +1037,7 @@ async fn get_applicable_variants_handler(
         fetch_dimensions_info_map(conn, &workspace_context.schema_name)
     })?;
     let (applicable_variants, exps) = get_applicable_variants_helper(
-        &context,
+        context.into_inner(),
         &di,
         identifier,
         query_data.prefix.map(|p| p.0),
@@ -1275,10 +1275,11 @@ fn list_experiments_db(
         } else {
             let dimensions_info =
                 fetch_dimensions_info_map(conn, &workspace_context.schema_name)?;
-            let original_req_keys = dimension_params.keys().collect::<Vec<_>>();
+            let dimension_params = dimension_params.into_inner();
+            let original_req_keys = dimension_params.keys().cloned().collect::<Vec<_>>();
             let dimension_params = evaluate_local_cohorts_skip_unresolved(
                 &dimensions_info,
-                &dimension_params,
+                dimension_params,
             );
 
             let strategy = filters.dimension_match_strategy.unwrap_or_default();
@@ -1297,7 +1298,7 @@ fn list_experiments_db(
                 DimensionMatchStrategy::NonConflicting => dimension_filtered_experiments,
                 _ => Experiment::filter_by_dimension(
                     dimension_filtered_experiments,
-                    &original_req_keys,
+                    &original_req_keys.iter().collect::<Vec<_>>(),
                     &dimensions_info,
                 ),
             }
