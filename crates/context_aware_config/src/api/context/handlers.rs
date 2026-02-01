@@ -432,8 +432,10 @@ async fn list_handler(
         }
         let dimensions_info =
             fetch_dimensions_info_map(&mut conn, &workspace_context.schema_name)?;
-        let dimension_params =
-            evaluate_local_cohorts_skip_unresolved(&dimensions_info, &dimension_params);
+        let dimension_params = evaluate_local_cohorts_skip_unresolved(
+            dimensions_info,
+            dimension_params.into_inner(),
+        );
         let dimension_keys = dimension_params.keys().cloned().collect::<Vec<_>>();
 
         let filter_fn = match filter_params.dimension_match_strategy.unwrap_or_default() {

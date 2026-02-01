@@ -112,8 +112,8 @@ impl Client {
 
     pub async fn get_applicable_variant(
         &self,
-        dimensions_info: &HashMap<String, DimensionInfo>,
-        context: &Map<String, Value>,
+        dimensions_info: HashMap<String, DimensionInfo>,
+        context: Map<String, Value>,
         identifier: &str,
         prefix: Option<Vec<String>>,
     ) -> Result<Vec<String>, String> {
