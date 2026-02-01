@@ -545,7 +545,7 @@ impl LocalResolutionProvider {
                     &dimensions_info,
                     exp_data.data.experiments.clone(),
                     &exp_data.data.experiment_groups,
-                    &query_data,
+                    query_data.clone(),
                     &targeting_key.unwrap_or_default(),
                     prefix_filter.clone(),
                     exclude_prefix_filter.clone(),
@@ -561,22 +561,25 @@ impl LocalResolutionProvider {
         // Evaluate config using cached data
         let cached = self.cached_config.read().await;
         match cached.as_ref() {
-            Some(config_data) => eval_config(
-                (*config_data.data.default_configs).clone(),
-                &config_data.data.contexts,
-                &config_data.data.overrides,
-                &config_data.data.dimensions,
-                &query_data,
-                MergeStrategy::MERGE,
-                prefix_filter,
-                exclude_prefix_filter,
-            )
-            .map_err(|e| {
-                SuperpositionError::ConfigError(format!(
-                    "Failed to evaluate config: {}",
-                    e
-                ))
-            }),
+            Some(config_data) => {
+                let config = config_data.data.clone();
+                eval_config(
+                    config.default_configs,
+                    config.contexts,
+                    config.overrides,
+                    config.dimensions,
+                    query_data,
+                    MergeStrategy::MERGE,
+                    prefix_filter,
+                    exclude_prefix_filter,
+                )
+                .map_err(|e| {
+                    SuperpositionError::ConfigError(format!(
+                        "Failed to evaluate config: {}",
+                        e
+                    ))
+                })
+            }
             None => Err(SuperpositionError::ProviderError(
                 "Provider not initialized: no cached config available".into(),
             )),
@@ -616,7 +619,7 @@ impl FeatureExperimentMeta for LocalResolutionProvider {
                 &dimensions_info,
                 exp_data.data.experiments.clone(),
                 &exp_data.data.experiment_groups,
-                &query_data,
+                query_data,
                 &targeting_key.unwrap_or_default(),
                 prefix_filter,
                 exclude_prefix_filter,
@@ -731,11 +734,10 @@ impl SuperpositionDataSource for LocalResolutionProvider {
 
         let prefix = prefix_filter.map(PrefixList::from_iter);
         let exclude_prefix = exclude_prefix_filter.map(PrefixList::from_iter);
-        config_data.data = config_data.data.filter(
-            context.as_ref(),
-            prefix.as_ref(),
-            exclude_prefix.as_ref(),
-        );
+        config_data.data =
+            config_data
+                .data
+                .filter(context, prefix.as_ref(), exclude_prefix.as_ref());
 
         Ok(FetchResponse::Data(config_data))
     }

@@ -114,7 +114,7 @@ pub fn get_applicable_variants(
     dimensions_info: &HashMap<String, DimensionInfo>,
     experiments: Experiments,
     experiment_groups: &ExperimentGroups,
-    query_data: &Map<String, Value>,
+    query_data: Map<String, Value>,
     identifier: &str,
     prefix: Option<Vec<String>>,
     exclude_prefix: Option<Vec<String>>,
@@ -146,7 +146,7 @@ pub fn get_applicable_buckets_from_group(
         .iter()
         .filter_map(|exp_group| {
             let hashed_percentage = calculate_bucket_index(identifier, &exp_group.id);
-            log::info!(
+            log::debug!(
                 "Identifier: {}, Experiment Group ID: {}, Hashed Percentage: {}",
                 identifier,
                 exp_group.id,

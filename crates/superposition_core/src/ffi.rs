@@ -3,7 +3,9 @@ use std::sync::{Arc, Mutex};
 
 use serde_json::{Map, Value};
 use superposition_types::experimental::Experimental;
-use superposition_types::{Config, Context, DimensionInfo, Overrides, PrefixList};
+use superposition_types::{
+    Config, Context, DimensionInfo, ExtendedMap, Overrides, PrefixList,
+};
 use thiserror::Error;
 
 use crate::experiment::{
@@ -34,11 +36,11 @@ fn json_from_map(m: HashMap<String, String>) -> serde_json::Result<Map<String, V
 }
 
 type EvalFn = fn(
+    ExtendedMap,
+    Vec<Context>,
+    HashMap<String, Overrides>,
+    HashMap<String, DimensionInfo>,
     Map<String, Value>,
-    &[Context],
-    &HashMap<String, Overrides>,
-    &HashMap<String, DimensionInfo>,
-    &Map<String, Value>,
     MergeStrategy,
     Option<Vec<String>>,
     Option<Vec<String>>,
@@ -46,8 +48,8 @@ type EvalFn = fn(
 
 #[allow(clippy::too_many_arguments)]
 fn ffi_eval_logic(
-    default_config: HashMap<String, String>,
-    contexts: &[Context],
+    default_config: ExtendedMap,
+    contexts: Vec<Context>,
     overrides: HashMap<String, Overrides>,
     dimensions: HashMap<String, DimensionInfo>,
     query_data: HashMap<String, String>,
@@ -57,8 +59,6 @@ fn ffi_eval_logic(
     experimentation: Option<ExperimentationArgs>,
     eval_fn: EvalFn,
 ) -> Result<HashMap<String, String>, OperationError> {
-    let _d = json_from_map(default_config)
-        .map_err(|err| OperationError::Unexpected(err.to_string()))?;
     let mut _q = json_from_map(query_data)
         .map_err(|err| OperationError::Unexpected(err.to_string()))?;
 
@@ -70,7 +70,7 @@ fn ffi_eval_logic(
             &dimensions,
             e_args.experiments,
             &e_args.experiment_groups,
-            &_q,
+            _q.clone(),
             &identifier,
             filter_prefixes.clone(),
             filter_exclude_prefixes.clone(),
@@ -79,11 +79,11 @@ fn ffi_eval_logic(
     }
 
     let r = eval_fn(
-        _d,
+        default_config,
         contexts,
-        &overrides,
-        &dimensions,
-        &_q,
+        overrides,
+        dimensions,
+        _q,
         merge_strategy,
         filter_prefixes,
         filter_exclude_prefixes,
@@ -96,8 +96,8 @@ fn ffi_eval_logic(
 #[allow(clippy::too_many_arguments)]
 #[uniffi::export]
 fn ffi_eval_config(
-    default_config: HashMap<String, String>,
-    contexts: &[Context],
+    default_config: ExtendedMap,
+    contexts: Vec<Context>,
     overrides: HashMap<String, Overrides>,
     dimensions: HashMap<String, DimensionInfo>,
     query_data: HashMap<String, String>,
@@ -123,8 +123,8 @@ fn ffi_eval_config(
 #[allow(clippy::too_many_arguments)]
 #[uniffi::export]
 fn ffi_eval_config_with_reasoning(
-    default_config: HashMap<String, String>,
-    contexts: &[Context],
+    default_config: ExtendedMap,
+    contexts: Vec<Context>,
     overrides: HashMap<String, Overrides>,
     dimensions: HashMap<String, DimensionInfo>,
     query_data: HashMap<String, String>,
@@ -155,7 +155,7 @@ fn ffi_get_applicable_variants(
     prefix: Option<Vec<String>>,
     exclude_prefix: Option<Vec<String>>,
 ) -> Result<Vec<String>, OperationError> {
-    let _query_data = json_from_map(query_data.clone())
+    let _query_data = json_from_map(query_data)
         .map_err(|err| OperationError::Unexpected(err.to_string()))?;
 
     let identifier = eargs.targeting_key;
@@ -163,7 +163,7 @@ fn ffi_get_applicable_variants(
         &dimensions_info,
         eargs.experiments,
         &eargs.experiment_groups,
-        &_query_data,
+        _query_data,
         &identifier,
         prefix,
         exclude_prefix,
@@ -260,7 +260,7 @@ fn ffi_parse_config_file_with_filters(
     };
 
     Ok(config.filter(
-        dimension_data.as_ref(),
+        dimension_data,
         prefix_list.as_ref(),
         exclude_prefix_list.as_ref(),
     ))
@@ -346,8 +346,10 @@ impl ProviderCache {
             OperationError::Unexpected(format!("Failed to acquire cache lock: {}", err))
         })?;
 
-        let mut _q = json_from_map(query_data)
+        let mut _q: Map<String, Value> = json_from_map(query_data)
             .map_err(|err| OperationError::Unexpected(err.to_string()))?;
+
+        let config = cache_data.config.clone();
 
         if let Some(experiment_config) = &cache_data.experiment {
             if (!experiment_config.experiments.is_empty()
@@ -355,10 +357,10 @@ impl ProviderCache {
                 && targeting_key.as_ref().is_some_and(|key| !key.is_empty())
             {
                 let variants = get_applicable_variants(
-                    &cache_data.config.dimensions,
+                    &config.dimensions,
                     experiment_config.experiments.clone(),
                     &experiment_config.experiment_groups,
-                    &_q,
+                    _q.clone(),
                     targeting_key.as_deref().unwrap_or(""),
                     filter_prefixes.clone(),
                     filter_exclude_prefixes.clone(),
@@ -368,11 +370,11 @@ impl ProviderCache {
         }
 
         let r = eval_config(
-            cache_data.config.default_configs.inner().clone(),
-            &cache_data.config.contexts,
-            &cache_data.config.overrides,
-            &cache_data.config.dimensions,
-            &_q,
+            config.default_configs,
+            config.contexts,
+            config.overrides,
+            config.dimensions,
+            _q,
             merge_strategy,
             filter_prefixes,
             filter_exclude_prefixes,
@@ -406,7 +408,7 @@ impl ProviderCache {
         };
 
         Ok(config.filter(
-            dimension_data.as_ref(),
+            dimension_data,
             prefix_list.as_ref(),
             exclude_prefix_list.as_ref(),
         ))
@@ -501,7 +503,7 @@ impl ProviderCache {
             &dimensions_info,
             exps,
             &exp_grps,
-            &dimension_data,
+            dimension_data,
             &targeting_key,
             prefix,
             exclude_prefix,

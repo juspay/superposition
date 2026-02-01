@@ -164,8 +164,11 @@ fn get_experiment_config_db(
     } else {
         fetch_dimensions_info_map(conn, &workspace_context.schema_name)?
     };
-    let evaluated_dimension_params =
-        evaluate_local_cohorts_skip_unresolved(&dimensions_info, &dimension_params);
+    let is_dimension_params_empty = dimension_params.is_empty();
+    let evaluated_dimension_params = evaluate_local_cohorts_skip_unresolved(
+        &dimensions_info,
+        dimension_params.into_inner(),
+    );
 
     let exp_list = {
         let mut experiment_list: Vec<Experiment> = experiments::experiments
@@ -185,7 +188,7 @@ fn get_experiment_config_db(
             );
         }
 
-        if !dimension_params.is_empty() {
+        if !is_dimension_params_empty {
             experiment_list = match dimension_match_strategy {
                 DimensionMatchStrategy::Exact => Experiment::get_satisfied(
                     experiment_list,
@@ -216,7 +219,7 @@ fn get_experiment_config_db(
             .schema_name(&workspace_context.schema_name)
             .load::<ExperimentGroup>(conn)?;
 
-        if !dimension_params.is_empty() {
+        if !is_dimension_params_empty {
             group_list = match dimension_match_strategy {
                 DimensionMatchStrategy::Exact => ExperimentGroup::get_satisfied(
                     group_list,

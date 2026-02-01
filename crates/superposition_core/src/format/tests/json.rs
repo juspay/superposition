@@ -295,11 +295,11 @@ fn test_json_resolution_with_local_cohorts() {
     dims.insert("os".to_string(), Value::String("linux".to_string()));
 
     let result = crate::eval_config(
-        (*config.default_configs).clone(),
-        &config.contexts,
-        &config.overrides,
-        &config.dimensions,
-        &dims,
+        config.default_configs,
+        config.contexts,
+        config.overrides,
+        config.dimensions,
+        dims,
         crate::MergeStrategy::MERGE,
         None,
         None,

@@ -499,7 +499,7 @@ impl ConversionUtils {
     /// Evaluate config using superposition_types logic and return resolved values
     pub fn evaluate_config(
         config: Config,
-        dimension_data: &Map<String, Value>,
+        dimension_data: Map<String, Value>,
         prefix_filter: Option<&[String]>,
         exclude_prefix_filter: Option<&[String]>,
     ) -> Result<HashMap<String, Value>> {
@@ -533,16 +533,17 @@ impl ConversionUtils {
             final_config.contexts.len()
         );
 
-        // Start with default configs
-        let mut result = final_config.default_configs.into_inner();
-
-        // Apply overrides based on context priority (higher priority wins)
-        let mut sorted_contexts = final_config.contexts.clone();
-        sorted_contexts.sort_by_key(|c| std::cmp::Reverse(c.priority)); // Sort by priority descending
+        let Config {
+            default_configs: mut result,
+            contexts: mut sorted_contexts,
+            overrides,
+            ..
+        } = final_config;
+        sorted_contexts.sort_by_key(|c| std::cmp::Reverse(c.weight));
 
         for context in sorted_contexts {
             if let Some(override_key) = context.override_with_keys.first() {
-                if let Some(overrides) = final_config.overrides.get(override_key) {
+                if let Some(overrides) = overrides.get(override_key) {
                     let override_map: Map<String, Value> = overrides.clone().into();
                     for (override_key, value) in override_map {
                         result.insert(override_key, value);
@@ -558,7 +559,8 @@ impl ConversionUtils {
         );
 
         // Convert Map<String, Value> to HashMap<String, Value>
-        let final_result: HashMap<String, Value> = result.into_iter().collect();
+        let final_result: HashMap<String, Value> =
+            result.into_inner().into_iter().collect();
         Ok(final_result)
     }
 }

@@ -1,6 +1,8 @@
 #![deny(unused_crate_dependencies)]
 #[cfg(test)]
 use criterion as _;
+#[cfg(test)]
+use jsonlogic as _;
 
 uniffi::setup_scaffolding!("superposition_client");
 pub mod config;

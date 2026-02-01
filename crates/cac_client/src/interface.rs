@@ -261,22 +261,18 @@ pub extern "C" fn cac_get_config(
 
     CAC_RUNTIME.block_on(async move {
         unsafe {
-            unwrap_safe!(
-                (*client)
-                    .get_full_config_state_with_filter(
-                        filters,
-                        prefix_list,
-                        exclude_prefix_list
-                    )
-                    .await
-                    .map(|config| {
-                        rstring_to_cstring(
-                            serde_json::to_value(config).unwrap().to_string(),
-                        )
-                        .into_raw()
-                    }),
-                std::ptr::null_mut()
-            )
+            let config = (*client)
+                .get_full_config_state_with_filter(
+                    filters,
+                    prefix_list,
+                    exclude_prefix_list,
+                )
+                .await;
+
+            let config =
+                unwrap_safe!(serde_json::to_value(config), return std::ptr::null());
+
+            rstring_to_cstring(config.to_string()).into_raw()
         }
     })
 }

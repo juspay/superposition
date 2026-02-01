@@ -158,15 +158,12 @@ impl Client {
         query_data: Option<Map<String, Value>>,
         prefix: Option<Vec<String>>,
         exclude_prefix: Option<Vec<String>>,
-    ) -> Result<Config, String> {
-        let cac = self.config.read().await;
-        let filtered_config = cac.to_owned().filter(
-            query_data.as_ref(),
+    ) -> Config {
+        self.config.read().await.to_owned().filter(
+            query_data,
             prefix.map(PrefixList::from_iter).as_ref(),
             exclude_prefix.map(PrefixList::from_iter).as_ref(),
-        );
-
-        Ok(filtered_config)
+        )
     }
 
     pub async fn get_last_modified(&self) -> DateTime<Utc> {
@@ -207,7 +204,7 @@ impl Client {
             if !keys.is_empty() || !exclude_prefix.is_empty() {
                 config = config.filter_by_prefix(&keys, &exclude_prefix);
             }
-            let evaled_cac = eval::eval_cac(&config, &query_data, merge_strategy)?;
+            let evaled_cac = eval::eval_cac(config, query_data, merge_strategy)?;
             self.config_cache.insert(hash_key, evaled_cac.clone());
             Ok(evaled_cac)
         }

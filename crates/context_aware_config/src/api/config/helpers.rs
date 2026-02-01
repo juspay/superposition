@@ -290,18 +290,20 @@ fn prepare_remote_query_data(
 }
 
 fn evaluate_resolved_config(
-    config: &Config,
-    query_data: &QueryMap,
+    config: Config,
+    query_data: QueryMap,
     merge_strategy: MergeStrategy,
     show_reason: bool,
 ) -> superposition::Result<Map<String, Value>> {
     if show_reason {
-        eval_cac_with_reasoning(config, query_data, merge_strategy).map_err(|err| {
-            log::error!("failed to eval cac with err: {}", err);
-            unexpected_error!("cac eval failed")
-        })
+        eval_cac_with_reasoning(config, query_data.into_inner(), merge_strategy).map_err(
+            |err| {
+                log::error!("failed to eval cac with err: {}", err);
+                unexpected_error!("cac eval failed")
+            },
+        )
     } else {
-        eval_cac(config, query_data, merge_strategy).map_err(|err| {
+        eval_cac(config, query_data.into_inner(), merge_strategy).map_err(|err| {
             log::error!("failed to eval cac with err: {}", err);
             unexpected_error!("cac eval failed")
         })
@@ -394,7 +396,7 @@ pub fn resolve(
     )?;
     let merge_strategy = merge_strategy.into_inner();
 
-    evaluate_resolved_config(&config, &query_data, merge_strategy, show_reason)
+    evaluate_resolved_config(config, query_data, merge_strategy, show_reason)
 }
 
 pub fn resolve_detailed(
@@ -421,9 +423,9 @@ pub fn resolve_detailed(
     let merge_strategy = merge_strategy.into_inner();
 
     let resolved_config = evaluate_resolved_config(
-        &resolution_config,
-        &context_data,
-        merge_strategy.clone(),
+        resolution_config,
+        context_data,
+        merge_strategy,
         show_reason,
     )?;
     let keys = resolved_config.keys().cloned().collect::<Vec<_>>();
@@ -435,7 +437,7 @@ pub fn resolve_detailed(
 
 #[allow(clippy::too_many_arguments)]
 pub fn explain_resolved_config(
-    config: &Config,
+    mut config: Config,
     context_data: QueryMap,
     merge_strategy: Header<MergeStrategy>,
     conn: &mut DBConnection,
@@ -444,11 +446,10 @@ pub fn explain_resolved_config(
     workspace_context: &WorkspaceContext,
     master_encryption_key: &Option<EncryptionKey>,
 ) -> superposition::Result<Explanation> {
-    let mut explanation_config = config.clone();
-    apply_context_id_filter(&mut explanation_config, &resolve_options.context_id)?;
+    apply_context_id_filter(&mut config, &resolve_options.context_id)?;
 
     let context_data = prepare_remote_query_data(
-        &explanation_config,
+        &config,
         context_data,
         conn,
         resolve_options.resolve_remote,
@@ -457,7 +458,7 @@ pub fn explain_resolved_config(
     )?;
     let merge_strategy = merge_strategy.into_inner();
 
-    let mut current_value = explanation_config
+    let mut current_value = config
         .default_configs
         .get(&explain_key.key)
         .cloned()
@@ -465,24 +466,25 @@ pub fn explain_resolved_config(
             bad_argument!("default config key {} not found", explain_key.key)
         })?;
     let context_data =
-        evaluate_local_cohorts(&explanation_config.dimensions, &context_data);
+        evaluate_local_cohorts(&config.dimensions, context_data.into_inner());
     let mut timeline = Vec::new();
 
-    for context in &explanation_config.contexts {
+    for context in config.contexts {
         if !superposition_types::apply(&context.condition, &context_data) {
             continue;
         }
 
-        let override_id = context.override_with_keys.get_key().clone();
+        let override_id = context.override_with_keys.get_key();
         let value_before = current_value.clone();
 
-        if let Some(override_value) = explanation_config
+        if let Some(override_value) = config
             .overrides
-            .get(&override_id)
+            .get(override_id)
             .and_then(|overrides| overrides.get(&explain_key.key))
+            .cloned()
         {
-            match &merge_strategy {
-                MergeStrategy::REPLACE => current_value = override_value.clone(),
+            match merge_strategy {
+                MergeStrategy::REPLACE => current_value = override_value,
                 MergeStrategy::MERGE => {
                     superposition_core::merge(&mut current_value, override_value)
                 }
@@ -495,9 +497,9 @@ pub fn explain_resolved_config(
         })?;
 
         timeline.push(ExplanationTimelineItem {
-            context_id: context.id.clone(),
+            context_id: context.id,
             condition,
-            override_id,
+            override_id: override_id.to_string(),
             value_before,
             value_after: current_value.clone(),
         });

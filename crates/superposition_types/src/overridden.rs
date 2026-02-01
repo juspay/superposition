@@ -67,14 +67,12 @@ pub(crate) fn filter_config_keys_by_prefix(
 }
 
 pub(crate) fn filter_into_config_keys_by_prefix(
-    overrides: Map<String, Value>,
+    mut overrides: Map<String, Value>,
     prefix_list: &PrefixList,
     exclude_prefix_list: &PrefixList,
 ) -> Map<String, Value> {
+    overrides.retain(|key, _| key_is_retained(key, prefix_list, exclude_prefix_list));
     overrides
-        .into_iter()
-        .filter(|(key, _)| key_is_retained(key, prefix_list, exclude_prefix_list))
-        .collect()
 }
 
 pub trait Overridden<T: TryFrom<Map<String, Value>>>: Clone {

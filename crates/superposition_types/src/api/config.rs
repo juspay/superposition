@@ -81,7 +81,7 @@ pub struct Explanation {
 }
 
 #[derive(
-    strum_macros::EnumString, Clone, strum_macros::Display, Default, uniffi::Enum,
+    strum_macros::EnumString, Clone, Copy, strum_macros::Display, Default, uniffi::Enum,
 )]
 #[strum(serialize_all = "snake_case")]
 pub enum MergeStrategy {

@@ -8,7 +8,6 @@ use context_aware_config::api::config::helpers::{
     setup_query_data,
 };
 use experimentation_platform::api::experiments::handlers::get_applicable_variants_helper;
-use serde_json::{Map, Value};
 use service_utils::{
     helpers::is_not_modified,
     redis::{CONFIG_KEY_SUFFIX, LAST_MODIFIED_KEY_SUFFIX, read_through_cache},
@@ -96,9 +95,8 @@ async fn resolve_with_exp_handler(
     if let (None, Some(identifier)) =
         (&query_filters.version, identifier_query.identifier)
     {
-        let context_map: &Map<String, Value> = &query_data;
         let (applicable_variants, _) = get_applicable_variants_helper(
-            context_map,
+            query_data.clone().into_inner(),
             &config.dimensions,
             identifier,
             query_filters.prefix.clone().map(|p| p.0),

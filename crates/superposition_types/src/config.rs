@@ -247,6 +247,12 @@ impl Contextual for Context {
     }
 }
 
+impl Contextual for &Context {
+    fn get_condition(&self) -> &Condition {
+        &self.condition
+    }
+}
+
 #[derive(Serialize, Deserialize, PartialEq, Clone, Debug, Deref, DerefMut)]
 #[serde(try_from = "Vec<String>")]
 pub struct OverrideWithKeys([String; 1]);
@@ -295,11 +301,12 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn filter_by_dimensions(self, dimension_data: &Map<String, Value>) -> Self {
+    pub fn filter_by_dimensions(self, dimension_data: Map<String, Value>) -> Self {
         let modified_context =
             evaluate_local_cohorts_skip_unresolved(&self.dimensions, dimension_data);
 
-        let filtered_context = Context::filter_by_eval(self.contexts, &modified_context);
+        let filtered_context =
+            Contextual::filter_by_eval(self.contexts, &modified_context);
         let mut initial_overrides = self.overrides;
         let filtered_overrides: HashMap<String, Overrides> = filtered_context
             .iter()
@@ -355,13 +362,8 @@ impl Config {
             })
             .collect::<HashMap<_, _>>();
 
-        let filtered_context: Vec<Context> = self
-            .contexts
-            .into_iter()
-            .filter(|context| {
-                filtered_overrides.contains_key(context.override_with_keys.get_key())
-            })
-            .collect();
+        let mut filtered_context = contexts;
+        filtered_context.retain(|c| filtered_overrides.contains_key(c.override_key()));
 
         Self {
             contexts: filtered_context,
@@ -373,7 +375,7 @@ impl Config {
 
     pub fn filter(
         self,
-        dimension_data: Option<&Map<String, Value>>,
+        dimension_data: Option<Map<String, Value>>,
         prefix_list: Option<&PrefixList>,
         exclude_prefix_list: Option<&PrefixList>,
     ) -> Self {

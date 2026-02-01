@@ -79,7 +79,7 @@ timeout = 90
 
     // Simulate what API does - filter by empty dimension data
     let empty_dimensions: Map<String, serde_json::Value> = Map::new();
-    let filtered_config = config.filter_by_dimensions(&empty_dimensions);
+    let filtered_config = config.filter_by_dimensions(empty_dimensions);
 
     println!("\n=== After filter (empty dimensions) ===");
     println!("Contexts count: {}", filtered_config.contexts.len());
