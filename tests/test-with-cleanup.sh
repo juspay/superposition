@@ -1,12 +1,28 @@
 #!/bin/bash
 
 # Parse flags
+ORG_PATTERN="org%"
+WORKSPACE_NAME=""
 CLEANUP_ONLY=false
-for arg in "$@"; do
-    case $arg in
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
         --cleanup-only)
             CLEANUP_ONLY=true
             shift
+            ;;
+        --org-pattern)
+            ORG_PATTERN="$2"
+            shift 2
+            ;;
+        --workspace)
+            WORKSPACE_NAME="$2"
+            shift 2
+            ;;
+        *)
+            echo "Unknown argument: $1"
+            echo "Usage: $0 [--cleanup-only] [--org-pattern pattern] [--workspace name]"
+            exit 1
             ;;
     esac
 done
@@ -32,8 +48,18 @@ run_cleanup() {
     echo ""
     echo "========================================"
     echo "Running cleanup..."
+    if [ -n "$WORKSPACE_NAME" ]; then
+        echo "Mode: Specific Workspace ($WORKSPACE_NAME) in Orgs ($ORG_PATTERN)"
+    else
+        echo "Mode: Full Organization Cleanup ($ORG_PATTERN)"
+    fi
     echo "========================================"
-    psql "$DATABASE_URL" -f cleanup.sql
+    
+    psql "$DATABASE_URL" \
+        -v org_pattern="$ORG_PATTERN" \
+        -v workspace_name="$WORKSPACE_NAME" \
+        -f cleanup.sql
+        
     CLEANUP_EXIT_CODE=$?
     
     if [ $CLEANUP_EXIT_CODE -eq 0 ]; then
