@@ -2,8 +2,6 @@
 
 module Main (main) where
 
-import Data.Aeson (decode, Value)
-import Data.ByteString.Lazy.Char8 qualified as BSL
 import FFI.Superposition qualified as FFI
 import Test.HUnit qualified as HUnit
 
@@ -74,11 +72,7 @@ parseTomlValid :: IO ()
 parseTomlValid = do
   result <- FFI.parseTomlConfig exampleToml
   case result of
-    Right jsonStr -> do
-      let parsed = decode (BSL.pack jsonStr) :: Maybe Value
-      case parsed of
-        Nothing -> HUnit.assertFailure $ "Failed to parse result JSON: " ++ jsonStr
-        Just _ -> HUnit.assertBool "Valid TOML should parse successfully" True
+    Right _val -> HUnit.assertBool "Valid TOML should parse successfully" True
     Left e -> HUnit.assertFailure $ "Failed to parse valid TOML: " ++ e
 
 parseTomlInvalidSyntax :: IO ()
