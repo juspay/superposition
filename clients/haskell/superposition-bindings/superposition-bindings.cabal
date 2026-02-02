@@ -21,7 +21,10 @@ library
     exposed-modules:  FFI.Superposition
     -- other-modules:
     -- other-extensions:
-    build-depends:    base ^>=4.18.2.0
+    build-depends:    base >=4.17 && <5,
+                      aeson,
+                      bytestring,
+                      text
     hs-source-dirs:   lib
     default-language: GHC2021
     default-extensions: CApiFFI
@@ -37,7 +40,7 @@ test-suite superposition-bindings-test
     hs-source-dirs:   test
     main-is:          Main.hs
     build-depends:
-        base ^>=4.18.2.0,
+        base >=4.17 && <5,
         HUnit,
         async,
         aeson,
