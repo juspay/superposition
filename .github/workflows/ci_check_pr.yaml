@@ -134,7 +134,7 @@ jobs:
             - name: Install postgres libs
               run: |
                   sudo apt update
-                  sudo apt-get -y install postgresql libpq-dev
+                  sudo apt-get -y install postgresql libpq-dev libgmp-dev
 
             - name: Install Bun
               uses: oven-sh/setup-bun@v2
