@@ -48,23 +48,16 @@ pub struct LoggingBody<B> {
     body_bytes: Vec<u8>,
     consumed: bool,
     start_time: Instant,
-    log_body_as_json: bool,
 }
 
 impl<B> LoggingBody<B> {
-    fn new(
-        body: B,
-        headers: HashMap<String, String>,
-        start_time: Instant,
-        log_body_as_json: bool,
-    ) -> Self {
+    fn new(body: B, headers: HashMap<String, String>, start_time: Instant) -> Self {
         Self {
             inner: body,
             headers,
             body_bytes: Vec::new(),
             consumed: false,
             start_time,
-            log_body_as_json,
         }
     }
 }
@@ -96,56 +89,44 @@ where
                 if !this.consumed {
                     this.consumed = true;
                     let latency_ms = this.start_time.elapsed().as_millis() as u64;
-
-                    if this.log_body_as_json {
-                        // Parse and log as structured JSON
-                        match serde_json::from_slice::<Value>(&this.body_bytes) {
-                            Ok(json_value) => {
-                                info!(
-                                    headers = ?this.headers,
-                                    body = %json_value,
-                                    latency = latency_ms,
-                                    "GoldenSignal"
+                    let is_json_response = this
+                        .headers
+                        .get(header::CONTENT_TYPE.as_str())
+                        .map(|ct| ct.starts_with(&ContentType::json().to_string()))
+                        .unwrap_or(false);
+                    let response_body = if is_json_response {
+                        serde_json::from_slice::<Value>(&this.body_bytes).unwrap_or_else(
+                            |err| {
+                                tracing::warn!(
+                                    "Failed to parse response body, error: {}",
+                                    err
                                 );
-                            }
-                            Err(_) => {
-                                // JSON parsing failed, log as string fallback
                                 let response_body = if this.body_bytes.is_empty() {
                                     String::from("(empty)")
                                 } else {
                                     String::from_utf8_lossy(&this.body_bytes).into_owned()
                                 };
-                                info!(
-                                    headers = ?this.headers,
-                                    body = %format!("(invalid JSON: {})", response_body),
-                                    latency = latency_ms,
-                                    "GoldenSignal"
-                                );
-                            }
-                        }
+                                Value::String(format!(
+                                    "(invalid JSON: {})",
+                                    response_body
+                                ))
+                            },
+                        )
                     } else {
-                        // Non-JSON response, skip body entirely
-                        info!(
-                            headers = ?this.headers,
-                            latency = latency_ms,
-                            "GoldenSignal - No Body"
-                        );
-                    }
+                        Value::String("(non-JSON response body omitted)".to_string())
+                    };
+                    info!(
+                        headers = ?this.headers,
+                        body = %response_body,
+                        latency = latency_ms,
+                        "GoldenSignal"
+                    );
                 }
                 Poll::Ready(None)
             }
             Poll::Pending => Poll::Pending,
         }
     }
-}
-
-/// Check if the response has a JSON content type
-fn is_json_response(res: &ServiceResponse<impl MessageBody>) -> bool {
-    res.headers()
-        .get(header::CONTENT_TYPE)
-        .and_then(|ct| ct.to_str().ok())
-        .map(|ct| ct.starts_with(&ContentType::json().to_string()))
-        .unwrap_or(false)
 }
 
 impl<S, B> Transform<S, ServiceRequest> for RequestResponseLogger
@@ -288,12 +269,8 @@ where
                 })
                 .collect();
 
-            // Only log body as JSON for JSON content types
-            let log_body_as_json = is_json_response(&res);
-
-            let logged_res = res.map_body(|_, body| {
-                LoggingBody::new(body, response_headers, start_time, log_body_as_json)
-            });
+            let logged_res = res
+                .map_body(|_, body| LoggingBody::new(body, response_headers, start_time));
 
             Ok(logged_res)
         })

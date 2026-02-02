@@ -12,17 +12,24 @@ pub struct CustomRootSpanBuilder;
 impl RootSpanBuilder for CustomRootSpanBuilder {
     fn on_request_start(request: &ServiceRequest) -> Span {
         let headers = request.headers();
-        let extractor_header = |headers: &HeaderMap, key: &str| {
+        let santize_headers = |value: &str| {
+            value
+                .chars()
+                .filter(|c| !c.is_control())
+                .take(256)
+                .collect::<String>()
+        };
+        let header_extractor = |headers: &HeaderMap, key: &str| {
             headers
                 .get(key)
                 .and_then(|v| HeaderValue::to_str(v).ok())
-                .map(String::from)
+                .map(santize_headers)
         };
-        let workspace = extractor_header(headers, "x-workspace")
+        let workspace = header_extractor(headers, "x-workspace")
             .unwrap_or_else(|| "no-workspace-header".to_string());
-        let org = extractor_header(headers, "x-org-id")
+        let org = header_extractor(headers, "x-org-id")
             .unwrap_or_else(|| "no-org-header".to_string());
-        let user_agent = extractor_header(headers, "user-agent")
+        let user_agent = header_extractor(headers, "user-agent")
             .unwrap_or_else(|| "no-user-agent".to_string());
         let method = request.method().to_string();
         let path = request.path();
