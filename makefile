@@ -446,7 +446,7 @@ bindings-test: uniffi-bindings
 	@echo "========================================"
 	@echo "Running Java/Kotlin TOML binding tests"
 	@echo "========================================"
-	cd clients/java/bindings && SUPERPOSITION_LIB_PATH=$(CARGO_TARGET_DIR)/release gradle test
+	cd clients/java && SUPERPOSITION_LIB_PATH=$(CARGO_TARGET_DIR)/release ./gradlew bindings:test
 	@echo ""
 	@echo "========================================"
 	@echo "Running Haskell TOML binding tests"
