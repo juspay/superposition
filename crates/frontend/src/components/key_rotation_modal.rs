@@ -2,173 +2,273 @@ use leptos::*;
 use web_sys::MouseEvent;
 
 use crate::{
-    api::workspaces,
-    components::{alert::AlertType, button::Button, modal::PortalModal},
+    api::{master_encryption_key, workspaces},
+    components::{
+        alert::AlertType, button::Button, form::label::Label, modal::PortalModal,
+    },
     providers::alert_provider::enqueue_alert,
+    types::OrganisationId,
 };
 
 #[component]
-pub fn KeyRotationModal(
-    #[prop(default = false)] visible: bool,
+fn Title(
+    #[prop(into)] title: String,
+    #[prop(into)] description: String,
+) -> impl IntoView {
+    view! {
+        <div class="flex items-start gap-3">
+            <i class="ri-key-2-line text-4xl text-yellow-500" />
+            <div class="flex-1 flex flex-col gap-1">
+                <h3 class="text-xl font-bold text-gray-900">{title}</h3>
+                <p class="text-sm text-gray-600">{description}</p>
+            </div>
+        </div>
+    }
+}
+
+#[component]
+fn FooterActions(
+    #[prop(into)] continue_text: String,
+    #[prop(into)] on_close: Callback<()>,
+    #[prop(into)] on_rotate: Callback<MouseEvent>,
+    #[prop(into)] req_inprogress_rs: ReadSignal<bool>,
+    #[prop(into)] continue_btn_class: String,
+) -> impl IntoView {
+    view! {
+        <div class="pt-4 flex justify-end gap-3 border-t">
+            <Button
+                class="btn-ghost"
+                icon_class="ri-forbid-line"
+                text="Cancel"
+                on_click=move |_| on_close.call(())
+            />
+            <Button
+                class=continue_btn_class
+                text=continue_text
+                icon_class="ri-arrow-right-line"
+                on_click=on_rotate
+                loading=req_inprogress_rs.get()
+            />
+        </div>
+    }
+}
+
+#[component]
+fn CommonModal(
+    #[prop(into)] on_close: Callback<()>,
+    #[prop(into)] on_rotate: Callback<MouseEvent>,
+    req_inprogress_rs: ReadSignal<bool>,
+    #[prop(into)] options: Vec<String>,
+    #[prop(into)] description: String,
+) -> impl IntoView {
+    view! {
+        <PortalModal class="p-6 flex flex-col gap-6" handle_close=on_close>
+            <Title title="⚠️ Final Confirmation Required" description=description.clone() />
+
+            <div class="p-4 flex flex-col gap-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <h4 class="flex items-center gap-2 font-semibold text-yellow-900">
+                    <i class="ri-alert-line" />
+                    "Important Information"
+                </h4>
+                <ul class="flex flex-col gap-1 text-sm text-yellow-800 list-disc list-inside">
+                    {options.iter().map(|option| view! { <li>{option}</li> }).collect_view()}
+                </ul>
+            </div>
+
+            <FooterActions
+                continue_text="Yes, Rotate Key Now"
+                on_close=on_close
+                on_rotate=on_rotate
+                req_inprogress_rs=req_inprogress_rs
+                continue_btn_class="bg-red-600 hover:bg-red-700 text-white"
+            />
+        </PortalModal>
+    }
+}
+
+#[component]
+pub fn WorkspaceKeyRotationModal(
     #[prop(into)] on_close: Callback<()>,
     #[prop(into)] on_success: Callback<()>,
     workspace_name: String,
-    org_id: String,
 ) -> impl IntoView {
-    let workspace_name_stored = StoredValue::new(workspace_name);
-    let org_id_stored = StoredValue::new(org_id);
-
+    let org_id = use_context::<Signal<OrganisationId>>().unwrap();
+    let workspace_name = StoredValue::new(workspace_name);
     let (req_inprogress_rs, req_inprogress_ws) = create_signal(false);
-    let (confirmation_step_rs, confirmation_step_ws) = create_signal(false);
 
-    let on_rotate = Callback::new(move |_: MouseEvent| {
-        logging::log!("Key rotation button clicked");
-        if !confirmation_step_rs.get_untracked() {
-            logging::log!("Moving to confirmation step");
-            confirmation_step_ws.set(true);
-            return;
-        }
-
+    let on_rotate = move |_: MouseEvent| {
         req_inprogress_ws.set(true);
-        let workspace_val = workspace_name_stored.get_value();
-        let org_val = org_id_stored.get_value();
-        logging::log!(
-            "Starting key rotation for workspace: {}, org: {}",
-            workspace_val,
-            org_val
-        );
+
+        let workspace = workspace_name.get_value();
+        let org = org_id.get();
 
         spawn_local(async move {
-            let result = workspaces::rotate_key(&workspace_val, &org_val).await;
-
+            let result = workspaces::rotate_key(&workspace, &org).await;
             req_inprogress_ws.set(false);
 
             match result {
-                Ok(status) => {
-                    logging::log!(
-                        "Key rotation successful: {} secrets re-encrypted",
-                        status.total_secrets_re_encrypted
-                    );
+                Ok(response) => {
                     enqueue_alert(
                         format!(
                             "Encryption key rotated successfully! {} secret(s) re-encrypted.",
-                            status.total_secrets_re_encrypted
+                            response.total_secrets_re_encrypted
                         ),
                         AlertType::Success,
                         8000,
                     );
-                    confirmation_step_ws.set(false);
                     on_success.call(());
-                    on_close.call(());
                 }
                 Err(e) => {
-                    logging::error!("Error rotating encryption key: {:?}", e);
+                    logging::error!("Error rotating workspace encryption key: {:?}", e);
                     enqueue_alert(
                         format!("Failed to rotate encryption key: {}", e),
                         AlertType::Error,
                         8000,
                     );
-                    confirmation_step_ws.set(false);
                 }
             }
         });
-    });
-
-    let handle_close = Callback::new(move |_| {
-        confirmation_step_ws.set(false);
-        on_close.call(());
-    });
+    };
 
     view! {
-        <Show when=move || visible>
-            <PortalModal class="p-6 flex flex-col gap-6" handle_close>
-                <div class="flex items-start gap-3">
-                    <i class="ri-key-2-line text-4xl text-yellow-500"></i>
-                    <div class="flex-1">
-                        <h3 class="text-xl font-bold text-gray-900">
-                            {move || {
-                                if confirmation_step_rs.get() {
-                                    "⚠️ Final Confirmation Required"
-                                } else {
-                                    "Rotate Workspace Encryption Key"
-                                }
-                            }}
-                        </h3>
-                        <p class="text-sm text-gray-600 mt-2">
-                            {move || {
-                                if confirmation_step_rs.get() {
-                                    "This action will immediately rotate the encryption key for all secrets in this workspace. Are you absolutely sure you want to proceed?"
-                                } else {
-                                    "This will generate a new encryption key and re-encrypt all secrets in this workspace."
-                                }
-                            }}
-                        </p>
-                    </div>
-                </div>
+        <CommonModal
+            on_close=on_close
+            on_rotate=on_rotate
+            req_inprogress_rs=req_inprogress_rs
+            options=[
+                "All secrets will be re-encrypted with the new key".to_string(),
+                "This operation is atomic - either all secrets rotate or none do".to_string(),
+                "Applications using secrets will continue to work without changes".to_string(),
+            ]
+            description="This action will immediately rotate the encryption key for all secrets in this workspace. Are you absolutely sure you want to proceed?"
+        />
+    }
+}
 
-                <Show when=move || !confirmation_step_rs.get()>
-                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                        <h4 class="font-semibold text-yellow-900 mb-2 flex items-center gap-2">
-                            <i class="ri-alert-line"></i>
-                            "Important Information"
-                        </h4>
-                        <ul class="text-sm text-yellow-800 space-y-1 list-disc list-inside">
-                            <li>"All secrets will be re-encrypted with the new key"</li>
-                            <li>"The old key will be retained temporarily for rollback"</li>
-                            <li>
-                                "This operation is atomic - either all secrets rotate or none do"
-                            </li>
-                            <li>
-                                "Applications using secrets will continue to work without changes"
-                            </li>
-                        </ul>
-                    </div>
-                </Show>
+fn key_rotation_instructions() -> [View; 5] {
+    let code_class = "px-1 py-0.5 bg-base-300 rounded text-xs font-mono";
 
-                <Show when=move || confirmation_step_rs.get()>
-                    <div class="bg-red-50 border-2 border-red-300 rounded-lg p-4">
-                        <p class="text-red-900 font-semibold">
-                            "⚠️ WARNING: This action cannot be undone automatically. Please ensure you have documented this change."
-                        </p>
-                    </div>
-                </Show>
+    [
+        view! { "Generate a new master encryption key using a secure random generator" }
+        .into_view(),
+        view! {
+            "Set the current key as "
+            <code class=code_class>"PREVIOUS_MASTER_ENCRYPTION_KEY"</code>
+            " and the new key as "
+            <code class=code_class>"MASTER_ENCRYPTION_KEY"</code>
+        }
+        .into_view(),
+        view! {
+            "Configure environment variables:"
+            <code class="block p-2 bg-base-300 rounded text-xs font-mono">
+                "PREVIOUS_MASTER_ENCRYPTION_KEY=<current_key>\nMASTER_ENCRYPTION_KEY=<new_key>"
+            </code>
+        }
+        .into_view(),
+        view! { "Restart the service with the updated environment variables" }
+        .into_view(),
+        view! { "The system will function normally during the transition period" }
+        .into_view(),
+    ]
+}
 
-                <div class="flex justify-end gap-3 pt-4 border-t">
-                    <Button
-                        class="btn-ghost"
-                        text="Cancel"
-                        on_click=move |_| {
-                            confirmation_step_ws.set(false);
-                            handle_close.call(());
-                        }
-                        loading=false
+#[component]
+pub fn MasterKeyRotationModal(
+    #[prop(into)] on_close: Callback<()>,
+    #[prop(into)] on_success: Callback<()>,
+) -> impl IntoView {
+    let (req_inprogress_rs, req_inprogress_ws) = create_signal(false);
+    let (show_instructions_rs, show_instructions_ws) = create_signal(true);
+
+    let on_rotate = move |_: MouseEvent| {
+        if show_instructions_rs.get_untracked() {
+            show_instructions_ws.set(false);
+            return;
+        }
+
+        req_inprogress_ws.set(true);
+
+        spawn_local(async move {
+            let result = master_encryption_key::rotate().await;
+            req_inprogress_ws.set(false);
+
+            match result {
+                Ok(response) => {
+                    enqueue_alert(
+                        format!(
+                            "Encryption key rotated successfully! {} secret(s) re-encrypted across {} workspace(s).",
+                            response.total_secrets_re_encrypted,
+                            response.workspaces_rotated
+                        ),
+                        AlertType::Success,
+                        8000,
+                    );
+                    show_instructions_ws.set(true);
+                    on_success.call(());
+                }
+                Err(e) => {
+                    logging::error!("Error rotating master encryption key: {:?}", e);
+                    enqueue_alert(
+                        format!("Failed to rotate master encryption key: {}", e),
+                        AlertType::Error,
+                        8000,
+                    );
+                    show_instructions_ws.set(true);
+                }
+            }
+        });
+    };
+
+    move || {
+        if show_instructions_rs.get() {
+            view! {
+                <PortalModal class="p-6 flex flex-col gap-6" handle_close=on_close>
+                    <Title
+                        title="Rotate Master Encryption Key"
+                        description="Please review the following instructions before proceeding with key rotation."
                     />
-                    {move || {
-                        let is_confirmed = confirmation_step_rs.get();
-                        view! {
-                            <Button
-                                class=if is_confirmed {
-                                    "bg-red-600 hover:bg-red-700 text-white"
-                                } else {
-                                    "bg-yellow-600 hover:bg-yellow-700 text-white"
-                                }
-                                text=if is_confirmed {
-                                    "Yes, Rotate Key Now"
-                                } else {
-                                    "Proceed to Confirmation"
-                                }
-                                icon_class=if is_confirmed {
-                                    "ri-lock-unlock-line"
-                                } else {
-                                    "ri-arrow-right-line"
-                                }
-                                on_click=on_rotate
-                                loading=req_inprogress_rs.get()
-                            />
-                        }
-                    }}
-                </div>
-            </PortalModal>
-        </Show>
+                    <div class="control-form">
+                        <Label title="Instructions" />
+                        <ol class="p-4 flex flex-col gap-3 bg-base-200 rounded-lg list-none">
+                            {key_rotation_instructions()
+                                .into_iter()
+                                .enumerate()
+                                .map(|(index, instruction)| {
+                                    view! {
+                                        <li class="flex gap-3 items-center">
+                                            <span class="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-primary text-primary-content rounded-full text-xs font-semibold">
+                                                {(index + 1).to_string()}
+                                            </span>
+                                            <div class="text-[14px] flex-1">{instruction}</div>
+                                        </li>
+                                    }
+                                })
+                                .collect_view()}
+                        </ol>
+                    </div>
+                    <FooterActions
+                        continue_text="I Understand, Continue"
+                        on_close=on_close
+                        on_rotate=on_rotate
+                        req_inprogress_rs=req_inprogress_rs
+                        continue_btn_class="bg-blue-600 hover:bg-blue-700 text-white"
+                    />
+                </PortalModal>
+            }
+        } else {
+            view! {
+                <CommonModal
+                    on_close=on_close
+                    on_rotate=on_rotate
+                    req_inprogress_rs=req_inprogress_rs
+                    options=[
+                        "All workspace encryption keys will be re-encrypted".to_string(),
+                        "This is a critical operation affecting the entire system".to_string(),
+                        "Workspaces will continue to function normally after rotation".to_string(),
+                    ]
+                    description="This action will immediately rotate the master encryption key for the entire organization. All workspace keys will be re-encrypted. Are you absolutely sure you want to proceed?"
+                />
+            }
+        }
     }
 }

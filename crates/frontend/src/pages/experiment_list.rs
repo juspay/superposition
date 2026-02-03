@@ -164,7 +164,10 @@ pub fn ExperimentList() -> impl IntoView {
                         {move || {
                             let value = combined_resource.get();
                             let pagination_params = pagination_params_rws.get();
-                            let table_columns = experiment_table_columns(filters_rws);
+                            let table_columns = experiment_table_columns(
+                                filters_rws,
+                                pagination_params_rws,
+                            );
                             match value {
                                 Some(v) => {
                                     let data = v

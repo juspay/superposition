@@ -1,3 +1,15 @@
+use std::time::Duration;
+
+use leptos::*;
+use leptos_router::A;
+use serde_json::{Map, Value};
+use std::vec::Vec;
+use superposition_types::{
+    api::experiments::{ExperimentListFilters, ExperimentSortOn},
+    custom_query::PaginationParams,
+};
+use web_sys::MouseEvent;
+
 use crate::{
     components::{
         condition_pills::Condition as ConditionComponent,
@@ -6,16 +18,28 @@ use crate::{
     },
     logic::Conditions,
 };
-use core::time::Duration;
-use leptos::*;
-use leptos_router::A;
-use serde_json::{Map, Value};
-use std::vec::Vec;
-use superposition_types::api::experiments::{ExperimentListFilters, ExperimentSortOn};
-use web_sys::MouseEvent;
+
+fn sort_callback(
+    sort_on: ExperimentSortOn,
+    filters_rws: RwSignal<ExperimentListFilters>,
+    pagination_params_rws: RwSignal<PaginationParams>,
+) -> Callback<()> {
+    Callback::new(move |_| {
+        let filters = filters_rws.get();
+        let sort_by = filters.sort_by.unwrap_or_default().flip();
+        let new_filters = ExperimentListFilters {
+            sort_on: Some(sort_on),
+            sort_by: Some(sort_by),
+            ..filters
+        };
+        pagination_params_rws.update(|f| f.reset_page());
+        filters_rws.set(new_filters);
+    })
+}
 
 pub fn experiment_table_columns(
     filters_rws: RwSignal<ExperimentListFilters>,
+    pagination_params_rws: RwSignal<PaginationParams>,
 ) -> Vec<Column> {
     let current_filters = filters_rws.get();
     let current_sort_on = current_filters.sort_on.unwrap_or_default();
@@ -158,16 +182,11 @@ pub fn experiment_table_columns(
                 }
             },
             ColumnSortable::Yes {
-                sort_fn: Callback::new(move |_| {
-                    let filters = filters_rws.get();
-                    let sort_by = filters.sort_by.unwrap_or_default().flip();
-                    let new_filters = ExperimentListFilters {
-                        sort_on: Some(ExperimentSortOn::CreatedAt),
-                        sort_by: Some(sort_by),
-                        ..filters
-                    };
-                    filters_rws.set(new_filters);
-                }),
+                sort_fn: sort_callback(
+                    ExperimentSortOn::CreatedAt,
+                    filters_rws,
+                    pagination_params_rws,
+                ),
                 sort_by: current_sort_by.clone(),
                 currently_sorted: current_sort_on == ExperimentSortOn::CreatedAt,
             },
@@ -183,16 +202,11 @@ pub fn experiment_table_columns(
                 }
             },
             ColumnSortable::Yes {
-                sort_fn: Callback::new(move |_| {
-                    let filters = filters_rws.get();
-                    let sort_by = filters.sort_by.as_ref().map(|i| i.flip());
-                    let new_filters = ExperimentListFilters {
-                        sort_on: Some(ExperimentSortOn::LastModifiedAt),
-                        sort_by,
-                        ..filters
-                    };
-                    filters_rws.set(new_filters);
-                }),
+                sort_fn: sort_callback(
+                    ExperimentSortOn::LastModifiedAt,
+                    filters_rws,
+                    pagination_params_rws,
+                ),
                 sort_by: current_sort_by,
                 currently_sorted: current_sort_on == ExperimentSortOn::LastModifiedAt,
             },
