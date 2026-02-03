@@ -373,6 +373,21 @@ fn parse_default_config(
     Ok(DefaultConfigWithSchema(result))
 }
 
+// add a dependent to the dependency_graph
+fn add_dependent(
+    result: &mut HashMap<String, DimensionInfo>,
+    cohort_dimension: &str,
+    key: String,
+) {
+    if let Some(dimension_info) = result.get_mut(cohort_dimension) {
+        if let Some(dependents) =
+            dimension_info.dependency_graph.0.get_mut(cohort_dimension)
+        {
+            dependents.push(key);
+        }
+    }
+}
+
 /// Parse the dimensions section
 fn parse_dimensions(
     table: &toml::Table,
@@ -513,6 +528,7 @@ fn parse_dimensions(
                     },
                 )?;
 
+                add_dependent(&mut result, cohort_dimension, key.to_string());
                 DimensionType::LocalCohort(cohort_dimension.to_string())
             } else if type_str.starts_with("remote_cohort:") {
                 // Parse format: remote_cohort:<dimension_name>
@@ -548,6 +564,7 @@ fn parse_dimensions(
                     }
                 })?;
 
+                add_dependent(&mut result, cohort_dimension, key.to_string());
                 DimensionType::RemoteCohort(cohort_dimension.to_string())
             } else {
                 return Err(TomlError::ConversionError(format!(
