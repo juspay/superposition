@@ -29,11 +29,9 @@ impl RootSpanBuilder for CustomRootSpanBuilder {
             .unwrap_or_else(|| "no-workspace-header".to_string());
         let org = header_extractor(headers, "x-org-id")
             .unwrap_or_else(|| "no-org-header".to_string());
-        let user_agent = header_extractor(headers, "user-agent")
-            .unwrap_or_else(|| "no-user-agent".to_string());
         let method = request.method().to_string();
         let path = request.path();
-        tracing_actix_web::root_span!(request, workspace, org, user_agent, method, path,)
+        tracing_actix_web::root_span!(request, workspace, org, method, path,)
     }
 
     fn on_request_end<B: MessageBody>(
@@ -41,8 +39,5 @@ impl RootSpanBuilder for CustomRootSpanBuilder {
         outcome: &Result<ServiceResponse<B>, Error>,
     ) {
         DefaultRootSpanBuilder::on_request_end(span, outcome);
-        // let cac_span =
-        //     tracing::span!(Level::INFO, "app", service = "superposition",);
-        // let _span_entered = cac_span.enter();
     }
 }

@@ -15,28 +15,7 @@ use std::pin::Pin;
 use std::rc::Rc;
 use std::task::{Context, Poll};
 use std::time::Instant;
-use tracing::{info, warn};
-
-const SENSITIVE_HEADERS: &[&str] = &[
-    "authorization",
-    "cookie",
-    "x-api-key",
-    "x-auth-token",
-    "set-cookie",
-];
-
-fn redact_header(name: &str, value: String) -> (String, String) {
-    let name_lower = name.to_lowercase();
-    let is_sensitive = SENSITIVE_HEADERS
-        .iter()
-        .any(|sensitive| name_lower == *sensitive);
-
-    if is_sensitive {
-        (name.to_string(), "[REDACTED]".to_string())
-    } else {
-        (name.to_string(), value)
-    }
-}
+use tracing::{info, trace, warn};
 
 #[derive(Default)]
 pub struct RequestResponseLogger;
@@ -115,12 +94,11 @@ where
                     } else {
                         Value::String("(non-JSON response body omitted)".to_string())
                     };
-                    info!(
-                        headers = ?this.headers,
+                    trace!(
                         body = %response_body,
-                        latency = latency_ms,
-                        "GoldenSignal"
+                        "ResponseSignal"
                     );
+                    info!(latency = latency_ms, "GoldenSignal");
                 }
                 Poll::Ready(None)
             }
@@ -172,17 +150,6 @@ where
 
             let query_string = req.query_string().to_string();
 
-            let headers: HashMap<String, String> = req
-                .headers()
-                .iter()
-                .filter_map(|(name, value)| {
-                    value
-                        .to_str()
-                        .ok()
-                        .map(|v| redact_header(name.as_str(), v.to_string()))
-                })
-                .collect();
-
             let request_id = req
                 .extensions()
                 .get::<tracing_actix_web::RequestId>()
@@ -210,13 +177,12 @@ where
 
             if let Some(ref json) = request_body_value {
                 // Successfully parsed as JSON - log as structured
-                info!(
+                trace!(
                     query = %if query_string.is_empty() {
                         "(none)".to_string()
                     } else {
                         query_string.clone()
                     },
-                    headers = ?headers,
                     body = ?json,
                     "RequestSignal"
                 );
@@ -228,13 +194,12 @@ where
                     String::from_utf8_lossy(&body_bytes).into_owned()
                 };
 
-                info!(
+                trace!(
                     query = %if query_string.is_empty() {
                         "(none)".to_string()
                     } else {
                         query_string.clone()
                     },
-                    headers = ?headers,
                     body = %request_body,
                     "RequestSignal"
                 );
@@ -265,7 +230,7 @@ where
                     value
                         .to_str()
                         .ok()
-                        .map(|v| redact_header(name.as_str(), v.to_string()))
+                        .map(|v| (name.as_str().to_string(), v.to_string()))
                 })
                 .collect();
 
