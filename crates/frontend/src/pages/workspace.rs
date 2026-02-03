@@ -98,6 +98,11 @@ pub fn Workspace() -> impl IntoView {
                 .as_bool()
                 .unwrap_or_default();
 
+            let change_reason = row["change_reason"]
+                .as_str()
+                .map(String::from)
+                .unwrap_or_default();
+
             let workspace_name_clone = workspace_name.clone();
 
             let edit_click_handler = move |_| {
@@ -117,6 +122,7 @@ pub fn Workspace() -> impl IntoView {
                     auto_populate_control,
                     enable_context_validation,
                     enable_change_reason_validation,
+                    change_reason: change_reason.clone(),
                 };
                 logging::log!("{:?}", row_data);
                 selected_workspace.set(Some(row_data));
@@ -217,6 +223,7 @@ pub fn Workspace() -> impl IntoView {
                                     .enable_context_validation
                                 enable_change_reason_validation=selected_workspace_data
                                     .enable_change_reason_validation
+                                change_reason=selected_workspace_data.change_reason
                                 handle_submit=move |_| {
                                     workspace_resource.refetch();
                                     selected_workspace.set(None);

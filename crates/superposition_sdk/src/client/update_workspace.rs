@@ -14,6 +14,7 @@ impl super::Client {
     ///   - [`auto_populate_control(bool)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::auto_populate_control) / [`set_auto_populate_control(Option<bool>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::set_auto_populate_control):<br>required: **false**<br>(undocumented)<br>
     ///   - [`enable_context_validation(bool)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::enable_context_validation) / [`set_enable_context_validation(Option<bool>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::set_enable_context_validation):<br>required: **false**<br>(undocumented)<br>
     ///   - [`enable_change_reason_validation(bool)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::enable_change_reason_validation) / [`set_enable_change_reason_validation(Option<bool>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::set_enable_change_reason_validation):<br>required: **false**<br>(undocumented)<br>
+    ///   - [`change_reason(impl Into<String>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::change_reason) / [`set_change_reason(Option<String>)`](crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::set_change_reason):<br>required: **false**<br>(undocumented)<br>
                             /// - On success, responds with [`UpdateWorkspaceOutput`](crate::operation::update_workspace::UpdateWorkspaceOutput) with field(s):
     ///   - [`workspace_name(String)`](crate::operation::update_workspace::UpdateWorkspaceOutput::workspace_name): (undocumented)
     ///   - [`organisation_id(String)`](crate::operation::update_workspace::UpdateWorkspaceOutput::organisation_id): (undocumented)
@@ -32,6 +33,7 @@ impl super::Client {
     ///   - [`auto_populate_control(bool)`](crate::operation::update_workspace::UpdateWorkspaceOutput::auto_populate_control): (undocumented)
     ///   - [`enable_context_validation(bool)`](crate::operation::update_workspace::UpdateWorkspaceOutput::enable_context_validation): (undocumented)
     ///   - [`enable_change_reason_validation(bool)`](crate::operation::update_workspace::UpdateWorkspaceOutput::enable_change_reason_validation): (undocumented)
+    ///   - [`change_reason(String)`](crate::operation::update_workspace::UpdateWorkspaceOutput::change_reason): (undocumented)
                             /// - On failure, responds with [`SdkError<UpdateWorkspaceError>`](crate::operation::update_workspace::UpdateWorkspaceError)
     pub fn update_workspace(&self) -> crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder {
                                 crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::new(self.handle.clone())

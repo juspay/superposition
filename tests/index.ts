@@ -32,6 +32,7 @@ async function setupWorkspace() {
             auto_populate_control: false,
             enable_context_validation: true,
             enable_change_reason_validation: true,
+            change_reason: "Creating test workspace for integration tests",
         });
 
         console.info(`Create test workspace as ${TEST_WORKSPACE}`);

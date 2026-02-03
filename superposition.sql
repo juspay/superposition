@@ -147,3 +147,6 @@ ALTER TABLE superposition.workspaces DROP COLUMN IF EXISTS strict_mode;
 ALTER TABLE superposition.workspaces
 ADD COLUMN IF NOT EXISTS encryption_key TEXT NOT NULL DEFAULT '',
 ADD COLUMN IF NOT EXISTS key_rotated_at TIMESTAMPTZ;
+
+ALTER TABLE superposition.workspaces
+ADD COLUMN IF NOT EXISTS change_reason TEXT NOT NULL DEFAULT 'workspace created'; 

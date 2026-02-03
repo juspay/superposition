@@ -6609,6 +6609,15 @@ CREATE_WORKSPACE_INPUT = Schema.collection(
             "index": 8,
         },
 
+        "change_reason": {
+            "target": STRING,
+            "index": 9,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
     }
 )
 
@@ -6772,6 +6781,15 @@ CREATE_WORKSPACE_OUTPUT = Schema.collection(
         "enable_change_reason_validation": {
             "target": BOOLEAN,
             "index": 16,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "change_reason": {
+            "target": STRING,
+            "index": 17,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -14308,6 +14326,15 @@ GET_WORKSPACE_OUTPUT = Schema.collection(
             ],
         },
 
+        "change_reason": {
+            "target": STRING,
+            "index": 17,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
     }
 )
 
@@ -15551,6 +15578,15 @@ WORKSPACE_RESPONSE = Schema.collection(
             ],
         },
 
+        "change_reason": {
+            "target": STRING,
+            "index": 17,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
     }
 )
 
@@ -15859,6 +15895,15 @@ MIGRATE_WORKSPACE_SCHEMA_OUTPUT = Schema.collection(
         "enable_change_reason_validation": {
             "target": BOOLEAN,
             "index": 16,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "change_reason": {
+            "target": STRING,
+            "index": 17,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -16926,6 +16971,11 @@ UPDATE_WORKSPACE_INPUT = Schema.collection(
             "index": 10,
         },
 
+        "change_reason": {
+            "target": STRING,
+            "index": 11,
+        },
+
     }
 )
 
@@ -17077,6 +17127,15 @@ UPDATE_WORKSPACE_OUTPUT = Schema.collection(
         "enable_change_reason_validation": {
             "target": BOOLEAN,
             "index": 16,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "change_reason": {
+            "target": STRING,
+            "index": 17,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 

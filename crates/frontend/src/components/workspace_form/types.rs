@@ -16,4 +16,5 @@ pub struct RowData {
     pub auto_populate_control: bool,
     pub enable_context_validation: bool,
     pub enable_change_reason_validation: bool,
+    pub change_reason: String,
 }

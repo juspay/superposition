@@ -82,6 +82,7 @@ describe("Config API - GetConfig and GetConfigFast", () => {
             workspace_name: ENV.workspace_id,
             workspace_admin_email: "admin@example.com",
             config_version: configVersionId,
+            change_reason: "Setting config version for tests",
         });
         const resp_c = await superpositionClient.send(cmd_c);
 
@@ -122,6 +123,7 @@ describe("Config API - GetConfig and GetConfigFast", () => {
             workspace_admin_email: "updated-admin@example.com",
             description: "Unset config version",
             config_version: "null",
+            change_reason: "Unsetting config version for tests",
         };
 
         const cmd_2 = new UpdateWorkspaceCommand(input_2);
