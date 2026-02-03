@@ -24,6 +24,7 @@ log = { workspace = true }
 once_cell = { workspace = true }
 openidconnect = "3.5.0"
 rand = "0.8"
+tracing = { workspace = true }
 regex = { workspace = true }
 reqwest = { workspace = true }
 rs-snowflake = { workspace = true }
@@ -39,6 +40,7 @@ superposition_types = { workspace = true, features = [
 ] }
 url = { workspace = true }
 urlencoding = "~2.1.2"
+tracing-actix-web = { workspace = true }
 
 [features]
 high-performance-mode = ["dep:fred"]

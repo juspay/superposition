@@ -1,37 +1,41 @@
+use actix_web::HttpMessage;
 use actix_web::body::MessageBody;
 use actix_web::dev::{
     Payload, Service, ServiceRequest, ServiceResponse, Transform, forward_ready,
 };
+use actix_web::http::header::ContentType;
 use actix_web::web::Bytes;
-use actix_web::{Error, error::PayloadError, http::StatusCode};
+use actix_web::{Error, error::PayloadError, http::header};
 use futures_util::future::{Ready, ok};
 use futures_util::stream::{StreamExt, once};
-use log::{trace, warn};
+use std::collections::HashMap;
 use std::future::Future;
 use std::pin::Pin;
 use std::rc::Rc;
 use std::task::{Context, Poll};
+use std::time::Instant;
+use tracing::{info, trace, warn};
 
 #[derive(Default)]
 pub struct RequestResponseLogger;
 
-// Custom body wrapper for logging response bodies
+// Custom body wrapper for logging request/response bodies
 pub struct LoggingBody<B> {
     inner: B,
-    status: StatusCode,
-    headers: Vec<String>,
+    headers: HashMap<String, String>,
     body_bytes: Vec<u8>,
     consumed: bool,
+    start_time: Instant,
 }
 
 impl<B> LoggingBody<B> {
-    fn new(body: B, status: StatusCode, headers: Vec<String>) -> Self {
+    fn new(body: B, headers: HashMap<String, String>, start_time: Instant) -> Self {
         Self {
             inner: body,
-            status,
             headers,
             body_bytes: Vec::new(),
             consumed: false,
+            start_time,
         }
     }
 }
@@ -62,21 +66,22 @@ where
             Poll::Ready(None) => {
                 if !this.consumed {
                     this.consumed = true;
-                    // Log the complete response body
-                    let response_body = if this.body_bytes.is_empty() {
-                        String::from("(empty)")
+                    let latency_ms = this.start_time.elapsed().as_millis() as u64;
+                    let is_json_response = this
+                        .headers
+                        .get(header::CONTENT_TYPE.as_str())
+                        .map(|ct| ct.starts_with(&ContentType::json().to_string()))
+                        .unwrap_or(false);
+                    let response_body = if is_json_response {
+                        String::from_utf8_lossy(&this.body_bytes).into_owned()
                     } else {
-                        String::from_utf8(this.body_bytes.clone()).unwrap_or_else(|_| {
-                            format!("(binary data, {} bytes)", this.body_bytes.len())
-                        })
+                        "(non-JSON response body omitted)".to_string()
                     };
-
                     trace!(
-                        "RESPONSE: {} headers=[{}] body={}",
-                        this.status,
-                        this.headers.join(", "),
-                        response_body
+                        body = %response_body,
+                        "ResponseSignal"
                     );
+                    info!(latency = latency_ms, "GoldenSignal");
                 }
                 Poll::Ready(None)
             }
@@ -124,107 +129,75 @@ where
         let service = self.service.clone();
 
         Box::pin(async move {
-            // to hold responses in all cases for logging
-            let res: ServiceResponse<B>;
+            let mut res: ServiceResponse<B>;
 
-            // Log request details
-            let method = req.method().to_string();
-            let uri = req.uri().to_string();
             let query_string = req.query_string().to_string();
 
-            // Log request headers
-            let mut headers = Vec::new();
-            for (name, value) in req.headers().iter() {
-                if let Ok(value_str) = value.to_str() {
-                    headers.push(format!("{}: {}", name, value_str));
-                }
-            }
+            let request_id = req
+                .extensions()
+                .get::<tracing_actix_web::RequestId>()
+                .map(|req_id| header::HeaderValue::from_str(&req_id.to_string()));
 
-            // For PUT/POST requests, extract and log the body
-            let should_log_request_body =
-                matches!(method.as_str(), "PUT" | "POST" | "PATCH");
+            let (http_req, mut payload) = req.into_parts();
+            let mut body_bytes = Vec::new();
 
-            if should_log_request_body {
-                // Extract the request and payload
-                let (http_req, mut payload) = req.into_parts();
-                let mut body_bytes = Vec::new();
-
-                // Read the payload into a buffer
-                while let Some(chunk) = payload.next().await {
-                    match chunk {
-                        Ok(bytes) => body_bytes.extend_from_slice(&bytes),
-                        Err(e) => {
-                            warn!("Error reading request body: {}", e);
-                            break;
-                        }
+            while let Some(chunk) = payload.next().await {
+                match chunk {
+                    Ok(bytes) => body_bytes.extend_from_slice(&bytes),
+                    Err(e) => {
+                        warn!("Error reading request body: {}", e);
+                        break;
                     }
                 }
+            }
 
-                // Convert body to string for logging
-                let request_body = if body_bytes.is_empty() {
-                    String::from("(empty)")
-                } else {
-                    String::from_utf8(body_bytes.clone()).unwrap_or_else(|_| {
-                        format!("(binary data, {} bytes)", body_bytes.len())
-                    })
-                };
-
-                trace!(
-                    "REQUEST: {} {} query={} headers=[{}] body={}",
-                    method,
-                    uri,
-                    if query_string.is_empty() {
-                        "(none)"
-                    } else {
-                        &query_string
-                    },
-                    headers.join(", "),
-                    request_body
-                );
-
-                // Reconstruct the request with the body
-                #[rustfmt::skip]
-                let new_payload = if body_bytes.is_empty() {
-                    Payload::None
-                } else {
-                    let bytes = Bytes::from(body_bytes);
-                    let stream = once(async move { Ok::<Bytes, PayloadError>(bytes) });
-                    Payload::from(Box::pin(stream) as Pin< Box< dyn futures_util::Stream< Item = Result<Bytes, PayloadError> > > >)
-                };
-                let new_req = ServiceRequest::from_parts(http_req, new_payload);
-
-                // Call the next service
-                res = service.call(new_req).await?;
+            let request_body = if body_bytes.is_empty() {
+                String::from("(empty)")
             } else {
-                // For GET/DELETE etc, don't extract body
-                trace!(
-                    "REQUEST: {} {} query={} headers=[{}]",
-                    method,
-                    uri,
-                    if query_string.is_empty() {
-                        "(none)"
-                    } else {
-                        &query_string
-                    },
-                    headers.join(", ")
-                );
+                String::from_utf8_lossy(&body_bytes).into_owned()
+            };
 
-                // Call the next service
-                res = service.call(req).await?;
+            trace!(
+                query = %if query_string.is_empty() {
+                    "(none)".to_string()
+                } else {
+                    query_string.clone()
+                },
+                body = %request_body,
+                "RequestSignal"
+            );
+
+            let new_payload = if body_bytes.is_empty() {
+                Payload::None
+            } else {
+                let bytes = Bytes::from(body_bytes);
+                let stream = once(async move { Ok::<Bytes, PayloadError>(bytes) });
+                Payload::from(Box::pin(stream)
+                    as Pin<
+                        Box<dyn futures_util::Stream<Item = Result<Bytes, PayloadError>>>,
+                    >)
+            };
+            let new_req = ServiceRequest::from_parts(http_req, new_payload);
+            let start_time = Instant::now();
+            res = service.call(new_req).await?;
+
+            if let Some(Ok(request_id)) = request_id {
+                res.headers_mut()
+                    .insert(header::HeaderName::from_static("x-request-id"), request_id);
             }
+            let response_headers: HashMap<String, String> = res
+                .headers()
+                .iter()
+                .filter_map(|(name, value)| {
+                    value
+                        .to_str()
+                        .ok()
+                        .map(|v| (name.as_str().to_string(), v.to_string()))
+                })
+                .collect();
 
-            // Log response details
-            let status = res.status();
-            let mut response_headers = Vec::new();
-            for (name, value) in res.headers().iter() {
-                if let Ok(value_str) = value.to_str() {
-                    response_headers.push(format!("{}: {}", name, value_str));
-                }
-            }
-
-            // Wrap the response body with our logging wrapper
-            let logged_res =
-                res.map_body(|_, body| LoggingBody::new(body, status, response_headers));
+            let logged_res = res
+                .map_body(|_, body| LoggingBody::new(body, response_headers, start_time));
 
             Ok(logged_res)
         })

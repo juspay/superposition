@@ -1,17 +1,18 @@
 #![deny(unused_crate_dependencies)]
 mod app_state;
+mod log_span;
 mod organisation;
 mod resolve;
 mod webhooks;
 mod workspace;
-
+use json_subscriber::fmt;
 use std::{io::Result, time::Duration};
 use superposition_macros::bad_argument;
 
 use actix_files::Files;
 use actix_web::{
     App, HttpRequest, HttpResponse, HttpServer,
-    middleware::{Compress, Condition, Logger},
+    middleware::{Compress, Condition},
     web::{self, Data, PathConfig, QueryConfig, get, scope},
 };
 use context_aware_config::api::*;
@@ -21,7 +22,6 @@ use frontend::types::{Envs as UIEnvs, SsrSharedHttpRequestHeaders};
 use idgenerator::{IdGeneratorOptions, IdInstance};
 use leptos::*;
 use leptos_actix::{LeptosRoutes, generate_route_list};
-use log::{Level, log_enabled};
 use service_utils::{
     aws::kms,
     helpers::{get_from_env_or_default, get_from_env_unsafe},
@@ -33,6 +33,10 @@ use service_utils::{
     },
     service::types::{AppEnv, Resource},
 };
+use tracing_actix_web::TracingLogger;
+use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
+
+use crate::log_span::CustomRootSpanBuilder;
 
 pub fn use_request_headers() -> Option<SsrSharedHttpRequestHeaders> {
     use_context::<HttpRequest>().map(|req| {
@@ -59,7 +63,19 @@ async fn favicon(
 #[actix_web::main]
 async fn main() -> Result<()> {
     dotenv::dotenv().ok();
-    env_logger::init();
+    // Initialize tracing subscriber with custom JSON formatter
+    tracing_subscriber::registry()
+        .with(EnvFilter::from_default_env())
+        .with(
+            fmt::layer()
+                .with_current_span(true)
+                .flatten_current_span_on_top_level(true)
+                .flatten_event(true)
+                .with_span_list(false)
+                .with_target(false),
+        )
+        .init();
+
     let service_prefix: String =
         get_from_env_unsafe("SERVICE_PREFIX").expect("SERVICE_PREFIX is not set");
 
@@ -285,8 +301,8 @@ async fn main() -> Result<()> {
                 Compress::default(),
             ))
             // Conditionally add request/response logging middleware for development
-            .wrap(Condition::new(log_enabled!(Level::Trace), RequestResponseLogger))
-            .wrap(Logger::default())
+            .wrap(RequestResponseLogger)
+            .wrap(TracingLogger::<CustomRootSpanBuilder>::new())
     })
     .bind(("0.0.0.0", cac_port))?
     .workers(get_from_env_or_default("ACTIX_WORKER_COUNT", 5))
