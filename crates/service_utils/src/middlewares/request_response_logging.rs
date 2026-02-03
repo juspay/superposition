@@ -74,25 +74,9 @@ where
                         .map(|ct| ct.starts_with(&ContentType::json().to_string()))
                         .unwrap_or(false);
                     let response_body = if is_json_response {
-                        serde_json::from_slice::<Value>(&this.body_bytes).unwrap_or_else(
-                            |err| {
-                                tracing::warn!(
-                                    "Failed to parse response body, error: {}",
-                                    err
-                                );
-                                let response_body = if this.body_bytes.is_empty() {
-                                    String::from("(empty)")
-                                } else {
-                                    String::from_utf8_lossy(&this.body_bytes).into_owned()
-                                };
-                                Value::String(format!(
-                                    "(invalid JSON: {})",
-                                    response_body
-                                ))
-                            },
-                        )
+                        String::from_utf8_lossy(&this.body_bytes).into_owned()
                     } else {
-                        Value::String("(non-JSON response body omitted)".to_string())
+                        "(non-JSON response body omitted)".to_string()
                     };
                     trace!(
                         body = %response_body,
