@@ -185,7 +185,7 @@ symlink-target:
 superposition: CARGO_FLAGS += --features='$(FEATURES)'
 superposition:
 	cargo build $(CARGO_FLAGS) --bin superposition
-	@cd $(CARGO_TARGET_DIR) && ln -s ../node_modules node_modules || true
+	@cd $(CARGO_TARGET_DIR) && ln -s $(CURDIR)/node_modules node_modules || true
 
 superposition-example:
 	cargo run --bin cac-demo-app
