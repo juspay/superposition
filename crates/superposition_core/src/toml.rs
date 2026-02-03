@@ -384,6 +384,11 @@ fn add_dependent(
             dimension_info.dependency_graph.0.get_mut(cohort_dimension)
         {
             dependents.push(key);
+        } else {
+            dimension_info
+                .dependency_graph
+                .0
+                .insert(cohort_dimension.to_string(), vec![key]);
         }
     }
 }
@@ -593,6 +598,39 @@ fn parse_dimensions(
 
         // Update the dimension info with the parsed type
         dimension_info.dimension_type = dimension_type;
+    }
+
+    // Third pass: collect and apply updates in one go
+    let keys: Vec<String> = result.keys().cloned().collect();
+
+    for dimension in keys {
+        let dependents_to_add: Vec<String> = {
+            let Some(dimension_info) = result.get(&dimension) else {
+                continue;
+            };
+            let Some(dependents) = dimension_info.dependency_graph.0.get(&dimension)
+            else {
+                continue;
+            };
+
+            dependents
+                .iter()
+                .filter_map(|v| result.get(v)?.dependency_graph.0.get(v))
+                .flatten()
+                .cloned()
+                .collect()
+        };
+
+        if !dependents_to_add.is_empty() {
+            if let Some(dimension_info) = result.get_mut(&dimension) {
+                dimension_info
+                    .dependency_graph
+                    .0
+                    .entry(dimension.clone())
+                    .or_default()
+                    .extend(dependents_to_add);
+            }
+        }
     }
 
     Ok(result)
@@ -1726,10 +1764,14 @@ timeout = 60
 config = { value = { host = "localhost", port = 8080 } , schema = { type = "object" } }
 
 [dimensions]
-os = { position = 1, schema = { type = "string" } }
+os = { position = 1, schema = { type = "string", enum = ["linux", "windows", "macos"] } }
+os_cohort = { position = 2, schema = { enum = ["unix", "otherwise"], type = "string", definitions = { unix = { in = [{ var = "os" }, ["linux", "macos"]] } } }, type = "local_cohort:os" }
 
 [context."os=linux"]
 config = { host = "prod.example.com", port = 443 }
+
+[context."os_cohort=unix"]
+config = { host = "prod.unix.com", port = 8443 }
 "#;
 
         // Parse TOML -> Config
@@ -1767,6 +1809,18 @@ config = { host = "prod.example.com", port = 443 }
         assert_eq!(
             override_config.get("port"),
             Some(&Value::Number(serde_json::Number::from(443)))
+        );
+
+        let override_key = config.contexts[1].override_with_keys.get_key();
+        let overrides = config.overrides.get(override_key).unwrap();
+        let override_config = overrides.get("config").unwrap();
+        assert_eq!(
+            override_config.get("host"),
+            Some(&Value::String("prod.unix.com".to_string()))
+        );
+        assert_eq!(
+            override_config.get("port"),
+            Some(&Value::Number(serde_json::Number::from(8443)))
         );
     }
 }

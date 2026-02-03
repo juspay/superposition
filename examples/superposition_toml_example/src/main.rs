@@ -28,7 +28,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Display dimensions
     println!("\n--- Available Dimensions ---");
     for (name, info) in &config.dimensions {
-        println!("  {} (position: {})", name, info.position);
+        println!("  {} (info: {:?})", name, info);
     }
 
     // STEP 2: Use the parsed Config with eval_config for evaluation
@@ -150,6 +150,32 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!(
         "  surge_factor: {}",
         result4.get("surge_factor").unwrap_or(&json!(null))
+    );
+
+    // Example 4: Auto ride (uses default values)
+    println!("\n--- Example 5: Chennai ride (uses default values) ---");
+    let mut dims5 = Map::new();
+    dims5.insert("city".to_string(), Value::String("Chennai".to_string()));
+
+    let result5 = eval_config(
+        default_configs.clone(),
+        &config.contexts,
+        &config.overrides,
+        &config.dimensions,
+        &dims5,
+        MergeStrategy::MERGE,
+        None,
+    )?;
+
+    println!("Input dimensions: city=Chennai");
+    println!("Resolved config:");
+    println!(
+        "  per_km_rate: {}",
+        result5.get("per_km_rate").unwrap_or(&json!(null))
+    );
+    println!(
+        "  surge_factor: {}",
+        result5.get("surge_factor").unwrap_or(&json!(null))
     );
 
     println!("\n=== Example completed successfully! ===");
