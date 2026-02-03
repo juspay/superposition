@@ -8,7 +8,6 @@ use actix_web::web::Bytes;
 use actix_web::{Error, error::PayloadError, http::header};
 use futures_util::future::{Ready, ok};
 use futures_util::stream::{StreamExt, once};
-use serde_json::Value;
 use std::collections::HashMap;
 use std::future::Future;
 use std::pin::Pin;
@@ -152,42 +151,21 @@ where
                 }
             }
 
-            // Try to parse as JSON and log as structured data
-            let request_body_value = if !body_bytes.is_empty() {
-                serde_json::from_slice::<Value>(&body_bytes).ok()
+            let request_body = if body_bytes.is_empty() {
+                String::from("(empty)")
             } else {
-                None
+                String::from_utf8_lossy(&body_bytes).into_owned()
             };
 
-            if let Some(ref json) = request_body_value {
-                // Successfully parsed as JSON - log as structured
-                trace!(
-                    query = %if query_string.is_empty() {
-                        "(none)".to_string()
-                    } else {
-                        query_string.clone()
-                    },
-                    body = ?json,
-                    "RequestSignal"
-                );
-            } else {
-                // Not JSON - log as string
-                let request_body = if body_bytes.is_empty() {
-                    String::from("(empty)")
+            trace!(
+                query = %if query_string.is_empty() {
+                    "(none)".to_string()
                 } else {
-                    String::from_utf8_lossy(&body_bytes).into_owned()
-                };
-
-                trace!(
-                    query = %if query_string.is_empty() {
-                        "(none)".to_string()
-                    } else {
-                        query_string.clone()
-                    },
-                    body = %request_body,
-                    "RequestSignal"
-                );
-            }
+                    query_string.clone()
+                },
+                body = %request_body,
+                "RequestSignal"
+            );
 
             let new_payload = if body_bytes.is_empty() {
                 Payload::None
