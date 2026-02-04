@@ -12,7 +12,7 @@ use web_sys::MouseEvent;
 
 use crate::{
     components::{
-        condition_pills::Condition as ConditionComponent,
+        condition_pills::Condition,
         datetime::DatetimeStr,
         table::types::{Column, ColumnSortable, Expandable, default_column_formatter},
     },
@@ -145,12 +145,11 @@ pub fn experiment_table_columns(
                 let id = row.get("id").map_or(String::from(""), |value| {
                     value.as_str().unwrap_or("").to_string()
                 });
-                let conditions =
-                    Conditions::from_context_json(&context).unwrap_or_default();
+                let conditions = Conditions::from_iter(context);
 
                 view! {
                     <div class="w-[400px]">
-                        <ConditionComponent conditions grouped_view=false id  />
+                        <Condition conditions grouped_view=false id  />
                     </div>
                 }
                 .into_view()
