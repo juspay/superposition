@@ -217,6 +217,7 @@ impl<T> ListResponse<T> {
     Serialize,
     Deserialize,
     Clone,
+    Copy,
     PartialEq,
     PartialOrd,
     strum_macros::Display,

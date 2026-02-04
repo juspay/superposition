@@ -72,7 +72,7 @@ fn sort_callback(
         let filters = filters_rws.get();
         let sort_by = filters.sort_by.unwrap_or_default().flip();
         let new_filters = ExpGroupFilters {
-            sort_on: Some(sort_on.clone()),
+            sort_on: Some(sort_on),
             sort_by: Some(sort_by),
             ..filters
         };

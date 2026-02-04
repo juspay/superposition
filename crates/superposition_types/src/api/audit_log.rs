@@ -9,7 +9,7 @@ use crate::{
     IsEmpty, SortBy,
 };
 
-#[derive(Debug, Clone, PartialEq, Deserialize, QueryParam, IsEmpty)]
+#[derive(Clone, PartialEq, Deserialize, QueryParam, IsEmpty)]
 pub struct AuditQueryFilters {
     pub from_date: Option<DateTime<Utc>>,
     pub to_date: Option<DateTime<Utc>>,

@@ -387,14 +387,28 @@ async fn list_handler(
 
     let base_query = get_base_query();
 
-    #[rustfmt::skip]
-    let base_query = match (filter_params.sort_on.unwrap_or_default(), filter_params.sort_by.unwrap_or_default()) {
-        (SortOn::Weight,         SortBy::Asc)  => base_query.order(weight.asc()),
-        (SortOn::Weight,         SortBy::Desc) => base_query.order(weight.desc()),
-        (SortOn::CreatedAt,      SortBy::Asc)  => base_query.order(created_at.asc()),
-        (SortOn::CreatedAt,      SortBy::Desc) => base_query.order(created_at.desc()),
-        (SortOn::LastModifiedAt, SortBy::Asc)  => base_query.order(last_modified_at.asc()),
-        (SortOn::LastModifiedAt, SortBy::Desc) => base_query.order(last_modified_at.desc()),
+    let base_query = match (
+        filter_params.sort_on.unwrap_or_default(),
+        filter_params.sort_by.unwrap_or_default(),
+    ) {
+        (SortOn::Weight, SortBy::Asc) => {
+            base_query.order((weight.asc(), created_at.asc()))
+        }
+        (SortOn::Weight, SortBy::Desc) => {
+            base_query.order((weight.desc(), created_at.desc()))
+        }
+        (SortOn::CreatedAt, SortBy::Asc) => {
+            base_query.order((created_at.asc(), weight.asc()))
+        }
+        (SortOn::CreatedAt, SortBy::Desc) => {
+            base_query.order((created_at.desc(), weight.desc()))
+        }
+        (SortOn::LastModifiedAt, SortBy::Asc) => {
+            base_query.order((last_modified_at.asc(), weight.asc()))
+        }
+        (SortOn::LastModifiedAt, SortBy::Desc) => {
+            base_query.order((last_modified_at.desc(), weight.desc()))
+        }
     };
 
     let perform_in_memory_filter =
