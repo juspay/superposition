@@ -4,11 +4,29 @@ import {
     ListOrganisationCommand,
     ListWorkspaceCommand,
     WorkspaceStatus,
+    MigrateWorkspaceSchemaCommand
 } from "@juspay/superposition-sdk";
 import { ENV, superpositionClient } from "./env.ts";
 
 const TEST_ORG_NAME = "testorg";
 const TEST_WORKSPACE = "testworkspace";
+
+async function setupWorkspaceEncryption(workspaceName: string) {
+    console.log(`Setting workspace encryption key for workspace name: ${workspaceName}`);
+    try {
+        const migrateCommand = new MigrateWorkspaceSchemaCommand({
+            org_id: ENV.org_id,
+            workspace_name: workspaceName
+        });
+
+        const response = await superpositionClient.send(migrateCommand);
+        console.log("Workspace migration/encryption setup completed successfully");
+        return response;
+    } catch (err: any) {
+        console.log("Failed to setup workspace encryption:", err.message);
+        throw err;
+    }
+}
 
 async function setupWorkspace() {
     console.log("Setting up test workspace");
@@ -18,7 +36,7 @@ async function setupWorkspace() {
     const response = await superpositionClient.send(listWorkspaceCommand);
     const workspaces = response.data;
     const testWorkspace = workspaces?.find(
-        (workspace) => workspace.workspace_name === TEST_WORKSPACE
+        (workspace: any) => workspace.workspace_name === TEST_WORKSPACE
     );
 
     if (!testWorkspace) {
@@ -42,6 +60,8 @@ async function setupWorkspace() {
         );
     }
 
+    await setupWorkspaceEncryption(TEST_WORKSPACE);
+
     ENV.workspace_id = TEST_WORKSPACE;
 }
 
@@ -51,7 +71,7 @@ async function setupOrg() {
     const response = await superpositionClient.send(listCommand);
     const orgs = response.data;
     const testOrg = orgs?.find(
-        (org) => org.name?.startsWith(TEST_ORG_NAME) || false
+        (org: any) => org.name?.startsWith(TEST_ORG_NAME) || false
     );
     if (!testOrg) {
         console.log("No existing test org found. Creating new one.");

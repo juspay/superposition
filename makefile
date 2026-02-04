@@ -229,7 +229,9 @@ test: WASM_PACK_MODE=--profiling
 test: setup frontend superposition
 	cargo test
 	@echo "Running superposition"
-	@$(CARGO_TARGET_DIR)/debug/superposition &
+	@echo "Setting up MASTER_ENCRYPTION_KEY for secrets tests"
+	@MASTER_ENCRYPTION_KEY=$${MASTER_ENCRYPTION_KEY:-"dGVzdC1tYXN0ZXIta2V5LTMyLWNoYXJhY3RlcnMtb2s="} \
+		$(CARGO_TARGET_DIR)/debug/superposition &
 	@echo "Awaiting superposition boot..."
 ## FIXME Curl doesn't retry.
 	@curl	--silent --retry 10 \
