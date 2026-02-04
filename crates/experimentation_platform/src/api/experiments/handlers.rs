@@ -1057,7 +1057,7 @@ async fn list_handler(
     let filters = filters.into_inner();
     let base_query = query_builder(&filters);
 
-    let sort_by = filters.sort_by.clone().unwrap_or(SortBy::Desc);
+    let sort_by = filters.sort_by.unwrap_or(SortBy::Desc);
     let sort_on = filters.sort_on.unwrap_or_default();
 
     #[rustfmt::skip]

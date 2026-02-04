@@ -53,7 +53,7 @@ async fn list_handler(
         )
     };
 
-    let sort_by = filters.sort_by.clone().unwrap_or(SortBy::Desc);
+    let sort_by = filters.sort_by.unwrap_or(SortBy::Desc);
     let base_query = query_builder(&filters);
     let count_query = query_builder(&filters);
 

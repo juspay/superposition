@@ -166,46 +166,61 @@ impl ListSecretsFluentBuilder {
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_org_id()
                 }
+    /// 
+    /// Appends an item to `name`.
+    /// 
+    /// To override the contents of this collection use [`set_name`](Self::set_name).
+    /// 
     /// Filter by secret name.
     pub fn name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.name(input.into());
-                    self
-                }
+                        self.inner = self.inner.name(input.into());
+                        self
+                    }
     /// Filter by secret name.
-    pub fn set_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+    pub fn set_name(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
                     self.inner = self.inner.set_name(input);
                     self
                 }
     /// Filter by secret name.
-    pub fn get_name(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_name(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
                     self.inner.get_name()
                 }
+    /// 
+    /// Appends an item to `created_by`.
+    /// 
+    /// To override the contents of this collection use [`set_created_by`](Self::set_created_by).
+    /// 
     /// Filter by the user who created the secret.
     pub fn created_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.created_by(input.into());
-                    self
-                }
+                        self.inner = self.inner.created_by(input.into());
+                        self
+                    }
     /// Filter by the user who created the secret.
-    pub fn set_created_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+    pub fn set_created_by(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
                     self.inner = self.inner.set_created_by(input);
                     self
                 }
     /// Filter by the user who created the secret.
-    pub fn get_created_by(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_created_by(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
                     self.inner.get_created_by()
                 }
+    /// 
+    /// Appends an item to `last_modified_by`.
+    /// 
+    /// To override the contents of this collection use [`set_last_modified_by`](Self::set_last_modified_by).
+    /// 
     /// Filter by the user who last modified the secret.
     pub fn last_modified_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.last_modified_by(input.into());
-                    self
-                }
+                        self.inner = self.inner.last_modified_by(input.into());
+                        self
+                    }
     /// Filter by the user who last modified the secret.
-    pub fn set_last_modified_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+    pub fn set_last_modified_by(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
                     self.inner = self.inner.set_last_modified_by(input);
                     self
                 }
     /// Filter by the user who last modified the secret.
-    pub fn get_last_modified_by(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_last_modified_by(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
                     self.inner.get_last_modified_by()
                 }
     /// Field to sort the results by.

@@ -14622,7 +14622,7 @@ LIST_SECRETS_INPUT = Schema.collection(
         },
 
         "name": {
-            "target": STRING,
+            "target": STRING_LIST,
             "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -14632,7 +14632,7 @@ LIST_SECRETS_INPUT = Schema.collection(
         },
 
         "created_by": {
-            "target": STRING,
+            "target": STRING_LIST,
             "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="created_by"),
@@ -14641,7 +14641,7 @@ LIST_SECRETS_INPUT = Schema.collection(
         },
 
         "last_modified_by": {
-            "target": STRING,
+            "target": STRING_LIST,
             "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="last_modified_by"),
@@ -14899,7 +14899,7 @@ LIST_VARIABLES_INPUT = Schema.collection(
         },
 
         "name": {
-            "target": STRING,
+            "target": STRING_LIST,
             "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -14909,7 +14909,7 @@ LIST_VARIABLES_INPUT = Schema.collection(
         },
 
         "created_by": {
-            "target": STRING,
+            "target": STRING_LIST,
             "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="created_by"),
@@ -14918,7 +14918,7 @@ LIST_VARIABLES_INPUT = Schema.collection(
         },
 
         "last_modified_by": {
-            "target": STRING,
+            "target": STRING_LIST,
             "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="last_modified_by"),

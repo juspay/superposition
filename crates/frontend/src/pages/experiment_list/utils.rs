@@ -187,7 +187,7 @@ pub fn experiment_table_columns(
                     filters_rws,
                     pagination_params_rws,
                 ),
-                sort_by: current_sort_by.clone(),
+                sort_by: current_sort_by,
                 currently_sorted: current_sort_on == ExperimentSortOn::CreatedAt,
             },
             Expandable::Enabled(100),

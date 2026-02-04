@@ -14475,9 +14475,9 @@ class ListSecretsInput:
     all: bool | None = None
     workspace_id: str | None = None
     org_id: str | None = None
-    name: str | None = None
-    created_by: str | None = None
-    last_modified_by: str | None = None
+    name: list[str] | None = None
+    created_by: list[str] | None = None
+    last_modified_by: list[str] | None = None
     sort_on: str | None = None
     sort_by: str | None = None
 
@@ -14513,13 +14513,13 @@ class ListSecretsInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_LIST_SECRETS_INPUT.members["org_id"])
 
                 case 5:
-                    kwargs["name"] = de.read_string(_SCHEMA_LIST_SECRETS_INPUT.members["name"])
+                    kwargs["name"] = _deserialize_string_list(de, _SCHEMA_LIST_SECRETS_INPUT.members["name"])
 
                 case 6:
-                    kwargs["created_by"] = de.read_string(_SCHEMA_LIST_SECRETS_INPUT.members["created_by"])
+                    kwargs["created_by"] = _deserialize_string_list(de, _SCHEMA_LIST_SECRETS_INPUT.members["created_by"])
 
                 case 7:
-                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_LIST_SECRETS_INPUT.members["last_modified_by"])
+                    kwargs["last_modified_by"] = _deserialize_string_list(de, _SCHEMA_LIST_SECRETS_INPUT.members["last_modified_by"])
 
                 case 8:
                     kwargs["sort_on"] = de.read_string(_SCHEMA_LIST_SECRETS_INPUT.members["sort_on"])
@@ -14720,9 +14720,9 @@ class ListVariablesInput:
     all: bool | None = None
     workspace_id: str | None = None
     org_id: str | None = None
-    name: str | None = None
-    created_by: str | None = None
-    last_modified_by: str | None = None
+    name: list[str] | None = None
+    created_by: list[str] | None = None
+    last_modified_by: list[str] | None = None
     sort_on: str | None = None
     sort_by: str | None = None
 
@@ -14758,13 +14758,13 @@ class ListVariablesInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_LIST_VARIABLES_INPUT.members["org_id"])
 
                 case 5:
-                    kwargs["name"] = de.read_string(_SCHEMA_LIST_VARIABLES_INPUT.members["name"])
+                    kwargs["name"] = _deserialize_string_list(de, _SCHEMA_LIST_VARIABLES_INPUT.members["name"])
 
                 case 6:
-                    kwargs["created_by"] = de.read_string(_SCHEMA_LIST_VARIABLES_INPUT.members["created_by"])
+                    kwargs["created_by"] = _deserialize_string_list(de, _SCHEMA_LIST_VARIABLES_INPUT.members["created_by"])
 
                 case 7:
-                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_LIST_VARIABLES_INPUT.members["last_modified_by"])
+                    kwargs["last_modified_by"] = _deserialize_string_list(de, _SCHEMA_LIST_VARIABLES_INPUT.members["last_modified_by"])
 
                 case 8:
                     kwargs["sort_on"] = de.read_string(_SCHEMA_LIST_VARIABLES_INPUT.members["sort_on"])

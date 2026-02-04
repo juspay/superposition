@@ -48,9 +48,15 @@ export interface ListVariablesCommandOutput extends ListVariablesOutput, __Metad
  *   all: true || false,
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
- *   name: "STRING_VALUE",
- *   created_by: "STRING_VALUE",
- *   last_modified_by: "STRING_VALUE",
+ *   name: [ // StringList
+ *     "STRING_VALUE",
+ *   ],
+ *   created_by: [
+ *     "STRING_VALUE",
+ *   ],
+ *   last_modified_by: [
+ *     "STRING_VALUE",
+ *   ],
  *   sort_on: "name" || "created_at" || "last_modified_at",
  *   sort_by: "desc" || "asc",
  * };

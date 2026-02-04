@@ -2081,11 +2081,11 @@ async def _serialize_list_secrets(input: ListSecretsInput, config: Config) -> HT
     if input.all is not None:
         query_params.append(("all", ('true' if input.all else 'false')))
     if input.name is not None:
-        query_params.append(("name", input.name))
+        query_params.extend(("name", e) for e in input.name)
     if input.created_by is not None:
-        query_params.append(("created_by", input.created_by))
+        query_params.extend(("created_by", e) for e in input.created_by)
     if input.last_modified_by is not None:
-        query_params.append(("last_modified_by", input.last_modified_by))
+        query_params.extend(("last_modified_by", e) for e in input.last_modified_by)
     if input.sort_on is not None:
         query_params.append(("sort_on", input.sort_on))
     if input.sort_by is not None:
@@ -2128,11 +2128,11 @@ async def _serialize_list_variables(input: ListVariablesInput, config: Config) -
     if input.all is not None:
         query_params.append(("all", ('true' if input.all else 'false')))
     if input.name is not None:
-        query_params.append(("name", input.name))
+        query_params.extend(("name", e) for e in input.name)
     if input.created_by is not None:
-        query_params.append(("created_by", input.created_by))
+        query_params.extend(("created_by", e) for e in input.created_by)
     if input.last_modified_by is not None:
-        query_params.append(("last_modified_by", input.last_modified_by))
+        query_params.extend(("last_modified_by", e) for e in input.last_modified_by)
     if input.sort_on is not None:
         query_params.append(("sort_on", input.sort_on))
     if input.sort_by is not None:

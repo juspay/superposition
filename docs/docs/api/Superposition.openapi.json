@@ -3784,28 +3784,43 @@
                         "name": "name",
                         "in": "query",
                         "description": "Filter by secret name.",
+                        "style": "form",
                         "schema": {
-                            "type": "string",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
                             "description": "Filter by secret name."
-                        }
+                        },
+                        "explode": true
                     },
                     {
                         "name": "created_by",
                         "in": "query",
                         "description": "Filter by the user who created the secret.",
+                        "style": "form",
                         "schema": {
-                            "type": "string",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
                             "description": "Filter by the user who created the secret."
-                        }
+                        },
+                        "explode": true
                     },
                     {
                         "name": "last_modified_by",
                         "in": "query",
                         "description": "Filter by the user who last modified the secret.",
+                        "style": "form",
                         "schema": {
-                            "type": "string",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
                             "description": "Filter by the user who last modified the secret."
-                        }
+                        },
+                        "explode": true
                     },
                     {
                         "name": "sort_on",
@@ -4644,28 +4659,43 @@
                         "name": "name",
                         "in": "query",
                         "description": "Filter by variable name (exact match or substring, depending on backend implementation).",
+                        "style": "form",
                         "schema": {
-                            "type": "string",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
                             "description": "Filter by variable name (exact match or substring, depending on backend implementation)."
-                        }
+                        },
+                        "explode": true
                     },
                     {
                         "name": "created_by",
                         "in": "query",
                         "description": "Filter by the user who created the variable",
+                        "style": "form",
                         "schema": {
-                            "type": "string",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
                             "description": "Filter by the user who created the variable"
-                        }
+                        },
+                        "explode": true
                     },
                     {
                         "name": "last_modified_by",
                         "in": "query",
                         "description": "Filter by the user who last modified the variable",
+                        "style": "form",
                         "schema": {
-                            "type": "string",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
                             "description": "Filter by the user who last modified the variable"
-                        }
+                        },
+                        "explode": true
                     },
                     {
                         "name": "sort_on",
