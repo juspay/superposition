@@ -5,7 +5,7 @@ use bigdecimal::ToPrimitive;
 use itertools::Itertools;
 use percent_encoding::{percent_decode_str, utf8_percent_encode, AsciiSet, CONTROLS};
 use serde::{Deserialize, Serialize};
-use serde_json::{Map, Value};
+use serde_json::{json, Map, Value};
 use superposition_types::database::models::cac::{DependencyGraph, DimensionType};
 use superposition_types::ExtendedMap;
 use superposition_types::{
@@ -1762,6 +1762,7 @@ timeout = 60
         let original_toml = r#"
 [default-config]
 config = { value = { host = "localhost", port = 8080 } , schema = { type = "object" } }
+max_count = { value = 10 , schema = { type = "number", minimum = 0, maximum = 100 } }
 
 [dimensions]
 os = { position = 1, schema = { type = "string", enum = ["linux", "windows", "macos"] } }
@@ -1772,6 +1773,7 @@ config = { host = "prod.example.com", port = 443 }
 
 [context."os_cohort=unix"]
 config = { host = "prod.unix.com", port = 8443 }
+max_count = 95
 "#;
 
         // Parse TOML -> Config
@@ -1821,6 +1823,49 @@ config = { host = "prod.unix.com", port = 8443 }
         assert_eq!(
             override_config.get("port"),
             Some(&Value::Number(serde_json::Number::from(8443)))
+        );
+    }
+
+    #[test]
+    fn test_resolution_with_local_cohorts() {
+        // Test that object values are serialized as triple-quoted JSON and parsed back correctly
+        let original_toml = r#"
+[default-config]
+config = { value = { host = "localhost", port = 8080 } , schema = { type = "object" } }
+max_count = { value = 10 , schema = { type = "number", minimum = 0, maximum = 100 } }
+
+[dimensions]
+os = { position = 1, schema = { type = "string", enum = ["linux", "windows", "macos"] } }
+os_cohort = { position = 2, schema = { enum = ["unix", "otherwise"], type = "string", definitions = { unix = { in = [{ var = "os" }, ["linux", "macos"]] } } }, type = "local_cohort:os" }
+
+[context."os=linux"]
+config = { host = "prod.example.com", port = 443 }
+
+[context."os_cohort=unix"]
+config = { host = "prod.unix.com", port = 8443 }
+max_count = 95
+"#;
+
+        // Parse TOML -> Config
+        let config = parse(original_toml).unwrap();
+        let mut dims = Map::new();
+        dims.insert("os".to_string(), Value::String("linux".to_string()));
+
+        let default_configs = (*config.default_configs).clone();
+        let result = crate::eval_config(
+            default_configs.clone(),
+            &config.contexts,
+            &config.overrides,
+            &config.dimensions,
+            &dims5,
+            crate::MergeStrategy::MERGE,
+            None,
+        )
+        .unwrap();
+
+        assert_eq!(
+            result.get("max_count"),
+            Some(&Value::Number(serde_json::Number::from(95)))
         );
     }
 }
