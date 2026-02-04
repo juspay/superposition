@@ -5,7 +5,7 @@ use bigdecimal::ToPrimitive;
 use itertools::Itertools;
 use percent_encoding::{percent_decode_str, utf8_percent_encode, AsciiSet, CONTROLS};
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value};
 use superposition_types::database::models::cac::{DependencyGraph, DimensionType};
 use superposition_types::ExtendedMap;
 use superposition_types::{
@@ -1857,7 +1857,7 @@ max_count = 95
             &config.contexts,
             &config.overrides,
             &config.dimensions,
-            &dims5,
+            &dims,
             crate::MergeStrategy::MERGE,
             None,
         )
