@@ -192,7 +192,7 @@ pub fn AuditLog() -> impl IntoView {
             )
         },
         |(filters, pagination_params, workspace, org_id)| async move {
-            audit_log::fetch(&filters, &pagination_params, &workspace, &org_id)
+            audit_log::list(&filters, &pagination_params, &workspace, &org_id)
                 .await
                 .unwrap_or_default()
         },

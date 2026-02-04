@@ -67,8 +67,8 @@ pub fn ExperimentPage() -> impl IntoView {
             let experiments_future = fetch_experiment(exp_id, &workspace, &org_id);
             let empty_list_filters = PaginationParams::all_entries();
             let dimensions_future =
-                dimensions::fetch(&empty_list_filters, &workspace, &org_id);
-            let config_future = default_configs::fetch(
+                dimensions::list(&empty_list_filters, &workspace, &org_id);
+            let config_future = default_configs::list(
                 &empty_list_filters,
                 &default_config_filters,
                 &workspace,

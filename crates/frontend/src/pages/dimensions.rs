@@ -35,7 +35,7 @@ pub fn Dimensions() -> impl IntoView {
     let dimensions_resource = create_blocking_resource(
         move || (workspace.get().0, pagination_params_rws.get(), org.get().0),
         |(workspace, pagination_params, org_id)| async move {
-            dimensions::fetch(&pagination_params, &workspace, &org_id)
+            dimensions::list(&pagination_params, &workspace, &org_id)
                 .await
                 .unwrap_or_default()
         },

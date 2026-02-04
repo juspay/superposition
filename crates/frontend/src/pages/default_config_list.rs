@@ -75,7 +75,7 @@ pub fn DefaultConfigList() -> impl IntoView {
             )
         },
         |(workspace, pagination_params, org_id, filters)| async move {
-            default_configs::fetch(&pagination_params, &filters, &workspace, &org_id)
+            default_configs::list(&pagination_params, &filters, &workspace, &org_id)
                 .await
                 .unwrap_or_default()
         },

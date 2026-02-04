@@ -33,7 +33,7 @@ pub mod snapshots {
 
     use super::*;
 
-    pub async fn fetch_all(
+    pub async fn list(
         filters: &PaginationParams,
         workspace: &str,
         org_id: &str,
@@ -55,7 +55,7 @@ pub mod snapshots {
         parse_json_response(response).await
     }
 
-    pub async fn fetch(
+    pub async fn get(
         id: &str,
         workspace: &str,
         org_id: &str,
@@ -89,7 +89,7 @@ pub mod dimensions {
 
     use super::*;
 
-    pub async fn fetch(
+    pub async fn list(
         filters: &PaginationParams,
         workspace: &str,
         org_id: &str,
@@ -432,7 +432,7 @@ pub mod default_configs {
         Ok(())
     }
 
-    pub async fn fetch(
+    pub async fn list(
         pagination: &PaginationParams,
         filters: &DefaultConfigFilters,
         workspace: &str,
@@ -501,7 +501,7 @@ pub mod workspaces {
 
     use super::*;
 
-    pub async fn fetch_all(
+    pub async fn list(
         filters: &PaginationParams,
         org_id: &str,
     ) -> Result<PaginatedResponse<WorkspaceResponse>, String> {
@@ -922,7 +922,7 @@ pub mod variables {
 
     use super::*;
 
-    pub async fn fetch(
+    pub async fn list(
         filters: &VariableFilters,
         pagination_params: &PaginationParams,
         workspace: &str,
@@ -1059,7 +1059,7 @@ pub mod secrets {
 
     use super::*;
 
-    pub async fn fetch(
+    pub async fn list(
         filters: &SecretFilters,
         pagination_params: &PaginationParams,
         workspace: &str,
@@ -1200,7 +1200,7 @@ pub mod experiment_groups {
 
     use super::*;
 
-    pub async fn fetch_all(
+    pub async fn list(
         filters: &ExpGroupFilters,
         pagination: &PaginationParams,
         workspace: &str,
@@ -1228,7 +1228,7 @@ pub mod experiment_groups {
         parse_json_response(response).await
     }
 
-    pub async fn fetch(
+    pub async fn get(
         group_id: &str,
         workspace: &str,
         org_id: &str,
@@ -1394,7 +1394,7 @@ pub mod audit_log {
 
     use super::*;
 
-    pub async fn fetch(
+    pub async fn list(
         filters: &AuditQueryFilters,
         pagination: &PaginationParams,
         workspace: &str,

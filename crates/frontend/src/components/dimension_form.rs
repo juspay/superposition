@@ -98,7 +98,7 @@ pub fn DimensionForm(
         |(dimensions, workspace, org_id)| async move {
             let dimensions_future = async {
                 match dimensions {
-                    None => dimensions::fetch(
+                    None => dimensions::list(
                         &PaginationParams::all_entries(),
                         &workspace,
                         &org_id,

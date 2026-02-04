@@ -91,8 +91,8 @@ pub fn ExperimentList() -> impl IntoView {
                 &org_id,
             );
             let dimensions_future =
-                dimensions::fetch(&fetch_all_filters, &workspace, &org_id);
-            let config_future = default_configs::fetch(
+                dimensions::list(&fetch_all_filters, &workspace, &org_id);
+            let config_future = default_configs::list(
                 &fetch_all_filters,
                 &default_config_filters,
                 &workspace,
