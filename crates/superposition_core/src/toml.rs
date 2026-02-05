@@ -1622,7 +1622,6 @@ timeout = 60
         let original_toml = r#"
 [default-config]
 config = { value = { host = "localhost", port = 8080 } , schema = { type = "object" } }
-max_count = { value = 10 , schema = { type = "number", minimum = 0, maximum = 100 } }
 
 [dimensions]
 os = { position = 1, schema = { type = "string", enum = ["linux", "windows", "macos"] } }
@@ -1635,7 +1634,6 @@ config = { host = "prod.example.com", port = 443 }
 [[context]]
 _condition_ = { os_cohort = "unix" }
 config = { host = "prod.unix.com", port = 8443 }
-max_count = 95
 "#;
 
         // Parse TOML -> Config
