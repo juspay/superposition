@@ -293,8 +293,8 @@ pub struct CreatePageParams {
 
 #[component]
 pub fn CreateDefaultConfig() -> impl IntoView {
-    let page_params_rws = use_signal_from_query(move |query_string| {
-        Query::<CreatePageParams>::extract_non_empty(&query_string).into_inner()
+    let (page_params_rws,) = use_signal_from_query(move |query_string| {
+        (Query::<CreatePageParams>::extract_non_empty(query_string).into_inner(),)
     });
 
     let cancel_url = format!(

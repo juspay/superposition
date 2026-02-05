@@ -29,7 +29,6 @@ reqwest = { workspace = true }
 strum = { workspace = true }
 strum_macros = { workspace = true }
 superposition_derives = { workspace = true }
-superposition_macros = { workspace = true }
 superposition_types = { workspace = true, features = [
     "experimentation",
     "api",

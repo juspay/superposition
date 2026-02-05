@@ -2,7 +2,6 @@ use leptos::*;
 
 use leptos_router::A;
 use serde_json::{Map, Value, json};
-use superposition_macros::box_params;
 use superposition_types::{
     PaginatedResponse,
     custom_query::{CustomQuery, PaginationParams, Query},
@@ -13,7 +12,7 @@ use crate::components::table::types::default_column_formatter;
 use crate::components::table::types::{ColumnSortable, Expandable, TablePaginationProps};
 use crate::components::table::{Table, types::Column};
 use crate::components::{datetime::DatetimeStr, skeleton::Skeleton};
-use crate::query_updater::{use_param_updater, use_signal_from_query};
+use crate::query_updater::use_signal_from_query;
 use crate::types::{OrganisationId, Workspace};
 use crate::utils::unwrap_or_default_with_error;
 use crate::{api::snapshots, components::stat::Stat};
@@ -23,11 +22,9 @@ pub fn ConfigVersionList() -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
-    let pagination_params_rws = use_signal_from_query(move |query_string| {
-        Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
+    let (pagination_params_rws,) = use_signal_from_query(move |query_string| {
+        (Query::<PaginationParams>::extract_non_empty(query_string).into_inner(),)
     });
-
-    use_param_updater(move || box_params!(pagination_params_rws.get()));
 
     let snapshots_resource: Resource<
         (String, PaginationParams, String),

@@ -6,7 +6,6 @@ use futures::join;
 use leptos::*;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value, json};
-use superposition_macros::box_params;
 use superposition_types::{
     PaginatedResponse,
     api::{
@@ -34,7 +33,7 @@ use crate::{
         condition_collapse_provider::ConditionCollapseProvider,
         editor_provider::EditorProvider,
     },
-    query_updater::{use_param_updater, use_signal_from_query},
+    query_updater::use_signal_from_query,
     types::{OrganisationId, VariantFormTs, Workspace},
 };
 
@@ -51,23 +50,15 @@ pub fn ExperimentList() -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let (reset_exp_form, set_exp_form) = create_signal(0);
-    let filters_rws = use_signal_from_query(move |query_string| {
-        Query::<ExperimentListFilters>::extract_non_empty(&query_string).into_inner()
-    });
-    let pagination_params_rws = use_signal_from_query(move |query_string| {
-        Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
-    });
-    let dimension_params_rws = use_signal_from_query(move |query_string| {
-        DimensionQuery::<QueryMap>::extract_non_empty(&query_string)
-    });
-
-    use_param_updater(move || {
-        box_params![
-            filters_rws.get(),
-            pagination_params_rws.get(),
-            dimension_params_rws.get(),
-        ]
-    });
+    let (filters_rws, pagination_params_rws, dimension_params_rws) =
+        use_signal_from_query(move |query_string| {
+            (
+                Query::<ExperimentListFilters>::extract_non_empty(query_string)
+                    .into_inner(),
+                Query::<PaginationParams>::extract_non_empty(query_string).into_inner(),
+                DimensionQuery::<QueryMap>::extract_non_empty(query_string),
+            )
+        });
 
     let combined_resource = create_blocking_resource(
         move || {

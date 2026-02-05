@@ -6,7 +6,6 @@ use filter::{DefaultConfigFilterWidget, FilterSummary};
 use leptos::*;
 use leptos_router::A;
 use serde_json::{Map, Value, json};
-use superposition_macros::box_params;
 use superposition_types::{
     api::default_config::DefaultConfigFilters,
     custom_query::{CustomQuery, PaginationParams, Query, QueryParam},
@@ -27,9 +26,7 @@ use crate::components::{
         },
     },
 };
-use crate::query_updater::{
-    use_param_updater, use_signal_from_query, use_update_url_query,
-};
+use crate::query_updater::{use_signal_from_query, use_update_url_query};
 use crate::types::{OrganisationId, Workspace};
 use crate::{api::default_configs, pages::default_config::CreatePageParams};
 
@@ -37,31 +34,27 @@ use crate::{api::default_configs, pages::default_config::CreatePageParams};
 pub fn DefaultConfigList() -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
-    let filters_rws = use_signal_from_query(move |query_string| {
-        Query::<DefaultConfigFilters>::extract_non_empty(&query_string).into_inner()
-    });
-    let page_params_rws = use_signal_from_query(move |query_string| {
-        Query::<PageParams>::extract_non_empty(&query_string).into_inner()
-    });
-    let pagination_params_rws = use_signal_from_query(move |query_string| {
-        if page_params_rws.get_untracked().grouped {
-            PaginationParams::all_entries()
-        } else {
-            Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
-        }
-    });
+    let (filters_rws, pagination_params_rws, page_params_rws) =
+        use_signal_from_query(move |query_string| {
+            let page_params =
+                Query::<PageParams>::extract_non_empty(query_string).into_inner();
+            (
+                Query::<DefaultConfigFilters>::extract_non_empty(query_string)
+                    .into_inner(),
+                if page_params.grouped {
+                    PaginationParams::all_entries()
+                } else {
+                    Query::<PaginationParams>::extract_non_empty(query_string)
+                        .into_inner()
+                },
+                page_params,
+            )
+        });
+
     let bread_crums = Signal::derive(move || {
         get_bread_crums(
             page_params_rws.with(|p| p.prefix.clone()),
             "Default Config".to_string(),
-        )
-    });
-
-    use_param_updater(move || {
-        box_params!(
-            pagination_params_rws.get(),
-            page_params_rws.get(),
-            filters_rws.get()
         )
     });
 

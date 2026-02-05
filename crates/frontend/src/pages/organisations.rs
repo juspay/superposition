@@ -1,6 +1,5 @@
 use leptos::*;
 use serde_json::{Map, Value};
-use superposition_macros::box_params;
 use superposition_types::custom_query::{CustomQuery, Query};
 use web_sys::{Crypto, MouseEvent};
 
@@ -20,7 +19,7 @@ use crate::components::{
     },
 };
 use crate::providers::alert_provider::enqueue_alert;
-use crate::query_updater::{use_param_updater, use_signal_from_query};
+use crate::query_updater::use_signal_from_query;
 use crate::types::AdminPageParams;
 use crate::utils::use_url_base;
 
@@ -83,11 +82,9 @@ pub fn Organisations() -> impl IntoView {
         |_| async { fetch_organisations().await.unwrap_or_default() },
     );
 
-    let admin_params_rws = use_signal_from_query(move |query_string| {
-        Query::<AdminPageParams>::extract_non_empty(&query_string).into_inner()
+    let (admin_params_rws,) = use_signal_from_query(move |query_string| {
+        (Query::<AdminPageParams>::extract_non_empty(query_string).into_inner(),)
     });
-
-    use_param_updater(move || box_params!(admin_params_rws.get()));
 
     let key_generation_rws = RwSignal::new(None);
     let show_master_rotation_modal = RwSignal::new(false);

@@ -4,7 +4,6 @@ use filter::{FilterSummary, SecretFilterWidget};
 use leptos::*;
 use leptos_router::A;
 use serde_json::{Map, Value, json};
-use superposition_macros::box_params;
 use superposition_types::{
     api::secrets::{SecretFilters, SortOn},
     custom_query::{CustomQuery, PaginationParams, Query},
@@ -26,7 +25,7 @@ use crate::components::{
         },
     },
 };
-use crate::query_updater::{use_param_updater, use_signal_from_query};
+use crate::query_updater::use_signal_from_query;
 use crate::types::{OrganisationId, Workspace};
 
 #[derive(Clone)]
@@ -135,19 +134,15 @@ pub fn SecretsList() -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
-    let filters_rws = use_signal_from_query(move |query_string| {
-        Query::<SecretFilters>::extract_non_empty(&query_string).into_inner()
-    });
-
-    let pagination_params_rws = use_signal_from_query(move |query_string| {
-        Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
-    });
+    let (filters_rws, pagination_params_rws) =
+        use_signal_from_query(move |query_string| {
+            (
+                Query::<SecretFilters>::extract_non_empty(query_string).into_inner(),
+                Query::<PaginationParams>::extract_non_empty(query_string).into_inner(),
+            )
+        });
 
     let action_rws = RwSignal::new(Action::None);
-
-    use_param_updater(move || {
-        box_params![pagination_params_rws.get(), filters_rws.get()]
-    });
 
     let secrets_resource = create_blocking_resource(
         move || {

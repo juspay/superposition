@@ -2,7 +2,6 @@ use leptos::*;
 
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value, json};
-use superposition_macros::box_params;
 use superposition_types::{
     PaginatedResponse,
     api::functions::ListFunctionFilters,
@@ -13,7 +12,7 @@ use superposition_types::{
 use crate::components::skeleton::Skeleton;
 use crate::components::table::types::TablePaginationProps;
 use crate::components::{stat::Stat, table::Table};
-use crate::query_updater::{use_param_updater, use_signal_from_query};
+use crate::query_updater::use_signal_from_query;
 use crate::types::{OrganisationId, Workspace};
 use crate::{api::fetch_functions, components::button::ButtonAnchor};
 
@@ -28,17 +27,15 @@ struct CombinedResource {
 pub fn FunctionList() -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
-    let pagination_params_rws = use_signal_from_query(move |query_string| {
-        Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
-    });
+    let (pagination_params_rws, filters_rws) =
+        use_signal_from_query(move |query_string| {
+            (
+                Query::<PaginationParams>::extract_non_empty(query_string).into_inner(),
+                Query::<ListFunctionFilters>::extract_non_empty(query_string)
+                    .into_inner(),
+            )
+        });
 
-    let filters_rws = use_signal_from_query(move |query_string| {
-        Query::<ListFunctionFilters>::extract_non_empty(&query_string).into_inner()
-    });
-
-    use_param_updater(move || {
-        box_params![pagination_params_rws.get(), filters_rws.get()]
-    });
     let table_columns = StoredValue::new(function_table_columns());
 
     let combined_resource = create_blocking_resource(

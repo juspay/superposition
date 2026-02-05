@@ -5,7 +5,6 @@ use std::collections::{HashMap, hash_map::Entry};
 use leptos::*;
 use leptos_router::A;
 use serde_json::{Map, Value};
-use superposition_macros::box_params;
 use superposition_types::{
     api::{config::ResolveConfigQuery, functions::FunctionEnvironment},
     custom_query::{CustomQuery, DimensionQuery, PaginationParams, Query},
@@ -31,7 +30,7 @@ use crate::{
         alert_provider::enqueue_alert,
         condition_collapse_provider::ConditionCollapseProvider,
     },
-    query_updater::{use_param_updater, use_signal_from_query, use_update_url_query},
+    query_updater::{use_signal_from_query, use_update_url_query},
     types::{OrganisationId, Workspace},
     utils::url_or_string,
 };
@@ -106,11 +105,11 @@ pub fn CompareOverrides() -> impl IntoView {
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     // this vector stores the list of contexts the user is comparing
     // let contexts_vector_rws = RwSignal::new(Vec::new());
-    let page_params_rws = use_signal_from_query(move |query_string| {
-        Query::<PageParams>::extract_non_empty(&query_string).into_inner()
-    });
-    let context_vec_rws = use_signal_from_query(move |query_string| {
-        ContextList::extract_non_empty(&query_string)
+    let (page_params_rws, context_vec_rws) = use_signal_from_query(move |query_string| {
+        (
+            Query::<PageParams>::extract_non_empty(query_string).into_inner(),
+            ContextList::extract_non_empty(query_string),
+        )
     });
     let bread_crums = Signal::derive(move || {
         get_bread_crums(
@@ -118,8 +117,6 @@ pub fn CompareOverrides() -> impl IntoView {
             "Compare Overrides".to_string(),
         )
     });
-
-    use_param_updater(move || box_params!(page_params_rws.get(), context_vec_rws.get()));
 
     let dimension_resource = create_blocking_resource(
         move || (workspace.get().0, org.get().0),

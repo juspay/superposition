@@ -1,7 +1,6 @@
 use leptos::*;
 use leptos_router::A;
 use serde_json::{Map, Value, json};
-use superposition_macros::box_params;
 use superposition_types::{
     custom_query::{CustomQuery, PaginationParams, Query},
     database::models::{Metrics, WorkspaceStatus},
@@ -22,24 +21,20 @@ use crate::components::{
     },
     workspace_form::{WorkspaceForm, types::RowData},
 };
-use crate::query_updater::{use_param_updater, use_signal_from_query};
+use crate::query_updater::use_signal_from_query;
 use crate::types::OrganisationId;
 use crate::{api::workspaces, types::AdminPageParams};
 
 #[component]
 pub fn Workspace() -> impl IntoView {
     let org_id = use_context::<Signal<OrganisationId>>().unwrap();
-    let pagination_params_rws = use_signal_from_query(move |query_string| {
-        Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
-    });
-
-    let admin_params_rws = use_signal_from_query(move |query_string| {
-        Query::<AdminPageParams>::extract_non_empty(&query_string).into_inner()
-    });
-
-    use_param_updater(move || {
-        box_params!(pagination_params_rws.get(), admin_params_rws.get())
-    });
+    let (pagination_params_rws, admin_params_rws) =
+        use_signal_from_query(move |query_string| {
+            (
+                Query::<PaginationParams>::extract_non_empty(query_string).into_inner(),
+                Query::<AdminPageParams>::extract_non_empty(query_string).into_inner(),
+            )
+        });
 
     let workspace_resource = create_blocking_resource(
         move || (pagination_params_rws.get(), org_id.get().0),
