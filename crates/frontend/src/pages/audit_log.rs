@@ -3,7 +3,6 @@ mod filter;
 use filter::{AuditLogFilterWidget, FilterSummary};
 use leptos::*;
 use serde_json::{Map, Value, json};
-use superposition_macros::box_params;
 use superposition_types::{
     api::audit_log::AuditQueryFilters,
     custom_query::{CustomQuery, PaginationParams, Query},
@@ -24,7 +23,7 @@ use crate::{
             },
         },
     },
-    query_updater::{use_param_updater, use_signal_from_query},
+    query_updater::use_signal_from_query,
     types::{OrganisationId, Workspace},
 };
 
@@ -170,17 +169,13 @@ pub fn AuditLog() -> impl IntoView {
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let diff_data_rws = RwSignal::new(None as Option<DiffData>);
 
-    let filters_rws = use_signal_from_query(move |query_string| {
-        Query::<AuditQueryFilters>::extract_non_empty(&query_string).into_inner()
-    });
-
-    let pagination_params_rws = use_signal_from_query(move |query_string| {
-        Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
-    });
-
-    use_param_updater(move || {
-        box_params![filters_rws.get(), pagination_params_rws.get()]
-    });
+    let (filters_rws, pagination_params_rws) =
+        use_signal_from_query(move |query_string| {
+            (
+                Query::<AuditQueryFilters>::extract_non_empty(query_string).into_inner(),
+                Query::<PaginationParams>::extract_non_empty(query_string).into_inner(),
+            )
+        });
 
     let audit_log_resource = create_blocking_resource(
         move || {
