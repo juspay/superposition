@@ -54,14 +54,16 @@ Dimensions define the variables that can be used in context expressions.
 
 ### Context-Based Overrides
 ```toml
-[context."vehicle_type=cab"]
+[[context]]
+_condition_ = { vehicle_type = "cab" }
 per_km_rate = 25.0
 
-[context."city=Bangalore; vehicle_type=cab"]
+[[context]]
+_condition_ = { city = "Bangalore", vehicle_type = "cab" }
 per_km_rate = 22.0
 ```
 
-Contexts define overrides that apply when specific dimension values are present. Multiple dimensions can be combined using semicolon-separated expressions.
+Contexts define overrides that apply when specific dimension values are present. Multiple dimensions can be combined by adding them to the `_condition_` table.
 
 ## API Usage
 

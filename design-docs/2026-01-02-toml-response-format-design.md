@@ -16,8 +16,8 @@
 - `3cac21cf` - test: add comprehensive serialization tests
 
 **Implementation Summary:**
-1. Renamed `TomlParseError` to `TomlError` with new `SerializationError` and `InvalidContextCondition` variants
-2. Implemented helper functions: `value_to_toml`, `condition_to_string`, `value_to_string_simple`
+1. Renamed `TomlParseError` to `TomlError` with new `SerializationError` and `NullValueInConfig` variants
+2. Implemented helper functions: `value_to_toml`, `schema_to_toml`, `get_schema_for_key`
 3. Implemented main `serialize_to_toml` function with schema inference for default-config entries
 4. Added content negotiation to `get_config` handler with `ResponseFormat` enum and `determine_response_format` function
 5. Added comprehensive tests including round-trip, special characters, and all value types
@@ -26,14 +26,15 @@
 **Key Implementation Details:**
 - Schema inference for default-config entries (string, integer, number, boolean, array, object, null)
 - Deterministic output: dimensions sorted by position, context conditions sorted alphabetically
+- Native TOML format: contexts use `[[context]]` array of tables with `_condition_` field
 - Backward compatible: defaults to JSON when no Accept header or unsupported format
 - Error handling: returns 500 Internal Server Error with `AppError::UnexpectedError` on serialization failure
 
 **Test Coverage:**
-- 12 serialization tests (all passing)
+- 36 serialization tests (all passing)
 - Round-trip compatibility verified
-- Special character escaping tested
 - All value types covered
+- URL encoding no longer needed - native TOML handles special characters
 
 ## Overview
 
@@ -160,10 +161,12 @@ surge_factor = { value = 0.0, schema = { "type" = "number" } }
 city = { position = 1, schema = { "type" = "string", "enum" = ["Bangalore", "Delhi"] } }
 vehicle_type = { position = 2, schema = { "type" = "string", "enum" = ["auto", "cab", "bike"] } }
 
-[context."vehicle_type=cab"]
+[[context]]
+_condition_ = { vehicle_type = "cab" }
 per_km_rate = 25.0
 
-[context."city=Bangalore; vehicle_type=cab"]
+[[context]]
+_condition_ = { city = "Bangalore", vehicle_type = "cab" }
 per_km_rate = 22.0
 ```
 
@@ -201,20 +204,26 @@ pub fn serialize_to_toml(config: &Config) -> Result<String, TomlError> {
     }
     output.push('\n');
 
-    // 3. Serialize [context.*] sections
+    // 3. Serialize [[context]] sections as array of tables
     for context in &config.contexts {
-        // Convert condition to string format
-        let condition_str = condition_to_string(&context.condition)?;
+        output.push_str("[[context]]\n");
 
-        output.push_str(&format!("[context.\"{}\"]\n", condition_str));
+        // Serialize condition as _condition_ field
+        let condition_map = &context.condition;
+        let mut condition_entries = Vec::new();
+        for (key, value) in condition_map.iter().sorted_by_key(|(k, _)| *k) {
+            let toml_value = value_to_toml(value)?;
+            condition_entries.push(format!("{} = {}", key, toml_value));
+        }
+        output.push_str(&format!("_condition_ = {{ {} }}\n", condition_entries.join(", ")));
 
-        // Get overrides for this context
+        // Serialize override values
         if let Some(overrides) = config.overrides.get(&context.id) {
             for (key, value) in &overrides.0 {
                 output.push_str(&format!(
                     "{} = {}\n",
                     key,
-                    value_to_toml(value)
+                    value_to_toml(value)?
                 ));
             }
         }
@@ -229,53 +238,33 @@ pub fn serialize_to_toml(config: &Config) -> Result<String, TomlError> {
 
 ```rust
 /// Convert serde_json::Value to TOML representation
-fn value_to_toml(value: &Value) -> String {
+fn value_to_toml(value: &Value) -> Result<String, TomlError> {
     match value {
-        Value::String(s) => format!("\"{}\"", s),
-        Value::Number(n) => n.to_string(),
-        Value::Bool(b) => b.to_string(),
+        Value::String(s) => Ok(format!("\"{}\"", s)),
+        Value::Number(n) => Ok(n.to_string()),
+        Value::Bool(b) => Ok(b.to_string()),
         Value::Array(arr) => {
             let items: Vec<String> = arr.iter()
                 .map(|v| value_to_toml(v))
-                .collect();
-            format!("[{}]", items.join(", "))
+                .collect::<Result<Vec<_>, _>>()?;
+            Ok(format!("[{}]", items.join(", ")))
         }
         Value::Object(obj) => {
             let items: Vec<String> = obj.iter()
-                .map(|(k, v)| format!("{} = {}", k, value_to_toml(v)))
-                .collect();
-            format!("{{ {} }}", items.join(", "))
+                .map(|(k, v)| format!("{} = {}", k, value_to_toml(v)?))
+                .collect::<Result<Vec<_>, _>>()?;
+            Ok(format!("{{ {} }}", items.join(", ")))
         }
-        Value::Null => "null".to_string(),
+        Value::Null => Err(TomlError::NullValueInConfig("null value in config".to_string())),
     }
 }
 
 /// Convert ExtendedMap schema to TOML representation
-fn schema_to_toml(schema: &ExtendedMap) -> String {
+fn schema_to_toml(schema: &ExtendedMap) -> Result<String, TomlError> {
     // Schema is already a JSON-like structure
-    value_to_toml(&serde_json::to_value(schema).unwrap())
-}
-
-/// Convert Condition to context expression string
-fn condition_to_string(condition: &Cac<Condition>) -> Result<String, TomlError> {
-    // Extract dimension key-value pairs
-    let pairs: Vec<String> = condition.0.iter()
-        .map(|(key, value)| {
-            format!("{}={}", key, value_to_string_simple(value))
-        })
-        .collect();
-
-    Ok(pairs.join("; "))
-}
-
-/// Simple value to string for context expressions
-fn value_to_string_simple(value: &Value) -> String {
-    match value {
-        Value::String(s) => s.clone(),
-        Value::Number(n) => n.to_string(),
-        Value::Bool(b) => b.to_string(),
-        _ => value.to_string(),
-    }
+    value_to_toml(&serde_json::to_value(schema).map_err(|e| {
+        TomlError::SerializationError(format!("Failed to serialize schema: {}", e))
+    })?)
 }
 
 /// Get schema for a config key from dimensions
@@ -301,7 +290,6 @@ pub enum TomlError {
     TomlSyntaxError(String),
     MissingSection(String),
     MissingField { section: String, key: String, field: String },
-    InvalidContextExpression { expression: String, reason: String },
     UndeclaredDimension { dimension: String, context: String },
     InvalidOverrideKey { key: String, context: String },
     ConversionError(String),
@@ -309,7 +297,7 @@ pub enum TomlError {
 
     // New serialization errors
     SerializationError(String),
-    InvalidContextCondition(String),
+    NullValueInConfig(String),
 }
 
 impl Display for TomlError {
@@ -317,8 +305,8 @@ impl Display for TomlError {
         match self {
             Self::SerializationError(msg) =>
                 write!(f, "TOML serialization error: {}", msg),
-            Self::InvalidContextCondition(cond) =>
-                write!(f, "Cannot serialize context condition: {}", cond),
+            Self::NullValueInConfig(key) =>
+                write!(f, "TOML cannot handle NULL values for key: {}", key),
             // ... existing variants
         }
     }
@@ -510,48 +498,38 @@ fn get_schema_for_key(
 
 #### Complex Context Conditions
 
-**Scenario:** Context conditions that can't be represented as "key=value" pairs
+**Scenario:** Context conditions that can't be represented as simple key-value pairs
 
-**Current Handling:** The Config structure stores conditions as `Cac<Condition>` which is a map of dimension name to value. This naturally maps to "key=value" format.
+**Current Handling:** The Config structure stores conditions as `Cac<Condition>` which is a map of dimension name to value. This naturally maps to native TOML table format.
 
 **Edge Case:** If future versions support complex conditions (AND/OR logic, ranges, etc.)
 
 **Future Solution:**
 ```toml
 # Simple condition (current)
-[context."city=Bangalore"]
+[[context]]
+_condition_ = { city = "Bangalore" }
 
 # Complex condition (future - if needed)
-[context.'{"$and": [{"city": "Bangalore"}, {"region": "South"}]}']
+[[context]]
+_condition_ = { "$and" = [{ city = "Bangalore" }, { region = "South" }] }
 ```
 
 #### Special Characters in Values
 
-**Handling:** TOML quoted keys handle special characters
+**Handling:** Native TOML string values handle special characters naturally
 
 ```toml
-[context."city=San Francisco; state=CA"]
+[[context]]
+_condition_ = { city = "San Francisco", state = "CA" }
 per_km_rate = 30.0
 
-[context."name=O'Brien"]
+[[context]]
+_condition_ = { name = "O'Brien" }
 enabled = true
 ```
 
-**Implementation:** Ensure proper escaping in `condition_to_string()`
-
-```rust
-fn condition_to_string(condition: &Cac<Condition>) -> Result<String, TomlError> {
-    let pairs: Vec<String> = condition.0.iter()
-        .map(|(key, value)| {
-            let value_str = value_to_string_simple(value);
-            // Escape special characters if needed
-            format!("{}={}", escape_toml_key(key), escape_toml_value(&value_str))
-        })
-        .collect();
-
-    Ok(pairs.join("; "))
-}
-```
+**Implementation:** TOML string quoting handles escaping automatically, no special handling needed in serialization.
 
 #### Empty Sections
 
@@ -603,7 +581,8 @@ mod serialization_tests {
             [dimensions]
             os = { position = 1, schema = { "type" = "string", "enum" = ["linux", "windows"] } }
 
-            [context."os=linux"]
+            [[context]]
+            _condition_ = { os = "linux" }
             timeout = 60
         "#;
 
@@ -977,7 +956,8 @@ surge_factor = { value = 0.0, schema = { "type" = "number" } }
 city = { position = 1, schema = { "type" = "string", "enum" = ["Bangalore", "Delhi"] } }
 vehicle_type = { position = 2, schema = { "type" = "string", "enum" = ["auto", "cab", "bike"] } }
 
-[context."city=Bangalore"]
+[[context]]
+_condition_ = { city = "Bangalore" }
 per_km_rate = 22.0
 ```
 
