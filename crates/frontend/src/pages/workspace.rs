@@ -7,7 +7,6 @@ use superposition_types::{
     database::models::{Metrics, WorkspaceStatus},
 };
 
-use crate::api::workspaces;
 use crate::components::{
     datetime::DatetimeStr,
     drawer::{Drawer, DrawerBtn, close_drawer, open_drawer},
@@ -25,6 +24,7 @@ use crate::components::{
 };
 use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::OrganisationId;
+use crate::{api::workspaces, types::AdminPageParams};
 
 #[component]
 pub fn Workspace() -> impl IntoView {
@@ -33,7 +33,13 @@ pub fn Workspace() -> impl IntoView {
         Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
     });
 
-    use_param_updater(move || box_params!(pagination_params_rws.get()));
+    let admin_params_rws = use_signal_from_query(move |query_string| {
+        Query::<AdminPageParams>::extract_non_empty(&query_string).into_inner()
+    });
+
+    use_param_updater(move || {
+        box_params!(pagination_params_rws.get(), admin_params_rws.get())
+    });
 
     let workspace_resource = create_blocking_resource(
         move || (pagination_params_rws.get(), org_id.get().0),
@@ -123,22 +129,24 @@ pub fn Workspace() -> impl IntoView {
                 open_drawer("workspace_drawer");
             };
 
-            let rotate_key_click_handler = move |_| {
+            let rotate_key_click_handler = Callback::new(move |_| {
                 key_rotation_workspace_rws.set(Some(workspace_name_clone.clone()));
-            };
+            });
 
             view! {
                 <div class="flex gap-2">
                     <span class="cursor-pointer" on:click=edit_click_handler title="Edit Workspace">
                         <i class="ri-pencil-line ri-xl text-blue-500" />
                     </span>
-                    <span
-                        class="cursor-pointer"
-                        on:click=rotate_key_click_handler
-                        title="Rotate Encryption Key"
-                    >
-                        <i class="ri-key-2-line ri-xl text-yellow-600" />
-                    </span>
+                    <Show when=move || admin_params_rws.with(|p| p.admin.unwrap_or_default())>
+                        <span
+                            class="cursor-pointer"
+                            on:click=move |_| rotate_key_click_handler.call(())
+                            title="Rotate Encryption Key"
+                        >
+                            <i class="ri-key-2-line ri-xl text-yellow-600" />
+                        </span>
+                    </Show>
                 </div>
             }
             .into_view()

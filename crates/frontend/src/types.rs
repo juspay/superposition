@@ -2,9 +2,11 @@ use derive_more::{Deref, DerefMut};
 use leptos::{ReadSignal, WriteSignal};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
+use superposition_derives::{IsEmpty, QueryParam};
 use superposition_types::{
-    Exp, Overrides,
+    Exp, IsEmpty, Overrides,
     api::dimension::DimensionResponse,
+    custom_query::QueryParam,
     database::models::{
         cac::{DefaultConfig, DimensionType, TypeTemplate},
         experimentation::{Variant, VariantType},
@@ -50,6 +52,11 @@ pub enum AppEnv {
 pub struct Envs {
     pub host: String,
     pub service_prefix: &'static str,
+}
+
+#[derive(PartialEq, Clone, IsEmpty, QueryParam, Default, Deserialize)]
+pub struct AdminPageParams {
+    pub admin: Option<bool>,
 }
 
 /*********************** Experimentation Types ****************************************/
