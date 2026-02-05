@@ -16,6 +16,7 @@ module Io.Superposition.Model.UpdateWorkspaceOutput (
     setAutoPopulateControl,
     setEnableContextValidation,
     setEnableChangeReasonValidation,
+    setChangeReason,
     build,
     UpdateWorkspaceOutputBuilder,
     UpdateWorkspaceOutput,
@@ -35,7 +36,8 @@ module Io.Superposition.Model.UpdateWorkspaceOutput (
     allow_experiment_self_approval,
     auto_populate_control,
     enable_context_validation,
-    enable_change_reason_validation
+    enable_change_reason_validation,
+    change_reason
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad.State.Strict
@@ -69,7 +71,8 @@ data UpdateWorkspaceOutput = UpdateWorkspaceOutput {
     allow_experiment_self_approval :: Bool,
     auto_populate_control :: Bool,
     enable_context_validation :: Bool,
-    enable_change_reason_validation :: Bool
+    enable_change_reason_validation :: Bool,
+    change_reason :: Data.Text.Text
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -94,7 +97,8 @@ instance Data.Aeson.ToJSON UpdateWorkspaceOutput where
         "allow_experiment_self_approval" Data.Aeson..= allow_experiment_self_approval a,
         "auto_populate_control" Data.Aeson..= auto_populate_control a,
         "enable_context_validation" Data.Aeson..= enable_context_validation a,
-        "enable_change_reason_validation" Data.Aeson..= enable_change_reason_validation a
+        "enable_change_reason_validation" Data.Aeson..= enable_change_reason_validation a,
+        "change_reason" Data.Aeson..= change_reason a
         ]
     
 
@@ -119,6 +123,7 @@ instance Data.Aeson.FromJSON UpdateWorkspaceOutput where
         Control.Applicative.<*> (v Data.Aeson..: "auto_populate_control")
         Control.Applicative.<*> (v Data.Aeson..: "enable_context_validation")
         Control.Applicative.<*> (v Data.Aeson..: "enable_change_reason_validation")
+        Control.Applicative.<*> (v Data.Aeson..: "change_reason")
     
 
 
@@ -140,7 +145,8 @@ data UpdateWorkspaceOutputBuilderState = UpdateWorkspaceOutputBuilderState {
     allow_experiment_self_approvalBuilderState :: Data.Maybe.Maybe Bool,
     auto_populate_controlBuilderState :: Data.Maybe.Maybe Bool,
     enable_context_validationBuilderState :: Data.Maybe.Maybe Bool,
-    enable_change_reason_validationBuilderState :: Data.Maybe.Maybe Bool
+    enable_change_reason_validationBuilderState :: Data.Maybe.Maybe Bool,
+    change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Generics.Generic
   )
@@ -163,7 +169,8 @@ defaultBuilderState = UpdateWorkspaceOutputBuilderState {
     allow_experiment_self_approvalBuilderState = Data.Maybe.Nothing,
     auto_populate_controlBuilderState = Data.Maybe.Nothing,
     enable_context_validationBuilderState = Data.Maybe.Nothing,
-    enable_change_reason_validationBuilderState = Data.Maybe.Nothing
+    enable_change_reason_validationBuilderState = Data.Maybe.Nothing,
+    change_reasonBuilderState = Data.Maybe.Nothing
 }
 
 type UpdateWorkspaceOutputBuilder = Control.Monad.State.Strict.State UpdateWorkspaceOutputBuilderState
@@ -236,6 +243,10 @@ setEnableChangeReasonValidation :: Bool -> UpdateWorkspaceOutputBuilder ()
 setEnableChangeReasonValidation value =
    Control.Monad.State.Strict.modify (\s -> (s { enable_change_reason_validationBuilderState = Data.Maybe.Just value }))
 
+setChangeReason :: Data.Text.Text -> UpdateWorkspaceOutputBuilder ()
+setChangeReason value =
+   Control.Monad.State.Strict.modify (\s -> (s { change_reasonBuilderState = Data.Maybe.Just value }))
+
 build :: UpdateWorkspaceOutputBuilder () -> Data.Either.Either Data.Text.Text UpdateWorkspaceOutput
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
@@ -256,6 +267,7 @@ build builder = do
     auto_populate_control' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateWorkspaceOutput.UpdateWorkspaceOutput.auto_populate_control is a required property.") Data.Either.Right (auto_populate_controlBuilderState st)
     enable_context_validation' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateWorkspaceOutput.UpdateWorkspaceOutput.enable_context_validation is a required property.") Data.Either.Right (enable_context_validationBuilderState st)
     enable_change_reason_validation' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateWorkspaceOutput.UpdateWorkspaceOutput.enable_change_reason_validation is a required property.") Data.Either.Right (enable_change_reason_validationBuilderState st)
+    change_reason' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateWorkspaceOutput.UpdateWorkspaceOutput.change_reason is a required property.") Data.Either.Right (change_reasonBuilderState st)
     Data.Either.Right (UpdateWorkspaceOutput { 
         workspace_name = workspace_name',
         organisation_id = organisation_id',
@@ -273,7 +285,8 @@ build builder = do
         allow_experiment_self_approval = allow_experiment_self_approval',
         auto_populate_control = auto_populate_control',
         enable_context_validation = enable_context_validation',
-        enable_change_reason_validation = enable_change_reason_validation'
+        enable_change_reason_validation = enable_change_reason_validation',
+        change_reason = change_reason'
     })
 
 
@@ -295,14 +308,15 @@ instance Io.Superposition.Utility.FromResponseParser UpdateWorkspaceOutput where
         var11 <- Io.Superposition.Utility.deSerField "last_modified_at"
         var12 <- Io.Superposition.Utility.deSerField "organisation_id"
         var13 <- Io.Superposition.Utility.deSerField "allow_experiment_self_approval"
-        var14 <- Io.Superposition.Utility.deSerField "workspace_schema_name"
-        var15 <- Io.Superposition.Utility.deSerField "metrics"
-        var16 <- Io.Superposition.Utility.deSerField "workspace_name"
+        var14 <- Io.Superposition.Utility.deSerField "change_reason"
+        var15 <- Io.Superposition.Utility.deSerField "workspace_schema_name"
+        var16 <- Io.Superposition.Utility.deSerField "metrics"
+        var17 <- Io.Superposition.Utility.deSerField "workspace_name"
         pure $ UpdateWorkspaceOutput {
-            workspace_name = var16,
+            workspace_name = var17,
             organisation_id = var12,
             organisation_name = var4,
-            workspace_schema_name = var14,
+            workspace_schema_name = var15,
             workspace_status = var10,
             workspace_admin_email = var0,
             config_version = var7,
@@ -311,10 +325,11 @@ instance Io.Superposition.Utility.FromResponseParser UpdateWorkspaceOutput where
             last_modified_at = var11,
             created_at = var3,
             mandatory_dimensions = var8,
-            metrics = var15,
+            metrics = var16,
             allow_experiment_self_approval = var13,
             auto_populate_control = var1,
             enable_context_validation = var2,
-            enable_change_reason_validation = var9
+            enable_change_reason_validation = var9,
+            change_reason = var14
         }
 

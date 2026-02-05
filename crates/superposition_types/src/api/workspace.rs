@@ -3,7 +3,9 @@ use chrono::{DateTime, Utc};
 use diesel::AsChangeset;
 use serde::{Deserialize, Serialize};
 
-use crate::database::models::{Metrics, NonEmptyString, Workspace, WorkspaceStatus};
+use crate::database::models::{
+    ChangeReason, Metrics, NonEmptyString, Workspace, WorkspaceStatus,
+};
 #[cfg(feature = "diesel_derives")]
 use crate::database::superposition_schema::superposition::workspaces;
 
@@ -28,6 +30,7 @@ pub struct WorkspaceResponse {
     pub auto_populate_control: bool,
     pub enable_context_validation: bool,
     pub enable_change_reason_validation: bool,
+    pub change_reason: ChangeReason,
 }
 
 impl From<Workspace> for WorkspaceResponse {
@@ -50,6 +53,7 @@ impl From<Workspace> for WorkspaceResponse {
             auto_populate_control: workspace.auto_populate_control,
             enable_context_validation: workspace.enable_context_validation,
             enable_change_reason_validation: workspace.enable_change_reason_validation,
+            change_reason: workspace.change_reason,
         }
     }
 }
@@ -68,6 +72,7 @@ pub struct CreateWorkspaceRequest {
     pub enable_context_validation: bool,
     #[serde(default)]
     pub enable_change_reason_validation: bool,
+    pub change_reason: ChangeReason,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -84,6 +89,7 @@ pub struct UpdateWorkspaceRequest {
     pub auto_populate_control: Option<bool>,
     pub enable_context_validation: Option<bool>,
     pub enable_change_reason_validation: Option<bool>,
+    pub change_reason: ChangeReason,
 }
 
 #[derive(Deserialize, Debug)]

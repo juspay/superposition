@@ -1589,6 +1589,7 @@ export interface CreateWorkspaceRequest {
   auto_populate_control?: boolean | undefined;
   enable_context_validation?: boolean | undefined;
   enable_change_reason_validation?: boolean | undefined;
+  change_reason: string | undefined;
 }
 
 /**
@@ -1612,6 +1613,7 @@ export interface WorkspaceResponse {
   auto_populate_control: boolean | undefined;
   enable_context_validation: boolean | undefined;
   enable_change_reason_validation: boolean | undefined;
+  change_reason: string | undefined;
 }
 
 /**
@@ -2794,4 +2796,5 @@ export interface UpdateWorkspaceRequest {
   auto_populate_control?: boolean | undefined;
   enable_context_validation?: boolean | undefined;
   enable_change_reason_validation?: boolean | undefined;
+  change_reason?: string | undefined;
 }

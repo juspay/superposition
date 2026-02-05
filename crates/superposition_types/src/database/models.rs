@@ -281,6 +281,7 @@ pub struct Workspace {
     pub enable_change_reason_validation: bool,
     pub encryption_key: String,
     pub key_rotated_at: Option<DateTime<Utc>>,
+    pub change_reason: ChangeReason,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]

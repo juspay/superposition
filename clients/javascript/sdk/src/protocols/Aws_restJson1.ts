@@ -846,6 +846,7 @@ export const se_CreateWorkspaceCommand = async(
   body = JSON.stringify(take(input, {
     'allow_experiment_self_approval': [],
     'auto_populate_control': [],
+    'change_reason': [],
     'enable_change_reason_validation': [],
     'enable_context_validation': [],
     'metrics': _ => se_Document(_, context),
@@ -2488,6 +2489,7 @@ export const se_UpdateWorkspaceCommand = async(
   body = JSON.stringify(take(input, {
     'allow_experiment_self_approval': [],
     'auto_populate_control': [],
+    'change_reason': [],
     'config_version': [],
     'enable_change_reason_validation': [],
     'enable_context_validation': [],
@@ -3034,6 +3036,7 @@ export const de_CreateWorkspaceCommand = async(
   const doc = take(data, {
     'allow_experiment_self_approval': __expectBoolean,
     'auto_populate_control': __expectBoolean,
+    'change_reason': __expectString,
     'config_version': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
@@ -3875,6 +3878,7 @@ export const de_GetWorkspaceCommand = async(
   const doc = take(data, {
     'allow_experiment_self_approval': __expectBoolean,
     'auto_populate_control': __expectBoolean,
+    'change_reason': __expectString,
     'config_version': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
@@ -4211,6 +4215,7 @@ export const de_MigrateWorkspaceSchemaCommand = async(
   const doc = take(data, {
     'allow_experiment_self_approval': __expectBoolean,
     'auto_populate_control': __expectBoolean,
+    'change_reason': __expectString,
     'config_version': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
@@ -4887,6 +4892,7 @@ export const de_UpdateWorkspaceCommand = async(
   const doc = take(data, {
     'allow_experiment_self_approval': __expectBoolean,
     'auto_populate_control': __expectBoolean,
+    'change_reason': __expectString,
     'config_version': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'created_by': __expectString,
@@ -6049,6 +6055,7 @@ const de_CommandError = async(
     return take(output, {
       'allow_experiment_self_approval': __expectBoolean,
       'auto_populate_control': __expectBoolean,
+      'change_reason': __expectString,
       'config_version': __expectString,
       'created_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
       'created_by': __expectString,

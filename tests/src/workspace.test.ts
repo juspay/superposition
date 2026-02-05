@@ -53,6 +53,7 @@ describe("Workspace API", () => {
             auto_populate_control: false,
             enable_context_validation: true,
             enable_change_reason_validation: true,
+            change_reason: "created workspace for test"
         };
 
         const cmd = new CreateWorkspaceCommand(input);
@@ -129,7 +130,7 @@ describe("Workspace API", () => {
 
             // Find our workspace in the list
             const workspace = response.data?.find(
-                (w) => w.workspace_name === testWorkspaceName
+                (w: any) => w.workspace_name === testWorkspaceName
             );
             expect(workspace).toBeDefined();
             expect(workspace?.workspace_name).toBe(testWorkspaceName);
@@ -157,6 +158,7 @@ describe("Workspace API", () => {
             workspace_admin_email: "updated-admin@example.com",
             workspace_status: WorkspaceStatus.ENABLED,
             mandatory_dimensions: ["os", "client", "version"],
+            change_reason: "Updating workspace for automated tests",
         };
 
         const cmd = new UpdateWorkspaceCommand(input);
@@ -226,7 +228,7 @@ describe("Workspace API", () => {
 
         // Find our workspace in the list
         const workspace = response.data?.find(
-            (w) => w.workspace_name === testWorkspaceName
+            (w: any) => w.workspace_name === testWorkspaceName
         );
         expect(workspace).toBeDefined();
         expect(workspace?.workspace_admin_email).toBe(
@@ -297,6 +299,7 @@ describe("Workspace API", () => {
             auto_populate_control: false,
             enable_context_validation: true,
             enable_change_reason_validation: true,
+            change_reason: "test-with-invalid-data"
         };
 
         const cmd = new CreateWorkspaceCommand(input);
@@ -322,6 +325,7 @@ describe("Workspace API", () => {
             auto_populate_control: false,
             enable_context_validation: true,
             enable_change_reason_validation: true,
+            change_reason: "creating workspace with special characters"
         };
 
         const cmd = new CreateWorkspaceCommand(input);

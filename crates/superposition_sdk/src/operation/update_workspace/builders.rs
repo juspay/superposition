@@ -255,5 +255,19 @@ impl UpdateWorkspaceFluentBuilder {
     pub fn get_enable_change_reason_validation(&self) -> &::std::option::Option<bool> {
                     self.inner.get_enable_change_reason_validation()
                 }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+                    self.inner = self.inner.change_reason(input.into());
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_change_reason(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+                    self.inner = self.inner.set_change_reason(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
+                    self.inner.get_change_reason()
+                }
 }
 

@@ -4,9 +4,10 @@ pub mod utils;
 use leptos::*;
 use serde_json::{Value, to_string};
 use superposition_types::api::workspace::CreateWorkspaceRequest;
-use superposition_types::database::models::{Metrics, WorkspaceStatus};
+use superposition_types::database::models::{ChangeReason, Metrics, WorkspaceStatus};
 use web_sys::MouseEvent;
 
+use crate::components::change_form::ChangeForm;
 use crate::components::form::label::Label;
 use crate::components::metrics_form::MetricsForm;
 use crate::components::workspace_form::utils::string_to_vec;
@@ -33,6 +34,7 @@ pub fn WorkspaceForm(
     #[prop(default = true)] auto_populate_control: bool,
     #[prop(default = false)] enable_context_validation: bool,
     #[prop(default = false)] enable_change_reason_validation: bool,
+    #[prop(default = String::new())] change_reason: String,
     #[prop(into)] handle_submit: Callback<(), ()>,
 ) -> impl IntoView {
     let (workspace_name_rs, workspace_name_ws) = create_signal(workspace_name);
@@ -51,6 +53,7 @@ pub fn WorkspaceForm(
         create_signal(enable_context_validation);
     let (enable_change_reason_validation_rs, enable_change_reason_validation_ws) =
         create_signal(enable_change_reason_validation);
+    let (change_reason_rs, change_reason_ws) = create_signal(change_reason);
 
     let on_submit = move |ev: MouseEvent| {
         req_inprogress_ws.set(true);
@@ -70,6 +73,7 @@ pub fn WorkspaceForm(
                         auto_populate_control_rs.get_untracked(),
                         enable_context_validation_rs.get_untracked(),
                         enable_change_reason_validation_rs.get_untracked(),
+                        change_reason_rs.get_untracked(),
                     );
                     match update_payload {
                         Ok(payload) => {
@@ -83,6 +87,9 @@ pub fn WorkspaceForm(
                         Err(e) => Err(e),
                     }
                 } else {
+                    let change_reason_val = change_reason_rs.get_untracked();
+                    let change_reason_val =
+                        ChangeReason::try_from(change_reason_val).unwrap_or_default();
                     let create_payload = CreateWorkspaceRequest {
                         workspace_admin_email: workspace_admin_email_rs.get_untracked(),
                         workspace_name: workspace_name_rs.get_untracked(),
@@ -95,6 +102,7 @@ pub fn WorkspaceForm(
                             .get_untracked(),
                         enable_change_reason_validation:
                             enable_change_reason_validation_rs.get_untracked(),
+                        change_reason: change_reason_val,
                     };
                     workspaces::create(create_payload, &org_id.get_untracked().0).await
                 };
@@ -258,6 +266,13 @@ pub fn WorkspaceForm(
                         extra_info="This will enable change reason validation for all changes in the workspace."
                     />
                 </div>
+
+                <ChangeForm
+                    title="Reason for Change"
+                    placeholder="Enter a reason for this change"
+                    value=change_reason_rs.get_untracked()
+                    on_change=move |new_change_reason| { change_reason_ws.set(new_change_reason) }
+                />
 
                 <MetricsForm
                     metrics=metrics_rws.get_untracked()

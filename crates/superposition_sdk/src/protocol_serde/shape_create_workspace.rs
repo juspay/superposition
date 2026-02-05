@@ -87,6 +87,15 @@ pub(crate) fn de_create_workspace(value: &[u8], mut builder: crate::operation::c
                             ::aws_smithy_json::deserialize::token::expect_bool_or_null(tokens.next())?
                         );
                     }
+                    "change_reason" => {
+                        builder = builder.set_change_reason(
+                            ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                s.to_unescaped().map(|u|
+                                    u.into_owned()
+                                )
+                            ).transpose()?
+                        );
+                    }
                     "config_version" => {
                         builder = builder.set_config_version(
                             ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|

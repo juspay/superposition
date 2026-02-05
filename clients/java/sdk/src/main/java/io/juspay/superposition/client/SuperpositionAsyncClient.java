@@ -1773,11 +1773,11 @@ public interface SuperpositionAsyncClient {
             Node.objectNode()
         );
 
-        private static final HttpBearerAuthTrait httpBearerAuthScheme = new HttpBearerAuthTrait();
-        private static final AuthSchemeFactory<HttpBearerAuthTrait> httpBearerAuthSchemeFactory = new HttpBearerAuthScheme.Factory();
-
         private static final HttpBasicAuthTrait httpBasicAuthScheme = new HttpBasicAuthTrait();
         private static final AuthSchemeFactory<HttpBasicAuthTrait> httpBasicAuthSchemeFactory = new HttpBasicAuthAuthScheme.Factory();
+
+        private static final HttpBearerAuthTrait httpBearerAuthScheme = new HttpBearerAuthTrait();
+        private static final AuthSchemeFactory<HttpBearerAuthTrait> httpBearerAuthSchemeFactory = new HttpBearerAuthScheme.Factory();
 
         private Builder() {
             configBuilder().putSupportedAuthSchemes(httpBasicAuthSchemeFactory.createAuthScheme(httpBasicAuthScheme), httpBearerAuthSchemeFactory.createAuthScheme(httpBearerAuthScheme));

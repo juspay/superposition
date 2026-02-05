@@ -21,6 +21,8 @@ pub struct CreateWorkspaceInput  {
     pub enable_context_validation: ::std::option::Option<bool>,
     #[allow(missing_docs)] // documentation missing in model
     pub enable_change_reason_validation: ::std::option::Option<bool>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub change_reason: ::std::option::Option<::std::string::String>,
 }
 impl  CreateWorkspaceInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -59,6 +61,10 @@ impl  CreateWorkspaceInput  {
     pub fn enable_change_reason_validation(&self) -> ::std::option::Option<bool> {
         self.enable_change_reason_validation
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn change_reason(&self) -> ::std::option::Option<&str> {
+        self.change_reason.as_deref()
+    }
 }
 impl CreateWorkspaceInput {
     /// Creates a new builder-style object to manufacture [`CreateWorkspaceInput`](crate::operation::create_workspace::CreateWorkspaceInput).
@@ -80,6 +86,7 @@ pub struct CreateWorkspaceInputBuilder {
     pub(crate) auto_populate_control: ::std::option::Option<bool>,
     pub(crate) enable_context_validation: ::std::option::Option<bool>,
     pub(crate) enable_change_reason_validation: ::std::option::Option<bool>,
+    pub(crate) change_reason: ::std::option::Option<::std::string::String>,
 }
 impl CreateWorkspaceInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -202,6 +209,20 @@ impl CreateWorkspaceInputBuilder {
     pub fn get_enable_change_reason_validation(&self) -> &::std::option::Option<bool> {
         &self.enable_change_reason_validation
     }
+    #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
+    pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.change_reason = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_change_reason(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.change_reason = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
+        &self.change_reason
+    }
     /// Consumes the builder and constructs a [`CreateWorkspaceInput`](crate::operation::create_workspace::CreateWorkspaceInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::create_workspace::CreateWorkspaceInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -223,6 +244,8 @@ impl CreateWorkspaceInputBuilder {
                 enable_context_validation: self.enable_context_validation
                 ,
                 enable_change_reason_validation: self.enable_change_reason_validation
+                ,
+                change_reason: self.change_reason
                 ,
             }
         )

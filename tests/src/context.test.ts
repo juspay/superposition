@@ -129,6 +129,7 @@ describe("Context API Integration Tests", () => {
             workspace_admin_email: "updated-admin@example.com",
             workspace_status: WorkspaceStatus.ENABLED,
             mandatory_dimensions: ["clientId"],
+            change_reason: "Adding mandatory dimension for context tests",
         };
 
         const cmd = new UpdateWorkspaceCommand(input);

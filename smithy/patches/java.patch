@@ -257,6 +257,7 @@ index a1dfbada..589784f9 100644
 -        "last_modified_at", SharedSchemas.DATE_TIME,
 -        "organisation_id", PreludeSchemas.STRING,
 -        "allow_experiment_self_approval", PreludeSchemas.BOOLEAN,
+-        "change_reason", PreludeSchemas.STRING,
 -        "workspace_schema_name", PreludeSchemas.STRING,
 -        "metrics", PreludeSchemas.DOCUMENT);
 +    private static final Map<String, Schema> $PROPERTIES = Map.ofEntries(
@@ -274,6 +275,7 @@ index a1dfbada..589784f9 100644
 +        Map.entry("last_modified_at", SharedSchemas.DATE_TIME),
 +        Map.entry("organisation_id", PreludeSchemas.STRING),
 +        Map.entry("allow_experiment_self_approval", PreludeSchemas.BOOLEAN),
++        Map.entry("change_reason", PreludeSchemas.STRING),
 +        Map.entry("workspace_schema_name", PreludeSchemas.STRING),
 +        Map.entry("metrics", PreludeSchemas.DOCUMENT));
  

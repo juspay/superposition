@@ -6802,6 +6802,7 @@ class CreateWorkspaceInput:
     auto_populate_control: bool | None = None
     enable_context_validation: bool | None = None
     enable_change_reason_validation: bool | None = None
+    change_reason: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_WORKSPACE_INPUT, self)
@@ -6830,6 +6831,9 @@ class CreateWorkspaceInput:
 
         if self.enable_change_reason_validation is not None:
             serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["enable_change_reason_validation"], self.enable_change_reason_validation)
+
+        if self.change_reason is not None:
+            serializer.write_string(_SCHEMA_CREATE_WORKSPACE_INPUT.members["change_reason"], self.change_reason)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -6867,6 +6871,9 @@ class CreateWorkspaceInput:
 
                 case 8:
                     kwargs["enable_change_reason_validation"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["enable_change_reason_validation"])
+
+                case 9:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_CREATE_WORKSPACE_INPUT.members["change_reason"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -6925,6 +6932,8 @@ class CreateWorkspaceOutput:
 
     enable_change_reason_validation: bool
 
+    change_reason: str
+
     config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
 
@@ -6953,6 +6962,7 @@ class CreateWorkspaceOutput:
         serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["auto_populate_control"], self.auto_populate_control)
         serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["enable_context_validation"], self.enable_context_validation)
         serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["enable_change_reason_validation"], self.enable_change_reason_validation)
+        serializer.write_string(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["change_reason"], self.change_reason)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -7014,6 +7024,9 @@ class CreateWorkspaceOutput:
 
                 case 16:
                     kwargs["enable_change_reason_validation"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["enable_change_reason_validation"])
+
+                case 17:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["change_reason"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -14096,6 +14109,8 @@ class GetWorkspaceOutput:
 
     enable_change_reason_validation: bool
 
+    change_reason: str
+
     config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
 
@@ -14124,6 +14139,7 @@ class GetWorkspaceOutput:
         serializer.write_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["auto_populate_control"], self.auto_populate_control)
         serializer.write_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["enable_context_validation"], self.enable_context_validation)
         serializer.write_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["enable_change_reason_validation"], self.enable_change_reason_validation)
+        serializer.write_string(_SCHEMA_GET_WORKSPACE_OUTPUT.members["change_reason"], self.change_reason)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -14185,6 +14201,9 @@ class GetWorkspaceOutput:
 
                 case 16:
                     kwargs["enable_change_reason_validation"] = de.read_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["enable_change_reason_validation"])
+
+                case 17:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_GET_WORKSPACE_OUTPUT.members["change_reason"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -15269,6 +15288,8 @@ class WorkspaceResponse:
 
     enable_change_reason_validation: bool
 
+    change_reason: str
+
     config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
 
@@ -15297,6 +15318,7 @@ class WorkspaceResponse:
         serializer.write_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["auto_populate_control"], self.auto_populate_control)
         serializer.write_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["enable_context_validation"], self.enable_context_validation)
         serializer.write_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["enable_change_reason_validation"], self.enable_change_reason_validation)
+        serializer.write_string(_SCHEMA_WORKSPACE_RESPONSE.members["change_reason"], self.change_reason)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -15358,6 +15380,9 @@ class WorkspaceResponse:
 
                 case 16:
                     kwargs["enable_change_reason_validation"] = de.read_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["enable_change_reason_validation"])
+
+                case 17:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_WORKSPACE_RESPONSE.members["change_reason"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -15583,6 +15608,8 @@ class MigrateWorkspaceSchemaOutput:
 
     enable_change_reason_validation: bool
 
+    change_reason: str
+
     config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
 
@@ -15611,6 +15638,7 @@ class MigrateWorkspaceSchemaOutput:
         serializer.write_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["auto_populate_control"], self.auto_populate_control)
         serializer.write_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["enable_context_validation"], self.enable_context_validation)
         serializer.write_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["enable_change_reason_validation"], self.enable_change_reason_validation)
+        serializer.write_string(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["change_reason"], self.change_reason)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -15672,6 +15700,9 @@ class MigrateWorkspaceSchemaOutput:
 
                 case 16:
                     kwargs["enable_change_reason_validation"] = de.read_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["enable_change_reason_validation"])
+
+                case 17:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["change_reason"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -16681,6 +16712,7 @@ class UpdateWorkspaceInput:
     auto_populate_control: bool | None = None
     enable_context_validation: bool | None = None
     enable_change_reason_validation: bool | None = None
+    change_reason: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_WORKSPACE_INPUT, self)
@@ -16712,6 +16744,9 @@ class UpdateWorkspaceInput:
 
         if self.enable_change_reason_validation is not None:
             serializer.write_boolean(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["enable_change_reason_validation"], self.enable_change_reason_validation)
+
+        if self.change_reason is not None:
+            serializer.write_string(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["change_reason"], self.change_reason)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -16756,6 +16791,9 @@ class UpdateWorkspaceInput:
                 case 10:
                     kwargs["enable_change_reason_validation"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["enable_change_reason_validation"])
 
+                case 11:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["change_reason"])
+
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
@@ -16795,6 +16833,8 @@ class UpdateWorkspaceOutput:
 
     enable_change_reason_validation: bool
 
+    change_reason: str
+
     config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
 
@@ -16823,6 +16863,7 @@ class UpdateWorkspaceOutput:
         serializer.write_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["auto_populate_control"], self.auto_populate_control)
         serializer.write_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["enable_context_validation"], self.enable_context_validation)
         serializer.write_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["enable_change_reason_validation"], self.enable_change_reason_validation)
+        serializer.write_string(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["change_reason"], self.change_reason)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -16884,6 +16925,9 @@ class UpdateWorkspaceOutput:
 
                 case 16:
                     kwargs["enable_change_reason_validation"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["enable_change_reason_validation"])
+
+                case 17:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["change_reason"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)

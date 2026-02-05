@@ -465,6 +465,7 @@ pub async fn fetch_types(
 
 pub mod workspaces {
     use superposition_types::api::workspace::KeyRotationResponse;
+    use superposition_types::database::models::ChangeReason;
 
     use super::*;
 
@@ -515,6 +516,7 @@ pub mod workspaces {
         auto_populate_control: bool,
         enable_context_validation: bool,
         enable_change_reason_validation: bool,
+        change_reason: String,
     ) -> Result<UpdateWorkspaceRequest, String> {
         Ok(UpdateWorkspaceRequest {
             workspace_admin_email,
@@ -529,6 +531,7 @@ pub mod workspaces {
             auto_populate_control: Some(auto_populate_control),
             enable_context_validation: Some(enable_context_validation),
             enable_change_reason_validation: Some(enable_change_reason_validation),
+            change_reason: ChangeReason::try_from(change_reason)?,
         })
     }
 

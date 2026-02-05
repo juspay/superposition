@@ -7333,9 +7333,13 @@
                     },
                     "enable_change_reason_validation": {
                         "type": "boolean"
+                    },
+                    "change_reason": {
+                        "type": "string"
                     }
                 },
                 "required": [
+                    "change_reason",
                     "workspace_admin_email",
                     "workspace_name"
                 ]
@@ -7396,11 +7400,15 @@
                     },
                     "enable_change_reason_validation": {
                         "type": "boolean"
+                    },
+                    "change_reason": {
+                        "type": "string"
                     }
                 },
                 "required": [
                     "allow_experiment_self_approval",
                     "auto_populate_control",
+                    "change_reason",
                     "created_at",
                     "created_by",
                     "enable_change_reason_validation",
@@ -9156,11 +9164,15 @@
                     },
                     "enable_change_reason_validation": {
                         "type": "boolean"
+                    },
+                    "change_reason": {
+                        "type": "string"
                     }
                 },
                 "required": [
                     "allow_experiment_self_approval",
                     "auto_populate_control",
+                    "change_reason",
                     "created_at",
                     "created_by",
                     "enable_change_reason_validation",
@@ -9580,11 +9592,15 @@
                     },
                     "enable_change_reason_validation": {
                         "type": "boolean"
+                    },
+                    "change_reason": {
+                        "type": "string"
                     }
                 },
                 "required": [
                     "allow_experiment_self_approval",
                     "auto_populate_control",
+                    "change_reason",
                     "created_at",
                     "created_by",
                     "enable_change_reason_validation",
@@ -11270,6 +11286,9 @@
                     },
                     "enable_change_reason_validation": {
                         "type": "boolean"
+                    },
+                    "change_reason": {
+                        "type": "string"
                     }
                 },
                 "required": [
@@ -11332,11 +11351,15 @@
                     },
                     "enable_change_reason_validation": {
                         "type": "boolean"
+                    },
+                    "change_reason": {
+                        "type": "string"
                     }
                 },
                 "required": [
                     "allow_experiment_self_approval",
                     "auto_populate_control",
+                    "change_reason",
                     "created_at",
                     "created_by",
                     "enable_change_reason_validation",
@@ -11668,11 +11691,15 @@
                     },
                     "enable_change_reason_validation": {
                         "type": "boolean"
+                    },
+                    "change_reason": {
+                        "type": "string"
                     }
                 },
                 "required": [
                     "allow_experiment_self_approval",
                     "auto_populate_control",
+                    "change_reason",
                     "created_at",
                     "created_by",
                     "enable_change_reason_validation",

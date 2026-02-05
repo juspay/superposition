@@ -68,6 +68,7 @@ export interface MigrateWorkspaceSchemaCommandOutput extends WorkspaceResponse, 
  * //   auto_populate_control: true || false, // required
  * //   enable_context_validation: true || false, // required
  * //   enable_change_reason_validation: true || false, // required
+ * //   change_reason: "STRING_VALUE", // required
  * // };
  *
  * ```

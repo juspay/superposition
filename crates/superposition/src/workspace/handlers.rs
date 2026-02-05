@@ -151,6 +151,7 @@ async fn create_handler(
         enable_change_reason_validation: request.enable_change_reason_validation,
         encryption_key,
         key_rotated_at: None,
+        change_reason: request.change_reason,
     };
 
     let created_workspace =
@@ -336,7 +337,8 @@ async fn migrate_schema_handler(
                         .set((
                             workspaces::encryption_key.eq(encrypted_key),
                             workspaces::last_modified_by.eq(user.get_username()),
-                            workspaces::last_modified_at.eq(Utc::now())
+                            workspaces::last_modified_at.eq(Utc::now()),
+                            workspaces::change_reason.eq("Encryption key setup during schema migration"),
                         ))
                         .execute(transaction_conn)?;
                 }

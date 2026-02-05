@@ -312,6 +312,7 @@ pub fn rotate_workspace_encryption_key_helper(
         workspaces::dsl::key_rotated_at.eq(Some(rotation_time)),
         workspaces::dsl::last_modified_at.eq(rotation_time),
         workspaces::dsl::last_modified_by.eq(user_email),
+        workspaces::dsl::change_reason.eq("Encryption key rotation"),
     ))
     .execute(conn)?;
 

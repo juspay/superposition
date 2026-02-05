@@ -56,6 +56,7 @@ export interface UpdateWorkspaceCommandOutput extends WorkspaceResponse, __Metad
  *   auto_populate_control: true || false,
  *   enable_context_validation: true || false,
  *   enable_change_reason_validation: true || false,
+ *   change_reason: "STRING_VALUE",
  * };
  * const command = new UpdateWorkspaceCommand(input);
  * const response = await client.send(command);
@@ -79,6 +80,7 @@ export interface UpdateWorkspaceCommandOutput extends WorkspaceResponse, __Metad
  * //   auto_populate_control: true || false, // required
  * //   enable_context_validation: true || false, // required
  * //   enable_change_reason_validation: true || false, // required
+ * //   change_reason: "STRING_VALUE", // required
  * // };
  *
  * ```

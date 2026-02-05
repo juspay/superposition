@@ -37,6 +37,8 @@ pub struct GetWorkspaceOutput  {
     pub enable_context_validation: bool,
     #[allow(missing_docs)] // documentation missing in model
     pub enable_change_reason_validation: bool,
+    #[allow(missing_docs)] // documentation missing in model
+    pub change_reason: ::std::string::String,
 }
 impl  GetWorkspaceOutput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -110,6 +112,10 @@ impl  GetWorkspaceOutput  {
     pub fn enable_change_reason_validation(&self) -> bool {
         self.enable_change_reason_validation
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn change_reason(&self) -> &str {
+        use std::ops::Deref; self.change_reason.deref()
+    }
 }
 impl GetWorkspaceOutput {
     /// Creates a new builder-style object to manufacture [`GetWorkspaceOutput`](crate::operation::get_workspace::GetWorkspaceOutput).
@@ -139,6 +145,7 @@ pub struct GetWorkspaceOutputBuilder {
     pub(crate) auto_populate_control: ::std::option::Option<bool>,
     pub(crate) enable_context_validation: ::std::option::Option<bool>,
     pub(crate) enable_change_reason_validation: ::std::option::Option<bool>,
+    pub(crate) change_reason: ::std::option::Option<::std::string::String>,
 }
 impl GetWorkspaceOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -382,6 +389,20 @@ impl GetWorkspaceOutputBuilder {
     pub fn get_enable_change_reason_validation(&self) -> &::std::option::Option<bool> {
         &self.enable_change_reason_validation
     }
+    #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
+    pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.change_reason = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_change_reason(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.change_reason = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
+        &self.change_reason
+    }
     /// Consumes the builder and constructs a [`GetWorkspaceOutput`](crate::operation::get_workspace::GetWorkspaceOutput).
     /// This method will fail if any of the following fields are not set:
     /// - [`workspace_name`](crate::operation::get_workspace::builders::GetWorkspaceOutputBuilder::workspace_name)
@@ -399,6 +420,7 @@ impl GetWorkspaceOutputBuilder {
     /// - [`auto_populate_control`](crate::operation::get_workspace::builders::GetWorkspaceOutputBuilder::auto_populate_control)
     /// - [`enable_context_validation`](crate::operation::get_workspace::builders::GetWorkspaceOutputBuilder::enable_context_validation)
     /// - [`enable_change_reason_validation`](crate::operation::get_workspace::builders::GetWorkspaceOutputBuilder::enable_change_reason_validation)
+    /// - [`change_reason`](crate::operation::get_workspace::builders::GetWorkspaceOutputBuilder::change_reason)
     pub fn build(self) -> ::std::result::Result<crate::operation::get_workspace::GetWorkspaceOutput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
             crate::operation::get_workspace::GetWorkspaceOutput {
@@ -479,6 +501,11 @@ impl GetWorkspaceOutputBuilder {
                 enable_change_reason_validation: self.enable_change_reason_validation
                     .ok_or_else(||
                         ::aws_smithy_types::error::operation::BuildError::missing_field("enable_change_reason_validation", "enable_change_reason_validation was not specified but it is required when building GetWorkspaceOutput")
+                    )?
+                ,
+                change_reason: self.change_reason
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("change_reason", "change_reason was not specified but it is required when building GetWorkspaceOutput")
                     )?
                 ,
             }

@@ -216,6 +216,7 @@ describe("Experiments API", () => {
             auto_populate_control: true,
             enable_context_validation: true,
             enable_change_reason_validation: true,
+            change_reason: "Creating test workspace for auto-populate control experiments",
         });
         await superpositionClient.send(createWorkspaceCmd);
 
@@ -381,6 +382,7 @@ describe("Experiments API", () => {
             workspace_admin_email: "updated-admin@example.com",
             workspace_status: WorkspaceStatus.ENABLED,
             mandatory_dimensions: ["clientId"],
+            change_reason: "Adding mandatory dimension for experiment tests",
         };
 
         const cmd = new UpdateWorkspaceCommand(input);
@@ -394,6 +396,7 @@ describe("Experiments API", () => {
             workspace_admin_email: "updated-admin@example.com",
             workspace_status: WorkspaceStatus.ENABLED,
             mandatory_dimensions: [],
+            change_reason: "Removing mandatory dimension for experiment tests",
         };
 
         const cmd = new UpdateWorkspaceCommand(input);
