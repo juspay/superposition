@@ -18,10 +18,29 @@ TESTS_DIR := provider-sdk-tests
 DIST_DIR := dist
 
 .PHONY: all build build-bindings build-sdk build-provider \
-	test clean install-deps publish setup-binaries
+	test clean install-deps publish setup-binaries help collect-wheels
 
 # Default target
 all: build
+
+# Help target - list available targets
+help:
+	@echo "Python Client Makefile"
+	@echo ""
+	@echo "Usage: make [target] or make python-[target] from repo root"
+	@echo ""
+	@echo "Targets:"
+	@echo "  build          - Build all Python packages"
+	@echo "  build-bindings - Build bindings package"
+	@echo "  build-sdk      - Build SDK package"
+	@echo "  build-provider - Build provider package"
+	@echo "  test           - Run provider SDK tests"
+	@echo "  clean          - Clean build artifacts"
+	@echo "  collect-wheels - Collect all wheels to dist/"
+	@echo "  publish        - Publish to PyPI"
+	@echo "  setup-binaries - Setup native binaries"
+	@echo "  install-deps   - Install dev dependencies"
+	@echo "  help           - Show this help message"
 
 # Build all Python packages
 build: build-bindings build-sdk build-provider

@@ -333,12 +333,12 @@ jobs:
 
             # Use Makefile target to setup binaries
             - name: Setup native binaries
-              run: make setup-binaries
+              run: make java-setup-binaries
 
             - name: Publish and deploy
               run: |
-                  make publish
-                  make deploy
+                  make java-publish
+                  make java-deploy
 
     generate-python-packages:
         needs: [tag-release, generate-rust-binary]
@@ -383,12 +383,12 @@ jobs:
 
             # Use Makefile target to setup binaries and build
             - name: Setup native binaries
-              run: make -C clients/python setup-binaries
+              run: make python-setup-binaries
 
             - name: Build and publish Python packages
               run: |
-                  make -C clients/python collect-wheels
-                  make -C clients/python publish
+                  make python-collect-wheels
+                  make python-publish
 
     generate-js-packages:
         needs: [tag-release, generate-rust-binary]
@@ -425,10 +425,10 @@ jobs:
 
             # Use Makefile target to setup binaries and publish
             - name: Setup native binaries
-              run: make -C clients/javascript setup-binaries
+              run: make js-setup-binaries
 
             - name: Publish JavaScript packages
-              run: make -C clients/javascript publish
+              run: make js-publish
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 

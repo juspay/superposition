@@ -170,7 +170,7 @@ jobs:
                   java: 'true'
 
             - name: Build Java client
-              run: make assemble
+              run: make java-assemble
 
             - name: Save/update cache for future runs
               uses: actions/cache/save@v4
@@ -256,7 +256,7 @@ jobs:
 
             - name: Run Gradle assemble (Kotlin)
               if: matrix.provider == 'kotlin'
-              run: make -C clients/java assemble
+              run: make java-assemble
 
             - name: Run provider tests
               shell: bash

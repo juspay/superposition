@@ -4,8 +4,21 @@
 # This is the main orchestration Makefile that:
 # - Includes shared configuration from makefiles/common.mk
 # - Includes CI targets from makefiles/ci.mk
-# - Delegates to component-specific Makefiles where appropriate
+# - Uses pattern-based delegation to component Makefiles
 # - Provides high-level build, test, and development targets
+#
+# Pattern-Based Delegation:
+#   Any target prefixed with a component name is automatically delegated:
+#   - smithy-<target>  → runs `make -C smithy <target>`
+#   - java-<target>    → runs `make -C clients/java <target>`
+#   - python-<target>  → runs `make -C clients/python <target>`
+#   - js-<target>      → runs `make -C clients/javascript <target>`
+#
+#   Examples:
+#     make smithy-build      → make -C smithy build
+#     make java-assemble     → make -C clients/java assemble
+#     make python-test       → make -C clients/python test
+#     make js-install        → make -C clients/javascript install
 # =============================================================================
 
 # Include shared configuration (versions, env vars, utilities)
@@ -56,12 +69,6 @@ LSTACK_UP = $(shell $(call check-container,$(LSTACK_CONTAINER_NAME)))
 	schema-file \
 	setup \
 	setup-clients \
-	smithy-api-docs \
-	smithy-build \
-	smithy-clean \
-	smithy-clean-build \
-	smithy-clients \
-	smithy-updates \
 	superposition \
 	superposition-example \
 	superposition_dev \
@@ -75,6 +82,34 @@ LSTACK_UP = $(shell $(call check-container,$(LSTACK_CONTAINER_NAME)))
 	uniffi-bindings \
 	validate-aws-connection \
 	validate-psql-connection
+
+# =============================================================================
+# Pattern-Based Delegation to Component Makefiles
+# =============================================================================
+# These pattern rules automatically delegate any target with a component prefix
+# to the corresponding subdirectory's Makefile. This means new targets added to
+# component Makefiles are automatically available without modifying this file.
+#
+# To see available targets in a component, run:
+#   make -C smithy help           (if help target exists)
+#   make -C clients/java help
+# =============================================================================
+
+# Smithy SDK generation: smithy-<target> → make -C smithy <target>
+smithy-%:
+	$(MAKE) -C smithy $*
+
+# Java client: java-<target> → make -C clients/java <target>
+java-%:
+	$(MAKE) -C clients/java $*
+
+# Python client: python-<target> → make -C clients/python <target>
+python-%:
+	$(MAKE) -C clients/python $*
+
+# JavaScript client: js-<target> → make -C clients/javascript <target>
+js-%:
+	$(MAKE) -C clients/javascript $*
 
 # =============================================================================
 # Environment & Setup
@@ -145,33 +180,11 @@ setup: $(SETUP_DEPS) node-dependencies setup-clients
 
 # Setup JavaScript SDK (build and install test dependencies)
 setup-clients:
-	$(MAKE) -C clients/javascript build-sdk
+	$(MAKE) js-build-sdk
 	cd tests && bun install
 
 # Build all clients (Smithy generation + setup)
 clients: smithy-clients setup-clients
-
-# =============================================================================
-# Smithy SDK Generation (delegates to smithy/Makefile)
-# =============================================================================
-
-smithy-clean:
-	$(MAKE) -C smithy clean
-
-smithy-build:
-	$(MAKE) -C smithy build
-
-smithy-clean-build:
-	$(MAKE) -C smithy clean-build
-
-smithy-clients:
-	$(MAKE) -C smithy clients
-
-smithy-api-docs:
-	$(MAKE) -C smithy api-docs
-
-smithy-updates:
-	$(MAKE) -C smithy updates
 
 # =============================================================================
 # Build Targets
@@ -315,7 +328,7 @@ test-py-provider: provider-template
 
 test-kotlin-provider: provider-template
 	bash ./scripts/setup_provider_binaries.sh kotlin
-	$(MAKE) -C clients/java provider-test
+	$(MAKE) java-provider-test
 	-@pkill -f $(CARGO_TARGET_DIR)/debug/superposition
 
 test-rust-provider: provider-template

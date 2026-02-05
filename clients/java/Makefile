@@ -11,10 +11,29 @@ include ../../makefiles/common.mk
 GRADLE := ./gradlew
 
 .PHONY: all build assemble test clean publish check \
-	provider-test setup-binaries
+	provider-test setup-binaries help
 
 # Default target
 all: build
+
+# Help target - list available targets
+help:
+	@echo "Java Client Makefile"
+	@echo ""
+	@echo "Usage: make [target] or make java-[target] from repo root"
+	@echo ""
+	@echo "Targets:"
+	@echo "  build          - Build all Java modules"
+	@echo "  assemble       - Assemble without tests"
+	@echo "  test           - Run tests"
+	@echo "  clean          - Clean build artifacts"
+	@echo "  check          - Run lint checks"
+	@echo "  publish-local  - Publish to local Maven repo"
+	@echo "  publish        - Publish to remote repository"
+	@echo "  deploy         - Deploy to Sonatype"
+	@echo "  provider-test  - Run provider SDK tests"
+	@echo "  setup-binaries - Setup native binaries"
+	@echo "  help           - Show this help message"
 
 # Make gradlew executable
 $(GRADLE):

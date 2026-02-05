@@ -18,10 +18,27 @@ TESTS_DIR := provider-sdk-tests
 NATIVE_LIB_DIR := $(BINDINGS_DIR)/native-lib
 
 .PHONY: all build install test clean publish \
-	build-sdk setup-binaries provider-test
+	build-sdk setup-binaries provider-test help
 
 # Default target
 all: build
+
+# Help target - list available targets
+help:
+	@echo "JavaScript Client Makefile"
+	@echo ""
+	@echo "Usage: make [target] or make js-[target] from repo root"
+	@echo ""
+	@echo "Targets:"
+	@echo "  build          - Build all packages"
+	@echo "  install        - Install npm dependencies"
+	@echo "  build-sdk      - Build SDK package only"
+	@echo "  test           - Run tests"
+	@echo "  clean          - Clean build artifacts"
+	@echo "  publish        - Publish to npm"
+	@echo "  provider-test  - Run provider SDK tests"
+	@echo "  setup-binaries - Setup native binaries"
+	@echo "  help           - Show this help message"
 
 # Install dependencies
 install:

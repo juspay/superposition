@@ -21,10 +21,26 @@ RUST_CLIENT_DIR := ../crates/superposition_sdk
 GENERATED_CLIENT_DIR := ../clients/generated/smithy
 DOCS_API_DIR := ../docs/docs/api
 
-.PHONY: all build clean clean-build clients api-docs updates
+.PHONY: all build clean clean-build clients api-docs updates help install-cli
 
 # Default target
 all: updates
+
+# Help target - list available targets
+help:
+	@echo "Smithy SDK Generation Makefile"
+	@echo ""
+	@echo "Usage: make [target] or make smithy-[target] from repo root"
+	@echo ""
+	@echo "Targets:"
+	@echo "  build        - Build Smithy models"
+	@echo "  clean        - Remove build output"
+	@echo "  clean-build  - Clean and rebuild"
+	@echo "  clients      - Generate all client SDKs"
+	@echo "  api-docs     - Generate API documentation"
+	@echo "  updates      - Generate clients and API docs (default)"
+	@echo "  install-cli  - Install Smithy CLI"
+	@echo "  help         - Show this help message"
 
 # Build Smithy models
 build:
