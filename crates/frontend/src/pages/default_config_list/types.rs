@@ -2,6 +2,8 @@ use serde::{Deserialize, Deserializer};
 use superposition_derives::{IsEmpty, QueryParam};
 use superposition_types::{IsEmpty, custom_query::QueryParam};
 
+use crate::pages::default_config::CreatePageParams;
+
 #[derive(PartialEq, Clone, IsEmpty, QueryParam)]
 pub struct PageParams {
     pub grouped: bool,
@@ -33,5 +35,13 @@ impl<'de> Deserialize<'de> for PageParams {
             grouped: helper.prefix.is_some() || helper.grouped.unwrap_or(true),
             prefix: helper.prefix,
         })
+    }
+}
+
+impl From<PageParams> for CreatePageParams {
+    fn from(params: PageParams) -> Self {
+        Self {
+            prefix: params.prefix,
+        }
     }
 }

@@ -115,7 +115,7 @@ pub fn ExperimentForm(
         create_blocking_resource(
             move || (workspace.get().0, org.get().0),
             |(workspace, org)| async move {
-                experiment_groups::fetch_all(
+                experiment_groups::list(
                     &ExpGroupFilters::default(),
                     &PaginationParams::all_entries(),
                     &workspace,

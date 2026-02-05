@@ -20,10 +20,7 @@ use superposition_types::{
 use web_sys::MouseEvent;
 
 use crate::{
-    api::{
-        dimensions,
-        experiment_groups::{delete, fetch_all},
-    },
+    api::{dimensions, experiment_groups},
     components::{
         condition_pills::Condition as ConditionComponent,
         datetime::DatetimeStr,
@@ -262,11 +259,12 @@ pub fn ExperimentGroupListing() -> impl IntoView {
     let experiment_groups_resource = create_blocking_resource(
         source,
         |(filters, pagination, workspace, org_id)| async move {
-            let experiment_groups = fetch_all(&filters, &pagination, &workspace, &org_id)
-                .await
-                .unwrap_or_default();
+            let experiment_groups =
+                experiment_groups::list(&filters, &pagination, &workspace, &org_id)
+                    .await
+                    .unwrap_or_default();
             let dimensions =
-                dimensions::fetch(&PaginationParams::all_entries(), &workspace, &org_id)
+                dimensions::list(&PaginationParams::all_entries(), &workspace, &org_id)
                     .await
                     .unwrap_or_default()
                     .data
@@ -296,8 +294,12 @@ pub fn ExperimentGroupListing() -> impl IntoView {
         if let Some(id) = delete_group_id_rws.get_untracked() {
             delete_inprogress_rws.set(true);
             spawn_local(async move {
-                let result =
-                    delete(&id, &workspace.get_untracked(), &org.get_untracked()).await;
+                let result = experiment_groups::delete(
+                    &id,
+                    &workspace.get_untracked(),
+                    &org.get_untracked(),
+                )
+                .await;
                 delete_inprogress_rws.set(false);
                 match result {
                     Ok(_) => {

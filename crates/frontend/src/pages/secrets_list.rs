@@ -159,7 +159,7 @@ pub fn SecretsList() -> impl IntoView {
             )
         },
         |(workspace_id, pagination_params, org_id, filters)| async move {
-            secrets::fetch(&filters, &pagination_params, &workspace_id, &org_id)
+            secrets::list(&filters, &pagination_params, &workspace_id, &org_id)
                 .await
                 .unwrap_or_default()
         },

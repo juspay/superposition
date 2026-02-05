@@ -13,7 +13,7 @@ use superposition_types::{
 use web_sys::MouseEvent;
 
 use crate::{
-    api::experiment_groups::{add_members, create, fetch, try_update_payload, update},
+    api::experiment_groups,
     components::{
         alert::AlertType,
         button::Button,
@@ -67,7 +67,7 @@ pub fn AddExperimentToGroupForm(
                     member_experiment_ids: members_selected_rws.get_untracked(),
                 };
 
-                let result = add_members(
+                let result = experiment_groups::add_members(
                     &experiment_group_id.to_string(),
                     payload,
                     &workspace,
@@ -215,7 +215,7 @@ pub fn ExperimentGroupForm(
             async move {
                 let result = match (is_edit, update_request_rws.get_untracked()) {
                     (true, Some((_, update_payload))) => {
-                        let future = update(
+                        let future = experiment_groups::update(
                             &experiment_group_id,
                             update_payload,
                             &workspace,
@@ -225,7 +225,7 @@ pub fn ExperimentGroupForm(
                         future.await.map(|_| ResponseType::Response)
                     }
                     (true, None) => {
-                        let request_payload = try_update_payload(
+                        let request_payload = experiment_groups::try_update_payload(
                             traffic_percentage,
                             description,
                             change_reason,
@@ -239,7 +239,7 @@ pub fn ExperimentGroupForm(
                             Err(e) => Err(e),
                         }
                     }
-                    _ => create(
+                    _ => experiment_groups::create(
                         name,
                         description,
                         change_reason,
@@ -442,7 +442,9 @@ pub fn ChangeLogSummary(
 
     let exp_group = create_local_resource(
         move || (group_id.clone(), workspace.get().0, org.get().0),
-        |(group_id, workspace, org)| async move { fetch(&group_id, &workspace, &org).await },
+        |(group_id, workspace, org)| async move {
+            experiment_groups::get(&group_id, &workspace, &org).await
+        },
     );
 
     let disabled_rws = RwSignal::new(true);

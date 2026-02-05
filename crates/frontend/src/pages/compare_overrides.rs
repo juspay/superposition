@@ -124,7 +124,7 @@ pub fn CompareOverrides() -> impl IntoView {
     let dimension_resource = create_blocking_resource(
         move || (workspace.get().0, org.get().0),
         |(workspace, org)| async move {
-            dimensions::fetch(&PaginationParams::all_entries(), &workspace, &org)
+            dimensions::list(&PaginationParams::all_entries(), &workspace, &org)
                 .await
                 .unwrap_or_default()
         },
