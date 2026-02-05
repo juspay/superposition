@@ -14,7 +14,7 @@ The example shows a ride-sharing pricing configuration with:
 From the repository root:
 
 ```bash
-cargo run -p superposition-toml-example
+cargo run -p superposition_toml_example
 ```
 
 This will compile and run the example, demonstrating various pricing scenarios.

@@ -28,19 +28,24 @@ city = { position = 1, schema = { "type" = "string", "enum" = ["Bangalore", "Del
 vehicle_type = { position = 2, schema = { "type" = "string", "enum" = [ "auto", "cab", "bike", ] } }
 hour_of_day = { position = 3, schema = { "type" = "integer", "minimum" = 0, "maximum" = 23 }}
 
-[context."vehicle_type=cab"]
+[[context]]
+_condition_ = { vehicle_type = "cab" }
 per_km_rate = 25.0
 
-[context."vehicle_type=bike"]
+[[context]]
+_condition_ = { vehicle_type = "bike" }
 per_km_rate = 15.0
 
-[context."city=Bangalore; vehicle_type=cab"]
+[[context]]
+_condition_ = { city = "Bangalore", vehicle_type = "cab" }
 per_km_rate = 22.0
 
-[context."city=Delhi; vehicle_type=cab; hour_of_day=18"]
+[[context]]
+_condition_ = { city = "Delhi", vehicle_type = "cab", hour_of_day = 18 }
 surge_factor = 5.0
 
-[context."city=Delhi; vehicle_type=cab; hour_of_day=6"]
+[[context]]
+_condition_ = { city = "Delhi", vehicle_type = "cab", hour_of_day = 6 }
 surge_factor = 5.0
 """
     }

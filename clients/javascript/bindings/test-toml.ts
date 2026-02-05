@@ -17,19 +17,24 @@ city = { position = 1, schema = { "type" = "string", "enum" = ["Bangalore", "Del
 vehicle_type = { position = 2, schema = { "type" = "string", "enum" = [ "auto", "cab", "bike", ] } }
 hour_of_day = { position = 3, schema = { "type" = "integer", "minimum" = 0, "maximum" = 23 }}
 
-[context."vehicle_type=cab"]
+[[context]]
+_condition_ = { vehicle_type = "cab" }
 per_km_rate = 25.0
 
-[context."vehicle_type=bike"]
+[[context]]
+_condition_ = { vehicle_type = "bike" }
 per_km_rate = 15.0
 
-[context."city=Bangalore; vehicle_type=cab"]
+[[context]]
+_condition_ = { city = "Bangalore", vehicle_type = "cab" }
 per_km_rate = 22.0
 
-[context."city=Delhi; vehicle_type=cab; hour_of_day=18"]
+[[context]]
+_condition_ = { city = "Delhi", vehicle_type = "cab", hour_of_day = 18 }
 surge_factor = 5.0
 
-[context."city=Delhi; vehicle_type=cab; hour_of_day=6"]
+[[context]]
+_condition_ = { city = "Delhi", vehicle_type = "cab", hour_of_day = 6 }
 surge_factor = 5.0
 `;
 
@@ -99,7 +104,7 @@ function testWithExternalFile(): boolean | null {
   printSectionHeader('TEST 2: Parse External TOML File');
 
   // Try to find the example TOML file
-  const exampleFile = path.join(__dirname, '..', '..', '..', '..', 'examples', 'superposition-toml-example', 'example.toml');
+  const exampleFile = path.join(__dirname, '..', '..', '..', '..', 'examples', 'superposition_toml_example', 'example.toml');
 
   if (!fs.existsSync(exampleFile)) {
     console.log(`\n⚠ Example file not found at: ${exampleFile}`);
@@ -145,9 +150,9 @@ function testErrorHandling(): void {
       name: 'Missing required section',
       toml: '[dimensions]\ncity = { position = 1, schema = { "type" = "string" } }'
     },
-    {
+{
       name: 'Missing position in dimension',
-      toml: '[default-config]\nkey1 = { value = 10, schema = { type = "integer" } }\n\n[dimensions]\ncity = { schema = { "type" = "string" } }\n\n[context]\n"city=bangalore" = { key1 = 20 }'
+      toml: '[default-config]\\nkey1 = { value = 10, schema = { type = "integer" } }\\n\\n[dimensions]\\ncity = { schema = { "type" = "string" } }\\n\\n[[context]]\\n_condition_ = { city = "bangalore" }\\nkey1 = 20'
     }
   ];
 

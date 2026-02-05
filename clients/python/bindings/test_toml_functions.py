@@ -24,28 +24,33 @@ city = { position = 1, schema = { "type" = "string", "enum" = ["Bangalore", "Del
 vehicle_type = { position = 2, schema = { "type" = "string", "enum" = [ "auto", "cab", "bike", ] } }
 hour_of_day = { position = 3, schema = { "type" = "integer", "minimum" = 0, "maximum" = 23 }}
 
-[context."vehicle_type=cab"]
+[[context]]
+_condition_ = { vehicle_type = "cab" }
 per_km_rate = 25.0
 
-[context."vehicle_type=bike"]
+[[context]]
+_condition_ = { vehicle_type = "bike" }
 per_km_rate = 15.0
 
-[context."city=Bangalore; vehicle_type=cab"]
+[[context]]
+_condition_ = { city = "Bangalore", vehicle_type = "cab" }
 per_km_rate = 22.0
 
-[context."city=Delhi; vehicle_type=cab; hour_of_day=18"]
+[[context]]
+_condition_ = { city = "Delhi", vehicle_type = "cab", hour_of_day = 18 }
 surge_factor = 5.0
 
-[context."city=Delhi; vehicle_type=cab; hour_of_day=6"]
+[[context]]
+_condition_ = { city = "Delhi", vehicle_type = "cab", hour_of_day = 6 }
 surge_factor = 5.0
 """
 
 
 def print_section_header(title):
     """Print a formatted section header"""
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print(f"  {title}")
-    print(f"{'='*70}")
+    print(f"{'=' * 70}")
 
 
 def test_parse_toml_config():
@@ -93,6 +98,7 @@ def test_parse_toml_config():
     except Exception as e:
         print(f"\n✗ Error parsing TOML: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -102,7 +108,7 @@ def test_with_external_file():
     print_section_header("TEST 2: Parse External TOML File")
 
     # Try to find the example TOML file
-    example_file = Path(__file__).parent.parent.parent.parent / "examples" / "superposition-toml-example" / "example.toml"
+    example_file = Path(__file__).parent.parent.parent.parent / "examples" / "superposition_toml_example" / "example.toml"
 
     if not example_file.exists():
         print(f"\n⚠ Example file not found at: {example_file}")
@@ -127,6 +133,7 @@ def test_with_external_file():
     except Exception as e:
         print(f"\n✗ Error parsing external file: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -146,7 +153,7 @@ def test_error_handling():
         },
         {
             "name": "Missing position in dimension",
-            "toml": "[default-config]\nkey1 = { value = 10, schema = { type = \"integer\" } }\n\n[dimensions]\ncity = { schema = { \"type\" = \"string\" } }\n\n[context]\n\"city=bangalore\" = { key1 = 20 }"
+            "toml": "[default-config]\nkey1 = { value = 10, schema = { type = \"integer\" } }\n\n[dimensions]\ncity = { schema = { \"type\" = \"string\" } }\n\n[[context]]\n_condition_= {city=\"bangalore\"}\nkey1 = 20"
         },
     ]
 
@@ -155,7 +162,7 @@ def test_error_handling():
         print("-" * 50)
 
         try:
-            result = ffi_parse_toml_config(case['toml'])
+            result = ffi_parse_toml_config(case["toml"])
             print(f"✗ Expected error but parsing succeeded!")
         except Exception as e:
             print(f"✓ Correctly caught error: {type(e).__name__}")
@@ -164,9 +171,9 @@ def test_error_handling():
 
 def main():
     """Run all tests"""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("  SUPERPOSITION TOML PARSING - PYTHON BINDING TESTS")
-    print("="*70)
+    print("=" * 70)
 
     results = []
 
@@ -192,7 +199,7 @@ def main():
             print(f"  - {test_name} (skipped)")
 
     print(f"\n  Total: {passed}/{total} tests passed")
-    print("="*70)
+    print("=" * 70)
 
     return 0 if passed == total else 1
 
