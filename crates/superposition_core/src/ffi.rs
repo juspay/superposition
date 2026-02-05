@@ -174,7 +174,8 @@ fn ffi_get_applicable_variants(
 /// [dimensions]
 /// os = { position = 1, schema = { type = "string" } }
 ///
-/// [context."os=linux"]
+/// [[context]]
+/// _condition_ = { os = "linux" }
 /// timeout = 60
 /// ```
 #[uniffi::export]

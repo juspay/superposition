@@ -3,7 +3,6 @@ use std::fmt;
 
 use bigdecimal::ToPrimitive;
 use itertools::Itertools;
-use percent_encoding::{percent_decode_str, utf8_percent_encode, AsciiSet, CONTROLS};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use superposition_types::database::models::cac::{DependencyGraph, DimensionType};
@@ -12,10 +11,6 @@ use superposition_types::{
     Cac, Condition, Config, Context, DefaultConfigInfo, DefaultConfigWithSchema,
     DetailedConfig, DimensionInfo, Overrides,
 };
-
-/// Character set for URL-encoding dimension keys and values.
-/// Encodes: '=', ';', and all control characters.
-const CONTEXT_ENCODE_SET: &AsciiSet = &CONTROLS.add(b'=').add(b';');
 
 /// Check if a string needs quoting in TOML.
 /// Strings containing special characters like '=', ';', whitespace, or quotes need quoting.
@@ -35,10 +30,6 @@ pub enum TomlError {
         key: String,
         field: String,
     },
-    InvalidContextExpression {
-        expression: String,
-        reason: String,
-    },
     UndeclaredDimension {
         dimension: String,
         context: String,
@@ -53,7 +44,6 @@ pub enum TomlError {
     },
     ConversionError(String),
     SerializationError(String),
-    InvalidContextCondition(String),
     NullValueInConfig(String),
     ValidationError {
         key: String,
@@ -75,14 +65,6 @@ impl fmt::Display for TomlError {
                 f,
                 "TOML parsing error: Missing field '{}' in section '{}' for key '{}'",
                 field, section, key
-            ),
-            Self::InvalidContextExpression {
-                expression,
-                reason,
-            } => write!(
-                f,
-                "TOML parsing error: Invalid context expression '{}': {}",
-                expression, reason
             ),
             Self::UndeclaredDimension {
                 dimension,
@@ -110,7 +92,6 @@ impl fmt::Display for TomlError {
             Self::TomlSyntaxError(e) => write!(f, "TOML syntax error: {}", e),
             Self::ConversionError(e) => write!(f, "TOML conversion error: {}", e),
             Self::SerializationError(msg) => write!(f, "TOML serialization error: {}", msg),
-            Self::InvalidContextCondition(cond) => write!(f, "Cannot serialize context condition: {}", cond),
             Self::InvalidDimension(d) => write!(f, "Dimension does not exist: {}", d),
             Self::ValidationError { key, errors } => {
                 write!(f, "Schema validation failed for key '{}': {}", key, errors)
@@ -221,98 +202,6 @@ fn hash(val: &Value) -> Result<String, TomlError> {
         ))
     })?;
     Ok(blake3::hash(&bytes).to_string())
-}
-
-/// Parse context expression string (e.g., "os=linux;region=us-east")
-/// Keys and values are URL-encoded to handle special characters like '=' and ';'.
-fn parse_context_expression(
-    input: &str,
-    dimensions: &HashMap<String, DimensionInfo>,
-) -> Result<Map<String, Value>, TomlError> {
-    let mut result = Map::new();
-
-    for pair in input.split(';') {
-        let pair = pair.trim();
-        if pair.is_empty() {
-            continue;
-        }
-
-        let (k, v) =
-            pair.split_once('=')
-                .ok_or_else(|| TomlError::InvalidContextExpression {
-                    expression: input.to_string(),
-                    reason: format!("Invalid key=value pair: '{}'", pair),
-                })?;
-
-        // URL-decode the key
-        let key_encoded = k.trim();
-        let key = percent_decode_str(key_encoded)
-            .decode_utf8()
-            .map_err(|e| TomlError::InvalidContextExpression {
-                expression: input.to_string(),
-                reason: format!("Invalid UTF-8 in encoded key '{}': {}", key_encoded, e),
-            })?
-            .to_string();
-
-        // URL-decode the value
-        let value_encoded = v.trim();
-        if value_encoded.is_empty() {
-            return Err(TomlError::InvalidContextExpression {
-                expression: input.to_string(),
-                reason: format!("Empty value after equals in: '{}'", pair),
-            });
-        }
-
-        let value_str = percent_decode_str(value_encoded)
-            .decode_utf8()
-            .map_err(|e| TomlError::InvalidContextExpression {
-                expression: input.to_string(),
-                reason: format!(
-                    "Invalid UTF-8 in encoded value '{}': {}",
-                    value_encoded, e
-                ),
-            })?
-            .to_string();
-
-        // Type conversion: try to parse as different types
-        let value = if let Ok(i) = value_str.parse::<i64>() {
-            Value::Number(i.into())
-        } else if let Ok(f) = value_str.parse::<f64>() {
-            serde_json::Number::from_f64(f)
-                .map(Value::Number)
-                .unwrap_or_else(|| Value::String(value_str.to_string()))
-        } else if let Ok(b) = value_str.parse::<bool>() {
-            Value::Bool(b)
-        } else {
-            Value::String(value_str.to_string())
-        };
-
-        // Validate value against dimension schema
-        let Some(dimension_info) = dimensions.get(&key) else {
-            return Err(TomlError::UndeclaredDimension {
-                dimension: key.clone(),
-                context: input.to_string(),
-            });
-        };
-
-        let schema_json = serde_json::to_value(&dimension_info.schema).map_err(|e| {
-            TomlError::ConversionError(format!(
-                "Invalid schema for dimension '{}': {}",
-                key, e
-            ))
-        })?;
-
-        crate::validations::validate_against_schema(&value, &schema_json).map_err(
-            |errors: Vec<String>| TomlError::ValidationError {
-                key: format!("{}.{}", input, key),
-                errors: crate::validations::format_validation_errors(&errors),
-            },
-        )?;
-
-        result.insert(key, value);
-    }
-
-    Ok(result)
 }
 
 /// Parse the default-config section
@@ -645,32 +534,79 @@ fn parse_contexts(
     let section = table
         .get("context")
         .ok_or_else(|| TomlError::MissingSection("context".into()))?
-        .as_table()
-        .ok_or_else(|| TomlError::ConversionError("context must be a table".into()))?;
+        .as_array()
+        .ok_or_else(|| {
+            TomlError::ConversionError("context must be an array of tables".into())
+        })?;
 
     let mut contexts = Vec::new();
     let mut overrides_map = HashMap::new();
 
-    for (context_expr, override_values) in section {
-        // Parse context expression
-        let context_map = parse_context_expression(context_expr, dimensions)?;
+    for (index, context_item) in section.iter().enumerate() {
+        let context_table = context_item.as_table().ok_or_else(|| {
+            TomlError::ConversionError(format!("context[{}] must be a table", index))
+        })?;
 
-        // Parse override values
-        let override_table = override_values.as_table().ok_or_else(|| {
+        // Parse _condition_ field
+        let condition_value =
+            context_table
+                .get("_condition_")
+                .ok_or_else(|| TomlError::MissingField {
+                    section: "context".into(),
+                    key: format!("[{}]", index),
+                    field: "_condition_".into(),
+                })?;
+
+        let condition_table = condition_value.as_table().ok_or_else(|| {
             TomlError::ConversionError(format!(
-                "context.{} must be a table",
-                context_expr
+                "context[{}]._condition_ must be a table",
+                index
             ))
         })?;
 
+        // Convert condition table to Map<String, Value>
+        let mut context_map = Map::new();
+        for (key, value) in condition_table {
+            let serde_value = toml_value_to_serde_value(value.clone());
+
+            // Validate value against dimension schema
+            let Some(dimension_info) = dimensions.get(key) else {
+                return Err(TomlError::UndeclaredDimension {
+                    dimension: key.clone(),
+                    context: format!("[{}]", index),
+                });
+            };
+
+            let schema_json =
+                serde_json::to_value(&dimension_info.schema).map_err(|e| {
+                    TomlError::ConversionError(format!(
+                        "Invalid schema for dimension '{}': {}",
+                        key, e
+                    ))
+                })?;
+
+            crate::validations::validate_against_schema(&serde_value, &schema_json)
+                .map_err(|errors: Vec<String>| TomlError::ValidationError {
+                    key: format!("context[{}]._condition_.{}", index, key),
+                    errors: crate::validations::format_validation_errors(&errors),
+                })?;
+
+            context_map.insert(key.clone(), serde_value);
+        }
+
+        // Parse override values (all fields except _condition_)
         let mut override_config = Map::new();
-        for (key, value) in override_table {
+        for (key, value) in context_table {
+            if key == "_condition_" {
+                continue;
+            }
+
             let config_info =
                 default_config
                     .get(key)
                     .ok_or_else(|| TomlError::InvalidOverrideKey {
                         key: key.clone(),
-                        context: context_expr.clone(),
+                        context: format!("[{}]", index),
                     })?;
 
             let serde_value = toml_value_to_serde_value(value.clone());
@@ -680,7 +616,7 @@ fn parse_contexts(
                 &config_info.schema,
             )
             .map_err(|errors: Vec<String>| TomlError::ValidationError {
-                key: format!("{}.{}", context_expr, key),
+                key: format!("context[{}].{}", index, key),
                 errors: crate::validations::format_validation_errors(&errors),
             })?;
 
@@ -704,8 +640,8 @@ fn parse_contexts(
         // Create Context
         let condition = Cac::<Condition>::try_from(context_map).map_err(|e| {
             TomlError::ConversionError(format!(
-                "Invalid condition for context '{}': {}",
-                context_expr, e
+                "Invalid condition for context[{}]: {}",
+                index, e
             ))
         })?;
 
@@ -723,8 +659,8 @@ fn parse_contexts(
         let overrides = Cac::<Overrides>::try_from(override_config)
             .map_err(|e| {
                 TomlError::ConversionError(format!(
-                    "Invalid overrides for context '{}': {}",
-                    context_expr, e
+                    "Invalid overrides for context[{}]: {}",
+                    index, e
                 ))
             })?
             .into_inner();
@@ -753,8 +689,9 @@ fn parse_contexts(
 /// [dimensions]
 /// os = { schema = { type = "string" } }
 ///
-/// [context]
-/// "os=linux" = { timeout = 60 }
+/// [[context]]
+/// _condition_ = { os = "linux" }
+/// timeout = 60
 /// ```
 pub fn parse(toml_content: &str) -> Result<Config, TomlError> {
     // 1. Parse TOML string
@@ -783,39 +720,6 @@ pub fn parse(toml_content: &str) -> Result<Config, TomlError> {
         overrides,
         dimensions,
     })
-}
-
-/// Convert Condition to context expression string (e.g., "city=Bangalore; vehicle_type=cab")
-/// Keys and values are URL-encoded to handle special characters like '=' and ';'.
-fn condition_to_string(condition: &Cac<Condition>) -> Result<String, TomlError> {
-    // Clone the condition to get the inner Map
-    let condition_inner = condition.clone().into_inner();
-
-    let mut pairs: Vec<String> = condition_inner
-        .iter()
-        .map(|(key, value)| {
-            let key_encoded = utf8_percent_encode(key, CONTEXT_ENCODE_SET).to_string();
-            let value_encoded =
-                utf8_percent_encode(&value_to_string_simple(value), CONTEXT_ENCODE_SET)
-                    .to_string();
-            format!("{}={}", key_encoded, value_encoded)
-        })
-        .collect();
-
-    // Sort for deterministic output
-    pairs.sort();
-
-    Ok(pairs.join("; "))
-}
-
-/// Simple value to string for context expressions (no quotes for strings)
-fn value_to_string_simple(value: &Value) -> String {
-    match value {
-        Value::String(s) => s.clone(),
-        Value::Number(n) => n.to_string(),
-        Value::Bool(b) => b.to_string(),
-        _ => value.to_string(),
-    }
 }
 
 /// Serialize DetailedConfig structure to TOML format
@@ -910,25 +814,41 @@ pub fn serialize_to_toml(config: &DetailedConfig) -> Result<String, TomlError> {
     }
     output.push('\n');
 
-    // 3. Serialize [context.*] sections
+    // 3. Serialize [[context]] sections as array of tables
     for context in &config.contexts {
-        // Wrap Condition in Cac for condition_to_string
-        let condition_cac = Cac::<Condition>::try_from(context.condition.clone())
-            .map_err(|e| {
-                TomlError::InvalidContextCondition(format!(
-                    "{}: for context: {}",
-                    e, context.id
-                ))
-            })?;
-        let condition_str = condition_to_string(&condition_cac)?;
+        output.push_str("[[context]]\n");
 
-        output.push_str(&format!("[context.\"{}\"]\n", condition_str));
+        // Serialize condition as _condition_ field
+        let condition_map = &context.condition;
+        let mut condition_entries = Vec::new();
+        for (key, value) in condition_map.iter().sorted_by_key(|(k, _)| *k) {
+            let quoted_key = if needs_quoting(key) {
+                format!(r#""{}""#, key.replace('"', r#"\""#))
+            } else {
+                key.clone()
+            };
+            let toml_value =
+                serde_value_to_toml_value(value.clone()).ok_or_else(|| {
+                    TomlError::NullValueInConfig(format!(
+                        "Null value for condition key: {} in context: {}",
+                        key, context.id
+                    ))
+                })?;
+            condition_entries.push(format!("{} = {}", quoted_key, toml_value));
+        }
+        output.push_str(&format!(
+            "_condition_ = {{ {} }}\n",
+            condition_entries.join(", ")
+        ));
 
-        // DIAGNOSTIC: Print what we're looking for vs what's available
+        // Serialize override values
         let override_key = context.override_with_keys.get_key();
         if let Some(overrides) = config.overrides.get(override_key) {
-            for (key, value) in overrides.clone() {
-                // Quote key if it contains special characters
+            for (key, value) in overrides
+                .clone()
+                .into_iter()
+                .sorted_by_key(|(k, _)| k.clone())
+            {
                 let quoted_key = if needs_quoting(&key) {
                     format!(r#""{}""#, key.replace('"', r#"\""#))
                 } else {
@@ -997,31 +917,6 @@ mod serialization_tests {
     }
 
     #[test]
-    fn test_condition_to_string_simple() {
-        let mut condition_map = Map::new();
-        condition_map.insert("city".to_string(), Value::String("Bangalore".to_string()));
-        let condition = Cac::<Condition>::try_from(condition_map).unwrap();
-
-        let result = condition_to_string(&condition).unwrap();
-        assert_eq!(result, "city=Bangalore");
-    }
-
-    #[test]
-    fn test_condition_to_string_multiple() {
-        let mut condition_map = Map::new();
-        condition_map.insert("city".to_string(), Value::String("Bangalore".to_string()));
-        condition_map
-            .insert("vehicle_type".to_string(), Value::String("cab".to_string()));
-        let condition = Cac::<Condition>::try_from(condition_map).unwrap();
-
-        let result = condition_to_string(&condition).unwrap();
-        // Order may vary, check both parts present
-        assert!(result.contains("city=Bangalore"));
-        assert!(result.contains("vehicle_type=cab"));
-        assert!(result.contains("; "));
-    }
-
-    #[test]
     fn test_toml_round_trip_simple() {
         let original_toml = r#"
 [default-config]
@@ -1030,7 +925,8 @@ timeout = { value = 30, schema = { type = "integer" } }
 [dimensions]
 os = { position = 1, schema = { "type" = "string" } }
 
-[context."os=linux"]
+[[context]]
+_condition_ = { os = "linux" }
 timeout = 60
 "#;
 
@@ -1051,19 +947,23 @@ timeout = 60
 
     #[test]
     fn test_toml_round_trip_empty_config() {
-        // Note: parse() requires a context section, so we need a minimal valid TOML
+        // Test with empty default-config but valid context with overrides
         let toml_str = r#"
 [default-config]
+timeout = { value = 30, schema = { type = "integer" } }
 
 [dimensions]
 os = { position = 1, schema = { type = "string" } }
 
-[context]
+[[context]]
+_condition_ = { os = "linux" }
+timeout = 60
 "#;
 
         let config = parse(toml_str).unwrap();
-        assert!(config.default_configs.is_empty());
-        assert_eq!(config.contexts.len(), 0);
+        assert_eq!(config.default_configs.len(), 1);
+        assert_eq!(config.contexts.len(), 1);
+        assert_eq!(config.overrides.len(), 1);
     }
 
     #[test]
@@ -1075,7 +975,8 @@ timeout = { value = 30, schema = { type = "integer" } }
 [dimensions]
 os = { position = 1, schema = { type = "string" }, type = "regular" }
 
-[context."os=linux"]
+[[context]]
+_condition_ = { os = "linux" }
 timeout = 60
 "#;
 
@@ -1099,7 +1000,8 @@ timeout = { value = 30, schema = { type = "integer" } }
 os = { position = 1, schema = { type = "string" } }
 os_cohort = { position = 2, type = "local_cohort:os", schema = { type = "string", enum = ["linux", "windows", "otherwise"], definitions = { linux = "rule_for_linux", windows = "rule_for_windows" } } }
 
-[context."os=linux"]
+[[context]]
+_condition_ = { os = "linux" }
 timeout = 60
 "#;
 
@@ -1120,7 +1022,8 @@ timeout = { value = 30, schema = { type = "integer" } }
 [dimensions]
 os_cohort = { position = 1, schema = { type = "string" }, type = "local_cohort:nonexistent" }
 
-[context."os=linux"]
+[[context]]
+_condition_ = { os = "linux" }
 timeout = 60
 "#;
 
@@ -1139,7 +1042,8 @@ timeout = { value = 30, schema = { type = "integer" } }
 os = { position = 1, schema = { type = "string" } }
 os_cohort = { position = 2, schema = { type = "string" }, type = "local_cohort:" }
 
-[context."os=linux"]
+[[context]]
+_condition_ = { os = "linux" }
 timeout = 60
 "#;
 
@@ -1159,7 +1063,8 @@ timeout = { value = 30, schema = { type = "integer" } }
 os = { position = 1, schema = { type = "string" } }
 os_cohort = { position = 2, type = "remote_cohort:os", schema = { type = "string", enum = ["linux", "windows", "macos"] } }
 
-[context."os=linux"]
+[[context]]
+_condition_ = { os = "linux" }
 timeout = 60
 "#;
 
@@ -1180,7 +1085,8 @@ timeout = { value = 30, schema = { type = "integer" } }
 [dimensions]
 os_cohort = { position = 1, schema = { type = "string" }, type = "remote_cohort:nonexistent" }
 
-[context."os=linux"]
+[[context]]
+_condition_ = { os = "linux" }
 timeout = 60
 "#;
 
@@ -1199,7 +1105,8 @@ timeout = { value = 30, schema = { type = "integer" } }
 os = { position = 1, schema = { type = "string" } }
 os_cohort = { position = 2, schema = { type = "string" }, type = "remote_cohort:" }
 
-[context."os=linux"]
+[[context]]
+_condition_ = { os = "linux" }
 timeout = 60
 "#;
 
@@ -1219,7 +1126,8 @@ timeout = { value = 30, schema = { type = "integer" } }
 os = { position = 1, schema = { type = "string" } }
 os_cohort = { position = 2, type = "remote_cohort:os", schema = { type = "invalid_type" } }
 
-[context."os=linux"]
+[[context]]
+_condition_ = { os = "linux" }
 timeout = 60
 "#;
 
@@ -1240,7 +1148,8 @@ timeout = { value = 30, schema = { type = "integer" } }
 [dimensions]
 os = { position = 1, schema = { type = "string" } }
 
-[context."os=linux"]
+[[context]]
+_condition_ = { os = "linux" }
 timeout = 60
 "#;
 
@@ -1262,7 +1171,8 @@ timeout = { value = 30, schema = { type = "integer" } }
 [dimensions]
 os = { position = 1, schema = { type = "string" }, type = "local_cohort" }
 
-[context."os=linux"]
+[[context]]
+_condition_ = { os = "linux" }
 timeout = 60
 "#;
 
@@ -1285,7 +1195,8 @@ timeout = 60
             [dimensions]
             os = { position = 1, schema = { type = "string" } }
 
-            [context."os=linux"]
+            [[context]]
+            _condition_ = { os = "linux" }
             timeout = 60
         "#;
 
@@ -1319,7 +1230,7 @@ timeout = 60
             [dimensions]
             os = { position = 1, schema = { type = "string" } }
 
-            [context]
+            context = []
         "#;
 
         let result = parse(toml);
@@ -1336,7 +1247,8 @@ timeout = 60
             [dimensions]
             os = { position = 1, schema = { type = "string" } }
 
-            [context."region=us-east"]
+            [[context]]
+            _condition_ = { region = "us-east" }
             timeout = 60
         "#;
 
@@ -1354,7 +1266,8 @@ timeout = 60
             [dimensions]
             os = { position = 1, schema = { type = "string" } }
 
-            [context."os=linux"]
+            [[context]]
+            _condition_ = { os = "linux" }
             port = 8080
         "#;
 
@@ -1395,10 +1308,12 @@ timeout = 60
             os = { position = 1, schema = { type = "string" } }
             region = { position = 2, schema = { type = "string" } }
 
-            [context."os=linux"]
+            [[context]]
+            _condition_ = { os = "linux" }
             timeout = 60
 
-            [context."os=linux;region=us-east"]
+            [[context]]
+            _condition_ = { os = "linux", region = "us-east" }
             timeout = 90
         "#;
 
@@ -1421,7 +1336,8 @@ timeout = 60
             [dimensions]
             os = { schema = { type = "string" } }
 
-            [context."os=linux"]
+            [[context]]
+            _condition_ = { os = "linux" }
             timeout = 60
         "#;
 
@@ -1447,7 +1363,8 @@ timeout = 60
             os = { position = 1, schema = { type = "string" } }
             region = { position = 1, schema = { type = "string" } }
 
-            [context."os=linux"]
+            [[context]]
+            _condition_ = { os = "linux" }
             timeout = 60
         "#;
 
@@ -1474,7 +1391,8 @@ timeout = 60
             [dimensions]
             os = { position = 1, schema = { type = "string" } }
 
-            [context."os=linux"]
+            [[context]]
+            _condition_ = { os = "linux" }
             timeout = 60
         "#;
 
@@ -1491,7 +1409,8 @@ timeout = 60
             [dimensions]
             os = { position = 1, schema = { type = "string" } }
 
-            [context."os=linux"]
+            [[context]]
+            _condition_ = { os = "linux" }
             timeout = 60
         "#;
 
@@ -1511,7 +1430,8 @@ timeout = 60
             [dimensions]
             os = { position = 1, schema = { type = "string" } }
 
-            [context."os=linux"]
+            [[context]]
+            _condition_ = { os = "linux" }
             timeout = 60
         "#;
 
@@ -1528,7 +1448,8 @@ timeout = 60
             [dimensions]
             os = { position = 1, schema = { type = "string" } }
 
-            [context."os=linux"]
+            [[context]]
+            _condition_ = { os = "linux" }
             timeout = "not_an_integer"
         "#;
 
@@ -1536,7 +1457,7 @@ timeout = 60
         assert!(result.is_err());
         assert!(matches!(result, Err(TomlError::ValidationError { .. })));
         let err = result.unwrap_err();
-        assert!(err.to_string().contains("os=linux"));
+        assert!(err.to_string().contains("context[0].timeout"));
     }
 
     #[test]
@@ -1548,7 +1469,8 @@ timeout = 60
             [dimensions]
             os = { position = 1, schema = { type = "string", enum = ["linux", "windows", "macos"] } }
 
-            [context."os=linux"]
+            [[context]]
+            _condition_ = { os = "linux" }
             timeout = 60
         "#;
 
@@ -1565,7 +1487,8 @@ timeout = 60
             [dimensions]
             os = { position = 1, schema = { type = "string", enum = ["linux", "windows", "macos"] } }
 
-            [context."os=freebsd"]
+            [[context]]
+            _condition_ = { os = "freebsd" }
             timeout = 60
         "#;
 
@@ -1573,7 +1496,7 @@ timeout = 60
         assert!(result.is_err());
         assert!(matches!(result, Err(TomlError::ValidationError { .. })));
         let err = result.unwrap_err();
-        assert!(err.to_string().contains("os=freebsd.os"));
+        assert!(err.to_string().contains("context[0]._condition_.os"));
     }
 
     #[test]
@@ -1585,7 +1508,8 @@ timeout = 60
             [dimensions]
             os = { position = 1, schema = { type = "string" } }
 
-            [context."os=linux"]
+            [[context]]
+            _condition_ = { os = "linux" }
             timeout = 60
         "#;
 
@@ -1602,7 +1526,8 @@ timeout = 60
             [dimensions]
             os = { position = 1, schema = { type = "string" } }
 
-            [context."os=linux"]
+            [[context]]
+            _condition_ = { os = "linux" }
             timeout = 60
         "#;
 
@@ -1622,7 +1547,8 @@ timeout = 60
             [dimensions]
             port = { position = 1, schema = { type = "integer", minimum = 1, maximum = 65535 } }
 
-            [context."port=8080"]
+            [[context]]
+            _condition_ = { port = 8080 }
             timeout = 60
         "#;
 
@@ -1639,7 +1565,8 @@ timeout = 60
             [dimensions]
             port = { position = 1, schema = { type = "integer", minimum = 1, maximum = 65535 } }
 
-            [context."port=70000"]
+            [[context]]
+            _condition_ = { port = 70000 }
             timeout = 60
         "#;
 
@@ -1647,7 +1574,7 @@ timeout = 60
         assert!(result.is_err());
         assert!(matches!(result, Err(TomlError::ValidationError { .. })));
         let err = result.unwrap_err();
-        assert!(err.to_string().contains("port=70000.port"));
+        assert!(err.to_string().contains("context[0]._condition_.port"));
     }
 
     #[test]
@@ -1659,7 +1586,8 @@ timeout = 60
             [dimensions]
             debug = { position = 1, schema = { type = "boolean" } }
 
-            [context."debug=true"]
+            [[context]]
+            _condition_ = { debug = true }
             timeout = 60
         "#;
 
@@ -1676,7 +1604,8 @@ timeout = 60
             [dimensions]
             debug = { position = 1, schema = { type = "boolean" } }
 
-            [context."debug=yes"]
+            [[context]]
+            _condition_ = { debug = "yes" }
             timeout = 60
         "#;
 
@@ -1684,76 +1613,7 @@ timeout = 60
         assert!(result.is_err());
         assert!(matches!(result, Err(TomlError::ValidationError { .. })));
         let err = result.unwrap_err();
-        assert!(err.to_string().contains("debug=yes.debug"));
-    }
-
-    #[test]
-    fn test_url_encoding_special_chars() {
-        // Test with dimension keys and values containing '=' and ';'
-        let toml = r#"
-[default-config]
-timeout = { value = 30, schema = { type = "integer" } }
-
-[dimensions]
-"key=with=equals" = { position = 1, schema = { type = "string" } }
-
-[context."key%3Dwith%3Dequals=value%3Bwith%3Bsemicolon"]
-timeout = 60
-"#;
-
-        let config = parse(toml).unwrap();
-
-        // The parsed condition should have the decoded key and value
-        assert_eq!(config.contexts.len(), 1);
-        let context = &config.contexts[0];
-        assert_eq!(
-            context.condition.get("key=with=equals"),
-            Some(&Value::String("value;with;semicolon".to_string()))
-        );
-    }
-
-    #[test]
-    fn test_url_encoding_round_trip() {
-        // Test that serialization and deserialization work with special chars
-        let original_toml = r#"
-[default-config]
-timeout = { value = 30, schema = { type = "integer" } }
-
-[dimensions]
-"key=with=equals" = { position = 1, schema = { type = "string" } }
-"region" = { position = 0, schema = { type = "string" } }
-
-[context."key%3Dwith%3Dequals=value%3Bwith%3Bsemicolon; region=us-east"]
-timeout = 60
-"#;
-
-        // Parse TOML -> Config
-        let config = parse(original_toml).unwrap();
-
-        // Serialize Config -> TOML
-        let serialized = serialize_to_toml(&config_to_detailed(&config)).unwrap();
-
-        // The serialized TOML should have URL-encoded keys and values
-        assert!(serialized.contains("key%3Dwith%3Dequals"));
-        assert!(serialized.contains("value%3Bwith%3Bsemicolon"));
-
-        // Parse again
-        let reparsed = parse(&serialized).unwrap();
-
-        // Configs should be functionally equivalent
-        assert_eq!(config.default_configs, reparsed.default_configs);
-        assert_eq!(config.contexts.len(), reparsed.contexts.len());
-
-        // The condition should have the decoded values
-        let context = &reparsed.contexts[0];
-        assert_eq!(
-            context.condition.get("key=with=equals"),
-            Some(&Value::String("value;with;semicolon".to_string()))
-        );
-        assert_eq!(
-            context.condition.get("region"),
-            Some(&Value::String("us-east".to_string()))
-        );
+        assert!(err.to_string().contains("context[0]._condition_.debug"));
     }
 
     #[test]
@@ -1768,10 +1628,12 @@ max_count = { value = 10 , schema = { type = "number", minimum = 0, maximum = 10
 os = { position = 1, schema = { type = "string", enum = ["linux", "windows", "macos"] } }
 os_cohort = { position = 2, schema = { enum = ["unix", "otherwise"], type = "string", definitions = { unix = { in = [{ var = "os" }, ["linux", "macos"]] } } }, type = "local_cohort:os" }
 
-[context."os=linux"]
+[[context]]
+_condition_ = { os = "linux" }
 config = { host = "prod.example.com", port = 443 }
 
-[context."os_cohort=unix"]
+[[context]]
+_condition_ = { os_cohort = "unix" }
 config = { host = "prod.unix.com", port = 8443 }
 max_count = 95
 "#;
@@ -1838,10 +1700,12 @@ max_count = { value = 10 , schema = { type = "number", minimum = 0, maximum = 10
 os = { position = 1, schema = { type = "string", enum = ["linux", "windows", "macos"] } }
 os_cohort = { position = 2, schema = { enum = ["unix", "otherwise"], type = "string", definitions = { unix = { in = [{ var = "os" }, ["linux", "macos"]] } } }, type = "local_cohort:os" }
 
-[context."os=linux"]
+[[context]]
+_condition_ = { os = "linux" }
 config = { host = "prod.example.com", port = 443 }
 
-[context."os_cohort=unix"]
+[[context]]
+_condition_ = { os_cohort = "unix" }
 config = { host = "prod.unix.com", port = 8443 }
 max_count = 95
 "#;

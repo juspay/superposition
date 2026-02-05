@@ -53,10 +53,12 @@ timeout = { value = 30, schema = { type = "integer" } }
 [dimensions]
 dimension = { position = 1, schema = { type = "string" } }
 
-[context."dimension=d1"]
+[[context]]
+_condition_ = { dimension = "d1" }
 timeout = 60
 
-[context."dimension=d2"]
+[[context]]
+_condition_ = { dimension = "d2" }
 timeout = 90
 "#;
 
