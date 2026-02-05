@@ -23,24 +23,14 @@ jobs:
                   fetch-depth: 0
                   token: ${{ secrets.SUPERPOSITION_TOKEN }}
 
-            - name: Install Rust
-              uses: dtolnay/rust-toolchain@master
+            # Use composite action with versions from makefiles/common.mk
+            - name: Setup build tools
+              uses: ./.github/actions/setup-tools
               with:
-                  toolchain: 1.90.0
-                  targets: wasm32-unknown-unknown
-                  components: rustfmt, clippy
-
-            - name: install cargo-edit to perform set-version
-              uses: baptiste0928/cargo-install@v2.2.0
-              with:
-                  crate: cargo-edit
-                  version: "0.13.6"
-
-            - name: install cocogitto
-              uses: baptiste0928/cargo-install@v2.2.0
-              with:
-                  crate: cocogitto
-                  version: "6.2.0"
+                  rust: 'true'
+                  rust-wasm: 'true'
+                  cargo-edit: 'true'
+                  cocogitto: 'true'
 
             - name: Semver release
               shell: bash
@@ -70,10 +60,12 @@ jobs:
                   git add .
                   git commit --amend --no-edit
 
-            - name: install yq
+            - name: Install yq
               run: |
+                  # Get yq version from Makefile
+                  YQ_VERSION=$(grep "^YQ_VERSION :=" makefiles/common.mk | sed 's/.*:= *//' | tr -d ' ')
                   mkdir -p ${{ github.workspace }}/bin
-                  wget -qO ${{ github.workspace }}/bin/yq https://github.com/mikefarah/yq/releases/download/v4.44.2/yq_linux_amd64
+                  wget -qO ${{ github.workspace }}/bin/yq "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64"
                   chmod +x ${{ github.workspace }}/bin/yq
                   echo "${{ github.workspace }}/bin" >> $GITHUB_PATH
 
@@ -268,12 +260,14 @@ jobs:
               with:
                   fetch-depth: 0
 
-            - name: Install Rust
-              uses: dtolnay/rust-toolchain@master
+            # Use composite action with versions from makefiles/common.mk
+            - name: Setup build tools
+              uses: ./.github/actions/setup-tools
               with:
-                  toolchain: 1.90.0
-                  targets: ${{ matrix.platform.target }}
-                  components: rustfmt, clippy
+                  rust: 'true'
+
+            - name: Add Rust target
+              run: rustup target add ${{ matrix.platform.target }}
 
             - name: Build and package for ${{ matrix.platform.os }}
               if: matrix.platform.os != 'windows-latest'
@@ -290,8 +284,6 @@ jobs:
                   Move-Item -Path "target\${{ matrix.platform.target }}\release\${{ matrix.platform.superposition_core_bin_name }}" -Destination "lib${{ matrix.platform.superposition_core_bin_name }}"
                   Move-Item -Path "target\include\superposition_core.h" -Destination "core.h"
                   Compress-Archive -Path "lib${{ matrix.platform.superposition_core_bin_name }}","core.h" -DestinationPath ${{ matrix.platform.superposition_core_zip_name }}
-
-            # Why multiple upload artifact jobs? Read: https://github.com/actions/upload-artifact/issues/331
 
             - name: Upload superposition_core artifacts
               uses: actions/upload-artifact@v4
@@ -321,11 +313,11 @@ jobs:
             - name: Checkout code
               uses: actions/checkout@v4
 
-            - name: Set up JDK 17
-              uses: actions/setup-java@v4
+            # Use composite action with versions from makefiles/common.mk
+            - name: Setup build tools
+              uses: ./.github/actions/setup-tools
               with:
-                  java-version: "17"
-                  distribution: "temurin"
+                  java: 'true'
 
             - name: Download all rust binary artifacts
               uses: actions/download-artifact@v4
@@ -339,69 +331,14 @@ jobs:
                   echo "Downloaded artifacts:"
                   ls -lar rust-binaries
 
-            - name: Extract and organize native libraries
+            # Use Makefile target to setup binaries
+            - name: Setup native binaries
+              run: make setup-binaries
+
+            - name: Publish and deploy
               run: |
-                  mkdir -p bindings/src/main/resources
-                  mkdir temp_extract
-                  # Extract all native libraries
-                  for zip_file in rust-binaries/*.zip; do
-                      echo "Extracting $zip_file"
-                      unzip -o "$zip_file" -d temp_extract/
-
-                      # Find and copy the native library
-                      find temp_extract -name "libsuperposition_core.*" -o -name "superposition_core.*" | while read lib; do
-                          filename=$(basename "$lib")
-                          extension="${filename##*.}"
-
-                          # Determine platform from the zip file name or path
-                          zip_basename=$(basename "$zip_file" .zip)
-                          target_triple="${zip_basename#superposition_core-}"
-
-                          # Map target triple to JNA platform name
-                          case "$target_triple" in
-                              "x86_64-apple-darwin")
-                                  platform="darwin-x86-64"
-                                  ;;
-                              "aarch64-apple-darwin")
-                                  platform="darwin-aarch64"
-                                  ;;
-                              "x86_64-unknown-linux-gnu")
-                                  platform="linux-x86-64"
-                                  ;;
-                              "x86_64-pc-windows-msvc")
-                                  platform="win32-x86-64"
-                                  ;;
-                              *)
-                                  echo "Unknown target triple: $target_triple"
-                                  continue
-                                  ;;
-                          esac
-
-                          # Create the platform-specific directory
-                          target_dir="bindings/src/main/resources/$platform"
-                          mkdir -p "$target_dir"
-
-                          # Copy the file
-                          cp "$lib" "$target_dir/libsuperposition_core.$extension"
-                          echo "Copied $filename (.$extension) to $target_dir/"
-                      done
-
-                      # Clean up temp directory
-                      rm -rf temp_extract
-                  done
-
-                  # List what we have
-                  echo "Native libraries in bindings package:"
-                  ls -lar bindings/src/main/resources/
-
-            - name: Make gradlew executable
-              run: chmod +x gradlew
-
-            - name: Publish
-              run: ./gradlew clean publish
-
-            - name: Deploy to Sonatype
-              run: ./gradlew jreleaserDeploy --info --stacktrace
+                  make publish
+                  make deploy
 
     generate-python-packages:
         needs: [tag-release, generate-rust-binary]
@@ -420,17 +357,14 @@ jobs:
               with:
                   fetch-depth: 0
 
-            - name: Set up Python
-              uses: actions/setup-python@v5
+            # Use composite action with versions from makefiles/common.mk
+            - name: Setup build tools
+              uses: ./.github/actions/setup-tools
               with:
-                  python-version: "3.12"
+                  python: 'true'
+                  uv: 'true'
 
-            - name: Install uv
-              uses: astral-sh/setup-uv@v3
-              with:
-                  version: "latest"
-
-            - name: install twine
+            - name: Install twine
               run: |
                   python -m pip install --upgrade pip
                   pip install twine
@@ -447,73 +381,14 @@ jobs:
                   echo "Downloaded artifacts:"
                   find rust-binaries -type f -name "*.zip" | sort
 
-            - name: Extract and organize native libraries
+            # Use Makefile target to setup binaries and build
+            - name: Setup native binaries
+              run: make -C clients/python setup-binaries
+
+            - name: Build and publish Python packages
               run: |
-                  # Extract all native libraries
-                  for zip_file in rust-binaries/*.zip; do
-                      echo "Extracting $zip_file"
-                      zip_basename=$(basename "$zip_file" .zip)
-                      target_triple="${zip_basename#superposition_core-}"
-                      mkdir -p temp_extract/$target_triple
-                      unzip -o "$zip_file" -d temp_extract/$target_triple/
-
-
-                      # Find and copy the native library
-                      find temp_extract/$target_triple -name "libsuperposition_core.*" -o -name "superposition_core.*" | while read lib; do
-                          filename=$(basename "$lib")
-                          extension="${filename##*.}"
-                          file="libsuperposition_core-$target_triple.$extension"
-                          cp "$lib" clients/python/bindings/superposition_bindings/$file
-                          echo "Copied $file"
-                      done
-
-                      # Clean up temp directory
-                      rm -rf temp_extract
-                  done
-
-                  # List what we have
-                  echo "Native libraries in bindings package:"
-                  ls -la clients/python/bindings/superposition_bindings/
-
-            - name: Build bindings package
-              run: |
-                  cd clients/python/bindings
-                  uv build --wheel
-                  echo "Built bindings wheel:"
-                  ls -la dist/
-
-            - name: Build SDK package
-              run: |
-                  cd clients/python/sdk
-                  uv build --wheel
-                  echo "Built SDK wheel:"
-                  ls -la dist/
-              env:
-                  VERSION: ${{ needs.tag-release.outputs.version }}
-
-            - name: Build provider package
-              run: |
-                  cd clients/python/provider
-                  # Install dependencies first since provider depends on sdk and bindings
-                  # uv pip install --system ../bindings/dist/*.whl ../sdk/dist/*.whl
-                  uv build --wheel
-                  echo "Built provider wheel:"
-                  ls -la dist/
-              env:
-                  VERSION: ${{ needs.tag-release.outputs.version }}
-
-            - name: Collect all wheels
-              run: |
-                  mkdir -p python-wheels
-                  cp clients/python/bindings/dist/*.whl python-wheels/
-                  cp clients/python/sdk/dist/*.whl python-wheels/
-                  cp clients/python/provider/dist/*.whl python-wheels/
-                  echo "All Python wheels:"
-                  ls -la python-wheels/
-
-            - name: Publish Python packages to PyPI
-              run: |
-                  twine upload python-wheels/*.whl
+                  make -C clients/python collect-wheels
+                  make -C clients/python publish
 
     generate-js-packages:
         needs: [tag-release, generate-rust-binary]
@@ -530,10 +405,11 @@ jobs:
               with:
                   fetch-depth: 0
 
-            - uses: actions/setup-node@v4
+            # Use composite action with versions from makefiles/common.mk
+            - name: Setup build tools
+              uses: ./.github/actions/setup-tools
               with:
-                  node-version: "24.12.0"
-                  registry-url: "https://registry.npmjs.org"
+                  node: 'true'
 
             - name: Download all rust binary artifacts
               uses: actions/download-artifact@v4
@@ -547,39 +423,14 @@ jobs:
                   echo "Downloaded artifacts:"
                   find rust-binaries -type f -name "*.zip" | sort
 
-            - name: Extract and organize native libraries
-              run: |
-                  # Extract all native libraries
-                  mkdir -p clients/javascript/bindings/native-lib
-                  for zip_file in rust-binaries/*.zip; do
-                      echo "Extracting $zip_file"
-                      zip_basename=$(basename "$zip_file" .zip)
-                      target_triple="${zip_basename#superposition_core-}"
-                      mkdir -p temp_extract/$target_triple
-                      unzip -o "$zip_file" -d temp_extract/$target_triple/
+            # Use Makefile target to setup binaries and publish
+            - name: Setup native binaries
+              run: make -C clients/javascript setup-binaries
 
-
-                      # Find and copy the native library
-                      find temp_extract/$target_triple -name "libsuperposition_core.*" -o -name "superposition_core.*" | while read lib; do
-                          filename=$(basename "$lib")
-                          extension="${filename##*.}"
-                          file="libsuperposition_core-$target_triple.$extension"
-                          cp "$lib" clients/javascript/bindings/native-lib/$file
-                          echo "Copied $file"
-                      done
-
-                      # Clean up temp directory
-                      rm -rf temp_extract
-                  done
-
-                  # List what we have
-                  echo "Native libraries in bindings package:"
-                  ls -la clients/javascript/bindings/native-lib
-
-            - run: |
-                  cd clients/javascript
-                  npm ci
-                  npm publish --access public --workspace bindings --workspace sdk --workspace open-feature-provider
+            - name: Publish JavaScript packages
+              run: make -C clients/javascript publish
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     generate-rust-packages:
         needs: tag-release
@@ -597,18 +448,13 @@ jobs:
                   fetch-depth: 0
                   ref: ${{ needs.tag-release.outputs.updated_ref }}
 
-            - name: Install Rust
-              uses: dtolnay/rust-toolchain@master
+            # Use composite action with versions from makefiles/common.mk
+            - name: Setup build tools
+              uses: ./.github/actions/setup-tools
               with:
-                  toolchain: 1.90.0
-                  targets: wasm32-unknown-unknown
-                  components: rustfmt, clippy, cargo
-
-            - name: install cargo-edit to perform set-version
-              uses: baptiste0928/cargo-install@v2.2.0
-              with:
-                  crate: cargo-edit
-                  version: "0.13.6"
+                  rust: 'true'
+                  rust-wasm: 'true'
+                  cargo-edit: 'true'
 
             - name: Build and package superposition
               run: |
@@ -629,10 +475,7 @@ jobs:
               with:
                   fetch-depth: 0
 
-            - name:
-                  Download all artifacts
-                  # This step downloads all artifacts uploaded by the 'generate-builds' job.
-                  # They will be placed into the 'artifacts_dir' directory.
+            - name: Download all artifacts
               uses: actions/download-artifact@v4
               with:
                   path: artifacts_dir
@@ -642,7 +485,6 @@ jobs:
 
             - uses: softprops/action-gh-release@v2
               name: Create GitHub Release
-              # if: startsWith(github.ref, 'refs/tags/')
               with:
                   draft: true
                   files: |

@@ -1,0 +1,200 @@
+name: 'Setup Build Tools'
+description: 'Sets up build tools with versions from makefiles/common.mk'
+
+inputs:
+  rust:
+    description: 'Set up Rust toolchain'
+    required: false
+    default: 'false'
+  rust-wasm:
+    description: 'Add WASM target to Rust'
+    required: false
+    default: 'false'
+  leptosfmt:
+    description: 'Install leptosfmt'
+    required: false
+    default: 'false'
+  cocogitto:
+    description: 'Install cocogitto'
+    required: false
+    default: 'false'
+  cargo-edit:
+    description: 'Install cargo-edit'
+    required: false
+    default: 'false'
+  node:
+    description: 'Set up Node.js'
+    required: false
+    default: 'false'
+  bun:
+    description: 'Set up Bun'
+    required: false
+    default: 'false'
+  python:
+    description: 'Set up Python'
+    required: false
+    default: 'false'
+  uv:
+    description: 'Install uv (Python package manager)'
+    required: false
+    default: 'false'
+  java:
+    description: 'Set up Java'
+    required: false
+    default: 'false'
+  smithy:
+    description: 'Install Smithy CLI'
+    required: false
+    default: 'false'
+  wasm-pack:
+    description: 'Install wasm-pack'
+    required: false
+    default: 'false'
+
+outputs:
+  rust-version:
+    description: 'Rust version from Makefile'
+    value: ${{ steps.versions.outputs.rust }}
+  node-version:
+    description: 'Node version from Makefile'
+    value: ${{ steps.versions.outputs.node }}
+  python-version:
+    description: 'Python version from Makefile'
+    value: ${{ steps.versions.outputs.python }}
+  java-version:
+    description: 'Java version from Makefile'
+    value: ${{ steps.versions.outputs.java }}
+
+runs:
+  using: 'composite'
+  steps:
+    # Extract versions from makefiles/common.mk
+    - name: Extract tool versions from Makefile
+      id: versions
+      shell: bash
+      run: |
+        echo "Extracting tool versions from makefiles/common.mk..."
+
+        # Function to extract version from Makefile
+        get_version() {
+          grep "^$1 :=" makefiles/common.mk | sed 's/.*:= *//' | tr -d ' '
+        }
+
+        RUST_VERSION=$(get_version "RUST_VERSION")
+        RUST_TARGETS=$(get_version "RUST_TARGETS")
+        RUST_COMPONENTS=$(get_version "RUST_COMPONENTS")
+        NODE_VERSION=$(get_version "NODE_VERSION")
+        PYTHON_VERSION=$(get_version "PYTHON_VERSION")
+        JAVA_VERSION=$(get_version "JAVA_VERSION")
+        SMITHY_VERSION=$(get_version "SMITHY_VERSION")
+        LEPTOSFMT_VERSION=$(get_version "LEPTOSFMT_VERSION")
+        COCOGITTO_VERSION=$(get_version "COCOGITTO_VERSION")
+        CARGO_EDIT_VERSION=$(get_version "CARGO_EDIT_VERSION")
+
+        echo "rust=$RUST_VERSION" >> $GITHUB_OUTPUT
+        echo "rust-targets=$RUST_TARGETS" >> $GITHUB_OUTPUT
+        echo "rust-components=$RUST_COMPONENTS" >> $GITHUB_OUTPUT
+        echo "node=$NODE_VERSION" >> $GITHUB_OUTPUT
+        echo "python=$PYTHON_VERSION" >> $GITHUB_OUTPUT
+        echo "java=$JAVA_VERSION" >> $GITHUB_OUTPUT
+        echo "smithy=$SMITHY_VERSION" >> $GITHUB_OUTPUT
+        echo "leptosfmt=$LEPTOSFMT_VERSION" >> $GITHUB_OUTPUT
+        echo "cocogitto=$COCOGITTO_VERSION" >> $GITHUB_OUTPUT
+        echo "cargo-edit=$CARGO_EDIT_VERSION" >> $GITHUB_OUTPUT
+
+        echo "=== Extracted Versions ==="
+        echo "Rust: $RUST_VERSION (targets: $RUST_TARGETS, components: $RUST_COMPONENTS)"
+        echo "Node: $NODE_VERSION"
+        echo "Python: $PYTHON_VERSION"
+        echo "Java: $JAVA_VERSION"
+        echo "Smithy: $SMITHY_VERSION"
+        echo "Leptosfmt: $LEPTOSFMT_VERSION"
+        echo "Cocogitto: $COCOGITTO_VERSION"
+        echo "Cargo-edit: $CARGO_EDIT_VERSION"
+
+    # Setup Rust
+    - name: Install Rust
+      if: inputs.rust == 'true'
+      uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: ${{ steps.versions.outputs.rust }}
+        targets: ${{ inputs.rust-wasm == 'true' && steps.versions.outputs.rust-targets || '' }}
+        components: ${{ steps.versions.outputs.rust-components }}
+
+    # Setup leptosfmt
+    - name: Install leptosfmt
+      if: inputs.leptosfmt == 'true'
+      uses: baptiste0928/cargo-install@v2.2.0
+      with:
+        crate: leptosfmt
+        version: ${{ steps.versions.outputs.leptosfmt }}
+
+    # Setup cocogitto
+    - name: Install cocogitto
+      if: inputs.cocogitto == 'true'
+      uses: baptiste0928/cargo-install@v2.2.0
+      with:
+        crate: cocogitto
+        version: ${{ steps.versions.outputs.cocogitto }}
+
+    # Setup cargo-edit
+    - name: Install cargo-edit
+      if: inputs.cargo-edit == 'true'
+      uses: baptiste0928/cargo-install@v2.2.0
+      with:
+        crate: cargo-edit
+        version: ${{ steps.versions.outputs.cargo-edit }}
+
+    # Setup wasm-pack
+    - name: Install wasm-pack
+      if: inputs.wasm-pack == 'true'
+      shell: bash
+      run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+    # Setup Node.js
+    - name: Install Node.js
+      if: inputs.node == 'true'
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ steps.versions.outputs.node }}
+
+    # Setup Bun
+    - name: Install Bun
+      if: inputs.bun == 'true'
+      uses: oven-sh/setup-bun@v2
+
+    # Setup Python
+    - name: Install Python
+      if: inputs.python == 'true'
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ steps.versions.outputs.python }}
+
+    # Setup uv
+    - name: Install uv
+      if: inputs.uv == 'true'
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: latest
+
+    # Setup Java
+    - name: Install Java
+      if: inputs.java == 'true'
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ steps.versions.outputs.java }}
+        distribution: temurin
+
+    # Setup Smithy CLI
+    - name: Install Smithy CLI
+      if: inputs.smithy == 'true'
+      shell: bash
+      run: |
+        SMITHY_VERSION="${{ steps.versions.outputs.smithy }}"
+        echo "Installing Smithy CLI $SMITHY_VERSION..."
+        mkdir -p /tmp/smithy-install
+        curl -L "https://github.com/smithy-lang/smithy/releases/download/${SMITHY_VERSION}/smithy-cli-linux-x86_64.zip" -o /tmp/smithy-install/smithy-cli.zip
+        unzip -qo /tmp/smithy-install/smithy-cli.zip -d /tmp/smithy-install
+        /tmp/smithy-install/smithy-cli-linux-x86_64/install
+        rm -rf /tmp/smithy-install
+        echo "Smithy CLI installed successfully"

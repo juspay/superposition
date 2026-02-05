@@ -13,28 +13,16 @@ concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: true
 
+# Environment variables are now managed in makefiles/common.mk
+# These are set here for jobs that run before make is available
 env:
-    # Disable incremental compilation.
-    #
-    # Incremental compilation is useful as part of an edit-build-test-edit cycle,
-    # as it lets the compiler avoid recompiling code that hasn't changed. However,
-    # on CI, we're not making small edits; we're almost always building the entire
-    # project from scratch. Thus, incremental compilation on CI actually
-    # introduces *additional* overhead to support making future builds
-    # faster...but no future builds will ever occur in any given CI environment.
-    #
-    # See https://matklad.github.io/2021/09/04/fast-rust-builds.html#ci-workflow
-    # for details.
+    # Cargo optimization for CI (also defined in makefiles/common.mk)
     CARGO_INCREMENTAL: 0
-    # Allow more retries for network requests in cargo (downloading crates) and
-    # rustup (installing toolchains). This should help to reduce flaky CI failures
-    # from transient network timeouts or other issues.
     CARGO_NET_RETRY: 10
     RUSTUP_MAX_RETRIES: 10
-    # Don't emit giant backtraces in the CI logs.
     RUST_BACKTRACE: short
-    # Use cargo's sparse index protocol
     CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+    # AWS mock credentials for testing
     AWS_ACCESS_KEY_ID: test
     AWS_SECRET_ACCESS_KEY: test
     AWS_SESSION_TOKEN: test
@@ -64,27 +52,18 @@ jobs:
                   key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
                   restore-keys: ${{ runner.os }}-cargo-test-
 
-            - name: Install Rust
-              uses: dtolnay/rust-toolchain@master
+            # Use composite action with versions from makefiles/common.mk
+            - name: Setup build tools
+              uses: ./.github/actions/setup-tools
               with:
-                  toolchain: 1.90.0
-                  targets: wasm32-unknown-unknown
-                  components: rustfmt, clippy
-
-            - name: Install leptosfmt
-              uses: baptiste0928/cargo-install@v2.2.0
-              with:
-                  crate: leptosfmt
-                  version: "0.1.33"
+                  rust: 'true'
+                  rust-wasm: 'true'
+                  leptosfmt: 'true'
+                  cocogitto: 'true'
 
             - name: Check formatting & linting
               shell: bash
               run: make check
-
-            - name: install cocogitto
-              uses: baptiste0928/cargo-install@v2.2.0
-              with:
-                  crate: cocogitto
 
             - name: Check conventional commit
               shell: bash
@@ -136,33 +115,21 @@ jobs:
                   sudo apt update
                   sudo apt-get -y install postgresql libpq-dev
 
-            - name: Install Bun
-              uses: oven-sh/setup-bun@v2
-
-            - name: Install Rust
-              uses: dtolnay/rust-toolchain@master
+            # Use composite action with versions from makefiles/common.mk
+            - name: Setup build tools
+              uses: ./.github/actions/setup-tools
               with:
-                  toolchain: 1.90.0
-                  targets: wasm32-unknown-unknown
-                  components: rustfmt, clippy
+                  rust: 'true'
+                  rust-wasm: 'true'
+                  node: 'true'
+                  bun: 'true'
+                  wasm-pack: 'true'
 
-            - name: install node
-              uses: actions/setup-node@v4
-              with:
-                  node-version: 18.19.0
-
-            - name: Install wasm-pack
+            - name: Run tests
               shell: bash
-              run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+              run: make test CI=1
 
-            - name: run tests
-              shell: bash
-              run: |
-                  make test CI=1
-              env:
-                  APP_ENV: "TEST"
-
-            - name: save/update cache for future runs
+            - name: Save/update cache for future runs
               uses: actions/cache/save@v4
               id: cache-save
               if: github.ref == 'refs/heads/main'
@@ -196,24 +163,16 @@ jobs:
                   restore-keys: |
                       ${{ runner.os }}-gradle-
 
-            - name: Set up JDK 17
-              uses: actions/setup-java@v4
+            # Use composite action with versions from makefiles/common.mk
+            - name: Setup build tools
+              uses: ./.github/actions/setup-tools
               with:
-                  java-version: "17"
-                  distribution: "temurin"
+                  java: 'true'
 
-            - name: Make gradlew executable
-              run: chmod +x gradlew
+            - name: Build Java client
+              run: make assemble
 
-            - name: Run Gradle assemble
-              run: ./gradlew assemble
-
-            ## This requires more setup. Specifically, we need the server to be up w/
-            ## some dummy data.
-            # - name: Run tests
-            #   run: ./gradlew test
-
-            - name: save/update cache for future runs
+            - name: Save/update cache for future runs
               uses: actions/cache/save@v4
               if: github.ref == 'refs/heads/main'
               with:
@@ -263,10 +222,7 @@ jobs:
                   sudo apt update
                   sudo apt-get -y install postgresql libpq-dev
 
-            - name: Install Bun
-              uses: oven-sh/setup-bun@v2
-
-            - name: make binary executable
+            - name: Make binary executable
               run: chmod +x scripts/setup_provider_binaries.sh
 
             - name: Restore cache (if present)
@@ -282,44 +238,25 @@ jobs:
                   key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
                   restore-keys: ${{ runner.os }}-cargo-test-
 
-            - name: Install Rust
-              uses: dtolnay/rust-toolchain@master
+            # Use composite action with versions from makefiles/common.mk
+            - name: Setup build tools
+              uses: ./.github/actions/setup-tools
               with:
-                  toolchain: 1.90.0
-                  targets: wasm32-unknown-unknown
-                  components: rustfmt, clippy
+                  rust: 'true'
+                  rust-wasm: 'true'
+                  node: 'true'
+                  bun: 'true'
+                  java: ${{ matrix.provider == 'kotlin' && 'true' || 'false' }}
+                  python: ${{ matrix.provider == 'py' && 'true' || 'false' }}
+                  uv: ${{ matrix.provider == 'py' && 'true' || 'false' }}
 
-            - name: Set up JDK 17 (for Kotlin tests)
-              if: matrix.provider == 'kotlin'
-              uses: actions/setup-java@v4
-              with:
-                  java-version: "17"
-                  distribution: "temurin"
-
-            - name: Make gradlew executable
+            - name: Make gradlew executable (Kotlin)
               if: matrix.provider == 'kotlin'
               run: chmod +x clients/java/gradlew
 
-            - name: Run Gradle assemble
+            - name: Run Gradle assemble (Kotlin)
               if: matrix.provider == 'kotlin'
-              run: cd clients/java && ./gradlew assemble
-
-            - name: Install Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: 24.1.0
-
-            - name: Set up Python (for Python tests)
-              if: matrix.provider == 'py'
-              uses: actions/setup-python@v6
-              with:
-                  python-version: "3.12"
-
-            - name: Install uv
-              if: matrix.provider == 'py'
-              uses: astral-sh/setup-uv@v3
-              with:
-                  version: "latest"
+              run: make -C clients/java assemble
 
             - name: Run provider tests
               shell: bash
@@ -328,29 +265,25 @@ jobs:
                   export UV_PROJECT_ENVIRONMENT="${pythonLocation}"
                   echo "UV_PROJECT_ENVIRONMENT: $UV_PROJECT_ENVIRONMENT"
                   make test-${{ matrix.provider }}-provider
-              env:
-                  APP_ENV: "TEST"
 
     binding-generation-check:
         name: Check generation of uniffi bindings
         runs-on: codebuild-superposition-${{ github.run_id }}-${{ github.run_attempt }}
-        # runs-on: anton1
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
 
-            - name: Install Rust
-              uses: dtolnay/rust-toolchain@master
+            # Use composite action with versions from makefiles/common.mk
+            - name: Setup build tools
+              uses: ./.github/actions/setup-tools
               with:
-                  toolchain: 1.90.0
-                  targets: wasm32-unknown-unknown
-                  components: rustfmt, clippy
+                  rust: 'true'
+                  rust-wasm: 'true'
 
             - name: Generate bindings
-              run: |
-                  make uniffi-bindings
+              run: make uniffi-bindings
 
             - name: Ensure no file changed
               run: git diff --exit-code
@@ -365,28 +298,20 @@ jobs:
     smithy-sdk-generation-check:
         name: Check generation of sdk from smithy models
         runs-on: codebuild-superposition-${{ github.run_id }}-${{ github.run_attempt }}
-        # runs-on: anton1
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
 
-            - name: Install Smithy CLI
-              run: |
-                  mkdir -p smithy-install/smithy && \
-                    curl -L https://github.com/smithy-lang/smithy/releases/download/1.55.0/smithy-cli-linux-x86_64.zip -o smithy-install/smithy-cli-linux-x86_64.zip && \
-                    unzip -qo smithy-install/smithy-cli-linux-x86_64.zip -d smithy-install && \
-                    mv smithy-install/smithy-cli-linux-x86_64/* smithy-install/smithy/ && \
-                    rm -rf smithy-install/smithy-cli-linux-x86_64.zip
-                  echo 'export PATH="$HOME/.smithy/bin:$PATH"' >> ~/.bashrc
-                  source ~/.bashrc
-                  smithy-install/smithy/install
-                  rm -rf smithy-install
+            # Use composite action with versions from makefiles/common.mk
+            - name: Setup build tools
+              uses: ./.github/actions/setup-tools
+              with:
+                  smithy: 'true'
 
             - name: Generate SDKs
-              run: |
-                  make smithy-updates
+              run: make smithy-updates
 
             - name: Ensure no unwanted file changes
               run: |
@@ -405,15 +330,3 @@ jobs:
                   echo "❌ The following files were modified:"
                   git diff --name-only
                   exit 1
-
-            # on failure, create a commit of the modified files for easier debugging
-            # to enable this, make sure to update the workflow permissions at the top of this file to include
-            # 'contents: write'
-            # - name: Commit modified files for debugging
-            #   if: failure()
-            #   run: |
-            #       git config --global user.name "github-actions"
-            #       git config --global user.email "github-actions@github.com"
-            #       git add -A
-            #       git commit -m "Debug: Commit modified files from generation-tests job"
-            #       git push origin HEAD:refs/heads/debug/${{ github.run_id }}-${{ github.run_attempt }} --force
