@@ -324,6 +324,7 @@ jobs:
             - name: Run provider tests
               shell: bash
               run: |
+                  make node-dependencies frontend superposition
                   cargo build --package superposition_core
                   export UV_PROJECT_ENVIRONMENT="${pythonLocation}"
                   echo "UV_PROJECT_ENVIRONMENT: $UV_PROJECT_ENVIRONMENT"
