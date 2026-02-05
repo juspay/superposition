@@ -1,5 +1,7 @@
 use leptos::*;
 use serde_json::{Map, Value};
+use superposition_macros::box_params;
+use superposition_types::custom_query::{CustomQuery, Query};
 use web_sys::{Crypto, MouseEvent};
 
 use crate::api::fetch_organisations;
@@ -18,6 +20,8 @@ use crate::components::{
     },
 };
 use crate::providers::alert_provider::enqueue_alert;
+use crate::query_updater::{use_param_updater, use_signal_from_query};
+use crate::types::AdminPageParams;
 use crate::utils::use_url_base;
 
 fn key_generation_instructions() -> [View; 5] {
@@ -78,6 +82,12 @@ pub fn Organisations() -> impl IntoView {
         || (),
         |_| async { fetch_organisations().await.unwrap_or_default() },
     );
+
+    let admin_params_rws = use_signal_from_query(move |query_string| {
+        Query::<AdminPageParams>::extract_non_empty(&query_string).into_inner()
+    });
+
+    use_param_updater(move || box_params!(admin_params_rws.get()));
 
     let key_generation_rws = RwSignal::new(None);
     let show_master_rotation_modal = RwSignal::new(false);
@@ -142,24 +152,28 @@ pub fn Organisations() -> impl IntoView {
                                 icon="ri-building-fill"
                                 number=organisations.len().to_string()
                             />
-                            <div class="flex items-end gap-4">
-                                <Button
-                                    text="Generate MasterKey"
-                                    icon_class="ri-key-2-line"
-                                    on_click=move |ev: MouseEvent| {
-                                        ev.prevent_default();
-                                        key_generation_rws.set(Some(None));
-                                    }
-                                />
-                                <Button
-                                    text="Rotate Master Key"
-                                    icon_class="ri-refresh-line"
-                                    on_click=move |ev: MouseEvent| {
-                                        ev.prevent_default();
-                                        show_master_rotation_modal.set(true);
-                                    }
-                                />
-                            </div>
+                            <Show when=move || {
+                                admin_params_rws.with(|p| p.admin.unwrap_or_default())
+                            }>
+                                <div class="flex items-end gap-4">
+                                    <Button
+                                        text="Generate MasterKey"
+                                        icon_class="ri-key-2-line"
+                                        on_click=move |ev: MouseEvent| {
+                                            ev.prevent_default();
+                                            key_generation_rws.set(Some(None));
+                                        }
+                                    />
+                                    <Button
+                                        text="Rotate Master Key"
+                                        icon_class="ri-refresh-line"
+                                        on_click=move |ev: MouseEvent| {
+                                            ev.prevent_default();
+                                            show_master_rotation_modal.set(true);
+                                        }
+                                    />
+                                </div>
+                            </Show>
                         </div>
 
                         <div class="card w-full bg-base-100 rounded-xl overflow-hidden shadow">
