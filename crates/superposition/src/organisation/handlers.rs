@@ -110,13 +110,12 @@ pub async fn list_handler(
     filters: Query<PaginationParams>,
 ) -> superposition::Result<Json<PaginatedResponse<Organisation>>> {
     let DbConnection(mut conn) = db_conn;
-    log::info!("list_organisations");
-    // If all parameter is true, return all organisations
+
     if let Some(true) = filters.all {
         let result: Vec<Organisation> = organisations::table
             .order(organisations::created_at.desc())
             .get_results(&mut conn)?;
-        log::info!("organisations: {result:?}");
+
         return Ok(Json(PaginatedResponse::all(result)));
     }
 

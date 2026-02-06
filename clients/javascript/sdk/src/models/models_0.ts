@@ -2483,19 +2483,19 @@ export interface ListSecretsInput {
    * Filter by secret name.
    * @public
    */
-  name?: string | undefined;
+  name?: (string)[] | undefined;
 
   /**
    * Filter by the user who created the secret.
    * @public
    */
-  created_by?: string | undefined;
+  created_by?: (string)[] | undefined;
 
   /**
    * Filter by the user who last modified the secret.
    * @public
    */
-  last_modified_by?: string | undefined;
+  last_modified_by?: (string)[] | undefined;
 
   /**
    * Field to sort the results by.
@@ -2561,19 +2561,19 @@ export interface ListVariablesInput {
    * Filter by variable name (exact match or substring, depending on backend implementation).
    * @public
    */
-  name?: string | undefined;
+  name?: (string)[] | undefined;
 
   /**
    * Filter by the user who created the variable
    * @public
    */
-  created_by?: string | undefined;
+  created_by?: (string)[] | undefined;
 
   /**
    * Filter by the user who last modified the variable
    * @public
    */
-  last_modified_by?: string | undefined;
+  last_modified_by?: (string)[] | undefined;
 
   /**
    * Field to sort the results by.

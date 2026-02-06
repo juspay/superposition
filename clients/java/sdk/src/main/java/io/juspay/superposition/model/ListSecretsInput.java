@@ -1,6 +1,8 @@
 
 package io.juspay.superposition.model;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import software.amazon.smithy.java.core.schema.PreludeSchemas;
 import software.amazon.smithy.java.core.schema.PresenceTracker;
@@ -34,11 +36,11 @@ public final class ListSecretsInput implements SerializableStruct {
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
-        .putMember("name", PreludeSchemas.STRING,
+        .putMember("name", SharedSchemas.STRING_LIST,
                 new HttpQueryTrait("name"))
-        .putMember("created_by", PreludeSchemas.STRING,
+        .putMember("created_by", SharedSchemas.STRING_LIST,
                 new HttpQueryTrait("created_by"))
-        .putMember("last_modified_by", PreludeSchemas.STRING,
+        .putMember("last_modified_by", SharedSchemas.STRING_LIST,
                 new HttpQueryTrait("last_modified_by"))
         .putMember("sort_on", SecretSortOn.$SCHEMA,
                 new HttpQueryTrait("sort_on"))
@@ -62,9 +64,9 @@ public final class ListSecretsInput implements SerializableStruct {
     private final transient Boolean all;
     private final transient String workspaceId;
     private final transient String orgId;
-    private final transient String name;
-    private final transient String createdBy;
-    private final transient String lastModifiedBy;
+    private final transient List<String> name;
+    private final transient List<String> createdBy;
+    private final transient List<String> lastModifiedBy;
     private final transient SecretSortOn sortOn;
     private final transient SortBy sortBy;
 
@@ -74,9 +76,9 @@ public final class ListSecretsInput implements SerializableStruct {
         this.all = builder.all;
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
-        this.name = builder.name;
-        this.createdBy = builder.createdBy;
-        this.lastModifiedBy = builder.lastModifiedBy;
+        this.name = builder.name == null ? null : Collections.unmodifiableList(builder.name);
+        this.createdBy = builder.createdBy == null ? null : Collections.unmodifiableList(builder.createdBy);
+        this.lastModifiedBy = builder.lastModifiedBy == null ? null : Collections.unmodifiableList(builder.lastModifiedBy);
         this.sortOn = builder.sortOn;
         this.sortBy = builder.sortBy;
     }
@@ -113,22 +115,43 @@ public final class ListSecretsInput implements SerializableStruct {
     /**
      * Filter by secret name.
      */
-    public String name() {
+    public List<String> name() {
+        if (name == null) {
+            return Collections.emptyList();
+        }
         return name;
+    }
+
+    public boolean hasName() {
+        return name != null;
     }
 
     /**
      * Filter by the user who created the secret.
      */
-    public String createdBy() {
+    public List<String> createdBy() {
+        if (createdBy == null) {
+            return Collections.emptyList();
+        }
         return createdBy;
+    }
+
+    public boolean hasCreatedBy() {
+        return createdBy != null;
     }
 
     /**
      * Filter by the user who last modified the secret.
      */
-    public String lastModifiedBy() {
+    public List<String> lastModifiedBy() {
+        if (lastModifiedBy == null) {
+            return Collections.emptyList();
+        }
         return lastModifiedBy;
+    }
+
+    public boolean hasLastModifiedBy() {
+        return lastModifiedBy != null;
     }
 
     /**
@@ -195,13 +218,13 @@ public final class ListSecretsInput implements SerializableStruct {
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
         if (name != null) {
-            serializer.writeString($SCHEMA_NAME, name);
+            serializer.writeList($SCHEMA_NAME, name, name.size(), SharedSerde.StringListSerializer.INSTANCE);
         }
         if (createdBy != null) {
-            serializer.writeString($SCHEMA_CREATED_BY, createdBy);
+            serializer.writeList($SCHEMA_CREATED_BY, createdBy, createdBy.size(), SharedSerde.StringListSerializer.INSTANCE);
         }
         if (lastModifiedBy != null) {
-            serializer.writeString($SCHEMA_LAST_MODIFIED_BY, lastModifiedBy);
+            serializer.writeList($SCHEMA_LAST_MODIFIED_BY, lastModifiedBy, lastModifiedBy.size(), SharedSerde.StringListSerializer.INSTANCE);
         }
         if (sortOn != null) {
             serializer.writeString($SCHEMA_SORT_ON, sortOn.value());
@@ -268,9 +291,9 @@ public final class ListSecretsInput implements SerializableStruct {
         private Boolean all;
         private String workspaceId;
         private String orgId;
-        private String name;
-        private String createdBy;
-        private String lastModifiedBy;
+        private List<String> name;
+        private List<String> createdBy;
+        private List<String> lastModifiedBy;
         private SecretSortOn sortOn;
         private SortBy sortBy;
 
@@ -336,7 +359,7 @@ public final class ListSecretsInput implements SerializableStruct {
          *
          * @return this builder.
          */
-        public Builder name(String name) {
+        public Builder name(List<String> name) {
             this.name = name;
             return this;
         }
@@ -346,7 +369,7 @@ public final class ListSecretsInput implements SerializableStruct {
          *
          * @return this builder.
          */
-        public Builder createdBy(String createdBy) {
+        public Builder createdBy(List<String> createdBy) {
             this.createdBy = createdBy;
             return this;
         }
@@ -356,7 +379,7 @@ public final class ListSecretsInput implements SerializableStruct {
          *
          * @return this builder.
          */
-        public Builder lastModifiedBy(String lastModifiedBy) {
+        public Builder lastModifiedBy(List<String> lastModifiedBy) {
             this.lastModifiedBy = lastModifiedBy;
             return this;
         }
@@ -396,9 +419,9 @@ public final class ListSecretsInput implements SerializableStruct {
                 case 2 -> count((int) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, value));
                 case 3 -> page((int) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, value));
                 case 4 -> all((boolean) SchemaUtils.validateSameMember($SCHEMA_ALL, member, value));
-                case 5 -> name((String) SchemaUtils.validateSameMember($SCHEMA_NAME, member, value));
-                case 6 -> createdBy((String) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, value));
-                case 7 -> lastModifiedBy((String) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, value));
+                case 5 -> name((List<String>) SchemaUtils.validateSameMember($SCHEMA_NAME, member, value));
+                case 6 -> createdBy((List<String>) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, value));
+                case 7 -> lastModifiedBy((List<String>) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, value));
                 case 8 -> sortOn((SecretSortOn) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, value));
                 case 9 -> sortBy((SortBy) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
@@ -442,9 +465,9 @@ public final class ListSecretsInput implements SerializableStruct {
                     case 2 -> builder.count(de.readInteger(member));
                     case 3 -> builder.page(de.readInteger(member));
                     case 4 -> builder.all(de.readBoolean(member));
-                    case 5 -> builder.name(de.readString(member));
-                    case 6 -> builder.createdBy(de.readString(member));
-                    case 7 -> builder.lastModifiedBy(de.readString(member));
+                    case 5 -> builder.name(SharedSerde.deserializeStringList(member, de));
+                    case 6 -> builder.createdBy(SharedSerde.deserializeStringList(member, de));
+                    case 7 -> builder.lastModifiedBy(SharedSerde.deserializeStringList(member, de));
                     case 8 -> builder.sortOn(SecretSortOn.builder().deserializeMember(de, member).build());
                     case 9 -> builder.sortBy(SortBy.builder().deserializeMember(de, member).build());
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());

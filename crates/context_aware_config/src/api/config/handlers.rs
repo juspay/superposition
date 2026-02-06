@@ -687,14 +687,6 @@ async fn list_version_handler(
 ) -> superposition::Result<Json<PaginatedResponse<ConfigVersionListItem>>> {
     let DbConnection(mut conn) = db_conn;
 
-    if let Some(true) = filters.all {
-        let config_versions = config_versions::config_versions
-            .schema_name(&workspace_context.schema_name)
-            .select(ConfigVersionListItem::as_select())
-            .get_results(&mut conn)?;
-        return Ok(Json(PaginatedResponse::all(config_versions)));
-    }
-
     let n_version: i64 = config_versions::config_versions
         .count()
         .schema_name(&workspace_context.schema_name)

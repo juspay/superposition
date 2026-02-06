@@ -14,11 +14,11 @@ pub struct ListSecretsInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub org_id: ::std::option::Option<::std::string::String>,
     /// Filter by secret name.
-    pub name: ::std::option::Option<::std::string::String>,
+    pub name: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     /// Filter by the user who created the secret.
-    pub created_by: ::std::option::Option<::std::string::String>,
+    pub created_by: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     /// Filter by the user who last modified the secret.
-    pub last_modified_by: ::std::option::Option<::std::string::String>,
+    pub last_modified_by: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     /// Field to sort the results by.
     pub sort_on: ::std::option::Option<crate::types::SecretSortOn>,
     /// Sort order (ascending or descending).
@@ -46,16 +46,25 @@ impl  ListSecretsInput  {
         self.org_id.as_deref()
     }
     /// Filter by secret name.
-    pub fn name(&self) -> ::std::option::Option<&str> {
+    /// 
+    /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.name.is_none()`.
+    pub fn name(&self) -> &[::std::string::String] {
         self.name.as_deref()
+        .unwrap_or_default()
     }
     /// Filter by the user who created the secret.
-    pub fn created_by(&self) -> ::std::option::Option<&str> {
+    /// 
+    /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.created_by.is_none()`.
+    pub fn created_by(&self) -> &[::std::string::String] {
         self.created_by.as_deref()
+        .unwrap_or_default()
     }
     /// Filter by the user who last modified the secret.
-    pub fn last_modified_by(&self) -> ::std::option::Option<&str> {
+    /// 
+    /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.last_modified_by.is_none()`.
+    pub fn last_modified_by(&self) -> &[::std::string::String] {
         self.last_modified_by.as_deref()
+        .unwrap_or_default()
     }
     /// Field to sort the results by.
     pub fn sort_on(&self) -> ::std::option::Option<&crate::types::SecretSortOn> {
@@ -82,9 +91,9 @@ pub struct ListSecretsInputBuilder {
     pub(crate) all: ::std::option::Option<bool>,
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
-    pub(crate) name: ::std::option::Option<::std::string::String>,
-    pub(crate) created_by: ::std::option::Option<::std::string::String>,
-    pub(crate) last_modified_by: ::std::option::Option<::std::string::String>,
+    pub(crate) name: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub(crate) created_by: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub(crate) last_modified_by: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     pub(crate) sort_on: ::std::option::Option<crate::types::SecretSortOn>,
     pub(crate) sort_by: ::std::option::Option<crate::types::SortBy>,
 }
@@ -156,43 +165,61 @@ impl ListSecretsInputBuilder {
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.org_id
     }
+    /// Appends an item to `name`.
+    ///
+    /// To override the contents of this collection use [`set_name`](Self::set_name).
+    ///
     /// Filter by secret name.
     pub fn name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.name = ::std::option::Option::Some(input.into());
-        self
+        let mut v = self.name.unwrap_or_default();
+                        v.push(input.into());
+                        self.name = ::std::option::Option::Some(v);
+                        self
     }
     /// Filter by secret name.
-    pub fn set_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+    pub fn set_name(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
         self.name = input; self
     }
     /// Filter by secret name.
-    pub fn get_name(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_name(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
         &self.name
     }
+    /// Appends an item to `created_by`.
+    ///
+    /// To override the contents of this collection use [`set_created_by`](Self::set_created_by).
+    ///
     /// Filter by the user who created the secret.
     pub fn created_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.created_by = ::std::option::Option::Some(input.into());
-        self
+        let mut v = self.created_by.unwrap_or_default();
+                        v.push(input.into());
+                        self.created_by = ::std::option::Option::Some(v);
+                        self
     }
     /// Filter by the user who created the secret.
-    pub fn set_created_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+    pub fn set_created_by(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
         self.created_by = input; self
     }
     /// Filter by the user who created the secret.
-    pub fn get_created_by(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_created_by(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
         &self.created_by
     }
+    /// Appends an item to `last_modified_by`.
+    ///
+    /// To override the contents of this collection use [`set_last_modified_by`](Self::set_last_modified_by).
+    ///
     /// Filter by the user who last modified the secret.
     pub fn last_modified_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.last_modified_by = ::std::option::Option::Some(input.into());
-        self
+        let mut v = self.last_modified_by.unwrap_or_default();
+                        v.push(input.into());
+                        self.last_modified_by = ::std::option::Option::Some(v);
+                        self
     }
     /// Filter by the user who last modified the secret.
-    pub fn set_last_modified_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+    pub fn set_last_modified_by(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
         self.last_modified_by = input; self
     }
     /// Filter by the user who last modified the secret.
-    pub fn get_last_modified_by(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_last_modified_by(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
         &self.last_modified_by
     }
     /// Field to sort the results by.

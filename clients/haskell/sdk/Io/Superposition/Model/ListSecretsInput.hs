@@ -45,9 +45,9 @@ data ListSecretsInput = ListSecretsInput {
     all' :: Data.Maybe.Maybe Bool,
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
-    name :: Data.Maybe.Maybe Data.Text.Text,
-    created_by :: Data.Maybe.Maybe Data.Text.Text,
-    last_modified_by :: Data.Maybe.Maybe Data.Text.Text,
+    name :: Data.Maybe.Maybe ([] Data.Text.Text),
+    created_by :: Data.Maybe.Maybe ([] Data.Text.Text),
+    last_modified_by :: Data.Maybe.Maybe ([] Data.Text.Text),
     sort_on :: Data.Maybe.Maybe Io.Superposition.Model.SecretSortOn.SecretSortOn,
     sort_by :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy
 } deriving (
@@ -95,9 +95,9 @@ data ListSecretsInputBuilderState = ListSecretsInputBuilderState {
     all'BuilderState :: Data.Maybe.Maybe Bool,
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    created_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    last_modified_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    nameBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
+    created_byBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
+    last_modified_byBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     sort_onBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.SecretSortOn.SecretSortOn,
     sort_byBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy
 } deriving (
@@ -140,15 +140,15 @@ setOrgId :: Data.Text.Text -> ListSecretsInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
 
-setName :: Data.Maybe.Maybe Data.Text.Text -> ListSecretsInputBuilder ()
+setName :: Data.Maybe.Maybe ([] Data.Text.Text) -> ListSecretsInputBuilder ()
 setName value =
    Control.Monad.State.Strict.modify (\s -> (s { nameBuilderState = value }))
 
-setCreatedBy :: Data.Maybe.Maybe Data.Text.Text -> ListSecretsInputBuilder ()
+setCreatedBy :: Data.Maybe.Maybe ([] Data.Text.Text) -> ListSecretsInputBuilder ()
 setCreatedBy value =
    Control.Monad.State.Strict.modify (\s -> (s { created_byBuilderState = value }))
 
-setLastModifiedBy :: Data.Maybe.Maybe Data.Text.Text -> ListSecretsInputBuilder ()
+setLastModifiedBy :: Data.Maybe.Maybe ([] Data.Text.Text) -> ListSecretsInputBuilder ()
 setLastModifiedBy value =
    Control.Monad.State.Strict.modify (\s -> (s { last_modified_byBuilderState = value }))
 

@@ -58,7 +58,7 @@ fn audit_log_table_columns(
     diff_data_rws: RwSignal<Option<DiffData>>,
     pagination_params_rws: RwSignal<PaginationParams>,
 ) -> Vec<Column> {
-    let current_sort_by = filters_rws.with(|f| f.sort_by.clone().unwrap_or_default());
+    let current_sort_by = filters_rws.with(|f| f.sort_by.unwrap_or_default());
 
     vec![
         Column::new(
@@ -77,7 +77,7 @@ fn audit_log_table_columns(
             },
             ColumnSortable::Yes {
                 sort_fn: sort_callback(filters_rws, pagination_params_rws),
-                sort_by: current_sort_by.clone(),
+                sort_by: current_sort_by,
                 currently_sorted: true,
             },
             Expandable::Disabled,

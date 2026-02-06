@@ -32,8 +32,8 @@ impl<'de> Deserialize<'de> for PageParams {
     {
         #[derive(Deserialize)]
         struct PageParamsHelper {
-            pub grouped: Option<bool>,
-            pub prefix: Option<String>,
+            grouped: Option<bool>,
+            prefix: Option<String>,
         }
         let helper = PageParamsHelper::deserialize(deserializer)?;
         Ok(Self {

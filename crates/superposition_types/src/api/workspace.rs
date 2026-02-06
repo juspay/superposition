@@ -2,10 +2,12 @@ use chrono::{DateTime, Utc};
 #[cfg(feature = "diesel_derives")]
 use diesel::AsChangeset;
 use serde::{Deserialize, Serialize};
+use superposition_derives::{IsEmpty, QueryParam};
 
 use crate::database::models::{Metrics, NonEmptyString, Workspace, WorkspaceStatus};
 #[cfg(feature = "diesel_derives")]
 use crate::database::superposition_schema::superposition::workspaces;
+use crate::{custom_query::QueryParam, IsEmpty};
 
 use super::{default_true, deserialize_option_i64, I64Update};
 
@@ -86,8 +88,9 @@ pub struct UpdateWorkspaceRequest {
     pub enable_change_reason_validation: Option<bool>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, IsEmpty, QueryParam, Default, Clone)]
 pub struct WorkspaceListFilters {
+    #[query_param(skip_if_empty)]
     pub workspace_name: Option<String>,
 }
 

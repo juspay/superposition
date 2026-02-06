@@ -47,6 +47,7 @@ pub struct ExpGroupMemberRequest {
 #[derive(
     Debug,
     Clone,
+    Copy,
     Serialize,
     Deserialize,
     Default,
@@ -63,7 +64,7 @@ pub enum SortOn {
     LastModifiedAt,
 }
 
-#[derive(Debug, Clone, Deserialize, PartialEq, IsEmpty, QueryParam)]
+#[derive(Clone, Deserialize, PartialEq, IsEmpty, QueryParam)]
 pub struct ExpGroupFilters {
     #[query_param(skip_if_empty)]
     pub name: Option<String>,

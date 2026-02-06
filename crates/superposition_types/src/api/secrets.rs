@@ -13,6 +13,7 @@ use crate::{IsEmpty, SortBy};
 #[derive(
     Debug,
     Clone,
+    Copy,
     Serialize,
     Deserialize,
     Default,
@@ -29,7 +30,7 @@ pub enum SortOn {
     LastModifiedAt,
 }
 
-#[derive(Debug, Clone, Deserialize, PartialEq, IsEmpty, QueryParam, Default)]
+#[derive(Clone, Deserialize, PartialEq, IsEmpty, QueryParam, Default)]
 pub struct SecretFilters {
     #[query_param(skip_if_empty, iterable)]
     pub name: Option<CommaSeparatedStringQParams>,

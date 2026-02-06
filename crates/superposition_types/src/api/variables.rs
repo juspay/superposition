@@ -5,10 +5,7 @@ use strum_macros;
 use superposition_derives::{IsEmpty, QueryParam};
 
 use crate::custom_query::{CommaSeparatedStringQParams, QueryParam};
-use crate::database::models::{
-    others::VariableName,
-    {ChangeReason, Description},
-};
+use crate::database::models::{others::VariableName, ChangeReason, Description};
 #[cfg(feature = "diesel_derives")]
 use crate::database::schema::variables;
 use crate::{IsEmpty, SortBy};
@@ -16,6 +13,7 @@ use crate::{IsEmpty, SortBy};
 #[derive(
     Debug,
     Clone,
+    Copy,
     Serialize,
     Deserialize,
     Default,
@@ -32,7 +30,7 @@ pub enum SortOn {
     LastModifiedAt,
 }
 
-#[derive(Debug, Clone, Deserialize, PartialEq, IsEmpty, QueryParam, Default)]
+#[derive(Clone, Deserialize, PartialEq, IsEmpty, QueryParam, Default)]
 pub struct VariableFilters {
     #[query_param(skip_if_empty, iterable)]
     pub name: Option<CommaSeparatedStringQParams>,

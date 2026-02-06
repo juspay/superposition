@@ -72,7 +72,7 @@ fn sort_callback(
         let filters = filters_rws.get();
         let sort_by = filters.sort_by.unwrap_or_default().flip();
         let new_filters = ExpGroupFilters {
-            sort_on: Some(sort_on.clone()),
+            sort_on: Some(sort_on),
             sort_by: Some(sort_by),
             ..filters
         };
@@ -146,7 +146,7 @@ fn table_columns(
             },
             ColumnSortable::Yes {
                 sort_fn: sort_callback(SortOn::Name, filters_rws, pagination_params_rws),
-                sort_by: current_sort_by.clone(),
+                sort_by: current_sort_by,
                 currently_sorted: current_sort_on == SortOn::Name,
             },
             Expandable::Disabled,
@@ -200,7 +200,7 @@ fn table_columns(
                     filters_rws,
                     pagination_params_rws,
                 ),
-                sort_by: current_sort_by.clone(),
+                sort_by: current_sort_by,
                 currently_sorted: current_sort_on == SortOn::CreatedAt,
             },
             Expandable::Enabled(100),
@@ -221,7 +221,7 @@ fn table_columns(
                     filters_rws,
                     pagination_params_rws,
                 ),
-                sort_by: current_sort_by.clone(),
+                sort_by: current_sort_by,
                 currently_sorted: current_sort_on == SortOn::LastModifiedAt,
             },
             Expandable::Enabled(100),

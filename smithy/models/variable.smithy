@@ -114,15 +114,15 @@ operation ListVariables {
         @httpQuery("name")
         @documentation("Filter by variable name (exact match or substring, depending on backend implementation).")
         @notProperty
-        name: String
+        name: StringList
 
         @httpQuery("created_by")
         @documentation("Filter by the user who created the variable")
-        created_by: String
+        created_by: StringList
 
         @httpQuery("last_modified_by")
         @documentation("Filter by the user who last modified the variable")
-        last_modified_by: String
+        last_modified_by: StringList
 
         @httpQuery("sort_on")
         @documentation("Field to sort the results by.")
