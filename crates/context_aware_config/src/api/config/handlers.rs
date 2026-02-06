@@ -51,15 +51,17 @@ use crate::{
         add_last_modified_to_header, generate_config_from_version, get_config_version,
         get_max_created_at, is_not_modified,
     },
-    helpers::{calculate_context_weight, generate_cac},
+    helpers::{calculate_context_weight, generate_cac, generate_detailed_cac},
 };
 
 use super::helpers::{apply_prefix_filter_to_config, resolve, setup_query_data};
+use superposition_core::serialize_to_toml;
 
 #[allow(clippy::let_and_return)]
 pub fn endpoints() -> Scope {
     let scope = Scope::new("")
         .service(get_handler)
+        .service(get_toml_handler)
         .service(resolve_handler)
         .service(reduce_handler)
         .service(list_version_handler)
@@ -423,7 +425,7 @@ async fn reduce_config_key(
     Ok(Config {
         contexts: og_contexts,
         overrides: og_overrides,
-        default_configs: default_config,
+        default_configs: default_config.into(),
         dimensions: dimension_schema_map.clone(),
     })
 }
@@ -447,7 +449,7 @@ async fn reduce_handler(
     let dimensions_info_map =
         fetch_dimensions_info_map(&mut conn, &workspace_context.schema_name)?;
     let mut config = generate_cac(&mut conn, &workspace_context.schema_name)?;
-    let default_config = (config.default_configs).clone();
+    let default_config = (*config.default_configs).clone();
     for (key, _) in default_config {
         let contexts = config.contexts;
         let overrides = config.overrides;
@@ -459,7 +461,7 @@ async fn reduce_handler(
             overrides.clone(),
             key.as_str(),
             &dimensions_info_map,
-            default_config.clone(),
+            (*default_config).clone(),
             is_approve,
             &workspace_context,
             &state,
@@ -623,7 +625,48 @@ async fn get_handler(
     add_last_modified_to_header(max_created_at, is_smithy, &mut response);
     add_audit_id_to_header(&mut conn, &mut response, &workspace_context.schema_name);
     add_config_version_to_header(&version, &mut response);
+
     Ok(response.json(config))
+}
+
+/// Handler that returns config in TOML format with schema information.
+/// This uses generate_detailed_cac to fetch schemas from the database.
+#[authorized]
+#[get("/toml")]
+async fn get_toml_handler(
+    req: HttpRequest,
+    db_conn: DbConnection,
+    workspace_context: WorkspaceContext,
+) -> superposition::Result<HttpResponse> {
+    let DbConnection(mut conn) = db_conn;
+
+    let max_created_at = get_max_created_at(&mut conn, &workspace_context.schema_name)
+        .map_err(|e| log::error!("failed to fetch max timestamp from event_log: {e}"))
+        .ok();
+
+    log::info!("Max created at: {max_created_at:?}");
+
+    if is_not_modified(max_created_at, &req) {
+        return Ok(HttpResponse::NotModified().finish());
+    }
+
+    let detailed_config =
+        generate_detailed_cac(&mut conn, &workspace_context.schema_name)?;
+
+    let toml_str = serialize_to_toml(&detailed_config).map_err(|e| {
+        log::error!("Failed to serialize config to TOML: {}", e);
+        superposition::AppError::UnexpectedError(anyhow::anyhow!(
+            "Failed to serialize config to TOML: {}",
+            e
+        ))
+    })?;
+
+    let mut response = HttpResponse::Ok();
+    add_last_modified_to_header(max_created_at, false, &mut response);
+    add_audit_id_to_header(&mut conn, &mut response, &workspace_context.schema_name);
+    response.insert_header(("Content-Type", "application/toml"));
+
+    Ok(response.body(toml_str))
 }
 
 #[allow(clippy::too_many_arguments)]

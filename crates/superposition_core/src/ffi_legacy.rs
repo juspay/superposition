@@ -452,3 +452,63 @@ pub unsafe extern "C" fn core_get_applicable_variants(
         }
     }
 }
+
+/// Parse TOML configuration and return JSON representation of Config type
+///
+/// # Safety
+///
+/// Caller ensures that `toml_content` is a valid null-terminated C string and `ebuf` is
+/// a sufficiently long buffer (2048 bytes minimum) to store error messages.
+///
+/// # Arguments
+/// * `toml_content` - C string containing TOML configuration
+/// * `ebuf` - Error buffer (2048 bytes) for error messages
+///
+/// # Returns
+/// * Success: JSON string matching the Config type structure with keys:
+///   - "contexts": array of context objects with id, condition, priority, weight, override_with_keys
+///   - "overrides": object mapping override IDs to override key-value pairs
+///   - "default_configs": object with configuration key-value pairs
+///   - "dimensions": object mapping dimension names to dimension info (schema, position, etc.)
+/// * Failure: NULL pointer, error written to ebuf
+///
+/// # Memory Management
+/// Caller must free the returned string using core_free_string()
+#[no_mangle]
+pub unsafe extern "C" fn core_parse_toml_config(
+    toml_content: *const c_char,
+    ebuf: *mut c_char,
+) -> *mut c_char {
+    // Null pointer check
+    if toml_content.is_null() {
+        copy_string(ebuf, "toml_content is null");
+        return ptr::null_mut();
+    }
+
+    // Convert C string to Rust string
+    let toml_str = match c_str_to_string(toml_content) {
+        Ok(s) => s,
+        Err(e) => {
+            copy_string(ebuf, format!("Invalid UTF-8 in toml_content: {}", e));
+            return ptr::null_mut();
+        }
+    };
+
+    // Parse TOML
+    let parsed = match crate::parse_toml_config(&toml_str) {
+        Ok(p) => p,
+        Err(e) => {
+            copy_string(ebuf, e.to_string());
+            return ptr::null_mut();
+        }
+    };
+
+    // Serialize the Config directly to JSON (consistent with other FFI functions)
+    match serde_json::to_string(&parsed) {
+        Ok(json_str) => string_to_c_str(json_str),
+        Err(e) => {
+            copy_string(ebuf, format!("JSON serialization error: {}", e));
+            ptr::null_mut()
+        }
+    }
+}

@@ -274,12 +274,12 @@ impl From<OverrideWithKeys> for Vec<String> {
 uniffi::custom_type!(OverrideWithKeys, Vec<String>);
 
 #[repr(C)]
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default, uniffi::Record)]
 #[cfg_attr(test, derive(PartialEq))]
 pub struct Config {
     pub contexts: Vec<Context>,
     pub overrides: HashMap<String, Overrides>,
-    pub default_configs: Map<String, Value>,
+    pub default_configs: ExtendedMap,
     #[serde(default)]
     pub dimensions: HashMap<String, DimensionInfo>,
 }
@@ -310,11 +310,8 @@ impl Config {
         }
     }
 
-    pub fn filter_default_by_prefix(
-        &self,
-        prefix_list: &HashSet<String>,
-    ) -> Map<String, Value> {
-        filter_config_keys_by_prefix(&self.default_configs, prefix_list)
+    pub fn filter_default_by_prefix(&self, prefix_list: &HashSet<String>) -> ExtendedMap {
+        filter_config_keys_by_prefix(&self.default_configs, prefix_list).into()
     }
 
     pub fn filter_by_prefix(&self, prefix_list: &HashSet<String>) -> Self {
@@ -363,4 +360,53 @@ pub struct DimensionInfo {
     pub dependency_graph: DependencyGraph,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub value_compute_function_name: Option<String>,
+}
+
+/// Information about a default config key including its value and schema
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[cfg_attr(test, derive(PartialEq))]
+pub struct DefaultConfigInfo {
+    pub value: Value,
+    pub schema: Value,
+}
+
+/// A map of config keys to their values and schemas
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[cfg_attr(test, derive(PartialEq))]
+pub struct DefaultConfigWithSchema(
+    pub std::collections::BTreeMap<String, DefaultConfigInfo>,
+);
+
+impl DefaultConfigWithSchema {
+    pub fn get(&self, key: &str) -> Option<&DefaultConfigInfo> {
+        self.0.get(key)
+    }
+
+    pub fn into_inner(self) -> std::collections::BTreeMap<String, DefaultConfigInfo> {
+        self.0
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = (&String, &DefaultConfigInfo)> {
+        self.0.iter()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+}
+
+/// A detailed configuration that includes schema information for default configs.
+/// This is similar to Config but with default_configs containing both value and schema.
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[cfg_attr(test, derive(PartialEq))]
+pub struct DetailedConfig {
+    pub contexts: Vec<Context>,
+    pub overrides: HashMap<String, Overrides>,
+    pub default_configs: DefaultConfigWithSchema,
+    #[serde(default)]
+    pub dimensions: HashMap<String, DimensionInfo>,
 }
