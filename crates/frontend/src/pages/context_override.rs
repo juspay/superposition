@@ -10,7 +10,6 @@ use leptos_router::use_navigate;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use strum::IntoEnumIterator;
-use superposition_macros::box_params;
 use superposition_types::{
     PaginatedResponse, SortBy,
     api::{
@@ -53,7 +52,7 @@ use crate::{
         condition_collapse_provider::ConditionCollapseProvider,
         editor_provider::EditorProvider,
     },
-    query_updater::{use_param_updater, use_signal_from_query},
+    query_updater::use_signal_from_query,
     types::{OrganisationId, VariantFormTs, Workspace},
 };
 
@@ -387,23 +386,14 @@ pub fn ContextOverride() -> impl IntoView {
     let delete_inprogress_rws = RwSignal::new(false);
     let scrolled_to_top_rws = RwSignal::new(false);
 
-    let pagination_params_rws = use_signal_from_query(move |query_string| {
-        Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
-    });
-    let context_filters_rws = use_signal_from_query(move |query_string| {
-        Query::<ContextListFilters>::extract_non_empty(&query_string).into_inner()
-    });
-    let dimension_params_rws = use_signal_from_query(move |query_string| {
-        DimensionQuery::<QueryMap>::extract_non_empty(&query_string)
-    });
-
-    use_param_updater(move || {
-        box_params![
-            context_filters_rws.get(),
-            pagination_params_rws.get(),
-            dimension_params_rws.get(),
-        ]
-    });
+    let (pagination_params_rws, context_filters_rws, dimension_params_rws) =
+        use_signal_from_query(move |query_string| {
+            (
+                Query::<PaginationParams>::extract_non_empty(query_string).into_inner(),
+                Query::<ContextListFilters>::extract_non_empty(query_string).into_inner(),
+                DimensionQuery::<QueryMap>::extract_non_empty(query_string),
+            )
+        });
 
     let page_resource: Resource<
         (
