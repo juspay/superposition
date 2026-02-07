@@ -1,4 +1,4 @@
-cabal-version:      3.4
+cabal-version:      3.0
 name:               superposition-bindings
 version:            0.1.0.0
 -- synopsis:
@@ -23,13 +23,13 @@ library
     -- other-extensions:
     build-depends:    base ^>=4.18.2.0
     hs-source-dirs:   lib
-    default-language: GHC2021
+    default-language: Haskell2010
     default-extensions: CApiFFI
     extra-libraries: superposition_core
 
 test-suite superposition-bindings-test
     import:           warnings
-    default-language: GHC2021
+    default-language: Haskell2010
     -- other-modules:
     -- other-extensions:
     type:             exitcode-stdio-1.0
@@ -40,3 +40,4 @@ test-suite superposition-bindings-test
         HUnit,
         async,
         superposition-bindings
+    default-extensions: ImportQualifiedPost
