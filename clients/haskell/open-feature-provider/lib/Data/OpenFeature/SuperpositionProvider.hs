@@ -8,6 +8,7 @@ module Data.OpenFeature.SuperpositionProvider
     Log.LogLevel (..),
     newSuperpositionProvider,
     SuperpositionProvider,
+    resolveFullConfig
   )
 where
 
@@ -18,7 +19,7 @@ import Control.Monad (join)
 import Control.Monad.Logger (LoggingT, filterLogger, runStdoutLoggingT)
 import Control.Monad.Logger.Aeson qualified as Log
 import Control.Monad.Trans.Class (lift)
-import Data.Aeson (FromJSON, ToJSON (..), encode, object, withObject, (.:?))
+import Data.Aeson (Value, FromJSON, ToJSON (..), encode, object, withObject, (.:?))
 import Data.Aeson.Decoding (eitherDecode)
 import Data.Aeson.Types (Object, parseEither)
 import Data.Functor
@@ -69,15 +70,17 @@ mkResolveParams ::
   EvaluationContext ->
   SDK.GetConfigOutput ->
   Maybe Exp.ListExperimentOutput ->
+  Maybe String -> -- | prefix filter
   FFI.ResolveConfigParams
-mkResolveParams ec config experiments =
+mkResolveParams ec config experiments prefix =
   FFI.defaultResolveParams
     { FFI.defaultConfig = intoParam $ SDK.default_configs config,
       FFI.context = intoParam $ SDK.contexts config,
       FFI.overrides = intoParam $ SDK.overrides config,
       FFI.dimensionInfo = intoParam $ SDK.dimensions config,
       FFI.query = intoParam $ customFields ec,
-      FFI.experimentation = toStr <$> (mkExp <$> experiments <*> targetingKey ec)
+      FFI.experimentation = toStr <$> (mkExp <$> experiments <*> targetingKey ec),
+      FFI.prefixFilter = prefix
     }
   where
     toStr :: (ToJSON a) => a -> String
@@ -92,36 +95,43 @@ mkResolveParams ec config experiments =
           ("experiments", toJSON exs)
         ]
 
+evalConfig ::
+    SuperpositionProvider ->
+    EvaluationContext ->
+    Maybe String ->
+    IO (Either EvaluationError Value)
+evalConfig provider context prefix = do
+  config <- getTaskOutput (configRefreshTask provider)
+  exs <- mapM getTaskOutput (expRefreshTask provider)
+  let params = mkResolveParams context <$> config <*> Just (join exs) <*> Just prefix
+  rcfg <- mapM FFI.getResolvedConfig params
+  pure $ case rcfg of
+    Nothing -> Left $ EvaluationError ProviderNotReady (Just "No config available to resolve.")
+    Just (Left e) -> Left $ EvaluationError (General "FFI_ERROR") (Just $ "ffi: " <> fromString e)
+    Just (Right cfgStr) ->
+      case eitherDecode (fromString cfgStr) of
+        Left e -> Left $ EvaluationError ParseError (Just $ fromString e)
+        Right obj -> Right obj
+  where
+    getTaskOutput (DynRefreshTask t) = getCurrent t
+
 getResolvedKey ::
   (FromJSON a) =>
   SuperpositionProvider ->
   Text ->
   EvaluationContext ->
   IO (Either EvaluationError a)
-getResolvedKey SuperpositionProvider {..} key ec = do
-  config <- getTaskOutput configRefreshTask
-  exs <- mapM getTaskOutput expRefreshTask
-  runLogger $
-    when (isJust exs && isNothing (targetingKey ec)) $
-      Log.logWarn "Targeting key missing, experimentation will not have any effect."
-  let params = mkResolveParams ec <$> config <*> Just (join exs)
-  rcfg <- mapM FFI.getResolvedConfig params
-  let parser = withObject "ResolvedConfig" (.:? (fromString $ T.unpack key))
-      result =
-        -- Converting to an `Either` for convienence.
-        join (maybe (Left "") Right rcfg)
-          >>= (eitherDecode @Object . fromString)
-          >>= parseEither parser . toJSON
-  pure $ case (rcfg, result) of
-    -- Have to match these first, otherwise might report an error in-correclty.
-    (Nothing, _) -> Left $ EvaluationError ProviderNotReady (Just "No config available to resolve.")
-    (Just (Left e), _) -> Left $ EvaluationError (General "FFI_ERROR") (Just $ "ffi: " <> fromString e)
-    -- Technically a parse error....
-    (_, Left e) -> Left $ EvaluationError ParseError (Just $ fromString e)
-    (_, Right Nothing) -> Left $ EvaluationError FlagNotFound (Just $ "Key not found: " <> key)
-    (_, Right (Just v)) -> Right v
-  where
-    getTaskOutput (DynRefreshTask t) = getCurrent t
+getResolvedKey provider@SuperpositionProvider {..} key ec = do
+  rcfg <- evalConfig provider ec Nothing
+  pure $ case rcfg of
+    Left e -> Left e
+    Right rcfg -> do
+        let parser = withObject "ResolvedConfig" (.:? (fromString $ T.unpack key))
+            result =  parseEither parser rcfg
+        case result of
+            Left e -> Left $ EvaluationError ParseError (Just $ fromString e)
+            Right Nothing -> Left $ EvaluationError FlagNotFound (Just $ "Key not found: " <> key)
+            Right (Just v) -> Right v
 
 resolveValue ::
   (FromJSON a) =>
@@ -139,6 +149,13 @@ resolveValue p@(SuperpositionProvider {..}) key ec = do
       let lctx = ["key" Log..= key, "error" Log..= e]
       runLogger $ Log.logError ("An error occured while resolving a key." Log.:# lctx)
       pure $ Left $ e
+
+resolveFullConfig ::
+      SuperpositionProvider ->
+      EvaluationContext ->
+      Maybe String ->
+      IO (Either EvaluationError Value)
+resolveFullConfig = evalConfig
 
 instance FeatureProvider SuperpositionProvider where
   getMetadata _ =  ProviderMetadata "SuperpositionProvider"
