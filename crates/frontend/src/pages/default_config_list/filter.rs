@@ -1,6 +1,7 @@
 use std::{fmt::Display, str::FromStr};
 
 use leptos::*;
+use serde_json::Value;
 use superposition_types::{
     api::default_config::DefaultConfigFilters,
     custom_query::{CommaSeparatedQParams, PaginationParams},
@@ -8,7 +9,7 @@ use superposition_types::{
 use web_sys::MouseEvent;
 
 use crate::components::{
-    badge::GrayPill,
+    badge::{GrayPill, ListPills},
     button::{Button, ButtonStyle},
     drawer::{Drawer, DrawerBtn, close_drawer},
     form::label::Label,
@@ -70,21 +71,15 @@ pub(super) fn FilterSummary(
                     )
                 }>
                     {move || {
-                        filters_rws
-                            .with(|f| f.name.clone())
-                            .map(|name| {
-                                view! {
-                                    <div class="flex gap-2 items-center">
-                                        <span class="text-xs">"Prefix"</span>
-                                        <GrayPill
-                                            data=name
-                                            on_delete=move |_: String| {
-                                                filters_rws.update(|f| f.name = None);
-                                            }
-                                        />
-                                    </div>
+                        view! {
+                            <ListPills
+                                label="Config key"
+                                items=filters_rws.with(|f| f.name.clone().unwrap_or_default()).0
+                                on_delete=move |idx| {
+                                    filters_rws.update(|f| f.name = filter_index(&f.name, idx))
                                 }
-                            })
+                            />
+                        }
                     }}
                 </div>
             </div>
@@ -114,23 +109,39 @@ pub(super) fn DefaultConfigFilterWidget(
         >
             <div class="flex flex-col gap-5">
                 <div class="form-control">
-                    <Label title="Configuration Prefix" />
+                    <div class="flex items-center gap-2">
+                        <Label
+                            title="Config key"
+                            info="(any of)"
+                            description="Separate each ID by a comma"
+                        />
+                        {prefix
+                            .as_ref()
+                            .map(|p| {
+                                view! {
+                                    <GrayPill
+                                        data=p
+                                        deletable=false
+                                        on_delete=Callback::new(|_: String| {})
+                                        icon_class="ri-map-pin-2-fill"
+                                    />
+                                }
+                            })}
+                    </div>
                     <input
                         type="text"
                         id="default-config-name-filter"
-                        placeholder="eg: city"
                         class="input input-bordered rounded-md resize-y w-full max-w-md"
-                        value=if prefix.is_some()
-                            && filters_buffer_rws.get_untracked().name.is_none()
-                        {
-                            prefix
-                        } else {
-                            filters_buffer_rws.get_untracked().name
+                        placeholder="eg: key1"
+                        value=move || {
+                            filters_buffer_rws.with(|f| f.name.clone().map(|d| d.to_string()))
                         }
                         on:change=move |event| {
-                            let key_name = event_target_value(&event);
-                            let key_name = if key_name.is_empty() { None } else { Some(key_name) };
-                            filters_buffer_rws.update(|f| f.name = key_name);
+                            let key_names = event_target_value(&event);
+                            let key_names = (!key_names.is_empty())
+                                .then(|| serde_json::from_value(Value::String(key_names)).ok())
+                                .flatten();
+                            filters_buffer_rws.update(|filter| filter.name = key_names);
                         }
                     />
                 </div>

@@ -5,7 +5,7 @@ use superposition_types::{
     api::{
         config::{ConfigQuery, ResolveConfigQuery},
         context::ContextListFilters,
-        default_config::DefaultConfigFilters,
+        default_config::{DefaultConfigFilters, ListDefaultConfigResponse},
         dimension::DimensionResponse,
         experiment_groups::{
             ExpGroupCreateRequest, ExpGroupFilters, ExpGroupMemberRequest,
@@ -27,8 +27,10 @@ use superposition_types::{
         ChangeReason, Description, Metrics, NonEmptyString, WorkspaceStatus,
         cac::{Context, DefaultConfig, Function, TypeTemplate},
         experimentation::ExperimentGroup,
-        others::{CustomHeaders, HttpMethod, PayloadVersion, Webhook, WebhookEvent},
-        others::{Variable, VariableName},
+        others::{
+            CustomHeaders, HttpMethod, PayloadVersion, Variable, VariableName, Webhook,
+            WebhookEvent,
+        },
     },
 };
 
@@ -60,6 +62,47 @@ pub async fn fetch_default_config(
     .await?;
 
     parse_json_response(response).await
+}
+
+pub async fn fetch_grouped_default_config(
+    pagination: &PaginationParams,
+    filters: DefaultConfigFilters,
+    workspace: &str,
+    org_id: &str,
+) -> Result<PaginatedResponse<ListDefaultConfigResponse>, String> {
+    let grouped = filters.grouped.unwrap_or_default();
+    let host = use_host_server();
+    let url = format!(
+        "{}/default-config?{}&{}",
+        host,
+        pagination.to_query_param(),
+        filters.to_query_param()
+    );
+
+    let response = request(
+        url,
+        reqwest::Method::GET,
+        None::<()>,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
+    )
+    .await?;
+
+    if grouped {
+        parse_json_response(response).await
+    } else {
+        let default_configs: PaginatedResponse<DefaultConfig> =
+            parse_json_response(response).await?;
+
+        Ok(PaginatedResponse {
+            total_pages: default_configs.total_pages,
+            total_items: default_configs.total_items,
+            data: default_configs
+                .data
+                .into_iter()
+                .map(ListDefaultConfigResponse::Config)
+                .collect(),
+        })
+    }
 }
 
 pub mod snapshots {

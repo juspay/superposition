@@ -1,11 +1,16 @@
+use std::{
+    cmp::{Ordering, min},
+    collections::{HashMap, HashSet},
+};
+
 use actix_web::{
-    HttpResponse, Scope, delete, get, post, routes,
+    Either, HttpResponse, Scope, delete, get, post, routes,
     web::{Data, Json, Path, Query},
 };
 use chrono::Utc;
 use diesel::{
-    Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
-    TextExpressionMethods,
+    Connection, ExpressionMethods, PgTextExpressionMethods, QueryDsl, RunQueryDsl,
+    SelectableHelper,
 };
 use jsonschema::{Draft, JSONSchema, ValidationError};
 use serde_json::Value;
@@ -21,11 +26,11 @@ use superposition_macros::{
     bad_argument, db_error, not_found, unexpected_error, validation_error,
 };
 use superposition_types::{
-    DBConnection, PaginatedResponse, User,
+    DBConnection, PaginatedResponse, SortBy, User,
     api::{
         default_config::{
             DefaultConfigCreateRequest, DefaultConfigFilters, DefaultConfigKey,
-            DefaultConfigUpdateRequest,
+            DefaultConfigUpdateRequest, ListDefaultConfigResponse, SortOn,
         },
         functions::{FunctionEnvironment, FunctionExecutionRequest, KeyType},
     },
@@ -45,6 +50,9 @@ use crate::helpers::put_config_in_redis;
 use crate::{
     api::{
         context::helpers::validation_function_executor,
+        default_config::helpers::{
+            InternalStructure, get_from_unflattened_map, unflatten_map,
+        },
         functions::{
             helpers::{check_fn_published, get_published_function_code},
             types::FunctionInfo,
@@ -378,6 +386,120 @@ fn fetch_default_key(
     Ok(res)
 }
 
+fn list_grouped_configs(
+    schema_name: &SchemaName,
+    conn: &mut DBConnection,
+    filters: &DefaultConfigFilters,
+    offset: i64,
+    count: i64,
+    show_all: bool,
+) -> superposition::Result<PaginatedResponse<ListDefaultConfigResponse>> {
+    let configs = dsl::default_configs
+        .schema_name(schema_name)
+        .get_results::<DefaultConfig>(conn)?;
+
+    let unflattened_config_map = unflatten_map(configs)
+        .map_err(|e| unexpected_error!("Failed to group configs: {}", e))?;
+
+    let prefix = filters.prefix.clone().unwrap_or_default();
+    let prefix_filtered = get_from_unflattened_map(unflattened_config_map, &prefix);
+
+    let name_filtered = match (prefix_filtered, filters.name.as_ref()) {
+        (Some(filtered), Some(name_filters)) => {
+            let name_set = name_filters.iter().cloned().collect::<HashSet<_>>();
+            let filtered_sub_keys = filtered
+                .sub_keys
+                .into_iter()
+                .filter(|(k, _)| name_set.contains(k))
+                .collect::<HashMap<String, InternalStructure>>();
+
+            Some(InternalStructure {
+                value: filtered.value,
+                sub_keys: filtered_sub_keys,
+            })
+        }
+        (Some(filtered), None) => Some(filtered),
+        (None, _) => None,
+    };
+
+    let mut data = name_filtered
+        .map(|v| {
+            v.sub_keys
+                .into_iter()
+                .map(|(k, v)| {
+                    let mut data = vec![];
+                    if let Some(config) = v.value {
+                        data.push(ListDefaultConfigResponse::Config(config));
+                    }
+                    if v.sub_keys.len() > 0 {
+                        data.push(ListDefaultConfigResponse::Group(k));
+                    }
+                    data
+                })
+                .flatten()
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
+
+    let sort_on = filters.sort_on.unwrap_or_default();
+    let sort_by = filters.sort_by.unwrap_or_default();
+
+    let apply_order = |ord: Ordering| match sort_by {
+        SortBy::Asc => ord,
+        SortBy::Desc => ord.reverse(),
+    };
+
+    data.sort_by(|a, b| -> Ordering {
+        match (a, b) {
+            (
+                ListDefaultConfigResponse::Group(a_key),
+                ListDefaultConfigResponse::Group(b_key),
+            ) => apply_order(a_key.cmp(b_key)),
+            (
+                ListDefaultConfigResponse::Config(a_config),
+                ListDefaultConfigResponse::Config(b_config),
+            ) => {
+                let ord = match sort_on {
+                    SortOn::Key => a_config.key.cmp(&b_config.key),
+                    SortOn::CreatedAt => a_config.created_at.cmp(&b_config.created_at),
+                    SortOn::LastModifiedAt => {
+                        a_config.last_modified_at.cmp(&b_config.last_modified_at)
+                    }
+                };
+                apply_order(ord)
+            }
+            (
+                ListDefaultConfigResponse::Group(_),
+                ListDefaultConfigResponse::Config(_),
+            ) => Ordering::Less,
+            (
+                ListDefaultConfigResponse::Config(_),
+                ListDefaultConfigResponse::Group(_),
+            ) => Ordering::Greater,
+        }
+    });
+
+    let resp = if show_all {
+        PaginatedResponse::all(data)
+    } else {
+        let total_items = data.len();
+        let start = offset as usize;
+        let end = min((offset + count) as usize, total_items);
+        let data = data
+            .get(start..end)
+            .map(|slice| slice.to_vec())
+            .unwrap_or_default();
+
+        PaginatedResponse {
+            total_pages: (total_items as f64 / count as f64).ceil() as i64,
+            total_items: total_items as i64,
+            data,
+        }
+    };
+
+    Ok(resp)
+}
+
 #[authorized]
 #[get("")]
 async fn list_handler(
@@ -385,45 +507,90 @@ async fn list_handler(
     db_conn: DbConnection,
     pagination: Query<PaginationParams>,
     filters: Query<DefaultConfigFilters>,
-) -> superposition::Result<Json<PaginatedResponse<DefaultConfig>>> {
+) -> superposition::Result<
+    Either<
+        Json<PaginatedResponse<DefaultConfig>>,
+        Json<PaginatedResponse<ListDefaultConfigResponse>>,
+    >,
+> {
     let DbConnection(mut conn) = db_conn;
 
     let filters = filters.into_inner();
+
+    let page = pagination.page.unwrap_or(1);
+    let count = pagination.count.unwrap_or(10);
+    let show_all = pagination.all.unwrap_or_default();
+    let offset = count * (page - 1);
+
+    let grouped_config = filters.search.is_none()
+        && (filters.grouped.unwrap_or_default() || filters.prefix.is_some());
+
+    if grouped_config {
+        let resp = list_grouped_configs(
+            &workspace_context.schema_name,
+            &mut conn,
+            &filters,
+            offset,
+            count,
+            show_all,
+        )?;
+        return Ok(Either::Right(Json(resp)));
+    }
 
     let query_builder = |filters: &DefaultConfigFilters| {
         let mut builder = dsl::default_configs
             .schema_name(&workspace_context.schema_name)
             .into_boxed();
-        if let Some(ref config_name) = filters.name {
-            builder = builder
-                .filter(schema::default_configs::key.like(format!["%{}%", config_name]));
+        if let Some(ref config_names) = filters.name {
+            builder = builder.filter(dsl::key.eq_any(config_names.0.clone()));
+        } else if let Some(ref search) = filters.search {
+            let pattern = format!("%{}%", search);
+            builder = builder.filter(dsl::key.ilike(pattern));
         }
+
         builder
     };
 
-    if let Some(true) = pagination.all {
-        let result: Vec<DefaultConfig> =
-            query_builder(&filters).get_results(&mut conn)?;
-        return Ok(Json(PaginatedResponse::all(result)));
+    let sort_on = filters.sort_on.clone().unwrap_or_default();
+    let sort_by = filters.sort_by.clone().unwrap_or_default();
+
+    let base_query = match (sort_on, sort_by) {
+        (SortOn::Key, SortBy::Asc) => query_builder(&filters).order(dsl::key.asc()),
+        (SortOn::Key, SortBy::Desc) => query_builder(&filters).order(dsl::key.desc()),
+        (SortOn::CreatedAt, SortBy::Asc) => {
+            query_builder(&filters).order(dsl::created_at.asc())
+        }
+        (SortOn::CreatedAt, SortBy::Desc) => {
+            query_builder(&filters).order(dsl::created_at.desc())
+        }
+        (SortOn::LastModifiedAt, SortBy::Asc) => {
+            query_builder(&filters).order(dsl::last_modified_at.asc())
+        }
+        (SortOn::LastModifiedAt, SortBy::Desc) => {
+            query_builder(&filters).order(dsl::last_modified_at.desc())
+        }
+    };
+
+    if show_all {
+        let result = base_query.get_results::<DefaultConfig>(&mut conn)?;
+        return Ok(Either::Left(Json(PaginatedResponse::all(result))));
     }
 
-    let base_query = query_builder(&filters);
     let count_query = query_builder(&filters);
 
     let n_default_configs: i64 = count_query.count().get_result(&mut conn)?;
-    let limit = pagination.count.unwrap_or(10);
-    let mut builder = base_query.order(dsl::created_at.desc()).limit(limit);
-    if let Some(page) = pagination.page {
-        let offset = (page - 1) * limit;
-        builder = builder.offset(offset);
-    }
-    let result: Vec<DefaultConfig> = builder.load(&mut conn)?;
-    let total_pages = (n_default_configs as f64 / limit as f64).ceil() as i64;
-    Ok(Json(PaginatedResponse {
+    let result = base_query
+        .limit(count)
+        .offset(offset)
+        .load::<DefaultConfig>(&mut conn)?;
+
+    let total_pages = (n_default_configs as f64 / count as f64).ceil() as i64;
+
+    Ok(Either::Left(Json(PaginatedResponse {
         total_pages,
         total_items: n_default_configs,
         data: result,
-    }))
+    })))
 }
 
 pub fn get_key_usage_context_ids(

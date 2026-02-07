@@ -148,9 +148,9 @@ fn use_query_string() -> Memo<String> {
     })
 }
 
-/// meant for single valued query params only
-pub fn use_update_url_query() -> impl Fn(&str, Option<String>) -> String {
-    |param: &str, value: Option<String>| {
+/// meant for updating values of single valued query params only
+pub fn use_update_url_query() -> impl Fn(&[(&str, Option<String>)]) -> String {
+    |input: &[(&str, Option<String>)]| {
         let mut params = use_location()
             .search
             .get_untracked()
@@ -158,20 +158,22 @@ pub fn use_update_url_query() -> impl Fn(&str, Option<String>) -> String {
             .map(String::from)
             .collect::<Vec<_>>();
 
-        if let Some(value) = value {
-            let mut found = false;
-            for p in params.iter_mut() {
-                if p.starts_with(&format!("{param}=")) {
-                    *p = format!("{param}={value}");
-                    found = true;
-                    break;
+        for (param, value) in input {
+            if let Some(value) = value {
+                let mut found = false;
+                for p in params.iter_mut() {
+                    if p.starts_with(&format!("{param}=")) {
+                        *p = format!("{param}={value}");
+                        found = true;
+                        break;
+                    }
                 }
+                if !found {
+                    params.push(format!("{param}={value}"));
+                }
+            } else {
+                params.retain(|p| !p.starts_with(&format!("{param}=")));
             }
-            if !found {
-                params.push(format!("{param}={value}"));
-            }
-        } else {
-            params.retain(|p| !p.starts_with(&format!("{param}=")));
         }
 
         format!("?{}", params.join("&"))
