@@ -148,10 +148,10 @@ pub unsafe extern "C" fn core_get_resolved_config(
         let identifier = e_args.targeting_key;
 
         match get_applicable_variants(
-            &dimensions,
+            dimensions.clone(),
             e_args.experiments,
             &e_args.experiment_groups,
-            &query_data,
+            query_data.clone(),
             &identifier,
             filter_prefixes.clone(),
         ) {
@@ -168,10 +168,10 @@ pub unsafe extern "C" fn core_get_resolved_config(
     // Call pure config resolution logic
     match config::eval_config(
         default_config,
-        &contexts,
-        &overrides,
-        &dimensions,
-        &query_data,
+        contexts,
+        overrides,
+        dimensions,
+        query_data,
         merge_strategy,
         filter_prefixes,
     ) {
@@ -298,10 +298,10 @@ pub unsafe extern "C" fn core_get_resolved_config_with_reasoning(
         let identifier = e_args.targeting_key;
 
         match get_applicable_variants(
-            &dimensions,
+            dimensions.clone(),
             e_args.experiments,
             &e_args.experiment_groups,
-            &query_data,
+            query_data.clone(),
             &identifier,
             filter_prefixes.clone(),
         ) {
@@ -318,10 +318,10 @@ pub unsafe extern "C" fn core_get_resolved_config_with_reasoning(
     // Call config resolution with reasoning
     match config::eval_config_with_reasoning(
         default_config,
-        &contexts,
-        &overrides,
-        &dimensions,
-        &query_data,
+        contexts,
+        overrides,
+        dimensions,
+        query_data,
         merge_strategy,
         filter_prefixes,
     ) {
@@ -432,10 +432,10 @@ pub unsafe extern "C" fn core_get_applicable_variants(
 
     // Call the experimentation logic
     match get_applicable_variants(
-        &dimensions,
+        dimensions,
         experiments,
         &experiment_groups,
-        &query_data,
+        query_data,
         &identifier,
         filter_prefixes,
     ) {

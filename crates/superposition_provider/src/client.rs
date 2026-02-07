@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use log::{debug, error, info, warn};
-use serde_json::Value;
+use serde_json::{Map, Value};
 use superposition_core::experiment::ExperimentGroups;
 use superposition_core::{
     eval_config, get_applicable_variants, Experiments, MergeStrategy,
@@ -25,7 +25,7 @@ pub use open_feature::{
 pub struct CacConfig {
     superposition_options: SuperpositionOptions,
     options: ConfigurationOptions,
-    fallback_config: Option<serde_json::Map<String, Value>>,
+    fallback_config: Option<Map<String, Value>>,
     cached_config: Arc<RwLock<Option<Config>>>,
     last_updated: Arc<RwLock<Option<chrono::DateTime<chrono::Utc>>>>,
     evaluation_cache: RwLock<HashMap<String, HashMap<String, Value>>>,
@@ -216,18 +216,18 @@ impl CacConfig {
     /// Evaluate configuration for given context and return resolved values
     pub async fn evaluate_config(
         &self,
-        query_data: &serde_json::Map<String, Value>,
+        query_data: Map<String, Value>,
         prefix_filter: Option<&[String]>,
-    ) -> Result<serde_json::Map<String, Value>> {
+    ) -> Result<Map<String, Value>> {
         let cached_config = self.cached_config.read().await;
-        match cached_config.as_ref() {
+        match cached_config.to_owned() {
             Some(cached_config) => {
                 // Use ConversionUtils to evaluate config
                 eval_config(
                     cached_config.default_configs.clone(),
-                    &cached_config.contexts,
-                    &cached_config.overrides,
-                    &cached_config.dimensions,
+                    cached_config.contexts,
+                    cached_config.overrides,
+                    cached_config.dimensions,
                     query_data,
                     MergeStrategy::MERGE,
                     prefix_filter.map(|p| p.to_vec()),
@@ -566,8 +566,8 @@ impl ExperimentationConfig {
 
     pub async fn get_applicable_variants(
         &self,
-        dimensions_info: &HashMap<String, DimensionInfo>,
-        contexts: &serde_json::Map<String, Value>,
+        dimensions_info: HashMap<String, DimensionInfo>,
+        contexts: Map<String, Value>,
         identifier: Option<String>,
     ) -> Result<Vec<String>> {
         let cached_experiments = self.cached_experiments.read().await;

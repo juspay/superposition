@@ -46,8 +46,8 @@ async fn get_variants(
     });
     let variant = state
         .get_applicable_variant(
-            &HashMap::new(),
-            &contexts.as_object().cloned().unwrap_or_default(),
+            HashMap::new(),
+            contexts.as_object().cloned().unwrap_or_default(),
             &identifier,
             None,
         )

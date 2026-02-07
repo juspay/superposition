@@ -165,13 +165,12 @@ impl Client {
             config = config.filter_by_prefix(&HashSet::from_iter(prefix_list));
         }
 
-        let dimension_filtered_config = query_data
-            .filter(|query_map| !query_map.is_empty())
-            .map(|query_map| config.filter_by_dimensions(&query_map));
-
-        if let Some(filtered_config) = dimension_filtered_config {
-            config = filtered_config;
-        };
+        match query_data {
+            Some(query_map) if !query_map.is_empty() => {
+                config = config.filter_by_dimensions(query_map);
+            }
+            _ => (),
+        }
 
         Ok(config)
     }
@@ -204,7 +203,7 @@ impl Client {
             if let Some(keys) = filter_keys {
                 config = config.filter_by_prefix(&HashSet::from_iter(keys));
             }
-            let evaled_cac = eval::eval_cac(&config, &query_data, merge_strategy)?;
+            let evaled_cac = eval::eval_cac(config, query_data, merge_strategy)?;
             self.config_cache.insert(hash_key, evaled_cac.clone());
             Ok(evaled_cac)
         }

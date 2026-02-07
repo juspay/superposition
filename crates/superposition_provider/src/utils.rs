@@ -621,8 +621,8 @@ impl ConversionUtils {
 
     /// Evaluate config using superposition_types logic and return resolved values
     pub fn evaluate_config(
-        config: &Config,
-        dimension_data: &Map<String, Value>,
+        config: Config,
+        dimension_data: Map<String, Value>,
         prefix_filter: Option<&[String]>,
     ) -> Result<HashMap<String, Value>> {
         debug!(
