@@ -385,7 +385,7 @@ uniffi-bindings:
 	git apply uniffi/patches/*.patch
 
 provider-template: setup superposition
-	$(MAKE) run &
+	@$(CARGO_TARGET_DIR)/debug/superposition &
 	@echo "Awaiting superposition boot..."
 	@curl	--silent --retry 10 \
 				--connect-timeout 2 \
