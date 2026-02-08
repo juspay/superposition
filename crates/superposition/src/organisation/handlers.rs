@@ -1,11 +1,11 @@
 use actix_web::{
     Scope, get, post, routes,
-    web::{Json, Path, Query},
+    web::{Data, Json, Path, Query},
 };
 use chrono::Utc;
 use diesel::prelude::*;
 use idgenerator::IdInstance;
-use service_utils::service::types::DbConnection;
+use service_utils::{run_query, service::types::AppState};
 use superposition_derives::authorized;
 use superposition_types::{
     PaginatedResponse, User,
@@ -32,11 +32,9 @@ pub fn endpoints() -> Scope {
 #[post("")]
 pub async fn create_handler(
     request: Json<CreateRequest>,
-    db_conn: DbConnection,
+    state: Data<AppState>,
     user: User,
 ) -> superposition::Result<Json<Organisation>> {
-    let DbConnection(mut conn) = db_conn;
-
     // Generating a numeric ID from IdInstance and prefixing it with `orgid`
     let numeric_id = IdInstance::next_id();
     let org_id = format!("orgid{}", numeric_id);
@@ -58,9 +56,11 @@ pub async fn create_handler(
         updated_by: user.get_username(),
     };
 
-    let new_org = diesel::insert_into(organisations::table)
-        .values(&new_org)
-        .get_result(&mut conn)?;
+    let new_org = run_query!(state.db_pool, |conn| {
+        diesel::insert_into(organisations::table)
+            .values(&new_org)
+            .get_result(conn)
+    })?;
 
     Ok(Json(new_org))
 }
@@ -72,18 +72,19 @@ pub async fn create_handler(
 pub async fn update_handler(
     org_id: Path<String>,
     request: Json<UpdateRequest>,
-    db_conn: DbConnection,
+    state: Data<AppState>,
     user: User,
 ) -> superposition::Result<Json<Organisation>> {
-    let DbConnection(mut conn) = db_conn;
     let org_id = org_id.into_inner();
     let now = Utc::now();
     let req = request.into_inner();
 
-    let updated_org = diesel::update(organisations::table)
-        .filter(organisations::id.eq(org_id))
-        .set((req, updated_at.eq(now), updated_by.eq(user.get_email())))
-        .get_result(&mut conn)?;
+    let updated_org = run_query!(state.db_pool, |conn| {
+        diesel::update(organisations::table)
+            .filter(organisations::id.eq(org_id))
+            .set((req, updated_at.eq(now), updated_by.eq(user.get_email())))
+            .get_result(conn)
+    })?;
 
     Ok(Json(updated_org))
 }
@@ -92,13 +93,13 @@ pub async fn update_handler(
 #[get("/{org_id}")]
 pub async fn get_handler(
     org_id: Path<String>,
-    db_conn: DbConnection,
+    state: Data<AppState>,
 ) -> superposition::Result<Json<Organisation>> {
-    let DbConnection(mut conn) = db_conn;
-
-    let org = organisations::table
-        .find(org_id.as_str())
-        .first::<Organisation>(&mut conn)?;
+    let org = run_query!(state.db_pool, |conn| {
+        organisations::table
+            .find(org_id.as_str())
+            .first::<Organisation>(conn)
+    })?;
 
     Ok(Json(org))
 }
@@ -106,21 +107,23 @@ pub async fn get_handler(
 #[authorized]
 #[get("")]
 pub async fn list_handler(
-    db_conn: DbConnection,
+    state: Data<AppState>,
     filters: Query<PaginationParams>,
 ) -> superposition::Result<Json<PaginatedResponse<Organisation>>> {
-    let DbConnection(mut conn) = db_conn;
-
     if let Some(true) = filters.all {
-        let result: Vec<Organisation> = organisations::table
-            .order(organisations::created_at.desc())
-            .get_results(&mut conn)?;
+        let result = run_query!(state.db_pool, |conn| {
+            organisations::table
+                .order(organisations::created_at.desc())
+                .get_results(conn)
+        })?;
 
         return Ok(Json(PaginatedResponse::all(result)));
     }
 
     // Get total count of organisations
-    let total_items: i64 = organisations::table.count().get_result(&mut conn)?;
+    let total_items = run_query!(state.db_pool, |conn| organisations::table
+        .count()
+        .get_result(conn))?;
 
     // Set up pagination
     let limit = filters.count.unwrap_or(10);
@@ -136,7 +139,7 @@ pub async fn list_handler(
     }
 
     // Get paginated results
-    let data: Vec<Organisation> = builder.load(&mut conn)?;
+    let data = run_query!(state.db_pool, |conn| builder.load(conn))?;
 
     let total_pages = (total_items as f64 / limit as f64).ceil() as i64;
 

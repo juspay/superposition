@@ -1,24 +1,23 @@
+use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
+use service_utils::{db::PgSchemaConnectionPool, run_query};
 use superposition_macros::bad_argument;
 use superposition_types::{
-    database::models::others::{Webhook, WebhookEvent},
+    database::{
+        models::others::{Webhook, WebhookEvent},
+        schema::webhooks::{self, dsl},
+    },
     result as superposition,
 };
-
-use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
-use diesel::{
-    PgConnection,
-    r2d2::{ConnectionManager, PooledConnection},
-};
-use superposition_types::database::schema::webhooks::{self, dsl};
 
 pub fn validate_events(
     events: &[WebhookEvent],
     exclude_webhook: Option<&String>,
     schema_name: &String,
-    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    db_pool: &PgSchemaConnectionPool,
 ) -> superposition::Result<()> {
-    let result: Vec<Webhook> =
-        dsl::webhooks.schema_name(schema_name).get_results(conn)?;
+    let result: Vec<Webhook> = run_query!(db_pool, |conn| dsl::webhooks
+        .schema_name(schema_name)
+        .get_results(conn))?;
     for webhook in result {
         if exclude_webhook == Some(&webhook.name) {
             continue;
@@ -35,10 +34,10 @@ pub fn validate_events(
 pub fn fetch_webhook(
     w_name: &String,
     schema_name: &String,
-    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    db_pool: &PgSchemaConnectionPool,
 ) -> superposition::Result<Webhook> {
-    Ok(dsl::webhooks
+    run_query!(db_pool, |conn| dsl::webhooks
         .filter(webhooks::name.eq(w_name))
         .schema_name(schema_name)
-        .get_result::<Webhook>(conn)?)
+        .get_result::<Webhook>(conn))
 }
