@@ -1,6 +1,6 @@
 use actix_web::{HttpRequest, web::Data};
 use diesel::{
-    Connection, ExpressionMethods, RunQueryDsl,
+    ExpressionMethods, RunQueryDsl,
     query_dsl::methods::{OrderDsl, SelectDsl},
 };
 use superposition_types::database::superposition_schema::superposition::organisations;
@@ -20,9 +20,6 @@ pub(super) fn fetch_org_ids_from_db(
 
     match app_state.db_pool.get() {
         Ok(mut conn) => {
-            conn.set_prepared_statement_cache_size(
-                diesel::connection::CacheSize::Disabled,
-            );
             let orgs = organisations::table
                 .order(organisations::created_at.desc())
                 .select(organisations::id)
