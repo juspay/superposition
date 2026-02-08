@@ -61,6 +61,7 @@ export class ExperimentationClient {
         this.smithyClient = new SuperpositionClient({
             endpoint: superpositionOptions.endpoint,
             token: { token: superpositionOptions.token },
+            requestHandler: superpositionOptions.httpClient,
         });
     }
 

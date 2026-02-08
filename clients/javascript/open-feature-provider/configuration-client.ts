@@ -70,6 +70,7 @@ export class ConfigurationClient {
         this.smithyClient = new SuperpositionClient({
             endpoint: this.config.endpoint,
             token: { token: this.config.token },
+            requestHandler: this.config.httpClient,
         });
     }
 
