@@ -2,6 +2,33 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.98.0 - 2026-02-09
+### Package updates
+- service_utils bumped to service_utils-v0.37.0
+- experimentation_platform bumped to experimentation_platform-v0.48.0
+- superposition_sdk bumped to superposition_sdk-v0.13.0
+- frontend bumped to frontend-v0.49.0
+- haskell_client bumped to haskell_client-v0.12.0
+- context_aware_config bumped to context_aware_config-v0.68.0
+- superposition_types bumped to superposition_types-v0.39.0
+### Global changes
+#### Bug Fixes
+- **(UI)** Minor enchancements and sercets related fixes (#854) - (96fdcc7) - Ayush Jain
+- smithy and minor refactor (#862) - (fd427fe) - Ayush Jain
+- support passing httpClient to smithy based sdk (#870) - (d445df6) - Natarajan Kannan
+#### Features
+- secrets support for functions/webhooks (#773) - (2d99a0a) - sauraww
+- better logging for API services (#842) - (453b3fa) - Datron
+#### Miscellaneous Chores
+- **(deps)** bump time from 0.3.37 to 0.3.47 (#865) - (0552c0b) - dependabot[bot]
+- **(deps)** bump bytes in /examples/k8s-staggered-releaser (#860) - (58ca4e9) - dependabot[bot]
+- **(deps)** bump webpack from 5.101.3 to 5.105.0 in /docs (#869) - (bd44d60) - dependabot[bot]
+- **(version)** v0.97.4 [skip ci] - (5e642fb) - Superposition Bot
+#### Refactoring
+- **(frontend)** Convert all Leptos component function names to PascalCase (#822) - (8e5abf5) - Natarajan Kannan
+
+- - -
+
 ## v0.97.4 - 2026-01-30
 ### Package updates
 - context_aware_config bumped to context_aware_config-v0.67.4

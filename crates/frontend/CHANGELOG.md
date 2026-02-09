@@ -2,6 +2,22 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.49.0 - 2026-02-09
+#### Bug Fixes
+- **(UI)** move secrets related admin actions behind param (#863) - (91104d6) - Ayush Jain
+- **(UI)** Minor enchancements and sercets related fixes (#854) - (96fdcc7) - Ayush Jain
+- smithy and minor refactor (#862) - (fd427fe) - Ayush Jain
+#### Build system
+- setup msrv and edition consistently in all Cargo.toml (#706) - (8c6e51a) - Natarajan Kannan
+#### Features
+- secrets support for functions/webhooks (#773) - (2d99a0a) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.97.1 [skip ci] - (578b46e) - Superposition Bot
+#### Refactoring
+- **(frontend)** Convert all Leptos component function names to PascalCase (#822) - (8e5abf5) - Natarajan Kannan
+
+- - -
+
 ## frontend-v0.48.1 - 2026-01-21
 #### Bug Fixes
 - **(UI)** Cohort enum update behaviour (#836) - (f7da361) - Ayush Jain

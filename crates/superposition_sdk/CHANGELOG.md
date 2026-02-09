@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_sdk-v0.13.0 - 2026-02-09
+#### Bug Fixes
+- smithy and minor refactor (#862) - (fd427fe) - Ayush Jain
+#### Build system
+- setup msrv and edition consistently in all Cargo.toml (#706) - (8c6e51a) - Natarajan Kannan
+#### Features
+- secrets support for functions/webhooks (#773) - (2d99a0a) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.96.0 [skip ci] - (e0ea254) - Superposition Bot
+- deprecate jsonlogic context (#827) - (1236863) - Ayush Jain
+
+- - -
+
 ## superposition_sdk-v0.12.0 - 2025-12-27
 #### Bug Fixes
 - Function payload structure (#804) - (b22c28f) - Ankit Kumar Mahato
