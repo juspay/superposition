@@ -1,23 +1,19 @@
 use std::collections::HashMap;
 
-use actix_http::{header::HeaderValue, StatusCode};
+use actix_http::header::HeaderValue;
 use actix_web::{
-    get,
-    http::header::ContentType,
-    put, routes,
+    HttpRequest, HttpResponse, HttpResponseBuilder, Scope, get, put, routes,
     web::{Data, Header, Json, Path, Query},
-    HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
 };
 use chrono::{DateTime, Timelike, Utc};
-use diesel::{dsl::max, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
+use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper, dsl::max};
 use itertools::Itertools;
-use serde_json::{json, Map, Value};
-#[cfg(feature = "jsonlogic")]
-use service_utils::helpers::extract_dimensions;
+use serde_json::{Map, Value, json};
 use service_utils::{
+    helpers::fetch_dimensions_info_map,
     redis::{
-        fetch_from_redis_else_writeback, AUDIT_ID_KEY_SUFFIX, CONFIG_KEY_SUFFIX,
-        CONFIG_VERSION_KEY_SUFFIX, LAST_MODIFIED_KEY_SUFFIX,
+        AUDIT_ID_KEY_SUFFIX, CONFIG_KEY_SUFFIX, CONFIG_VERSION_KEY_SUFFIX,
+        LAST_MODIFIED_KEY_SUFFIX, fetch_from_redis_else_writeback,
     },
     service::{
         get_db_connection,
@@ -51,7 +47,6 @@ use uuid::Uuid;
 use crate::api::{
     config::helpers::get_config_version,
     context::{self, helpers::query_description},
-    dimension::fetch_dimensions_info_map,
 };
 use crate::helpers::{calculate_context_weight, generate_cac};
 
@@ -764,6 +759,7 @@ async fn resolve_handler(
             &mut conn,
             &query_filters,
             &workspace_context,
+            &state.master_encryption_key,
         )?
     };
 

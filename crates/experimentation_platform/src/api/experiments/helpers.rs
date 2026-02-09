@@ -14,12 +14,14 @@ use fred::{
     types::Expiration,
 };
 use serde_json::{Map, Value};
-use service_utils::service::types::{
-    AppState, ExperimentationFlags, SchemaName, WorkspaceContext,
+use service_utils::{
+    helpers::get_from_env_or_default,
+    redis::EXPERIMENTS_LIST_KEY_SUFFIX,
+    service::types::{AppState, ExperimentationFlags, SchemaName, WorkspaceContext},
 };
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
-    Condition, Config, DBConnection, Exp, Overrides, User,
+    Condition, Config, DBConnection, Exp, Overrides, PaginatedResponse, User,
     api::{
         I64Update,
         config::{ConfigQuery, ResolveConfigQuery},
@@ -42,8 +44,7 @@ use superposition_types::{
         },
         schema::experiments::dsl as experiments,
     },
-    result as superposition, Condition, Config, DBConnection, Exp, Overrides,
-    PaginatedResponse, User,
+    result as superposition,
 };
 
 use crate::api::experiment_groups::helpers::{
@@ -484,9 +485,9 @@ pub async fn fetch_experiments(
                             created_by: experiment.created_by.clone(),
                             last_modified: experiment.last_modified,
                             name: experiment.name.clone(),
-                            experiment_type: experiment.experiment_type.clone(),
+                            experiment_type: experiment.experiment_type,
                             override_keys: experiment.override_keys.clone(),
-                            status: experiment.status.clone(),
+                            status: experiment.status,
                             traffic_percentage: experiment.traffic_percentage,
                             started_at: experiment.started_at,
                             started_by: experiment.started_by.clone(),
