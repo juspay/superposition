@@ -80,6 +80,7 @@ export class SuperpositionProvider implements Provider {
                 token: config.token,
                 org_id: config.org_id,
                 workspace_id: config.workspace_id,
+                httpClient: config.httpClient,
             },
             new NativeResolver(),
             {
