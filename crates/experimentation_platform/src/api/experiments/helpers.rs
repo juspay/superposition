@@ -14,12 +14,14 @@ use fred::{
     types::Expiration,
 };
 use serde_json::{Map, Value};
-use service_utils::service::types::{
-    AppState, ExperimentationFlags, SchemaName, WorkspaceContext,
+use service_utils::{
+    helpers::get_from_env_or_default,
+    redis::EXPERIMENTS_LIST_KEY_SUFFIX,
+    service::types::{AppState, ExperimentationFlags, SchemaName, WorkspaceContext},
 };
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
-    Condition, Config, DBConnection, Exp, Overrides, User,
+    Condition, Config, DBConnection, Exp, Overrides, PaginatedResponse, User,
     api::{
         I64Update,
         config::{ConfigQuery, ResolveConfigQuery},
@@ -41,8 +43,7 @@ use superposition_types::{
         },
         schema::experiments::dsl as experiments,
     },
-    result as superposition, Condition, Config, DBConnection, Exp, Overrides,
-    PaginatedResponse, User,
+    result as superposition,
 };
 
 use crate::api::experiment_groups::helpers::{
@@ -437,6 +438,174 @@ pub async fn fetch_cac_config(
         }
         Err(error) => {
             log::error!("Failed to fetch cac config with error: {:?}", error);
+            Err(unexpected_error!(error))
+        }
+    }
+}
+
+pub async fn fetch_experiments(
+    state: &Data<AppState>,
+    workspace_request: &WorkspaceContext,
+) -> superposition::Result<Vec<Experiment>> {
+    let http_client = reqwest::Client::new();
+    let url = format!("{}/experiments", state.cac_host);
+    let headers_map = construct_header_map(
+        &workspace_request.workspace_id,
+        &workspace_request.organisation_id,
+        vec![],
+    )?;
+
+    let response = http_client
+        .get(&url)
+        .headers(headers_map.into())
+        .header(
+            header::AUTHORIZATION,
+            format!("Internal {}", state.superposition_token),
+        )
+        .send()
+        .await;
+
+    match response {
+        Ok(res) => {
+            let experiments = res
+                .json::<PaginatedResponse<ExperimentResponse>>()
+                .await
+                .map(|experiments| {
+                    experiments
+                        .data
+                        .iter()
+                        .map(|experiment| Experiment {
+                            id: experiment.id.parse::<i64>().unwrap_or_default(),
+                            created_at: experiment.created_at,
+                            created_by: experiment.created_by.clone(),
+                            last_modified: experiment.last_modified,
+                            name: experiment.name.clone(),
+                            experiment_type: experiment.experiment_type,
+                            override_keys: experiment.override_keys.clone(),
+                            status: experiment.status,
+                            traffic_percentage: experiment.traffic_percentage,
+                            started_at: experiment.started_at,
+                            started_by: experiment.started_by.clone(),
+                            context: experiment.context.clone(),
+                            variants: experiment.variants.clone(),
+                            last_modified_by: experiment.last_modified_by.clone(),
+                            chosen_variant: experiment.chosen_variant.clone(),
+                            description: experiment.description.clone(),
+                            change_reason: experiment.change_reason.clone(),
+                            metrics: experiment.metrics.clone(),
+                            experiment_group_id: experiment
+                                .experiment_group_id
+                                .as_ref()
+                                .and_then(|id_str| id_str.parse::<i64>().ok()),
+                        })
+                        .collect::<Vec<Experiment>>()
+                })
+                .map_err(|err| {
+                    log::error!(
+                        "failed to parse experiments response with error: {}",
+                        err
+                    );
+                    unexpected_error!("Failed to parse experiments.")
+                })?;
+            Ok(experiments)
+        }
+        Err(error) => {
+            log::error!("Failed to fetch experiments with error: {:?}", error);
+            Err(unexpected_error!(error))
+        }
+    }
+}
+
+pub async fn fetch_experiment_groups(
+    state: &Data<AppState>,
+    workspace_request: &WorkspaceContext,
+) -> superposition::Result<Vec<ExperimentGroup>> {
+    let http_client = reqwest::Client::new();
+    let url = format!("{}/experiment-groups", state.cac_host);
+    let headers_map = construct_header_map(
+        &workspace_request.workspace_id,
+        &workspace_request.organisation_id,
+        vec![],
+    )?;
+
+    let response = http_client
+        .get(&url)
+        .headers(headers_map.into())
+        .header(
+            header::AUTHORIZATION,
+            format!("Internal {}", state.superposition_token),
+        )
+        .send()
+        .await;
+
+    match response {
+        Ok(res) => {
+            let experiment_groups = res
+                .json::<PaginatedResponse<ExperimentGroup>>()
+                .await
+                .map(|experiment_groups| experiment_groups.data)
+                .map_err(|err| {
+                    log::error!(
+                        "failed to parse experiment groups response with error: {}",
+                        err
+                    );
+                    unexpected_error!("Failed to parse experiment groups.")
+                })?;
+            Ok(experiment_groups)
+        }
+        Err(error) => {
+            log::error!("Failed to fetch experiment groups with error: {:?}", error);
+            Err(unexpected_error!(error))
+        }
+    }
+}
+
+pub async fn fetch_webhook_by_event(
+    state: &Data<AppState>,
+    user: &User,
+    event: &WebhookEvent,
+    workspace_context: &WorkspaceContext,
+) -> superposition::Result<Webhook> {
+    let http_client = reqwest::Client::new();
+    let url = format!("{}/webhook/event/{event}", state.cac_host);
+    let user_str = serde_json::to_string(user).map_err(|err| {
+        log::error!("Something went wrong, failed to stringify user data {err}");
+        unexpected_error!(
+            "Something went wrong, failed to stringify user data {}",
+            err
+        )
+    })?;
+
+    let headers_map = construct_header_map(
+        &workspace_context.workspace_id,
+        &workspace_context.organisation_id,
+        vec![("x-user", user_str)],
+    )?;
+
+    let response = http_client
+        .get(&url)
+        .headers(headers_map.into())
+        .header(
+            header::AUTHORIZATION,
+            format!("Internal {}", state.superposition_token),
+        )
+        .send()
+        .await;
+
+    match response {
+        Ok(res) => {
+            if res.status() == 404 {
+                log::info!("No Webhook found for event: {}", event);
+                return Ok(Webhook::default());
+            }
+            let webhook = res.json::<Webhook>().await.map_err(|err| {
+                log::error!("failed to parse Webhook response with error: {}", err);
+                unexpected_error!("Failed to parse Webhook.")
+            })?;
+            Ok(webhook)
+        }
+        Err(error) => {
+            log::error!("Failed to fetch Webhook with error: {:?}", error);
             Err(unexpected_error!(error))
         }
     }

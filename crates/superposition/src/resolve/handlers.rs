@@ -1,7 +1,6 @@
 use actix_web::{
-    routes,
+    HttpRequest, HttpResponse, Scope, routes,
     web::{Data, Header, Json},
-    HttpRequest, HttpResponse, Scope,
 };
 use chrono::{DateTime, Utc};
 use context_aware_config::api::config::fetch_audit_id;
@@ -14,9 +13,9 @@ use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::{Map, Value};
 use service_utils::{
     redis::{
-        fetch_from_redis_else_writeback, AUDIT_ID_KEY_SUFFIX, CONFIG_KEY_SUFFIX,
-        CONFIG_VERSION_KEY_SUFFIX, EXPERIMENT_GROUPS_LIST_KEY_SUFFIX,
-        LAST_MODIFIED_KEY_SUFFIX,
+        AUDIT_ID_KEY_SUFFIX, CONFIG_KEY_SUFFIX, CONFIG_VERSION_KEY_SUFFIX,
+        EXPERIMENT_GROUPS_LIST_KEY_SUFFIX, LAST_MODIFIED_KEY_SUFFIX,
+        fetch_from_redis_else_writeback,
     },
     service::{
         get_db_connection,
@@ -25,12 +24,13 @@ use service_utils::{
 };
 use std::collections::{HashMap, HashSet};
 use superposition_core::experiment::{
-    get_applicable_buckets_from_group, get_applicable_variants_from_group_response,
-    FfiExperiment, FfiExperimentGroup,
+    FfiExperiment, FfiExperimentGroup, get_applicable_buckets_from_group,
+    get_applicable_variants_from_group_response,
 };
 use superposition_derives::authorized;
 use superposition_macros::{db_error, not_found, unexpected_error};
 use superposition_types::{
+    Config, PaginatedResponse,
     api::config::{ContextPayload, MergeStrategy, ResolveConfigQuery},
     custom_query::{self as superposition_query, CustomQuery, DimensionQuery, QueryMap},
     database::{
@@ -38,7 +38,7 @@ use superposition_types::{
         schema::{experiment_groups::dsl as experiment_groups, experiments::dsl},
     },
     logic::evaluate_local_cohorts,
-    result as superposition, Config, PaginatedResponse,
+    result as superposition,
 };
 
 use super::types::IdentifierQuery;
@@ -100,7 +100,7 @@ async fn resolve_with_exp_handler(
     )
     .await
     .map_err(|e| unexpected_error!("Config version not found due to: {}", e))?;
-    
+
     let mut config = fetch_from_redis_else_writeback::<Config>(
         format!("{}::{}{CONFIG_KEY_SUFFIX}", *schema_name, config_version),
         &schema_name,
@@ -159,8 +159,7 @@ async fn resolve_with_exp_handler(
             .map(FfiExperimentGroup::from)
             .collect();
 
-        let context =
-            Value::Object(evaluate_local_cohorts(&config.dimensions, context_map));
+        let context = evaluate_local_cohorts(&config.dimensions, context_map);
 
         let buckets = get_applicable_buckets_from_group(
             &ffi_experiment_groups,
@@ -213,6 +212,7 @@ async fn resolve_with_exp_handler(
             &mut conn,
             &query_filters,
             &workspace_context,
+            &state.master_encryption_key,
         )?
     };
 

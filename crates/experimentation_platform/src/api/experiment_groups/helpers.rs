@@ -4,7 +4,10 @@ use actix_web::web::{Data, Json};
 use diesel::{
     BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
 };
-use fred::{prelude::{KeysInterface, RedisPool}, types::Expiration};
+use fred::{
+    prelude::{KeysInterface, RedisPool},
+    types::Expiration,
+};
 use serde_json::Value;
 use service_utils::{
     helpers::{generate_snowflake_id, get_from_env_or_default},
@@ -13,7 +16,7 @@ use service_utils::{
 };
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
-    Condition, DBConnection, User,
+    Condition, DBConnection, PaginatedResponse, User,
     api::experiment_groups::ExpGroupMemberRequest,
     database::{
         models::{
@@ -27,7 +30,7 @@ use superposition_types::{
             experiment_groups::dsl as experiment_groups, experiments::dsl as experiments,
         },
     },
-    result as superposition, Condition, DBConnection, PaginatedResponse, User,
+    result as superposition,
 };
 
 use crate::api::experiments::helpers::{ensure_experiments_exist, hash};
