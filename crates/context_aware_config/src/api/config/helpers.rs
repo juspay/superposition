@@ -5,7 +5,7 @@ use actix_web::{
 };
 use cac_client::{eval_cac, eval_cac_with_reasoning};
 use chrono::{DateTime, Timelike, Utc};
-use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, dsl::max};
+use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl, dsl::max};
 use serde_json::{Map, Value};
 use service_utils::service::types::{
     AppHeader, EncryptionKey, SchemaName, WorkspaceContext,
@@ -15,8 +15,9 @@ use superposition_types::{
     Config, DBConnection,
     api::config::{ContextPayload, MergeStrategy, ResolveConfigQuery},
     custom_query::{CommaSeparatedStringQParams, DimensionQuery, QueryMap},
-    database::schema::{
-        config_versions::dsl as config_versions, event_log::dsl as event_log,
+    database::{
+        schema::{config_versions::dsl as config_versions, event_log::dsl as event_log},
+        superposition_schema::superposition::workspaces,
     },
     result as superposition,
 };
@@ -50,16 +51,45 @@ pub fn get_config_version(
         ),
         _ => match get_config_version_from_workspace(workspace_context, conn) {
             Some(v) => Ok(v),
-            None => get_config_version_from_db(conn, &workspace_context.schema_name)
-                .map_err(|e| {
-                    log::error!("failed to fetch latest config version from db: {e}");
-                    db_error!(e)
-                }),
+            None => get_config_version_from_versions_table(
+                conn,
+                &workspace_context.schema_name,
+            )
+            .map_err(|e| {
+                log::error!("failed to fetch latest config version from db: {e}");
+                db_error!(e)
+            }),
         },
     }
 }
 
-fn get_config_version_from_db(
+fn get_config_version_from_workspace(
+    workspace_context: &WorkspaceContext,
+    conn: &mut DBConnection,
+) -> Option<i64> {
+    match workspaces::dsl::workspaces
+        .select(workspaces::config_version)
+        .filter(
+            workspaces::organisation_id
+                .eq(&workspace_context.organisation_id.0)
+                .and(workspaces::workspace_name.eq(&workspace_context.workspace_id.0)),
+        )
+        .get_result::<Option<i64>>(conn)
+    {
+        Ok(version) => version,
+        Err(e) => {
+            log::error!(
+                "Failed to get config_version for org_id: {}, workspace_name: {} — {:?}",
+                workspace_context.organisation_id.0,
+                workspace_context.workspace_id.0,
+                e
+            );
+            None
+        }
+    }
+}
+
+fn get_config_version_from_versions_table(
     conn: &mut DBConnection,
     schema_name: &SchemaName,
 ) -> Result<i64, diesel::result::Error> {

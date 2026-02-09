@@ -1,9 +1,15 @@
-use fred::{prelude::{KeysInterface, RedisClient, RedisPool}, types::Expiration};
-use serde::{de::DeserializeOwned, Serialize};
+use fred::{
+    prelude::{KeysInterface, RedisClient, RedisPool},
+    types::Expiration,
+};
+use serde::{Serialize, de::DeserializeOwned};
 use superposition_macros::unexpected_error;
 use superposition_types::result as superposition;
 
-use crate::{db::PgSchemaConnectionPool, helpers::get_from_env_or_default, service::types::SchemaName};
+use crate::{
+    db::PgSchemaConnectionPool, helpers::get_from_env_or_default,
+    service::types::SchemaName,
+};
 
 pub const LAST_MODIFIED_KEY_SUFFIX: &str = "::cac_config::last_modified_at";
 pub const AUDIT_ID_KEY_SUFFIX: &str = "::cac_config::audit_id";

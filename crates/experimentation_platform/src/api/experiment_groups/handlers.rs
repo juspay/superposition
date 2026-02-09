@@ -10,10 +10,10 @@ use diesel::{
 use serde_json::Value;
 use service_utils::{
     helpers::{generate_snowflake_id, get_from_env_or_default},
-    redis::{fetch_from_redis_else_writeback, EXPERIMENT_GROUPS_LIST_KEY_SUFFIX},
+    redis::{EXPERIMENT_GROUPS_LIST_KEY_SUFFIX, fetch_from_redis_else_writeback},
     service::{
         get_db_connection,
-        types::{AppState, DbConnection, SchemaName, WorkspaceContext},
+        types::{AppState, DbConnection, WorkspaceContext},
     },
 };
 use superposition_derives::authorized;
@@ -148,7 +148,7 @@ async fn create_handler(
     if let Err(err) = put_experiment_groups_in_redis(
         state.redis.clone(),
         &mut conn,
-        &workspace_request.schema_name,
+        &workspace_context.schema_name,
     )
     .await
     {
@@ -204,7 +204,7 @@ async fn update_handler(
     if let Err(err) = put_experiment_groups_in_redis(
         state.redis.clone(),
         &mut conn,
-        &workspace_request.schema_name,
+        &workspace_context.schema_name,
     )
     .await
     {
@@ -262,7 +262,7 @@ async fn add_members_handler(
     if let Err(err) = put_experiment_groups_in_redis(
         state.redis.clone(),
         &mut conn,
-        &workspace_request.schema_name,
+        &workspace_context.schema_name,
     )
     .await
     {
@@ -313,7 +313,7 @@ async fn remove_members_handler(
     if let Err(err) = put_experiment_groups_in_redis(
         state.redis.clone(),
         &mut conn,
-        &workspace_request.schema_name,
+        &workspace_context.schema_name,
     )
     .await
     {
@@ -328,13 +328,15 @@ async fn list_handler(
     workspace_context: WorkspaceContext,
     pagination_params: superposition_query::Query<PaginationParams>,
     filters: superposition_query::Query<ExpGroupFilters>,
-    schema_name: SchemaName,
     state: Data<AppState>,
 ) -> superposition::Result<Json<PaginatedResponse<ExperimentGroup>>> {
-    let key = format!("{}{}", schema_name.0, EXPERIMENT_GROUPS_LIST_KEY_SUFFIX);
+    let key = format!(
+        "{}{}",
+        workspace_context.schema_name.0, EXPERIMENT_GROUPS_LIST_KEY_SUFFIX
+    );
     fetch_from_redis_else_writeback::<PaginatedResponse<ExperimentGroup>>(
         key,
-        &schema_name,
+        &workspace_context.schema_name,
         state.redis.clone(),
         state.db_pool.clone(),
         |db_pool| {
@@ -343,7 +345,7 @@ async fn list_handler(
                 pagination_params,
                 filters,
                 db_conn,
-                schema_name.clone(),
+                &workspace_context,
             )
         },
     )
@@ -356,7 +358,7 @@ fn list_experiment_groups_db(
     pagination_params: superposition_query::Query<PaginationParams>,
     filters: superposition_query::Query<ExpGroupFilters>,
     db_conn: DbConnection,
-    schema_name: SchemaName,
+    workspace_context: &WorkspaceContext,
 ) -> superposition::Result<PaginatedResponse<ExperimentGroup>> {
     let DbConnection(mut conn) = db_conn;
     let query_builder = |filters: &ExpGroupFilters| {
@@ -448,7 +450,7 @@ async fn delete_handler(
                     experiment_groups::last_modified_at.eq(chrono::Utc::now()),
                 ))
                 .returning(ExperimentGroup::as_returning())
-                .schema_name(&schema_name)
+                .schema_name(&workspace_context.schema_name)
                 .get_result(conn)?;
             if !marked_group.member_experiment_ids.is_empty() {
                 return Err(bad_argument!(
@@ -458,13 +460,16 @@ async fn delete_handler(
             }
             diesel::delete(experiment_groups::experiment_groups)
                 .filter(experiment_groups::id.eq(&id))
-                .schema_name(&schema_name)
+                .schema_name(&workspace_context.schema_name)
                 .execute(conn)?;
             Ok(Json(marked_group))
         });
-    if let Err(err) =
-        put_experiment_groups_in_redis(state.redis.clone(), &mut db_conn, &schema_name)
-            .await
+    if let Err(err) = put_experiment_groups_in_redis(
+        state.redis.clone(),
+        &mut db_conn,
+        &workspace_context.schema_name,
+    )
+    .await
     {
         log::error!(
             "Failed to update experiment groups in redis after creation: {}",
@@ -534,8 +539,12 @@ async fn backfill_handler(
             }
             Ok(results)
         })?;
-    if let Err(err) =
-        put_experiment_groups_in_redis(state.redis.clone(), &mut conn, &schema_name).await
+    if let Err(err) = put_experiment_groups_in_redis(
+        state.redis.clone(),
+        &mut conn,
+        &workspace_context.schema_name,
+    )
+    .await
     {
         log::error!(
             "Failed to update experiment groups in redis after creation: {}",

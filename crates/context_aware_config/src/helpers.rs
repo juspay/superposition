@@ -12,18 +12,21 @@ use jsonschema::{Draft, JSONSchema};
 use num_bigint::BigUint;
 use serde_json::{Map, Value, json};
 use service_utils::{
-    helpers::{fetch_dimensions_info_map, generate_snowflake_id},
-    service::types::{AppState, EncryptionKey, SchemaName, WorkspaceContext},
-};
-use service_utils::{
     helpers::get_from_env_or_default,
     redis::{
         AUDIT_ID_KEY_SUFFIX, CONFIG_KEY_SUFFIX, CONFIG_VERSION_KEY_SUFFIX,
         LAST_MODIFIED_KEY_SUFFIX,
     },
 };
+use service_utils::{
+    helpers::{fetch_dimensions_info_map, generate_snowflake_id},
+    service::types::{AppState, EncryptionKey, SchemaName, WorkspaceContext},
+};
 use superposition_macros::{db_error, unexpected_error, validation_error};
-use superposition_types::database::schema::event_log::dsl as event_log;
+use superposition_types::database::{
+    models::Workspace, schema::event_log::dsl as event_log,
+    superposition_schema::superposition::workspaces,
+};
 use superposition_types::{
     Cac, Condition, Config, Context, DBConnection, DefaultConfigInfo,
     DefaultConfigsWithSchema, DetailedConfig, DimensionInfo, OverrideWithKeys, Overrides,

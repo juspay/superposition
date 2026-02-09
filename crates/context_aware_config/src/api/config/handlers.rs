@@ -1,23 +1,19 @@
 use std::collections::HashMap;
 
-use actix_http::{header::HeaderValue, StatusCode};
+use actix_http::header::HeaderValue;
 use actix_web::{
-    get,
-    http::header::ContentType,
-    put, routes,
+    HttpRequest, HttpResponse, HttpResponseBuilder, Scope, get, put, routes,
     web::{Data, Header, Json, Path, Query},
-    HttpRequest, HttpResponse, HttpResponseBuilder, Scope,
 };
 use chrono::{DateTime, Timelike, Utc};
-use diesel::{dsl::max, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
+use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper, dsl::max};
 use itertools::Itertools;
-use serde_json::{json, Map, Value};
-#[cfg(feature = "jsonlogic")]
-use service_utils::helpers::extract_dimensions;
+use serde_json::{Map, Value, json};
 use service_utils::{
+    helpers::fetch_dimensions_info_map,
     redis::{
-        fetch_from_redis_else_writeback, AUDIT_ID_KEY_SUFFIX, CONFIG_KEY_SUFFIX,
-        CONFIG_VERSION_KEY_SUFFIX, LAST_MODIFIED_KEY_SUFFIX,
+        AUDIT_ID_KEY_SUFFIX, CONFIG_KEY_SUFFIX, CONFIG_VERSION_KEY_SUFFIX,
+        LAST_MODIFIED_KEY_SUFFIX, fetch_from_redis_else_writeback,
     },
     service::{
         get_db_connection,
@@ -52,7 +48,6 @@ use superposition_types::{
 };
 use uuid::Uuid;
 
-<<<<<<< HEAD
 use crate::api::context::{self, helpers::query_description};
 use crate::{
     api::{
@@ -60,12 +55,9 @@ use crate::{
         dimension::fetch_dimensions_info_map,
     },
     helpers::{generate_cac, generate_detailed_cac, get_config_from_redis},
-=======
 use crate::api::{
     config::helpers::get_config_version,
     context::{self, helpers::query_description},
-    dimension::fetch_dimensions_info_map,
->>>>>>> 269cf29d (feat: introduce writeback methods for redis)
 };
 use crate::helpers::{calculate_context_weight, generate_cac};
 
@@ -73,17 +65,9 @@ use super::helpers::{apply_prefix_filter_to_config, resolve, setup_query_data};
 
 #[allow(clippy::let_and_return)]
 pub fn endpoints() -> Scope {
-<<<<<<< HEAD
     let scope = Scope::new("")
         .service(get_handler)
         .service(get_toml_handler)
-        .service(resolve_handler)
-        .service(reduce_handler)
-        .service(list_version_handler)
-        .service(get_version_handler);
-=======
-    Scope::new("")
-        .service(get_handler)
         .service(resolve_handler)
         .service(reduce_handler)
         .service(list_version_handler)
@@ -689,11 +673,6 @@ async fn get_handler(
         config = config.filter_by_dimensions(&context);
     }
     add_last_modified_to_header(max_created_at, is_smithy, &mut response);
-<<<<<<< HEAD
-    add_audit_id_to_header(&mut conn, &mut response, &workspace_context.schema_name);
-    add_config_version_to_header(&version, &mut response);
-
-=======
     if let Ok(audit_id) = fetch_from_redis_else_writeback::<String>(
         format!("{}{AUDIT_ID_KEY_SUFFIX}", schema_name.0),
         &schema_name,
@@ -710,7 +689,6 @@ async fn get_handler(
         response.insert_header((AppHeader::XAuditId.to_string(), audit_id));
     }
     add_config_version_to_header(&Some(version), &mut response);
->>>>>>> 269cf29d (feat: introduce writeback methods for redis)
     Ok(response.json(config))
 }
 
@@ -827,6 +805,7 @@ async fn resolve_handler(
             &mut conn,
             &query_filters,
             &workspace_context,
+            &state.master_encryption_key,
         )?
     };
 
