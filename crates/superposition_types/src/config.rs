@@ -1,7 +1,7 @@
 #[cfg(test)]
 pub(crate) mod tests;
 
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 
 use derive_more::{AsRef, Deref, DerefMut, Into};
 #[cfg(feature = "diesel_derives")]
@@ -371,42 +371,47 @@ pub struct DefaultConfigInfo {
 }
 
 /// A map of config keys to their values and schemas
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default, Deref, DerefMut)]
 #[cfg_attr(test, derive(PartialEq))]
-pub struct DefaultConfigWithSchema(
-    pub std::collections::BTreeMap<String, DefaultConfigInfo>,
-);
+pub struct DefaultConfigsWithSchema(BTreeMap<String, DefaultConfigInfo>);
 
-impl DefaultConfigWithSchema {
-    pub fn get(&self, key: &str) -> Option<&DefaultConfigInfo> {
-        self.0.get(key)
-    }
-
-    pub fn into_inner(self) -> std::collections::BTreeMap<String, DefaultConfigInfo> {
+impl DefaultConfigsWithSchema {
+    pub fn into_inner(self) -> BTreeMap<String, DefaultConfigInfo> {
         self.0
     }
+}
 
-    pub fn iter(&self) -> impl Iterator<Item = (&String, &DefaultConfigInfo)> {
-        self.0.iter()
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-
-    pub fn len(&self) -> usize {
-        self.0.len()
+impl From<BTreeMap<String, DefaultConfigInfo>> for DefaultConfigsWithSchema {
+    fn from(map: BTreeMap<String, DefaultConfigInfo>) -> Self {
+        Self(map)
     }
 }
 
 /// A detailed configuration that includes schema information for default configs.
 /// This is similar to Config but with default_configs containing both value and schema.
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 #[cfg_attr(test, derive(PartialEq))]
 pub struct DetailedConfig {
     pub contexts: Vec<Context>,
     pub overrides: HashMap<String, Overrides>,
-    pub default_configs: DefaultConfigWithSchema,
-    #[serde(default)]
+    pub default_configs: DefaultConfigsWithSchema,
     pub dimensions: HashMap<String, DimensionInfo>,
+}
+
+impl From<DetailedConfig> for Config {
+    fn from(detailed_config: DetailedConfig) -> Self {
+        let default_configs = detailed_config
+            .default_configs
+            .into_inner()
+            .into_iter()
+            .map(|(k, v)| (k, v.value))
+            .collect::<Map<_, _>>();
+
+        Self {
+            contexts: detailed_config.contexts,
+            overrides: detailed_config.overrides,
+            default_configs: ExtendedMap::from(default_configs),
+            dimensions: detailed_config.dimensions,
+        }
+    }
 }

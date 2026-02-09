@@ -2,7 +2,7 @@ use serde_json::{Map, Value};
 use superposition_core::parse_toml_config;
 use superposition_core::serialize_to_toml;
 use superposition_types::{
-    Config, DefaultConfigInfo, DefaultConfigWithSchema, DetailedConfig,
+    Config, DefaultConfigInfo, DefaultConfigsWithSchema, DetailedConfig,
 };
 
 /// Helper function to convert Config to DetailedConfig by inferring schema from value.
@@ -39,7 +39,7 @@ fn config_to_detailed(config: &Config) -> DetailedConfig {
     DetailedConfig {
         contexts: config.contexts.clone(),
         overrides: config.overrides.clone(),
-        default_configs: DefaultConfigWithSchema(default_configs),
+        default_configs: DefaultConfigsWithSchema::from(default_configs),
         dimensions: config.dimensions.clone(),
     }
 }
@@ -47,17 +47,17 @@ fn config_to_detailed(config: &Config) -> DetailedConfig {
 #[test]
 fn test_filter_by_dimensions_debug() {
     let toml = r#"
-[default-config]
+[default_configs]
 timeout = { value = 30, schema = { type = "integer" } }
 
 [dimensions]
 dimension = { position = 1, schema = { type = "string" } }
 
-[[context]]
+[[contexts]]
 _condition_ = { dimension = "d1" }
 timeout = 60
 
-[[context]]
+[[contexts]]
 _condition_ = { dimension = "d2" }
 timeout = 90
 "#;
@@ -97,6 +97,6 @@ timeout = 90
 
     println!("\n=== Serialized output ===");
     let detailed_config = config_to_detailed(&filtered_config);
-    let serialized = serialize_to_toml(&detailed_config).unwrap();
+    let serialized = serialize_to_toml(detailed_config).unwrap();
     println!("{}", serialized);
 }

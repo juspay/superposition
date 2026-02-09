@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::str;
 
-use cac_client::utils::json_to_sorted_string;
 use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use serde_json::{Map, Value};
@@ -9,6 +8,7 @@ use service_utils::{
     helpers::fetch_dimensions_info_map,
     service::types::{EncryptionKey, SchemaName, WorkspaceContext},
 };
+use superposition_core::helpers::{calculate_context_weight, hash};
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
     Cac, Condition, DBConnection, DimensionInfo, Overrides, User,
@@ -31,18 +31,12 @@ use superposition_types::{
 };
 
 use crate::api::functions::helpers::get_first_function_by_type;
-use crate::helpers::calculate_context_weight;
 use crate::{
     api::functions::{helpers::get_published_functions_by_names, types::FunctionInfo},
     validation_functions::execute_fn,
 };
 
 use super::validations::{validate_dimensions, validate_override_with_default_configs};
-
-pub fn hash(val: &Value) -> String {
-    let sorted_str: String = json_to_sorted_string(val);
-    blake3::hash(sorted_str.as_bytes()).to_string()
-}
 
 pub fn validate_condition_with_mandatory_dimensions(
     context_map: &Map<String, Value>,
@@ -373,7 +367,7 @@ pub fn create_ctx_from_put_req(
         master_encryption_key,
     )?;
 
-    let weight = calculate_context_weight(&condition_val, &dimension_data_map)
+    let weight = calculate_context_weight(&ctx_condition, &dimension_data_map)
         .map_err(|_| unexpected_error!("Something Went Wrong"))?;
 
     let context_id = hash(&condition_val);

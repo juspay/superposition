@@ -18,6 +18,7 @@ use service_utils::{
         AppHeader, AppState, CustomHeaders, DbConnection, WorkspaceContext,
     },
 };
+use superposition_core::helpers::{calculate_context_weight, hash};
 use superposition_derives::authorized;
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
@@ -42,12 +43,11 @@ use superposition_types::{
     result::{self as superposition, AppError},
 };
 
+use crate::helpers::add_config_version;
 #[cfg(feature = "high-performance-mode")]
 use crate::helpers::put_config_in_redis;
-use crate::helpers::{add_config_version, calculate_context_weight};
 use crate::{
     api::context::{
-        hash,
         helpers::{query_description, validate_ctx},
         operations,
     },
@@ -779,10 +779,8 @@ async fn weight_recompute_handler(
         .clone()
         .into_iter()
         .map(|context| {
-            let new_weight = calculate_context_weight(
-                &Value::Object(context.value.clone().into()),
-                &dimension_info_map,
-            );
+            let new_weight =
+                calculate_context_weight(&context.value, &dimension_info_map);
 
             match new_weight {
                 Ok(val) => {

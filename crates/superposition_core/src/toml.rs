@@ -1,35 +1,37 @@
-use std::collections::HashMap;
-use std::fmt;
+mod helpers;
+#[cfg(test)]
+mod test;
+
+use std::{
+    collections::{BTreeMap, HashMap},
+    fmt,
+    ops::Deref,
+    str::FromStr,
+};
 
 use bigdecimal::ToPrimitive;
-use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use superposition_types::database::models::cac::{DependencyGraph, DimensionType};
-use superposition_types::ExtendedMap;
 use superposition_types::{
-    Cac, Condition, Config, Context, DefaultConfigInfo, DefaultConfigWithSchema,
-    DetailedConfig, DimensionInfo, Overrides,
+    Cac, Condition, Config, Context, DefaultConfigsWithSchema, DetailedConfig,
+    DimensionInfo, ExtendedMap, OverrideWithKeys, Overrides,
 };
 
-/// Check if a string needs quoting in TOML.
-/// Strings containing special characters like '=', ';', whitespace, or quotes need quoting.
-fn needs_quoting(s: &str) -> bool {
-    s.chars()
-        .any(|c| !c.is_ascii_alphanumeric() && c != '_' && c != '-')
-}
+use crate::{
+    helpers::{calculate_context_weight, hash},
+    toml::helpers::{
+        create_connections_with_dependents, inline_table, to_toml_string,
+        validate_config_key, validate_context, validate_overrides,
+    },
+    validations,
+};
 
 /// Detailed error type for TOML parsing and serialization
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum TomlError {
     TomlSyntaxError(String),
-    MissingSection(String),
     InvalidDimension(String),
-    MissingField {
-        section: String,
-        key: String,
-        field: String,
-    },
     UndeclaredDimension {
         dimension: String,
         context: String,
@@ -54,18 +56,6 @@ pub enum TomlError {
 impl fmt::Display for TomlError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::MissingSection(s) => {
-                write!(f, "TOML parsing error: Missing required section '{}'", s)
-            }
-            Self::MissingField {
-                section,
-                key,
-                field,
-            } => write!(
-                f,
-                "TOML parsing error: Missing field '{}' in section '{}' for key '{}'",
-                field, section, key
-            ),
             Self::UndeclaredDimension {
                 dimension,
                 context,
@@ -102,630 +92,374 @@ impl fmt::Display for TomlError {
 
 impl std::error::Error for TomlError {}
 
-/// Convert TOML value to serde_json Value
-fn toml_value_to_serde_value(toml_value: toml::Value) -> Value {
-    match toml_value {
-        toml::Value::String(s) => Value::String(s),
-        toml::Value::Integer(i) => Value::Number(i.into()),
-        toml::Value::Float(f) => {
-            // Handle NaN and Infinity
-            if f.is_finite() {
-                serde_json::Number::from_f64(f)
-                    .map(Value::Number)
-                    .unwrap_or(Value::Null)
-            } else {
-                Value::Null
-            }
-        }
-        toml::Value::Boolean(b) => Value::Bool(b),
-        toml::Value::Datetime(dt) => Value::String(dt.to_string()),
-        toml::Value::Array(arr) => {
-            let values: Vec<Value> =
-                arr.into_iter().map(toml_value_to_serde_value).collect();
-            Value::Array(values)
-        }
-        toml::Value::Table(table) => {
-            let mut map = Map::new();
-            for (k, v) in table {
-                map.insert(k, toml_value_to_serde_value(v));
-            }
-            Value::Object(map)
+#[derive(Serialize, Deserialize, Clone)]
+pub struct DimensionInfoToml {
+    pub position: i32,
+    pub schema: Map<String, Value>,
+    #[serde(rename = "type", default = "dim_type_default")]
+    pub dimension_type: String,
+}
+
+fn dim_type_default() -> String {
+    DimensionType::default().to_string()
+}
+
+impl From<DimensionInfo> for DimensionInfoToml {
+    fn from(d: DimensionInfo) -> Self {
+        Self {
+            position: d.position,
+            schema: d.schema.into_inner(),
+            dimension_type: d.dimension_type.to_string(),
         }
     }
 }
 
-/// Convert serde_json::Value to toml::Value - return None for NULL
-fn serde_value_to_toml_value(json: Value) -> Option<toml::Value> {
-    match json {
-        // TOML has no null, so we return None to signal it should be skipped
-        Value::Null => None,
-
-        Value::Bool(b) => Some(toml::Value::Boolean(b)),
-
-        Value::Number(n) => {
-            // TOML differentiates between Integer and Float.
-            // JSON just has "Number". We try to parse as Integer first.
-            if let Some(i) = n.as_i64() {
-                Some(toml::Value::Integer(i))
-            } else if let Some(f) = n.as_f64() {
-                Some(toml::Value::Float(f))
-            } else {
-                // Edge case: u64 numbers larger than i64::MAX
-                // TOML only supports i64 officially.
-                // We fallback to string to prevent data loss, or you could panic.
-                Some(toml::Value::String(n.to_string()))
-            }
-        }
-
-        Value::String(s) => Some(toml::Value::String(s)),
-
-        Value::Array(arr) => arr
-            .into_iter()
-            .map(serde_value_to_toml_value)
-            .collect::<Option<Vec<_>>>()
-            .map(toml::Value::Array),
-
-        Value::Object(obj) => {
-            let mut table = toml::map::Map::new();
-            for (k, v) in obj {
-                let toml_v = serde_value_to_toml_value(v)?;
-                table.insert(k, toml_v);
-            }
-            Some(toml::Value::Table(table))
-        }
-    }
-}
-
-/// Recursively sort JSON object keys for deterministic serialization
-fn sort_json_value(v: &Value) -> Value {
-    match v {
-        Value::Object(map) => {
-            let sorted: Map<String, Value> = map
-                .iter()
-                .sorted_by_key(|(k, _)| *k)
-                .map(|(k, v)| (k.clone(), sort_json_value(v)))
-                .collect();
-            Value::Object(sorted)
-        }
-        Value::Array(arr) => Value::Array(arr.iter().map(sort_json_value).collect()),
-        other => other.clone(),
-    }
-}
-
-/// Hash a serde_json Value using BLAKE3
-fn hash(val: &Value) -> Result<String, TomlError> {
-    let sorted = sort_json_value(val);
-    let bytes = serde_json::to_vec(&sorted).map_err(|e| {
-        TomlError::SerializationError(format!(
-            "Failed to serialize JSON for hashing: {}",
-            e
-        ))
-    })?;
-    Ok(blake3::hash(&bytes).to_string())
-}
-
-/// Parse the default-config section
-fn parse_default_config(
-    table: &toml::Table,
-) -> Result<DefaultConfigWithSchema, TomlError> {
-    let section = table
-        .get("default-config")
-        .ok_or_else(|| TomlError::MissingSection("default-config".into()))?
-        .as_table()
-        .ok_or_else(|| {
-            TomlError::ConversionError("default-config must be a table".into())
-        })?;
-
-    let mut result = std::collections::BTreeMap::new();
-    for (key, value) in section {
-        let table = value.as_table().ok_or_else(|| {
-            TomlError::ConversionError(format!(
-                "default-config.{} must be a table with 'value' and 'schema'",
-                key
-            ))
-        })?;
-
-        if !table.contains_key("value") {
-            return Err(TomlError::MissingField {
-                section: "default-config".into(),
-                key: key.clone(),
-                field: "value".into(),
-            });
-        }
-        if !table.contains_key("schema") {
-            return Err(TomlError::MissingField {
-                section: "default-config".into(),
-                key: key.clone(),
-                field: "schema".into(),
-            });
-        }
-
-        let schema = toml_value_to_serde_value(table["schema"].clone());
-        let serde_value = toml_value_to_serde_value(table["value"].clone());
-
-        crate::validations::validate_against_schema(&serde_value, &schema).map_err(
-            |errors: Vec<String>| TomlError::ValidationError {
-                key: key.clone(),
-                errors: crate::validations::format_validation_errors(&errors),
-            },
-        )?;
-
-        result.insert(
-            key.clone(),
-            DefaultConfigInfo {
-                value: serde_value,
-                schema,
-            },
-        );
-    }
-
-    Ok(DefaultConfigWithSchema(result))
-}
-
-// add a dependent to the dependency_graph
-fn add_dependent(
-    result: &mut HashMap<String, DimensionInfo>,
-    cohort_dimension: &str,
-    key: String,
-) {
-    if let Some(dimension_info) = result.get_mut(cohort_dimension) {
-        if let Some(dependents) =
-            dimension_info.dependency_graph.0.get_mut(cohort_dimension)
-        {
-            dependents.push(key);
-        } else {
-            dimension_info
-                .dependency_graph
-                .0
-                .insert(cohort_dimension.to_string(), vec![key]);
-        }
-    }
-}
-
-/// Parse the dimensions section
-fn parse_dimensions(
-    table: &toml::Table,
-) -> Result<HashMap<String, DimensionInfo>, TomlError> {
-    let section = table
-        .get("dimensions")
-        .ok_or_else(|| TomlError::MissingSection("dimensions".into()))?
-        .as_table()
-        .ok_or_else(|| TomlError::ConversionError("dimensions must be a table".into()))?;
-
-    let mut result = HashMap::new();
-    let mut position_to_dimensions: HashMap<i32, Vec<String>> = HashMap::new();
-
-    // First pass: collect all dimensions without schema validation
-    for (key, value) in section {
-        let table = value.as_table().ok_or_else(|| {
-            TomlError::ConversionError(format!(
-                "dimensions.{} must be a table with 'schema' and 'position'",
-                key
-            ))
-        })?;
-
-        if !table.contains_key("schema") {
-            return Err(TomlError::MissingField {
-                section: "dimensions".into(),
-                key: key.clone(),
-                field: "schema".into(),
-            });
-        }
-
-        if !table.contains_key("position") {
-            return Err(TomlError::MissingField {
-                section: "dimensions".into(),
-                key: key.clone(),
-                field: "position".into(),
-            });
-        }
-
-        let position = table["position"].as_integer().ok_or_else(|| {
-            TomlError::ConversionError(format!(
-                "dimensions.{}.position must be an integer",
-                key
-            ))
-        })? as i32;
-
-        // Track position usage for duplicate detection
-        position_to_dimensions
-            .entry(position)
-            .or_default()
-            .push(key.clone());
-
-        let schema = toml_value_to_serde_value(table["schema"].clone());
-
-        let schema_map = ExtendedMap::try_from(schema).map_err(|e| {
-            TomlError::ConversionError(format!(
-                "Invalid schema for dimension '{}': {}",
-                key, e
-            ))
-        })?;
-
-        let dimension_info = DimensionInfo {
-            position,
-            schema: schema_map,
-            dimension_type: DimensionType::Regular {},
+impl TryFrom<DimensionInfoToml> for DimensionInfo {
+    type Error = TomlError;
+    fn try_from(d: DimensionInfoToml) -> Result<Self, Self::Error> {
+        Ok(Self {
+            position: d.position,
+            schema: ExtendedMap::from(d.schema),
+            dimension_type: DimensionType::from_str(&d.dimension_type)
+                .map_err(|e| TomlError::ConversionError(e))?,
             dependency_graph: DependencyGraph(HashMap::new()),
             value_compute_function_name: None,
-        };
-
-        result.insert(key.clone(), dimension_info);
+        })
     }
-
-    // Check for duplicate positions
-    for (position, dimensions) in position_to_dimensions {
-        if dimensions.len() > 1 {
-            return Err(TomlError::DuplicatePosition {
-                position,
-                dimensions,
-            });
-        }
-    }
-
-    // Second pass: parse dimension types and validate schemas based on type
-    for (key, value) in section {
-        let table = value.as_table().ok_or_else(|| {
-            TomlError::ConversionError(format!("Invalid data for dimension: {}", key))
-        })?;
-
-        // Parse dimension type (optional, defaults to "regular")
-        let dimension_type = if let Some(type_value) = table.get("type") {
-            let type_str = type_value.as_str().ok_or_else(|| {
-                TomlError::ConversionError(format!(
-                    "dimensions.{}.type must be a string",
-                    key
-                ))
-            })?;
-
-            if type_str == "regular" {
-                // Validate regular dimension schema
-                let schema = toml_value_to_serde_value(table["schema"].clone());
-                crate::validations::validate_schema(&schema).map_err(|errors| {
-                    TomlError::ValidationError {
-                        key: format!("{}.schema", key),
-                        errors: crate::validations::format_validation_errors(&errors),
-                    }
-                })?;
-                DimensionType::Regular {}
-            } else if type_str.starts_with("local_cohort:") {
-                // Parse format: local_cohort:<dimension_name>
-                let parts: Vec<&str> = type_str.splitn(2, ':').collect();
-                if parts.len() != 2 {
-                    return Err(TomlError::ConversionError(format!(
-                        "dimensions.{}.type must be 'regular', 'local_cohort:<dimension_name>', or 'remote_cohort:<dimension_name>', got '{}'",
-                        key, type_str
-                    )));
-                }
-                let cohort_dimension = parts[1];
-                if cohort_dimension.is_empty() {
-                    return Err(TomlError::ConversionError(format!(
-                        "dimensions.{}.type: cohort dimension name cannot be empty",
-                        key
-                    )));
-                }
-
-                // Validate that the referenced dimension exists
-                if !result.contains_key(cohort_dimension) {
-                    return Err(TomlError::ConversionError(format!(
-                        "dimensions.{}.type: referenced dimension '{}' does not exist in dimensions table",
-                        key, cohort_dimension
-                    )));
-                }
-
-                // Validate that the schema has the cohort structure (type, enum, definitions)
-                let schema = toml_value_to_serde_value(table["schema"].clone());
-                crate::validations::validate_cohort_schema_structure(&schema).map_err(
-                    |errors| TomlError::ValidationError {
-                        key: format!("{}.schema", key),
-                        errors: crate::validations::format_validation_errors(&errors),
-                    },
-                )?;
-
-                add_dependent(&mut result, cohort_dimension, key.to_string());
-                DimensionType::LocalCohort(cohort_dimension.to_string())
-            } else if type_str.starts_with("remote_cohort:") {
-                // Parse format: remote_cohort:<dimension_name>
-                let parts: Vec<&str> = type_str.splitn(2, ':').collect();
-                if parts.len() != 2 {
-                    return Err(TomlError::ConversionError(format!(
-                        "dimensions.{}.type must be 'regular', 'local_cohort:<dimension_name>', or 'remote_cohort:<dimension_name>', got '{}'",
-                        key, type_str
-                    )));
-                }
-                let cohort_dimension = parts[1];
-                if cohort_dimension.is_empty() {
-                    return Err(TomlError::ConversionError(format!(
-                        "dimensions.{}.type: cohort dimension name cannot be empty",
-                        key
-                    )));
-                }
-
-                // Validate that the referenced dimension exists
-                if !result.contains_key(cohort_dimension) {
-                    return Err(TomlError::ConversionError(format!(
-                        "dimensions.{}.type: referenced dimension '{}' does not exist in dimensions table",
-                        key, cohort_dimension
-                    )));
-                }
-
-                // For remote cohorts, use normal schema validation (no definitions required)
-                let schema = toml_value_to_serde_value(table["schema"].clone());
-                crate::validations::validate_schema(&schema).map_err(|errors| {
-                    TomlError::ValidationError {
-                        key: format!("{}.schema", key),
-                        errors: crate::validations::format_validation_errors(&errors),
-                    }
-                })?;
-
-                add_dependent(&mut result, cohort_dimension, key.to_string());
-                DimensionType::RemoteCohort(cohort_dimension.to_string())
-            } else {
-                return Err(TomlError::ConversionError(format!(
-                    "dimensions.{}.type must be 'regular', 'local_cohort:<dimension_name>', or 'remote_cohort:<dimension_name>', got '{}'",
-                    key, type_str
-                )));
-            }
-        } else {
-            // Default to regular, validate schema
-            let schema = toml_value_to_serde_value(table["schema"].clone());
-            crate::validations::validate_schema(&schema).map_err(|errors| {
-                TomlError::ValidationError {
-                    key: format!("{}.schema", key),
-                    errors: crate::validations::format_validation_errors(&errors),
-                }
-            })?;
-            DimensionType::Regular {}
-        };
-
-        let Some(dimension_info) = result.get_mut(key) else {
-            return Err(TomlError::InvalidDimension(format!(
-                "Dimension {} not available in second pass",
-                key.clone()
-            )));
-        };
-
-        // Update the dimension info with the parsed type
-        dimension_info.dimension_type = dimension_type;
-    }
-
-    // Third pass: collect and apply updates in one go
-    let keys: Vec<String> = result.keys().cloned().collect();
-
-    for dimension in keys {
-        let dependents_to_add: Vec<String> = {
-            let Some(dimension_info) = result.get(&dimension) else {
-                continue;
-            };
-            let Some(dependents) = dimension_info.dependency_graph.0.get(&dimension)
-            else {
-                continue;
-            };
-
-            dependents
-                .iter()
-                .filter_map(|v| result.get(v)?.dependency_graph.0.get(v))
-                .flatten()
-                .cloned()
-                .collect()
-        };
-
-        if !dependents_to_add.is_empty() {
-            if let Some(dimension_info) = result.get_mut(&dimension) {
-                dimension_info
-                    .dependency_graph
-                    .0
-                    .entry(dimension.clone())
-                    .or_default()
-                    .extend(dependents_to_add);
-            }
-        }
-    }
-
-    Ok(result)
 }
 
-/// Parse the context section
-fn parse_contexts(
-    table: &toml::Table,
-    default_config: &DefaultConfigWithSchema,
-    dimensions: &HashMap<String, DimensionInfo>,
-) -> Result<(Vec<Context>, HashMap<String, Overrides>), TomlError> {
-    let section = table
-        .get("context")
-        .ok_or_else(|| TomlError::MissingSection("context".into()))?
-        .as_array()
-        .ok_or_else(|| {
-            TomlError::ConversionError("context must be an array of tables".into())
-        })?;
+#[derive(Serialize, Deserialize)]
+struct ContextToml {
+    #[serde(rename = "_context_")]
+    context: BTreeMap<String, Value>,
+    #[serde(flatten)]
+    overrides: BTreeMap<String, Value>,
+}
 
-    let mut contexts = Vec::new();
-    let mut overrides_map = HashMap::new();
+impl From<(Context, &HashMap<String, Overrides>)> for ContextToml {
+    fn from((context, overrides): (Context, &HashMap<String, Overrides>)) -> Self {
+        Self {
+            context: context.condition.deref().clone().into_iter().collect(),
+            overrides: overrides
+                .get(context.override_with_keys.get_key())
+                .map(|ov| ov.clone().into_iter().collect())
+                .unwrap_or_default(),
+        }
+    }
+}
 
-    for (index, context_item) in section.iter().enumerate() {
-        let context_table = context_item.as_table().ok_or_else(|| {
-            TomlError::ConversionError(format!("context[{}] must be a table", index))
-        })?;
+impl From<DetailedConfig> for DetailedConfigToml {
+    fn from(d: DetailedConfig) -> Self {
+        Self {
+            default_configs: d.default_configs,
+            dimensions: d
+                .dimensions
+                .into_iter()
+                .map(|(k, v)| (k, v.into()))
+                .collect(),
+            contexts: d
+                .contexts
+                .into_iter()
+                .map(|c| ContextToml::from((c, &d.overrides)))
+                .collect(),
+        }
+    }
+}
 
-        // Parse _condition_ field
-        let condition_value =
-            context_table
-                .get("_condition_")
-                .ok_or_else(|| TomlError::MissingField {
-                    section: "context".into(),
-                    key: format!("[{}]", index),
-                    field: "_condition_".into(),
-                })?;
+impl TryFrom<DetailedConfigToml> for DetailedConfig {
+    type Error = TomlError;
+    fn try_from(d: DetailedConfigToml) -> Result<Self, Self::Error> {
+        let default_configs = d.default_configs;
+        let mut overrides = HashMap::new();
+        let mut contexts = Vec::new();
+        let mut dimensions = d
+            .dimensions
+            .into_iter()
+            .map(|(k, v)| v.try_into().map(|dim_info| (k, dim_info)))
+            .collect::<Result<HashMap<_, DimensionInfo>, TomlError>>()?;
 
-        let condition_table = condition_value.as_table().ok_or_else(|| {
-            TomlError::ConversionError(format!(
-                "context[{}]._condition_ must be a table",
-                index
-            ))
-        })?;
-
-        // Convert condition table to Map<String, Value>
-        let mut context_map = Map::new();
-        for (key, value) in condition_table {
-            let serde_value = toml_value_to_serde_value(value.clone());
-
-            // Validate value against dimension schema
-            let Some(dimension_info) = dimensions.get(key) else {
-                return Err(TomlError::UndeclaredDimension {
-                    dimension: key.clone(),
-                    context: format!("[{}]", index),
-                });
-            };
-
-            let schema_json =
-                serde_json::to_value(&dimension_info.schema).map_err(|e| {
-                    TomlError::ConversionError(format!(
-                        "Invalid schema for dimension '{}': {}",
-                        key, e
-                    ))
-                })?;
-
-            crate::validations::validate_against_schema(&serde_value, &schema_json)
-                .map_err(|errors: Vec<String>| TomlError::ValidationError {
-                    key: format!("context[{}]._condition_.{}", index, key),
-                    errors: crate::validations::format_validation_errors(&errors),
-                })?;
-
-            context_map.insert(key.clone(), serde_value);
+        // Default configs validation
+        for (k, v) in default_configs.iter() {
+            validate_config_key(k, &v.value, &v.schema, 0)?;
         }
 
-        // Parse override values (all fields except _condition_)
-        let mut override_config = Map::new();
-        for (key, value) in context_table {
-            if key == "_condition_" {
-                continue;
-            }
+        // Dimensions validation and dependency graph construction
+        let mut position_to_dimensions: HashMap<i32, Vec<String>> = HashMap::new();
+        for (dim, dim_info) in dimensions.clone().into_iter() {
+            position_to_dimensions
+                .entry(dim_info.position)
+                .or_default()
+                .push(dim.clone());
 
-            let config_info =
-                default_config
-                    .get(key)
-                    .ok_or_else(|| TomlError::InvalidOverrideKey {
-                        key: key.clone(),
-                        context: format!("[{}]", index),
+            match dim_info.dimension_type {
+                DimensionType::LocalCohort(ref cohort_dim) => {
+                    if !dimensions.contains_key(cohort_dim) {
+                        return Err(TomlError::InvalidDimension(cohort_dim.clone()));
+                    }
+
+                    validations::validate_cohort_schema_structure(&Value::from(
+                        &dim_info.schema,
+                    ))
+                    .map_err(|errors| {
+                        TomlError::ValidationError {
+                            key: format!("{}.schema", dim),
+                            errors: validations::format_validation_errors(&errors),
+                        }
                     })?;
 
-            let serde_value = toml_value_to_serde_value(value.clone());
+                    create_connections_with_dependents(cohort_dim, &dim, &mut dimensions);
+                }
+                DimensionType::RemoteCohort(ref cohort_dim) => {
+                    if !dimensions.contains_key(cohort_dim) {
+                        return Err(TomlError::InvalidDimension(cohort_dim.clone()));
+                    }
 
-            crate::validations::validate_against_schema(
-                &serde_value,
-                &config_info.schema,
-            )
-            .map_err(|errors: Vec<String>| TomlError::ValidationError {
-                key: format!("context[{}].{}", index, key),
-                errors: crate::validations::format_validation_errors(&errors),
-            })?;
+                    validations::validate_schema(&Value::from(&dim_info.schema))
+                        .map_err(|errors| TomlError::ValidationError {
+                            key: format!("{}.schema", dim),
+                            errors: validations::format_validation_errors(&errors),
+                        })?;
 
-            override_config.insert(key.clone(), serde_value);
+                    create_connections_with_dependents(cohort_dim, &dim, &mut dimensions);
+                }
+                DimensionType::Regular {} => {
+                    validations::validate_schema(&Value::from(&dim_info.schema))
+                        .map_err(|errors| TomlError::ValidationError {
+                            key: format!("{}.schema", dim),
+                            errors: validations::format_validation_errors(&errors),
+                        })?;
+                }
+            }
         }
 
-        // Compute priority and hash
-        let priority = context_map
-            .keys()
-            .filter_map(|key| dimensions.get(key))
-            .map(|dim_info| {
-                crate::helpers::calculate_weight_from_index(dim_info.position as u32)
+        // Check for duplicate positions
+        for (position, dimensions) in position_to_dimensions {
+            if dimensions.len() > 1 {
+                return Err(TomlError::DuplicatePosition {
+                    position,
+                    dimensions,
+                });
+            }
+        }
+
+        // Context and override generation with validation
+        for (index, ctx) in d.contexts.into_iter().enumerate() {
+            let override_map: Map<_, _> = ctx.overrides.into_iter().collect();
+            let over_val = Value::Object(override_map);
+            let override_hash = hash(&over_val);
+            let override_ = match over_val {
+                Value::Object(override_map) => Cac::<Overrides>::try_from(override_map)
                     .ok()
-                    .and_then(|w| w.to_i32())
-                    .unwrap_or(0)
-            })
-            .sum();
-        // TODO:: we can possibly operate on the Map instead of converting into a Value::Object
-        let override_hash = hash(&Value::Object(override_config.clone()))?;
+                    .map(|cac| cac.into_inner()),
+                _ => None,
+            };
 
-        // Create Context
-        let condition = Cac::<Condition>::try_from(context_map).map_err(|e| {
-            TomlError::ConversionError(format!(
-                "Invalid condition for context[{}]: {}",
-                index, e
-            ))
-        })?;
+            let condition_map: Map<_, _> = ctx.context.into_iter().collect();
+            let cond_val = Value::Object(condition_map);
+            let condition_hash = hash(&cond_val);
+            let condition = match cond_val {
+                Value::Object(condition_map) => Cac::<Condition>::try_from(condition_map)
+                    .ok()
+                    .map(|cac| cac.into_inner()),
+                _ => None,
+            };
 
-        let context = Context {
-            condition: condition.into_inner(),
-            id: override_hash.clone(),
-            priority,
-            override_with_keys: superposition_types::OverrideWithKeys::new(
-                override_hash.clone(),
-            ),
-            weight: 1,
+            match (override_, condition) {
+                (Some(o), Some(c)) => {
+                    validate_context(&c, &dimensions, index)?;
+                    validate_overrides(&o, &default_configs, index)?;
+
+                    let priority = calculate_context_weight(&c, &dimensions)
+                        .map_err(|e| TomlError::ConversionError(e.to_string()))?
+                        .to_i32()
+                        .ok_or_else(|| {
+                            TomlError::ConversionError(
+                                "Failed to convert context weight to i32".to_string(),
+                            )
+                        })?;
+
+                    overrides.insert(override_hash.clone(), o);
+                    contexts.push(Context {
+                        condition: c,
+                        id: condition_hash,
+                        priority,
+                        override_with_keys: OverrideWithKeys::new(override_hash),
+                        weight: 0,
+                    });
+                }
+                _ => {}
+            }
+        }
+
+        // Sort contexts by priority (weight) - higher weight means higher priority
+        contexts.sort_by(|a, b| b.priority.cmp(&a.priority));
+
+        // Set correct values for weight and priority after sorting
+        contexts.iter_mut().enumerate().for_each(|(index, ctx)| {
+            ctx.weight = index as i32;
+            ctx.priority = index as i32;
+        });
+
+        let detailed_config = Self {
+            default_configs,
+            dimensions,
+            contexts,
+            overrides,
         };
 
-        // Create Overrides
-        let overrides = Cac::<Overrides>::try_from(override_config)
-            .map_err(|e| {
-                TomlError::ConversionError(format!(
-                    "Invalid overrides for context[{}]: {}",
-                    index, e
-                ))
-            })?
-            .into_inner();
+        Ok(detailed_config)
+    }
+}
 
-        contexts.push(context);
-        overrides_map.insert(override_hash, overrides);
+#[derive(Serialize, Deserialize)]
+struct DetailedConfigToml {
+    #[serde(rename = "default-configs")]
+    default_configs: DefaultConfigsWithSchema,
+    dimensions: BTreeMap<String, DimensionInfoToml>,
+    contexts: Vec<ContextToml>,
+}
+
+impl DetailedConfigToml {
+    fn emit_default_configs(
+        default_configs: DefaultConfigsWithSchema,
+    ) -> Result<String, TomlError> {
+        let mut out = String::new();
+        out.push_str("[default-configs]\n");
+
+        for (k, v) in default_configs.into_inner() {
+            let val = serde_json::to_value(v).map_err(|e| {
+                TomlError::SerializationError(format!(
+                    "Failed to serialize dimension '{}': {}",
+                    k, e
+                ))
+            })?;
+            let v_str = to_toml_string(val, &k)?;
+            out.push_str(&format!("{k} = {v_str}\n"));
+        }
+
+        out.push('\n');
+        Ok(out)
     }
 
-    Ok((contexts, overrides_map))
+    fn emit_dimensions(
+        dimensions: BTreeMap<String, DimensionInfoToml>,
+    ) -> Result<String, TomlError> {
+        let mut out = String::new();
+        out.push_str("[dimensions]\n");
+
+        for (k, v) in dimensions {
+            let val = serde_json::to_value(v).map_err(|e| {
+                TomlError::SerializationError(format!(
+                    "Failed to serialize dimension '{}': {}",
+                    k, e
+                ))
+            })?;
+            let v_str = to_toml_string(val, &k)?;
+            out.push_str(&format!("{k} = {v_str}\n"));
+        }
+
+        out.push('\n');
+        Ok(out)
+    }
+
+    fn emit_context(ctx: ContextToml) -> Result<String, TomlError> {
+        let mut out = String::new();
+        out.push_str("[[overrides]]\n");
+        out.push_str(&format!(
+            "_context_ = {}\n",
+            inline_table(ctx.context, "_context_")?
+        ));
+
+        for (k, v) in ctx.overrides {
+            let v_str = to_toml_string(v, &k)?;
+            out.push_str(&format!("{k} = {v_str}\n"));
+        }
+
+        out.push('\n');
+        Ok(out)
+    }
+
+    pub fn serialize_to_toml(self) -> Result<String, TomlError> {
+        let mut out = String::new();
+
+        out.push_str(&Self::emit_default_configs(self.default_configs)?);
+        out.push('\n');
+
+        out.push_str(&Self::emit_dimensions(self.dimensions)?);
+        out.push('\n');
+
+        for ctx in self.contexts {
+            out.push_str(&Self::emit_context(ctx)?);
+        }
+
+        out.push('\n');
+        Ok(out)
+    }
 }
 
 /// Parse TOML configuration string into structured components
+///
+/// This function parses a TOML string containing default-config, dimensions, and context sections,
+/// and returns the parsed structures that can be used with other superposition_core functions.
 ///
 /// # Arguments
 /// * `toml_content` - TOML string containing default-config, dimensions, and context sections
 ///
 /// # Returns
-/// * `Ok(Config)` - Successfully parsed configuration
+/// * `Ok(Config)` - Successfully parsed configuration with:
+///   - `default_config`: Map of configuration keys to values
+///   - `contexts`: Vector of context conditions
+///   - `overrides`: HashMap of override configurations
+///   - `dimensions`: HashMap of dimension information
 /// * `Err(TomlError)` - Detailed error about what went wrong
 ///
 /// # Example TOML Format
 /// ```toml
-/// [default-config]
+/// [default_configs]
 /// timeout = { value = 30, schema = { type = "integer" } }
+/// enabled = { value = true, schema = { type = "boolean" } }
 ///
 /// [dimensions]
 /// os = { schema = { type = "string" } }
+/// region = { schema = { type = "string" } }
 ///
-/// [[context]]
-/// _condition_ = { os = "linux" }
-/// timeout = 60
+/// [context]
+/// "os=linux" = { timeout = 60 }
+/// "os=linux;region=us-east" = { timeout = 90, enabled = false }
 /// ```
-pub fn parse(toml_content: &str) -> Result<Config, TomlError> {
-    // 1. Parse TOML string
-    let toml_table: toml::Table = toml::from_str(toml_content)
+///
+/// # Example Usage
+/// ```rust,no_run
+/// use superposition_core::parse_toml_config;
+///
+/// let toml_content = r#"
+///     [default_configs]
+///     timeout = { value = 30, schema = { type = "integer" } }
+///
+///     [dimensions]
+///     os = { schema = { type = "string" } }
+///
+///     [context]
+///     "os=linux" = { timeout = 60 }
+/// "#;
+///
+/// let parsed = parse_toml_config(toml_content)?;
+/// println!("Parsed {} contexts", parsed.contexts.len());
+/// # Ok::<(), superposition_core::TomlError>(())
+/// ```
+pub fn parse_toml_config(toml_str: &str) -> Result<Config, TomlError> {
+    let detailed_toml_config = toml::from_str::<DetailedConfigToml>(toml_str)
         .map_err(|e| TomlError::TomlSyntaxError(e.to_string()))?;
+    let detailed_config = DetailedConfig::try_from(detailed_toml_config)?;
+    let config = Config::from(detailed_config);
 
-    // 2. Extract and validate "default-config" section
-    let default_config_info = parse_default_config(&toml_table)?;
-
-    // 3. Extract and validate "dimensions" section
-    let dimensions = parse_dimensions(&toml_table)?;
-
-    // 4. Extract and parse "context" section
-    let (contexts, overrides) =
-        parse_contexts(&toml_table, &default_config_info, &dimensions)?;
-
-    let default_config_map: Map<String, Value> = default_config_info
-        .into_inner()
-        .into_iter()
-        .map(|(k, v)| (k, v.value))
-        .collect();
-
-    Ok(Config {
-        default_configs: ExtendedMap::from(default_config_map),
-        contexts,
-        overrides,
-        dimensions,
-    })
+    Ok(config)
 }
 
 /// Serialize DetailedConfig structure to TOML format
 ///
 /// Converts a DetailedConfig object back to TOML string format matching the input specification.
-/// The output can be parsed by `parse()` to recreate an equivalent Config.
+/// The output can be parsed by `parse_toml_config()` to recreate an equivalent Config.
 ///
 /// # Arguments
 /// * `config` - The DetailedConfig structure to serialize
@@ -733,1001 +467,8 @@ pub fn parse(toml_content: &str) -> Result<Config, TomlError> {
 /// # Returns
 /// * `Ok(String)` - TOML formatted string
 /// * `Err(TomlError)` - Serialization error
-pub fn serialize_to_toml(config: &DetailedConfig) -> Result<String, TomlError> {
-    let mut output = String::new();
+pub fn serialize_to_toml(detailed_config: DetailedConfig) -> Result<String, TomlError> {
+    let toml_config = DetailedConfigToml::from(detailed_config);
 
-    // 1. Serialize [default-config] section
-    output.push_str("[default-config]\n");
-    for (key, config_info) in config.default_configs.iter() {
-        // Quote key if it contains special characters
-        let quoted_key = if needs_quoting(key) {
-            format!(r#""{}""#, key.replace('"', r#"\""#))
-        } else {
-            key.clone()
-        };
-
-        // Use the actual schema from the database
-        let schema_toml = serde_value_to_toml_value(config_info.schema.clone())
-            .ok_or_else(|| {
-                TomlError::NullValueInConfig(format!(
-                    "Null value in schema for key: {}",
-                    key
-                ))
-            })?;
-
-        let toml_value = serde_value_to_toml_value(config_info.value.clone())
-            .ok_or_else(|| {
-                TomlError::NullValueInConfig(format!(
-                    "Null value present for key: {}",
-                    key
-                ))
-            })?;
-
-        let toml_entry = format!(
-            "{} = {{ value = {}, schema = {} }}\n",
-            quoted_key, toml_value, schema_toml
-        );
-        output.push_str(&toml_entry);
-    }
-    output.push('\n');
-
-    // 2. Serialize [dimensions] section
-    output.push_str("[dimensions]\n");
-    let mut sorted_dims: Vec<_> = config.dimensions.iter().collect();
-    sorted_dims.sort_by_key(|(_, info)| info.position);
-
-    for (name, info) in sorted_dims {
-        let schema_json = serde_json::to_value(&info.schema).map_err(|e| {
-            TomlError::SerializationError(format!("{}: for dimension: {}", e, name))
-        })?;
-
-        // Serialize dimension type
-        let type_field = match &info.dimension_type {
-            DimensionType::Regular {} => r#"type = "regular""#.to_string(),
-            DimensionType::LocalCohort(cohort_name) => {
-                format!(r#"type = "local_cohort:{}""#, cohort_name)
-            }
-            DimensionType::RemoteCohort(cohort_name) => {
-                format!(r#"type = "remote_cohort:{}""#, cohort_name)
-            }
-        };
-
-        // Quote dimension name if it contains special characters
-        let quoted_name = if needs_quoting(name) {
-            format!(r#""{}""#, name.replace('"', r#"\""#))
-        } else {
-            name.clone()
-        };
-
-        let Some(schema_toml) = serde_value_to_toml_value(schema_json) else {
-            return Err(TomlError::NullValueInConfig(format!(
-                "schema for dimensions: {} contains null values",
-                name
-            )));
-        };
-
-        let toml_entry = format!(
-            "{} = {{ position = {}, schema = {}, {} }}\n",
-            quoted_name, info.position, schema_toml, type_field
-        );
-        output.push_str(&toml_entry);
-    }
-    output.push('\n');
-
-    // 3. Serialize [[context]] sections as array of tables
-    for context in &config.contexts {
-        output.push_str("[[context]]\n");
-
-        // Serialize condition as _condition_ field
-        let condition_map = &context.condition;
-        let mut condition_entries = Vec::new();
-        for (key, value) in condition_map.iter().sorted_by_key(|(k, _)| *k) {
-            let quoted_key = if needs_quoting(key) {
-                format!(r#""{}""#, key.replace('"', r#"\""#))
-            } else {
-                key.clone()
-            };
-            let toml_value =
-                serde_value_to_toml_value(value.clone()).ok_or_else(|| {
-                    TomlError::NullValueInConfig(format!(
-                        "Null value for condition key: {} in context: {}",
-                        key, context.id
-                    ))
-                })?;
-            condition_entries.push(format!("{} = {}", quoted_key, toml_value));
-        }
-        output.push_str(&format!(
-            "_condition_ = {{ {} }}\n",
-            condition_entries.join(", ")
-        ));
-
-        // Serialize override values
-        let override_key = context.override_with_keys.get_key();
-        if let Some(overrides) = config.overrides.get(override_key) {
-            for (key, value) in overrides
-                .clone()
-                .into_iter()
-                .sorted_by_key(|(k, _)| k.clone())
-            {
-                let quoted_key = if needs_quoting(&key) {
-                    format!(r#""{}""#, key.replace('"', r#"\""#))
-                } else {
-                    key.clone()
-                };
-                let toml_value =
-                    serde_value_to_toml_value(value.clone()).ok_or_else(|| {
-                        TomlError::NullValueInConfig(format!(
-                            "Null value for key: {} in context: {}",
-                            key, context.id
-                        ))
-                    })?;
-
-                output.push_str(&format!("{} = {}\n", quoted_key, toml_value));
-            }
-        }
-        output.push('\n');
-    }
-
-    Ok(output)
-}
-
-#[cfg(test)]
-mod serialization_tests {
-    use super::*;
-
-    /// Helper function to convert Config to DetailedConfig by inferring schema from value.
-    /// This is used for testing purposes only.
-    fn config_to_detailed(config: &Config) -> DetailedConfig {
-        let default_configs: std::collections::BTreeMap<String, DefaultConfigInfo> =
-            config
-                .default_configs
-                .iter()
-                .map(|(key, value)| {
-                    // Infer schema from value
-                    let schema = match value {
-                        Value::String(_) => serde_json::json!({ "type": "string" }),
-                        Value::Number(n) => {
-                            if n.is_i64() {
-                                serde_json::json!({ "type": "integer" })
-                            } else {
-                                serde_json::json!({ "type": "number" })
-                            }
-                        }
-                        Value::Bool(_) => serde_json::json!({ "type": "boolean" }),
-                        Value::Array(_) => serde_json::json!({ "type": "array" }),
-                        Value::Object(_) => serde_json::json!({ "type": "object" }),
-                        Value::Null => serde_json::json!({ "type": "null" }),
-                    };
-                    (
-                        key.clone(),
-                        DefaultConfigInfo {
-                            value: value.clone(),
-                            schema,
-                        },
-                    )
-                })
-                .collect();
-
-        DetailedConfig {
-            contexts: config.contexts.clone(),
-            overrides: config.overrides.clone(),
-            default_configs: DefaultConfigWithSchema(default_configs),
-            dimensions: config.dimensions.clone(),
-        }
-    }
-
-    #[test]
-    fn test_toml_round_trip_simple() {
-        let original_toml = r#"
-[default-config]
-timeout = { value = 30, schema = { type = "integer" } }
-
-[dimensions]
-os = { position = 1, schema = { "type" = "string" } }
-
-[[context]]
-_condition_ = { os = "linux" }
-timeout = 60
-"#;
-
-        // Parse TOML -> Config
-        let config = parse(original_toml).unwrap();
-
-        // Serialize Config -> TOML
-        let serialized = serialize_to_toml(&config_to_detailed(&config)).unwrap();
-
-        // Parse again
-        let reparsed = parse(&serialized).unwrap();
-
-        // Configs should be functionally equivalent
-        assert_eq!(config.default_configs, reparsed.default_configs);
-        assert_eq!(config.dimensions.len(), reparsed.dimensions.len());
-        assert_eq!(config.contexts.len(), reparsed.contexts.len());
-    }
-
-    #[test]
-    fn test_toml_round_trip_empty_config() {
-        // Test with empty default-config but valid context with overrides
-        let toml_str = r#"
-[default-config]
-timeout = { value = 30, schema = { type = "integer" } }
-
-[dimensions]
-os = { position = 1, schema = { type = "string" } }
-
-[[context]]
-_condition_ = { os = "linux" }
-timeout = 60
-"#;
-
-        let config = parse(toml_str).unwrap();
-        assert_eq!(config.default_configs.len(), 1);
-        assert_eq!(config.contexts.len(), 1);
-        assert_eq!(config.overrides.len(), 1);
-    }
-
-    #[test]
-    fn test_dimension_type_regular() {
-        let toml = r#"
-[default-config]
-timeout = { value = 30, schema = { type = "integer" } }
-
-[dimensions]
-os = { position = 1, schema = { type = "string" }, type = "regular" }
-
-[[context]]
-_condition_ = { os = "linux" }
-timeout = 60
-"#;
-
-        let config = parse(toml).unwrap();
-        let serialized = serialize_to_toml(&config_to_detailed(&config)).unwrap();
-        let reparsed = parse(&serialized).unwrap();
-
-        assert!(serialized.contains(r#"type = "regular""#));
-        assert_eq!(config.dimensions.len(), reparsed.dimensions.len());
-    }
-
-    #[test]
-    fn test_dimension_type_local_cohort() {
-        // Note: TOML cannot represent jsonlogic rules with operators like "==" as keys
-        // So we test parsing with a simplified schema that has the required structure
-        let toml = r#"
-[default-config]
-timeout = { value = 30, schema = { type = "integer" } }
-
-[dimensions]
-os = { position = 1, schema = { type = "string" } }
-os_cohort = { position = 2, type = "local_cohort:os", schema = { type = "string", enum = ["linux", "windows", "otherwise"], definitions = { linux = "rule_for_linux", windows = "rule_for_windows" } } }
-
-[[context]]
-_condition_ = { os = "linux" }
-timeout = 60
-"#;
-
-        let config = parse(toml).unwrap();
-        let serialized = serialize_to_toml(&config_to_detailed(&config)).unwrap();
-        let reparsed = parse(&serialized).unwrap();
-
-        assert!(serialized.contains(r#"type = "local_cohort:os""#));
-        assert_eq!(config.dimensions.len(), reparsed.dimensions.len());
-    }
-
-    #[test]
-    fn test_dimension_type_local_cohort_invalid_reference() {
-        let toml = r#"
-[default-config]
-timeout = { value = 30, schema = { type = "integer" } }
-
-[dimensions]
-os_cohort = { position = 1, schema = { type = "string" }, type = "local_cohort:nonexistent" }
-
-[[context]]
-_condition_ = { os = "linux" }
-timeout = 60
-"#;
-
-        let result = parse(toml);
-        assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("does not exist"));
-    }
-
-    #[test]
-    fn test_dimension_type_local_cohort_empty_name() {
-        let toml = r#"
-[default-config]
-timeout = { value = 30, schema = { type = "integer" } }
-
-[dimensions]
-os = { position = 1, schema = { type = "string" } }
-os_cohort = { position = 2, schema = { type = "string" }, type = "local_cohort:" }
-
-[[context]]
-_condition_ = { os = "linux" }
-timeout = 60
-"#;
-
-        let result = parse(toml);
-        assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("cannot be empty"));
-    }
-
-    #[test]
-    fn test_dimension_type_remote_cohort() {
-        // Remote cohorts use normal schema validation (no definitions required)
-        let toml = r#"
-[default-config]
-timeout = { value = 30, schema = { type = "integer" } }
-
-[dimensions]
-os = { position = 1, schema = { type = "string" } }
-os_cohort = { position = 2, type = "remote_cohort:os", schema = { type = "string", enum = ["linux", "windows", "macos"] } }
-
-[[context]]
-_condition_ = { os = "linux" }
-timeout = 60
-"#;
-
-        let config = parse(toml).unwrap();
-        let serialized = serialize_to_toml(&config_to_detailed(&config)).unwrap();
-        let reparsed = parse(&serialized).unwrap();
-
-        assert!(serialized.contains(r#"type = "remote_cohort:os""#));
-        assert_eq!(config.dimensions.len(), reparsed.dimensions.len());
-    }
-
-    #[test]
-    fn test_dimension_type_remote_cohort_invalid_reference() {
-        let toml = r#"
-[default-config]
-timeout = { value = 30, schema = { type = "integer" } }
-
-[dimensions]
-os_cohort = { position = 1, schema = { type = "string" }, type = "remote_cohort:nonexistent" }
-
-[[context]]
-_condition_ = { os = "linux" }
-timeout = 60
-"#;
-
-        let result = parse(toml);
-        assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("does not exist"));
-    }
-
-    #[test]
-    fn test_dimension_type_remote_cohort_empty_name() {
-        let toml = r#"
-[default-config]
-timeout = { value = 30, schema = { type = "integer" } }
-
-[dimensions]
-os = { position = 1, schema = { type = "string" } }
-os_cohort = { position = 2, schema = { type = "string" }, type = "remote_cohort:" }
-
-[[context]]
-_condition_ = { os = "linux" }
-timeout = 60
-"#;
-
-        let result = parse(toml);
-        assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("cannot be empty"));
-    }
-
-    #[test]
-    fn test_dimension_type_remote_cohort_invalid_schema() {
-        // Remote cohorts with invalid schema should fail validation
-        let toml = r#"
-[default-config]
-timeout = { value = 30, schema = { type = "integer" } }
-
-[dimensions]
-os = { position = 1, schema = { type = "string" } }
-os_cohort = { position = 2, type = "remote_cohort:os", schema = { type = "invalid_type" } }
-
-[[context]]
-_condition_ = { os = "linux" }
-timeout = 60
-"#;
-
-        let result = parse(toml);
-        assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .to_string()
-            .contains("Schema validation failed"));
-    }
-
-    #[test]
-    fn test_dimension_type_default_regular() {
-        let toml = r#"
-[default-config]
-timeout = { value = 30, schema = { type = "integer" } }
-
-[dimensions]
-os = { position = 1, schema = { type = "string" } }
-
-[[context]]
-_condition_ = { os = "linux" }
-timeout = 60
-"#;
-
-        let config = parse(toml).unwrap();
-        let serialized = serialize_to_toml(&config_to_detailed(&config)).unwrap();
-        let reparsed = parse(&serialized).unwrap();
-
-        // Default should be regular
-        assert!(serialized.contains(r#"type = "regular""#));
-        assert_eq!(config.dimensions.len(), reparsed.dimensions.len());
-    }
-
-    #[test]
-    fn test_dimension_type_invalid_format() {
-        let toml = r#"
-[default-config]
-timeout = { value = 30, schema = { type = "integer" } }
-
-[dimensions]
-os = { position = 1, schema = { type = "string" }, type = "local_cohort" }
-
-[[context]]
-_condition_ = { os = "linux" }
-timeout = 60
-"#;
-
-        let result = parse(toml);
-        assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .to_string()
-            .contains("local_cohort:<dimension_name>"));
-    }
-
-    // rest of the tests
-    #[test]
-    fn test_valid_toml_parsing() {
-        let toml = r#"
-            [default-config]
-            timeout = { value = 30, schema = { type = "integer" } }
-            enabled = { value = true, schema = { type = "boolean" } }
-
-            [dimensions]
-            os = { position = 1, schema = { type = "string" } }
-
-            [[context]]
-            _condition_ = { os = "linux" }
-            timeout = 60
-        "#;
-
-        let result = parse(toml);
-        assert!(result.is_ok());
-        let parsed = result.unwrap();
-        assert_eq!(parsed.default_configs.len(), 2);
-        assert_eq!(parsed.dimensions.len(), 1);
-        assert_eq!(parsed.contexts.len(), 1);
-        assert_eq!(parsed.overrides.len(), 1);
-    }
-
-    #[test]
-    fn test_missing_section_error() {
-        let toml = r#"
-            [default-config]
-            timeout = { value = 30, schema = { type = "integer" } }
-        "#;
-
-        let result = parse(toml);
-        assert!(result.is_err());
-        assert!(matches!(result, Err(TomlError::MissingSection(_))));
-    }
-
-    #[test]
-    fn test_missing_value_field() {
-        let toml = r#"
-            [default-config]
-            timeout = { schema = { type = "integer" } }
-
-            [dimensions]
-            os = { position = 1, schema = { type = "string" } }
-
-            context = []
-        "#;
-
-        let result = parse(toml);
-        assert!(result.is_err());
-        assert!(matches!(result, Err(TomlError::MissingField { .. })));
-    }
-
-    #[test]
-    fn test_undeclared_dimension() {
-        let toml = r#"
-            [default-config]
-            timeout = { value = 30, schema = { type = "integer" } }
-
-            [dimensions]
-            os = { position = 1, schema = { type = "string" } }
-
-            [[context]]
-            _condition_ = { region = "us-east" }
-            timeout = 60
-        "#;
-
-        let result = parse(toml);
-        assert!(result.is_err());
-        assert!(matches!(result, Err(TomlError::UndeclaredDimension { .. })));
-    }
-
-    #[test]
-    fn test_invalid_override_key() {
-        let toml = r#"
-            [default-config]
-            timeout = { value = 30, schema = { type = "integer" } }
-
-            [dimensions]
-            os = { position = 1, schema = { type = "string" } }
-
-            [[context]]
-            _condition_ = { os = "linux" }
-            port = 8080
-        "#;
-
-        let result = parse(toml);
-        assert!(result.is_err());
-        assert!(matches!(result, Err(TomlError::InvalidOverrideKey { .. })));
-    }
-
-    #[test]
-    fn test_hash_consistency() {
-        let val1 = serde_json::json!({"a": 1, "b": 2});
-        let val2 = serde_json::json!({"b": 2, "a": 1});
-        assert_eq!(hash(&val1).unwrap(), hash(&val2).unwrap());
-    }
-
-    #[test]
-    fn test_toml_value_conversion() {
-        let toml_str = toml::Value::String("test".to_string());
-        let json_val = toml_value_to_serde_value(toml_str);
-        assert_eq!(json_val, Value::String("test".to_string()));
-
-        let toml_int = toml::Value::Integer(42);
-        let json_val = toml_value_to_serde_value(toml_int);
-        assert_eq!(json_val, Value::Number(42.into()));
-
-        let toml_bool = toml::Value::Boolean(true);
-        let json_val = toml_value_to_serde_value(toml_bool);
-        assert_eq!(json_val, Value::Bool(true));
-    }
-
-    #[test]
-    fn test_priority_calculation() {
-        let toml = r#"
-            [default-config]
-            timeout = { value = 30, schema = { type = "integer" } }
-
-            [dimensions]
-            os = { position = 1, schema = { type = "string" } }
-            region = { position = 2, schema = { type = "string" } }
-
-            [[context]]
-            _condition_ = { os = "linux" }
-            timeout = 60
-
-            [[context]]
-            _condition_ = { os = "linux", region = "us-east" }
-            timeout = 90
-        "#;
-
-        let result = parse(toml);
-        assert!(result.is_ok());
-        let parsed = result.unwrap();
-
-        // First context has os (position 1): priority = 2^1 = 2
-        // Second context has os (position 1) and region (position 2): priority = 2^1 + 2^2 = 6
-        assert_eq!(parsed.contexts[0].priority, 2);
-        assert_eq!(parsed.contexts[1].priority, 6);
-    }
-
-    #[test]
-    fn test_missing_position_error() {
-        let toml = r#"
-            [default-config]
-            timeout = { value = 30, schema = { type = "integer" } }
-
-            [dimensions]
-            os = { schema = { type = "string" } }
-
-            [[context]]
-            _condition_ = { os = "linux" }
-            timeout = 60
-        "#;
-
-        let result = parse(toml);
-        assert!(result.is_err());
-        assert!(matches!(
-            result,
-            Err(TomlError::MissingField {
-                section,
-                field,
-                ..
-            }) if section == "dimensions" && field == "position"
-        ));
-    }
-
-    #[test]
-    fn test_duplicate_position_error() {
-        let toml = r#"
-            [default-config]
-            timeout = { value = 30, schema = { type = "integer" } }
-
-            [dimensions]
-            os = { position = 1, schema = { type = "string" } }
-            region = { position = 1, schema = { type = "string" } }
-
-            [[context]]
-            _condition_ = { os = "linux" }
-            timeout = 60
-        "#;
-
-        let result = parse(toml);
-        assert!(result.is_err());
-        assert!(matches!(
-            result,
-            Err(TomlError::DuplicatePosition {
-                position,
-                dimensions
-            }) if position == 1 && dimensions.len() == 2
-        ));
-    }
-
-    // Validation tests
-    #[test]
-    fn test_validation_valid_default_config() {
-        let toml = r#"
-            [default-config]
-            timeout = { value = 30, schema = { type = "integer" } }
-            enabled = { value = true, schema = { type = "boolean" } }
-            name = { value = "test", schema = { type = "string" } }
-
-            [dimensions]
-            os = { position = 1, schema = { type = "string" } }
-
-            [[context]]
-            _condition_ = { os = "linux" }
-            timeout = 60
-        "#;
-
-        let result = parse(toml);
-        assert!(result.is_ok());
-    }
-
-    #[test]
-    fn test_validation_invalid_default_config_type_mismatch() {
-        let toml = r#"
-            [default-config]
-            timeout = { value = "not_an_integer", schema = { type = "integer" } }
-
-            [dimensions]
-            os = { position = 1, schema = { type = "string" } }
-
-            [[context]]
-            _condition_ = { os = "linux" }
-            timeout = 60
-        "#;
-
-        let result = parse(toml);
-        assert!(result.is_err());
-        assert!(matches!(result, Err(TomlError::ValidationError { .. })));
-        let err = result.unwrap_err();
-        assert!(err.to_string().contains("timeout"));
-    }
-
-    #[test]
-    fn test_validation_valid_context_override() {
-        let toml = r#"
-            [default-config]
-            timeout = { value = 30, schema = { type = "integer" } }
-
-            [dimensions]
-            os = { position = 1, schema = { type = "string" } }
-
-            [[context]]
-            _condition_ = { os = "linux" }
-            timeout = 60
-        "#;
-
-        let result = parse(toml);
-        assert!(result.is_ok());
-    }
-
-    #[test]
-    fn test_validation_invalid_context_override_type_mismatch() {
-        let toml = r#"
-            [default-config]
-            timeout = { value = 30, schema = { type = "integer" } }
-
-            [dimensions]
-            os = { position = 1, schema = { type = "string" } }
-
-            [[context]]
-            _condition_ = { os = "linux" }
-            timeout = "not_an_integer"
-        "#;
-
-        let result = parse(toml);
-        assert!(result.is_err());
-        assert!(matches!(result, Err(TomlError::ValidationError { .. })));
-        let err = result.unwrap_err();
-        assert!(err.to_string().contains("context[0].timeout"));
-    }
-
-    #[test]
-    fn test_validation_valid_dimension_value_in_context() {
-        let toml = r#"
-            [default-config]
-            timeout = { value = 30, schema = { type = "integer" } }
-
-            [dimensions]
-            os = { position = 1, schema = { type = "string", enum = ["linux", "windows", "macos"] } }
-
-            [[context]]
-            _condition_ = { os = "linux" }
-            timeout = 60
-        "#;
-
-        let result = parse(toml);
-        assert!(result.is_ok());
-    }
-
-    #[test]
-    fn test_validation_invalid_dimension_value_in_context() {
-        let toml = r#"
-            [default-config]
-            timeout = { value = 30, schema = { type = "integer" } }
-
-            [dimensions]
-            os = { position = 1, schema = { type = "string", enum = ["linux", "windows", "macos"] } }
-
-            [[context]]
-            _condition_ = { os = "freebsd" }
-            timeout = 60
-        "#;
-
-        let result = parse(toml);
-        assert!(result.is_err());
-        assert!(matches!(result, Err(TomlError::ValidationError { .. })));
-        let err = result.unwrap_err();
-        assert!(err.to_string().contains("context[0]._condition_.os"));
-    }
-
-    #[test]
-    fn test_validation_with_minimum_constraint() {
-        let toml = r#"
-            [default-config]
-            timeout = { value = 30, schema = { type = "integer", minimum = 10 } }
-
-            [dimensions]
-            os = { position = 1, schema = { type = "string" } }
-
-            [[context]]
-            _condition_ = { os = "linux" }
-            timeout = 60
-        "#;
-
-        let result = parse(toml);
-        assert!(result.is_ok());
-    }
-
-    #[test]
-    fn test_validation_fails_minimum_constraint() {
-        let toml = r#"
-            [default-config]
-            timeout = { value = 5, schema = { type = "integer", minimum = 10 } }
-
-            [dimensions]
-            os = { position = 1, schema = { type = "string" } }
-
-            [[context]]
-            _condition_ = { os = "linux" }
-            timeout = 60
-        "#;
-
-        let result = parse(toml);
-        assert!(result.is_err());
-        assert!(matches!(result, Err(TomlError::ValidationError { .. })));
-        let err = result.unwrap_err();
-        assert!(err.to_string().contains("timeout"));
-    }
-
-    #[test]
-    fn test_validation_numeric_dimension_value() {
-        let toml = r#"
-            [default-config]
-            timeout = { value = 30, schema = { type = "integer" } }
-
-            [dimensions]
-            port = { position = 1, schema = { type = "integer", minimum = 1, maximum = 65535 } }
-
-            [[context]]
-            _condition_ = { port = 8080 }
-            timeout = 60
-        "#;
-
-        let result = parse(toml);
-        assert!(result.is_ok());
-    }
-
-    #[test]
-    fn test_validation_invalid_numeric_dimension_value() {
-        let toml = r#"
-            [default-config]
-            timeout = { value = 30, schema = { type = "integer" } }
-
-            [dimensions]
-            port = { position = 1, schema = { type = "integer", minimum = 1, maximum = 65535 } }
-
-            [[context]]
-            _condition_ = { port = 70000 }
-            timeout = 60
-        "#;
-
-        let result = parse(toml);
-        assert!(result.is_err());
-        assert!(matches!(result, Err(TomlError::ValidationError { .. })));
-        let err = result.unwrap_err();
-        assert!(err.to_string().contains("context[0]._condition_.port"));
-    }
-
-    #[test]
-    fn test_validation_boolean_dimension_value() {
-        let toml = r#"
-            [default-config]
-            timeout = { value = 30, schema = { type = "integer" } }
-
-            [dimensions]
-            debug = { position = 1, schema = { type = "boolean" } }
-
-            [[context]]
-            _condition_ = { debug = true }
-            timeout = 60
-        "#;
-
-        let result = parse(toml);
-        assert!(result.is_ok());
-    }
-
-    #[test]
-    fn test_validation_invalid_boolean_dimension_value() {
-        let toml = r#"
-            [default-config]
-            timeout = { value = 30, schema = { type = "integer" } }
-
-            [dimensions]
-            debug = { position = 1, schema = { type = "boolean" } }
-
-            [[context]]
-            _condition_ = { debug = "yes" }
-            timeout = 60
-        "#;
-
-        let result = parse(toml);
-        assert!(result.is_err());
-        assert!(matches!(result, Err(TomlError::ValidationError { .. })));
-        let err = result.unwrap_err();
-        assert!(err.to_string().contains("context[0]._condition_.debug"));
-    }
-
-    #[test]
-    fn test_object_value_round_trip() {
-        // Test that object values are serialized as triple-quoted JSON and parsed back correctly
-        let original_toml = r#"
-[default-config]
-config = { value = { host = "localhost", port = 8080 } , schema = { type = "object" } }
-
-[dimensions]
-os = { position = 1, schema = { type = "string", enum = ["linux", "windows", "macos"] } }
-os_cohort = { position = 2, schema = { enum = ["unix", "otherwise"], type = "string", definitions = { unix = { in = [{ var = "os" }, ["linux", "macos"]] } } }, type = "local_cohort:os" }
-
-[[context]]
-_condition_ = { os = "linux" }
-config = { host = "prod.example.com", port = 443 }
-
-[[context]]
-_condition_ = { os_cohort = "unix" }
-config = { host = "prod.unix.com", port = 8443 }
-"#;
-
-        // Parse TOML -> Config
-        let config = parse(original_toml).unwrap();
-
-        // Verify default config object was parsed correctly
-        let default_config_value = config.default_configs.get("config").unwrap();
-        assert_eq!(
-            default_config_value.get("host"),
-            Some(&Value::String("localhost".to_string()))
-        );
-        assert_eq!(
-            default_config_value.get("port"),
-            Some(&Value::Number(serde_json::Number::from(8080)))
-        );
-
-        // Serialize Config -> TOML
-        let serialized = serialize_to_toml(&config_to_detailed(&config)).unwrap();
-
-        // Parse again
-        let reparsed = parse(&serialized).unwrap();
-
-        // Configs should be functionally equivalent
-        assert_eq!(config.default_configs, reparsed.default_configs);
-        assert_eq!(config.contexts.len(), reparsed.contexts.len());
-
-        // Verify override object was parsed correctly
-        let override_key = config.contexts[0].override_with_keys.get_key();
-        let overrides = config.overrides.get(override_key).unwrap();
-        let override_config = overrides.get("config").unwrap();
-        assert_eq!(
-            override_config.get("host"),
-            Some(&Value::String("prod.example.com".to_string()))
-        );
-        assert_eq!(
-            override_config.get("port"),
-            Some(&Value::Number(serde_json::Number::from(443)))
-        );
-
-        let override_key = config.contexts[1].override_with_keys.get_key();
-        let overrides = config.overrides.get(override_key).unwrap();
-        let override_config = overrides.get("config").unwrap();
-        assert_eq!(
-            override_config.get("host"),
-            Some(&Value::String("prod.unix.com".to_string()))
-        );
-        assert_eq!(
-            override_config.get("port"),
-            Some(&Value::Number(serde_json::Number::from(8443)))
-        );
-    }
-
-    #[test]
-    fn test_resolution_with_local_cohorts() {
-        // Test that object values are serialized as triple-quoted JSON and parsed back correctly
-        let original_toml = r#"
-[default-config]
-config = { value = { host = "localhost", port = 8080 } , schema = { type = "object" } }
-max_count = { value = 10 , schema = { type = "number", minimum = 0, maximum = 100 } }
-
-[dimensions]
-os = { position = 1, schema = { type = "string", enum = ["linux", "windows", "macos"] } }
-os_cohort = { position = 2, schema = { enum = ["unix", "otherwise"], type = "string", definitions = { unix = { in = [{ var = "os" }, ["linux", "macos"]] } } }, type = "local_cohort:os" }
-
-[[context]]
-_condition_ = { os = "linux" }
-config = { host = "prod.example.com", port = 443 }
-
-[[context]]
-_condition_ = { os_cohort = "unix" }
-config = { host = "prod.unix.com", port = 8443 }
-max_count = 95
-"#;
-
-        // Parse TOML -> Config
-        let config = parse(original_toml).unwrap();
-        let mut dims = Map::new();
-        dims.insert("os".to_string(), Value::String("linux".to_string()));
-
-        let default_configs = (*config.default_configs).clone();
-        let result = crate::eval_config(
-            default_configs.clone(),
-            &config.contexts,
-            &config.overrides,
-            &config.dimensions,
-            &dims,
-            crate::MergeStrategy::MERGE,
-            None,
-        )
-        .unwrap();
-
-        assert_eq!(
-            result.get("max_count"),
-            Some(&Value::Number(serde_json::Number::from(95)))
-        );
-    }
+    toml_config.serialize_to_toml()
 }

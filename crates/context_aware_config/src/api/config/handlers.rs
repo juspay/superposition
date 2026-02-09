@@ -51,11 +51,14 @@ use crate::{
         add_last_modified_to_header, generate_config_from_version, get_config_version,
         get_max_created_at, is_not_modified,
     },
-    helpers::{calculate_context_weight, generate_cac, generate_detailed_cac},
+    helpers::{generate_cac, generate_detailed_cac},
 };
 
 use super::helpers::{apply_prefix_filter_to_config, resolve, setup_query_data};
-use superposition_core::serialize_to_toml;
+use superposition_core::{
+    helpers::{calculate_context_weight, hash},
+    serialize_to_toml,
+};
 
 #[allow(clippy::let_and_return)]
 pub fn endpoints() -> Scope {
@@ -306,10 +309,9 @@ async fn reduce_config_key(
 
     let mut weights = Vec::new();
 
-    for (index, ctx) in contexts_overrides_values.iter().enumerate() {
-        let weight =
-            calculate_context_weight(&json!((ctx.0).condition), dimension_schema_map)
-                .map_err(|err| bad_argument!(err))?;
+    for (index, (ctx, _, _, _)) in contexts_overrides_values.iter().enumerate() {
+        let weight = calculate_context_weight(&ctx.condition, dimension_schema_map)
+            .map_err(|err| bad_argument!(err))?;
         weights.push((index, weight))
     }
 
@@ -394,8 +396,7 @@ async fn reduce_config_key(
                     })?
                     .into_inner();
 
-                    let new_id =
-                        context::hash(&Value::Object(override_val.clone().into()));
+                    let new_id = hash(&Value::Object(override_val.clone().into()));
                     og_overrides.insert(new_id.clone(), override_val);
 
                     let mut ctx_index = 0;
@@ -653,7 +654,7 @@ async fn get_toml_handler(
     let detailed_config =
         generate_detailed_cac(&mut conn, &workspace_context.schema_name)?;
 
-    let toml_str = serialize_to_toml(&detailed_config).map_err(|e| {
+    let toml_str = serialize_to_toml(detailed_config).map_err(|e| {
         log::error!("Failed to serialize config to TOML: {}", e);
         superposition::AppError::UnexpectedError(anyhow::anyhow!(
             "Failed to serialize config to TOML: {}",

@@ -1,10 +1,9 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use actix_web::{
     http::header::{HeaderMap, HeaderName, HeaderValue},
     web::Data,
 };
-use bigdecimal::BigDecimal;
 #[cfg(feature = "high-performance-mode")]
 use chrono::DateTime;
 use chrono::Utc;
@@ -17,15 +16,13 @@ use service_utils::{
     helpers::{fetch_dimensions_info_map, generate_snowflake_id},
     service::types::{AppState, EncryptionKey, SchemaName, WorkspaceContext},
 };
-use superposition_core::{
-    helpers::calculate_weight_from_index, validations::compile_schema,
-};
+use superposition_core::validations::compile_schema;
 use superposition_macros::{db_error, unexpected_error, validation_error};
 #[cfg(feature = "high-performance-mode")]
 use superposition_types::database::schema::event_log::dsl as event_log;
 use superposition_types::{
     Cac, Condition, Config, Context, DBConnection, DefaultConfigInfo,
-    DefaultConfigWithSchema, DetailedConfig, DimensionInfo, OverrideWithKeys, Overrides,
+    DefaultConfigsWithSchema, DetailedConfig, DimensionInfo, OverrideWithKeys, Overrides,
     api::functions::{
         CHANGE_REASON_VALIDATION_FN_NAME, FunctionEnvironment, FunctionExecutionRequest,
         FunctionExecutionResponse, KeyType,
@@ -96,30 +93,6 @@ pub fn get_meta_schema() -> JSONSchema {
         .expect("Error encountered: Failed to compile 'context_dimension_schema_value'. Ensure it adheres to the correct format and data type.")
 }
 
-pub fn calculate_context_weight(
-    cond: &Value,
-    dimension_position_map: &HashMap<String, DimensionInfo>,
-) -> Result<BigDecimal, String> {
-    let dimensions: HashSet<String> = cond
-        .as_object()
-        .map(|o| o.keys().cloned().collect())
-        .unwrap_or_default();
-
-    let mut weight = BigDecimal::from(0);
-    for dimension in dimensions {
-        let position = dimension_position_map
-            .get(dimension.clone().as_str())
-            .map(|x| x.position)
-            .ok_or_else(|| {
-                let msg =
-                    format!("Dimension:{} not found in Dimension schema map", dimension);
-                log::error!("{}", msg);
-                msg
-            })?;
-        weight += calculate_weight_from_index(position as u32)?;
-    }
-    Ok(weight)
-}
 pub fn generate_cac(
     conn: &mut DBConnection,
     schema_name: &SchemaName,
@@ -289,7 +262,7 @@ pub fn generate_detailed_cac(
     Ok(DetailedConfig {
         contexts,
         overrides,
-        default_configs: DefaultConfigWithSchema(default_configs),
+        default_configs: DefaultConfigsWithSchema::from(default_configs),
         dimensions,
     })
 }

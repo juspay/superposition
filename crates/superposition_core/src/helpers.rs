@@ -1,7 +1,12 @@
 //! Helper functions for configuration calculations
 
+use std::collections::{HashMap, HashSet};
+
 use bigdecimal::{BigDecimal, Num};
+use itertools::Itertools;
 use num_bigint::BigUint;
+use serde_json::{Map, Value};
+use superposition_types::DimensionInfo;
 
 /// Calculate weight from a position index using 2^index formula
 ///
@@ -37,6 +42,60 @@ pub fn calculate_weight_from_index(index: u32) -> Result<BigDecimal, String> {
         log::error!("failed to parse bigdecimal with error: {}", err.to_string());
         String::from("failed to parse bigdecimal with error")
     })
+}
+
+pub fn calculate_context_weight(
+    context: &Map<String, Value>,
+    dimensions_info: &HashMap<String, DimensionInfo>,
+) -> Result<BigDecimal, String> {
+    let dimensions: HashSet<String> = context.keys().cloned().collect();
+
+    let mut weight = BigDecimal::from(0);
+    for dimension in dimensions {
+        let position = dimensions_info
+            .get(&dimension)
+            .map(|x| x.position)
+            .ok_or_else(|| {
+                let msg =
+                    format!("Dimension:{} not found in Dimension schema map", dimension);
+                log::error!("{}", msg);
+                msg
+            })?;
+        weight += calculate_weight_from_index(position as u32)?;
+    }
+    Ok(weight)
+}
+
+fn json_to_sorted_string(v: &Value) -> String {
+    match v {
+        Value::Object(m) => {
+            let mut new_str: String = String::from("");
+            for (i, val) in m.iter().sorted_by_key(|item| item.0) {
+                let p: String = json_to_sorted_string(val);
+                new_str.push_str(i);
+                new_str.push_str(&String::from(":"));
+                new_str.push_str(&p);
+                new_str.push_str(&String::from("$"));
+            }
+            new_str
+        }
+        Value::String(m) => m.to_string(),
+        Value::Number(m) => m.to_string(),
+        Value::Bool(m) => m.to_string(),
+        Value::Null => String::from("null"),
+        Value::Array(m) => {
+            let mut new_vec =
+                m.iter().map(json_to_sorted_string).collect::<Vec<String>>();
+            new_vec.sort();
+            new_vec.join(",")
+        }
+    }
+}
+
+/// Hash a serde_json Value using BLAKE3
+pub fn hash(val: &Value) -> String {
+    let sorted_str: String = json_to_sorted_string(val);
+    blake3::hash(sorted_str.as_bytes()).to_string()
 }
 
 #[cfg(test)]
