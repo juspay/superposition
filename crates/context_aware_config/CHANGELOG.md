@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.68.0 - 2026-02-09
+#### Bug Fixes
+- smithy and minor refactor (#862) - (fd427fe) - Ayush Jain
+#### Features
+- better logging for API services (#842) - (453b3fa) - Datron
+- secrets support for functions/webhooks (#773) - (2d99a0a) - sauraww
+#### Miscellaneous Chores
+- **(deps)** bump @eslint/plugin-kit and eslint (#858) - (676edf0) - dependabot[bot]
+- **(deps)** bump eslint in /crates/context_aware_config (#849) - (070025a) - dependabot[bot]
+- **(version)** v0.97.4 [skip ci] - (5e642fb) - Superposition Bot
+
+- - -
+
 ## context_aware_config-v0.67.4 - 2026-01-30
 #### Bug Fixes
 - redundant cargo upgrades (#848) - (0444af4) - Natarajan Kannan

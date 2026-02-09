@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.37.0 - 2026-02-09
+#### Features
+- better logging for API services (#842) - (453b3fa) - Datron
+- secrets support for functions/webhooks (#773) - (2d99a0a) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.97.2 [skip ci] - (b6f916b) - Superposition Bot
+
+- - -
+
 ## service_utils-v0.36.2 - 2026-01-29
 #### Bug Fixes
 - exp and config partial apply (#831) - (0fceab3) - Ayush Jain
