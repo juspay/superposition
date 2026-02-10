@@ -41,6 +41,7 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
         .putMember("auto_populate_control", PreludeSchemas.BOOLEAN)
         .putMember("enable_context_validation", PreludeSchemas.BOOLEAN)
         .putMember("enable_change_reason_validation", PreludeSchemas.BOOLEAN)
+        .putMember("change_reason", PreludeSchemas.STRING)
         .build();
 
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
@@ -54,6 +55,7 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
     private static final Schema $SCHEMA_AUTO_POPULATE_CONTROL = $SCHEMA.member("auto_populate_control");
     private static final Schema $SCHEMA_ENABLE_CONTEXT_VALIDATION = $SCHEMA.member("enable_context_validation");
     private static final Schema $SCHEMA_ENABLE_CHANGE_REASON_VALIDATION = $SCHEMA.member("enable_change_reason_validation");
+    private static final Schema $SCHEMA_CHANGE_REASON = $SCHEMA.member("change_reason");
 
     private final transient String orgId;
     private final transient String workspaceName;
@@ -66,6 +68,7 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
     private final transient Boolean autoPopulateControl;
     private final transient Boolean enableContextValidation;
     private final transient Boolean enableChangeReasonValidation;
+    private final transient String changeReason;
 
     private UpdateWorkspaceInput(Builder builder) {
         this.orgId = builder.orgId;
@@ -79,6 +82,7 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
         this.autoPopulateControl = builder.autoPopulateControl;
         this.enableContextValidation = builder.enableContextValidation;
         this.enableChangeReasonValidation = builder.enableChangeReasonValidation;
+        this.changeReason = builder.changeReason;
     }
 
     public String orgId() {
@@ -135,6 +139,10 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
         return enableChangeReasonValidation;
     }
 
+    public String changeReason() {
+        return changeReason;
+    }
+
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -159,12 +167,13 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
                && Objects.equals(this.allowExperimentSelfApproval, that.allowExperimentSelfApproval)
                && Objects.equals(this.autoPopulateControl, that.autoPopulateControl)
                && Objects.equals(this.enableContextValidation, that.enableContextValidation)
-               && Objects.equals(this.enableChangeReasonValidation, that.enableChangeReasonValidation);
+               && Objects.equals(this.enableChangeReasonValidation, that.enableChangeReasonValidation)
+               && Objects.equals(this.changeReason, that.changeReason);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(orgId, workspaceName, workspaceAdminEmail, configVersion, mandatoryDimensions, workspaceStatus, metrics, allowExperimentSelfApproval, autoPopulateControl, enableContextValidation, enableChangeReasonValidation);
+        return Objects.hash(orgId, workspaceName, workspaceAdminEmail, configVersion, mandatoryDimensions, workspaceStatus, metrics, allowExperimentSelfApproval, autoPopulateControl, enableContextValidation, enableChangeReasonValidation, changeReason);
     }
 
     @Override
@@ -201,6 +210,9 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
         if (enableChangeReasonValidation != null) {
             serializer.writeBoolean($SCHEMA_ENABLE_CHANGE_REASON_VALIDATION, enableChangeReasonValidation);
         }
+        if (changeReason != null) {
+            serializer.writeString($SCHEMA_CHANGE_REASON, changeReason);
+        }
     }
 
     @Override
@@ -218,6 +230,7 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
             case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_AUTO_POPULATE_CONTROL, member, autoPopulateControl);
             case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_ENABLE_CONTEXT_VALIDATION, member, enableContextValidation);
             case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_ENABLE_CHANGE_REASON_VALIDATION, member, enableChangeReasonValidation);
+            case 11 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, changeReason);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -242,6 +255,7 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
         builder.autoPopulateControl(this.autoPopulateControl);
         builder.enableContextValidation(this.enableContextValidation);
         builder.enableChangeReasonValidation(this.enableChangeReasonValidation);
+        builder.changeReason(this.changeReason);
         return builder;
     }
 
@@ -268,6 +282,7 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
         private Boolean autoPopulateControl;
         private Boolean enableContextValidation;
         private Boolean enableChangeReasonValidation;
+        private String changeReason;
 
         private Builder() {}
 
@@ -372,6 +387,14 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
             return this;
         }
 
+        /**
+         * @return this builder.
+         */
+        public Builder changeReason(String changeReason) {
+            this.changeReason = changeReason;
+            return this;
+        }
+
         @Override
         public UpdateWorkspaceInput build() {
             tracker.validate();
@@ -393,6 +416,7 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
                 case 8 -> autoPopulateControl((boolean) SchemaUtils.validateSameMember($SCHEMA_AUTO_POPULATE_CONTROL, member, value));
                 case 9 -> enableContextValidation((boolean) SchemaUtils.validateSameMember($SCHEMA_ENABLE_CONTEXT_VALIDATION, member, value));
                 case 10 -> enableChangeReasonValidation((boolean) SchemaUtils.validateSameMember($SCHEMA_ENABLE_CHANGE_REASON_VALIDATION, member, value));
+                case 11 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -443,6 +467,7 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
                     case 8 -> builder.autoPopulateControl(de.readBoolean(member));
                     case 9 -> builder.enableContextValidation(de.readBoolean(member));
                     case 10 -> builder.enableChangeReasonValidation(de.readBoolean(member));
+                    case 11 -> builder.changeReason(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

@@ -30,6 +30,7 @@ public final class Workspace implements ApiResource {
         Map.entry("last_modified_at", SharedSchemas.DATE_TIME),
         Map.entry("organisation_id", PreludeSchemas.STRING),
         Map.entry("allow_experiment_self_approval", PreludeSchemas.BOOLEAN),
+        Map.entry("change_reason", PreludeSchemas.STRING),
         Map.entry("workspace_schema_name", PreludeSchemas.STRING),
         Map.entry("metrics", PreludeSchemas.DOCUMENT));
 

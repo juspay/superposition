@@ -9,32 +9,35 @@ pub fn ser_update_workspace_input_input(
     if let Some(var_2) = &input.auto_populate_control {
         object.key("auto_populate_control").boolean(*var_2);
     }
-    if let Some(var_3) = &input.config_version {
-        object.key("config_version").string(var_3.as_str());
+    if let Some(var_3) = &input.change_reason {
+        object.key("change_reason").string(var_3.as_str());
     }
-    if let Some(var_4) = &input.enable_change_reason_validation {
-        object.key("enable_change_reason_validation").boolean(*var_4);
+    if let Some(var_4) = &input.config_version {
+        object.key("config_version").string(var_4.as_str());
     }
-    if let Some(var_5) = &input.enable_context_validation {
-        object.key("enable_context_validation").boolean(*var_5);
+    if let Some(var_5) = &input.enable_change_reason_validation {
+        object.key("enable_change_reason_validation").boolean(*var_5);
     }
-    if let Some(var_6) = &input.mandatory_dimensions {
-        let mut array_7 = object.key("mandatory_dimensions").start_array();
-        for item_8 in var_6 {
+    if let Some(var_6) = &input.enable_context_validation {
+        object.key("enable_context_validation").boolean(*var_6);
+    }
+    if let Some(var_7) = &input.mandatory_dimensions {
+        let mut array_8 = object.key("mandatory_dimensions").start_array();
+        for item_9 in var_7 {
              {
-                array_7.value().string(item_8.as_str());
+                array_8.value().string(item_9.as_str());
             }
         }
-        array_7.finish();
+        array_8.finish();
     }
-    if let Some(var_9) = &input.metrics {
-        object.key("metrics").document(var_9);
+    if let Some(var_10) = &input.metrics {
+        object.key("metrics").document(var_10);
     }
-    if let Some(var_10) = &input.workspace_admin_email {
-        object.key("workspace_admin_email").string(var_10.as_str());
+    if let Some(var_11) = &input.workspace_admin_email {
+        object.key("workspace_admin_email").string(var_11.as_str());
     }
-    if let Some(var_11) = &input.workspace_status {
-        object.key("workspace_status").string(var_11.as_str());
+    if let Some(var_12) = &input.workspace_status {
+        object.key("workspace_status").string(var_12.as_str());
     }
     Ok(())
 }
