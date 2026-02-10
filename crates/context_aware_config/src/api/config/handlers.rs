@@ -12,8 +12,8 @@ use serde_json::{Map, Value, json};
 use service_utils::{
     helpers::fetch_dimensions_info_map,
     redis::{
-        AUDIT_ID_KEY_SUFFIX, CONFIG_KEY_SUFFIX, CONFIG_VERSION_KEY_SUFFIX,
-        LAST_MODIFIED_KEY_SUFFIX, fetch_from_redis_else_writeback,
+        AUDIT_ID_KEY_SUFFIX, CONFIG_KEY_SUFFIX, LAST_MODIFIED_KEY_SUFFIX,
+        fetch_from_redis_else_writeback,
     },
     service::{
         get_db_connection,
@@ -608,15 +608,15 @@ async fn get_handler(
 ) -> superposition::Result<HttpResponse> {
     let mut response = HttpResponse::Ok();
     let is_smithy = req.method() != actix_web::http::Method::GET;
-    let schema_name = workspace_context.schema_name.clone();
+    let schema_name = &workspace_context.schema_name;
     let max_created_at = fetch_from_redis_else_writeback::<DateTime<Utc>>(
-        format!("{}{LAST_MODIFIED_KEY_SUFFIX}", schema_name.0),
-        &schema_name,
+        format!("{}{LAST_MODIFIED_KEY_SUFFIX}", **schema_name),
+        schema_name,
         state.redis.clone(),
         state.db_pool.clone(),
         |db_pool| {
             let DbConnection(mut conn) = get_db_connection(db_pool)?;
-            get_max_created_at(&mut conn, &schema_name).map_err(|e| {
+            get_max_created_at(&mut conn, schema_name).map_err(|e| {
                 log::error!("failed to fetch max timestamp from event_log: {e}");
                 db_error!(e)
             })
@@ -625,7 +625,7 @@ async fn get_handler(
     .await
     .ok();
 
-    log::info!("Max created at: {max_created_at:?}");
+    log::trace!("Max created at: {max_created_at:?}");
 
     let is_not_modified = is_not_modified(max_created_at, &req);
 
@@ -634,22 +634,12 @@ async fn get_handler(
     }
 
     let query_filters = query_filters.into_inner();
-    let version = fetch_from_redis_else_writeback::<i64>(
-        format!("{}{CONFIG_VERSION_KEY_SUFFIX}", schema_name.0),
-        &schema_name,
-        state.redis.clone(),
-        state.db_pool.clone(),
-        |db_pool| {
-            let DbConnection(mut conn) = get_db_connection(db_pool)?;
-            get_config_version(&query_filters.version, &workspace_context, &mut conn)
-        },
-    )
-    .await
-    .map_err(|e| unexpected_error!("Config version not found due to: {}", e))?;
+    let version =
+        get_config_version(&query_filters.version, &workspace_context, &state).await?;
 
     let mut config = fetch_from_redis_else_writeback::<Config>(
-        format!("{}::{}{CONFIG_KEY_SUFFIX}", schema_name.0, version,),
-        &schema_name,
+        format!("{}::{}{CONFIG_KEY_SUFFIX}", **schema_name, version),
+        schema_name,
         state.redis.clone(),
         state.db_pool.clone(),
         |db_pool| {
@@ -674,8 +664,8 @@ async fn get_handler(
     }
     add_last_modified_to_header(max_created_at, is_smithy, &mut response);
     if let Ok(audit_id) = fetch_from_redis_else_writeback::<String>(
-        format!("{}{AUDIT_ID_KEY_SUFFIX}", schema_name.0),
-        &schema_name,
+        format!("{}{AUDIT_ID_KEY_SUFFIX}", **schema_name),
+        schema_name,
         state.redis.clone(),
         state.db_pool.clone(),
         |db_pool| {
@@ -742,16 +732,16 @@ async fn resolve_handler(
     state: Data<AppState>,
 ) -> superposition::Result<HttpResponse> {
     let query_filters = query_filters.into_inner();
-    let schema_name = workspace_context.schema_name.clone();
+    let schema_name = &workspace_context.schema_name;
 
     let max_created_at = fetch_from_redis_else_writeback::<DateTime<Utc>>(
-        format!("{}{LAST_MODIFIED_KEY_SUFFIX}", schema_name.0),
-        &schema_name,
+        format!("{}{LAST_MODIFIED_KEY_SUFFIX}", **schema_name),
+        schema_name,
         state.redis.clone(),
         state.db_pool.clone(),
         |db_pool| {
             let DbConnection(mut conn) = get_db_connection(db_pool)?;
-            get_max_created_at(&mut conn, &schema_name).map_err(|e| {
+            get_max_created_at(&mut conn, schema_name).map_err(|e| {
                 log::error!("failed to fetch max timestamp from event_log: {e}");
                 db_error!(e)
             })
@@ -764,22 +754,12 @@ async fn resolve_handler(
         return Ok(HttpResponse::NotModified().finish());
     }
 
-    let config_version = fetch_from_redis_else_writeback::<i64>(
-        format!("{}{CONFIG_VERSION_KEY_SUFFIX}", schema_name.0),
-        &schema_name,
-        state.redis.clone(),
-        state.db_pool.clone(),
-        |db_pool| {
-            let DbConnection(mut conn) = get_db_connection(db_pool)?;
-            get_config_version(&query_filters.version, &workspace_context, &mut conn)
-        },
-    )
-    .await
-    .map_err(|e| unexpected_error!("Config version not found due to: {}", e))?;
+    let config_version =
+        get_config_version(&query_filters.version, &workspace_context, &state).await?;
 
     let mut config = fetch_from_redis_else_writeback::<Config>(
-        format!("{}::{}{CONFIG_KEY_SUFFIX}", schema_name.0, config_version,),
-        &schema_name,
+        format!("{}::{}{CONFIG_KEY_SUFFIX}", **schema_name, config_version,),
+        schema_name,
         state.redis.clone(),
         state.db_pool.clone(),
         |db_pool| {
@@ -812,8 +792,8 @@ async fn resolve_handler(
     let mut resp = HttpResponse::Ok();
     add_last_modified_to_header(max_created_at, is_smithy, &mut resp);
     if let Ok(audit_id) = fetch_from_redis_else_writeback::<String>(
-        format!("{}{AUDIT_ID_KEY_SUFFIX}", schema_name.0),
-        &schema_name,
+        format!("{}{AUDIT_ID_KEY_SUFFIX}", **schema_name),
+        schema_name,
         state.redis.clone(),
         state.db_pool.clone(),
         |db_pool| {
