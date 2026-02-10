@@ -2,10 +2,86 @@ use std::collections::HashMap;
 
 use serde_json::{Map, Value};
 use superposition_types::{DefaultConfigsWithSchema, DimensionInfo};
+use toml::Value as TomlValue;
 
 use crate::{validations, TomlError};
 
-pub(super) fn create_connections_with_dependents(
+/// Convert toml::Value to serde_json::Value for validation
+pub fn toml_to_json(value: TomlValue) -> Value {
+    match value {
+        TomlValue::String(s) => Value::String(s),
+        TomlValue::Integer(i) => Value::Number(i.into()),
+        TomlValue::Float(f) => serde_json::Number::from_f64(f)
+            .map(Value::Number)
+            .unwrap_or(Value::Null),
+        TomlValue::Boolean(b) => Value::Bool(b),
+        TomlValue::Datetime(dt) => Value::String(dt.to_string()),
+        TomlValue::Array(arr) => {
+            Value::Array(arr.into_iter().map(toml_to_json).collect())
+        }
+        TomlValue::Table(table) => {
+            let map: Map<String, Value> = table
+                .into_iter()
+                .map(|(k, v)| (k, toml_to_json(v)))
+                .collect();
+            Value::Object(map)
+        }
+    }
+}
+
+/// Format a TOML value as a string for inline table usage
+pub fn format_toml_value(value: &TomlValue) -> String {
+    match value {
+        TomlValue::String(s) => format!("\"{}\"", s.replace('"', r#"\"#)),
+        TomlValue::Integer(i) => i.to_string(),
+        TomlValue::Float(f) => f.to_string(),
+        TomlValue::Boolean(b) => b.to_string(),
+        TomlValue::Datetime(dt) => format!("\"{}\"", dt),
+        TomlValue::Array(arr) => {
+            let items: Vec<String> = arr.iter().map(format_toml_value).collect();
+            format!("[{}]", items.join(", "))
+        }
+        TomlValue::Table(table) => {
+            let entries: Vec<String> = table
+                .iter()
+                .map(|(k, v)| format!("{} = {}", k, format_toml_value(v)))
+                .collect();
+            format!("{{ {} }}", entries.join(", "))
+        }
+    }
+}
+
+/// Convert serde_json::Value to toml::Value
+pub fn json_to_toml(value: Value) -> Result<TomlValue, TomlError> {
+    match value {
+        Value::Null => Err(TomlError::NullValueInConfig("conversion".to_string())),
+        Value::Bool(b) => Ok(TomlValue::Boolean(b)),
+        Value::Number(n) => {
+            if let Some(i) = n.as_i64() {
+                Ok(TomlValue::Integer(i))
+            } else if let Some(f) = n.as_f64() {
+                Ok(TomlValue::Float(f))
+            } else {
+                Ok(TomlValue::String(n.to_string()))
+            }
+        }
+        Value::String(s) => Ok(TomlValue::String(s)),
+        Value::Array(arr) => Ok(TomlValue::Array(
+            arr.into_iter()
+                .map(json_to_toml)
+                .collect::<Result<Vec<_>, _>>()?,
+        )),
+        Value::Object(obj) => {
+            let table: toml::map::Map<String, TomlValue> = obj
+                .into_iter()
+                .map(|(k, v)| json_to_toml(v).map(|v| (k, v)))
+                .collect::<Result<_, _>>()?;
+            Ok(TomlValue::Table(table))
+        }
+    }
+}
+
+pub fn create_connections_with_dependents(
     cohorted_dimension: &str,
     dimension_name: &str,
     dimensions: &mut HashMap<String, DimensionInfo>,
@@ -28,61 +104,7 @@ pub(super) fn create_connections_with_dependents(
     }
 }
 
-fn needs_quoting(s: &str) -> bool {
-    s.chars()
-        .any(|c| !c.is_ascii_alphanumeric() && c != '_' && c != '-')
-}
-
-pub(super) fn inline_table<T: IntoIterator<Item = (String, Value)>>(
-    map: T,
-    key: &str,
-) -> Result<String, TomlError> {
-    let parts = map
-        .into_iter()
-        .map(|(k, v)| {
-            let k = if needs_quoting(&k) {
-                format!("\"{k}\"") // Quote keys that need it
-            } else {
-                k
-            };
-            to_toml_string(v, &format!("{key}.{k}"))
-                .map(|v_str| format!("{k} = {}", v_str.trim()))
-        })
-        .collect::<Result<Vec<_>, _>>()?;
-
-    Ok(format!("{{ {} }}", parts.join(", ")))
-}
-
-/// Convert serde_json::Value to toml::Value - return None for NULL
-pub(super) fn to_toml_string(json: Value, key: &str) -> Result<String, TomlError> {
-    match json {
-        Value::Null => Err(TomlError::NullValueInConfig(key.to_string())),
-        Value::Bool(b) => Ok(b.to_string()),
-        Value::Number(n) => {
-            if let Some(i) = n.as_i64() {
-                Ok(i.to_string())
-            } else if let Some(f) = n.as_f64() {
-                Ok(f.to_string())
-            } else {
-                Ok(n.to_string())
-            }
-        }
-        Value::String(s) => Ok(s.to_string()),
-        Value::Array(arr) => {
-            let str_arr = arr
-                .into_iter()
-                .enumerate()
-                .map(|(i, v)| to_toml_string(v, &format!("{}[{}]", key, i)))
-                .collect::<Result<Vec<_>, _>>()?;
-
-            Ok(format!("[{}]", str_arr.join(", ")))
-        }
-
-        Value::Object(obj) => inline_table(obj, key),
-    }
-}
-
-pub(super) fn validate_context_dimension(
+pub fn validate_context_dimension(
     dimension_info: &DimensionInfo,
     key: &str,
     value: &Value,
@@ -97,7 +119,7 @@ pub(super) fn validate_context_dimension(
     Ok(())
 }
 
-pub(super) fn validate_context(
+pub fn validate_context(
     condition: &Map<String, Value>,
     dimensions: &HashMap<String, DimensionInfo>,
     index: usize,
@@ -117,7 +139,7 @@ pub(super) fn validate_context(
     Ok(())
 }
 
-pub(super) fn validate_config_key(
+pub fn validate_config_key(
     key: &str,
     value: &Value,
     schema: &Value,
@@ -133,7 +155,7 @@ pub(super) fn validate_config_key(
     Ok(())
 }
 
-pub(super) fn validate_overrides(
+pub fn validate_overrides(
     overrides: &Map<String, Value>,
     default_configs: &DefaultConfigsWithSchema,
     index: usize,

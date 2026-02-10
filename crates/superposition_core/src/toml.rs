@@ -17,12 +17,13 @@ use superposition_types::{
     Cac, Condition, Config, Context, DefaultConfigsWithSchema, DetailedConfig,
     DimensionInfo, ExtendedMap, OverrideWithKeys, Overrides,
 };
+use toml::Value as TomlValue;
 
 use crate::{
     helpers::{calculate_context_weight, hash},
     toml::helpers::{
-        create_connections_with_dependents, inline_table, to_toml_string,
-        validate_config_key, validate_context, validate_overrides,
+        create_connections_with_dependents, format_toml_value, json_to_toml,
+        toml_to_json, validate_config_key, validate_context, validate_overrides,
     },
     validations,
 };
@@ -95,7 +96,7 @@ impl std::error::Error for TomlError {}
 #[derive(Serialize, Deserialize, Clone)]
 pub struct DimensionInfoToml {
     pub position: i32,
-    pub schema: Map<String, Value>,
+    pub schema: TomlValue,
     #[serde(rename = "type", default = "dim_type_default")]
     pub dimension_type: String,
 }
@@ -108,7 +109,8 @@ impl From<DimensionInfo> for DimensionInfoToml {
     fn from(d: DimensionInfo) -> Self {
         Self {
             position: d.position,
-            schema: d.schema.into_inner(),
+            schema: json_to_toml(Value::Object(d.schema.into_inner()))
+                .expect("Schema should not contain null values"),
             dimension_type: d.dimension_type.to_string(),
         }
     }
@@ -117,9 +119,18 @@ impl From<DimensionInfo> for DimensionInfoToml {
 impl TryFrom<DimensionInfoToml> for DimensionInfo {
     type Error = TomlError;
     fn try_from(d: DimensionInfoToml) -> Result<Self, Self::Error> {
+        let schema_json = toml_to_json(d.schema);
+        let schema_map = match schema_json {
+            Value::Object(map) => map,
+            _ => {
+                return Err(TomlError::ConversionError(
+                    "Schema must be an object".to_string(),
+                ))
+            }
+        };
         Ok(Self {
             position: d.position,
-            schema: ExtendedMap::from(d.schema),
+            schema: ExtendedMap::from(schema_map),
             dimension_type: DimensionType::from_str(&d.dimension_type)
                 .map_err(|e| TomlError::ConversionError(e))?,
             dependency_graph: DependencyGraph(HashMap::new()),
@@ -131,19 +142,25 @@ impl TryFrom<DimensionInfoToml> for DimensionInfo {
 #[derive(Serialize, Deserialize)]
 struct ContextToml {
     #[serde(rename = "_context_")]
-    context: BTreeMap<String, Value>,
+    context: TomlValue,
     #[serde(flatten)]
-    overrides: BTreeMap<String, Value>,
+    overrides: TomlValue,
 }
 
 impl From<(Context, &HashMap<String, Overrides>)> for ContextToml {
     fn from((context, overrides): (Context, &HashMap<String, Overrides>)) -> Self {
+        let context_map: Map<String, Value> =
+            context.condition.deref().clone().into_iter().collect();
+        let overrides_map: Map<String, Value> = overrides
+            .get(context.override_with_keys.get_key())
+            .map(|ov| ov.clone().into_iter().collect())
+            .unwrap_or_default();
+
         Self {
-            context: context.condition.deref().clone().into_iter().collect(),
-            overrides: overrides
-                .get(context.override_with_keys.get_key())
-                .map(|ov| ov.clone().into_iter().collect())
-                .unwrap_or_default(),
+            context: json_to_toml(Value::Object(context_map))
+                .expect("Context should not contain null values"),
+            overrides: json_to_toml(Value::Object(overrides_map))
+                .expect("Overrides should not contain null values"),
         }
     }
 }
@@ -244,25 +261,27 @@ impl TryFrom<DetailedConfigToml> for DetailedConfig {
 
         // Context and override generation with validation
         for (index, ctx) in d.contexts.into_iter().enumerate() {
-            let override_map: Map<_, _> = ctx.overrides.into_iter().collect();
-            let over_val = Value::Object(override_map);
+            let overrides_json = toml_to_json(ctx.overrides);
+            let override_map: Map<_, _> = match overrides_json {
+                Value::Object(map) => map,
+                _ => Map::new(),
+            };
+            let over_val = Value::Object(override_map.clone());
             let override_hash = hash(&over_val);
-            let override_ = match over_val {
-                Value::Object(override_map) => Cac::<Overrides>::try_from(override_map)
-                    .ok()
-                    .map(|cac| cac.into_inner()),
-                _ => None,
-            };
+            let override_ = Cac::<Overrides>::try_from(override_map)
+                .ok()
+                .map(|cac| cac.into_inner());
 
-            let condition_map: Map<_, _> = ctx.context.into_iter().collect();
-            let cond_val = Value::Object(condition_map);
-            let condition_hash = hash(&cond_val);
-            let condition = match cond_val {
-                Value::Object(condition_map) => Cac::<Condition>::try_from(condition_map)
-                    .ok()
-                    .map(|cac| cac.into_inner()),
-                _ => None,
+            let context_json = toml_to_json(ctx.context);
+            let condition_map: Map<_, _> = match context_json {
+                Value::Object(map) => map,
+                _ => Map::new(),
             };
+            let cond_val = Value::Object(condition_map.clone());
+            let condition_hash = hash(&cond_val);
+            let condition = Cac::<Condition>::try_from(condition_map)
+                .ok()
+                .map(|cac| cac.into_inner());
 
             match (override_, condition) {
                 (Some(o), Some(c)) => {
@@ -327,14 +346,14 @@ impl DetailedConfigToml {
         out.push_str("[default-configs]\n");
 
         for (k, v) in default_configs.into_inner() {
-            let val = serde_json::to_value(v).map_err(|e| {
+            let toml_val = json_to_toml(serde_json::to_value(v).map_err(|e| {
                 TomlError::SerializationError(format!(
-                    "Failed to serialize dimension '{}': {}",
+                    "Failed to serialize default config '{}': {}",
                     k, e
                 ))
-            })?;
-            let v_str = to_toml_string(val, &k)?;
-            out.push_str(&format!("{k} = {v_str}\n"));
+            })?)?;
+            let v_str = format_toml_value(&toml_val);
+            out.push_str(&format!("{} = {}\n", k, v_str));
         }
 
         out.push('\n');
@@ -348,14 +367,14 @@ impl DetailedConfigToml {
         out.push_str("[dimensions]\n");
 
         for (k, v) in dimensions {
-            let val = serde_json::to_value(v).map_err(|e| {
+            let v_toml = json_to_toml(serde_json::to_value(&v).map_err(|e| {
                 TomlError::SerializationError(format!(
                     "Failed to serialize dimension '{}': {}",
                     k, e
                 ))
-            })?;
-            let v_str = to_toml_string(val, &k)?;
-            out.push_str(&format!("{k} = {v_str}\n"));
+            })?)?;
+            let v_str = format_toml_value(&v_toml);
+            out.push_str(&format!("{} = {}\n", k, v_str));
         }
 
         out.push('\n');
@@ -365,14 +384,17 @@ impl DetailedConfigToml {
     fn emit_context(ctx: ContextToml) -> Result<String, TomlError> {
         let mut out = String::new();
         out.push_str("[[overrides]]\n");
-        out.push_str(&format!(
-            "_context_ = {}\n",
-            inline_table(ctx.context, "_context_")?
-        ));
 
-        for (k, v) in ctx.overrides {
-            let v_str = to_toml_string(v, &k)?;
-            out.push_str(&format!("{k} = {v_str}\n"));
+        // Serialize the _context_ field as an inline table
+        let context_str = format_toml_value(&ctx.context);
+        out.push_str(&format!("_context_ = {}\n", context_str));
+
+        // Serialize overrides
+        if let TomlValue::Table(table) = ctx.overrides {
+            for (k, v) in table {
+                let v_str = format_toml_value(&v);
+                out.push_str(&format!("{} = {}\n", k, v_str));
+            }
         }
 
         out.push('\n');
