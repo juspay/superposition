@@ -1,12 +1,11 @@
 use std::collections::HashMap;
 
-use actix_http::header::HeaderValue;
 use actix_web::{
-    HttpRequest, HttpResponse, HttpResponseBuilder, Scope, get, put, routes,
+    HttpRequest, HttpResponse, Scope, get, put, routes,
     web::{Data, Header, Json, Path, Query},
 };
-use chrono::{DateTime, Timelike, Utc};
-use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper, dsl::max};
+use chrono::{DateTime, Utc};
+use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use itertools::Itertools;
 use serde_json::{Map, Value, json};
 use service_utils::{
@@ -56,7 +55,11 @@ use crate::{
     },
     helpers::{generate_cac, generate_detailed_cac, get_config_from_redis},
 use crate::api::{
-    config::helpers::get_config_version,
+    config::helpers::{
+        add_config_version_to_header, add_last_modified_to_header,
+        generate_config_from_version, get_config_version, get_max_created_at,
+        is_not_modified,
+    },
     context::{self, helpers::query_description},
 };
 use crate::helpers::{calculate_context_weight, generate_cac};
@@ -86,110 +89,6 @@ pub fn fetch_audit_id(
         .first::<Uuid>(conn)
         .map(|uuid| uuid.to_string())
         .ok()
-}
-
-fn add_last_modified_to_header(
-    max_created_at: Option<DateTime<Utc>>,
-    is_smithy: bool,
-    resp_builder: &mut HttpResponseBuilder,
-) {
-    if let Some(date) = max_created_at {
-        let value = if is_smithy {
-            // Smithy needs to be in this format otherwise they can't
-            // deserialize it.
-            HeaderValue::from_str(date.to_rfc3339().as_str())
-        } else {
-            HeaderValue::from_str(date.to_rfc2822().as_str())
-        };
-        if let Ok(header_value) = value {
-            resp_builder
-                .insert_header((AppHeader::LastModified.to_string(), header_value));
-        } else {
-            log::error!("failed parsing datetime_utc {:?}", value);
-        }
-    }
-}
-
-fn add_config_version_to_header(
-    config_version: &Option<i64>,
-    resp_builder: &mut HttpResponseBuilder,
-) {
-    if let Some(val) = config_version {
-        resp_builder.insert_header((
-            AppHeader::XConfigVersion.to_string(),
-            val.clone().to_string(),
-        ));
-    }
-}
-
-fn get_max_created_at(
-    conn: &mut DBConnection,
-    schema_name: &SchemaName,
-) -> Result<DateTime<Utc>, diesel::result::Error> {
-    config_versions::config_versions
-        .select(max(config_versions::created_at))
-        .schema_name(schema_name)
-        .first::<Option<DateTime<Utc>>>(conn)
-        .and_then(|res| res.ok_or(diesel::result::Error::NotFound))
-}
-
-fn is_not_modified(max_created_at: Option<DateTime<Utc>>, req: &HttpRequest) -> bool {
-    let nanosecond_erasure = |t: DateTime<Utc>| t.with_nanosecond(0);
-    let last_modified = req
-        .headers()
-        .get("If-Modified-Since")
-        .and_then(|header_val| {
-            let header_str = header_val.to_str().ok()?;
-            DateTime::parse_from_rfc2822(header_str)
-                .map(|datetime| datetime.with_timezone(&Utc))
-                .ok()
-        })
-        .and_then(nanosecond_erasure);
-    log::info!("last modified {last_modified:?}");
-    let parsed_max: Option<DateTime<Utc>> = max_created_at.and_then(nanosecond_erasure);
-    max_created_at.is_some() && parsed_max <= last_modified
-}
-
-pub fn generate_config_from_version(
-    version: &mut Option<i64>,
-    conn: &mut DBConnection,
-    schema_name: &SchemaName,
-) -> superposition::Result<Config> {
-    if let Some(val) = version {
-        let config = config_versions::config_versions
-            .select(config_versions::config)
-            .filter(config_versions::id.eq(*val))
-            .schema_name(schema_name)
-            .get_result::<Value>(conn)
-            .map_err(|err| {
-                log::error!("failed to fetch config with error: {}", err);
-                db_error!(err)
-            })?;
-        serde_json::from_value::<Config>(config).map_err(|err| {
-            log::error!("failed to decode config: {}", err);
-            unexpected_error!("failed to decode config")
-        })
-    } else {
-        match config_versions::config_versions
-            .select((config_versions::id, config_versions::config))
-            .order(config_versions::created_at.desc())
-            .schema_name(schema_name)
-            .first::<(i64, Value)>(conn)
-        {
-            Ok((latest_version, config)) => {
-                *version = Some(latest_version);
-                serde_json::from_value::<Config>(config).or_else(|err| {
-                    log::error!("failed to decode config: {}", err);
-                    generate_cac(conn, schema_name)
-                })
-            }
-            Err(err) => {
-                log::error!("failed to find latest config: {err}");
-                generate_cac(conn, schema_name)
-            }
-        }
-    }
->>>>>>> 269cf29d (feat: introduce writeback methods for redis)
 }
 
 fn generate_subsets(map: &Map<String, Value>) -> Vec<Map<String, Value>> {
