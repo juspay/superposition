@@ -13,9 +13,8 @@ use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::{Map, Value};
 use service_utils::{
     redis::{
-        AUDIT_ID_KEY_SUFFIX, CONFIG_KEY_SUFFIX, CONFIG_VERSION_KEY_SUFFIX,
-        EXPERIMENT_GROUPS_LIST_KEY_SUFFIX, LAST_MODIFIED_KEY_SUFFIX,
-        fetch_from_redis_else_writeback,
+        AUDIT_ID_KEY_SUFFIX, CONFIG_KEY_SUFFIX, EXPERIMENT_GROUPS_LIST_KEY_SUFFIX,
+        LAST_MODIFIED_KEY_SUFFIX, fetch_from_redis_else_writeback,
     },
     service::{
         get_db_connection,
@@ -88,18 +87,8 @@ async fn resolve_with_exp_handler(
 
     let (is_smithy, mut query_data) = setup_query_data(&req, &body, &dimension_params)?;
 
-    let config_version = fetch_from_redis_else_writeback::<i64>(
-        format!("{}{CONFIG_VERSION_KEY_SUFFIX}", *schema_name),
-        &schema_name,
-        state.redis.clone(),
-        state.db_pool.clone(),
-        |db_pool| {
-            let DbConnection(mut conn) = get_db_connection(db_pool)?;
-            get_config_version(&query_filters.version, &workspace_context, &mut conn)
-        },
-    )
-    .await
-    .map_err(|e| unexpected_error!("Config version not found due to: {}", e))?;
+    let config_version =
+        get_config_version(&query_filters.version, &workspace_context, &state).await?;
 
     let mut config = fetch_from_redis_else_writeback::<Config>(
         format!("{}::{}{CONFIG_KEY_SUFFIX}", *schema_name, config_version),
