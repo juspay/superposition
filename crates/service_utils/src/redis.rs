@@ -3,7 +3,6 @@ use fred::{
     types::Expiration,
 };
 use serde::{Serialize, de::DeserializeOwned};
-use superposition_macros::unexpected_error;
 use superposition_types::result as superposition;
 
 use crate::{
@@ -33,13 +32,10 @@ pub async fn fetch_from_redis_else_writeback<T>(
 where
     T: Serialize + DeserializeOwned,
 {
-    if redis_pool.is_none() {
+    let Some(pool) = redis_pool else {
         log::trace!("Redis pool not configured, using fallback");
         return database_call(db_pool);
-    }
-    let pool = redis_pool.ok_or(unexpected_error!(
-        "Could not access redis pool, this message should never be seen",
-    ))?;
+    };
     let client = pool.next_connected();
     match get_data_from_redis(key.clone(), client).await {
         Ok(data) => Ok(data),
@@ -51,25 +47,21 @@ where
             );
             let data = database_call(db_pool);
             if let Ok(ref value) = data {
-                let serialized = serde_json::to_string(value).map_err(|e| {
+                // If the write to redis fails, do not fail the whole request, just pass the data along
+                if let Ok(serialized) = serde_json::to_string(value).map_err(|e| {
                     log::error!("Failed to serialize data for redis writeback: {}", e);
-                    unexpected_error!(
-                        "Failed to serialize data for redis writeback due to: {}",
-                        e
-                    )
-                })?;
-                let key_ttl: i64 = get_from_env_or_default("REDIS_KEY_TTL", 604800);
-                let expiration = Some(Expiration::EX(key_ttl));
-                client
-                    .set::<(), String, String>(key, serialized, expiration, None, false)
-                    .await
-                    .map_err(|e| {
-                        log::error!("Failed to write back data to redis: {}", e);
-                        unexpected_error!(
-                            "Failed to write back data to redis due to: {}",
-                            e
+                }) {
+                    let key_ttl: i64 = get_from_env_or_default("REDIS_KEY_TTL", 604800);
+                    let expiration = Some(Expiration::EX(key_ttl));
+                    let _ = client
+                        .set::<(), String, String>(
+                            key, serialized, expiration, None, false,
                         )
-                    })?;
+                        .await
+                        .map_err(|e| {
+                            log::error!("Failed to write back data to redis: {}", e);
+                        });
+                }
             }
             data
         }

@@ -19,7 +19,7 @@ use service_utils::{
 use superposition_derives::authorized;
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
-    PaginatedResponse, SortBy, User,
+    IsEmpty, PaginatedResponse, SortBy, User,
     api::experiment_groups::{
         ExpGroupCreateRequest, ExpGroupFilters, ExpGroupMemberRequest,
         ExpGroupUpdateRequest, SortOn,
@@ -332,30 +332,36 @@ async fn list_handler(
 ) -> superposition::Result<Json<PaginatedResponse<ExperimentGroup>>> {
     let key = format!(
         "{}{}",
-        workspace_context.schema_name.0, EXPERIMENT_GROUPS_LIST_KEY_SUFFIX
+        *workspace_context.schema_name, EXPERIMENT_GROUPS_LIST_KEY_SUFFIX
     );
-    fetch_from_redis_else_writeback::<PaginatedResponse<ExperimentGroup>>(
-        key,
-        &workspace_context.schema_name,
-        state.redis.clone(),
-        state.db_pool.clone(),
-        |db_pool| {
-            let db_conn = get_db_connection(db_pool)?;
-            list_experiment_groups_db(
-                pagination_params,
-                filters,
-                db_conn,
-                &workspace_context,
-            )
-        },
-    )
-    .await
-    .map(Json)
-    .map_err(|e| unexpected_error!(e))
+    let read_from_redis = pagination_params.all.is_some_and(|e| e) && filters.is_empty();
+    let list_experiments_closure = |db_pool| {
+        let db_conn = get_db_connection(db_pool)?;
+        list_experiment_groups_db(
+            &pagination_params,
+            filters,
+            db_conn,
+            &workspace_context,
+        )
+    };
+    if read_from_redis {
+        fetch_from_redis_else_writeback::<PaginatedResponse<ExperimentGroup>>(
+            key,
+            &workspace_context.schema_name,
+            state.redis.clone(),
+            state.db_pool.clone(),
+            list_experiments_closure,
+        )
+        .await
+        .map(Json)
+        .map_err(|e| unexpected_error!(e))
+    } else {
+        list_experiments_closure(state.db_pool.clone()).map(Json)
+    }
 }
 
 fn list_experiment_groups_db(
-    pagination_params: superposition_query::Query<PaginationParams>,
+    pagination_params: &superposition_query::Query<PaginationParams>,
     filters: superposition_query::Query<ExpGroupFilters>,
     db_conn: DbConnection,
     workspace_context: &WorkspaceContext,
