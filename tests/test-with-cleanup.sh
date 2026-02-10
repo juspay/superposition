@@ -1,13 +1,42 @@
 #!/bin/bash
 
 # Parse flags
+ORG_PATTERN="org%"
+WORKSPACE_NAME=""
 CLEANUP_ONLY=false
-for arg in "$@"; do
-    case $arg in
-        --cleanup-only)
-            CLEANUP_ONLY=true
-            shift
-            ;;
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+    --cleanup-only)
+        CLEANUP_ONLY=true
+        shift
+        ;;
+    --org-pattern)
+        if [[ -z "$2" || "$2" == --* ]]; then
+            echo "Error: --org-pattern requires a value"
+            exit 1
+        fi
+        ORG_PATTERN="$2"
+        shift 2
+        ;;
+    --workspace)
+        if [[ -z "$2" || "$2" == --* ]]; then
+            echo "Error: --workspace requires a value"
+            exit 1
+        fi
+        WORKSPACE_NAME="$2"
+        shift 2
+        ;;
+    *)
+        echo "Unknown argument: $1"
+        echo "Usage: ./$0 [--cleanup-only] [--org-pattern pattern] [--workspace name]"
+        echo ""
+        echo "Sample usage shown below"
+        echo "1. ./$0                                                       # to run tests and perform clean-up organizations at the end of it"
+        echo "2. ./$0  --cleanup-only --org-pattern 'org%'                  # to just clean-up all orgs starting with org"
+        echo "3. ./$0  --cleanup-only --org-pattern 'org1' --workspace test # to just clean-up test workspace in org1"
+        exit 1
+        ;;
     esac
 done
 
@@ -32,10 +61,21 @@ run_cleanup() {
     echo ""
     echo "========================================"
     echo "Running cleanup..."
+    if [ -n "$WORKSPACE_NAME" ]; then
+        echo "Mode: Specific Workspace ($WORKSPACE_NAME) in Orgs ($ORG_PATTERN)"
+    else
+        echo "Mode: Full Organization Cleanup ($ORG_PATTERN)"
+    fi
     echo "========================================"
-    psql "$DATABASE_URL" -f cleanup.sql
+
+    psql "$DATABASE_URL" \
+        -v ON_ERROR_STOP=1 \
+        -v org_pattern="$ORG_PATTERN" \
+        -v workspace_name="$WORKSPACE_NAME" \
+        -f cleanup.sql
+
     CLEANUP_EXIT_CODE=$?
-    
+
     if [ $CLEANUP_EXIT_CODE -eq 0 ]; then
         echo ""
         echo "✓ Cleanup completed"
@@ -58,7 +98,7 @@ TEST_EXIT_CODE=$?
 if [ $TEST_EXIT_CODE -eq 0 ]; then
     run_cleanup
     CLEANUP_EXIT_CODE=$?
-    
+
     if [ $CLEANUP_EXIT_CODE -eq 0 ]; then
         echo ""
         echo "✓ Tests passed and cleanup completed"
