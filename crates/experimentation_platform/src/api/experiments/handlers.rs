@@ -13,8 +13,8 @@ use actix_web::{
 };
 use chrono::{DateTime, Utc};
 use diesel::{
-    Connection, ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl, SelectableHelper,
-    TextExpressionMethods,
+    BoolExpressionMethods, Connection, ExpressionMethods, PgConnection, QueryDsl,
+    RunQueryDsl, SelectableHelper, TextExpressionMethods,
     r2d2::{ConnectionManager, PooledConnection},
 };
 use experimentation_client::{
@@ -69,7 +69,10 @@ use superposition_types::{
             },
             others::WebhookEvent,
         },
-        schema::{event_log::dsl as event_log, experiments::dsl as experiments},
+        schema::{
+            event_log::dsl as event_log, experiment_groups::dsl as experiment_groups,
+            experiments::dsl as experiments,
+        },
     },
     logic::{evaluate_local_cohorts, evaluate_local_cohorts_skip_unresolved},
     result as superposition,
@@ -82,9 +85,9 @@ use crate::api::{
     },
     experiments::{
         helpers::{
-            fetch_and_validate_change_reason_with_function, fetch_experiment_groups,
-            fetch_experiments, fetch_webhook_by_event, put_experiments_in_redis,
-            validate_control_overrides, validate_delete_experiment_variants,
+            fetch_and_validate_change_reason_with_function, fetch_webhook_by_event,
+            put_experiments_in_redis, validate_control_overrides,
+            validate_delete_experiment_variants,
         },
         types::StartedByChangeSet,
     },
@@ -910,32 +913,41 @@ pub async fn discard(
 }
 
 pub async fn get_applicable_variants_helper(
-    experiments: &[Experiment],
-    experiment_groups: &[ExperimentGroup],
+    db_conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     context: Map<String, Value>,
     dimensions_info: &HashMap<String, DimensionInfo>,
     identifier: String,
+    workspace_context: &WorkspaceContext,
 ) -> superposition::Result<(Vec<String>, HashMap<String, ExperimentResponse>)> {
+    use superposition_types::database::schema::experiments::dsl;
+
+    let experiment_groups = experiment_groups::experiment_groups
+        .schema_name(&workspace_context.schema_name)
+        .load::<ExperimentGroup>(db_conn)?;
+
     let context = evaluate_local_cohorts(dimensions_info, &context);
 
     let buckets =
-        get_applicable_buckets_from_group(experiment_groups, &context, &identifier);
+        get_applicable_buckets_from_group(&experiment_groups, &context, &identifier);
 
     let exp_ids = buckets
         .iter()
         .filter_map(|(_, bucket)| bucket.experiment_id.parse::<i64>().ok())
         .collect::<HashSet<_>>();
 
-    let exps = experiments
-        .iter()
-        .filter_map(|exp| {
-            if exp_ids.contains(&exp.id) {
-                let exp_response = ExperimentResponse::from(exp.clone());
-                let id = exp_response.id.clone();
-                Some((id, exp_response))
-            } else {
-                None
-            }
+    let exps = dsl::experiments
+        .filter(
+            dsl::id
+                .eq_any(exp_ids)
+                .and(dsl::status.eq(ExperimentStatusType::INPROGRESS)),
+        )
+        .schema_name(&workspace_context.schema_name)
+        .load::<Experiment>(db_conn)?
+        .into_iter()
+        .map(|exp| {
+            let exp_response = ExperimentResponse::from(exp);
+            let id = exp_response.id.clone();
+            (id, exp_response)
         })
         .collect::<HashMap<String, ExperimentResponse>>();
 
@@ -976,21 +988,19 @@ async fn get_applicable_variants_handler(
                 return Err(bad_argument!("Invalid input for the method"));
             }
         };
-    let dimensions_info = {
+    let (applicable_variants, exps) = {
         let DbConnection(mut conn) = get_db_connection(state.db_pool.clone())?;
-        fetch_dimensions_info_map(&mut conn, &workspace_context.schema_name)?
+        let di = fetch_dimensions_info_map(&mut conn, &workspace_context.schema_name)?;
+        let (av, e) = get_applicable_variants_helper(
+            &mut conn,
+            context,
+            &di,
+            identifier,
+            &workspace_context,
+        )
+        .await?;
+        (av, e)
     };
-    let experiments = fetch_experiments(&state, &workspace_context).await?;
-    let experiment_groups = fetch_experiment_groups(&state, &workspace_context).await?;
-
-    let (applicable_variants, exps) = get_applicable_variants_helper(
-        &experiments,
-        &experiment_groups,
-        context,
-        &dimensions_info,
-        identifier,
-    )
-    .await?;
 
     let variants = exps
         .into_iter()
@@ -1062,7 +1072,8 @@ async fn list_handler(
         && filters
             .status
             .clone()
-            .is_some_and(|v| *v == ExperimentStatusType::active_list());
+            .is_some_and(|v| *v == ExperimentStatusType::active_list())
+        && dimension_params.is_empty();
     if read_from_redis {
         let response =
             fetch_from_redis_else_writeback::<PaginatedResponse<ExperimentResponse>>(
