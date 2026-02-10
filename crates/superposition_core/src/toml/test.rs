@@ -51,15 +51,15 @@ fn config_to_detailed(config: &Config) -> DetailedConfig {
 #[test]
 fn test_toml_round_trip_simple() {
     let original_toml = r#"
-[default_configs]
-time.out = { value = 30, schema = { type = "integer" } }
+[default-configs]
+"time.out" = { value = 30, schema = { type = "integer" } }
 
 [dimensions]
 os = { position = 1, schema = { "type" = "string" } }
 
-[[contexts]]
-_condition_ = { os = "linux" }
-time.out = 60
+[[overrides]]
+_context_ = { os = "linux" }
+"time.out" = 60
 "#;
 
     // Parse TOML -> Config
@@ -81,14 +81,14 @@ time.out = 60
 fn test_toml_round_trip_empty_config() {
     // Test with empty default-config but valid context with overrides
     let toml_str = r#"
-[default_configs]
+[default-configs]
 timeout = { value = 30, schema = { type = "integer" } }
 
 [dimensions]
 os = { position = 1, schema = { type = "string" } }
 
-[[contexts]]
-_condition_ = { os = "linux" }
+[[overrides]]
+_context_ = { os = "linux" }
 timeout = 60
 "#;
 
@@ -101,14 +101,14 @@ timeout = 60
 #[test]
 fn test_dimension_type_regular() {
     let toml = r#"
-[default_configs]
+[default-configs]
 timeout = { value = 30, schema = { type = "integer" } }
 
 [dimensions]
 os = { position = 1, schema = { type = "string" }, type = "REGULAR" }
 
-[[contexts]]
-_condition_ = { os = "linux" }
+[[overrides]]
+_context_ = { os = "linux" }
 timeout = 60
 "#;
 
@@ -125,15 +125,15 @@ fn test_dimension_type_local_cohort() {
     // Note: TOML cannot represent jsonlogic rules with operators like "==" as keys
     // So we test parsing with a simplified schema that has the required structure
     let toml = r#"
-[default_configs]
+[default-configs]
 timeout = { value = 30, schema = { type = "integer" } }
 
 [dimensions]
 os = { position = 1, schema = { type = "string" } }
 os_cohort = { position = 2, type = "LOCAL_COHORT:os", schema = { type = "string", enum = ["linux", "windows", "otherwise"], definitions = { linux = "rule_for_linux", windows = "rule_for_windows" } } }
 
-[[contexts]]
-_condition_ = { os = "linux" }
+[[overrides]]
+_context_ = { os = "linux" }
 timeout = 60
 "#;
 
@@ -148,14 +148,14 @@ timeout = 60
 #[test]
 fn test_dimension_type_local_cohort_invalid_reference() {
     let toml = r#"
-[default_configs]
+[default-configs]
 timeout = { value = 30, schema = { type = "integer" } }
 
 [dimensions]
 os_cohort = { position = 1, schema = { type = "string" }, type = "LOCAL_COHORT:nonexistent" }
 
-[[contexts]]
-_condition_ = { os = "linux" }
+[[overrides]]
+_context_ = { os = "linux" }
 timeout = 60
 "#;
 
@@ -167,15 +167,15 @@ timeout = 60
 #[test]
 fn test_dimension_type_local_cohort_empty_name() {
     let toml = r#"
-[default_configs]
+[default-configs]
 timeout = { value = 30, schema = { type = "integer" } }
 
 [dimensions]
 os = { position = 1, schema = { type = "string" } }
 os_cohort = { position = 2, schema = { type = "string" }, type = "LOCAL_COHORT:" }
 
-[[contexts]]
-_condition_ = { os = "linux" }
+[[overrides]]
+_context_ = { os = "linux" }
 timeout = 60
 "#;
 
@@ -188,15 +188,15 @@ timeout = 60
 fn test_dimension_type_remote_cohort() {
     // Remote cohorts use normal schema validation (no definitions required)
     let toml = r#"
-[default_configs]
+[default-configs]
 timeout = { value = 30, schema = { type = "integer" } }
 
 [dimensions]
 os = { position = 1, schema = { type = "string" } }
 os_cohort = { position = 2, type = "REMOTE_COHORT:os", schema = { type = "string", enum = ["linux", "windows", "macos"] } }
 
-[[contexts]]
-_condition_ = { os = "linux" }
+[[overrides]]
+_context_ = { os = "linux" }
 timeout = 60
 "#;
 
@@ -211,14 +211,14 @@ timeout = 60
 #[test]
 fn test_dimension_type_remote_cohort_invalid_reference() {
     let toml = r#"
-[default_configs]
+[default-configs]
 timeout = { value = 30, schema = { type = "integer" } }
 
 [dimensions]
 os_cohort = { position = 1, schema = { type = "string" }, type = "REMOTE_COHORT:nonexistent" }
 
-[[contexts]]
-_condition_ = { os = "linux" }
+[[overrides]]
+_context_ = { os = "linux" }
 timeout = 60
 "#;
 
@@ -230,15 +230,15 @@ timeout = 60
 #[test]
 fn test_dimension_type_remote_cohort_empty_name() {
     let toml = r#"
-[default_configs]
+[default-configs]
 timeout = { value = 30, schema = { type = "integer" } }
 
 [dimensions]
 os = { position = 1, schema = { type = "string" } }
 os_cohort = { position = 2, schema = { type = "string" }, type = "REMOTE_COHORT:" }
 
-[[contexts]]
-_condition_ = { os = "linux" }
+[[overrides]]
+_context_ = { os = "linux" }
 timeout = 60
 "#;
 
@@ -251,15 +251,15 @@ timeout = 60
 fn test_dimension_type_remote_cohort_invalid_schema() {
     // Remote cohorts with invalid schema should fail validation
     let toml = r#"
-[default_configs]
+[default-configs]
 timeout = { value = 30, schema = { type = "integer" } }
 
 [dimensions]
 os = { position = 1, schema = { type = "string" } }
 os_cohort = { position = 2, type = "REMOTE_COHORT:os", schema = { type = "invalid_type" } }
 
-[[contexts]]
-_condition_ = { os = "linux" }
+[[overrides]]
+_context_ = { os = "linux" }
 timeout = 60
 "#;
 
@@ -274,14 +274,14 @@ timeout = 60
 #[test]
 fn test_dimension_type_default_regular() {
     let toml = r#"
-[default_configs]
+[default-configs]
 timeout = { value = 30, schema = { type = "integer" } }
 
 [dimensions]
 os = { position = 1, schema = { type = "string" } }
 
-[[contexts]]
-_condition_ = { os = "linux" }
+[[overrides]]
+_context_ = { os = "linux" }
 timeout = 60
 "#;
 
@@ -297,14 +297,14 @@ timeout = 60
 #[test]
 fn test_dimension_type_invalid_format() {
     let toml = r#"
-[default_configs]
+[default-configs]
 timeout = { value = 30, schema = { type = "integer" } }
 
 [dimensions]
 os = { position = 1, schema = { type = "string" }, type = "local_cohort" }
 
-[[contexts]]
-_condition_ = { os = "linux" }
+[[overrides]]
+_context_ = { os = "linux" }
 timeout = 60
 "#;
 
@@ -317,15 +317,15 @@ timeout = 60
 #[test]
 fn test_valid_toml_parsing() {
     let toml = r#"
-            [default_configs]
+            [default-configs]
             timeout = { value = 30, schema = { type = "integer" } }
             enabled = { value = true, schema = { type = "boolean" } }
 
             [dimensions]
             os = { position = 1, schema = { type = "string" } }
 
-            [[contexts]]
-            _condition_ = { os = "linux" }
+            [[overrides]]
+            _context_ = { os = "linux" }
             timeout = 60
         "#;
 
@@ -341,7 +341,7 @@ fn test_valid_toml_parsing() {
 #[test]
 fn test_missing_section_error() {
     let toml = r#"
-            [default_configs]
+            [default-configs]
             timeout = { value = 30, schema = { type = "integer" } }
         "#;
 
@@ -356,7 +356,7 @@ fn test_missing_section_error() {
 #[test]
 fn test_missing_value_field() {
     let toml = r#"
-            [default_configs]
+            [default-configs]
             timeout = { schema = { type = "integer" } }
 
             [dimensions]
@@ -376,14 +376,14 @@ fn test_missing_value_field() {
 #[test]
 fn test_undeclared_dimension() {
     let toml = r#"
-            [default_configs]
+            [default-configs]
             timeout = { value = 30, schema = { type = "integer" } }
 
             [dimensions]
             os = { position = 1, schema = { type = "string" } }
 
-            [[contexts]]
-            _condition_ = { region = "us-east" }
+            [[overrides]]
+            _context_ = { region = "us-east" }
             timeout = 60
         "#;
 
@@ -395,14 +395,14 @@ fn test_undeclared_dimension() {
 #[test]
 fn test_invalid_override_key() {
     let toml = r#"
-            [default_configs]
+            [default-configs]
             timeout = { value = 30, schema = { type = "integer" } }
 
             [dimensions]
             os = { position = 1, schema = { type = "string" } }
 
-            [[contexts]]
-            _condition_ = { os = "linux" }
+            [[overrides]]
+            _context_ = { os = "linux" }
             port = 8080
         "#;
 
@@ -414,19 +414,19 @@ fn test_invalid_override_key() {
 #[test]
 fn test_priority_calculation() {
     let toml = r#"
-            [default_configs]
+            [default-configs]
             timeout = { value = 30, schema = { type = "integer" } }
 
             [dimensions]
             os = { position = 1, schema = { type = "string" } }
             region = { position = 2, schema = { type = "string" } }
 
-            [[contexts]]
-            _condition_ = { os = "linux" }
+            [[overrides]]
+            _context_ = { os = "linux" }
             timeout = 60
 
-            [[contexts]]
-            _condition_ = { os = "linux", region = "us-east" }
+            [[overrides]]
+            _context_ = { os = "linux", region = "us-east" }
             timeout = 90
         "#;
 
@@ -443,15 +443,15 @@ fn test_priority_calculation() {
 #[test]
 fn test_duplicate_position_error() {
     let toml = r#"
-            [default_configs]
+            [default-configs]
             timeout = { value = 30, schema = { type = "integer" } }
 
             [dimensions]
             os = { position = 1, schema = { type = "string" } }
             region = { position = 1, schema = { type = "string" } }
 
-            [[contexts]]
-            _condition_ = { os = "linux" }
+            [[overrides]]
+            _context_ = { os = "linux" }
             timeout = 60
         "#;
 
@@ -470,7 +470,7 @@ fn test_duplicate_position_error() {
 #[test]
 fn test_validation_valid_default_config() {
     let toml = r#"
-            [default_configs]
+            [default-configs]
             timeout = { value = 30, schema = { type = "integer" } }
             enabled = { value = true, schema = { type = "boolean" } }
             name = { value = "test", schema = { type = "string" } }
@@ -478,8 +478,8 @@ fn test_validation_valid_default_config() {
             [dimensions]
             os = { position = 1, schema = { type = "string" } }
 
-            [[contexts]]
-            _condition_ = { os = "linux" }
+            [[overrides]]
+            _context_ = { os = "linux" }
             timeout = 60
         "#;
 
@@ -490,14 +490,14 @@ fn test_validation_valid_default_config() {
 #[test]
 fn test_validation_invalid_default_config_type_mismatch() {
     let toml = r#"
-            [default_configs]
+            [default-configs]
             timeout = { value = "not_an_integer", schema = { type = "integer" } }
 
             [dimensions]
             os = { position = 1, schema = { type = "string" } }
 
-            [[contexts]]
-            _condition_ = { os = "linux" }
+            [[overrides]]
+            _context_ = { os = "linux" }
             timeout = 60
         "#;
 
@@ -511,14 +511,14 @@ fn test_validation_invalid_default_config_type_mismatch() {
 #[test]
 fn test_validation_valid_context_override() {
     let toml = r#"
-            [default_configs]
+            [default-configs]
             timeout = { value = 30, schema = { type = "integer" } }
 
             [dimensions]
             os = { position = 1, schema = { type = "string" } }
 
-            [[contexts]]
-            _condition_ = { os = "linux" }
+            [[overrides]]
+            _context_ = { os = "linux" }
             timeout = 60
         "#;
 
@@ -529,14 +529,14 @@ fn test_validation_valid_context_override() {
 #[test]
 fn test_validation_invalid_context_override_type_mismatch() {
     let toml = r#"
-            [default_configs]
+            [default-configs]
             timeout = { value = 30, schema = { type = "integer" } }
 
             [dimensions]
             os = { position = 1, schema = { type = "string" } }
 
-            [[contexts]]
-            _condition_ = { os = "linux" }
+            [[overrides]]
+            _context_ = { os = "linux" }
             timeout = "not_an_integer"
         "#;
 
@@ -550,14 +550,14 @@ fn test_validation_invalid_context_override_type_mismatch() {
 #[test]
 fn test_validation_valid_dimension_value_in_context() {
     let toml = r#"
-            [default_configs]
+            [default-configs]
             timeout = { value = 30, schema = { type = "integer" } }
 
             [dimensions]
             os = { position = 1, schema = { type = "string", enum = ["linux", "windows", "macos"] } }
 
-            [[contexts]]
-            _condition_ = { os = "linux" }
+            [[overrides]]
+            _context_ = { os = "linux" }
             timeout = 60
         "#;
 
@@ -568,14 +568,14 @@ fn test_validation_valid_dimension_value_in_context() {
 #[test]
 fn test_validation_invalid_dimension_value_in_context() {
     let toml = r#"
-            [default_configs]
+            [default-configs]
             timeout = { value = 30, schema = { type = "integer" } }
 
             [dimensions]
             os = { position = 1, schema = { type = "string", enum = ["linux", "windows", "macos"] } }
 
-            [[contexts]]
-            _condition_ = { os = "freebsd" }
+            [[overrides]]
+            _context_ = { os = "freebsd" }
             timeout = 60
         "#;
 
@@ -583,20 +583,20 @@ fn test_validation_invalid_dimension_value_in_context() {
     assert!(result.is_err());
     assert!(matches!(result, Err(TomlError::ValidationError { .. })));
     let err = result.unwrap_err();
-    assert!(err.to_string().contains("context[0]._condition_.os"));
+    assert!(err.to_string().contains("context[0]._context_.os"));
 }
 
 #[test]
 fn test_validation_with_minimum_constraint() {
     let toml = r#"
-            [default_configs]
+            [default-configs]
             timeout = { value = 30, schema = { type = "integer", minimum = 10 } }
 
             [dimensions]
             os = { position = 1, schema = { type = "string" } }
 
-            [[contexts]]
-            _condition_ = { os = "linux" }
+            [[overrides]]
+            _context_ = { os = "linux" }
             timeout = 60
         "#;
 
@@ -607,14 +607,14 @@ fn test_validation_with_minimum_constraint() {
 #[test]
 fn test_validation_fails_minimum_constraint() {
     let toml = r#"
-            [default_configs]
+            [default-configs]
             timeout = { value = 5, schema = { type = "integer", minimum = 10 } }
 
             [dimensions]
             os = { position = 1, schema = { type = "string" } }
 
-            [[contexts]]
-            _condition_ = { os = "linux" }
+            [[overrides]]
+            _context_ = { os = "linux" }
             timeout = 60
         "#;
 
@@ -628,14 +628,14 @@ fn test_validation_fails_minimum_constraint() {
 #[test]
 fn test_validation_numeric_dimension_value() {
     let toml = r#"
-            [default_configs]
+            [default-configs]
             timeout = { value = 30, schema = { type = "integer" } }
 
             [dimensions]
             port = { position = 1, schema = { type = "integer", minimum = 1, maximum = 65535 } }
 
-            [[contexts]]
-            _condition_ = { port = 8080 }
+            [[overrides]]
+            _context_ = { port = 8080 }
             timeout = 60
         "#;
 
@@ -646,14 +646,14 @@ fn test_validation_numeric_dimension_value() {
 #[test]
 fn test_validation_invalid_numeric_dimension_value() {
     let toml = r#"
-            [default_configs]
+            [default-configs]
             timeout = { value = 30, schema = { type = "integer" } }
 
             [dimensions]
             port = { position = 1, schema = { type = "integer", minimum = 1, maximum = 65535 } }
 
-            [[contexts]]
-            _condition_ = { port = 70000 }
+            [[overrides]]
+            _context_ = { port = 70000 }
             timeout = 60
         "#;
 
@@ -661,20 +661,20 @@ fn test_validation_invalid_numeric_dimension_value() {
     assert!(result.is_err());
     assert!(matches!(result, Err(TomlError::ValidationError { .. })));
     let err = result.unwrap_err();
-    assert!(err.to_string().contains("context[0]._condition_.port"));
+    assert!(err.to_string().contains("context[0]._context_.port"));
 }
 
 #[test]
 fn test_validation_boolean_dimension_value() {
     let toml = r#"
-            [default_configs]
+            [default-configs]
             timeout = { value = 30, schema = { type = "integer" } }
 
             [dimensions]
             debug = { position = 1, schema = { type = "boolean" } }
 
-            [[contexts]]
-            _condition_ = { debug = true }
+            [[overrides]]
+            _context_ = { debug = true }
             timeout = 60
         "#;
 
@@ -685,14 +685,14 @@ fn test_validation_boolean_dimension_value() {
 #[test]
 fn test_validation_invalid_boolean_dimension_value() {
     let toml = r#"
-            [default_configs]
+            [default-configs]
             timeout = { value = 30, schema = { type = "integer" } }
 
             [dimensions]
             debug = { position = 1, schema = { type = "boolean" } }
 
-            [[contexts]]
-            _condition_ = { debug = "yes" }
+            [[overrides]]
+            _context_ = { debug = "yes" }
             timeout = 60
         "#;
 
@@ -700,26 +700,26 @@ fn test_validation_invalid_boolean_dimension_value() {
     assert!(result.is_err());
     assert!(matches!(result, Err(TomlError::ValidationError { .. })));
     let err = result.unwrap_err();
-    assert!(err.to_string().contains("context[0]._condition_.debug"));
+    assert!(err.to_string().contains("context[0]._context_.debug"));
 }
 
 #[test]
 fn test_object_value_round_trip() {
     // Test that object values are serialized as triple-quoted JSON and parsed back correctly
     let original_toml = r#"
-[default_configs]
+[default-configs]
 config = { value = { host = "localhost", port = 8080 } , schema = { type = "object" } }
 
 [dimensions]
 os = { position = 1, schema = { type = "string", enum = ["linux", "windows", "macos"] } }
 os_cohort = { position = 2, schema = { enum = ["unix", "otherwise"], type = "string", definitions = { unix = { in = [{ var = "os" }, ["linux", "macos"]] } } }, type = "LOCAL_COHORT:os" }
 
-[[contexts]]
-_condition_ = { os = "linux" }
+[[overrides]]
+_context_ = { os = "linux" }
 config = { host = "prod.example.com", port = 443 }
 
-[[contexts]]
-_condition_ = { os_cohort = "unix" }
+[[overrides]]
+_context_ = { os_cohort = "unix" }
 config = { host = "prod.unix.com", port = 8443 }
 "#;
 
@@ -777,7 +777,7 @@ config = { host = "prod.unix.com", port = 8443 }
 fn test_resolution_with_local_cohorts() {
     // Test that object values are serialized as triple-quoted JSON and parsed back correctly
     let original_toml = r#"
-[default_configs]
+[default-configs]
 config = { value = { host = "localhost", port = 8080 } , schema = { type = "object" } }
 max_count = { value = 10 , schema = { type = "number", minimum = 0, maximum = 100 } }
 
@@ -785,12 +785,12 @@ max_count = { value = 10 , schema = { type = "number", minimum = 0, maximum = 10
 os = { position = 1, schema = { type = "string", enum = ["linux", "windows", "macos"] } }
 os_cohort = { position = 2, schema = { enum = ["unix", "otherwise"], type = "string", definitions = { unix = { in = [{ var = "os" }, ["linux", "macos"]] } } }, type = "LOCAL_COHORT:os" }
 
-[[contexts]]
-_condition_ = { os = "linux" }
+[[overrides]]
+_context_ = { os = "linux" }
 config = { host = "prod.example.com", port = 443 }
 
-[[contexts]]
-_condition_ = { os_cohort = "unix" }
+[[overrides]]
+_context_ = { os_cohort = "unix" }
 config = { host = "prod.unix.com", port = 8443 }
 max_count = 95
 "#;

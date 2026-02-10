@@ -29,6 +29,21 @@ pub fn toml_to_json(value: TomlValue) -> Value {
     }
 }
 
+/// Check if a TOML key needs quoting
+pub fn needs_quoting(key: &str) -> bool {
+    key.chars()
+        .any(|c| !c.is_ascii_alphanumeric() && c != '_' && c != '-')
+}
+
+/// Format a TOML key with optional quoting
+pub fn format_key(key: &str) -> String {
+    if needs_quoting(key) {
+        format!("\"{}\"", key.replace('"', r#"\"#))
+    } else {
+        key.to_string()
+    }
+}
+
 /// Format a TOML value as a string for inline table usage
 pub fn format_toml_value(value: &TomlValue) -> String {
     match value {
@@ -44,39 +59,9 @@ pub fn format_toml_value(value: &TomlValue) -> String {
         TomlValue::Table(table) => {
             let entries: Vec<String> = table
                 .iter()
-                .map(|(k, v)| format!("{} = {}", k, format_toml_value(v)))
+                .map(|(k, v)| format!("{} = {}", format_key(k), format_toml_value(v)))
                 .collect();
             format!("{{ {} }}", entries.join(", "))
-        }
-    }
-}
-
-/// Convert serde_json::Value to toml::Value
-pub fn json_to_toml(value: Value) -> Result<TomlValue, TomlError> {
-    match value {
-        Value::Null => Err(TomlError::NullValueInConfig("conversion".to_string())),
-        Value::Bool(b) => Ok(TomlValue::Boolean(b)),
-        Value::Number(n) => {
-            if let Some(i) = n.as_i64() {
-                Ok(TomlValue::Integer(i))
-            } else if let Some(f) = n.as_f64() {
-                Ok(TomlValue::Float(f))
-            } else {
-                Ok(TomlValue::String(n.to_string()))
-            }
-        }
-        Value::String(s) => Ok(TomlValue::String(s)),
-        Value::Array(arr) => Ok(TomlValue::Array(
-            arr.into_iter()
-                .map(json_to_toml)
-                .collect::<Result<Vec<_>, _>>()?,
-        )),
-        Value::Object(obj) => {
-            let table: toml::map::Map<String, TomlValue> = obj
-                .into_iter()
-                .map(|(k, v)| json_to_toml(v).map(|v| (k, v)))
-                .collect::<Result<_, _>>()?;
-            Ok(TomlValue::Table(table))
         }
     }
 }
@@ -112,7 +97,7 @@ pub fn validate_context_dimension(
 ) -> Result<(), TomlError> {
     validations::validate_against_schema(&value, &Value::from(&dimension_info.schema))
         .map_err(|errors: Vec<String>| TomlError::ValidationError {
-            key: format!("context[{}]._condition_.{}", index, key),
+            key: format!("context[{}]._context_.{}", index, key),
             errors: validations::format_validation_errors(&errors),
         })?;
 

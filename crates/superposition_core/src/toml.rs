@@ -22,8 +22,8 @@ use toml::Value as TomlValue;
 use crate::{
     helpers::{calculate_context_weight, hash},
     toml::helpers::{
-        create_connections_with_dependents, format_toml_value, json_to_toml,
-        toml_to_json, validate_config_key, validate_context, validate_overrides,
+        create_connections_with_dependents, format_key, format_toml_value, toml_to_json,
+        validate_config_key, validate_context, validate_overrides,
     },
     validations,
 };
@@ -109,7 +109,7 @@ impl From<DimensionInfo> for DimensionInfoToml {
     fn from(d: DimensionInfo) -> Self {
         Self {
             position: d.position,
-            schema: json_to_toml(Value::Object(d.schema.into_inner()))
+            schema: TomlValue::try_from(d.schema.into_inner())
                 .expect("Schema should not contain null values"),
             dimension_type: d.dimension_type.to_string(),
         }
@@ -157,9 +157,9 @@ impl From<(Context, &HashMap<String, Overrides>)> for ContextToml {
             .unwrap_or_default();
 
         Self {
-            context: json_to_toml(Value::Object(context_map))
+            context: TomlValue::try_from(context_map)
                 .expect("Context should not contain null values"),
-            overrides: json_to_toml(Value::Object(overrides_map))
+            overrides: TomlValue::try_from(overrides_map)
                 .expect("Overrides should not contain null values"),
         }
     }
@@ -335,6 +335,7 @@ struct DetailedConfigToml {
     #[serde(rename = "default-configs")]
     default_configs: DefaultConfigsWithSchema,
     dimensions: BTreeMap<String, DimensionInfoToml>,
+    #[serde(rename = "overrides")]
     contexts: Vec<ContextToml>,
 }
 
@@ -346,14 +347,15 @@ impl DetailedConfigToml {
         out.push_str("[default-configs]\n");
 
         for (k, v) in default_configs.into_inner() {
-            let toml_val = json_to_toml(serde_json::to_value(v).map_err(|e| {
+            let v_toml = TomlValue::try_from(v).map_err(|e| {
                 TomlError::SerializationError(format!(
-                    "Failed to serialize default config '{}': {}",
+                    "Failed to serialize dimension '{}': {}",
                     k, e
                 ))
-            })?)?;
-            let v_str = format_toml_value(&toml_val);
-            out.push_str(&format!("{} = {}\n", k, v_str));
+            })?;
+
+            let v_str = format_toml_value(&v_toml);
+            out.push_str(&format!("{} = {}\n", format_key(&k), v_str));
         }
 
         out.push('\n');
@@ -367,14 +369,14 @@ impl DetailedConfigToml {
         out.push_str("[dimensions]\n");
 
         for (k, v) in dimensions {
-            let v_toml = json_to_toml(serde_json::to_value(&v).map_err(|e| {
+            let v_toml = TomlValue::try_from(v).map_err(|e| {
                 TomlError::SerializationError(format!(
                     "Failed to serialize dimension '{}': {}",
                     k, e
                 ))
-            })?)?;
+            })?;
             let v_str = format_toml_value(&v_toml);
-            out.push_str(&format!("{} = {}\n", k, v_str));
+            out.push_str(&format!("{} = {}\n", format_key(&k), v_str));
         }
 
         out.push('\n');
@@ -393,7 +395,7 @@ impl DetailedConfigToml {
         if let TomlValue::Table(table) = ctx.overrides {
             for (k, v) in table {
                 let v_str = format_toml_value(&v);
-                out.push_str(&format!("{} = {}\n", k, v_str));
+                out.push_str(&format!("{} = {}\n", format_key(&k), v_str));
             }
         }
 

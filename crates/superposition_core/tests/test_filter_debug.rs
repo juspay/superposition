@@ -47,18 +47,18 @@ fn config_to_detailed(config: &Config) -> DetailedConfig {
 #[test]
 fn test_filter_by_dimensions_debug() {
     let toml = r#"
-[default_configs]
+[default-configs]
 timeout = { value = 30, schema = { type = "integer" } }
 
 [dimensions]
 dimension = { position = 1, schema = { type = "string" } }
 
-[[contexts]]
-_condition_ = { dimension = "d1" }
+[[overrides]]
+_context_ = { dimension = "d1" }
 timeout = 60
 
-[[contexts]]
-_condition_ = { dimension = "d2" }
+[[overrides]]
+_context_ = { dimension = "d2" }
 timeout = 90
 "#;
 
