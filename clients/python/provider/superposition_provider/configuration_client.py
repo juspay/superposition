@@ -218,7 +218,8 @@ class ConfigurationClient:
         except (TypeError, ValueError):
             return default
     def _to_object(self, value: Any, default: object) -> object:
-        if isinstance(value, dict): return value
+        if value is not None:
+            return value
         return default
 
     async def close(self):
