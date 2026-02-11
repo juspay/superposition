@@ -60,7 +60,7 @@ pub fn Layout() -> impl IntoView {
     let workspace_resource = create_blocking_resource(
         move || org.get().0,
         |org_id| async move {
-            workspaces::fetch_all(&PaginationParams::all_entries(), &org_id)
+            workspaces::list(&PaginationParams::all_entries(), &org_id)
                 .await
                 .unwrap_or_default()
         },

@@ -9,16 +9,14 @@ use superposition_types::{
     database::models::cac::ConfigVersionListItem,
 };
 
-use crate::components::stat::Stat;
+use crate::components::table::types::default_column_formatter;
 use crate::components::table::types::{ColumnSortable, Expandable, TablePaginationProps};
 use crate::components::table::{Table, types::Column};
 use crate::components::{datetime::DatetimeStr, skeleton::Skeleton};
 use crate::query_updater::{use_param_updater, use_signal_from_query};
 use crate::types::{OrganisationId, Workspace};
 use crate::utils::unwrap_or_default_with_error;
-use crate::{
-    api::snapshots::fetch_all, components::table::types::default_column_formatter,
-};
+use crate::{api::snapshots, components::stat::Stat};
 
 #[component]
 pub fn ConfigVersionList() -> impl IntoView {
@@ -37,7 +35,7 @@ pub fn ConfigVersionList() -> impl IntoView {
     > = create_blocking_resource(
         move || (workspace.get().0, pagination_params_rws.get(), org.get().0),
         |(workspace, pagination_params, org_id)| async move {
-            fetch_all(&pagination_params, &workspace, &org_id)
+            snapshots::list(&pagination_params, &workspace, &org_id)
                 .await
                 .unwrap_or_default()
         },

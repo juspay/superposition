@@ -29,7 +29,6 @@ use crate::providers::{
 };
 use crate::schema::{JsonSchemaType, SchemaType};
 use crate::types::{OrganisationId, Workspace};
-use crate::utils::use_url_base;
 
 use super::dropdown::utils::DropdownOption;
 
@@ -437,14 +436,7 @@ fn EditForm(
                                 class="h-12 w-48"
                                 text="Cancel"
                                 icon_class="ri-forbid-line"
-                                href={
-                                    let base = use_url_base();
-                                    format!(
-                                        "{base}/admin/{}/{}/function",
-                                        org.get().0,
-                                        workspace.get().0,
-                                    )
-                                }
+                                href="../../../function"
                                 loading
                             />
                         </Show>

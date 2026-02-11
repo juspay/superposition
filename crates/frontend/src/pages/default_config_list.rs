@@ -9,15 +9,14 @@ use serde_json::{Map, Value, json};
 use superposition_macros::box_params;
 use superposition_types::{
     api::default_config::DefaultConfigFilters,
-    custom_query::{CustomQuery, PaginationParams, Query},
+    custom_query::{CustomQuery, PaginationParams, Query, QueryParam},
 };
 use types::PageParams;
 use utils::{BreadCrums, get_bread_crums, modify_rows};
 
 use crate::components::{
+    button::ButtonAnchor,
     datetime::DatetimeStr,
-    default_config_form::DefaultConfigForm,
-    drawer::PortalDrawer,
     skeleton::Skeleton,
     stat::Stat,
     table::{
@@ -32,19 +31,12 @@ use crate::query_updater::{
     use_param_updater, use_signal_from_query, use_update_url_query,
 };
 use crate::types::{OrganisationId, Workspace};
-use crate::{api::fetch_default_config, components::button::Button};
-
-#[derive(Clone)]
-enum Action {
-    Create,
-    None,
-}
+use crate::{api::default_configs, pages::default_config::CreatePageParams};
 
 #[component]
 pub fn DefaultConfigList() -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
-    let action_rws = RwSignal::new(Action::None);
     let filters_rws = use_signal_from_query(move |query_string| {
         Query::<DefaultConfigFilters>::extract_non_empty(&query_string).into_inner()
     });
@@ -83,7 +75,7 @@ pub fn DefaultConfigList() -> impl IntoView {
             )
         },
         |(workspace, pagination_params, org_id, filters)| async move {
-            fetch_default_config(&pagination_params, &filters, &workspace, &org_id)
+            default_configs::list(&pagination_params, &filters, &workspace, &org_id)
                 .await
                 .unwrap_or_default()
         },
@@ -232,10 +224,17 @@ pub fn DefaultConfigList() -> impl IntoView {
                                     pagination_params_rws
                                     prefix=page_params_rws.with(|p| p.prefix.clone())
                                 />
-                                <Button
-                                    on_click=move |_| action_rws.set(Action::Create)
-                                    text="Create Key"
+                                <ButtonAnchor
+                                    class="self-end h-10"
+                                    text="Create Config"
                                     icon_class="ri-add-line"
+                                    href=format!(
+                                        "action/create?{}",
+                                        page_params_rws
+                                            .with(|p| {
+                                                CreatePageParams::from(p.clone()).to_query_param()
+                                            }),
+                                    )
                                 />
                             </div>
                         </div>
@@ -258,28 +257,6 @@ pub fn DefaultConfigList() -> impl IntoView {
                         </div>
                     </div>
                 }
-            }}
-            {move || match action_rws.get() {
-                Action::Create => {
-                    view! {
-                        <PortalDrawer
-                            title="Create New Key"
-                            handle_close=move |_| action_rws.set(Action::None)
-                        >
-                            <DefaultConfigForm
-                                prefix=page_params_rws.with(|p| p.prefix.clone())
-                                handle_submit=move |_| {
-                                    filters_rws.set(DefaultConfigFilters::default());
-                                    pagination_params_rws.update(|f| f.reset_page());
-                                    default_config_resource.refetch();
-                                    action_rws.set(Action::None);
-                                }
-                            />
-                        </PortalDrawer>
-                    }
-                        .into_view()
-                }
-                Action::None => view! {}.into_view(),
             }}
         </Suspense>
     }

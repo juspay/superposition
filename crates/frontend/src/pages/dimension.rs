@@ -428,5 +428,5 @@ pub fn EditDimension() -> impl IntoView {
 
 #[component]
 pub fn CreateDimension() -> impl IntoView {
-    view! { <DimensionForm redirect_url_cancel="../../dimensions" /> }
+    view! { <DimensionForm redirect_url_cancel="../../../dimensions" /> }
 }

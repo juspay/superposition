@@ -44,7 +44,7 @@ pub fn Workspace() -> impl IntoView {
     let workspace_resource = create_blocking_resource(
         move || (pagination_params_rws.get(), org_id.get().0),
         |(pagination_params, org_id)| async move {
-            workspaces::fetch_all(&pagination_params, &org_id)
+            workspaces::list(&pagination_params, &org_id)
                 .await
                 .unwrap_or_default()
         },

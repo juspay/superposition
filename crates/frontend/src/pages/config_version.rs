@@ -1,7 +1,7 @@
 use leptos::*;
 use leptos_router::use_params_map;
 
-use crate::api::snapshots::fetch;
+use crate::api::snapshots;
 use crate::components::alert::{Alert, AlertType};
 use crate::components::badge::Badge;
 use crate::components::datetime::Datetime;
@@ -19,7 +19,7 @@ pub fn ConfigVersion() -> impl IntoView {
     let snapshot_resource = create_blocking_resource(
         move || (workspace.get().0, version.clone(), org_id.get().0),
         |(workspace, version, org_id)| async move {
-            fetch(&version, &workspace, &org_id).await
+            snapshots::get(&version, &workspace, &org_id).await
         },
     );
 

@@ -13,10 +13,7 @@ use superposition_types::{
 };
 
 use crate::{
-    api::{
-        experiment_groups::{fetch, remove_members},
-        fetch_experiments,
-    },
+    api::{experiment_groups, fetch_experiments},
     components::{
         alert::AlertType,
         button::Button,
@@ -171,7 +168,7 @@ pub fn ExperimentGroups() -> impl IntoView {
         (String, String, String),
         Option<ExperimentGroupResource>,
     > = create_blocking_resource(source, |(group_id, workspace, org_id)| async move {
-        let group_future = fetch(&group_id, &workspace, &org_id);
+        let group_future = experiment_groups::get(&group_id, &workspace, &org_id);
         let filters = ExperimentListFilters {
             experiment_group_ids: Some(CommaSeparatedQParams(vec![group_id.clone()])),
             ..ExperimentListFilters::default()
@@ -205,7 +202,7 @@ pub fn ExperimentGroups() -> impl IntoView {
                 change_reason: ChangeReason::try_from(change_reason).unwrap_or_default(),
                 member_experiment_ids,
             };
-            if let Err(e) = remove_members(
+            if let Err(e) = experiment_groups::remove_members(
                 &delete_request.group_id,
                 &remove_request,
                 &workspace,
