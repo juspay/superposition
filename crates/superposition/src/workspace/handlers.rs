@@ -6,8 +6,7 @@ use actix_web::{
 };
 use chrono::Utc;
 use diesel::{
-    Connection, ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
-    TextExpressionMethods,
+    ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl, TextExpressionMethods,
     connection::SimpleConnection,
     r2d2::{ConnectionManager, PooledConnection},
 };
@@ -18,14 +17,15 @@ use service_utils::{
         rotate_workspace_encryption_key_helper,
     },
     helpers::get_workspace,
+    run_query,
     service::types::{
-        AppState, DbConnection, OrganisationId, SchemaName, WorkspaceContext, WorkspaceId,
+        AppState, OrganisationId, SchemaName, WorkspaceContext, WorkspaceId,
     },
 };
 use superposition_derives::authorized;
 use superposition_macros::{bad_argument, db_error, unexpected_error, validation_error};
 use superposition_types::{
-    PaginatedResponse, User,
+    DBConnection, PaginatedResponse, User,
     api::{
         I64Update,
         workspace::{
@@ -82,15 +82,16 @@ pub fn endpoints(scope: Scope) -> Scope {
 #[get("/{workspace_name}")]
 async fn get_handler(
     workspace_name: Path<String>,
-    db_conn: DbConnection,
+    state: Data<AppState>,
     org_id: OrganisationId,
 ) -> superposition::Result<Json<WorkspaceResponse>> {
-    let DbConnection(mut conn) = db_conn;
     let workspace_name = workspace_name.into_inner();
-    let workspace: Workspace = workspaces::dsl::workspaces
-        .filter(workspaces::organisation_id.eq(&org_id.0))
-        .filter(workspaces::workspace_name.eq(workspace_name))
-        .get_result(&mut conn)?;
+    let workspace: Workspace = run_query!(state.db_pool, |conn| {
+        workspaces::dsl::workspaces
+            .filter(workspaces::organisation_id.eq(&org_id.0))
+            .filter(workspaces::workspace_name.eq(workspace_name))
+            .get_result(conn)
+    })?;
     let response = WorkspaceResponse::from(workspace);
     Ok(Json(response))
 }
@@ -99,15 +100,15 @@ async fn get_handler(
 #[post("")]
 async fn create_handler(
     request: Json<CreateWorkspaceRequest>,
-    db_conn: DbConnection,
+    state: Data<AppState>,
     org_id: OrganisationId,
     user: User,
-    state: web::Data<AppState>,
 ) -> superposition::Result<Json<WorkspaceResponse>> {
-    let DbConnection(mut conn) = db_conn;
-    let org_info: Organisation = organisations::dsl::organisations
-        .filter(organisations::id.eq(&org_id.0))
-        .get_result::<Organisation>(&mut conn)?;
+    let org_info = run_query!(state.db_pool, |conn| {
+        organisations::dsl::organisations
+            .filter(organisations::id.eq(&org_id.0))
+            .get_result::<Organisation>(conn)
+    })?;
     let timestamp = Utc::now();
     let request = request.into_inner();
     let email = user.get_email();
@@ -154,14 +155,13 @@ async fn create_handler(
     };
 
     let created_workspace =
-        conn.transaction::<Workspace, superposition::AppError, _>(|transaction_conn| {
-            let mut inserted_workspace: Vec<Workspace> =
-                diesel::insert_into(workspaces::dsl::workspaces)
-                    .values(workspace)
-                    .get_results(transaction_conn)?;
+        run_query!(state.db_pool, |transaction_conn: &mut DBConnection| {
+            let inserted_workspace = diesel::insert_into(workspaces::table)
+                .values(workspace)
+                .get_result(transaction_conn)?;
 
             setup_workspace_schema(transaction_conn, &workspace_schema_name)?;
-            Ok(inserted_workspace.remove(0))
+            Ok::<Workspace, superposition::AppError>(inserted_workspace)
         })?;
     let response = WorkspaceResponse::from(created_workspace);
     Ok(Json(response))
@@ -174,7 +174,7 @@ async fn create_handler(
 async fn update_handler(
     workspace_name: web::Path<String>,
     request: Json<UpdateWorkspaceRequest>,
-    db_conn: DbConnection,
+    state: Data<AppState>,
     org_id: OrganisationId,
     user: User,
 ) -> superposition::Result<Json<WorkspaceResponse>> {
@@ -184,17 +184,19 @@ async fn update_handler(
     let schema_name = SchemaName(format!("{}_{}", *org_id, workspace_name));
     // TODO: mandatory dimensions updation needs to be validated
     // for the existance of the dimensions in the workspace
-    let DbConnection(mut conn) = db_conn;
+
     if let Some(I64Update::Add(version)) = request.config_version {
-        let _ = config_versions::config_versions
-            .select(config_versions::id)
-            .filter(config_versions::id.eq(version))
-            .schema_name(&schema_name)
-            .first::<i64>(&mut conn)?;
+        run_query!(state.db_pool, |conn| {
+            config_versions::config_versions
+                .select(config_versions::id)
+                .filter(config_versions::id.eq(version))
+                .schema_name(&schema_name)
+                .first::<i64>(conn)
+        })?;
     }
 
     let updated_workspace =
-        conn.transaction::<Workspace, superposition::AppError, _>(|transaction_conn| {
+        run_query!(state.db_pool, |transaction_conn: &mut DBConnection| {
             let updated_workspace = diesel::update(workspaces::table)
                 .filter(workspaces::organisation_id.eq(&org_id.0))
                 .filter(workspaces::workspace_name.eq(workspace_name))
@@ -209,7 +211,7 @@ async fn update_handler(
                     err
                 })?;
 
-            Ok(updated_workspace)
+            Ok::<Workspace, superposition::AppError>(updated_workspace)
         })?;
     let response = WorkspaceResponse::from(updated_workspace);
     Ok(Json(response))
@@ -218,19 +220,22 @@ async fn update_handler(
 #[authorized]
 #[get("")]
 async fn list_handler(
-    db_conn: DbConnection,
+    state: Data<AppState>,
     pagination_filters: Query<PaginationParams>,
     filters: Query<WorkspaceListFilters>,
     org_id: OrganisationId,
 ) -> superposition::Result<Json<PaginatedResponse<WorkspaceResponse>>> {
-    let DbConnection(mut conn) = db_conn;
     if let Some(true) = pagination_filters.all {
-        let result: Vec<WorkspaceResponse> = workspaces::dsl::workspaces
-            .filter(workspaces::organisation_id.eq(&org_id.0))
-            .get_results::<Workspace>(&mut conn)?
-            .into_iter()
-            .map(WorkspaceResponse::from)
-            .collect();
+        let result = run_query!(state.db_pool, |conn| {
+            let resp = workspaces::dsl::workspaces
+                .filter(workspaces::organisation_id.eq(&org_id.0))
+                .get_results::<Workspace>(conn)?
+                .into_iter()
+                .map(WorkspaceResponse::from)
+                .collect::<Vec<_>>();
+
+            Ok::<Vec<WorkspaceResponse>, superposition::AppError>(resp)
+        })?;
         return Ok(Json(PaginatedResponse::all(result)));
     };
 
@@ -250,7 +255,7 @@ async fn list_handler(
     let count_query = query_builder(&filters);
     let base_query = query_builder(&filters);
 
-    let n_types: i64 = count_query.count().get_result(&mut conn)?;
+    let n_types = run_query!(state.db_pool, |conn| count_query.count().get_result(conn))?;
     let limit = pagination_filters.count.unwrap_or(10);
     let mut builder = base_query
         .order(workspaces::dsl::created_at.desc())
@@ -259,11 +264,14 @@ async fn list_handler(
         let offset = (page - 1) * limit;
         builder = builder.offset(offset);
     }
-    let workspaces: Vec<WorkspaceResponse> = builder
-        .load::<Workspace>(&mut conn)?
-        .into_iter()
-        .map(WorkspaceResponse::from)
-        .collect();
+    let workspaces = run_query!(state.db_pool, |conn| {
+        let resp = builder
+            .load::<Workspace>(conn)?
+            .into_iter()
+            .map(WorkspaceResponse::from)
+            .collect::<Vec<_>>();
+        Ok::<Vec<WorkspaceResponse>, superposition::AppError>(resp)
+    })?;
     let total_pages = (n_types as f64 / limit as f64).ceil() as i64;
     Ok(Json(PaginatedResponse {
         total_pages,
@@ -308,27 +316,28 @@ fn validate_workspace_name(workspace_name: &String) -> superposition::Result<()>
 #[post("/{workspace_name}/db/migrate")]
 async fn migrate_schema_handler(
     workspace_name: Path<String>,
-    db_conn: DbConnection,
     org_id: OrganisationId,
     state: Data<AppState>,
     user: User,
 ) -> superposition::Result<Json<WorkspaceResponse>> {
     let workspace_name = workspace_name.into_inner();
-    let DbConnection(mut conn) = db_conn;
     let schema_name = SchemaName(format!("{}_{}", *org_id, &workspace_name));
-    let workspace = get_workspace(&schema_name, &mut conn)?;
+    let workspace = get_workspace(&schema_name, &state.db_pool)?;
 
-    conn.transaction::<(), superposition::AppError, _>(|transaction_conn| {
+    run_query!(state.db_pool, |transaction_conn: &mut DBConnection| {
         setup_workspace_schema(transaction_conn, &workspace.workspace_schema_name)?;
         if workspace.encryption_key.is_empty() {
             match state.master_encryption_key {
                 Some(ref master_encryption_key) => {
                     let new_key = generate_encryption_key();
-                    let encrypted_key =
-                        encrypt_workspace_key(&new_key, &master_encryption_key.current_key).map_err(|e| {
-                            log::error!("Failed to encrypt workspace key: {}", e);
-                            unexpected_error!("Failed to encrypt workspace key")
-                        })?;
+                    let encrypted_key = encrypt_workspace_key(
+                        &new_key,
+                        &master_encryption_key.current_key,
+                    )
+                    .map_err(|e| {
+                        log::error!("Failed to encrypt workspace key: {}", e);
+                        unexpected_error!("Failed to encrypt workspace key")
+                    })?;
 
                     diesel::update(workspaces::table)
                         .filter(workspaces::organisation_id.eq(&org_id.0))
@@ -336,7 +345,7 @@ async fn migrate_schema_handler(
                         .set((
                             workspaces::encryption_key.eq(encrypted_key),
                             workspaces::last_modified_by.eq(user.get_username()),
-                            workspaces::last_modified_at.eq(Utc::now())
+                            workspaces::last_modified_at.eq(Utc::now()),
                         ))
                         .execute(transaction_conn)?;
                 }
@@ -349,7 +358,7 @@ async fn migrate_schema_handler(
                 }
             }
         }
-        Ok(())
+        Ok::<(), superposition::AppError>(())
     })?;
 
     let response = WorkspaceResponse::from(workspace);
@@ -361,12 +370,9 @@ async fn migrate_schema_handler(
 pub async fn rotate_encryption_key_handler(
     workspace_name: Path<String>,
     user: User,
-    db_conn: DbConnection,
     org_id: OrganisationId,
     state: Data<AppState>,
 ) -> superposition::Result<Json<KeyRotationResponse>> {
-    let DbConnection(mut conn) = db_conn;
-
     let Some(ref master_encryption_key) = state.master_encryption_key else {
         log::error!("Master encryption key not configured");
         return Err(bad_argument!(
@@ -375,7 +381,7 @@ pub async fn rotate_encryption_key_handler(
     };
 
     let schema_name = SchemaName(format!("{}_{}", *org_id, workspace_name.into_inner()));
-    let workspace = get_workspace(&schema_name, &mut conn)?;
+    let workspace = get_workspace(&schema_name, &state.db_pool)?;
     let workspace_context = WorkspaceContext {
         schema_name,
         organisation_id: org_id,
@@ -383,15 +389,14 @@ pub async fn rotate_encryption_key_handler(
         settings: workspace,
     };
 
-    let total_secrets_re_encrypted = conn
-        .transaction::<i64, superposition::AppError, _>(|conn| {
-            rotate_workspace_encryption_key_helper(
-                &workspace_context,
-                conn,
-                master_encryption_key,
-                &user.get_username(),
-            )
-        })?;
+    let total_secrets_re_encrypted = run_query!(state.db_pool, |conn| {
+        rotate_workspace_encryption_key_helper(
+            &workspace_context,
+            conn,
+            master_encryption_key,
+            &user.get_username(),
+        )
+    })?;
 
     Ok(Json(KeyRotationResponse {
         total_secrets_re_encrypted,
