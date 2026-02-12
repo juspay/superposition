@@ -131,6 +131,7 @@ pub enum WebhookEvent {
     ExperimentConcluded,
     ExperimentDiscarded,
     ExperimentPaused,
+    ConfigChanged,
 }
 
 impl TryFrom<String> for WebhookEvent {

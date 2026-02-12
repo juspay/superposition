@@ -50,7 +50,9 @@ use crate::{
             types::FunctionInfo,
         },
     },
-    helpers::{add_config_version, validate_change_reason},
+    helpers::{
+        add_config_version, trigger_config_changed_webhook, validate_change_reason,
+    },
 };
 
 pub fn endpoints() -> Scope {
@@ -146,6 +148,8 @@ async fn create_handler(
         &workspace_context.schema_name,
     )?;
 
+    let webhook_change_reason: String = (&req.change_reason).into();
+
     let version_id =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
             diesel::insert_into(dsl::default_configs)
@@ -164,10 +168,28 @@ async fn create_handler(
             Ok(version_id)
         })?;
 
+    let webhook_status = trigger_config_changed_webhook(
+        version_id,
+        &workspace_context,
+        &state,
+        &mut conn,
+        &user,
+        &webhook_change_reason,
+    )
+    .await;
+
     #[cfg(feature = "high-performance-mode")]
     put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
         .await?;
-    let mut http_resp = HttpResponse::Ok();
+
+    let mut http_resp = if webhook_status {
+        HttpResponse::Ok()
+    } else {
+        HttpResponse::build(
+            actix_web::http::StatusCode::from_u16(512)
+                .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
 
     http_resp.insert_header((
         AppHeader::XConfigVersion.to_string(),
@@ -275,6 +297,8 @@ async fn update_handler(
         )?;
     }
 
+    let webhook_change_reason: String = (&req.change_reason).into();
+
     let (db_row, version_id) =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
             let change_reason = req.change_reason.clone();
@@ -299,11 +323,28 @@ async fn update_handler(
             Ok((val, version_id))
         })?;
 
+    let webhook_status = trigger_config_changed_webhook(
+        version_id,
+        &workspace_context,
+        &state,
+        &mut conn,
+        &user,
+        &webhook_change_reason,
+    )
+    .await;
+
     #[cfg(feature = "high-performance-mode")]
     put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
         .await?;
 
-    let mut http_resp = HttpResponse::Ok();
+    let mut http_resp = if webhook_status {
+        HttpResponse::Ok()
+    } else {
+        HttpResponse::build(
+            actix_web::http::StatusCode::from_u16(512)
+                .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
     http_resp.insert_header((
         AppHeader::XConfigVersion.to_string(),
         version_id.to_string(),
@@ -521,6 +562,27 @@ async fn delete_handler(
             });
 
         if resp.is_ok() {
+            let webhook_status = trigger_config_changed_webhook(
+                version_id,
+                &workspace_context,
+                &state,
+                &mut conn,
+                &user,
+                &format!(
+                    "Default config key '{}' deleted by {}",
+                    key,
+                    user.get_email()
+                ),
+            )
+            .await;
+
+            if !webhook_status {
+                log::warn!(
+                    "ConfigChanged webhook failed for workspace: {}",
+                    workspace_context.settings.workspace_name
+                );
+            }
+
             #[cfg(feature = "high-performance-mode")]
             put_config_in_redis(
                 version_id,

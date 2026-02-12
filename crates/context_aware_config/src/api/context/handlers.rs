@@ -44,7 +44,9 @@ use superposition_types::{
 
 #[cfg(feature = "high-performance-mode")]
 use crate::helpers::put_config_in_redis;
-use crate::helpers::{add_config_version, calculate_context_weight};
+use crate::helpers::{
+    add_config_version, calculate_context_weight, trigger_config_changed_webhook,
+};
 use crate::{
     api::context::{
         hash,
@@ -100,6 +102,7 @@ async fn create_handler(
         }
     };
     let req_change_reason = req.change_reason.clone();
+    let webhook_change_reason: String = (&req_change_reason).into();
 
     validate_change_reason(
         &workspace_context,
@@ -135,7 +138,25 @@ async fn create_handler(
             Ok((put_response, version_id))
         })?;
 
-    let mut http_resp = HttpResponse::Ok();
+    let DbConnection(mut conn) = db_conn;
+    let webhook_status = trigger_config_changed_webhook(
+        version_id,
+        &workspace_context,
+        &state,
+        &mut conn,
+        &user,
+        &webhook_change_reason,
+    )
+    .await;
+
+    let mut http_resp = if webhook_status {
+        HttpResponse::Ok()
+    } else {
+        HttpResponse::build(
+            actix_web::http::StatusCode::from_u16(512)
+                .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
 
     http_resp.insert_header((
         AppHeader::XConfigVersion.to_string(),
@@ -143,11 +164,8 @@ async fn create_handler(
     ));
 
     #[cfg(feature = "high-performance-mode")]
-    {
-        let DbConnection(mut conn) = db_conn;
-        put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
-            .await?;
-    }
+    put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
+        .await?;
 
     Ok(http_resp.json(put_response))
 }
@@ -166,6 +184,7 @@ async fn update_handler(
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let req_change_reason = req.change_reason.clone();
+    let webhook_change_reason: String = (&req_change_reason).into();
 
     validate_change_reason(
         &workspace_context,
@@ -197,7 +216,26 @@ async fn update_handler(
             )?;
             Ok((override_resp, version_id))
         })?;
-    let mut http_resp = HttpResponse::Ok();
+
+    let DbConnection(mut conn) = db_conn;
+    let webhook_status = trigger_config_changed_webhook(
+        version_id,
+        &workspace_context,
+        &state,
+        &mut conn,
+        &user,
+        &webhook_change_reason,
+    )
+    .await;
+
+    let mut http_resp = if webhook_status {
+        HttpResponse::Ok()
+    } else {
+        HttpResponse::build(
+            actix_web::http::StatusCode::from_u16(512)
+                .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
 
     http_resp.insert_header((
         AppHeader::XConfigVersion.to_string(),
@@ -205,11 +243,8 @@ async fn update_handler(
     ));
 
     #[cfg(feature = "high-performance-mode")]
-    {
-        let DbConnection(mut conn) = db_conn;
-        put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
-            .await?;
-    }
+    put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
+        .await?;
 
     Ok(http_resp.json(override_resp))
 }
@@ -282,7 +317,27 @@ async fn move_handler(
 
             Ok((move_response, version_id))
         })?;
-    let mut http_resp = HttpResponse::Ok();
+
+    let webhook_change_reason: String = (&move_response.change_reason).into();
+    let DbConnection(mut conn) = db_conn;
+    let webhook_status = trigger_config_changed_webhook(
+        version_id,
+        &workspace_context,
+        &state,
+        &mut conn,
+        &user,
+        &webhook_change_reason,
+    )
+    .await;
+
+    let mut http_resp = if webhook_status {
+        HttpResponse::Ok()
+    } else {
+        HttpResponse::build(
+            actix_web::http::StatusCode::from_u16(512)
+                .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
 
     http_resp.insert_header((
         AppHeader::XConfigVersion.to_string(),
@@ -290,11 +345,8 @@ async fn move_handler(
     ));
 
     #[cfg(feature = "high-performance-mode")]
-    {
-        let DbConnection(mut conn) = db_conn;
-        put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
-            .await?;
-    }
+    put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
+        .await?;
 
     Ok(http_resp.json(move_response))
 }
@@ -524,14 +576,32 @@ async fn delete_handler(
             Ok(version_id)
         })?;
 
-    #[cfg(feature = "high-performance-mode")]
-    {
-        let DbConnection(mut conn) = db_conn;
-        put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
-            .await?;
-    }
+    let DbConnection(mut conn) = db_conn;
+    let webhook_change_reason = format!("Deleted context by {}", user.username);
+    let webhook_status = trigger_config_changed_webhook(
+        version_id,
+        &workspace_context,
+        &state,
+        &mut conn,
+        &user,
+        &webhook_change_reason,
+    )
+    .await;
 
-    Ok(HttpResponse::NoContent()
+    #[cfg(feature = "high-performance-mode")]
+    put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
+        .await?;
+
+    let mut http_resp = if webhook_status {
+        HttpResponse::NoContent()
+    } else {
+        HttpResponse::build(
+            actix_web::http::StatusCode::from_u16(512)
+                .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
+
+    Ok(http_resp
         .insert_header((
             AppHeader::XConfigVersion.to_string().as_str(),
             version_id.to_string().as_str(),
@@ -728,13 +798,30 @@ async fn bulk_operations_handler(
             )?;
             Ok((response, version_id))
         })?;
-    let mut resp_builder = HttpResponse::Ok();
+
+    let webhook_status = trigger_config_changed_webhook(
+        version_id,
+        &workspace_context,
+        &state,
+        &mut conn,
+        &user,
+        "Bulk context operations",
+    )
+    .await;
+
+    let mut resp_builder = if webhook_status {
+        HttpResponse::Ok()
+    } else {
+        HttpResponse::build(
+            actix_web::http::StatusCode::from_u16(512)
+                .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
     resp_builder.insert_header((
         AppHeader::XConfigVersion.to_string(),
         version_id.to_string(),
     ));
 
-    // Commit the transaction
     #[cfg(feature = "high-performance-mode")]
     put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
         .await?;
@@ -826,6 +913,17 @@ async fn weight_recompute_handler(
             let version_id = add_config_version(&state, tags, config_version_desc, transaction_conn, &workspace_context.schema_name)?;
             Ok(version_id)
         })?;
+
+    let webhook_status = trigger_config_changed_webhook(
+        config_version_id,
+        &workspace_context,
+        &state,
+        &mut conn,
+        &user,
+        "Recomputed weight",
+    )
+    .await;
+
     #[cfg(feature = "high-performance-mode")]
     put_config_in_redis(
         config_version_id,
@@ -835,7 +933,14 @@ async fn weight_recompute_handler(
     )
     .await?;
 
-    let mut http_resp = HttpResponse::Ok();
+    let mut http_resp = if webhook_status {
+        HttpResponse::Ok()
+    } else {
+        HttpResponse::build(
+            actix_web::http::StatusCode::from_u16(512)
+                .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
     http_resp.insert_header((
         AppHeader::XConfigVersion.to_string(),
         config_version_id.to_string(),
