@@ -2458,7 +2458,6 @@ dependencies = [
  "strum",
  "strum_macros",
  "superposition_derives",
- "superposition_macros",
  "superposition_types",
  "url",
  "wasm-bindgen",

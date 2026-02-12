@@ -7,7 +7,6 @@ use leptos::*;
 use leptos_router::A;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value, json};
-use superposition_macros::box_params;
 use superposition_types::{
     PaginatedResponse,
     api::{
@@ -41,7 +40,7 @@ use crate::{
         condition_collapse_provider::ConditionCollapseProvider,
         editor_provider::EditorProvider,
     },
-    query_updater::{use_param_updater, use_signal_from_query},
+    query_updater::use_signal_from_query,
     types::{OrganisationId, Workspace},
 };
 
@@ -233,16 +232,13 @@ pub fn ExperimentGroupListing() -> impl IntoView {
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let delete_inprogress_rws = RwSignal::new(false);
 
-    let filters_rws = use_signal_from_query(move |query_string| {
-        Query::<ExpGroupFilters>::extract_non_empty(&query_string).into_inner()
-    });
-    let pagination_params_rws = use_signal_from_query(move |query_string| {
-        Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
-    });
-
-    use_param_updater(move || {
-        box_params!(pagination_params_rws.get(), filters_rws.get())
-    });
+    let (filters_rws, pagination_params_rws) =
+        use_signal_from_query(move |query_string| {
+            (
+                Query::<ExpGroupFilters>::extract_non_empty(query_string).into_inner(),
+                Query::<PaginationParams>::extract_non_empty(query_string).into_inner(),
+            )
+        });
 
     let delete_group_id_rws: RwSignal<Option<String>> = RwSignal::new(None);
     let selected_group_rws: RwSignal<Option<RowData>> = RwSignal::new(None);

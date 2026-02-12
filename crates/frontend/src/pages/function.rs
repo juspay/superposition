@@ -11,7 +11,6 @@ use leptos::*;
 use leptos_router::{A, use_params_map};
 use publish_form::PublishForm;
 use strum::IntoEnumIterator;
-use superposition_macros::box_params;
 use superposition_types::{
     api::functions::Stage,
     custom_query::{CustomQuery, Query},
@@ -25,9 +24,7 @@ use crate::components::{
     function_form::{FunctionEditor, Mode},
     skeleton::{Skeleton, SkeletonVariant},
 };
-use crate::query_updater::{
-    use_param_updater, use_signal_from_query, use_update_url_query,
-};
+use crate::query_updater::{use_signal_from_query, use_update_url_query};
 use crate::types::{OrganisationId, Workspace};
 use crate::utils::to_title_case;
 use crate::{api::fetch_function, components::datetime::Datetime};
@@ -98,11 +95,10 @@ pub fn FunctionPage() -> impl IntoView {
     });
     let show_publish_popup = RwSignal::new(false);
 
-    let page_params_rws = use_signal_from_query(move |query_string| {
-        Query::<PageParams>::extract_non_empty(&query_string).into_inner()
+    let (page_params_rws,) = use_signal_from_query(move |query_string| {
+        (Query::<PageParams>::extract_non_empty(query_string).into_inner(),)
     });
     let mode_rws = RwSignal::new(Mode::Viewer);
-    use_param_updater(move || box_params!(page_params_rws.get()));
 
     let function_resource = create_blocking_resource(
         move || (function_name.get(), workspace.get().0, org.get().0),

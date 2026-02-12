@@ -1,7 +1,6 @@
 use leptos::*;
 use leptos_router::A;
 use serde_json::{Map, Value, json};
-use superposition_macros::box_params;
 use superposition_types::custom_query::{CustomQuery, PaginationParams, Query};
 use superposition_types::database::models::cac::DimensionType;
 
@@ -19,18 +18,16 @@ use crate::components::{
         types::{Column, TablePaginationProps},
     },
 };
-use crate::query_updater::{use_param_updater, use_signal_from_query};
+use crate::query_updater::use_signal_from_query;
 use crate::types::{DimensionTypeOptions, OrganisationId, Workspace};
 
 #[component]
 pub fn Dimensions() -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
-    let pagination_params_rws = use_signal_from_query(move |query_string| {
-        Query::<PaginationParams>::extract_non_empty(&query_string).into_inner()
+    let (pagination_params_rws,) = use_signal_from_query(move |query_string| {
+        (Query::<PaginationParams>::extract_non_empty(query_string).into_inner(),)
     });
-
-    use_param_updater(move || box_params!(pagination_params_rws.get()));
 
     let dimensions_resource = create_blocking_resource(
         move || (workspace.get().0, pagination_params_rws.get(), org.get().0),
