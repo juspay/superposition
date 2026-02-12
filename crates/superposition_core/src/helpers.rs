@@ -2,11 +2,13 @@
 
 use std::collections::{HashMap, HashSet};
 
-use bigdecimal::{BigDecimal, Num};
+use bigdecimal::{BigDecimal, Num, ToPrimitive};
 use itertools::Itertools;
 use num_bigint::BigUint;
 use serde_json::{Map, Value};
-use superposition_types::DimensionInfo;
+use superposition_types::{
+    Condition, Context, DimensionInfo, OverrideWithKeys, Overrides,
+};
 
 /// Calculate weight from a position index using 2^index formula
 ///
@@ -96,6 +98,63 @@ fn json_to_sorted_string(v: &Value) -> String {
 pub fn hash(val: &Value) -> String {
     let sorted_str: String = json_to_sorted_string(val);
     blake3::hash(sorted_str.as_bytes()).to_string()
+}
+
+pub fn create_connections_with_dependents(
+    cohorted_dimension: &str,
+    dimension_name: &str,
+    dimensions: &mut HashMap<String, DimensionInfo>,
+) {
+    for (dim, dim_info) in dimensions.iter_mut() {
+        if dim == cohorted_dimension
+            && !dim_info.dependency_graph.contains_key(cohorted_dimension)
+        {
+            dim_info
+                .dependency_graph
+                .insert(cohorted_dimension.to_string(), vec![]);
+        }
+        if let Some(current_deps) = dim_info.dependency_graph.get_mut(cohorted_dimension)
+        {
+            current_deps.push(dimension_name.to_string());
+            dim_info
+                .dependency_graph
+                .insert(dimension_name.to_string(), vec![]);
+        }
+    }
+}
+
+pub fn build_context(
+    condition: Condition,
+    overrides: Overrides,
+    dimensions: &HashMap<String, DimensionInfo>,
+) -> Result<(Context, String, Overrides), String> {
+    let override_hash = hash(&Value::Object(
+        overrides
+            .iter()
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect(),
+    ));
+    let condition_hash = hash(&Value::Object(
+        condition
+            .iter()
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect(),
+    ));
+
+    let priority = calculate_context_weight(&condition, dimensions)
+        .map_err(|e| e.to_string())?
+        .to_i32()
+        .ok_or_else(|| "Failed to convert context weight to i32".to_string())?;
+
+    let context = Context {
+        condition,
+        id: condition_hash,
+        priority,
+        override_with_keys: OverrideWithKeys::new(override_hash.clone()),
+        weight: 0,
+    };
+
+    Ok((context, override_hash, overrides))
 }
 
 #[cfg(test)]

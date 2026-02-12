@@ -19,10 +19,10 @@ use superposition_types::{
 use toml::Value as TomlValue;
 
 use crate::{
+    helpers::{build_context, create_connections_with_dependents},
     toml::helpers::{
-        build_context, context_toml_to_condition, create_connections_with_dependents,
-        format_key, format_toml_value, overrides_toml_to_map, toml_to_json,
-        validate_config_key, validate_context, validate_overrides,
+        context_toml_to_condition, format_key, format_toml_value, overrides_toml_to_map,
+        toml_to_json,
     },
     validations,
 };
@@ -46,7 +46,6 @@ pub enum TomlError {
     },
     ConversionError(String),
     SerializationError(String),
-    NullValueInConfig(String),
     ValidationError {
         key: String,
         errors: String,
@@ -78,7 +77,6 @@ impl fmt::Display for TomlError {
                 position,
                 dimensions.join(", ")
             ),
-            Self::NullValueInConfig(e) => write!(f, "TOML cannot handle NULL values for key: {}", e),
             Self::TomlSyntaxError(e) => write!(f, "TOML syntax error: {}", e),
             Self::ConversionError(e) => write!(f, "TOML conversion error: {}", e),
             Self::SerializationError(msg) => write!(f, "TOML serialization error: {}", msg),
@@ -104,14 +102,20 @@ fn dim_type_default() -> String {
     DimensionType::default().to_string()
 }
 
-impl From<DimensionInfo> for DimensionInfoToml {
-    fn from(d: DimensionInfo) -> Self {
-        Self {
+impl TryFrom<DimensionInfo> for DimensionInfoToml {
+    type Error = TomlError;
+    fn try_from(d: DimensionInfo) -> Result<Self, Self::Error> {
+        let schema = toml::Table::try_from(d.schema.into_inner()).map_err(|e| {
+            TomlError::ConversionError(format!(
+                "Schema contains values incompatible with TOML: {}",
+                e
+            ))
+        })?;
+        Ok(Self {
             position: d.position,
-            schema: toml::Table::try_from(d.schema.into_inner())
-                .expect("Schema should not contain null values"),
+            schema,
             dimension_type: d.dimension_type.to_string(),
-        }
+        })
     }
 }
 
@@ -183,7 +187,7 @@ impl DetailedConfigToml {
         for (k, v) in default_configs.into_inner() {
             let v_toml = TomlValue::try_from(v).map_err(|e| {
                 TomlError::SerializationError(format!(
-                    "Failed to serialize dimension '{}': {}",
+                    "Failed to serialize default-config '{}': {}",
                     k, e
                 ))
             })?;
@@ -261,8 +265,8 @@ impl TryFrom<DetailedConfig> for DetailedConfigToml {
             dimensions: d
                 .dimensions
                 .into_iter()
-                .map(|(k, v)| (k, v.into()))
-                .collect(),
+                .map(|(k, v)| DimensionInfoToml::try_from(v).map(|dim| (k, dim)))
+                .collect::<Result<BTreeMap<_, _>, _>>()?,
             overrides: d
                 .contexts
                 .into_iter()
@@ -286,7 +290,18 @@ impl TryFrom<DetailedConfigToml> for DetailedConfig {
 
         // Default configs validation
         for (k, v) in default_configs.iter() {
-            validate_config_key(k, &v.value, &v.schema, 0)?;
+            validations::validate_config_value(k, &v.value, &v.schema).map_err(
+                |errors| {
+                    let error = &errors[0];
+                    TomlError::ValidationError {
+                        key: format!("default-configs.{}", error.key()),
+                        errors: error
+                            .errors()
+                            .map(validations::format_validation_errors)
+                            .unwrap_or_default(),
+                    }
+                },
+            )?;
         }
 
         // Dimensions validation and dependency graph construction
@@ -353,11 +368,56 @@ impl TryFrom<DetailedConfigToml> for DetailedConfig {
             let condition = context_toml_to_condition(&ctx.context)?;
             let override_vals = overrides_toml_to_map(&ctx.overrides)?;
 
-            validate_context(&condition, &dimensions, index)?;
-            validate_overrides(&override_vals, &default_configs, index)?;
+            validations::validate_context(&condition, &dimensions).map_err(|errors| {
+                let first_error = &errors[0];
+                match first_error {
+                    validations::ContextValidationError::UndeclaredDimension {
+                        dimension,
+                    } => TomlError::UndeclaredDimension {
+                        dimension: dimension.clone(),
+                        context: format!("[{}]", index),
+                    },
+                    validations::ContextValidationError::ValidationError {
+                        key,
+                        errors,
+                    } => TomlError::ValidationError {
+                        key: format!("context[{}]._context_.{}", index, key),
+                        errors: validations::format_validation_errors(errors),
+                    },
+                    _ => TomlError::ValidationError {
+                        key: format!("context[{}]._context_", index),
+                        errors: format!("{} validation errors", errors.len()),
+                    },
+                }
+            })?;
+            validations::validate_overrides(&override_vals, &default_configs).map_err(
+                |errors| {
+                    let first_error = &errors[0];
+                    match first_error {
+                        validations::ContextValidationError::InvalidOverrideKey {
+                            key,
+                        } => TomlError::InvalidOverrideKey {
+                            key: key.clone(),
+                            context: format!("[{}]", index),
+                        },
+                        validations::ContextValidationError::ValidationError {
+                            key,
+                            errors,
+                        } => TomlError::ValidationError {
+                            key: format!("context[{}].{}", index, key),
+                            errors: validations::format_validation_errors(errors),
+                        },
+                        _ => TomlError::ValidationError {
+                            key: format!("context[{}]", index),
+                            errors: format!("{} validation errors", errors.len()),
+                        },
+                    }
+                },
+            )?;
 
             let (context, override_hash, override_vals) =
-                build_context(condition, override_vals, &dimensions)?;
+                build_context(condition, override_vals, &dimensions)
+                    .map_err(TomlError::ConversionError)?;
 
             overrides.insert(override_hash, override_vals);
             contexts.push(context);

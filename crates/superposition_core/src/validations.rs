@@ -3,8 +3,41 @@
 //! This module provides validation functions that can be used across
 //! the codebase for validating values against JSON schemas.
 
+use std::collections::HashMap;
+
 use jsonschema::{error::ValidationErrorKind, Draft, JSONSchema, ValidationError};
-use serde_json::{json, Value};
+use serde_json::{json, Map, Value};
+use superposition_types::{DefaultConfigsWithSchema, DimensionInfo};
+
+/// Error type for context and config validation
+#[derive(Debug, Clone)]
+pub enum ContextValidationError {
+    /// Dimension not found in declared dimensions
+    UndeclaredDimension { dimension: String },
+    /// Config key not found in default configs
+    InvalidOverrideKey { key: String },
+    /// Schema validation failed
+    ValidationError { key: String, errors: Vec<String> },
+}
+
+impl ContextValidationError {
+    /// Get the key associated with this error
+    pub fn key(&self) -> &str {
+        match self {
+            ContextValidationError::UndeclaredDimension { dimension } => dimension,
+            ContextValidationError::InvalidOverrideKey { key } => key,
+            ContextValidationError::ValidationError { key, .. } => key,
+        }
+    }
+
+    /// Get validation error messages if this is a ValidationError
+    pub fn errors(&self) -> Option<&[String]> {
+        match self {
+            ContextValidationError::ValidationError { errors, .. } => Some(errors),
+            _ => None,
+        }
+    }
+}
 
 /// Compile a JSON schema for validation
 ///
@@ -221,6 +254,132 @@ pub fn get_meta_schema() -> JSONSchema {
     });
 
     compile_schema(&meta_schema).expect("Failed to compile meta-schema")
+}
+
+/// Validate a context dimension value against its schema
+///
+/// # Arguments
+/// * `dimension_info` - Information about the dimension including its schema
+/// * `key` - The dimension key name
+/// * `value` - The value to validate
+///
+/// # Returns
+/// * `Ok(())` if validation succeeds
+/// * `Err(Vec<ContextValidationError>)` containing validation errors
+pub fn validate_context_dimension(
+    dimension_info: &DimensionInfo,
+    key: &str,
+    value: &Value,
+) -> Result<(), Vec<ContextValidationError>> {
+    validate_against_schema(value, &Value::from(&dimension_info.schema)).map_err(
+        |errors| {
+            vec![ContextValidationError::ValidationError {
+                key: key.to_string(),
+                errors,
+            }]
+        },
+    )
+}
+
+/// Validate a context (condition) against dimension schemas
+///
+/// # Arguments
+/// * `condition` - The context condition as a map of dimension names to values
+/// * `dimensions` - Map of dimension names to their information
+///
+/// # Returns
+/// * `Ok(())` if validation succeeds
+/// * `Err(Vec<ContextValidationError>)` containing validation errors
+pub fn validate_context(
+    condition: &Map<String, Value>,
+    dimensions: &HashMap<String, DimensionInfo>,
+) -> Result<(), Vec<ContextValidationError>> {
+    let mut all_errors: Vec<ContextValidationError> = Vec::new();
+
+    for (key, value) in condition {
+        match dimensions.get(key) {
+            Some(dimension_info) => {
+                if let Err(errors) =
+                    validate_context_dimension(dimension_info, key, value)
+                {
+                    all_errors.extend(errors);
+                }
+            }
+            None => {
+                all_errors.push(ContextValidationError::UndeclaredDimension {
+                    dimension: key.clone(),
+                });
+            }
+        }
+    }
+
+    if all_errors.is_empty() {
+        Ok(())
+    } else {
+        Err(all_errors)
+    }
+}
+
+/// Validate a config value against its schema
+///
+/// # Arguments
+/// * `key` - The config key name
+/// * `value` - The value to validate
+/// * `schema` - The JSON schema to validate against
+///
+/// # Returns
+/// * `Ok(())` if validation succeeds
+/// * `Err(Vec<ContextValidationError>)` containing validation errors
+pub fn validate_config_value(
+    key: &str,
+    value: &Value,
+    schema: &Value,
+) -> Result<(), Vec<ContextValidationError>> {
+    validate_against_schema(value, schema).map_err(|errors| {
+        vec![ContextValidationError::ValidationError {
+            key: key.to_string(),
+            errors,
+        }]
+    })
+}
+
+/// Validate overrides against default config schemas
+///
+/// # Arguments
+/// * `overrides` - Map of override keys to values
+/// * `default_configs` - Map of default config keys to their info (including schemas)
+///
+/// # Returns
+/// * `Ok(())` if validation succeeds
+/// * `Err(Vec<ContextValidationError>)` containing validation errors
+pub fn validate_overrides(
+    overrides: &Map<String, Value>,
+    default_configs: &DefaultConfigsWithSchema,
+) -> Result<(), Vec<ContextValidationError>> {
+    let mut all_errors: Vec<ContextValidationError> = Vec::new();
+
+    for (key, value) in overrides {
+        match default_configs.get(key) {
+            Some(config_info) => {
+                if let Err(errors) =
+                    validate_config_value(key, value, &config_info.schema)
+                {
+                    all_errors.extend(errors);
+                }
+            }
+            None => {
+                all_errors.push(ContextValidationError::InvalidOverrideKey {
+                    key: key.clone(),
+                });
+            }
+        }
+    }
+
+    if all_errors.is_empty() {
+        Ok(())
+    } else {
+        Err(all_errors)
+    }
 }
 
 /// Format jsonschema ValidationError instances into human-readable strings
