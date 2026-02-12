@@ -1263,7 +1263,7 @@ pub mod experiment_groups {
             change_reason: ChangeReason::try_from(change_reason)?,
             traffic_percentage: TrafficPercentage::try_from(traffic_percentage)?,
             member_experiment_ids,
-            context: Exp::<Condition>::try_from(conditions.as_context_json())
+            context: Exp::<Condition>::try_from(Map::from(conditions))
                 .map_err(|e| e.to_string())?,
         };
         let host = use_host_server();

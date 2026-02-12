@@ -1,5 +1,5 @@
 use crate::{
-    logic::{Condition, Conditions, Operator},
+    logic::{Condition, Conditions},
     schema::HtmlDisplay,
 };
 
@@ -32,6 +32,7 @@ pub fn use_condition_collapser() -> WindowListenerHandle {
 pub fn ConditionExpression(
     #[prop(into)] id: String,
     #[prop(into)] list_id: String,
+    resolve_summary: bool,
     condition: Condition,
 ) -> impl IntoView {
     let id = store_value(id);
@@ -61,8 +62,12 @@ pub fn ConditionExpression(
                 .with_value(|v| {
                     (
                         v.variable.clone(),
-                        Operator::from(&v.expression),
-                        v.expression.to_value().html_display(),
+                        match v.variable.as_str() {
+                            "variantIds" if resolve_summary => "in",
+                            "variantIds" => "has",
+                            _ => "==",
+                        },
+                        v.value.html_display(),
                     )
                 });
             view! {
@@ -76,9 +81,7 @@ pub fn ConditionExpression(
                     }
                 >
                     <span class="font-medium context_condition text-gray-500">{dimension}</span>
-                    <span class="font-medium text-gray-650 context_condition">
-                        {operator.to_string()}
-                    </span>
+                    <span class="font-medium text-gray-650 context_condition">{operator}</span>
                     <span class=value_class>{operands}</span>
                 </li>
             }
@@ -92,6 +95,7 @@ pub fn Condition(
     #[prop(into)] conditions: Conditions,
     #[prop(into, default=String::new())] class: String,
     #[prop(default = true)] grouped_view: bool,
+    #[prop(default = false)] resolve_summary: bool,
 ) -> impl IntoView {
     let conditions = store_value(conditions);
 
@@ -116,6 +120,7 @@ pub fn Condition(
                                 condition=condition.clone()
                                 id=item_id
                                 list_id=id.clone()
+                                resolve_summary
                             />
                         }
                     })
