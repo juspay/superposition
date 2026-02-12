@@ -9,20 +9,19 @@ use std::{
     str::FromStr,
 };
 
-use bigdecimal::ToPrimitive;
 use serde::{Deserialize, Serialize};
-use serde_json::{Map, Value};
+use serde_json::Value;
 use superposition_types::database::models::cac::{DependencyGraph, DimensionType};
 use superposition_types::{
-    Cac, Condition, Config, Context, DefaultConfigsWithSchema, DetailedConfig,
-    DimensionInfo, ExtendedMap, OverrideWithKeys, Overrides,
+    Config, Context, DefaultConfigsWithSchema, DetailedConfig, DimensionInfo,
+    ExtendedMap, Overrides,
 };
 use toml::Value as TomlValue;
 
 use crate::{
-    helpers::{calculate_context_weight, hash},
     toml::helpers::{
-        create_connections_with_dependents, format_key, format_toml_value, toml_to_json,
+        build_context, context_toml_to_condition, create_connections_with_dependents,
+        format_key, format_toml_value, overrides_toml_to_map, toml_to_json,
         validate_config_key, validate_context, validate_overrides,
     },
     validations,
@@ -93,7 +92,7 @@ impl fmt::Display for TomlError {
 
 impl std::error::Error for TomlError {}
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize)]
 pub struct DimensionInfoToml {
     pub position: i32,
     pub schema: toml::Table,
@@ -351,50 +350,17 @@ impl TryFrom<DetailedConfigToml> for DetailedConfig {
 
         // Context and override generation with validation
         for (index, ctx) in d.overrides.into_iter().enumerate() {
-            let overrides_json = toml_to_json(TomlValue::Table(ctx.overrides));
-            let override_map: Map<_, _> = match overrides_json {
-                Value::Object(map) => map,
-                _ => Map::new(),
-            };
-            let over_val = Value::Object(override_map.clone());
-            let override_hash = hash(&over_val);
-            let override_ = Cac::<Overrides>::try_from(override_map)
-                .ok()
-                .map(|cac| cac.into_inner());
+            let condition = context_toml_to_condition(&ctx.context)?;
+            let override_vals = overrides_toml_to_map(&ctx.overrides)?;
 
-            let context_json = toml_to_json(TomlValue::Table(ctx.context));
-            let condition_map: Map<_, _> = match context_json {
-                Value::Object(map) => map,
-                _ => Map::new(),
-            };
-            let cond_val = Value::Object(condition_map.clone());
-            let condition_hash = hash(&cond_val);
-            let condition = Cac::<Condition>::try_from(condition_map)
-                .ok()
-                .map(|cac| cac.into_inner());
+            validate_context(&condition, &dimensions, index)?;
+            validate_overrides(&override_vals, &default_configs, index)?;
 
-            if let (Some(o), Some(c)) = (override_, condition) {
-                validate_context(&c, &dimensions, index)?;
-                validate_overrides(&o, &default_configs, index)?;
+            let (context, override_hash, override_vals) =
+                build_context(condition, override_vals, &dimensions)?;
 
-                let priority = calculate_context_weight(&c, &dimensions)
-                    .map_err(|e| TomlError::ConversionError(e.to_string()))?
-                    .to_i32()
-                    .ok_or_else(|| {
-                        TomlError::ConversionError(
-                            "Failed to convert context weight to i32".to_string(),
-                        )
-                    })?;
-
-                overrides.insert(override_hash.clone(), o);
-                contexts.push(Context {
-                    condition: c,
-                    id: condition_hash,
-                    priority,
-                    override_with_keys: OverrideWithKeys::new(override_hash),
-                    weight: 0,
-                });
-            }
+            overrides.insert(override_hash, override_vals);
+            contexts.push(context);
         }
 
         // Sort contexts by priority (weight) - higher weight means higher priority
@@ -406,14 +372,12 @@ impl TryFrom<DetailedConfigToml> for DetailedConfig {
             ctx.priority = index as i32;
         });
 
-        let detailed_config = Self {
+        Ok(Self {
             default_configs,
             dimensions,
             contexts,
             overrides,
-        };
-
-        Ok(detailed_config)
+        })
     }
 }
 

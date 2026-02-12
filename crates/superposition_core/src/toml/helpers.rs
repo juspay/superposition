@@ -1,9 +1,14 @@
 use std::collections::HashMap;
 
+use bigdecimal::ToPrimitive;
 use serde_json::{Map, Value};
-use superposition_types::{DefaultConfigsWithSchema, DimensionInfo};
+use superposition_types::{
+    Cac, Condition, Context, DefaultConfigsWithSchema, DimensionInfo, OverrideWithKeys,
+    Overrides,
+};
 use toml::Value as TomlValue;
 
+use crate::helpers::{calculate_context_weight, hash};
 use crate::{validations, TomlError};
 
 /// Convert toml::Value to serde_json::Value for validation
@@ -158,4 +163,70 @@ pub fn validate_overrides(
     }
 
     Ok(())
+}
+
+pub fn context_toml_to_condition(ctx: &toml::Table) -> Result<Condition, TomlError> {
+    let json = toml_to_json(TomlValue::Table(ctx.clone()));
+    let map = match json {
+        Value::Object(map) => map,
+        _ => {
+            return Err(TomlError::ConversionError(
+                "Context must be an object".into(),
+            ))
+        }
+    };
+    Cac::<Condition>::try_from(map)
+        .map(|cac| cac.into_inner())
+        .map_err(|e| TomlError::ConversionError(format!("Invalid condition: {}", e)))
+}
+
+pub fn overrides_toml_to_map(overrides: &toml::Table) -> Result<Overrides, TomlError> {
+    let json = toml_to_json(TomlValue::Table(overrides.clone()));
+    let map = match json {
+        Value::Object(map) => map,
+        _ => {
+            return Err(TomlError::ConversionError(
+                "Overrides must be an object".into(),
+            ))
+        }
+    };
+    Cac::<Overrides>::try_from(map)
+        .map(|cac| cac.into_inner())
+        .map_err(|e| TomlError::ConversionError(format!("Invalid overrides: {}", e)))
+}
+
+pub fn build_context(
+    condition: Condition,
+    overrides: Overrides,
+    dimensions: &HashMap<String, DimensionInfo>,
+) -> Result<(Context, String, Overrides), TomlError> {
+    let override_hash = hash(&Value::Object(
+        overrides
+            .iter()
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect(),
+    ));
+    let condition_hash = hash(&Value::Object(
+        condition
+            .iter()
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect(),
+    ));
+
+    let priority = calculate_context_weight(&condition, dimensions)
+        .map_err(|e| TomlError::ConversionError(e.to_string()))?
+        .to_i32()
+        .ok_or_else(|| {
+            TomlError::ConversionError("Failed to convert context weight to i32".into())
+        })?;
+
+    let context = Context {
+        condition,
+        id: condition_hash,
+        priority,
+        override_with_keys: OverrideWithKeys::new(override_hash.clone()),
+        weight: 0,
+    };
+
+    Ok((context, override_hash, overrides))
 }
