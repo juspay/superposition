@@ -95,7 +95,7 @@ pub fn validate_context_dimension(
     value: &Value,
     index: usize,
 ) -> Result<(), TomlError> {
-    validations::validate_against_schema(&value, &Value::from(&dimension_info.schema))
+    validations::validate_against_schema(value, &Value::from(&dimension_info.schema))
         .map_err(|errors: Vec<String>| TomlError::ValidationError {
             key: format!("context[{}]._context_.{}", index, key),
             errors: validations::format_validation_errors(&errors),
@@ -130,7 +130,7 @@ pub fn validate_config_key(
     schema: &Value,
     index: usize,
 ) -> Result<(), TomlError> {
-    validations::validate_against_schema(&value, &schema).map_err(
+    validations::validate_against_schema(value, schema).map_err(
         |errors: Vec<String>| TomlError::ValidationError {
             key: format!("context[{}].{}", index, key),
             errors: validations::format_validation_errors(&errors),

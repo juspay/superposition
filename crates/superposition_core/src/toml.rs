@@ -96,7 +96,7 @@ impl std::error::Error for TomlError {}
 #[derive(Serialize, Deserialize, Clone)]
 pub struct DimensionInfoToml {
     pub position: i32,
-    pub schema: TomlValue,
+    pub schema: toml::Table,
     #[serde(rename = "type", default = "dim_type_default")]
     pub dimension_type: String,
 }
@@ -109,7 +109,7 @@ impl From<DimensionInfo> for DimensionInfoToml {
     fn from(d: DimensionInfo) -> Self {
         Self {
             position: d.position,
-            schema: TomlValue::try_from(d.schema.into_inner())
+            schema: toml::Table::try_from(d.schema.into_inner())
                 .expect("Schema should not contain null values"),
             dimension_type: d.dimension_type.to_string(),
         }
@@ -119,7 +119,7 @@ impl From<DimensionInfo> for DimensionInfoToml {
 impl TryFrom<DimensionInfoToml> for DimensionInfo {
     type Error = TomlError;
     fn try_from(d: DimensionInfoToml) -> Result<Self, Self::Error> {
-        let schema_json = toml_to_json(d.schema);
+        let schema_json = toml_to_json(TomlValue::Table(d.schema));
         let schema_map = match schema_json {
             Value::Object(map) => map,
             _ => {
@@ -132,7 +132,7 @@ impl TryFrom<DimensionInfoToml> for DimensionInfo {
             position: d.position,
             schema: ExtendedMap::from(schema_map),
             dimension_type: DimensionType::from_str(&d.dimension_type)
-                .map_err(|e| TomlError::ConversionError(e))?,
+                .map_err(TomlError::ConversionError)?,
             dependency_graph: DependencyGraph(HashMap::new()),
             value_compute_function_name: None,
         })
@@ -142,44 +142,134 @@ impl TryFrom<DimensionInfoToml> for DimensionInfo {
 #[derive(Serialize, Deserialize)]
 struct ContextToml {
     #[serde(rename = "_context_")]
-    context: TomlValue,
+    context: toml::Table,
     #[serde(flatten)]
-    overrides: TomlValue,
+    overrides: toml::Table,
 }
 
-impl From<(Context, &HashMap<String, Overrides>)> for ContextToml {
-    fn from((context, overrides): (Context, &HashMap<String, Overrides>)) -> Self {
-        let context_map: Map<String, Value> =
-            context.condition.deref().clone().into_iter().collect();
-        let overrides_map: Map<String, Value> = overrides
-            .get(context.override_with_keys.get_key())
-            .map(|ov| ov.clone().into_iter().collect())
-            .unwrap_or_default();
+impl TryFrom<(Context, &HashMap<String, Overrides>)> for ContextToml {
+    type Error = TomlError;
+    fn try_from(
+        (context, overrides): (Context, &HashMap<String, Overrides>),
+    ) -> Result<Self, Self::Error> {
+        let context_toml: toml::Table =
+            toml::Table::try_from(context.condition.deref().clone())
+                .map_err(|e| TomlError::ConversionError(e.to_string()))?;
+        let overrides_toml: toml::Table =
+            toml::Table::try_from(overrides.get(context.override_with_keys.get_key()))
+                .map_err(|e| TomlError::ConversionError(e.to_string()))?;
 
-        Self {
-            context: TomlValue::try_from(context_map)
-                .expect("Context should not contain null values"),
-            overrides: TomlValue::try_from(overrides_map)
-                .expect("Overrides should not contain null values"),
-        }
+        Ok(Self {
+            context: context_toml,
+            overrides: overrides_toml,
+        })
     }
 }
 
-impl From<DetailedConfig> for DetailedConfigToml {
-    fn from(d: DetailedConfig) -> Self {
-        Self {
+#[derive(Serialize, Deserialize)]
+struct DetailedConfigToml {
+    #[serde(rename = "default-configs")]
+    default_configs: DefaultConfigsWithSchema,
+    dimensions: BTreeMap<String, DimensionInfoToml>,
+    overrides: Vec<ContextToml>,
+}
+
+impl DetailedConfigToml {
+    fn emit_default_configs(
+        default_configs: DefaultConfigsWithSchema,
+    ) -> Result<String, TomlError> {
+        let mut out = String::new();
+        out.push_str("[default-configs]\n");
+
+        for (k, v) in default_configs.into_inner() {
+            let v_toml = TomlValue::try_from(v).map_err(|e| {
+                TomlError::SerializationError(format!(
+                    "Failed to serialize dimension '{}': {}",
+                    k, e
+                ))
+            })?;
+
+            let v_str = format_toml_value(&v_toml);
+            out.push_str(&format!("{} = {}\n", format_key(&k), v_str));
+        }
+
+        out.push('\n');
+        Ok(out)
+    }
+
+    fn emit_dimensions(
+        dimensions: BTreeMap<String, DimensionInfoToml>,
+    ) -> Result<String, TomlError> {
+        let mut out = String::new();
+        out.push_str("[dimensions]\n");
+
+        for (k, v) in dimensions {
+            let v_toml = TomlValue::try_from(v).map_err(|e| {
+                TomlError::SerializationError(format!(
+                    "Failed to serialize dimension '{}': {}",
+                    k, e
+                ))
+            })?;
+            let v_str = format_toml_value(&v_toml);
+            out.push_str(&format!("{} = {}\n", format_key(&k), v_str));
+        }
+
+        out.push('\n');
+        Ok(out)
+    }
+
+    fn emit_overrides(ctx: ContextToml) -> Result<String, TomlError> {
+        let mut out = String::new();
+        out.push_str("[[overrides]]\n");
+
+        // Serialize the _context_ field as an inline table
+        let context_str = format_toml_value(&TomlValue::Table(ctx.context));
+        out.push_str(&format!("_context_ = {}\n", context_str));
+
+        // Serialize overrides
+        for (k, v) in ctx.overrides {
+            let v_str = format_toml_value(&v);
+            out.push_str(&format!("{} = {}\n", format_key(&k), v_str));
+        }
+
+        out.push('\n');
+        Ok(out)
+    }
+
+    pub fn serialize_to_toml(self) -> Result<String, TomlError> {
+        let mut out = String::new();
+
+        out.push_str(&Self::emit_default_configs(self.default_configs)?);
+        out.push('\n');
+
+        out.push_str(&Self::emit_dimensions(self.dimensions)?);
+        out.push('\n');
+
+        for ctx in self.overrides {
+            out.push_str(&Self::emit_overrides(ctx)?);
+        }
+
+        out.push('\n');
+        Ok(out)
+    }
+}
+
+impl TryFrom<DetailedConfig> for DetailedConfigToml {
+    type Error = TomlError;
+    fn try_from(d: DetailedConfig) -> Result<Self, Self::Error> {
+        Ok(Self {
             default_configs: d.default_configs,
             dimensions: d
                 .dimensions
                 .into_iter()
                 .map(|(k, v)| (k, v.into()))
                 .collect(),
-            contexts: d
+            overrides: d
                 .contexts
                 .into_iter()
-                .map(|c| ContextToml::from((c, &d.overrides)))
-                .collect(),
-        }
+                .map(|c| ContextToml::try_from((c, &d.overrides)))
+                .collect::<Result<Vec<_>, _>>()?,
+        })
     }
 }
 
@@ -260,8 +350,8 @@ impl TryFrom<DetailedConfigToml> for DetailedConfig {
         }
 
         // Context and override generation with validation
-        for (index, ctx) in d.contexts.into_iter().enumerate() {
-            let overrides_json = toml_to_json(ctx.overrides);
+        for (index, ctx) in d.overrides.into_iter().enumerate() {
+            let overrides_json = toml_to_json(TomlValue::Table(ctx.overrides));
             let override_map: Map<_, _> = match overrides_json {
                 Value::Object(map) => map,
                 _ => Map::new(),
@@ -272,7 +362,7 @@ impl TryFrom<DetailedConfigToml> for DetailedConfig {
                 .ok()
                 .map(|cac| cac.into_inner());
 
-            let context_json = toml_to_json(ctx.context);
+            let context_json = toml_to_json(TomlValue::Table(ctx.context));
             let condition_map: Map<_, _> = match context_json {
                 Value::Object(map) => map,
                 _ => Map::new(),
@@ -283,30 +373,27 @@ impl TryFrom<DetailedConfigToml> for DetailedConfig {
                 .ok()
                 .map(|cac| cac.into_inner());
 
-            match (override_, condition) {
-                (Some(o), Some(c)) => {
-                    validate_context(&c, &dimensions, index)?;
-                    validate_overrides(&o, &default_configs, index)?;
+            if let (Some(o), Some(c)) = (override_, condition) {
+                validate_context(&c, &dimensions, index)?;
+                validate_overrides(&o, &default_configs, index)?;
 
-                    let priority = calculate_context_weight(&c, &dimensions)
-                        .map_err(|e| TomlError::ConversionError(e.to_string()))?
-                        .to_i32()
-                        .ok_or_else(|| {
-                            TomlError::ConversionError(
-                                "Failed to convert context weight to i32".to_string(),
-                            )
-                        })?;
+                let priority = calculate_context_weight(&c, &dimensions)
+                    .map_err(|e| TomlError::ConversionError(e.to_string()))?
+                    .to_i32()
+                    .ok_or_else(|| {
+                        TomlError::ConversionError(
+                            "Failed to convert context weight to i32".to_string(),
+                        )
+                    })?;
 
-                    overrides.insert(override_hash.clone(), o);
-                    contexts.push(Context {
-                        condition: c,
-                        id: condition_hash,
-                        priority,
-                        override_with_keys: OverrideWithKeys::new(override_hash),
-                        weight: 0,
-                    });
-                }
-                _ => {}
+                overrides.insert(override_hash.clone(), o);
+                contexts.push(Context {
+                    condition: c,
+                    id: condition_hash,
+                    priority,
+                    override_with_keys: OverrideWithKeys::new(override_hash),
+                    weight: 0,
+                });
             }
         }
 
@@ -327,97 +414,6 @@ impl TryFrom<DetailedConfigToml> for DetailedConfig {
         };
 
         Ok(detailed_config)
-    }
-}
-
-#[derive(Serialize, Deserialize)]
-struct DetailedConfigToml {
-    #[serde(rename = "default-configs")]
-    default_configs: DefaultConfigsWithSchema,
-    dimensions: BTreeMap<String, DimensionInfoToml>,
-    #[serde(rename = "overrides")]
-    contexts: Vec<ContextToml>,
-}
-
-impl DetailedConfigToml {
-    fn emit_default_configs(
-        default_configs: DefaultConfigsWithSchema,
-    ) -> Result<String, TomlError> {
-        let mut out = String::new();
-        out.push_str("[default-configs]\n");
-
-        for (k, v) in default_configs.into_inner() {
-            let v_toml = TomlValue::try_from(v).map_err(|e| {
-                TomlError::SerializationError(format!(
-                    "Failed to serialize dimension '{}': {}",
-                    k, e
-                ))
-            })?;
-
-            let v_str = format_toml_value(&v_toml);
-            out.push_str(&format!("{} = {}\n", format_key(&k), v_str));
-        }
-
-        out.push('\n');
-        Ok(out)
-    }
-
-    fn emit_dimensions(
-        dimensions: BTreeMap<String, DimensionInfoToml>,
-    ) -> Result<String, TomlError> {
-        let mut out = String::new();
-        out.push_str("[dimensions]\n");
-
-        for (k, v) in dimensions {
-            let v_toml = TomlValue::try_from(v).map_err(|e| {
-                TomlError::SerializationError(format!(
-                    "Failed to serialize dimension '{}': {}",
-                    k, e
-                ))
-            })?;
-            let v_str = format_toml_value(&v_toml);
-            out.push_str(&format!("{} = {}\n", format_key(&k), v_str));
-        }
-
-        out.push('\n');
-        Ok(out)
-    }
-
-    fn emit_context(ctx: ContextToml) -> Result<String, TomlError> {
-        let mut out = String::new();
-        out.push_str("[[overrides]]\n");
-
-        // Serialize the _context_ field as an inline table
-        let context_str = format_toml_value(&ctx.context);
-        out.push_str(&format!("_context_ = {}\n", context_str));
-
-        // Serialize overrides
-        if let TomlValue::Table(table) = ctx.overrides {
-            for (k, v) in table {
-                let v_str = format_toml_value(&v);
-                out.push_str(&format!("{} = {}\n", format_key(&k), v_str));
-            }
-        }
-
-        out.push('\n');
-        Ok(out)
-    }
-
-    pub fn serialize_to_toml(self) -> Result<String, TomlError> {
-        let mut out = String::new();
-
-        out.push_str(&Self::emit_default_configs(self.default_configs)?);
-        out.push('\n');
-
-        out.push_str(&Self::emit_dimensions(self.dimensions)?);
-        out.push('\n');
-
-        for ctx in self.contexts {
-            out.push_str(&Self::emit_context(ctx)?);
-        }
-
-        out.push('\n');
-        Ok(out)
     }
 }
 
@@ -492,7 +488,7 @@ pub fn parse_toml_config(toml_str: &str) -> Result<Config, TomlError> {
 /// * `Ok(String)` - TOML formatted string
 /// * `Err(TomlError)` - Serialization error
 pub fn serialize_to_toml(detailed_config: DetailedConfig) -> Result<String, TomlError> {
-    let toml_config = DetailedConfigToml::from(detailed_config);
+    let toml_config = DetailedConfigToml::try_from(detailed_config)?;
 
     toml_config.serialize_to_toml()
 }

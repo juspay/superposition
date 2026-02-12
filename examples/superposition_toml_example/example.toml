@@ -6,7 +6,7 @@ surge_factor = { "value" = 0.0, "schema" = { "type" = "number" } }
 city = { position = 1, schema = { "type" = "string", "enum" = ["Chennai", "Bangalore", "Delhi"] } }
 vehicle_type = { position = 2, schema = { "type" = "string", "enum" = [ "auto", "cab", "bike", ] } }
 hour_of_day = { position = 3, schema = { "type" = "integer", "minimum" = 0, "maximum" = 23 }}
-city_cohort = { position = 4, schema = { enum = ["south", "otherwise"], type = "string", definitions = { south = { in = [{ var = "city" }, ["Bangalore", "Chennai"]] } } }, type = "local_cohort:city" }
+city_cohort = { position = 4, schema = { enum = ["south", "otherwise"], type = "string", definitions = { south = { in = [{ var = "city" }, ["Bangalore", "Chennai"]] } } }, type = "LOCAL_COHORT:city" }
 
 [[overrides]]
 _context_ = { vehicle_type = "cab" }
