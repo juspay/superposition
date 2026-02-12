@@ -10,9 +10,12 @@ use actix_web::{
 };
 use futures_util::future::LocalBoxFuture;
 use regex::Regex;
-use superposition_macros::{bad_argument, unexpected_error};
+use superposition_macros::bad_argument;
+use superposition_types::database::models::Workspace;
 
 use crate::helpers::get_workspace;
+use crate::redis::fetch_from_redis_else_writeback;
+use crate::service::get_db_connection;
 use crate::{
     extensions::HttpRequestExt,
     service::types::{AppState, OrganisationId, SchemaName, WorkspaceContext},
@@ -136,15 +139,19 @@ where
                     }
                     (true, Some(workspace_id)) => {
                         let schema = format!("{}_{}", *organisation, *workspace_id);
-                        let schema_name = SchemaName(schema);
-                        let workspace_settings = {
-                            let mut db_conn = app_state
-                                .db_pool
-                                .get()
-                                .map_err(|err| unexpected_error!("{}", err))?;
-
-                            get_workspace(&schema_name, &mut db_conn)?
-                        };
+                        let schema_name = SchemaName(schema.clone());
+                        let workspace_settings =
+                            fetch_from_redis_else_writeback::<Workspace>(
+                                schema,
+                                &schema_name,
+                                app_state.redis.clone(),
+                                app_state.db_pool.clone(),
+                                |db_pool| {
+                                    let mut db_conn = get_db_connection(db_pool)?;
+                                    get_workspace(&schema_name, &mut db_conn)
+                                },
+                            )
+                            .await?;
 
                         req.extensions_mut().insert(workspace_id.clone());
                         req.extensions_mut().insert(WorkspaceContext {
