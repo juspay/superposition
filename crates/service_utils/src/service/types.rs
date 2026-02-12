@@ -11,7 +11,6 @@ use derive_more::{Deref, DerefMut};
 use diesel::r2d2::{ConnectionManager, PooledConnection};
 use diesel::{Connection, PgConnection};
 use secrecy::SecretString;
-use serde::{Deserialize, Serialize};
 use snowflake::SnowflakeIdGenerator;
 use superposition_types::database::models::Workspace;
 
@@ -70,36 +69,6 @@ impl FromStr for AppEnv {
             "TEST" => Ok(AppEnv::TEST),
             _ => Err("invalid app env!!".to_string()),
         }
-    }
-}
-
-#[derive(Copy, Clone, Debug, strum_macros::Display, Deserialize, Serialize)]
-#[strum(serialize_all = "snake_case")]
-#[serde(rename_all = "snake_case")]
-pub enum Resource {
-    DefaultConfig,
-    Dimension,
-    Context,
-    Function,
-    TypeTemplate,
-    Config,
-    Experiment,
-    ExperimentGroup,
-    Workspace,
-    Organisation,
-    Webhook,
-    AuditLog,
-    Auth,
-    Variable,
-    Secret,
-    MasterEncryptionKey,
-}
-
-impl Resource {
-    pub fn workspace_for(&self, workspace_context: &WorkspaceContext) -> String {
-        matches!(self, Self::Workspace | Self::Auth)
-            .then_some(workspace_context.organisation_id.0.clone())
-            .unwrap_or_else(|| workspace_context.schema_name.0.clone())
     }
 }
 

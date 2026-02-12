@@ -12,7 +12,7 @@ use crate::{
         others::{CustomHeaders, HttpMethod, PayloadVersion, WebhookEvent},
         ChangeReason, Description, NonEmptyString,
     },
-    RegexEnum,
+    RegexEnum, Resource,
 };
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -79,8 +79,19 @@ impl fmt::Display for HeadersEnum {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+pub enum Action {
+    Create,
+    Update,
+    Delete,
+    #[serde(untagged)]
+    Batch(Vec<Action>),
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct WebhookEventInfo {
     pub webhook_event: WebhookEvent,
+    pub resource: Resource,
+    pub action: Action,
     pub time: String,
     pub workspace_id: String,
     pub organisation_id: String,

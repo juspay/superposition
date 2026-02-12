@@ -3,10 +3,13 @@ use actix_web::{
     web::{self, Data, Json, Path, Query},
 };
 use chrono::Utc;
-use diesel::{Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
+use diesel::{
+    Connection, ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl,
+    SelectableHelper,
+};
 use serde_json::Value;
 use service_utils::{
-    helpers::parse_config_tags,
+    helpers::{WebhookData, execute_webhook_call, parse_config_tags},
     service::types::{
         AppHeader, AppState, CustomHeaders, DbConnection, WorkspaceContext,
     },
@@ -15,15 +18,19 @@ use superposition_core::validations::validate_schema;
 use superposition_derives::authorized;
 use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
 use superposition_types::{
-    PaginatedResponse, User,
-    api::dimension::{
-        CreateRequest, DeleteRequest, DimensionName, DimensionResponse, UpdateRequest,
+    PaginatedResponse, Resource, User,
+    api::{
+        dimension::{
+            CreateRequest, DeleteRequest, DimensionName, DimensionResponse, UpdateRequest,
+        },
+        webhook::Action,
     },
     custom_query::PaginationParams,
     database::{
         models::{
             Description,
             cac::{DependencyGraph, Dimension, DimensionType},
+            others::WebhookEvent,
         },
         schema::dimensions::{self, dsl::*},
     },
@@ -201,6 +208,7 @@ async fn create_handler(
                     let is_mandatory = workspace_context
                         .settings
                         .mandatory_dimensions
+                        .clone()
                         .unwrap_or_default()
                         .contains(&inserted_dimension.dimension);
 
@@ -235,10 +243,33 @@ async fn create_handler(
         })?;
 
     #[cfg(feature = "high-performance-mode")]
-    put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
-        .await?;
+    put_config_in_redis(
+        version_id,
+        &state,
+        &workspace_context.schema_name,
+        &mut conn,
+    )
+    .await?;
 
-    let mut http_resp = HttpResponse::Created();
+    let data = WebhookData {
+        payload: &inserted_dimension,
+        resource: Resource::Dimension,
+        event: WebhookEvent::ConfigChanged,
+        config_version_opt: Some(version_id.to_string()),
+        action: Action::Create,
+    };
+
+    let webhook_status =
+        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+
+    let mut http_resp = if webhook_status {
+        HttpResponse::Created()
+    } else {
+        HttpResponse::build(
+            actix_web::http::StatusCode::from_u16(512)
+                .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
     http_resp.insert_header((
         AppHeader::XConfigVersion.to_string(),
         version_id.to_string(),
@@ -362,6 +393,8 @@ async fn update_handler(
         )?;
     }
 
+    let update_change_reason = update_req.change_reason.clone();
+
     let (result, is_mandatory, version_id) = conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
             if let Some(position_val) = update_req.position {
@@ -432,13 +465,14 @@ async fn update_handler(
             let is_mandatory = workspace_context
                 .settings
                 .mandatory_dimensions
+                .clone()
                 .unwrap_or_default()
                 .contains(&result.dimension);
 
             let version_id = add_config_version(
                 &state,
                 tags,
-                dimension_data.change_reason.into(),
+                update_change_reason.into(),
                 transaction_conn,
                 &workspace_context.schema_name,
             )?;
@@ -447,10 +481,33 @@ async fn update_handler(
         })?;
 
     #[cfg(feature = "high-performance-mode")]
-    put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
-        .await?;
+    put_config_in_redis(
+        version_id,
+        &state,
+        &workspace_context.schema_name,
+        &mut conn,
+    )
+    .await?;
 
-    let mut http_resp = HttpResponse::Ok();
+    let data = WebhookData {
+        payload: &result,
+        resource: Resource::Dimension,
+        event: WebhookEvent::ConfigChanged,
+        config_version_opt: Some(version_id.to_string()),
+        action: Action::Update,
+    };
+
+    let webhook_status =
+        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+
+    let mut http_resp = if webhook_status {
+        HttpResponse::Ok()
+    } else {
+        HttpResponse::build(
+            actix_web::http::StatusCode::from_u16(512)
+                .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
     http_resp.insert_header((
         AppHeader::XConfigVersion.to_string(),
         version_id.to_string(),
@@ -542,7 +599,7 @@ async fn delete_handler(
     )?;
 
     if context_ids.is_empty() {
-        let (resp, _version_id) = conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+        let (version_id, dimension_data) = conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
             use dimensions::dsl;
 
             if !dimension_data.dependency_graph.is_empty() {
@@ -577,7 +634,8 @@ async fn delete_handler(
 
             let deleted_row = diesel::delete(dsl::dimensions.filter(dsl::dimension.eq(&name)))
                 .schema_name(&workspace_context.schema_name)
-                .execute(transaction_conn);
+                .get_result::<Dimension>(transaction_conn)
+                .optional()?;
 
             diesel::update(dimensions::dsl::dimensions)
                 .filter(dimensions::position.gt(dimension_data.position))
@@ -587,8 +645,8 @@ async fn delete_handler(
                 .execute(transaction_conn)?;
 
             match deleted_row {
-                Ok(0) => Err(not_found!("Dimension `{}` doesn't exists", name)),
-                Ok(_) => {
+                None => Err(not_found!("Dimension `{}` doesn't exists", name))?,
+                Some(dimension_data) => {
                     let config_version_desc = Description::try_from(format!(
                         "Dimension Deleted by {}",
                         user.get_email()
@@ -605,29 +663,45 @@ async fn delete_handler(
                         "Dimension: {name} deleted by {}",
                         user.get_email()
                     );
-                    Ok((HttpResponse::NoContent()
-                        .insert_header((
-                            AppHeader::XConfigVersion.to_string(),
-                            version_id.to_string(),
-                        ))
-                        .finish(), version_id))
-                    },
-                Err(e) => {
-                    log::error!("dimension delete query failed with error: {e}");
-                    Err(unexpected_error!("Something went wrong."))
+                    Ok((version_id, dimension_data))
                 }
             }
         })?;
 
         #[cfg(feature = "high-performance-mode")]
         put_config_in_redis(
-            _version_id,
-            state,
+            version_id,
+            &state,
             &workspace_context.schema_name,
             &mut conn,
         )
         .await?;
-        Ok(resp)
+
+        let data = WebhookData {
+            payload: &dimension_data,
+            resource: Resource::Dimension,
+            event: WebhookEvent::ConfigChanged,
+            config_version_opt: Some(version_id.to_string()),
+            action: Action::Delete,
+        };
+
+        let webhook_status =
+            execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+
+        let mut http_resp = if webhook_status {
+            HttpResponse::Ok()
+        } else {
+            HttpResponse::build(
+                actix_web::http::StatusCode::from_u16(512)
+                    .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
+            )
+        };
+        http_resp.insert_header((
+            AppHeader::XConfigVersion.to_string(),
+            version_id.to_string(),
+        ));
+
+        Ok(http_resp.finish())
     } else {
         Err(bad_argument!(
             "Given key already in use in contexts: {}",

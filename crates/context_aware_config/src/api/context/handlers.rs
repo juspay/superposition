@@ -7,13 +7,16 @@ use actix_web::{
 use bigdecimal::BigDecimal;
 use chrono::Utc;
 use diesel::{
-    Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper, delete,
+    Connection, ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl,
+    SelectableHelper, delete,
     dsl::sql,
     sql_types::{Bool, Text},
 };
 use serde_json::{Map, Value};
 use service_utils::{
-    helpers::{fetch_dimensions_info_map, parse_config_tags},
+    helpers::{
+        WebhookData, execute_webhook_call, fetch_dimensions_info_map, parse_config_tags,
+    },
     service::types::{
         AppHeader, AppState, CustomHeaders, DbConnection, WorkspaceContext,
     },
@@ -22,7 +25,8 @@ use superposition_core::helpers::{calculate_context_weight, hash};
 use superposition_derives::authorized;
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    Contextual, ListResponse, Overridden, Overrides, PaginatedResponse, SortBy, User,
+    Contextual, ListResponse, Overridden, Overrides, PaginatedResponse, Resource, SortBy,
+    User,
     api::{
         DimensionMatchStrategy,
         context::{
@@ -30,13 +34,14 @@ use superposition_types::{
             ContextListFilters, ContextValidationRequest, MoveRequest, PutRequest,
             SortOn, UpdateRequest, WeightRecomputeResponse,
         },
+        webhook::Action,
     },
     custom_query::{
         self as superposition_query, CustomQuery, DimensionQuery, PaginationParams,
         QueryMap,
     },
     database::{
-        models::{ChangeReason, Description, cac::Context},
+        models::{ChangeReason, Description, cac::Context, others::WebhookEvent},
         schema::contexts::{self, id},
     },
     logic::evaluate_local_cohorts_skip_unresolved,
@@ -135,19 +140,41 @@ async fn create_handler(
             Ok((put_response, version_id))
         })?;
 
-    let mut http_resp = HttpResponse::Ok();
+    let DbConnection(mut conn) = db_conn;
+
+    #[cfg(feature = "high-performance-mode")]
+    put_config_in_redis(
+        version_id,
+        &state,
+        &workspace_context.schema_name,
+        &mut conn,
+    )
+    .await?;
+
+    let data = WebhookData {
+        payload: &put_response,
+        resource: Resource::Context,
+        event: WebhookEvent::ConfigChanged,
+        config_version_opt: Some(version_id.to_string()),
+        action: Action::Create,
+    };
+
+    let webhook_status =
+        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+
+    let mut http_resp = if webhook_status {
+        HttpResponse::Ok()
+    } else {
+        HttpResponse::build(
+            actix_web::http::StatusCode::from_u16(512)
+                .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
 
     http_resp.insert_header((
         AppHeader::XConfigVersion.to_string(),
         version_id.to_string(),
     ));
-
-    #[cfg(feature = "high-performance-mode")]
-    {
-        let DbConnection(mut conn) = db_conn;
-        put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
-            .await?;
-    }
 
     Ok(http_resp.json(put_response))
 }
@@ -197,19 +224,42 @@ async fn update_handler(
             )?;
             Ok((override_resp, version_id))
         })?;
-    let mut http_resp = HttpResponse::Ok();
+
+    let DbConnection(mut conn) = db_conn;
+
+    #[cfg(feature = "high-performance-mode")]
+    put_config_in_redis(
+        version_id,
+        &state,
+        &workspace_context.schema_name,
+        &mut conn,
+    )
+    .await?;
+
+    let data = WebhookData {
+        payload: &override_resp,
+        resource: Resource::Context,
+        event: WebhookEvent::ConfigChanged,
+        config_version_opt: Some(version_id.to_string()),
+        action: Action::Update,
+    };
+
+    let webhook_status =
+        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+
+    let mut http_resp = if webhook_status {
+        HttpResponse::Ok()
+    } else {
+        HttpResponse::build(
+            actix_web::http::StatusCode::from_u16(512)
+                .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
 
     http_resp.insert_header((
         AppHeader::XConfigVersion.to_string(),
         version_id.to_string(),
     ));
-
-    #[cfg(feature = "high-performance-mode")]
-    {
-        let DbConnection(mut conn) = db_conn;
-        put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
-            .await?;
-    }
 
     Ok(http_resp.json(override_resp))
 }
@@ -275,28 +325,51 @@ async fn move_handler(
             let version_id = add_config_version(
                 &state,
                 tags,
-                move_response.change_reason.clone().into(),
+                move_response.context.change_reason.clone().into(),
                 transaction_conn,
                 &workspace_context.schema_name,
             )?;
 
             Ok((move_response, version_id))
         })?;
-    let mut http_resp = HttpResponse::Ok();
+
+    let DbConnection(mut conn) = db_conn;
+
+    #[cfg(feature = "high-performance-mode")]
+    put_config_in_redis(
+        version_id,
+        &state,
+        &workspace_context.schema_name,
+        &mut conn,
+    )
+    .await?;
+
+    let data = WebhookData {
+        payload: vec![&move_response.deleted_context, &move_response.context],
+        resource: Resource::Context,
+        event: WebhookEvent::ConfigChanged,
+        config_version_opt: Some(version_id.to_string()),
+        action: Action::Batch(vec![Action::Delete, move_response.action]),
+    };
+
+    let webhook_status =
+        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+
+    let mut http_resp = if webhook_status {
+        HttpResponse::Ok()
+    } else {
+        HttpResponse::build(
+            actix_web::http::StatusCode::from_u16(512)
+                .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
 
     http_resp.insert_header((
         AppHeader::XConfigVersion.to_string(),
         version_id.to_string(),
     ));
 
-    #[cfg(feature = "high-performance-mode")]
-    {
-        let DbConnection(mut conn) = db_conn;
-        put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
-            .await?;
-    }
-
-    Ok(http_resp.json(move_response))
+    Ok(http_resp.json(move_response.context))
 }
 
 #[authorized]
@@ -499,13 +572,13 @@ async fn delete_handler(
     };
     let ctx_id = path.into_inner();
     let tags = parse_config_tags(custom_headers.config_tags)?;
-    let version_id =
-        db_conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+    let (version_id, deleted_ctx) = db_conn
+        .transaction::<_, superposition::AppError, _>(|transaction_conn| {
             contexts_table
                 .filter(context_id.eq(ctx_id.clone()))
                 .schema_name(&workspace_context.schema_name)
                 .first::<Context>(transaction_conn)?;
-            operations::delete(
+            let deleted_ctx = operations::delete(
                 ctx_id.clone(),
                 &user,
                 transaction_conn,
@@ -521,17 +594,41 @@ async fn delete_handler(
                 transaction_conn,
                 &workspace_context.schema_name,
             )?;
-            Ok(version_id)
+            Ok((version_id, deleted_ctx))
         })?;
 
-    #[cfg(feature = "high-performance-mode")]
-    {
-        let DbConnection(mut conn) = db_conn;
-        put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
-            .await?;
-    }
+    let DbConnection(mut conn) = db_conn;
 
-    Ok(HttpResponse::NoContent()
+    #[cfg(feature = "high-performance-mode")]
+    put_config_in_redis(
+        version_id,
+        &state,
+        &workspace_context.schema_name,
+        &mut conn,
+    )
+    .await?;
+
+    let data = WebhookData {
+        payload: &deleted_ctx,
+        resource: Resource::Context,
+        event: WebhookEvent::ConfigChanged,
+        config_version_opt: Some(version_id.to_string()),
+        action: Action::Delete,
+    };
+
+    let webhook_status =
+        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+
+    let mut http_resp = if webhook_status {
+        HttpResponse::NoContent()
+    } else {
+        HttpResponse::build(
+            actix_web::http::StatusCode::from_u16(512)
+                .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
+
+    Ok(http_resp
         .insert_header((
             AppHeader::XConfigVersion.to_string().as_str(),
             version_id.to_string().as_str(),
@@ -562,8 +659,9 @@ async fn bulk_operations_handler(
     };
     // Marking immutable.
     let is_v2 = is_v2;
-    let mut all_descriptions = Vec::new();
     let mut all_change_reasons = Vec::new();
+    let mut webhook_actions: Vec<Action> = Vec::new();
+    let mut webhook_contexts: Vec<Context> = Vec::new();
 
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let (response, version_id) =
@@ -614,8 +712,9 @@ async fn bulk_operations_handler(
                             err
                         })?;
 
-                        all_descriptions.push(description);
                         all_change_reasons.push(put_req.change_reason.clone());
+                        webhook_contexts.push(put_resp.clone());
+                        webhook_actions.push(Action::Create);
                         response.push(ContextBulkResponse::Put(put_resp));
                     }
                     ContextAction::Replace(update_request) => {
@@ -635,20 +734,16 @@ async fn bulk_operations_handler(
                             err
                         })?;
 
+                        webhook_contexts.push(update_resp.clone());
+                        webhook_actions.push(Action::Update);
                         response.push(ContextBulkResponse::Replace(update_resp));
                     }
                     ContextAction::Delete(ctx_id) => {
-                        let context: Context = contexts
+                        let deleted_ctx = delete(contexts)
                             .filter(id.eq(&ctx_id))
                             .schema_name(&workspace_context.schema_name)
-                            .first::<Context>(transaction_conn)?;
-
-                        let deleted_row = delete(contexts)
-                            .filter(id.eq(&ctx_id))
-                            .schema_name(&workspace_context.schema_name)
-                            .execute(transaction_conn);
-
-                        let description = context.description;
+                            .get_result::<Context>(transaction_conn)
+                            .optional();
 
                         let email: String = user.clone().get_email();
                         let change_reason = ChangeReason::try_from(format!(
@@ -656,22 +751,23 @@ async fn bulk_operations_handler(
                             email.clone()
                         ))
                         .map_err(|e| unexpected_error!(e))?;
-                        all_descriptions.push(description.clone());
                         all_change_reasons.push(change_reason);
 
-                        match deleted_row {
+                        match deleted_ctx {
                             // Any kind of error would rollback the tranction but explicitly returning rollback tranction allows you to rollback from any point in transaction.
-                            Ok(0) => {
+                            Ok(None) => {
                                 return Err(bad_argument!(
                                     "context with id {} not found",
                                     ctx_id
                                 ));
                             }
-                            Ok(_) => {
+                            Ok(Some(ctx)) => {
                                 log::info!("{ctx_id} context deleted by {email}");
                                 response.push(ContextBulkResponse::Delete(format!(
                                     "{ctx_id} deleted succesfully"
-                                )))
+                                )));
+                                webhook_contexts.push(ctx);
+                                webhook_actions.push(Action::Delete);
                             }
                             Err(e) => {
                                 log::error!("Delete context failed due to {:?}", e);
@@ -711,9 +807,18 @@ async fn bulk_operations_handler(
                             );
                             err
                         })?;
-                        all_descriptions.push(move_context_resp.description.clone());
-                        all_change_reasons.push(move_context_resp.change_reason.clone());
-                        response.push(ContextBulkResponse::Move(move_context_resp));
+                        all_change_reasons
+                            .push(move_context_resp.context.change_reason.clone());
+
+                        webhook_contexts.extend([
+                            move_context_resp.deleted_context,
+                            move_context_resp.context.clone(),
+                        ]);
+                        webhook_actions
+                            .extend([Action::Delete, move_context_resp.action]);
+
+                        response
+                            .push(ContextBulkResponse::Move(move_context_resp.context));
                     }
                 }
             }
@@ -728,16 +833,39 @@ async fn bulk_operations_handler(
             )?;
             Ok((response, version_id))
         })?;
-    let mut resp_builder = HttpResponse::Ok();
+
+    #[cfg(feature = "high-performance-mode")]
+    put_config_in_redis(
+        version_id,
+        &state,
+        &workspace_context.schema_name,
+        &mut conn,
+    )
+    .await?;
+
+    let data = WebhookData {
+        payload: &webhook_contexts,
+        resource: Resource::Context,
+        event: WebhookEvent::ConfigChanged,
+        config_version_opt: Some(version_id.to_string()),
+        action: Action::Batch(webhook_actions),
+    };
+
+    let webhook_status =
+        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+
+    let mut resp_builder = if webhook_status {
+        HttpResponse::Ok()
+    } else {
+        HttpResponse::build(
+            actix_web::http::StatusCode::from_u16(512)
+                .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
     resp_builder.insert_header((
         AppHeader::XConfigVersion.to_string(),
         version_id.to_string(),
     ));
-
-    // Commit the transaction
-    #[cfg(feature = "high-performance-mode")]
-    put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
-        .await?;
 
     let http_resp = if is_v2 {
         resp_builder.json(BulkOperationResponse { output: response })
@@ -824,16 +952,35 @@ async fn weight_recompute_handler(
             let version_id = add_config_version(&state, tags, config_version_desc, transaction_conn, &workspace_context.schema_name)?;
             Ok(version_id)
         })?;
+
     #[cfg(feature = "high-performance-mode")]
     put_config_in_redis(
         config_version_id,
-        state,
+        &state,
         &workspace_context.schema_name,
         &mut conn,
     )
     .await?;
 
-    let mut http_resp = HttpResponse::Ok();
+    let data = WebhookData {
+        payload: &response,
+        resource: Resource::Context,
+        event: WebhookEvent::ConfigChanged,
+        config_version_opt: Some(config_version_id.to_string()),
+        action: Action::Update,
+    };
+
+    let webhook_status =
+        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+
+    let mut http_resp = if webhook_status {
+        HttpResponse::Ok()
+    } else {
+        HttpResponse::build(
+            actix_web::http::StatusCode::from_u16(512)
+                .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
     http_resp.insert_header((
         AppHeader::XConfigVersion.to_string(),
         config_version_id.to_string(),

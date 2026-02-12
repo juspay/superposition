@@ -5,9 +5,7 @@ use actix_web::web::Data;
 use reqwest::{Response, StatusCode};
 use serde::de::DeserializeOwned;
 use serde_json::{Map, Value};
-use service_utils::service::types::{
-    AppState, OrganisationId, WorkspaceContext, WorkspaceId,
-};
+use service_utils::service::types::{AppState, WorkspaceContext};
 use superposition_macros::{bad_argument, response_error, unexpected_error};
 use superposition_types::{
     Cac, Condition, User,
@@ -21,21 +19,22 @@ use superposition_types::{
 };
 
 pub fn construct_header_map(
-    workspace_id: &WorkspaceId,
-    organisation_id: &OrganisationId,
+    workspace_context: &WorkspaceContext,
     other_headers: Vec<(&str, String)>,
 ) -> superposition::Result<HeaderMap> {
     let mut headers = HeaderMap::new();
-    let workspace_val = HeaderValue::from_str(workspace_id).map_err(|err| {
-        log::error!("failed to set header: {}", err);
-        unexpected_error!("Something went wrong")
-    })?;
+    let workspace_val =
+        HeaderValue::from_str(&workspace_context.workspace_id).map_err(|err| {
+            log::error!("failed to set header: {}", err);
+            unexpected_error!("Something went wrong")
+        })?;
     headers.insert(HeaderName::from_static("x-tenant"), workspace_val);
 
-    let org_val = HeaderValue::from_str(organisation_id).map_err(|err| {
-        log::error!("failed to set header: {}", err);
-        unexpected_error!("Something went wrong")
-    })?;
+    let org_val =
+        HeaderValue::from_str(&workspace_context.organisation_id).map_err(|err| {
+            log::error!("failed to set header: {}", err);
+            unexpected_error!("Something went wrong")
+        })?;
     headers.insert(HeaderName::from_static("x-org-id"), org_val);
 
     for (header, value) in other_headers {
@@ -191,11 +190,7 @@ pub async fn get_resolved_config(
 
     let extra_headers = vec![("x-user", user_str)];
 
-    let headers_map = construct_header_map(
-        &workspace_context.workspace_id,
-        &workspace_context.organisation_id,
-        extra_headers,
-    )?;
+    let headers_map = construct_header_map(workspace_context, extra_headers)?;
     let response = http_client
         .get(&url)
         .headers(headers_map.into())
@@ -227,11 +222,7 @@ pub async fn get_context_override(
 
     let extra_headers = vec![("x-user", user_str)];
 
-    let headers_map = construct_header_map(
-        &workspace_context.workspace_id,
-        &workspace_context.organisation_id,
-        extra_headers,
-    )?;
+    let headers_map = construct_header_map(workspace_context, extra_headers)?;
     let response = http_client
         .get(&url)
         .headers(headers_map.into())
@@ -271,11 +262,7 @@ pub async fn validate_context(
 
     let extra_headers = vec![("x-user", user_str)];
 
-    let headers_map = construct_header_map(
-        &workspace_context.workspace_id,
-        &workspace_context.organisation_id,
-        extra_headers,
-    )?;
+    let headers_map = construct_header_map(workspace_context, extra_headers)?;
     let payload = Cac::<Condition>::try_from((**condition).clone()).map_err(|err| {
         log::error!("failed to decode condition with error : {}", err);
         bad_argument!(err)
