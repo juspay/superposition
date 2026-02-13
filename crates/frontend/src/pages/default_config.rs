@@ -7,8 +7,8 @@ use serde_json::{Map, Value};
 use superposition_derives::{IsEmpty, QueryParam};
 use superposition_types::{
     IsEmpty,
-    custom_query::QueryParam,
-    custom_query::{CustomQuery, Query},
+    api::default_config::DefaultConfigFilters,
+    custom_query::{CustomQuery, Query, QueryParam},
     database::models::cac::DefaultConfig,
 };
 
@@ -289,6 +289,14 @@ pub fn EditDefaultConfig() -> impl IntoView {
 pub struct CreatePageParams {
     #[query_param(skip_if_empty)]
     pub prefix: Option<String>,
+}
+
+impl From<&DefaultConfigFilters> for CreatePageParams {
+    fn from(params: &DefaultConfigFilters) -> Self {
+        Self {
+            prefix: params.prefix.clone(),
+        }
+    }
 }
 
 #[component]

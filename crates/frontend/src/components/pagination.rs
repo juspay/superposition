@@ -54,7 +54,7 @@ pub fn Pagination(
         <div class=format!("join {class}")>
             <A
                 class="join-item btn"
-                href=get_updated_query("page", Some(previous_page.to_string()))
+                href=get_updated_query(&[("page", Some(previous_page.to_string()))])
             >
                 "«"
             </A>
@@ -88,7 +88,10 @@ pub fn Pagination(
                     <i class="ri-corner-down-left-line text-gray-400" />
                 </div>
             </div>
-            <A class="join-item btn" href=get_updated_query("page", Some(next_page.to_string()))>
+            <A
+                class="join-item btn"
+                href=get_updated_query(&[("page", Some(next_page.to_string()))])
+            >
                 "»"
             </A>
         </div>
