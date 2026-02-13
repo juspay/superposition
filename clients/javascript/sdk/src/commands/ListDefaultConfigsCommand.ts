@@ -48,7 +48,12 @@ export interface ListDefaultConfigsCommandOutput extends ListDefaultConfigsOutpu
  *   count: Number("int"),
  *   page: Number("int"),
  *   all: true || false,
- *   name: "STRING_VALUE",
+ *   name: [ // StringList
+ *     "STRING_VALUE",
+ *   ],
+ *   sort_by: "desc" || "asc",
+ *   sort_on: "key" || "created_at" || "last_modified_at",
+ *   search: "STRING_VALUE",
  * };
  * const command = new ListDefaultConfigsCommand(input);
  * const response = await client.send(command);
