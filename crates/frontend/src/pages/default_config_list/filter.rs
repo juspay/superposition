@@ -8,7 +8,7 @@ use superposition_types::{
 use web_sys::MouseEvent;
 
 use crate::components::{
-    badge::GrayPill,
+    badge::{GrayPill, ListPills},
     button::{Button, ButtonStyle},
     drawer::{Drawer, DrawerBtn, close_drawer},
     form::label::Label,
@@ -70,21 +70,15 @@ pub(super) fn FilterSummary(
                     )
                 }>
                     {move || {
-                        filters_rws
-                            .with(|f| f.name.clone())
-                            .map(|name| {
-                                view! {
-                                    <div class="flex gap-2 items-center">
-                                        <span class="text-xs">"Prefix"</span>
-                                        <GrayPill
-                                            data=name
-                                            on_delete=move |_: String| {
-                                                filters_rws.update(|f| f.name = None);
-                                            }
-                                        />
-                                    </div>
+                        view! {
+                            <ListPills
+                                label="Config key"
+                                items=filters_rws.with(|f| f.name.clone().unwrap_or_default()).0
+                                on_delete=move |idx| {
+                                    filters_rws.update(|f| f.name = filter_index(&f.name, idx))
                                 }
-                            })
+                            />
+                        }
                     }}
                 </div>
             </div>
@@ -95,10 +89,16 @@ pub(super) fn FilterSummary(
 pub(super) fn DefaultConfigFilterWidget(
     pagination_params_rws: RwSignal<PaginationParams>,
     filters_rws: RwSignal<DefaultConfigFilters>,
-    #[prop(into)] prefix: Option<String>,
 ) -> impl IntoView {
-    let filters = filters_rws.get_untracked();
-    let filters_buffer_rws = create_rw_signal(filters.clone());
+    let filters_buffer_rws = create_rw_signal(filters_rws.get_untracked());
+
+    Effect::new(move |_| {
+        let filters = filters_rws.get();
+        if filters_buffer_rws.get_untracked() != filters {
+            filters_buffer_rws.set(filters);
+        }
+    });
+
     view! {
         <DrawerBtn
             drawer_id="default_config_filter_drawer"
@@ -114,23 +114,53 @@ pub(super) fn DefaultConfigFilterWidget(
         >
             <div class="flex flex-col gap-5">
                 <div class="form-control">
-                    <Label title="Configuration Prefix" />
+                    <div class="flex items-center gap-2">
+                        <Label
+                            title="Config key"
+                            info="(any of)"
+                            description="Separate each ID by a comma"
+                        />
+                        {move || {
+                            filters_buffer_rws
+                                .with(|f| f.prefix.clone())
+                                .as_ref()
+                                .map(|p| {
+                                    view! {
+                                        <GrayPill
+                                            data=p
+                                            deletable=false
+                                            on_delete=Callback::new(|_: String| {})
+                                            icon_class="ri-map-pin-2-fill"
+                                        />
+                                    }
+                                })
+                        }}
+                    </div>
                     <input
                         type="text"
                         id="default-config-name-filter"
-                        placeholder="eg: city"
                         class="input input-bordered rounded-md resize-y w-full max-w-md"
-                        value=if prefix.is_some()
-                            && filters_buffer_rws.get_untracked().name.is_none()
-                        {
-                            prefix
-                        } else {
-                            filters_buffer_rws.get_untracked().name
+                        placeholder="eg: key1,key2"
+                        prop:value=move || {
+                            filters_buffer_rws
+                                .with(|f| {
+                                    f.name.as_ref().map(|d| d.to_string()).unwrap_or_default()
+                                })
                         }
                         on:change=move |event| {
-                            let key_name = event_target_value(&event);
-                            let key_name = if key_name.is_empty() { None } else { Some(key_name) };
-                            filters_buffer_rws.update(|f| f.name = key_name);
+                            let names = event_target_value(&event);
+                            let names = (!names.is_empty())
+                                .then(|| {
+                                    let name_list: Vec<String> = names
+                                        .split(',')
+                                        .map(|s| s.trim().to_string())
+                                        .filter(|s| !s.is_empty())
+                                        .collect();
+                                    (!name_list.is_empty())
+                                        .then_some(CommaSeparatedQParams(name_list))
+                                })
+                                .flatten();
+                            filters_buffer_rws.update(|filter| filter.set_name(names));
                         }
                     />
                 </div>
@@ -142,8 +172,10 @@ pub(super) fn DefaultConfigFilterWidget(
                         on_click=move |event: MouseEvent| {
                             event.prevent_default();
                             let filter = filters_buffer_rws.get();
-                            pagination_params_rws.update(|f| f.reset_page());
-                            filters_rws.set(filter);
+                            batch(|| {
+                                pagination_params_rws.update(|f| f.reset_page());
+                                filters_rws.set(filter);
+                            });
                             close_drawer("default_config_filter_drawer")
                         }
                     />
@@ -152,9 +184,11 @@ pub(super) fn DefaultConfigFilterWidget(
                         text="Reset"
                         on_click=move |event: MouseEvent| {
                             event.prevent_default();
-                            let filters = DefaultConfigFilters::default();
-                            pagination_params_rws.update(|f| f.reset_page());
-                            filters_rws.set(filters);
+                            batch(|| {
+                                let filters = DefaultConfigFilters::default();
+                                pagination_params_rws.update(|f| f.reset_page());
+                                filters_rws.set(filters);
+                            });
                             close_drawer("default_config_filter_drawer")
                         }
                     />
