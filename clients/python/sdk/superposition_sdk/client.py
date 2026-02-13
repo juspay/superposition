@@ -87,6 +87,7 @@ from .deserialize import (
     _deserialize_list_experiment,
     _deserialize_list_experiment_groups,
     _deserialize_list_function,
+    _deserialize_list_grouped_default_configs,
     _deserialize_list_organisation,
     _deserialize_list_secrets,
     _deserialize_list_variables,
@@ -264,6 +265,7 @@ from .models import (
     LIST_EXPERIMENT,
     LIST_EXPERIMENT_GROUPS,
     LIST_FUNCTION,
+    LIST_GROUPED_DEFAULT_CONFIGS,
     LIST_ORGANISATION,
     LIST_SECRETS,
     LIST_VARIABLES,
@@ -284,6 +286,8 @@ from .models import (
     ListExperimentOutput,
     ListFunctionInput,
     ListFunctionOutput,
+    ListGroupedDefaultConfigsInput,
+    ListGroupedDefaultConfigsOutput,
     ListOrganisationInput,
     ListOrganisationOutput,
     ListSecretsInput,
@@ -424,6 +428,7 @@ from .serialize import (
     _serialize_list_experiment,
     _serialize_list_experiment_groups,
     _serialize_list_function,
+    _serialize_list_grouped_default_configs,
     _serialize_list_organisation,
     _serialize_list_secrets,
     _serialize_list_variables,
@@ -1910,6 +1915,33 @@ class Superposition:
             deserialize=_deserialize_list_function,
             config=self._config,
             operation=LIST_FUNCTION,
+        )
+
+    async def list_grouped_default_configs(self, input: ListGroupedDefaultConfigsInput, plugins: list[Plugin] | None = None) -> ListGroupedDefaultConfigsOutput:
+        """
+        Retrieves a paginated list of all default config entries in the workspace,
+        including their values, schemas, and metadata.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_list_grouped_default_configs,
+            deserialize=_deserialize_list_grouped_default_configs,
+            config=self._config,
+            operation=LIST_GROUPED_DEFAULT_CONFIGS,
         )
 
     async def list_organisation(self, input: ListOrganisationInput, plugins: list[Plugin] | None = None) -> ListOrganisationOutput:

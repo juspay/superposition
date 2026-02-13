@@ -69,6 +69,7 @@ from .models import (
     ListExperimentGroupsOutput,
     ListExperimentOutput,
     ListFunctionOutput,
+    ListGroupedDefaultConfigsOutput,
     ListOrganisationOutput,
     ListSecretsOutput,
     ListVariablesOutput,
@@ -1533,6 +1534,31 @@ async def _deserialize_list_function(http_response: HTTPResponse, config: Config
     return ListFunctionOutput(**kwargs)
 
 async def _deserialize_error_list_function(http_response: HTTPResponse, config: Config) -> ApiError:
+    code, message, parsed_body = await parse_rest_json_error_info(http_response)
+
+    match code.lower():
+        case "internalservererror":
+            return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
+
+        case _:
+            return UnknownApiError(f"{code}: {message}")
+
+async def _deserialize_list_grouped_default_configs(http_response: HTTPResponse, config: Config) -> ListGroupedDefaultConfigsOutput:
+    if http_response.status != 200 and http_response.status >= 300:
+        raise await _deserialize_error_list_grouped_default_configs(http_response, config)
+
+    kwargs: dict[str, Any] = {}
+
+    body = await http_response.consume_body_async()
+    if body:
+        codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+        deserializer = codec.create_deserializer(body)
+        body_kwargs = ListGroupedDefaultConfigsOutput.deserialize_kwargs(deserializer)
+        kwargs.update(body_kwargs)
+
+    return ListGroupedDefaultConfigsOutput(**kwargs)
+
+async def _deserialize_error_list_grouped_default_configs(http_response: HTTPResponse, config: Config) -> ApiError:
     code, message, parsed_body = await parse_rest_json_error_info(http_response)
 
     match code.lower():

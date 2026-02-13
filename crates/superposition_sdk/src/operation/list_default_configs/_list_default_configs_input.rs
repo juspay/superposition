@@ -14,7 +14,13 @@ pub struct ListDefaultConfigsInput  {
     /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub all: ::std::option::Option<bool>,
     #[allow(missing_docs)] // documentation missing in model
-    pub name: ::std::option::Option<::std::string::String>,
+    pub name: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    /// Sort order enumeration for list operations.
+    pub sort_by: ::std::option::Option<crate::types::SortBy>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub sort_on: ::std::option::Option<crate::types::DefaultConfigSortOn>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub search: ::std::option::Option<::std::string::String>,
 }
 impl  ListDefaultConfigsInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -38,8 +44,23 @@ impl  ListDefaultConfigsInput  {
         self.all
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn name(&self) -> ::std::option::Option<&str> {
+    /// 
+    /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.name.is_none()`.
+    pub fn name(&self) -> &[::std::string::String] {
         self.name.as_deref()
+        .unwrap_or_default()
+    }
+    /// Sort order enumeration for list operations.
+    pub fn sort_by(&self) -> ::std::option::Option<&crate::types::SortBy> {
+        self.sort_by.as_ref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn sort_on(&self) -> ::std::option::Option<&crate::types::DefaultConfigSortOn> {
+        self.sort_on.as_ref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn search(&self) -> ::std::option::Option<&str> {
+        self.search.as_deref()
     }
 }
 impl ListDefaultConfigsInput {
@@ -58,7 +79,10 @@ pub struct ListDefaultConfigsInputBuilder {
     pub(crate) count: ::std::option::Option<i32>,
     pub(crate) page: ::std::option::Option<i32>,
     pub(crate) all: ::std::option::Option<bool>,
-    pub(crate) name: ::std::option::Option<::std::string::String>,
+    pub(crate) name: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub(crate) sort_by: ::std::option::Option<crate::types::SortBy>,
+    pub(crate) sort_on: ::std::option::Option<crate::types::DefaultConfigSortOn>,
+    pub(crate) search: ::std::option::Option<::std::string::String>,
 }
 impl ListDefaultConfigsInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -128,18 +152,62 @@ impl ListDefaultConfigsInputBuilder {
     pub fn get_all(&self) -> &::std::option::Option<bool> {
         &self.all
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Appends an item to `name`.
+    ///
+    /// To override the contents of this collection use [`set_name`](Self::set_name).
+    ///
     pub fn name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.name = ::std::option::Option::Some(input.into());
-        self
+        let mut v = self.name.unwrap_or_default();
+                        v.push(input.into());
+                        self.name = ::std::option::Option::Some(v);
+                        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+    pub fn set_name(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
         self.name = input; self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_name(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_name(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
         &self.name
+    }
+    /// Sort order enumeration for list operations.
+    pub fn sort_by(mut self, input: crate::types::SortBy) -> Self {
+        self.sort_by = ::std::option::Option::Some(input);
+        self
+    }
+    /// Sort order enumeration for list operations.
+    pub fn set_sort_by(mut self, input: ::std::option::Option<crate::types::SortBy>) -> Self {
+        self.sort_by = input; self
+    }
+    /// Sort order enumeration for list operations.
+    pub fn get_sort_by(&self) -> &::std::option::Option<crate::types::SortBy> {
+        &self.sort_by
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn sort_on(mut self, input: crate::types::DefaultConfigSortOn) -> Self {
+        self.sort_on = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_sort_on(mut self, input: ::std::option::Option<crate::types::DefaultConfigSortOn>) -> Self {
+        self.sort_on = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_sort_on(&self) -> &::std::option::Option<crate::types::DefaultConfigSortOn> {
+        &self.sort_on
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn search(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.search = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_search(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.search = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_search(&self) -> &::std::option::Option<::std::string::String> {
+        &self.search
     }
     /// Consumes the builder and constructs a [`ListDefaultConfigsInput`](crate::operation::list_default_configs::ListDefaultConfigsInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::list_default_configs::ListDefaultConfigsInput, ::aws_smithy_types::error::operation::BuildError> {
@@ -156,6 +224,12 @@ impl ListDefaultConfigsInputBuilder {
                 all: self.all
                 ,
                 name: self.name
+                ,
+                sort_by: self.sort_by
+                ,
+                sort_on: self.sort_on
+                ,
+                search: self.search
                 ,
             }
         )

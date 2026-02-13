@@ -1230,6 +1230,33 @@
                     {
                         "name": "name",
                         "in": "query",
+                        "style": "form",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "explode": true
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "description": "Sort order enumeration for list operations.",
+                        "schema": {
+                            "$ref": "#/components/schemas/SortBy"
+                        }
+                    },
+                    {
+                        "name": "sort_on",
+                        "in": "query",
+                        "schema": {
+                            "$ref": "#/components/schemas/DefaultConfigSortOn"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
                         "schema": {
                             "type": "string"
                         }
@@ -1497,6 +1524,116 @@
                     },
                     "404": {
                         "description": "ResourceNotFound 404 response"
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Default Configuration"
+                ]
+            }
+        },
+        "/default-config?grouped=true": {
+            "get": {
+                "description": "Retrieves a paginated list of all default config entries in the workspace, including their values, schemas, and metadata.",
+                "operationId": "ListGroupedDefaultConfigs",
+                "parameters": [
+                    {
+                        "name": "count",
+                        "in": "query",
+                        "description": "Number of items to be returned in each page.",
+                        "schema": {
+                            "type": "number",
+                            "description": "Number of items to be returned in each page."
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number to retrieve, starting from 1.",
+                        "schema": {
+                            "type": "number",
+                            "description": "Page number to retrieve, starting from 1."
+                        }
+                    },
+                    {
+                        "name": "all",
+                        "in": "query",
+                        "description": "If true, returns all requested items, ignoring pagination parameters page and count.",
+                        "schema": {
+                            "type": "boolean",
+                            "description": "If true, returns all requested items, ignoring pagination parameters page and count."
+                        }
+                    },
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "style": "form",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "explode": true
+                    },
+                    {
+                        "name": "prefix",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "description": "Sort order enumeration for list operations.",
+                        "schema": {
+                            "$ref": "#/components/schemas/SortBy"
+                        }
+                    },
+                    {
+                        "name": "sort_on",
+                        "in": "query",
+                        "schema": {
+                            "$ref": "#/components/schemas/DefaultConfigSortOn"
+                        }
+                    },
+                    {
+                        "name": "x-org-id",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-workspace",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ListGroupedDefaultConfigs 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListGroupedDefaultConfigsResponseContent"
+                                }
+                            }
+                        }
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -7495,6 +7632,14 @@
                     "value"
                 ]
             },
+            "DefaultConfigSortOn": {
+                "type": "string",
+                "enum": [
+                    "key",
+                    "created_at",
+                    "last_modified_at"
+                ]
+            },
             "DeleteExperimentGroupResponseContent": {
                 "type": "object",
                 "description": "Standard response structure for an experiment group.",
@@ -9213,6 +9358,34 @@
                     "SYSTEM_GENERATED"
                 ]
             },
+            "GroupedDefaultConfig": {
+                "oneOf": [
+                    {
+                        "type": "object",
+                        "title": "Group",
+                        "properties": {
+                            "Group": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "Group"
+                        ]
+                    },
+                    {
+                        "type": "object",
+                        "title": "Config",
+                        "properties": {
+                            "Config": {
+                                "$ref": "#/components/schemas/DefaultConfigResponse"
+                            }
+                        },
+                        "required": [
+                            "Config"
+                        ]
+                    }
+                ]
+            },
             "HttpMethod": {
                 "type": "string",
                 "enum": [
@@ -9378,6 +9551,28 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/FunctionResponse"
+                        }
+                    }
+                },
+                "required": [
+                    "data",
+                    "total_items",
+                    "total_pages"
+                ]
+            },
+            "ListGroupedDefaultConfigsResponseContent": {
+                "type": "object",
+                "properties": {
+                    "total_pages": {
+                        "type": "number"
+                    },
+                    "total_items": {
+                        "type": "number"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/GroupedDefaultConfig"
                         }
                     }
                 },

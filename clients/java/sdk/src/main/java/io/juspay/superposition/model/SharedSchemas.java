@@ -119,6 +119,10 @@ final class SharedSchemas {
         .putMember("member", DefaultConfigResponse.$SCHEMA)
         .build();
 
+    static final Schema LIST_GROUPED_DEFAULT_CONFIG_OUT = Schema.listBuilder(ShapeId.from("io.superposition#ListGroupedDefaultConfigOut"))
+        .putMember("member", GroupedDefaultConfig.$SCHEMA)
+        .build();
+
     static final Schema DIMENSION_LIST = Schema.listBuilder(ShapeId.from("io.superposition#DimensionList"))
         .putMember("member", DimensionResponse.$SCHEMA)
         .build();

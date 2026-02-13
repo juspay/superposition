@@ -68,6 +68,7 @@ from .models import (
     ListExperimentGroupsInput,
     ListExperimentInput,
     ListFunctionInput,
+    ListGroupedDefaultConfigsInput,
     ListOrganisationInput,
     ListSecretsInput,
     ListVariablesInput,
@@ -1825,7 +1826,13 @@ async def _serialize_list_default_configs(input: ListDefaultConfigsInput, config
     if input.all is not None:
         query_params.append(("all", ('true' if input.all else 'false')))
     if input.name is not None:
-        query_params.append(("name", input.name))
+        query_params.extend(("name", e) for e in input.name)
+    if input.sort_by is not None:
+        query_params.append(("sort_by", input.sort_by))
+    if input.sort_on is not None:
+        query_params.append(("sort_on", input.sort_on))
+    if input.search is not None:
+        query_params.append(("search", input.search))
 
     query = join_query_params(params=query_params, prefix=query)
 
@@ -2010,6 +2017,51 @@ async def _serialize_list_function(input: ListFunctionInput, config: Config) -> 
         query_params.append(("all", ('true' if input.all else 'false')))
     if input.function_type is not None:
         query_params.extend(("function_type", e) for e in input.function_type)
+
+    query = join_query_params(params=query_params, prefix=query)
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    headers = Fields(
+        [
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="GET",
+        fields=headers,
+        body=body,
+    )
+
+async def _serialize_list_grouped_default_configs(input: ListGroupedDefaultConfigsInput, config: Config) -> HTTPRequest:
+    path = "/default-config"
+    query: str = f'{urlquote("grouped", safe="")}={urlquote("true", safe="")}'
+
+    query_params: list[tuple[str, str | None]] = []
+    if input.count is not None:
+        query_params.append(("count", str(input.count)))
+    if input.page is not None:
+        query_params.append(("page", str(input.page)))
+    if input.all is not None:
+        query_params.append(("all", ('true' if input.all else 'false')))
+    if input.name is not None:
+        query_params.extend(("name", e) for e in input.name)
+    if input.prefix is not None:
+        query_params.append(("prefix", input.prefix))
+    if input.sort_by is not None:
+        query_params.append(("sort_by", input.sort_by))
+    if input.sort_on is not None:
+        query_params.append(("sort_on", input.sort_on))
 
     query = join_query_params(params=query_params, prefix=query)
 

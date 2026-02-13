@@ -173,6 +173,7 @@ from ._private.schemas import (
     GET_WORKSPACE as _SCHEMA_GET_WORKSPACE,
     GET_WORKSPACE_INPUT as _SCHEMA_GET_WORKSPACE_INPUT,
     GET_WORKSPACE_OUTPUT as _SCHEMA_GET_WORKSPACE_OUTPUT,
+    GROUPED_DEFAULT_CONFIG as _SCHEMA_GROUPED_DEFAULT_CONFIG,
     INTERNAL_SERVER_ERROR as _SCHEMA_INTERNAL_SERVER_ERROR,
     LIST_AUDIT_LOGS as _SCHEMA_LIST_AUDIT_LOGS,
     LIST_AUDIT_LOGS_INPUT as _SCHEMA_LIST_AUDIT_LOGS_INPUT,
@@ -195,6 +196,9 @@ from ._private.schemas import (
     LIST_FUNCTION as _SCHEMA_LIST_FUNCTION,
     LIST_FUNCTION_INPUT as _SCHEMA_LIST_FUNCTION_INPUT,
     LIST_FUNCTION_OUTPUT as _SCHEMA_LIST_FUNCTION_OUTPUT,
+    LIST_GROUPED_DEFAULT_CONFIGS as _SCHEMA_LIST_GROUPED_DEFAULT_CONFIGS,
+    LIST_GROUPED_DEFAULT_CONFIGS_INPUT as _SCHEMA_LIST_GROUPED_DEFAULT_CONFIGS_INPUT,
+    LIST_GROUPED_DEFAULT_CONFIGS_OUTPUT as _SCHEMA_LIST_GROUPED_DEFAULT_CONFIGS_OUTPUT,
     LIST_ORGANISATION as _SCHEMA_LIST_ORGANISATION,
     LIST_ORGANISATION_INPUT as _SCHEMA_LIST_ORGANISATION_INPUT,
     LIST_ORGANISATION_OUTPUT as _SCHEMA_LIST_ORGANISATION_OUTPUT,
@@ -7270,6 +7274,23 @@ ShapeID("smithy.api#httpBearerAuth")
         ]
 )
 
+class DefaultConfigSortOn(StrEnum):
+    KEY = "key"
+    """
+    Sort by key.
+
+    """
+    CREATED_AT = "created_at"
+    """
+    Sort by creation timestamp.
+
+    """
+    LAST_MODIFIED_AT = "last_modified_at"
+    """
+    Sort by last modification timestamp.
+
+    """
+
 @dataclass(kw_only=True)
 class ListDefaultConfigsInput:
     """
@@ -7284,6 +7305,9 @@ class ListDefaultConfigsInput:
          If true, returns all requested items, ignoring pagination parameters page and
          count.
 
+    :param sort_by:
+         Sort order enumeration for list operations.
+
     """
 
     workspace_id: str | None = None
@@ -7291,7 +7315,10 @@ class ListDefaultConfigsInput:
     count: int | None = None
     page: int | None = None
     all: bool | None = None
-    name: str | None = None
+    name: list[str] | None = None
+    sort_by: str | None = None
+    sort_on: str | None = None
+    search: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_DEFAULT_CONFIGS_INPUT, self)
@@ -7325,7 +7352,16 @@ class ListDefaultConfigsInput:
                     kwargs["all"] = de.read_boolean(_SCHEMA_LIST_DEFAULT_CONFIGS_INPUT.members["all"])
 
                 case 5:
-                    kwargs["name"] = de.read_string(_SCHEMA_LIST_DEFAULT_CONFIGS_INPUT.members["name"])
+                    kwargs["name"] = _deserialize_string_list(de, _SCHEMA_LIST_DEFAULT_CONFIGS_INPUT.members["name"])
+
+                case 6:
+                    kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_DEFAULT_CONFIGS_INPUT.members["sort_by"])
+
+                case 7:
+                    kwargs["sort_on"] = de.read_string(_SCHEMA_LIST_DEFAULT_CONFIGS_INPUT.members["sort_on"])
+
+                case 8:
+                    kwargs["search"] = de.read_string(_SCHEMA_LIST_DEFAULT_CONFIGS_INPUT.members["search"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -7498,6 +7534,240 @@ LIST_DEFAULT_CONFIGS = APIOperation(
         schema = _SCHEMA_LIST_DEFAULT_CONFIGS,
         input_schema = _SCHEMA_LIST_DEFAULT_CONFIGS_INPUT,
         output_schema = _SCHEMA_LIST_DEFAULT_CONFIGS_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+            ShapeID("smithy.api#httpBasicAuth"),
+ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
+@dataclass(kw_only=True)
+class ListGroupedDefaultConfigsInput:
+    """
+
+    :param count:
+         Number of items to be returned in each page.
+
+    :param page:
+         Page number to retrieve, starting from 1.
+
+    :param all:
+         If true, returns all requested items, ignoring pagination parameters page and
+         count.
+
+    :param sort_by:
+         Sort order enumeration for list operations.
+
+    """
+
+    workspace_id: str | None = None
+    org_id: str | None = None
+    count: int | None = None
+    page: int | None = None
+    all: bool | None = None
+    name: list[str] | None = None
+    prefix: str | None = None
+    sort_by: str | None = None
+    sort_on: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_LIST_GROUPED_DEFAULT_CONFIGS_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_LIST_GROUPED_DEFAULT_CONFIGS_INPUT.members["workspace_id"])
+
+                case 1:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_LIST_GROUPED_DEFAULT_CONFIGS_INPUT.members["org_id"])
+
+                case 2:
+                    kwargs["count"] = de.read_integer(_SCHEMA_LIST_GROUPED_DEFAULT_CONFIGS_INPUT.members["count"])
+
+                case 3:
+                    kwargs["page"] = de.read_integer(_SCHEMA_LIST_GROUPED_DEFAULT_CONFIGS_INPUT.members["page"])
+
+                case 4:
+                    kwargs["all"] = de.read_boolean(_SCHEMA_LIST_GROUPED_DEFAULT_CONFIGS_INPUT.members["all"])
+
+                case 5:
+                    kwargs["name"] = _deserialize_string_list(de, _SCHEMA_LIST_GROUPED_DEFAULT_CONFIGS_INPUT.members["name"])
+
+                case 6:
+                    kwargs["prefix"] = de.read_string(_SCHEMA_LIST_GROUPED_DEFAULT_CONFIGS_INPUT.members["prefix"])
+
+                case 7:
+                    kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_GROUPED_DEFAULT_CONFIGS_INPUT.members["sort_by"])
+
+                case 8:
+                    kwargs["sort_on"] = de.read_string(_SCHEMA_LIST_GROUPED_DEFAULT_CONFIGS_INPUT.members["sort_on"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_LIST_GROUPED_DEFAULT_CONFIGS_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass
+class GroupedDefaultConfigGroup:
+
+    value: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GROUPED_DEFAULT_CONFIG, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_GROUPED_DEFAULT_CONFIG.members["Group"], self.value)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=deserializer.read_string(_SCHEMA_GROUPED_DEFAULT_CONFIG.members["Group"]))
+
+@dataclass
+class GroupedDefaultConfigConfig:
+
+    value: DefaultConfigResponse
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GROUPED_DEFAULT_CONFIG, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GROUPED_DEFAULT_CONFIG.members["Config"], self.value)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=DefaultConfigResponse.deserialize(deserializer))
+
+@dataclass
+class GroupedDefaultConfigUnknown:
+    """Represents an unknown variant.
+
+    If you receive this value, you will need to update your library to receive the
+    parsed value.
+
+    This value may not be deliberately sent.
+    """
+
+    tag: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        raise SmithyException("Unknown union variants may not be serialized.")
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        raise SmithyException("Unknown union variants may not be serialized.")
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        raise NotImplementedError()
+
+GroupedDefaultConfig = Union[GroupedDefaultConfigGroup | GroupedDefaultConfigConfig | GroupedDefaultConfigUnknown]
+
+class _GroupedDefaultConfigDeserializer:
+    _result: GroupedDefaultConfig | None = None
+
+    def deserialize(self, deserializer: ShapeDeserializer) -> GroupedDefaultConfig:
+        self._result = None
+        deserializer.read_struct(_SCHEMA_GROUPED_DEFAULT_CONFIG, self._consumer)
+
+        if self._result is None:
+            raise SmithyException("Unions must have exactly one value, but found none.")
+
+        return self._result
+
+    def _consumer(self, schema: Schema, de: ShapeDeserializer) -> None:
+        match schema.expect_member_index():
+            case 0:
+                self._set_result(GroupedDefaultConfigGroup.deserialize(de))
+
+            case 1:
+                self._set_result(GroupedDefaultConfigConfig.deserialize(de))
+
+            case _:
+                logger.debug("Unexpected member schema: %s", schema)
+
+    def _set_result(self, value: GroupedDefaultConfig) -> None:
+        if self._result is not None:
+            raise SmithyException("Unions must have exactly one value, but found more than one.")
+        self._result = value
+
+def _serialize_list_grouped_default_config_out(serializer: ShapeSerializer, schema: Schema, value: list[GroupedDefaultConfig]) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_struct(member_schema, e)
+
+def _deserialize_list_grouped_default_config_out(deserializer: ShapeDeserializer, schema: Schema) -> list[GroupedDefaultConfig]:
+    result: list[GroupedDefaultConfig] = []
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(_GroupedDefaultConfigDeserializer().deserialize(d))
+    deserializer.read_list(schema, _read_value)
+    return result
+
+@dataclass(kw_only=True)
+class ListGroupedDefaultConfigsOutput:
+
+    total_pages: int
+
+    total_items: int
+
+    data: list[GroupedDefaultConfig]
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_LIST_GROUPED_DEFAULT_CONFIGS_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_integer(_SCHEMA_LIST_GROUPED_DEFAULT_CONFIGS_OUTPUT.members["total_pages"], self.total_pages)
+        serializer.write_integer(_SCHEMA_LIST_GROUPED_DEFAULT_CONFIGS_OUTPUT.members["total_items"], self.total_items)
+        _serialize_list_grouped_default_config_out(serializer, _SCHEMA_LIST_GROUPED_DEFAULT_CONFIGS_OUTPUT.members["data"], self.data)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["total_pages"] = de.read_integer(_SCHEMA_LIST_GROUPED_DEFAULT_CONFIGS_OUTPUT.members["total_pages"])
+
+                case 1:
+                    kwargs["total_items"] = de.read_integer(_SCHEMA_LIST_GROUPED_DEFAULT_CONFIGS_OUTPUT.members["total_items"])
+
+                case 2:
+                    kwargs["data"] = _deserialize_list_grouped_default_config_out(de, _SCHEMA_LIST_GROUPED_DEFAULT_CONFIGS_OUTPUT.members["data"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_LIST_GROUPED_DEFAULT_CONFIGS_OUTPUT, consumer=_consumer)
+        return kwargs
+
+LIST_GROUPED_DEFAULT_CONFIGS = APIOperation(
+        input = ListGroupedDefaultConfigsInput,
+        output = ListGroupedDefaultConfigsOutput,
+        schema = _SCHEMA_LIST_GROUPED_DEFAULT_CONFIGS,
+        input_schema = _SCHEMA_LIST_GROUPED_DEFAULT_CONFIGS_INPUT,
+        output_schema = _SCHEMA_LIST_GROUPED_DEFAULT_CONFIGS_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),

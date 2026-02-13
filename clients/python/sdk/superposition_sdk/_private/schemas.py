@@ -7028,6 +7028,40 @@ GET_DEFAULT_CONFIG = Schema(
 
 )
 
+DEFAULT_CONFIG_SORT_ON = Schema.collection(
+    id=ShapeID("io.superposition#DefaultConfigSortOn"),
+    shape_type=ShapeType.ENUM,
+    members={
+        "KEY": {
+            "target": UNIT,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="key"),
+
+            ],
+        },
+
+        "CREATED_AT": {
+            "target": UNIT,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="created_at"),
+
+            ],
+        },
+
+        "LAST_MODIFIED_AT": {
+            "target": UNIT,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="last_modified_at"),
+
+            ],
+        },
+
+    }
+)
+
 LIST_DEFAULT_CONFIGS_INPUT = Schema.collection(
     id=ShapeID("io.superposition#ListDefaultConfigsInput"),
 
@@ -7084,11 +7118,41 @@ LIST_DEFAULT_CONFIGS_INPUT = Schema.collection(
         },
 
         "name": {
-            "target": STRING,
+            "target": STRING_LIST,
             "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="name"),
+
+            ],
+        },
+
+        "sort_by": {
+            "target": SORT_BY,
+            "index": 6,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="sort_by"),
+
+            ],
+        },
+
+        "sort_on": {
+            "target": DEFAULT_CONFIG_SORT_ON,
+            "index": 7,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="sort_on"),
+
+            ],
+        },
+
+        "search": {
+            "target": STRING,
+            "index": 8,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="search"),
 
             ],
         },
@@ -7254,6 +7318,188 @@ LIST_DEFAULT_CONFIGS = Schema(
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "GET",
                 "uri": "/default-config",
+            })),
+        Trait.new(id=ShapeID("smithy.api#readonly")),
+
+    ],
+
+)
+
+LIST_GROUPED_DEFAULT_CONFIGS_INPUT = Schema.collection(
+    id=ShapeID("io.superposition#ListGroupedDefaultConfigsInput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#input")),
+
+    ],
+    members={
+        "workspace_id": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-workspace"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "org_id": {
+            "target": STRING,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "count": {
+            "target": INTEGER,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="count"),
+
+            ],
+        },
+
+        "page": {
+            "target": INTEGER,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="page"),
+
+            ],
+        },
+
+        "all": {
+            "target": BOOLEAN,
+            "index": 4,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="all"),
+
+            ],
+        },
+
+        "name": {
+            "target": STRING_LIST,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="name"),
+
+            ],
+        },
+
+        "prefix": {
+            "target": STRING,
+            "index": 6,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="prefix"),
+
+            ],
+        },
+
+        "sort_by": {
+            "target": SORT_BY,
+            "index": 7,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="sort_by"),
+
+            ],
+        },
+
+        "sort_on": {
+            "target": DEFAULT_CONFIG_SORT_ON,
+            "index": 8,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="sort_on"),
+
+            ],
+        },
+
+    }
+)
+
+GROUPED_DEFAULT_CONFIG = Schema.collection(
+    id=ShapeID("io.superposition#GroupedDefaultConfig"),
+    shape_type=ShapeType.UNION,
+    members={
+        "Group": {
+            "target": STRING,
+            "index": 0,
+        },
+
+        "Config": {
+            "target": DEFAULT_CONFIG_RESPONSE,
+            "index": 1,
+        },
+
+    }
+)
+
+LIST_GROUPED_DEFAULT_CONFIG_OUT = Schema.collection(
+    id=ShapeID("io.superposition#ListGroupedDefaultConfigOut"),
+    shape_type=ShapeType.LIST,
+    members={
+        "member": {
+            "target": GROUPED_DEFAULT_CONFIG,
+            "index": 0,
+        },
+
+    }
+)
+
+LIST_GROUPED_DEFAULT_CONFIGS_OUTPUT = Schema.collection(
+    id=ShapeID("io.superposition#ListGroupedDefaultConfigsOutput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#output")),
+
+    ],
+    members={
+        "total_pages": {
+            "target": INTEGER,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "total_items": {
+            "target": INTEGER,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "data": {
+            "target": LIST_GROUPED_DEFAULT_CONFIG_OUT,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
+LIST_GROUPED_DEFAULT_CONFIGS = Schema(
+    id=ShapeID("io.superposition#ListGroupedDefaultConfigs"),
+    shape_type=ShapeType.OPERATION,
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Default Configuration",
+            )),
+        Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
+                "method": "GET",
+                "uri": "/default-config?grouped=true",
             })),
         Trait.new(id=ShapeID("smithy.api#readonly")),
 

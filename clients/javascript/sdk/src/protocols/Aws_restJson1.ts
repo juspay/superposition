@@ -212,6 +212,10 @@ import {
   ListFunctionCommandOutput,
 } from "../commands/ListFunctionCommand";
 import {
+  ListGroupedDefaultConfigsCommandInput,
+  ListGroupedDefaultConfigsCommandOutput,
+} from "../commands/ListGroupedDefaultConfigsCommand";
+import {
   ListOrganisationCommandInput,
   ListOrganisationCommandOutput,
 } from "../commands/ListOrganisationCommand";
@@ -353,6 +357,7 @@ import {
   ExperimentResponse,
   FunctionExecutionRequest,
   FunctionResponse,
+  GroupedDefaultConfig,
   InternalServerError,
   ListVersionsMember,
   OrganisationResponse,
@@ -1618,7 +1623,10 @@ export const se_ListDefaultConfigsCommand = async(
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
     [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
-    [_n]: [,input[_n]!],
+    [_n]: [() => input.name !== void 0, () => ((input[_n]! || []))],
+    [_sb]: [,input[_sb]!],
+    [_so]: [,input[_so]!],
+    [_s]: [,input[_s]!],
   });
   let body: any;
   b.m("GET")
@@ -1671,7 +1679,7 @@ export const se_ListExperimentCommand = async(
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
     [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
-    [_s]: [() => input.status !== void 0, () => ((input[_s]! || []))],
+    [_st]: [() => input.status !== void 0, () => ((input[_st]! || []))],
     [_fd]: [() => input.from_date !== void 0, () => (__serializeDateTime(input[_fd]!).toString())],
     [_td]: [() => input.to_date !== void 0, () => (__serializeDateTime(input[_td]!).toString())],
     [_en]: [,input[_en]!],
@@ -1741,6 +1749,37 @@ export const se_ListFunctionCommand = async(
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
     [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
     [_ft]: [() => input.function_type !== void 0, () => ((input[_ft]! || []))],
+  });
+  let body: any;
+  b.m("GET")
+  .h(headers)
+  .q(query)
+  .b(body);
+  return b.build();
+}
+
+/**
+ * serializeAws_restJson1ListGroupedDefaultConfigsCommand
+ */
+export const se_ListGroupedDefaultConfigsCommand = async(
+  input: ListGroupedDefaultConfigsCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    [_xw]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/default-config");
+  const query: any = map({
+    [_g]: [, "true"],
+    [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
+    [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
+    [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
+    [_n]: [() => input.name !== void 0, () => ((input[_n]! || []))],
+    [_p]: [,input[_p]!],
+    [_sb]: [,input[_sb]!],
+    [_so]: [,input[_so]!],
   });
   let body: any;
   b.m("GET")
@@ -4057,6 +4096,29 @@ export const de_ListFunctionCommand = async(
 }
 
 /**
+ * deserializeAws_restJson1ListGroupedDefaultConfigsCommand
+ */
+export const de_ListGroupedDefaultConfigsCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<ListGroupedDefaultConfigsCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'data': _ => de_ListGroupedDefaultConfigOut(_, context),
+    'total_items': __expectInt32,
+    'total_pages': __expectInt32,
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
  * deserializeAws_restJson1ListOrganisationCommand
  */
 export const de_ListOrganisationCommand = async(
@@ -5689,6 +5751,24 @@ const de_CommandError = async(
   }
 
   /**
+   * deserializeAws_restJson1GroupedDefaultConfig
+   */
+  const de_GroupedDefaultConfig = (
+    output: any,
+    context: __SerdeContext
+  ): GroupedDefaultConfig => {
+    if (output.Config != null) {
+      return {
+        Config: de_DefaultConfigResponse(output.Config, context)
+      };
+    }
+    if (__expectString(output.Group) !== undefined) {
+      return { Group: __expectString(output.Group) as any }
+    }
+    return { $unknown: Object.entries(output)[0] };
+  }
+
+  /**
    * deserializeAws_restJson1ListContextOut
    */
   const de_ListContextOut = (
@@ -5710,6 +5790,19 @@ const de_CommandError = async(
   ): (DefaultConfigResponse)[] => {
     const retVal = (output || []).filter((e: any) => e != null).map((entry: any) => {
       return de_DefaultConfigResponse(entry, context);
+    });
+    return retVal;
+  }
+
+  /**
+   * deserializeAws_restJson1ListGroupedDefaultConfigOut
+   */
+  const de_ListGroupedDefaultConfigOut = (
+    output: any,
+    context: __SerdeContext
+  ): (GroupedDefaultConfig)[] => {
+    const retVal = (output || []).filter((e: any) => e != null).map((entry: any) => {
+      return de_GroupedDefaultConfig(__expectUnion(entry), context);
     });
     return retVal;
   }
@@ -6102,6 +6195,7 @@ const de_CommandError = async(
   const _en = "experiment_name";
   const _fd = "from_date";
   const _ft = "function_type";
+  const _g = "grouped";
   const _geo = "global_experiments_only";
   const _gt = "group_type";
   const _i = "identifier";
@@ -6115,10 +6209,11 @@ const de_CommandError = async(
   const _pa = "page";
   const _pl = "plaintext";
   const _rr = "resolve_remote";
-  const _s = "status";
+  const _s = "search";
   const _sb = "sort_by";
   const _so = "sort_on";
   const _sr = "show_reasoning";
+  const _st = "status";
   const _t = "tables";
   const _ta = "table";
   const _td = "to_date";

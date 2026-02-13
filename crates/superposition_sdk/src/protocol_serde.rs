@@ -133,6 +133,8 @@ pub(crate) mod shape_list_experiment_groups;
 
 pub(crate) mod shape_list_function;
 
+pub(crate) mod shape_list_grouped_default_configs;
+
 pub(crate) mod shape_list_organisation;
 
 pub(crate) mod shape_list_secrets;
@@ -333,6 +335,8 @@ pub(crate) mod shape_list_context_out;
 
 pub(crate) mod shape_list_default_config_out;
 
+pub(crate) mod shape_list_grouped_default_config_out;
+
 pub(crate) mod shape_list_mandatory_dimensions;
 
 pub(crate) mod shape_list_override_keys;
@@ -398,6 +402,8 @@ pub(crate) mod shape_experiment_group_response;
 pub(crate) mod shape_experiment_response;
 
 pub(crate) mod shape_function_response;
+
+pub(crate) mod shape_grouped_default_config;
 
 pub(crate) mod shape_list_versions_member;
 

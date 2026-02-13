@@ -186,6 +186,13 @@ const sidebar: SidebarsConfig = {
           customProps: {},
           className: "api-method patch",
         },
+        {
+          type: "doc",
+          id: "api/list-grouped-default-configs",
+          label: "ListGroupedDefaultConfigs",
+          customProps: {},
+          className: "api-method get",
+        },
       ],
     },
     {

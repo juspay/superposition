@@ -269,6 +269,11 @@ import {
   ListFunctionCommandOutput,
 } from "./commands/ListFunctionCommand";
 import {
+  ListGroupedDefaultConfigsCommand,
+  ListGroupedDefaultConfigsCommandInput,
+  ListGroupedDefaultConfigsCommandOutput,
+} from "./commands/ListGroupedDefaultConfigsCommand";
+import {
   ListOrganisationCommand,
   ListOrganisationCommandInput,
   ListOrganisationCommandOutput,
@@ -475,6 +480,7 @@ const commands = {
   ListExperimentCommand,
   ListExperimentGroupsCommand,
   ListFunctionCommand,
+  ListGroupedDefaultConfigsCommand,
   ListOrganisationCommand,
   ListSecretsCommand,
   ListVariablesCommand,
@@ -1407,6 +1413,23 @@ export interface Superposition {
     args: ListFunctionCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: ListFunctionCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link ListGroupedDefaultConfigsCommand}
+   */
+  listGroupedDefaultConfigs(
+    args: ListGroupedDefaultConfigsCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<ListGroupedDefaultConfigsCommandOutput>;
+  listGroupedDefaultConfigs(
+    args: ListGroupedDefaultConfigsCommandInput,
+    cb: (err: any, data?: ListGroupedDefaultConfigsCommandOutput) => void
+  ): void;
+  listGroupedDefaultConfigs(
+    args: ListGroupedDefaultConfigsCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: ListGroupedDefaultConfigsCommandOutput) => void
   ): void;
 
   /**

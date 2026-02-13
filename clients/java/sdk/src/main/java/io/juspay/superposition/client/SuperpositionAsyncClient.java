@@ -108,6 +108,8 @@ import io.juspay.superposition.model.ListExperimentInput;
 import io.juspay.superposition.model.ListExperimentOutput;
 import io.juspay.superposition.model.ListFunctionInput;
 import io.juspay.superposition.model.ListFunctionOutput;
+import io.juspay.superposition.model.ListGroupedDefaultConfigsInput;
+import io.juspay.superposition.model.ListGroupedDefaultConfigsOutput;
 import io.juspay.superposition.model.ListOrganisationInput;
 import io.juspay.superposition.model.ListOrganisationOutput;
 import io.juspay.superposition.model.ListSecretsInput;
@@ -1175,6 +1177,24 @@ public interface SuperpositionAsyncClient {
     CompletableFuture<ListFunctionOutput> listFunction(ListFunctionInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Retrieves a paginated list of all default config entries in the workspace, including their values,
+     * schemas, and metadata.
+     *
+     * @throws InternalServerError
+     */
+    default CompletableFuture<ListGroupedDefaultConfigsOutput> listGroupedDefaultConfigs(ListGroupedDefaultConfigsInput input) {
+        return listGroupedDefaultConfigs(input, null);
+    }
+
+    /**
+     * Retrieves a paginated list of all default config entries in the workspace, including their values,
+     * schemas, and metadata.
+     *
+     * @throws InternalServerError
+     */
+    CompletableFuture<ListGroupedDefaultConfigsOutput> listGroupedDefaultConfigs(ListGroupedDefaultConfigsInput input, RequestOverrideConfig overrideConfig);
+
+    /**
      * Retrieves a paginated list of all organisations with their basic information, creation details, and
      * current status.
      *
@@ -1773,11 +1793,11 @@ public interface SuperpositionAsyncClient {
             Node.objectNode()
         );
 
-        private static final HttpBearerAuthTrait httpBearerAuthScheme = new HttpBearerAuthTrait();
-        private static final AuthSchemeFactory<HttpBearerAuthTrait> httpBearerAuthSchemeFactory = new HttpBearerAuthScheme.Factory();
-
         private static final HttpBasicAuthTrait httpBasicAuthScheme = new HttpBasicAuthTrait();
         private static final AuthSchemeFactory<HttpBasicAuthTrait> httpBasicAuthSchemeFactory = new HttpBasicAuthAuthScheme.Factory();
+
+        private static final HttpBearerAuthTrait httpBearerAuthScheme = new HttpBearerAuthTrait();
+        private static final AuthSchemeFactory<HttpBearerAuthTrait> httpBearerAuthSchemeFactory = new HttpBearerAuthScheme.Factory();
 
         private Builder() {
             configBuilder().putSupportedAuthSchemes(httpBasicAuthSchemeFactory.createAuthScheme(httpBasicAuthScheme), httpBearerAuthSchemeFactory.createAuthScheme(httpBearerAuthScheme));
