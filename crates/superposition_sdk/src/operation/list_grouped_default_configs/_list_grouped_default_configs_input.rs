@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct ListDefaultConfigsInput  {
+pub struct ListGroupedDefaultConfigsInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -15,14 +15,14 @@ pub struct ListDefaultConfigsInput  {
     pub all: ::std::option::Option<bool>,
     #[allow(missing_docs)] // documentation missing in model
     pub name: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub prefix: ::std::option::Option<::std::string::String>,
     /// Sort order enumeration for list operations.
     pub sort_by: ::std::option::Option<crate::types::SortBy>,
     #[allow(missing_docs)] // documentation missing in model
     pub sort_on: ::std::option::Option<crate::types::DefaultConfigSortOn>,
-    #[allow(missing_docs)] // documentation missing in model
-    pub search: ::std::option::Option<::std::string::String>,
 }
-impl  ListDefaultConfigsInput  {
+impl  ListGroupedDefaultConfigsInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -50,6 +50,10 @@ impl  ListDefaultConfigsInput  {
         self.name.as_deref()
         .unwrap_or_default()
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn prefix(&self) -> ::std::option::Option<&str> {
+        self.prefix.as_deref()
+    }
     /// Sort order enumeration for list operations.
     pub fn sort_by(&self) -> ::std::option::Option<&crate::types::SortBy> {
         self.sort_by.as_ref()
@@ -58,33 +62,29 @@ impl  ListDefaultConfigsInput  {
     pub fn sort_on(&self) -> ::std::option::Option<&crate::types::DefaultConfigSortOn> {
         self.sort_on.as_ref()
     }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn search(&self) -> ::std::option::Option<&str> {
-        self.search.as_deref()
-    }
 }
-impl ListDefaultConfigsInput {
-    /// Creates a new builder-style object to manufacture [`ListDefaultConfigsInput`](crate::operation::list_default_configs::ListDefaultConfigsInput).
-    pub fn builder() -> crate::operation::list_default_configs::builders::ListDefaultConfigsInputBuilder {
-        crate::operation::list_default_configs::builders::ListDefaultConfigsInputBuilder::default()
+impl ListGroupedDefaultConfigsInput {
+    /// Creates a new builder-style object to manufacture [`ListGroupedDefaultConfigsInput`](crate::operation::list_grouped_default_configs::ListGroupedDefaultConfigsInput).
+    pub fn builder() -> crate::operation::list_grouped_default_configs::builders::ListGroupedDefaultConfigsInputBuilder {
+        crate::operation::list_grouped_default_configs::builders::ListGroupedDefaultConfigsInputBuilder::default()
     }
 }
 
-/// A builder for [`ListDefaultConfigsInput`](crate::operation::list_default_configs::ListDefaultConfigsInput).
+/// A builder for [`ListGroupedDefaultConfigsInput`](crate::operation::list_grouped_default_configs::ListGroupedDefaultConfigsInput).
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
 #[non_exhaustive]
-pub struct ListDefaultConfigsInputBuilder {
+pub struct ListGroupedDefaultConfigsInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
     pub(crate) count: ::std::option::Option<i32>,
     pub(crate) page: ::std::option::Option<i32>,
     pub(crate) all: ::std::option::Option<bool>,
     pub(crate) name: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub(crate) prefix: ::std::option::Option<::std::string::String>,
     pub(crate) sort_by: ::std::option::Option<crate::types::SortBy>,
     pub(crate) sort_on: ::std::option::Option<crate::types::DefaultConfigSortOn>,
-    pub(crate) search: ::std::option::Option<::std::string::String>,
 }
-impl ListDefaultConfigsInputBuilder {
+impl ListGroupedDefaultConfigsInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
     pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
@@ -170,6 +170,19 @@ impl ListDefaultConfigsInputBuilder {
     pub fn get_name(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
         &self.name
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn prefix(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.prefix = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_prefix(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.prefix = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_prefix(&self) -> &::std::option::Option<::std::string::String> {
+        &self.prefix
+    }
     /// Sort order enumeration for list operations.
     pub fn sort_by(mut self, input: crate::types::SortBy) -> Self {
         self.sort_by = ::std::option::Option::Some(input);
@@ -196,23 +209,10 @@ impl ListDefaultConfigsInputBuilder {
     pub fn get_sort_on(&self) -> &::std::option::Option<crate::types::DefaultConfigSortOn> {
         &self.sort_on
     }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn search(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.search = ::std::option::Option::Some(input.into());
-        self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_search(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.search = input; self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_search(&self) -> &::std::option::Option<::std::string::String> {
-        &self.search
-    }
-    /// Consumes the builder and constructs a [`ListDefaultConfigsInput`](crate::operation::list_default_configs::ListDefaultConfigsInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::list_default_configs::ListDefaultConfigsInput, ::aws_smithy_types::error::operation::BuildError> {
+    /// Consumes the builder and constructs a [`ListGroupedDefaultConfigsInput`](crate::operation::list_grouped_default_configs::ListGroupedDefaultConfigsInput).
+    pub fn build(self) -> ::std::result::Result<crate::operation::list_grouped_default_configs::ListGroupedDefaultConfigsInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
-            crate::operation::list_default_configs::ListDefaultConfigsInput {
+            crate::operation::list_grouped_default_configs::ListGroupedDefaultConfigsInput {
                 workspace_id: self.workspace_id
                 ,
                 org_id: self.org_id
@@ -225,11 +225,11 @@ impl ListDefaultConfigsInputBuilder {
                 ,
                 name: self.name
                 ,
+                prefix: self.prefix
+                ,
                 sort_by: self.sort_by
                 ,
                 sort_on: self.sort_on
-                ,
-                search: self.search
                 ,
             }
         )

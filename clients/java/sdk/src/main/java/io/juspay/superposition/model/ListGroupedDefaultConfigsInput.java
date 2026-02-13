@@ -20,8 +20,8 @@ import software.amazon.smithy.model.traits.RequiredTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
 @SmithyGenerated
-public final class ListDefaultConfigsInput implements SerializableStruct {
-    public static final ShapeId $ID = ShapeId.from("io.superposition#ListDefaultConfigsInput");
+public final class ListGroupedDefaultConfigsInput implements SerializableStruct {
+    public static final ShapeId $ID = ShapeId.from("io.superposition#ListGroupedDefaultConfigsInput");
 
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
         .putMember("workspace_id", PreludeSchemas.STRING,
@@ -38,12 +38,12 @@ public final class ListDefaultConfigsInput implements SerializableStruct {
                 new HttpQueryTrait("all"))
         .putMember("name", SharedSchemas.STRING_LIST,
                 new HttpQueryTrait("name"))
+        .putMember("prefix", PreludeSchemas.STRING,
+                new HttpQueryTrait("prefix"))
         .putMember("sort_by", SortBy.$SCHEMA,
                 new HttpQueryTrait("sort_by"))
         .putMember("sort_on", DefaultConfigSortOn.$SCHEMA,
                 new HttpQueryTrait("sort_on"))
-        .putMember("search", PreludeSchemas.STRING,
-                new HttpQueryTrait("search"))
         .build();
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
@@ -52,9 +52,9 @@ public final class ListDefaultConfigsInput implements SerializableStruct {
     private static final Schema $SCHEMA_PAGE = $SCHEMA.member("page");
     private static final Schema $SCHEMA_ALL = $SCHEMA.member("all");
     private static final Schema $SCHEMA_NAME = $SCHEMA.member("name");
+    private static final Schema $SCHEMA_PREFIX = $SCHEMA.member("prefix");
     private static final Schema $SCHEMA_SORT_BY = $SCHEMA.member("sort_by");
     private static final Schema $SCHEMA_SORT_ON = $SCHEMA.member("sort_on");
-    private static final Schema $SCHEMA_SEARCH = $SCHEMA.member("search");
 
     private final transient String workspaceId;
     private final transient String orgId;
@@ -62,20 +62,20 @@ public final class ListDefaultConfigsInput implements SerializableStruct {
     private final transient Integer page;
     private final transient Boolean all;
     private final transient List<String> name;
+    private final transient String prefix;
     private final transient SortBy sortBy;
     private final transient DefaultConfigSortOn sortOn;
-    private final transient String search;
 
-    private ListDefaultConfigsInput(Builder builder) {
+    private ListGroupedDefaultConfigsInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
         this.count = builder.count;
         this.page = builder.page;
         this.all = builder.all;
         this.name = builder.name == null ? null : Collections.unmodifiableList(builder.name);
+        this.prefix = builder.prefix;
         this.sortBy = builder.sortBy;
         this.sortOn = builder.sortOn;
-        this.search = builder.search;
     }
 
     public String workspaceId() {
@@ -118,16 +118,16 @@ public final class ListDefaultConfigsInput implements SerializableStruct {
         return name != null;
     }
 
+    public String prefix() {
+        return prefix;
+    }
+
     public SortBy sortBy() {
         return sortBy;
     }
 
     public DefaultConfigSortOn sortOn() {
         return sortOn;
-    }
-
-    public String search() {
-        return search;
     }
 
     @Override
@@ -143,21 +143,21 @@ public final class ListDefaultConfigsInput implements SerializableStruct {
         if (other == null || getClass() != other.getClass()) {
             return false;
         }
-        ListDefaultConfigsInput that = (ListDefaultConfigsInput) other;
+        ListGroupedDefaultConfigsInput that = (ListGroupedDefaultConfigsInput) other;
         return Objects.equals(this.workspaceId, that.workspaceId)
                && Objects.equals(this.orgId, that.orgId)
                && Objects.equals(this.count, that.count)
                && Objects.equals(this.page, that.page)
                && Objects.equals(this.all, that.all)
                && Objects.equals(this.name, that.name)
+               && Objects.equals(this.prefix, that.prefix)
                && Objects.equals(this.sortBy, that.sortBy)
-               && Objects.equals(this.sortOn, that.sortOn)
-               && Objects.equals(this.search, that.search);
+               && Objects.equals(this.sortOn, that.sortOn);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, count, page, all, name, sortBy, sortOn, search);
+        return Objects.hash(workspaceId, orgId, count, page, all, name, prefix, sortBy, sortOn);
     }
 
     @Override
@@ -181,14 +181,14 @@ public final class ListDefaultConfigsInput implements SerializableStruct {
         if (name != null) {
             serializer.writeList($SCHEMA_NAME, name, name.size(), SharedSerde.StringListSerializer.INSTANCE);
         }
+        if (prefix != null) {
+            serializer.writeString($SCHEMA_PREFIX, prefix);
+        }
         if (sortBy != null) {
             serializer.writeString($SCHEMA_SORT_BY, sortBy.value());
         }
         if (sortOn != null) {
             serializer.writeString($SCHEMA_SORT_ON, sortOn.value());
-        }
-        if (search != null) {
-            serializer.writeString($SCHEMA_SEARCH, search);
         }
     }
 
@@ -202,9 +202,9 @@ public final class ListDefaultConfigsInput implements SerializableStruct {
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, page);
             case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_ALL, member, all);
             case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_NAME, member, name);
-            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, sortBy);
-            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, sortOn);
-            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_SEARCH, member, search);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, prefix);
+            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, sortBy);
+            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, sortOn);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -214,7 +214,7 @@ public final class ListDefaultConfigsInput implements SerializableStruct {
      *
      * <p><strong>Note:</strong> This method performs only a shallow copy of the original properties.
      *
-     * @return a builder for {@link ListDefaultConfigsInput}.
+     * @return a builder for {@link ListGroupedDefaultConfigsInput}.
      */
     public Builder toBuilder() {
         var builder = new Builder();
@@ -224,9 +224,9 @@ public final class ListDefaultConfigsInput implements SerializableStruct {
         builder.page(this.page);
         builder.all(this.all);
         builder.name(this.name);
+        builder.prefix(this.prefix);
         builder.sortBy(this.sortBy);
         builder.sortOn(this.sortOn);
-        builder.search(this.search);
         return builder;
     }
 
@@ -238,9 +238,9 @@ public final class ListDefaultConfigsInput implements SerializableStruct {
     }
 
     /**
-     * Builder for {@link ListDefaultConfigsInput}.
+     * Builder for {@link ListGroupedDefaultConfigsInput}.
      */
-    public static final class Builder implements ShapeBuilder<ListDefaultConfigsInput> {
+    public static final class Builder implements ShapeBuilder<ListGroupedDefaultConfigsInput> {
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String workspaceId;
         private String orgId;
@@ -248,9 +248,9 @@ public final class ListDefaultConfigsInput implements SerializableStruct {
         private Integer page;
         private Boolean all;
         private List<String> name;
+        private String prefix;
         private SortBy sortBy;
         private DefaultConfigSortOn sortOn;
-        private String search;
 
         private Builder() {}
 
@@ -320,6 +320,14 @@ public final class ListDefaultConfigsInput implements SerializableStruct {
         /**
          * @return this builder.
          */
+        public Builder prefix(String prefix) {
+            this.prefix = prefix;
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
         public Builder sortBy(SortBy sortBy) {
             this.sortBy = sortBy;
             return this;
@@ -333,18 +341,10 @@ public final class ListDefaultConfigsInput implements SerializableStruct {
             return this;
         }
 
-        /**
-         * @return this builder.
-         */
-        public Builder search(String search) {
-            this.search = search;
-            return this;
-        }
-
         @Override
-        public ListDefaultConfigsInput build() {
+        public ListGroupedDefaultConfigsInput build() {
             tracker.validate();
-            return new ListDefaultConfigsInput(this);
+            return new ListGroupedDefaultConfigsInput(this);
         }
 
         @Override
@@ -357,15 +357,15 @@ public final class ListDefaultConfigsInput implements SerializableStruct {
                 case 3 -> page((int) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, value));
                 case 4 -> all((boolean) SchemaUtils.validateSameMember($SCHEMA_ALL, member, value));
                 case 5 -> name((List<String>) SchemaUtils.validateSameMember($SCHEMA_NAME, member, value));
-                case 6 -> sortBy((SortBy) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, value));
-                case 7 -> sortOn((DefaultConfigSortOn) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, value));
-                case 8 -> search((String) SchemaUtils.validateSameMember($SCHEMA_SEARCH, member, value));
+                case 6 -> prefix((String) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, value));
+                case 7 -> sortBy((SortBy) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, value));
+                case 8 -> sortOn((DefaultConfigSortOn) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
 
         @Override
-        public ShapeBuilder<ListDefaultConfigsInput> errorCorrection() {
+        public ShapeBuilder<ListGroupedDefaultConfigsInput> errorCorrection() {
             if (tracker.allSet()) {
                 return this;
             }
@@ -402,9 +402,9 @@ public final class ListDefaultConfigsInput implements SerializableStruct {
                     case 3 -> builder.page(de.readInteger(member));
                     case 4 -> builder.all(de.readBoolean(member));
                     case 5 -> builder.name(SharedSerde.deserializeStringList(member, de));
-                    case 6 -> builder.sortBy(SortBy.builder().deserializeMember(de, member).build());
-                    case 7 -> builder.sortOn(DefaultConfigSortOn.builder().deserializeMember(de, member).build());
-                    case 8 -> builder.search(de.readString(member));
+                    case 6 -> builder.prefix(de.readString(member));
+                    case 7 -> builder.sortBy(SortBy.builder().deserializeMember(de, member).build());
+                    case 8 -> builder.sortOn(DefaultConfigSortOn.builder().deserializeMember(de, member).build());
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

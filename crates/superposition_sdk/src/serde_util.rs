@@ -591,6 +591,13 @@ if builder.data.is_none() { builder.data = Some(Default::default()) }
                 builder
             }
 
+pub(crate) fn list_grouped_default_configs_output_output_correct_errors(mut builder: crate::operation::list_grouped_default_configs::builders::ListGroupedDefaultConfigsOutputBuilder) -> crate::operation::list_grouped_default_configs::builders::ListGroupedDefaultConfigsOutputBuilder {
+                if builder.total_pages.is_none() { builder.total_pages = Some(Default::default()) }
+if builder.total_items.is_none() { builder.total_items = Some(Default::default()) }
+if builder.data.is_none() { builder.data = Some(Default::default()) }
+                builder
+            }
+
 pub(crate) fn list_organisation_output_output_correct_errors(mut builder: crate::operation::list_organisation::builders::ListOrganisationOutputBuilder) -> crate::operation::list_organisation::builders::ListOrganisationOutputBuilder {
                 if builder.total_pages.is_none() { builder.total_pages = Some(Default::default()) }
 if builder.total_items.is_none() { builder.total_items = Some(Default::default()) }

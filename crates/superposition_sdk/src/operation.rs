@@ -159,6 +159,9 @@ pub mod list_experiment_groups;
 /// Types for the `ListFunction` operation.
 pub mod list_function;
 
+/// Types for the `ListGroupedDefaultConfigs` operation.
+pub mod list_grouped_default_configs;
+
 /// Types for the `ListOrganisation` operation.
 pub mod list_organisation;
 

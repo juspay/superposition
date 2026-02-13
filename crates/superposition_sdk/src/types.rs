@@ -105,7 +105,11 @@ pub use crate::types::_context_filter_sort_on::ContextFilterSortOn;
 
 pub use crate::types::_dimension_response::DimensionResponse;
 
+pub use crate::types::_grouped_default_config::GroupedDefaultConfig;
+
 pub use crate::types::_default_config_response::DefaultConfigResponse;
+
+pub use crate::types::_default_config_sort_on::DefaultConfigSortOn;
 
 mod _audit_action;
 
@@ -137,6 +141,8 @@ mod _context_validation_function_request;
 
 mod _default_config_response;
 
+mod _default_config_sort_on;
+
 mod _dimension_info;
 
 mod _dimension_match_strategy;
@@ -166,6 +172,8 @@ mod _function_runtime_version;
 mod _function_types;
 
 mod _group_type;
+
+mod _grouped_default_config;
 
 mod _http_method;
 

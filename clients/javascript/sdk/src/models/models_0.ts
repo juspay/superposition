@@ -1634,6 +1634,29 @@ export interface GetDefaultConfigInput {
 
 /**
  * @public
+ * @enum
+ */
+export const DefaultConfigSortOn = {
+  /**
+   * Sort by creation timestamp.
+   */
+  CREATED_AT: "created_at",
+  /**
+   * Sort by key.
+   */
+  KEY: "key",
+  /**
+   * Sort by last modification timestamp.
+   */
+  LAST_MODIFIED_AT: "last_modified_at",
+} as const
+/**
+ * @public
+ */
+export type DefaultConfigSortOn = typeof DefaultConfigSortOn[keyof typeof DefaultConfigSortOn]
+
+/**
+ * @public
  */
 export interface ListDefaultConfigsInput {
   workspace_id: string | undefined;
@@ -1656,7 +1679,15 @@ export interface ListDefaultConfigsInput {
    */
   all?: boolean | undefined;
 
-  name?: string | undefined;
+  name?: (string)[] | undefined;
+  /**
+   * Sort order enumeration for list operations.
+   * @public
+   */
+  sort_by?: SortBy | undefined;
+
+  sort_on?: DefaultConfigSortOn | undefined;
+  search?: string | undefined;
 }
 
 /**
@@ -1666,6 +1697,101 @@ export interface ListDefaultConfigsOutput {
   total_pages: number | undefined;
   total_items: number | undefined;
   data: (DefaultConfigResponse)[] | undefined;
+}
+
+/**
+ * @public
+ */
+export interface ListGroupedDefaultConfigsInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  /**
+   * Number of items to be returned in each page.
+   * @public
+   */
+  count?: number | undefined;
+
+  /**
+   * Page number to retrieve, starting from 1.
+   * @public
+   */
+  page?: number | undefined;
+
+  /**
+   * If true, returns all requested items, ignoring pagination parameters page and count.
+   * @public
+   */
+  all?: boolean | undefined;
+
+  name?: (string)[] | undefined;
+  prefix?: string | undefined;
+  /**
+   * Sort order enumeration for list operations.
+   * @public
+   */
+  sort_by?: SortBy | undefined;
+
+  sort_on?: DefaultConfigSortOn | undefined;
+}
+
+/**
+ * @public
+ */
+export type GroupedDefaultConfig =
+  | GroupedDefaultConfig.ConfigMember
+  | GroupedDefaultConfig.GroupMember
+  | GroupedDefaultConfig.$UnknownMember
+
+/**
+ * @public
+ */
+export namespace GroupedDefaultConfig {
+
+  export interface GroupMember {
+    Group: string;
+    Config?: never;
+    $unknown?: never;
+  }
+
+  export interface ConfigMember {
+    Group?: never;
+    Config: DefaultConfigResponse;
+    $unknown?: never;
+  }
+
+  /**
+   * @public
+   */
+  export interface $UnknownMember {
+    Group?: never;
+    Config?: never;
+    $unknown: [string, any];
+  }
+
+  export interface Visitor<T> {
+    Group: (value: string) => T;
+    Config: (value: DefaultConfigResponse) => T;
+    _: (name: string, value: any) => T;
+  }
+
+  export const visit = <T>(
+    value: GroupedDefaultConfig,
+    visitor: Visitor<T>
+  ): T => {
+    if (value.Group !== undefined) return visitor.Group(value.Group);
+    if (value.Config !== undefined) return visitor.Config(value.Config);
+    return visitor._(value.$unknown[0], value.$unknown[1]);
+  }
+
+}
+
+/**
+ * @public
+ */
+export interface ListGroupedDefaultConfigsOutput {
+  total_pages: number | undefined;
+  total_items: number | undefined;
+  data: (GroupedDefaultConfig)[] | undefined;
 }
 
 /**
