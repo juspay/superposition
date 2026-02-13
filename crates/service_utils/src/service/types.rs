@@ -105,7 +105,7 @@ impl Resource {
     }
 }
 
-#[derive(Deref, DerefMut, Clone, Debug)]
+#[derive(Deref, DerefMut, Clone, Debug, Serialize, Deserialize)]
 pub struct WorkspaceId(pub String);
 
 impl FromRequest for WorkspaceId {
@@ -125,7 +125,7 @@ impl FromRequest for WorkspaceId {
     }
 }
 
-#[derive(Deref, DerefMut, Clone, Debug)]
+#[derive(Deref, DerefMut, Clone, Debug, Serialize, Deserialize)]
 pub struct OrganisationId(pub String);
 
 impl Default for OrganisationId {
@@ -151,7 +151,7 @@ impl FromRequest for OrganisationId {
     }
 }
 
-#[derive(Deref, DerefMut, Clone, Debug)]
+#[derive(Deref, DerefMut, Clone, Debug, Serialize, Deserialize)]
 pub struct SchemaName(pub String);
 
 impl Default for SchemaName {
@@ -177,7 +177,7 @@ impl FromRequest for SchemaName {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct WorkspaceContext {
     pub workspace_id: WorkspaceId,
     pub organisation_id: OrganisationId,

@@ -24,8 +24,9 @@ use reqwest::{Method, StatusCode};
 use serde_json::{Map, Value};
 use service_utils::{
     helpers::{
-        construct_request_headers, execute_webhook_call, fetch_dimensions_info_map,
-        generate_snowflake_id, request,
+        construct_header_map, construct_request_headers, execute_webhook_call,
+        fetch_dimensions_info_map, fetch_webhook_by_event, generate_snowflake_id,
+        request,
     },
     service::types::{
         AppHeader, AppState, CustomHeaders, DbConnection, WorkspaceContext,
@@ -80,18 +81,15 @@ use crate::api::{
     },
     experiments::{
         helpers::{
-            fetch_and_validate_change_reason_with_function, fetch_webhook_by_event,
-            validate_control_overrides, validate_delete_experiment_variants,
+            fetch_and_validate_change_reason_with_function, validate_control_overrides,
+            validate_delete_experiment_variants,
         },
         types::StartedByChangeSet,
     },
 };
 
 use super::{
-    cac_api::{
-        construct_header_map, get_context_override,
-        process_cac_bulk_operation_http_response,
-    },
+    cac_api::{get_context_override, process_cac_bulk_operation_http_response},
     helpers::{
         add_variant_dimension_to_ctx, check_variant_types,
         check_variants_override_coverage, extract_override_keys, fetch_cac_config,
@@ -284,16 +282,12 @@ async fn create_handler(
     .filter_map(|(key, val)| val.map(|v| (key, v)))
     .collect::<Vec<_>>();
 
-    let headers_map = construct_header_map(
-        &workspace_context.workspace_id,
-        &workspace_context.organisation_id,
-        extra_headers,
-    )?;
+    let headers_map = construct_header_map(&workspace_context, extra_headers)?;
 
     // Step 1: Perform the HTTP request and handle errors
     let response = http_client
         .put(&url)
-        .headers(headers_map.into())
+        .headers(headers_map)
         .header(
             header::AUTHORIZATION,
             format!("Internal {}", state.superposition_token),
@@ -642,15 +636,11 @@ pub async fn conclude(
         .filter_map(|(key, val)| val.map(|v| (key, v)))
         .collect::<Vec<_>>();
 
-    let headers_map = construct_header_map(
-        &workspace_context.workspace_id,
-        &workspace_context.organisation_id,
-        extra_headers,
-    )?;
+    let headers_map = construct_header_map(workspace_context, extra_headers)?;
 
     let response = http_client
         .put(&url)
-        .headers(headers_map.into())
+        .headers(headers_map)
         .header(
             header::AUTHORIZATION,
             format!("Internal {}", state.superposition_token),
@@ -817,15 +807,11 @@ pub async fn discard(
         .filter_map(|(key, val)| val.map(|v| (key, v)))
         .collect::<Vec<_>>();
 
-    let headers_map = construct_header_map(
-        &workspace_context.workspace_id,
-        &workspace_context.organisation_id,
-        extra_headers,
-    )?;
+    let headers_map = construct_header_map(workspace_context, extra_headers)?;
 
     let response = http_client
         .put(&url)
-        .headers(headers_map.into())
+        .headers(headers_map)
         .header(
             header::AUTHORIZATION,
             format!("Internal {}", state.superposition_token),
@@ -1596,15 +1582,11 @@ async fn update_handler(
     .filter_map(|(key, val)| val.map(|v| (key, v)))
     .collect::<Vec<_>>();
 
-    let headers_map = construct_header_map(
-        &workspace_context.workspace_id,
-        &workspace_context.organisation_id,
-        extra_headers,
-    )?;
+    let headers_map = construct_header_map(&workspace_context, extra_headers)?;
 
     let response = http_client
         .put(&url)
-        .headers(headers_map.into())
+        .headers(headers_map)
         .header(
             header::AUTHORIZATION,
             format!("Internal {}", state.superposition_token),

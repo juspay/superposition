@@ -45,7 +45,9 @@ use crate::{
             validate_value_compute_function,
         },
     },
-    helpers::{add_config_version, validate_change_reason},
+    helpers::{
+        add_config_version, trigger_config_changed_webhook, validate_change_reason,
+    },
 };
 
 pub fn endpoints() -> Scope {
@@ -133,6 +135,8 @@ async fn create_handler(
         &workspace_context.schema_name,
     )?;
 
+    let webhook_change_reason: String = (&create_req.change_reason).into();
+
     let dimension_data = Dimension {
         dimension: create_req.dimension.into(),
         position: create_req.position,
@@ -188,6 +192,7 @@ async fn create_handler(
             match insert_resp {
                 Ok(inserted_dimension) => {
                     let is_mandatory = workspace_context
+                        .clone()
                         .settings
                         .mandatory_dimensions
                         .unwrap_or_default()
@@ -223,11 +228,28 @@ async fn create_handler(
             }
         })?;
 
+    let webhook_status = trigger_config_changed_webhook(
+        version_id,
+        &workspace_context,
+        &state,
+        &mut conn,
+        &user,
+        &webhook_change_reason,
+    )
+    .await;
+
     #[cfg(feature = "high-performance-mode")]
     put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
         .await?;
 
-    let mut http_resp = HttpResponse::Created();
+    let mut http_resp = if webhook_status {
+        HttpResponse::Created()
+    } else {
+        HttpResponse::build(
+            actix_web::http::StatusCode::from_u16(512)
+                .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
     http_resp.insert_header((
         AppHeader::XConfigVersion.to_string(),
         version_id.to_string(),
@@ -346,6 +368,9 @@ async fn update_handler(
         )?;
     }
 
+    let update_change_reason = update_req.change_reason.clone();
+    let webhook_change_reason: String = (&update_req.change_reason).into();
+
     let (result, is_mandatory, version_id) = conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
             if let Some(position_val) = update_req.position {
@@ -414,6 +439,7 @@ async fn update_handler(
                 .map_err(|err| db_error!(err))?;
 
             let is_mandatory = workspace_context
+                .clone()
                 .settings
                 .mandatory_dimensions
                 .unwrap_or_default()
@@ -422,7 +448,7 @@ async fn update_handler(
             let version_id = add_config_version(
                 &state,
                 tags,
-                dimension_data.change_reason.into(),
+                update_change_reason.into(),
                 transaction_conn,
                 &workspace_context.schema_name,
             )?;
@@ -430,11 +456,28 @@ async fn update_handler(
             Ok((result, is_mandatory, version_id))
         })?;
 
+    let webhook_status = trigger_config_changed_webhook(
+        version_id,
+        &workspace_context,
+        &state,
+        &mut conn,
+        &user,
+        &webhook_change_reason,
+    )
+    .await;
+
     #[cfg(feature = "high-performance-mode")]
     put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
         .await?;
 
-    let mut http_resp = HttpResponse::Ok();
+    let mut http_resp = if webhook_status {
+        HttpResponse::Ok()
+    } else {
+        HttpResponse::build(
+            actix_web::http::StatusCode::from_u16(512)
+                .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
     http_resp.insert_header((
         AppHeader::XConfigVersion.to_string(),
         version_id.to_string(),
@@ -606,11 +649,29 @@ async fn delete_handler(
         #[cfg(feature = "high-performance-mode")]
         put_config_in_redis(
             _version_id,
-            state,
+            state.clone(),
             &workspace_context.schema_name,
             &mut conn,
         )
         .await?;
+
+        let webhook_status = trigger_config_changed_webhook(
+            _version_id,
+            &workspace_context,
+            &state,
+            &mut conn,
+            &user,
+            &format!("Dimension '{}' deleted by {}", name, user.get_email()),
+        )
+        .await;
+
+        if !webhook_status {
+            log::warn!(
+                "ConfigChanged webhook failed for workspace: {}",
+                workspace_context.settings.workspace_name
+            );
+        }
+
         Ok(resp)
     } else {
         Err(bad_argument!(

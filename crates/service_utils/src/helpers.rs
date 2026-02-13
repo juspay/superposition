@@ -5,6 +5,7 @@ use std::{
     str::FromStr,
 };
 
+use actix_http::header;
 use actix_web::{Error, error::ErrorInternalServerError, web::Data};
 use anyhow::anyhow;
 use chrono::Utc;
@@ -21,7 +22,7 @@ use secrecy::ExposeSecret;
 use serde::Serialize;
 use superposition_macros::unexpected_error;
 use superposition_types::{
-    DBConnection, DimensionInfo,
+    DBConnection, DimensionInfo, User,
     api::webhook::{HeadersEnum, WebhookEventInfo, WebhookResponse},
     database::{
         models::{
@@ -549,6 +550,90 @@ where
         Err(err) => {
             log::error!("Webhook call failed: {:?}", err);
             false
+        }
+    }
+}
+
+pub fn construct_header_map(
+    workspace_context: &WorkspaceContext,
+    other_headers: Vec<(&str, String)>,
+) -> result::Result<HeaderMap> {
+    let mut headers = HeaderMap::new();
+    let workspace_val =
+        HeaderValue::from_str(&workspace_context.workspace_id).map_err(|err| {
+            log::error!("failed to set header: {}", err);
+            unexpected_error!("Something went wrong")
+        })?;
+    headers.insert(HeaderName::from_static("x-tenant"), workspace_val);
+
+    let org_val =
+        HeaderValue::from_str(&workspace_context.organisation_id).map_err(|err| {
+            log::error!("failed to set header: {}", err);
+            unexpected_error!("Something went wrong")
+        })?;
+    headers.insert(HeaderName::from_static("x-org-id"), org_val);
+
+    for (header, value) in other_headers {
+        let header_name = HeaderName::from_str(header).map_err(|err| {
+            log::error!("failed to set header: {}", err);
+            unexpected_error!("Something went wrong")
+        })?;
+
+        HeaderValue::from_str(value.as_str())
+            .map(|header_val| headers.insert(header_name, header_val))
+            .map_err(|err| {
+                log::error!("failed to set header: {}", err);
+                unexpected_error!("Something went wrong")
+            })?;
+    }
+
+    Ok(headers)
+}
+
+pub async fn fetch_webhook_by_event(
+    state: &Data<AppState>,
+    user: &User,
+    event: &WebhookEvent,
+    workspace_context: &WorkspaceContext,
+) -> result::Result<Webhook> {
+    let http_client = reqwest::Client::new();
+    let url = format!("{}/webhook/event/{event}", state.cac_host);
+    let user_str = serde_json::to_string(user).map_err(|err| {
+        log::error!("Something went wrong, failed to stringify user data {err}");
+        unexpected_error!(
+            "Something went wrong, failed to stringify user data {}",
+            err
+        )
+    })?;
+
+    let headers_map =
+        construct_header_map(workspace_context, vec![("x-user", user_str)])?;
+
+    let response = http_client
+        .get(&url)
+        .headers(headers_map)
+        .header(
+            header::AUTHORIZATION,
+            format!("Internal {}", state.superposition_token),
+        )
+        .send()
+        .await;
+
+    match response {
+        Ok(res) => {
+            if res.status() == 404 {
+                log::info!("No Webhook found for event: {}", event);
+                return Ok(Webhook::default());
+            }
+            let webhook = res.json::<Webhook>().await.map_err(|err| {
+                log::error!("failed to parse Webhook response with error: {}", err);
+                unexpected_error!("Failed to parse Webhook.")
+            })?;
+            Ok(webhook)
+        }
+        Err(error) => {
+            log::error!("Failed to fetch Webhook with error: {:?}", error);
+            Err(unexpected_error!(error))
         }
     }
 }

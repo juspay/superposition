@@ -1,12 +1,11 @@
-use std::str::FromStr;
-
-use actix_http::header::{self, HeaderMap, HeaderName, HeaderValue};
+use actix_http::header;
 use actix_web::web::Data;
 use reqwest::{Response, StatusCode};
 use serde::de::DeserializeOwned;
 use serde_json::{Map, Value};
-use service_utils::service::types::{
-    AppState, OrganisationId, WorkspaceContext, WorkspaceId,
+use service_utils::{
+    helpers::construct_header_map,
+    service::types::{AppState, WorkspaceContext},
 };
 use superposition_macros::{bad_argument, response_error, unexpected_error};
 use superposition_types::{
@@ -19,41 +18,6 @@ use superposition_types::{
     database::models::cac::Context as ContextResp,
     result as superposition,
 };
-
-pub fn construct_header_map(
-    workspace_id: &WorkspaceId,
-    organisation_id: &OrganisationId,
-    other_headers: Vec<(&str, String)>,
-) -> superposition::Result<HeaderMap> {
-    let mut headers = HeaderMap::new();
-    let workspace_val = HeaderValue::from_str(workspace_id).map_err(|err| {
-        log::error!("failed to set header: {}", err);
-        unexpected_error!("Something went wrong")
-    })?;
-    headers.insert(HeaderName::from_static("x-tenant"), workspace_val);
-
-    let org_val = HeaderValue::from_str(organisation_id).map_err(|err| {
-        log::error!("failed to set header: {}", err);
-        unexpected_error!("Something went wrong")
-    })?;
-    headers.insert(HeaderName::from_static("x-org-id"), org_val);
-
-    for (header, value) in other_headers {
-        let header_name = HeaderName::from_str(header).map_err(|err| {
-            log::error!("failed to set header: {}", err);
-            unexpected_error!("Something went wrong")
-        })?;
-
-        HeaderValue::from_str(value.as_str())
-            .map(|header_val| headers.insert(header_name, header_val))
-            .map_err(|err| {
-                log::error!("failed to set header: {}", err);
-                unexpected_error!("Something went wrong")
-            })?;
-    }
-
-    Ok(headers)
-}
 
 pub async fn parse_error_response(
     response: reqwest::Response,
@@ -191,14 +155,10 @@ pub async fn get_resolved_config(
 
     let extra_headers = vec![("x-user", user_str)];
 
-    let headers_map = construct_header_map(
-        &workspace_context.workspace_id,
-        &workspace_context.organisation_id,
-        extra_headers,
-    )?;
+    let headers_map = construct_header_map(workspace_context, extra_headers)?;
     let response = http_client
         .get(&url)
-        .headers(headers_map.into())
+        .headers(headers_map)
         .header(
             header::AUTHORIZATION,
             format!("Internal {}", state.superposition_token),
@@ -227,14 +187,10 @@ pub async fn get_context_override(
 
     let extra_headers = vec![("x-user", user_str)];
 
-    let headers_map = construct_header_map(
-        &workspace_context.workspace_id,
-        &workspace_context.organisation_id,
-        extra_headers,
-    )?;
+    let headers_map = construct_header_map(workspace_context, extra_headers)?;
     let response = http_client
         .get(&url)
-        .headers(headers_map.into())
+        .headers(headers_map)
         .header(
             header::AUTHORIZATION,
             format!("Internal {}", state.superposition_token),
@@ -271,11 +227,7 @@ pub async fn validate_context(
 
     let extra_headers = vec![("x-user", user_str)];
 
-    let headers_map = construct_header_map(
-        &workspace_context.workspace_id,
-        &workspace_context.organisation_id,
-        extra_headers,
-    )?;
+    let headers_map = construct_header_map(workspace_context, extra_headers)?;
     let payload = Cac::<Condition>::try_from((**condition).clone()).map_err(|err| {
         log::error!("failed to decode condition with error : {}", err);
         bad_argument!(err)
@@ -283,7 +235,7 @@ pub async fn validate_context(
     let payload = ContextValidationRequest { context: payload };
     let response = http_client
         .post(&url)
-        .headers(headers_map.into())
+        .headers(headers_map)
         .header(
             header::AUTHORIZATION,
             format!("Internal {}", state.superposition_token),

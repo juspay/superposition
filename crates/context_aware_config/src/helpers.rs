@@ -15,7 +15,10 @@ use jsonschema::{Draft, JSONSchema};
 use num_bigint::BigUint;
 use serde_json::{Map, Value, json};
 use service_utils::{
-    helpers::{fetch_dimensions_info_map, generate_snowflake_id},
+    helpers::{
+        execute_webhook_call, fetch_dimensions_info_map, fetch_webhook_by_event,
+        generate_snowflake_id,
+    },
     service::types::{AppState, EncryptionKey, SchemaName, WorkspaceContext},
 };
 use superposition_macros::{db_error, unexpected_error, validation_error};
@@ -23,7 +26,7 @@ use superposition_macros::{db_error, unexpected_error, validation_error};
 use superposition_types::database::schema::event_log::dsl as event_log;
 use superposition_types::{
     Cac, Condition, Config, Context, DBConnection, DimensionInfo, OverrideWithKeys,
-    Overrides,
+    Overrides, User,
     api::functions::{
         CHANGE_REASON_VALIDATION_FN_NAME, FunctionEnvironment, FunctionExecutionRequest,
         FunctionExecutionResponse, KeyType,
@@ -35,6 +38,7 @@ use superposition_types::{
                 ConfigVersion, DependencyGraph, DimensionType, FunctionCode,
                 FunctionRuntimeVersion, FunctionType,
             },
+            others::WebhookEvent,
         },
         schema::{
             config_versions,
@@ -224,6 +228,7 @@ pub fn add_config_version(
     let config = generate_cac(db_conn, schema_name)?;
     let json_config = json!(config);
     let config_hash = blake3::hash(json_config.to_string().as_bytes()).to_string();
+
     let config_version = ConfigVersion {
         id: version_id,
         config: json_config,
@@ -237,7 +242,44 @@ pub fn add_config_version(
         .returning(ConfigVersion::as_returning())
         .schema_name(schema_name)
         .execute(db_conn)?;
+
     Ok(version_id)
+}
+
+pub async fn trigger_config_changed_webhook(
+    version_id: i64,
+    workspace_context: &WorkspaceContext,
+    state: &Data<AppState>,
+    db_conn: &mut DBConnection,
+    user: &User,
+    change_reason: &str,
+) -> bool {
+    let payload = json!({
+        "change_reason": change_reason,
+        "config_version": version_id,
+    });
+
+    if let Ok(webhook) = fetch_webhook_by_event(
+        state,
+        user,
+        &WebhookEvent::ConfigChanged,
+        workspace_context,
+    )
+    .await
+    {
+        execute_webhook_call(
+            &webhook,
+            &payload,
+            &Some(version_id.to_string()),
+            workspace_context,
+            WebhookEvent::ConfigChanged,
+            state,
+            db_conn,
+        )
+        .await
+    } else {
+        true
+    }
 }
 
 #[cfg(feature = "high-performance-mode")]
