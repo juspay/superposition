@@ -117,7 +117,7 @@ impl ConversionUtils {
             dimensions,
         };
 
-        debug!("Successfully converted config with {} contexts, {} overrides, {} default configs", 
+        debug!("Successfully converted config with {} contexts, {} overrides, {} default configs",
                config.contexts.len(), config.overrides.len(), config.default_configs.len());
 
         Ok(config)
@@ -540,12 +540,10 @@ impl ConversionUtils {
             }
             open_feature::EvaluationContextFieldValue::Struct(s) => {
                 // Convert struct to serde_json::Value
-                let struct_map: Map<String, Value> = s
-                    .as_ref()
-                    .downcast_ref::<Map<String, Value>>()
+                s.as_ref()
+                    .downcast_ref::<Value>()
                     .cloned()
-                    .unwrap_or_default();
-                Value::Object(struct_map)
+                    .unwrap_or_default()
             }
         }
     }
