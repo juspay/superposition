@@ -336,17 +336,14 @@ pub extern "C" fn cac_get_default_config(
         Some(filter_string.split('|').map(str::to_string).collect())
     };
     CAC_RUNTIME.block_on(async move {
-        unwrap_safe!(
-            unsafe {
-                (*client).get_default_config(keys).await.map(|ov| {
-                    unwrap_safe!(
-                        serde_json::to_string::<Map<String, Value>>(&ov)
-                            .map(|overrides| rstring_to_cstring(overrides).into_raw()),
-                        std::ptr::null()
-                    )
-                })
-            },
-            std::ptr::null()
-        )
+        unsafe {
+            unwrap_safe!(
+                serde_json::to_string::<Map<String, Value>>(
+                    &(*client).get_default_config(keys).await.into_inner()
+                )
+                .map(|overrides| rstring_to_cstring(overrides).into_raw()),
+                std::ptr::null()
+            )
+        }
     })
 }

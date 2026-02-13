@@ -18,8 +18,8 @@ import Foreign.ForeignPtr (newForeignPtr, withForeignPtr)
 import Foreign.Ptr (FunPtr)
 import Foreign.Marshal (free)
 
-type BufferSize = Int 
-errorBufferSize :: BufferSize 
+type BufferSize = Int
+errorBufferSize :: BufferSize
 errorBufferSize = 2048
 
 foreign import capi "superposition_core.h core_get_resolved_config"
@@ -130,16 +130,16 @@ getResolvedConfig params = do
 --   - dimensions: object mapping dimension names to dimension info (schema, position, etc.)
 parseTomlConfig :: String -> IO (Either String Value)
 parseTomlConfig tomlContent = do
-  ebuf <- callocBytes errorBufferSize  
+  ebuf <- callocBytes errorBufferSize
   tomlStr <- newCString tomlContent
   res <- parse_toml_config tomlStr ebuf
-  errBytes <- packCString ebuf 
+  errBytes <- packCString ebuf
   let errText = fromRight mempty $ decodeUtf8' errBytes
   result <- if res /= nullPtr
-    then do 
-      resFptr <- newForeignPtr p_free_string res 
+    then do
+      resFptr <- newForeignPtr p_free_string res
       -- Registers p_free_string as the finalizer (for automatic cleanup)
-      withForeignPtr resFptr $ \ptr -> Just <$> packCString ptr
+      withForeignPtr resFptr $ fmap Just . packCString
     else pure Nothing
   free tomlStr
   free ebuf

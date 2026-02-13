@@ -9,8 +9,16 @@ if [ $in_nix == 0 ]; then
     echo "Inside nix shell, doing some stuff"
 fi
 
+TARGET_MODE=debug
+JS_COPY_PATH="clients/javascript/open-feature-provider/dist/native-lib"
 if [[ $1 == "js" ]]; then
-    mkdir -p clients/javascript/open-feature-provider/dist/native-lib
+    if [[ $2 == "bindings" ]]; then
+        JS_COPY_PATH="clients/javascript/bindings/dist/native-lib"
+    fi
+    if [[ $3 == "release" ]]; then
+        TARGET_MODE=release
+    fi
+    mkdir -p ${JS_COPY_PATH}
 fi
 
 # Determine platform and library details
@@ -55,7 +63,7 @@ echo "Library: $LIB_NAME.$LIB_EXTENSION"
 # Set up copy paths based on provider type
 COPY_PATH=""
 if [[ $1 == "js" ]]; then
-    COPY_PATH="clients/javascript/open-feature-provider/dist/native-lib"
+    COPY_PATH=${JS_COPY_PATH}
     FINAL_LIB_NAME="$LIB_NAME-$TARGET_TRIPLE.$LIB_EXTENSION"
 elif [[ $1 == "py" ]]; then
     COPY_PATH="$UV_PROJECT_ENVIRONMENT/lib/python3.12/site-packages/superposition_bindings"
@@ -75,14 +83,7 @@ fi
 mkdir -p "$COPY_PATH"
 
 # Source library path
-SOURCE_LIB=""
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    SOURCE_LIB="./target/debug/$LIB_NAME.$LIB_EXTENSION"
-elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    SOURCE_LIB="./target/debug/$LIB_NAME.$LIB_EXTENSION"
-elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
-    SOURCE_LIB="./target/debug/$LIB_NAME.$LIB_EXTENSION"
-fi
+SOURCE_LIB="./target/${TARGET_MODE}/$LIB_NAME.$LIB_EXTENSION"
 
 # Check if source library exists
 if [[ ! -f "$SOURCE_LIB" ]]; then

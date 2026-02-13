@@ -168,14 +168,14 @@ fn ffi_get_applicable_variants(
 ///
 /// # Example TOML
 /// ```toml
-/// [default_configs]
+/// [default-configs]
 /// timeout = { value = 30, schema = { type = "integer" } }
 ///
 /// [dimensions]
 /// os = { position = 1, schema = { type = "string" } }
 ///
-/// [[contexts]]
-/// _condition_ = { os = "linux" }
+/// [[overrides]]
+/// _context_ = { os = "linux" }
 /// timeout = 60
 /// ```
 #[uniffi::export]

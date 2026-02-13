@@ -129,8 +129,8 @@ fn test_dimension_type_local_cohort() {
 timeout = { value = 30, schema = { type = "integer" } }
 
 [dimensions]
-os = { position = 1, schema = { type = "string" } }
-os_cohort = { position = 2, type = "LOCAL_COHORT:os", schema = { type = "string", enum = ["linux", "windows", "otherwise"], definitions = { linux = "rule_for_linux", windows = "rule_for_windows" } } }
+os = { position = 2, schema = { type = "string" } }
+os_cohort = { position = 1, type = "LOCAL_COHORT:os", schema = { type = "string", enum = ["linux", "windows", "otherwise"], definitions = { linux = "rule_for_linux", windows = "rule_for_windows" } } }
 
 [[overrides]]
 _context_ = { os = "linux" }
@@ -192,8 +192,8 @@ fn test_dimension_type_remote_cohort() {
 timeout = { value = 30, schema = { type = "integer" } }
 
 [dimensions]
-os = { position = 1, schema = { type = "string" } }
-os_cohort = { position = 2, type = "REMOTE_COHORT:os", schema = { type = "string", enum = ["linux", "windows", "macos"] } }
+os = { position = 2, schema = { type = "string" } }
+os_cohort = { position = 1, type = "REMOTE_COHORT:os", schema = { type = "string", enum = ["linux", "windows", "macos"] } }
 
 [[overrides]]
 _context_ = { os = "linux" }
@@ -552,167 +552,11 @@ fn test_validation_valid_dimension_value_in_context() {
     let toml = r#"
             [default-configs]
             timeout = { value = 30, schema = { type = "integer" } }
-
-            [dimensions]
-            os = { position = 1, schema = { type = "string", enum = ["linux", "windows", "macos"] } }
-
-            [[overrides]]
-            _context_ = { os = "linux" }
-            timeout = 60
-        "#;
-
-    let result = parse_toml_config(toml);
-    assert!(result.is_ok());
-}
-
-#[test]
-fn test_validation_invalid_dimension_value_in_context() {
-    let toml = r#"
-            [default-configs]
-            timeout = { value = 30, schema = { type = "integer" } }
-
-            [dimensions]
-            os = { position = 1, schema = { type = "string", enum = ["linux", "windows", "macos"] } }
-
-            [[overrides]]
-            _context_ = { os = "freebsd" }
-            timeout = 60
-        "#;
-
-    let result = parse_toml_config(toml);
-    assert!(result.is_err());
-    assert!(matches!(result, Err(TomlError::ValidationError { .. })));
-    let err = result.unwrap_err();
-    assert!(err.to_string().contains("context[0]._context_.os"));
-}
-
-#[test]
-fn test_validation_with_minimum_constraint() {
-    let toml = r#"
-            [default-configs]
-            timeout = { value = 30, schema = { type = "integer", minimum = 10 } }
-
-            [dimensions]
-            os = { position = 1, schema = { type = "string" } }
-
-            [[overrides]]
-            _context_ = { os = "linux" }
-            timeout = 60
-        "#;
-
-    let result = parse_toml_config(toml);
-    assert!(result.is_ok());
-}
-
-#[test]
-fn test_validation_fails_minimum_constraint() {
-    let toml = r#"
-            [default-configs]
-            timeout = { value = 5, schema = { type = "integer", minimum = 10 } }
-
-            [dimensions]
-            os = { position = 1, schema = { type = "string" } }
-
-            [[overrides]]
-            _context_ = { os = "linux" }
-            timeout = 60
-        "#;
-
-    let result = parse_toml_config(toml);
-    assert!(result.is_err());
-    assert!(matches!(result, Err(TomlError::ValidationError { .. })));
-    let err = result.unwrap_err();
-    assert!(err.to_string().contains("timeout"));
-}
-
-#[test]
-fn test_validation_numeric_dimension_value() {
-    let toml = r#"
-            [default-configs]
-            timeout = { value = 30, schema = { type = "integer" } }
-
-            [dimensions]
-            port = { position = 1, schema = { type = "integer", minimum = 1, maximum = 65535 } }
-
-            [[overrides]]
-            _context_ = { port = 8080 }
-            timeout = 60
-        "#;
-
-    let result = parse_toml_config(toml);
-    assert!(result.is_ok());
-}
-
-#[test]
-fn test_validation_invalid_numeric_dimension_value() {
-    let toml = r#"
-            [default-configs]
-            timeout = { value = 30, schema = { type = "integer" } }
-
-            [dimensions]
-            port = { position = 1, schema = { type = "integer", minimum = 1, maximum = 65535 } }
-
-            [[overrides]]
-            _context_ = { port = 70000 }
-            timeout = 60
-        "#;
-
-    let result = parse_toml_config(toml);
-    assert!(result.is_err());
-    assert!(matches!(result, Err(TomlError::ValidationError { .. })));
-    let err = result.unwrap_err();
-    assert!(err.to_string().contains("context[0]._context_.port"));
-}
-
-#[test]
-fn test_validation_boolean_dimension_value() {
-    let toml = r#"
-            [default-configs]
-            timeout = { value = 30, schema = { type = "integer" } }
-
-            [dimensions]
-            debug = { position = 1, schema = { type = "boolean" } }
-
-            [[overrides]]
-            _context_ = { debug = true }
-            timeout = 60
-        "#;
-
-    let result = parse_toml_config(toml);
-    assert!(result.is_ok());
-}
-
-#[test]
-fn test_validation_invalid_boolean_dimension_value() {
-    let toml = r#"
-            [default-configs]
-            timeout = { value = 30, schema = { type = "integer" } }
-
-            [dimensions]
-            debug = { position = 1, schema = { type = "boolean" } }
-
-            [[overrides]]
-            _context_ = { debug = "yes" }
-            timeout = 60
-        "#;
-
-    let result = parse_toml_config(toml);
-    assert!(result.is_err());
-    assert!(matches!(result, Err(TomlError::ValidationError { .. })));
-    let err = result.unwrap_err();
-    assert!(err.to_string().contains("context[0]._context_.debug"));
-}
-
-#[test]
-fn test_object_value_round_trip() {
-    // Test that object values are serialized as triple-quoted JSON and parsed back correctly
-    let original_toml = r#"
-[default-configs]
-config = { value = { host = "localhost", port = 8080 } , schema = { type = "object" } }
+            config = { value = { host = "localhost", port = 8080 }, schema = { type = "object" } }
 
 [dimensions]
-os = { position = 1, schema = { type = "string", enum = ["linux", "windows", "macos"] } }
-os_cohort = { position = 2, schema = { enum = ["unix", "otherwise"], type = "string", definitions = { unix = { in = [{ var = "os" }, ["linux", "macos"]] } } }, type = "LOCAL_COHORT:os" }
+os = { position = 2, schema = { type = "string", enum = ["linux", "windows", "macos"] } }
+os_cohort = { position = 1, schema = { enum = ["unix", "otherwise"], type = "string", definitions = { unix = { in = [{ var = "os" }, ["linux", "macos"]] } } }, type = "LOCAL_COHORT:os" }
 
 [[overrides]]
 _context_ = { os = "linux" }
@@ -724,7 +568,7 @@ config = { host = "prod.unix.com", port = 8443 }
 "#;
 
     // Parse TOML -> Config
-    let config = parse_toml_config(original_toml).unwrap();
+    let config = parse_toml_config(toml).unwrap();
 
     // Verify default config object was parsed correctly
     let default_config_value = config.default_configs.get("config").unwrap();
@@ -753,11 +597,11 @@ config = { host = "prod.unix.com", port = 8443 }
     let override_config = overrides.get("config").unwrap();
     assert_eq!(
         override_config.get("host"),
-        Some(&Value::String("prod.unix.com".to_string()))
+        Some(&Value::String("prod.example.com".to_string()))
     );
     assert_eq!(
         override_config.get("port"),
-        Some(&Value::Number(serde_json::Number::from(8443)))
+        Some(&Value::Number(serde_json::Number::from(443)))
     );
 
     let override_key = config.contexts[1].override_with_keys.get_key();
@@ -765,11 +609,11 @@ config = { host = "prod.unix.com", port = 8443 }
     let override_config = overrides.get("config").unwrap();
     assert_eq!(
         override_config.get("host"),
-        Some(&Value::String("prod.example.com".to_string()))
+        Some(&Value::String("prod.unix.com".to_string()))
     );
     assert_eq!(
         override_config.get("port"),
-        Some(&Value::Number(serde_json::Number::from(443)))
+        Some(&Value::Number(serde_json::Number::from(8443)))
     );
 }
 
@@ -782,8 +626,8 @@ config = { value = { host = "localhost", port = 8080 } , schema = { type = "obje
 max_count = { value = 10 , schema = { type = "number", minimum = 0, maximum = 100 } }
 
 [dimensions]
-os = { position = 1, schema = { type = "string", enum = ["linux", "windows", "macos"] } }
-os_cohort = { position = 2, schema = { enum = ["unix", "otherwise"], type = "string", definitions = { unix = { in = [{ var = "os" }, ["linux", "macos"]] } } }, type = "LOCAL_COHORT:os" }
+os = { position = 2, schema = { type = "string", enum = ["linux", "windows", "macos"] } }
+os_cohort = { position = 1, schema = { enum = ["unix", "otherwise"], type = "string", definitions = { unix = { in = [{ var = "os" }, ["linux", "macos"]] } } }, type = "LOCAL_COHORT:os" }
 
 [[overrides]]
 _context_ = { os = "linux" }

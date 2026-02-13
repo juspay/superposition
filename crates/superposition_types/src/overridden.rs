@@ -53,7 +53,7 @@ mod tests {
 
         assert_eq!(
             filter_config_keys_by_prefix(&config.default_configs, &prefix_list),
-            (*get_prefix_filtered_config1().default_configs).clone()
+            get_prefix_filtered_config1().default_configs.into_inner()
         );
 
         let prefix_list =
@@ -61,7 +61,7 @@ mod tests {
 
         assert_eq!(
             filter_config_keys_by_prefix(&config.default_configs, &prefix_list),
-            (*get_prefix_filtered_config2().default_configs).clone()
+            get_prefix_filtered_config2().default_configs.into_inner()
         );
 
         let prefix_list = HashSet::from_iter(vec![String::from("abcd")]);

@@ -441,6 +441,7 @@ bindings-test: uniffi-bindings
 	@echo "========================================"
 	@echo "Running JavaScript/TypeScript TOML binding tests"
 	@echo "========================================"
+	bash ./scripts/setup_provider_binaries.sh js bindings release
 	cd clients/javascript/bindings && npm install && npm run build && node dist/test-toml.js
 	@echo ""
 	@echo "========================================"

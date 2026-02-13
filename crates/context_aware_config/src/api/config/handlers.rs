@@ -19,6 +19,10 @@ use service_utils::{
     helpers::fetch_dimensions_info_map,
     service::types::{AppState, DbConnection, WorkspaceContext},
 };
+use superposition_core::{
+    helpers::{calculate_context_weight, hash},
+    serialize_to_toml,
+};
 use superposition_derives::authorized;
 #[cfg(feature = "high-performance-mode")]
 use superposition_macros::response_error;
@@ -55,10 +59,6 @@ use crate::{
 };
 
 use super::helpers::{apply_prefix_filter_to_config, resolve, setup_query_data};
-use superposition_core::{
-    helpers::{calculate_context_weight, hash},
-    serialize_to_toml,
-};
 
 #[allow(clippy::let_and_return)]
 pub fn endpoints() -> Scope {
@@ -454,7 +454,7 @@ async fn reduce_handler(
     for (key, _) in default_config {
         let contexts = config.contexts;
         let overrides = config.overrides;
-        let default_config = config.default_configs;
+        let default_config = config.default_configs.into_inner();
         config = reduce_config_key(
             &user,
             &mut conn,
@@ -462,7 +462,7 @@ async fn reduce_handler(
             overrides.clone(),
             key.as_str(),
             &dimensions_info_map,
-            (*default_config).clone(),
+            default_config.clone(),
             is_approve,
             &workspace_context,
             &state,
@@ -654,13 +654,8 @@ async fn get_toml_handler(
     let detailed_config =
         generate_detailed_cac(&mut conn, &workspace_context.schema_name)?;
 
-    let toml_str = serialize_to_toml(detailed_config).map_err(|e| {
-        log::error!("Failed to serialize config to TOML: {}", e);
-        superposition::AppError::UnexpectedError(anyhow::anyhow!(
-            "Failed to serialize config to TOML: {}",
-            e
-        ))
-    })?;
+    let toml_str = serialize_to_toml(detailed_config)
+        .map_err(|e| unexpected_error!("Failed to serialize config to TOML: {}", e))?;
 
     let mut response = HttpResponse::Ok();
     add_last_modified_to_header(max_created_at, false, &mut response);

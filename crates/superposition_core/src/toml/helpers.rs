@@ -64,8 +64,8 @@ pub fn format_toml_value(value: &TomlValue) -> String {
     }
 }
 
-pub fn context_toml_to_condition(ctx: &toml::Table) -> Result<Condition, TomlError> {
-    let json = toml_to_json(TomlValue::Table(ctx.clone()));
+pub fn try_condition_from_toml(ctx: toml::Table) -> Result<Condition, TomlError> {
+    let json = toml_to_json(TomlValue::Table(ctx));
     let map = match json {
         Value::Object(map) => map,
         _ => {
@@ -79,8 +79,8 @@ pub fn context_toml_to_condition(ctx: &toml::Table) -> Result<Condition, TomlErr
         .map_err(|e| TomlError::ConversionError(format!("Invalid condition: {}", e)))
 }
 
-pub fn overrides_toml_to_map(overrides: &toml::Table) -> Result<Overrides, TomlError> {
-    let json = toml_to_json(TomlValue::Table(overrides.clone()));
+pub fn try_overrides_from_toml(overrides: toml::Table) -> Result<Overrides, TomlError> {
+    let json = toml_to_json(TomlValue::Table(overrides));
     let map = match json {
         Value::Object(map) => map,
         _ => {

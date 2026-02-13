@@ -967,7 +967,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if (lib.uniffi_superposition_core_checksum_func_ffi_get_applicable_variants() != 58234.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_superposition_core_checksum_func_ffi_parse_toml_config() != 20800.toShort()) {
+    if (lib.uniffi_superposition_core_checksum_func_ffi_parse_toml_config() != 1558.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -1762,14 +1762,14 @@ public object FfiConverterMapStringTypeOverrides: FfiConverterRustBuffer<Map<kot
          *
          * # Example TOML
          * ```toml
-         * [default-config]
+         * [default-configs]
          * timeout = { value = 30, schema = { type = "integer" } }
          *
          * [dimensions]
          * os = { position = 1, schema = { type = "string" } }
          *
-         * [[context]]
-         * _condition_ = { os = "linux" }
+         * [[overrides]]
+         * _context_ = { os = "linux" }
          * timeout = 60
          * ```
          */

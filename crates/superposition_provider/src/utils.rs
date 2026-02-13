@@ -652,7 +652,7 @@ impl ConversionUtils {
         );
 
         // Start with default configs
-        let mut result = (*final_config.default_configs).clone();
+        let mut result = final_config.default_configs.into_inner();
 
         // Apply overrides based on context priority (higher priority wins)
         let mut sorted_contexts = final_config.contexts.clone();

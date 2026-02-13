@@ -485,21 +485,6 @@ export class NativeResolver {
             simpleLibName = "libsuperposition_core.so";
         }
 
-        const simpleLocalBuildPath = path.resolve(
-            dirname,
-            "..",
-            "..",
-            "..",
-            "..",
-            "target",
-            "release",
-            simpleLibName
-        );
-        if (this.fileExists(simpleLocalBuildPath)) {
-            console.log(`Using simple local build: ${simpleLocalBuildPath}`);
-            return simpleLocalBuildPath;
-        }
-
         // 5. Final fallback - assume it's in the system path
         console.warn(
             `Native library not found in expected locations, trying: ${filename}`

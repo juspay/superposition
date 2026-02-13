@@ -47,7 +47,7 @@ impl ContextValidationError {
 /// # Returns
 /// * `Ok(JSONSchema)` - Compiled schema ready for validation
 /// * `Err(String)` - Compilation error message
-pub fn compile_schema(schema: &Value) -> Result<JSONSchema, String> {
+pub fn try_into_jsonschema(schema: &Value) -> Result<JSONSchema, String> {
     JSONSchema::options()
         .with_draft(Draft::Draft7)
         .compile(schema)
@@ -67,7 +67,7 @@ pub fn compile_schema(schema: &Value) -> Result<JSONSchema, String> {
 /// * `Ok(())` if validation succeeds
 /// * `Err(Vec<String>)` containing all error messages (compilation + validation)
 pub fn validate_against_schema(value: &Value, schema: &Value) -> Result<(), Vec<String>> {
-    let compiled_schema = compile_schema(schema).map_err(|e| vec![e])?;
+    let compiled_schema = try_into_jsonschema(schema).map_err(|e| vec![e])?;
     compiled_schema
         .validate(value)
         .map_err(|errors| errors.map(|e| e.to_string()).collect())
@@ -86,10 +86,10 @@ pub fn validate_against_schema(value: &Value, schema: &Value) -> Result<(), Vec<
 /// * `Err(Vec<String>)` containing validation error messages
 pub fn validate_schema(schema: &Value) -> Result<(), Vec<String>> {
     // Use the new compile function
-    compile_schema(schema).map_err(|e| vec![e])?;
+    try_into_jsonschema(schema).map_err(|e| vec![e])?;
 
     // Then validate against the meta-schema
-    let meta_schema = get_meta_schema();
+    let meta_schema = get_meta_schema().map_err(|e| vec![e])?;
     meta_schema
         .validate(schema)
         .map_err(|errors| errors.map(|e| e.to_string()).collect())
@@ -115,9 +115,11 @@ pub fn validate_schema(schema: &Value) -> Result<(), Vec<String>> {
 /// # Returns
 /// * `Ok(())` if the schema structure is valid
 /// * `Err(Vec<String>)` containing validation error messages
-pub fn validate_cohort_schema_structure(schema: &Value) -> Result<(), Vec<String>> {
+pub fn validate_cohort_schema_structure(
+    schema: &Value,
+) -> Result<Vec<String>, Vec<String>> {
     // Get the cohort meta-schema
-    let cohort_meta_schema = get_cohort_meta_schema();
+    let cohort_meta_schema = get_cohort_meta_schema().map_err(|e| vec![e])?;
     cohort_meta_schema.validate(schema).map_err(|e| {
         let verrors = e.collect::<Vec<ValidationError>>();
         vec![format!(
@@ -138,13 +140,6 @@ pub fn validate_cohort_schema_structure(schema: &Value) -> Result<(), Vec<String
         .iter()
         .filter_map(|v| v.as_str().map(str::to_string))
         .collect::<Vec<String>>();
-
-    // Check that "otherwise" is in the enum
-    if !enum_options.contains(&"otherwise".to_string()) {
-        return Err(vec![
-            "Cohort schema enum must contain 'otherwise' as an option".to_string(),
-        ]);
-    }
 
     // Get definitions
     let definitions = schema
@@ -172,11 +167,6 @@ pub fn validate_cohort_schema_structure(schema: &Value) -> Result<(), Vec<String
                 key
             )]);
         }
-        if key == "otherwise" {
-            return Err(vec![
-                "Cohort definitions should not contain 'otherwise'".to_string()
-            ]);
-        }
     }
 
     // Check that all enum options (except "otherwise") have definitions
@@ -189,7 +179,7 @@ pub fn validate_cohort_schema_structure(schema: &Value) -> Result<(), Vec<String
         }
     }
 
-    Ok(())
+    Ok(enum_options)
 }
 
 /// Get the meta-schema for validating cohort schema definitions
@@ -198,8 +188,9 @@ pub fn validate_cohort_schema_structure(schema: &Value) -> Result<(), Vec<String
 /// with `type`, `enum`, and `definitions` fields.
 ///
 /// # Returns
-/// A compiled JSONSchema for cohort meta-validation
-pub fn get_cohort_meta_schema() -> JSONSchema {
+/// * `Ok(JSONSchema)` - Compiled schema ready for validation
+/// * `Err(String)` - Compilation error message
+pub fn get_cohort_meta_schema() -> Result<JSONSchema, String> {
     let meta_schema = json!({
         "type": "object",
         "properties": {
@@ -221,7 +212,7 @@ pub fn get_cohort_meta_schema() -> JSONSchema {
         "required": ["type", "enum", "definitions"]
     });
 
-    compile_schema(&meta_schema).expect("Failed to compile cohort meta-schema")
+    try_into_jsonschema(&meta_schema)
 }
 
 /// Format validation errors into a human-readable string
@@ -241,8 +232,9 @@ pub fn format_validation_errors(errors: &[String]) -> String {
 /// the subset of JSON Schema features supported by the system.
 ///
 /// # Returns
-/// A compiled JSONSchema for meta-validation
-pub fn get_meta_schema() -> JSONSchema {
+/// * `Ok(JSONSchema)` - Compiled schema ready for validation
+/// * `Err(String)` - Compilation error message
+pub fn get_meta_schema() -> Result<JSONSchema, String> {
     let meta_schema = json!({
         "type": "object",
         "properties": {
@@ -253,7 +245,7 @@ pub fn get_meta_schema() -> JSONSchema {
         "required": ["type"],
     });
 
-    compile_schema(&meta_schema).expect("Failed to compile meta-schema")
+    try_into_jsonschema(&meta_schema)
 }
 
 /// Validate a context dimension value against its schema
@@ -341,6 +333,31 @@ pub fn validate_config_value(
             errors,
         }]
     })
+}
+
+/// Validate that a cohort dimension's position is valid relative to its parent dimension
+///
+/// Cohort dimensions must have a position that is less than or equal to their
+/// parent dimension's position. This ensures proper evaluation order.
+///
+/// # Arguments
+/// * `dimension_info` - Information about the cohort dimension
+/// * `cohort_dimension_info` - Information about the parent cohort dimension
+///
+/// # Returns
+/// * `Ok(())` if the position is valid
+/// * `Err(String)` containing an error message if the position is invalid
+pub fn validate_cohort_dimension_position(
+    granular_dimension_info: &DimensionInfo,
+    coarse_dimension_info: &DimensionInfo,
+) -> Result<(), String> {
+    if granular_dimension_info.position < coarse_dimension_info.position {
+        return Err(format!(
+            "Coarse Dimension position {} should be less than the granular dimension position {}",
+            coarse_dimension_info.position, granular_dimension_info.position
+        ));
+    }
+    Ok(())
 }
 
 /// Validate overrides against default config schemas
@@ -630,7 +647,7 @@ mod tests {
 
     #[test]
     fn test_get_meta_schema() {
-        let meta_schema = get_meta_schema();
+        let meta_schema = get_meta_schema().expect("Failed to get meta-schema");
         let valid_schema = json!({ "type": "string" });
 
         let result = meta_schema.validate(&valid_schema);
@@ -639,7 +656,7 @@ mod tests {
 
     #[test]
     fn test_get_meta_schema_invalid() {
-        let meta_schema = get_meta_schema();
+        let meta_schema = get_meta_schema().expect("Failed to get meta-schema");
         let invalid_schema = json!({ "type": "invalid_type" });
 
         let result = meta_schema.validate(&invalid_schema);

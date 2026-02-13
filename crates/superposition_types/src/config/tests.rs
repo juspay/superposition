@@ -134,15 +134,14 @@ fn filter_default_by_prefix_with_dimension() {
 
     assert_eq!(
         config.filter_default_by_prefix(&prefix_list),
-        ExtendedMap(
-            json!({
-                "test.test.test1": 1,
-                "test.test1": 12,
-            })
-            .as_object()
-            .unwrap()
-            .clone()
-        )
+        json!({
+            "test.test.test1": 1,
+            "test.test1": 12,
+        })
+        .as_object()
+        .unwrap()
+        .clone()
+        .into()
     );
 
     let prefix_list = HashSet::from_iter(vec![String::from("test3")]);
@@ -161,15 +160,14 @@ fn filter_default_by_prefix_without_dimension() {
 
     assert_eq!(
         config.filter_default_by_prefix(&prefix_list),
-        ExtendedMap(
-            json!({
-                "test.test.test1": 1,
-                "test.test1": 12,
-            })
-            .as_object()
-            .unwrap()
-            .clone()
-        )
+        json!({
+            "test.test.test1": 1,
+            "test.test1": 12,
+        })
+        .as_object()
+        .unwrap()
+        .clone()
+        .into()
     );
 
     let prefix_list = HashSet::from_iter(vec![String::from("test3")]);

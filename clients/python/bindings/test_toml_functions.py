@@ -15,7 +15,7 @@ from superposition_bindings.superposition_client import ffi_parse_toml_config
 
 # Sample TOML configuration - ride-sharing pricing example
 EXAMPLE_TOML = """
-[default-config]
+[default-configs]
 per_km_rate = { "value" = 20.0, "schema" = { "type" = "number" } }
 surge_factor = { "value" = 0.0, "schema" = { "type" = "number" } }
 
@@ -24,24 +24,24 @@ city = { position = 1, schema = { "type" = "string", "enum" = ["Bangalore", "Del
 vehicle_type = { position = 2, schema = { "type" = "string", "enum" = [ "auto", "cab", "bike", ] } }
 hour_of_day = { position = 3, schema = { "type" = "integer", "minimum" = 0, "maximum" = 23 }}
 
-[[context]]
-_condition_ = { vehicle_type = "cab" }
+[[overrides]]
+_context_ = { vehicle_type = "cab" }
 per_km_rate = 25.0
 
-[[context]]
-_condition_ = { vehicle_type = "bike" }
+[[overrides]]
+_context_ = { vehicle_type = "bike" }
 per_km_rate = 15.0
 
-[[context]]
-_condition_ = { city = "Bangalore", vehicle_type = "cab" }
+[[overrides]]
+_context_ = { city = "Bangalore", vehicle_type = "cab" }
 per_km_rate = 22.0
 
-[[context]]
-_condition_ = { city = "Delhi", vehicle_type = "cab", hour_of_day = 18 }
+[[overrides]]
+_context_ = { city = "Delhi", vehicle_type = "cab", hour_of_day = 18 }
 surge_factor = 5.0
 
-[[context]]
-_condition_ = { city = "Delhi", vehicle_type = "cab", hour_of_day = 6 }
+[[overrides]]
+_context_ = { city = "Delhi", vehicle_type = "cab", hour_of_day = 6 }
 surge_factor = 5.0
 """
 
@@ -153,7 +153,7 @@ def test_error_handling():
         },
         {
             "name": "Missing position in dimension",
-            "toml": "[default-config]\nkey1 = { value = 10, schema = { type = \"integer\" } }\n\n[dimensions]\ncity = { schema = { \"type\" = \"string\" } }\n\n[[context]]\n_condition_= {city=\"bangalore\"}\nkey1 = 20"
+            "toml": "[default-configs]\nkey1 = { value = 10, schema = { type = \"integer\" } }\n\n[dimensions]\ncity = { schema = { \"type\" = \"string\" } }\n\n[[overrides]]\n_context_= {city=\"bangalore\"}\nkey1 = 20"
         },
     ]
 

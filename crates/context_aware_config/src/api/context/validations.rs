@@ -4,7 +4,7 @@ use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use jsonschema::ValidationError;
 use serde_json::{Map, Value};
 use service_utils::service::types::SchemaName;
-use superposition_core::validations::{compile_schema, validation_err_to_str};
+use superposition_core::validations::{try_into_jsonschema, validation_err_to_str};
 use superposition_macros::{bad_argument, validation_error};
 use superposition_types::{DBConnection, DimensionInfo, database::schema, result};
 
@@ -30,7 +30,7 @@ pub fn validate_override_with_default_configs(
             .get(key)
             .ok_or(bad_argument!("failed to get schema for config key {}", key))?;
 
-        let jschema = compile_schema(schema).map_err(|e| {
+        let jschema = try_into_jsonschema(schema).map_err(|e| {
             log::error!("({key}) schema compilation error: {}", e);
             bad_argument!("Invalid JSON schema")
         })?;
@@ -69,11 +69,8 @@ pub fn validate_context_jsonschema(
     dimension_value: &Value,
     dimension_schema: &Value,
 ) -> result::Result<()> {
-    let dimension_schema = compile_schema(dimension_schema).map_err(|e| {
-        log::error!(
-            "Failed to compile as a Draft-7 JSON schema: {}",
-            e.to_string()
-        );
+    let dimension_schema = try_into_jsonschema(dimension_schema).map_err(|e| {
+        log::error!("Failed to compile as a Draft-7 JSON schema: {}", e);
         bad_argument!("Error encountered: invalid jsonschema for dimension.")
     })?;
 

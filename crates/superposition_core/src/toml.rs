@@ -21,8 +21,8 @@ use toml::Value as TomlValue;
 use crate::{
     helpers::{build_context, create_connections_with_dependents},
     toml::helpers::{
-        context_toml_to_condition, format_key, format_toml_value, overrides_toml_to_map,
-        toml_to_json,
+        format_key, format_toml_value, toml_to_json, try_condition_from_toml,
+        try_overrides_from_toml,
     },
     validations,
 };
@@ -32,6 +32,12 @@ use crate::{
 pub enum TomlError {
     TomlSyntaxError(String),
     InvalidDimension(String),
+    InvalidCohortDimensionPosition {
+        dimension: String,
+        dimension_position: i32,
+        cohort_dimension: String,
+        cohort_dimension_position: i32,
+    },
     UndeclaredDimension {
         dimension: String,
         context: String,
@@ -55,6 +61,16 @@ pub enum TomlError {
 impl fmt::Display for TomlError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
+            Self::InvalidCohortDimensionPosition {
+                dimension,
+                dimension_position,
+                cohort_dimension,
+                cohort_dimension_position,
+            }  => { write!(
+                f,
+                "TOML validation error: Dimension {} position {} should be greater than cohort dimension {} position {}",
+                dimension, dimension_position, cohort_dimension, cohort_dimension_position
+            )},
             Self::UndeclaredDimension {
                 dimension,
                 context,
@@ -328,6 +344,23 @@ impl TryFrom<DetailedConfigToml> for DetailedConfig {
                         }
                     })?;
 
+                    let cohort_dimension_info = dimensions
+                        .get(cohort_dim)
+                        .ok_or_else(|| TomlError::InvalidDimension(cohort_dim.clone()))?;
+
+                    validations::validate_cohort_dimension_position(
+                        cohort_dimension_info,
+                        &dim_info,
+                    )
+                    .map_err(|_| {
+                        TomlError::InvalidCohortDimensionPosition {
+                            dimension: dim.clone(),
+                            dimension_position: dim_info.position,
+                            cohort_dimension: cohort_dim.to_string(),
+                            cohort_dimension_position: cohort_dimension_info.position,
+                        }
+                    })?;
+
                     create_connections_with_dependents(cohort_dim, &dim, &mut dimensions);
                 }
                 DimensionType::RemoteCohort(ref cohort_dim) => {
@@ -340,6 +373,23 @@ impl TryFrom<DetailedConfigToml> for DetailedConfig {
                             key: format!("{}.schema", dim),
                             errors: validations::format_validation_errors(&errors),
                         })?;
+
+                    let cohort_dimension_info = dimensions
+                        .get(cohort_dim)
+                        .ok_or_else(|| TomlError::InvalidDimension(cohort_dim.clone()))?;
+
+                    validations::validate_cohort_dimension_position(
+                        cohort_dimension_info,
+                        &dim_info,
+                    )
+                    .map_err(|_| {
+                        TomlError::InvalidCohortDimensionPosition {
+                            dimension: dim.clone(),
+                            dimension_position: dim_info.position,
+                            cohort_dimension: cohort_dim.to_string(),
+                            cohort_dimension_position: cohort_dimension_info.position,
+                        }
+                    })?;
 
                     create_connections_with_dependents(cohort_dim, &dim, &mut dimensions);
                 }
@@ -365,8 +415,8 @@ impl TryFrom<DetailedConfigToml> for DetailedConfig {
 
         // Context and override generation with validation
         for (index, ctx) in d.overrides.into_iter().enumerate() {
-            let condition = context_toml_to_condition(&ctx.context)?;
-            let override_vals = overrides_toml_to_map(&ctx.overrides)?;
+            let condition = try_condition_from_toml(ctx.context)?;
+            let override_vals = try_overrides_from_toml(ctx.overrides)?;
 
             validations::validate_context(&condition, &dimensions).map_err(|errors| {
                 let first_error = &errors[0];

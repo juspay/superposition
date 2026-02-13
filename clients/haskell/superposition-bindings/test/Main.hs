@@ -43,7 +43,7 @@ invalidCall = do
 -- TOML parsing tests
 exampleToml :: String
 exampleToml = unlines
-  [ "[default-config]"
+  [ "[default-configs]"
   , "per_km_rate = { \"value\" = 20.0, \"schema\" = { \"type\" = \"number\" } }"
   , "surge_factor = { \"value\" = 0.0, \"schema\" = { \"type\" = \"number\" } }"
   , ""
@@ -52,20 +52,25 @@ exampleToml = unlines
   , "vehicle_type = { position = 2, schema = { \"type\" = \"string\", \"enum\" = [ \"auto\", \"cab\", \"bike\", ] } }"
   , "hour_of_day = { position = 3, schema = { \"type\" = \"integer\", \"minimum\" = 0, \"maximum\" = 23 }}"
   , ""
-  , "[context.\"vehicle_type=cab\"]"
+  , "[[overrides]]"
+  , "_context_ = {vehicle_type=\"cab\" }"
   , "per_km_rate = 25.0"
   , ""
-  , "[context.\"vehicle_type=bike\"]"
+  , "[[overrides]]"
+  , "_context_ = {vehicle_type=\"bike\" }"
   , "per_km_rate = 15.0"
   , ""
-  , "[context.\"city=Bangalore; vehicle_type=cab\"]"
+  , "[[overrides]]"
+  , "_context_ = {vehicle_type=\"bike\", city = \"Bangalore\" }"
   , "per_km_rate = 22.0"
   , ""
-  , "[context.\"city=Delhi; vehicle_type=cab; hour_of_day=18\"]"
-  , "surge_factor = 5.0"
+  , "[[overrides]]"
+  , "_context_ = {vehicle_type=\"cab\", city = \"Delhi\", hour_of_day = 18 }"
+  , "per_km_rate = 5.0"
   , ""
-  , "[context.\"city=Delhi; vehicle_type=cab; hour_of_day=6\"]"
-  , "surge_factor = 5.0"
+  , "[[overrides]]"
+  , "_context_ = {vehicle_type=\"cab\", city = \"Delhi\", hour_of_day = 18 }"
+  , "per_km_rate = 6.0"
   ]
 
 parseTomlValid :: IO ()

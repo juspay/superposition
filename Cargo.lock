@@ -5336,7 +5336,6 @@ dependencies = [
  "derive_more 0.99.17",
  "fred",
  "futures-util",
- "jsonschema",
  "juspay_diesel",
  "log",
  "once_cell",

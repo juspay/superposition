@@ -16,7 +16,7 @@ use service_utils::{
         WorkspaceContext,
     },
 };
-use superposition_core::validations::{compile_schema, validation_err_to_str};
+use superposition_core::validations::{try_into_jsonschema, validation_err_to_str};
 use superposition_derives::authorized;
 use superposition_macros::{
     bad_argument, db_error, not_found, unexpected_error, validation_error,
@@ -107,7 +107,7 @@ async fn create_handler(
 
     let schema = Value::from(&default_config.schema);
 
-    let schema_compile_result = compile_schema(&schema);
+    let schema_compile_result = try_into_jsonschema(&schema);
     let jschema = match schema_compile_result {
         Ok(jschema) => jschema,
         Err(e) => {
@@ -234,7 +234,7 @@ async fn update_handler(
     if let Some(ref schema) = req.schema {
         let schema = Value::from(schema);
 
-        let jschema = compile_schema(&schema).map_err(|e| {
+        let jschema = try_into_jsonschema(&schema).map_err(|e| {
             log::info!("Failed to compile JSON schema: {e}");
             bad_argument!("Invalid JSON schema.")
         })?;

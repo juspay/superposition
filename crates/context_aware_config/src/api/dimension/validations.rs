@@ -1,12 +1,9 @@
 use std::collections::HashSet;
 
 use diesel::{ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl};
-use jsonschema::{JSONSchema, ValidationError};
 use serde_json::{Map, Value};
 use service_utils::{helpers::fetch_dimensions_info_map, service::types::SchemaName};
-use superposition_core::validations::{
-    compile_schema, validate_cohort_schema_structure, validation_err_to_str,
-};
+use superposition_core::validations::validate_cohort_schema_structure;
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
     DBConnection,
@@ -91,34 +88,6 @@ pub fn validate_position_wrt_dependency(
     Ok(())
 }
 
-/*
-  This step is required because an empty object
-  is also a valid JSON schema. So added required
-  validations for the input.
-*/
-// TODO: Recursive validation.
-
-pub fn validate_jsonschema(
-    validation_schema: &JSONSchema,
-    schema: &Value,
-) -> superposition::Result<()> {
-    // Compile schema first - returns specific error message
-    compile_schema(schema).map_err(|e| {
-        validation_error!("Invalid JSON schema (failed to compile): {:?}", e)
-    })?;
-
-    // Additional validation against the provided meta-schema
-    validation_schema.validate(schema).map_err(|e| {
-        let verrors = e.collect::<Vec<ValidationError>>();
-        validation_error!(
-            "schema validation failed: {}",
-            validation_err_to_str(verrors)
-                .first()
-                .unwrap_or(&String::new())
-        )
-    })
-}
-
 pub fn allow_primitive_types(schema: &Map<String, Value>) -> superposition::Result<()> {
     match schema.get("type").cloned().unwrap_or_default() {
         Value::String(type_val) if type_val != "array" && type_val != "object" => Ok(()),
@@ -134,19 +103,6 @@ pub fn allow_primitive_types(schema: &Map<String, Value>) -> superposition::Resu
             schema
         )),
     }
-}
-
-fn get_cohort_enum_options(schema: &Value) -> superposition::Result<Vec<String>> {
-    let enum_options = schema
-        .get("enum")
-        .and_then(|v| v.as_array())
-        .ok_or_else(|| {
-            validation_error!("Cohort schema must have an 'enum' field of type array")
-        })?
-        .iter()
-        .filter_map(|v| v.as_str().map(str::to_string))
-        .collect::<Vec<String>>();
-    Ok(enum_options)
 }
 
 pub fn does_dimension_exist_for_cohorting(
@@ -250,14 +206,13 @@ pub fn validate_cohort_schema(
     }
 
     // Use shared validation from superposition_core for cohort schema structure
-    validate_cohort_schema_structure(cohort_schema).map_err(|errors| {
-        validation_error!(
-            "schema validation failed: {}",
-            errors.first().unwrap_or(&String::new())
-        )
-    })?;
-
-    let enum_options = get_cohort_enum_options(cohort_schema)?;
+    let enum_options =
+        validate_cohort_schema_structure(cohort_schema).map_err(|errors| {
+            validation_error!(
+                "schema validation failed: {}",
+                errors.first().unwrap_or(&String::new())
+            )
+        })?;
 
     let cohort_schema = cohort_schema.get("definitions").ok_or(validation_error!(
         "Local cohorts require the jsonlogic rules to be written in the `definitions` field. Refer our API docs for examples",
@@ -349,20 +304,19 @@ pub fn validate_cohort_schema(
 
 #[cfg(test)]
 mod tests {
-    use crate::helpers::get_meta_schema;
+    use jsonschema::ValidationError;
     use serde_json::json;
-
-    use super::*;
+    use superposition_core::validations::get_meta_schema;
 
     #[test]
     fn test_get_meta_schema() {
-        let x = get_meta_schema();
+        let x = get_meta_schema().expect("Failed to get meta-schema");
 
         let ok_string_schema = json!({"type": "string", "pattern": ".*"});
         let ok_string_validation = x.validate(&ok_string_schema);
         assert!(ok_string_validation.is_ok());
 
-        let error_object_schema = json!({"type": "object"});
+        let error_object_schema = json!({"type": "objec"});
         let error_object_validation = x.validate(&error_object_schema).map_err(|e| {
             let verrors = e.collect::<Vec<ValidationError>>();
             format!(
@@ -370,6 +324,7 @@ mod tests {
                 verrors.as_slice()
             )
         });
+
         assert!(error_object_validation.is_err_and(|error| error.contains("Bad schema")));
 
         let ok_enum_schema = json!({"type": "string", "enum": ["ENUMVAL"]});

@@ -213,13 +213,13 @@ impl Client {
     pub async fn get_default_config(
         &self,
         filter_keys: Option<Vec<String>>,
-    ) -> Result<ExtendedMap, String> {
+    ) -> ExtendedMap {
         let configs = self.config.read().await;
-        let default_configs = match filter_keys {
+
+        match filter_keys {
+            None => configs.default_configs.clone(),
             Some(keys) => configs.filter_default_by_prefix(&HashSet::from_iter(keys)),
-            _ => configs.default_configs.clone(),
-        };
-        Ok(default_configs)
+        }
     }
 }
 
