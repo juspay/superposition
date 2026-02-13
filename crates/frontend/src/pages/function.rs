@@ -151,7 +151,7 @@ pub fn FunctionPage() -> impl IntoView {
                                         ) != function.published_code.clone();
                                         view! {
                                             <A
-                                                href=get_updated_query("tab", Some(tab.to_string()))
+                                                href=get_updated_query(&[("tab", Some(tab.to_string()))])
                                                 attr:role="tab"
                                                 class=move || {
                                                     if page_params_rws.with(|p| p.tab == tab) {
