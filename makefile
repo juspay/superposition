@@ -54,6 +54,7 @@ export SMITHY_MAVEN_REPOS = https://repo1.maven.org/maven2|https://sandbox.asset
 .PHONY: amend \
 	amend-no-edit \
 	backend \
+	bindings-test \
 	build \
 	check \
 	cleanup \
@@ -244,6 +245,7 @@ test: setup frontend superposition
 				--retry-all-errors \
 				'http://localhost:8080/health' 2>&1 > /dev/null
 	cd tests && bun test:clean
+	$(MAKE) bindings-test
 	$(MAKE) kill
 
 ## npm run test
@@ -381,8 +383,8 @@ else
 endif
 uniffi-bindings:
 	cargo build --package superposition_core --lib --release
-	cargo run --bin uniffi-bindgen generate --library $(CARGO_TARGET_DIR)/release/libsuperposition_core.$(LIB_EXTENSION) --language kotlin --out-dir clients/java/bindings/src/main/kotlin
-	cargo run --bin uniffi-bindgen generate --library $(CARGO_TARGET_DIR)/release/libsuperposition_core.$(LIB_EXTENSION) --language python --out-dir clients/python/bindings/superposition_bindings
+	cargo run --bin uniffi-bindgen generate --library $(CARGO_TARGET_DIR)/release/libsuperposition_core.$(LIB_EXTENSION) --language kotlin --out-dir clients/java/bindings/src/main/kotlin --no-format
+	cargo run --bin uniffi-bindgen generate --library $(CARGO_TARGET_DIR)/release/libsuperposition_core.$(LIB_EXTENSION) --language python --out-dir clients/python/bindings/superposition_bindings --no-format
 	git apply uniffi/patches/*.patch
 
 provider-template: setup superposition
@@ -413,3 +415,51 @@ test-kotlin-provider: provider-template
 test-rust-provider: provider-template
 	cargo test --package superposition_provider --test integration_test -- --nocapture --ignored
 	$(MAKE) kill
+	-@pkill -f $(CARGO_TARGET_DIR)/debug/superposition
+
+# Target to run all TOML bindings tests
+bindings-test: uniffi-bindings
+	@echo ""
+	@echo ""
+	@echo "========================================"
+	@echo "Running Python TOML binding tests"
+	@echo "========================================"
+	@# Copy library to bindings directory for Python tests with platform-specific name
+	@if [ "$$(uname)" = "Darwin" ]; then \
+		if [ "$$(uname -m)" = "arm64" ]; then \
+			cp $(CARGO_TARGET_DIR)/release/libsuperposition_core.dylib clients/python/bindings/superposition_bindings/libsuperposition_core-aarch64-apple-darwin.dylib; \
+		else \
+			cp $(CARGO_TARGET_DIR)/release/libsuperposition_core.dylib clients/python/bindings/superposition_bindings/libsuperposition_core-x86_64-apple-darwin.dylib; \
+		fi \
+	elif [ "$$(uname)" = "Linux" ]; then \
+		cp $(CARGO_TARGET_DIR)/release/libsuperposition_core.so clients/python/bindings/superposition_bindings/libsuperposition_core-x86_64-unknown-linux-gnu.so; \
+	else \
+		cp $(CARGO_TARGET_DIR)/release/superposition_core.dll clients/python/bindings/superposition_bindings/libsuperposition_core-x86_64-pc-windows-msvc.dll; \
+	fi
+	cd clients/python/bindings && python3 test_toml_functions.py
+	@echo ""
+	@echo "========================================"
+	@echo "Running JavaScript/TypeScript TOML binding tests"
+	@echo "========================================"
+	bash ./scripts/setup_provider_binaries.sh js bindings release
+	cd clients/javascript/bindings && npm install && npm run build && node dist/test-toml.js
+	@echo ""
+	@echo "========================================"
+	@echo "Running Java/Kotlin TOML binding tests"
+	@echo "========================================"
+	cd clients/java && SUPERPOSITION_LIB_PATH=$(CARGO_TARGET_DIR)/release ./gradlew bindings:test
+	@echo ""
+	@echo "========================================"
+	@echo "Running Haskell TOML binding tests"
+	@echo "========================================"
+	cd clients/haskell/superposition-bindings && \
+		export LIBRARY_PATH=$(CARGO_TARGET_DIR)/release:$$LIBRARY_PATH && \
+		export LD_LIBRARY_PATH=$(CARGO_TARGET_DIR)/release:$$LD_LIBRARY_PATH && \
+		export DYLD_LIBRARY_PATH=$(CARGO_TARGET_DIR)/release:$$DYLD_LIBRARY_PATH && \
+		echo "packages: ." > cabal.project.local && \
+		cabal test --project-file=cabal.project.local && \
+		rm -f cabal.project.local
+	@echo ""
+	@echo "========================================"
+	@echo "All TOML binding tests passed!"
+	@echo "========================================"

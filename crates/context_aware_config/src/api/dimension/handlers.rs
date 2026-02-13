@@ -11,6 +11,7 @@ use service_utils::{
         AppHeader, AppState, CustomHeaders, DbConnection, WorkspaceContext,
     },
 };
+use superposition_core::validations::validate_schema;
 use superposition_derives::authorized;
 use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
 use superposition_types::{
@@ -40,7 +41,7 @@ use crate::{
         },
         validations::{
             does_dimension_exist_for_cohorting, validate_cohort_position,
-            validate_cohort_schema, validate_dimension_position, validate_jsonschema,
+            validate_cohort_schema, validate_dimension_position,
             validate_position_wrt_dependency, validate_validation_function,
             validate_value_compute_function,
         },
@@ -97,11 +98,21 @@ async fn create_handler(
     match create_req.dimension_type {
         DimensionType::Regular {} => {
             allow_primitive_types(&create_req.schema)?;
-            validate_jsonschema(&state.meta_schema, &schema_value)?;
+            validate_schema(&schema_value).map_err(|e| {
+                superposition::AppError::ValidationError(format!(
+                    "JSON Schema's schema is broken - this is unexpected {}",
+                    e.join("")
+                ))
+            })?;
         }
         DimensionType::RemoteCohort(ref cohort_based_on) => {
             allow_primitive_types(&create_req.schema)?;
-            validate_jsonschema(&state.meta_schema, &schema_value)?;
+            validate_schema(&schema_value).map_err(|e| {
+                superposition::AppError::ValidationError(format!(
+                    "JSON Schema's schema is broken - this is unexpected {}",
+                    e.join("")
+                ))
+            })?;
             let based_on_dimension = does_dimension_exist_for_cohorting(
                 cohort_based_on,
                 &workspace_context.schema_name,
@@ -304,7 +315,12 @@ async fn update_handler(
         match dimension_data.dimension_type {
             DimensionType::Regular {} | DimensionType::RemoteCohort(_) => {
                 allow_primitive_types(new_schema)?;
-                validate_jsonschema(&state.meta_schema, &schema_value)?;
+                validate_schema(&schema_value).map_err(|e| {
+                    superposition::AppError::ValidationError(format!(
+                        "JSON Schema's schema is broken - this is unexpected {}",
+                        e.join("")
+                    ))
+                })?;
             }
             DimensionType::LocalCohort(ref cohort_based_on) => {
                 validate_cohort_schema(

@@ -19,7 +19,6 @@ derive_more = { workspace = true }
 diesel = { workspace = true }
 fred = { workspace = true, optional = true }
 futures-util = { workspace = true }
-jsonschema = { workspace = true }
 log = { workspace = true }
 once_cell = { workspace = true }
 openidconnect = "3.5.0"

@@ -1,6 +1,6 @@
 use serde_json::{Map, Value};
 use std::collections::HashMap;
-use superposition_types::{Context, DimensionInfo, Overrides};
+use superposition_types::{Config, Context, DimensionInfo, Overrides};
 use thiserror::Error;
 
 use crate::{
@@ -155,4 +155,31 @@ fn ffi_get_applicable_variants(
     .map_err(OperationError::Unexpected)?;
 
     Ok(r)
+}
+
+/// Parse TOML configuration string
+///
+/// # Arguments
+/// * `toml_content` - TOML string with configuration
+///
+/// # Returns
+/// * `Ok(Config)` - Parsed configuration with all components
+/// * `Err(OperationError)` - Detailed error message
+///
+/// # Example TOML
+/// ```toml
+/// [default-configs]
+/// timeout = { value = 30, schema = { type = "integer" } }
+///
+/// [dimensions]
+/// os = { position = 1, schema = { type = "string" } }
+///
+/// [[overrides]]
+/// _context_ = { os = "linux" }
+/// timeout = 60
+/// ```
+#[uniffi::export]
+fn ffi_parse_toml_config(toml_content: String) -> Result<Config, OperationError> {
+    crate::parse_toml_config(&toml_content)
+        .map_err(|e| OperationError::Unexpected(e.to_string()))
 }

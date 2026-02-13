@@ -6,6 +6,7 @@ use map::{with_dimensions, without_dimensions};
 use serde_json::{from_value, json, Map, Number, Value};
 
 use super::Config;
+use crate::ExtendedMap;
 
 pub(crate) fn get_dimension_data1() -> Map<String, Value> {
     Map::from_iter(vec![(String::from("test3"), Value::Bool(true))])
@@ -140,11 +141,15 @@ fn filter_default_by_prefix_with_dimension() {
         .as_object()
         .unwrap()
         .clone()
+        .into()
     );
 
     let prefix_list = HashSet::from_iter(vec![String::from("test3")]);
 
-    assert_eq!(config.filter_default_by_prefix(&prefix_list), Map::new());
+    assert_eq!(
+        config.filter_default_by_prefix(&prefix_list),
+        ExtendedMap(Map::new())
+    );
 }
 
 #[test]
@@ -162,11 +167,15 @@ fn filter_default_by_prefix_without_dimension() {
         .as_object()
         .unwrap()
         .clone()
+        .into()
     );
 
     let prefix_list = HashSet::from_iter(vec![String::from("test3")]);
 
-    assert_eq!(config.filter_default_by_prefix(&prefix_list), Map::new());
+    assert_eq!(
+        config.filter_default_by_prefix(&prefix_list),
+        ExtendedMap(Map::new())
+    );
 }
 
 #[test]
@@ -195,7 +204,7 @@ fn filter_by_prefix_with_dimension() {
         Config {
             contexts: Vec::new(),
             overrides: HashMap::new(),
-            default_configs: Map::new(),
+            default_configs: Map::new().into(),
             dimensions: config.dimensions.clone(),
         }
     );
@@ -227,7 +236,7 @@ fn filter_by_prefix_without_dimension() {
         Config {
             contexts: Vec::new(),
             overrides: HashMap::new(),
-            default_configs: Map::new(),
+            default_configs: Map::new().into(),
             dimensions: config.dimensions.clone(),
         }
     );

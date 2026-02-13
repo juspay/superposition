@@ -7,6 +7,7 @@ use diesel::{
 };
 use serde_json::{Map, Value};
 use service_utils::service::types::{EncryptionKey, SchemaName, WorkspaceContext};
+use superposition_core::helpers::{calculate_context_weight, hash};
 use superposition_macros::{db_error, not_found, unexpected_error};
 use superposition_types::{
     DBConnection, Overrides, User,
@@ -18,12 +19,9 @@ use superposition_types::{
     result,
 };
 
-use crate::{
-    api::context::helpers::{
-        create_ctx_from_put_req, hash, replace_override_of_existing_ctx,
-        update_override_of_existing_ctx, validate_ctx,
-    },
-    helpers::calculate_context_weight,
+use crate::api::context::helpers::{
+    create_ctx_from_put_req, replace_override_of_existing_ctx,
+    update_override_of_existing_ctx, validate_ctx,
 };
 
 use super::{
@@ -171,7 +169,7 @@ pub fn r#move(
         Overrides::default(),
         master_encryption_key,
     )?;
-    let weight = calculate_context_weight(&ctx_condition_value, &dimension_data_map)
+    let weight = calculate_context_weight(&ctx_condition, &dimension_data_map)
         .map_err(|_| unexpected_error!("Something Went Wrong"))?;
 
     if already_under_txn {

@@ -1,6 +1,6 @@
 #[cfg(feature = "diesel_derives")]
-use std::str::{self, FromStr};
-use std::{collections::HashMap, fmt::Display};
+use std::str;
+use std::{collections::HashMap, fmt::Display, str::FromStr};
 
 #[cfg(feature = "diesel_derives")]
 use base64::prelude::*;
@@ -97,7 +97,6 @@ impl Display for DimensionType {
     }
 }
 
-#[cfg(feature = "diesel_derives")]
 impl FromStr for DimensionType {
     type Err = String;
     fn from_str(s: &str) -> Result<Self, Self::Err> {

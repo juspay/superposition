@@ -37,7 +37,8 @@ use serde_json::{Map, Value};
 use superposition_derives::{JsonFromSql, JsonToSql};
 
 pub use config::{
-    Condition, Config, Context, DimensionInfo, OverrideWithKeys, Overrides,
+    Condition, Config, Context, DefaultConfigInfo, DefaultConfigsWithSchema,
+    DetailedConfig, DimensionInfo, OverrideWithKeys, Overrides,
 };
 pub use contextual::Contextual;
 pub use logic::{apply, partial_apply};
@@ -259,6 +260,16 @@ pub type DBConnection = PooledConnection<ConnectionManager<PgConnection>>;
 #[cfg_attr(feature = "diesel_derives", diesel(sql_type = Json))]
 pub struct ExtendedMap(Map<String, Value>);
 uniffi::custom_type!(ExtendedMap, HashMap<String, String>);
+
+impl ExtendedMap {
+    pub fn into_inner(self) -> Map<String, Value> {
+        self.0
+    }
+
+    pub fn inner(&self) -> &Map<String, Value> {
+        &self.0
+    }
+}
 
 impl TryFrom<HashMap<String, String>> for ExtendedMap {
     type Error = std::io::Error;
