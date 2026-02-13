@@ -172,6 +172,9 @@ import io.juspay.superposition.model.ListExperimentOutput;
 import io.juspay.superposition.model.ListFunction;
 import io.juspay.superposition.model.ListFunctionInput;
 import io.juspay.superposition.model.ListFunctionOutput;
+import io.juspay.superposition.model.ListGroupedDefaultConfigs;
+import io.juspay.superposition.model.ListGroupedDefaultConfigsInput;
+import io.juspay.superposition.model.ListGroupedDefaultConfigsOutput;
 import io.juspay.superposition.model.ListOrganisation;
 import io.juspay.superposition.model.ListOrganisationInput;
 import io.juspay.superposition.model.ListOrganisationOutput;
@@ -278,9 +281,9 @@ import software.amazon.smithy.utils.SmithyGenerated;
 @SmithyGenerated
 final class SuperpositionAsyncClientImpl extends Client implements SuperpositionAsyncClient {
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
-        .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
         .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
         .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
+        .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
         .putType(InternalFailureException.$ID, InternalFailureException.class, InternalFailureException::builder)
         .putType(UnknownOperationException.$ID, UnknownOperationException.class, UnknownOperationException::builder)
         .putType(MalformedRequestException.$ID, MalformedRequestException.class, MalformedRequestException::builder)
@@ -517,6 +520,10 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
 
     @Override
     public CompletableFuture<ListFunctionOutput> listFunction(ListFunctionInput input, RequestOverrideConfig overrideConfig) {return call(input, ListFunction.instance(), overrideConfig);
+    }
+
+    @Override
+    public CompletableFuture<ListGroupedDefaultConfigsOutput> listGroupedDefaultConfigs(ListGroupedDefaultConfigsInput input, RequestOverrideConfig overrideConfig) {return call(input, ListGroupedDefaultConfigs.instance(), overrideConfig);
     }
 
     @Override

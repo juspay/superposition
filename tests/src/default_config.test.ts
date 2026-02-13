@@ -181,6 +181,15 @@ describe("Default Config API Integration Tests", () => {
                 change_reason: "Publishing for testing",
             }),
         );
+
+        await superpositionClient.send(
+            new PublishCommand({
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+                function_name: "slow_true_validation",
+                change_reason: "Publishing for testing",
+            }),
+        );
     }
 
     describe("Create Default Config", () => {
@@ -281,7 +290,7 @@ describe("Default Config API Integration Tests", () => {
             };
 
             const cmd = new CreateDefaultConfigCommand(input);
-            expect(superpositionClient.send(cmd)).rejects.toThrow(
+            await expect(superpositionClient.send(cmd)).rejects.toThrow(
                 "Invalid JSON schema (failed to compile)",
             );
         });
@@ -302,7 +311,7 @@ describe("Default Config API Integration Tests", () => {
             };
             const cmd = new CreateDefaultConfigCommand(input);
 
-            expect(superpositionClient.send(cmd)).rejects.toThrow(
+            await expect(superpositionClient.send(cmd)).rejects.toThrow(
                 "Schema cannot be empty.",
             );
         });
@@ -330,7 +339,7 @@ describe("Default Config API Integration Tests", () => {
             };
             const cmd = new CreateDefaultConfigCommand(input);
 
-            expect(superpositionClient.send(cmd)).rejects.toThrow(
+            await expect(superpositionClient.send(cmd)).rejects.toThrow(
                 "Schema validation failed: value is too small, minimum is 0",
             );
         });
@@ -354,8 +363,8 @@ describe("Default Config API Integration Tests", () => {
             };
 
             const cmd = new CreateDefaultConfigCommand(input);
-            expect(superpositionClient.send(cmd)).rejects.toThrow(
-                "Function false_validation validation failed for test-key-2 with error Error: The function did not return a value that was expected. Check the return type and logic of the function\n. ",
+            await expect(superpositionClient.send(cmd)).rejects.toThrow(
+                "Validation function false_validation returned false for key test-key-2, with error: The function did not return a value that was expected. Check the return type and logic of the function\n. ",
             );
         });
 
@@ -402,7 +411,7 @@ describe("Default Config API Integration Tests", () => {
                 change_reason: "Test function validation",
             };
             const cmd = new CreateDefaultConfigCommand(input);
-            expect(superpositionClient.send(cmd)).rejects.toThrow(
+            await expect(superpositionClient.send(cmd)).rejects.toThrow(
                 "Function non_existent_function's published code does not exist.",
             );
         });
@@ -502,7 +511,7 @@ describe("Default Config API Integration Tests", () => {
                 change_reason: "Update for testing",
             };
             const cmd = new UpdateDefaultConfigCommand(input);
-            expect(superpositionClient.send(cmd)).rejects.toThrow(
+            await expect(superpositionClient.send(cmd)).rejects.toThrow(
                 "No record found for non_existent_key. Use create endpoint instead.",
             );
         });
@@ -519,7 +528,7 @@ describe("Default Config API Integration Tests", () => {
                 change_reason: "Update for testing",
             };
             const cmd = new UpdateDefaultConfigCommand(input);
-            expect(superpositionClient.send(cmd)).rejects.toThrow(
+            await expect(superpositionClient.send(cmd)).rejects.toThrow(
                 "Invalid JSON schema.",
             );
         });
@@ -547,7 +556,7 @@ describe("Default Config API Integration Tests", () => {
                 change_reason: "Update for testing",
             };
             const cmd = new UpdateDefaultConfigCommand(input);
-            expect(superpositionClient.send(cmd)).rejects.toThrow(
+            await expect(superpositionClient.send(cmd)).rejects.toThrow(
                 'Schema validation failed: required property `"email"` is missing',
             );
         });
