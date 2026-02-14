@@ -196,10 +196,11 @@ impl LocalResolutionProvider {
 
     async fn do_refresh(&self) -> Result<()> {
         // Fetch config from primary; keep last known good on failure
-        match self.primary.fetch_config().await {
+        let config_result = self.primary.fetch_config().await;
+        match &config_result {
             Ok(data) => {
                 let mut cached = self.cached_config.write().await;
-                *cached = Some(data);
+                *cached = Some(data.clone());
                 debug!("LocalResolutionProvider: config refreshed from primary");
             }
             Err(e) => {
@@ -210,25 +211,27 @@ impl LocalResolutionProvider {
             }
         }
 
-        // Fetch experiments from primary; keep last known good on failure
-        match self.primary.fetch_active_experiments().await {
-            Ok(Some(data)) => {
-                let mut cached = self.cached_experiments.write().await;
-                *cached = Some(data);
-                debug!("LocalResolutionProvider: experiments refreshed from primary");
-            }
-            Ok(None) => {
-                debug!("LocalResolutionProvider: no experiments returned from primary");
-            }
-            Err(e) => {
-                warn!(
-                    "LocalResolutionProvider: experiment refresh failed, keeping last known good: {}",
-                    e
-                );
+        // Experiments refresh is best-effort, don't propagate errors
+        if self.primary.supports_experiments() {
+            match self.primary.fetch_active_experiments().await {
+                Ok(Some(data)) => {
+                    let mut cached = self.cached_experiments.write().await;
+                    *cached = Some(data);
+                    debug!("LocalResolutionProvider: experiments refreshed from primary");
+                }
+                Ok(None) => {
+                    debug!("LocalResolutionProvider: no experiments returned from primary");
+                }
+                Err(e) => {
+                    warn!(
+                        "LocalResolutionProvider: experiment refresh failed, keeping last known good: {}",
+                        e
+                    );
+                }
             }
         }
 
-        Ok(())
+        config_result.map(|_| ())
     }
 
     async fn start_polling(&self, interval: u64) -> JoinHandle<()> {
@@ -304,23 +307,6 @@ impl LocalResolutionProvider {
         Ok(())
     }
 
-    fn get_context_from_evaluation_context(
-        ctx: &EvaluationContext,
-    ) -> (Map<String, Value>, Option<String>) {
-        let context = ctx
-            .custom_fields
-            .iter()
-            .map(|(k, v)| {
-                (
-                    k.clone(),
-                    ConversionUtils::convert_evaluation_context_value_to_serde_value(v),
-                )
-            })
-            .collect();
-
-        (context, ctx.targeting_key.clone())
-    }
-
     async fn get_dimensions_info(&self) -> HashMap<String, DimensionInfo> {
         let cached = self.cached_config.read().await;
         match cached.as_ref() {
@@ -337,7 +323,7 @@ impl LocalResolutionProvider {
         self.ensure_fresh_data().await?;
 
         let (mut query_data, targeting_key) =
-            Self::get_context_from_evaluation_context(context);
+            ConversionUtils::evaluation_context_to_query(context);
 
         let dimensions_info = self.get_dimensions_info().await;
 
@@ -423,7 +409,7 @@ impl FeatureExperimentMeta for LocalResolutionProvider {
         self.ensure_fresh_data().await?;
 
         let (query_data, targeting_key) =
-            Self::get_context_from_evaluation_context(context);
+            ConversionUtils::evaluation_context_to_query(context);
         let dimensions_info = self.get_dimensions_info().await;
 
         let cached_exp = self.cached_experiments.read().await;
@@ -475,22 +461,24 @@ impl FeatureProvider for LocalResolutionProvider {
         evaluation_context: &EvaluationContext,
     ) -> EvaluationResult<ResolutionDetails<bool>> {
         match self.resolve_all_features(evaluation_context).await {
-            Ok(config) => {
-                if let Some(value) = config.get(flag_key) {
-                    if let Some(bool_val) = value.as_bool() {
-                        return Ok(ResolutionDetails::new(bool_val));
-                    }
-                }
-                Err(EvaluationError {
+            Ok(config) => match config.get(flag_key) {
+                Some(value) => match value.as_bool() {
+                    Some(bool_val) => Ok(ResolutionDetails::new(bool_val)),
+                    None => Err(EvaluationError {
+                        code: EvaluationErrorCode::TypeMismatch,
+                        message: Some(format!("Flag '{}' is not a boolean", flag_key)),
+                    }),
+                },
+                None => Err(EvaluationError {
                     code: EvaluationErrorCode::FlagNotFound,
-                    message: Some("Flag not found in configuration".to_string()),
-                })
-            }
+                    message: Some(format!("Flag '{}' not found", flag_key)),
+                }),
+            },
             Err(e) => {
                 error!("Error evaluating boolean flag {}: {}", flag_key, e);
                 Err(EvaluationError {
                     code: EvaluationErrorCode::FlagNotFound,
-                    message: Some("Flag not found in configuration".to_string()),
+                    message: Some(format!("Flag '{}' not found", flag_key)),
                 })
             }
         }
@@ -502,22 +490,24 @@ impl FeatureProvider for LocalResolutionProvider {
         evaluation_context: &EvaluationContext,
     ) -> EvaluationResult<ResolutionDetails<String>> {
         match self.resolve_all_features(evaluation_context).await {
-            Ok(config) => {
-                if let Some(value) = config.get(flag_key) {
-                    if let Some(str_val) = value.as_str() {
-                        return Ok(ResolutionDetails::new(str_val.to_owned()));
-                    }
-                }
-                Err(EvaluationError {
+            Ok(config) => match config.get(flag_key) {
+                Some(value) => match value.as_str() {
+                    Some(str_val) => Ok(ResolutionDetails::new(str_val.to_owned())),
+                    None => Err(EvaluationError {
+                        code: EvaluationErrorCode::TypeMismatch,
+                        message: Some(format!("Flag '{}' is not a string", flag_key)),
+                    }),
+                },
+                None => Err(EvaluationError {
                     code: EvaluationErrorCode::FlagNotFound,
-                    message: Some("Flag not found in configuration".to_string()),
-                })
-            }
+                    message: Some(format!("Flag '{}' not found", flag_key)),
+                }),
+            },
             Err(e) => {
                 error!("Error evaluating String flag {}: {}", flag_key, e);
                 Err(EvaluationError {
                     code: EvaluationErrorCode::FlagNotFound,
-                    message: Some("Flag not found in configuration".to_string()),
+                    message: Some(format!("Flag '{}' not found", flag_key)),
                 })
             }
         }
@@ -529,22 +519,24 @@ impl FeatureProvider for LocalResolutionProvider {
         evaluation_context: &EvaluationContext,
     ) -> EvaluationResult<ResolutionDetails<i64>> {
         match self.resolve_all_features(evaluation_context).await {
-            Ok(config) => {
-                if let Some(value) = config.get(flag_key) {
-                    if let Some(int_val) = value.as_i64() {
-                        return Ok(ResolutionDetails::new(int_val));
-                    }
-                }
-                Err(EvaluationError {
+            Ok(config) => match config.get(flag_key) {
+                Some(value) => match value.as_i64() {
+                    Some(int_val) => Ok(ResolutionDetails::new(int_val)),
+                    None => Err(EvaluationError {
+                        code: EvaluationErrorCode::TypeMismatch,
+                        message: Some(format!("Flag '{}' is not an integer", flag_key)),
+                    }),
+                },
+                None => Err(EvaluationError {
                     code: EvaluationErrorCode::FlagNotFound,
-                    message: Some("Flag not found in configuration".to_string()),
-                })
-            }
+                    message: Some(format!("Flag '{}' not found", flag_key)),
+                }),
+            },
             Err(e) => {
                 error!("Error evaluating integer flag {}: {}", flag_key, e);
                 Err(EvaluationError {
                     code: EvaluationErrorCode::FlagNotFound,
-                    message: Some("Flag not found in configuration".to_string()),
+                    message: Some(format!("Flag '{}' not found", flag_key)),
                 })
             }
         }
@@ -556,22 +548,24 @@ impl FeatureProvider for LocalResolutionProvider {
         evaluation_context: &EvaluationContext,
     ) -> EvaluationResult<ResolutionDetails<f64>> {
         match self.resolve_all_features(evaluation_context).await {
-            Ok(config) => {
-                if let Some(value) = config.get(flag_key) {
-                    if let Some(float_val) = value.as_f64() {
-                        return Ok(ResolutionDetails::new(float_val));
-                    }
-                }
-                Err(EvaluationError {
+            Ok(config) => match config.get(flag_key) {
+                Some(value) => match value.as_f64() {
+                    Some(float_val) => Ok(ResolutionDetails::new(float_val)),
+                    None => Err(EvaluationError {
+                        code: EvaluationErrorCode::TypeMismatch,
+                        message: Some(format!("Flag '{}' is not a float", flag_key)),
+                    }),
+                },
+                None => Err(EvaluationError {
                     code: EvaluationErrorCode::FlagNotFound,
-                    message: Some("Flag not found in configuration".to_string()),
-                })
-            }
+                    message: Some(format!("Flag '{}' not found", flag_key)),
+                }),
+            },
             Err(e) => {
                 error!("Error evaluating float flag {}: {}", flag_key, e);
                 Err(EvaluationError {
                     code: EvaluationErrorCode::FlagNotFound,
-                    message: Some("Flag not found in configuration".to_string()),
+                    message: Some(format!("Flag '{}' not found", flag_key)),
                 })
             }
         }
@@ -583,34 +577,30 @@ impl FeatureProvider for LocalResolutionProvider {
         evaluation_context: &EvaluationContext,
     ) -> EvaluationResult<ResolutionDetails<StructValue>> {
         match self.resolve_all_features(evaluation_context).await {
-            Ok(config) => {
-                if let Some(value) = config.get(flag_key) {
-                    match ConversionUtils::serde_value_to_struct_value(value) {
-                        Ok(struct_value) => {
-                            return Ok(ResolutionDetails::new(struct_value));
-                        }
-                        Err(e) => {
-                            error!("Error converting value to StructValue: {}", e);
-                            return Err(EvaluationError {
-                                code: EvaluationErrorCode::ParseError,
-                                message: Some(format!(
-                                    "Failed to parse struct value: {}",
-                                    e
-                                )),
-                            });
-                        }
+            Ok(config) => match config.get(flag_key) {
+                Some(value) => match ConversionUtils::serde_value_to_struct_value(value) {
+                    Ok(struct_value) => Ok(ResolutionDetails::new(struct_value)),
+                    Err(e) => {
+                        error!("Error converting value to StructValue: {}", e);
+                        Err(EvaluationError {
+                            code: EvaluationErrorCode::TypeMismatch,
+                            message: Some(format!(
+                                "Flag '{}' is not a struct: {}",
+                                flag_key, e
+                            )),
+                        })
                     }
-                }
-                Err(EvaluationError {
+                },
+                None => Err(EvaluationError {
                     code: EvaluationErrorCode::FlagNotFound,
-                    message: Some("Flag not found in configuration".to_string()),
-                })
-            }
+                    message: Some(format!("Flag '{}' not found", flag_key)),
+                }),
+            },
             Err(e) => {
                 error!("Error evaluating Object flag {}: {}", flag_key, e);
                 Err(EvaluationError {
                     code: EvaluationErrorCode::FlagNotFound,
-                    message: Some("Flag not found in configuration".to_string()),
+                    message: Some(format!("Flag '{}' not found", flag_key)),
                 })
             }
         }

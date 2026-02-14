@@ -11,6 +11,7 @@ use superposition_types::Config;
 use crate::types::Result;
 
 /// Holds a resolved configuration along with the time it was fetched.
+#[derive(Debug, Clone)]
 pub struct ConfigData {
     pub config: Config,
     pub fetched_at: DateTime<Utc>,
@@ -26,6 +27,7 @@ impl ConfigData {
 }
 
 /// Holds active experiments and experiment groups along with the time they were fetched.
+#[derive(Debug, Clone)]
 pub struct ExperimentData {
     pub experiments: Experiments,
     pub experiment_groups: ExperimentGroups,

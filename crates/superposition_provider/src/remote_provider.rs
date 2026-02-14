@@ -159,7 +159,7 @@ impl SuperpositionAPIProvider {
         context: &EvaluationContext,
         prefix_filter: Option<&[String]>,
     ) -> Result<Map<String, Value>> {
-        // 1. Check cache (if enabled)
+        // 1. Check cache for the full (unfiltered) result
         if let Some(ref cache_arc) = self.cache {
             let cache_key = ResponseCache::cache_key(context);
             let cache = cache_arc.read().await;
@@ -179,9 +179,10 @@ impl SuperpositionAPIProvider {
 
         // 3. Extract context and targeting_key
         let (query_data, _targeting_key) =
-            Self::get_context_from_evaluation_context(context);
+            ConversionUtils::evaluation_context_to_query(context);
 
         // 4. Build and send the get_resolved_config request
+        // Always fetch WITHOUT prefix filter so we can cache the full result
         let mut builder = client
             .get_resolved_config()
             .workspace_id(&self.options.workspace_id)
@@ -194,12 +195,9 @@ impl SuperpositionAPIProvider {
             .collect();
         builder = builder.set_context(Some(sdk_context));
 
-        // Set prefix filter if provided (server-side filtering)
-        if let Some(prefixes) = prefix_filter {
-            for prefix in prefixes {
-                builder = builder.prefix(prefix);
-            }
-        }
+        // NOTE: We intentionally do NOT set prefix filter on the SDK request
+        // so we always get the full config and can cache it. Prefix filtering
+        // is applied locally after caching.
 
         let response = builder.send().await.map_err(|e| {
             SuperpositionError::NetworkError(format!(
@@ -217,7 +215,7 @@ impl SuperpositionAPIProvider {
             ))
         })?;
 
-        let result = match config_value {
+        let full_result = match config_value {
             Value::Object(map) => map,
             other => {
                 warn!(
@@ -230,34 +228,23 @@ impl SuperpositionAPIProvider {
             }
         };
 
-        // Cache the full result (before prefix filtering) if caching is enabled
-        // For caching, we need the full result, so if prefix_filter was passed to the SDK
-        // the cached result is already filtered.
+        // Cache the full (unfiltered) result
         if let Some(ref cache_arc) = self.cache {
             let cache_key = ResponseCache::cache_key(context);
             let mut cache = cache_arc.write().await;
-            cache.put(cache_key, result.clone());
+            cache.put(cache_key, full_result.clone());
         }
+
+        // Apply prefix filtering locally
+        let result = if let Some(prefixes) = prefix_filter {
+            filter_by_prefix(&full_result, prefixes)
+        } else {
+            full_result
+        };
 
         Ok(result)
     }
 
-    fn get_context_from_evaluation_context(
-        ctx: &EvaluationContext,
-    ) -> (Map<String, Value>, Option<String>) {
-        let context = ctx
-            .custom_fields
-            .iter()
-            .map(|(k, v)| {
-                (
-                    k.clone(),
-                    ConversionUtils::convert_evaluation_context_value_to_serde_value(v),
-                )
-            })
-            .collect();
-
-        (context, ctx.targeting_key.clone())
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -356,22 +343,24 @@ impl FeatureProvider for SuperpositionAPIProvider {
         evaluation_context: &EvaluationContext,
     ) -> EvaluationResult<ResolutionDetails<bool>> {
         match self.resolve_all_features(evaluation_context).await {
-            Ok(config) => {
-                if let Some(value) = config.get(flag_key) {
-                    if let Some(bool_val) = value.as_bool() {
-                        return Ok(ResolutionDetails::new(bool_val));
-                    }
-                }
-                Err(EvaluationError {
+            Ok(config) => match config.get(flag_key) {
+                Some(value) => match value.as_bool() {
+                    Some(bool_val) => Ok(ResolutionDetails::new(bool_val)),
+                    None => Err(EvaluationError {
+                        code: EvaluationErrorCode::TypeMismatch,
+                        message: Some(format!("Flag '{}' is not a boolean", flag_key)),
+                    }),
+                },
+                None => Err(EvaluationError {
                     code: EvaluationErrorCode::FlagNotFound,
-                    message: Some("Flag not found in configuration".to_string()),
-                })
-            }
+                    message: Some(format!("Flag '{}' not found", flag_key)),
+                }),
+            },
             Err(e) => {
                 error!("Error evaluating boolean flag {}: {}", flag_key, e);
                 Err(EvaluationError {
                     code: EvaluationErrorCode::FlagNotFound,
-                    message: Some("Flag not found in configuration".to_string()),
+                    message: Some(format!("Flag '{}' not found", flag_key)),
                 })
             }
         }
@@ -383,22 +372,24 @@ impl FeatureProvider for SuperpositionAPIProvider {
         evaluation_context: &EvaluationContext,
     ) -> EvaluationResult<ResolutionDetails<String>> {
         match self.resolve_all_features(evaluation_context).await {
-            Ok(config) => {
-                if let Some(value) = config.get(flag_key) {
-                    if let Some(str_val) = value.as_str() {
-                        return Ok(ResolutionDetails::new(str_val.to_owned()));
-                    }
-                }
-                Err(EvaluationError {
+            Ok(config) => match config.get(flag_key) {
+                Some(value) => match value.as_str() {
+                    Some(str_val) => Ok(ResolutionDetails::new(str_val.to_owned())),
+                    None => Err(EvaluationError {
+                        code: EvaluationErrorCode::TypeMismatch,
+                        message: Some(format!("Flag '{}' is not a string", flag_key)),
+                    }),
+                },
+                None => Err(EvaluationError {
                     code: EvaluationErrorCode::FlagNotFound,
-                    message: Some("Flag not found in configuration".to_string()),
-                })
-            }
+                    message: Some(format!("Flag '{}' not found", flag_key)),
+                }),
+            },
             Err(e) => {
                 error!("Error evaluating String flag {}: {}", flag_key, e);
                 Err(EvaluationError {
                     code: EvaluationErrorCode::FlagNotFound,
-                    message: Some("Flag not found in configuration".to_string()),
+                    message: Some(format!("Flag '{}' not found", flag_key)),
                 })
             }
         }
@@ -410,22 +401,24 @@ impl FeatureProvider for SuperpositionAPIProvider {
         evaluation_context: &EvaluationContext,
     ) -> EvaluationResult<ResolutionDetails<i64>> {
         match self.resolve_all_features(evaluation_context).await {
-            Ok(config) => {
-                if let Some(value) = config.get(flag_key) {
-                    if let Some(int_val) = value.as_i64() {
-                        return Ok(ResolutionDetails::new(int_val));
-                    }
-                }
-                Err(EvaluationError {
+            Ok(config) => match config.get(flag_key) {
+                Some(value) => match value.as_i64() {
+                    Some(int_val) => Ok(ResolutionDetails::new(int_val)),
+                    None => Err(EvaluationError {
+                        code: EvaluationErrorCode::TypeMismatch,
+                        message: Some(format!("Flag '{}' is not an integer", flag_key)),
+                    }),
+                },
+                None => Err(EvaluationError {
                     code: EvaluationErrorCode::FlagNotFound,
-                    message: Some("Flag not found in configuration".to_string()),
-                })
-            }
+                    message: Some(format!("Flag '{}' not found", flag_key)),
+                }),
+            },
             Err(e) => {
                 error!("Error evaluating integer flag {}: {}", flag_key, e);
                 Err(EvaluationError {
                     code: EvaluationErrorCode::FlagNotFound,
-                    message: Some("Flag not found in configuration".to_string()),
+                    message: Some(format!("Flag '{}' not found", flag_key)),
                 })
             }
         }
@@ -437,22 +430,24 @@ impl FeatureProvider for SuperpositionAPIProvider {
         evaluation_context: &EvaluationContext,
     ) -> EvaluationResult<ResolutionDetails<f64>> {
         match self.resolve_all_features(evaluation_context).await {
-            Ok(config) => {
-                if let Some(value) = config.get(flag_key) {
-                    if let Some(float_val) = value.as_f64() {
-                        return Ok(ResolutionDetails::new(float_val));
-                    }
-                }
-                Err(EvaluationError {
+            Ok(config) => match config.get(flag_key) {
+                Some(value) => match value.as_f64() {
+                    Some(float_val) => Ok(ResolutionDetails::new(float_val)),
+                    None => Err(EvaluationError {
+                        code: EvaluationErrorCode::TypeMismatch,
+                        message: Some(format!("Flag '{}' is not a float", flag_key)),
+                    }),
+                },
+                None => Err(EvaluationError {
                     code: EvaluationErrorCode::FlagNotFound,
-                    message: Some("Flag not found in configuration".to_string()),
-                })
-            }
+                    message: Some(format!("Flag '{}' not found", flag_key)),
+                }),
+            },
             Err(e) => {
                 error!("Error evaluating float flag {}: {}", flag_key, e);
                 Err(EvaluationError {
                     code: EvaluationErrorCode::FlagNotFound,
-                    message: Some("Flag not found in configuration".to_string()),
+                    message: Some(format!("Flag '{}' not found", flag_key)),
                 })
             }
         }
@@ -464,34 +459,30 @@ impl FeatureProvider for SuperpositionAPIProvider {
         evaluation_context: &EvaluationContext,
     ) -> EvaluationResult<ResolutionDetails<StructValue>> {
         match self.resolve_all_features(evaluation_context).await {
-            Ok(config) => {
-                if let Some(value) = config.get(flag_key) {
-                    match ConversionUtils::serde_value_to_struct_value(value) {
-                        Ok(struct_value) => {
-                            return Ok(ResolutionDetails::new(struct_value));
-                        }
-                        Err(e) => {
-                            error!("Error converting value to StructValue: {}", e);
-                            return Err(EvaluationError {
-                                code: EvaluationErrorCode::ParseError,
-                                message: Some(format!(
-                                    "Failed to parse struct value: {}",
-                                    e
-                                )),
-                            });
-                        }
+            Ok(config) => match config.get(flag_key) {
+                Some(value) => match ConversionUtils::serde_value_to_struct_value(value) {
+                    Ok(struct_value) => Ok(ResolutionDetails::new(struct_value)),
+                    Err(e) => {
+                        error!("Error converting value to StructValue: {}", e);
+                        Err(EvaluationError {
+                            code: EvaluationErrorCode::TypeMismatch,
+                            message: Some(format!(
+                                "Flag '{}' is not a struct: {}",
+                                flag_key, e
+                            )),
+                        })
                     }
-                }
-                Err(EvaluationError {
+                },
+                None => Err(EvaluationError {
                     code: EvaluationErrorCode::FlagNotFound,
-                    message: Some("Flag not found in configuration".to_string()),
-                })
-            }
+                    message: Some(format!("Flag '{}' not found", flag_key)),
+                }),
+            },
             Err(e) => {
                 error!("Error evaluating Object flag {}: {}", flag_key, e);
                 Err(EvaluationError {
                     code: EvaluationErrorCode::FlagNotFound,
-                    message: Some("Flag not found in configuration".to_string()),
+                    message: Some(format!("Flag '{}' not found", flag_key)),
                 })
             }
         }
