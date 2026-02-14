@@ -186,6 +186,12 @@ where
 #[serde(from = "HashMap<String,String>")]
 pub struct QueryMap(Map<String, Value>);
 
+impl QueryMap {
+    pub fn into_inner(self) -> Map<String, Value> {
+        self.0
+    }
+}
+
 impl IsEmpty for QueryMap {
     fn is_empty(&self) -> bool {
         self.0.is_empty()
