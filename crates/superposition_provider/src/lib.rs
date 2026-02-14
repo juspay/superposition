@@ -1,10 +1,12 @@
 pub mod client;
 pub mod provider;
+pub mod traits;
 pub mod types;
 pub mod utils;
 
 pub use client::*;
 pub use provider::*;
+pub use traits::*;
 pub use types::*;
 
 pub use open_feature::{
