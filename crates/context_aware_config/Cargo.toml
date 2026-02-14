@@ -23,6 +23,7 @@ jsonlogic = { workspace = true }
 jsonschema = { workspace = true }
 log = { workspace = true }
 num-bigint = "0.4"
+rustyscript = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 secrecy = { workspace = true }

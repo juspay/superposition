@@ -4,10 +4,8 @@
   perSystem =
     {
       config,
-      self',
       pkgs,
       lib,
-      system,
       ...
     }:
     let
@@ -55,9 +53,9 @@
             crane = {
               args = {
                 buildInputs =
-                  lib.optionals isDarwin ([
+                  lib.optionals isDarwin [
                     pkgs.fixDarwinDylibNames
-                  ])
+                  ]
                   ++ [
                     pkgs.postgresql_15
                     pkgs.openssl
@@ -81,9 +79,9 @@
             crane = {
               args = {
                 buildInputs =
-                  lib.optionals isDarwin ([
+                  lib.optionals isDarwin [
                     pkgs.fixDarwinDylibNames
-                  ])
+                  ]
                   ++ [
                     pkgs.postgresql_15
                     pkgs.openssl
@@ -107,9 +105,9 @@
             crane = {
               args = {
                 buildInputs =
-                  lib.optionals isDarwin ([
+                  lib.optionals isDarwin [
                     pkgs.fixDarwinDylibNames
-                  ])
+                  ]
                   ++ [
                     pkgs.postgresql_15
                     pkgs.openssl
@@ -133,9 +131,9 @@
             crane = {
               args = {
                 buildInputs =
-                  lib.optionals isDarwin ([
+                  lib.optionals isDarwin [
                     pkgs.fixDarwinDylibNames
-                  ])
+                  ]
                   ++ [
                     pkgs.postgresql_15
                     pkgs.openssl
@@ -159,9 +157,9 @@
             crane = {
               args = {
                 buildInputs =
-                  lib.optionals isDarwin ([
+                  lib.optionals isDarwin [
                     pkgs.fixDarwinDylibNames
-                  ])
+                  ]
                   ++ [
                     pkgs.postgresql_15
                     pkgs.openssl
@@ -185,9 +183,9 @@
             crane = {
               args = {
                 buildInputs =
-                  lib.optionals isDarwin ([
+                  lib.optionals isDarwin [
                     pkgs.fixDarwinDylibNames
-                  ])
+                  ]
                   ++ [
                     pkgs.postgresql_15
                     pkgs.openssl
@@ -214,9 +212,9 @@
                   pkgs.pkg-config
                 ];
                 buildInputs =
-                  lib.optionals isDarwin ([
+                  lib.optionals isDarwin [
                     pkgs.fixDarwinDylibNames
-                  ])
+                  ]
                   ++ [
                     pkgs.postgresql_15
                     pkgs.openssl
@@ -242,9 +240,9 @@
             crane = {
               args = {
                 buildInputs =
-                  lib.optionals isDarwin ([
+                  lib.optionals isDarwin [
                     pkgs.fixDarwinDylibNames
-                  ])
+                  ]
                   ++ [
                     pkgs.postgresql_15
                     pkgs.openssl
@@ -267,9 +265,9 @@
             crane = {
               args = {
                 buildInputs =
-                  lib.optionals isDarwin ([
+                  lib.optionals isDarwin [
                     pkgs.fixDarwinDylibNames
-                  ])
+                  ]
                   ++ [
                     pkgs.postgresql_15
                     pkgs.openssl
@@ -310,9 +308,9 @@
             crane = {
               args = {
                 buildInputs =
-                  lib.optionals isDarwin ([
+                  lib.optionals isDarwin [
                     pkgs.fixDarwinDylibNames
-                  ])
+                  ]
                   ++ [
                     pkgs.libiconv
                     pkgs.openssl

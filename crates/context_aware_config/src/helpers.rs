@@ -101,7 +101,7 @@ fn calculate_weight_from_index(index: u32) -> Result<BigDecimal, String> {
     let result = base.pow(index);
     let biguint_str = &result.to_str_radix(10);
     BigDecimal::from_str_radix(biguint_str, 10).map_err(|err| {
-        log::error!("failed to parse bigdecimal with error: {}", err.to_string());
+        log::error!("failed to parse bigdecimal with error: {}", err);
         String::from("failed to parse bigdecimal with error")
     })
 }
