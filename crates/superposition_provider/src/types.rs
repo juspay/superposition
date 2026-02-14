@@ -109,6 +109,7 @@ impl Default for OnDemandStrategy {
 pub enum RefreshStrategy {
     Polling(PollingStrategy),
     OnDemand(OnDemandStrategy),
+    Manual,
 }
 
 impl Default for RefreshStrategy {

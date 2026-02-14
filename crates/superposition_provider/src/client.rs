@@ -97,6 +97,9 @@ impl CacConfig {
                     on_demand_strategy.timeout.unwrap_or(30)
                 );
             }
+            RefreshStrategy::Manual => {
+                info!("Using Manual refresh strategy");
+            }
         }
 
         Ok(())
@@ -343,6 +346,9 @@ impl ExperimentationConfig {
                     "Using OnDemandStrategy for experiments: ttl={}s",
                     on_demand_strategy.ttl
                 );
+            }
+            RefreshStrategy::Manual => {
+                info!("Using Manual refresh strategy for experiments");
             }
         }
 
