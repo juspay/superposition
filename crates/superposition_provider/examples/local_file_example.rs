@@ -2,10 +2,8 @@ use std::path::PathBuf;
 
 use open_feature::EvaluationContext;
 use superposition_provider::{
-    data_source::file::FileDataSource,
-    local_provider::LocalResolutionProvider,
-    traits::AllFeatureProvider,
-    OnDemandStrategy, RefreshStrategy,
+    data_source::file::FileDataSource, local_provider::LocalResolutionProvider,
+    traits::AllFeatureProvider, OnDemandStrategy, RefreshStrategy,
 };
 
 #[tokio::main]
@@ -25,7 +23,8 @@ async fn main() {
     provider.init().await.unwrap();
 
     let context = EvaluationContext::default()
-        .with_custom_field("os", "linux");
+        .with_custom_field("os", "linux")
+        .with_custom_field("city", "Boston");
 
     let config = provider.resolve_all_features(&context).await.unwrap();
     println!("Config: {:?}", config);

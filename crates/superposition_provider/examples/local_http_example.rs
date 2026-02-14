@@ -13,8 +13,8 @@ async fn main() {
     let http_source = HttpDataSource::new(SuperpositionOptions::new(
         "http://localhost:8080".to_string(),
         "token".to_string(),
-        "org1".to_string(),
-        "workspace1".to_string(),
+        "localorg".to_string(),
+        "dev".to_string(),
     ));
 
     let provider = LocalResolutionProvider::new(
@@ -28,8 +28,8 @@ async fn main() {
     provider.init().await.unwrap();
 
     let context = EvaluationContext::default()
-        .with_targeting_key("user-123")
-        .with_custom_field("os", "android");
+        .with_targeting_key("user-1234")
+        .with_custom_field("dimension", "d2");
 
     let all_config = provider.resolve_all_features(&context).await.unwrap();
     println!("All config: {:?}", all_config);
