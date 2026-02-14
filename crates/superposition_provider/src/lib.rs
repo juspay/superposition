@@ -1,10 +1,12 @@
 pub mod client;
+pub mod data_source;
 pub mod provider;
 pub mod traits;
 pub mod types;
 pub mod utils;
 
 pub use client::*;
+pub use data_source::{ConfigData, ExperimentData, SuperpositionDataSource};
 pub use provider::*;
 pub use traits::*;
 pub use types::*;
