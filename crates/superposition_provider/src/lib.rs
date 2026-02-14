@@ -1,5 +1,6 @@
 pub mod client;
 pub mod data_source;
+pub mod local_provider;
 pub mod provider;
 pub mod traits;
 pub mod types;
@@ -7,6 +8,7 @@ pub mod utils;
 
 pub use client::*;
 pub use data_source::{ConfigData, ExperimentData, SuperpositionDataSource};
+pub use local_provider::LocalResolutionProvider;
 pub use provider::*;
 pub use traits::*;
 pub use types::*;
