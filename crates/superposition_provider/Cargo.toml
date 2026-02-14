@@ -32,5 +32,8 @@ superposition_sdk = { workspace = true, features = ["behavior-version-latest"] }
 superposition_types = { workspace = true }
 
 
+[dev-dependencies]
+env_logger = "0.11"
+
 [lints]
 workspace = true
