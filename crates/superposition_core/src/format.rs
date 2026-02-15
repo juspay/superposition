@@ -5,7 +5,11 @@
 
 pub mod error;
 pub mod json_impl;
+pub mod toml_helpers;
 pub mod toml_impl;
+
+#[cfg(test)]
+pub mod tests;
 
 use superposition_types::DetailedConfig;
 

@@ -1,5 +1,5 @@
 use serde_json::Value;
-use superposition_core::{parse_json_config, parse_toml_config, Config};
+use superposition_core::{parse_json_config, parse_toml_config};
 
 /// Test that TOML and JSON produce equivalent Configs for the same logical configuration
 #[test]
@@ -129,28 +129,28 @@ timeout = 60
 fn test_complex_config_with_cohorts() {
     let json = r#"{
   "default-configs": {
-    "config": { 
-      "value": { "host": "localhost", "port": 8080 }, 
-      "schema": { "type": "object" } 
+    "config": {
+      "value": { "host": "localhost", "port": 8080 },
+      "schema": { "type": "object" }
     },
-    "max_count": { 
-      "value": 10, 
-      "schema": { "type": "number", "minimum": 0, "maximum": 100 } 
+    "max_count": {
+      "value": 10,
+      "schema": { "type": "number", "minimum": 0, "maximum": 100 }
     }
   },
   "dimensions": {
-    "os": { 
-      "position": 2, 
-      "schema": { "type": "string", "enum": ["linux", "windows", "macos"] } 
+    "os": {
+      "position": 2,
+      "schema": { "type": "string", "enum": ["linux", "windows", "macos"] }
     },
-    "os_cohort": { 
-      "position": 1, 
-      "schema": { 
-        "type": "string", 
+    "os_cohort": {
+      "position": 1,
+      "schema": {
+        "type": "string",
         "enum": ["unix", "otherwise"],
-        "definitions": { 
-          "unix": { "in": [{ "var": "os" }, ["linux", "macos"]] } 
-        } 
+        "definitions": {
+          "unix": { "in": [{ "var": "os" }, ["linux", "macos"]] }
+        }
       },
       "type": "LOCAL_COHORT:os"
     }
@@ -236,19 +236,19 @@ fn test_json_round_trip_preserve_config() {
 
     let json = r#"{
   "default-configs": {
-    "feature_flag": { 
-      "value": true, 
-      "schema": { "type": "boolean" } 
+    "feature_flag": {
+      "value": true,
+      "schema": { "type": "boolean" }
     },
-    "api_timeout": { 
-      "value": 5000, 
-      "schema": { "type": "integer", "minimum": 1000, "maximum": 10000 } 
+    "api_timeout": {
+      "value": 5000,
+      "schema": { "type": "integer", "minimum": 1000, "maximum": 10000 }
     }
   },
   "dimensions": {
-    "environment": { 
-      "position": 1, 
-      "schema": { "type": "string", "enum": ["dev", "staging", "prod"] } 
+    "environment": {
+      "position": 1,
+      "schema": { "type": "string", "enum": ["dev", "staging", "prod"] }
     }
   },
   "overrides": [
