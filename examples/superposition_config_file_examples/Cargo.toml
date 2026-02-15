@@ -1,6 +1,6 @@
 [package]
-name = "superposition_toml_example"
-description = "Example demonstrating TOML parsing with superposition_core"
+name = "superposition_config_file_examples"
+description = "Examples demonstrating TOML and JSON parsing with superposition_core"
 version = "0.1.0"
 edition = "2021"
 

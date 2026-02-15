@@ -1,0 +1,75 @@
+{
+  "default-configs": {
+    "per_km_rate": {
+      "value": 20.0,
+      "schema": { "type": "number" }
+    },
+    "surge_factor": {
+      "value": 0.0,
+      "schema": { "type": "number" }
+    }
+  },
+  "dimensions": {
+    "city": {
+      "position": 4,
+      "schema": {
+        "type": "string",
+        "enum": ["Chennai", "Bangalore", "Delhi"]
+      }
+    },
+    "vehicle_type": {
+      "position": 2,
+      "schema": {
+        "type": "string",
+        "enum": ["auto", "cab", "bike"]
+      }
+    },
+    "hour_of_day": {
+      "position": 3,
+      "schema": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 23
+      }
+    },
+    "city_cohort": {
+      "position": 1,
+      "schema": {
+        "type": "string",
+        "enum": ["south", "otherwise"],
+        "definitions": {
+          "south": {
+            "in": [{ "var": "city" }, ["Bangalore", "Chennai"]]
+          }
+        }
+      },
+      "type": "LOCAL_COHORT:city"
+    }
+  },
+  "overrides": [
+    {
+      "_context_": { "vehicle_type": "cab" },
+      "per_km_rate": 25.0
+    },
+    {
+      "_context_": { "vehicle_type": "bike" },
+      "per_km_rate": 15.0
+    },
+    {
+      "_context_": { "city": "Bangalore", "vehicle_type": "cab" },
+      "per_km_rate": 22.0
+    },
+    {
+      "_context_": { "city": "Delhi", "vehicle_type": "cab", "hour_of_day": 18 },
+      "surge_factor": 5.0
+    },
+    {
+      "_context_": { "city": "Delhi", "vehicle_type": "cab", "hour_of_day": 6 },
+      "surge_factor": 5.0
+    },
+    {
+      "_context_": { "city_cohort": "south" },
+      "per_km_rate": 100.0
+    }
+  ]
+}
