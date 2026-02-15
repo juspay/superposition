@@ -135,4 +135,4 @@ The test uses a ride-sharing pricing configuration with:
 - **Dimensions**: city, vehicle_type, hour_of_day
 - **Contexts**: Different pricing rules based on dimension combinations
 
-See `test_toml_functions.py` for the complete TOML example or `examples/superposition_toml_example/example.toml` for a file-based example.
+See `test_toml_functions.py` for the complete TOML example or `examples/superposition_config_file_examples/example.toml` for a file-based example.

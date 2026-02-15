@@ -108,7 +108,12 @@ def test_with_external_file():
     print_section_header("TEST 2: Parse External TOML File")
 
     # Try to find the example TOML file
-    example_file = Path(__file__).parent.parent.parent.parent / "examples" / "superposition_toml_example" / "example.toml"
+    example_file = (
+        Path(__file__).parent.parent.parent.parent
+        / "examples"
+        / "superposition_config_file_examples"
+        / "example.toml"
+    )
 
     if not example_file.exists():
         print(f"\n⚠ Example file not found at: {example_file}")
@@ -143,17 +148,14 @@ def test_error_handling():
     print_section_header("TEST 3: Error Handling")
 
     invalid_toml_cases = [
-        {
-            "name": "Invalid TOML syntax",
-            "toml": "[invalid toml content ][["
-        },
+        {"name": "Invalid TOML syntax", "toml": "[invalid toml content ][["},
         {
             "name": "Missing required section",
-            "toml": "[dimensions]\ncity = { position = 1, schema = { \"type\" = \"string\" } }"
+            "toml": '[dimensions]\ncity = { position = 1, schema = { "type" = "string" } }',
         },
         {
             "name": "Missing position in dimension",
-            "toml": "[default-configs]\nkey1 = { value = 10, schema = { type = \"integer\" } }\n\n[dimensions]\ncity = { schema = { \"type\" = \"string\" } }\n\n[[overrides]]\n_context_= {city=\"bangalore\"}\nkey1 = 20"
+            "toml": '[default-configs]\nkey1 = { value = 10, schema = { type = "integer" } }\n\n[dimensions]\ncity = { schema = { "type" = "string" } }\n\n[[overrides]]\n_context_= {city="bangalore"}\nkey1 = 20',
         },
     ]
 
