@@ -209,21 +209,5 @@ pub fn validate_detailed_config(
         }
     }
 
-    // Sort contexts by priority (weight) - higher weight means higher priority
-    // Weight is calculated based on dimension positions: sum of 2^position for each dimension in context
-    detailed
-        .contexts
-        .sort_by(|a, b| b.priority.cmp(&a.priority));
-
-    // Set correct values for weight and priority after sorting
-    detailed
-        .contexts
-        .iter_mut()
-        .enumerate()
-        .for_each(|(index, ctx)| {
-            ctx.weight = index as i32;
-            ctx.priority = index as i32;
-        });
-
     Ok(())
 }
