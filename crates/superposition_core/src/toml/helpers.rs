@@ -2,7 +2,7 @@ use serde_json::{Map, Value};
 use superposition_types::{Cac, Condition, Overrides};
 use toml::Value as TomlValue;
 
-use crate::TomlError;
+use crate::format::FormatError as TomlError;
 
 /// Convert toml::Value to serde_json::Value for validation
 pub fn toml_to_json(value: TomlValue) -> Value {
@@ -69,14 +69,18 @@ pub fn try_condition_from_toml(ctx: toml::Table) -> Result<Condition, TomlError>
     let map = match json {
         Value::Object(map) => map,
         _ => {
-            return Err(TomlError::ConversionError(
-                "Context must be an object".into(),
-            ))
+            return Err(TomlError::ConversionError {
+                format: "TOML".to_string(),
+                message: "Context must be an object".to_string(),
+            })
         }
     };
     Cac::<Condition>::try_from(map)
         .map(|cac| cac.into_inner())
-        .map_err(|e| TomlError::ConversionError(format!("Invalid condition: {}", e)))
+        .map_err(|e| TomlError::ConversionError {
+            format: "TOML".to_string(),
+            message: format!("Invalid condition: {}", e),
+        })
 }
 
 pub fn try_overrides_from_toml(overrides: toml::Table) -> Result<Overrides, TomlError> {
@@ -84,12 +88,16 @@ pub fn try_overrides_from_toml(overrides: toml::Table) -> Result<Overrides, Toml
     let map = match json {
         Value::Object(map) => map,
         _ => {
-            return Err(TomlError::ConversionError(
-                "Overrides must be an object".into(),
-            ))
+            return Err(TomlError::ConversionError {
+                format: "TOML".to_string(),
+                message: "Overrides must be an object".to_string(),
+            })
         }
     };
     Cac::<Overrides>::try_from(map)
         .map(|cac| cac.into_inner())
-        .map_err(|e| TomlError::ConversionError(format!("Invalid overrides: {}", e)))
+        .map_err(|e| TomlError::ConversionError {
+            format: "TOML".to_string(),
+            message: format!("Invalid overrides: {}", e),
+        })
 }
