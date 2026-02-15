@@ -54,16 +54,11 @@ pub fn calculate_context_weight(
 
     let mut weight = BigDecimal::from(0);
     for dimension in dimensions {
-        let position = dimensions_info
-            .get(&dimension)
-            .map(|x| x.position)
-            .ok_or_else(|| {
-                let msg =
-                    format!("Dimension:{} not found in Dimension schema map", dimension);
-                log::error!("{}", msg);
-                msg
-            })?;
-        weight += calculate_weight_from_index(position as u32)?;
+        // Only add weight for dimensions that exist in the schema
+        // Missing dimensions will be caught during validation
+        if let Some(dim_info) = dimensions_info.get(&dimension) {
+            weight += calculate_weight_from_index(dim_info.position as u32)?;
+        }
     }
     Ok(weight)
 }

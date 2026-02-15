@@ -388,6 +388,7 @@ fn test_undeclared_dimension() {
         "#;
 
     let result = parse_toml_config(toml);
+    println!("Result: {:?}", result);
     assert!(result.is_err());
     assert!(matches!(result, Err(TomlError::UndeclaredDimension { .. })));
 }

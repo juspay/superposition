@@ -7,7 +7,7 @@ use std::collections::HashMap;
 
 use jsonschema::{error::ValidationErrorKind, Draft, JSONSchema, ValidationError};
 use serde_json::{json, Map, Value};
-use superposition_types::{DefaultConfigsWithSchema, DimensionInfo};
+use superposition_types::{DefaultConfigsWithSchema, DetailedConfig, DimensionInfo};
 
 /// Error type for context and config validation
 #[derive(Debug, Clone)]
@@ -793,4 +793,187 @@ mod tests {
         });
         assert!(validate_cohort_schema_structure(&schema).is_err());
     }
+}
+
+/// Validates a DetailedConfig and enriches it with dependency graphs
+///
+/// This function performs comprehensive validation and enrichment:
+/// - Validates default configs against their schemas
+/// - Validates dimension schemas (including cohort dimensions)
+/// - Checks for duplicate dimension positions
+/// - Validates contexts against declared dimensions
+/// - Validates overrides against default configs
+/// - Builds dependency graphs for cohort dimensions
+///
+/// # Arguments
+/// * `detailed` - Mutable reference to DetailedConfig to validate and enrich
+///
+/// # Returns
+/// * `Ok(())` - If validation passes and enrichment is complete
+/// * `Err(FormatError)` - If any validation fails
+pub fn validate_and_enrich_config(
+    detailed: &mut DetailedConfig,
+) -> crate::format::error::FormatResult<()> {
+    use crate::format::error::{format_validation_errors, FormatError};
+    use crate::helpers::create_connections_with_dependents;
+    use serde_json::Value;
+
+    let default_configs = &detailed.default_configs;
+    let dimensions = &mut detailed.dimensions;
+
+    // Validate default configs against their schemas
+    for (k, v) in default_configs.iter() {
+        validate_config_value(k, &v.value, &v.schema).map_err(|errors| {
+            let error = &errors[0];
+            FormatError::ValidationError {
+                key: format!("default-configs.{}", error.key()),
+                errors: error
+                    .errors()
+                    .map(format_validation_errors)
+                    .unwrap_or_default(),
+            }
+        })?;
+    }
+
+    // Validate dimensions and build dependency graphs
+    let mut position_to_dimensions: HashMap<i32, Vec<String>> = HashMap::new();
+
+    for (dim, dim_info) in dimensions.clone().iter() {
+        position_to_dimensions
+            .entry(dim_info.position)
+            .or_default()
+            .push(dim.clone());
+
+        match &dim_info.dimension_type {
+            superposition_types::database::models::cac::DimensionType::LocalCohort(
+                cohort_dim,
+            ) => {
+                if !dimensions.contains_key(cohort_dim) {
+                    return Err(FormatError::InvalidDimension(cohort_dim.clone()));
+                }
+
+                validate_cohort_schema_structure(&Value::from(&dim_info.schema))
+                    .map_err(|errors| FormatError::ValidationError {
+                        key: format!("{}.schema", dim),
+                        errors: format_validation_errors(&errors),
+                    })?;
+
+                let cohort_dimension_info = dimensions
+                    .get(cohort_dim)
+                    .ok_or_else(|| FormatError::InvalidDimension(cohort_dim.clone()))?;
+
+                validate_cohort_dimension_position(cohort_dimension_info, dim_info)
+                    .map_err(|_| FormatError::InvalidCohortDimensionPosition {
+                        dimension: dim.clone(),
+                        dimension_position: dim_info.position,
+                        cohort_dimension: cohort_dim.clone(),
+                        cohort_dimension_position: cohort_dimension_info.position,
+                    })?;
+
+                create_connections_with_dependents(&cohort_dim, dim, dimensions);
+            }
+            superposition_types::database::models::cac::DimensionType::RemoteCohort(
+                cohort_dim,
+            ) => {
+                if !dimensions.contains_key(cohort_dim) {
+                    return Err(FormatError::InvalidDimension(cohort_dim.clone()));
+                }
+
+                validate_schema(&Value::from(&dim_info.schema)).map_err(|errors| {
+                    FormatError::ValidationError {
+                        key: format!("{}.schema", dim),
+                        errors: format_validation_errors(&errors),
+                    }
+                })?;
+
+                let cohort_dimension_info = dimensions
+                    .get(cohort_dim)
+                    .ok_or_else(|| FormatError::InvalidDimension(cohort_dim.clone()))?;
+
+                validate_cohort_dimension_position(cohort_dimension_info, dim_info)
+                    .map_err(|_| FormatError::InvalidCohortDimensionPosition {
+                        dimension: dim.clone(),
+                        dimension_position: dim_info.position,
+                        cohort_dimension: cohort_dim.clone(),
+                        cohort_dimension_position: cohort_dimension_info.position,
+                    })?;
+
+                create_connections_with_dependents(&cohort_dim, dim, dimensions);
+            }
+            superposition_types::database::models::cac::DimensionType::Regular {} => {
+                validate_schema(&Value::from(&dim_info.schema)).map_err(|errors| {
+                    FormatError::ValidationError {
+                        key: format!("{}.schema", dim),
+                        errors: format_validation_errors(&errors),
+                    }
+                })?;
+            }
+        }
+    }
+
+    // Check for duplicate positions
+    for (position, dims) in position_to_dimensions {
+        if dims.len() > 1 {
+            return Err(FormatError::DuplicatePosition {
+                position,
+                dimensions: dims,
+            });
+        }
+    }
+
+    // Validate contexts and overrides
+    for (index, context) in detailed.contexts.iter().enumerate() {
+        let condition = &context.condition;
+
+        validate_context(condition, dimensions).map_err(|errors| {
+            let first_error = &errors[0];
+            match first_error {
+                ContextValidationError::UndeclaredDimension { dimension } => {
+                    FormatError::UndeclaredDimension {
+                        dimension: dimension.clone(),
+                        context: format!("[{}]", index),
+                    }
+                }
+                ContextValidationError::ValidationError { key, errors } => {
+                    FormatError::ValidationError {
+                        key: format!("context[{}]._context_.{}", index, key),
+                        errors: format_validation_errors(errors),
+                    }
+                }
+                _ => FormatError::ValidationError {
+                    key: format!("context[{}]._context_", index),
+                    errors: format!("{} validation errors", errors.len()),
+                },
+            }
+        })?;
+    }
+
+    for (index, context) in detailed.contexts.iter().enumerate() {
+        let override_key = context.override_with_keys.get_key();
+        if let Some(override_vals) = detailed.overrides.get(override_key) {
+            validate_overrides(override_vals, default_configs).map_err(|errors| {
+                let first_error = &errors[0];
+                match first_error {
+                    ContextValidationError::InvalidOverrideKey { key } => {
+                        FormatError::InvalidOverrideKey {
+                            key: key.clone(),
+                            context: format!("[{}]", index),
+                        }
+                    }
+                    ContextValidationError::ValidationError { key, errors } => {
+                        FormatError::ValidationError {
+                            key: format!("context[{}].{}", index, key),
+                            errors: format_validation_errors(errors),
+                        }
+                    }
+                    _ => FormatError::ValidationError {
+                        key: format!("context[{}]", index),
+                        errors: format!("{} validation errors", errors.len()),
+                    },
+                }
+            })?;
+        }
+    }
+
+    Ok(())
 }

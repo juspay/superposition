@@ -79,12 +79,17 @@ impl ConfigFormat for JsonFormat {
             ctx.priority = index as i32;
         });
 
-        Ok(DetailedConfig {
+        let mut detailed = DetailedConfig {
             default_configs: json_config.default_configs,
             dimensions: json_config.dimensions,
             contexts,
             overrides,
-        })
+        };
+
+        // Validate and enrich the configuration (builds dependency graphs)
+        crate::validations::validate_and_enrich_config(&mut detailed)?;
+
+        Ok(detailed)
     }
 
     fn serialize(detailed_config: DetailedConfig) -> Result<String, FormatError> {
@@ -157,9 +162,8 @@ impl ConfigFormat for JsonFormat {
 /// }
 /// ```
 pub fn parse_json_config(json_str: &str) -> Result<Config, FormatError> {
-    let detailed_config = JsonFormat::parse(json_str)?;
-    let mut detailed = detailed_config;
-    crate::format::validate_detailed_config(&mut detailed)?;
+    // JsonFormat::parse now includes validation and enrichment internally
+    let detailed = JsonFormat::parse(json_str)?;
     Ok(Config::from(detailed))
 }
 

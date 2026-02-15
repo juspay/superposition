@@ -31,6 +31,9 @@ pub use format::{
     ConfigFormat, FormatError,
 };
 
+// Re-export validation function
+pub use validations::validate_and_enrich_config;
+
 // Re-export TOML-specific error type for backward compatibility
 pub use format::FormatError as TomlError;
 

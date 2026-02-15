@@ -102,6 +102,14 @@ impl fmt::Display for FormatError {
 
 impl std::error::Error for FormatError {}
 
+/// Result type alias for format operations
+pub type FormatResult<T> = Result<T, FormatError>;
+
+/// Format validation errors into a single string
+pub fn format_validation_errors(errors: &[String]) -> String {
+    errors.join("; ")
+}
+
 /// Helper to create syntax error for a specific format
 pub fn syntax_error(format: &str, message: impl Into<String>) -> FormatError {
     FormatError::SyntaxError {

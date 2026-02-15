@@ -15,8 +15,10 @@ use crate::format::{
     conversion_error, serialization_error, syntax_error, ConfigFormat, FormatError,
 };
 use crate::helpers::build_context;
-use crate::toml::helpers::{format_key, format_toml_value, toml_to_json};
-use crate::validations;
+use crate::toml::helpers::{
+    format_key, format_toml_value, toml_to_json, try_condition_from_toml,
+    try_overrides_from_toml,
+};
 
 /// TOML format implementation
 pub struct TomlFormat;
@@ -207,174 +209,16 @@ impl TryFrom<DetailedConfigToml> for DetailedConfig {
         let default_configs = d.default_configs;
         let mut overrides = HashMap::new();
         let mut contexts = Vec::new();
-        let mut dimensions = d
+        let dimensions = d
             .dimensions
             .into_iter()
             .map(|(k, v)| v.try_into().map(|dim_info| (k, dim_info)))
             .collect::<Result<HashMap<_, DimensionInfo>, FormatError>>()?;
 
-        // Default configs validation
-        for (k, v) in default_configs.iter() {
-            validations::validate_config_value(k, &v.value, &v.schema).map_err(
-                |errors| {
-                    let error = &errors[0];
-                    FormatError::ValidationError {
-                        key: format!("default-configs.{}", error.key()),
-                        errors: error
-                            .errors()
-                            .map(validations::format_validation_errors)
-                            .unwrap_or_default(),
-                    }
-                },
-            )?;
-        }
-
-        // Dimensions validation and dependency graph construction
-        let mut position_to_dimensions: HashMap<i32, Vec<String>> = HashMap::new();
-        for (dim, dim_info) in dimensions.clone().into_iter() {
-            position_to_dimensions
-                .entry(dim_info.position)
-                .or_default()
-                .push(dim.clone());
-
-            match dim_info.dimension_type {
-                DimensionType::LocalCohort(ref cohort_dim) => {
-                    if !dimensions.contains_key(cohort_dim) {
-                        return Err(FormatError::InvalidDimension(cohort_dim.clone()));
-                    }
-
-                    validations::validate_cohort_schema_structure(&Value::from(
-                        &dim_info.schema,
-                    ))
-                    .map_err(|errors| {
-                        FormatError::ValidationError {
-                            key: format!("{}.schema", dim),
-                            errors: validations::format_validation_errors(&errors),
-                        }
-                    })?;
-
-                    let cohort_dimension_info =
-                        dimensions.get(cohort_dim).ok_or_else(|| {
-                            FormatError::InvalidDimension(cohort_dim.clone())
-                        })?;
-
-                    validations::validate_cohort_dimension_position(
-                        cohort_dimension_info,
-                        &dim_info,
-                    )
-                    .map_err(|_| {
-                        FormatError::InvalidCohortDimensionPosition {
-                            dimension: dim.clone(),
-                            dimension_position: dim_info.position,
-                            cohort_dimension: cohort_dim.to_string(),
-                            cohort_dimension_position: cohort_dimension_info.position,
-                        }
-                    })?;
-
-                    create_connections_with_dependents(cohort_dim, &dim, &mut dimensions);
-                }
-                DimensionType::RemoteCohort(ref cohort_dim) => {
-                    if !dimensions.contains_key(cohort_dim) {
-                        return Err(FormatError::InvalidDimension(cohort_dim.clone()));
-                    }
-
-                    validations::validate_schema(&Value::from(&dim_info.schema))
-                        .map_err(|errors| FormatError::ValidationError {
-                            key: format!("{}.schema", dim),
-                            errors: validations::format_validation_errors(&errors),
-                        })?;
-
-                    let cohort_dimension_info =
-                        dimensions.get(cohort_dim).ok_or_else(|| {
-                            FormatError::InvalidDimension(cohort_dim.clone())
-                        })?;
-
-                    validations::validate_cohort_dimension_position(
-                        cohort_dimension_info,
-                        &dim_info,
-                    )
-                    .map_err(|_| {
-                        FormatError::InvalidCohortDimensionPosition {
-                            dimension: dim.clone(),
-                            dimension_position: dim_info.position,
-                            cohort_dimension: cohort_dim.to_string(),
-                            cohort_dimension_position: cohort_dimension_info.position,
-                        }
-                    })?;
-
-                    create_connections_with_dependents(cohort_dim, &dim, &mut dimensions);
-                }
-                DimensionType::Regular {} => {
-                    validations::validate_schema(&Value::from(&dim_info.schema))
-                        .map_err(|errors| FormatError::ValidationError {
-                            key: format!("{}.schema", dim),
-                            errors: validations::format_validation_errors(&errors),
-                        })?;
-                }
-            }
-        }
-
-        // Check for duplicate positions
-        for (position, dimensions) in position_to_dimensions {
-            if dimensions.len() > 1 {
-                return Err(FormatError::DuplicatePosition {
-                    position,
-                    dimensions,
-                });
-            }
-        }
-
-        // Context and override generation with validation
-        for (index, ctx) in d.overrides.into_iter().enumerate() {
+        // Build contexts and overrides from TOML overrides
+        for ctx in d.overrides.into_iter() {
             let condition = try_condition_from_toml(ctx.context)?;
             let override_vals = try_overrides_from_toml(ctx.overrides)?;
-
-            validations::validate_context(&condition, &dimensions).map_err(|errors| {
-                let first_error = &errors[0];
-                match first_error {
-                    validations::ContextValidationError::UndeclaredDimension {
-                        dimension,
-                    } => FormatError::UndeclaredDimension {
-                        dimension: dimension.clone(),
-                        context: format!("[{}]", index),
-                    },
-                    validations::ContextValidationError::ValidationError {
-                        key,
-                        errors,
-                    } => FormatError::ValidationError {
-                        key: format!("context[{}]._context_.{}", index, key),
-                        errors: validations::format_validation_errors(errors),
-                    },
-                    _ => FormatError::ValidationError {
-                        key: format!("context[{}]._context_", index),
-                        errors: format!("{} validation errors", errors.len()),
-                    },
-                }
-            })?;
-            validations::validate_overrides(&override_vals, &default_configs).map_err(
-                |errors| {
-                    let first_error = &errors[0];
-                    match first_error {
-                        validations::ContextValidationError::InvalidOverrideKey {
-                            key,
-                        } => FormatError::InvalidOverrideKey {
-                            key: key.clone(),
-                            context: format!("[{}]", index),
-                        },
-                        validations::ContextValidationError::ValidationError {
-                            key,
-                            errors,
-                        } => FormatError::ValidationError {
-                            key: format!("context[{}].{}", index, key),
-                            errors: validations::format_validation_errors(errors),
-                        },
-                        _ => FormatError::ValidationError {
-                            key: format!("context[{}]", index),
-                            errors: format!("{} validation errors", errors.len()),
-                        },
-                    }
-                },
-            )?;
 
             let (context, override_hash, override_vals) =
                 build_context(condition, override_vals, &dimensions)
@@ -393,59 +237,17 @@ impl TryFrom<DetailedConfigToml> for DetailedConfig {
             ctx.priority = index as i32;
         });
 
-        Ok(Self {
+        let mut detailed = Self {
             default_configs,
             dimensions,
             contexts,
             overrides,
-        })
-    }
-}
+        };
 
-fn try_condition_from_toml(ctx: toml::Table) -> Result<Condition, FormatError> {
-    use superposition_types::Cac;
-    let json = toml_to_json(TomlValue::Table(ctx));
-    let map = match json {
-        Value::Object(map) => map,
-        _ => return Err(conversion_error("TOML", "Context must be an object")),
-    };
-    Cac::<Condition>::try_from(map)
-        .map(|cac| cac.into_inner())
-        .map_err(|e| conversion_error("TOML", format!("Invalid condition: {}", e)))
-}
+        // Validate and enrich the configuration (builds dependency graphs)
+        crate::validations::validate_and_enrich_config(&mut detailed)?;
 
-fn try_overrides_from_toml(overrides: toml::Table) -> Result<Overrides, FormatError> {
-    use superposition_types::Cac;
-    let json = toml_to_json(TomlValue::Table(overrides));
-    let map = match json {
-        Value::Object(map) => map,
-        _ => return Err(conversion_error("TOML", "Overrides must be an object")),
-    };
-    Cac::<Overrides>::try_from(map)
-        .map(|cac| cac.into_inner())
-        .map_err(|e| conversion_error("TOML", format!("Invalid overrides: {}", e)))
-}
-
-fn create_connections_with_dependents(
-    cohorted_dimension: &str,
-    dimension_name: &str,
-    dimensions: &mut HashMap<String, DimensionInfo>,
-) {
-    for (dim, dim_info) in dimensions.iter_mut() {
-        if dim == cohorted_dimension
-            && !dim_info.dependency_graph.contains_key(cohorted_dimension)
-        {
-            dim_info
-                .dependency_graph
-                .insert(cohorted_dimension.to_string(), vec![]);
-        }
-        if let Some(current_deps) = dim_info.dependency_graph.get_mut(cohorted_dimension)
-        {
-            current_deps.push(dimension_name.to_string());
-            dim_info
-                .dependency_graph
-                .insert(dimension_name.to_string(), vec![]);
-        }
+        Ok(detailed)
     }
 }
 
@@ -468,9 +270,8 @@ impl ConfigFormat for TomlFormat {
 
 /// Parse TOML configuration string into Config
 pub fn parse_toml_config(toml_str: &str) -> Result<Config, FormatError> {
-    let detailed_config = TomlFormat::parse(toml_str)?;
-    let mut detailed = detailed_config;
-    crate::format::validate_detailed_config(&mut detailed)?;
+    // TomlFormat::parse now includes validation and enrichment internally via TryFrom
+    let detailed = TomlFormat::parse(toml_str)?;
     Ok(Config::from(detailed))
 }
 
