@@ -1,0 +1,57 @@
+{
+  "default-configs": {
+    "timeout": {
+      "value": 30,
+      "schema": { "type": "integer", "minimum": 0 }
+    },
+    "enabled": {
+      "value": true,
+      "schema": { "type": "boolean" }
+    },
+    "database": {
+      "value": {
+        "host": "localhost",
+        "port": 5432,
+        "ssl": false
+      },
+      "schema": {
+        "type": "object",
+        "properties": {
+          "host": { "type": "string" },
+          "port": { "type": "integer" },
+          "ssl": { "type": "boolean" }
+        }
+      }
+    }
+  },
+  "dimensions": {
+    "environment": {
+      "position": 1,
+      "schema": {
+        "type": "string",
+        "enum": ["development", "staging", "production"]
+      }
+    },
+    "region": {
+      "position": 2,
+      "schema": {
+        "type": "string",
+        "enum": ["us-east", "us-west", "eu-west"]
+      }
+    }
+  },
+  "overrides": [
+    {
+      "_context_": { "environment": "production" },
+      "timeout": 60,
+      "database": {
+        "host": "prod.db.example.com",
+        "ssl": true
+      }
+    },
+    {
+      "_context_": { "environment": "production", "region": "us-east" },
+      "timeout": 90
+    }
+  ]
+}
