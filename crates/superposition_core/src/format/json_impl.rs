@@ -70,6 +70,15 @@ impl ConfigFormat for JsonFormat {
             contexts.push(context);
         }
 
+        // Sort contexts by priority (weight) - higher weight means higher priority
+        contexts.sort_by(|a, b| b.priority.cmp(&a.priority));
+
+        // Set correct values for weight and priority after sorting
+        contexts.iter_mut().enumerate().for_each(|(index, ctx)| {
+            ctx.weight = index as i32;
+            ctx.priority = index as i32;
+        });
+
         Ok(DetailedConfig {
             default_configs: json_config.default_configs,
             dimensions: json_config.dimensions,
