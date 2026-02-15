@@ -5,7 +5,7 @@ use thiserror::Error;
 
 use crate::{
     eval_config, eval_config_with_reasoning, experiment::ExperimentationArgs,
-    get_applicable_variants, MergeStrategy,
+    get_applicable_variants, parse_json_config, parse_toml_config, MergeStrategy,
 };
 
 #[derive(Debug, Error, uniffi::Error)]
@@ -180,7 +180,7 @@ fn ffi_get_applicable_variants(
 /// ```
 #[uniffi::export]
 fn ffi_parse_toml_config(toml_content: String) -> Result<Config, OperationError> {
-    crate::parse_toml_config(&toml_content)
+    parse_toml_config(&toml_content)
         .map_err(|e| OperationError::Unexpected(e.to_string()))
 }
 
@@ -212,6 +212,6 @@ fn ffi_parse_toml_config(toml_content: String) -> Result<Config, OperationError>
 /// ```
 #[uniffi::export]
 fn ffi_parse_json_config(json_content: String) -> Result<Config, OperationError> {
-    crate::parse_json_config(&json_content)
+    parse_json_config(&json_content)
         .map_err(|e| OperationError::Unexpected(e.to_string()))
 }

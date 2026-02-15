@@ -1,6 +1,4 @@
 pub mod helpers;
-#[cfg(test)]
-pub mod test;
 
 // Re-export from format module for backward compatibility
 pub use crate::format::toml_impl::{
