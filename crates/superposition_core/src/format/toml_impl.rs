@@ -73,7 +73,7 @@ impl TryFrom<DimensionInfoToml> for DimensionInfo {
 }
 
 #[derive(Serialize, Deserialize)]
-struct ContextToml {
+pub struct ContextToml {
     #[serde(rename = "_context_")]
     context: toml::Table,
     #[serde(flatten)]

@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use superposition_types::{
-    Config, Context, DefaultConfigsWithSchema, DetailedConfig, DimensionInfo, Overrides,
+    Config, DefaultConfigsWithSchema, DetailedConfig, DimensionInfo, Overrides,
 };
 
 use crate::format::{ConfigFormat, FormatError};

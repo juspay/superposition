@@ -3,9 +3,7 @@ pub mod json_impl;
 pub mod toml_impl;
 
 use std::collections::HashMap;
-use superposition_types::{
-    database::models::cac::DimensionType, DetailedConfig, DimensionInfo,
-};
+use superposition_types::{database::models::cac::DimensionType, DetailedConfig};
 
 pub use error::{conversion_error, serialization_error, syntax_error, FormatError};
 
