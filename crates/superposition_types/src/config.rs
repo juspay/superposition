@@ -356,7 +356,9 @@ impl Config {
 pub struct DimensionInfo {
     pub schema: ExtendedMap,
     pub position: i32,
+    #[serde(default)]
     pub dimension_type: DimensionType,
+    #[serde(default)]
     pub dependency_graph: DependencyGraph,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub value_compute_function_name: Option<String>,
@@ -389,7 +391,7 @@ impl From<BTreeMap<String, DefaultConfigInfo>> for DefaultConfigsWithSchema {
 
 /// A detailed configuration that includes schema information for default configs.
 /// This is similar to Config but with default_configs containing both value and schema.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq))]
 pub struct DetailedConfig {
     pub contexts: Vec<Context>,

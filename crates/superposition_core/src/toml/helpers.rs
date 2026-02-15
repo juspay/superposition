@@ -2,6 +2,7 @@ use serde_json::{Map, Value};
 use superposition_types::{Cac, Condition, Overrides};
 use toml::Value as TomlValue;
 
+use crate::format::conversion_error;
 use crate::format::FormatError as TomlError;
 
 /// Convert toml::Value to serde_json::Value for validation
@@ -68,36 +69,20 @@ pub fn try_condition_from_toml(ctx: toml::Table) -> Result<Condition, TomlError>
     let json = toml_to_json(TomlValue::Table(ctx));
     let map = match json {
         Value::Object(map) => map,
-        _ => {
-            return Err(TomlError::ConversionError {
-                format: "TOML".to_string(),
-                message: "Context must be an object".to_string(),
-            })
-        }
+        _ => return Err(conversion_error("TOML", "Context must be an object")),
     };
     Cac::<Condition>::try_from(map)
         .map(|cac| cac.into_inner())
-        .map_err(|e| TomlError::ConversionError {
-            format: "TOML".to_string(),
-            message: format!("Invalid condition: {}", e),
-        })
+        .map_err(|e| conversion_error("TOML", format!("Invalid condition: {}", e)))
 }
 
 pub fn try_overrides_from_toml(overrides: toml::Table) -> Result<Overrides, TomlError> {
     let json = toml_to_json(TomlValue::Table(overrides));
     let map = match json {
         Value::Object(map) => map,
-        _ => {
-            return Err(TomlError::ConversionError {
-                format: "TOML".to_string(),
-                message: "Overrides must be an object".to_string(),
-            })
-        }
+        _ => return Err(conversion_error("TOML", "Overrides must be an object")),
     };
     Cac::<Overrides>::try_from(map)
         .map(|cac| cac.into_inner())
-        .map_err(|e| TomlError::ConversionError {
-            format: "TOML".to_string(),
-            message: format!("Invalid overrides: {}", e),
-        })
+        .map_err(|e| conversion_error("TOML", format!("Invalid overrides: {}", e)))
 }
