@@ -123,10 +123,9 @@ impl Client {
                     self.tenant
                 ));
             }
-            StatusCode::OK => log::info!(
-                "{}",
-                format!("{} CAC: new config received, updating", self.tenant)
-            ),
+            StatusCode::OK => {
+                log::info!("{} CAC: new config received, updating", self.tenant)
+            }
             x => return Err(format!("{} CAC: fetch failed, status: {}", self.tenant, x)),
         };
         Ok(resp)

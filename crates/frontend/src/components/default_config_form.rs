@@ -569,6 +569,7 @@ pub fn DefaultConfigForm(
 }
 
 #[derive(Clone)]
+#[allow(clippy::large_enum_variant)]
 pub enum ChangeType {
     Delete,
     Update(DefaultConfigUpdateRequest),

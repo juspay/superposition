@@ -353,10 +353,7 @@ async fn get_experiments(
                 tenant
             ));
         }
-        StatusCode::OK => log::info!(
-            "{}",
-            format!("{} EXP: new config received, updating", tenant)
-        ),
+        StatusCode::OK => log::info!("{} EXP: new config received, updating", tenant),
         x => return Err(format!("{} CAC: fetch failed, status: {}", tenant, x)),
     };
     let list_experiments_response = experiment_response

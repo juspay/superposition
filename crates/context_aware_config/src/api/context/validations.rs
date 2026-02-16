@@ -80,10 +80,7 @@ pub fn validate_context_jsonschema(
         .with_draft(Draft::Draft7)
         .compile(dimension_schema)
         .map_err(|e| {
-            log::error!(
-                "Failed to compile as a Draft-7 JSON schema: {}",
-                e.to_string()
-            );
+            log::error!("Failed to compile as a Draft-7 JSON schema: {}", e);
             bad_argument!("Error encountered: invalid jsonschema for dimension.")
         })?;
 
@@ -91,12 +88,12 @@ pub fn validate_context_jsonschema(
         let verrors = e.collect::<Vec<ValidationError>>();
         log::error!(
             "failed to validate dimension value {}: {:?}",
-            dimension_value.to_string(),
+            dimension_value,
             verrors
         );
         validation_error!(
             "failed to validate dimension value {}: {}",
-            dimension_value.to_string(),
+            dimension_value,
             validation_err_to_str(verrors)
                 .first()
                 .unwrap_or(&String::new())
