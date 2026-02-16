@@ -25,43 +25,47 @@ module Io.Superposition.Utility (
 ) where
 
 
-import Control.Monad ((>=>))
+import           Control.Monad              ((>=>))
 import qualified Control.Monad.State.Strict as MTL
-import Data.Aeson
-import qualified Data.Aeson.KeyMap as Aeson
-import qualified Data.Aeson.Types as Aeson
+import           Data.Aeson
+import qualified Data.Aeson.KeyMap          as Aeson
+import qualified Data.Aeson.Types           as Aeson
 import qualified Data.Bifunctor
-import qualified Data.Bifunctor as Bifunctor
-import Data.ByteString (ByteString, StrictByteString, toStrict)
-import qualified Data.ByteString as BS
-import Data.ByteString.Char8 as Char8 (unpack)
-import Data.ByteString.Lazy (LazyByteString)
-import qualified Data.ByteString.Lazy as LBS
-import qualified Data.CaseInsensitive as CI
-import Data.Foldable (traverse_)
-import Data.Function
-import Data.Int (Int16, Int32, Int64, Int8)
-import qualified Data.Map as M
-import Data.Maybe
-import Data.String (fromString)
-import Data.Text (Text, pack, toLower, unpack)
-import qualified Data.Text as T
-import Data.Text.Encoding (decodeUtf8, decodeUtf8', encodeUtf8)
-import qualified Data.Text.Lazy.Encoding as TL
-import Data.Time (defaultTimeLocale, formatTime, parseTimeM)
-import Data.Time.Clock (UTCTime)
-import Data.Time.Clock.POSIX (POSIXTime)
-import Data.Time.Format.ISO8601 (iso8601ParseM)
-import qualified Data.Word as BSW
-import GHC.Generics (Generic)
-import GHC.Int (Int32)
-import Network.HTTP.Client (BodyReader, Response)
-import qualified Network.HTTP.Client as HTTP
-import Network.HTTP.Date (HTTPDate, formatHTTPDate, parseHTTPDate)
-import qualified Network.HTTP.Types as HTTP
-import qualified Network.URI as Network
-import System.Environment (lookupEnv)
-import Text.Read (readEither)
+import qualified Data.Bifunctor             as Bifunctor
+import           Data.ByteString            (ByteString, StrictByteString,
+                                             toStrict)
+import qualified Data.ByteString            as BS
+import           Data.ByteString.Char8      as Char8 (unpack)
+import           Data.ByteString.Lazy       (LazyByteString)
+import qualified Data.ByteString.Lazy       as LBS
+import qualified Data.CaseInsensitive       as CI
+import           Data.Foldable              (traverse_)
+import           Data.Function
+import           Data.Int                   (Int16, Int32, Int64, Int8)
+import qualified Data.Map                   as M
+import           Data.Maybe
+import           Data.String                (fromString)
+import           Data.Text                  (Text, pack, toLower, unpack)
+import qualified Data.Text                  as T
+import           Data.Text.Encoding         (decodeUtf8, decodeUtf8',
+                                             encodeUtf8)
+import qualified Data.Text.Lazy.Encoding    as TL
+import           Data.Time                  (defaultTimeLocale, formatTime,
+                                             parseTimeM)
+import           Data.Time.Clock            (UTCTime)
+import           Data.Time.Clock.POSIX      (POSIXTime)
+import           Data.Time.Format.ISO8601   (iso8601ParseM)
+import qualified Data.Word                  as BSW
+import           GHC.Generics               (Generic)
+import           GHC.Int                    (Int32)
+import           Network.HTTP.Client        (BodyReader, Response)
+import qualified Network.HTTP.Client        as HTTP
+import           Network.HTTP.Date          (HTTPDate, formatHTTPDate,
+                                             parseHTTPDate)
+import qualified Network.HTTP.Types         as HTTP
+import qualified Network.URI                as Network
+import           System.Environment         (lookupEnv)
+import           Text.Read                  (readEither)
 
 instance ToJSON HTTPDate where
   toJSON = Data.Aeson.String . decodeUtf8 . formatHTTPDate
@@ -154,16 +158,16 @@ data RequestBody
   | Json Aeson.Object
 
 getBodyContent :: RequestBody -> LazyByteString
-getBodyContent NoBody = ""
+getBodyContent NoBody        = ""
 getBodyContent (Opaque _ bs) = LBS.fromStrict bs
-getBodyContent (Json obj) = encode obj
+getBodyContent (Json obj)    = encode obj
 
 data RequestBuilderSt = RequestBuilderSt
   { _headers :: M.Map HTTP.HeaderName [StrictByteString],
-    _method :: HTTP.Method,
-    _body :: RequestBody,
-    _query :: M.Map StrictByteString [StrictByteString],
-    _path :: Path
+    _method  :: HTTP.Method,
+    _body    :: RequestBody,
+    _query   :: M.Map StrictByteString [StrictByteString],
+    _path    :: Path
   }
 
 type RequestBuilder = MTL.State RequestBuilderSt
@@ -195,9 +199,9 @@ mergeWithHTTPRequest st req =
       -- 47 is `/`, trimming it to avoid `//` in paths.
       HTTP.path = trimByte 47 (HTTP.path req) <> "/" <> BS.intercalate "/" (map (HTTP.urlEncode False) (_path st)),
       HTTP.requestBody = case _body st of
-        NoBody -> HTTP.requestBody req
+        NoBody       -> HTTP.requestBody req
         Opaque ct bs -> HTTP.RequestBodyLBS (BS.fromStrict bs)
-        Json obj -> HTTP.RequestBodyLBS (encode obj)
+        Json obj     -> HTTP.RequestBodyLBS (encode obj)
     }
 
 data ParamLocation = Query | Header
@@ -259,9 +263,9 @@ setContentType :: RequestBuilder ()
 setContentType = do
   body <- MTL.gets _body
   case body of
-    NoBody -> pure ()
+    NoBody      -> pure ()
     Opaque ct _ -> serHeader "Content-Type" (fromString ct :: Text)
-    Json _ -> serHeader "Content-Type" ("application/json" :: Text)
+    Json _      -> serHeader "Content-Type" ("application/json" :: Text)
 
 class SerializeBody t where
   serBody :: String -> t -> RequestBuilder ()
@@ -285,13 +289,19 @@ instance (SerializeBody t) => SerializeBody (Maybe t) where
   serBody contentType = traverse_ (serBody contentType)
 
 -- | Serializing fields should direclty use `Aeson`.
-serField :: (ToJSON t) => Aeson.Key -> t -> RequestBuilder ()
-serField k v = do
-  body <- MTL.gets _body
-  let obj = case body of
-        Json obj -> obj
-        _ -> mempty
-  MTL.modify (\s -> s {_body = Json $ Aeson.insert k (Aeson.toJSON v) obj})
+class (ToJSON t) => SerField t where
+  serField :: Aeson.Key -> t -> RequestBuilder ()
+
+instance {-# OVERLAPPABLE #-} (ToJSON t) => SerField t where
+  serField k v = do
+    body <- MTL.gets _body
+    let obj = case body of
+          Json obj -> obj
+          _        -> mempty
+    MTL.modify (\s -> s {_body = Json $ Aeson.insert k (Aeson.toJSON v) obj})
+
+instance (ToJSON t) => SerField (Maybe t) where
+  serField k = traverse_ (serField k)
 
 setPath :: Path -> RequestBuilder ()
 setPath path = MTL.modify (\s -> s {_path = path})
@@ -324,7 +334,7 @@ instance Monad HttpResponseParser where
     let (ea, b1) = p r
      in case ea of
           Right a -> runParser (f a) (fst r, b1)
-          Left e -> (Left e, b1)
+          Left e  -> (Left e, b1)
 
 class DeSerializeHeader t where
   deSerHeader :: String -> HttpResponseParser t
@@ -334,7 +344,7 @@ instance {-# OVERLAPPABLE #-} (SerDe t) => DeSerializeHeader t where
     let headers = HTTP.responseHeaders r
         mHeader = lookup (fromString name) headers
      in case mHeader of
-          Just v -> (deSerializeElement v, b)
+          Just v  -> (deSerializeElement v, b)
           Nothing -> (Left $ "Header not found: " ++ name, b)
 
 instance (SerDe t) => DeSerializeHeader [t] where
@@ -343,13 +353,13 @@ instance (SerDe t) => DeSerializeHeader [t] where
      in case bs of
           -- Split on commas (44 is the ASCII code for comma) & then de-serialize each value.
           Right v -> (traverse deSerializeElement (BS.split 44 v), b)
-          Left e -> (Left e, b)
+          Left e  -> (Left e, b)
 
 instance (DeSerializeHeader t) => DeSerializeHeader (Maybe t) where
   deSerHeader name = HttpResponseParser $ \(r, b) ->
     case runParser (deSerHeader name) (r, b) of
       (Right v, _) -> (Right (Just v), b)
-      _ -> (Right Nothing, b)
+      _            -> (Right Nothing, b)
 
 class DeSerializeHeaderMap t where
   deSerHeaderMap :: String -> HttpResponseParser t
@@ -370,7 +380,7 @@ instance (DeSerializeHeader t) => DeSerializeHeaderMap (Maybe (M.Map Text t)) wh
   deSerHeaderMap prefix = HttpResponseParser $ \(r, b) ->
     case runParser (deSerHeaderMap prefix) (r, b) of
       (Right v, _) -> (Right (Just v), b)
-      _ -> (Right Nothing, b)
+      _            -> (Right Nothing, b)
 
 getResponse :: HttpResponseParser HttpResponse
 getResponse = HttpResponseParser $ Bifunctor.first Right
@@ -402,7 +412,7 @@ instance {-# OVERLAPPABLE #-} (FromJSON t) => DeSerializeBody t where
     if ctype == "application/json"
       then case body of
         Raw bs -> embed $ eitherDecodeStrict bs
-        Obj o -> embed $ eitherDecode $ encode o
+        Obj o  -> embed $ eitherDecode $ encode o
       else parseError $ "Unsupported content-type: " ++ show ctype
 
 instance DeSerializeBody Text where
@@ -412,10 +422,10 @@ instance DeSerializeBody Text where
     case ctype of
       "application/json" -> case body of
         Raw bs -> embed $ eitherDecodeStrict bs
-        Obj o -> embed $ eitherDecode $ encode o
+        Obj o  -> embed $ eitherDecode $ encode o
       "text/plain" -> case body of
         Raw bs -> pure $ decodeUtf8 bs
-        Obj o -> pure $ decodeUtf8 $ toStrict $ encode o
+        Obj o  -> pure $ decodeUtf8 $ toStrict $ encode o
       ct -> parseError $ "Unsupported content-type: " ++ show ct
 
 instance DeSerializeBody StrictByteString where
@@ -425,19 +435,27 @@ instance DeSerializeBody StrictByteString where
     case ctype of
       "application/octet-stream" -> case body of
         Raw bs -> pure bs
-        Obj o -> pure $ toStrict $ encode o
+        Obj o  -> pure $ toStrict $ encode o
       ct -> parseError $ "Unsupported content-type: " ++ show ct
 
-deSerField :: (FromJSON t) => Key -> HttpResponseParser t
-deSerField key = HttpResponseParser $ \(_, body) ->
-  -- NOTE `application/json` should be asserted here
-  let decoded = case body of
-        Raw bs -> eitherDecodeStrict bs
-        Obj o -> Right o
-      parse = Aeson.parseEither (Aeson..: key)
-   in -- NOTE Need to change the body to it's decoded version to avoid re-parsing.
-      (decoded >>= parse, either (const body) Obj decoded)
+class (FromJSON t) => DeSerField t where
+  deSerField :: Key -> HttpResponseParser t
 
+instance {-# OVERLAPPABLE #-} (FromJSON t) => DeSerField t where
+  deSerField key = HttpResponseParser $ \(_, body) ->
+    let decoded = case body of
+          Raw bs -> eitherDecodeStrict bs
+          Obj o  -> Right o
+        parse = Aeson.parseEither (Aeson..: key)
+     in (decoded >>= parse, either (const body) Obj decoded)
+
+instance (FromJSON t) => DeSerField (Maybe t) where
+  deSerField key = HttpResponseParser $ \(_, body) ->
+    let decoded = case body of
+          Raw bs -> eitherDecodeStrict bs
+          Obj o  -> Right o
+        parse = Aeson.parseEither (Aeson..:? key)
+     in (decoded >>= parse, either (const body) Obj decoded)
 class IntoRequestBuilder t where
   intoRequestBuilder :: t -> RequestBuilder ()
 
@@ -447,10 +465,10 @@ class FromResponseParser t where
 
 data RawRequest = RawRequest
   { requestHeaders :: [HTTP.Header],
-    requestQuery :: ByteString,
-    requestBody :: Maybe LazyByteString,
-    requestMethod :: HTTP.Method,
-    requestPath :: ByteString
+    requestQuery   :: ByteString,
+    requestBody    :: Maybe LazyByteString,
+    requestMethod  :: HTTP.Method,
+    requestPath    :: ByteString
   }
   deriving (Generic, Show)
 
@@ -481,8 +499,8 @@ fromRequest req body =
 
 data RawResponse = RawResponse
   { responseHeaders :: [HTTP.Header],
-    responseBody :: ByteString,
-    responseStatus :: Int
+    responseBody    :: ByteString,
+    responseStatus  :: Int
   }
   deriving (Generic, Show)
 
@@ -507,7 +525,7 @@ fromResponse resp body =
     }
 
 data HttpMetadata = HttpMetadata
-  { rawRequest :: RawRequest,
+  { rawRequest  :: RawRequest,
     rawResponse :: RawResponse
   }
   deriving (Generic, Show)
@@ -541,7 +559,7 @@ runOperation ::
   (FromResponseParser t, OperationError e, IntoRequestBuilder i) =>
   Network.URI ->
   HTTP.Manager ->
-  (Maybe DynAuth) ->
+  Maybe DynAuth ->
   Either Text i ->
   IO (Either e t)
 runOperation _ _ _ (Left err) =
@@ -551,8 +569,8 @@ runOperation _ _ _ (Left err) =
 runOperation endpoint manager dauth (Right i) = do
   let setAuth :: RequestBuilder ()
       setAuth = case dauth of
-                  (Just (DynAuth a)) -> (setAuthorization a)
-                  _ -> pure ()
+                  (Just (DynAuth a)) -> setAuthorization a
+                  _                  -> pure ()
       rbuilder = intoRequestBuilder i >> setAuth >> setContentType
       (_, reqSt) = MTL.runState rbuilder newRequestBuilderSt
       initReq = mergeWithHTTPRequest reqSt <$> HTTP.requestFromURI endpoint
@@ -560,7 +578,7 @@ runOperation endpoint manager dauth (Right i) = do
   case initReq of
     Just req -> HTTP.withResponse req manager (parseOutput rawBody)
     -- NOTE Should we create this in the client it-self? Would make things alot simpler IMO.
-    _ -> pure (Left $ mkUnexpectedError Nothing badHttpUrl)
+    _        -> pure (Left $ mkUnexpectedError Nothing badHttpUrl)
 
 parseOutput ::
   forall t e.
@@ -579,10 +597,10 @@ parseOutput rawBody response = do
   if 299 >= code && code >= 200
     then case runParser responseParser parseInput of
       (Right v, _) -> pure $ Right v
-      (Left e, _) -> pure $ Left $ mkDeSerializationError metadata (pack e)
+      (Left e, _)  -> pure $ Left $ mkDeSerializationError metadata (pack e)
     else case getErrorParser status of
       Just p -> pure $ case runParser p parseInput of
         (Right v, _) -> Left v
-        (Left e, _) -> Left $ mkDeSerializationError metadata (pack e)
+        (Left e, _)  -> Left $ mkDeSerializationError metadata (pack e)
       Nothing -> pure $ Left $ mkUnexpectedError (Just metadata) "Un-expected status code."
 
