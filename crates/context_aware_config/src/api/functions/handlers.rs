@@ -292,29 +292,21 @@ async fn test_handler(
         }
     };
 
-    let handle = rustyscript::tokio::runtime::Handle::current();
-
-    let result = handle
-        .spawn_blocking(move || {
-            execute_fn(
-                &workspace_context,
-                &code,
-                &req,
-                version,
-                &mut conn,
-                &state.master_encryption_key,
-            )
-            .map_err(|(e, stdout)| {
-                bad_argument!(
-                    "Function failed with error: {}, stdout: {:?}",
-                    e,
-                    stdout.unwrap_or_default()
-                )
-            })
-        })
-        .await
-        .map_err(|e| unexpected_error!("Function execution task failed: {}", e))??;
-
+    let result = execute_fn(
+        &workspace_context,
+        &code,
+        &req,
+        version,
+        &mut conn,
+        &state.master_encryption_key,
+    )
+    .map_err(|(e, stdout)| {
+        bad_argument!(
+            "Function failed with error: {}, stdout: {:?}",
+            e,
+            stdout.unwrap_or_default()
+        )
+    })?;
     Ok(Json(result))
 }
 

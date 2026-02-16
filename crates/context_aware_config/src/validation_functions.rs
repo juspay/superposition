@@ -1,7 +1,8 @@
 use std::time::Duration;
 
-use rustyscript::{Module, Runtime, RuntimeOptions, json_args};
-use superposition_macros::validation_error;
+use rustyscript::{Module, Runtime, RuntimeOptions, json_args, static_runtime};
+use serde::Serialize;
+use superposition_macros::{bad_argument, validation_error};
 
 use service_utils::service::types::{EncryptionKey, WorkspaceContext};
 use superposition_types::{
@@ -13,110 +14,61 @@ use superposition_types::{
 
 use crate::api::functions::helpers::inject_secrets_and_variables_into_code;
 
-// #[derive(Clone)]
-// struct LogCapture {
-//     logs: Arc<Mutex<Vec<String>>>,
-// }
+static_runtime!(S11N_RUNTIME, {
+    let timeout = std::time::Duration::from_secs(30);
+    RuntimeOptions {
+        timeout,
+        ..Default::default()
+    }
+});
 
-// impl LogCapture {
-//     fn new() -> Self {
-//         Self {
-//             logs: Arc::new(Mutex::new(Vec::new())),
-//         }
-//     }
+#[derive(Serialize)]
+struct FunctionPayload {
+    version: FunctionRuntimeVersion,
+    #[serde(flatten)]
+    payload: FunctionExecutionRequest,
+}
 
-//     fn capture(&self, level: &str, msg: &str) {
-//         let mut logs = self.logs.lock().unwrap();
-//         logs.push(format!("[{}] {}", level, msg));
-//     }
+const FUNCTION_WRAPPER: &str = r#"
+let logBuffer = [];
+const originalConsole = console;
+const customConsole = {
+    log: (...args) => {
+        logBuffer.push("[log] " + args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '));
+    },
+    info: (...args) => {
+        logBuffer.push("[info] " + args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '));
+    },
+    warn: (...args) => {
+        logBuffer.push("[warn] " + args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '));
+    },
+    error: (...args) => {
+        logBuffer.push("[error] " + args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '));
+    },
+    debug: (...args) => {
+        logBuffer.push("[debug] " + args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '));
+    }
+};
 
-//     fn get_logs(&self) -> Vec<String> {
-//         let logs = self.logs.lock().unwrap();
-//         logs.clone()
-//     }
-// }
+Object.defineProperty(globalThis, 'console', {
+    value: customConsole,
+    writable: false,
+    configurable: false
+});
 
-fn generate_wrapped_code(
-    code: &str,
-    args: &FunctionExecutionRequest,
-    runtime_version: FunctionRuntimeVersion,
-) -> String {
-    let args_value = serde_json::to_value(args).unwrap_or(serde_json::Value::Null);
-    let payload = serde_json::json!({
-        "version": runtime_version,
-        "value_validate": args_value.get("value_validate"),
-        "value_compute": args_value.get("value_compute"),
-        "context_validate": args_value.get("context_validate"),
-        "change_reason_validate": args_value.get("change_reason_validate")
-    });
+function getLogBuffer() {
+    return logBuffer;
+}
 
-    let output_check = match args {
-        FunctionExecutionRequest::ValueValidationFunctionRequest { .. } => "output!=true",
-        FunctionExecutionRequest::ValueComputeFunctionRequest { .. } => {
-            "!(Array.isArray(output))"
-        }
-        FunctionExecutionRequest::ContextValidationFunctionRequest { .. } => {
-            "output!=true"
-        }
-        FunctionExecutionRequest::ChangeReasonValidationFunctionRequest { .. } => {
-            "output!=true"
-        }
-    };
+function clearLogBuffer() {
+    logBuffer = [];
+}
 
-    format!(
-        r#"
-        {}
+{replaceme-with-code}
+"#;
 
-        const logBuffer = [];
-        const originalConsole = console;
-        const customConsole = {{
-            log: (...args) => {{
-                logBuffer.push("[info] " + args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '));
-                originalConsole.log(...args);
-            }},
-            info: (...args) => {{
-                logBuffer.push("[info] " + args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '));
-                originalConsole.info(...args);
-            }},
-            warn: (...args) => {{
-                logBuffer.push("[warn] " + args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '));
-                originalConsole.warn(...args);
-            }},
-            error: (...args) => {{
-                logBuffer.push("[error] " + args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '));
-                originalConsole.error(...args);
-            }},
-            debug: (...args) => {{
-                logBuffer.push("[debug] " + args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '));
-                originalConsole.debug(...args);
-            }}
-        }};
-
-        Object.defineProperty(globalThis, 'console', {{
-            value: customConsole,
-            writable: false,
-            configurable: false
-        }});
-
-        (async () => {{
-            try {{
-                const payload = {};
-                const output = await execute(payload);
-
-                if ({}) {{
-                    throw new Error("The function did not return a value that was expected. Check the return type and logic of the function");
-                }}
-
-                return {{ output, logs: logBuffer }};
-            }} catch (err) {{
-                throw {{ error: err.message || String(err), logs: logBuffer }};
-            }}
-        }})();
-        "#,
-        code,
-        serde_json::to_string(&payload).unwrap_or_else(|_| "Invalid Payload".to_string()),
-        output_check
-    )
+fn generate_wrapped_code(code: &str) -> String {
+    FUNCTION_WRAPPER.replace("{replaceme-with-code}", code)
 }
 
 pub fn execute_fn(
@@ -138,75 +90,54 @@ pub fn execute_fn(
         (err.to_string(), None)
     })?;
 
-    let wrapped_code = generate_wrapped_code(&code, args, runtime_version);
+    let wrapped_code = generate_wrapped_code(&code);
     log::trace!("Running function code: {:?}", wrapped_code);
 
     let module = Module::new("function.js", &wrapped_code);
 
-    let mut runtime_options = RuntimeOptions {
-        timeout: Duration::from_secs(10),
-        ..Default::default()
+    let payload = FunctionPayload {
+        version: runtime_version,
+        payload: args.clone(),
     };
+    let execution_response = S11N_RUNTIME::with(|runtime| {
+        let module_handle = runtime.load_module(&module)?;
 
-    let mut runtime = Runtime::new(runtime_options)
-        .map_err(|e| (format!("Failed to create runtime: {}", e), None))?;
+        let tokio_runtime = runtime.tokio_runtime();
 
-    let module_handle = runtime
-        .load_module(&module)
-        .map_err(|e| (format!("Failed to load module: {}", e), None))?;
-
-    let tokio_runtime = runtime.tokio_runtime();
-
-    let result: serde_json::Value = tokio_runtime
-        .block_on(async {
-            runtime
+        tokio_runtime.block_on(async {
+            let v = runtime
                 .call_function_async::<serde_json::Value>(
                     Some(&module_handle),
-                    "default",
-                    json_args!(),
+                    "execute",
+                    json_args!(payload),
                 )
-                .await
-        })
-        .map_err(|e| (format!("Execution error: {}", e), None))?;
-
-    let (output, logs) = if let Some(obj) = result.as_object() {
-        let logs_value = obj.get("logs").and_then(|v| v.as_array());
-        let logs_vec: Vec<String> = logs_value
-            .map(|arr| {
-                arr.iter()
-                    .filter_map(|v| v.as_str().map(String::from))
-                    .collect()
+                .await?;
+            let stdout = runtime
+                .call_function::<Vec<String>>(
+                    Some(&module_handle),
+                    "getLogBuffer",
+                    json_args!(),
+                )?
+                .join("\n");
+            runtime.call_function::<()>(
+                Some(&module_handle),
+                "clearLogBuffer",
+                json_args!(),
+            )?;
+            let function_type = FunctionType::from(args);
+            log::trace!("Function output: {:?}", v);
+            log::trace!("Function logs: {}", stdout);
+            Ok(FunctionExecutionResponse {
+                fn_output: v,
+                stdout,
+                function_type,
             })
-            .unwrap_or_default();
+        })
+    });
 
-        if obj.contains_key("error") {
-            let error_msg = obj
-                .get("error")
-                .and_then(|v| v.as_str())
-                .unwrap_or("Unknown error")
-                .to_string();
-            return Err((error_msg, Some(logs_vec.join("\\n"))));
-        }
-
-        let output_val = obj
-            .get("output")
-            .cloned()
-            .unwrap_or(serde_json::Value::Null);
-        (output_val, logs_vec)
-    } else {
-        (result, vec![])
-    };
-
-    let stdout = logs.join("\n");
-    let function_type = FunctionType::from(args);
-
-    log::trace!("Function output: {:?}", output);
-    log::trace!("Function logs: {}", stdout);
-
-    Ok(FunctionExecutionResponse {
-        fn_output: output,
-        stdout,
-        function_type,
+    execution_response.map_err(|err| {
+        log::error!("Could not execute function: {:?}", err);
+        (format!("js_eval error: {}", err), None)
     })
 }
 
@@ -221,6 +152,11 @@ pub fn compile_fn(code_str: &FunctionCode) -> superposition::Result<()> {
         "#,
         code_str
     );
+
+    rustyscript::validate(&type_check_code).map_err(|err| {
+        log::error!("Invalid function syntax: {:?}", err);
+        bad_argument!("Invalid function syntax: {}", err)
+    })?;
 
     let module = Module::new("type_check.js", &type_check_code);
     let runtime_options = RuntimeOptions {

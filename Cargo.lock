@@ -6746,6 +6746,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d7022cabe11c65c8a34a3b0e92ca1d55a0add1f873cec4def14c5b82938003d6"
 dependencies = [
  "async-trait",
+ "base64-simd",
  "deno_ast",
  "deno_console",
  "deno_core",
