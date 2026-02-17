@@ -1,7 +1,7 @@
 #[cfg(test)]
 pub(crate) mod tests;
 
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 
 use derive_more::{AsRef, Deref, DerefMut, Into};
 #[cfg(feature = "diesel_derives")]
@@ -274,12 +274,12 @@ impl From<OverrideWithKeys> for Vec<String> {
 uniffi::custom_type!(OverrideWithKeys, Vec<String>);
 
 #[repr(C)]
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default, uniffi::Record)]
 #[cfg_attr(test, derive(PartialEq))]
 pub struct Config {
     pub contexts: Vec<Context>,
     pub overrides: HashMap<String, Overrides>,
-    pub default_configs: Map<String, Value>,
+    pub default_configs: ExtendedMap,
     #[serde(default)]
     pub dimensions: HashMap<String, DimensionInfo>,
 }
@@ -310,11 +310,8 @@ impl Config {
         }
     }
 
-    pub fn filter_default_by_prefix(
-        &self,
-        prefix_list: &HashSet<String>,
-    ) -> Map<String, Value> {
-        filter_config_keys_by_prefix(&self.default_configs, prefix_list)
+    pub fn filter_default_by_prefix(&self, prefix_list: &HashSet<String>) -> ExtendedMap {
+        filter_config_keys_by_prefix(&self.default_configs, prefix_list).into()
     }
 
     pub fn filter_by_prefix(&self, prefix_list: &HashSet<String>) -> Self {
@@ -363,4 +360,58 @@ pub struct DimensionInfo {
     pub dependency_graph: DependencyGraph,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub value_compute_function_name: Option<String>,
+}
+
+/// Information about a default config key including its value and schema
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[cfg_attr(test, derive(PartialEq))]
+pub struct DefaultConfigInfo {
+    pub value: Value,
+    pub schema: Value,
+}
+
+/// A map of config keys to their values and schemas
+#[derive(Serialize, Deserialize, Clone, Debug, Default, Deref, DerefMut)]
+#[cfg_attr(test, derive(PartialEq))]
+pub struct DefaultConfigsWithSchema(BTreeMap<String, DefaultConfigInfo>);
+
+impl DefaultConfigsWithSchema {
+    pub fn into_inner(self) -> BTreeMap<String, DefaultConfigInfo> {
+        self.0
+    }
+}
+
+impl From<BTreeMap<String, DefaultConfigInfo>> for DefaultConfigsWithSchema {
+    fn from(map: BTreeMap<String, DefaultConfigInfo>) -> Self {
+        Self(map)
+    }
+}
+
+/// A detailed configuration that includes schema information for default configs.
+/// This is similar to Config but with default_configs containing both value and schema.
+#[derive(Clone, Debug)]
+#[cfg_attr(test, derive(PartialEq))]
+pub struct DetailedConfig {
+    pub contexts: Vec<Context>,
+    pub overrides: HashMap<String, Overrides>,
+    pub default_configs: DefaultConfigsWithSchema,
+    pub dimensions: HashMap<String, DimensionInfo>,
+}
+
+impl From<DetailedConfig> for Config {
+    fn from(detailed_config: DetailedConfig) -> Self {
+        let default_configs = detailed_config
+            .default_configs
+            .into_inner()
+            .into_iter()
+            .map(|(k, v)| (k, v.value))
+            .collect::<Map<_, _>>();
+
+        Self {
+            contexts: detailed_config.contexts,
+            overrides: detailed_config.overrides,
+            default_configs: ExtendedMap::from(default_configs),
+            dimensions: detailed_config.dimensions,
+        }
+    }
 }

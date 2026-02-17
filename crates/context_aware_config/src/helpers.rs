@@ -1,18 +1,15 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use actix_web::{
     http::header::{HeaderMap, HeaderName, HeaderValue},
     web::Data,
 };
-use bigdecimal::{BigDecimal, Num};
 #[cfg(feature = "high-performance-mode")]
 use chrono::DateTime;
 use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 #[cfg(feature = "high-performance-mode")]
 use fred::interfaces::KeysInterface;
-use jsonschema::{Draft, JSONSchema};
-use num_bigint::BigUint;
 use serde_json::{Map, Value, json};
 use service_utils::{
     helpers::{fetch_dimensions_info_map, generate_snowflake_id},
@@ -22,8 +19,8 @@ use superposition_macros::{db_error, unexpected_error, validation_error};
 #[cfg(feature = "high-performance-mode")]
 use superposition_types::database::schema::event_log::dsl as event_log;
 use superposition_types::{
-    Cac, Condition, Config, Context, DBConnection, DimensionInfo, OverrideWithKeys,
-    Overrides,
+    Cac, Condition, Config, Context, DBConnection, DefaultConfigInfo,
+    DefaultConfigsWithSchema, DetailedConfig, DimensionInfo, OverrideWithKeys, Overrides,
     api::functions::{
         CHANGE_REASON_VALIDATION_FN_NAME, FunctionEnvironment, FunctionExecutionRequest,
         FunctionExecutionResponse, KeyType,
@@ -79,61 +76,10 @@ pub fn parse_headermap_safe(headermap: &HeaderMap) -> HashMap<String, String> {
     req_headers
 }
 
-pub fn get_meta_schema() -> JSONSchema {
-    let my_schema = json!({
-        "type": "object",
-        "properties": {
-            "type": {
-                "enum": ["boolean", "number", "integer", "string", "array", "null"]
-            },
-        },
-        "required": ["type"],
-    });
-
-    JSONSchema::options()
-        .with_draft(Draft::Draft7)
-        .compile(&my_schema)
-        .expect("Error encountered: Failed to compile 'context_dimension_schema_value'. Ensure it adheres to the correct format and data type.")
-}
-
-fn calculate_weight_from_index(index: u32) -> Result<BigDecimal, String> {
-    let base = BigUint::from(2u32);
-    let result = base.pow(index);
-    let biguint_str = &result.to_str_radix(10);
-    BigDecimal::from_str_radix(biguint_str, 10).map_err(|err| {
-        log::error!("failed to parse bigdecimal with error: {}", err.to_string());
-        String::from("failed to parse bigdecimal with error")
-    })
-}
-
-pub fn calculate_context_weight(
-    cond: &Value,
-    dimension_position_map: &HashMap<String, DimensionInfo>,
-) -> Result<BigDecimal, String> {
-    let dimensions: HashSet<String> = cond
-        .as_object()
-        .map(|o| o.keys().cloned().collect())
-        .unwrap_or_default();
-
-    let mut weight = BigDecimal::from(0);
-    for dimension in dimensions {
-        let position = dimension_position_map
-            .get(dimension.clone().as_str())
-            .map(|x| x.position)
-            .ok_or_else(|| {
-                let msg =
-                    format!("Dimension:{} not found in Dimension schema map", dimension);
-                log::error!("{}", msg);
-                msg
-            })?;
-        weight += calculate_weight_from_index(position as u32)?;
-    }
-    Ok(weight)
-}
-pub fn generate_cac(
+fn get_context_data(
     conn: &mut DBConnection,
     schema_name: &SchemaName,
-) -> superposition::Result<Config> {
+) -> superposition::Result<(Vec<Context>, HashMap<String, Overrides>)> {
     let contexts_vec: Vec<(String, Condition, String, Overrides)> = ctxt::contexts
         .select((ctxt::id, ctxt::value, ctxt::override_id, ctxt::override_))
         .order_by((ctxt::weight.asc(), ctxt::created_at.asc()))
@@ -144,47 +90,49 @@ pub fn generate_cac(
             db_error!(err)
         })?;
     let contexts_vec: Vec<(String, Condition, i32, String, Overrides)> = contexts_vec
-        .iter()
+        .into_iter()
         .enumerate()
         .map(|(index, (id, value, override_id, override_))| {
-            (
-                id.clone(),
-                value.clone(),
-                index as i32,
-                override_id.clone(),
-                override_.clone(),
-            )
+            (id, value, index as i32, override_id, override_)
         })
         .collect();
 
     let mut contexts = Vec::new();
     let mut overrides: HashMap<String, Overrides> = HashMap::new();
 
-    for (id, condition, weight, override_id, override_) in contexts_vec.iter() {
-        let condition = Cac::<Condition>::validate_db_data(condition.clone().into())
+    for (id, condition, weight, override_id, override_) in contexts_vec.into_iter() {
+        let condition = Cac::<Condition>::validate_db_data(condition.into())
             .map_err(|err| {
                 log::error!("generate_cac : failed to decode context from db {}", err);
                 unexpected_error!(err)
             })?
             .into_inner();
 
-        let override_ = Cac::<Overrides>::validate_db_data(override_.clone().into())
+        let override_ = Cac::<Overrides>::validate_db_data(override_.into())
             .map_err(|err| {
                 log::error!("generate_cac : failed to decode overrides from db {}", err);
                 unexpected_error!(err)
             })?
             .into_inner();
         let ctxt = Context {
-            id: id.to_owned(),
+            id,
             condition,
-            priority: weight.to_owned(),
-            weight: weight.to_owned(),
+            priority: weight,
+            weight,
             override_with_keys: OverrideWithKeys::new(override_id.to_owned()),
         };
         contexts.push(ctxt);
-        overrides.insert(override_id.to_owned(), override_);
+        overrides.insert(override_id, override_);
     }
 
+    Ok((contexts, overrides))
+}
+
+pub fn generate_cac(
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> superposition::Result<Config> {
+    let (contexts, overrides) = get_context_data(conn, schema_name)?;
     let default_config_vec = def_conf::default_configs
         .select((def_conf::key, def_conf::value))
         .schema_name(schema_name)
@@ -207,7 +155,43 @@ pub fn generate_cac(
     Ok(Config {
         contexts,
         overrides,
-        default_configs,
+        default_configs: default_configs.into(),
+        dimensions,
+    })
+}
+
+/// Generate a DetailedConfig from the database.
+/// This is similar to generate_cac but includes schema information for default configs.
+pub fn generate_detailed_cac(
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> superposition::Result<DetailedConfig> {
+    let (contexts, overrides) = get_context_data(conn, schema_name)?;
+
+    // Fetch default_configs with both value and schema
+    let default_config_vec = def_conf::default_configs
+        .select((def_conf::key, def_conf::value, def_conf::schema))
+        .schema_name(schema_name)
+        .load::<(String, Value, Value)>(conn)
+        .map_err(|err| {
+            log::error!("failed to fetch default_configs with error: {}", err);
+            db_error!(err)
+        })?;
+
+    let default_configs = default_config_vec.into_iter().fold(
+        std::collections::BTreeMap::new(),
+        |mut acc, (key, value, schema)| {
+            acc.insert(key, DefaultConfigInfo { value, schema });
+            acc
+        },
+    );
+
+    let dimensions = fetch_dimensions_info_map(conn, schema_name)?;
+
+    Ok(DetailedConfig {
+        contexts,
+        overrides,
+        default_configs: DefaultConfigsWithSchema::from(default_configs),
         dimensions,
     })
 }
@@ -510,30 +494,4 @@ pub fn validate_change_reason(
         )?;
     }
     Ok(())
-}
-
-// ************ Tests *************
-
-#[cfg(test)]
-mod tests {
-    use std::str::FromStr;
-
-    use super::*;
-
-    #[test]
-    fn test_calculate_weight_from_index() {
-        let number_2_100_str = "1267650600228229401496703205376";
-        // test 2^100
-        let big_decimal =
-            BigDecimal::from_str(number_2_100_str).expect("Invalid string format");
-
-        let number_2_200_str =
-            "1606938044258990275541962092341162602522202993782792835301376";
-        // test 2^100
-        let big_decimal_200 =
-            BigDecimal::from_str(number_2_200_str).expect("Invalid string format");
-
-        assert_eq!(Some(big_decimal), calculate_weight_from_index(100).ok());
-        assert_eq!(Some(big_decimal_200), calculate_weight_from_index(200).ok());
-    }
 }

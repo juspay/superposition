@@ -330,6 +330,17 @@
               };
             };
           };
+          "superposition_toml_example" = {
+            crane = {
+              args = {
+                buildInputs =
+                  [
+                    pkgs.openssl
+                    pkgs.postgresql_15
+                  ];
+              };
+            };
+          };
         };
       };
     };

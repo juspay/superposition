@@ -134,7 +134,7 @@ jobs:
             - name: Install postgres libs
               run: |
                   sudo apt update
-                  sudo apt-get -y install postgresql libpq-dev
+                  sudo apt-get -y install postgresql libpq-dev libgmp-dev
 
             - name: Install Bun
               uses: oven-sh/setup-bun@v2
@@ -154,6 +154,24 @@ jobs:
             - name: Install wasm-pack
               shell: bash
               run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+            - name: Set up JDK
+              uses: actions/setup-java@v4
+              with:
+                java-version: '17'
+                distribution: 'temurin'
+
+            - name: Setup Gradle
+              uses: gradle/actions/setup-gradle@v3
+
+            - name: Setup Haskell environment (GHC and Cabal)
+              uses: haskell-actions/setup@v2
+              with:
+                ghc-version: '9.6.7' # Specify the GHC version (e.g., '9.2' or 'latest')
+                cabal-version: '3.16' # Specify the Cabal version (e.g., '3.8' or 'latest')
+
+            - name: Update Cabal package database
+              run: cabal update
 
             - name: run tests
               shell: bash

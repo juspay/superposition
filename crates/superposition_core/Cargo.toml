@@ -12,13 +12,19 @@ readme = "README.md"
 [dependencies]
 actix-web = { workspace = true }
 anyhow = { workspace = true }
+bigdecimal = { workspace = true }
+blake3 = { workspace = true }
 cfg-if = { workspace = true }
 chrono = { workspace = true }
 derive_more = { workspace = true }
 itertools = { workspace = true }
+jsonlogic = { workspace = true, optional = true }
+jsonschema = { workspace = true }
 log = { workspace = true }
 mini-moka = { version = "0.10.3" }
+num-bigint = "0.4"
 once_cell = { workspace = true }
+percent-encoding = "2.3"
 rand = "0.9.1"
 reqwest = { workspace = true }
 serde = { workspace = true }
@@ -31,6 +37,7 @@ superposition_types = { workspace = true, features = [
 ] }
 thiserror = { version = "1.0.57" }
 tokio = { version = "1.29.1", features = ["full"] }
+toml = { workspace = true, features = ["preserve_order"] }
 uniffi = { workspace = true }
 
 [dev-dependencies]

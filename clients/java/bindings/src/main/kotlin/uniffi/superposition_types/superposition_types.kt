@@ -1090,6 +1090,46 @@ public object FfiConverterTypeBucket: FfiConverterRustBuffer<Bucket> {
 
 
 
+data class Config (
+    var `contexts`: List<Context>, 
+    var `overrides`: Map<kotlin.String, Overrides>, 
+    var `defaultConfigs`: ExtendedMap, 
+    var `dimensions`: Map<kotlin.String, DimensionInfo>
+) {
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeConfig: FfiConverterRustBuffer<Config> {
+    override fun read(buf: ByteBuffer): Config {
+        return Config(
+            FfiConverterSequenceTypeContext.read(buf),
+            FfiConverterMapStringTypeOverrides.read(buf),
+            FfiConverterTypeExtendedMap.read(buf),
+            FfiConverterMapStringTypeDimensionInfo.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: Config) = (
+            FfiConverterSequenceTypeContext.allocationSize(value.`contexts`) +
+            FfiConverterMapStringTypeOverrides.allocationSize(value.`overrides`) +
+            FfiConverterTypeExtendedMap.allocationSize(value.`defaultConfigs`) +
+            FfiConverterMapStringTypeDimensionInfo.allocationSize(value.`dimensions`)
+    )
+
+    override fun write(value: Config, buf: ByteBuffer) {
+            FfiConverterSequenceTypeContext.write(value.`contexts`, buf)
+            FfiConverterMapStringTypeOverrides.write(value.`overrides`, buf)
+            FfiConverterTypeExtendedMap.write(value.`defaultConfigs`, buf)
+            FfiConverterMapStringTypeDimensionInfo.write(value.`dimensions`, buf)
+    }
+}
+
+
+
 data class Context (
     var `id`: kotlin.String, 
     var `condition`: Condition, 
@@ -1555,6 +1595,34 @@ public object FfiConverterSequenceString: FfiConverterRustBuffer<List<kotlin.Str
 /**
  * @suppress
  */
+public object FfiConverterSequenceTypeContext: FfiConverterRustBuffer<List<Context>> {
+    override fun read(buf: ByteBuffer): List<Context> {
+        val len = buf.getInt()
+        return List<Context>(len) {
+            FfiConverterTypeContext.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<Context>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeContext.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<Context>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeContext.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterSequenceTypeVariant: FfiConverterRustBuffer<List<Variant>> {
     override fun read(buf: ByteBuffer): List<Variant> {
         val len = buf.getInt()
@@ -1650,6 +1718,45 @@ public object FfiConverterMapStringString: FfiConverterRustBuffer<Map<kotlin.Str
 /**
  * @suppress
  */
+public object FfiConverterMapStringTypeDimensionInfo: FfiConverterRustBuffer<Map<kotlin.String, DimensionInfo>> {
+    override fun read(buf: ByteBuffer): Map<kotlin.String, DimensionInfo> {
+        val len = buf.getInt()
+        return buildMap<kotlin.String, DimensionInfo>(len) {
+            repeat(len) {
+                val k = FfiConverterString.read(buf)
+                val v = FfiConverterTypeDimensionInfo.read(buf)
+                this[k] = v
+            }
+        }
+    }
+
+    override fun allocationSize(value: Map<kotlin.String, DimensionInfo>): ULong {
+        val spaceForMapSize = 4UL
+        val spaceForChildren = value.map { (k, v) ->
+            FfiConverterString.allocationSize(k) +
+            FfiConverterTypeDimensionInfo.allocationSize(v)
+        }.sum()
+        return spaceForMapSize + spaceForChildren
+    }
+
+    override fun write(value: Map<kotlin.String, DimensionInfo>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        // The parens on `(k, v)` here ensure we're calling the right method,
+        // which is important for compatibility with older android devices.
+        // Ref https://blog.danlew.net/2017/03/16/kotlin-puzzler-whose-line-is-it-anyways/
+        value.forEach { (k, v) ->
+            FfiConverterString.write(k, buf)
+            FfiConverterTypeDimensionInfo.write(v, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterMapStringSequenceString: FfiConverterRustBuffer<Map<kotlin.String, List<kotlin.String>>> {
     override fun read(buf: ByteBuffer): Map<kotlin.String, List<kotlin.String>> {
         val len = buf.getInt()
@@ -1679,6 +1786,45 @@ public object FfiConverterMapStringSequenceString: FfiConverterRustBuffer<Map<ko
         value.forEach { (k, v) ->
             FfiConverterString.write(k, buf)
             FfiConverterSequenceString.write(v, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterMapStringTypeOverrides: FfiConverterRustBuffer<Map<kotlin.String, Overrides>> {
+    override fun read(buf: ByteBuffer): Map<kotlin.String, Overrides> {
+        val len = buf.getInt()
+        return buildMap<kotlin.String, Overrides>(len) {
+            repeat(len) {
+                val k = FfiConverterString.read(buf)
+                val v = FfiConverterTypeOverrides.read(buf)
+                this[k] = v
+            }
+        }
+    }
+
+    override fun allocationSize(value: Map<kotlin.String, Overrides>): ULong {
+        val spaceForMapSize = 4UL
+        val spaceForChildren = value.map { (k, v) ->
+            FfiConverterString.allocationSize(k) +
+            FfiConverterTypeOverrides.allocationSize(v)
+        }.sum()
+        return spaceForMapSize + spaceForChildren
+    }
+
+    override fun write(value: Map<kotlin.String, Overrides>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        // The parens on `(k, v)` here ensure we're calling the right method,
+        // which is important for compatibility with older android devices.
+        // Ref https://blog.danlew.net/2017/03/16/kotlin-puzzler-whose-line-is-it-anyways/
+        value.forEach { (k, v) ->
+            FfiConverterString.write(k, buf)
+            FfiConverterTypeOverrides.write(v, buf)
         }
     }
 }

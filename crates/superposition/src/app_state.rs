@@ -6,8 +6,6 @@ use std::{
 #[cfg(feature = "high-performance-mode")]
 use std::time::Duration;
 
-use context_aware_config::helpers::get_meta_schema;
-
 #[cfg(feature = "high-performance-mode")]
 use fred::{
     clients::RedisPool,
@@ -98,7 +96,6 @@ pub async fn get(
             .expect("ALLOW_SAME_KEYS_NON_OVERLAPPING_CTX not set"),
         },
         snowflake_generator,
-        meta_schema: get_meta_schema(),
         app_env,
         tenant_middleware_exclusion_list: get_from_env_unsafe::<String>(
             "TENANT_MIDDLEWARE_EXCLUSION_LIST",

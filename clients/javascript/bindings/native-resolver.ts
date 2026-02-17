@@ -5,6 +5,8 @@ import koffi from "koffi";
 import { fileURLToPath } from "url";
 import { Buffer } from "buffer";
 
+const ERROR_BUFFER_SIZE = 2048;
+
 export class NativeResolver {
     private lib: any;
     private isAvailable: boolean = false;
@@ -28,6 +30,9 @@ export class NativeResolver {
             );
             this.lib.core_test_connection = this.lib.func(
                 "int core_test_connection()"
+            );
+            this.lib.core_parse_toml_config = this.lib.func(
+                "char* core_parse_toml_config(const char*, char*)"
             );
 
             this.isAvailable = true;
@@ -141,7 +146,7 @@ export class NativeResolver {
             throw new Error("queryData serialization failed");
         }
 
-        const ebuf = Buffer.alloc(256);
+        const ebuf = Buffer.alloc(ERROR_BUFFER_SIZE);
         const result = this.lib.core_get_resolved_config(
             defaultConfigsJson,
             contextsJson,
@@ -205,7 +210,7 @@ export class NativeResolver {
             ? JSON.stringify(experimentation)
             : null;
 
-        const ebuf = Buffer.alloc(256);
+        const ebuf = Buffer.alloc(ERROR_BUFFER_SIZE);
         const result = this.lib.core_get_resolved_config_with_reasoning(
             JSON.stringify(defaultConfigs || {}),
             JSON.stringify(contexts),
@@ -278,7 +283,7 @@ export class NativeResolver {
         console.log("  identifier:", identifier);
         console.log("  filterPrefixes:", filterPrefixes);
 
-        const ebuf = Buffer.alloc(256);
+        const ebuf = Buffer.alloc(ERROR_BUFFER_SIZE);
         const result = this.lib.core_get_applicable_variants(
             experimentsJson,
             experimentGroupsJson,
@@ -315,6 +320,65 @@ export class NativeResolver {
             throw new Error(
                 `Failed to parse variants evaluation result: ${parseError}`
             );
+        }
+    }
+
+    /**
+     * Parse TOML configuration into structured format matching the Config type
+     *
+     * @param tomlContent - TOML configuration string
+     * @returns Parsed Config object with contexts, overrides, default_configs, dimensions
+     * @throws Error if parsing fails
+     */
+    parseTomlConfig(tomlContent: string): {
+        contexts: any[];
+        overrides: Record<string, Record<string, any>>;
+        default_configs: Record<string, any>;
+        dimensions: Record<string, any>;
+    } {
+        if (!this.isAvailable) {
+            throw new Error(
+                "Native resolver is not available. Please ensure the native library is built and accessible."
+            );
+        }
+
+        if (typeof tomlContent !== 'string') {
+            throw new TypeError('tomlContent must be a string');
+        }
+
+        // Allocate error buffer (matching the Rust implementation)
+        const errorBuffer = Buffer.alloc(ERROR_BUFFER_SIZE);
+
+        // Call the C function
+        const resultJson = this.lib.core_parse_toml_config(tomlContent, errorBuffer);
+
+        // Check for errors
+        if (!resultJson) {
+            // Read error message from buffer
+            const nullTermIndex = errorBuffer.indexOf(0);
+            const errorMsg = errorBuffer.toString('utf8', 0, nullTermIndex > 0 ? nullTermIndex : errorBuffer.length);
+            throw new Error(`TOML parsing failed: ${errorMsg}`);
+        }
+
+        // Decode the result to a JS string if it's not already a string
+        const configStr =
+            typeof resultJson === "string"
+                ? resultJson
+                : this.lib.decode(resultJson, "string");
+
+        // Free the native string if it wasn't already a string
+        if (typeof resultJson !== "string") {
+            this.lib.core_free_string(resultJson);
+        }
+
+        // Parse the JSON result
+        try {
+            const result = JSON.parse(configStr);
+            return result;
+        } catch (parseError) {
+            console.error("Failed to parse TOML result:", parseError);
+            console.error("Raw result string:", configStr);
+            throw new Error(`Failed to parse TOML result: ${parseError}`);
         }
     }
 
@@ -411,7 +475,17 @@ export class NativeResolver {
             return localBuildPath;
         }
 
-        // 4. Final fallback - assume it's in the system path
+        // 4. Try simple library name format (libsuperposition_core.dylib/so/dll)
+        let simpleLibName: string;
+        if (platform === "win32") {
+            simpleLibName = "superposition_core.dll";
+        } else if (platform === "darwin") {
+            simpleLibName = "libsuperposition_core.dylib";
+        } else {
+            simpleLibName = "libsuperposition_core.so";
+        }
+
+        // 5. Final fallback - assume it's in the system path
         console.warn(
             `Native library not found in expected locations, trying: ${filename}`
         );

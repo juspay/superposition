@@ -10,7 +10,6 @@ use actix_web::{Error, FromRequest, HttpMessage, error, web::Data};
 use derive_more::{Deref, DerefMut};
 use diesel::r2d2::{ConnectionManager, PooledConnection};
 use diesel::{Connection, PgConnection};
-use jsonschema::JSONSchema;
 use secrecy::SecretString;
 use serde::{Deserialize, Serialize};
 use snowflake::SnowflakeIdGenerator;
@@ -50,7 +49,6 @@ pub struct AppState {
     pub app_env: AppEnv,
     pub cac_version: String,
     pub db_pool: PgSchemaConnectionPool,
-    pub meta_schema: JSONSchema,
     pub experimentation_flags: ExperimentationFlags,
     pub snowflake_generator: Arc<Mutex<SnowflakeIdGenerator>>,
     pub tenant_middleware_exclusion_list: HashSet<String>,

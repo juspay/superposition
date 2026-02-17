@@ -4,6 +4,9 @@ pub mod config;
 pub mod experiment;
 pub mod ffi;
 pub mod ffi_legacy;
+pub mod helpers;
+pub mod toml;
+pub mod validations;
 
 pub use config::{eval_config, eval_config_with_reasoning, merge, MergeStrategy};
 pub use experiment::{
@@ -12,5 +15,5 @@ pub use experiment::{
 pub use ffi_legacy::{
     core_free_string, core_get_resolved_config, core_get_resolved_config_with_reasoning,
 };
-
-pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+pub use superposition_types::Config;
+pub use toml::{parse_toml_config, serialize_to_toml, TomlError};

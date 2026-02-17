@@ -17,7 +17,7 @@ pub fn eval_config(
 ) -> Result<Map<String, Value>, String> {
     // Create Config struct to use existing filtering logic
     let mut config = Config {
-        default_configs: default_config,
+        default_configs: default_config.into(),
         contexts: contexts.to_vec(),
         overrides: overrides.clone(),
         dimensions: dimensions.clone(),
@@ -45,7 +45,7 @@ pub fn eval_config(
     let mut result_config = config.default_configs;
     merge_overrides_on_default_config(&mut result_config, overrides_map, &merge_strategy);
 
-    Ok(result_config)
+    Ok(result_config.into_inner())
 }
 
 pub fn eval_config_with_reasoning(
@@ -60,7 +60,7 @@ pub fn eval_config_with_reasoning(
     let mut reasoning: Vec<Value> = vec![];
 
     let mut config = Config {
-        default_configs: default_config,
+        default_configs: default_config.into(),
         contexts: contexts.to_vec(),
         overrides: overrides.clone(),
         dimensions: dimensions.clone(),
@@ -96,7 +96,7 @@ pub fn eval_config_with_reasoning(
     // Add reasoning metadata
     result_config.insert("metadata".into(), json!(reasoning));
 
-    Ok(result_config)
+    Ok(result_config.into_inner())
 }
 
 pub fn merge(doc: &mut Value, patch: &Value) {

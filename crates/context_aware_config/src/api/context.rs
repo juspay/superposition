@@ -4,7 +4,6 @@ pub mod operations;
 mod types;
 pub mod validations;
 pub use handlers::endpoints;
-pub use helpers::hash;
 pub use operations::delete;
 pub use operations::update;
 pub use operations::upsert;

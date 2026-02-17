@@ -768,7 +768,7 @@ describe("Dimension API", () => {
         expect(
             superpositionClient.send(new CreateDimensionCommand(input))
         ).rejects.toThrow(
-            `The definition of the cohort and the enum options do not match. Some enum options do not have a definition, found 1 cohorts and 2 enum options (not including otherwise)`
+            "schema validation failed: Cohort enum option 'big' does not have a corresponding definition"
         );
     });
 
@@ -876,7 +876,7 @@ describe("Dimension API", () => {
         expect(
             superpositionClient.send(new CreateDimensionCommand(input))
         ).rejects.toThrow(
-            "The definition of the cohort and the enum options do not match. Some enum options do not have a definition, found 2 cohorts and 1 enum options (not including otherwise)"
+            "schema validation failed: Cohort definition 'big' does not have a corresponding enum option"
         );
     });
 
