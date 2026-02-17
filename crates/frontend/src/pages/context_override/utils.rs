@@ -18,7 +18,7 @@ pub fn context_payload(
     description: String,
     change_reason: String,
 ) -> Value {
-    let context = conditions.as_context_json();
+    let context = Map::from(conditions);
     let payload = json!({
         "override": overrides,
         "context": context,

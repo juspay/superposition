@@ -310,8 +310,8 @@ where
 {
     let experiment = store_value(experiment);
     let metrics_load_err = RwSignal::new(false);
-    let contexts = experiment
-        .with_value(|v| Conditions::from_context_json(&v.context).unwrap_or_default());
+    let contexts =
+        experiment.with_value(|v| Conditions::from_iter(v.context.clone().into_inner()));
     let badge_class = format!(
         "badge text-white badge-xl {}",
         experiment.with_value(|v| badge_class(v.status))
@@ -371,7 +371,7 @@ where
                                     <div class="stat w-3/12">
                                         <div class="stat-title">{dimension}</div>
                                         <div class="stat-value text-base">
-                                            {condition.expression.to_value().html_display()}
+                                            {condition.value.html_display()}
                                         </div>
                                     </div>
                                 }

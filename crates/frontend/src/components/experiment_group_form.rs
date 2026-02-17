@@ -191,7 +191,7 @@ pub fn ExperimentGroupForm(
     let loading_rws = create_rw_signal(false);
 
     let fn_environment = Memo::new(move |_| FunctionEnvironment {
-        context: context_rs.get().as_context_json(),
+        context: context_rs.get().into(),
         overrides: Map::new(),
     });
 

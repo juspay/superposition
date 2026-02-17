@@ -184,6 +184,10 @@ impl Condition {
         }
         Ok(true)
     }
+
+    pub fn into_inner(self) -> Map<String, Value> {
+        self.0
+    }
 }
 
 impl_try_from_map!(Cac, Condition, Condition::validate_data_for_cac);

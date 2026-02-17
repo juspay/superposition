@@ -87,14 +87,14 @@ fn AllContextView(config: Config) -> impl IntoView {
             <ConditionCollapseProvider>
 
                 {contexts
-                    .iter()
+                    .into_iter()
                     .map(|context| {
                         let rows: Vec<_> = context
                             .override_with_keys
                             .iter()
                             .filter_map(|key| overrides.get(key).map(|o| rows(o, true)))
                             .collect();
-                        let conditions: Conditions = context.try_into().unwrap_or_default();
+                        let conditions = Conditions::from_iter(context.condition.into_inner());
                         view! {
                             <div class="card bg-base-100 shadow gap-4 p-6">
                                 <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md m-0 w-max">
@@ -177,7 +177,7 @@ pub fn Home() -> impl IntoView {
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
 
     let fn_environment = Memo::new(move |_| FunctionEnvironment {
-        context: context_rs.get().as_context_json(),
+        context: context_rs.get().into(),
         overrides: Map::new(),
     });
 
@@ -262,7 +262,7 @@ pub fn Home() -> impl IntoView {
         let context_updated = context_rs.get();
         // resolve the context and get the config that would apply
         spawn_local(async move {
-            let context = DimensionQuery::from(context_updated.as_resolve_context());
+            let context = DimensionQuery::from(Map::from(context_updated));
             let mut config = resolve_config(
                 &context,
                 &ResolveConfigQuery {
