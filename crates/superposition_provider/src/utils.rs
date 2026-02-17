@@ -577,6 +577,26 @@ impl ConversionUtils {
         dimension_data
     }
 
+    /// Convert an EvaluationContext into a (Map<String, Value>, Option<String>) tuple
+    /// containing the custom fields as serde values and the targeting key.
+    /// This is used by both local and remote providers.
+    pub fn evaluation_context_to_query(
+        ctx: &open_feature::EvaluationContext,
+    ) -> (Map<String, Value>, Option<String>) {
+        let context = ctx
+            .custom_fields
+            .iter()
+            .map(|(k, v)| {
+                (
+                    k.clone(),
+                    Self::convert_evaluation_context_value_to_serde_value(v),
+                )
+            })
+            .collect();
+
+        (context, ctx.targeting_key.clone())
+    }
+
     /// Convert Config back to the legacy format for compatibility with existing provider logic
     pub fn config_to_legacy_format(config: &Config) -> HashMap<String, Value> {
         let mut result = HashMap::new();
