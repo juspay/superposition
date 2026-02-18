@@ -27,6 +27,7 @@ tokio-util = "0.7"
 uuid = { workspace = true }
 
 notify = "7"
+tokio-util = "0.7"
 
 [dev-dependencies]
 env_logger = "0.11"
