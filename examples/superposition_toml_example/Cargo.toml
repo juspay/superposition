@@ -1,7 +1,7 @@
 [package]
 name = "superposition_toml_example"
 description = "Example demonstrating TOML parsing with superposition_core"
-version = "0.99.0"
+version = "0.99.1"
 edition = "2021"
 
 [dependencies]
