@@ -12,8 +12,8 @@ use serde_json::{Map, Value};
 use superposition_core::{eval_config, get_applicable_variants, MergeStrategy};
 use superposition_types::DimensionInfo;
 use tokio::sync::RwLock;
-use tokio::task::JoinHandle;
 use tokio::time::{sleep, Duration};
+use tokio_util::sync::CancellationToken;
 
 use crate::data_source::{ConfigData, ExperimentData, SuperpositionDataSource};
 use crate::traits::{AllFeatureProvider, FeatureExperimentMeta};
@@ -26,7 +26,7 @@ pub struct LocalResolutionProvider {
     refresh_strategy: RefreshStrategy,
     cached_config: Arc<RwLock<Option<ConfigData>>>,
     cached_experiments: Arc<RwLock<Option<ExperimentData>>>,
-    polling_task: RwLock<Option<JoinHandle<()>>>,
+    cancel_token: CancellationToken,
     metadata: ProviderMetadata,
     status: RwLock<ProviderStatus>,
 }
@@ -43,7 +43,7 @@ impl LocalResolutionProvider {
             refresh_strategy,
             cached_config: Arc::new(RwLock::new(None)),
             cached_experiments: Arc::new(RwLock::new(None)),
-            polling_task: RwLock::new(None),
+            cancel_token: CancellationToken::new(),
             metadata: ProviderMetadata {
                 name: "LocalResolutionProvider".to_string(),
             },
@@ -126,9 +126,8 @@ impl LocalResolutionProvider {
                     "LocalResolutionProvider: starting polling with interval={}s",
                     polling_strategy.interval
                 );
-                let task = self.start_polling(polling_strategy.interval).await;
-                let mut polling_task = self.polling_task.write().await;
-                *polling_task = Some(task);
+                self.start_polling(polling_strategy.interval, self.cancel_token.clone())
+                    .await;
             }
             RefreshStrategy::OnDemand(on_demand_strategy) => {
                 info!(
@@ -144,9 +143,8 @@ impl LocalResolutionProvider {
                             "LocalResolutionProvider: starting watch with debounce={}ms",
                             debounce_ms
                         );
-                        let task = self.start_watching(stream, debounce_ms).await;
-                        let mut polling_task = self.polling_task.write().await;
-                        *polling_task = Some(task);
+                        self.start_watching(stream, debounce_ms, self.cancel_token.clone())
+                            .await;
                     }
                     Ok(None) => {
                         warn!("Watch strategy selected but data source does not support watching");
@@ -174,13 +172,8 @@ impl LocalResolutionProvider {
     }
 
     pub async fn close(&self) -> Result<()> {
-        // Abort polling task
-        {
-            let mut polling_task = self.polling_task.write().await;
-            if let Some(task) = polling_task.take() {
-                task.abort();
-            }
-        }
+        // Cancel background tasks cooperatively
+        self.cancel_token.cancel();
 
         // Close data sources
         if let Err(e) = self.primary.close().await {
@@ -254,75 +247,28 @@ impl LocalResolutionProvider {
         config_result.map(|_| ())
     }
 
-    async fn start_polling(&self, interval: u64) -> JoinHandle<()> {
+    async fn start_polling(&self, interval: u64, token: CancellationToken) {
         let primary = self.primary.clone();
         let cached_config = self.cached_config.clone();
         let cached_experiments = self.cached_experiments.clone();
 
         tokio::spawn(async move {
             loop {
-                sleep(Duration::from_secs(interval)).await;
-
-                // Refresh config
-                match primary.fetch_config().await {
-                    Ok(data) => {
-                        let mut cached = cached_config.write().await;
-                        *cached = Some(data);
-                        debug!("LocalResolutionProvider: config updated via polling");
+                tokio::select! {
+                    _ = token.cancelled() => {
+                        info!("LocalResolutionProvider: polling cancelled");
+                        break;
                     }
-                    Err(e) => {
-                        error!("LocalResolutionProvider: polling config error: {}", e);
-                    }
-                }
-
-                // Refresh experiments
-                match primary.fetch_active_experiments().await {
-                    Ok(Some(data)) => {
-                        let mut cached = cached_experiments.write().await;
-                        *cached = Some(data);
-                        debug!("LocalResolutionProvider: experiments updated via polling");
-                    }
-                    Ok(None) => {}
-                    Err(e) => {
-                        error!(
-                            "LocalResolutionProvider: polling experiments error: {}",
-                            e
-                        );
-                    }
-                }
-            }
-        })
-    }
-
-    async fn start_watching(
-        &self,
-        mut watch_stream: crate::types::WatchStream,
-        debounce_ms: u64,
-    ) -> JoinHandle<()> {
-        let primary = self.primary.clone();
-        let cached_config = self.cached_config.clone();
-        let cached_experiments = self.cached_experiments.clone();
-
-        tokio::spawn(async move {
-            loop {
-                match watch_stream.receiver.recv().await {
-                    Some(()) => {
-                        // Debounce: wait, then drain any queued events
-                        sleep(Duration::from_millis(debounce_ms)).await;
-                        while watch_stream.receiver.try_recv().is_ok() {}
-
+                    _ = sleep(Duration::from_secs(interval)) => {
                         // Refresh config
                         match primary.fetch_config().await {
                             Ok(data) => {
                                 let mut cached = cached_config.write().await;
                                 *cached = Some(data);
-                                debug!("LocalResolutionProvider: config updated via watch");
+                                debug!("LocalResolutionProvider: config updated via polling");
                             }
                             Err(e) => {
-                                error!(
-                                    "LocalResolutionProvider: watch config refresh error: {}",
-                                    e
-                                );
+                                error!("LocalResolutionProvider: polling config error: {}", e);
                             }
                         }
 
@@ -331,26 +277,88 @@ impl LocalResolutionProvider {
                             Ok(Some(data)) => {
                                 let mut cached = cached_experiments.write().await;
                                 *cached = Some(data);
-                                debug!(
-                                    "LocalResolutionProvider: experiments updated via watch"
-                                );
+                                debug!("LocalResolutionProvider: experiments updated via polling");
                             }
                             Ok(None) => {}
                             Err(e) => {
                                 error!(
-                                    "LocalResolutionProvider: watch experiments refresh error: {}",
+                                    "LocalResolutionProvider: polling experiments error: {}",
                                     e
                                 );
                             }
                         }
                     }
-                    None => {
-                        info!("LocalResolutionProvider: watch channel closed, stopping");
+                }
+            }
+        });
+    }
+
+    async fn start_watching(
+        &self,
+        mut watch_stream: crate::types::WatchStream,
+        debounce_ms: u64,
+        token: CancellationToken,
+    ) {
+        let primary = self.primary.clone();
+        let cached_config = self.cached_config.clone();
+        let cached_experiments = self.cached_experiments.clone();
+
+        tokio::spawn(async move {
+            loop {
+                tokio::select! {
+                    _ = token.cancelled() => {
+                        info!("LocalResolutionProvider: watch cancelled");
                         break;
+                    }
+                    msg = watch_stream.receiver.recv() => {
+                        match msg {
+                            Some(()) => {
+                                // Debounce: wait, then drain any queued events
+                                sleep(Duration::from_millis(debounce_ms)).await;
+                                while watch_stream.receiver.try_recv().is_ok() {}
+
+                                // Refresh config
+                                match primary.fetch_config().await {
+                                    Ok(data) => {
+                                        let mut cached = cached_config.write().await;
+                                        *cached = Some(data);
+                                        debug!("LocalResolutionProvider: config updated via watch");
+                                    }
+                                    Err(e) => {
+                                        error!(
+                                            "LocalResolutionProvider: watch config refresh error: {}",
+                                            e
+                                        );
+                                    }
+                                }
+
+                                // Refresh experiments
+                                match primary.fetch_active_experiments().await {
+                                    Ok(Some(data)) => {
+                                        let mut cached = cached_experiments.write().await;
+                                        *cached = Some(data);
+                                        debug!(
+                                            "LocalResolutionProvider: experiments updated via watch"
+                                        );
+                                    }
+                                    Ok(None) => {}
+                                    Err(e) => {
+                                        error!(
+                                            "LocalResolutionProvider: watch experiments refresh error: {}",
+                                            e
+                                        );
+                                    }
+                                }
+                            }
+                            None => {
+                                info!("LocalResolutionProvider: watch channel closed, stopping");
+                                break;
+                            }
+                        }
                     }
                 }
             }
-        })
+        });
     }
 
     async fn ensure_fresh_data(&self) -> Result<()> {

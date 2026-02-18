@@ -32,6 +32,7 @@ superposition_sdk = { workspace = true, features = ["behavior-version-latest"] }
 superposition_types = { workspace = true }
 
 notify = "7"
+tokio-util = "0.7"
 
 [dev-dependencies]
 env_logger = "0.11"
