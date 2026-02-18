@@ -85,41 +85,6 @@ impl HttpDataSource {
         Ok(ExperimentData::new(experiments, experiment_groups))
     }
 
-    /// Filter experiments by context using a matcher function (apply or partial_apply),
-    /// and optionally by prefix.
-    fn filter_experiments(
-        data: &ExperimentData,
-        context: Option<&Map<String, Value>>,
-        prefix_filter: Option<&[String]>,
-        matcher: fn(&Map<String, Value>, &Map<String, Value>) -> bool,
-    ) -> ExperimentData {
-        let mut filtered_experiments = data.experiments.clone();
-
-        // Filter by context using the provided matcher
-        if let Some(ctx) = context {
-            if !ctx.is_empty() {
-                filtered_experiments.retain(|exp| matcher(&exp.context, ctx));
-            }
-        }
-
-        // Filter by prefix: keep experiments where any variant has an override key
-        // starting with any of the prefixes
-        if let Some(prefixes) = prefix_filter {
-            if !prefixes.is_empty() {
-                filtered_experiments.retain(|exp| {
-                    exp.variants.iter().any(|variant| {
-                        let overrides = variant.overrides.clone().into_inner();
-                        overrides.keys().any(|key| {
-                            prefixes.iter().any(|prefix| key.starts_with(prefix))
-                        })
-                    })
-                });
-            }
-        }
-
-        // Keep all groups (they reference experiments by ID)
-        ExperimentData::new(filtered_experiments, data.experiment_groups.clone())
-    }
 }
 
 #[async_trait]
@@ -192,7 +157,7 @@ impl SuperpositionDataSource for HttpDataSource {
         prefix_filter: Option<&[String]>,
     ) -> Result<Option<ExperimentData>> {
         let data = self.fetch_experiments_and_groups().await?;
-        let filtered = Self::filter_experiments(&data, context, prefix_filter, partial_apply);
+        let filtered = data.filter(context, prefix_filter, partial_apply);
         Ok(Some(filtered))
     }
 
@@ -202,7 +167,7 @@ impl SuperpositionDataSource for HttpDataSource {
         prefix_filter: Option<&[String]>,
     ) -> Result<Option<ExperimentData>> {
         let data = self.fetch_experiments_and_groups().await?;
-        let filtered = Self::filter_experiments(&data, context, prefix_filter, apply);
+        let filtered = data.filter(context, prefix_filter, apply);
         Ok(Some(filtered))
     }
 
