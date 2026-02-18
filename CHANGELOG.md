@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.99.1 - 2026-02-18
+### Package updates
+- superposition_provider bumped to superposition_provider-v0.7.1
+### Global changes
+#### Bug Fixes
+- use CancellationToken instead of JoinHandle for long running provider task to support cloning (#882) - (93ce1b3) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.99.0 [skip ci] - (ce74bf1) - Superposition Bot
+
+- - -
+
 ## v0.99.0 - 2026-02-18
 ### Package updates
 - experimentation_platform bumped to experimentation_platform-v0.49.0

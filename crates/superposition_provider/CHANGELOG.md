@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_provider-v0.7.1 - 2026-02-18
+#### Bug Fixes
+- use CancellationToken instead of JoinHandle for long running provider task to support cloning (#882) - (93ce1b3) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.99.0 [skip ci] - (ce74bf1) - Superposition Bot
+
+- - -
+
 ## superposition_provider-v0.7.0 - 2026-02-18
 #### Features
 - add toml parsing to superposition_core (#796) - (512da7b) - Natarajan Kannan
