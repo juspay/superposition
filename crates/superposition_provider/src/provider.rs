@@ -198,8 +198,11 @@ impl FeatureProvider for SuperpositionProvider {
     async fn initialize(&mut self, _context: &EvaluationContext) {
         info!("Initializing SuperpositionProvider...");
         {
-            let mut status = self.status.write().await;
-            *status = ProviderStatus::NotReady;
+            let status = self.status.read().await;
+            if *status == ProviderStatus::Ready {
+                info!("SuperpositionProvider is already initialized");
+                return;
+            }
         }
         if (self.init().await).is_err() {
             let mut status = self.status.write().await;
