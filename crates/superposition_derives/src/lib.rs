@@ -1,6 +1,7 @@
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
+use proc_macro_crate::{crate_name, FoundCrate};
 use quote::{format_ident, quote};
 use syn::{Data, DeriveInput, Fields, ItemFn, LitStr, Type, parse_macro_input};
 
@@ -351,6 +352,15 @@ pub fn authorized(attr: TokenStream, item: TokenStream) -> TokenStream {
     let mut input_fn = parse_macro_input!(item as ItemFn);
     let fn_name = input_fn.sig.ident.to_string();
 
+    let service_utils_path: syn::Path = match crate_name("service_utils") {
+        Ok(FoundCrate::Itself) => syn::parse_quote!(crate),
+        Ok(FoundCrate::Name(name)) => {
+            let ident = format_ident!("{}", name);
+            syn::parse_quote!(::#ident)
+        }
+        Err(_) => syn::parse_quote!(::service_utils),
+    };
+
     // Use provided action name or derive from function name
     let action_name = if attr.is_empty() {
         // Ensure the function name ends with '_handler'
@@ -374,13 +384,13 @@ pub fn authorized(attr: TokenStream, item: TokenStream) -> TokenStream {
     // Inject parameter: _auth_z: AuthZ<AuthZActionAct>
     input_fn.sig.inputs.insert(
         0,
-        syn::parse_quote!(_auth_z: service_utils::middlewares::auth_z::AuthZ<#struct_name>),
+        syn::parse_quote!(_auth_z: #service_utils_path::middlewares::auth_z::AuthZ<#struct_name>),
     );
 
     quote! {
         struct #struct_name;
 
-        impl service_utils::middlewares::auth_z::Action for #struct_name {
+        impl #service_utils_path::middlewares::auth_z::Action for #struct_name {
             fn get() -> String {
                 #action_name.to_string()
             }

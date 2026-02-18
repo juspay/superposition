@@ -10,13 +10,13 @@ readme = "README.md"
 description = "Derive macros for Superposition"
 
 
-
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 syn = { version = "2.0", features = ["full"] }
 quote = "1.0"
 proc-macro2 = "1.0"
+proc-macro-crate = "3.1"
 
 [lints]
 workspace = true
