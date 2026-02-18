@@ -42,6 +42,42 @@ impl ExperimentData {
             fetched_at: Utc::now(),
         }
     }
+
+    /// Filter experiments by context using a matcher function (apply or partial_apply),
+    /// and optionally by prefix.
+    pub fn filter(
+        &self,
+        context: Option<&Map<String, Value>>,
+        prefix_filter: Option<&[String]>,
+        matcher: fn(&Map<String, Value>, &Map<String, Value>) -> bool,
+    ) -> ExperimentData {
+        let mut filtered_experiments = self.experiments.clone();
+
+        // Filter by context using the provided matcher
+        if let Some(ctx) = context {
+            if !ctx.is_empty() {
+                filtered_experiments.retain(|exp| matcher(&exp.context, ctx));
+            }
+        }
+
+        // Filter by prefix: keep experiments where any variant has an override key
+        // starting with any of the prefixes
+        if let Some(prefixes) = prefix_filter {
+            if !prefixes.is_empty() {
+                filtered_experiments.retain(|exp| {
+                    exp.variants.iter().any(|variant| {
+                        let overrides = variant.overrides.clone().into_inner();
+                        overrides.keys().any(|key| {
+                            prefixes.iter().any(|prefix| key.starts_with(prefix))
+                        })
+                    })
+                });
+            }
+        }
+
+        // Keep all groups (they reference experiments by ID)
+        ExperimentData::new(filtered_experiments, self.experiment_groups.clone())
+    }
 }
 
 /// Trait for fetching configuration and experiment data from a Superposition backend.

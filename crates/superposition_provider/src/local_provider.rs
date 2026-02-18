@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
 use async_trait::async_trait;
@@ -10,6 +10,7 @@ use open_feature::{
 };
 use serde_json::{Map, Value};
 use superposition_core::{eval_config, get_applicable_variants, MergeStrategy};
+use superposition_types::logic::{apply, partial_apply};
 use superposition_types::DimensionInfo;
 use tokio::sync::RwLock;
 use tokio::time::{sleep, Duration};
@@ -466,6 +467,77 @@ impl LocalResolutionProvider {
                 "No cached config available".into(),
             )),
         }
+    }
+}
+
+#[async_trait]
+impl SuperpositionDataSource for LocalResolutionProvider {
+    async fn fetch_config(&self) -> Result<ConfigData> {
+        self.ensure_fresh_data().await?;
+        let cached = self.cached_config.read().await;
+        cached
+            .clone()
+            .ok_or_else(|| SuperpositionError::ConfigError("No cached config available".into()))
+    }
+
+    async fn fetch_filtered_config(
+        &self,
+        context: Option<&Map<String, Value>>,
+        prefix_filter: Option<&[String]>,
+    ) -> Result<ConfigData> {
+        let config_data = self.fetch_config().await?;
+        let mut config = config_data.config;
+
+        if let Some(ctx) = context {
+            if !ctx.is_empty() {
+                config = config.filter_by_dimensions(ctx);
+            }
+        }
+        if let Some(prefixes) = prefix_filter {
+            if !prefixes.is_empty() {
+                let prefix_set = HashSet::from_iter(prefixes.iter().cloned());
+                config = config.filter_by_prefix(&prefix_set);
+            }
+        }
+        Ok(ConfigData::new(config))
+    }
+
+    async fn fetch_active_experiments(&self) -> Result<Option<ExperimentData>> {
+        self.ensure_fresh_data().await?;
+        let cached = self.cached_experiments.read().await;
+        Ok(cached.clone())
+    }
+
+    async fn fetch_candidate_active_experiments(
+        &self,
+        context: Option<&Map<String, Value>>,
+        prefix_filter: Option<&[String]>,
+    ) -> Result<Option<ExperimentData>> {
+        self.ensure_fresh_data().await?;
+        let cached = self.cached_experiments.read().await;
+        Ok(cached
+            .as_ref()
+            .map(|data| data.filter(context, prefix_filter, partial_apply)))
+    }
+
+    async fn fetch_matching_active_experiments(
+        &self,
+        context: Option<&Map<String, Value>>,
+        prefix_filter: Option<&[String]>,
+    ) -> Result<Option<ExperimentData>> {
+        self.ensure_fresh_data().await?;
+        let cached = self.cached_experiments.read().await;
+        Ok(cached
+            .as_ref()
+            .map(|data| data.filter(context, prefix_filter, apply)))
+    }
+
+    fn supports_experiments(&self) -> bool {
+        true
+    }
+
+    async fn close(&self) -> Result<()> {
+        LocalResolutionProvider::close(self).await
     }
 }
 
