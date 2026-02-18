@@ -359,8 +359,11 @@ impl FeatureProvider for SuperpositionAPIProvider {
             Err(e) => {
                 error!("Error evaluating boolean flag {}: {}", flag_key, e);
                 Err(EvaluationError {
-                    code: EvaluationErrorCode::FlagNotFound,
-                    message: Some(format!("Flag '{}' not found", flag_key)),
+                    code: EvaluationErrorCode::General(format!(
+                        "Error evaluating flag '{}': {}",
+                        flag_key, e
+                    )),
+                    message: Some(format!("Error evaluating flag '{}': {}", flag_key, e)),
                 })
             }
         }
@@ -388,8 +391,11 @@ impl FeatureProvider for SuperpositionAPIProvider {
             Err(e) => {
                 error!("Error evaluating String flag {}: {}", flag_key, e);
                 Err(EvaluationError {
-                    code: EvaluationErrorCode::FlagNotFound,
-                    message: Some(format!("Flag '{}' not found", flag_key)),
+                    code: EvaluationErrorCode::General(format!(
+                        "Error evaluating flag '{}': {}",
+                        flag_key, e
+                    )),
+                    message: Some(format!("Error evaluating flag '{}': {}", flag_key, e)),
                 })
             }
         }
@@ -417,8 +423,11 @@ impl FeatureProvider for SuperpositionAPIProvider {
             Err(e) => {
                 error!("Error evaluating integer flag {}: {}", flag_key, e);
                 Err(EvaluationError {
-                    code: EvaluationErrorCode::FlagNotFound,
-                    message: Some(format!("Flag '{}' not found", flag_key)),
+                    code: EvaluationErrorCode::General(format!(
+                        "Error evaluating flag '{}': {}",
+                        flag_key, e
+                    )),
+                    message: Some(format!("Error evaluating flag '{}': {}", flag_key, e)),
                 })
             }
         }
@@ -446,8 +455,11 @@ impl FeatureProvider for SuperpositionAPIProvider {
             Err(e) => {
                 error!("Error evaluating float flag {}: {}", flag_key, e);
                 Err(EvaluationError {
-                    code: EvaluationErrorCode::FlagNotFound,
-                    message: Some(format!("Flag '{}' not found", flag_key)),
+                    code: EvaluationErrorCode::General(format!(
+                        "Error evaluating flag '{}': {}",
+                        flag_key, e
+                    )),
+                    message: Some(format!("Error evaluating flag '{}': {}", flag_key, e)),
                 })
             }
         }
@@ -481,8 +493,11 @@ impl FeatureProvider for SuperpositionAPIProvider {
             Err(e) => {
                 error!("Error evaluating Object flag {}: {}", flag_key, e);
                 Err(EvaluationError {
-                    code: EvaluationErrorCode::FlagNotFound,
-                    message: Some(format!("Flag '{}' not found", flag_key)),
+                    code: EvaluationErrorCode::General(format!(
+                        "Error evaluating flag '{}': {}",
+                        flag_key, e
+                    )),
+                    message: Some(format!("Error evaluating flag '{}': {}", flag_key, e)),
                 })
             }
         }
