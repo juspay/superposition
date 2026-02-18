@@ -2,6 +2,10 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use log::{debug, error, info, warn};
+pub use open_feature::{
+    provider::{ProviderMetadata, ProviderStatus, ResolutionDetails},
+    EvaluationContext,
+};
 use serde_json::Value;
 use superposition_core::experiment::ExperimentGroups;
 use superposition_core::{
@@ -10,26 +14,20 @@ use superposition_core::{
 use superposition_types::{Config, DimensionInfo};
 use tokio::join;
 use tokio::sync::RwLock;
-use tokio::task::JoinHandle;
 use tokio::time::{sleep, Duration};
+use tokio_util::sync::CancellationToken;
 
 use crate::types::*;
 use crate::utils::ConversionUtils;
 
-pub use open_feature::{
-    provider::{ProviderMetadata, ProviderStatus, ResolutionDetails},
-    EvaluationContext,
-};
-
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct CacConfig {
     superposition_options: SuperpositionOptions,
     options: ConfigurationOptions,
     fallback_config: Option<serde_json::Map<String, Value>>,
     cached_config: Arc<RwLock<Option<Config>>>,
     last_updated: Arc<RwLock<Option<chrono::DateTime<chrono::Utc>>>>,
-    evaluation_cache: RwLock<HashMap<String, HashMap<String, Value>>>,
-    polling_task: RwLock<Option<JoinHandle<()>>>,
+    polling_task_cancellation_token: Arc<RwLock<Option<CancellationToken>>>,
 }
 
 impl CacConfig {
@@ -43,8 +41,7 @@ impl CacConfig {
             options,
             cached_config: Arc::new(RwLock::new(None)),
             last_updated: Arc::new(RwLock::new(None)),
-            evaluation_cache: RwLock::new(HashMap::new()),
-            polling_task: RwLock::new(None),
+            polling_task_cancellation_token: Arc::new(RwLock::new(None)),
         }
     }
 
@@ -85,9 +82,10 @@ impl CacConfig {
                     polling_strategy.interval,
                     polling_strategy.timeout.unwrap_or(30)
                 );
-                let task = self.start_polling(polling_strategy.interval).await;
-                let mut polling_task = self.polling_task.write().await;
-                *polling_task = Some(task);
+                let task_token = self.start_polling(polling_strategy.interval).await;
+                let mut polling_task_cancellation_token =
+                    self.polling_task_cancellation_token.write().await;
+                *polling_task_cancellation_token = Some(task_token);
             }
             RefreshStrategy::OnDemand(on_demand_strategy) => {
                 info!(
@@ -102,28 +100,39 @@ impl CacConfig {
         Ok(())
     }
 
-    async fn start_polling(&self, interval: u64) -> JoinHandle<()> {
+    async fn start_polling(&self, interval: u64) -> CancellationToken {
         let superposition_options = self.superposition_options.clone();
         let cached_config = self.cached_config.clone();
         let last_updated = self.last_updated.clone();
+        let cancellation_token = CancellationToken::new();
+        let cancellation_token_clone = cancellation_token.clone();
 
         tokio::spawn(async move {
-            loop {
-                match Self::get_config_static(&superposition_options).await {
-                    Ok(config) => {
-                        let mut cached = cached_config.write().await;
-                        *cached = Some(config);
-                        let mut updated = last_updated.write().await;
-                        *updated = Some(chrono::Utc::now());
-                        debug!("CAC config updated via polling");
+            tokio::select! {
+                _ = cancellation_token_clone.cancelled() => {
+                    info!("shutting down polling task gracefully");
+                },
+                _ = async {
+                    loop {
+                        match Self::get_config_static(&superposition_options).await {
+                            Ok(config) => {
+                                let mut cached = cached_config.write().await;
+                                *cached = Some(config);
+                                let mut updated = last_updated.write().await;
+                                *updated = Some(chrono::Utc::now());
+                                debug!("CAC config updated via polling");
+                            }
+                            Err(e) => {
+                                error!("Polling error: {}", e);
+                            }
+                        }
+                        sleep(Duration::from_secs(interval)).await;
                     }
-                    Err(e) => {
-                        error!("Polling error: {}", e);
-                    }
-                }
-                sleep(Duration::from_secs(interval)).await;
+                } => {}
             }
-        })
+        });
+
+        cancellation_token
     }
 
     pub async fn on_demand_config(&self, ttl: u64, use_stale: bool) -> Result<Config> {
@@ -247,31 +256,29 @@ impl CacConfig {
 
     pub async fn close(&self) -> Result<()> {
         // Stop polling task
-        let mut polling_task = self.polling_task.write().await;
-        if let Some(task) = polling_task.take() {
-            task.abort();
+        let mut polling_task_cancellation_token =
+            self.polling_task_cancellation_token.write().await;
+        if let Some(task) = polling_task_cancellation_token.take() {
+            task.cancel();
         }
 
         // Clear caches
         let mut cached_config = self.cached_config.write().await;
         *cached_config = None;
-        let mut evaluation_cache = self.evaluation_cache.write().await;
-        evaluation_cache.clear();
 
         Ok(())
     }
 }
 
 /// Experimentation Configuration client
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ExperimentationConfig {
     superposition_options: SuperpositionOptions,
     options: ExperimentationOptions,
     cached_experiments: Arc<RwLock<Option<Experiments>>>,
     cached_experiment_groups: Arc<RwLock<Option<ExperimentGroups>>>,
     last_updated: Arc<RwLock<Option<chrono::DateTime<chrono::Utc>>>>,
-    evaluation_cache: RwLock<HashMap<String, HashMap<String, Value>>>,
-    polling_task: RwLock<Option<JoinHandle<()>>>,
+    polling_task_cancellation_token: Arc<RwLock<Option<CancellationToken>>>,
 }
 
 impl ExperimentationConfig {
@@ -285,8 +292,7 @@ impl ExperimentationConfig {
             cached_experiments: Arc::new(RwLock::new(None)),
             cached_experiment_groups: Arc::new(RwLock::new(None)),
             last_updated: Arc::new(RwLock::new(None)),
-            evaluation_cache: RwLock::new(HashMap::new()),
-            polling_task: RwLock::new(None),
+            polling_task_cancellation_token: Arc::new(RwLock::new(None)),
         }
     }
 
@@ -334,9 +340,10 @@ impl ExperimentationConfig {
                     "Using PollingStrategy for experiments: interval={}s",
                     polling_strategy.interval
                 );
-                let task = self.start_polling(polling_strategy.interval).await;
-                let mut polling_task = self.polling_task.write().await;
-                *polling_task = Some(task);
+                let task_token = self.start_polling(polling_strategy.interval).await;
+                let mut polling_task_cancellation_token =
+                    self.polling_task_cancellation_token.write().await;
+                *polling_task_cancellation_token = Some(task_token);
             }
             RefreshStrategy::OnDemand(on_demand_strategy) => {
                 info!(
@@ -349,41 +356,52 @@ impl ExperimentationConfig {
         Ok(())
     }
 
-    async fn start_polling(&self, interval: u64) -> JoinHandle<()> {
+    async fn start_polling(&self, interval: u64) -> CancellationToken {
         let superposition_options = self.superposition_options.clone();
         let cached_experiments = self.cached_experiments.clone();
         let cached_experiment_groups = self.cached_experiment_groups.clone();
         let last_updated = self.last_updated.clone();
+        let cancellation_token = CancellationToken::new();
+        let cancellation_token_clone = cancellation_token.clone();
 
         tokio::spawn(async move {
-            loop {
-                let (experiments_result, groups_result) = join!(
-                    Self::get_experiments_static(&superposition_options),
-                    Self::get_experiment_groups_static(&superposition_options)
-                );
-                match (experiments_result, groups_result) {
-                    (Ok(Some(experiments)), Ok(Some(experiment_groups))) => {
-                        let mut cached = cached_experiments.write().await;
-                        *cached = Some(experiments);
-                        let mut cached_groups = cached_experiment_groups.write().await;
-                        *cached_groups = Some(experiment_groups);
-                        let mut updated = last_updated.write().await;
-                        *updated = Some(chrono::Utc::now());
-                        debug!("Experiments and Experiment Groups updated via polling");
-                    }
-                    (Ok(None), Ok(None)) => {
-                        warn!(
-                            "No experiments or experiment groups returned from polling"
+            tokio::select! {
+                _ = cancellation_token_clone.cancelled() => {
+                    info!("shutting down polling task gracefully");
+                },
+                _ = async {
+                    loop {
+                        let (experiments_result, groups_result) = join!(
+                            Self::get_experiments_static(&superposition_options),
+                            Self::get_experiment_groups_static(&superposition_options)
                         );
+                        match (experiments_result, groups_result) {
+                            (Ok(Some(experiments)), Ok(Some(experiment_groups))) => {
+                                let mut cached = cached_experiments.write().await;
+                                *cached = Some(experiments);
+                                let mut cached_groups = cached_experiment_groups.write().await;
+                                *cached_groups = Some(experiment_groups);
+                                let mut updated = last_updated.write().await;
+                                *updated = Some(chrono::Utc::now());
+                                debug!("Experiments and Experiment Groups updated via polling");
+                            }
+                            (Ok(None), Ok(None)) => {
+                                warn!(
+                                    "No experiments or experiment groups returned from polling"
+                                );
+                            }
+                            (Err(e), _) | (_, Err(e)) => {
+                                error!("Polling error: {}", e);
+                            }
+                            _ => {}
+                        }
+                        sleep(Duration::from_secs(interval)).await;
                     }
-                    (Err(e), _) | (_, Err(e)) => {
-                        error!("Polling error: {}", e);
-                    }
-                    _ => {}
-                }
-                sleep(Duration::from_secs(interval)).await;
+                } => {}
             }
-        })
+        });
+
+        cancellation_token
     }
 
     pub async fn on_demand_config(
@@ -550,16 +568,15 @@ impl ExperimentationConfig {
 
     pub async fn close(&self) -> Result<()> {
         // Stop polling task
-        let mut polling_task = self.polling_task.write().await;
-        if let Some(task) = polling_task.take() {
-            task.abort();
+        let mut polling_task_cancellation_token =
+            self.polling_task_cancellation_token.write().await;
+        if let Some(token) = polling_task_cancellation_token.take() {
+            token.cancel();
         }
 
         // Clear caches
         let mut cached_experiments = self.cached_experiments.write().await;
         *cached_experiments = None;
-        let mut evaluation_cache = self.evaluation_cache.write().await;
-        evaluation_cache.clear();
 
         Ok(())
     }

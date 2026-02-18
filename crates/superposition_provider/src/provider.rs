@@ -1,4 +1,7 @@
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    sync::Arc,
+};
 
 use async_trait::async_trait;
 use log::{error, info};
@@ -16,10 +19,10 @@ use crate::client::{CacConfig, ExperimentationConfig};
 use crate::types::*;
 use crate::utils::ConversionUtils;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SuperpositionProvider {
     metadata: ProviderMetadata,
-    status: RwLock<ProviderStatus>,
+    status: Arc<RwLock<ProviderStatus>>,
     cac_config: Option<CacConfig>,
     exp_config: Option<ExperimentationConfig>,
 }
@@ -56,7 +59,7 @@ impl SuperpositionProvider {
             metadata: ProviderMetadata {
                 name: "SuperpositionProvider".to_string(),
             },
-            status: RwLock::new(ProviderStatus::NotReady),
+            status: Arc::new(RwLock::new(ProviderStatus::NotReady)),
             cac_config: Some(cac_config),
             exp_config,
         }
@@ -195,8 +198,11 @@ impl FeatureProvider for SuperpositionProvider {
     async fn initialize(&mut self, _context: &EvaluationContext) {
         info!("Initializing SuperpositionProvider...");
         {
-            let mut status = self.status.write().await;
-            *status = ProviderStatus::NotReady;
+            let status = self.status.read().await;
+            if *status == ProviderStatus::Ready {
+                info!("SuperpositionProvider is already initialized");
+                return;
+            }
         }
         if (self.init().await).is_err() {
             let mut status = self.status.write().await;

@@ -1,4 +1,5 @@
-use open_feature::{EvaluationContext, OpenFeature};
+use open_feature::{provider::FeatureProvider, EvaluationContext, OpenFeature};
+use serde_json::Value;
 use superposition_provider::{
     ExperimentationOptions, OnDemandStrategy, RefreshStrategy, SuperpositionProvider,
     SuperpositionProviderOptions,
@@ -393,6 +394,28 @@ async fn run_provider_tests(org_id: &str, workspace_id: &str) {
     };
 
     let provider = SuperpositionProvider::new(provider_options);
+    // Test 0: Verify provider clone works (sanity check)
+    println!("Test 0: Verify provider clone works (sanity check)");
+    {
+        let mut provider_clone = provider.clone();
+        provider_clone
+            .initialize(&EvaluationContext::default())
+            .await;
+        let ctx = EvaluationContext::default().with_custom_field("name", "karbik");
+        let all_fields = provider_clone.resolve_full_config(&ctx).await.unwrap();
+
+        assert_eq!(
+            all_fields.get("price").unwrap(),
+            &Value::from(1),
+            "Price should be 1 for karbik"
+        );
+        assert_eq!(
+            all_fields.get("currency").unwrap(),
+            &Value::from("Rupee"),
+            "Currency should be default Rupee"
+        );
+        println!("  ✓ Test passed\n");
+    }
 
     // Set provider as the global provider
     let mut api = OpenFeature::singleton_mut().await;
