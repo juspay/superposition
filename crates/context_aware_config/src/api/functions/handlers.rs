@@ -71,8 +71,15 @@ async fn create_handler(
         &mut conn,
         &state.master_encryption_key,
     )?;
-
-    compile_fn(&req.function)?;
+    let handle = rustyscript::tokio::runtime::Handle::current();
+    let function = req.function.clone();
+    handle
+        .spawn_blocking(move || compile_fn(&function))
+        .await
+        .map_err(|e| {
+            log::error!("Function compilation task failed: {:?}", e);
+            unexpected_error!("Failed to compile function: {}", e)
+        })??;
 
     let now = Utc::now();
     let function = Function {
@@ -140,8 +147,13 @@ async fn update_handler(
     let f_name: String = params.into_inner().into();
 
     // Function Linter Check
-    if let Some(function) = &req.draft_code {
-        compile_fn(function)?;
+    if let Some(fc) = &req.draft_code {
+        let handle = rustyscript::tokio::runtime::Handle::current();
+        let function = fc.clone();
+        handle
+            .spawn_blocking(move || compile_fn(&function))
+            .await
+            .map_err(|err| bad_argument!("Invalid function code: {}", err))??;
     }
 
     validate_change_reason(
@@ -291,22 +303,27 @@ async fn test_handler(
             }
         }
     };
-
-    let result = execute_fn(
-        &workspace_context,
-        &code,
-        &req,
-        version,
-        &mut conn,
-        &state.master_encryption_key,
-    )
-    .map_err(|(e, stdout)| {
-        bad_argument!(
-            "Function failed with error: {}, stdout: {:?}",
-            e,
-            stdout.unwrap_or_default()
-        )
-    })?;
+    let handle = rustyscript::tokio::runtime::Handle::current();
+    let result = handle
+        .spawn_blocking(move || {
+            execute_fn(
+                &workspace_context,
+                &code,
+                &req,
+                version,
+                &mut conn,
+                &state.master_encryption_key,
+            )
+        })
+        .await
+        .map_err(|e| unexpected_error!("Function execution task failed: {}", e))?
+        .map_err(|(e, stdout)| {
+            bad_argument!(
+                "Function failed with error: {}, stdout: {:?}",
+                e,
+                stdout.unwrap_or_default()
+            )
+        })?;
     Ok(Json(result))
 }
 

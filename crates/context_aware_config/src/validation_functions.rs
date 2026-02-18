@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use rustyscript::{Module, Runtime, RuntimeOptions, json_args, static_runtime};
+use rustyscript::{Module, Runtime, RuntimeOptions, json_args};
 use serde::Serialize;
 use superposition_macros::{bad_argument, validation_error};
 
@@ -13,14 +13,6 @@ use superposition_types::{
 };
 
 use crate::api::functions::helpers::inject_secrets_and_variables_into_code;
-
-static_runtime!(S11N_RUNTIME, {
-    let timeout = std::time::Duration::from_secs(30);
-    RuntimeOptions {
-        timeout,
-        ..Default::default()
-    }
-});
 
 #[derive(Serialize)]
 struct FunctionPayload {
@@ -65,6 +57,8 @@ function clearLogBuffer() {
 }
 
 {replaceme-with-code}
+
+export { execute, getLogBuffer, clearLogBuffer };
 "#;
 
 fn generate_wrapped_code(code: &str) -> String {
@@ -95,49 +89,52 @@ pub fn execute_fn(
 
     let module = Module::new("function.js", &wrapped_code);
 
+    let runtime_options = RuntimeOptions {
+        timeout: Duration::from_millis(1500),
+        ..Default::default()
+    };
+
+    let mut runtime = Runtime::new(runtime_options).map_err(|e| {
+        let err_str = e.to_string();
+        (format!("Failed to create runtime: {}", err_str), None)
+    })?;
+
     let payload = FunctionPayload {
         version: runtime_version,
         payload: args.clone(),
     };
-    let execution_response = S11N_RUNTIME::with(|runtime| {
-        let module_handle = runtime.load_module(&module)?;
+    let module_handle = runtime
+        .load_module(&module)
+        .map_err(|err| (err.to_string(), None))?;
 
-        let tokio_runtime = runtime.tokio_runtime();
+    let tokio_runtime = runtime.tokio_runtime();
 
-        tokio_runtime.block_on(async {
-            let v = runtime
+    let fn_output = tokio_runtime
+        .block_on(async {
+            runtime
                 .call_function_async::<serde_json::Value>(
                     Some(&module_handle),
                     "execute",
                     json_args!(payload),
                 )
-                .await?;
-            let stdout = runtime
-                .call_function::<Vec<String>>(
-                    Some(&module_handle),
-                    "getLogBuffer",
-                    json_args!(),
-                )?
-                .join("\n");
-            runtime.call_function::<()>(
-                Some(&module_handle),
-                "clearLogBuffer",
-                json_args!(),
-            )?;
-            let function_type = FunctionType::from(args);
-            log::trace!("Function output: {:?}", v);
-            log::trace!("Function logs: {}", stdout);
-            Ok(FunctionExecutionResponse {
-                fn_output: v,
-                stdout,
-                function_type,
-            })
+                .await
         })
-    });
+        .map_err(|err| (err.to_string(), None))?;
 
-    execution_response.map_err(|err| {
-        log::error!("Could not execute function: {:?}", err);
-        (format!("js_eval error: {}", err), None)
+    let stdout = runtime
+        .call_function::<Vec<String>>(Some(&module_handle), "getLogBuffer", json_args!())
+        .map_err(|err| (err.to_string(), None))?
+        .join("\n");
+    runtime
+        .call_function::<()>(Some(&module_handle), "clearLogBuffer", json_args!())
+        .map_err(|err| (err.to_string(), None))?;
+    let function_type = FunctionType::from(args);
+    log::trace!("Function output: {:?}", fn_output);
+    log::trace!("Function logs: {}", stdout);
+    Ok(FunctionExecutionResponse {
+        fn_output,
+        stdout,
+        function_type,
     })
 }
 
@@ -146,8 +143,10 @@ pub fn compile_fn(code_str: &FunctionCode) -> superposition::Result<()> {
         r#"
         {}
 
-        if (typeof execute !== "function") {{
-            throw new Error("execute is not of function type");
+        export function typeCheck() {{
+            if (typeof execute === "undefined") {{
+                throw new Error("execute function is not defined");
+            }}
         }}
         "#,
         code_str
@@ -175,11 +174,14 @@ pub fn compile_fn(code_str: &FunctionCode) -> superposition::Result<()> {
     })?;
 
     let tokio_runtime = runtime.tokio_runtime();
-
     tokio_runtime
         .block_on(async {
             runtime
-                .call_function_async::<()>(Some(&module_handle), "default", json_args!())
+                .call_function_async::<()>(
+                    Some(&module_handle),
+                    "typeCheck",
+                    json_args!(),
+                )
                 .await
         })
         .map_err(|e| {

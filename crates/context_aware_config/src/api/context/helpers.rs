@@ -304,7 +304,7 @@ pub fn validation_function_executor(
         Ok(FunctionExecutionResponse {
             fn_output, stdout, ..
         }) => {
-            log::debug!("Function execution returned: {:?}", fn_output);
+            log::trace!("Function execution returned: {:?}", fn_output);
             if fn_output.as_bool().unwrap_or_default() {
                 Ok(())
             } else {
