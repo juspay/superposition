@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## haskell_client-v0.13.0 - 2026-02-18
+#### Features
+- add toml parsing to superposition_core (#796) - (512da7b) - Natarajan Kannan
+#### Miscellaneous Chores
+- **(version)** v0.98.0 [skip ci] - (c1e4625) - Superposition Bot
+- update smithy-hs version (#880) - (a2b70e6) - Ayush Jain
+
+- - -
+
 ## haskell_client-v0.12.0 - 2026-02-09
 #### Bug Fixes
 - smithy and minor refactor (#862) - (fd427fe) - Ayush Jain

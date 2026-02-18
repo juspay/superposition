@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_macros-v0.7.1 - 2026-02-18
+#### Bug Fixes
+- **(UI)** Improve query params auto-updation behaviour (#866) - (54eafba) - Ayush Jain
+#### Build system
+- setup msrv and edition consistently in all Cargo.toml (#706) - (8c6e51a) - Natarajan Kannan
+#### Miscellaneous Chores
+- **(version)** v0.97.0 [skip ci] - (23c354d) - Superposition Bot
+
+- - -
+
 ## superposition_macros-v0.7.0 - 2026-01-07
 #### Features
 - AuthZ setup (#543) - (08b03e0) - Ayush Jain

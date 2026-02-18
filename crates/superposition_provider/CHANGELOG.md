@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_provider-v0.7.0 - 2026-02-18
+#### Features
+- add toml parsing to superposition_core (#796) - (512da7b) - Natarajan Kannan
+- expose get_cached_config with filters in the rust provider (#878) - (df22453) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.97.2 [skip ci] - (b6f916b) - Superposition Bot
+
+- - -
+
 ## superposition_provider-v0.6.5 - 2026-01-29
 #### Bug Fixes
 - exp and config partial apply (#831) - (0fceab3) - Ayush Jain

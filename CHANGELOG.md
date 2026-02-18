@@ -2,6 +2,39 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.99.0 - 2026-02-18
+### Package updates
+- experimentation_platform bumped to experimentation_platform-v0.49.0
+- frontend bumped to frontend-v0.50.0
+- service_utils bumped to service_utils-v0.38.0
+- haskell_client bumped to haskell_client-v0.13.0
+- context_aware_config bumped to context_aware_config-v0.69.0
+- superposition_core bumped to superposition_core-v0.10.0
+- superposition_types bumped to superposition_types-v0.40.0
+- cac_client bumped to cac_client-v0.23.0
+- superposition_provider bumped to superposition_provider-v0.7.0
+- superposition_macros bumped to superposition_macros-v0.7.1
+### Global changes
+#### Bug Fixes
+- **(UI)** Improve query params auto-updation behaviour (#866) - (54eafba) - Ayush Jain
+- get_object_value in python provider (#876) - (bd6c70f) - Ayush Jain
+#### Build system
+- make custom cargo target dir work completely (#856) - (2dad14f) - Natarajan Kannan
+#### Continuous Integration
+- support any org/workspace cleanup (#855) - (09b6a76) - Natarajan Kannan
+#### Features
+- add toml parsing to superposition_core (#796) - (512da7b) - Natarajan Kannan
+#### Miscellaneous Chores
+- **(deps)** bump actix-files from 0.6.2 to 0.6.10 (#867) - (190f636) - dependabot[bot]
+- **(deps)** bump cryptography from 44.0.1 to 46.0.5 in /locust (#875) - (ab3fcf7) - dependabot[bot]
+- **(version)** v0.98.0 [skip ci] - (c1e4625) - Superposition Bot
+- remove redundant files (#839) - (b804a4c) - Datron
+- update smithy-hs version (#880) - (a2b70e6) - Ayush Jain
+#### Tests
+- added tests for secrets (#861) - (1be7e32) - sauraww
+
+- - -
+
 ## v0.98.0 - 2026-02-09
 ### Package updates
 - service_utils bumped to service_utils-v0.37.0

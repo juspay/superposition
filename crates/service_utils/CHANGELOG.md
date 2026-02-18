@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.38.0 - 2026-02-18
+#### Features
+- add toml parsing to superposition_core (#796) - (512da7b) - Natarajan Kannan
+#### Miscellaneous Chores
+- **(version)** v0.98.0 [skip ci] - (c1e4625) - Superposition Bot
+
+- - -
+
 ## service_utils-v0.37.0 - 2026-02-09
 #### Features
 - better logging for API services (#842) - (453b3fa) - Datron
