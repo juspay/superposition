@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.50.0 - 2026-02-18
+#### Bug Fixes
+- **(UI)** Improve query params auto-updation behaviour (#866) - (54eafba) - Ayush Jain
+#### Features
+- **(UI)** allow variant ids as array for resolve/filter (#835) - (d6fc574) - Ayush Jain
+- **(UI)** Standalone page for create and edit default config key (#853) - (6683d9b) - Ayush Jain
+- add toml parsing to superposition_core (#796) - (512da7b) - Natarajan Kannan
+#### Miscellaneous Chores
+- **(version)** v0.98.0 [skip ci] - (c1e4625) - Superposition Bot
+
+- - -
+
 ## frontend-v0.49.0 - 2026-02-09
 #### Bug Fixes
 - **(UI)** move secrets related admin actions behind param (#863) - (91104d6) - Ayush Jain

@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_core-v0.10.0 - 2026-02-18
+#### Features
+- add toml parsing to superposition_core (#796) - (512da7b) - Natarajan Kannan
+#### Miscellaneous Chores
+- **(version)** v0.97.2 [skip ci] - (b6f916b) - Superposition Bot
+
+- - -
+
 ## superposition_core-v0.9.1 - 2026-01-29
 #### Bug Fixes
 - exp and config partial apply (#831) - (0fceab3) - Ayush Jain

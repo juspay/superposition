@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.69.0 - 2026-02-18
+#### Features
+- add toml parsing to superposition_core (#796) - (512da7b) - Natarajan Kannan
+#### Miscellaneous Chores
+- **(deps)** bump axios in /crates/context_aware_config (#874) - (76abf5d) - dependabot[bot]
+- **(version)** v0.98.0 [skip ci] - (c1e4625) - Superposition Bot
+
+- - -
+
 ## context_aware_config-v0.68.0 - 2026-02-09
 #### Bug Fixes
 - smithy and minor refactor (#862) - (fd427fe) - Ayush Jain

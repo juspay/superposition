@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.40.0 - 2026-02-18
+#### Features
+- **(UI)** allow variant ids as array for resolve/filter (#835) - (d6fc574) - Ayush Jain
+- add toml parsing to superposition_core (#796) - (512da7b) - Natarajan Kannan
+#### Miscellaneous Chores
+- **(version)** v0.98.0 [skip ci] - (c1e4625) - Superposition Bot
+
+- - -
+
 ## superposition_types-v0.39.0 - 2026-02-09
 #### Bug Fixes
 - smithy and minor refactor (#862) - (fd427fe) - Ayush Jain
