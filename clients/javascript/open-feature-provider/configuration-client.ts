@@ -97,7 +97,7 @@ export class ConfigurationClient {
         targetingKey?: string
     ): Promise<any> {
         try {
-            const configData = await this.fetchConfigData();
+            const configData = this.currentConfigData || await this.fetchConfigData();
 
             let experimentationArgs: ExperimentationArgs | undefined;
 
@@ -181,7 +181,7 @@ export class ConfigurationClient {
         targetingKey?: string
     ): Promise<Record<string, any>> {
         try {
-            const configData = await this.fetchConfigData();
+            const configData = this.currentConfigData || await this.fetchConfigData();
 
             // Prepare query data with experiment variants if applicable
             let queryData = { ...context };
