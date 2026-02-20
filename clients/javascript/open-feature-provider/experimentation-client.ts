@@ -305,6 +305,15 @@ export class ExperimentationClient {
             }
         }
 
+        // If cache is empty, fetch on-demand regardless of strategy
+        if (!this.cachedExperiments) {
+            const experiments = await this.fetchExperiments();
+            if (experiments) {
+                this.cachedExperiments = experiments;
+                this.lastUpdated = new Date();
+            }
+        }
+
         return this.cachedExperiments || [];
     }
 
@@ -340,6 +349,15 @@ export class ExperimentationClient {
                     }
                     console.log("Using stale experiment groups due to error.");
                 }
+            }
+        }
+
+        // If cache is empty, fetch on-demand regardless of strategy
+        if (!this.cachedExperimentGroups) {
+            const experimentGroups = await this.fetchExperimentGroups();
+            if (experimentGroups) {
+                this.cachedExperimentGroups = experimentGroups;
+                this.lastUpdated = new Date();
             }
         }
 
