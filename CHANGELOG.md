@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.99.2 - 2026-02-20
+### Package updates
+- superposition_provider bumped to superposition_provider-v0.7.2
+### Global changes
+#### Bug Fixes
+- fix cached data usage in JS provider (#884) - (080dd28) - Natarajan Kannan
+#### Miscellaneous Chores
+- **(version)** v0.99.1 [skip ci] - (948afe2) - Superposition Bot
+
+- - -
+
 ## v0.99.1 - 2026-02-18
 ### Package updates
 - superposition_provider bumped to superposition_provider-v0.7.1
