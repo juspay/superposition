@@ -21,6 +21,7 @@ from .interfaces import (
 )
 
 from .data_sources import HttpDataSource
+from .local_resolution_provider import LocalResolutionProvider
 
 __all__ = [
     "ConfigData",
@@ -40,4 +41,5 @@ __all__ = [
     "FeatureExperimentMeta",
     "SuperpositionDataSource",
     "HttpDataSource",
+    "LocalResolutionProvider",
 ]
