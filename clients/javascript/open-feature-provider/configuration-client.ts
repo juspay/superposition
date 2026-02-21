@@ -155,14 +155,16 @@ export class ConfigurationClient {
 
         try {
             const response = await this.smithyClient.send(command);
-            this.currentConfigData = {
+            const configData: ConfigData = {
                 default_configs: response.default_configs || {},
                 contexts: response.contexts || [],
                 overrides: response.overrides || {},
                 dimensions: response.dimensions || {},
+                fetched_at: new Date(),
             };
+            this.currentConfigData = configData;
 
-            return this.currentConfigData;
+            return configData;
         } catch (error) {
             console.error(
                 "SuperpositionClient GetConfigCommand failed:",

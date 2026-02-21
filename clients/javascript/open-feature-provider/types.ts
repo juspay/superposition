@@ -1,3 +1,5 @@
+import { EvaluationContext } from "@openfeature/server-sdk";
+
 export interface SuperpositionOptions {
     endpoint: string;
     token: string;
@@ -47,6 +49,93 @@ export interface ConfigData {
     contexts: any[];
     overrides: Record<string, Record<string, any>>;
     dimensions: Record<string, Record<string, any>>;
+    fetched_at: Date;
+}
+
+/**
+ * Experiment data fetched from a source
+ */
+export interface ExperimentData {
+    experiments: any[];
+    experiment_groups: any[];
+    fetched_at: Date;
+}
+
+/**
+ * Interface for bulk configuration resolution
+ */
+export interface AllFeatureProvider {
+    /**
+     * Resolve all features for the given evaluation context
+     */
+    resolveAllFeatures(context: EvaluationContext): Promise<Record<string, any>>;
+
+    /**
+     * Resolve features matching prefix filters
+     */
+    resolveAllFeaturesWithFilter(
+        context: EvaluationContext,
+        prefixFilter?: string[]
+    ): Promise<Record<string, any>>;
+}
+
+/**
+ * Interface for experiment metadata and variant resolution
+ */
+export interface FeatureExperimentMeta {
+    /**
+     * Get applicable variant IDs for the given context
+     */
+    getApplicableVariants(context: EvaluationContext): Promise<string[]>;
+}
+
+/**
+ * Interface for abstracting data sources
+ */
+export interface SuperpositionDataSource {
+    /**
+     * Fetch the latest configuration from the data source
+     */
+    fetchConfig(): Promise<ConfigData>;
+
+    /**
+     * Fetch configuration with context/prefix filters
+     */
+    fetchFilteredConfig(
+        context?: Record<string, any>,
+        prefixFilter?: string[]
+    ): Promise<ConfigData>;
+
+    /**
+     * Fetch all active experiment data
+     */
+    fetchActiveExperiments(): Promise<ExperimentData | null>;
+
+    /**
+     * Fetch active experiments filtered with partial context matching
+     */
+    fetchCandidateActiveExperiments(
+        context?: Record<string, any>,
+        prefixFilter?: string[]
+    ): Promise<ExperimentData | null>;
+
+    /**
+     * Fetch active experiments filtered with exact context matching
+     */
+    fetchMatchingActiveExperiments(
+        context?: Record<string, any>,
+        prefixFilter?: string[]
+    ): Promise<ExperimentData | null>;
+
+    /**
+     * Check if this data source supports experiments
+     */
+    supportsExperiments(): boolean;
+
+    /**
+     * Close and cleanup resources
+     */
+    close(): Promise<void>;
 }
 
 export interface FfiExperiment {
