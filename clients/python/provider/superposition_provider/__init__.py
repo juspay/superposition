@@ -20,6 +20,8 @@ from .interfaces import (
     SuperpositionDataSource,
 )
 
+from .data_sources import HttpDataSource
+
 __all__ = [
     "ConfigData",
     "ExperimentData",
@@ -37,4 +39,5 @@ __all__ = [
     "AllFeatureProvider",
     "FeatureExperimentMeta",
     "SuperpositionDataSource",
+    "HttpDataSource",
 ]
