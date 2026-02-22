@@ -10,8 +10,8 @@
  */
 
 import { EvaluationContext } from "@openfeature/server-sdk";
-import { HttpDataSource } from "../data-sources";
-import { LocalResolutionProvider } from "../local-resolution-provider";
+import { HttpDataSource } from "../data-sources/http-data-source.js";
+import { LocalResolutionProvider } from "../local-resolution-provider.js";
 
 async function main() {
     console.log("=== Superposition Local HTTP Example ===\n");

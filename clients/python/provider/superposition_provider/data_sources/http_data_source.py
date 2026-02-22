@@ -32,8 +32,8 @@ class HttpDataSource(SuperpositionDataSource):
         return {
             "Authorization": f"Bearer {self.token}",
             "Content-Type": "application/json",
-            "x-organization-id": self.org_id,
-            "x-workspace-id": self.workspace_id,
+            "x-org-id": self.org_id,
+            "x-workspace": self.workspace_id,
         }
 
     async def fetch_config(self) -> ConfigData:

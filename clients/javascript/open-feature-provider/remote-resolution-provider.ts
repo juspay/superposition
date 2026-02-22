@@ -398,11 +398,11 @@ export class SuperpositionAPIProvider
         }
 
         if (this.options.org_id) {
-            headers["x-organization-id"] = this.options.org_id;
+            headers["x-org-id"] = this.options.org_id;
         }
 
         if (this.options.workspace_id) {
-            headers["x-workspace-id"] = this.options.workspace_id;
+            headers["x-workspace"] = this.options.workspace_id;
         }
 
         let response: Response;
