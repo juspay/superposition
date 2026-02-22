@@ -81,6 +81,11 @@
               })
               jdk17
               uv
+              # Python dependencies for provider examples
+              (python3.withPackages (ps: with ps; [
+                openfeature-sdk
+                aiohttp
+              ]))
               # go client
               # go
             ];

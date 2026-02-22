@@ -3,7 +3,7 @@ name = "superposition_provider"
 dynamic = ["version"]
 description = "superposition_provider"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.9"
 keywords = ["openfeature", "superposition_provider"]
 license = { text = "Apache-2.0" }
 
@@ -11,6 +11,8 @@ dependencies = [
     "smithy_core==0.0.1",
     "smithy_http[aiohttp]==0.0.1",
     "smithy_json==0.0.1",
+    "openfeature-sdk>=0.7.0",
+    "aiohttp>=3.8.0",
 ]
 
 [build-system]
