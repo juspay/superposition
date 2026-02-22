@@ -28,6 +28,9 @@ resource DefaultConfig {
     operations: [
         CreateDefaultConfig
     ]
+    collectionOperations: [
+        ListGroupedDefaultConfigs
+    ]
 }
 
 // Using in input for create API.
@@ -94,6 +97,17 @@ operation CreateDefaultConfig {
     output: DefaultConfigResponse
 }
 
+enum DefaultConfigSortOn {
+    @documentation("Sort by key.")
+    KEY = "key"
+
+    @documentation("Sort by creation timestamp.")
+    CREATED_AT = "created_at"
+
+    @documentation("Sort by last modification timestamp.")
+    LAST_MODIFIED_AT = "last_modified_at"
+}
+
 @documentation("Retrieves a paginated list of all default config entries in the workspace, including their values, schemas, and metadata.")
 @readonly
 @http(method: "GET", uri: "/default-config")
@@ -102,12 +116,62 @@ operation ListDefaultConfigs {
     input := with [WorkspaceMixin, PaginationParams] {
         @httpQuery("name")
         @notProperty
-        name: String
+        name: StringList
+
+        @httpQuery("sort_by")
+        @notProperty
+        sort_by: SortBy
+
+        @httpQuery("sort_on")
+        @notProperty
+        sort_on: DefaultConfigSortOn
+
+        @httpQuery("search")
+        @notProperty
+        search: String
     }
 
     output := with [PaginatedResponse] {
         @required
         data: ListDefaultConfigOut
+    }
+}
+
+union GroupedDefaultConfig {
+    Group: String
+    Config: DefaultConfigResponse
+}
+
+list ListGroupedDefaultConfigOut {
+    member: GroupedDefaultConfig
+}
+
+@documentation("Retrieves a paginated list of all default config entries in the workspace, including their values, schemas, and metadata.")
+@readonly
+@http(method: "GET", uri: "/default-config?grouped=true")
+@tags(["Default Configuration"])
+operation ListGroupedDefaultConfigs {
+    input := with [WorkspaceMixin, PaginationParams] {
+        @httpQuery("name")
+        @notProperty
+        name: StringList
+
+        @httpQuery("prefix")
+        @notProperty
+        prefix: String
+
+        @httpQuery("sort_by")
+        @notProperty
+        sort_by: SortBy
+
+        @httpQuery("sort_on")
+        @notProperty
+        sort_on: DefaultConfigSortOn
+    }
+
+    output := with [PaginatedResponse] {
+        @required
+        data: ListGroupedDefaultConfigOut
     }
 }
 

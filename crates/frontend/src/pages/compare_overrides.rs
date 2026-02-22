@@ -192,7 +192,7 @@ pub fn CompareOverrides() -> impl IntoView {
 
     let redirect_url = move |prefix: Option<String>| -> String {
         let get_updated_query = use_update_url_query();
-        get_updated_query("prefix", prefix)
+        get_updated_query(&[("prefix", prefix)])
     };
 
     let expand = Callback::new(move |label: String| {

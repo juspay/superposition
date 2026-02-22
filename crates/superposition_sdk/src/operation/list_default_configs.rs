@@ -153,7 +153,24 @@ fn uri_query(_input: &crate::operation::list_default_configs::ListDefaultConfigs
     }
     if let ::std::option::Option::Some(inner_4) = &_input.name {
          {
-            query.push_kv("name", &::aws_smithy_http::query::fmt_string(inner_4));
+            for inner_5 in inner_4 {
+                query.push_kv("name", &::aws_smithy_http::query::fmt_string(inner_5));
+            }
+        }
+    }
+    if let ::std::option::Option::Some(inner_6) = &_input.sort_by {
+         {
+            query.push_kv("sort_by", &::aws_smithy_http::query::fmt_string(inner_6));
+        }
+    }
+    if let ::std::option::Option::Some(inner_7) = &_input.sort_on {
+         {
+            query.push_kv("sort_on", &::aws_smithy_http::query::fmt_string(inner_7));
+        }
+    }
+    if let ::std::option::Option::Some(inner_8) = &_input.search {
+         {
+            query.push_kv("search", &::aws_smithy_http::query::fmt_string(inner_8));
         }
     }
     ::std::result::Result::Ok(())

@@ -52,6 +52,7 @@ export * from "./ListDimensionsCommand";
 export * from "./ListExperimentCommand";
 export * from "./ListExperimentGroupsCommand";
 export * from "./ListFunctionCommand";
+export * from "./ListGroupedDefaultConfigsCommand";
 export * from "./ListOrganisationCommand";
 export * from "./ListSecretsCommand";
 export * from "./ListVariablesCommand";

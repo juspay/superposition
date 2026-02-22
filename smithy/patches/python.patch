@@ -782,3 +782,17 @@ index 2eb77129..ea06e2c3 100644
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
+
+diff --git a/clients/python/sdk/superposition_sdk/models.py b/clients/python/sdk/superposition_sdk/models.py
+index b9ae4b642..225afc3c0 100644
+--- a/clients/python/sdk/superposition_sdk/models.py
++++ b/clients/python/sdk/superposition_sdk/models.py
+@@ -7772,7 +7772,7 @@ LIST_GROUPED_DEFAULT_CONFIGS = APIOperation(
+             ShapeID("io.superposition#InternalServerError"): InternalServerError,
+         }),
+         effective_auth_schemes = [
+-            ShapeID("smithy.api#httpBasicAuth")
++            ShapeID("smithy.api#httpBasicAuth"),
+ ShapeID("smithy.api#httpBearerAuth")
+         ]
+ )

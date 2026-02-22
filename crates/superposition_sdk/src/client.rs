@@ -237,6 +237,8 @@ mod list_experiment_groups;
 
 mod list_function;
 
+mod list_grouped_default_configs;
+
 mod list_organisation;
 
 mod list_secrets;
