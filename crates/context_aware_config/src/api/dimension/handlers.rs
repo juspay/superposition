@@ -233,12 +233,9 @@ async fn create_handler(
             }
         })?;
 
-    if let Err(e) =
+    let _ =
         put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
-            .await
-    {
-        log::warn!("Failed to update redis cache with new context: {}", e);
-    }
+            .await;
 
     let mut http_resp = HttpResponse::Created();
     http_resp.insert_header((
@@ -448,12 +445,9 @@ async fn update_handler(
             Ok((result, is_mandatory, version_id))
         })?;
 
-    if let Err(e) =
+    let _ =
         put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
-            .await
-    {
-        log::warn!("Failed to update redis cache with new context: {}", e);
-    }
+            .await;
 
     let mut http_resp = HttpResponse::Ok();
     http_resp.insert_header((
@@ -624,16 +618,13 @@ async fn delete_handler(
             }
         })?;
 
-        if let Err(e) = put_config_in_redis(
+        let _ = put_config_in_redis(
             version_id,
             state,
             &workspace_context.schema_name,
             &mut conn,
         )
-        .await
-        {
-            log::warn!("Failed to update redis cache with new context: {}", e);
-        }
+        .await;
         Ok(resp)
     } else {
         Err(bad_argument!(

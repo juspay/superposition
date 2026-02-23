@@ -384,19 +384,12 @@ async fn create_handler(
         })?;
 
     // Update Redis cache with active experiments and experiment groups
-    if let Err(err) = put_experiments_in_redis(
+    let _ = put_experiments_in_redis(
         state.redis.clone(),
         &mut conn,
         &workspace_context.schema_name,
     )
-    .await
-    {
-        log::error!(
-            "Failed to update redis cache for experiments after creating experiment {}: {}",
-            inserted_experiment.id,
-            err
-        );
-    }
+    .await;
     let response = ExperimentResponse::from(inserted_experiment);
     let webhook_status = if let Ok(webhook) = fetch_webhook_by_event(
         &state,
@@ -464,15 +457,12 @@ async fn conclude_handler(
     .await?;
 
     // Update Redis cache with active experiments and experiment groups
-    if let Err(err) = put_experiments_in_redis(
+    let _ = put_experiments_in_redis(
         state.redis.clone(),
         &mut conn,
         &workspace_context.schema_name,
     )
-    .await
-    {
-        log::error!("Failed to update redis cache for experiments: {}", err);
-    }
+    .await;
 
     let experiment_response = ExperimentResponse::from(response);
 
@@ -757,15 +747,12 @@ async fn discard_handler(
     .await?;
 
     // Update Redis cache with active experiments and experiment groups
-    if let Err(err) = put_experiments_in_redis(
+    let _ = put_experiments_in_redis(
         state.redis.clone(),
         &mut conn,
         &workspace_context.schema_name,
     )
-    .await
-    {
-        log::error!("Failed to update redis cache for experiments: {}", err);
-    }
+    .await;
 
     let experiment_response = ExperimentResponse::from(response);
 
@@ -1441,15 +1428,12 @@ async fn ramp_handler(
     let (_, config_version_id) = fetch_cac_config(&state, &workspace_context).await?;
     let experiment_response = ExperimentResponse::from(updated_experiment);
 
-    if let Err(err) = put_experiments_in_redis(
+    let _ = put_experiments_in_redis(
         state.redis.clone(),
         &mut conn,
         &workspace_context.schema_name,
     )
-    .await
-    {
-        log::error!("Failed to update redis cache for experiments: {}", err);
-    }
+    .await;
 
     let webhook_event = if matches!(experiment.status, ExperimentStatusType::CREATED) {
         WebhookEvent::ExperimentStarted
@@ -1803,15 +1787,12 @@ async fn update_handler(
         })?;
 
     // Update Redis cache with active experiments and experiment groups
-    if let Err(err) = put_experiments_in_redis(
+    let _ = put_experiments_in_redis(
         state.redis.clone(),
         &mut conn,
         &workspace_context.schema_name,
     )
-    .await
-    {
-        log::error!("Failed to update redis cache for experiments: {}", err);
-    }
+    .await;
 
     let experiment_response = ExperimentResponse::from(updated_experiment);
 
@@ -1877,15 +1858,12 @@ async fn pause_handler(
     .await?;
 
     // Update Redis cache with active experiments and experiment groups
-    if let Err(err) = put_experiments_in_redis(
+    let _ = put_experiments_in_redis(
         state.redis.clone(),
         &mut conn,
         &workspace_context.schema_name,
     )
-    .await
-    {
-        log::error!("Failed to update redis cache for experiments: {}", err);
-    }
+    .await;
 
     let experiment_response = ExperimentResponse::from(response);
 
@@ -1987,15 +1965,12 @@ async fn resume_handler(
     .await?;
 
     // Update Redis cache with active experiments and experiment groups
-    if let Err(err) = put_experiments_in_redis(
+    let _ = put_experiments_in_redis(
         state.redis.clone(),
         &mut conn,
         &workspace_context.schema_name,
     )
-    .await
-    {
-        log::error!("Failed to update redis cache for experiments: {}", err);
-    }
+    .await;
 
     let experiment_response = ExperimentResponse::from(response);
 

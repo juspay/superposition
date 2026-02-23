@@ -904,7 +904,7 @@ pub async fn put_experiments_in_redis(
         .set::<(), String, String>(key, serialized, expiration, None, false)
         .await
         .map_err(|e| {
-            log::error!("Failed to write experiments to redis: {}", e);
+            log::warn!("Failed to write experiments to redis: {}", e);
             unexpected_error!("Failed to write experiments to redis: {}", e)
         })?;
 

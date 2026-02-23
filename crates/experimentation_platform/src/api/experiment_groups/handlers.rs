@@ -145,18 +145,12 @@ async fn create_handler(
                     .get_result::<ExperimentGroup>(transaction_conn)?;
             Ok(new_experiment_group)
         })?;
-    if let Err(err) = put_experiment_groups_in_redis(
+    let _ = put_experiment_groups_in_redis(
         state.redis.clone(),
         &mut conn,
         &workspace_context.schema_name,
     )
-    .await
-    {
-        log::error!(
-            "Failed to update experiment groups in redis after creation: {}",
-            err
-        );
-    }
+    .await;
     Ok(Json(new_experiment_group))
 }
 
@@ -201,15 +195,12 @@ async fn update_handler(
         .returning(ExperimentGroup::as_returning())
         .schema_name(&workspace_context.schema_name)
         .get_result(&mut conn)?;
-    if let Err(err) = put_experiment_groups_in_redis(
+    let _ = put_experiment_groups_in_redis(
         state.redis.clone(),
         &mut conn,
         &workspace_context.schema_name,
     )
-    .await
-    {
-        log::error!("Failed to update experiment groups in redis: {}", err);
-    }
+    .await;
     Ok(Json(updated_group))
 }
 
@@ -259,15 +250,12 @@ async fn add_members_handler(
                 &user,
             )
         })?;
-    if let Err(err) = put_experiment_groups_in_redis(
+    let _ = put_experiment_groups_in_redis(
         state.redis.clone(),
         &mut conn,
         &workspace_context.schema_name,
     )
-    .await
-    {
-        log::error!("Failed to update experiment groups in redis: {}", err);
-    }
+    .await;
     Ok(experiment_group)
 }
 
@@ -310,15 +298,12 @@ async fn remove_members_handler(
                 &user,
             )
         })?;
-    if let Err(err) = put_experiment_groups_in_redis(
+    let _ = put_experiment_groups_in_redis(
         state.redis.clone(),
         &mut conn,
         &workspace_context.schema_name,
     )
-    .await
-    {
-        log::error!("Failed to update experiment groups in redis: {}", err);
-    }
+    .await;
     Ok(experiment_group)
 }
 
@@ -470,18 +455,12 @@ async fn delete_handler(
                 .execute(conn)?;
             Ok(Json(marked_group))
         });
-    if let Err(err) = put_experiment_groups_in_redis(
+    let _ = put_experiment_groups_in_redis(
         state.redis.clone(),
         &mut db_conn,
         &workspace_context.schema_name,
     )
-    .await
-    {
-        log::error!(
-            "Failed to update experiment groups in redis after creation: {}",
-            err
-        );
-    }
+    .await;
     result
 }
 
@@ -545,18 +524,12 @@ async fn backfill_handler(
             }
             Ok(results)
         })?;
-    if let Err(err) = put_experiment_groups_in_redis(
+    let _ = put_experiment_groups_in_redis(
         state.redis.clone(),
         &mut conn,
         &workspace_context.schema_name,
     )
-    .await
-    {
-        log::error!(
-            "Failed to update experiment groups in redis after creation: {}",
-            err
-        );
-    }
+    .await;
 
     Ok(Json(experiment_groups))
 }
