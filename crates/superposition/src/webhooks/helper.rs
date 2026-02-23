@@ -15,9 +15,11 @@ pub fn validate_events(
     schema_name: &String,
     db_pool: &PgSchemaConnectionPool,
 ) -> superposition::Result<()> {
-    let result: Vec<Webhook> = run_query!(db_pool, |conn| dsl::webhooks
-        .schema_name(schema_name)
-        .get_results(conn))?;
+    let result: Vec<Webhook> = run_query!(
+        db_pool,
+        conn,
+        dsl::webhooks.schema_name(schema_name).get_results(conn)
+    )?;
     for webhook in result {
         if exclude_webhook == Some(&webhook.name) {
             continue;
@@ -36,8 +38,12 @@ pub fn fetch_webhook(
     schema_name: &String,
     db_pool: &PgSchemaConnectionPool,
 ) -> superposition::Result<Webhook> {
-    run_query!(db_pool, |conn| dsl::webhooks
-        .filter(webhooks::name.eq(w_name))
-        .schema_name(schema_name)
-        .get_result::<Webhook>(conn))
+    run_query!(
+        db_pool,
+        conn,
+        dsl::webhooks
+            .filter(webhooks::name.eq(w_name))
+            .schema_name(schema_name)
+            .get_result::<Webhook>(conn)
+    )
 }

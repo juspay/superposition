@@ -25,7 +25,7 @@ use service_utils::{
 use superposition_derives::authorized;
 use superposition_macros::{bad_argument, db_error, unexpected_error, validation_error};
 use superposition_types::{
-    DBConnection, PaginatedResponse, User,
+    PaginatedResponse, User,
     api::{
         I64Update,
         workspace::{
@@ -86,7 +86,7 @@ async fn get_handler(
     org_id: OrganisationId,
 ) -> superposition::Result<Json<WorkspaceResponse>> {
     let workspace_name = workspace_name.into_inner();
-    let workspace: Workspace = run_query!(state.db_pool, |conn| {
+    let workspace: Workspace = run_query!(state.db_pool, conn, {
         workspaces::dsl::workspaces
             .filter(workspaces::organisation_id.eq(&org_id.0))
             .filter(workspaces::workspace_name.eq(workspace_name))
@@ -104,7 +104,7 @@ async fn create_handler(
     org_id: OrganisationId,
     user: User,
 ) -> superposition::Result<Json<WorkspaceResponse>> {
-    let org_info = run_query!(state.db_pool, |conn| {
+    let org_info = run_query!(state.db_pool, conn, {
         organisations::dsl::organisations
             .filter(organisations::id.eq(&org_id.0))
             .get_result::<Organisation>(conn)
@@ -154,15 +154,14 @@ async fn create_handler(
         key_rotated_at: None,
     };
 
-    let created_workspace =
-        run_query!(state.db_pool, |transaction_conn: &mut DBConnection| {
-            let inserted_workspace = diesel::insert_into(workspaces::table)
-                .values(workspace)
-                .get_result(transaction_conn)?;
+    let created_workspace = run_query!(state.db_pool, tx conn, {
+        let inserted_workspace = diesel::insert_into(workspaces::table)
+            .values(workspace)
+            .get_result(conn)?;
 
-            setup_workspace_schema(transaction_conn, &workspace_schema_name)?;
-            Ok::<Workspace, superposition::AppError>(inserted_workspace)
-        })?;
+        setup_workspace_schema(conn, &workspace_schema_name)?;
+        Ok::<Workspace, superposition::AppError>(inserted_workspace)
+    })?;
     let response = WorkspaceResponse::from(created_workspace);
     Ok(Json(response))
 }
@@ -185,34 +184,31 @@ async fn update_handler(
     // TODO: mandatory dimensions updation needs to be validated
     // for the existance of the dimensions in the workspace
 
-    if let Some(I64Update::Add(version)) = request.config_version {
-        run_query!(state.db_pool, |conn| {
+    let updated_workspace = run_query!(state.db_pool, tx conn, {
+        if let Some(I64Update::Add(version)) = request.config_version {
             config_versions::config_versions
                 .select(config_versions::id)
                 .filter(config_versions::id.eq(version))
                 .schema_name(&schema_name)
-                .first::<i64>(conn)
-        })?;
-    }
+                .first::<i64>(conn)?;
+        }
 
-    let updated_workspace =
-        run_query!(state.db_pool, |transaction_conn: &mut DBConnection| {
-            let updated_workspace = diesel::update(workspaces::table)
-                .filter(workspaces::organisation_id.eq(&org_id.0))
-                .filter(workspaces::workspace_name.eq(workspace_name))
-                .set((
-                    request,
-                    workspaces::last_modified_by.eq(user.email),
-                    workspaces::last_modified_at.eq(timestamp),
-                ))
-                .get_result::<Workspace>(transaction_conn)
-                .map_err(|err| {
-                    log::error!("failed to update workspace with error: {}", err);
-                    err
-                })?;
+        let updated_workspace = diesel::update(workspaces::table)
+            .filter(workspaces::organisation_id.eq(&org_id.0))
+            .filter(workspaces::workspace_name.eq(workspace_name))
+            .set((
+                request,
+                workspaces::last_modified_by.eq(user.email),
+                workspaces::last_modified_at.eq(timestamp),
+            ))
+            .get_result::<Workspace>(conn)
+            .map_err(|err| {
+                log::error!("failed to update workspace with error: {}", err);
+                err
+            })?;
 
-            Ok::<Workspace, superposition::AppError>(updated_workspace)
-        })?;
+        Ok::<Workspace, superposition::AppError>(updated_workspace)
+    })?;
     let response = WorkspaceResponse::from(updated_workspace);
     Ok(Json(response))
 }
@@ -226,7 +222,7 @@ async fn list_handler(
     org_id: OrganisationId,
 ) -> superposition::Result<Json<PaginatedResponse<WorkspaceResponse>>> {
     if let Some(true) = pagination_filters.all {
-        let result = run_query!(state.db_pool, |conn| {
+        let result = run_query!(state.db_pool, conn, {
             let resp = workspaces::dsl::workspaces
                 .filter(workspaces::organisation_id.eq(&org_id.0))
                 .get_results::<Workspace>(conn)?
@@ -255,7 +251,7 @@ async fn list_handler(
     let count_query = query_builder(&filters);
     let base_query = query_builder(&filters);
 
-    let n_types = run_query!(state.db_pool, |conn| count_query.count().get_result(conn))?;
+    let n_types = run_query!(state.db_pool, conn, count_query.count().get_result(conn))?;
     let limit = pagination_filters.count.unwrap_or(10);
     let mut builder = base_query
         .order(workspaces::dsl::created_at.desc())
@@ -264,7 +260,7 @@ async fn list_handler(
         let offset = (page - 1) * limit;
         builder = builder.offset(offset);
     }
-    let workspaces = run_query!(state.db_pool, |conn| {
+    let workspaces = run_query!(state.db_pool, conn, {
         let resp = builder
             .load::<Workspace>(conn)?
             .into_iter()
@@ -324,8 +320,8 @@ async fn migrate_schema_handler(
     let schema_name = SchemaName(format!("{}_{}", *org_id, &workspace_name));
     let workspace = get_workspace(&schema_name, &state.db_pool)?;
 
-    run_query!(state.db_pool, |transaction_conn: &mut DBConnection| {
-        setup_workspace_schema(transaction_conn, &workspace.workspace_schema_name)?;
+    run_query!(state.db_pool, tx conn, {
+        setup_workspace_schema(conn, &workspace.workspace_schema_name)?;
         if workspace.encryption_key.is_empty() {
             match state.master_encryption_key {
                 Some(ref master_encryption_key) => {
@@ -347,7 +343,7 @@ async fn migrate_schema_handler(
                             workspaces::last_modified_by.eq(user.get_username()),
                             workspaces::last_modified_at.eq(Utc::now()),
                         ))
-                        .execute(transaction_conn)?;
+                        .execute(conn)?;
                 }
                 None => {
                     log::warn!(
@@ -389,7 +385,7 @@ pub async fn rotate_encryption_key_handler(
         settings: workspace,
     };
 
-    let total_secrets_re_encrypted = run_query!(state.db_pool, |conn| {
+    let total_secrets_re_encrypted = run_query!(state.db_pool, tx conn, {
         rotate_workspace_encryption_key_helper(
             &workspace_context,
             conn,

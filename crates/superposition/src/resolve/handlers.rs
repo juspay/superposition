@@ -44,7 +44,7 @@ async fn resolve_with_exp_handler(
     let query_filters = query_filters.into_inner();
     let identifier_query = identifier_query.into_inner();
     // TODO: Granularise the connection usage in this function once all crates are migrated
-    let max_created_at = run_query!(state.db_pool, |conn| {
+    let max_created_at = run_query!(state.db_pool, conn, {
         get_max_created_at(conn, &workspace_context.schema_name)
     })
     .map_err(|e| log::error!("failed to fetch max timestamp from event_log : {e}"))
@@ -64,7 +64,7 @@ async fn resolve_with_exp_handler(
     let config_ver = config_version.to_owned();
 
     // TODO: Granularise the connection usage in this function once all crates are migrated
-    let mut config = run_query!(state.db_pool, |conn| {
+    let mut config = run_query!(state.db_pool, conn, {
         generate_config_from_version(
             &mut config_version,
             conn,
@@ -75,7 +75,7 @@ async fn resolve_with_exp_handler(
     if let (None, Some(identifier)) = (config_ver, identifier_query.identifier) {
         let context_map: &Map<String, Value> = &query_data;
         // TODO: Granularise the connection usage in this function once all crates are migrated
-        let (applicable_variants, _) = run_query!(state.db_pool, |conn| {
+        let (applicable_variants, _) = run_query!(state.db_pool, conn, {
             get_applicable_variants_helper(
                 conn,
                 context_map.clone(),
@@ -88,7 +88,7 @@ async fn resolve_with_exp_handler(
     }
 
     // TODO: Granularise the connection usage in this function once all crates are migrated
-    let resolved_config = run_query!(state.db_pool, |conn| {
+    let resolved_config = run_query!(state.db_pool, conn, {
         resolve(
             &mut config,
             query_data,
@@ -103,7 +103,7 @@ async fn resolve_with_exp_handler(
     let mut resp = HttpResponse::Ok();
     add_last_modified_to_header(max_created_at, is_smithy, &mut resp);
     // TODO: Granularise the connection usage in this function once all crates are migrated
-    run_query!(state.db_pool, |conn| {
+    run_query!(state.db_pool, conn, {
         add_audit_id_to_header(conn, &mut resp, &workspace_context.schema_name);
         Ok::<(), superposition::AppError>(())
     })?;

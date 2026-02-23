@@ -56,7 +56,7 @@ pub async fn create_handler(
         updated_by: user.get_username(),
     };
 
-    let new_org = run_query!(state.db_pool, |conn| {
+    let new_org = run_query!(state.db_pool, conn, {
         diesel::insert_into(organisations::table)
             .values(&new_org)
             .get_result(conn)
@@ -79,7 +79,7 @@ pub async fn update_handler(
     let now = Utc::now();
     let req = request.into_inner();
 
-    let updated_org = run_query!(state.db_pool, |conn| {
+    let updated_org = run_query!(state.db_pool, conn, {
         diesel::update(organisations::table)
             .filter(organisations::id.eq(org_id))
             .set((req, updated_at.eq(now), updated_by.eq(user.get_email())))
@@ -95,7 +95,7 @@ pub async fn get_handler(
     org_id: Path<String>,
     state: Data<AppState>,
 ) -> superposition::Result<Json<Organisation>> {
-    let org = run_query!(state.db_pool, |conn| {
+    let org = run_query!(state.db_pool, conn, {
         organisations::table
             .find(org_id.as_str())
             .first::<Organisation>(conn)
@@ -111,7 +111,7 @@ pub async fn list_handler(
     filters: Query<PaginationParams>,
 ) -> superposition::Result<Json<PaginatedResponse<Organisation>>> {
     if let Some(true) = filters.all {
-        let result = run_query!(state.db_pool, |conn| {
+        let result = run_query!(state.db_pool, conn, {
             organisations::table
                 .order(organisations::created_at.desc())
                 .get_results(conn)
@@ -121,9 +121,11 @@ pub async fn list_handler(
     }
 
     // Get total count of organisations
-    let total_items = run_query!(state.db_pool, |conn| organisations::table
-        .count()
-        .get_result(conn))?;
+    let total_items = run_query!(
+        state.db_pool,
+        conn,
+        organisations::table.count().get_result(conn)
+    )?;
 
     // Set up pagination
     let limit = filters.count.unwrap_or(10);
@@ -139,7 +141,7 @@ pub async fn list_handler(
     }
 
     // Get paginated results
-    let data = run_query!(state.db_pool, |conn| builder.load(conn))?;
+    let data = run_query!(state.db_pool, conn, builder.load(conn))?;
 
     let total_pages = (total_items as f64 / limit as f64).ceil() as i64;
 
