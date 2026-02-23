@@ -102,7 +102,7 @@ fn validate_condition_with_dependent_dimensions(
     Ok(())
 }
 
-pub fn validate_condition_with_functions(
+pub async fn validate_condition_with_functions(
     workspace_context: &WorkspaceContext,
     conn: &mut DBConnection,
     context_map: &Map<String, Value>,
@@ -133,23 +133,29 @@ pub fn validate_condition_with_functions(
         overrides: override_.clone(),
     };
 
+    let handle = rustyscript::tokio::runtime::Handle::current();
+
     // workspace_setting check
     if is_context_validation_enabled {
         if let (Some(function_code), Some(published_runtime_version)) = (
             context_validation_function.published_code,
             context_validation_function.published_runtime_version,
         ) {
-            validation_function_executor(
-                workspace_context,
-                CONTEXT_VALIDATION_FN_NAME,
-                &function_code,
-                &FunctionExecutionRequest::ContextValidationFunctionRequest {
-                    environment: environment.clone(),
-                },
-                published_runtime_version,
-                conn,
-                master_encryption_key,
-            )?;
+            handle
+                .spawn_blocking(move || {
+                    validation_function_executor(
+                        workspace_context,
+                        CONTEXT_VALIDATION_FN_NAME,
+                        &function_code,
+                        &FunctionExecutionRequest::ContextValidationFunctionRequest {
+                            environment: environment.clone(),
+                        },
+                        published_runtime_version,
+                        conn,
+                        master_encryption_key,
+                    )
+                })
+                .await?;
         }
     }
 

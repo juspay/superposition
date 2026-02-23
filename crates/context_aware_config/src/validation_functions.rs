@@ -100,7 +100,7 @@ pub fn execute_fn(
     })?;
 
     let payload = FunctionPayload {
-        version: runtime_version,
+        version: runtime_version.clone(),
         payload: args.clone(),
     };
     let module_handle = runtime

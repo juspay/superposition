@@ -1,4 +1,4 @@
-use std::{cmp::min, collections::HashSet};
+use std::{cmp::min, collections::HashMap, collections::HashSet};
 
 use actix_web::{
     Either, HttpResponse, Scope, delete, get, post, put, routes,
@@ -7,7 +7,7 @@ use actix_web::{
 use bigdecimal::BigDecimal;
 use chrono::Utc;
 use diesel::{
-    Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper, delete,
+    Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
     dsl::sql,
     sql_types::{Bool, Text},
 };
@@ -21,13 +21,14 @@ use service_utils::{
 use superposition_derives::authorized;
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    Contextual, ListResponse, Overridden, Overrides, PaginatedResponse, SortBy, User,
+    Contextual, DimensionInfo, ListResponse, Overridden, Overrides, PaginatedResponse,
+    SortBy, User,
     api::{
         DimensionMatchStrategy,
         context::{
             BulkOperation, BulkOperationResponse, ContextAction, ContextBulkResponse,
-            ContextListFilters, ContextValidationRequest, MoveRequest, PutRequest,
-            SortOn, UpdateRequest, WeightRecomputeResponse,
+            ContextListFilters, ContextValidationRequest, Identifier, MoveRequest,
+            PutRequest, SortOn, UpdateRequest, WeightRecomputeResponse,
         },
     },
     custom_query::{
@@ -36,7 +37,7 @@ use superposition_types::{
     },
     database::{
         models::{ChangeReason, Description, cac::Context},
-        schema::contexts::{self, id},
+        schema::contexts::{self, dsl, id},
     },
     logic::evaluate_local_cohorts_skip_unresolved,
     result::{self as superposition, AppError},
@@ -44,7 +45,10 @@ use superposition_types::{
 
 #[cfg(feature = "high-performance-mode")]
 use crate::helpers::put_config_in_redis;
-use crate::helpers::{add_config_version, calculate_context_weight};
+use crate::{
+    api::context::helpers::{create_ctx_from_put_req, validate_override_with_functions},
+    helpers::{add_config_version, calculate_context_weight},
+};
 use crate::{
     api::context::{
         hash,
@@ -106,19 +110,27 @@ async fn create_handler(
         &req_change_reason,
         &mut db_conn,
         &state.master_encryption_key,
+    )
+    .await?;
+
+    let new_ctx = create_ctx_from_put_req(
+        req.into_inner(),
+        description,
+        &mut db_conn,
+        &user,
+        &workspace_context,
+        &state.master_encryption_key,
     )?;
 
     let (put_response, version_id) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
             let put_response = operations::upsert(
-                req.into_inner(),
-                description,
                 transaction_conn,
                 true,
                 &user,
                 &workspace_context,
                 false,
-                &state.master_encryption_key,
+                new_ctx,
             )
             .map_err(|err: superposition::AppError| {
                 log::error!("context put failed with error: {:?}", err);
@@ -172,16 +184,42 @@ async fn update_handler(
         &req_change_reason,
         &mut db_conn,
         &state.master_encryption_key,
+    )
+    .await?;
+
+    let DbConnection(mut conn) = db_conn;
+
+    let (context_id, context) = match &req.context {
+        Identifier::Context(context) => {
+            let ctx_value: Map<String, Value> = context.clone().into_inner().into();
+            (hash(&Value::Object(ctx_value.clone())), ctx_value)
+        }
+        Identifier::Id(i) => {
+            let ctx_value: Context = dsl::contexts
+                .filter(dsl::id.eq(i.clone()))
+                .schema_name(&workspace_context.schema_name)
+                .get_result::<Context>(&mut conn)?;
+            (i.clone(), ctx_value.value.into())
+        }
+    };
+    let r_override = req.override_.clone().into_inner();
+
+    validate_override_with_functions(
+        &workspace_context,
+        &mut conn,
+        &r_override,
+        &context,
+        &state.master_encryption_key,
     )?;
 
-    let (override_resp, version_id) = db_conn
-        .transaction::<_, superposition::AppError, _>(|transaction_conn| {
+    let (override_resp, version_id) =
+        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
             let override_resp = operations::update(
                 &workspace_context,
                 req.into_inner(),
                 transaction_conn,
                 &user,
-                &state.master_encryption_key,
+                context_id,
             )
             .map_err(|err: superposition::AppError| {
                 log::error!("context update failed with error: {:?}", err);
@@ -206,7 +244,6 @@ async fn update_handler(
 
     #[cfg(feature = "high-performance-mode")]
     {
-        let DbConnection(mut conn) = db_conn;
         put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
             .await?;
     }
@@ -254,10 +291,23 @@ async fn move_handler(
         &req.change_reason,
         &mut db_conn,
         &state.master_encryption_key,
+    )
+    .await?;
+
+    let DbConnection(mut conn) = db_conn;
+
+    let ctx_condition = req.context.clone().into_inner();
+
+    let dimension_data_map = validate_ctx(
+        &mut conn,
+        &workspace_context,
+        ctx_condition,
+        Overrides::default(),
+        &state.master_encryption_key,
     )?;
 
-    let (move_response, version_id) = db_conn
-        .transaction::<_, superposition::AppError, _>(|transaction_conn| {
+    let (move_response, version_id) =
+        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
             let move_response = operations::r#move(
                 &workspace_context,
                 path.into_inner(),
@@ -266,7 +316,7 @@ async fn move_handler(
                 transaction_conn,
                 true,
                 &user,
-                &state.master_encryption_key,
+                &dimension_data_map,
             )
             .map_err(|err| {
                 log::error!("move api failed with error: {:?}", err);
@@ -291,7 +341,6 @@ async fn move_handler(
 
     #[cfg(feature = "high-performance-mode")]
     {
-        let DbConnection(mut conn) = db_conn;
         put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
             .await?;
     }
@@ -539,6 +588,28 @@ async fn delete_handler(
         .finish())
 }
 
+enum PreparedOperation {
+    Put {
+        new_ctx: Context,
+        description: Description,
+        change_reason: ChangeReason,
+    },
+    Replace {
+        update_request: UpdateRequest,
+        context_id: String,
+        change_reason: ChangeReason,
+    },
+    Delete {
+        ctx_id: String,
+    },
+    Move {
+        old_ctx_id: String,
+        move_req: MoveRequest,
+        description: Description,
+        dimension_data_map: HashMap<String, DimensionInfo>,
+    },
+}
+
 #[authorized]
 #[put("/bulk-operations")]
 async fn bulk_operations_handler(
@@ -562,49 +633,139 @@ async fn bulk_operations_handler(
     };
     // Marking immutable.
     let is_v2 = is_v2;
-    let mut all_descriptions = Vec::new();
-    let mut all_change_reasons = Vec::new();
 
     let tags = parse_config_tags(custom_headers.config_tags)?;
+
+    // ── Phase 1: async validation & preparation ──
+    let mut prepared_ops = Vec::with_capacity(ops.len());
+
+    for action in ops.into_iter() {
+        match action {
+            ContextAction::Put(put_req) => {
+                let ctx_condition = put_req.context.to_owned().into_inner();
+                let ctx_condition_value = Value::Object(ctx_condition.clone().into());
+
+                validate_change_reason(
+                    &workspace_context,
+                    &put_req.change_reason,
+                    &mut conn,
+                    &state.master_encryption_key,
+                )
+                .await?;
+
+                let description = match put_req.description.clone() {
+                    Some(val) => val,
+                    None => query_description(
+                        ctx_condition_value,
+                        &mut conn,
+                        &workspace_context.schema_name,
+                    )?,
+                };
+                let change_reason = put_req.change_reason.clone();
+                let new_ctx = create_ctx_from_put_req(
+                    put_req,
+                    description.clone(),
+                    &mut conn,
+                    &user,
+                    &workspace_context,
+                    &state.master_encryption_key,
+                )?;
+
+                prepared_ops.push(PreparedOperation::Put {
+                    new_ctx,
+                    description,
+                    change_reason,
+                });
+            }
+            ContextAction::Replace(update_request) => {
+                let change_reason = update_request.change_reason.clone();
+                let (context_id, context) = match &update_request.context {
+                    Identifier::Context(context) => {
+                        let ctx_value: Map<String, Value> =
+                            context.clone().into_inner().into();
+                        (hash(&Value::Object(ctx_value.clone())), ctx_value)
+                    }
+                    Identifier::Id(i) => {
+                        let ctx_value: Context = dsl::contexts
+                            .filter(dsl::id.eq(i.clone()))
+                            .schema_name(&workspace_context.schema_name)
+                            .get_result::<Context>(&mut conn)?;
+                        (i.clone(), ctx_value.value.into())
+                    }
+                };
+                let r_override = update_request.override_.clone().into_inner();
+
+                validate_override_with_functions(
+                    &workspace_context,
+                    &mut conn,
+                    &r_override,
+                    &context,
+                    &state.master_encryption_key,
+                )?;
+
+                prepared_ops.push(PreparedOperation::Replace {
+                    update_request,
+                    context_id,
+                    change_reason,
+                });
+            }
+            ContextAction::Delete(ctx_id) => {
+                prepared_ops.push(PreparedOperation::Delete { ctx_id });
+            }
+            ContextAction::Move {
+                id: old_ctx_id,
+                request: move_req,
+            } => {
+                let description = match move_req.description.clone() {
+                    Some(val) => val,
+                    None => query_description(
+                        Value::Object(move_req.context.clone().into_inner().into()),
+                        &mut conn,
+                        &workspace_context.schema_name,
+                    )?,
+                };
+
+                let ctx_condition = move_req.context.clone().into_inner();
+
+                let dimension_data_map = validate_ctx(
+                    &mut conn,
+                    &workspace_context,
+                    ctx_condition,
+                    Overrides::default(),
+                    &state.master_encryption_key,
+                )?;
+
+                prepared_ops.push(PreparedOperation::Move {
+                    old_ctx_id,
+                    move_req,
+                    description,
+                    dimension_data_map,
+                });
+            }
+        }
+    }
+
+    // ── Phase 2: single transaction for all DB writes ──
     let (response, version_id) =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
             let mut response = Vec::<ContextBulkResponse>::new();
-            for action in ops.into_iter() {
-                match action {
-                    ContextAction::Put(put_req) => {
-                        let ctx_condition = put_req.context.to_owned().into_inner();
-                        let ctx_condition_value =
-                            Value::Object(ctx_condition.clone().into());
+            let mut all_descriptions = Vec::new();
+            let mut all_change_reasons = Vec::new();
 
-                        validate_change_reason(
-                            &workspace_context,
-                            &put_req.change_reason,
-                            transaction_conn,
-                            &state.master_encryption_key,
-                        )?;
-
-                        let description = if put_req.description.is_none() {
-                            query_description(
-                                ctx_condition_value,
-                                transaction_conn,
-                                &workspace_context.schema_name,
-                            )?
-                        } else {
-                            put_req
-                                .description
-                                .clone()
-                                .expect("Description should not be empty")
-                        };
-
+            for prepared in prepared_ops {
+                match prepared {
+                    PreparedOperation::Put {
+                        new_ctx,
+                        description,
+                        change_reason,
+                    } => {
                         let put_resp = operations::upsert(
-                            put_req.clone(),
-                            description.clone(),
                             transaction_conn,
                             true,
                             &user,
                             &workspace_context,
                             false,
-                            &state.master_encryption_key,
+                            new_ctx,
                         )
                         .map_err(|err| {
                             log::error!(
@@ -615,17 +776,20 @@ async fn bulk_operations_handler(
                         })?;
 
                         all_descriptions.push(description);
-                        all_change_reasons.push(put_req.change_reason.clone());
+                        all_change_reasons.push(change_reason);
                         response.push(ContextBulkResponse::Put(put_resp));
                     }
-                    ContextAction::Replace(update_request) => {
-                        all_change_reasons.push(update_request.change_reason.clone());
+                    PreparedOperation::Replace {
+                        update_request,
+                        context_id,
+                        change_reason,
+                    } => {
                         let update_resp = operations::update(
                             &workspace_context,
                             update_request,
                             transaction_conn,
                             &user,
-                            &state.master_encryption_key,
+                            context_id,
                         )
                         .map_err(|err| {
                             log::error!(
@@ -635,20 +799,23 @@ async fn bulk_operations_handler(
                             err
                         })?;
 
+                        all_change_reasons.push(change_reason);
                         response.push(ContextBulkResponse::Replace(update_resp));
                     }
-                    ContextAction::Delete(ctx_id) => {
+                    PreparedOperation::Delete { ctx_id } => {
                         let context: Context = contexts
                             .filter(id.eq(&ctx_id))
                             .schema_name(&workspace_context.schema_name)
                             .first::<Context>(transaction_conn)?;
 
-                        let deleted_row = delete(contexts)
-                            .filter(id.eq(&ctx_id))
-                            .schema_name(&workspace_context.schema_name)
-                            .execute(transaction_conn);
-
                         let description = context.description;
+
+                        operations::delete(
+                            ctx_id.clone(),
+                            &user,
+                            transaction_conn,
+                            &workspace_context.schema_name,
+                        )?;
 
                         let email: String = user.clone().get_email();
                         let change_reason = ChangeReason::try_from(format!(
@@ -656,44 +823,18 @@ async fn bulk_operations_handler(
                             email.clone()
                         ))
                         .map_err(|e| unexpected_error!(e))?;
-                        all_descriptions.push(description.clone());
+                        all_descriptions.push(description);
                         all_change_reasons.push(change_reason);
-
-                        match deleted_row {
-                            // Any kind of error would rollback the tranction but explicitly returning rollback tranction allows you to rollback from any point in transaction.
-                            Ok(0) => {
-                                return Err(bad_argument!(
-                                    "context with id {} not found",
-                                    ctx_id
-                                ));
-                            }
-                            Ok(_) => {
-                                log::info!("{ctx_id} context deleted by {email}");
-                                response.push(ContextBulkResponse::Delete(format!(
-                                    "{ctx_id} deleted succesfully"
-                                )))
-                            }
-                            Err(e) => {
-                                log::error!("Delete context failed due to {:?}", e);
-                                return Err(db_error!(e));
-                            }
-                        };
+                        response.push(ContextBulkResponse::Delete(format!(
+                            "{ctx_id} deleted succesfully"
+                        )));
                     }
-                    ContextAction::Move {
-                        id: old_ctx_id,
-                        request: move_req,
+                    PreparedOperation::Move {
+                        old_ctx_id,
+                        move_req,
+                        description,
+                        dimension_data_map,
                     } => {
-                        let description = match move_req.description.clone() {
-                            Some(val) => val,
-                            None => query_description(
-                                Value::Object(
-                                    move_req.context.clone().into_inner().into(),
-                                ),
-                                transaction_conn,
-                                &workspace_context.schema_name,
-                            )?,
-                        };
-
                         let move_context_resp = operations::r#move(
                             &workspace_context,
                             old_ctx_id,
@@ -702,7 +843,7 @@ async fn bulk_operations_handler(
                             transaction_conn,
                             true,
                             &user,
-                            &state.master_encryption_key,
+                            &dimension_data_map,
                         )
                         .map_err(|err| {
                             log::error!(

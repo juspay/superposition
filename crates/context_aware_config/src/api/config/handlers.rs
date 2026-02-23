@@ -44,7 +44,10 @@ use superposition_types::{
     result as superposition,
 };
 
-use crate::api::context::{self, helpers::query_description};
+use crate::api::context::{
+    self,
+    helpers::{create_ctx_from_put_req, query_description},
+};
 use crate::{
     api::config::helpers::{
         add_audit_id_to_header, add_config_version_to_header,
@@ -367,16 +370,21 @@ async fn reduce_config_key(
                                     &workspace_context.schema_name,
                                 )?,
                             };
-
-                            let _ = context::upsert(
+                            let new_ctx = create_ctx_from_put_req(
                                 put_req,
                                 description,
+                                conn,
+                                user,
+                                workspace_context,
+                                &state.master_encryption_key,
+                            )?;
+                            let _ = context::upsert(
                                 conn,
                                 false,
                                 user,
                                 workspace_context,
                                 false,
-                                &state.master_encryption_key,
+                                new_ctx,
                             );
                         }
                     }

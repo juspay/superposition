@@ -478,7 +478,7 @@ pub fn evaluate_remote_cohorts(
     Ok(modified_context)
 }
 
-pub fn validate_change_reason(
+pub async fn validate_change_reason(
     workspace_context: &WorkspaceContext,
     change_reason: &ChangeReason,
     conn: &mut DBConnection,
