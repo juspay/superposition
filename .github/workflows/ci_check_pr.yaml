@@ -110,10 +110,10 @@ jobs:
                 env:
                     POSTGRES_PASSWORD: "docker"
                     POSTGRES_DB: "config"
-            redis: 
+            redis:
                 image: public.ecr.aws/docker/library/redis:8
-                ports: 
-                    - 6379:6379 
+                ports:
+                    - 6379:6379
 
         steps:
             - name: Checkout repository
@@ -271,10 +271,10 @@ jobs:
                 env:
                     POSTGRES_PASSWORD: "docker"
                     POSTGRES_DB: "config"
-            redis: 
+            redis:
                 image: public.ecr.aws/docker/library/redis:8
-                ports: 
-                    - 6379:6379 
+                ports:
+                    - 6379:6379
 
         steps:
             - name: Checkout repository

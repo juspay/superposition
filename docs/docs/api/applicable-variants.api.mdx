@@ -18,6 +18,7 @@ import StatusCodes from "@theme/StatusCodes";
 import OperationTabs from "@theme/OperationTabs";
 import TabItem from "@theme/TabItem";
 import Heading from "@theme/Heading";
+import Translate from "@docusaurus/Translate";
 
 <Heading
   as={"h1"}
@@ -42,27 +43,24 @@ Determines which experiment variants are applicable to a given context, used for
   id={"request"}
   as={"h2"}
   className={"openapi-tabs__heading"}
-  children={"Request"}
 >
+  <Translate id="theme.openapi.request.title">Request</Translate>
 </Heading>
 
 <ParamsDetails
-  parameters={[{"name":"x-org-id","in":"header","schema":{"type":"string"},"required":true},{"name":"x-workspace","in":"header","schema":{"type":"string"},"required":true}]}
+  {...require("./applicable-variants.ParamsDetails.json")}
 >
   
 </ParamsDetails>
 
 <RequestSchema
-  title={"Body"}
-  body={{"content":{"application/json":{"schema":{"type":"object","properties":{"context":{"type":"object","additionalProperties":{},"description":"Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.","title":"Condition"},"identifier":{"type":"string"}},"required":["context","identifier"],"title":"ApplicableVariantsRequestContent"}}},"required":true}}
+  {...require("./applicable-variants.RequestSchema.json")}
 >
   
 </RequestSchema>
 
 <StatusCodes
-  id={undefined}
-  label={undefined}
-  responses={{"200":{"description":"ApplicableVariants 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"data":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"variant_type":{"type":"string","enum":["CONTROL","EXPERIMENTAL"],"title":"VariantType"},"context_id":{"type":"string"},"override_id":{"type":"string"},"overrides":{"type":"object","additionalProperties":{},"description":"Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.","title":"Overrides"}},"required":["id","overrides","variant_type"],"title":"Variant"}}},"required":["data"],"title":"ApplicableVariantsResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+  {...require("./applicable-variants.StatusCodes.json")}
 >
   
 </StatusCodes>
