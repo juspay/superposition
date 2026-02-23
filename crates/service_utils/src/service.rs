@@ -17,7 +17,7 @@ pub fn get_db_connection(
             Ok(DbConnection(conn))
         }
         Err(e) => {
-            log::info!("Unable to get db connection from pool, error: {e}");
+            log::error!("Unable to get db connection from pool, error: {e}");
             Err(unexpected_error!(
                 "Could not get a DB connection, contact an admin and check logs for further information"
             ))

@@ -277,7 +277,11 @@ pub async fn put_config_in_redis(
             None,
             false,
         )
-        .await;
+        .await
+        .map_err(|e| {
+            log::warn!("failed to set config in redis: {}", e);
+            unexpected_error!("failed to set config in redis")
+        })?;
     let _ = redis_pool
         .set::<(), String, String>(
             last_modified_at_key,
@@ -286,7 +290,11 @@ pub async fn put_config_in_redis(
             None,
             false,
         )
-        .await;
+        .await
+        .map_err(|e| {
+            log::warn!("failed to set last_modified_key in redis: {}", e);
+            unexpected_error!("failed to set last_modified_key in redis")
+        })?;
     if let Ok(uuid) = event_log::event_log
         .select(event_log::id)
         .filter(event_log::table_name.eq("contexts"))
@@ -302,7 +310,11 @@ pub async fn put_config_in_redis(
                 None,
                 false,
             )
-            .await;
+            .await
+            .map_err(|e| {
+                log::warn!("failed to set audit_id in redis: {}", e);
+                unexpected_error!("failed to set audit_id in redis")
+            })?;
     }
     let _ = redis_pool
         .set::<(), String, i64>(
@@ -312,7 +324,11 @@ pub async fn put_config_in_redis(
             None,
             false,
         )
-        .await;
+        .await
+        .map_err(|e| {
+            log::warn!("failed to set config_version_key in redis: {}", e);
+            unexpected_error!("failed to set config_version_keyx in redis")
+        })?;
     Ok(())
 }
 

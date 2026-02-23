@@ -178,12 +178,9 @@ async fn create_handler(
     ));
 
     let DbConnection(mut conn) = db_conn;
-    if let Err(e) =
+    let _ =
         put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
-            .await
-    {
-        log::warn!("Failed to update redis cache with new context: {}", e);
-    }
+            .await;
 
     Ok(http_resp.json(put_response))
 }
@@ -271,12 +268,9 @@ async fn update_handler(
     ));
 
     let DbConnection(mut conn) = db_conn;
-    if let Err(e) =
+    let _ =
         put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
-            .await
-    {
-        log::warn!("Failed to update redis cache with new context: {}", e);
-    }
+            .await;
 
     Ok(http_resp.json(override_resp))
 }
@@ -387,7 +381,7 @@ async fn move_handler(
     ));
 
     let DbConnection(mut conn) = db_conn;
-    if let Err(e) =
+    let _ =
         put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
             .await
     {
@@ -623,7 +617,7 @@ async fn delete_handler(
         })?;
 
     let DbConnection(mut conn) = db_conn;
-    if let Err(e) =
+    let _ =
         put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
             .await
     {
@@ -858,12 +852,9 @@ async fn bulk_operations_handler(
         })?;
 
 
-    if let Err(e) =
+    let _ =
         put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
-            .await
-    {
-        log::warn!("Failed to update redis cache with new context: {}", e);
-    }
+            .await;
 
     let data = WebhookData {
         payload: &webhook_contexts,
@@ -974,16 +965,13 @@ async fn weight_recompute_handler(
             let version_id = add_config_version(&state, tags, config_version_desc, transaction_conn, &workspace_context.schema_name)?;
             Ok(version_id)
         })?;
-    if let Err(e) = put_config_in_redis(
+    let _ = put_config_in_redis(
         config_version_id,
         state,
         &workspace_context.schema_name,
         &mut conn,
     )
-    .await
-    {
-        log::warn!("Failed to update redis cache with new context: {}", e);
-    }
+    .await;
 
     let data = WebhookData {
         payload: &response,

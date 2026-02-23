@@ -491,7 +491,7 @@ pub async fn put_experiment_groups_in_redis(
         .set::<(), String, String>(key, serialized, expiration, None, false)
         .await
         .map_err(|e| {
-            log::error!("Failed to write experiment groups to redis: {}", e);
+            log::warn!("Failed to write experiment groups to redis: {}", e);
             unexpected_error!("Failed to write experiment groups to redis: {}", e)
         })?;
 

@@ -241,12 +241,9 @@ async fn create_handler(
             }
         })?;
 
-    if let Err(e) =
+    let _ =
         put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
-            .await
-    {
-        log::warn!("Failed to update redis cache with new context: {}", e);
-    }
+            .await;
 
     let data = WebhookData {
         payload: &inserted_dimension,
@@ -477,12 +474,9 @@ async fn update_handler(
             Ok((result, is_mandatory, version_id))
         })?;
 
-    if let Err(e) =
+    let _ =
         put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
-            .await
-    {
-        log::warn!("Failed to update redis cache with new context: {}", e);
-    }
+            .await;
 
     let data = WebhookData {
         payload: &result,
@@ -663,7 +657,7 @@ async fn delete_handler(
             }
         })?;
 
-        if let Err(e) = put_config_in_redis(
+        let _ = put_config_in_redis(
             version_id,
             state,
             &workspace_context.schema_name,
