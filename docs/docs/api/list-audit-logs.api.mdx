@@ -18,6 +18,7 @@ import StatusCodes from "@theme/StatusCodes";
 import OperationTabs from "@theme/OperationTabs";
 import TabItem from "@theme/TabItem";
 import Heading from "@theme/Heading";
+import Translate from "@docusaurus/Translate";
 
 <Heading
   as={"h1"}
@@ -42,27 +43,24 @@ Retrieves a paginated list of audit logs with support for filtering by date rang
   id={"request"}
   as={"h2"}
   className={"openapi-tabs__heading"}
-  children={"Request"}
 >
+  <Translate id="theme.openapi.request.title">Request</Translate>
 </Heading>
 
 <ParamsDetails
-  parameters={[{"name":"count","in":"query","description":"Number of items to be returned in each page.","schema":{"type":"number","description":"Number of items to be returned in each page."}},{"name":"page","in":"query","description":"Page number to retrieve, starting from 1.","schema":{"type":"number","description":"Page number to retrieve, starting from 1."}},{"name":"all","in":"query","description":"If true, returns all requested items, ignoring pagination parameters page and count.","schema":{"type":"boolean","description":"If true, returns all requested items, ignoring pagination parameters page and count."}},{"name":"from_date","in":"query","schema":{"type":"string","format":"date-time"}},{"name":"to_date","in":"query","schema":{"type":"string","format":"date-time"}},{"name":"table","in":"query","style":"form","schema":{"type":"array","items":{"type":"string"}},"explode":true},{"name":"action","in":"query","style":"form","schema":{"type":"array","items":{"type":"string","enum":["INSERT","UPDATE","DELETE"],"title":"AuditAction"}},"explode":true},{"name":"username","in":"query","schema":{"type":"string"}},{"name":"sort_by","in":"query","description":"Sort order enumeration for list operations.","schema":{"type":"string","description":"Sort order enumeration for list operations.","enum":["desc","asc"],"title":"SortBy"}},{"name":"x-org-id","in":"header","schema":{"type":"string"},"required":true},{"name":"x-workspace","in":"header","schema":{"type":"string"},"required":true}]}
+  {...require("./list-audit-logs.ParamsDetails.json")}
 >
   
 </ParamsDetails>
 
 <RequestSchema
-  title={"Body"}
-  body={undefined}
+  {...require("./list-audit-logs.RequestSchema.json")}
 >
   
 </RequestSchema>
 
 <StatusCodes
-  id={undefined}
-  label={undefined}
-  responses={{"200":{"description":"ListAuditLogs 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"total_pages":{"type":"number"},"total_items":{"type":"number"},"data":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"table_name":{"type":"string"},"user_name":{"type":"string"},"timestamp":{"type":"string","format":"date-time"},"action":{"type":"string","enum":["INSERT","UPDATE","DELETE"],"title":"AuditAction"},"original_data":{},"new_data":{},"query":{"type":"string"}},"required":["action","id","query","table_name","timestamp","user_name"],"title":"AuditLogFull"}}},"required":["data","total_items","total_pages"],"title":"ListAuditLogsResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+  {...require("./list-audit-logs.StatusCodes.json")}
 >
   
 </StatusCodes>

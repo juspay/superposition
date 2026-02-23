@@ -1,0 +1,1 @@
+{"title":"Body","body":{"content":{"application/json":{"schema":{"type":"object","properties":{"change_reason":{"type":"string"},"traffic_percentage":{"type":"number"}},"required":["change_reason","traffic_percentage"],"title":"RampExperimentRequestContent"}}},"required":true}}

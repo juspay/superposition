@@ -18,6 +18,7 @@ import StatusCodes from "@theme/StatusCodes";
 import OperationTabs from "@theme/OperationTabs";
 import TabItem from "@theme/TabItem";
 import Heading from "@theme/Heading";
+import Translate from "@docusaurus/Translate";
 
 <Heading
   as={"h1"}
@@ -42,27 +43,24 @@ Executes a function in test mode with provided input parameters to validate its 
   id={"request"}
   as={"h2"}
   className={"openapi-tabs__heading"}
-  children={"Request"}
 >
+  <Translate id="theme.openapi.request.title">Request</Translate>
 </Heading>
 
 <ParamsDetails
-  parameters={[{"name":"function_name","in":"path","schema":{"type":"string"},"required":true},{"name":"stage","in":"path","schema":{"type":"string","enum":["draft","published"],"title":"Stage"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string"},"required":true},{"name":"x-workspace","in":"header","schema":{"type":"string"},"required":true}]}
+  {...require("./test.ParamsDetails.json")}
 >
   
 </ParamsDetails>
 
 <RequestSchema
-  title={"Body"}
-  body={{"content":{"application/json":{"schema":{"oneOf":[{"type":"object","title":"value_validate","properties":{"value_validate":{"type":"object","properties":{"key":{"type":"string"},"value":{},"type":{"type":"string"},"environment":{}},"required":["environment","key","type","value"],"title":"ValueValidationFunctionRequest"}},"required":["value_validate"]},{"type":"object","title":"value_compute","properties":{"value_compute":{"type":"object","properties":{"name":{"type":"string"},"prefix":{"type":"string"},"type":{"type":"string"},"environment":{}},"required":["environment","name","prefix","type"],"title":"ValueComputeFunctionRequest"}},"required":["value_compute"]},{"type":"object","title":"context_validate","properties":{"context_validate":{"type":"object","properties":{"environment":{}},"required":["environment"],"title":"ContextValidationFunctionRequest"}},"required":["context_validate"]},{"type":"object","title":"change_reason_validate","properties":{"change_reason_validate":{"type":"object","properties":{"change_reason":{"type":"string"}},"required":["change_reason"],"title":"ChangeReasonValidationFunctionRequest"}},"required":["change_reason_validate"]}],"title":"FunctionExecutionRequest"}}},"required":true}}
+  {...require("./test.RequestSchema.json")}
 >
   
 </RequestSchema>
 
 <StatusCodes
-  id={undefined}
-  label={undefined}
-  responses={{"200":{"description":"Test 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"fn_output":{},"stdout":{"type":"string"},"function_type":{"type":"string","enum":["VALUE_VALIDATION","VALUE_COMPUTE","CONTEXT_VALIDATION","CHANGE_REASON_VALIDATION"],"title":"FunctionTypes"}},"required":["fn_output","function_type","stdout"],"title":"TestResponseContent"}}}},"404":{"description":"ResourceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+  {...require("./test.StatusCodes.json")}
 >
   
 </StatusCodes>

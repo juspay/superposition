@@ -18,6 +18,7 @@ import StatusCodes from "@theme/StatusCodes";
 import OperationTabs from "@theme/OperationTabs";
 import TabItem from "@theme/TabItem";
 import Heading from "@theme/Heading";
+import Translate from "@docusaurus/Translate";
 
 <Heading
   as={"h1"}
@@ -42,27 +43,24 @@ Retrieves a specific default config entry by its key, including its value, schem
   id={"request"}
   as={"h2"}
   className={"openapi-tabs__heading"}
-  children={"Request"}
 >
+  <Translate id="theme.openapi.request.title">Request</Translate>
 </Heading>
 
 <ParamsDetails
-  parameters={[{"name":"key","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string"},"required":true},{"name":"x-workspace","in":"header","schema":{"type":"string"},"required":true}]}
+  {...require("./get-default-config.ParamsDetails.json")}
 >
   
 </ParamsDetails>
 
 <RequestSchema
-  title={"Body"}
-  body={undefined}
+  {...require("./get-default-config.RequestSchema.json")}
 >
   
 </RequestSchema>
 
 <StatusCodes
-  id={undefined}
-  label={undefined}
-  responses={{"200":{"description":"GetDefaultConfig 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"key":{"type":"string"},"value":{},"schema":{"type":"object","additionalProperties":{},"description":"Generic key-value object structure used for flexible data representation throughout the API.","title":"Object"},"description":{"type":"string"},"change_reason":{"type":"string"},"value_validation_function_name":{"type":"string"},"value_compute_function_name":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"created_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"}},"required":["change_reason","created_at","created_by","description","key","last_modified_at","last_modified_by","schema","value"],"title":"GetDefaultConfigResponseContent"}}}},"404":{"description":"ResourceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+  {...require("./get-default-config.StatusCodes.json")}
 >
   
 </StatusCodes>

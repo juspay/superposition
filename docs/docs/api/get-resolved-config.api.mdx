@@ -18,6 +18,7 @@ import StatusCodes from "@theme/StatusCodes";
 import OperationTabs from "@theme/OperationTabs";
 import TabItem from "@theme/TabItem";
 import Heading from "@theme/Heading";
+import Translate from "@docusaurus/Translate";
 
 <Heading
   as={"h1"}
@@ -42,27 +43,24 @@ Resolves and merges config values based on context conditions, applying override
   id={"request"}
   as={"h2"}
   className={"openapi-tabs__heading"}
-  children={"Request"}
 >
+  <Translate id="theme.openapi.request.title">Request</Translate>
 </Heading>
 
 <ParamsDetails
-  parameters={[{"name":"prefix","in":"query","style":"form","schema":{"type":"array","items":{"type":"string"}},"explode":true},{"name":"version","in":"query","schema":{"type":"string"}},{"name":"show_reasoning","in":"query","schema":{"type":"boolean"}},{"name":"context_id","in":"query","schema":{"type":"string"}},{"name":"resolve_remote","in":"query","description":"Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.","schema":{"type":"boolean","description":"Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution."}},{"name":"x-merge-strategy","in":"header","schema":{"type":"string","enum":["MERGE","REPLACE"],"title":"MergeStrategy"}},{"name":"x-org-id","in":"header","schema":{"type":"string"},"required":true},{"name":"x-workspace","in":"header","schema":{"type":"string"},"required":true}]}
+  {...require("./get-resolved-config.ParamsDetails.json")}
 >
   
 </ParamsDetails>
 
 <RequestSchema
-  title={"Body"}
-  body={{"content":{"application/json":{"schema":{"type":"object","properties":{"context":{"type":"object","additionalProperties":{},"description":"Map representing the context.\nKeys correspond to the names of the dimensions.","title":"ContextMap"}},"title":"GetResolvedConfigRequestContent"}}}}}
+  {...require("./get-resolved-config.RequestSchema.json")}
 >
   
 </RequestSchema>
 
 <StatusCodes
-  id={undefined}
-  label={undefined}
-  responses={{"200":{"description":"GetResolvedConfig 200 response","headers":{"last-modified":{"schema":{"type":"string"},"required":true},"x-audit-id":{"schema":{"type":"string"}},"x-config-version":{"schema":{"type":"string"},"required":true}},"content":{"application/json":{"schema":{"title":"GetResolvedConfigOutputPayload"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+  {...require("./get-resolved-config.StatusCodes.json")}
 >
   
 </StatusCodes>
