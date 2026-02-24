@@ -12,12 +12,13 @@ use diesel::{
 };
 use regex::Regex;
 use service_utils::{
+    db::run_transaction,
     encryption::{
         encrypt_workspace_key, generate_encryption_key,
         rotate_workspace_encryption_key_helper,
     },
     helpers::get_workspace,
-    run_query, run_tx_query,
+    run_query,
     service::types::{
         AppState, OrganisationId, SchemaName, WorkspaceContext, WorkspaceId,
     },
@@ -158,14 +159,15 @@ async fn create_handler(
         key_rotated_at: None,
     };
 
-    let created_workspace = run_tx_query!(state.db_pool, |conn: &mut DBConnection| {
-        let inserted_workspace = diesel::insert_into(workspaces::table)
-            .values(workspace)
-            .get_result(conn)?;
+    let created_workspace =
+        run_transaction(&state.db_pool, |conn: &mut DBConnection| {
+            let inserted_workspace = diesel::insert_into(workspaces::table)
+                .values(workspace)
+                .get_result(conn)?;
 
-        setup_workspace_schema(conn, &workspace_schema_name)?;
-        Ok::<Workspace, superposition::AppError>(inserted_workspace)
-    })?;
+            setup_workspace_schema(conn, &workspace_schema_name)?;
+            Ok::<Workspace, superposition::AppError>(inserted_workspace)
+        })?;
     let response = WorkspaceResponse::from(created_workspace);
     Ok(Json(response))
 }
@@ -188,31 +190,32 @@ async fn update_handler(
     // TODO: mandatory dimensions updation needs to be validated
     // for the existance of the dimensions in the workspace
 
-    let updated_workspace = run_tx_query!(state.db_pool, |conn: &mut DBConnection| {
-        if let Some(I64Update::Add(version)) = request.config_version {
-            config_versions::config_versions
-                .select(config_versions::id)
-                .filter(config_versions::id.eq(version))
-                .schema_name(&schema_name)
-                .first::<i64>(conn)?;
-        }
+    let updated_workspace =
+        run_transaction(&state.db_pool, |conn: &mut DBConnection| {
+            if let Some(I64Update::Add(version)) = request.config_version {
+                config_versions::config_versions
+                    .select(config_versions::id)
+                    .filter(config_versions::id.eq(version))
+                    .schema_name(&schema_name)
+                    .first::<i64>(conn)?;
+            }
 
-        let updated_workspace = diesel::update(workspaces::table)
-            .filter(workspaces::organisation_id.eq(&org_id.0))
-            .filter(workspaces::workspace_name.eq(workspace_name))
-            .set((
-                request,
-                workspaces::last_modified_by.eq(user.email),
-                workspaces::last_modified_at.eq(timestamp),
-            ))
-            .get_result::<Workspace>(conn)
-            .map_err(|err| {
-                log::error!("failed to update workspace with error: {}", err);
-                err
-            })?;
+            let updated_workspace = diesel::update(workspaces::table)
+                .filter(workspaces::organisation_id.eq(&org_id.0))
+                .filter(workspaces::workspace_name.eq(workspace_name))
+                .set((
+                    request,
+                    workspaces::last_modified_by.eq(user.email),
+                    workspaces::last_modified_at.eq(timestamp),
+                ))
+                .get_result::<Workspace>(conn)
+                .map_err(|err| {
+                    log::error!("failed to update workspace with error: {}", err);
+                    err
+                })?;
 
-        Ok::<Workspace, superposition::AppError>(updated_workspace)
-    })?;
+            Ok::<Workspace, superposition::AppError>(updated_workspace)
+        })?;
     let response = WorkspaceResponse::from(updated_workspace);
     Ok(Json(response))
 }
@@ -325,7 +328,7 @@ async fn migrate_schema_handler(
     let schema_name = SchemaName(format!("{}_{}", *org_id, &workspace_name));
     let workspace = get_workspace(&schema_name, &state.db_pool)?;
 
-    run_tx_query!(state.db_pool, |conn: &mut DBConnection| {
+    run_transaction(&state.db_pool, |conn: &mut DBConnection| {
         setup_workspace_schema(conn, &workspace.workspace_schema_name)?;
         if workspace.encryption_key.is_empty() {
             match state.master_encryption_key {
@@ -391,7 +394,7 @@ pub async fn rotate_encryption_key_handler(
     };
 
     let total_secrets_re_encrypted =
-        run_tx_query!(state.db_pool, |conn: &mut DBConnection| {
+        run_transaction(&state.db_pool, |conn: &mut DBConnection| {
             rotate_workspace_encryption_key_helper(
                 &workspace_context,
                 conn,

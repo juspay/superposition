@@ -7,7 +7,8 @@ use chrono::Utc;
 use context_aware_config::helpers::validate_change_reason;
 use diesel::{ExpressionMethods, PgArrayExpressionMethods, QueryDsl, RunQueryDsl};
 use service_utils::{
-    run_query, run_tx_query,
+    db::run_transaction,
+    run_query,
     service::types::{AppState, WorkspaceContext},
 };
 use superposition_derives::authorized;
@@ -211,7 +212,7 @@ async fn delete_handler(
 ) -> superposition::Result<HttpResponse> {
     let w_name: String = params.into_inner().into();
 
-    run_tx_query!(state.db_pool, |conn: &mut DBConnection| {
+    run_transaction(&state.db_pool, |conn: &mut DBConnection| {
         diesel::update(webhooks::table)
             .filter(webhooks::name.eq(&w_name))
             .set((
@@ -222,7 +223,8 @@ async fn delete_handler(
             .execute(conn)?;
         diesel::delete(webhooks.filter(webhooks::name.eq(&w_name)))
             .schema_name(&workspace_context.schema_name)
-            .execute(conn)
+            .execute(conn)?;
+        Ok(())
     })?;
     Ok(HttpResponse::NoContent().finish())
 }
