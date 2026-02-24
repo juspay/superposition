@@ -1,22 +1,20 @@
-use std::future::{ready, Ready};
-use std::rc::Rc;
 use std::collections::hash_map::DefaultHasher;
+use std::future::{Ready, ready};
 use std::hash::{Hash, Hasher};
+use std::rc::Rc;
 
 use actix_web::{
-    body::EitherBody,
-    dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
-    error, http::Method,
-    web::Data,
     Error,
+    body::EitherBody,
+    dev::{Service, ServiceRequest, ServiceResponse, Transform, forward_ready},
+    error,
+    http::Method,
+    web::Data,
 };
 use diesel::prelude::*;
 use futures_util::future::LocalBoxFuture;
 
-use crate::{
-    extensions::HttpRequestExt,
-    service::types::AppState,
-};
+use crate::{extensions::HttpRequestExt, service::types::AppState};
 
 /// Middleware factory for workspace locking using PostgreSQL advisory locks.
 /// This ensures all write operations (POST, PUT, DELETE, PATCH) are serialized per workspace.
@@ -110,7 +108,10 @@ where
             let mut db_conn = match app_state.db_pool.get() {
                 Ok(conn) => conn,
                 Err(e) => {
-                    log::error!("failed to get database connection for workspace lock: {}", e);
+                    log::error!(
+                        "failed to get database connection for workspace lock: {}",
+                        e
+                    );
                     return Err(error::ErrorInternalServerError(
                         "Failed to acquire database connection",
                     ));
@@ -119,20 +120,27 @@ where
 
             // Acquire advisory lock if we have lock keys and create guard
             let _lock_guard = if let Some((org_key, workspace_key)) = lock_keys {
-                if let Err(e) = acquire_advisory_lock(&mut db_conn, org_key, workspace_key).await {
-                    log::error!(
-                        "failed to acquire advisory lock for org_key: {}, workspace_key: {}: {}",
-                        org_key, workspace_key, e
-                    );
-                    return Err(error::ErrorInternalServerError(
-                        "Failed to acquire workspace lock",
-                    ));
+                match acquire_advisory_lock(&mut db_conn, org_key, workspace_key).await {
+                    Ok(guard) => {
+                        log::debug!(
+                            "acquired advisory lock for workspace (org_key: {}, workspace_key: {})",
+                            org_key,
+                            workspace_key
+                        );
+                        Some(guard)
+                    }
+                    Err(e) => {
+                        log::error!(
+                            "failed to acquire advisory lock for org_key: {}, workspace_key: {}: {}",
+                            org_key,
+                            workspace_key,
+                            e
+                        );
+                        return Err(error::ErrorInternalServerError(
+                            "Failed to acquire workspace lock",
+                        ));
+                    }
                 }
-                log::debug!(
-                    "acquired advisory lock for workspace (org_key: {}, workspace_key: {})",
-                    org_key, workspace_key
-                );
-                Some(AdvisoryLockGuard::new(&mut db_conn, org_key, workspace_key))
             } else {
                 None
             };
@@ -151,6 +159,7 @@ where
 /// Compute a consistent lock key pair from org_id and workspace_id
 /// Returns (org_key, workspace_key) as two i32 values for pg_advisory_lock(int, int)
 fn compute_lock_keys(org_id: &str, workspace_id: &str) -> (i32, i32) {
+    // I hope the hasher don't add any random salt
     let mut org_hasher = DefaultHasher::new();
     org_id.hash(&mut org_hasher);
     let org_hash = org_hasher.finish() as i32;
@@ -164,58 +173,60 @@ fn compute_lock_keys(org_id: &str, workspace_id: &str) -> (i32, i32) {
 
 /// Acquire PostgreSQL advisory lock using two-argument form with retry logic
 /// Uses pg_try_advisory_lock() with exponential backoff to avoid indefinite blocking
-async fn acquire_advisory_lock(
-    conn: &mut PgConnection,
+async fn acquire_advisory_lock<'a>(
+    conn: &'a mut PgConnection,
     org_key: i32,
     workspace_key: i32,
-) -> Result<(), diesel::result::Error> {
+) -> Result<AdvisoryLockGuard<'a>, diesel::result::Error> {
     const MAX_RETRIES: u32 = 10;
     const INITIAL_BACKOFF_MS: u64 = 10;
     const MAX_BACKOFF_MS: u64 = 500;
 
     for attempt in 0..MAX_RETRIES {
         // Try to acquire the lock (non-blocking)
-        let lock_acquired: bool = diesel::sql_query(
-            "SELECT pg_try_advisory_lock($1, $2) as locked"
-        )
-            .bind::<diesel::sql_types::Integer, _>(org_key)
-            .bind::<diesel::sql_types::Integer, _>(workspace_key)
-            .get_result::<LockResult>(conn)?
-            .locked;
+        let lock_acquired: bool =
+            diesel::sql_query("SELECT pg_try_advisory_lock($1, $2) as locked")
+                .bind::<diesel::sql_types::Integer, _>(org_key)
+                .bind::<diesel::sql_types::Integer, _>(workspace_key)
+                .get_result::<LockResult>(conn)?
+                .locked;
 
         if lock_acquired {
             if attempt > 0 {
                 log::info!(
                     "acquired advisory lock after {} attempts (org_key: {}, workspace_key: {})",
-                    attempt + 1, org_key, workspace_key
+                    attempt + 1,
+                    org_key,
+                    workspace_key
                 );
             }
-            return Ok(());
+            return Ok(AdvisoryLockGuard::new(conn, org_key, workspace_key));
         }
 
         // Lock not acquired, wait before retrying
         if attempt < MAX_RETRIES - 1 {
-            let backoff_ms = std::cmp::min(
-                INITIAL_BACKOFF_MS * 2_u64.pow(attempt),
-                MAX_BACKOFF_MS
-            );
+            let backoff_ms =
+                std::cmp::min(INITIAL_BACKOFF_MS * 2_u64.pow(attempt), MAX_BACKOFF_MS);
             log::debug!(
                 "lock contention detected, retrying in {}ms (attempt {}/{}, org_key: {}, workspace_key: {})",
-                backoff_ms, attempt + 1, MAX_RETRIES, org_key, workspace_key
+                backoff_ms,
+                attempt + 1,
+                MAX_RETRIES,
+                org_key,
+                workspace_key
             );
-            actix_web::rt::time::sleep(std::time::Duration::from_millis(backoff_ms)).await;
+            actix_web::rt::time::sleep(std::time::Duration::from_millis(backoff_ms))
+                .await;
         }
     }
 
     // Failed to acquire lock after all retries
     Err(diesel::result::Error::DatabaseError(
         diesel::result::DatabaseErrorKind::Unknown,
-        Box::new(
-            format!(
-                "Failed to acquire workspace lock after {} attempts (high contention)",
-                MAX_RETRIES
-            )
-        ),
+        Box::new(format!(
+            "Failed to acquire workspace lock after {} attempts (high contention)",
+            MAX_RETRIES
+        )),
     ))
 }
 
@@ -258,15 +269,19 @@ impl<'a> AdvisoryLockGuard<'a> {
 
 impl Drop for AdvisoryLockGuard<'_> {
     fn drop(&mut self) {
-        if let Err(e) = release_advisory_lock(self.conn, self.org_key, self.workspace_key) {
+        if let Err(e) = release_advisory_lock(self.conn, self.org_key, self.workspace_key)
+        {
             log::error!(
                 "failed to release advisory lock in drop guard (org_key: {}, workspace_key: {}): {}",
-                self.org_key, self.workspace_key, e
+                self.org_key,
+                self.workspace_key,
+                e
             );
         } else {
             log::debug!(
                 "released advisory lock via guard (org_key: {}, workspace_key: {})",
-                self.org_key, self.workspace_key
+                self.org_key,
+                self.workspace_key
             );
         }
     }
@@ -290,9 +305,15 @@ mod tests {
         let keys3 = compute_lock_keys("org2", "workspace1");
         let keys4 = compute_lock_keys("org2", "workspace2");
 
-        assert_ne!(keys1, keys2, "Different workspaces should produce different keys");
+        assert_ne!(
+            keys1, keys2,
+            "Different workspaces should produce different keys"
+        );
         assert_ne!(keys1, keys3, "Different orgs should produce different keys");
-        assert_ne!(keys1, keys4, "Different combinations should produce different keys");
+        assert_ne!(
+            keys1, keys4,
+            "Different combinations should produce different keys"
+        );
         assert_ne!(keys2, keys3, "Different org/workspace combos should differ");
     }
 
@@ -306,12 +327,21 @@ mod tests {
         assert_eq!(org_key1, org_key2, "Same org should produce same org_key");
 
         // Different org should produce different org_key
-        assert_ne!(org_key1, org_key3, "Different org should produce different org_key");
+        assert_ne!(
+            org_key1, org_key3,
+            "Different org should produce different org_key"
+        );
 
         // Same workspace should produce same workspace_key
-        assert_eq!(workspace_key1, workspace_key3, "Same workspace should produce same workspace_key");
+        assert_eq!(
+            workspace_key1, workspace_key3,
+            "Same workspace should produce same workspace_key"
+        );
 
         // Different workspace should produce different workspace_key
-        assert_ne!(workspace_key1, workspace_key2, "Different workspace should produce different workspace_key");
+        assert_ne!(
+            workspace_key1, workspace_key2,
+            "Different workspace should produce different workspace_key"
+        );
     }
 }
