@@ -212,15 +212,17 @@ pub fn get_workspace(
     workspace_schema_name: &SchemaName,
     db_pool: &PgSchemaConnectionPool,
 ) -> result::Result<Workspace> {
-    run_query!(
+    let workspace = run_query!(
         db_pool,
         conn,
         workspaces::dsl::workspaces
             .filter(
                 workspaces::workspace_schema_name.eq(workspace_schema_name.to_string()),
             )
-            .get_result::<Workspace>(conn)
-    )
+            .get_result::<Workspace>(&mut conn)
+    )?;
+
+    Ok(workspace)
 }
 
 fn has_pattern_in_headers(headers: &CustomHeaders) -> (bool, bool) {

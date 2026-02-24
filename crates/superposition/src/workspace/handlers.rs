@@ -17,7 +17,7 @@ use service_utils::{
         rotate_workspace_encryption_key_helper,
     },
     helpers::get_workspace,
-    run_query,
+    run_query, run_tx_query,
     service::types::{
         AppState, OrganisationId, SchemaName, WorkspaceContext, WorkspaceId,
     },
@@ -25,7 +25,7 @@ use service_utils::{
 use superposition_derives::authorized;
 use superposition_macros::{bad_argument, db_error, unexpected_error, validation_error};
 use superposition_types::{
-    PaginatedResponse, User,
+    DBConnection, PaginatedResponse, User,
     api::{
         I64Update,
         workspace::{
@@ -86,12 +86,14 @@ async fn get_handler(
     org_id: OrganisationId,
 ) -> superposition::Result<Json<WorkspaceResponse>> {
     let workspace_name = workspace_name.into_inner();
-    let workspace: Workspace = run_query!(state.db_pool, conn, {
+    let workspace: Workspace = run_query!(
+        state.db_pool,
+        conn,
         workspaces::dsl::workspaces
             .filter(workspaces::organisation_id.eq(&org_id.0))
             .filter(workspaces::workspace_name.eq(workspace_name))
-            .get_result(conn)
-    })?;
+            .get_result(&mut conn)
+    )?;
     let response = WorkspaceResponse::from(workspace);
     Ok(Json(response))
 }
@@ -104,11 +106,13 @@ async fn create_handler(
     org_id: OrganisationId,
     user: User,
 ) -> superposition::Result<Json<WorkspaceResponse>> {
-    let org_info = run_query!(state.db_pool, conn, {
+    let org_info = run_query!(
+        state.db_pool,
+        conn,
         organisations::dsl::organisations
             .filter(organisations::id.eq(&org_id.0))
-            .get_result::<Organisation>(conn)
-    })?;
+            .get_result::<Organisation>(&mut conn)
+    )?;
     let timestamp = Utc::now();
     let request = request.into_inner();
     let email = user.get_email();
@@ -154,7 +158,7 @@ async fn create_handler(
         key_rotated_at: None,
     };
 
-    let created_workspace = run_query!(state.db_pool, tx conn, {
+    let created_workspace = run_tx_query!(state.db_pool, |conn: &mut DBConnection| {
         let inserted_workspace = diesel::insert_into(workspaces::table)
             .values(workspace)
             .get_result(conn)?;
@@ -184,7 +188,7 @@ async fn update_handler(
     // TODO: mandatory dimensions updation needs to be validated
     // for the existance of the dimensions in the workspace
 
-    let updated_workspace = run_query!(state.db_pool, tx conn, {
+    let updated_workspace = run_tx_query!(state.db_pool, |conn: &mut DBConnection| {
         if let Some(I64Update::Add(version)) = request.config_version {
             config_versions::config_versions
                 .select(config_versions::id)
@@ -222,16 +226,16 @@ async fn list_handler(
     org_id: OrganisationId,
 ) -> superposition::Result<Json<PaginatedResponse<WorkspaceResponse>>> {
     if let Some(true) = pagination_filters.all {
-        let result = run_query!(state.db_pool, conn, {
-            let resp = workspaces::dsl::workspaces
+        let result = run_query!(
+            state.db_pool,
+            conn,
+            workspaces::dsl::workspaces
                 .filter(workspaces::organisation_id.eq(&org_id.0))
-                .get_results::<Workspace>(conn)?
-                .into_iter()
-                .map(WorkspaceResponse::from)
-                .collect::<Vec<_>>();
-
-            Ok::<Vec<WorkspaceResponse>, superposition::AppError>(resp)
-        })?;
+                .get_results::<Workspace>(&mut conn)
+        )?
+        .into_iter()
+        .map(WorkspaceResponse::from)
+        .collect::<Vec<_>>();
         return Ok(Json(PaginatedResponse::all(result)));
     };
 
@@ -251,7 +255,11 @@ async fn list_handler(
     let count_query = query_builder(&filters);
     let base_query = query_builder(&filters);
 
-    let n_types = run_query!(state.db_pool, conn, count_query.count().get_result(conn))?;
+    let n_types = run_query!(
+        state.db_pool,
+        conn,
+        count_query.count().get_result(&mut conn)
+    )?;
     let limit = pagination_filters.count.unwrap_or(10);
     let mut builder = base_query
         .order(workspaces::dsl::created_at.desc())
@@ -260,14 +268,11 @@ async fn list_handler(
         let offset = (page - 1) * limit;
         builder = builder.offset(offset);
     }
-    let workspaces = run_query!(state.db_pool, conn, {
-        let resp = builder
-            .load::<Workspace>(conn)?
+    let workspaces =
+        run_query!(state.db_pool, conn, builder.load::<Workspace>(&mut conn))?
             .into_iter()
             .map(WorkspaceResponse::from)
             .collect::<Vec<_>>();
-        Ok::<Vec<WorkspaceResponse>, superposition::AppError>(resp)
-    })?;
     let total_pages = (n_types as f64 / limit as f64).ceil() as i64;
     Ok(Json(PaginatedResponse {
         total_pages,
@@ -320,7 +325,7 @@ async fn migrate_schema_handler(
     let schema_name = SchemaName(format!("{}_{}", *org_id, &workspace_name));
     let workspace = get_workspace(&schema_name, &state.db_pool)?;
 
-    run_query!(state.db_pool, tx conn, {
+    run_tx_query!(state.db_pool, |conn: &mut DBConnection| {
         setup_workspace_schema(conn, &workspace.workspace_schema_name)?;
         if workspace.encryption_key.is_empty() {
             match state.master_encryption_key {
@@ -385,14 +390,15 @@ pub async fn rotate_encryption_key_handler(
         settings: workspace,
     };
 
-    let total_secrets_re_encrypted = run_query!(state.db_pool, tx conn, {
-        rotate_workspace_encryption_key_helper(
-            &workspace_context,
-            conn,
-            master_encryption_key,
-            &user.get_username(),
-        )
-    })?;
+    let total_secrets_re_encrypted =
+        run_tx_query!(state.db_pool, |conn: &mut DBConnection| {
+            rotate_workspace_encryption_key_helper(
+                &workspace_context,
+                conn,
+                master_encryption_key,
+                &user.get_username(),
+            )
+        })?;
 
     Ok(Json(KeyRotationResponse {
         total_secrets_re_encrypted,

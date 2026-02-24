@@ -7,12 +7,12 @@ use chrono::Utc;
 use context_aware_config::helpers::validate_change_reason;
 use diesel::{ExpressionMethods, PgArrayExpressionMethods, QueryDsl, RunQueryDsl};
 use service_utils::{
-    run_query,
+    run_query, run_tx_query,
     service::types::{AppState, WorkspaceContext},
 };
 use superposition_derives::authorized;
 use superposition_types::{
-    PaginatedResponse, User,
+    DBConnection, PaginatedResponse, User,
     api::webhook::{CreateWebhookRequest, UpdateWebhookRequest, WebhookName},
     custom_query::PaginationParams,
     database::{
@@ -48,7 +48,7 @@ async fn create_handler(
         validate_change_reason(
             &workspace_context,
             &req.change_reason,
-            conn,
+            &mut conn,
             &state.master_encryption_key,
         )
     )?;
@@ -84,7 +84,7 @@ async fn create_handler(
         diesel::insert_into(webhooks::table)
             .values(&webhook_data)
             .schema_name(&workspace_context.schema_name)
-            .get_result::<Webhook>(conn)
+            .get_result::<Webhook>(&mut conn)
     )?;
 
     Ok(Json(created))
@@ -109,7 +109,7 @@ async fn update_handler(
         validate_change_reason(
             &workspace_context,
             &req.change_reason,
-            conn,
+            &mut conn,
             &state.master_encryption_key,
         )
     )?;
@@ -134,7 +134,7 @@ async fn update_handler(
                 last_modified_by.eq(user.get_email()),
             ))
             .schema_name(&workspace_context.schema_name)
-            .get_result::<Webhook>(conn)
+            .get_result::<Webhook>(&mut conn)
     )?;
 
     Ok(Json(update))
@@ -163,11 +163,13 @@ async fn list_handler(
     pagination: Query<PaginationParams>,
 ) -> superposition::Result<Json<PaginatedResponse<Webhook>>> {
     if let Some(true) = pagination.all {
-        let result: Vec<Webhook> = run_query!(state.db_pool, conn, {
+        let result: Vec<Webhook> = run_query!(
+            state.db_pool,
+            conn,
             webhooks
                 .schema_name(&workspace_context.schema_name)
-                .get_results(conn)
-        })?;
+                .get_results(&mut conn)
+        )?;
         return Ok(Json(PaginatedResponse::all(result)));
     }
 
@@ -177,7 +179,7 @@ async fn list_handler(
         webhooks
             .count()
             .schema_name(&workspace_context.schema_name)
-            .get_result(conn)
+            .get_result(&mut conn)
     )?;
     let limit = pagination.count.unwrap_or(10);
     let mut builder = webhooks
@@ -189,7 +191,7 @@ async fn list_handler(
         let offset = (page - 1) * limit;
         builder = builder.offset(offset);
     }
-    let data: Vec<Webhook> = run_query!(state.db_pool, conn, builder.load(conn))?;
+    let data: Vec<Webhook> = run_query!(state.db_pool, conn, builder.load(&mut conn))?;
     let total_pages = (total_items as f64 / limit as f64).ceil() as i64;
 
     Ok(Json(PaginatedResponse {
@@ -209,7 +211,7 @@ async fn delete_handler(
 ) -> superposition::Result<HttpResponse> {
     let w_name: String = params.into_inner().into();
 
-    run_query!(state.db_pool, tx conn, {
+    run_tx_query!(state.db_pool, |conn: &mut DBConnection| {
         diesel::update(webhooks::table)
             .filter(webhooks::name.eq(&w_name))
             .set((
@@ -233,11 +235,13 @@ async fn get_by_event_handler(
     state: Data<AppState>,
 ) -> superposition::Result<Json<Webhook>> {
     let event = params.into_inner();
-    let webhook_row = run_query!(state.db_pool, conn, {
+    let webhook_row = run_query!(
+        state.db_pool,
+        conn,
         webhooks
             .filter(webhooks::events.contains(vec![event]))
             .schema_name(&workspace_context.schema_name)
-            .first(conn)
-    })?;
+            .first(&mut conn)
+    )?;
     Ok(Json(webhook_row))
 }
