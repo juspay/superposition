@@ -72,19 +72,19 @@ pub enum Resource {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct User {
-    pub email: String,
-    pub username: String,
+    email: String,
+    username: String,
 }
 
 pub struct InternalUser;
 
 impl User {
-    pub fn get_email(&self) -> String {
-        self.email.clone()
+    pub fn new(email: String, username: String) -> Self {
+        Self { email, username }
     }
 
-    pub fn get_username(&self) -> String {
-        self.username.clone()
+    pub fn get_email(&self) -> String {
+        self.email.clone()
     }
 }
 

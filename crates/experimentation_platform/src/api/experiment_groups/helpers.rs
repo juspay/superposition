@@ -137,7 +137,7 @@ pub fn add_members(
         .filter(experiment_groups::id.eq(exp_group_id))
         .set((
             req,
-            experiment_groups::last_modified_by.eq(user.email.clone()),
+            experiment_groups::last_modified_by.eq(user.get_email()),
             experiment_groups::last_modified_at.eq(chrono::Utc::now()),
         ))
         .returning(ExperimentGroup::as_returning())
@@ -201,7 +201,7 @@ pub fn remove_members(
         .set((
             req,
             experiment_groups::buckets.eq(buckets),
-            experiment_groups::last_modified_by.eq(user.email.clone()),
+            experiment_groups::last_modified_by.eq(user.get_email()),
             experiment_groups::last_modified_at.eq(chrono::Utc::now()),
         ))
         .returning(ExperimentGroup::as_returning())
@@ -328,7 +328,7 @@ pub fn detach_experiment_from_group(
             .map_err(|e| unexpected_error!(e))?),
             experiment_groups::member_experiment_ids.eq(member_experiment_ids),
             experiment_groups::buckets.eq(buckets),
-            experiment_groups::last_modified_by.eq(user.email.clone()),
+            experiment_groups::last_modified_by.eq(user.get_email()),
             experiment_groups::last_modified_at.eq(chrono::Utc::now()),
         ))
         .returning(ExperimentGroup::as_returning())

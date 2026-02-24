@@ -110,7 +110,7 @@ async fn create_handler(
         .get_result::<Organisation>(&mut conn)?;
     let timestamp = Utc::now();
     let request = request.into_inner();
-    let email = user.get_email();
+
     validate_workspace_name(&request.workspace_name)?;
     let workspace_schema_name = format!("{}_{}", &org_info.id, &request.workspace_name);
 
@@ -139,8 +139,8 @@ async fn create_handler(
         workspace_status: WorkspaceStatus::ENABLED,
         workspace_admin_email: request.workspace_admin_email,
         config_version: None,
-        created_by: email.clone(),
-        last_modified_by: email,
+        created_by: user.get_email(),
+        last_modified_by: user.get_email(),
         last_modified_at: timestamp,
         created_at: timestamp,
         mandatory_dimensions: None,
@@ -200,7 +200,7 @@ async fn update_handler(
                 .filter(workspaces::workspace_name.eq(workspace_name))
                 .set((
                     request,
-                    workspaces::last_modified_by.eq(user.email),
+                    workspaces::last_modified_by.eq(user.get_email()),
                     workspaces::last_modified_at.eq(timestamp),
                 ))
                 .get_result::<Workspace>(transaction_conn)
@@ -335,7 +335,7 @@ async fn migrate_schema_handler(
                         .filter(workspaces::workspace_name.eq(&workspace_name))
                         .set((
                             workspaces::encryption_key.eq(encrypted_key),
-                            workspaces::last_modified_by.eq(user.get_username()),
+                            workspaces::last_modified_by.eq(user.get_email()),
                             workspaces::last_modified_at.eq(Utc::now())
                         ))
                         .execute(transaction_conn)?;
@@ -389,7 +389,7 @@ pub async fn rotate_encryption_key_handler(
                 &workspace_context,
                 conn,
                 master_encryption_key,
-                &user.get_username(),
+                &user.get_email(),
             )
         })?;
 

@@ -49,13 +49,13 @@ pub async fn create_handler(
         country_code: req.country_code,
         contact_email: req.contact_email,
         contact_phone: req.contact_phone,
-        created_by: user.get_username(),
+        created_by: user.get_email(),
         admin_email: req.admin_email,
         status: OrgStatus::PendingKyb,
         sector: req.sector,
         created_at: now,
         updated_at: now,
-        updated_by: user.get_username(),
+        updated_by: user.get_email(),
     };
 
     let new_org = diesel::insert_into(organisations::table)

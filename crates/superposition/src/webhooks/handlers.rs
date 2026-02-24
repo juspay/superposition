@@ -61,9 +61,9 @@ async fn create_handler(
         max_retries: 0,
         last_triggered_at: None,
         change_reason: req.change_reason,
-        created_by: user.email.clone(),
+        created_by: user.get_email(),
         created_at: now,
-        last_modified_by: user.email,
+        last_modified_by: user.get_email(),
         last_modified_at: now,
     };
 
