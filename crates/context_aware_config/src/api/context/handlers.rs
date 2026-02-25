@@ -45,14 +45,10 @@ use superposition_types::{
 
 use crate::{
     api::context::{
-        hash,
         helpers::{query_description, validate_ctx},
         operations,
     },
-    helpers::{
-        add_config_version, calculate_context_weight, put_config_in_redis,
-        validate_change_reason,
-    },
+    helpers::{add_config_version, put_config_in_redis, validate_change_reason},
 };
 
 pub fn endpoints() -> Scope {

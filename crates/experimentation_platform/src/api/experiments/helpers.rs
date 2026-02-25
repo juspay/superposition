@@ -37,8 +37,7 @@ use superposition_types::{
         models::{
             ChangeReason,
             experimentation::{
-                Experiment, ExperimentStatusType, GroupType, Variant,
-                VariantType,
+                Experiment, ExperimentStatusType, GroupType, Variant, VariantType,
             },
             others::{Webhook, WebhookEvent},
         },

@@ -4,8 +4,6 @@ use std::{
     time::Duration,
 };
 
-use context_aware_config::helpers::get_meta_schema;
-
 use fred::{
     clients::RedisPool,
     interfaces::ClientLike,

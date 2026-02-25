@@ -10,7 +10,6 @@ use actix_web::{Error, FromRequest, HttpMessage, error, web::Data};
 use derive_more::{Deref, DerefMut};
 use diesel::PgConnection;
 use diesel::r2d2::{ConnectionManager, PooledConnection};
-use jsonschema::JSONSchema;
 use secrecy::SecretString;
 use serde::{Deserialize, Serialize};
 use snowflake::SnowflakeIdGenerator;

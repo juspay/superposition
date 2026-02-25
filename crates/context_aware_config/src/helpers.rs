@@ -4,12 +4,9 @@ use actix_web::{
     http::header::{HeaderMap, HeaderName, HeaderValue},
     web::Data,
 };
-use bigdecimal::{BigDecimal, Num};
 use chrono::{DateTime, Utc};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use fred::{interfaces::KeysInterface, types::Expiration};
-use jsonschema::{Draft, JSONSchema};
-use num_bigint::BigUint;
 use serde_json::{Map, Value, json};
 use service_utils::{
     helpers::get_from_env_or_default,
@@ -267,7 +264,7 @@ pub async fn put_config_in_redis(
     let audit_id_key = format!("{}{AUDIT_ID_KEY_SUFFIX}", **schema_name);
     let config_version_key = format!("{}{CONFIG_VERSION_KEY_SUFFIX}", **schema_name);
     let last_modified = DateTime::to_rfc2822(&Utc::now());
-    let _ = redis_pool
+    redis_pool
         .set::<(), String, String>(
             config_key,
             parsed_config,
@@ -280,7 +277,7 @@ pub async fn put_config_in_redis(
             log::warn!("failed to set config in redis: {}", e);
             unexpected_error!("failed to set config in redis")
         })?;
-    let _ = redis_pool
+    redis_pool
         .set::<(), String, String>(
             last_modified_at_key,
             last_modified,
@@ -300,7 +297,7 @@ pub async fn put_config_in_redis(
         .order_by(event_log::timestamp.desc())
         .first::<Uuid>(db_conn)
     {
-        let _ = redis_pool
+        redis_pool
             .set::<(), String, String>(
                 audit_id_key,
                 uuid.to_string(),
@@ -314,7 +311,7 @@ pub async fn put_config_in_redis(
                 unexpected_error!("failed to set audit_id in redis")
             })?;
     }
-    let _ = redis_pool
+    redis_pool
         .set::<(), String, i64>(
             config_version_key,
             version_id,
