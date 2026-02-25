@@ -13,7 +13,7 @@ use diesel::{
     RunQueryDsl, SelectableHelper,
 };
 
-use log::info;
+use log::warn;
 use once_cell::sync::Lazy;
 use regex::Regex;
 use reqwest::{
@@ -80,7 +80,7 @@ where
     match std::env::var(name) {
         Ok(env) => env.parse().unwrap(),
         Err(err) => {
-            info!(
+            warn!(
                 "{name} ENV failed to load due to {err}, using default value {default}"
             );
             default

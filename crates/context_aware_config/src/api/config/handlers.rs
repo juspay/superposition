@@ -47,28 +47,23 @@ use superposition_types::{
 };
 use uuid::Uuid;
 
-use crate::api::context::{self, helpers::query_description};
 use crate::{
     api::{
+        config::helpers::{
+            add_audit_id_to_header, add_config_version_to_header,
+            add_last_modified_to_header, generate_config_from_version,
+            get_config_version, get_max_created_at, is_not_modified,
+        },
         context::{self, helpers::query_description},
-        dimension::fetch_dimensions_info_map,
     },
-    helpers::{generate_cac, generate_detailed_cac, get_config_from_redis},
-use crate::api::{
-    config::helpers::{
-        add_config_version_to_header, add_last_modified_to_header,
-        generate_config_from_version, get_config_version, get_max_created_at,
-        is_not_modified,
-    },
-    context::{self, helpers::query_description},
+    helpers::{generate_cac, generate_detailed_cac},
 };
-use crate::helpers::{calculate_context_weight, generate_cac};
 
 use super::helpers::{apply_prefix_filter_to_config, resolve, setup_query_data};
 
 #[allow(clippy::let_and_return)]
 pub fn endpoints() -> Scope {
-    let scope = Scope::new("")
+    Scope::new("")
         .service(get_handler)
         .service(get_toml_handler)
         .service(resolve_handler)
