@@ -870,7 +870,7 @@ pub async fn discard(
     Ok((updated_experiment, config_version_id))
 }
 
-pub async fn get_applicable_variants_helper(
+pub fn get_applicable_variants_helper(
     db_conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     context: Map<String, Value>,
     dimensions_info: &HashMap<String, DimensionInfo>,
@@ -956,8 +956,7 @@ async fn get_applicable_variants_handler(
         &dimensions_info,
         identifier,
         &workspace_context,
-    )
-    .await?;
+    )?;
 
     let variants = exps
         .into_iter()

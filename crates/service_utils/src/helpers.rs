@@ -35,11 +35,15 @@ use superposition_types::{
         },
         superposition_schema::superposition::workspaces,
     },
-    result::{self},
+    result,
 };
 
-use crate::encryption::{EncryptionError, decrypt_secret, decrypt_workspace_key};
-use crate::service::types::{AppState, SchemaName, WorkspaceContext};
+use crate::{
+    db::PgSchemaConnectionPool,
+    encryption::{EncryptionError, decrypt_secret, decrypt_workspace_key},
+    run_query,
+    service::types::{AppState, SchemaName, WorkspaceContext},
+};
 
 // using named group to capture which type (secrets/variables) the regex was
 // because variables and secrets need to be handled differently inside webhook execution
@@ -206,11 +210,18 @@ pub fn parse_config_tags(
 
 pub fn get_workspace(
     workspace_schema_name: &SchemaName,
-    db_conn: &mut DBConnection,
+    db_pool: &PgSchemaConnectionPool,
 ) -> result::Result<Workspace> {
-    let workspace = workspaces::dsl::workspaces
-        .filter(workspaces::workspace_schema_name.eq(workspace_schema_name.to_string()))
-        .get_result::<Workspace>(db_conn)?;
+    let workspace = run_query!(
+        db_pool,
+        conn,
+        workspaces::dsl::workspaces
+            .filter(
+                workspaces::workspace_schema_name.eq(workspace_schema_name.to_string()),
+            )
+            .get_result::<Workspace>(&mut conn)
+    )?;
+
     Ok(workspace)
 }
 

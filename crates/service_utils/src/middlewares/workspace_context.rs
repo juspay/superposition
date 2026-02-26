@@ -10,7 +10,7 @@ use actix_web::{
 };
 use futures_util::future::LocalBoxFuture;
 use regex::Regex;
-use superposition_macros::{bad_argument, unexpected_error};
+use superposition_macros::bad_argument;
 
 use crate::helpers::get_workspace;
 use crate::{
@@ -137,14 +137,8 @@ where
                     (true, Some(workspace_id)) => {
                         let schema = format!("{}_{}", *organisation, *workspace_id);
                         let schema_name = SchemaName(schema);
-                        let workspace_settings = {
-                            let mut db_conn = app_state
-                                .db_pool
-                                .get()
-                                .map_err(|err| unexpected_error!("{}", err))?;
-
-                            get_workspace(&schema_name, &mut db_conn)?
-                        };
+                        let workspace_settings =
+                            get_workspace(&schema_name, &app_state.db_pool)?;
 
                         req.extensions_mut().insert(workspace_id.clone());
                         req.extensions_mut().insert(WorkspaceContext {

@@ -70,6 +70,7 @@
               cargo-watch
               cargo-edit
               cargo-msrv
+              cargo-expand
               diesel-cli
               leptosfmt
               wasm-pack
