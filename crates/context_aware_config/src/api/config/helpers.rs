@@ -1,14 +1,21 @@
 use actix_http::header::HeaderValue;
 use actix_web::{
     HttpRequest, HttpResponseBuilder,
-    web::{Header, Json},
+    web::{Data, Header, Json},
 };
 use cac_client::{eval_cac, eval_cac_with_reasoning};
 use chrono::{DateTime, Timelike, Utc};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, dsl::max};
 use serde_json::{Map, Value};
-use service_utils::service::types::{
-    AppHeader, EncryptionKey, SchemaName, WorkspaceContext,
+use service_utils::{
+    redis::{CONFIG_VERSION_KEY_SUFFIX, fetch_from_redis_else_writeback},
+    service::{
+        get_db_connection,
+        types::{
+            AppHeader, AppState, DbConnection, EncryptionKey, SchemaName,
+            WorkspaceContext,
+        },
+    },
 };
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
@@ -35,28 +42,46 @@ pub fn apply_prefix_filter_to_config(
     Ok(config)
 }
 
-pub fn get_config_version(
+pub async fn get_config_version(
     version: &Option<String>,
     workspace_context: &WorkspaceContext,
-) -> superposition::Result<Option<i64>> {
-    version.as_ref().map_or_else(
-        || Ok(workspace_context.settings.config_version),
-        |version| {
-            if *version == *"latest" {
-                log::trace!("latest config request");
-                return Ok(None);
-            }
-            version.parse::<i64>().map_or_else(
-                |e| {
-                    log::error!(
-                        "failed to decode version as integer: {version}, error: {e}"
-                    );
-                    Err(bad_argument!("version is not of type integer"))
+    state: &Data<AppState>,
+) -> superposition::Result<i64> {
+    match version.as_ref() {
+        Some(v) if *v != *"latest" => v.parse::<i64>().map_or_else(
+            |e| {
+                log::error!("failed to decode version as integer: {v}, error: {e}");
+                Err(bad_argument!("version is not of type integer"))
+            },
+            Ok,
+        ),
+        _ => match workspace_context.settings.config_version {
+            Some(v) => Ok(v),
+            None => fetch_from_redis_else_writeback::<i64>(
+                format!(
+                    "{}{CONFIG_VERSION_KEY_SUFFIX}",
+                    *workspace_context.schema_name
+                ),
+                &workspace_context.schema_name,
+                state.redis.clone(),
+                state.db_pool.clone(),
+                |db_pool| {
+                    let DbConnection(mut conn) = get_db_connection(db_pool)?;
+                    config_versions::config_versions
+                        .select(config_versions::id)
+                        .order_by(config_versions::created_at.desc())
+                        .schema_name(&workspace_context.schema_name)
+                        .first::<i64>(&mut conn)
+                        .map_err(|e| {
+                            log::error!("failed to fetch config version from db: {}", e);
+                            db_error!(e)
+                        })
                 },
-                |v| Ok(Some(v)),
             )
+            .await
+            .map_err(|e| unexpected_error!("Config version not found due to: {}", e)),
         },
-    )
+    }
 }
 
 pub fn add_audit_id_to_header(

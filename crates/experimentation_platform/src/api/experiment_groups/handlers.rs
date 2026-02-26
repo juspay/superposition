@@ -10,12 +10,16 @@ use diesel::{
 use serde_json::Value;
 use service_utils::{
     helpers::{generate_snowflake_id, get_from_env_or_default},
-    service::types::{AppState, DbConnection, WorkspaceContext},
+    redis::{EXPERIMENT_GROUPS_LIST_KEY_SUFFIX, fetch_from_redis_else_writeback},
+    service::{
+        get_db_connection,
+        types::{AppState, DbConnection, WorkspaceContext},
+    },
 };
 use superposition_derives::authorized;
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
-    PaginatedResponse, SortBy, User,
+    IsEmpty, PaginatedResponse, SortBy, User,
     api::experiment_groups::{
         ExpGroupCreateRequest, ExpGroupFilters, ExpGroupMemberRequest,
         ExpGroupUpdateRequest, SortOn,
@@ -39,7 +43,8 @@ use superposition_types::{
 use crate::api::{
     experiment_groups::helpers::{
         add_members, create_system_generated_experiment_group,
-        fetch_and_validate_members, fetch_experiment_group, remove_members,
+        fetch_and_validate_members, fetch_experiment_group,
+        put_experiment_groups_in_redis, remove_members,
         validate_experiment_group_constraints,
     },
     experiments::{
@@ -140,6 +145,12 @@ async fn create_handler(
                     .get_result::<ExperimentGroup>(transaction_conn)?;
             Ok(new_experiment_group)
         })?;
+    let _ = put_experiment_groups_in_redis(
+        state.redis.clone(),
+        &mut conn,
+        &workspace_context.schema_name,
+    )
+    .await;
     Ok(Json(new_experiment_group))
 }
 
@@ -184,6 +195,12 @@ async fn update_handler(
         .returning(ExperimentGroup::as_returning())
         .schema_name(&workspace_context.schema_name)
         .get_result(&mut conn)?;
+    let _ = put_experiment_groups_in_redis(
+        state.redis.clone(),
+        &mut conn,
+        &workspace_context.schema_name,
+    )
+    .await;
     Ok(Json(updated_group))
 }
 
@@ -233,6 +250,12 @@ async fn add_members_handler(
                 &user,
             )
         })?;
+    let _ = put_experiment_groups_in_redis(
+        state.redis.clone(),
+        &mut conn,
+        &workspace_context.schema_name,
+    )
+    .await;
     Ok(experiment_group)
 }
 
@@ -275,6 +298,12 @@ async fn remove_members_handler(
                 &user,
             )
         })?;
+    let _ = put_experiment_groups_in_redis(
+        state.redis.clone(),
+        &mut conn,
+        &workspace_context.schema_name,
+    )
+    .await;
     Ok(experiment_group)
 }
 
@@ -284,8 +313,44 @@ async fn list_handler(
     workspace_context: WorkspaceContext,
     pagination_params: superposition_query::Query<PaginationParams>,
     filters: superposition_query::Query<ExpGroupFilters>,
-    db_conn: DbConnection,
+    state: Data<AppState>,
 ) -> superposition::Result<Json<PaginatedResponse<ExperimentGroup>>> {
+    let key = format!(
+        "{}{}",
+        *workspace_context.schema_name, EXPERIMENT_GROUPS_LIST_KEY_SUFFIX
+    );
+    let read_from_redis = pagination_params.all.is_some_and(|e| e) && filters.is_empty();
+    let list_experiments_closure = |db_pool| {
+        let db_conn = get_db_connection(db_pool)?;
+        list_experiment_groups_db(
+            &pagination_params,
+            filters,
+            db_conn,
+            &workspace_context,
+        )
+    };
+    if read_from_redis {
+        fetch_from_redis_else_writeback::<PaginatedResponse<ExperimentGroup>>(
+            key,
+            &workspace_context.schema_name,
+            state.redis.clone(),
+            state.db_pool.clone(),
+            list_experiments_closure,
+        )
+        .await
+        .map(Json)
+        .map_err(|e| unexpected_error!(e))
+    } else {
+        list_experiments_closure(state.db_pool.clone()).map(Json)
+    }
+}
+
+fn list_experiment_groups_db(
+    pagination_params: &superposition_query::Query<PaginationParams>,
+    filters: superposition_query::Query<ExpGroupFilters>,
+    db_conn: DbConnection,
+    workspace_context: &WorkspaceContext,
+) -> superposition::Result<PaginatedResponse<ExperimentGroup>> {
     let DbConnection(mut conn) = db_conn;
     let query_builder = |filters: &ExpGroupFilters| {
         let mut builder = experiment_groups::experiment_groups
@@ -325,7 +390,7 @@ async fn list_handler(
     if let Some(true) = pagination_params.all {
         let result: ExperimentGroups =
             base_query.get_results::<ExperimentGroup>(&mut conn)?;
-        return Ok(Json(PaginatedResponse::all(result)));
+        return Ok(PaginatedResponse::all(result));
     }
     let total_items = count_query.count().get_result(&mut conn)?;
     let limit = pagination_params.count.unwrap_or(10);
@@ -334,11 +399,11 @@ async fn list_handler(
     let query = base_query.limit(limit).offset(offset);
     let data = query.load::<ExperimentGroup>(&mut conn)?;
     let total_pages = (total_items as f64 / limit as f64).ceil() as i64;
-    Ok(Json(PaginatedResponse {
+    Ok(PaginatedResponse {
         total_pages,
         total_items,
         data,
-    }))
+    })
 }
 
 #[authorized]
@@ -364,30 +429,39 @@ async fn delete_handler(
     exp_group_id: web::Path<i64>,
     mut db_conn: DbConnection,
     user: User,
+    state: Data<AppState>,
 ) -> superposition::Result<Json<ExperimentGroup>> {
     let id = exp_group_id.into_inner();
-    db_conn.transaction::<Json<ExperimentGroup>, superposition::AppError, _>(|conn| {
-        let marked_group = diesel::update(experiment_groups::experiment_groups)
-            .filter(experiment_groups::id.eq(&id))
-            .set((
-                experiment_groups::last_modified_by.eq(user.email),
-                experiment_groups::last_modified_at.eq(chrono::Utc::now()),
-            ))
-            .returning(ExperimentGroup::as_returning())
-            .schema_name(&workspace_context.schema_name)
-            .get_result(conn)?;
-        if !marked_group.member_experiment_ids.is_empty() {
-            return Err(bad_argument!(
-                "Cannot delete experiment group {} since it has members",
-                marked_group.name
-            ));
-        }
-        diesel::delete(experiment_groups::experiment_groups)
-            .filter(experiment_groups::id.eq(&id))
-            .schema_name(&workspace_context.schema_name)
-            .execute(conn)?;
-        Ok(Json(marked_group))
-    })
+    let result = db_conn
+        .transaction::<Json<ExperimentGroup>, superposition::AppError, _>(|conn| {
+            let marked_group = diesel::update(experiment_groups::experiment_groups)
+                .filter(experiment_groups::id.eq(&id))
+                .set((
+                    experiment_groups::last_modified_by.eq(user.email),
+                    experiment_groups::last_modified_at.eq(chrono::Utc::now()),
+                ))
+                .returning(ExperimentGroup::as_returning())
+                .schema_name(&workspace_context.schema_name)
+                .get_result(conn)?;
+            if !marked_group.member_experiment_ids.is_empty() {
+                return Err(bad_argument!(
+                    "Cannot delete experiment group {} since it has members",
+                    marked_group.name
+                ));
+            }
+            diesel::delete(experiment_groups::experiment_groups)
+                .filter(experiment_groups::id.eq(&id))
+                .schema_name(&workspace_context.schema_name)
+                .execute(conn)?;
+            Ok(Json(marked_group))
+        });
+    let _ = put_experiment_groups_in_redis(
+        state.redis.clone(),
+        &mut db_conn,
+        &workspace_context.schema_name,
+    )
+    .await;
+    result
 }
 
 // Remove this after backfilling experiment groups
@@ -450,6 +524,12 @@ async fn backfill_handler(
             }
             Ok(results)
         })?;
+    let _ = put_experiment_groups_in_redis(
+        state.redis.clone(),
+        &mut conn,
+        &workspace_context.schema_name,
+    )
+    .await;
 
     Ok(Json(experiment_groups))
 }

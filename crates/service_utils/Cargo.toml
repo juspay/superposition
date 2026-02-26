@@ -17,7 +17,7 @@ base64 = { workspace = true }
 chrono = { workspace = true }
 derive_more = { workspace = true }
 diesel = { workspace = true }
-fred = { workspace = true, optional = true }
+fred = { workspace = true, features = ["metrics"] }
 futures-util = { workspace = true }
 log = { workspace = true }
 once_cell = { workspace = true }
@@ -31,18 +31,18 @@ secrecy = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 strum_macros = { workspace = true }
-superposition_macros = { workspace = true }
 superposition_types = { workspace = true, features = [
     "result",
     "api",
     "diesel_derives",
 ] }
+superposition_macros = { workspace = true }
 url = { workspace = true }
 urlencoding = "~2.1.2"
 tracing-actix-web = { workspace = true }
 
 [features]
-high-performance-mode = ["dep:fred"]
+
 
 [lints]
 workspace = true

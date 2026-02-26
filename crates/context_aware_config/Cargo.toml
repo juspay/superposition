@@ -17,7 +17,7 @@ blake3 = { workspace = true }
 cac_client = { path = "../cac_client" }
 chrono = { workspace = true }
 diesel = { workspace = true, features = ["numeric"] }
-fred = { workspace = true, optional = true, features = ["metrics"] }
+fred = { workspace = true, features = ["metrics"] }
 itertools = { workspace = true }
 jsonlogic = { workspace = true }
 jsonschema = { workspace = true }
@@ -39,7 +39,6 @@ uuid = { workspace = true }
 
 [features]
 disable_db_data_validation = ["superposition_types/disable_db_data_validation"]
-high-performance-mode = ["dep:fred"]
 
 
 [lints]
