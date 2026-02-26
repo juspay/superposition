@@ -32,7 +32,6 @@ use superposition_types::{
             experimentation::{
                 Experiment, ExperimentStatusType, GroupType, Variant, VariantType,
             },
-            others::{Webhook, WebhookEvent},
         },
         schema::experiments::dsl as experiments,
     },
@@ -405,11 +404,7 @@ pub async fn fetch_cac_config(
         state.cac_host,
         query_params.to_query_param(),
     );
-    let headers_map = construct_header_map(
-        &workspace_context.workspace_id,
-        &workspace_context.organisation_id,
-        vec![],
-    )?;
+    let headers_map = construct_header_map(workspace_context, vec![])?;
 
     let response = http_client
         .get(&url)
@@ -435,57 +430,6 @@ pub async fn fetch_cac_config(
         }
         Err(error) => {
             log::error!("Failed to fetch cac config with error: {:?}", error);
-            Err(unexpected_error!(error))
-        }
-    }
-}
-
-pub async fn fetch_webhook_by_event(
-    state: &Data<AppState>,
-    user: &User,
-    event: &WebhookEvent,
-    workspace_context: &WorkspaceContext,
-) -> superposition::Result<Webhook> {
-    let http_client = reqwest::Client::new();
-    let url = format!("{}/webhook/event/{event}", state.cac_host);
-    let user_str = serde_json::to_string(user).map_err(|err| {
-        log::error!("Something went wrong, failed to stringify user data {err}");
-        unexpected_error!(
-            "Something went wrong, failed to stringify user data {}",
-            err
-        )
-    })?;
-
-    let headers_map = construct_header_map(
-        &workspace_context.workspace_id,
-        &workspace_context.organisation_id,
-        vec![("x-user", user_str)],
-    )?;
-
-    let response = http_client
-        .get(&url)
-        .headers(headers_map.into())
-        .header(
-            header::AUTHORIZATION,
-            format!("Internal {}", state.superposition_token),
-        )
-        .send()
-        .await;
-
-    match response {
-        Ok(res) => {
-            if res.status() == 404 {
-                log::info!("No Webhook found for event: {}", event);
-                return Ok(Webhook::default());
-            }
-            let webhook = res.json::<Webhook>().await.map_err(|err| {
-                log::error!("failed to parse Webhook response with error: {}", err);
-                unexpected_error!("Failed to parse Webhook.")
-            })?;
-            Ok(webhook)
-        }
-        Err(error) => {
-            log::error!("Failed to fetch Webhook with error: {:?}", error);
             Err(unexpected_error!(error))
         }
     }
@@ -818,11 +762,7 @@ pub async fn fetch_and_validate_change_reason_with_function(
         change_reason: change_reason.clone(),
     };
 
-    let headers_map = construct_header_map(
-        &workspace_context.workspace_id,
-        &workspace_context.organisation_id,
-        vec![],
-    )?;
+    let headers_map = construct_header_map(workspace_context, vec![])?;
 
     let response = http_client
         .post(&url)

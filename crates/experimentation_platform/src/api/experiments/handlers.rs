@@ -24,8 +24,8 @@ use reqwest::{Method, StatusCode};
 use serde_json::{Map, Value};
 use service_utils::{
     helpers::{
-        construct_request_headers, execute_webhook_call, fetch_dimensions_info_map,
-        generate_snowflake_id, request,
+        WebhookData, construct_request_headers, execute_webhook_call,
+        fetch_dimensions_info_map, generate_snowflake_id, request,
     },
     service::types::{
         AppHeader, AppState, CustomHeaders, DbConnection, WorkspaceContext,
@@ -35,7 +35,7 @@ use superposition_derives::authorized;
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
     Cac, Condition, Contextual, DimensionInfo, Exp, ListResponse, Overrides,
-    PaginatedResponse, SortBy, User,
+    PaginatedResponse, Resource, SortBy, User,
     api::{
         DimensionMatchStrategy,
         context::{
@@ -50,6 +50,7 @@ use superposition_types::{
             ExperimentResponse, ExperimentSortOn, ExperimentStateChangeRequest,
             OverrideKeysUpdateRequest, RampRequest,
         },
+        webhook::Action,
     },
     custom_query::{
         self as superposition_query, CustomQuery, DimensionQuery, PaginationParams,
@@ -80,8 +81,8 @@ use crate::api::{
     },
     experiments::{
         helpers::{
-            fetch_and_validate_change_reason_with_function, fetch_webhook_by_event,
-            validate_control_overrides, validate_delete_experiment_variants,
+            fetch_and_validate_change_reason_with_function, validate_control_overrides,
+            validate_delete_experiment_variants,
         },
         types::StartedByChangeSet,
     },
@@ -284,11 +285,7 @@ async fn create_handler(
     .filter_map(|(key, val)| val.map(|v| (key, v)))
     .collect::<Vec<_>>();
 
-    let headers_map = construct_header_map(
-        &workspace_context.workspace_id,
-        &workspace_context.organisation_id,
-        extra_headers,
-    )?;
+    let headers_map = construct_header_map(&workspace_context, extra_headers)?;
 
     // Step 1: Perform the HTTP request and handle errors
     let response = http_client
@@ -378,27 +375,17 @@ async fn create_handler(
         })?;
 
     let response = ExperimentResponse::from(inserted_experiment);
-    let webhook_status = if let Ok(webhook) = fetch_webhook_by_event(
-        &state,
-        &user,
-        &WebhookEvent::ExperimentCreated,
-        &workspace_context,
-    )
-    .await
-    {
-        execute_webhook_call(
-            &webhook,
-            &response,
-            &config_version_id,
-            &workspace_context,
-            WebhookEvent::ExperimentCreated,
-            &state,
-            &mut conn,
-        )
-        .await
-    } else {
-        true
+
+    let data = WebhookData {
+        payload: &response,
+        resource: Resource::Experiment,
+        event: WebhookEvent::ExperimentCreated,
+        config_version_opt: config_version_id.clone(),
+        action: Action::Create,
     };
+
+    let webhook_status =
+        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
 
     let mut http_resp = if webhook_status {
         HttpResponse::Ok()
@@ -445,27 +432,16 @@ async fn conclude_handler(
 
     let experiment_response = ExperimentResponse::from(response);
 
-    let webhook_status = if let Ok(webhook) = fetch_webhook_by_event(
-        &state,
-        &user,
-        &WebhookEvent::ExperimentConcluded,
-        &workspace_context,
-    )
-    .await
-    {
-        execute_webhook_call(
-            &webhook,
-            &experiment_response,
-            &config_version_id,
-            &workspace_context,
-            WebhookEvent::ExperimentConcluded,
-            &state,
-            &mut conn,
-        )
-        .await
-    } else {
-        true
+    let data = WebhookData {
+        payload: &experiment_response,
+        resource: Resource::Experiment,
+        event: WebhookEvent::ExperimentConcluded,
+        config_version_opt: config_version_id.clone(),
+        action: Action::Update,
     };
+
+    let webhook_status =
+        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
 
     let mut http_resp = if webhook_status {
         HttpResponse::Ok()
@@ -642,11 +618,7 @@ pub async fn conclude(
         .filter_map(|(key, val)| val.map(|v| (key, v)))
         .collect::<Vec<_>>();
 
-    let headers_map = construct_header_map(
-        &workspace_context.workspace_id,
-        &workspace_context.organisation_id,
-        extra_headers,
-    )?;
+    let headers_map = construct_header_map(workspace_context, extra_headers)?;
 
     let response = http_client
         .put(&url)
@@ -727,27 +699,16 @@ async fn discard_handler(
 
     let experiment_response = ExperimentResponse::from(response);
 
-    let webhook_status = if let Ok(webhook) = fetch_webhook_by_event(
-        &state,
-        &user,
-        &WebhookEvent::ExperimentDiscarded,
-        &workspace_context,
-    )
-    .await
-    {
-        execute_webhook_call(
-            &webhook,
-            &experiment_response,
-            &config_version_id,
-            &workspace_context,
-            WebhookEvent::ExperimentDiscarded,
-            &state,
-            &mut conn,
-        )
-        .await
-    } else {
-        true
+    let data = WebhookData {
+        payload: &experiment_response,
+        resource: Resource::Experiment,
+        event: WebhookEvent::ExperimentDiscarded,
+        config_version_opt: config_version_id.clone(),
+        action: Action::Update,
     };
+
+    let webhook_status =
+        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
 
     let mut http_resp = if webhook_status {
         HttpResponse::Ok()
@@ -817,11 +778,7 @@ pub async fn discard(
         .filter_map(|(key, val)| val.map(|v| (key, v)))
         .collect::<Vec<_>>();
 
-    let headers_map = construct_header_map(
-        &workspace_context.workspace_id,
-        &workspace_context.organisation_id,
-        extra_headers,
-    )?;
+    let headers_map = construct_header_map(workspace_context, extra_headers)?;
 
     let response = http_client
         .put(&url)
@@ -1339,22 +1296,16 @@ async fn ramp_handler(
     } else {
         WebhookEvent::ExperimentInprogress
     };
-    let webhook_status = if let Ok(webhook) =
-        fetch_webhook_by_event(&state, &user, &webhook_event, &workspace_context).await
-    {
-        execute_webhook_call(
-            &webhook,
-            &experiment_response,
-            &config_version_id,
-            &workspace_context,
-            webhook_event,
-            &state,
-            &mut conn,
-        )
-        .await
-    } else {
-        true
+
+    let data = WebhookData {
+        payload: &experiment_response,
+        resource: Resource::Experiment,
+        event: webhook_event,
+        config_version_opt: config_version_id,
+        action: Action::Update,
     };
+    let webhook_status =
+        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
 
     let mut http_resp = if webhook_status {
         HttpResponse::Ok()
@@ -1596,11 +1547,7 @@ async fn update_handler(
     .filter_map(|(key, val)| val.map(|v| (key, v)))
     .collect::<Vec<_>>();
 
-    let headers_map = construct_header_map(
-        &workspace_context.workspace_id,
-        &workspace_context.organisation_id,
-        extra_headers,
-    )?;
+    let headers_map = construct_header_map(&workspace_context, extra_headers)?;
 
     let response = http_client
         .put(&url)
@@ -1687,27 +1634,16 @@ async fn update_handler(
 
     let experiment_response = ExperimentResponse::from(updated_experiment);
 
-    let webhook_status = if let Ok(webhook) = fetch_webhook_by_event(
-        &state,
-        &user,
-        &WebhookEvent::ExperimentUpdated,
-        &workspace_context,
-    )
-    .await
-    {
-        execute_webhook_call(
-            &webhook,
-            &experiment_response,
-            &config_version_id,
-            &workspace_context,
-            WebhookEvent::ExperimentUpdated,
-            &state,
-            &mut conn,
-        )
-        .await
-    } else {
-        true
+    let data = WebhookData {
+        payload: &experiment_response,
+        resource: Resource::Experiment,
+        event: WebhookEvent::ExperimentUpdated,
+        config_version_opt: config_version_id.clone(),
+        action: Action::Update,
     };
+
+    let webhook_status =
+        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
 
     let mut http_resp = if webhook_status {
         HttpResponse::Ok()
@@ -1750,27 +1686,16 @@ async fn pause_handler(
 
     let experiment_response = ExperimentResponse::from(response);
 
-    let webhook_status = if let Ok(webhook) = fetch_webhook_by_event(
-        &state,
-        &user,
-        &WebhookEvent::ExperimentPaused,
-        &workspace_context,
-    )
-    .await
-    {
-        execute_webhook_call(
-            &webhook,
-            &experiment_response,
-            &None,
-            &workspace_context,
-            WebhookEvent::ExperimentPaused,
-            &state,
-            &mut conn,
-        )
-        .await
-    } else {
-        true
+    let data = WebhookData {
+        payload: &experiment_response,
+        resource: Resource::Experiment,
+        event: WebhookEvent::ExperimentPaused,
+        config_version_opt: None,
+        action: Action::Update,
     };
+
+    let webhook_status =
+        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
 
     let mut http_resp = if webhook_status {
         HttpResponse::Ok()
@@ -1849,27 +1774,16 @@ async fn resume_handler(
 
     let experiment_response = ExperimentResponse::from(response);
 
-    let webhook_status = if let Ok(webhook) = fetch_webhook_by_event(
-        &state,
-        &user,
-        &WebhookEvent::ExperimentInprogress,
-        &workspace_context,
-    )
-    .await
-    {
-        execute_webhook_call(
-            &webhook,
-            &experiment_response,
-            &None,
-            &workspace_context,
-            WebhookEvent::ExperimentInprogress,
-            &state,
-            &mut conn,
-        )
-        .await
-    } else {
-        true
+    let data = WebhookData {
+        payload: &experiment_response,
+        resource: Resource::Experiment,
+        event: WebhookEvent::ExperimentInprogress,
+        config_version_opt: None,
+        action: Action::Update,
     };
+
+    let webhook_status =
+        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
 
     let mut http_resp = if webhook_status {
         HttpResponse::Ok()

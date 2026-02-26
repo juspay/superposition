@@ -48,6 +48,28 @@ pub trait IsEmpty {
     fn is_empty(&self) -> bool;
 }
 
+#[derive(Copy, Clone, Debug, strum_macros::Display, Deserialize, Serialize)]
+#[strum(serialize_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
+pub enum Resource {
+    DefaultConfig,
+    Dimension,
+    Context,
+    Function,
+    TypeTemplate,
+    Config,
+    Experiment,
+    ExperimentGroup,
+    Workspace,
+    Organisation,
+    Webhook,
+    AuditLog,
+    Auth,
+    Variable,
+    Secret,
+    MasterEncryptionKey,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct User {
     pub email: String,

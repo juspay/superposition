@@ -5,9 +5,8 @@ mod organisation;
 mod resolve;
 mod webhooks;
 mod workspace;
-use json_subscriber::fmt;
+
 use std::{io::Result, time::Duration};
-use superposition_macros::bad_argument;
 
 use actix_files::Files;
 use actix_web::{
@@ -20,6 +19,7 @@ use experimentation_platform::api::*;
 use frontend::app::*;
 use frontend::types::{Envs as UIEnvs, SsrSharedHttpRequestHeaders};
 use idgenerator::{IdGeneratorOptions, IdInstance};
+use json_subscriber::fmt;
 use leptos::*;
 use leptos_actix::{LeptosRoutes, generate_route_list};
 use service_utils::{
@@ -31,8 +31,10 @@ use service_utils::{
         request_response_logging::RequestResponseLogger,
         workspace_context::OrgWorkspaceMiddlewareFactory,
     },
-    service::types::{AppEnv, Resource},
+    service::types::AppEnv,
 };
+use superposition_macros::bad_argument;
+use superposition_types::Resource;
 use tracing_actix_web::TracingLogger;
 use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
 

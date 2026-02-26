@@ -1,7 +1,7 @@
 use futures_util::future::LocalBoxFuture;
-use superposition_types::User;
+use superposition_types::{Resource, User};
 
-use crate::service::types::{OrganisationId, Resource, SchemaName};
+use crate::service::types::{OrganisationId, SchemaName};
 
 pub trait Authorizer: Sync + Send {
     // fn grant_access_to_admin(

@@ -17,11 +17,11 @@ use aws_sdk_kms::Client;
 use futures_util::future::LocalBoxFuture;
 use no_auth::NoAuth;
 use superposition_macros::{forbidden, unexpected_error};
-use superposition_types::{InternalUser, User, result as superposition};
+use superposition_types::{InternalUser, Resource, User, result as superposition};
 
 use crate::{
     helpers::get_from_env_unsafe,
-    service::types::{AppEnv, OrganisationId, Resource, SchemaName, WorkspaceContext},
+    service::types::{AppEnv, OrganisationId, SchemaName, WorkspaceContext},
 };
 
 pub trait Action: Send + Sync + 'static {

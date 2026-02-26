@@ -8,7 +8,10 @@ use std::{
 use actix_web::{Error, error::ErrorInternalServerError, web::Data};
 use anyhow::anyhow;
 use chrono::Utc;
-use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
+use diesel::{
+    ExpressionMethods, OptionalExtension, PgArrayExpressionMethods, QueryDsl,
+    RunQueryDsl, SelectableHelper,
+};
 
 use log::info;
 use once_cell::sync::Lazy;
@@ -21,8 +24,8 @@ use secrecy::ExposeSecret;
 use serde::Serialize;
 use superposition_macros::unexpected_error;
 use superposition_types::{
-    DBConnection, DimensionInfo,
-    api::webhook::{HeadersEnum, WebhookEventInfo, WebhookResponse},
+    DBConnection, DimensionInfo, Resource,
+    api::webhook::{Action, HeadersEnum, WebhookEventInfo, WebhookResponse},
     database::{
         models::{
             Workspace,
@@ -32,14 +35,17 @@ use superposition_types::{
             dimensions::{self, dimension},
             secrets::dsl as secrets_dsl,
             variables::dsl as variables_dsl,
+            webhooks::{self, dsl::webhooks as webhook_dsl},
         },
         superposition_schema::superposition::workspaces,
     },
     result::{self},
 };
 
-use crate::encryption::{EncryptionError, decrypt_secret, decrypt_workspace_key};
-use crate::service::types::{AppState, SchemaName, WorkspaceContext};
+use crate::{
+    encryption::{EncryptionError, decrypt_secret, decrypt_workspace_key},
+    service::types::{AppState, SchemaName, WorkspaceContext},
+};
 
 // using named group to capture which type (secrets/variables) the regex was
 // because variables and secrets need to be handled differently inside webhook execution
@@ -314,18 +320,46 @@ fn fetch_secrets(
     })
 }
 
+pub struct WebhookData<T> {
+    pub payload: T,
+    pub resource: Resource,
+    pub action: Action,
+    pub event: WebhookEvent,
+    pub config_version_opt: Option<String>,
+}
+
 pub async fn execute_webhook_call<T>(
-    webhook: &Webhook,
-    payload: &T,
-    config_version_opt: &Option<String>,
+    data: WebhookData<T>,
     workspace_context: &WorkspaceContext,
-    event: WebhookEvent,
     state: &Data<AppState>,
     conn: &mut DBConnection,
 ) -> bool
 where
     T: Serialize,
 {
+    let WebhookData {
+        event,
+        resource,
+        action,
+        config_version_opt,
+        payload,
+    } = data;
+    let webhook = match webhook_dsl
+        .filter(webhooks::events.contains(vec![event]))
+        .schema_name(&workspace_context.schema_name)
+        .first::<Webhook>(conn)
+        .optional()
+    {
+        Ok(Some(webhook)) => webhook,
+        Ok(None) => {
+            log::info!("No webhook found for this event, skipping event: {}", event);
+            return true;
+        }
+        Err(e) => {
+            log::error!("Failed to fetch webhook for event: {}", e);
+            return false;
+        }
+    };
     if !webhook.enabled {
         log::info!("Webhook is disabled, skipping call");
         return true;
@@ -400,10 +434,12 @@ where
         .json(&WebhookResponse {
             event_info: WebhookEventInfo {
                 webhook_event: event,
+                resource,
+                action,
                 time: Utc::now().to_string(),
                 workspace_id: workspace_context.workspace_id.to_string(),
                 organisation_id: workspace_context.organisation_id.to_string(),
-                config_version: config_version_opt.clone(),
+                config_version: config_version_opt,
             },
             payload,
         })

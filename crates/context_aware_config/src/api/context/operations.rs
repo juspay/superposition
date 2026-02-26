@@ -1,7 +1,8 @@
 use actix_web::web::Json;
 use chrono::Utc;
 use diesel::{
-    Connection, ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl, SelectableHelper,
+    Connection, ExpressionMethods, OptionalExtension, PgConnection, QueryDsl,
+    RunQueryDsl, SelectableHelper,
     r2d2::{ConnectionManager, PooledConnection},
     result::{DatabaseErrorKind::*, Error::DatabaseError},
 };
@@ -11,7 +12,10 @@ use superposition_core::helpers::{calculate_context_weight, hash};
 use superposition_macros::{db_error, not_found, unexpected_error};
 use superposition_types::{
     DBConnection, Overrides, User,
-    api::context::{Identifier, MoveRequest, PutRequest, UpdateRequest},
+    api::{
+        context::{Identifier, MoveRequest, PutRequest, UpdateRequest},
+        webhook::Action,
+    },
     database::{
         models::{Description, cac::Context},
         schema::contexts::{self, dsl},
@@ -143,17 +147,23 @@ pub fn update(
         .map_err(|e| db_error!(e))
 }
 
+pub struct MoveResult {
+    pub deleted_context: Context,
+    pub context: Context,
+    pub action: Action,
+}
+
 #[allow(clippy::too_many_arguments)]
 pub fn r#move(
     workspace_context: &WorkspaceContext,
     old_ctx_id: String,
     req: Json<MoveRequest>,
     req_description: Description,
-    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    conn: &mut DBConnection,
     already_under_txn: bool,
     user: &User,
     master_encryption_key: &Option<EncryptionKey>,
-) -> result::Result<Context> {
+) -> result::Result<MoveResult> {
     use contexts::dsl;
     let req = req.into_inner();
     let ctx_condition = req.context.to_owned().into_inner();
@@ -175,6 +185,11 @@ pub fn r#move(
     if already_under_txn {
         diesel::sql_query("SAVEPOINT update_ctx_savepoint").execute(conn)?;
     }
+
+    let old_context = dsl::contexts
+        .filter(dsl::id.eq(&old_ctx_id))
+        .schema_name(&workspace_context.schema_name)
+        .get_result::<Context>(conn)?;
 
     let context = diesel::update(dsl::contexts)
         .filter(dsl::id.eq(&old_ctx_id))
@@ -205,46 +220,33 @@ pub fn r#move(
         change_reason,
     };
 
-    let handle_unique_violation =
-        |db_conn: &mut DBConnection, already_under_txn: bool| {
-            if already_under_txn {
-                let deleted_ctxt = diesel::delete(dsl::contexts)
-                    .filter(dsl::id.eq(&old_ctx_id))
-                    .schema_name(&workspace_context.schema_name)
-                    .get_result(db_conn)?;
+    let delete_and_update = |conn: &mut DBConnection| {
+        let deleted_ctxt = diesel::delete(dsl::contexts)
+            .filter(dsl::id.eq(&old_ctx_id))
+            .schema_name(&workspace_context.schema_name)
+            .get_result(conn)?;
 
-                let ctx = contruct_new_ctx_with_old_overrides(deleted_ctxt);
-                update_override_of_existing_ctx(
-                    db_conn,
-                    ctx,
-                    user,
-                    &workspace_context.schema_name,
-                )
-            } else {
-                db_conn.transaction(|conn| {
-                    let deleted_ctxt = diesel::delete(dsl::contexts)
-                        .filter(dsl::id.eq(&old_ctx_id))
-                        .schema_name(&workspace_context.schema_name)
-                        .get_result(conn)?;
-                    let ctx = contruct_new_ctx_with_old_overrides(deleted_ctxt);
-                    update_override_of_existing_ctx(
-                        conn,
-                        ctx,
-                        user,
-                        &workspace_context.schema_name,
-                    )
-                })
-            }
-        };
+        let ctx = contruct_new_ctx_with_old_overrides(deleted_ctxt);
+        update_override_of_existing_ctx(conn, ctx, user, &workspace_context.schema_name)
+    };
 
     match context {
-        Ok(ctx) => Ok(ctx),
-        Err(DatabaseError(UniqueViolation, _)) => {
-            if already_under_txn {
-                diesel::sql_query("ROLLBACK TO update_ctx_savepoint").execute(conn)?;
-            }
-            handle_unique_violation(conn, already_under_txn)
+        Ok(ctx) => Ok(MoveResult {
+            deleted_context: old_context,
+            context: ctx,
+            action: Action::Create,
+        }),
+        Err(DatabaseError(UniqueViolation, _)) => if already_under_txn {
+            diesel::sql_query("ROLLBACK TO update_ctx_savepoint").execute(conn)?;
+            delete_and_update(conn)
+        } else {
+            conn.transaction(delete_and_update)
         }
+        .map(|ctx| MoveResult {
+            deleted_context: old_context,
+            context: ctx,
+            action: Action::Update,
+        }),
         Err(e) => {
             log::error!("failed to move context with db error: {:?}", e);
             Err(db_error!(e))
@@ -257,7 +259,7 @@ pub fn delete(
     user: &User,
     conn: &mut DBConnection,
     schema_name: &SchemaName,
-) -> result::Result<()> {
+) -> result::Result<Context> {
     use contexts::dsl;
     diesel::update(dsl::contexts)
         .filter(dsl::id.eq(&ctx_id))
@@ -270,16 +272,13 @@ pub fn delete(
         .execute(conn)?;
     let deleted_row = diesel::delete(dsl::contexts.filter(dsl::id.eq(&ctx_id)))
         .schema_name(schema_name)
-        .execute(conn);
+        .get_result(conn)
+        .optional()?;
     match deleted_row {
-        Ok(0) => Err(not_found!("Context Id `{}` doesn't exists", ctx_id)),
-        Ok(_) => {
+        None => Err(not_found!("Context Id `{}` doesn't exists", ctx_id)),
+        Some(context) => {
             log::info!("{ctx_id} context deleted by {}", user.get_email());
-            Ok(())
-        }
-        Err(e) => {
-            log::error!("context delete query failed with error: {e}");
-            Err(unexpected_error!("Something went wrong."))
+            Ok(context)
         }
     }
 }

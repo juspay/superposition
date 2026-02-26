@@ -4,13 +4,13 @@ use actix_web::{
 };
 use chrono::Utc;
 use diesel::{
-    Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
-    TextExpressionMethods,
+    Connection, ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl,
+    SelectableHelper, TextExpressionMethods,
 };
 use jsonschema::ValidationError;
 use serde_json::Value;
 use service_utils::{
-    helpers::parse_config_tags,
+    helpers::{WebhookData, execute_webhook_call, parse_config_tags},
     service::types::{
         AppHeader, AppState, CustomHeaders, DbConnection, EncryptionKey, SchemaName,
         WorkspaceContext,
@@ -22,19 +22,21 @@ use superposition_macros::{
     bad_argument, db_error, not_found, unexpected_error, validation_error,
 };
 use superposition_types::{
-    DBConnection, PaginatedResponse, User,
+    DBConnection, PaginatedResponse, Resource, User,
     api::{
         default_config::{
             DefaultConfigCreateRequest, DefaultConfigFilters, DefaultConfigKey,
             DefaultConfigUpdateRequest,
         },
         functions::{FunctionEnvironment, FunctionExecutionRequest, KeyType},
+        webhook::Action,
     },
     custom_query::PaginationParams,
     database::{
         models::{
             Description,
             cac::{self as models, Context, DefaultConfig, FunctionType},
+            others::WebhookEvent,
         },
         schema::{self, contexts::dsl::contexts, default_configs::dsl},
     },
@@ -165,9 +167,33 @@ async fn create_handler(
         })?;
 
     #[cfg(feature = "high-performance-mode")]
-    put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
-        .await?;
-    let mut http_resp = HttpResponse::Ok();
+    put_config_in_redis(
+        version_id,
+        &state,
+        &workspace_context.schema_name,
+        &mut conn,
+    )
+    .await?;
+
+    let data = WebhookData {
+        payload: &default_config,
+        resource: Resource::DefaultConfig,
+        event: WebhookEvent::ConfigChanged,
+        config_version_opt: Some(version_id.to_string()),
+        action: Action::Create,
+    };
+
+    let webhook_status =
+        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+
+    let mut http_resp = if webhook_status {
+        HttpResponse::Ok()
+    } else {
+        HttpResponse::build(
+            actix_web::http::StatusCode::from_u16(512)
+                .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
 
     http_resp.insert_header((
         AppHeader::XConfigVersion.to_string(),
@@ -297,10 +323,33 @@ async fn update_handler(
         })?;
 
     #[cfg(feature = "high-performance-mode")]
-    put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
-        .await?;
+    put_config_in_redis(
+        version_id,
+        &state,
+        &workspace_context.schema_name,
+        &mut conn,
+    )
+    .await?;
 
-    let mut http_resp = HttpResponse::Ok();
+    let data = WebhookData {
+        payload: &db_row,
+        resource: Resource::DefaultConfig,
+        event: WebhookEvent::ConfigChanged,
+        config_version_opt: Some(version_id.to_string()),
+        action: Action::Update,
+    };
+
+    let webhook_status =
+        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+
+    let mut http_resp = if webhook_status {
+        HttpResponse::Ok()
+    } else {
+        HttpResponse::build(
+            actix_web::http::StatusCode::from_u16(512)
+                .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
     http_resp.insert_header((
         AppHeader::XConfigVersion.to_string(),
         version_id.to_string(),
@@ -461,14 +510,13 @@ async fn delete_handler(
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
     let key: String = path.into_inner().into();
-    let mut version_id = 0;
 
     let context_ids =
         get_key_usage_context_ids(&key, &mut conn, &workspace_context.schema_name)
             .map_err(|_| unexpected_error!("Something went wrong"))?;
     if context_ids.is_empty() {
-        let resp: Result<HttpResponse, superposition::AppError> =
-            conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+        let (version_id, default_config) = conn
+            .transaction::<_, superposition::AppError, _>(|transaction_conn| {
                 diesel::update(dsl::default_configs)
                     .filter(dsl::key.eq(&key))
                     .set((
@@ -481,18 +529,19 @@ async fn delete_handler(
                 let deleted_row =
                     diesel::delete(dsl::default_configs.filter(dsl::key.eq(&key)))
                         .schema_name(&workspace_context.schema_name)
-                        .execute(transaction_conn);
+                        .get_result::<DefaultConfig>(transaction_conn)
+                        .optional()?;
                 match deleted_row {
-                    Ok(0) => {
-                        Err(not_found!("default config key `{}` doesn't exists", key))
+                    None => {
+                        Err(not_found!("default config key `{}` doesn't exists", key))?
                     }
-                    Ok(_) => {
+                    Some(default_config) => {
                         let config_version_desc = Description::try_from(format!(
                             "Context Deleted by {}",
                             user.get_email()
                         ))
                         .map_err(|e| unexpected_error!(e))?;
-                        version_id = add_config_version(
+                        let version_id = add_config_version(
                             &state,
                             tags,
                             config_version_desc,
@@ -503,31 +552,45 @@ async fn delete_handler(
                             "default config key: {key} deleted by {}",
                             user.get_email()
                         );
-                        Ok(HttpResponse::NoContent()
-                            .insert_header((
-                                AppHeader::XConfigVersion.to_string(),
-                                version_id.to_string(),
-                            ))
-                            .finish())
-                    }
-                    Err(e) => {
-                        log::error!("default config delete query failed with error: {e}");
-                        Err(unexpected_error!("Something went wrong."))
+                        Ok((version_id, default_config))
                     }
                 }
-            });
+            })?;
 
-        if resp.is_ok() {
-            #[cfg(feature = "high-performance-mode")]
-            put_config_in_redis(
-                version_id,
-                state,
-                &workspace_context.schema_name,
-                &mut conn,
+        #[cfg(feature = "high-performance-mode")]
+        put_config_in_redis(
+            version_id,
+            &state,
+            &workspace_context.schema_name,
+            &mut conn,
+        )
+        .await?;
+
+        let data = WebhookData {
+            payload: &default_config,
+            resource: Resource::DefaultConfig,
+            event: WebhookEvent::ConfigChanged,
+            config_version_opt: Some(version_id.to_string()),
+            action: Action::Delete,
+        };
+
+        let webhook_status =
+            execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+
+        let mut http_resp = if webhook_status {
+            HttpResponse::Ok()
+        } else {
+            HttpResponse::build(
+                actix_web::http::StatusCode::from_u16(512)
+                    .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
             )
-            .await?;
-        }
-        resp
+        };
+        http_resp.insert_header((
+            AppHeader::XConfigVersion.to_string(),
+            version_id.to_string(),
+        ));
+
+        Ok(http_resp.finish())
     } else {
         Err(bad_argument!(
             "Given key already in use in contexts: {}",

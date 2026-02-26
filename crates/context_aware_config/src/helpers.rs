@@ -208,6 +208,7 @@ pub fn add_config_version(
     let config = generate_cac(db_conn, schema_name)?;
     let json_config = json!(config);
     let config_hash = blake3::hash(json_config.to_string().as_bytes()).to_string();
+
     let config_version = ConfigVersion {
         id: version_id,
         config: json_config,
@@ -221,13 +222,14 @@ pub fn add_config_version(
         .returning(ConfigVersion::as_returning())
         .schema_name(schema_name)
         .execute(db_conn)?;
+
     Ok(version_id)
 }
 
 #[cfg(feature = "high-performance-mode")]
 pub async fn put_config_in_redis(
     version_id: i64,
-    state: Data<AppState>,
+    state: &Data<AppState>,
     schema_name: &SchemaName,
     db_conn: &mut DBConnection,
 ) -> superposition::Result<()> {
