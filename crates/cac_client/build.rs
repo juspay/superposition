@@ -11,6 +11,6 @@ fn main() {
     if let Err(message) = cbindgen::generate_with_config(crate_dir, config)
         .map(|bindings| bindings.write_to_file("../../headers/libcac_client.h"))
     {
-        println!("cargo:error={}", message);
+        println!("cargo::error={}", message);
     }
 }

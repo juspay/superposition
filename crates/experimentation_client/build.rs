@@ -13,6 +13,6 @@ fn main() {
             bindings.write_to_file("../../headers/libexperimentation_client.h")
         })
     {
-        println!("cargo:error={}", message);
+        println!("cargo::error={}", message);
     }
 }

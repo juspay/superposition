@@ -13,6 +13,6 @@ fn main() {
             bindings.write_to_file("../../target/include/superposition_core.h")
         })
     {
-        println!("cargo:error={}", message);
+        println!("cargo::error={}", message);
     }
 }
