@@ -86,8 +86,7 @@ async fn create_handler(
         &req.change_reason,
         &mut conn,
         &state.master_encryption_key,
-    ).await?;
-
+    )?;
     let value = req.value;
 
     let default_config = DefaultConfig {
@@ -137,7 +136,8 @@ async fn create_handler(
         &default_config.key,
         &default_config.value,
         &state.master_encryption_key,
-    ).await?;
+    )
+    .await?;
 
     validate_fn_published(
         &default_config.value_compute_function_name,
@@ -227,7 +227,7 @@ async fn update_handler(
         &req.change_reason,
         &mut conn,
         &state.master_encryption_key,
-    ).await?;
+    )?;
 
     let value = req.value.clone().unwrap_or_else(|| existing.value.clone());
 
@@ -263,7 +263,8 @@ async fn update_handler(
             &key_str,
             &value,
             &state.master_encryption_key,
-        ).await?
+        )
+        .await?
     }
 
     if let Some(ref value_compute_function_name) = req.value_compute_function_name {

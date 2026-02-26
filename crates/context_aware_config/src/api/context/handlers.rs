@@ -110,8 +110,7 @@ async fn create_handler(
         &req_change_reason,
         &mut db_conn,
         &state.master_encryption_key,
-    )
-    .await?;
+    )?;
 
     let new_ctx = create_ctx_from_put_req(
         req.into_inner(),
@@ -184,8 +183,7 @@ async fn update_handler(
         &req_change_reason,
         &mut db_conn,
         &state.master_encryption_key,
-    )
-    .await?;
+    )?;
 
     let DbConnection(mut conn) = db_conn;
 
@@ -291,8 +289,7 @@ async fn move_handler(
         &req.change_reason,
         &mut db_conn,
         &state.master_encryption_key,
-    )
-    .await?;
+    )?;
 
     let DbConnection(mut conn) = db_conn;
 
@@ -650,8 +647,7 @@ async fn bulk_operations_handler(
                     &put_req.change_reason,
                     &mut conn,
                     &state.master_encryption_key,
-                )
-                .await?;
+                )?;
 
                 let description = match put_req.description.clone() {
                     Some(val) => val,

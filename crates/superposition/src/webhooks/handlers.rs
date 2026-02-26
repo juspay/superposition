@@ -45,7 +45,7 @@ async fn create_handler(
         &req.change_reason,
         &mut conn,
         &state.master_encryption_key,
-    ).await?;
+    )?;
 
     validate_events(&req.events, None, &workspace_context.schema_name, &mut conn)?;
     let now = Utc::now();
@@ -94,7 +94,7 @@ async fn update_handler(
         &req.change_reason,
         &mut conn,
         &state.master_encryption_key,
-    ).await?;
+    )?;
 
     if let Some(webhook_events) = &req.events {
         validate_events(
