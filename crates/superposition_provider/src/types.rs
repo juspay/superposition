@@ -105,10 +105,32 @@ impl Default for OnDemandStrategy {
     }
 }
 
+/// Configuration for the watch refresh strategy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WatchStrategy {
+    /// Debounce duration in milliseconds (default: 500).
+    pub debounce_ms: Option<u64>,
+}
+
+impl Default for WatchStrategy {
+    fn default() -> Self {
+        Self {
+            debounce_ms: Some(500),
+        }
+    }
+}
+
+/// A stream of change notifications from a data source.
+pub struct WatchStream {
+    pub receiver: tokio::sync::mpsc::Receiver<()>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RefreshStrategy {
     Polling(PollingStrategy),
     OnDemand(OnDemandStrategy),
+    Watch(WatchStrategy),
+    Manual,
 }
 
 impl Default for RefreshStrategy {
