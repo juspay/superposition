@@ -68,7 +68,7 @@ where
 
 /// A helper enum to represent the context in which a query is being run, either directly from a connection pool or within a transaction.
 /// This allows us to abstract away the connection management and error handling logic when running queries or transactions.
-/// When running a query, we can use the `NonTransaction` variant to get a connection from the pool and run the query directly.
+/// When running a query (or a bunch of queries) without transaction semantics, we can use the `NonTransaction` variant to get a connection from the pool and run them directly.
 /// When running a transaction, we can use the `Transaction` variant to run the query within the transaction context,
 /// ensuring that all queries within the transaction are executed on the same connection and that the transaction is properly
 /// committed or rolled back based on the success or failure of the queries.
