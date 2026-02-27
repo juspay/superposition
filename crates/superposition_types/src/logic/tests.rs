@@ -190,7 +190,7 @@ fn test_evaluate_local_cohorts_empty_dimensions() {
     .unwrap()
     .clone();
 
-    let result = evaluate_local_cohorts(&dimensions, &query_data);
+    let result = evaluate_local_cohorts(dimensions, query_data.clone());
     assert_eq!(result, query_data);
 }
 
@@ -219,7 +219,7 @@ fn test_evaluate_local_cohorts_with_regular_dimension() {
     .unwrap()
     .clone();
 
-    let result = evaluate_local_cohorts(&dimensions, &query_data);
+    let result = evaluate_local_cohorts(dimensions, query_data);
     assert_eq!(result.get("regular_dim"), Some(&json!("value1")));
 }
 
@@ -253,7 +253,7 @@ fn test_evaluate_local_cohorts_with_local_cohort_otherwise() {
 
     let query_data = Map::new();
 
-    let result = evaluate_local_cohorts(&dimensions, &query_data);
+    let result = evaluate_local_cohorts(dimensions, query_data);
     assert_eq!(result.get("local_cohort_dim"), Some(&json!("otherwise")));
 }
 
@@ -301,7 +301,7 @@ fn test_evaluate_local_cohorts_with_dependency() {
     .unwrap()
     .clone();
 
-    let result = evaluate_local_cohorts(&dimensions, &query_data);
+    let result = evaluate_local_cohorts(dimensions, query_data);
     assert_eq!(result.get("test"), Some(&json!("trigger_value")));
     assert_eq!(result.get("testdep"), Some(&json!("cohort1")));
 }
@@ -322,13 +322,19 @@ fn test_evaluate_local_cohort_dimension_function() {
     .unwrap()
     .clone();
 
-    let result = evaluate_local_cohort_dimension("test_value", &json!(42), &schema);
+    let result =
+        evaluate_local_cohort_dimension("test_value".to_string(), json!(42), &schema);
     assert_eq!(result, "exactly_42");
 
-    let result = evaluate_local_cohort_dimension("test_value", &json!(100), &schema);
+    let result =
+        evaluate_local_cohort_dimension("test_value".to_string(), json!(100), &schema);
     assert_eq!(result, "otherwise");
 
-    let result = evaluate_local_cohort_dimension("test_value", &json!("string"), &schema);
+    let result = evaluate_local_cohort_dimension(
+        "test_value".to_string(),
+        json!("string"),
+        &schema,
+    );
     assert_eq!(result, "otherwise");
 }
 
@@ -400,7 +406,7 @@ fn test_sample_dependency_graph() {
     assert_eq!(start_dims.len(), 1);
     assert!(start_dims.contains(&"test".to_string()));
 
-    let result = evaluate_local_cohorts(&dimensions, &query_data);
+    let result = evaluate_local_cohorts(dimensions.clone(), query_data);
     assert_eq!(result.get("test"), Some(&json!("main_value")));
     assert_eq!(result.get("test_remote"), Some(&json!("remote_value_a")));
     assert_eq!(result.get("testdep"), Some(&json!("group_a")));
@@ -418,7 +424,7 @@ fn test_sample_dependency_graph() {
     assert!(start_dims2.contains(&"testtest".to_string()));
     assert!(start_dims2.contains(&"testdep".to_string()));
 
-    let result2 = evaluate_local_cohorts(&dimensions, &query_data2);
+    let result2 = evaluate_local_cohorts(dimensions, query_data2);
     assert_eq!(result2.get("testtest"), Some(&json!("leaf_value")));
     assert_eq!(result2.get("testdep"), Some(&json!("otherwise")));
 }
@@ -648,7 +654,7 @@ fn test_evaluate_local_cohorts_missing_schema_definitions() {
     .unwrap()
     .clone();
 
-    let result = evaluate_local_cohorts(&dimensions, &query_data);
+    let result = evaluate_local_cohorts(dimensions, query_data);
     assert_eq!(result.get("root"), Some(&json!("some_value")));
     assert_eq!(result.get("local_cohort"), Some(&json!("otherwise")));
 }
@@ -694,7 +700,7 @@ fn test_evaluate_local_cohorts_invalid_json_logic() {
     .unwrap()
     .clone();
 
-    let result = evaluate_local_cohorts(&dimensions, &query_data);
+    let result = evaluate_local_cohorts(dimensions, query_data);
     assert_eq!(result.get("root"), Some(&json!("trigger_value")));
     assert_eq!(result.get("local_cohort"), Some(&json!("otherwise")));
 }
@@ -764,7 +770,7 @@ fn test_evaluate_local_cohorts_complex_json_logic() {
         .unwrap()
         .clone();
 
-        let result = evaluate_local_cohorts(&dimensions, &query_data);
+        let result = evaluate_local_cohorts(dimensions.clone(), query_data);
         assert_eq!(result.get("user"), Some(&json!(user_value)));
         assert_eq!(result.get("cohort"), Some(&json!(expected_cohort)));
     }
@@ -825,7 +831,7 @@ fn test_evaluate_local_cohorts_remote_cohort_passthrough() {
     .unwrap()
     .clone();
 
-    let result = evaluate_local_cohorts(&dimensions, &query_data);
+    let result = evaluate_local_cohorts(dimensions, query_data);
     assert_eq!(result.get("root"), Some(&json!("root_value")));
     assert_eq!(result.get("remote"), Some(&json!("remote_value_a")));
     assert_eq!(result.get("local"), Some(&json!("group_a")));
@@ -863,7 +869,7 @@ fn test_evaluate_local_cohorts_fills_missing_local_cohorts() {
     .unwrap()
     .clone();
 
-    let result = evaluate_local_cohorts(&dimensions, &query_data);
+    let result = evaluate_local_cohorts(dimensions, query_data);
     assert_eq!(result.get("orphan_cohort"), Some(&json!("otherwise")));
 }
 
@@ -926,7 +932,11 @@ fn test_dimensions_to_start_from_with_multiple_regular_roots() {
 fn test_evaluate_local_cohort_dimension_edge_cases() {
     // Test with empty schema
     let empty_schema = Map::new();
-    let result = evaluate_local_cohort_dimension("test", &json!("value"), &empty_schema);
+    let result = evaluate_local_cohort_dimension(
+        "test".to_string(),
+        json!("value"),
+        &empty_schema,
+    );
     assert_eq!(result, "otherwise");
 
     // Test with schema missing enum
@@ -941,8 +951,11 @@ fn test_evaluate_local_cohort_dimension_edge_cases() {
     .unwrap()
     .clone();
 
-    let result =
-        evaluate_local_cohort_dimension("test", &json!("value"), &schema_no_enum);
+    let result = evaluate_local_cohort_dimension(
+        "test".to_string(),
+        json!("value"),
+        &schema_no_enum,
+    );
     assert_eq!(result, "otherwise");
 
     // Test with schema missing definitions
@@ -953,8 +966,11 @@ fn test_evaluate_local_cohort_dimension_edge_cases() {
     .unwrap()
     .clone();
 
-    let result =
-        evaluate_local_cohort_dimension("test", &json!("value"), &schema_no_definitions);
+    let result = evaluate_local_cohort_dimension(
+        "test".to_string(),
+        json!("value"),
+        &schema_no_definitions,
+    );
     assert_eq!(result, "otherwise");
 
     // Test with malformed enum (not array)
@@ -970,8 +986,11 @@ fn test_evaluate_local_cohort_dimension_edge_cases() {
     .unwrap()
     .clone();
 
-    let result =
-        evaluate_local_cohort_dimension("test", &json!("value"), &schema_bad_enum);
+    let result = evaluate_local_cohort_dimension(
+        "test".to_string(),
+        json!("value"),
+        &schema_bad_enum,
+    );
     assert_eq!(result, "otherwise");
 }
 
@@ -1046,7 +1065,7 @@ fn test_local_cohort_based_on_local_cohort() {
     .unwrap()
     .clone();
 
-    let result1 = evaluate_local_cohorts(&dimensions, &query_data1);
+    let result1 = evaluate_local_cohorts(dimensions.clone(), query_data1);
     assert_eq!(result1.get("user_tier"), Some(&json!(1500)));
     assert_eq!(result1.get("user_category"), Some(&json!("premium")));
     assert_eq!(result1.get("user_segment"), Some(&json!("vip")));
@@ -1059,7 +1078,7 @@ fn test_local_cohort_based_on_local_cohort() {
     .unwrap()
     .clone();
 
-    let result2 = evaluate_local_cohorts(&dimensions, &query_data2);
+    let result2 = evaluate_local_cohorts(dimensions.clone(), query_data2);
     assert_eq!(result2.get("user_tier"), Some(&json!(500)));
     assert_eq!(result2.get("user_category"), Some(&json!("standard")));
     assert_eq!(result2.get("user_segment"), Some(&json!("regular")));
@@ -1072,7 +1091,7 @@ fn test_local_cohort_based_on_local_cohort() {
     .unwrap()
     .clone();
 
-    let result3 = evaluate_local_cohorts(&dimensions, &query_data3);
+    let result3 = evaluate_local_cohorts(dimensions.clone(), query_data3);
     assert_eq!(result3.get("user_tier"), Some(&json!(50)));
     assert_eq!(result3.get("user_category"), Some(&json!("basic")));
     assert_eq!(result3.get("user_segment"), Some(&json!("regular")));
@@ -1085,7 +1104,7 @@ fn test_local_cohort_based_on_local_cohort() {
     .unwrap()
     .clone();
 
-    let result4 = evaluate_local_cohorts(&dimensions, &query_data4);
+    let result4 = evaluate_local_cohorts(dimensions, query_data4);
     assert_eq!(result4.get("user_tier"), Some(&json!(999)));
     assert_eq!(result4.get("user_category"), Some(&json!("otherwise")));
     assert_eq!(result4.get("user_segment"), Some(&json!("new")));
@@ -1166,7 +1185,7 @@ fn test_local_cohort_chain_with_intermediate_query_data() {
     assert_eq!(start_dims.len(), 1);
     assert!(start_dims.contains(&"country_group".to_string()));
 
-    let result = evaluate_local_cohorts(&dimensions, &query_data);
+    let result = evaluate_local_cohorts(dimensions, query_data);
     assert_eq!(result.get("country_group"), Some(&json!("asia")));
     assert_eq!(result.get("market_segment"), Some(&json!("emerging")));
     // region should not be evaluated since it's not in the starting path
@@ -1267,7 +1286,7 @@ fn test_local_cohort_complex_branching() {
     .unwrap()
     .clone();
 
-    let result = evaluate_local_cohorts(&dimensions, &query_data);
+    let result = evaluate_local_cohorts(dimensions.clone(), query_data);
     assert_eq!(result.get("device_type"), Some(&json!("android")));
     assert_eq!(result.get("device_category"), Some(&json!("mobile")));
     assert_eq!(result.get("ui_theme"), Some(&json!("dark")));
@@ -1281,7 +1300,7 @@ fn test_local_cohort_complex_branching() {
     .unwrap()
     .clone();
 
-    let result2 = evaluate_local_cohorts(&dimensions, &query_data2);
+    let result2 = evaluate_local_cohorts(dimensions, query_data2);
     assert_eq!(result2.get("device_type"), Some(&json!("windows")));
     assert_eq!(result2.get("device_category"), Some(&json!("desktop")));
     assert_eq!(result2.get("ui_theme"), Some(&json!("light")));
@@ -1462,7 +1481,7 @@ fn test_multi_tree_complex_branching() {
     assert!(start_dims1.contains(&"location".to_string()));
     assert!(start_dims1.contains(&"user_tier".to_string()));
 
-    let result1 = evaluate_local_cohorts(&dimensions, &query_data1);
+    let result1 = evaluate_local_cohorts(dimensions.clone(), query_data1);
     assert_eq!(result1.get("user_preferences"), Some(&json!("detailed")));
     assert_eq!(result1.get("location"), Some(&json!("usa")));
     assert_eq!(result1.get("region"), Some(&json!("west")));
@@ -1489,7 +1508,7 @@ fn test_multi_tree_complex_branching() {
     assert!(start_dims2.contains(&"timezone".to_string()));
     assert!(start_dims2.contains(&"region".to_string()));
 
-    let result2 = evaluate_local_cohorts(&dimensions, &query_data2);
+    let result2 = evaluate_local_cohorts(dimensions.clone(), query_data2);
     assert_eq!(result2.get("user_id"), Some(&json!(1500)));
     assert_eq!(result2.get("user_tier"), Some(&json!("premium")));
     assert_eq!(result2.get("user_preferences"), Some(&json!("detailed")));
@@ -1729,7 +1748,7 @@ fn test_regular_overrides_local_cohort_in_query() {
     assert_eq!(start_dims1.len(), 1);
     assert!(start_dims1.contains(&"user_score".to_string()));
 
-    let result1 = evaluate_local_cohorts(&dimensions, &query_data1);
+    let result1 = evaluate_local_cohorts(dimensions.clone(), query_data1);
     assert_eq!(result1.get("user_score"), Some(&json!(950)));
     assert_eq!(result1.get("user_category"), Some(&json!("gold")));
     assert_eq!(result1.get("reward_tier"), Some(&json!("premium")));
@@ -1747,7 +1766,7 @@ fn test_regular_overrides_local_cohort_in_query() {
     assert_eq!(start_dims2.len(), 1);
     assert!(start_dims2.contains(&"user_category".to_string()));
 
-    let result2 = evaluate_local_cohorts(&dimensions, &query_data2);
+    let result2 = evaluate_local_cohorts(dimensions.clone(), query_data2);
     assert_eq!(result2.get("user_category"), Some(&json!("silver")));
     assert_eq!(result2.get("reward_tier"), Some(&json!("standard")));
 
@@ -1763,7 +1782,7 @@ fn test_regular_overrides_local_cohort_in_query() {
     assert_eq!(start_dims3.len(), 1);
     assert!(start_dims3.contains(&"user_category".to_string()));
 
-    let result3 = evaluate_local_cohorts(&dimensions, &query_data3);
+    let result3 = evaluate_local_cohorts(dimensions.clone(), query_data3);
     assert_eq!(result3.get("user_category"), Some(&json!("otherwise")));
     assert_eq!(result3.get("reward_tier"), Some(&json!("otherwise")));
 
@@ -1777,7 +1796,7 @@ fn test_regular_overrides_local_cohort_in_query() {
     .unwrap()
     .clone();
 
-    let result4 = evaluate_local_cohorts(&dimensions, &query_data4);
+    let result4 = evaluate_local_cohorts(dimensions, query_data4);
     assert_eq!(result4.get("user_score"), Some(&json!(300)));
     assert_eq!(result4.get("user_category"), Some(&json!("bronze")));
     assert_eq!(result4.get("reward_tier"), Some(&json!("basic")));

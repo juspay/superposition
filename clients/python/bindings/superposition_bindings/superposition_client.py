@@ -35,6 +35,7 @@ from .superposition_types import Config
 from .superposition_types import Context
 from .superposition_types import DimensionInfo
 from .superposition_types import ExperimentStatusType
+from .superposition_types import ExtendedMap
 from .superposition_types import GroupType
 from .superposition_types import MergeStrategy
 from .superposition_types import Overrides
@@ -47,6 +48,7 @@ from .superposition_types import _UniffiConverterTypeConfig
 from .superposition_types import _UniffiConverterTypeContext
 from .superposition_types import _UniffiConverterTypeDimensionInfo
 from .superposition_types import _UniffiConverterTypeExperimentStatusType
+from .superposition_types import _UniffiConverterTypeExtendedMap
 from .superposition_types import _UniffiConverterTypeGroupType
 from .superposition_types import _UniffiConverterTypeMergeStrategy
 from .superposition_types import _UniffiConverterTypeOverrides
@@ -59,6 +61,7 @@ from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferConfig
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferContext
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferDimensionInfo
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferExperimentStatusType
+from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferExtendedMap
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferGroupType
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferMergeStrategy
 from .superposition_types import _UniffiRustBuffer as _UniffiRustBufferOverrides
@@ -495,9 +498,9 @@ def _uniffi_check_contract_api_version(lib):
         raise InternalError("UniFFI contract version mismatch: try cleaning and rebuilding your project")
 
 def _uniffi_check_api_checksums(lib):
-    if lib.uniffi_superposition_core_checksum_func_ffi_eval_config() != 61169:
+    if lib.uniffi_superposition_core_checksum_func_ffi_eval_config() != 40327:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    if lib.uniffi_superposition_core_checksum_func_ffi_eval_config_with_reasoning() != 47981:
+    if lib.uniffi_superposition_core_checksum_func_ffi_eval_config_with_reasoning() != 10312:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_superposition_core_checksum_func_ffi_get_applicable_variants() != 58234:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
@@ -610,7 +613,7 @@ class _UniffiForeignFutureStructVoid(ctypes.Structure):
 _UNIFFI_FOREIGN_FUTURE_COMPLETE_VOID = ctypes.CFUNCTYPE(None,ctypes.c_uint64,_UniffiForeignFutureStructVoid,
 )
 _UniffiLib.uniffi_superposition_core_fn_func_ffi_eval_config.argtypes = (
-    _UniffiRustBuffer,
+    _UniffiRustBufferExtendedMap,
     _UniffiRustBuffer,
     _UniffiRustBuffer,
     _UniffiRustBuffer,
@@ -622,7 +625,7 @@ _UniffiLib.uniffi_superposition_core_fn_func_ffi_eval_config.argtypes = (
 )
 _UniffiLib.uniffi_superposition_core_fn_func_ffi_eval_config.restype = _UniffiRustBuffer
 _UniffiLib.uniffi_superposition_core_fn_func_ffi_eval_config_with_reasoning.argtypes = (
-    _UniffiRustBuffer,
+    _UniffiRustBufferExtendedMap,
     _UniffiRustBuffer,
     _UniffiRustBuffer,
     _UniffiRustBuffer,
@@ -1552,14 +1555,16 @@ class _UniffiConverterMapStringTypeOverrides(_UniffiConverterRustBuffer):
 
 # External type Condition: `from .superposition_types import Condition`
 
+# External type ExtendedMap: `from .superposition_types import ExtendedMap`
+
 # External type Overrides: `from .superposition_types import Overrides`
 
 # External type Variants: `from .superposition_types import Variants`
 
 # Async support
 
-def ffi_eval_config(default_config: "dict[str, str]",contexts: "typing.List[Context]",overrides: "dict[str, Overrides]",dimensions: "dict[str, DimensionInfo]",query_data: "dict[str, str]",merge_strategy: "MergeStrategy",filter_prefixes: "typing.Optional[typing.List[str]]",experimentation: "typing.Optional[ExperimentationArgs]") -> "dict[str, str]":
-    _UniffiConverterMapStringString.check_lower(default_config)
+def ffi_eval_config(default_config: "ExtendedMap",contexts: "typing.List[Context]",overrides: "dict[str, Overrides]",dimensions: "dict[str, DimensionInfo]",query_data: "dict[str, str]",merge_strategy: "MergeStrategy",filter_prefixes: "typing.Optional[typing.List[str]]",experimentation: "typing.Optional[ExperimentationArgs]") -> "dict[str, str]":
+    _UniffiConverterTypeExtendedMap.check_lower(default_config)
     
     _UniffiConverterSequenceTypeContext.check_lower(contexts)
     
@@ -1576,7 +1581,7 @@ def ffi_eval_config(default_config: "dict[str, str]",contexts: "typing.List[Cont
     _UniffiConverterOptionalTypeExperimentationArgs.check_lower(experimentation)
     
     return _UniffiConverterMapStringString.lift(_uniffi_rust_call_with_error(_UniffiConverterTypeOperationError,_UniffiLib.uniffi_superposition_core_fn_func_ffi_eval_config,
-        _UniffiConverterMapStringString.lower(default_config),
+        _UniffiConverterTypeExtendedMap.lower(default_config),
         _UniffiConverterSequenceTypeContext.lower(contexts),
         _UniffiConverterMapStringTypeOverrides.lower(overrides),
         _UniffiConverterMapStringTypeDimensionInfo.lower(dimensions),
@@ -1586,8 +1591,8 @@ def ffi_eval_config(default_config: "dict[str, str]",contexts: "typing.List[Cont
         _UniffiConverterOptionalTypeExperimentationArgs.lower(experimentation)))
 
 
-def ffi_eval_config_with_reasoning(default_config: "dict[str, str]",contexts: "typing.List[Context]",overrides: "dict[str, Overrides]",dimensions: "dict[str, DimensionInfo]",query_data: "dict[str, str]",merge_strategy: "MergeStrategy",filter_prefixes: "typing.Optional[typing.List[str]]",experimentation: "typing.Optional[ExperimentationArgs]") -> "dict[str, str]":
-    _UniffiConverterMapStringString.check_lower(default_config)
+def ffi_eval_config_with_reasoning(default_config: "ExtendedMap",contexts: "typing.List[Context]",overrides: "dict[str, Overrides]",dimensions: "dict[str, DimensionInfo]",query_data: "dict[str, str]",merge_strategy: "MergeStrategy",filter_prefixes: "typing.Optional[typing.List[str]]",experimentation: "typing.Optional[ExperimentationArgs]") -> "dict[str, str]":
+    _UniffiConverterTypeExtendedMap.check_lower(default_config)
     
     _UniffiConverterSequenceTypeContext.check_lower(contexts)
     
@@ -1604,7 +1609,7 @@ def ffi_eval_config_with_reasoning(default_config: "dict[str, str]",contexts: "t
     _UniffiConverterOptionalTypeExperimentationArgs.check_lower(experimentation)
     
     return _UniffiConverterMapStringString.lift(_uniffi_rust_call_with_error(_UniffiConverterTypeOperationError,_UniffiLib.uniffi_superposition_core_fn_func_ffi_eval_config_with_reasoning,
-        _UniffiConverterMapStringString.lower(default_config),
+        _UniffiConverterTypeExtendedMap.lower(default_config),
         _UniffiConverterSequenceTypeContext.lower(contexts),
         _UniffiConverterMapStringTypeOverrides.lower(overrides),
         _UniffiConverterMapStringTypeDimensionInfo.lower(dimensions),

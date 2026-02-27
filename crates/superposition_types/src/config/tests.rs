@@ -91,17 +91,17 @@ fn filter_by_dimensions_with_dimension() {
     let config = with_dimensions::get_config();
 
     assert_eq!(
-        config.filter_by_dimensions(&get_dimension_data1()),
+        config.clone().filter_by_dimensions(get_dimension_data1()),
         with_dimensions::get_dimension_filtered_config1()
     );
 
     assert_eq!(
-        config.filter_by_dimensions(&get_dimension_data2()),
+        config.clone().filter_by_dimensions(get_dimension_data2()),
         with_dimensions::get_dimension_filtered_config2()
     );
 
     assert_eq!(
-        config.filter_by_dimensions(&get_dimension_data3()),
+        config.filter_by_dimensions(get_dimension_data3()),
         get_dimension_filtered_config3_with_dimension()
     );
 }
@@ -111,17 +111,17 @@ fn filter_by_dimensions_without_dimension() {
     let config = without_dimensions::get_config();
 
     assert_eq!(
-        config.filter_by_dimensions(&get_dimension_data1()),
+        config.clone().filter_by_dimensions(get_dimension_data1()),
         without_dimensions::get_dimension_filtered_config1()
     );
 
     assert_eq!(
-        config.filter_by_dimensions(&get_dimension_data2()),
+        config.clone().filter_by_dimensions(get_dimension_data2()),
         without_dimensions::get_dimension_filtered_config2()
     );
 
     assert_eq!(
-        config.filter_by_dimensions(&get_dimension_data3()),
+        config.filter_by_dimensions(get_dimension_data3()),
         get_dimension_filtered_config3_without_dimension()
     );
 }

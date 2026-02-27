@@ -830,7 +830,7 @@ pub async fn discard(
 pub async fn get_applicable_variants_helper(
     db_conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     context: Map<String, Value>,
-    dimensions_info: &HashMap<String, DimensionInfo>,
+    dimensions_info: HashMap<String, DimensionInfo>,
     identifier: String,
     workspace_context: &WorkspaceContext,
 ) -> superposition::Result<(Vec<String>, HashMap<String, ExperimentResponse>)> {
@@ -840,7 +840,7 @@ pub async fn get_applicable_variants_helper(
         .schema_name(&workspace_context.schema_name)
         .load::<ExperimentGroup>(db_conn)?;
 
-    let context = evaluate_local_cohorts(dimensions_info, &context);
+    let context = evaluate_local_cohorts(dimensions_info, context);
 
     let buckets =
         get_applicable_buckets_from_group(&experiment_groups, &context, &identifier);
@@ -910,7 +910,7 @@ async fn get_applicable_variants_handler(
     let (applicable_variants, exps) = get_applicable_variants_helper(
         &mut conn,
         context,
-        &dimensions_info,
+        dimensions_info,
         identifier,
         &workspace_context,
     )
@@ -1045,8 +1045,8 @@ async fn list_handler(
             let dimensions_info =
                 fetch_dimensions_info_map(&mut conn, &workspace_context.schema_name)?;
             let dimension_params = evaluate_local_cohorts_skip_unresolved(
-                &dimensions_info,
-                &dimension_params,
+                dimensions_info,
+                dimension_params.into_inner(),
             );
             let dimension_keys = dimension_params.keys().cloned().collect::<Vec<_>>();
 

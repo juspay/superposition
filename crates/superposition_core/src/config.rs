@@ -3,24 +3,24 @@ use std::collections::{HashMap, HashSet};
 use serde_json::{json, Map, Value};
 pub use superposition_types::api::config::MergeStrategy;
 use superposition_types::{
-    logic::evaluate_local_cohorts, Config, Context, DimensionInfo, Overrides,
+    logic::evaluate_local_cohorts, Config, Context, DimensionInfo, ExtendedMap, Overrides,
 };
 
 pub fn eval_config(
-    default_config: Map<String, Value>,
-    contexts: &[Context],
-    overrides: &HashMap<String, Overrides>,
-    dimensions: &HashMap<String, DimensionInfo>,
-    query_data: &Map<String, Value>,
+    default_configs: ExtendedMap,
+    contexts: Vec<Context>,
+    overrides: HashMap<String, Overrides>,
+    dimensions: HashMap<String, DimensionInfo>,
+    query_data: Map<String, Value>,
     merge_strategy: MergeStrategy,
     filter_prefixes: Option<Vec<String>>,
 ) -> Result<Map<String, Value>, String> {
     // Create Config struct to use existing filtering logic
     let mut config = Config {
-        default_configs: default_config.into(),
-        contexts: contexts.to_vec(),
-        overrides: overrides.clone(),
-        dimensions: dimensions.clone(),
+        default_configs,
+        contexts,
+        overrides,
+        dimensions,
     };
 
     // Apply prefix filtering if keys are provided (using existing superposition_types logic)
@@ -31,39 +31,42 @@ pub fn eval_config(
         }
     }
 
-    let modified_query_data = evaluate_local_cohorts(&config.dimensions, query_data);
+    let modified_query_data = evaluate_local_cohorts(config.dimensions, query_data);
 
     let overrides_map: Map<String, Value> = get_overrides(
         &modified_query_data,
-        &config.contexts,
-        &config.overrides,
+        config.contexts,
+        config.overrides,
         &merge_strategy,
-        None,
+        drop,
     )?;
 
     // Apply overrides to default config
-    let mut result_config = config.default_configs;
-    merge_overrides_on_default_config(&mut result_config, overrides_map, &merge_strategy);
+    let result_config = merge_overrides_on_default_config(
+        config.default_configs,
+        overrides_map,
+        &merge_strategy,
+    );
 
     Ok(result_config.into_inner())
 }
 
 pub fn eval_config_with_reasoning(
-    default_config: Map<String, Value>,
-    contexts: &[Context],
-    overrides: &HashMap<String, Overrides>,
-    dimensions: &HashMap<String, DimensionInfo>,
-    query_data: &Map<String, Value>,
+    default_configs: ExtendedMap,
+    contexts: Vec<Context>,
+    overrides: HashMap<String, Overrides>,
+    dimensions: HashMap<String, DimensionInfo>,
+    query_data: Map<String, Value>,
     merge_strategy: MergeStrategy,
     filter_prefixes: Option<Vec<String>>, // Optional prefix filtering
 ) -> Result<Map<String, Value>, String> {
     let mut reasoning: Vec<Value> = vec![];
 
     let mut config = Config {
-        default_configs: default_config.into(),
-        contexts: contexts.to_vec(),
-        overrides: overrides.clone(),
-        dimensions: dimensions.clone(),
+        default_configs,
+        contexts,
+        overrides,
+        dimensions,
     };
 
     if let Some(prefixes) = filter_prefixes {
@@ -73,25 +76,28 @@ pub fn eval_config_with_reasoning(
         }
     }
 
-    let mut reasoning_collector = |context: Context| {
+    let reasoning_collector = |context: Context| {
         reasoning.push(json!({
             "context": context.condition,
             "override": context.override_with_keys
         }));
     };
 
-    let modified_query_data = evaluate_local_cohorts(&config.dimensions, query_data);
+    let modified_query_data = evaluate_local_cohorts(config.dimensions, query_data);
 
     let overrides_map = get_overrides(
         &modified_query_data,
-        &config.contexts,
-        &config.overrides,
+        config.contexts,
+        config.overrides,
         &merge_strategy,
-        Some(&mut reasoning_collector),
+        reasoning_collector,
     )?;
 
-    let mut result_config = config.default_configs;
-    merge_overrides_on_default_config(&mut result_config, overrides_map, &merge_strategy);
+    let mut result_config = merge_overrides_on_default_config(
+        config.default_configs,
+        overrides_map,
+        &merge_strategy,
+    );
 
     // Add reasoning metadata
     result_config.insert("metadata".into(), json!(reasoning));
@@ -99,9 +105,9 @@ pub fn eval_config_with_reasoning(
     Ok(result_config.into_inner())
 }
 
-pub fn merge(doc: &mut Value, patch: &Value) {
+pub fn merge(doc: &mut Value, patch: Value) {
     if !patch.is_object() {
-        *doc = patch.clone();
+        *doc = patch;
         return;
     }
 
@@ -109,68 +115,44 @@ pub fn merge(doc: &mut Value, patch: &Value) {
         *doc = Value::Object(Map::new());
     }
 
-    let map = doc.as_object_mut().unwrap();
-    for (key, value) in patch.as_object().unwrap() {
-        merge(map.entry(key.as_str()).or_insert(Value::Null), value);
-    }
-}
-
-fn replace_top_level(
-    doc: &mut Map<String, Value>,
-    patch: &Value,
-    mut on_override: impl FnMut(),
-    override_key: &String,
-) {
-    match patch.as_object() {
-        Some(patch_map) => {
-            for (key, value) in patch_map {
-                doc.insert(key.clone(), value.clone());
-            }
-            on_override();
-        }
-        None => {
-            log::error!(
-                "Config: found non-object override key: {override_key} in overrides"
-            );
+    if let (Some(map), Value::Object(obj)) = (doc.as_object_mut(), patch) {
+        for (key, value) in obj {
+            merge(map.entry(key.as_str()).or_insert(Value::Null), value);
         }
     }
 }
 
-fn get_overrides(
+fn get_overrides<F: FnMut(Context)>(
     query_data: &Map<String, Value>,
-    contexts: &[Context],
-    overrides: &HashMap<String, Overrides>,
+    contexts: Vec<Context>,
+    mut overrides: HashMap<String, Overrides>,
     merge_strategy: &MergeStrategy,
-    mut on_override_select: Option<&mut dyn FnMut(Context)>,
+    mut on_override_select: F,
 ) -> Result<Map<String, Value>, String> {
     let mut required_overrides: Value = json!({});
-    let mut on_override_select = |context: Context| {
-        if let Some(ref mut func) = on_override_select {
-            func(context)
-        }
-    };
 
     for context in contexts {
         let valid_context = superposition_types::apply(&context.condition, query_data);
 
         if valid_context {
             let override_key = context.override_with_keys.get_key();
-            if let Some(overriden_value) = overrides.get(override_key) {
+            if let Some(overriden_value) = overrides.remove(override_key) {
                 match merge_strategy {
-                    MergeStrategy::REPLACE => replace_top_level(
-                        required_overrides.as_object_mut().unwrap(),
-                        &Value::Object(overriden_value.clone().into()),
-                        || on_override_select(context.clone()),
-                        override_key,
-                    ),
+                    MergeStrategy::REPLACE => {
+                        if let Some(doc) = required_overrides.as_object_mut() {
+                            for (key, value) in overriden_value.into_inner() {
+                                doc.insert(key, value);
+                            }
+                        }
+                    }
                     MergeStrategy::MERGE => {
                         merge(
                             &mut required_overrides,
-                            &Value::Object(overriden_value.clone().into()),
+                            Value::Object(overriden_value.into_inner()),
                         );
-                        on_override_select(context.clone())
                     }
                 }
+                on_override_select(context)
             }
         }
     }
@@ -182,20 +164,21 @@ fn get_overrides(
 }
 
 fn merge_overrides_on_default_config(
-    default_config: &mut Map<String, Value>,
+    mut default_config: ExtendedMap,
     overrides: Map<String, Value>,
     merge_strategy: &MergeStrategy,
-) {
+) -> ExtendedMap {
     overrides.into_iter().for_each(|(key, val)| {
         if let Some(og_val) = default_config.get_mut(&key) {
             match merge_strategy {
                 MergeStrategy::REPLACE => {
-                    let _ = default_config.insert(key.clone(), val.clone());
+                    default_config.insert(key, val);
                 }
-                MergeStrategy::MERGE => merge(og_val, &val),
+                MergeStrategy::MERGE => merge(og_val, val),
             }
         } else {
             log::error!("Config: found non-default_config key: {key} in overrides");
         }
-    })
+    });
+    default_config
 }

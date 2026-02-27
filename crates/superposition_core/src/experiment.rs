@@ -87,10 +87,10 @@ pub type Experiments = Vec<FfiExperiment>;
 pub type ExperimentGroups = Vec<FfiExperimentGroup>;
 
 pub fn get_applicable_variants(
-    dimensions_info: &HashMap<String, DimensionInfo>,
+    dimensions_info: HashMap<String, DimensionInfo>,
     experiments: Experiments,
     experiment_groups: &ExperimentGroups,
-    query_data: &Map<String, Value>,
+    query_data: Map<String, Value>,
     identifier: &str,
     prefix: Option<Vec<String>>,
 ) -> Result<Vec<String>, String> {

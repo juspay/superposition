@@ -644,13 +644,12 @@ max_count = 95
     let mut dims = Map::new();
     dims.insert("os".to_string(), Value::String("linux".to_string()));
 
-    let default_configs = (*config.default_configs).clone();
     let result = crate::eval_config(
-        default_configs.clone(),
-        &config.contexts,
-        &config.overrides,
-        &config.dimensions,
-        &dims,
+        config.default_configs,
+        config.contexts,
+        config.overrides,
+        config.dimensions,
+        dims,
         crate::MergeStrategy::MERGE,
         None,
     )

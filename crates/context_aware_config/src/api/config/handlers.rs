@@ -619,7 +619,7 @@ async fn get_handler(
         body.map_or_else(QueryMap::default, |body| body.into_inner().context.into())
     };
     if !context.is_empty() {
-        config = config.filter_by_dimensions(&context);
+        config = config.filter_by_dimensions(context.into_inner());
     }
 
     let mut response = HttpResponse::Ok();
@@ -693,7 +693,7 @@ async fn resolve_handler(
 
     let mut config_version =
         get_config_version(&query_filters.version, &workspace_context)?;
-    let mut config = generate_config_from_version(
+    let config = generate_config_from_version(
         &mut config_version,
         &mut conn,
         &workspace_context.schema_name,
@@ -701,7 +701,7 @@ async fn resolve_handler(
     let (is_smithy, query_data) = setup_query_data(&req, &body, &dimension_params)?;
 
     let resolved_config = resolve(
-        &mut config,
+        config,
         query_data,
         merge_strategy,
         &mut conn,

@@ -203,7 +203,7 @@ pub fn setup_query_data(
 }
 
 pub fn resolve(
-    config: &mut Config,
+    mut config: Config,
     mut query_data: QueryMap,
     merge_strategy: Header<MergeStrategy>,
     conn: &mut DBConnection,
@@ -211,7 +211,7 @@ pub fn resolve(
     workspace_context: &WorkspaceContext,
     master_encryption_key: &Option<EncryptionKey>,
 ) -> superposition::Result<Map<String, Value>> {
-    *config = apply_prefix_filter_to_config(&query_filters.prefix, config.clone())?;
+    config = apply_prefix_filter_to_config(&query_filters.prefix, config)?;
 
     if let Some(context_id) = &query_filters.context_id {
         config.contexts = if let Some(index) = config
@@ -241,12 +241,14 @@ pub fn resolve(
     let merge_strategy = merge_strategy.into_inner();
     let show_reason = query_filters.show_reasoning.unwrap_or_default();
     let response = if show_reason {
-        eval_cac_with_reasoning(config, &query_data, merge_strategy).map_err(|err| {
-            log::error!("failed to eval cac with err: {}", err);
-            unexpected_error!("cac eval failed")
-        })
+        eval_cac_with_reasoning(config, query_data.into_inner(), merge_strategy).map_err(
+            |err| {
+                log::error!("failed to eval cac with err: {}", err);
+                unexpected_error!("cac eval failed")
+            },
+        )
     } else {
-        eval_cac(config, &query_data, merge_strategy).map_err(|err| {
+        eval_cac(config, query_data.into_inner(), merge_strategy).map_err(|err| {
             log::error!("failed to eval cac with err: {}", err);
             unexpected_error!("cac eval failed")
         })
