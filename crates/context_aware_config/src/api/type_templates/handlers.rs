@@ -67,9 +67,9 @@ async fn create_handler(
         type_schema: request.type_schema.clone(),
         type_name: request.type_name.clone().into(),
         created_at: now,
-        created_by: user.email.clone(),
+        created_by: user.get_email(),
         last_modified_at: now,
-        last_modified_by: user.email.clone(),
+        last_modified_by: user.get_email(),
         description: request.description.clone(),
         change_reason: request.change_reason.clone(),
     };
@@ -140,7 +140,7 @@ async fn update_handler(
         .set((
             request,
             type_templates::last_modified_at.eq(timestamp),
-            type_templates::last_modified_by.eq(user.email.clone()),
+            type_templates::last_modified_by.eq(user.get_email()),
         ))
         .returning(TypeTemplate::as_returning())
         .schema_name(&workspace_context.schema_name)
@@ -162,7 +162,7 @@ async fn delete_handler(
         .filter(dsl::type_name.eq(type_name.clone()))
         .set((
             dsl::last_modified_at.eq(Utc::now()),
-            dsl::last_modified_by.eq(user.email.clone()),
+            dsl::last_modified_by.eq(user.get_email()),
         ))
         .returning(TypeTemplate::as_returning())
         .schema_name(&workspace_context.schema_name)

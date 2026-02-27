@@ -16,15 +16,14 @@ pub(super) fn presence_no_check(_: Option<&Nonce>) -> Result<(), String> {
 pub(super) fn try_user_from<A: AdditionalClaims, B: GenderClaim>(
     claims: &IdTokenClaims<A, B>,
 ) -> Result<User, String> {
-    let user = User {
-        email: claims
-            .email()
-            .ok_or(String::from("Email not found"))?
-            .to_string(),
-        username: claims
-            .preferred_username()
-            .ok_or(String::from("Username not found"))?
-            .to_string(),
-    };
-    Ok(user)
+    let email = claims
+        .email()
+        .ok_or(String::from("Email not found"))?
+        .to_string();
+    let username = claims
+        .preferred_username()
+        .ok_or(String::from("Username not found"))?
+        .to_string();
+
+    Ok(User::new(email, username))
 }

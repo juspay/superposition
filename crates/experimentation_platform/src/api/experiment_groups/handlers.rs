@@ -112,8 +112,8 @@ async fn create_handler(
         name: req.name,
         description: req.description,
         change_reason: req.change_reason,
-        created_by: user.email.clone(),
-        last_modified_by: user.email.clone(),
+        created_by: user.get_email(),
+        last_modified_by: user.get_email(),
         created_at: now,
         last_modified_at: now,
         context: exp_context,
@@ -178,7 +178,7 @@ async fn update_handler(
         .filter(experiment_groups::id.eq(&id))
         .set((
             req,
-            experiment_groups::last_modified_by.eq(user.email),
+            experiment_groups::last_modified_by.eq(user.get_email()),
             experiment_groups::last_modified_at.eq(chrono::Utc::now()),
         ))
         .returning(ExperimentGroup::as_returning())
@@ -370,7 +370,7 @@ async fn delete_handler(
         let marked_group = diesel::update(experiment_groups::experiment_groups)
             .filter(experiment_groups::id.eq(&id))
             .set((
-                experiment_groups::last_modified_by.eq(user.email),
+                experiment_groups::last_modified_by.eq(user.get_email()),
                 experiment_groups::last_modified_at.eq(chrono::Utc::now()),
             ))
             .returning(ExperimentGroup::as_returning())
@@ -400,10 +400,7 @@ async fn backfill_handler(
 ) -> superposition::Result<Json<Vec<ExperimentGroup>>> {
     log::info!("Backfilling experiment groups");
     let DbConnection(mut conn) = db_conn;
-    let user = User {
-        email: "system@superposition.io".into(),
-        username: "superposition".into(),
-    };
+    let user = User::new("system@superposition.io".into(), "superposition".into());
     let delay = get_from_env_or_default("BACKFILL_DELAY", 100);
 
     let experiment_groups =

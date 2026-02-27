@@ -585,7 +585,7 @@ async fn delete_handler(
                 &workspace_context.schema_name,
             )?;
             let config_version_desc =
-                Description::try_from(format!("Deleted context by {}", user.username))
+                Description::try_from(format!("Deleted context by {}", user.get_email()))
                     .map_err(|e| unexpected_error!(e))?;
             let version_id = add_config_version(
                 &state,
@@ -745,10 +745,9 @@ async fn bulk_operations_handler(
                             .get_result::<Context>(transaction_conn)
                             .optional();
 
-                        let email: String = user.clone().get_email();
                         let change_reason = ChangeReason::try_from(format!(
                             "Context deleted by {}",
-                            email.clone()
+                            user.get_email()
                         ))
                         .map_err(|e| unexpected_error!(e))?;
                         all_change_reasons.push(change_reason);
@@ -762,7 +761,10 @@ async fn bulk_operations_handler(
                                 ));
                             }
                             Ok(Some(ctx)) => {
-                                log::info!("{ctx_id} context deleted by {email}");
+                                log::info!(
+                                    "{ctx_id} context deleted by {}",
+                                    user.get_email()
+                                );
                                 response.push(ContextBulkResponse::Delete(format!(
                                     "{ctx_id} deleted succesfully"
                                 )));
