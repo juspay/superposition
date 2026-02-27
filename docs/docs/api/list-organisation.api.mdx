@@ -18,6 +18,7 @@ import StatusCodes from "@theme/StatusCodes";
 import OperationTabs from "@theme/OperationTabs";
 import TabItem from "@theme/TabItem";
 import Heading from "@theme/Heading";
+import Translate from "@docusaurus/Translate";
 
 <Heading
   as={"h1"}
@@ -42,27 +43,24 @@ Retrieves a paginated list of all organisations with their basic information, cr
   id={"request"}
   as={"h2"}
   className={"openapi-tabs__heading"}
-  children={"Request"}
 >
+  <Translate id="theme.openapi.request.title">Request</Translate>
 </Heading>
 
 <ParamsDetails
-  parameters={[{"name":"count","in":"query","description":"Number of items to be returned in each page.","schema":{"type":"number","description":"Number of items to be returned in each page."}},{"name":"page","in":"query","description":"Page number to retrieve, starting from 1.","schema":{"type":"number","description":"Page number to retrieve, starting from 1."}},{"name":"all","in":"query","description":"If true, returns all requested items, ignoring pagination parameters page and count.","schema":{"type":"boolean","description":"If true, returns all requested items, ignoring pagination parameters page and count."}}]}
+  {...require("./list-organisation.ParamsDetails.json")}
 >
   
 </ParamsDetails>
 
 <RequestSchema
-  title={"Body"}
-  body={undefined}
+  {...require("./list-organisation.RequestSchema.json")}
 >
   
 </RequestSchema>
 
 <StatusCodes
-  id={undefined}
-  label={undefined}
-  responses={{"200":{"description":"ListOrganisation 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"total_pages":{"type":"number"},"total_items":{"type":"number"},"data":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"name":{"type":"string"},"country_code":{"type":"string"},"contact_email":{"type":"string"},"contact_phone":{"type":"string"},"created_by":{"type":"string"},"admin_email":{"type":"string"},"status":{"type":"string","enum":["Active","Inactive","PendingKyb"],"title":"OrgStatus"},"sector":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"updated_at":{"type":"string","format":"date-time"},"updated_by":{"type":"string"}},"required":["admin_email","created_at","created_by","id","name","status","updated_at","updated_by"],"title":"OrganisationResponse"}}},"required":["data","total_items","total_pages"],"title":"ListOrganisationResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+  {...require("./list-organisation.StatusCodes.json")}
 >
   
 </StatusCodes>

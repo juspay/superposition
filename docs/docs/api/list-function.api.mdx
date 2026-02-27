@@ -18,6 +18,7 @@ import StatusCodes from "@theme/StatusCodes";
 import OperationTabs from "@theme/OperationTabs";
 import TabItem from "@theme/TabItem";
 import Heading from "@theme/Heading";
+import Translate from "@docusaurus/Translate";
 
 <Heading
   as={"h1"}
@@ -42,27 +43,24 @@ Retrieves a paginated list of all functions in the workspace with their basic in
   id={"request"}
   as={"h2"}
   className={"openapi-tabs__heading"}
-  children={"Request"}
 >
+  <Translate id="theme.openapi.request.title">Request</Translate>
 </Heading>
 
 <ParamsDetails
-  parameters={[{"name":"count","in":"query","description":"Number of items to be returned in each page.","schema":{"type":"number","description":"Number of items to be returned in each page."}},{"name":"page","in":"query","description":"Page number to retrieve, starting from 1.","schema":{"type":"number","description":"Page number to retrieve, starting from 1."}},{"name":"all","in":"query","description":"If true, returns all requested items, ignoring pagination parameters page and count.","schema":{"type":"boolean","description":"If true, returns all requested items, ignoring pagination parameters page and count."}},{"name":"function_type","in":"query","style":"form","schema":{"type":"array","items":{"type":"string","enum":["VALUE_VALIDATION","VALUE_COMPUTE","CONTEXT_VALIDATION","CHANGE_REASON_VALIDATION"],"title":"FunctionTypes"}},"explode":true},{"name":"x-org-id","in":"header","schema":{"type":"string"},"required":true},{"name":"x-workspace","in":"header","schema":{"type":"string"},"required":true}]}
+  {...require("./list-function.ParamsDetails.json")}
 >
   
 </ParamsDetails>
 
 <RequestSchema
-  title={"Body"}
-  body={undefined}
+  {...require("./list-function.RequestSchema.json")}
 >
   
 </RequestSchema>
 
 <StatusCodes
-  id={undefined}
-  label={undefined}
-  responses={{"200":{"description":"ListFunction 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"total_pages":{"type":"number"},"total_items":{"type":"number"},"data":{"type":"array","items":{"type":"object","properties":{"function_name":{"type":"string"},"published_code":{"type":"string"},"draft_code":{"type":"string"},"published_runtime_version":{"type":"string","enum":["1.0"],"title":"FunctionRuntimeVersion"},"draft_runtime_version":{"type":"string","enum":["1.0"],"title":"FunctionRuntimeVersion"},"published_at":{"type":"string","format":"date-time"},"draft_edited_at":{"type":"string","format":"date-time"},"published_by":{"type":"string"},"draft_edited_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"},"change_reason":{"type":"string"},"description":{"type":"string"},"function_type":{"type":"string","enum":["VALUE_VALIDATION","VALUE_COMPUTE","CONTEXT_VALIDATION","CHANGE_REASON_VALIDATION"],"title":"FunctionTypes"}},"required":["change_reason","description","draft_code","draft_edited_at","draft_edited_by","draft_runtime_version","function_name","function_type","last_modified_at","last_modified_by"],"title":"FunctionResponse"}}},"required":["data","total_items","total_pages"],"title":"ListFunctionResponseContent"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+  {...require("./list-function.StatusCodes.json")}
 >
   
 </StatusCodes>

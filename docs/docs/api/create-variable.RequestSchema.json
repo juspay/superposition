@@ -1,0 +1,1 @@
+{"title":"Body","body":{"content":{"application/json":{"schema":{"type":"object","properties":{"name":{"type":"string"},"value":{"type":"string"},"description":{"type":"string"},"change_reason":{"type":"string"}},"required":["change_reason","description","name","value"],"title":"CreateVariableRequestContent"}}},"required":true}}

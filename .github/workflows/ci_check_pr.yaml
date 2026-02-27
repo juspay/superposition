@@ -158,8 +158,8 @@ jobs:
             - name: Set up JDK
               uses: actions/setup-java@v4
               with:
-                java-version: '17'
-                distribution: 'temurin'
+                  java-version: "17"
+                  distribution: "temurin"
 
             - name: Setup Gradle
               uses: gradle/actions/setup-gradle@v3
@@ -167,8 +167,8 @@ jobs:
             - name: Setup Haskell environment (GHC and Cabal)
               uses: haskell-actions/setup@v2
               with:
-                ghc-version: '9.6.7' # Specify the GHC version (e.g., '9.2' or 'latest')
-                cabal-version: '3.16' # Specify the Cabal version (e.g., '3.8' or 'latest')
+                  ghc-version: "9.6.7" # Specify the GHC version (e.g., '9.2' or 'latest')
+                  cabal-version: "3.16" # Specify the Cabal version (e.g., '3.8' or 'latest')
 
             - name: Update Cabal package database
               run: cabal update
@@ -371,13 +371,15 @@ jobs:
                   make uniffi-bindings
 
             - name: Ensure no file changed
-              run: git diff --exit-code
+              run: |
+                  git add .
+                  git diff --staged --exit-code
 
             - name: Show git diff on failure
               if: failure()
               run: |
                   echo "❌ The following files were modified:"
-                  git diff --name-only
+                  git diff --staged --name-only
                   exit 1
 
     smithy-sdk-generation-check:
@@ -408,20 +410,21 @@ jobs:
 
             - name: Ensure no unwanted file changes
               run: |
-                  git diff --exit-code -- \
+                  git add .
+                  git diff --staged --exit-code -- \
                     . \
                     ':(exclude)**/*.api.mdx' \
                     ':(exclude)clients/java/sdk/src/main/java/io/juspay/superposition/client/SuperpositionAsyncClientImpl.java' \
                     ':(exclude)clients/java/sdk/src/main/java/io/juspay/superposition/client/SuperpositionAsyncClient.java' \
                     ':(exclude)clients/java/sdk/src/main/java/io/juspay/superposition/client/SuperpositionClient.java' \
                     ':(exclude)clients/java/sdk/src/main/java/io/juspay/superposition/client/SuperpositionClientImpl.java'
-                  git diff -I '^api:' --exit-code -- '**/*.api.mdx'
+                  git diff --staged -I '^api:' --exit-code -- '**/*.api.mdx'
 
             - name: Show git diff on failure
               if: failure()
               run: |
                   echo "❌ The following files were modified:"
-                  git diff --name-only
+                  git diff --staged --name-only
                   exit 1
 
             # on failure, create a commit of the modified files for easier debugging

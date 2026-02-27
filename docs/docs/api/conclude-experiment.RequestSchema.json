@@ -1,0 +1,1 @@
+{"title":"Body","body":{"content":{"application/json":{"schema":{"type":"object","properties":{"chosen_variant":{"type":"string"},"description":{"type":"string"},"change_reason":{"type":"string"}},"required":["change_reason","chosen_variant"],"title":"ConcludeExperimentRequestContent"}}},"required":true}}
