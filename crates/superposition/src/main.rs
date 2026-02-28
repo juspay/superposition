@@ -30,6 +30,7 @@ use service_utils::{
         auth_z::{AuthZHandler, AuthZManager},
         request_response_logging::RequestResponseLogger,
         workspace_context::OrgWorkspaceMiddlewareFactory,
+        workspace_lock::WorkspaceLockMiddlewareFactory,
     },
     service::types::AppEnv,
 };
@@ -180,24 +181,28 @@ async fn main() -> Result<()> {
                     .service(
                         scope("/context")
                             .app_data(Resource::Context)
+                            .wrap(WorkspaceLockMiddlewareFactory::new())
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .service(context::endpoints()),
                     )
                     .service(
                         scope("/dimension")
                             .app_data(Resource::Dimension)
+                            .wrap(WorkspaceLockMiddlewareFactory::new())
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .service(dimension::endpoints()),
                     )
                     .service(
                         scope("/default-config")
                             .app_data(Resource::DefaultConfig)
+                            .wrap(WorkspaceLockMiddlewareFactory::new())
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .service(default_config::endpoints()),
                     )
                     .service(
                         scope("/config")
                             .app_data(Resource::Config)
+                            .wrap(WorkspaceLockMiddlewareFactory::new())
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .service(config::endpoints()),
                     )
