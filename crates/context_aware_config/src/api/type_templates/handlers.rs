@@ -60,7 +60,8 @@ async fn create_handler(
         &request.change_reason,
         &mut conn,
         &state.master_encryption_key,
-    )?;
+    )
+    .await?;
 
     let now = Utc::now();
     let type_template = TypeTemplate {
@@ -130,7 +131,8 @@ async fn update_handler(
         &request.change_reason,
         &mut conn,
         &state.master_encryption_key,
-    )?;
+    )
+    .await?;
 
     let type_name: String = path.into_inner().into();
 

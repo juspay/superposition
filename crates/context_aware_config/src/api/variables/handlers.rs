@@ -112,7 +112,8 @@ async fn create_handler(
         &req.change_reason,
         &mut conn,
         &state.master_encryption_key,
-    )?;
+    )
+    .await?;
 
     let now = chrono::Utc::now();
 
@@ -173,7 +174,8 @@ async fn update_handler(
         &req.change_reason,
         &mut conn,
         &state.master_encryption_key,
-    )?;
+    )
+    .await?;
 
     let updated_var = diesel::update(variables)
         .filter(name.eq(var_name))

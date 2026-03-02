@@ -110,7 +110,8 @@ async fn create_handler(
         &req_change_reason,
         &mut db_conn,
         &state.master_encryption_key,
-    )?;
+    )
+    .await?;
 
     let new_ctx = create_ctx_from_put_req(
         req.into_inner(),
@@ -119,7 +120,8 @@ async fn create_handler(
         &user,
         &workspace_context,
         &state.master_encryption_key,
-    )?;
+    )
+    .await?;
 
     let (put_response, version_id) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -183,7 +185,8 @@ async fn update_handler(
         &req_change_reason,
         &mut db_conn,
         &state.master_encryption_key,
-    )?;
+    )
+    .await?;
 
     let DbConnection(mut conn) = db_conn;
 
@@ -208,7 +211,8 @@ async fn update_handler(
         &r_override,
         &context,
         &state.master_encryption_key,
-    )?;
+    )
+    .await?;
 
     let (override_resp, version_id) =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -289,7 +293,8 @@ async fn move_handler(
         &req.change_reason,
         &mut db_conn,
         &state.master_encryption_key,
-    )?;
+    )
+    .await?;
 
     let DbConnection(mut conn) = db_conn;
 
@@ -301,7 +306,8 @@ async fn move_handler(
         ctx_condition,
         Overrides::default(),
         &state.master_encryption_key,
-    )?;
+    )
+    .await?;
 
     let (move_response, version_id) =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -647,7 +653,8 @@ async fn bulk_operations_handler(
                     &put_req.change_reason,
                     &mut conn,
                     &state.master_encryption_key,
-                )?;
+                )
+                .await?;
 
                 let description = match put_req.description.clone() {
                     Some(val) => val,
@@ -665,7 +672,8 @@ async fn bulk_operations_handler(
                     &user,
                     &workspace_context,
                     &state.master_encryption_key,
-                )?;
+                )
+                .await?;
 
                 prepared_ops.push(PreparedOperation::Put {
                     new_ctx,
@@ -697,7 +705,8 @@ async fn bulk_operations_handler(
                     &r_override,
                     &context,
                     &state.master_encryption_key,
-                )?;
+                )
+                .await?;
 
                 prepared_ops.push(PreparedOperation::Replace {
                     update_request,
@@ -729,7 +738,8 @@ async fn bulk_operations_handler(
                     ctx_condition,
                     Overrides::default(),
                     &state.master_encryption_key,
-                )?;
+                )
+                .await?;
 
                 prepared_ops.push(PreparedOperation::Move {
                     old_ctx_id,
@@ -998,7 +1008,8 @@ async fn validate_handler(
         ctx_condition.clone(),
         Overrides::default(),
         &state.master_encryption_key,
-    )?;
+    )
+    .await?;
     log::debug!("Context {:?} is valid", ctx_condition);
     Ok(HttpResponse::Ok().finish())
 }

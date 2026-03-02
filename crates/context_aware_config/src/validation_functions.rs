@@ -65,26 +65,15 @@ fn generate_wrapped_code(code: &str) -> String {
     FUNCTION_WRAPPER.replace("{replaceme-with-code}", code)
 }
 
-pub fn execute_fn(
-    workspace_context: &WorkspaceContext,
-    code_str: &FunctionCode,
-    args: &FunctionExecutionRequest,
+/// Runs JS function code in a rustyscript runtime. This function is `Send`-safe
+/// and does not require any DB connection, making it suitable for use with
+/// `spawn_blocking`.
+pub fn run_js_function(
+    code: FunctionCode,
+    args: FunctionExecutionRequest,
     runtime_version: FunctionRuntimeVersion,
-    conn: &mut DBConnection,
-    master_encryption_key: &Option<EncryptionKey>,
 ) -> Result<FunctionExecutionResponse, (String, Option<String>)> {
-    let code = inject_secrets_and_variables_into_code(
-        code_str,
-        conn,
-        workspace_context,
-        master_encryption_key,
-    )
-    .map_err(|err| {
-        log::error!("Failed to inject variables: {:?}", err);
-        (err.to_string(), None)
-    })?;
-
-    let wrapped_code = generate_wrapped_code(&code);
+    let wrapped_code = generate_wrapped_code(&code.0);
     log::trace!("Running function code: {:?}", wrapped_code);
 
     let module = Module::new("function.js", &wrapped_code);
@@ -128,7 +117,7 @@ pub fn execute_fn(
     runtime
         .call_function::<()>(Some(&module_handle), "clearLogBuffer", json_args!())
         .map_err(|err| (err.to_string(), None))?;
-    let function_type = FunctionType::from(args);
+    let function_type = FunctionType::from(&args);
     log::trace!("Function output: {:?}", fn_output);
     log::trace!("Function logs: {}", stdout);
     Ok(FunctionExecutionResponse {
@@ -136,6 +125,28 @@ pub fn execute_fn(
         stdout,
         function_type,
     })
+}
+
+pub fn execute_fn(
+    workspace_context: &WorkspaceContext,
+    code_str: &FunctionCode,
+    args: &FunctionExecutionRequest,
+    runtime_version: FunctionRuntimeVersion,
+    conn: &mut DBConnection,
+    master_encryption_key: &Option<EncryptionKey>,
+) -> Result<FunctionExecutionResponse, (String, Option<String>)> {
+    let code = inject_secrets_and_variables_into_code(
+        code_str,
+        conn,
+        workspace_context,
+        master_encryption_key,
+    )
+    .map_err(|err| {
+        log::error!("Failed to inject variables: {:?}", err);
+        (err.to_string(), None)
+    })?;
+
+    run_js_function(code, args.clone(), runtime_version)
 }
 
 pub fn compile_fn(code_str: &FunctionCode) -> superposition::Result<()> {

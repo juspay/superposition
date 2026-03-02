@@ -30,11 +30,13 @@ use superposition_types::{
     result as superposition,
 };
 
-use crate::api::functions::helpers::get_first_function_by_type;
+use crate::api::functions::helpers::{
+    get_first_function_by_type, inject_secrets_and_variables_into_code,
+};
 use crate::helpers::calculate_context_weight;
 use crate::{
     api::functions::{helpers::get_published_functions_by_names, types::FunctionInfo},
-    validation_functions::execute_fn,
+    validation_functions::run_js_function,
 };
 
 use super::validations::{validate_dimensions, validate_override_with_default_configs};
@@ -102,7 +104,7 @@ fn validate_condition_with_dependent_dimensions(
     Ok(())
 }
 
-pub fn validate_condition_with_functions(
+pub async fn validate_condition_with_functions(
     workspace_context: &WorkspaceContext,
     conn: &mut DBConnection,
     context_map: &Map<String, Value>,
@@ -149,7 +151,8 @@ pub fn validate_condition_with_functions(
                 published_runtime_version,
                 conn,
                 master_encryption_key,
-            )?;
+            )
+            .await?;
         }
     }
 
@@ -179,14 +182,15 @@ pub fn validate_condition_with_functions(
                     published_runtime_version,
                     conn,
                     master_encryption_key,
-                )?;
+                )
+                .await?;
             }
         }
     }
     Ok(())
 }
 
-pub fn validate_override_with_functions(
+pub async fn validate_override_with_functions(
     workspace_context: &WorkspaceContext,
     conn: &mut DBConnection,
     override_: &Map<String, Value>,
@@ -233,7 +237,8 @@ pub fn validate_override_with_functions(
                     published_runtime_version,
                     conn,
                     master_encryption_key,
-                )?;
+                )
+                .await?;
             }
         }
     }
@@ -273,7 +278,7 @@ fn get_functions_map(
     Ok(function_to_primitives_map)
 }
 
-pub fn validation_function_executor(
+pub async fn validation_function_executor(
     workspace_context: &WorkspaceContext,
     fun_name: &str,
     function: &FunctionCode,
@@ -282,14 +287,25 @@ pub fn validation_function_executor(
     conn: &mut DBConnection,
     master_encryption_key: &Option<EncryptionKey>,
 ) -> superposition::Result<()> {
-    match execute_fn(
-        workspace_context,
+    let code = inject_secrets_and_variables_into_code(
         function,
-        args,
-        runtime_version,
         conn,
+        workspace_context,
         master_encryption_key,
-    ) {
+    )?;
+
+    let args_owned = args.clone();
+    let runtime_version_owned = runtime_version.clone();
+    let handle = rustyscript::tokio::runtime::Handle::current();
+    let result = handle
+        .spawn_blocking(move || run_js_function(code, args_owned, runtime_version_owned))
+        .await
+        .map_err(|e| {
+            log::error!("spawn_blocking join error: {:?}", e);
+            unexpected_error!("Function execution task failed: {}", e)
+        })?;
+
+    match result {
         Err((err, stdout)) => {
             let stdout = stdout.unwrap_or_default();
             let key = args.function_identifier();
@@ -338,7 +354,7 @@ pub fn query_description(
     Ok(existing_context.description)
 }
 
-pub fn create_ctx_from_put_req(
+pub async fn create_ctx_from_put_req(
     req: PutRequest,
     req_description: Description,
     conn: &mut DBConnection,
@@ -357,7 +373,8 @@ pub fn create_ctx_from_put_req(
         ctx_condition.clone(),
         r_override.clone(),
         master_encryption_key,
-    )?;
+    )
+    .await?;
     let change_reason = req.change_reason.clone();
 
     validate_override_with_default_configs(
@@ -371,7 +388,8 @@ pub fn create_ctx_from_put_req(
         &r_override,
         &ctx_condition.clone(),
         master_encryption_key,
-    )?;
+    )
+    .await?;
 
     let weight = calculate_context_weight(&condition_val, &dimension_data_map)
         .map_err(|_| unexpected_error!("Something Went Wrong"))?;
@@ -467,7 +485,7 @@ pub fn update_override_of_existing_ctx(
     db_update_override(conn, new_ctx, user, schema_name)
 }
 
-pub fn validate_ctx(
+pub async fn validate_ctx(
     conn: &mut DBConnection,
     workspace_context: &WorkspaceContext,
     condition: Condition,
@@ -494,6 +512,7 @@ pub fn validate_ctx(
         &override_,
         workspace_context.settings.enable_context_validation,
         master_encryption_key,
-    )?;
+    )
+    .await?;
     Ok(dimension_info_map)
 }

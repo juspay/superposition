@@ -70,7 +70,8 @@ async fn create_handler(
         &req.change_reason,
         &mut conn,
         &state.master_encryption_key,
-    )?;
+    )
+    .await?;
     let handle = rustyscript::tokio::runtime::Handle::current();
     let function = req.function.clone();
     handle
@@ -161,7 +162,8 @@ async fn update_handler(
         &req.change_reason,
         &mut conn,
         &state.master_encryption_key,
-    )?;
+    )
+    .await?;
 
     let updated_function = diesel::update(functions::functions)
         .filter(schema::functions::function_name.eq(f_name))
@@ -347,7 +349,8 @@ async fn publish_handler(
         &req.change_reason,
         &mut conn,
         &state.master_encryption_key,
-    )?;
+    )
+    .await?;
 
     let updated_function = diesel::update(functions::functions)
         .filter(functions::function_name.eq(fun_name.clone()))

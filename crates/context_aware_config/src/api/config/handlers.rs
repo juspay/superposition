@@ -377,7 +377,8 @@ async fn reduce_config_key(
                                 user,
                                 workspace_context,
                                 &state.master_encryption_key,
-                            )?;
+                            )
+                            .await?;
                             let _ = context::upsert(
                                 conn,
                                 false,
