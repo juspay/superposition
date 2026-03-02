@@ -54,6 +54,7 @@ library
                         Io.Superposition.Command.UpdateExperimentGroup,
                         Io.Superposition.Model.BulkOperationInput,
                         Io.Superposition.Model.DeleteSecretOutput,
+                        Io.Superposition.Model.WebhookFailed,
                         Io.Superposition.Model.UpdateExperimentGroupInput,
                         Io.Superposition.Command.ListFunction,
                         Io.Superposition.Command.ConcludeExperiment,

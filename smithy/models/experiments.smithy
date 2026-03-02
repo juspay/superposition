@@ -230,7 +230,7 @@ structure ApplicableVariantsInput for Experiments with [WorkspaceMixin] {
 @documentation("Creates a new experiment with variants, context and conditions. You can optionally specify metrics and experiment group for tracking and analysis.")
 @http(method: "POST", uri: "/experiments")
 @tags(["Experimentation"])
-operation CreateExperiment {
+operation CreateExperiment with [WebhookOperation] {
     input: CreateExperimentRequest
     output: ExperimentResponse
 }
@@ -239,7 +239,7 @@ operation CreateExperiment {
 @documentation("Updates the overrides for specific variants within an experiment, allowing modification of experiment behavior Updates the overrides for specific variants within an experiment, allowing modification of experiment behavior while it is in the created state.")
 @http(method: "PATCH", uri: "/experiments/{id}/overrides")
 @tags(["Experimentation"])
-operation UpdateOverridesExperiment with [GetOperation] {
+operation UpdateOverridesExperiment with [GetOperation, WebhookOperation] {
     input: UpdateOverrideRequest
     output: ExperimentResponse
 }
@@ -248,7 +248,7 @@ operation UpdateOverridesExperiment with [GetOperation] {
 @idempotent
 @http(method: "PATCH", uri: "/experiments/{id}/conclude")
 @tags(["Experimentation"])
-operation ConcludeExperiment with [GetOperation] {
+operation ConcludeExperiment with [GetOperation, WebhookOperation] {
     input := for Experiments with [WorkspaceMixin] {
         @httpLabel
         @required
@@ -270,7 +270,7 @@ operation ConcludeExperiment with [GetOperation] {
 @idempotent
 @http(method: "PATCH", uri: "/experiments/{id}/discard")
 @tags(["Experimentation"])
-operation DiscardExperiment with [GetOperation] {
+operation DiscardExperiment with [GetOperation, WebhookOperation] {
     input := for Experiments with [WorkspaceMixin] {
         @httpLabel
         @required
@@ -287,7 +287,7 @@ operation DiscardExperiment with [GetOperation] {
 @idempotent
 @http(method: "PATCH", uri: "/experiments/{id}/ramp")
 @tags(["Experimentation"])
-operation RampExperiment with [GetOperation] {
+operation RampExperiment with [GetOperation, WebhookOperation] {
     input := for Experiments with [WorkspaceMixin] {
         @httpLabel
         @required
@@ -385,7 +385,7 @@ operation ApplicableVariants {
 @idempotent
 @http(method: "PATCH", uri: "/experiments/{id}/pause")
 @tags(["Experimentation"])
-operation PauseExperiment with [GetOperation] {
+operation PauseExperiment with [GetOperation, WebhookOperation] {
     input := for Experiments with [WorkspaceMixin] {
         @httpLabel
         @required
@@ -402,7 +402,7 @@ operation PauseExperiment with [GetOperation] {
 @idempotent
 @http(method: "PATCH", uri: "/experiments/{id}/resume")
 @tags(["Experimentation"])
-operation ResumeExperiment with [GetOperation] {
+operation ResumeExperiment with [GetOperation, WebhookOperation] {
     input := for Experiments with [WorkspaceMixin] {
         @httpLabel
         @required

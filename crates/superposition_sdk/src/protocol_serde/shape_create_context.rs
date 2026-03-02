@@ -27,6 +27,22 @@ pub fn de_create_context_http_error(_response_status: u16, _response_headers: &:
                                                         }
             tmp
         }),
+        "WebhookFailed" => crate::operation::create_context::CreateContextError::WebhookFailed({
+            #[allow(unused_mut)]
+            let mut tmp =
+                 {
+                    #[allow(unused_mut)]
+                    let mut output = crate::types::error::builders::WebhookFailedBuilder::default();
+                    output = crate::protocol_serde::shape_webhook_failed::de_webhook_failed_json_err(_response_body, output).map_err(crate::operation::create_context::CreateContextError::unhandled)?;
+                    let output = output.meta(generic);
+                    output.build()
+                }
+            ;
+            if tmp.message.is_none() {
+                                                            tmp.message = _error_message;
+                                                        }
+            tmp
+        }),
         "InternalServerError" => crate::operation::create_context::CreateContextError::InternalServerError({
             #[allow(unused_mut)]
             let mut tmp =

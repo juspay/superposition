@@ -167,6 +167,7 @@ import io.juspay.superposition.model.UpdateWorkspaceInput;
 import io.juspay.superposition.model.UpdateWorkspaceOutput;
 import io.juspay.superposition.model.ValidateContextInput;
 import io.juspay.superposition.model.ValidateContextOutput;
+import io.juspay.superposition.model.WebhookFailed;
 import io.juspay.superposition.model.WeightRecomputeInput;
 import io.juspay.superposition.model.WeightRecomputeOutput;
 import java.util.concurrent.CompletableFuture;
@@ -229,6 +230,7 @@ public interface SuperpositionAsyncClient {
      * efficient batch processing.
      *
      * @throws InternalServerError
+     * @throws WebhookFailed
      * @throws ResourceNotFound
      */
     default CompletableFuture<BulkOperationOutput> bulkOperation(BulkOperationInput input) {
@@ -240,6 +242,7 @@ public interface SuperpositionAsyncClient {
      * efficient batch processing.
      *
      * @throws InternalServerError
+     * @throws WebhookFailed
      * @throws ResourceNotFound
      */
     CompletableFuture<BulkOperationOutput> bulkOperation(BulkOperationInput input, RequestOverrideConfig overrideConfig);
@@ -249,6 +252,7 @@ public interface SuperpositionAsyncClient {
      * to a concluded state.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default CompletableFuture<ConcludeExperimentOutput> concludeExperiment(ConcludeExperimentInput input) {
@@ -260,6 +264,7 @@ public interface SuperpositionAsyncClient {
      * to a concluded state.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     CompletableFuture<ConcludeExperimentOutput> concludeExperiment(ConcludeExperimentInput input, RequestOverrideConfig overrideConfig);
@@ -269,6 +274,7 @@ public interface SuperpositionAsyncClient {
      * config management.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default CompletableFuture<CreateContextOutput> createContext(CreateContextInput input) {
@@ -280,6 +286,7 @@ public interface SuperpositionAsyncClient {
      * config management.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     CompletableFuture<CreateContextOutput> createContext(CreateContextInput input, RequestOverrideConfig overrideConfig);
@@ -288,6 +295,7 @@ public interface SuperpositionAsyncClient {
      * Creates a new default config entry with specified key, value, schema, and metadata. Default configs
      * serve as fallback values when no specific context matches.
      *
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default CompletableFuture<CreateDefaultConfigOutput> createDefaultConfig(CreateDefaultConfigInput input) {
@@ -298,6 +306,7 @@ public interface SuperpositionAsyncClient {
      * Creates a new default config entry with specified key, value, schema, and metadata. Default configs
      * serve as fallback values when no specific context matches.
      *
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     CompletableFuture<CreateDefaultConfigOutput> createDefaultConfig(CreateDefaultConfigInput input, RequestOverrideConfig overrideConfig);
@@ -306,6 +315,7 @@ public interface SuperpositionAsyncClient {
      * Creates a new dimension with the specified json schema. Dimensions define categorical attributes
      * used for context-based config management.
      *
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default CompletableFuture<CreateDimensionOutput> createDimension(CreateDimensionInput input) {
@@ -316,6 +326,7 @@ public interface SuperpositionAsyncClient {
      * Creates a new dimension with the specified json schema. Dimensions define categorical attributes
      * used for context-based config management.
      *
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     CompletableFuture<CreateDimensionOutput> createDimension(CreateDimensionInput input, RequestOverrideConfig overrideConfig);
@@ -324,6 +335,7 @@ public interface SuperpositionAsyncClient {
      * Creates a new experiment with variants, context and conditions. You can optionally specify metrics
      * and experiment group for tracking and analysis.
      *
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default CompletableFuture<CreateExperimentOutput> createExperiment(CreateExperimentInput input) {
@@ -334,6 +346,7 @@ public interface SuperpositionAsyncClient {
      * Creates a new experiment with variants, context and conditions. You can optionally specify metrics
      * and experiment group for tracking and analysis.
      *
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     CompletableFuture<CreateExperimentOutput> createExperiment(CreateExperimentInput input, RequestOverrideConfig overrideConfig);
@@ -483,6 +496,7 @@ public interface SuperpositionAsyncClient {
      * config resolution.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default CompletableFuture<DeleteContextOutput> deleteContext(DeleteContextInput input) {
@@ -494,6 +508,7 @@ public interface SuperpositionAsyncClient {
      * config resolution.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     CompletableFuture<DeleteContextOutput> deleteContext(DeleteContextInput input, RequestOverrideConfig overrideConfig);
@@ -503,6 +518,7 @@ public interface SuperpositionAsyncClient {
      * it affects config resolution for contexts that rely on this fallback value.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default CompletableFuture<DeleteDefaultConfigOutput> deleteDefaultConfig(DeleteDefaultConfigInput input) {
@@ -514,6 +530,7 @@ public interface SuperpositionAsyncClient {
      * it affects config resolution for contexts that rely on this fallback value.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     CompletableFuture<DeleteDefaultConfigOutput> deleteDefaultConfig(DeleteDefaultConfigInput input, RequestOverrideConfig overrideConfig);
@@ -523,6 +540,7 @@ public interface SuperpositionAsyncClient {
      * active dependencies or is referenced by existing configurations.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default CompletableFuture<DeleteDimensionOutput> deleteDimension(DeleteDimensionInput input) {
@@ -534,6 +552,7 @@ public interface SuperpositionAsyncClient {
      * active dependencies or is referenced by existing configurations.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     CompletableFuture<DeleteDimensionOutput> deleteDimension(DeleteDimensionInput input, RequestOverrideConfig overrideConfig);
@@ -657,6 +676,7 @@ public interface SuperpositionAsyncClient {
      * its effects.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default CompletableFuture<DiscardExperimentOutput> discardExperiment(DiscardExperimentInput input) {
@@ -668,6 +688,7 @@ public interface SuperpositionAsyncClient {
      * its effects.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     CompletableFuture<DiscardExperimentOutput> discardExperiment(DiscardExperimentInput input, RequestOverrideConfig overrideConfig);
@@ -731,6 +752,7 @@ public interface SuperpositionAsyncClient {
      * would apply to specific scenarios.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default CompletableFuture<GetContextFromConditionOutput> getContextFromCondition(GetContextFromConditionInput input) {
@@ -742,6 +764,7 @@ public interface SuperpositionAsyncClient {
      * would apply to specific scenarios.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     CompletableFuture<GetContextFromConditionOutput> getContextFromCondition(GetContextFromConditionInput input, RequestOverrideConfig overrideConfig);
@@ -1303,6 +1326,7 @@ public interface SuperpositionAsyncClient {
      * it merges the override and effectively deleting the old context
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default CompletableFuture<MoveContextOutput> moveContext(MoveContextInput input) {
@@ -1314,6 +1338,7 @@ public interface SuperpositionAsyncClient {
      * it merges the override and effectively deleting the old context
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     CompletableFuture<MoveContextOutput> moveContext(MoveContextInput input, RequestOverrideConfig overrideConfig);
@@ -1323,6 +1348,7 @@ public interface SuperpositionAsyncClient {
      * config for later resumption.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default CompletableFuture<PauseExperimentOutput> pauseExperiment(PauseExperimentInput input) {
@@ -1334,6 +1360,7 @@ public interface SuperpositionAsyncClient {
      * config for later resumption.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     CompletableFuture<PauseExperimentOutput> pauseExperiment(PauseExperimentInput input, RequestOverrideConfig overrideConfig);
@@ -1363,6 +1390,7 @@ public interface SuperpositionAsyncClient {
      * rollback of experimental features.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default CompletableFuture<RampExperimentOutput> rampExperiment(RampExperimentInput input) {
@@ -1374,6 +1402,7 @@ public interface SuperpositionAsyncClient {
      * rollback of experimental features.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     CompletableFuture<RampExperimentOutput> rampExperiment(RampExperimentInput input, RequestOverrideConfig overrideConfig);
@@ -1401,6 +1430,7 @@ public interface SuperpositionAsyncClient {
      * evaluation.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default CompletableFuture<ResumeExperimentOutput> resumeExperiment(ResumeExperimentInput input) {
@@ -1412,6 +1442,7 @@ public interface SuperpositionAsyncClient {
      * evaluation.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     CompletableFuture<ResumeExperimentOutput> resumeExperiment(ResumeExperimentInput input, RequestOverrideConfig overrideConfig);
@@ -1475,6 +1506,7 @@ public interface SuperpositionAsyncClient {
      * and description while preserving the key identifier.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default CompletableFuture<UpdateDefaultConfigOutput> updateDefaultConfig(UpdateDefaultConfigInput input) {
@@ -1486,6 +1518,7 @@ public interface SuperpositionAsyncClient {
      * and description while preserving the key identifier.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     CompletableFuture<UpdateDefaultConfigOutput> updateDefaultConfig(UpdateDefaultConfigInput input, RequestOverrideConfig overrideConfig);
@@ -1495,6 +1528,7 @@ public interface SuperpositionAsyncClient {
      * mappings, and other properties while maintaining dependency relationships.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default CompletableFuture<UpdateDimensionOutput> updateDimension(UpdateDimensionInput input) {
@@ -1506,6 +1540,7 @@ public interface SuperpositionAsyncClient {
      * mappings, and other properties while maintaining dependency relationships.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     CompletableFuture<UpdateDimensionOutput> updateDimension(UpdateDimensionInput input, RequestOverrideConfig overrideConfig);
@@ -1573,6 +1608,7 @@ public interface SuperpositionAsyncClient {
      * maintaining the context's conditions.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default CompletableFuture<UpdateOverrideOutput> updateOverride(UpdateOverrideInput input) {
@@ -1584,6 +1620,7 @@ public interface SuperpositionAsyncClient {
      * maintaining the context's conditions.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     CompletableFuture<UpdateOverrideOutput> updateOverride(UpdateOverrideInput input, RequestOverrideConfig overrideConfig);
@@ -1594,6 +1631,7 @@ public interface SuperpositionAsyncClient {
      * modification of experiment behavior while it is in the created state.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default CompletableFuture<UpdateOverridesExperimentOutput> updateOverridesExperiment(UpdateOverridesExperimentInput input) {
@@ -1606,6 +1644,7 @@ public interface SuperpositionAsyncClient {
      * modification of experiment behavior while it is in the created state.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     CompletableFuture<UpdateOverridesExperimentOutput> updateOverridesExperiment(UpdateOverridesExperimentInput input, RequestOverrideConfig overrideConfig);
@@ -1729,6 +1768,7 @@ public interface SuperpositionAsyncClient {
      * dimensions.
      *
      * @throws InternalServerError
+     * @throws WebhookFailed
      */
     default CompletableFuture<WeightRecomputeOutput> weightRecompute(WeightRecomputeInput input) {
         return weightRecompute(input, null);
@@ -1739,6 +1779,7 @@ public interface SuperpositionAsyncClient {
      * dimensions.
      *
      * @throws InternalServerError
+     * @throws WebhookFailed
      */
     CompletableFuture<WeightRecomputeOutput> weightRecompute(WeightRecomputeInput input, RequestOverrideConfig overrideConfig);
 
