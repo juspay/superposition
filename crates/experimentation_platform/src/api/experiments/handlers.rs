@@ -23,6 +23,7 @@ use experimentation_client::{
 use reqwest::{Method, StatusCode};
 use serde_json::{Map, Value};
 use service_utils::{
+    db::run_query,
     helpers::{
         WebhookData, construct_request_headers, execute_webhook_call,
         fetch_dimensions_info_map, generate_snowflake_id, request,
@@ -40,7 +41,7 @@ use superposition_derives::authorized;
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
     Cac, Condition, Contextual, DBConnection, DimensionInfo, Exp, ListResponse,
-    Overrides, PaginatedResponse, SortBy, User,
+    Overrides, PaginatedResponse, Resource, SortBy, User,
     api::{
         DimensionMatchStrategy,
         context::{
@@ -86,9 +87,8 @@ use crate::api::{
     },
     experiments::{
         helpers::{
-            fetch_and_validate_change_reason_with_function, fetch_webhook_by_event,
-            put_experiments_in_redis, validate_control_overrides,
-            validate_delete_experiment_variants,
+            fetch_and_validate_change_reason_with_function, put_experiments_in_redis,
+            validate_control_overrides, validate_delete_experiment_variants,
         },
         types::StartedByChangeSet,
     },
@@ -983,17 +983,12 @@ async fn list_handler(
         &workspace_context.schema_name,
         state.redis.clone(),
         state.db_pool.clone(),
-        |db_pool| {
-            let DbConnection(mut conn) = get_db_connection(db_pool)?;
+        |conn| {
             event_log::event_log
                 .filter(event_log::table_name.eq("experiments"))
                 .select(diesel::dsl::max(event_log::timestamp))
                 .schema_name(&workspace_context.schema_name)
-                .first(&mut conn)
-                .map_err(|e| {
-                    log::error!("failed to fetch max timestamp from event_log: {e}");
-                    unexpected_error!("failed to fetch max timestamp from event_log: {e}")
-                })
+                .first(conn)
         },
     )
     .await?;
@@ -1028,8 +1023,7 @@ async fn list_handler(
                 &workspace_context.schema_name,
                 state.redis.clone(),
                 state.db_pool.clone(),
-                |db_pool| {
-                    let DbConnection(conn) = get_db_connection(db_pool)?;
+                |conn| {
                     list_experiments_db(
                         pagination_params.clone(),
                         filters.clone(),
@@ -1042,14 +1036,15 @@ async fn list_handler(
             .await?;
         Ok(HttpResponse::Ok().json(response))
     } else {
-        let DbConnection(conn) = get_db_connection(state.db_pool.clone())?;
-        let paginated_response = list_experiments_db(
-            pagination_params,
-            filters,
-            dimension_params,
-            conn,
-            &workspace_context,
-        )?;
+        let paginated_response = run_query(&state.db_pool, |conn| {
+            list_experiments_db(
+                pagination_params,
+                filters,
+                dimension_params,
+                conn,
+                &workspace_context,
+            )
+        })?;
         Ok(HttpResponse::Ok().json(paginated_response))
     }
 }
@@ -1058,9 +1053,9 @@ fn list_experiments_db(
     pagination_params: superposition_query::Query<PaginationParams>,
     filters: superposition_query::Query<ExperimentListFilters>,
     dimension_params: DimensionQuery<QueryMap>,
-    mut conn: DBConnection,
+    conn: &mut DBConnection,
     workspace_context: &WorkspaceContext,
-) -> superposition::Result<PaginatedResponse<ExperimentResponse>> {
+) -> superposition::DieselResult<PaginatedResponse<ExperimentResponse>> {
     let dimension_params = dimension_params.into_inner();
 
     let query_builder = |filters: &ExperimentListFilters| {
@@ -1128,7 +1123,7 @@ fn list_experiments_db(
         || filters.global_experiments_only.unwrap_or_default();
 
     let paginated_response = if perform_in_memory_filter {
-        let all_experiments: Vec<Experiment> = base_query.load(&mut conn)?;
+        let all_experiments: Vec<Experiment> = base_query.load(conn)?;
         let filtered_experiments = if filters.global_experiments_only.unwrap_or_default()
         {
             all_experiments
@@ -1137,7 +1132,7 @@ fn list_experiments_db(
                 .collect()
         } else {
             let dimensions_info =
-                fetch_dimensions_info_map(&mut conn, &workspace_context.schema_name)?;
+                fetch_dimensions_info_map(conn, &workspace_context.schema_name)?;
             let dimension_params = evaluate_local_cohorts_skip_unresolved(
                 &dimensions_info,
                 &dimension_params,
@@ -1181,13 +1176,13 @@ fn list_experiments_db(
             }
         }
     } else if show_all {
-        let result = base_query.load::<Experiment>(&mut conn)?;
+        let result = base_query.load::<Experiment>(conn)?;
         PaginatedResponse::all(result.into_iter().map(ExperimentResponse::from).collect())
     } else {
         let count_query = query_builder(&filters);
-        let number_of_experiments = count_query.count().get_result(&mut conn)?;
+        let number_of_experiments = count_query.count().get_result(conn)?;
         let query = base_query.limit(limit).offset(offset);
-        let experiment_list = query.load::<Experiment>(&mut conn)?;
+        let experiment_list = query.load::<Experiment>(conn)?;
 
         PaginatedResponse {
             total_pages: (number_of_experiments as f64 / limit as f64).ceil() as i64,

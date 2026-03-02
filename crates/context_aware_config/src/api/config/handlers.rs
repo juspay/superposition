@@ -24,7 +24,7 @@ use superposition_core::{
     serialize_to_toml,
 };
 use superposition_derives::authorized;
-use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
+use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
     Cac, Condition, Config, Context, DBConnection, DimensionInfo, OverrideWithKeys,
     Overrides, PaginatedResponse, User,
@@ -43,7 +43,7 @@ use superposition_types::{
         },
         schema::{config_versions::dsl as config_versions, event_log::dsl as event_log},
     },
-    result as superposition,
+    result::{self as superposition, DieselResult},
 };
 use uuid::Uuid;
 
@@ -75,7 +75,7 @@ pub fn endpoints() -> Scope {
 pub fn fetch_audit_id(
     conn: &mut DBConnection,
     schema_name: &SchemaName,
-) -> Option<String> {
+) -> DieselResult<String> {
     event_log::event_log
         .select(event_log::id)
         .filter(event_log::table_name.eq("contexts"))
@@ -83,7 +83,6 @@ pub fn fetch_audit_id(
         .schema_name(schema_name)
         .first::<Uuid>(conn)
         .map(|uuid| uuid.to_string())
-        .ok()
 }
 
 fn generate_subsets(map: &Map<String, Value>) -> Vec<Map<String, Value>> {
@@ -508,13 +507,7 @@ async fn get_handler(
         schema_name,
         state.redis.clone(),
         state.db_pool.clone(),
-        |db_pool| {
-            let DbConnection(mut conn) = get_db_connection(db_pool)?;
-            get_max_created_at(&mut conn, schema_name).map_err(|e| {
-                log::error!("failed to fetch max timestamp from event_log: {e}");
-                db_error!(e)
-            })
-        },
+        |conn| get_max_created_at(conn, schema_name),
     )
     .await
     .ok();
@@ -536,13 +529,20 @@ async fn get_handler(
         schema_name,
         state.redis.clone(),
         state.db_pool.clone(),
-        |db_pool| {
-            let DbConnection(mut conn) = get_db_connection(db_pool)?;
+        |conn| {
             generate_config_from_version(
                 &mut Some(version),
-                &mut conn,
+                conn,
                 &workspace_context.schema_name,
             )
+            .map_err(|err| {
+                log::error!("failed to generate config from version with error: {}", err);
+                // can't throw the AppError from here because fetch_from_redis_else_writeback
+                // expects a DieselResult error type, so we log the actual error and return NotFound
+                // which will trigger generate_cac in the fallback and if
+                // that also fails then it will return the actual error
+                diesel::result::Error::NotFound
+            })
         },
     )
     .await
@@ -562,11 +562,7 @@ async fn get_handler(
         schema_name,
         state.redis.clone(),
         state.db_pool.clone(),
-        |db_pool| {
-            let DbConnection(mut conn) = get_db_connection(db_pool)?;
-            fetch_audit_id(&mut conn, &workspace_context.schema_name)
-                .ok_or(not_found!("Audit ID not found"))
-        },
+        |conn| fetch_audit_id(conn, &workspace_context.schema_name),
     )
     .await
     {
@@ -633,13 +629,7 @@ async fn resolve_handler(
         schema_name,
         state.redis.clone(),
         state.db_pool.clone(),
-        |db_pool| {
-            let DbConnection(mut conn) = get_db_connection(db_pool)?;
-            get_max_created_at(&mut conn, schema_name).map_err(|e| {
-                log::error!("failed to fetch max timestamp from event_log: {e}");
-                db_error!(e)
-            })
-        },
+        |conn| get_max_created_at(conn, schema_name),
     )
     .await
     .ok();
@@ -656,13 +646,20 @@ async fn resolve_handler(
         schema_name,
         state.redis.clone(),
         state.db_pool.clone(),
-        |db_pool| {
-            let DbConnection(mut conn) = get_db_connection(db_pool)?;
+        |conn| {
             generate_config_from_version(
                 &mut Some(config_version),
-                &mut conn,
+                conn,
                 &workspace_context.schema_name,
             )
+            .map_err(|err| {
+                log::error!("failed to generate config from version with error: {}", err);
+                // can't throw the AppError from here because fetch_from_redis_else_writeback
+                // expects a DieselResult error type, so we log the actual error and return NotFound
+                // which will trigger generate_cac in the fallback and if
+                // that also fails then it will return the actual error
+                diesel::result::Error::NotFound
+            })
         },
     )
     .await
@@ -690,11 +687,7 @@ async fn resolve_handler(
         schema_name,
         state.redis.clone(),
         state.db_pool.clone(),
-        |db_pool| {
-            let DbConnection(mut conn) = get_db_connection(db_pool)?;
-            fetch_audit_id(&mut conn, &workspace_context.schema_name)
-                .ok_or(not_found!("Audit ID not found"))
-        },
+        |conn| fetch_audit_id(conn, &workspace_context.schema_name),
     )
     .await
     {

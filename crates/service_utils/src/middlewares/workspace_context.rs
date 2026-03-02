@@ -15,7 +15,6 @@ use superposition_types::database::models::Workspace;
 
 use crate::helpers::get_workspace;
 use crate::redis::fetch_from_redis_else_writeback;
-use crate::service::get_db_connection;
 use crate::{
     extensions::HttpRequestExt,
     service::types::{AppState, OrganisationId, SchemaName, WorkspaceContext},
@@ -146,10 +145,7 @@ where
                                 &schema_name,
                                 app_state.redis.clone(),
                                 app_state.db_pool.clone(),
-                                |db_pool| {
-                                    let mut db_conn = get_db_connection(db_pool)?;
-                                    get_workspace(&schema_name, &mut db_conn)
-                                },
+                                |db_conn| get_workspace(&schema_name, db_conn),
                             )
                             .await?;
 

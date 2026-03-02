@@ -147,3 +147,5 @@ impl std::fmt::Debug for AppError {
         error_chain_fmt(self, f)
     }
 }
+
+pub type DieselResult<T> = core::result::Result<T, diesel::result::Error>;

@@ -241,9 +241,13 @@ async fn create_handler(
             }
         })?;
 
-    let _ =
-        put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
-            .await;
+    let _ = put_config_in_redis(
+        version_id,
+        &state,
+        &workspace_context.schema_name,
+        &mut conn,
+    )
+    .await;
 
     let data = WebhookData {
         payload: &inserted_dimension,
@@ -474,9 +478,13 @@ async fn update_handler(
             Ok((result, is_mandatory, version_id))
         })?;
 
-    let _ =
-        put_config_in_redis(version_id, state, &workspace_context.schema_name, &mut conn)
-            .await;
+    let _ = put_config_in_redis(
+        version_id,
+        &state,
+        &workspace_context.schema_name,
+        &mut conn,
+    )
+    .await;
 
     let data = WebhookData {
         payload: &result,
@@ -588,7 +596,7 @@ async fn delete_handler(
     )?;
 
     if context_ids.is_empty() {
-        let (resp, version_id) = conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+        let (version_id, dimension_data) = conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
             use dimensions::dsl;
 
             if !dimension_data.dependency_graph.is_empty() {
@@ -659,14 +667,11 @@ async fn delete_handler(
 
         let _ = put_config_in_redis(
             version_id,
-            state,
+            &state,
             &workspace_context.schema_name,
             &mut conn,
         )
-        .await
-        {
-            log::warn!("Failed to update redis cache with new context: {}", e);
-        }
+        .await;
         let data = WebhookData {
             payload: &dimension_data,
             resource: Resource::Dimension,

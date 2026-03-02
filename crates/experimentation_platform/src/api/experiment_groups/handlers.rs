@@ -9,17 +9,15 @@ use diesel::{
 };
 use serde_json::Value;
 use service_utils::{
+    db::run_query,
     helpers::{generate_snowflake_id, get_from_env_or_default},
     redis::{EXPERIMENT_GROUPS_LIST_KEY_SUFFIX, fetch_from_redis_else_writeback},
-    service::{
-        get_db_connection,
-        types::{AppState, DbConnection, WorkspaceContext},
-    },
+    service::types::{AppState, DbConnection, WorkspaceContext},
 };
 use superposition_derives::authorized;
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
-    IsEmpty, PaginatedResponse, SortBy, User,
+    DBConnection, IsEmpty, PaginatedResponse, SortBy, User,
     api::experiment_groups::{
         ExpGroupCreateRequest, ExpGroupFilters, ExpGroupMemberRequest,
         ExpGroupUpdateRequest, SortOn,
@@ -320,38 +318,43 @@ async fn list_handler(
         *workspace_context.schema_name, EXPERIMENT_GROUPS_LIST_KEY_SUFFIX
     );
     let read_from_redis = pagination_params.all.is_some_and(|e| e) && filters.is_empty();
-    let list_experiments_closure = |db_pool| {
-        let db_conn = get_db_connection(db_pool)?;
-        list_experiment_groups_db(
-            &pagination_params,
-            filters,
-            db_conn,
-            &workspace_context,
-        )
-    };
     if read_from_redis {
         fetch_from_redis_else_writeback::<PaginatedResponse<ExperimentGroup>>(
             key,
             &workspace_context.schema_name,
             state.redis.clone(),
             state.db_pool.clone(),
-            list_experiments_closure,
+            |conn| {
+                list_experiment_groups_db(
+                    &pagination_params,
+                    filters,
+                    conn,
+                    &workspace_context,
+                )
+            },
         )
         .await
         .map(Json)
         .map_err(|e| unexpected_error!(e))
     } else {
-        list_experiments_closure(state.db_pool.clone()).map(Json)
+        run_query(&state.db_pool, |conn| {
+            list_experiment_groups_db(
+                &pagination_params,
+                filters,
+                conn,
+                &workspace_context,
+            )
+        })
+        .map(Json)
     }
 }
 
 fn list_experiment_groups_db(
     pagination_params: &superposition_query::Query<PaginationParams>,
     filters: superposition_query::Query<ExpGroupFilters>,
-    db_conn: DbConnection,
+    conn: &mut DBConnection,
     workspace_context: &WorkspaceContext,
-) -> superposition::Result<PaginatedResponse<ExperimentGroup>> {
-    let DbConnection(mut conn) = db_conn;
+) -> superposition::DieselResult<PaginatedResponse<ExperimentGroup>> {
     let query_builder = |filters: &ExpGroupFilters| {
         let mut builder = experiment_groups::experiment_groups
             .schema_name(&workspace_context.schema_name)
@@ -388,16 +391,15 @@ fn list_experiment_groups_db(
         (SortOn::Name, SortBy::Asc)            => base_query.order(experiment_groups::name.asc()),
     };
     if let Some(true) = pagination_params.all {
-        let result: ExperimentGroups =
-            base_query.get_results::<ExperimentGroup>(&mut conn)?;
+        let result: ExperimentGroups = base_query.get_results::<ExperimentGroup>(conn)?;
         return Ok(PaginatedResponse::all(result));
     }
-    let total_items = count_query.count().get_result(&mut conn)?;
+    let total_items = count_query.count().get_result(conn)?;
     let limit = pagination_params.count.unwrap_or(10);
     let offset = (pagination_params.page.unwrap_or(1) - 1) * limit;
 
     let query = base_query.limit(limit).offset(offset);
-    let data = query.load::<ExperimentGroup>(&mut conn)?;
+    let data = query.load::<ExperimentGroup>(conn)?;
     let total_pages = (total_items as f64 / limit as f64).ceil() as i64;
     Ok(PaginatedResponse {
         total_pages,
@@ -437,7 +439,7 @@ async fn delete_handler(
             let marked_group = diesel::update(experiment_groups::experiment_groups)
                 .filter(experiment_groups::id.eq(&id))
                 .set((
-                    experiment_groups::last_modified_by.eq(user.email),
+                    experiment_groups::last_modified_by.eq(user.get_email()),
                     experiment_groups::last_modified_at.eq(chrono::Utc::now()),
                 ))
                 .returning(ExperimentGroup::as_returning())

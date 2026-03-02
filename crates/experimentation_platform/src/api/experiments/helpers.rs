@@ -39,6 +39,7 @@ use superposition_types::{
             experimentation::{
                 Experiment, ExperimentStatusType, GroupType, Variant, VariantType,
             },
+            others::{Webhook, WebhookEvent},
         },
         schema::experiments::dsl as experiments,
     },
@@ -458,11 +459,8 @@ pub async fn fetch_webhook_by_event(
         )
     })?;
 
-    let headers_map = construct_header_map(
-        &workspace_context.workspace_id,
-        &workspace_context.organisation_id,
-        vec![("x-user", user_str)],
-    )?;
+    let headers_map =
+        construct_header_map(workspace_context, vec![("x-user", user_str)])?;
 
     let response = http_client
         .get(&url)

@@ -9,13 +9,7 @@ use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, dsl::max};
 use serde_json::{Map, Value};
 use service_utils::{
     redis::{CONFIG_VERSION_KEY_SUFFIX, fetch_from_redis_else_writeback},
-    service::{
-        get_db_connection,
-        types::{
-            AppHeader, AppState, DbConnection, EncryptionKey, SchemaName,
-            WorkspaceContext,
-        },
-    },
+    service::types::{AppHeader, AppState, EncryptionKey, SchemaName, WorkspaceContext},
 };
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
@@ -65,17 +59,12 @@ pub async fn get_config_version(
                 &workspace_context.schema_name,
                 state.redis.clone(),
                 state.db_pool.clone(),
-                |db_pool| {
-                    let DbConnection(mut conn) = get_db_connection(db_pool)?;
+                |conn| {
                     config_versions::config_versions
                         .select(config_versions::id)
                         .order_by(config_versions::created_at.desc())
                         .schema_name(&workspace_context.schema_name)
-                        .first::<i64>(&mut conn)
-                        .map_err(|e| {
-                            log::error!("failed to fetch config version from db: {}", e);
-                            db_error!(e)
-                        })
+                        .first::<i64>(conn)
                 },
             )
             .await

@@ -27,7 +27,7 @@ use superposition_core::experiment::{
     get_applicable_variants_from_group_response,
 };
 use superposition_derives::authorized;
-use superposition_macros::{db_error, not_found, unexpected_error};
+use superposition_macros::{db_error, unexpected_error};
 use superposition_types::{
     Config, PaginatedResponse,
     api::config::{ContextPayload, MergeStrategy, ResolveConfigQuery},
@@ -70,13 +70,7 @@ async fn resolve_with_exp_handler(
         &schema_name,
         state.redis.clone(),
         state.db_pool.clone(),
-        |db_pool| {
-            let DbConnection(mut conn) = get_db_connection(db_pool)?;
-            get_max_created_at(&mut conn, &schema_name).map_err(|e| {
-                log::error!("failed to fetch max timestamp from event_log: {e}");
-                db_error!(e)
-            })
-        },
+        |conn| get_max_created_at(conn, &schema_name),
     )
     .await
     .ok();
@@ -95,13 +89,20 @@ async fn resolve_with_exp_handler(
         &schema_name,
         state.redis.clone(),
         state.db_pool.clone(),
-        |db_pool| {
-            let DbConnection(mut conn) = get_db_connection(db_pool)?;
+        |conn| {
             generate_config_from_version(
                 &mut Some(config_version),
-                &mut conn,
+                conn,
                 &workspace_context.schema_name,
             )
+            .map_err(|err| {
+                log::error!("failed to generate config from version with error: {}", err);
+                // can't throw the AppError from here because fetch_from_redis_else_writeback
+                // expects a DieselResult error type, so we log the actual error and return NotFound
+                // which will trigger generate_cac in the fallback and if
+                // that also fails then it will return the actual error
+                diesel::result::Error::NotFound
+            })
         },
     )
     .await
@@ -119,15 +120,10 @@ async fn resolve_with_exp_handler(
                 &schema_name,
                 state.redis.clone(),
                 state.db_pool.clone(),
-                |db_pool| {
-                    let DbConnection(mut conn) = get_db_connection(db_pool)?;
+                |conn| {
                     let groups = experiment_groups::experiment_groups
                         .schema_name(&workspace_context.schema_name)
-                        .load::<ExperimentGroup>(&mut conn)
-                        .map_err(|e| {
-                            log::error!("failed to fetch experiment groups: {e}");
-                            db_error!(e)
-                        })?;
+                        .load::<ExperimentGroup>(conn)?;
                     let total_items = groups.len() as i64;
                     Ok(PaginatedResponse {
                         total_pages: 1,
@@ -214,11 +210,7 @@ async fn resolve_with_exp_handler(
         &schema_name,
         state.redis.clone(),
         state.db_pool.clone(),
-        |db_pool| {
-            let DbConnection(mut conn) = get_db_connection(db_pool)?;
-            fetch_audit_id(&mut conn, &workspace_context.schema_name)
-                .ok_or(not_found!("Audit ID not found"))
-        },
+        |conn| fetch_audit_id(conn, &workspace_context.schema_name),
     )
     .await
     {

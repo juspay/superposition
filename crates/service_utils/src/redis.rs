@@ -3,10 +3,11 @@ use fred::{
     types::Expiration,
 };
 use serde::{Serialize, de::DeserializeOwned};
-use superposition_types::result as superposition;
+use superposition_types::{DBConnection, result as superposition};
 
 use crate::{
-    db::PgSchemaConnectionPool, helpers::get_from_env_or_default,
+    db::{PgSchemaConnectionPool, run_query},
+    helpers::get_from_env_or_default,
     service::types::SchemaName,
 };
 
@@ -27,14 +28,14 @@ pub async fn fetch_from_redis_else_writeback<T>(
     schema_name: &SchemaName,
     redis_pool: Option<RedisPool>,
     db_pool: PgSchemaConnectionPool,
-    database_call: impl FnOnce(PgSchemaConnectionPool) -> superposition::Result<T>,
+    query_fn: impl FnOnce(&mut DBConnection) -> superposition::DieselResult<T>,
 ) -> superposition::Result<T>
 where
     T: Serialize + DeserializeOwned,
 {
     let Some(pool) = redis_pool else {
         log::trace!("Redis pool not configured, using fallback");
-        return database_call(db_pool);
+        return run_query(&db_pool, query_fn);
     };
     let client = pool.next_connected();
     match get_data_from_redis(key.clone(), client).await {
@@ -45,7 +46,7 @@ where
                 **schema_name,
                 e
             );
-            let data = database_call(db_pool);
+            let data = run_query(&db_pool, query_fn);
             if let Ok(ref value) = data {
                 // If the write to redis fails, do not fail the whole request, just pass the data along
                 if let Ok(serialized) = serde_json::to_string(value).map_err(|e| {
