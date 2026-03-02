@@ -52,7 +52,7 @@ build builder = do
 
 
 instance Io.Superposition.Utility.FromResponseParser ResourceNotFound where
-    expectedStatus = Network.HTTP.Types.status404
+    expectedStatus = (Network.HTTP.Types.mkStatus 404 "")
     responseParser = do
         
         

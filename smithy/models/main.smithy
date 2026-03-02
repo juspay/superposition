@@ -88,10 +88,26 @@ structure InternalServerError {
 @error("client")
 structure ResourceNotFound {}
 
+@documentation("Indicates that the operation succeeded but the webhook call failed. The response body contains the successful result, but the client should be aware that webhook notification did not complete.")
+@httpError(512)
+@error("server")
+structure WebhookFailed {
+    @required
+    @documentation("The successful operation result that would have been returned with HTTP 200, serialized as an untyped/raw JSON document. The structure logically corresponds to the operation's normal output type, but is modeled as Document since this single error is shared across multiple operations with different output shapes.")
+    data: Document
+}
+
 @mixin
 operation GetOperation {
     errors: [
         ResourceNotFound
+    ]
+}
+
+@mixin
+operation WebhookOperation {
+    errors: [
+        WebhookFailed
     ]
 }
 

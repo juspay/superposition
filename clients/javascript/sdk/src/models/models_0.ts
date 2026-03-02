@@ -571,6 +571,32 @@ export interface BulkOperationOutput {
 }
 
 /**
+ * Indicates that the operation succeeded but the webhook call failed. The response body contains the successful result, but the client should be aware that webhook notification did not complete.
+ * @public
+ */
+export class WebhookFailed extends __BaseException {
+  readonly name: "WebhookFailed" = "WebhookFailed";
+  readonly $fault: "server" = "server";
+  /**
+   * The successful operation result that would have been returned with HTTP 200, serialized as an untyped/raw JSON document. The structure logically corresponds to the operation's normal output type, but is modeled as Document since this single error is shared across multiple operations with different output shapes.
+   * @public
+   */
+  data: __DocumentType | undefined;
+  /**
+   * @internal
+   */
+  constructor(opts: __ExceptionOptionType<WebhookFailed, __BaseException>) {
+    super({
+      name: "WebhookFailed",
+      $fault: "server",
+      ...opts
+    });
+    Object.setPrototypeOf(this, WebhookFailed.prototype);
+    this.data = opts.data;
+  }
+}
+
+/**
  * @public
  */
 export interface ChangeReasonValidationFunctionRequest {

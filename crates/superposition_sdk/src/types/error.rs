@@ -3,9 +3,13 @@ pub use crate::types::error::_internal_server_error::InternalServerError;
 
 pub use crate::types::error::_resource_not_found::ResourceNotFound;
 
+pub use crate::types::error::_webhook_failed::WebhookFailed;
+
 mod _internal_server_error;
 
 mod _resource_not_found;
+
+mod _webhook_failed;
 
 /// Builders
 pub mod builders;

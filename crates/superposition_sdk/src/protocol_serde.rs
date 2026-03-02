@@ -311,6 +311,8 @@ pub(crate) mod shape_update_workspace_input;
 
 pub(crate) mod shape_validate_context_input;
 
+pub(crate) mod shape_webhook_failed;
+
 pub(crate) mod shape_audit_log_list;
 
 pub(crate) mod shape_buckets;

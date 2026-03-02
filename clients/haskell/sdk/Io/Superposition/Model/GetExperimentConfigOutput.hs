@@ -97,7 +97,7 @@ build builder = do
 
 
 instance Io.Superposition.Utility.FromResponseParser GetExperimentConfigOutput where
-    expectedStatus = Network.HTTP.Types.status200
+    expectedStatus = (Network.HTTP.Types.mkStatus 200 "")
     responseParser = do
         var0 <- Io.Superposition.Utility.deSerHeader "last-modified"
         var1 <- Io.Superposition.Utility.deSerField "experiment_groups"

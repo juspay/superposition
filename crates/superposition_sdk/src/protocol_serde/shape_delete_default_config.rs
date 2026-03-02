@@ -27,6 +27,22 @@ pub fn de_delete_default_config_http_error(_response_status: u16, _response_head
                                                         }
             tmp
         }),
+        "WebhookFailed" => crate::operation::delete_default_config::DeleteDefaultConfigError::WebhookFailed({
+            #[allow(unused_mut)]
+            let mut tmp =
+                 {
+                    #[allow(unused_mut)]
+                    let mut output = crate::types::error::builders::WebhookFailedBuilder::default();
+                    output = crate::protocol_serde::shape_webhook_failed::de_webhook_failed_json_err(_response_body, output).map_err(crate::operation::delete_default_config::DeleteDefaultConfigError::unhandled)?;
+                    let output = output.meta(generic);
+                    crate::serde_util::webhook_failed_correct_errors(output).build().map_err(crate::operation::delete_default_config::DeleteDefaultConfigError::unhandled)?
+                }
+            ;
+            if tmp.message.is_none() {
+                                                            tmp.message = _error_message;
+                                                        }
+            tmp
+        }),
         "InternalServerError" => crate::operation::delete_default_config::DeleteDefaultConfigError::InternalServerError({
             #[allow(unused_mut)]
             let mut tmp =

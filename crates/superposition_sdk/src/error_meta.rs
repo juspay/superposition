@@ -7,6 +7,8 @@ pub enum Error {
     InternalServerError(crate::types::error::InternalServerError),
     #[allow(missing_docs)] // documentation missing in model
     ResourceNotFound(crate::types::error::ResourceNotFound),
+    /// Indicates that the operation succeeded but the webhook call failed. The response body contains the successful result, but the client should be aware that webhook notification did not complete.
+    WebhookFailed(crate::types::error::WebhookFailed),
     /// An unexpected error occurred (e.g., invalid JSON returned by the service or an unknown error code).
     #[deprecated(note = "Matching `Unhandled` directly is not forwards compatible. Instead, match using a \
     variable wildcard pattern and check `.code()`:
@@ -21,6 +23,7 @@ impl ::std::fmt::Display for Error {
         match self {
             Error::InternalServerError(inner) => inner.fmt(f),
             Error::ResourceNotFound(inner) => inner.fmt(f),
+            Error::WebhookFailed(inner) => inner.fmt(f),
             Error::Unhandled(_) => if let ::std::option::Option::Some(code) = ::aws_smithy_types::error::metadata::ProvideErrorMetadata::code(self) {
                                         write!(f, "unhandled error ({code})")
                                     } else {
@@ -39,6 +42,7 @@ impl ::aws_smithy_types::error::metadata::ProvideErrorMetadata for Error {
                     match self {
                         Self::InternalServerError(inner) => inner.meta(),
 Self::ResourceNotFound(inner) => inner.meta(),
+Self::WebhookFailed(inner) => inner.meta(),
                         Self::Unhandled(inner) => &inner.meta,
                     }
                 }
@@ -103,6 +107,7 @@ impl From<crate::operation::bulk_operation::BulkOperationError> for Error {
     fn from(err: crate::operation::bulk_operation::BulkOperationError) -> Self {
         match err {
             crate::operation::bulk_operation::BulkOperationError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::bulk_operation::BulkOperationError::WebhookFailed(inner) => Error::WebhookFailed(inner),
             crate::operation::bulk_operation::BulkOperationError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::bulk_operation::BulkOperationError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -125,6 +130,7 @@ impl From<crate::operation::conclude_experiment::ConcludeExperimentError> for Er
     fn from(err: crate::operation::conclude_experiment::ConcludeExperimentError) -> Self {
         match err {
             crate::operation::conclude_experiment::ConcludeExperimentError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::conclude_experiment::ConcludeExperimentError::WebhookFailed(inner) => Error::WebhookFailed(inner),
             crate::operation::conclude_experiment::ConcludeExperimentError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::conclude_experiment::ConcludeExperimentError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -147,6 +153,7 @@ impl From<crate::operation::create_context::CreateContextError> for Error {
     fn from(err: crate::operation::create_context::CreateContextError) -> Self {
         match err {
             crate::operation::create_context::CreateContextError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::create_context::CreateContextError::WebhookFailed(inner) => Error::WebhookFailed(inner),
             crate::operation::create_context::CreateContextError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::create_context::CreateContextError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -168,6 +175,7 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::create_default_config::CreateDefaultConfigError> for Error {
     fn from(err: crate::operation::create_default_config::CreateDefaultConfigError) -> Self {
         match err {
+            crate::operation::create_default_config::CreateDefaultConfigError::WebhookFailed(inner) => Error::WebhookFailed(inner),
             crate::operation::create_default_config::CreateDefaultConfigError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::create_default_config::CreateDefaultConfigError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -189,6 +197,7 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::create_dimension::CreateDimensionError> for Error {
     fn from(err: crate::operation::create_dimension::CreateDimensionError) -> Self {
         match err {
+            crate::operation::create_dimension::CreateDimensionError::WebhookFailed(inner) => Error::WebhookFailed(inner),
             crate::operation::create_dimension::CreateDimensionError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::create_dimension::CreateDimensionError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -210,6 +219,7 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::create_experiment::CreateExperimentError> for Error {
     fn from(err: crate::operation::create_experiment::CreateExperimentError) -> Self {
         match err {
+            crate::operation::create_experiment::CreateExperimentError::WebhookFailed(inner) => Error::WebhookFailed(inner),
             crate::operation::create_experiment::CreateExperimentError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::create_experiment::CreateExperimentError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -400,6 +410,7 @@ impl From<crate::operation::delete_context::DeleteContextError> for Error {
     fn from(err: crate::operation::delete_context::DeleteContextError) -> Self {
         match err {
             crate::operation::delete_context::DeleteContextError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::delete_context::DeleteContextError::WebhookFailed(inner) => Error::WebhookFailed(inner),
             crate::operation::delete_context::DeleteContextError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::delete_context::DeleteContextError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -422,6 +433,7 @@ impl From<crate::operation::delete_default_config::DeleteDefaultConfigError> for
     fn from(err: crate::operation::delete_default_config::DeleteDefaultConfigError) -> Self {
         match err {
             crate::operation::delete_default_config::DeleteDefaultConfigError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::delete_default_config::DeleteDefaultConfigError::WebhookFailed(inner) => Error::WebhookFailed(inner),
             crate::operation::delete_default_config::DeleteDefaultConfigError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::delete_default_config::DeleteDefaultConfigError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -444,6 +456,7 @@ impl From<crate::operation::delete_dimension::DeleteDimensionError> for Error {
     fn from(err: crate::operation::delete_dimension::DeleteDimensionError) -> Self {
         match err {
             crate::operation::delete_dimension::DeleteDimensionError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::delete_dimension::DeleteDimensionError::WebhookFailed(inner) => Error::WebhookFailed(inner),
             crate::operation::delete_dimension::DeleteDimensionError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::delete_dimension::DeleteDimensionError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -598,6 +611,7 @@ impl From<crate::operation::discard_experiment::DiscardExperimentError> for Erro
     fn from(err: crate::operation::discard_experiment::DiscardExperimentError) -> Self {
         match err {
             crate::operation::discard_experiment::DiscardExperimentError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::discard_experiment::DiscardExperimentError::WebhookFailed(inner) => Error::WebhookFailed(inner),
             crate::operation::discard_experiment::DiscardExperimentError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::discard_experiment::DiscardExperimentError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1392,6 +1406,7 @@ impl From<crate::operation::move_context::MoveContextError> for Error {
     fn from(err: crate::operation::move_context::MoveContextError) -> Self {
         match err {
             crate::operation::move_context::MoveContextError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::move_context::MoveContextError::WebhookFailed(inner) => Error::WebhookFailed(inner),
             crate::operation::move_context::MoveContextError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::move_context::MoveContextError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1414,6 +1429,7 @@ impl From<crate::operation::pause_experiment::PauseExperimentError> for Error {
     fn from(err: crate::operation::pause_experiment::PauseExperimentError) -> Self {
         match err {
             crate::operation::pause_experiment::PauseExperimentError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::pause_experiment::PauseExperimentError::WebhookFailed(inner) => Error::WebhookFailed(inner),
             crate::operation::pause_experiment::PauseExperimentError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::pause_experiment::PauseExperimentError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1458,6 +1474,7 @@ impl From<crate::operation::ramp_experiment::RampExperimentError> for Error {
     fn from(err: crate::operation::ramp_experiment::RampExperimentError) -> Self {
         match err {
             crate::operation::ramp_experiment::RampExperimentError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::ramp_experiment::RampExperimentError::WebhookFailed(inner) => Error::WebhookFailed(inner),
             crate::operation::ramp_experiment::RampExperimentError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::ramp_experiment::RampExperimentError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1502,6 +1519,7 @@ impl From<crate::operation::resume_experiment::ResumeExperimentError> for Error 
     fn from(err: crate::operation::resume_experiment::ResumeExperimentError) -> Self {
         match err {
             crate::operation::resume_experiment::ResumeExperimentError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::resume_experiment::ResumeExperimentError::WebhookFailed(inner) => Error::WebhookFailed(inner),
             crate::operation::resume_experiment::ResumeExperimentError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::resume_experiment::ResumeExperimentError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1588,6 +1606,7 @@ impl From<crate::operation::update_default_config::UpdateDefaultConfigError> for
     fn from(err: crate::operation::update_default_config::UpdateDefaultConfigError) -> Self {
         match err {
             crate::operation::update_default_config::UpdateDefaultConfigError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::update_default_config::UpdateDefaultConfigError::WebhookFailed(inner) => Error::WebhookFailed(inner),
             crate::operation::update_default_config::UpdateDefaultConfigError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::update_default_config::UpdateDefaultConfigError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1610,6 +1629,7 @@ impl From<crate::operation::update_dimension::UpdateDimensionError> for Error {
     fn from(err: crate::operation::update_dimension::UpdateDimensionError) -> Self {
         match err {
             crate::operation::update_dimension::UpdateDimensionError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::update_dimension::UpdateDimensionError::WebhookFailed(inner) => Error::WebhookFailed(inner),
             crate::operation::update_dimension::UpdateDimensionError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::update_dimension::UpdateDimensionError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1698,6 +1718,7 @@ impl From<crate::operation::update_override::UpdateOverrideError> for Error {
     fn from(err: crate::operation::update_override::UpdateOverrideError) -> Self {
         match err {
             crate::operation::update_override::UpdateOverrideError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::update_override::UpdateOverrideError::WebhookFailed(inner) => Error::WebhookFailed(inner),
             crate::operation::update_override::UpdateOverrideError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::update_override::UpdateOverrideError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1720,6 +1741,7 @@ impl From<crate::operation::update_overrides_experiment::UpdateOverridesExperime
     fn from(err: crate::operation::update_overrides_experiment::UpdateOverridesExperimentError) -> Self {
         match err {
             crate::operation::update_overrides_experiment::UpdateOverridesExperimentError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::update_overrides_experiment::UpdateOverridesExperimentError::WebhookFailed(inner) => Error::WebhookFailed(inner),
             crate::operation::update_overrides_experiment::UpdateOverridesExperimentError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::update_overrides_experiment::UpdateOverridesExperimentError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1872,6 +1894,7 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::weight_recompute::WeightRecomputeError> for Error {
     fn from(err: crate::operation::weight_recompute::WeightRecomputeError) -> Self {
         match err {
+            crate::operation::weight_recompute::WeightRecomputeError::WebhookFailed(inner) => Error::WebhookFailed(inner),
             crate::operation::weight_recompute::WeightRecomputeError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::weight_recompute::WeightRecomputeError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1882,6 +1905,7 @@ impl ::std::error::Error for Error {
         match self {
             Error::InternalServerError(inner) => inner.source(),
             Error::ResourceNotFound(inner) => inner.source(),
+            Error::WebhookFailed(inner) => inner.source(),
             Error::Unhandled(inner) => ::std::option::Option::Some(&*inner.source)
         }
     }

@@ -95,7 +95,7 @@ build builder = do
 
 
 instance Io.Superposition.Utility.FromResponseParser TestOutput where
-    expectedStatus = Network.HTTP.Types.status200
+    expectedStatus = (Network.HTTP.Types.mkStatus 200 "")
     responseParser = do
         
         var0 <- Io.Superposition.Utility.deSerField "stdout"

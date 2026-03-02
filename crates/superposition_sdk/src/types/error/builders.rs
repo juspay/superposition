@@ -3,3 +3,5 @@ pub use crate::types::error::_internal_server_error::InternalServerErrorBuilder;
 
 pub use crate::types::error::_resource_not_found::ResourceNotFoundBuilder;
 
+pub use crate::types::error::_webhook_failed::WebhookFailedBuilder;
+

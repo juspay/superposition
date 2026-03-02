@@ -78,7 +78,7 @@ impl fmt::Display for HeadersEnum {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum Action {
     Create,
     Update,

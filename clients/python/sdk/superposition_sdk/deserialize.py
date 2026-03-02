@@ -102,6 +102,7 @@ from .models import (
     UpdateWebhookOutput,
     UpdateWorkspaceOutput,
     ValidateContextOutput,
+    WebhookFailed,
     WeightRecomputeOutput,
 )
 
@@ -181,6 +182,9 @@ async def _deserialize_error_bulk_operation(http_response: HTTPResponse, config:
         case "internalservererror":
             return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
 
+        case "webhookfailed":
+            return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
+
         case "resourcenotfound":
             return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
 
@@ -212,6 +216,9 @@ async def _deserialize_error_conclude_experiment(http_response: HTTPResponse, co
         case "resourcenotfound":
             return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
 
+        case "webhookfailed":
+            return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
+
         case _:
             return UnknownApiError(f"{code}: {message}")
 
@@ -240,6 +247,9 @@ async def _deserialize_error_create_context(http_response: HTTPResponse, config:
         case "resourcenotfound":
             return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
 
+        case "webhookfailed":
+            return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
+
         case _:
             return UnknownApiError(f"{code}: {message}")
 
@@ -264,6 +274,9 @@ async def _deserialize_error_create_default_config(http_response: HTTPResponse, 
     match code.lower():
         case "internalservererror":
             return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
+
+        case "webhookfailed":
+            return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
 
         case _:
             return UnknownApiError(f"{code}: {message}")
@@ -290,6 +303,9 @@ async def _deserialize_error_create_dimension(http_response: HTTPResponse, confi
         case "internalservererror":
             return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
 
+        case "webhookfailed":
+            return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
+
         case _:
             return UnknownApiError(f"{code}: {message}")
 
@@ -314,6 +330,9 @@ async def _deserialize_error_create_experiment(http_response: HTTPResponse, conf
     match code.lower():
         case "internalservererror":
             return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
+
+        case "webhookfailed":
+            return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
 
         case _:
             return UnknownApiError(f"{code}: {message}")
@@ -536,6 +555,9 @@ async def _deserialize_error_delete_context(http_response: HTTPResponse, config:
         case "resourcenotfound":
             return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
 
+        case "webhookfailed":
+            return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
+
         case _:
             return UnknownApiError(f"{code}: {message}")
 
@@ -557,6 +579,9 @@ async def _deserialize_error_delete_default_config(http_response: HTTPResponse, 
         case "resourcenotfound":
             return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
 
+        case "webhookfailed":
+            return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
+
         case _:
             return UnknownApiError(f"{code}: {message}")
 
@@ -577,6 +602,9 @@ async def _deserialize_error_delete_dimension(http_response: HTTPResponse, confi
 
         case "resourcenotfound":
             return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
+
+        case "webhookfailed":
+            return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
 
         case _:
             return UnknownApiError(f"{code}: {message}")
@@ -759,6 +787,9 @@ async def _deserialize_error_discard_experiment(http_response: HTTPResponse, con
 
         case "resourcenotfound":
             return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
+
+        case "webhookfailed":
+            return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
 
         case _:
             return UnknownApiError(f"{code}: {message}")
@@ -1823,6 +1854,9 @@ async def _deserialize_error_move_context(http_response: HTTPResponse, config: C
         case "resourcenotfound":
             return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
 
+        case "webhookfailed":
+            return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
+
         case _:
             return UnknownApiError(f"{code}: {message}")
 
@@ -1850,6 +1884,9 @@ async def _deserialize_error_pause_experiment(http_response: HTTPResponse, confi
 
         case "resourcenotfound":
             return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
+
+        case "webhookfailed":
+            return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
 
         case _:
             return UnknownApiError(f"{code}: {message}")
@@ -1907,6 +1944,9 @@ async def _deserialize_error_ramp_experiment(http_response: HTTPResponse, config
         case "resourcenotfound":
             return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
 
+        case "webhookfailed":
+            return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
+
         case _:
             return UnknownApiError(f"{code}: {message}")
 
@@ -1962,6 +2002,9 @@ async def _deserialize_error_resume_experiment(http_response: HTTPResponse, conf
 
         case "resourcenotfound":
             return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
+
+        case "webhookfailed":
+            return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
 
         case _:
             return UnknownApiError(f"{code}: {message}")
@@ -2069,6 +2112,9 @@ async def _deserialize_error_update_default_config(http_response: HTTPResponse, 
         case "resourcenotfound":
             return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
 
+        case "webhookfailed":
+            return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
+
         case _:
             return UnknownApiError(f"{code}: {message}")
 
@@ -2096,6 +2142,9 @@ async def _deserialize_error_update_dimension(http_response: HTTPResponse, confi
 
         case "resourcenotfound":
             return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
+
+        case "webhookfailed":
+            return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
 
         case _:
             return UnknownApiError(f"{code}: {message}")
@@ -2209,6 +2258,9 @@ async def _deserialize_error_update_override(http_response: HTTPResponse, config
         case "resourcenotfound":
             return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
 
+        case "webhookfailed":
+            return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
+
         case _:
             return UnknownApiError(f"{code}: {message}")
 
@@ -2236,6 +2288,9 @@ async def _deserialize_error_update_overrides_experiment(http_response: HTTPResp
 
         case "resourcenotfound":
             return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
+
+        case "webhookfailed":
+            return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
 
         case _:
             return UnknownApiError(f"{code}: {message}")
@@ -2420,6 +2475,9 @@ async def _deserialize_error_weight_recompute(http_response: HTTPResponse, confi
         case "internalservererror":
             return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
 
+        case "webhookfailed":
+            return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
+
         case _:
             return UnknownApiError(f"{code}: {message}")
 
@@ -2453,3 +2511,24 @@ async def _deserialize_error_resource_not_found(
     kwargs: dict[str, Any] = {"message": default_message}
 
     return ResourceNotFound(**kwargs)
+
+async def _deserialize_error_webhook_failed(
+    http_response: HTTPResponse,
+    config: Config,
+    parsed_body: dict[str, DocumentValue] | None,
+    default_message: str,
+) -> WebhookFailed:
+    kwargs: dict[str, Any] = {"message": default_message}
+
+    if parsed_body is None:
+        body = await http_response.consume_body_async()
+    else:
+        body = json.dumps(parsed_body).encode('utf-8')
+
+    if body:
+        codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+        deserializer = codec.create_deserializer(body)
+        body_kwargs = WebhookFailed.deserialize_kwargs(deserializer)
+        kwargs.update(body_kwargs)
+
+    return WebhookFailed(**kwargs)

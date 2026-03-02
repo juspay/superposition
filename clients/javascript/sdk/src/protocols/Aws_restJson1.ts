@@ -374,6 +374,7 @@ import {
   VariableResponse,
   Variant,
   VariantUpdateRequest,
+  WebhookFailed,
   WebhookResponse,
   WeightRecomputeResponse,
   WorkspaceResponse,
@@ -5077,6 +5078,9 @@ const de_CommandError = async(
     case "ResourceNotFound":
     case "io.superposition#ResourceNotFound":
       throw await de_ResourceNotFoundRes(parsedOutput, context);
+    case "WebhookFailed":
+    case "io.superposition#WebhookFailed":
+      throw await de_WebhookFailedRes(parsedOutput, context);
     default:
       const parsedBody = parsedOutput.body;
       return throwDefaultError({
@@ -5123,6 +5127,27 @@ const de_CommandError = async(
     });
     Object.assign(contents, doc);
     const exception = new ResourceNotFound({
+      $metadata: deserializeMetadata(parsedOutput),
+      ...contents
+    });
+    return __decorateServiceException(exception, parsedOutput.body);
+  };
+
+  /**
+   * deserializeAws_restJson1WebhookFailedRes
+   */
+  const de_WebhookFailedRes = async (
+    parsedOutput: any,
+    context: __SerdeContext
+  ): Promise<WebhookFailed> => {
+    const contents: any = map({
+    });
+    const data: any = parsedOutput.body;
+    const doc = take(data, {
+      'data': _ => de_Document(_, context),
+    });
+    Object.assign(contents, doc);
+    const exception = new WebhookFailed({
       $metadata: deserializeMetadata(parsedOutput),
       ...contents
     });
