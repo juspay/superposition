@@ -1,34 +1,34 @@
 import {
-    SuperpositionClient,
-    UpdateWorkspaceCommand,
-    CreateContextCommand,
-    UpdateOverrideCommand,
-    MoveContextCommand,
-    DeleteContextCommand,
-    GetContextCommand,
     BulkOperationCommand,
-    CreateDimensionCommand,
-    DeleteDimensionCommand,
+    ContextIdentifier,
+    CreateContextCommand,
     CreateDefaultConfigCommand,
+    CreateDimensionCommand,
+    DeleteContextCommand,
     DeleteDefaultConfigCommand,
-    type CreateContextCommandOutput,
-    type GetContextCommandOutput,
+    DeleteDimensionCommand,
+    GetContextCommand,
+    MoveContextCommand,
+    SuperpositionClient,
+    UpdateDimensionCommand,
+    UpdateOverrideCommand,
+    UpdateWorkspaceCommand,
     WeightRecomputeCommand,
     WorkspaceStatus,
-    UpdateDimensionCommand,
-    ContextIdentifier,
+    type CreateContextCommandOutput,
     type DimensionType,
+    type GetContextCommandOutput,
 } from "@juspay/superposition-sdk";
-import { ENV, superpositionClient } from "../env.ts";
 import { type DocumentType } from "@smithy/types";
 import {
-    describe,
-    beforeAll,
     afterAll,
-    test,
+    beforeAll,
+    describe,
     expect,
     setDefaultTimeout,
+    test,
 } from "bun:test";
+import { ENV, superpositionClient } from "../env.ts";
 
 describe("Context API Integration Tests", () => {
     let client: SuperpositionClient;
@@ -48,13 +48,31 @@ describe("Context API Integration Tests", () => {
         testWorkspaceId = ENV.workspace_id;
         testOrgId = ENV.org_id;
         console.log(`Using org ${testOrgId} with workspace ${testWorkspaceId}`);
-        await addMandatoryDimension(client);
         await setupDimensionsAndConfigs(client);
+        await addMandatoryDimension(client);
     });
 
     // Add cleanup after all tests
     afterAll(async () => {
         console.log("Cleaning up test resources...");
+
+        // Remove mandatory dimensions before cleanup so dimensions can be deleted
+        try {
+            await client.send(
+                new UpdateWorkspaceCommand({
+                    org_id: testOrgId,
+                    workspace_name: testWorkspaceId,
+                    workspace_status: WorkspaceStatus.ENABLED,
+                    mandatory_dimensions: [],
+                }),
+            );
+            console.log("Cleared mandatory dimensions for cleanup");
+        } catch (error: any) {
+            console.error(
+                "Failed to clear mandatory dimensions:",
+                error.message,
+            );
+        }
 
         // Delete contexts first
         console.log(`Cleaning up ${createdContextIds.size} contexts...`);

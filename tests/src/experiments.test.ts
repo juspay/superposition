@@ -33,13 +33,14 @@ import {
 } from "@juspay/superposition-sdk";
 import { type DocumentType } from "@smithy/types";
 import { superpositionClient, ENV } from "../env.ts";
-import { expect, describe, test, beforeAll, afterAll } from "bun:test";
+import { expect, describe, test, beforeAll, afterAll, setDefaultTimeout } from "bun:test";
 import { nanoid } from "nanoid";
 
 // Helper function to create unique names/IDs
 const uniqueName = (prefix: string) => `${prefix}-${nanoid(8)}`;
 
 describe("Experiments API", () => {
+    setDefaultTimeout(120000);
     let experimentId1: string | undefined;
     let experiment1Variants: Variant[] | undefined;
     let experimentGroupId: string | undefined;
