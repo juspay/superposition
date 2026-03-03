@@ -56,6 +56,24 @@ describe("Context API Integration Tests", () => {
     afterAll(async () => {
         console.log("Cleaning up test resources...");
 
+        // Remove mandatory dimensions before cleanup so dimensions can be deleted
+        try {
+            await client.send(
+                new UpdateWorkspaceCommand({
+                    org_id: testOrgId,
+                    workspace_name: testWorkspaceId,
+                    workspace_status: WorkspaceStatus.ENABLED,
+                    mandatory_dimensions: [],
+                }),
+            );
+            console.log("Cleared mandatory dimensions for cleanup");
+        } catch (error: any) {
+            console.error(
+                "Failed to clear mandatory dimensions:",
+                error.message,
+            );
+        }
+
         // Delete contexts first
         console.log(`Cleaning up ${createdContextIds.size} contexts...`);
         for (const id of createdContextIds) {
