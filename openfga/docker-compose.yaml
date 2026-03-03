@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:14
+    container_name: openfga_postgres
+    environment:
+      POSTGRES_USER: openfga
+      POSTGRES_PASSWORD: openfga
+      POSTGRES_DB: openfga
+    volumes:
+      - openfga_pg_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  openfga:
+    image: openfga/openfga:latest
+    container_name: openfga_server
+    depends_on:
+      - postgres
+    environment:
+      OPENFGA_DATASTORE_ENGINE: postgres
+      OPENFGA_DATASTORE_URI: "postgres://openfga:openfga@postgres:5432/openfga?sslmode=disable"
+      OPENFGA_LOG_LEVEL: debug
+      OPENFGA_PLAYGROUND_ENABLED: "true"
+    ports:
+      - "8080:8181"   # REST API
+      - "3000:3000"   # Playground UI
+
+volumes:
+  openfga_pg_data:

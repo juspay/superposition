@@ -3,6 +3,7 @@ mod casbin;
 mod no_auth;
 
 use std::{
+    fmt::Display,
     future::{Ready, ready},
     sync::Arc,
 };
@@ -221,6 +222,38 @@ where
     }
 }
 
+#[derive(Clone, Debug)]
+pub struct AuthZDomain(String);
+
+impl AuthZDomain {
+    pub fn new(schema: String) -> Self {
+        Self(schema)
+    }
+}
+
+impl FromRequest for AuthZDomain {
+    type Error = Error;
+    type Future = Ready<Result<Self, Self::Error>>;
+
+    fn from_request(
+        req: &actix_web::HttpRequest,
+        _: &mut actix_web::dev::Payload,
+    ) -> Self::Future {
+        let result = req.extensions().get::<Self>().cloned().ok_or_else(|| {
+            log::error!("Please check that the organisation id and workspace id are being properly sent");
+            actix_web::error::ErrorInternalServerError("Please check that the organisation id and workspace id are being properly sent")
+        });
+
+        ready(result)
+    }
+}
+
+impl Display for AuthZDomain {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
 #[derive(Clone)]
 pub enum AuthZManager {
     NoAuth,
@@ -240,9 +273,23 @@ impl AuthZManager {
         }
     }
 
-    pub fn endpoints(&self) -> actix_web::Scope {
+    pub fn workspace_endpoints(&self) -> actix_web::Scope {
         match self {
-            AuthZManager::Casbin(_) => casbin::endpoints(),
+            AuthZManager::Casbin(_) => casbin::workspace_endpoints(),
+            AuthZManager::NoAuth => Scope::new(""),
+        }
+    }
+
+    pub fn admin_endpoints(&self) -> actix_web::Scope {
+        match self {
+            AuthZManager::Casbin(_) => casbin::admin_endpoints(),
+            AuthZManager::NoAuth => Scope::new(""),
+        }
+    }
+
+    pub fn org_endpoints(&self) -> actix_web::Scope {
+        match self {
+            AuthZManager::Casbin(_) => casbin::org_endpoints(),
             AuthZManager::NoAuth => Scope::new(""),
         }
     }

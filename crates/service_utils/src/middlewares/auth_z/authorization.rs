@@ -6,7 +6,21 @@ use crate::service::types::{OrganisationId, SchemaName};
 pub trait Authorizer: Sync + Send {
     fn on_org_creation(
         &self,
-        organisation_id: &str,
+        organisation_id: String,
+        org_admin_email: String,
+    ) -> LocalBoxFuture<'_, Result<bool, String>>;
+
+    fn on_workspace_creation(
+        &self,
+        schema_name: SchemaName,
+        workspace_admin_email: String,
+    ) -> LocalBoxFuture<'_, Result<bool, String>>;
+
+    fn on_workspace_admin_update(
+        &self,
+        schema_name: SchemaName,
+        old_admin_email: String,
+        new_admin_email: String,
     ) -> LocalBoxFuture<'_, Result<bool, String>>;
 
     fn is_allowed(

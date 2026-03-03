@@ -66,7 +66,7 @@ pub async fn create_handler(
 
     // Notify the AuthZHandler about the new organisation creation
     authz_handler
-        .on_org_creation(&new_org.id)
+        .on_org_creation(new_org.id.clone(), new_org.admin_email.clone())
         .await
         .map_err(|e| unexpected_error!("Failed to notify AuthZHandler: {}", e))?;
 

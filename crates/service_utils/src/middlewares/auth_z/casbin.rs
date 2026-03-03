@@ -1,38 +1,68 @@
 mod handlers;
 
-use std::sync::Mutex;
+use std::sync::RwLock;
 
 use aws_sdk_kms::Client;
 use casbin::{CoreApi, Enforcer, MgmtApi};
+use chrono::{DateTime, Utc};
 use diesel_adapter::DieselAdapter;
 use futures_util::future::LocalBoxFuture;
-use superposition_types::User;
+use superposition_types::{Resource, User};
 
 use crate::{
     db::utils::get_database_url,
     helpers::get_from_env_or_default,
-    service::types::{AppEnv, Resource, WorkspaceContext},
+    service::types::{AppEnv, OrganisationId, SchemaName},
 };
 
 use super::authorization::Authorizer;
 
-pub use handlers::endpoints;
+pub use handlers::{admin_endpoints, org_endpoints, workspace_endpoints};
 
 pub struct CasbinPolicyEngine {
-    pub(self) enforcer: Mutex<Enforcer>,
+    pub(self) enforcer: RwLock<Enforcer>,
+    pub(self) last_policy_load_time: RwLock<DateTime<Utc>>,
+    policy_refresh_interval: u64,
+}
+
+fn schema_for_resource(
+    resource: &Resource,
+    workspace_context: &(OrganisationId, SchemaName),
+) -> String {
+    match resource {
+        Resource::Organisation | Resource::MasterEncryptionKey => "*".to_string(),
+        Resource::Workspace => format!("{}_*", workspace_context.0.to_string()),
+        // TODO: For Auth need to do something
+        // Resource::Auth => something,
+        _ => workspace_context.1.to_string(),
+    }
+}
+
+impl CasbinPolicyEngine {
+    pub async fn refresh_policies(
+        self: &CasbinPolicyEngine,
+        enforcer: &mut Enforcer,
+    ) -> Result<(), String> {
+        enforcer.load_policy().await.map_err(|e| e.to_string())?;
+        self.last_policy_load_time
+            .write()
+            .map_err(|e| e.to_string())?
+            .clone_from(&Utc::now());
+        Ok(())
+    }
 }
 
 impl Authorizer for CasbinPolicyEngine {
     fn is_allowed(
         &self,
-        workspace_context: &WorkspaceContext,
+        workspace_context: &(OrganisationId, SchemaName),
         user: &User,
         resource: &Resource,
         action: &str,
         attributes: Option<&[&str]>,
     ) -> LocalBoxFuture<'_, Result<bool, String>> {
-        let sub = user.get_username();
-        let workspace = resource.workspace_for(workspace_context);
+        let sub = user.get_email();
+        let workspace = schema_for_resource(resource, workspace_context);
         let resource = resource.to_string();
         let action = action.to_string();
         let attributes = attributes
@@ -40,13 +70,30 @@ impl Authorizer for CasbinPolicyEngine {
             .unwrap_or(vec!["*".to_string()]);
 
         Box::pin(async move {
-            let mut enforcer = self.enforcer.lock().map_err(|e| {
-                log::error!("Failed to acquire Casbin enforcer lock: {}", e);
-                e.to_string()
-            })?;
+            {
+                let now = Utc::now();
+                if let Ok(mut last_load_time) = self.last_policy_load_time.write() {
+                    if now.signed_duration_since(*last_load_time).num_seconds()
+                        >= self.policy_refresh_interval as i64
+                    {
+                        let mut enforcer = self.enforcer.write().map_err(|e| {
+                            log::error!("Failed to acquire Casbin enforcer lock: {}", e);
+                            e.to_string()
+                        })?;
 
-            enforcer.load_policy().await.map_err(|e| {
-                log::error!("Failed to load Casbin policy: {}", e);
+                        enforcer.load_policy().await.map_err(|e| {
+                            log::error!("Failed to load Casbin policy: {}", e);
+                            e.to_string()
+                        })?;
+
+                        // Update the last policy load time
+                        *last_load_time = now;
+                    }
+                }
+            }
+
+            let enforcer = self.enforcer.read().map_err(|e| {
+                log::error!("Failed to acquire Casbin enforcer lock: {}", e);
                 e.to_string()
             })?;
 
@@ -68,23 +115,22 @@ impl Authorizer for CasbinPolicyEngine {
 
     fn on_org_creation(
         &self,
-        organisation_id: &str,
+        organisation_id: String,
+        org_admin_email: String,
     ) -> LocalBoxFuture<'_, Result<bool, String>> {
-        let org_id = organisation_id.to_string();
         Box::pin(async move {
-            let mut enforcer = self.enforcer.try_lock().map_err(|e| {
+            let mut enforcer = self.enforcer.write().map_err(|e| {
                 log::error!("Failed to acquire Casbin enforcer lock: {}", e);
                 e.to_string()
             })?;
-            enforcer.load_policy().await.map_err(|e| {
-                log::error!("Failed to load Casbin policy: {}", e);
-                e.to_string()
-            })?;
+            self.refresh_policies(&mut enforcer).await?;
+
+            let org_schema = format!("{}_{}", organisation_id, "*");
 
             let policy_added = enforcer
                 .add_policy(vec![
                     "admin".to_string(),
-                    format!("{}_{}", org_id, "*"),
+                    org_schema.clone(),
                     "*".to_string(),
                     "*".to_string(),
                     "*".to_string(),
@@ -95,7 +141,94 @@ impl Authorizer for CasbinPolicyEngine {
                     e.to_string()
                 })?;
 
-            Ok(policy_added)
+            if !policy_added {
+                return Ok(false);
+            }
+
+            enforcer
+                .add_grouping_policy(vec![
+                    org_admin_email.to_string(),
+                    "admin".to_string(),
+                    org_schema,
+                ])
+                .await
+                .map_err(|e| {
+                    log::error!("Failed to add Casbin grouping policy: {}", e);
+                    e.to_string()
+                })
+        })
+    }
+
+    fn on_workspace_creation(
+        &self,
+        schema_name: SchemaName,
+        workspace_admin_email: String,
+    ) -> LocalBoxFuture<'_, Result<bool, String>> {
+        Box::pin(async move {
+            let mut enforcer = self.enforcer.write().map_err(|e| {
+                log::error!("Failed to acquire Casbin enforcer lock: {}", e);
+                e.to_string()
+            })?;
+            self.refresh_policies(&mut enforcer).await?;
+
+            enforcer
+                .add_grouping_policy(vec![
+                    workspace_admin_email.to_string(),
+                    "admin".to_string(),
+                    schema_name.to_string(),
+                ])
+                .await
+                .map_err(|e| {
+                    log::error!("Failed to add Casbin grouping policy: {}", e);
+                    e.to_string()
+                })
+        })
+    }
+
+    fn on_workspace_admin_update(
+        &self,
+        schema_name: SchemaName,
+        old_admin_email: String,
+        new_admin_email: String,
+    ) -> LocalBoxFuture<'_, Result<bool, String>> {
+        Box::pin(async move {
+            let mut enforcer = self.enforcer.write().map_err(|e| {
+                log::error!("Failed to acquire Casbin enforcer lock: {}", e);
+                e.to_string()
+            })?;
+            self.refresh_policies(&mut enforcer).await?;
+
+            // Remove old admin
+            if let Err(e) = enforcer
+                .remove_grouping_policy(vec![
+                    old_admin_email,
+                    "admin".to_string(),
+                    schema_name.to_string(),
+                ])
+                .await
+            {
+                log::error!(
+                    "Failed to remove old admin from Casbin grouping policy: {}",
+                    e
+                );
+                return Err(e.to_string());
+            }
+
+            // Add new admin
+            enforcer
+                .add_grouping_policy(vec![
+                    new_admin_email,
+                    "admin".to_string(),
+                    schema_name.to_string(),
+                ])
+                .await
+                .map_err(|e| {
+                    log::error!(
+                        "Failed to add new admin to Casbin grouping policy: {}",
+                        e
+                    );
+                    e.to_string()
+                })
         })
     }
 
@@ -150,13 +283,26 @@ impl CasbinPolicyEngine {
             log::error!("Failed to create Casbin adapter: {e}");
             e.to_string()
         })?;
-        let enforcer = Enforcer::new(MODEL_CONF_PATH, adapter).await.map_err(|e| {
-            log::error!("Failed to create Casbin enforcer: {e}");
+
+        let mut enforcer =
+            Enforcer::new(MODEL_CONF_PATH, adapter).await.map_err(|e| {
+                log::error!("Failed to create Casbin enforcer: {e}");
+                e.to_string()
+            })?;
+
+        let now = Utc::now();
+        enforcer.load_policy().await.map_err(|e| {
+            log::error!("Failed to load Casbin policy: {e}");
             e.to_string()
         })?;
 
         Ok(Self {
-            enforcer: Mutex::new(enforcer),
+            enforcer: RwLock::new(enforcer),
+            last_policy_load_time: RwLock::new(now),
+            policy_refresh_interval: get_from_env_or_default(
+                "CASBIN_POLICY_REFRESH_INTERVAL",
+                60,
+            ),
         })
     }
 

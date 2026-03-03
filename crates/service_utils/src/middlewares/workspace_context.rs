@@ -13,6 +13,7 @@ use regex::Regex;
 use superposition_macros::{bad_argument, unexpected_error};
 
 use crate::helpers::get_workspace;
+use crate::middlewares::auth_z::AuthZDomain;
 use crate::{
     extensions::HttpRequestExt,
     service::types::{AppState, OrganisationId, SchemaName, WorkspaceContext},
@@ -125,7 +126,8 @@ where
 
                 let workspace = req.request().get_workspace_id();
 
-                let schema_name = match (enable_workspace_id, workspace) {
+                let (schema_name, auth_z_domain) = match (enable_workspace_id, workspace)
+                {
                     (true, None) => {
                         let error: Error = bad_argument!(
                             "The parameter workspace id is required, and must be passed through headers/url params/query params."
@@ -136,7 +138,7 @@ where
                     }
                     (true, Some(workspace_id)) => {
                         let schema = format!("{}_{}", *organisation, *workspace_id);
-                        let schema_name = SchemaName(schema);
+                        let schema_name = SchemaName(schema.clone());
                         let workspace_settings = {
                             let mut db_conn = app_state
                                 .db_pool
@@ -154,12 +156,19 @@ where
                             settings: workspace_settings,
                         });
 
-                        schema_name
+                        (schema_name, AuthZDomain::new(schema))
                     }
-                    (false, _) => SchemaName::default(),
+                    (false, _) => (
+                        SchemaName::default(),
+                        AuthZDomain::new(format!("{}_*", *organisation)),
+                    ),
                 };
 
                 req.extensions_mut().insert(schema_name);
+                req.extensions_mut().insert(auth_z_domain);
+            } else {
+                req.extensions_mut()
+                    .insert(AuthZDomain::new("*".to_string()));
             }
 
             let res = srv.call(req).await?.map_into_left_body();

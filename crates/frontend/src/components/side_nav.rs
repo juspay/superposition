@@ -88,6 +88,12 @@ fn create_routes(org: &str, workspace: &str) -> Vec<AppRoute> {
             icon: "ri-file-list-3-line".to_string(),
             label: "Audit Log".to_string(),
         },
+        AppRoute {
+            key: format!("{base}/admin/{org}/{workspace}/authz"),
+            path: format!("{base}/admin/{org}/{workspace}/authz"),
+            icon: "ri-lock-2-line".to_string(),
+            label: "AuthZ".to_string(),
+        },
     ]
 }
 

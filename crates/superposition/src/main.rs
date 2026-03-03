@@ -235,9 +235,10 @@ async fn main() -> Result<()> {
                             .wrap(OrgWorkspaceMiddlewareFactory::new(false, false))
                             .service(organisation::endpoints()),
                     )
-                    .service(workspace::endpoints(scope("/workspaces"))
-                        .app_data(Resource::Workspace)
-                        .wrap(OrgWorkspaceMiddlewareFactory::new(true, false))
+                    .service(
+                        workspace::endpoints(scope("/workspaces"))
+                            .app_data(Resource::Workspace)
+                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, false))
                     )
                     .service(
                         scope("/webhook")
@@ -258,11 +259,25 @@ async fn main() -> Result<()> {
                             .service(resolve::endpoints()),
                     )
                     .service(
-                        scope("/auth")
+                        scope("/authz")
                             .app_data(Resource::Auth)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .app_data(Data::new(auth_z_manager.clone()))
-                            .service(auth_z_manager.endpoints())
+                            .service(auth_z_manager.workspace_endpoints())
+                    )
+                    .service(
+                        scope("/authz/org")
+                            .app_data(Resource::Auth)
+                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, false))
+                            .app_data(Data::new(auth_z_manager.clone()))
+                            .service(auth_z_manager.org_endpoints())
+                    )
+                    .service(
+                        scope("/authz/admin")
+                            .app_data(Resource::Auth)
+                            .wrap(OrgWorkspaceMiddlewareFactory::new(false, false))
+                            .app_data(Data::new(auth_z_manager.clone()))
+                            .service(auth_z_manager.admin_endpoints())
                     )
                     .service(
                         scope("/master-encryption-key")

@@ -550,7 +550,7 @@ pub mod workspaces {
         enable_change_reason_validation: bool,
     ) -> Result<UpdateWorkspaceRequest, String> {
         Ok(UpdateWorkspaceRequest {
-            workspace_admin_email,
+            workspace_admin_email: Some(workspace_admin_email),
             config_version: Some(
                 serde_json::from_value(config_version)
                     .map_err(|e| format!("Invalid config version: {}", e))?,

@@ -18,6 +18,7 @@ use service_utils::{
         rotate_workspace_encryption_key_helper,
     },
     helpers::get_workspace,
+    middlewares::auth_z::AuthZHandler,
     service::types::{
         AppState, DbConnection, OrganisationId, SchemaName, WorkspaceContext, WorkspaceId,
     },
@@ -102,7 +103,8 @@ async fn create_handler(
     db_conn: DbConnection,
     org_id: OrganisationId,
     user: User,
-    state: web::Data<AppState>,
+    state: Data<AppState>,
+    authz_handler: AuthZHandler,
 ) -> superposition::Result<Json<WorkspaceResponse>> {
     let DbConnection(mut conn) = db_conn;
     let org_info: Organisation = organisations::dsl::organisations
@@ -112,7 +114,8 @@ async fn create_handler(
     let request = request.into_inner();
 
     validate_workspace_name(&request.workspace_name)?;
-    let workspace_schema_name = format!("{}_{}", &org_info.id, &request.workspace_name);
+    let workspace_schema_name =
+        SchemaName(format!("{}_{}", &org_info.id, &request.workspace_name));
 
     let encryption_key = match state.master_encryption_key {
         Some(ref master_encryption_key) => {
@@ -135,7 +138,7 @@ async fn create_handler(
         organisation_id: org_info.id,
         organisation_name: org_info.name,
         workspace_name: request.workspace_name,
-        workspace_schema_name: workspace_schema_name.clone(),
+        workspace_schema_name: workspace_schema_name.to_string(),
         workspace_status: WorkspaceStatus::ENABLED,
         workspace_admin_email: request.workspace_admin_email,
         config_version: None,
@@ -163,6 +166,16 @@ async fn create_handler(
             setup_workspace_schema(transaction_conn, &workspace_schema_name)?;
             Ok(inserted_workspace.remove(0))
         })?;
+
+    // Notify the AuthZHandler about the new workspace creation
+    authz_handler
+        .on_workspace_creation(
+            workspace_schema_name,
+            created_workspace.workspace_admin_email.clone(),
+        )
+        .await
+        .map_err(|e| unexpected_error!("Failed to notify AuthZHandler: {}", e))?;
+
     let response = WorkspaceResponse::from(created_workspace);
     Ok(Json(response))
 }
@@ -177,6 +190,7 @@ async fn update_handler(
     db_conn: DbConnection,
     org_id: OrganisationId,
     user: User,
+    authz_handler: AuthZHandler,
 ) -> superposition::Result<Json<WorkspaceResponse>> {
     let request = request.into_inner();
     let workspace_name = workspace_name.into_inner();
@@ -193,8 +207,19 @@ async fn update_handler(
             .first::<i64>(&mut conn)?;
     }
 
-    let updated_workspace =
-        conn.transaction::<Workspace, superposition::AppError, _>(|transaction_conn| {
+    let (updated_workspace, old_email) = conn
+        .transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            let old_admin_email = match &request.workspace_admin_email {
+                None => None,
+                Some(_) => {
+                    let email = workspaces::dsl::workspaces
+                        .filter(workspaces::organisation_id.eq(&org_id.0))
+                        .filter(workspaces::workspace_schema_name.eq(&workspace_name))
+                        .select(workspaces::workspace_admin_email)
+                        .get_result(transaction_conn)?;
+                    Some(email)
+                }
+            };
             let updated_workspace = diesel::update(workspaces::table)
                 .filter(workspaces::organisation_id.eq(&org_id.0))
                 .filter(workspaces::workspace_name.eq(workspace_name))
@@ -209,8 +234,21 @@ async fn update_handler(
                     err
                 })?;
 
-            Ok(updated_workspace)
+            Ok((updated_workspace, old_admin_email))
         })?;
+
+    if let Some(old_email) = old_email {
+        // Notify the AuthZHandler about the new workspace creation
+        authz_handler
+            .on_workspace_admin_update(
+                schema_name,
+                old_email,
+                updated_workspace.workspace_admin_email.clone(),
+            )
+            .await
+            .map_err(|e| unexpected_error!("Failed to notify AuthZHandler: {}", e))?;
+    }
+
     let response = WorkspaceResponse::from(updated_workspace);
     Ok(Json(response))
 }

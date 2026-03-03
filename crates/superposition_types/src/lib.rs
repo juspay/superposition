@@ -48,7 +48,17 @@ pub trait IsEmpty {
     fn is_empty(&self) -> bool;
 }
 
-#[derive(Copy, Clone, Debug, strum_macros::Display, Deserialize, Serialize)]
+#[derive(
+    Copy,
+    Clone,
+    Debug,
+    strum_macros::Display,
+    Deserialize,
+    Serialize,
+    strum_macros::EnumIter,
+    strum_macros::EnumString,
+    PartialEq,
+)]
 #[strum(serialize_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
 pub enum Resource {

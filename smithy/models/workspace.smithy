@@ -69,7 +69,6 @@ structure UpdateWorkspaceRequest for Workspace with [OrganisationMixin] {
     @required
     $workspace_name
 
-    @required
     $workspace_admin_email
 
     @documentation("To unset config version, pass \"null\" string.")
