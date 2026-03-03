@@ -276,12 +276,18 @@ pub fn Workspace() -> impl IntoView {
                                 icon="ri-briefcase-fill"
                                 number=total_workspaces
                             />
-                            <DrawerBtn
-                                drawer_id="workspace_drawer"
-                                class="self-end"
-                                text="Create Workspace"
-                                icon_class="ri-add-line"
-                            />
+                            <div class="flex items-center gap-2">
+                                <A class="btn btn-outline btn-sm" href="authz">
+                                    <i class="ri-lock-2-line" />
+                                    "AuthZ"
+                                </A>
+                                <DrawerBtn
+                                    drawer_id="workspace_drawer"
+                                    class="self-end"
+                                    text="Create Workspace"
+                                    icon_class="ri-add-line"
+                                />
+                            </div>
                         </div>
                         <div class="card w-full bg-base-100 rounded-xl overflow-hidden shadow">
                             <div class="card-body overflow-y-auto overflow-x-visible">

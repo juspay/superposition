@@ -1,7 +1,7 @@
 use futures_util::future::LocalBoxFuture;
 use superposition_types::{Resource, User};
 
-use crate::service::types::{OrganisationId, SchemaName};
+use crate::{middlewares::auth_z::AuthZDomain, service::types::SchemaName};
 
 use super::authorization::Authorizer;
 
@@ -10,7 +10,7 @@ pub struct NoAuth;
 impl Authorizer for NoAuth {
     fn is_allowed(
         &self,
-        _: &(OrganisationId, SchemaName),
+        _: &AuthZDomain,
         _: &User,
         _: &Resource,
         _: &str,

@@ -1,7 +1,7 @@
 use futures_util::future::LocalBoxFuture;
 use superposition_types::{Resource, User};
 
-use crate::service::types::{OrganisationId, SchemaName};
+use crate::{middlewares::auth_z::AuthZDomain, service::types::SchemaName};
 
 pub trait Authorizer: Sync + Send {
     fn on_org_creation(
@@ -25,7 +25,7 @@ pub trait Authorizer: Sync + Send {
 
     fn is_allowed(
         &self,
-        workspace_context: &(OrganisationId, SchemaName),
+        domain: &AuthZDomain,
         user: &User,
         resource: &Resource,
         action: &str,
@@ -34,7 +34,7 @@ pub trait Authorizer: Sync + Send {
 
     // async fn get_permitted_attributes(
     //     &self,
-    //     workspace_context: &(OrganisationId, SchemaName),
+    //     domain: &AuthZDomain,
     //     user: &User,
     //     resource: &ResourceContext,
     //     action: &Action,
@@ -42,7 +42,7 @@ pub trait Authorizer: Sync + Send {
 
     // async fn enforce_with_context(
     //     &self,
-    //     workspace_context: &(OrganisationId, SchemaName),
+    //     domain: &AuthZDomain,
     //     user: &User,
     //     resource: &ResourceContext,
     //     action: &Action,

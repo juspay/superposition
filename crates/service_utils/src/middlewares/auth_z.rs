@@ -21,10 +21,7 @@ use no_auth::NoAuth;
 use superposition_macros::{forbidden, unexpected_error};
 use superposition_types::{InternalUser, Resource, User, result as superposition};
 
-use crate::{
-    helpers::get_from_env_unsafe,
-    service::types::{AppEnv, OrganisationId, SchemaName, WorkspaceContext},
-};
+use crate::{helpers::get_from_env_unsafe, service::types::AppEnv};
 
 pub trait Action: Send + Sync + 'static {
     fn get() -> String;
@@ -72,47 +69,15 @@ impl<A: Action> FromRequest for AuthZ<A> {
             }
         };
 
-        let (org_id, schema_name) = match resource {
-            Resource::Organisation | Resource::Workspace => {
-                let org_id = match req.extensions().get::<OrganisationId>() {
-                    Some(org_id) => org_id.clone(),
-                    None => {
-                        return Box::pin(async {
-                            Err(unexpected_error!(
-                                "Organisation Id not found in request extensions."
-                            ))
-                        });
-                    }
-                };
-
-                let schema_name = match req.extensions().get::<SchemaName>() {
-                    Some(schema_name) => schema_name.clone(),
-                    None => {
-                        return Box::pin(async {
-                            Err(unexpected_error!(
-                                "Schema Name not found in request extensions."
-                            ))
-                        });
-                    }
-                };
-
-                (org_id, schema_name)
+        let domain = match req.extensions().get::<AuthZDomain>() {
+            Some(org_id) => org_id.clone(),
+            None => {
+                return Box::pin(async {
+                    Err(unexpected_error!(
+                        "Organisation Id not found in request extensions."
+                    ))
+                });
             }
-            Resource::MasterEncryptionKey => {
-                (OrganisationId::default(), SchemaName::default())
-            }
-            _ => match req.extensions().get::<WorkspaceContext>() {
-                Some(context) => {
-                    (context.organisation_id.clone(), context.schema_name.clone())
-                }
-                None => {
-                    return Box::pin(async {
-                        Err(unexpected_error!(
-                            "Workspace Context not found in request extensions."
-                        ))
-                    });
-                }
-            },
         };
 
         let user = match req.extensions().get::<User>() {
@@ -124,7 +89,7 @@ impl<A: Action> FromRequest for AuthZ<A> {
 
         Box::pin(async move {
             let is_allowed = auth_z_handler
-                .is_allowed(&(org_id, schema_name), &user, &resource, &A::get(), None)
+                .is_allowed(&domain, &user, &resource, &A::get(), None)
                 .await;
 
             match is_allowed {

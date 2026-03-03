@@ -259,11 +259,11 @@ async fn main() -> Result<()> {
                             .service(resolve::endpoints()),
                     )
                     .service(
-                        scope("/authz")
+                        scope("/authz/admin")
                             .app_data(Resource::Auth)
-                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                            .wrap(OrgWorkspaceMiddlewareFactory::new(false, false))
                             .app_data(Data::new(auth_z_manager.clone()))
-                            .service(auth_z_manager.workspace_endpoints())
+                            .service(auth_z_manager.admin_endpoints())
                     )
                     .service(
                         scope("/authz/org")
@@ -273,11 +273,11 @@ async fn main() -> Result<()> {
                             .service(auth_z_manager.org_endpoints())
                     )
                     .service(
-                        scope("/authz/admin")
+                        scope("/authz/workspace")
                             .app_data(Resource::Auth)
-                            .wrap(OrgWorkspaceMiddlewareFactory::new(false, false))
+                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .app_data(Data::new(auth_z_manager.clone()))
-                            .service(auth_z_manager.admin_endpoints())
+                            .service(auth_z_manager.workspace_endpoints())
                     )
                     .service(
                         scope("/master-encryption-key")

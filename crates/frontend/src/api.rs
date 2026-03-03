@@ -26,6 +26,143 @@ use crate::utils::{
     construct_request_headers, parse_json_response, request, use_host_server,
 };
 
+pub mod casbin {
+    use superposition_types::api::authz::casbin::{
+        ActionGroupPolicyRequest, GroupingPolicyRequest, PolicyRequest,
+    };
+
+    use super::*;
+
+    pub async fn list_policies(
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<Vec<Vec<String>>, String> {
+        let host = use_host_server();
+        let url = format!("{host}/authz/casbin/policy");
+
+        let response = request(
+            url,
+            reqwest::Method::GET,
+            None::<()>,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn add_policy(
+        payload: PolicyRequest,
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<(), String> {
+        let host = use_host_server();
+        let url = format!("{host}/authz/casbin/policy");
+
+        request(
+            url,
+            reqwest::Method::POST,
+            Some(payload),
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
+        )
+        .await?;
+
+        Ok(())
+    }
+
+    pub async fn list_roles(
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<Vec<Vec<String>>, String> {
+        let host = use_host_server();
+        let url = format!("{host}/authz/casbin/roles");
+
+        let response = request(
+            url,
+            reqwest::Method::GET,
+            None::<()>,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn add_role(
+        payload: GroupingPolicyRequest,
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<(), String> {
+        let host = use_host_server();
+        let url = format!("{host}/authz/casbin/roles");
+
+        request(
+            url,
+            reqwest::Method::POST,
+            Some(payload),
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
+        )
+        .await?;
+
+        Ok(())
+    }
+
+    pub async fn list_action_groups(
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<Vec<Vec<String>>, String> {
+        let host = use_host_server();
+        let url = format!("{host}/authz/casbin/action-groups");
+
+        let response = request(
+            url,
+            reqwest::Method::GET,
+            None::<()>,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn add_action_group(
+        payload: ActionGroupPolicyRequest,
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<(), String> {
+        let host = use_host_server();
+        let url = format!("{host}/authz/casbin/action-groups");
+
+        request(
+            url,
+            reqwest::Method::POST,
+            Some(payload),
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
+        )
+        .await?;
+
+        Ok(())
+    }
+}
+
 pub mod snapshots {
     use superposition_types::database::models::cac::{
         ConfigVersion, ConfigVersionListItem,

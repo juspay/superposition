@@ -5,6 +5,8 @@ use serde_json::json;
 
 use crate::components::datetime::DatetimeConversionScript;
 use crate::hoc::layout::{CommonLayout, Layout, Providers, use_org};
+use crate::pages::authz::{Authz, AuthzWorkspacePicker};
+use crate::pages::authz_rules::AuthzRules;
 use crate::pages::compare_overrides::CompareOverrides;
 use crate::pages::config_version::ConfigVersion;
 use crate::pages::config_version_list::ConfigVersionList;
@@ -140,6 +142,20 @@ pub fn App(app_envs: Envs) -> impl IntoView {
                         }
                     />
 
+                    <Route
+                        ssr=SsrMode::Async
+                        path="/admin/:org_id/workspaces/authz"
+                        view=move || {
+                            provide_context(use_org());
+
+                            view! {
+                                <CommonLayout>
+                                    <AuthzWorkspacePicker />
+                                </CommonLayout>
+                            }
+                        }
+                    />
+
                     <Route ssr=SsrMode::Async path="/admin/:org_id/:workspace" view=Layout>
                         <Route ssr=SsrMode::Async path="dimensions" view=Dimensions />
                         <Route
@@ -222,6 +238,9 @@ pub fn App(app_envs: Envs) -> impl IntoView {
                         <Route ssr=SsrMode::Async path="webhooks/:webhook_name" view=Webhook />
 
                         <Route ssr=SsrMode::Async path="audit-log" view=AuditLog />
+
+                        <Route ssr=SsrMode::Async path="authz" view=Authz />
+                        <Route ssr=SsrMode::Async path="authz/raw" view=AuthzRules />
 
                         <Route ssr=SsrMode::Async path="variables" view=VariablesList />
                         <Route ssr=SsrMode::Async path="variables/:variable_name" view=Variable />

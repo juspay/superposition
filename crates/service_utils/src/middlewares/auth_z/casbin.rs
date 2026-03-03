@@ -12,7 +12,8 @@ use superposition_types::{Resource, User};
 use crate::{
     db::utils::get_database_url,
     helpers::get_from_env_or_default,
-    service::types::{AppEnv, OrganisationId, SchemaName},
+    middlewares::auth_z::AuthZDomain,
+    service::types::{AppEnv, SchemaName},
 };
 
 use super::authorization::Authorizer;
@@ -23,19 +24,6 @@ pub struct CasbinPolicyEngine {
     pub(self) enforcer: RwLock<Enforcer>,
     pub(self) last_policy_load_time: RwLock<DateTime<Utc>>,
     policy_refresh_interval: u64,
-}
-
-fn schema_for_resource(
-    resource: &Resource,
-    workspace_context: &(OrganisationId, SchemaName),
-) -> String {
-    match resource {
-        Resource::Organisation | Resource::MasterEncryptionKey => "*".to_string(),
-        Resource::Workspace => format!("{}_*", workspace_context.0.to_string()),
-        // TODO: For Auth need to do something
-        // Resource::Auth => something,
-        _ => workspace_context.1.to_string(),
-    }
 }
 
 impl CasbinPolicyEngine {
@@ -55,14 +43,14 @@ impl CasbinPolicyEngine {
 impl Authorizer for CasbinPolicyEngine {
     fn is_allowed(
         &self,
-        workspace_context: &(OrganisationId, SchemaName),
+        domain: &AuthZDomain,
         user: &User,
         resource: &Resource,
         action: &str,
         attributes: Option<&[&str]>,
     ) -> LocalBoxFuture<'_, Result<bool, String>> {
         let sub = user.get_email();
-        let workspace = schema_for_resource(resource, workspace_context);
+        let domain = domain.to_string();
         let resource = resource.to_string();
         let action = action.to_string();
         let attributes = attributes
@@ -70,24 +58,42 @@ impl Authorizer for CasbinPolicyEngine {
             .unwrap_or(vec!["*".to_string()]);
 
         Box::pin(async move {
-            {
+            // Check if policy refresh is needed (without holding any locks)
+            let needs_refresh = {
                 let now = Utc::now();
-                if let Ok(mut last_load_time) = self.last_policy_load_time.write() {
-                    if now.signed_duration_since(*last_load_time).num_seconds()
+                if let Ok(last_load_time) = self.last_policy_load_time.read() {
+                    now.signed_duration_since(*last_load_time).num_seconds()
                         >= self.policy_refresh_interval as i64
-                    {
-                        let mut enforcer = self.enforcer.write().map_err(|e| {
-                            log::error!("Failed to acquire Casbin enforcer lock: {}", e);
-                            e.to_string()
-                        })?;
+                } else {
+                    false
+                }
+            };
 
-                        enforcer.load_policy().await.map_err(|e| {
+            // If refresh is needed, acquire enforcer write lock FIRST to maintain consistent lock ordering
+            if needs_refresh {
+                if let Ok(mut enforcer) = self.enforcer.write() {
+                    // Double-check pattern: verify still needs refresh after acquiring lock
+                    let still_needs_refresh = {
+                        if let Ok(last_load_time) = self.last_policy_load_time.read() {
+                            let now = Utc::now();
+                            now.signed_duration_since(*last_load_time).num_seconds()
+                                >= self.policy_refresh_interval as i64
+                        } else {
+                            false
+                        }
+                    };
+
+                    if still_needs_refresh {
+                        if let Err(e) = enforcer.load_policy().await {
                             log::error!("Failed to load Casbin policy: {}", e);
-                            e.to_string()
-                        })?;
-
-                        // Update the last policy load time
-                        *last_load_time = now;
+                        } else {
+                            // Update the last policy load time
+                            if let Ok(mut last_load_time) =
+                                self.last_policy_load_time.write()
+                            {
+                                *last_load_time = Utc::now();
+                            }
+                        }
                     }
                 }
             }
@@ -99,7 +105,7 @@ impl Authorizer for CasbinPolicyEngine {
 
             for attr in attributes {
                 let allowed = enforcer
-                    .enforce((&sub, &workspace, &resource, &action, &attr))
+                    .enforce((&sub, &domain, &resource, &action, &attr))
                     .map_err(|e| {
                         log::error!("Casbin enforcement error: {}", e);
                         e.to_string()
@@ -234,7 +240,7 @@ impl Authorizer for CasbinPolicyEngine {
 
     // fn get_permitted_attributes(
     //     &self,
-    //     workspace_request: &WorkspaceContext,
+    //     domain: &AuthZDomain,
     //     user: &User,
     //     resource: &ResourceContext,
     //     action: &Action,
