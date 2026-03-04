@@ -6,6 +6,7 @@ use serde_json::json;
 use crate::components::datetime::DatetimeConversionScript;
 use crate::hoc::layout::{CommonLayout, Layout, Providers, use_org};
 use crate::pages::authz::Authz;
+use crate::pages::authz_admin::AuthzAdmin;
 use crate::pages::authz_rules::AuthzRules;
 use crate::pages::compare_overrides::CompareOverrides;
 use crate::pages::config_version::ConfigVersion;
@@ -130,6 +131,18 @@ pub fn App(app_envs: Envs) -> impl IntoView {
 
                     <Route
                         ssr=SsrMode::Async
+                        path="/admin/authz"
+                        view=move || {
+                            view! {
+                                <CommonLayout>
+                                    <AuthzAdmin />
+                                </CommonLayout>
+                            }
+                        }
+                    />
+
+                    <Route
+                        ssr=SsrMode::Async
                         path="/admin/:org_id/workspaces"
                         view=move || {
                             provide_context(use_org());
@@ -144,7 +157,7 @@ pub fn App(app_envs: Envs) -> impl IntoView {
 
                     <Route
                         ssr=SsrMode::Async
-                        path="/admin/:org_id/workspaces/authz"
+                        path="/admin/:org_id/authz"
                         view=move || {
                             provide_context(use_org());
 

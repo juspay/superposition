@@ -1,13 +1,12 @@
 mod handlers;
 
-use std::sync::RwLock;
-
 use aws_sdk_kms::Client;
 use casbin::{CoreApi, Enforcer, MgmtApi};
 use chrono::{DateTime, Utc};
 use diesel_adapter::DieselAdapter;
 use futures_util::future::LocalBoxFuture;
 use superposition_types::{Resource, User};
+use tokio::sync::RwLock;
 
 use crate::{
     db::utils::get_database_url,
@@ -21,21 +20,44 @@ use super::authorization::Authorizer;
 pub use handlers::{admin_endpoints, org_endpoints, workspace_endpoints};
 
 pub struct CasbinPolicyEngine {
-    pub(self) enforcer: RwLock<Enforcer>,
-    pub(self) last_policy_load_time: RwLock<DateTime<Utc>>,
+    enforcer: RwLock<Enforcer>,
+    last_policy_load_time: RwLock<DateTime<Utc>>,
     policy_refresh_interval: u64,
 }
 
 impl CasbinPolicyEngine {
-    pub async fn refresh_policies(
-        self: &CasbinPolicyEngine,
-        enforcer: &mut Enforcer,
-    ) -> Result<(), String> {
+    /// Acquire an exclusive lock on the enforcer with automatic refresh check.
+    /// Returns the enforcer for mutation while ensuring policies are fresh.
+    pub async fn enforcer(
+        &self,
+    ) -> Result<tokio::sync::RwLockWriteGuard<'_, Enforcer>, String> {
+        let mut enforcer = self.enforcer.write().await;
+
+        // Check if refresh is needed while holding the write lock
+        let now = Utc::now();
+        let last_load_time = self.last_policy_load_time.read().await;
+        let needs_refresh = now.signed_duration_since(*last_load_time).num_seconds()
+            >= self.policy_refresh_interval as i64;
+        drop(last_load_time);
+
+        if needs_refresh {
+            enforcer.load_policy().await.map_err(|e| {
+                log::error!("Failed to refresh Casbin policies: {}", e);
+                e.to_string()
+            })?;
+
+            let mut last_load_time = self.last_policy_load_time.write().await;
+            *last_load_time = Utc::now();
+        }
+
+        Ok(enforcer)
+    }
+
+    pub async fn refresh_policies(self: &CasbinPolicyEngine) -> Result<(), String> {
+        let mut enforcer = self.enforcer.write().await;
         enforcer.load_policy().await.map_err(|e| e.to_string())?;
-        self.last_policy_load_time
-            .write()
-            .map_err(|e| e.to_string())?
-            .clone_from(&Utc::now());
+        let mut last_load_time = self.last_policy_load_time.write().await;
+        *last_load_time = Utc::now();
         Ok(())
     }
 }
@@ -58,43 +80,18 @@ impl Authorizer for CasbinPolicyEngine {
             .unwrap_or(vec!["*".to_string()]);
 
         Box::pin(async move {
-            // Check if policy refresh is needed (without holding any locks)
+            // Check if policy refresh is needed (for distributed systems)
             let needs_refresh = {
                 let now = Utc::now();
-                if let Ok(last_load_time) = self.last_policy_load_time.read() {
-                    now.signed_duration_since(*last_load_time).num_seconds()
-                        >= self.policy_refresh_interval as i64
-                } else {
-                    false
-                }
+                let last_load_time = self.last_policy_load_time.read().await;
+                now.signed_duration_since(*last_load_time).num_seconds()
+                    >= self.policy_refresh_interval as i64
             };
 
-            // If refresh is needed, acquire enforcer write lock FIRST to maintain consistent lock ordering
+            // Refresh policies if needed
             if needs_refresh {
-                if let Ok(mut enforcer) = self.enforcer.write() {
-                    // Double-check pattern: verify still needs refresh after acquiring lock
-                    let still_needs_refresh = {
-                        if let Ok(last_load_time) = self.last_policy_load_time.read() {
-                            let now = Utc::now();
-                            now.signed_duration_since(*last_load_time).num_seconds()
-                                >= self.policy_refresh_interval as i64
-                        } else {
-                            false
-                        }
-                    };
-
-                    if still_needs_refresh {
-                        if let Err(e) = enforcer.load_policy().await {
-                            log::error!("Failed to load Casbin policy: {}", e);
-                        } else {
-                            // Update the last policy load time
-                            if let Ok(mut last_load_time) =
-                                self.last_policy_load_time.write()
-                            {
-                                *last_load_time = Utc::now();
-                            }
-                        }
-                    }
+                if let Err(e) = self.refresh_policies().await {
+                    log::warn!("Failed to refresh Casbin policies: {}", e);
                 }
             }
 

@@ -7,7 +7,7 @@ use superposition_types::{
 };
 
 use crate::{
-    api::casbin,
+    api::casbin::{self, AuthzScope},
     components::{alert::AlertType, button::Button, change_form::ChangeForm},
     providers::alert_provider::enqueue_alert,
     types::{OrganisationId, Workspace},
@@ -139,19 +139,36 @@ pub fn AuthzRules() -> impl IntoView {
     let policies_resource = create_blocking_resource(
         move || (workspace.get().0, org.get().0, refresh_policies.get()),
         |(workspace, org, _)| async move {
-            casbin::list_policies(Some(&workspace), &org).await
+            casbin::list_policies(
+                AuthzScope::Workspace,
+                Some(&workspace),
+                Some(&org),
+            )
+            .await
         },
     );
 
     let roles_resource = create_blocking_resource(
         move || (workspace.get().0, org.get().0, refresh_roles.get()),
-        |(workspace, org, _)| async move { casbin::list_roles(Some(&workspace), &org).await },
+        |(workspace, org, _)| async move {
+            casbin::list_roles(
+                AuthzScope::Workspace,
+                Some(&workspace),
+                Some(&org),
+            )
+            .await
+        },
     );
 
     let action_groups_resource = create_blocking_resource(
         move || (workspace.get().0, org.get().0, refresh_action_groups.get()),
         |(workspace, org, _)| async move {
-            casbin::list_action_groups(Some(&workspace), &org).await
+            casbin::list_action_groups(
+                AuthzScope::Workspace,
+                Some(&workspace),
+                Some(&org),
+            )
+            .await
         },
     );
 
@@ -179,16 +196,18 @@ pub fn AuthzRules() -> impl IntoView {
                                 act,
                                 attr: Some(attr),
                             },
+                            AuthzScope::Workspace,
                             Some(&workspace.get_untracked().0),
-                            &org.get_untracked().0,
+                            Some(&org.get_untracked().0),
                         )
                         .await
                     }
                     ParsedEntry::Grouping { user, role, .. } => {
                         casbin::add_role(
                             GroupingPolicyRequest { user, role },
+                            AuthzScope::Workspace,
                             Some(&workspace.get_untracked().0),
-                            &org.get_untracked().0,
+                            Some(&org.get_untracked().0),
                         )
                         .await
                     }
@@ -204,8 +223,9 @@ pub fn AuthzRules() -> impl IntoView {
                                 action,
                                 action_group,
                             },
+                            AuthzScope::Workspace,
                             Some(&workspace.get_untracked().0),
-                            &org.get_untracked().0,
+                            Some(&org.get_untracked().0),
                         )
                         .await
                     }

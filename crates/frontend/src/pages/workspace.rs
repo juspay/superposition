@@ -277,7 +277,7 @@ pub fn Workspace() -> impl IntoView {
                                 number=total_workspaces
                             />
                             <div class="flex items-center gap-2">
-                                <A class="btn btn-outline btn-sm" href="authz">
+                                <A class="btn btn-outline btn-sm" href="../authz">
                                     <i class="ri-lock-2-line" />
                                     "AuthZ"
                                 </A>
