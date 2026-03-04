@@ -19,14 +19,14 @@ pub fn workspace_endpoints() -> Scope {
         .service(add_policy_handler)
         .service(remove_policy_handler)
         .service(list_policy_handler)
-        .service(add_grouping_policy)
-        .service(remove_grouping_policy)
-        .service(add_action_group_policy)
-        .service(remove_action_group_policy)
-        .service(list_action_group_policies)
-        .service(get_roles)
-    // .service(get_roles_for_user)
-    // .service(get_users_for_role)
+        .service(add_grouping_policy_handler)
+        .service(remove_grouping_policy_handler)
+        .service(add_action_group_policy_handler)
+        .service(remove_action_group_policy_handler)
+        .service(list_action_group_policies_handler)
+        .service(list_roles_handler)
+    // .service(get_roles_for_user_handler)
+    // .service(get_users_for_role_handler)
 }
 
 pub fn admin_endpoints() -> Scope {
@@ -34,14 +34,14 @@ pub fn admin_endpoints() -> Scope {
         .service(add_policy_handler)
         .service(remove_policy_handler)
         .service(list_policy_handler)
-        .service(add_grouping_policy)
-        .service(remove_grouping_policy)
-        .service(add_action_group_policy)
-        .service(remove_action_group_policy)
-        .service(list_action_group_policies)
-        .service(get_roles)
-    // .service(get_roles_for_user)
-    // .service(get_users_for_role)
+        .service(add_grouping_policy_handler)
+        .service(remove_grouping_policy_handler)
+        .service(add_action_group_policy_handler)
+        .service(remove_action_group_policy_handler)
+        .service(list_action_group_policies_handler)
+        .service(list_roles_handler)
+    // .service(get_roles_for_user_handler)
+    // .service(get_users_for_role_handler)
 }
 
 pub fn org_endpoints() -> Scope {
@@ -49,14 +49,14 @@ pub fn org_endpoints() -> Scope {
         .service(add_policy_handler)
         .service(remove_policy_handler)
         .service(list_policy_handler)
-        .service(add_grouping_policy)
-        .service(remove_grouping_policy)
-        .service(add_action_group_policy)
-        .service(remove_action_group_policy)
-        .service(list_action_group_policies)
-        .service(get_roles)
-    // .service(get_roles_for_user)
-    // .service(get_users_for_role)
+        .service(add_grouping_policy_handler)
+        .service(remove_grouping_policy_handler)
+        .service(add_action_group_policy_handler)
+        .service(remove_action_group_policy_handler)
+        .service(list_action_group_policies_handler)
+        .service(list_roles_handler)
+    // .service(get_roles_for_user_handler)
+    // .service(get_users_for_role_handler)
 }
 
 // based on this condition: (r.dom == p.dom || p.dom == "*" || globMatch(r.dom, p.dom))
@@ -141,8 +141,9 @@ async fn list_policy_handler(
     Ok(Json(policies))
 }
 
+#[authorized]
 #[post("/roles")]
-async fn add_grouping_policy(
+async fn add_grouping_policy_handler(
     data: Data<AuthZManager>,
     body: Json<GroupingPolicyRequest>,
     domain: AuthZDomain,
@@ -163,8 +164,9 @@ async fn add_grouping_policy(
     }
 }
 
+#[authorized]
 #[delete("/roles")]
-async fn remove_grouping_policy(
+async fn remove_grouping_policy_handler(
     data: Data<AuthZManager>,
     body: Json<GroupingPolicyRequest>,
     domain: AuthZDomain,
@@ -184,8 +186,9 @@ async fn remove_grouping_policy(
     }
 }
 
+#[authorized]
 #[get("/roles")]
-async fn get_roles(
+async fn list_roles_handler(
     data: Data<AuthZManager>,
     domain: AuthZDomain,
 ) -> superposition::Result<Json<Vec<Vec<String>>>> {
@@ -201,8 +204,9 @@ async fn get_roles(
     Ok(Json(policies))
 }
 
+#[authorized]
 #[post("/action-groups")]
-async fn add_action_group_policy(
+async fn add_action_group_policy_handler(
     data: Data<AuthZManager>,
     body: Json<ActionGroupPolicyRequest>,
     domain: AuthZDomain,
@@ -229,8 +233,9 @@ async fn add_action_group_policy(
     }
 }
 
+#[authorized]
 #[delete("/action-groups")]
-async fn remove_action_group_policy(
+async fn remove_action_group_policy_handler(
     data: Data<AuthZManager>,
     body: Json<ActionGroupPolicyRequest>,
     domain: AuthZDomain,
@@ -257,8 +262,9 @@ async fn remove_action_group_policy(
     }
 }
 
+#[authorized]
 #[get("/action-groups")]
-async fn list_action_group_policies(
+async fn list_action_group_policies_handler(
     data: Data<AuthZManager>,
     domain: AuthZDomain,
 ) -> superposition::Result<Json<Vec<Vec<String>>>> {
@@ -273,8 +279,9 @@ async fn list_action_group_policies(
     Ok(Json(policies))
 }
 
+#[authorized]
 #[get("/users/{user}/roles")]
-async fn get_roles_for_user(
+async fn get_roles_for_user_handler(
     data: Data<AuthZManager>,
     path: Path<String>,
 ) -> superposition::Result<HttpResponse> {
@@ -285,8 +292,9 @@ async fn get_roles_for_user(
     Ok(HttpResponse::Ok().json(roles))
 }
 
+#[authorized]
 #[get("/roles/{role}/users")]
-async fn get_users_for_role(
+async fn get_users_for_role_handler(
     data: Data<AuthZManager>,
     path: Path<String>,
 ) -> superposition::Result<HttpResponse> {
