@@ -98,10 +98,7 @@ impl Authorizer for CasbinPolicyEngine {
                 }
             }
 
-            let enforcer = self.enforcer.read().map_err(|e| {
-                log::error!("Failed to acquire Casbin enforcer lock: {}", e);
-                e.to_string()
-            })?;
+            let enforcer = self.enforcer.read().await;
 
             for attr in attributes {
                 let allowed = enforcer
@@ -125,11 +122,7 @@ impl Authorizer for CasbinPolicyEngine {
         org_admin_email: String,
     ) -> LocalBoxFuture<'_, Result<bool, String>> {
         Box::pin(async move {
-            let mut enforcer = self.enforcer.write().map_err(|e| {
-                log::error!("Failed to acquire Casbin enforcer lock: {}", e);
-                e.to_string()
-            })?;
-            self.refresh_policies(&mut enforcer).await?;
+            let mut enforcer = self.enforcer().await.map_err(|e| e.to_string())?;
 
             let org_schema = format!("{}_{}", organisation_id, "*");
 
@@ -171,11 +164,7 @@ impl Authorizer for CasbinPolicyEngine {
         workspace_admin_email: String,
     ) -> LocalBoxFuture<'_, Result<bool, String>> {
         Box::pin(async move {
-            let mut enforcer = self.enforcer.write().map_err(|e| {
-                log::error!("Failed to acquire Casbin enforcer lock: {}", e);
-                e.to_string()
-            })?;
-            self.refresh_policies(&mut enforcer).await?;
+            let mut enforcer = self.enforcer().await.map_err(|e| e.to_string())?;
 
             enforcer
                 .add_grouping_policy(vec![
@@ -198,11 +187,7 @@ impl Authorizer for CasbinPolicyEngine {
         new_admin_email: String,
     ) -> LocalBoxFuture<'_, Result<bool, String>> {
         Box::pin(async move {
-            let mut enforcer = self.enforcer.write().map_err(|e| {
-                log::error!("Failed to acquire Casbin enforcer lock: {}", e);
-                e.to_string()
-            })?;
-            self.refresh_policies(&mut enforcer).await?;
+            let mut enforcer = self.enforcer().await.map_err(|e| e.to_string())?;
 
             // Remove old admin
             if let Err(e) = enforcer

@@ -158,17 +158,18 @@ where
 
                         (schema_name, AuthZDomain::new(schema))
                     }
-                    (false, _) => (
-                        SchemaName::default(),
-                        AuthZDomain::new(format!("{}_*", *organisation)),
-                    ),
+                    (false, _) => {
+                        let auth_z_domain = if enable_org_id {
+                            format!("{}_*", *organisation)
+                        } else {
+                            "*".to_string()
+                        };
+                        (SchemaName::default(), AuthZDomain::new(auth_z_domain))
+                    }
                 };
 
                 req.extensions_mut().insert(schema_name);
                 req.extensions_mut().insert(auth_z_domain);
-            } else {
-                req.extensions_mut()
-                    .insert(AuthZDomain::new("*".to_string()));
             }
 
             let res = srv.call(req).await?.map_into_left_body();

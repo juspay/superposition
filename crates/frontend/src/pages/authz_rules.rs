@@ -138,18 +138,20 @@ pub fn AuthzRules() -> impl IntoView {
 
     let policies_resource = create_blocking_resource(
         move || (workspace.get().0, org.get().0, refresh_policies.get()),
-        |(workspace, org, _)| async move { casbin::list_policies(&workspace, &org).await },
+        |(workspace, org, _)| async move {
+            casbin::list_policies(Some(&workspace), &org).await
+        },
     );
 
     let roles_resource = create_blocking_resource(
         move || (workspace.get().0, org.get().0, refresh_roles.get()),
-        |(workspace, org, _)| async move { casbin::list_roles(&workspace, &org).await },
+        |(workspace, org, _)| async move { casbin::list_roles(Some(&workspace), &org).await },
     );
 
     let action_groups_resource = create_blocking_resource(
         move || (workspace.get().0, org.get().0, refresh_action_groups.get()),
         |(workspace, org, _)| async move {
-            casbin::list_action_groups(&workspace, &org).await
+            casbin::list_action_groups(Some(&workspace), &org).await
         },
     );
 
@@ -177,7 +179,7 @@ pub fn AuthzRules() -> impl IntoView {
                                 act,
                                 attr: Some(attr),
                             },
-                            &workspace.get_untracked().0,
+                            Some(&workspace.get_untracked().0),
                             &org.get_untracked().0,
                         )
                         .await
@@ -185,7 +187,7 @@ pub fn AuthzRules() -> impl IntoView {
                     ParsedEntry::Grouping { user, role, .. } => {
                         casbin::add_role(
                             GroupingPolicyRequest { user, role },
-                            &workspace.get_untracked().0,
+                            Some(&workspace.get_untracked().0),
                             &org.get_untracked().0,
                         )
                         .await
@@ -202,7 +204,7 @@ pub fn AuthzRules() -> impl IntoView {
                                 action,
                                 action_group,
                             },
-                            &workspace.get_untracked().0,
+                            Some(&workspace.get_untracked().0),
                             &org.get_untracked().0,
                         )
                         .await

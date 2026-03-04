@@ -25,6 +25,7 @@ log = { workspace = true }
 once_cell = { workspace = true }
 openidconnect = "3.5.0"
 rand = "0.8"
+tokio = { workspace = true }
 tracing = { workspace = true }
 regex = { workspace = true }
 reqwest = { workspace = true }

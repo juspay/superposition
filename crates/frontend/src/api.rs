@@ -33,132 +33,115 @@ pub mod casbin {
 
     use super::*;
 
-    pub async fn list_policies(
-        workspace: &str,
-        org_id: &str,
-    ) -> Result<Vec<Vec<String>>, String> {
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub enum AuthzScope {
+        Admin,
+        Org,
+        Workspace,
+    }
+
+    fn casbin_url_and_headers(
+        scope: AuthzScope,
+        endpoint: &str,
+        workspace: Option<&str>,
+        org_id: Option<&str>,
+    ) -> Result<(String, HeaderMap), String> {
         let host = use_host_server();
-        let url = format!("{host}/authz/casbin/policy");
+        match scope {
+            AuthzScope::Admin => Ok((
+                format!("{host}/authz/admin/casbin/{endpoint}"),
+                construct_request_headers(&[])?,
+            )),
+            AuthzScope::Org => {
+                let org = org_id.ok_or("org_id is required for org scope")?;
+                Ok((
+                    format!("{host}/authz/org/casbin/{endpoint}"),
+                    construct_request_headers(&[("x-org-id", org)])?,
+                ))
+            }
+            AuthzScope::Workspace => {
+                let org = org_id.ok_or("org_id is required for workspace scope")?;
+                let ws = workspace.ok_or("workspace is required for workspace scope")?;
+                Ok((
+                    format!("{host}/authz/workspace/casbin/{endpoint}"),
+                    construct_request_headers(&[("x-workspace", ws), ("x-org-id", org)])?,
+                ))
+            }
+        }
+    }
 
-        let response = request(
-            url,
-            reqwest::Method::GET,
-            None::<()>,
-            construct_request_headers(&[
-                ("x-workspace", workspace),
-                ("x-org-id", org_id),
-            ])?,
-        )
-        .await?;
+    pub async fn list_policies(
+        scope: AuthzScope,
+        workspace: Option<&str>,
+        org_id: Option<&str>,
+    ) -> Result<Vec<Vec<String>>, String> {
+        let (url, headers) =
+            casbin_url_and_headers(scope, "policy", workspace, org_id)?;
 
+        let response = request(url, reqwest::Method::GET, None::<()>, headers).await?;
         parse_json_response(response).await
     }
 
     pub async fn add_policy(
         payload: PolicyRequest,
-        workspace: &str,
-        org_id: &str,
+        scope: AuthzScope,
+        workspace: Option<&str>,
+        org_id: Option<&str>,
     ) -> Result<(), String> {
-        let host = use_host_server();
-        let url = format!("{host}/authz/casbin/policy");
+        let (url, headers) =
+            casbin_url_and_headers(scope, "policy", workspace, org_id)?;
 
-        request(
-            url,
-            reqwest::Method::POST,
-            Some(payload),
-            construct_request_headers(&[
-                ("x-workspace", workspace),
-                ("x-org-id", org_id),
-            ])?,
-        )
-        .await?;
-
+        request(url, reqwest::Method::POST, Some(payload), headers).await?;
         Ok(())
     }
 
     pub async fn list_roles(
-        workspace: &str,
-        org_id: &str,
+        scope: AuthzScope,
+        workspace: Option<&str>,
+        org_id: Option<&str>,
     ) -> Result<Vec<Vec<String>>, String> {
-        let host = use_host_server();
-        let url = format!("{host}/authz/casbin/roles");
+        let (url, headers) =
+            casbin_url_and_headers(scope, "roles", workspace, org_id)?;
 
-        let response = request(
-            url,
-            reqwest::Method::GET,
-            None::<()>,
-            construct_request_headers(&[
-                ("x-workspace", workspace),
-                ("x-org-id", org_id),
-            ])?,
-        )
-        .await?;
-
+        let response = request(url, reqwest::Method::GET, None::<()>, headers).await?;
         parse_json_response(response).await
     }
 
     pub async fn add_role(
         payload: GroupingPolicyRequest,
-        workspace: &str,
-        org_id: &str,
+        scope: AuthzScope,
+        workspace: Option<&str>,
+        org_id: Option<&str>,
     ) -> Result<(), String> {
-        let host = use_host_server();
-        let url = format!("{host}/authz/casbin/roles");
+        let (url, headers) =
+            casbin_url_and_headers(scope, "roles", workspace, org_id)?;
 
-        request(
-            url,
-            reqwest::Method::POST,
-            Some(payload),
-            construct_request_headers(&[
-                ("x-workspace", workspace),
-                ("x-org-id", org_id),
-            ])?,
-        )
-        .await?;
-
+        request(url, reqwest::Method::POST, Some(payload), headers).await?;
         Ok(())
     }
 
     pub async fn list_action_groups(
-        workspace: &str,
-        org_id: &str,
+        scope: AuthzScope,
+        workspace: Option<&str>,
+        org_id: Option<&str>,
     ) -> Result<Vec<Vec<String>>, String> {
-        let host = use_host_server();
-        let url = format!("{host}/authz/casbin/action-groups");
+        let (url, headers) =
+            casbin_url_and_headers(scope, "action-groups", workspace, org_id)?;
 
-        let response = request(
-            url,
-            reqwest::Method::GET,
-            None::<()>,
-            construct_request_headers(&[
-                ("x-workspace", workspace),
-                ("x-org-id", org_id),
-            ])?,
-        )
-        .await?;
-
+        let response = request(url, reqwest::Method::GET, None::<()>, headers).await?;
         parse_json_response(response).await
     }
 
     pub async fn add_action_group(
         payload: ActionGroupPolicyRequest,
-        workspace: &str,
-        org_id: &str,
+        scope: AuthzScope,
+        workspace: Option<&str>,
+        org_id: Option<&str>,
     ) -> Result<(), String> {
-        let host = use_host_server();
-        let url = format!("{host}/authz/casbin/action-groups");
+        let (url, headers) =
+            casbin_url_and_headers(scope, "action-groups", workspace, org_id)?;
 
-        request(
-            url,
-            reqwest::Method::POST,
-            Some(payload),
-            construct_request_headers(&[
-                ("x-workspace", workspace),
-                ("x-org-id", org_id),
-            ])?,
-        )
-        .await?;
-
+        request(url, reqwest::Method::POST, Some(payload), headers).await?;
         Ok(())
     }
 }

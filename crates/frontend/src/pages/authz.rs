@@ -1,21 +1,17 @@
 use leptos::*;
-use leptos_router::A;
 use strum::IntoEnumIterator;
 use superposition_types::{
     Resource,
     api::authz::casbin::{
         ActionGroupPolicyRequest, GroupingPolicyRequest, PolicyRequest,
     },
-    custom_query::PaginationParams,
 };
 
 use crate::{
-    api::casbin,
-    api::workspaces,
+    api::casbin::{self, AuthzScope},
     components::{alert::AlertType, button::Button},
     providers::alert_provider::enqueue_alert,
     types::{OrganisationId, Workspace},
-    utils::use_url_base,
 };
 
 fn field_label(title: &'static str, description: &'static str) -> impl IntoView {
@@ -28,19 +24,9 @@ fn field_label(title: &'static str, description: &'static str) -> impl IntoView 
 }
 
 fn authz_body(
-    workspace: Signal<Workspace>,
+    workspace: Option<Signal<Workspace>>,
     org: Signal<OrganisationId>,
 ) -> impl IntoView {
-    let base = use_url_base();
-    let raw_link = Signal::derive(move || {
-        let workspace = workspace.get().0;
-        if workspace.is_empty() {
-            return "".to_string();
-        }
-
-        format!("{base}/admin/{}/{}/authz/raw", org.get().0, workspace)
-    });
-
     // ---- Form state: Policy (p)
     let p_sub = RwSignal::new(String::new());
     let p_obj = RwSignal::new(Resource::Config);
@@ -61,41 +47,60 @@ fn authz_body(
     let refresh_action_groups = RwSignal::new(0u64);
 
     let policies_resource = create_blocking_resource(
-        move || (workspace.get().0, org.get().0, refresh_policies.get()),
-        |(workspace, org, _)| async move {
-            if workspace.is_empty() {
-                return Ok(Vec::new());
-            }
-            casbin::list_policies(&workspace, &org).await
+        move || {
+            (
+                workspace.map(|w| w.get().0.clone()),
+                org.get().0.clone(),
+                refresh_policies.get(),
+            )
+        },
+        |(ws, org, _)| async move {
+            let scope = if ws.is_some() {
+                AuthzScope::Workspace
+            } else {
+                AuthzScope::Org
+            };
+            casbin::list_policies(scope, ws.as_deref(), Some(&org)).await
         },
     );
 
     let roles_resource = create_blocking_resource(
-        move || (workspace.get().0, org.get().0, refresh_roles.get()),
-        |(workspace, org, _)| async move {
-            if workspace.is_empty() {
-                return Ok(Vec::new());
-            }
-            casbin::list_roles(&workspace, &org).await
+        move || {
+            (
+                workspace.map(|w| w.get().0.clone()),
+                org.get().0.clone(),
+                refresh_roles.get(),
+            )
+        },
+        |(ws, org, _)| async move {
+            let scope = if ws.is_some() {
+                AuthzScope::Workspace
+            } else {
+                AuthzScope::Org
+            };
+            casbin::list_roles(scope, ws.as_deref(), Some(&org)).await
         },
     );
 
     let action_groups_resource = create_blocking_resource(
-        move || (workspace.get().0, org.get().0, refresh_action_groups.get()),
-        |(workspace, org, _)| async move {
-            if workspace.is_empty() {
-                return Ok(Vec::new());
-            }
-            casbin::list_action_groups(&workspace, &org).await
+        move || {
+            (
+                workspace.map(|w| w.get().0.clone()),
+                org.get().0.clone(),
+                refresh_action_groups.get(),
+            )
+        },
+        |(ws, org, _)| async move {
+            let scope = if ws.is_some() {
+                AuthzScope::Workspace
+            } else {
+                AuthzScope::Org
+            };
+            casbin::list_action_groups(scope, ws.as_deref(), Some(&org)).await
         },
     );
 
     let add_policy_action = create_action(move |_| async move {
-        let workspace = workspace.get_untracked().0;
-        if workspace.is_empty() {
-            return Err("Select a workspace".to_string());
-        }
-
         let sub = p_sub.get_untracked().trim().to_string();
         let act = p_act.get_untracked().trim().to_string();
 
@@ -107,6 +112,13 @@ fn authz_body(
         }
 
         let attr = p_attr.get_untracked().trim().to_string();
+        let ws = workspace.map(|w| w.get_untracked().0);
+
+        let scope = if ws.is_some() {
+            AuthzScope::Workspace
+        } else {
+            AuthzScope::Org
+        };
 
         casbin::add_policy(
             PolicyRequest {
@@ -119,8 +131,9 @@ fn authz_body(
                     attr
                 }),
             },
-            &workspace,
-            &org.get_untracked().0,
+            scope,
+            ws.as_deref(),
+            Some(&org.get_untracked().0),
         )
         .await?;
 
@@ -130,11 +143,6 @@ fn authz_body(
     });
 
     let add_role_action = create_action(move |_| async move {
-        let workspace = workspace.get_untracked().0;
-        if workspace.is_empty() {
-            return Err("Select a workspace".to_string());
-        }
-
         let user = g_user.get_untracked().trim().to_string();
         let role = g_role.get_untracked().trim().to_string();
         if user.is_empty() {
@@ -143,10 +151,18 @@ fn authz_body(
         if role.is_empty() {
             return Err("Role is required".to_string());
         }
+        let ws = workspace.map(|w| w.get_untracked().0);
+        let scope = if ws.is_some() {
+            AuthzScope::Workspace
+        } else {
+            AuthzScope::Org
+        };
+
         casbin::add_role(
             GroupingPolicyRequest { user, role },
-            &workspace,
-            &org.get_untracked().0,
+            scope,
+            ws.as_deref(),
+            Some(&org.get_untracked().0),
         )
         .await?;
 
@@ -156,11 +172,6 @@ fn authz_body(
     });
 
     let add_action_group_action = create_action(move |_| async move {
-        let workspace = workspace.get_untracked().0;
-        if workspace.is_empty() {
-            return Err("Select a workspace".to_string());
-        }
-
         let action = g2_action.get_untracked().trim().to_string();
         let action_group = g2_action_group.get_untracked().trim().to_string();
 
@@ -171,14 +182,22 @@ fn authz_body(
             return Err("Action group is required (e.g. write)".to_string());
         }
 
+        let ws = workspace.map(|w| w.get_untracked().0);
+        let scope = if ws.is_some() {
+            AuthzScope::Workspace
+        } else {
+            AuthzScope::Org
+        };
+
         casbin::add_action_group(
             ActionGroupPolicyRequest {
                 resource: g2_resource.get_untracked(),
                 action,
                 action_group,
             },
-            &workspace,
-            &org.get_untracked().0,
+            scope,
+            ws.as_deref(),
+            Some(&org.get_untracked().0),
         )
         .await?;
 
@@ -213,32 +232,12 @@ fn authz_body(
         <div class="flex flex-col gap-6">
             <div class="card bg-base-100 shadow">
                 <div class="card-body gap-3">
-                    <div class="flex items-center justify-between gap-4">
-                        <h2 class="card-title">"Authorization"</h2>
-                        <Show when=move || !workspace.get().0.is_empty() fallback=|| view! {}>
-                            <A class="link link-primary text-sm" href=move || raw_link.get()>
-                                "Open raw editor"
-                            </A>
-                        </Show>
-                    </div>
+                    <h2 class="card-title">"Organization Authorization"</h2>
                     <p class="text-sm text-gray-600">
-                        "Manage permissions, role assignments, and action-groups for this workspace."
+                        "Manage organization-level permissions, role assignments, and action-groups that apply across all workspaces."
                     </p>
                 </div>
             </div>
-
-            <Show
-                when=move || !workspace.get().0.is_empty()
-                fallback=move || {
-                    view! {
-                        <div class="card bg-base-100 shadow">
-                            <div class="card-body">
-                                <div class="text-sm text-gray-600">"Select a workspace to manage AuthZ."</div>
-                            </div>
-                        </div>
-                    }
-                }
-            >
 
             <div class="grid grid-cols-1 gap-6">
                 <div class="card bg-base-100 shadow">
@@ -464,72 +463,13 @@ fn authz_body(
                     </div>
                 </div>
             </div>
-            </Show>
         </div>
     }
 }
 
 #[component]
 pub fn Authz() -> impl IntoView {
-    let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>();
     authz_body(workspace, org)
-}
-
-#[component]
-pub fn AuthzWorkspacePicker() -> impl IntoView {
-    let org = use_context::<Signal<OrganisationId>>().unwrap();
-    let selected_workspace = RwSignal::new(String::new());
-
-    let workspaces_resource = create_blocking_resource(
-        move || org.get().0,
-        |org_id| async move {
-            workspaces::list(&PaginationParams::all_entries(), &org_id)
-                .await
-                .unwrap_or_default()
-        },
-    );
-
-    let workspace = Signal::derive(move || Workspace(selected_workspace.get()));
-
-    view! {
-        <div class="flex flex-col gap-6">
-            <div class="card bg-base-100 shadow">
-                <div class="card-body gap-4">
-                    <h2 class="card-title">"Authorization"</h2>
-                    <div class="form-control max-w-md">
-                        {field_label("Workspace", "Choose a workspace")}
-                        <Suspense fallback=move || view! { <div class="text-sm text-gray-600">"Loading workspaces..."</div> }>
-                            {move || {
-                                workspaces_resource
-                                    .get()
-                                    .map(|resp| {
-                                        let options = resp.data;
-                                        view! {
-                                        <select
-                                            class="select select-bordered"
-                                            on:change=move |ev| selected_workspace.set(event_target_value(&ev))
-                                        >
-                                            <option value="">"Select workspace"</option>
-                                            {options
-                                                .into_iter()
-                                                .map(|w| {
-                                                    let name = w.workspace_name;
-                                                    view! { <option value=name.clone()>{name}</option> }
-                                                })
-                                                .collect_view()}
-                                        </select>
-                                    }
-                                            .into_view()
-                                    })
-                                    .unwrap_or_else(|| view! {}.into_view())
-                            }}
-                        </Suspense>
-                    </div>
-                </div>
-            </div>
-
-            {authz_body(workspace, org)}
-        </div>
-    }
 }

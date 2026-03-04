@@ -1,4 +1,5 @@
 use leptos::*;
+use leptos_router::A;
 use serde_json::{Map, Value};
 use superposition_types::custom_query::{CustomQuery, Query};
 use web_sys::{Crypto, MouseEvent};
@@ -153,6 +154,10 @@ pub fn Organisations() -> impl IntoView {
                                 admin_params_rws.with(|p| p.admin.unwrap_or_default())
                             }>
                                 <div class="flex items-end gap-4">
+                                    <A class="btn btn-outline btn-sm" href="../authz">
+                                        <i class="ri-lock-2-line" />
+                                        "AuthZ"
+                                    </A>
                                     <Button
                                         text="Generate MasterKey"
                                         icon_class="ri-key-2-line"

@@ -59,6 +59,15 @@ pub fn org_endpoints() -> Scope {
     // .service(get_users_for_role)
 }
 
+// based on this condition: (r.dom == p.dom || p.dom == "*" || globMatch(r.dom, p.dom))
+fn domain_matcher(request_domain: &str, policy_domain: &str) -> bool {
+    // Exact match or wildcard match (*) or glob pattern match (o1_*)
+    request_domain == policy_domain // exact match
+        || policy_domain == "*" // full wildcard match
+    || (policy_domain.ends_with('*') // glob pattern match
+        && request_domain.starts_with(&policy_domain[..policy_domain.len() - 1]))
+}
+
 #[authorized]
 #[post("/policy")]
 async fn add_policy_handler(
@@ -154,7 +163,7 @@ async fn list_policy_handler(
             let policies = enforcer
                 .get_policy()
                 .into_iter()
-                .filter(|rule| rule.get(1).is_some_and(|d| *d == dom || d == "*"))
+                .filter(|rule| rule.get(1).is_some_and(|d| domain_matcher(&dom, d)))
                 .collect();
             Ok(Json(policies))
         }
@@ -244,7 +253,7 @@ async fn get_roles(
             let policies = enforcer
                 .get_grouping_policy()
                 .into_iter()
-                .filter(|rule| rule.get(2).is_some_and(|d| *d == dom || d == "*"))
+                .filter(|rule| rule.get(2).is_some_and(|d| domain_matcher(&dom, d)))
                 .collect::<Vec<_>>();
             Ok(Json(policies))
         }
@@ -349,7 +358,7 @@ async fn list_action_group_policies(
             let policies = enforcer
                 .get_named_grouping_policy("g2")
                 .into_iter()
-                .filter(|rule| rule.get(1).is_some_and(|d| *d == dom || d == "*"))
+                .filter(|rule| rule.get(1).is_some_and(|d| domain_matcher(&dom, d)))
                 .collect::<Vec<_>>();
             Ok(Json(policies))
         }

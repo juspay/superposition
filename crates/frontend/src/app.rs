@@ -5,7 +5,7 @@ use serde_json::json;
 
 use crate::components::datetime::DatetimeConversionScript;
 use crate::hoc::layout::{CommonLayout, Layout, Providers, use_org};
-use crate::pages::authz::{Authz, AuthzWorkspacePicker};
+use crate::pages::authz::Authz;
 use crate::pages::authz_rules::AuthzRules;
 use crate::pages::compare_overrides::CompareOverrides;
 use crate::pages::config_version::ConfigVersion;
@@ -150,7 +150,7 @@ pub fn App(app_envs: Envs) -> impl IntoView {
 
                             view! {
                                 <CommonLayout>
-                                    <AuthzWorkspacePicker />
+                                    <Authz />
                                 </CommonLayout>
                             }
                         }
