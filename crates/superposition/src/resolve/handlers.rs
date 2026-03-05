@@ -15,7 +15,7 @@ use service_utils::{
     db::run_query,
     redis::{
         AUDIT_ID_KEY_SUFFIX, CONFIG_KEY_SUFFIX, EXPERIMENT_GROUPS_LIST_KEY_SUFFIX,
-        LAST_MODIFIED_KEY_SUFFIX, fetch_from_redis_else_writeback,
+        LAST_MODIFIED_KEY_SUFFIX, read_through_cache,
     },
     service::types::{AppHeader, AppState, WorkspaceContext},
 };
@@ -63,7 +63,7 @@ async fn resolve_with_exp_handler(
     let identifier_query = identifier_query.into_inner();
     let schema_name = workspace_context.schema_name.clone();
 
-    let max_created_at = fetch_from_redis_else_writeback::<DateTime<Utc>>(
+    let max_created_at = read_through_cache::<DateTime<Utc>>(
         format!("{}{LAST_MODIFIED_KEY_SUFFIX}", *schema_name),
         &schema_name,
         &state.redis,
@@ -82,7 +82,7 @@ async fn resolve_with_exp_handler(
     let config_version =
         get_config_version(&query_filters.version, &workspace_context, &state).await?;
 
-    let mut config = fetch_from_redis_else_writeback::<Config>(
+    let mut config = read_through_cache::<Config>(
         format!("{}::{}{CONFIG_KEY_SUFFIX}", *schema_name, config_version),
         &schema_name,
         &state.redis,
@@ -113,7 +113,7 @@ async fn resolve_with_exp_handler(
 
         // Fetch experiment groups from redis
         let experiment_groups =
-            fetch_from_redis_else_writeback::<PaginatedResponse<ExperimentGroup>>(
+            read_through_cache::<PaginatedResponse<ExperimentGroup>>(
                 format!("{}{EXPERIMENT_GROUPS_LIST_KEY_SUFFIX}", *schema_name),
                 &schema_name,
                 &state.redis,
@@ -203,7 +203,7 @@ async fn resolve_with_exp_handler(
     add_last_modified_to_header(max_created_at, is_smithy, &mut resp);
 
     // Fetch audit_id from redis
-    if let Ok(audit_id) = fetch_from_redis_else_writeback::<String>(
+    if let Ok(audit_id) = read_through_cache::<String>(
         format!("{}{AUDIT_ID_KEY_SUFFIX}", schema_name.0),
         &schema_name,
         &state.redis,

@@ -14,7 +14,7 @@ use superposition_macros::bad_argument;
 use superposition_types::database::models::Workspace;
 
 use crate::helpers::get_workspace;
-use crate::redis::fetch_from_redis_else_writeback;
+use crate::redis::read_through_cache;
 use crate::{
     extensions::HttpRequestExt,
     service::types::{AppState, OrganisationId, SchemaName, WorkspaceContext},
@@ -140,7 +140,7 @@ where
                         let schema = format!("{}_{}", *organisation, *workspace_id);
                         let schema_name = SchemaName(schema.clone());
                         let workspace_settings =
-                            fetch_from_redis_else_writeback::<Workspace>(
+                            read_through_cache::<Workspace>(
                                 schema,
                                 &schema_name,
                                 &app_state.redis,

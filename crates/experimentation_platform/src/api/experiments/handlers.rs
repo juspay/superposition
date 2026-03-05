@@ -30,7 +30,7 @@ use service_utils::{
     },
     redis::{
         EXPERIMENTS_LAST_MODIFIED_KEY_SUFFIX, EXPERIMENTS_LIST_KEY_SUFFIX,
-        fetch_from_redis_else_writeback,
+        read_through_cache,
     },
     service::types::{
         AppHeader, AppState, CustomHeaders, DbConnection, WorkspaceContext,
@@ -965,7 +965,7 @@ async fn list_handler(
     dimension_params: DimensionQuery<QueryMap>,
     state: Data<AppState>,
 ) -> superposition::Result<HttpResponse> {
-    let max_event_timestamp = fetch_from_redis_else_writeback::<Option<DateTime<Utc>>>(
+    let max_event_timestamp = read_through_cache::<Option<DateTime<Utc>>>(
         format!(
             "{}{EXPERIMENTS_LAST_MODIFIED_KEY_SUFFIX}",
             *workspace_context.schema_name
@@ -1005,7 +1005,7 @@ async fn list_handler(
         && dimension_params.is_empty();
     if read_from_redis {
         let response =
-            fetch_from_redis_else_writeback::<PaginatedResponse<ExperimentResponse>>(
+            read_through_cache::<PaginatedResponse<ExperimentResponse>>(
                 format!(
                     "{}{EXPERIMENTS_LIST_KEY_SUFFIX}",
                     *workspace_context.schema_name

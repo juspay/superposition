@@ -23,19 +23,19 @@ pub const EXPERIMENT_GROUPS_LIST_KEY_SUFFIX: &str = "::experiment_groups_list";
 /// if redis is disabled read from the database directly
 /// the fallback function is expected to return Result<T, diesel::error::Error>
 /// You can use move closures to capture variables in the run_query
-pub async fn fetch_from_redis_else_writeback<T>(
+pub async fn read_through_cache<T>(
     key: String,
     schema_name: &SchemaName,
     redis_pool: &Option<RedisPool>,
     db_pool: &PgSchemaConnectionPool,
-    query_fn: impl FnOnce(&mut DBConnection) -> superposition::DieselResult<T>,
+    fallback_fn: impl FnOnce(&mut DBConnection) -> superposition::DieselResult<T>,
 ) -> superposition::Result<T>
 where
     T: Serialize + DeserializeOwned,
 {
     let Some(pool) = redis_pool else {
         log::trace!("Redis pool not configured, using fallback");
-        return run_query(db_pool, query_fn);
+        return run_query(db_pool, fallback_fn);
     };
 
     let client = pool.next_connected();
@@ -49,7 +49,7 @@ where
         **schema_name,
     );
 
-    let data = run_query(db_pool, query_fn)?;
+    let data = run_query(db_pool, fallback_fn)?;
 
     // Best-effort writeback — don't fail the request if Redis write fails
     if let Ok(serialized) = serde_json::to_string(&data) {

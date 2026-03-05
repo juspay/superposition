@@ -11,7 +11,7 @@ use serde_json::Value;
 use service_utils::{
     db::run_query,
     helpers::{generate_snowflake_id, get_from_env_or_default},
-    redis::{EXPERIMENT_GROUPS_LIST_KEY_SUFFIX, fetch_from_redis_else_writeback},
+    redis::{EXPERIMENT_GROUPS_LIST_KEY_SUFFIX, read_through_cache},
     service::types::{AppState, DbConnection, WorkspaceContext},
 };
 use superposition_derives::authorized;
@@ -319,7 +319,7 @@ async fn list_handler(
     );
     let read_from_redis = pagination_params.all.is_some_and(|e| e) && filters.is_empty();
     if read_from_redis {
-        fetch_from_redis_else_writeback::<PaginatedResponse<ExperimentGroup>>(
+        read_through_cache::<PaginatedResponse<ExperimentGroup>>(
             key,
             &workspace_context.schema_name,
             &state.redis,

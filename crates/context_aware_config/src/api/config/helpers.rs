@@ -8,7 +8,7 @@ use chrono::{DateTime, Timelike, Utc};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, dsl::max};
 use serde_json::{Map, Value};
 use service_utils::{
-    redis::{CONFIG_VERSION_KEY_SUFFIX, fetch_from_redis_else_writeback},
+    redis::{CONFIG_VERSION_KEY_SUFFIX, read_through_cache},
     service::types::{AppHeader, AppState, EncryptionKey, SchemaName, WorkspaceContext},
 };
 use superposition_macros::{bad_argument, db_error, unexpected_error};
@@ -51,7 +51,7 @@ pub async fn get_config_version(
         ),
         _ => match workspace_context.settings.config_version {
             Some(v) => Ok(v),
-            None => fetch_from_redis_else_writeback::<i64>(
+            None => read_through_cache::<i64>(
                 format!(
                     "{}{CONFIG_VERSION_KEY_SUFFIX}",
                     *workspace_context.schema_name
