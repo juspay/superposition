@@ -21,8 +21,8 @@ pub const EXPERIMENT_GROUPS_LIST_KEY_SUFFIX: &str = "::experiment_groups_list";
 
 /// Fetch data from Redis if available, else fall back to database call and write back to Redis
 /// if redis is disabled read from the database directly
-/// the fallback function is expected to return Result<T, String>
-/// You can use move closures to capture variables in the database_call
+/// the fallback function is expected to return Result<T, diesel::error::Error>
+/// You can use move closures to capture variables in the run_query
 pub async fn fetch_from_redis_else_writeback<T>(
     key: String,
     schema_name: &SchemaName,
@@ -37,36 +37,38 @@ where
         log::trace!("Redis pool not configured, using fallback");
         return run_query(db_pool, query_fn);
     };
+
     let client = pool.next_connected();
-    match get_data_from_redis(key.clone(), client).await {
-        Ok(data) => Ok(data),
-        Err(e) => {
-            log::info!(
-                "Falling back to DB for schema {} due to Redis error: {}",
-                **schema_name,
-                e
-            );
-            let data = run_query(db_pool, query_fn);
-            if let Ok(ref value) = data {
-                // If the write to redis fails, do not fail the whole request, just pass the data along
-                if let Ok(serialized) = serde_json::to_string(value).map_err(|e| {
-                    log::error!("Failed to serialize data for redis writeback: {}", e);
-                }) {
-                    let key_ttl: i64 = get_from_env_or_default("REDIS_KEY_TTL", 604800);
-                    let expiration = Some(Expiration::EX(key_ttl));
-                    let _ = client
-                        .set::<(), String, String>(
-                            key, serialized, expiration, None, false,
-                        )
-                        .await
-                        .map_err(|e| {
-                            log::error!("Failed to write back data to redis: {}", e);
-                        });
-                }
-            }
-            data
-        }
+
+    if let Ok(data) = get_data_from_redis(key.clone(), client).await {
+        return Ok(data);
     }
+
+    log::info!(
+        "Cache miss for schema {}, falling back to DB",
+        **schema_name,
+    );
+
+    let data = run_query(db_pool, query_fn)?;
+
+    // Best-effort writeback — don't fail the request if Redis write fails
+    if let Ok(serialized) = serde_json::to_string(&data) {
+        let key_ttl: i64 = get_from_env_or_default("REDIS_KEY_TTL", 604800);
+        let _ = client
+            .set::<(), String, String>(
+                key,
+                serialized,
+                Some(Expiration::EX(key_ttl)),
+                None,
+                false,
+            )
+            .await
+            .map_err(|e| log::error!("Failed to write back to Redis: {e}"));
+    } else {
+        log::error!("Failed to serialize data for Redis writeback");
+    }
+
+    Ok(data)
 }
 
 pub async fn get_data_from_redis<T>(
