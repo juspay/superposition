@@ -3,16 +3,24 @@ use actix_web::{
     web::{Data, Json, Path},
 };
 use casbin::{MgmtApi, RbacApi};
+use diesel::{
+    ExpressionMethods, RunQueryDsl,
+    query_dsl::methods::{FilterDsl, OrderDsl, SelectDsl},
+};
 use superposition_derives::authorized;
 use superposition_macros::unexpected_error;
 use superposition_types::{
     api::authz::casbin::{
         ActionGroupPolicyRequest, GroupingPolicyRequest, PolicyRequest,
     },
+    database::superposition_schema::superposition::{organisations, workspaces},
     result as superposition,
 };
 
-use crate::middlewares::auth_z::{AuthZDomain, AuthZManager};
+use crate::{
+    middlewares::auth_z::{AuthZDomain, AuthZManager, casbin::CasbinPolicyEngine},
+    service::types::{DbConnection, OrganisationId},
+};
 
 pub fn workspace_endpoints() -> Scope {
     Scope::new("/casbin")
@@ -40,6 +48,7 @@ pub fn admin_endpoints() -> Scope {
         .service(remove_action_group_policy_handler)
         .service(list_action_group_policies_handler)
         .service(list_roles_handler)
+        .service(backfill_orgs_handler)
     // .service(get_roles_for_user_handler)
     // .service(get_users_for_role_handler)
 }
@@ -55,6 +64,7 @@ pub fn org_endpoints() -> Scope {
         .service(remove_action_group_policy_handler)
         .service(list_action_group_policies_handler)
         .service(list_roles_handler)
+        .service(backfill_workspaces_handler)
     // .service(get_roles_for_user_handler)
     // .service(get_users_for_role_handler)
 }
@@ -303,4 +313,65 @@ async fn get_users_for_role_handler(
     let enforcer = data.enforcer().await.map_err(|e| unexpected_error!(e))?;
     let users = enforcer.get_users_for_role(&role, None);
     Ok(HttpResponse::Ok().json(users))
+}
+
+#[authorized]
+#[post("/backfill")]
+async fn backfill_orgs_handler(
+    data: Data<AuthZManager>,
+    db_conn: DbConnection,
+) -> superposition::Result<HttpResponse> {
+    let DbConnection(mut conn) = db_conn;
+    let data = data.try_get_casbin_policy_engine()?;
+
+    let orgs = organisations::table
+        .order(organisations::created_at.desc())
+        .select((organisations::id, organisations::admin_email))
+        .get_results::<(String, String)>(&mut conn)?;
+
+    let mut enforcer = data.enforcer().await.map_err(|e| unexpected_error!(e))?;
+
+    for (org_id, admin_email) in orgs {
+        CasbinPolicyEngine::add_org_policy(&mut enforcer, org_id, admin_email)
+            .await
+            .map_err(|e| unexpected_error!(e))?;
+    }
+
+    Ok(HttpResponse::Ok().body("Org backfill completed"))
+}
+
+#[authorized]
+#[post("/backfill")]
+async fn backfill_workspaces_handler(
+    data: Data<AuthZManager>,
+    org_id: OrganisationId,
+    db_conn: DbConnection,
+) -> superposition::Result<HttpResponse> {
+    let DbConnection(mut conn) = db_conn;
+    let data = data.try_get_casbin_policy_engine()?;
+
+    let workspaces = workspaces::table
+        .filter(workspaces::organisation_id.eq(org_id.to_string()))
+        .select((
+            workspaces::workspace_name,
+            workspaces::workspace_schema_name,
+            workspaces::workspace_admin_email,
+        ))
+        .get_results::<(String, String, String)>(&mut conn)?;
+
+    let mut enforcer = data.enforcer().await.map_err(|e| unexpected_error!(e))?;
+
+    for (workspace_id, schema_name, admin_email) in workspaces {
+        CasbinPolicyEngine::add_workspace_policy(
+            &mut enforcer,
+            &org_id,
+            &workspace_id,
+            &schema_name,
+            admin_email,
+        )
+        .await
+        .map_err(|e| unexpected_error!(e))?;
+    }
+
+    Ok(HttpResponse::Ok().body("Workspace backfill completed"))
 }
