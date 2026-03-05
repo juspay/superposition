@@ -82,7 +82,7 @@ pub fn fetch_audit_id(
         .order_by(event_log::timestamp.desc())
         .schema_name(schema_name)
         .first::<Uuid>(conn)
-        .map(|uuid| uuid.to_string())
+        .map(String::from)
 }
 
 fn generate_subsets(map: &Map<String, Value>) -> Vec<Map<String, Value>> {

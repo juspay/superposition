@@ -13,7 +13,6 @@ use diesel::{
 };
 use fred::{prelude::KeysInterface, types::Expiration};
 use regex::Regex;
-use serde::Serialize;
 use service_utils::{
     encryption::{
         encrypt_workspace_key, generate_encryption_key,
@@ -225,13 +224,11 @@ async fn update_handler(
     Ok(Json(response))
 }
 
-async fn put_workspace_in_redis<T>(
-    workspace: T,
+async fn put_workspace_in_redis(
+    workspace: Workspace,
     state: &Data<AppState>,
     schema_name: &str,
-) where
-    T: Serialize,
-{
+) {
     let redis_pool = match &state.redis {
         Some(pool) => pool,
         None => {
