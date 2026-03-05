@@ -2,6 +2,7 @@
 use std::collections::HashMap;
 use std::ffi::{c_char, CStr, CString};
 use std::ptr;
+use std::time::Instant;
 
 use serde_json::{Map, Value};
 use superposition_types::{Context, DimensionInfo, Overrides};
@@ -56,6 +57,9 @@ pub unsafe extern "C" fn core_get_resolved_config(
     experimentation_json: *const c_char,
     ebuf: *mut c_char,
 ) -> *mut c_char {
+    let legacy_entry_time = Instant::now();
+    eprintln!("[LEGACY-FFI] Entered core_get_resolved_config at: {:?}", std::time::SystemTime::now());
+    
     // Parameter validation
     if default_config_json.is_null()
         || contexts_json.is_null()
@@ -68,6 +72,9 @@ pub unsafe extern "C" fn core_get_resolved_config(
         return ptr::null_mut();
     }
 
+    eprintln!("[LEGACY-FFI] Parsing all JSON parameters...");
+    let parse_start = Instant::now();
+    
     // Parse all parameters
     let default_config = match parse_json::<Map<String, Value>>(default_config_json) {
         Ok(config) => config,
@@ -100,6 +107,9 @@ pub unsafe extern "C" fn core_get_resolved_config(
             return ptr::null_mut();
         }
     };
+
+    let parse_duration = parse_start.elapsed();
+    eprintln!("[LEGACY-FFI] JSON parsing took: {:?} ({:.3}ms)", parse_duration, parse_duration.as_secs_f64() * 1000.0);
 
     let merge_strategy = match c_str_to_string(merge_strategy_str) {
         Ok(strategy) => match strategy.to_lowercase().as_str() {
@@ -144,6 +154,7 @@ pub unsafe extern "C" fn core_get_resolved_config(
         }
     };
 
+    let variant_start = Instant::now();
     if let Some(e_args) = experimentation {
         let identifier = e_args.targeting_key;
 
@@ -164,8 +175,12 @@ pub unsafe extern "C" fn core_get_resolved_config(
             }
         }
     }
+    let variant_duration = variant_start.elapsed();
+    eprintln!("[LEGACY-FFI] Variant processing took: {:?} ({:.3}ms)", variant_duration, variant_duration.as_secs_f64() * 1000.0);
 
     // Call pure config resolution logic
+    eprintln!("[LEGACY-FFI] Calling core eval_config...");
+    let eval_start = Instant::now();
     match config::eval_config(
         default_config,
         &contexts,
@@ -175,11 +190,26 @@ pub unsafe extern "C" fn core_get_resolved_config(
         merge_strategy,
         filter_prefixes,
     ) {
-        Ok(result) => match serde_json::to_string(&result) {
-            Ok(json_str) => string_to_c_str(json_str),
-            Err(e) => {
-                copy_string(ebuf, format!("Failed to serialize result: {}", e));
-                ptr::null_mut()
+        Ok(result) => {
+            let eval_duration = eval_start.elapsed();
+            eprintln!("[LEGACY-FFI] Eval function took: {:?} ({:.3}ms)", eval_duration, eval_duration.as_secs_f64() * 1000.0);
+            
+            eprintln!("[LEGACY-FFI] Serializing result...");
+            let ser_start = Instant::now();
+            match serde_json::to_string(&result) {
+                Ok(json_str) => {
+                    let ser_duration = ser_start.elapsed();
+                    eprintln!("[LEGACY-FFI] Result serialization took: {:?} ({:.3}ms)", ser_duration, ser_duration.as_secs_f64() * 1000.0);
+                    
+                    let total_duration = legacy_entry_time.elapsed();
+                    eprintln!("[LEGACY-FFI] Total core_get_resolved_config time: {:?} ({:.3}ms)", total_duration, total_duration.as_secs_f64() * 1000.0);
+                    
+                    string_to_c_str(json_str)
+                },
+                Err(e) => {
+                    copy_string(ebuf, format!("Failed to serialize result: {}", e));
+                    ptr::null_mut()
+                }
             }
         },
         Err(e) => {

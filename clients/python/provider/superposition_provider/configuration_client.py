@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import json
+import time
 from typing import Dict, Any, Optional
 from .cac_config import CacConfig
 from .exp_config import ExperimentationConfig
@@ -8,6 +9,9 @@ from .types import SuperpositionOptions, ConfigurationOptions, ExperimentationOp
 from superposition_bindings.superposition_client import ExperimentationArgs, ffi_eval_config, ffi_get_applicable_variants
 from superposition_bindings.superposition_client import MergeStrategy
 logger = logging.getLogger(__name__)
+
+# Enable timing logs
+timing_logger = logging.getLogger("ffi_timing")
 
 
 class ConfigurationClient:
@@ -76,7 +80,15 @@ class ConfigurationClient:
             if cached:
                 logger.debug("Using cached evaluation result")
                 return cached
+            
+            # === TIMING: Before FFI Call ===
+            ts_before_ffi = time.time_ns()
+            timing_logger.info(f"[TIMING] Before FFI call: {ts_before_ffi} ns (unix: {ts_before_ffi / 1e9})")
+            print(f"[TIMING] Before FFI call: {ts_before_ffi} ns")
             print(f"Evaluating configuration with query data: {query_data}")
+            
+            # === FFI CALL ===
+            ts_ffi_start = time.time_ns()
             result = ffi_eval_config(
                 self.cac_config.cached_config.get('default_configs', {}),
                 self.cac_config.cached_config.get('contexts', []),
@@ -87,11 +99,26 @@ class ConfigurationClient:
                 filter_prefixes=None,
                 experimentation=experimentdata
             )
+            ts_ffi_end = time.time_ns()
+            
+            # === TIMING: After FFI Call ===
+            ffi_duration_ms = (ts_ffi_end - ts_ffi_start) / 1e6
+            timing_logger.info(f"[TIMING] After FFI call: {ts_ffi_end} ns (duration: {ffi_duration_ms:.3f}ms)")
+            print(f"[TIMING] After FFI call: {ts_ffi_end} ns")
+            print(f"[TIMING] FFI call duration: {ffi_duration_ms:.3f}ms")
             print(f"Evaluation result: {result}")
+            
+            # === TIMING: Processing result ===
+            ts_process_start = time.time_ns()
             eval_result = {}
             for (key, value) in result.items():
                 eval_result[key] = json.loads(value)
+            ts_process_end = time.time_ns()
+            process_duration_ms = (ts_process_end - ts_process_start) / 1e6
+            
             logger.info(f"Resolution result: {eval_result}")
+            timing_logger.info(f"[TIMING] Result processing duration: {process_duration_ms:.3f}ms")
+            print(f"[TIMING] Result processing duration: {process_duration_ms:.3f}ms")
 
             return eval_result
 
