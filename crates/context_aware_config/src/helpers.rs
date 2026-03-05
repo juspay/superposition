@@ -304,7 +304,7 @@ pub async fn put_config_in_redis(
         .set::<(), String, i64>(
             config_version_key,
             version_id,
-            expiration.clone(),
+            expiration,
             None,
             false,
         )

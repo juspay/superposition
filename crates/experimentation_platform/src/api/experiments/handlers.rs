@@ -381,7 +381,7 @@ async fn create_handler(
 
     // Update Redis cache with active experiments and experiment groups
     let _ = put_experiments_in_redis(
-        state.redis.clone(),
+        &state.redis,
         &mut conn,
         &workspace_context.schema_name,
     )
@@ -444,7 +444,7 @@ async fn conclude_handler(
 
     // Update Redis cache with active experiments and experiment groups
     let _ = put_experiments_in_redis(
-        state.redis.clone(),
+        &state.redis,
         &mut conn,
         &workspace_context.schema_name,
     )
@@ -719,7 +719,7 @@ async fn discard_handler(
 
     // Update Redis cache with active experiments and experiment groups
     let _ = put_experiments_in_redis(
-        state.redis.clone(),
+        &state.redis,
         &mut conn,
         &workspace_context.schema_name,
     )
@@ -1371,7 +1371,7 @@ async fn ramp_handler(
     let experiment_response = ExperimentResponse::from(updated_experiment);
 
     let _ = put_experiments_in_redis(
-        state.redis.clone(),
+        &state.redis,
         &mut conn,
         &workspace_context.schema_name,
     )
@@ -1720,7 +1720,7 @@ async fn update_handler(
 
     // Update Redis cache with active experiments and experiment groups
     let _ = put_experiments_in_redis(
-        state.redis.clone(),
+        &state.redis,
         &mut conn,
         &workspace_context.schema_name,
     )
@@ -1780,7 +1780,7 @@ async fn pause_handler(
 
     // Update Redis cache with active experiments and experiment groups
     let _ = put_experiments_in_redis(
-        state.redis.clone(),
+        &state.redis,
         &mut conn,
         &workspace_context.schema_name,
     )
@@ -1876,7 +1876,7 @@ async fn resume_handler(
 
     // Update Redis cache with active experiments and experiment groups
     let _ = put_experiments_in_redis(
-        state.redis.clone(),
+        &state.redis,
         &mut conn,
         &workspace_context.schema_name,
     )

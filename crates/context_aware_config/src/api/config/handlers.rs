@@ -58,7 +58,6 @@ use crate::{
 
 use super::helpers::{apply_prefix_filter_to_config, resolve, setup_query_data};
 
-#[allow(clippy::let_and_return)]
 pub fn endpoints() -> Scope {
     Scope::new("")
         .service(get_handler)

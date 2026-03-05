@@ -79,10 +79,10 @@ where
     use fred::interfaces::MetricsInterface;
 
     log::debug!("Started redis fetch for config");
-    let config = {
+    let data = {
         // this block is so that the client connection is dropped
         // before we move on to parsing the config
-        let config = client
+        let data = client
             .get::<String, String>(key_name.clone())
             .await
             .map_err(|e| {
@@ -92,7 +92,7 @@ where
         let metrics = client.take_latency_metrics();
         let network_metrics = client.take_network_latency_metrics();
         log::trace!(
-            "Network metrics for config fetch in milliseconds :: max: {}, min: {}, avg: {}; Latency metrics :: max: {}, min: {}, avg: {}",
+            "Network metrics for data fetch in milliseconds :: max: {}, min: {}, avg: {}; Latency metrics :: max: {}, min: {}, avg: {}",
             network_metrics.max,
             network_metrics.min,
             network_metrics.avg,
@@ -100,10 +100,10 @@ where
             metrics.min,
             metrics.avg
         );
-        config
+        data
     };
 
-    let value = serde_json::from_str::<T>(&config).map_err(|e| {
+    let value = serde_json::from_str::<T>(&data).map_err(|e| {
         log::error!("Failed to parse value from redis: {}", e);
         format!("Failed to parse value from redis due to: {}", e)
     })?;

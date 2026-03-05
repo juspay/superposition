@@ -39,7 +39,6 @@ use superposition_types::{
             experimentation::{
                 Experiment, ExperimentStatusType, GroupType, Variant, VariantType,
             },
-            others::{Webhook, WebhookEvent},
         },
         schema::experiments::dsl as experiments,
     },
@@ -805,7 +804,7 @@ pub async fn fetch_and_validate_change_reason_with_function(
 }
 
 pub async fn put_experiments_in_redis(
-    redis_pool: Option<RedisPool>,
+    redis_pool: &Option<RedisPool>,
     conn: &mut DBConnection,
     schema_name: &SchemaName,
 ) -> superposition::Result<()> {

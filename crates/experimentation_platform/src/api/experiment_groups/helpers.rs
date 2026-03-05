@@ -459,7 +459,7 @@ pub fn fetch_experiment_group(
 }
 
 pub async fn put_experiment_groups_in_redis(
-    redis_pool: Option<RedisPool>,
+    redis_pool: &Option<RedisPool>,
     conn: &mut DBConnection,
     schema_name: &SchemaName,
 ) -> superposition::Result<()> {

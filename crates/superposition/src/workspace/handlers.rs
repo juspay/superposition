@@ -240,7 +240,7 @@ async fn put_workspace_in_redis(
         service_utils::helpers::get_from_env_or_default("REDIS_KEY_TTL", 604800);
     let expiration = Some(Expiration::EX(key_ttl));
 
-    if let Ok(serialized) = serde_json::to_string(&workspace) {
+    if let Ok(serialized) = serde_json::to_string(workspace) {
         let client = redis_pool.next_connected();
 
         if let Err(e) = client

@@ -144,7 +144,7 @@ async fn create_handler(
             Ok(new_experiment_group)
         })?;
     let _ = put_experiment_groups_in_redis(
-        state.redis.clone(),
+        &state.redis,
         &mut conn,
         &workspace_context.schema_name,
     )
@@ -194,7 +194,7 @@ async fn update_handler(
         .schema_name(&workspace_context.schema_name)
         .get_result(&mut conn)?;
     let _ = put_experiment_groups_in_redis(
-        state.redis.clone(),
+        &state.redis,
         &mut conn,
         &workspace_context.schema_name,
     )
@@ -249,7 +249,7 @@ async fn add_members_handler(
             )
         })?;
     let _ = put_experiment_groups_in_redis(
-        state.redis.clone(),
+        &state.redis,
         &mut conn,
         &workspace_context.schema_name,
     )
@@ -297,7 +297,7 @@ async fn remove_members_handler(
             )
         })?;
     let _ = put_experiment_groups_in_redis(
-        state.redis.clone(),
+        &state.redis,
         &mut conn,
         &workspace_context.schema_name,
     )
@@ -458,7 +458,7 @@ async fn delete_handler(
             Ok(Json(marked_group))
         });
     let _ = put_experiment_groups_in_redis(
-        state.redis.clone(),
+        &state.redis,
         &mut db_conn,
         &workspace_context.schema_name,
     )
@@ -524,7 +524,7 @@ async fn backfill_handler(
             Ok(results)
         })?;
     let _ = put_experiment_groups_in_redis(
-        state.redis.clone(),
+        &state.redis,
         &mut conn,
         &workspace_context.schema_name,
     )
