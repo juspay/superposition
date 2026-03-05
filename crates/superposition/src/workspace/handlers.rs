@@ -165,8 +165,7 @@ async fn create_handler(
             Ok(inserted_workspace.remove(0))
         })?;
 
-    put_workspace_in_redis(created_workspace.clone(), &state, &workspace_schema_name)
-        .await;
+    put_workspace_in_redis(&created_workspace, &state, &workspace_schema_name).await;
 
     let response = WorkspaceResponse::from(created_workspace);
     Ok(Json(response))
@@ -179,7 +178,7 @@ async fn create_handler(
 async fn update_handler(
     workspace_name: web::Path<String>,
     request: Json<UpdateWorkspaceRequest>,
-    app_state: web::Data<AppState>,
+    app_state: Data<AppState>,
     db_conn: DbConnection,
     org_id: OrganisationId,
     user: User,
@@ -218,14 +217,14 @@ async fn update_handler(
             Ok(updated_workspace)
         })?;
 
-    put_workspace_in_redis(updated_workspace.clone(), &app_state, &schema_name.0).await;
+    put_workspace_in_redis(&updated_workspace, &app_state, &schema_name.0).await;
 
     let response = WorkspaceResponse::from(updated_workspace);
     Ok(Json(response))
 }
 
 async fn put_workspace_in_redis(
-    workspace: Workspace,
+    workspace: &Workspace,
     state: &Data<AppState>,
     schema_name: &str,
 ) {
@@ -392,7 +391,7 @@ async fn migrate_schema_handler(
 
     // Refetch workspace after transaction to get updated data
     let workspace = get_workspace(&schema_name, &mut conn)?;
-    put_workspace_in_redis(workspace.clone(), &state, &schema_name.0).await;
+    put_workspace_in_redis(&workspace, &state, &schema_name.0).await;
 
     let response = WorkspaceResponse::from(workspace);
     Ok(Json(response))
@@ -437,7 +436,7 @@ pub async fn rotate_encryption_key_handler(
 
     // Refetch workspace after transaction to get updated data
     let workspace = get_workspace(&schema_name, &mut conn)?;
-    put_workspace_in_redis(workspace, &state, &schema_name.0).await;
+    put_workspace_in_redis(&workspace, &state, &schema_name.0).await;
 
     Ok(Json(KeyRotationResponse {
         total_secrets_re_encrypted,

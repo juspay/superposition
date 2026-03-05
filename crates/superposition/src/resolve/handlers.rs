@@ -12,14 +12,12 @@ use context_aware_config::api::config::helpers::{
 use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::{Map, Value};
 use service_utils::{
+    db::run_query,
     redis::{
         AUDIT_ID_KEY_SUFFIX, CONFIG_KEY_SUFFIX, EXPERIMENT_GROUPS_LIST_KEY_SUFFIX,
         LAST_MODIFIED_KEY_SUFFIX, fetch_from_redis_else_writeback,
     },
-    service::{
-        get_db_connection,
-        types::{AppHeader, AppState, DbConnection, WorkspaceContext},
-    },
+    service::types::{AppHeader, AppState, WorkspaceContext},
 };
 use std::collections::{HashMap, HashSet};
 use superposition_core::experiment::{
@@ -27,7 +25,7 @@ use superposition_core::experiment::{
     get_applicable_variants_from_group_response,
 };
 use superposition_derives::authorized;
-use superposition_macros::{db_error, unexpected_error};
+use superposition_macros::unexpected_error;
 use superposition_types::{
     Config, PaginatedResponse,
     api::config::{ContextPayload, MergeStrategy, ResolveConfigQuery},
@@ -159,26 +157,23 @@ async fn resolve_with_exp_handler(
 
         // Fetch experiments from database (these are filtered by specific IDs, so caching all wouldn't help much)
         let exps: HashMap<String, FfiExperiment> = if !exp_ids.is_empty() {
-            let DbConnection(mut conn) = get_db_connection(state.db_pool.clone())?;
-            dsl::experiments
-                .filter(
-                    dsl::id
-                        .eq_any(exp_ids)
-                        .and(dsl::status.eq(ExperimentStatusType::INPROGRESS)),
-                )
-                .schema_name(&workspace_context.schema_name)
-                .load::<Experiment>(&mut conn)
-                .map_err(|e| {
-                    log::error!("failed to fetch experiments: {e}");
-                    db_error!(e)
-                })?
-                .into_iter()
-                .map(|exp| {
-                    let ffi_exp = FfiExperiment::from(exp);
-                    let id = ffi_exp.id.clone();
-                    (id, ffi_exp)
-                })
-                .collect()
+            run_query(&state.db_pool, |conn| {
+                Ok(dsl::experiments
+                    .filter(
+                        dsl::id
+                            .eq_any(exp_ids)
+                            .and(dsl::status.eq(ExperimentStatusType::INPROGRESS)),
+                    )
+                    .schema_name(&workspace_context.schema_name)
+                    .load::<Experiment>(conn)?
+                    .into_iter()
+                    .map(|exp| {
+                        let ffi_exp = FfiExperiment::from(exp);
+                        let id = ffi_exp.id.clone();
+                        (id, ffi_exp)
+                    })
+                    .collect())
+            })?
         } else {
             HashMap::new()
         };
@@ -189,7 +184,10 @@ async fn resolve_with_exp_handler(
     }
 
     let resolved_config = {
-        let DbConnection(mut conn) = get_db_connection(state.db_pool.clone())?;
+        let mut conn = state.db_pool.get().map_err(|e| {
+            log::error!("Unable to get db connection from pool, error: {e}");
+            unexpected_error!("Unable to get db connection from pool: {}", e)
+        })?;
         resolve(
             &mut config,
             query_data,

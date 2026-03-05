@@ -8,8 +8,8 @@ use std::{
 
 use actix_web::{Error, FromRequest, HttpMessage, error, web::Data};
 use derive_more::{Deref, DerefMut};
-use diesel::PgConnection;
 use diesel::r2d2::{ConnectionManager, PooledConnection};
+use diesel::{Connection, PgConnection};
 use secrecy::SecretString;
 use snowflake::SnowflakeIdGenerator;
 use superposition_types::database::models::Workspace;
@@ -188,12 +188,18 @@ impl FromRequest for DbConnection {
             }
         };
 
-        let result = super::get_db_connection(app_state.db_pool.clone()).map_err(|e| {
-            log::error!("Failed to inject DB connection, error: {}", e);
-            error::ErrorInternalServerError(
-                "A database error occurred, please contact an admin or check logs",
-            )
-        });
+        let result = match app_state.db_pool.get() {
+            Ok(mut conn) => {
+                conn.set_prepared_statement_cache_size(
+                    diesel::connection::CacheSize::Disabled,
+                );
+                Ok(DbConnection(conn))
+            }
+            Err(e) => {
+                log::info!("Unable to get db connection from pool, error: {e}");
+                Err(error::ErrorInternalServerError(""))
+            }
+        };
 
         ready(result)
     }

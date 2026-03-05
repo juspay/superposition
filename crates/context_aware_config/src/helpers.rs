@@ -20,10 +20,6 @@ use service_utils::{
     service::types::{AppState, EncryptionKey, SchemaName, WorkspaceContext},
 };
 use superposition_macros::{db_error, unexpected_error, validation_error};
-use superposition_types::database::{
-    models::Workspace, schema::event_log::dsl as event_log,
-    superposition_schema::superposition::workspaces,
-};
 use superposition_types::{
     Cac, Condition, Config, Context, DBConnection, DefaultConfigInfo,
     DefaultConfigsWithSchema, DetailedConfig, DimensionInfo, OverrideWithKeys, Overrides,
@@ -43,6 +39,7 @@ use superposition_types::{
             config_versions,
             contexts::dsl::{self as ctxt},
             default_configs::dsl as def_conf,
+            event_log::dsl as event_log,
         },
     },
     logic::dimensions_to_start_from,
@@ -228,16 +225,6 @@ pub fn add_config_version(
         .execute(db_conn)?;
 
     Ok(version_id)
-}
-
-pub fn get_workspace(
-    workspace_schema_name: &String,
-    db_conn: &mut DBConnection,
-) -> superposition::Result<Workspace> {
-    let workspace = workspaces::dsl::workspaces
-        .filter(workspaces::workspace_schema_name.eq(workspace_schema_name))
-        .get_result::<Workspace>(db_conn)?;
-    Ok(workspace)
 }
 
 pub async fn put_config_in_redis(

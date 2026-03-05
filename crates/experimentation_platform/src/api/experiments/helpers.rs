@@ -443,54 +443,6 @@ pub async fn fetch_cac_config(
     }
 }
 
-pub async fn fetch_webhook_by_event(
-    state: &Data<AppState>,
-    user: &User,
-    event: &WebhookEvent,
-    workspace_context: &WorkspaceContext,
-) -> superposition::Result<Webhook> {
-    let http_client = reqwest::Client::new();
-    let url = format!("{}/webhook/event/{event}", state.cac_host);
-    let user_str = serde_json::to_string(user).map_err(|err| {
-        log::error!("Something went wrong, failed to stringify user data {err}");
-        unexpected_error!(
-            "Something went wrong, failed to stringify user data {}",
-            err
-        )
-    })?;
-
-    let headers_map =
-        construct_header_map(workspace_context, vec![("x-user", user_str)])?;
-
-    let response = http_client
-        .get(&url)
-        .headers(headers_map.into())
-        .header(
-            header::AUTHORIZATION,
-            format!("Internal {}", state.superposition_token),
-        )
-        .send()
-        .await;
-
-    match response {
-        Ok(res) => {
-            if res.status() == 404 {
-                log::info!("No Webhook found for event: {}", event);
-                return Ok(Webhook::default());
-            }
-            let webhook = res.json::<Webhook>().await.map_err(|err| {
-                log::error!("failed to parse Webhook response with error: {}", err);
-                unexpected_error!("Failed to parse Webhook.")
-            })?;
-            Ok(webhook)
-        }
-        Err(error) => {
-            log::error!("Failed to fetch Webhook with error: {:?}", error);
-            Err(unexpected_error!(error))
-        }
-    }
-}
-
 pub fn handle_experiment_group_membership(
     experiment: &Experiment,
     new_group_id: &Option<I64Update>,

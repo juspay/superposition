@@ -14,10 +14,7 @@ use service_utils::{
         AUDIT_ID_KEY_SUFFIX, CONFIG_KEY_SUFFIX, LAST_MODIFIED_KEY_SUFFIX,
         fetch_from_redis_else_writeback,
     },
-    service::{
-        get_db_connection,
-        types::{AppHeader, AppState, DbConnection, SchemaName, WorkspaceContext},
-    },
+    service::types::{AppHeader, AppState, DbConnection, SchemaName, WorkspaceContext},
 };
 use superposition_core::{
     helpers::{calculate_context_weight, hash},
@@ -668,7 +665,11 @@ async fn resolve_handler(
     let (is_smithy, query_data) = setup_query_data(&req, &body, &dimension_params)?;
 
     let resolved_config = {
-        let DbConnection(mut conn) = get_db_connection(state.db_pool.clone())?;
+        let mut conn = state.db_pool.get().map_err(|e| {
+            log::error!("Unable to get db connection from pool, error: {e}");
+            unexpected_error!("Unable to get db connection from pool, error: {}", e)
+        })?;
+        // TODO: resolve doesn't return diesel::error, figure that out
         resolve(
             &mut config,
             query_data,

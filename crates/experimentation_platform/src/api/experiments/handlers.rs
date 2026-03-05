@@ -32,9 +32,8 @@ use service_utils::{
         EXPERIMENTS_LAST_MODIFIED_KEY_SUFFIX, EXPERIMENTS_LIST_KEY_SUFFIX,
         fetch_from_redis_else_writeback,
     },
-    service::{
-        get_db_connection,
-        types::{AppHeader, AppState, CustomHeaders, DbConnection, WorkspaceContext},
+    service::types::{
+        AppHeader, AppState, CustomHeaders, DbConnection, WorkspaceContext,
     },
 };
 use superposition_derives::authorized;
@@ -856,13 +855,13 @@ pub async fn discard(
     Ok((updated_experiment, config_version_id))
 }
 
-pub async fn get_applicable_variants_helper(
+pub fn get_applicable_variants_helper(
     db_conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     context: Map<String, Value>,
     dimensions_info: &HashMap<String, DimensionInfo>,
     identifier: String,
     workspace_context: &WorkspaceContext,
-) -> superposition::Result<(Vec<String>, HashMap<String, ExperimentResponse>)> {
+) -> superposition::DieselResult<(Vec<String>, HashMap<String, ExperimentResponse>)> {
     use superposition_types::database::schema::experiments::dsl;
 
     let experiment_groups = experiment_groups::experiment_groups
@@ -932,19 +931,10 @@ async fn get_applicable_variants_handler(
                 return Err(bad_argument!("Invalid input for the method"));
             }
         };
-    let (applicable_variants, exps) = {
-        let DbConnection(mut conn) = get_db_connection(state.db_pool.clone())?;
-        let di = fetch_dimensions_info_map(&mut conn, &workspace_context.schema_name)?;
-        let (av, e) = get_applicable_variants_helper(
-            &mut conn,
-            context,
-            &di,
-            identifier,
-            &workspace_context,
-        )
-        .await?;
-        (av, e)
-    };
+    let (applicable_variants, exps) = run_query(&state.db_pool, |conn| {
+        let di = fetch_dimensions_info_map(conn, &workspace_context.schema_name)?;
+        get_applicable_variants_helper(conn, context, &di, identifier, &workspace_context)
+    })?;
 
     let variants = exps
         .into_iter()
