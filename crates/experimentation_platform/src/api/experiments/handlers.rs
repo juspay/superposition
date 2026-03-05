@@ -981,8 +981,8 @@ async fn list_handler(
             *workspace_context.schema_name
         ),
         &workspace_context.schema_name,
-        state.redis.clone(),
-        state.db_pool.clone(),
+        &state.redis,
+        &state.db_pool,
         |conn| {
             event_log::event_log
                 .filter(event_log::table_name.eq("experiments"))
@@ -1021,8 +1021,8 @@ async fn list_handler(
                     *workspace_context.schema_name
                 ),
                 &workspace_context.schema_name,
-                state.redis.clone(),
-                state.db_pool.clone(),
+                &state.redis,
+                &state.db_pool,
                 |conn| {
                     list_experiments_db(
                         pagination_params.clone(),

@@ -143,8 +143,8 @@ where
                             fetch_from_redis_else_writeback::<Workspace>(
                                 schema,
                                 &schema_name,
-                                app_state.redis.clone(),
-                                app_state.db_pool.clone(),
+                                &app_state.redis,
+                                &app_state.db_pool,
                                 |db_conn| get_workspace(&schema_name, db_conn),
                             )
                             .await?;

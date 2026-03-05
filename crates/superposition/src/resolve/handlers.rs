@@ -68,8 +68,8 @@ async fn resolve_with_exp_handler(
     let max_created_at = fetch_from_redis_else_writeback::<DateTime<Utc>>(
         format!("{}{LAST_MODIFIED_KEY_SUFFIX}", *schema_name),
         &schema_name,
-        state.redis.clone(),
-        state.db_pool.clone(),
+        &state.redis,
+        &state.db_pool,
         |conn| get_max_created_at(conn, &schema_name),
     )
     .await
@@ -87,8 +87,8 @@ async fn resolve_with_exp_handler(
     let mut config = fetch_from_redis_else_writeback::<Config>(
         format!("{}::{}{CONFIG_KEY_SUFFIX}", *schema_name, config_version),
         &schema_name,
-        state.redis.clone(),
-        state.db_pool.clone(),
+        &state.redis,
+        &state.db_pool,
         |conn| {
             generate_config_from_version(
                 &mut Some(config_version),
@@ -118,8 +118,8 @@ async fn resolve_with_exp_handler(
             fetch_from_redis_else_writeback::<PaginatedResponse<ExperimentGroup>>(
                 format!("{}{EXPERIMENT_GROUPS_LIST_KEY_SUFFIX}", *schema_name),
                 &schema_name,
-                state.redis.clone(),
-                state.db_pool.clone(),
+                &state.redis,
+                &state.db_pool,
                 |conn| {
                     let groups = experiment_groups::experiment_groups
                         .schema_name(&workspace_context.schema_name)
@@ -208,8 +208,8 @@ async fn resolve_with_exp_handler(
     if let Ok(audit_id) = fetch_from_redis_else_writeback::<String>(
         format!("{}{AUDIT_ID_KEY_SUFFIX}", schema_name.0),
         &schema_name,
-        state.redis.clone(),
-        state.db_pool.clone(),
+        &state.redis,
+        &state.db_pool,
         |conn| fetch_audit_id(conn, &workspace_context.schema_name),
     )
     .await

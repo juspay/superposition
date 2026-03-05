@@ -322,8 +322,8 @@ async fn list_handler(
         fetch_from_redis_else_writeback::<PaginatedResponse<ExperimentGroup>>(
             key,
             &workspace_context.schema_name,
-            state.redis.clone(),
-            state.db_pool.clone(),
+            &state.redis,
+            &state.db_pool,
             |conn| {
                 list_experiment_groups_db(
                     &pagination_params,

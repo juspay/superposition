@@ -26,8 +26,8 @@ pub const EXPERIMENT_GROUPS_LIST_KEY_SUFFIX: &str = "::experiment_groups_list";
 pub async fn fetch_from_redis_else_writeback<T>(
     key: String,
     schema_name: &SchemaName,
-    redis_pool: Option<RedisPool>,
-    db_pool: PgSchemaConnectionPool,
+    redis_pool: &Option<RedisPool>,
+    db_pool: &PgSchemaConnectionPool,
     query_fn: impl FnOnce(&mut DBConnection) -> superposition::DieselResult<T>,
 ) -> superposition::Result<T>
 where
@@ -35,7 +35,7 @@ where
 {
     let Some(pool) = redis_pool else {
         log::trace!("Redis pool not configured, using fallback");
-        return run_query(&db_pool, query_fn);
+        return run_query(db_pool, query_fn);
     };
     let client = pool.next_connected();
     match get_data_from_redis(key.clone(), client).await {
@@ -46,7 +46,7 @@ where
                 **schema_name,
                 e
             );
-            let data = run_query(&db_pool, query_fn);
+            let data = run_query(db_pool, query_fn);
             if let Ok(ref value) = data {
                 // If the write to redis fails, do not fail the whole request, just pass the data along
                 if let Ok(serialized) = serde_json::to_string(value).map_err(|e| {

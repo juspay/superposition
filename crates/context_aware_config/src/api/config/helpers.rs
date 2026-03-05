@@ -57,8 +57,8 @@ pub async fn get_config_version(
                     *workspace_context.schema_name
                 ),
                 &workspace_context.schema_name,
-                state.redis.clone(),
-                state.db_pool.clone(),
+                &state.redis,
+                &state.db_pool,
                 |conn| {
                     config_versions::config_versions
                         .select(config_versions::id)
