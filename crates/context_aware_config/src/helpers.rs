@@ -239,7 +239,7 @@ pub async fn put_config_in_redis(
     let key_ttl: i64 = get_from_env_or_default("REDIS_KEY_TTL", 604800);
     let expiration = Some(Expiration::EX(key_ttl));
     let raw_config = generate_cac(db_conn, schema_name)?;
-    let parsed_config = serde_json::to_string(&json!(raw_config)).map_err(|e| {
+    let parsed_config = serde_json::to_string(&raw_config).map_err(|e| {
         log::error!("failed to convert cac config to string: {}", e);
         unexpected_error!("could not convert cac config to string")
     })?;
