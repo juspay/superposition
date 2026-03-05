@@ -10,11 +10,8 @@ use itertools::Itertools;
 use serde_json::{Map, Value, json};
 use service_utils::{
     helpers::fetch_dimensions_info_map,
-    redis::{
-        AUDIT_ID_KEY_SUFFIX, CONFIG_KEY_SUFFIX, LAST_MODIFIED_KEY_SUFFIX,
-        read_through_cache,
-    },
-    service::types::{AppHeader, AppState, DbConnection, SchemaName, WorkspaceContext},
+    redis::{CONFIG_KEY_SUFFIX, LAST_MODIFIED_KEY_SUFFIX, read_through_cache},
+    service::types::{AppState, DbConnection, WorkspaceContext},
 };
 use superposition_core::{
     helpers::{calculate_context_weight, hash},
@@ -38,18 +35,17 @@ use superposition_types::{
             ChangeReason,
             cac::{ConfigVersion, ConfigVersionListItem},
         },
-        schema::{config_versions::dsl as config_versions, event_log::dsl as event_log},
+        schema::config_versions::dsl as config_versions,
     },
-    result::{self as superposition, DieselResult},
+    result::{self as superposition},
 };
-use uuid::Uuid;
 
 use crate::{
     api::{
         config::helpers::{
-            add_audit_id_to_header, add_config_version_to_header,
-            add_last_modified_to_header, generate_config_from_version,
-            get_config_version, get_max_created_at, is_not_modified,
+            add_config_version_to_header, add_last_modified_to_header,
+            generate_config_from_version, get_config_version, get_max_created_at,
+            is_not_modified,
         },
         context::{self, helpers::query_description},
     },
@@ -66,19 +62,6 @@ pub fn endpoints() -> Scope {
         .service(reduce_handler)
         .service(list_version_handler)
         .service(get_version_handler)
-}
-
-pub fn fetch_audit_id(
-    conn: &mut DBConnection,
-    schema_name: &SchemaName,
-) -> DieselResult<String> {
-    event_log::event_log
-        .select(event_log::id)
-        .filter(event_log::table_name.eq("contexts"))
-        .order_by(event_log::timestamp.desc())
-        .schema_name(schema_name)
-        .first::<Uuid>(conn)
-        .map(String::from)
 }
 
 fn generate_subsets(map: &Map<String, Value>) -> Vec<Map<String, Value>> {
@@ -553,17 +536,6 @@ async fn get_handler(
         config = config.filter_by_dimensions(&context);
     }
     add_last_modified_to_header(max_created_at, is_smithy, &mut response);
-    if let Ok(audit_id) = read_through_cache::<String>(
-        format!("{}{AUDIT_ID_KEY_SUFFIX}", **schema_name),
-        schema_name,
-        &state.redis,
-        &state.db_pool,
-        |conn| fetch_audit_id(conn, &workspace_context.schema_name),
-    )
-    .await
-    {
-        response.insert_header((AppHeader::XAuditId.to_string(), audit_id));
-    }
     add_config_version_to_header(&Some(version), &mut response);
     Ok(response.json(config))
 }
@@ -597,7 +569,6 @@ async fn get_toml_handler(
 
     let mut response = HttpResponse::Ok();
     add_last_modified_to_header(max_created_at, false, &mut response);
-    add_audit_id_to_header(&mut conn, &mut response, &workspace_context.schema_name);
     response.insert_header(("Content-Type", "application/toml"));
 
     Ok(response.body(toml_str))
@@ -682,17 +653,6 @@ async fn resolve_handler(
 
     let mut resp = HttpResponse::Ok();
     add_last_modified_to_header(max_created_at, is_smithy, &mut resp);
-    if let Ok(audit_id) = read_through_cache::<String>(
-        format!("{}{AUDIT_ID_KEY_SUFFIX}", **schema_name),
-        schema_name,
-        &state.redis,
-        &state.db_pool,
-        |conn| fetch_audit_id(conn, &workspace_context.schema_name),
-    )
-    .await
-    {
-        resp.insert_header((AppHeader::XAuditId.to_string(), audit_id));
-    }
     add_config_version_to_header(&Some(config_version), &mut resp);
     Ok(resp.json(resolved_config))
 }

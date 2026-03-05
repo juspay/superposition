@@ -12,7 +12,6 @@ use crate::{
 };
 
 pub const LAST_MODIFIED_KEY_SUFFIX: &str = "::cac_config::last_modified_at";
-pub const AUDIT_ID_KEY_SUFFIX: &str = "::cac_config::audit_id";
 pub const CONFIG_VERSION_KEY_SUFFIX: &str = "::cac_config::config_version";
 pub const CONFIG_KEY_SUFFIX: &str = "::cac_config";
 pub const EXPERIMENTS_LIST_KEY_SUFFIX: &str = "::experiments_list";

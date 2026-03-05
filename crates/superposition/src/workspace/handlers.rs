@@ -198,28 +198,27 @@ async fn update_handler(
             .first::<i64>(&mut conn)?;
     }
 
-    let updated_workspace =
-        conn.transaction::<Workspace, superposition::AppError, _>(|transaction_conn| {
-            let updated_workspace = diesel::update(workspaces::table)
-                .filter(workspaces::organisation_id.eq(&org_id.0))
-                .filter(workspaces::workspace_name.eq(workspace_name))
-                .set((
-                    request,
-                    workspaces::last_modified_by.eq(user.get_email()),
-                    workspaces::last_modified_at.eq(timestamp),
-                ))
-                .get_result::<Workspace>(transaction_conn)
-                .map_err(|err| {
-                    log::error!("failed to update workspace with error: {}", err);
-                    err
-                })?;
+    conn.transaction::<(), superposition::AppError, _>(|transaction_conn| {
+        diesel::update(workspaces::table)
+            .filter(workspaces::organisation_id.eq(&org_id.0))
+            .filter(workspaces::workspace_name.eq(workspace_name))
+            .set((
+                request,
+                workspaces::last_modified_by.eq(user.get_email()),
+                workspaces::last_modified_at.eq(timestamp),
+            ))
+            .execute(transaction_conn)
+            .map_err(|err| {
+                log::error!("failed to update workspace with error: {}", err);
+                err
+            })?;
+        Ok(())
+    })?;
 
-            Ok(updated_workspace)
-        })?;
+    let workspace = get_workspace(&schema_name, &mut conn)?;
+    put_workspace_in_redis(&workspace, &app_state, &schema_name.0).await;
 
-    put_workspace_in_redis(&updated_workspace, &app_state, &schema_name.0).await;
-
-    let response = WorkspaceResponse::from(updated_workspace);
+    let response = WorkspaceResponse::from(workspace);
     Ok(Json(response))
 }
 

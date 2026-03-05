@@ -34,7 +34,6 @@ pub enum AppEnv {
 #[strum(serialize_all = "kebab-case")]
 pub enum AppHeader {
     XConfigVersion,
-    XAuditId,
     LastModified,
 }
 

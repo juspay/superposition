@@ -139,15 +139,14 @@ where
                     (true, Some(workspace_id)) => {
                         let schema = format!("{}_{}", *organisation, *workspace_id);
                         let schema_name = SchemaName(schema.clone());
-                        let workspace_settings =
-                            read_through_cache::<Workspace>(
-                                schema,
-                                &schema_name,
-                                &app_state.redis,
-                                &app_state.db_pool,
-                                |db_conn| get_workspace(&schema_name, db_conn),
-                            )
-                            .await?;
+                        let workspace_settings = read_through_cache::<Workspace>(
+                            schema,
+                            &schema_name,
+                            &app_state.redis,
+                            &app_state.db_pool,
+                            |db_conn| get_workspace(&schema_name, db_conn),
+                        )
+                        .await?;
 
                         req.extensions_mut().insert(workspace_id.clone());
                         req.extensions_mut().insert(WorkspaceContext {

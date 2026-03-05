@@ -29,8 +29,8 @@ use service_utils::{
         fetch_dimensions_info_map, generate_snowflake_id, request,
     },
     redis::{
-        EXPERIMENTS_LAST_MODIFIED_KEY_SUFFIX, EXPERIMENTS_LIST_KEY_SUFFIX,
-        read_through_cache,
+        EXPERIMENT_GROUPS_LIST_KEY_SUFFIX, EXPERIMENTS_LAST_MODIFIED_KEY_SUFFIX,
+        EXPERIMENTS_LIST_KEY_SUFFIX, read_through_cache,
     },
     service::types::{
         AppHeader, AppState, CustomHeaders, DbConnection, WorkspaceContext,
@@ -380,12 +380,9 @@ async fn create_handler(
         })?;
 
     // Update Redis cache with active experiments and experiment groups
-    let _ = put_experiments_in_redis(
-        &state.redis,
-        &mut conn,
-        &workspace_context.schema_name,
-    )
-    .await;
+    let _ =
+        put_experiments_in_redis(&state.redis, &mut conn, &workspace_context.schema_name)
+            .await;
     let response = ExperimentResponse::from(inserted_experiment);
 
     let data = WebhookData {
@@ -443,12 +440,9 @@ async fn conclude_handler(
     .await?;
 
     // Update Redis cache with active experiments and experiment groups
-    let _ = put_experiments_in_redis(
-        &state.redis,
-        &mut conn,
-        &workspace_context.schema_name,
-    )
-    .await;
+    let _ =
+        put_experiments_in_redis(&state.redis, &mut conn, &workspace_context.schema_name)
+            .await;
 
     let experiment_response = ExperimentResponse::from(response);
 
@@ -718,12 +712,9 @@ async fn discard_handler(
     .await?;
 
     // Update Redis cache with active experiments and experiment groups
-    let _ = put_experiments_in_redis(
-        &state.redis,
-        &mut conn,
-        &workspace_context.schema_name,
-    )
-    .await;
+    let _ =
+        put_experiments_in_redis(&state.redis, &mut conn, &workspace_context.schema_name)
+            .await;
 
     let experiment_response = ExperimentResponse::from(response);
 
@@ -855,19 +846,30 @@ pub async fn discard(
     Ok((updated_experiment, config_version_id))
 }
 
-pub fn get_applicable_variants_helper(
-    db_conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+pub async fn get_applicable_variants_helper(
     context: Map<String, Value>,
     dimensions_info: &HashMap<String, DimensionInfo>,
     identifier: String,
     workspace_context: &WorkspaceContext,
-) -> superposition::DieselResult<(Vec<String>, HashMap<String, ExperimentResponse>)> {
+    app_state: &Data<AppState>,
+) -> superposition::Result<(Vec<String>, HashMap<String, ExperimentResponse>)> {
     use superposition_types::database::schema::experiments::dsl;
 
-    let experiment_groups = experiment_groups::experiment_groups
-        .schema_name(&workspace_context.schema_name)
-        .load::<ExperimentGroup>(db_conn)?;
-
+    let experiment_groups = read_through_cache::<Vec<ExperimentGroup>>(
+        format!(
+            "{}{EXPERIMENT_GROUPS_LIST_KEY_SUFFIX}",
+            *workspace_context.schema_name
+        ),
+        &workspace_context.schema_name,
+        &app_state.redis,
+        &app_state.db_pool,
+        |conn| {
+            experiment_groups::experiment_groups
+                .schema_name(&workspace_context.schema_name)
+                .load::<ExperimentGroup>(conn)
+        },
+    )
+    .await?;
     let context = evaluate_local_cohorts(dimensions_info, &context);
 
     let buckets =
@@ -878,21 +880,41 @@ pub fn get_applicable_variants_helper(
         .filter_map(|(_, bucket)| bucket.experiment_id.parse::<i64>().ok())
         .collect::<HashSet<_>>();
 
-    let exps = dsl::experiments
-        .filter(
-            dsl::id
-                .eq_any(exp_ids)
-                .and(dsl::status.eq(ExperimentStatusType::INPROGRESS)),
-        )
-        .schema_name(&workspace_context.schema_name)
-        .load::<Experiment>(db_conn)?
-        .into_iter()
-        .map(|exp| {
-            let exp_response = ExperimentResponse::from(exp);
-            let id = exp_response.id.clone();
-            (id, exp_response)
-        })
-        .collect::<HashMap<String, ExperimentResponse>>();
+    let exps = read_through_cache::<PaginatedResponse<ExperimentResponse>>(
+        format!(
+            "{}{EXPERIMENTS_LIST_KEY_SUFFIX}",
+            *workspace_context.schema_name
+        ),
+        &workspace_context.schema_name,
+        &app_state.redis,
+        &app_state.db_pool,
+        |conn| {
+            let experiments = dsl::experiments
+                .filter(
+                    dsl::id
+                        .eq_any(&exp_ids)
+                        .and(dsl::status.eq(ExperimentStatusType::INPROGRESS)),
+                )
+                .schema_name(&workspace_context.schema_name)
+                .load::<Experiment>(conn)?;
+            Ok(PaginatedResponse {
+                data: experiments
+                    .into_iter()
+                    .map(ExperimentResponse::from)
+                    .collect(),
+                total_pages: 1,
+                total_items: exp_ids.len() as i64,
+            })
+        },
+    )
+    .await?
+    .data
+    .into_iter()
+    .map(|exp| {
+        let id = exp.id.clone();
+        (id, exp)
+    })
+    .collect::<HashMap<String, ExperimentResponse>>();
 
     let applicable_variants =
         get_applicable_variants_from_group_response(&exps, &context, &buckets);
@@ -931,11 +953,18 @@ async fn get_applicable_variants_handler(
                 return Err(bad_argument!("Invalid input for the method"));
             }
         };
-    let (applicable_variants, exps) = run_query(&state.db_pool, |conn| {
-        let di = fetch_dimensions_info_map(conn, &workspace_context.schema_name)?;
-        get_applicable_variants_helper(conn, context, &di, identifier, &workspace_context)
-    })?;
 
+    let di = run_query(&state.db_pool, |conn| {
+        fetch_dimensions_info_map(conn, &workspace_context.schema_name)
+    })?;
+    let (applicable_variants, exps) = get_applicable_variants_helper(
+        context,
+        &di,
+        identifier,
+        &workspace_context,
+        &state,
+    )
+    .await?;
     let variants = exps
         .into_iter()
         .filter_map(|(_, experiment)| {
@@ -1004,26 +1033,25 @@ async fn list_handler(
             .is_some_and(|v| *v == ExperimentStatusType::active_list())
         && dimension_params.is_empty();
     if read_from_redis {
-        let response =
-            read_through_cache::<PaginatedResponse<ExperimentResponse>>(
-                format!(
-                    "{}{EXPERIMENTS_LIST_KEY_SUFFIX}",
-                    *workspace_context.schema_name
-                ),
-                &workspace_context.schema_name,
-                &state.redis,
-                &state.db_pool,
-                |conn| {
-                    list_experiments_db(
-                        pagination_params.clone(),
-                        filters.clone(),
-                        dimension_params.clone(),
-                        conn,
-                        &workspace_context,
-                    )
-                },
-            )
-            .await?;
+        let response = read_through_cache::<PaginatedResponse<ExperimentResponse>>(
+            format!(
+                "{}{EXPERIMENTS_LIST_KEY_SUFFIX}",
+                *workspace_context.schema_name
+            ),
+            &workspace_context.schema_name,
+            &state.redis,
+            &state.db_pool,
+            |conn| {
+                list_experiments_db(
+                    pagination_params.clone(),
+                    filters.clone(),
+                    dimension_params.clone(),
+                    conn,
+                    &workspace_context,
+                )
+            },
+        )
+        .await?;
         Ok(HttpResponse::Ok().json(response))
     } else {
         let paginated_response = run_query(&state.db_pool, |conn| {
@@ -1370,12 +1398,9 @@ async fn ramp_handler(
     let (_, config_version_id) = fetch_cac_config(&state, &workspace_context).await?;
     let experiment_response = ExperimentResponse::from(updated_experiment);
 
-    let _ = put_experiments_in_redis(
-        &state.redis,
-        &mut conn,
-        &workspace_context.schema_name,
-    )
-    .await;
+    let _ =
+        put_experiments_in_redis(&state.redis, &mut conn, &workspace_context.schema_name)
+            .await;
 
     let webhook_event = if matches!(experiment.status, ExperimentStatusType::CREATED) {
         WebhookEvent::ExperimentStarted
@@ -1719,12 +1744,9 @@ async fn update_handler(
         })?;
 
     // Update Redis cache with active experiments and experiment groups
-    let _ = put_experiments_in_redis(
-        &state.redis,
-        &mut conn,
-        &workspace_context.schema_name,
-    )
-    .await;
+    let _ =
+        put_experiments_in_redis(&state.redis, &mut conn, &workspace_context.schema_name)
+            .await;
 
     let experiment_response = ExperimentResponse::from(updated_experiment);
 
@@ -1779,12 +1801,9 @@ async fn pause_handler(
     .await?;
 
     // Update Redis cache with active experiments and experiment groups
-    let _ = put_experiments_in_redis(
-        &state.redis,
-        &mut conn,
-        &workspace_context.schema_name,
-    )
-    .await;
+    let _ =
+        put_experiments_in_redis(&state.redis, &mut conn, &workspace_context.schema_name)
+            .await;
 
     let experiment_response = ExperimentResponse::from(response);
 
@@ -1875,12 +1894,9 @@ async fn resume_handler(
     .await?;
 
     // Update Redis cache with active experiments and experiment groups
-    let _ = put_experiments_in_redis(
-        &state.redis,
-        &mut conn,
-        &workspace_context.schema_name,
-    )
-    .await;
+    let _ =
+        put_experiments_in_redis(&state.redis, &mut conn, &workspace_context.schema_name)
+            .await;
 
     let experiment_response = ExperimentResponse::from(response);
 

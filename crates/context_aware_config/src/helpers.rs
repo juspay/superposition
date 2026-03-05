@@ -10,10 +10,7 @@ use fred::{interfaces::KeysInterface, types::Expiration};
 use serde_json::{Map, Value, json};
 use service_utils::{
     helpers::get_from_env_or_default,
-    redis::{
-        AUDIT_ID_KEY_SUFFIX, CONFIG_KEY_SUFFIX, CONFIG_VERSION_KEY_SUFFIX,
-        LAST_MODIFIED_KEY_SUFFIX,
-    },
+    redis::{CONFIG_KEY_SUFFIX, CONFIG_VERSION_KEY_SUFFIX, LAST_MODIFIED_KEY_SUFFIX},
 };
 use service_utils::{
     helpers::{fetch_dimensions_info_map, generate_snowflake_id},
@@ -39,13 +36,11 @@ use superposition_types::{
             config_versions,
             contexts::dsl::{self as ctxt},
             default_configs::dsl as def_conf,
-            event_log::dsl as event_log,
         },
     },
     logic::dimensions_to_start_from,
     result as superposition,
 };
-use uuid::Uuid;
 
 use crate::{
     api::{
@@ -250,7 +245,6 @@ pub async fn put_config_in_redis(
     })?;
     let config_key = format!("{}::{}{CONFIG_KEY_SUFFIX}", **schema_name, version_id);
     let last_modified_at_key = format!("{}{LAST_MODIFIED_KEY_SUFFIX}", **schema_name);
-    let audit_id_key = format!("{}{AUDIT_ID_KEY_SUFFIX}", **schema_name);
     let config_version_key = format!("{}{CONFIG_VERSION_KEY_SUFFIX}", **schema_name);
     let last_modified = DateTime::to_rfc2822(&Utc::now());
     redis_pool
@@ -279,35 +273,8 @@ pub async fn put_config_in_redis(
             log::warn!("failed to set last_modified_key in redis: {}", e);
             unexpected_error!("failed to set last_modified_key in redis")
         })?;
-    if let Ok(uuid) = event_log::event_log
-        .select(event_log::id)
-        .filter(event_log::table_name.eq("contexts"))
-        .schema_name(schema_name)
-        .order_by(event_log::timestamp.desc())
-        .first::<Uuid>(db_conn)
-    {
-        redis_pool
-            .set::<(), String, String>(
-                audit_id_key,
-                uuid.to_string(),
-                expiration.clone(),
-                None,
-                false,
-            )
-            .await
-            .map_err(|e| {
-                log::warn!("failed to set audit_id in redis: {}", e);
-                unexpected_error!("failed to set audit_id in redis")
-            })?;
-    }
     redis_pool
-        .set::<(), String, i64>(
-            config_version_key,
-            version_id,
-            expiration,
-            None,
-            false,
-        )
+        .set::<(), String, i64>(config_version_key, version_id, expiration, None, false)
         .await
         .map_err(|e| {
             log::warn!("failed to set config_version_key in redis: {}", e);

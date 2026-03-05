@@ -35,7 +35,6 @@ superposition_types = { workspace = true, features = [
     "diesel_derives",
     "server",
 ] }
-uuid = { workspace = true }
 
 [features]
 disable_db_data_validation = ["superposition_types/disable_db_data_validation"]

@@ -16,12 +16,9 @@ use superposition_types::{
     Config, DBConnection,
     api::config::{ContextPayload, MergeStrategy, ResolveConfigQuery},
     custom_query::{CommaSeparatedStringQParams, DimensionQuery, QueryMap},
-    database::schema::{
-        config_versions::dsl as config_versions, event_log::dsl as event_log,
-    },
+    database::schema::config_versions::dsl as config_versions,
     result as superposition,
 };
-use uuid::Uuid;
 
 use crate::helpers::{evaluate_remote_cohorts, generate_cac};
 
@@ -70,24 +67,6 @@ pub async fn get_config_version(
             .await
             .map_err(|e| unexpected_error!("Config version not found due to: {}", e)),
         },
-    }
-}
-
-pub fn add_audit_id_to_header(
-    conn: &mut DBConnection,
-    resp_builder: &mut HttpResponseBuilder,
-    schema_name: &SchemaName,
-) {
-    if let Ok(uuid) = event_log::event_log
-        .select(event_log::id)
-        .filter(event_log::table_name.eq("contexts"))
-        .order_by(event_log::timestamp.desc())
-        .schema_name(schema_name)
-        .first::<Uuid>(conn)
-    {
-        resp_builder.insert_header((AppHeader::XAuditId.to_string(), uuid.to_string()));
-    } else {
-        log::error!("Failed to fetch contexts from event_log");
     }
 }
 
