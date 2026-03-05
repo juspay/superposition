@@ -43,8 +43,5 @@ tracing-subscriber = { workspace = true }
 tracing-actix-web = { workspace = true }
 json-subscriber = { version = "0.2.7", features = ["tracing-log"] }
 
-[features]
-
-
 [lints]
 workspace = true
