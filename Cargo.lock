@@ -1641,7 +1641,6 @@ dependencies = [
  "superposition_derives",
  "superposition_macros",
  "superposition_types",
- "uuid",
 ]
 
 [[package]]
@@ -2281,6 +2280,7 @@ dependencies = [
  "cac_client",
  "chrono",
  "experimentation_client",
+ "fred",
  "juspay_diesel",
  "log",
  "reqwest",

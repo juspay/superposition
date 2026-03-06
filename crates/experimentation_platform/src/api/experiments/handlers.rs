@@ -23,9 +23,14 @@ use experimentation_client::{
 use reqwest::{Method, StatusCode};
 use serde_json::{Map, Value};
 use service_utils::{
+    db::run_query,
     helpers::{
         WebhookData, construct_request_headers, execute_webhook_call,
         fetch_dimensions_info_map, generate_snowflake_id, request,
+    },
+    redis::{
+        EXPERIMENT_GROUPS_LIST_KEY_SUFFIX, EXPERIMENTS_LAST_MODIFIED_KEY_SUFFIX,
+        EXPERIMENTS_LIST_KEY_SUFFIX, read_through_cache,
     },
     service::types::{
         AppHeader, AppState, CustomHeaders, DbConnection, WorkspaceContext,
@@ -34,8 +39,8 @@ use service_utils::{
 use superposition_derives::authorized;
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
-    Cac, Condition, Contextual, DimensionInfo, Exp, ListResponse, Overrides,
-    PaginatedResponse, Resource, SortBy, User,
+    Cac, Condition, Contextual, DBConnection, DimensionInfo, Exp, ListResponse,
+    Overrides, PaginatedResponse, Resource, SortBy, User,
     api::{
         DimensionMatchStrategy,
         context::{
@@ -81,8 +86,8 @@ use crate::api::{
     },
     experiments::{
         helpers::{
-            fetch_and_validate_change_reason_with_function, validate_control_overrides,
-            validate_delete_experiment_variants,
+            fetch_and_validate_change_reason_with_function, put_experiments_in_redis,
+            validate_control_overrides, validate_delete_experiment_variants,
         },
         types::StartedByChangeSet,
     },
@@ -374,6 +379,10 @@ async fn create_handler(
             Ok(inserted_experiment)
         })?;
 
+    // Update Redis cache with active experiments and experiment groups
+    let _ =
+        put_experiments_in_redis(&state.redis, &mut conn, &workspace_context.schema_name)
+            .await;
     let response = ExperimentResponse::from(inserted_experiment);
 
     let data = WebhookData {
@@ -429,6 +438,11 @@ async fn conclude_handler(
         &user,
     )
     .await?;
+
+    // Update Redis cache with active experiments and experiment groups
+    let _ =
+        put_experiments_in_redis(&state.redis, &mut conn, &workspace_context.schema_name)
+            .await;
 
     let experiment_response = ExperimentResponse::from(response);
 
@@ -697,6 +711,11 @@ async fn discard_handler(
     )
     .await?;
 
+    // Update Redis cache with active experiments and experiment groups
+    let _ =
+        put_experiments_in_redis(&state.redis, &mut conn, &workspace_context.schema_name)
+            .await;
+
     let experiment_response = ExperimentResponse::from(response);
 
     let data = WebhookData {
@@ -828,18 +847,29 @@ pub async fn discard(
 }
 
 pub async fn get_applicable_variants_helper(
-    db_conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     context: Map<String, Value>,
     dimensions_info: &HashMap<String, DimensionInfo>,
     identifier: String,
     workspace_context: &WorkspaceContext,
+    app_state: &Data<AppState>,
 ) -> superposition::Result<(Vec<String>, HashMap<String, ExperimentResponse>)> {
     use superposition_types::database::schema::experiments::dsl;
 
-    let experiment_groups = experiment_groups::experiment_groups
-        .schema_name(&workspace_context.schema_name)
-        .load::<ExperimentGroup>(db_conn)?;
-
+    let experiment_groups = read_through_cache::<Vec<ExperimentGroup>>(
+        format!(
+            "{}{EXPERIMENT_GROUPS_LIST_KEY_SUFFIX}",
+            *workspace_context.schema_name
+        ),
+        &workspace_context.schema_name,
+        &app_state.redis,
+        &app_state.db_pool,
+        |conn| {
+            experiment_groups::experiment_groups
+                .schema_name(&workspace_context.schema_name)
+                .load::<ExperimentGroup>(conn)
+        },
+    )
+    .await?;
     let context = evaluate_local_cohorts(dimensions_info, &context);
 
     let buckets =
@@ -850,21 +880,41 @@ pub async fn get_applicable_variants_helper(
         .filter_map(|(_, bucket)| bucket.experiment_id.parse::<i64>().ok())
         .collect::<HashSet<_>>();
 
-    let exps = dsl::experiments
-        .filter(
-            dsl::id
-                .eq_any(exp_ids)
-                .and(dsl::status.eq(ExperimentStatusType::INPROGRESS)),
-        )
-        .schema_name(&workspace_context.schema_name)
-        .load::<Experiment>(db_conn)?
-        .into_iter()
-        .map(|exp| {
-            let exp_response = ExperimentResponse::from(exp);
-            let id = exp_response.id.clone();
-            (id, exp_response)
-        })
-        .collect::<HashMap<String, ExperimentResponse>>();
+    let exps = read_through_cache::<PaginatedResponse<ExperimentResponse>>(
+        format!(
+            "{}{EXPERIMENTS_LIST_KEY_SUFFIX}",
+            *workspace_context.schema_name
+        ),
+        &workspace_context.schema_name,
+        &app_state.redis,
+        &app_state.db_pool,
+        |conn| {
+            let experiments = dsl::experiments
+                .filter(
+                    dsl::id
+                        .eq_any(&exp_ids)
+                        .and(dsl::status.eq(ExperimentStatusType::INPROGRESS)),
+                )
+                .schema_name(&workspace_context.schema_name)
+                .load::<Experiment>(conn)?;
+            Ok(PaginatedResponse {
+                data: experiments
+                    .into_iter()
+                    .map(ExperimentResponse::from)
+                    .collect(),
+                total_pages: 1,
+                total_items: exp_ids.len() as i64,
+            })
+        },
+    )
+    .await?
+    .data
+    .into_iter()
+    .map(|exp| {
+        let id = exp.id.clone();
+        (id, exp)
+    })
+    .collect::<HashMap<String, ExperimentResponse>>();
 
     let applicable_variants =
         get_applicable_variants_from_group_response(&exps, &context, &buckets);
@@ -879,12 +929,11 @@ pub async fn get_applicable_variants_helper(
 async fn get_applicable_variants_handler(
     workspace_context: WorkspaceContext,
     req: HttpRequest,
-    db_conn: DbConnection,
+    state: Data<AppState>,
     req_body: Option<Json<ApplicableVariantsRequest>>,
     query_data: Option<Query<ApplicableVariantsQuery>>,
     dimension_params: Option<DimensionQuery<QueryMap>>,
 ) -> superposition::Result<Either<Json<Vec<Variant>>, Json<ListResponse<Variant>>>> {
-    let DbConnection(mut conn) = db_conn;
     let (context, identifier) =
         match (req.method().clone(), query_data, dimension_params, req_body) {
             (
@@ -905,17 +954,17 @@ async fn get_applicable_variants_handler(
             }
         };
 
-    let dimensions_info =
-        fetch_dimensions_info_map(&mut conn, &workspace_context.schema_name)?;
+    let di = run_query(&state.db_pool, |conn| {
+        fetch_dimensions_info_map(conn, &workspace_context.schema_name)
+    })?;
     let (applicable_variants, exps) = get_applicable_variants_helper(
-        &mut conn,
         context,
-        &dimensions_info,
+        &di,
         identifier,
         &workspace_context,
+        &state,
     )
     .await?;
-
     let variants = exps
         .into_iter()
         .filter_map(|(_, experiment)| {
@@ -943,15 +992,25 @@ async fn list_handler(
     pagination_params: superposition_query::Query<PaginationParams>,
     filters: superposition_query::Query<ExperimentListFilters>,
     dimension_params: DimensionQuery<QueryMap>,
-    db_conn: DbConnection,
+    state: Data<AppState>,
 ) -> superposition::Result<HttpResponse> {
-    let DbConnection(mut conn) = db_conn;
-
-    let max_event_timestamp: Option<DateTime<Utc>> = event_log::event_log
-        .filter(event_log::table_name.eq("experiments"))
-        .select(diesel::dsl::max(event_log::timestamp))
-        .schema_name(&workspace_context.schema_name)
-        .first(&mut conn)?;
+    let max_event_timestamp = read_through_cache::<Option<DateTime<Utc>>>(
+        format!(
+            "{}{EXPERIMENTS_LAST_MODIFIED_KEY_SUFFIX}",
+            *workspace_context.schema_name
+        ),
+        &workspace_context.schema_name,
+        &state.redis,
+        &state.db_pool,
+        |conn| {
+            event_log::event_log
+                .filter(event_log::table_name.eq("experiments"))
+                .select(diesel::dsl::max(event_log::timestamp))
+                .schema_name(&workspace_context.schema_name)
+                .first(conn)
+        },
+    )
+    .await?;
 
     let last_modified = req
         .headers()
@@ -966,7 +1025,55 @@ async fn list_handler(
     if max_event_timestamp.is_some() && max_event_timestamp < last_modified {
         return Ok(HttpResponse::NotModified().finish());
     };
+    let show_all = pagination_params.all.unwrap_or_default();
+    let read_from_redis = show_all
+        && filters
+            .status
+            .clone()
+            .is_some_and(|v| *v == ExperimentStatusType::active_list())
+        && dimension_params.is_empty();
+    if read_from_redis {
+        let response = read_through_cache::<PaginatedResponse<ExperimentResponse>>(
+            format!(
+                "{}{EXPERIMENTS_LIST_KEY_SUFFIX}",
+                *workspace_context.schema_name
+            ),
+            &workspace_context.schema_name,
+            &state.redis,
+            &state.db_pool,
+            |conn| {
+                list_experiments_db(
+                    pagination_params.clone(),
+                    filters.clone(),
+                    dimension_params.clone(),
+                    conn,
+                    &workspace_context,
+                )
+            },
+        )
+        .await?;
+        Ok(HttpResponse::Ok().json(response))
+    } else {
+        let paginated_response = run_query(&state.db_pool, |conn| {
+            list_experiments_db(
+                pagination_params,
+                filters,
+                dimension_params,
+                conn,
+                &workspace_context,
+            )
+        })?;
+        Ok(HttpResponse::Ok().json(paginated_response))
+    }
+}
 
+fn list_experiments_db(
+    pagination_params: superposition_query::Query<PaginationParams>,
+    filters: superposition_query::Query<ExperimentListFilters>,
+    dimension_params: DimensionQuery<QueryMap>,
+    conn: &mut DBConnection,
+    workspace_context: &WorkspaceContext,
+) -> superposition::DieselResult<PaginatedResponse<ExperimentResponse>> {
     let dimension_params = dimension_params.into_inner();
 
     let query_builder = |filters: &ExperimentListFilters| {
@@ -1034,7 +1141,7 @@ async fn list_handler(
         || filters.global_experiments_only.unwrap_or_default();
 
     let paginated_response = if perform_in_memory_filter {
-        let all_experiments: Vec<Experiment> = base_query.load(&mut conn)?;
+        let all_experiments: Vec<Experiment> = base_query.load(conn)?;
         let filtered_experiments = if filters.global_experiments_only.unwrap_or_default()
         {
             all_experiments
@@ -1043,7 +1150,7 @@ async fn list_handler(
                 .collect()
         } else {
             let dimensions_info =
-                fetch_dimensions_info_map(&mut conn, &workspace_context.schema_name)?;
+                fetch_dimensions_info_map(conn, &workspace_context.schema_name)?;
             let dimension_params = evaluate_local_cohorts_skip_unresolved(
                 &dimensions_info,
                 &dimension_params,
@@ -1087,13 +1194,13 @@ async fn list_handler(
             }
         }
     } else if show_all {
-        let result = base_query.load::<Experiment>(&mut conn)?;
+        let result = base_query.load::<Experiment>(conn)?;
         PaginatedResponse::all(result.into_iter().map(ExperimentResponse::from).collect())
     } else {
         let count_query = query_builder(&filters);
-        let number_of_experiments = count_query.count().get_result(&mut conn)?;
+        let number_of_experiments = count_query.count().get_result(conn)?;
         let query = base_query.limit(limit).offset(offset);
-        let experiment_list = query.load::<Experiment>(&mut conn)?;
+        let experiment_list = query.load::<Experiment>(conn)?;
 
         PaginatedResponse {
             total_pages: (number_of_experiments as f64 / limit as f64).ceil() as i64,
@@ -1105,7 +1212,7 @@ async fn list_handler(
         }
     };
 
-    Ok(HttpResponse::Ok().json(paginated_response))
+    Ok(paginated_response)
 }
 
 #[authorized]
@@ -1290,6 +1397,10 @@ async fn ramp_handler(
 
     let (_, config_version_id) = fetch_cac_config(&state, &workspace_context).await?;
     let experiment_response = ExperimentResponse::from(updated_experiment);
+
+    let _ =
+        put_experiments_in_redis(&state.redis, &mut conn, &workspace_context.schema_name)
+            .await;
 
     let webhook_event = if matches!(experiment.status, ExperimentStatusType::CREATED) {
         WebhookEvent::ExperimentStarted
@@ -1632,6 +1743,11 @@ async fn update_handler(
             Ok(updated_experiment)
         })?;
 
+    // Update Redis cache with active experiments and experiment groups
+    let _ =
+        put_experiments_in_redis(&state.redis, &mut conn, &workspace_context.schema_name)
+            .await;
+
     let experiment_response = ExperimentResponse::from(updated_experiment);
 
     let data = WebhookData {
@@ -1683,6 +1799,11 @@ async fn pause_handler(
         &user,
     )
     .await?;
+
+    // Update Redis cache with active experiments and experiment groups
+    let _ =
+        put_experiments_in_redis(&state.redis, &mut conn, &workspace_context.schema_name)
+            .await;
 
     let experiment_response = ExperimentResponse::from(response);
 
@@ -1771,6 +1892,11 @@ async fn resume_handler(
         &user,
     )
     .await?;
+
+    // Update Redis cache with active experiments and experiment groups
+    let _ =
+        put_experiments_in_redis(&state.redis, &mut conn, &workspace_context.schema_name)
+            .await;
 
     let experiment_response = ExperimentResponse::from(response);
 

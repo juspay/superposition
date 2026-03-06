@@ -11,6 +11,7 @@ use diesel::{
     connection::SimpleConnection,
     r2d2::{ConnectionManager, PooledConnection},
 };
+use fred::{prelude::KeysInterface, types::Expiration};
 use regex::Regex;
 use service_utils::{
     encryption::{
@@ -163,6 +164,9 @@ async fn create_handler(
             setup_workspace_schema(transaction_conn, &workspace_schema_name)?;
             Ok(inserted_workspace.remove(0))
         })?;
+
+    put_workspace_in_redis(&created_workspace, &state, &workspace_schema_name).await;
+
     let response = WorkspaceResponse::from(created_workspace);
     Ok(Json(response))
 }
@@ -174,6 +178,7 @@ async fn create_handler(
 async fn update_handler(
     workspace_name: web::Path<String>,
     request: Json<UpdateWorkspaceRequest>,
+    app_state: Data<AppState>,
     db_conn: DbConnection,
     org_id: OrganisationId,
     user: User,
@@ -193,26 +198,57 @@ async fn update_handler(
             .first::<i64>(&mut conn)?;
     }
 
-    let updated_workspace =
-        conn.transaction::<Workspace, superposition::AppError, _>(|transaction_conn| {
-            let updated_workspace = diesel::update(workspaces::table)
-                .filter(workspaces::organisation_id.eq(&org_id.0))
-                .filter(workspaces::workspace_name.eq(workspace_name))
-                .set((
-                    request,
-                    workspaces::last_modified_by.eq(user.get_email()),
-                    workspaces::last_modified_at.eq(timestamp),
-                ))
-                .get_result::<Workspace>(transaction_conn)
-                .map_err(|err| {
-                    log::error!("failed to update workspace with error: {}", err);
-                    err
-                })?;
+    conn.transaction::<(), superposition::AppError, _>(|transaction_conn| {
+        diesel::update(workspaces::table)
+            .filter(workspaces::organisation_id.eq(&org_id.0))
+            .filter(workspaces::workspace_name.eq(workspace_name))
+            .set((
+                request,
+                workspaces::last_modified_by.eq(user.get_email()),
+                workspaces::last_modified_at.eq(timestamp),
+            ))
+            .execute(transaction_conn)
+            .map_err(|err| {
+                log::error!("failed to update workspace with error: {}", err);
+                err
+            })?;
+        Ok(())
+    })?;
 
-            Ok(updated_workspace)
-        })?;
-    let response = WorkspaceResponse::from(updated_workspace);
+    let workspace = get_workspace(&schema_name, &mut conn)?;
+    put_workspace_in_redis(&workspace, &app_state, &schema_name.0).await;
+
+    let response = WorkspaceResponse::from(workspace);
     Ok(Json(response))
+}
+
+async fn put_workspace_in_redis(
+    workspace: &Workspace,
+    state: &Data<AppState>,
+    schema_name: &str,
+) {
+    let redis_pool = match &state.redis {
+        Some(pool) => pool,
+        None => {
+            log::debug!("Redis not configured, skipping workspace cache update");
+            return;
+        }
+    };
+
+    let key_ttl: i64 =
+        service_utils::helpers::get_from_env_or_default("REDIS_KEY_TTL", 604800);
+    let expiration = Some(Expiration::EX(key_ttl));
+
+    if let Ok(serialized) = serde_json::to_string(workspace) {
+        let client = redis_pool.next_connected();
+
+        if let Err(e) = client
+            .set::<(), &str, String>(schema_name, serialized, expiration, None, false)
+            .await
+        {
+            log::warn!("Failed to update Redis cache with workspace: {}", e);
+        }
+    };
 }
 
 #[authorized]
@@ -352,6 +388,10 @@ async fn migrate_schema_handler(
         Ok(())
     })?;
 
+    // Refetch workspace after transaction to get updated data
+    let workspace = get_workspace(&schema_name, &mut conn)?;
+    put_workspace_in_redis(&workspace, &state, &schema_name.0).await;
+
     let response = WorkspaceResponse::from(workspace);
     Ok(Json(response))
 }
@@ -377,7 +417,7 @@ pub async fn rotate_encryption_key_handler(
     let schema_name = SchemaName(format!("{}_{}", *org_id, workspace_name.into_inner()));
     let workspace = get_workspace(&schema_name, &mut conn)?;
     let workspace_context = WorkspaceContext {
-        schema_name,
+        schema_name: schema_name.clone(),
         organisation_id: org_id,
         workspace_id: WorkspaceId(workspace.workspace_name.clone()),
         settings: workspace,
@@ -392,6 +432,10 @@ pub async fn rotate_encryption_key_handler(
                 &user.get_email(),
             )
         })?;
+
+    // Refetch workspace after transaction to get updated data
+    let workspace = get_workspace(&schema_name, &mut conn)?;
+    put_workspace_in_redis(&workspace, &state, &schema_name.0).await;
 
     Ok(Json(KeyRotationResponse {
         total_secrets_re_encrypted,

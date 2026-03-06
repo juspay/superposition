@@ -8,7 +8,7 @@ use bigdecimal::BigDecimal;
 use chrono::Utc;
 use diesel::{
     Connection, ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl,
-    SelectableHelper, delete,
+    SelectableHelper,
     dsl::sql,
     sql_types::{Bool, Text},
 };
@@ -48,15 +48,12 @@ use superposition_types::{
     result::{self as superposition, AppError},
 };
 
-use crate::helpers::add_config_version;
-#[cfg(feature = "high-performance-mode")]
-use crate::helpers::put_config_in_redis;
 use crate::{
     api::context::{
         helpers::{query_description, validate_ctx},
         operations,
     },
-    helpers::validate_change_reason,
+    helpers::{add_config_version, put_config_in_redis, validate_change_reason},
 };
 
 pub fn endpoints() -> Scope {
@@ -141,15 +138,13 @@ async fn create_handler(
         })?;
 
     let DbConnection(mut conn) = db_conn;
-
-    #[cfg(feature = "high-performance-mode")]
-    put_config_in_redis(
+    let _ = put_config_in_redis(
         version_id,
         &state,
         &workspace_context.schema_name,
         &mut conn,
     )
-    .await?;
+    .await;
 
     let data = WebhookData {
         payload: &put_response,
@@ -226,15 +221,13 @@ async fn update_handler(
         })?;
 
     let DbConnection(mut conn) = db_conn;
-
-    #[cfg(feature = "high-performance-mode")]
-    put_config_in_redis(
+    let _ = put_config_in_redis(
         version_id,
         &state,
         &workspace_context.schema_name,
         &mut conn,
     )
-    .await?;
+    .await;
 
     let data = WebhookData {
         payload: &override_resp,
@@ -335,14 +328,13 @@ async fn move_handler(
 
     let DbConnection(mut conn) = db_conn;
 
-    #[cfg(feature = "high-performance-mode")]
-    put_config_in_redis(
+    let _ = put_config_in_redis(
         version_id,
         &state,
         &workspace_context.schema_name,
         &mut conn,
     )
-    .await?;
+    .await;
 
     let data = WebhookData {
         payload: vec![&move_response.deleted_context, &move_response.context],
@@ -598,16 +590,13 @@ async fn delete_handler(
         })?;
 
     let DbConnection(mut conn) = db_conn;
-
-    #[cfg(feature = "high-performance-mode")]
-    put_config_in_redis(
+    let _ = put_config_in_redis(
         version_id,
         &state,
         &workspace_context.schema_name,
         &mut conn,
     )
-    .await?;
-
+    .await;
     let data = WebhookData {
         payload: &deleted_ctx,
         resource: Resource::Context,
@@ -739,7 +728,7 @@ async fn bulk_operations_handler(
                         response.push(ContextBulkResponse::Replace(update_resp));
                     }
                     ContextAction::Delete(ctx_id) => {
-                        let deleted_ctx = delete(contexts)
+                        let deleted_ctx = diesel::delete(contexts)
                             .filter(id.eq(&ctx_id))
                             .schema_name(&workspace_context.schema_name)
                             .get_result::<Context>(transaction_conn)
@@ -836,14 +825,13 @@ async fn bulk_operations_handler(
             Ok((response, version_id))
         })?;
 
-    #[cfg(feature = "high-performance-mode")]
-    put_config_in_redis(
+    let _ = put_config_in_redis(
         version_id,
         &state,
         &workspace_context.schema_name,
         &mut conn,
     )
-    .await?;
+    .await;
 
     let data = WebhookData {
         payload: &webhook_contexts,
@@ -954,15 +942,13 @@ async fn weight_recompute_handler(
             let version_id = add_config_version(&state, tags, config_version_desc, transaction_conn, &workspace_context.schema_name)?;
             Ok(version_id)
         })?;
-
-    #[cfg(feature = "high-performance-mode")]
-    put_config_in_redis(
+    let _ = put_config_in_redis(
         config_version_id,
         &state,
         &workspace_context.schema_name,
         &mut conn,
     )
-    .await?;
+    .await;
 
     let data = WebhookData {
         payload: &response,

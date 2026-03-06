@@ -13,7 +13,7 @@ use diesel::{
     RunQueryDsl, SelectableHelper,
 };
 
-use log::info;
+use log::warn;
 use once_cell::sync::Lazy;
 use regex::Regex;
 use reqwest::{
@@ -80,7 +80,7 @@ where
     match std::env::var(name) {
         Ok(env) => env.parse().unwrap(),
         Err(err) => {
-            info!(
+            warn!(
                 "{name} ENV failed to load due to {err}, using default value {default}"
             );
             default
@@ -213,11 +213,10 @@ pub fn parse_config_tags(
 pub fn get_workspace(
     workspace_schema_name: &SchemaName,
     db_conn: &mut DBConnection,
-) -> result::Result<Workspace> {
-    let workspace = workspaces::dsl::workspaces
+) -> Result<Workspace, diesel::result::Error> {
+    workspaces::dsl::workspaces
         .filter(workspaces::workspace_schema_name.eq(workspace_schema_name.to_string()))
-        .get_result::<Workspace>(db_conn)?;
-    Ok(workspace)
+        .get_result::<Workspace>(db_conn)
 }
 
 fn has_pattern_in_headers(headers: &CustomHeaders) -> (bool, bool) {
@@ -465,7 +464,7 @@ where
 pub fn fetch_dimensions_info_map(
     conn: &mut DBConnection,
     schema_name: &SchemaName,
-) -> result::Result<HashMap<String, DimensionInfo>> {
+) -> result::DieselResult<HashMap<String, DimensionInfo>> {
     let dimensions_map = dimensions::table
         .select((dimension, DimensionInfo::as_select()))
         .schema_name(schema_name)

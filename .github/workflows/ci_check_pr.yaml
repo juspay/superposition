@@ -44,7 +44,7 @@ env:
 jobs:
     formatting:
         name: Check formatting
-        runs-on: anton1
+        runs-on: codebuild-superposition-${{ github.run_id }}-${{ github.run_attempt }}
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
@@ -101,7 +101,7 @@ jobs:
 
     test:
         name: Testing
-        runs-on: anton1
+        runs-on: codebuild-superposition-${{ github.run_id }}-${{ github.run_attempt }}
         services:
             postgres:
                 image: public.ecr.aws/docker/library/postgres:15-alpine3.21
@@ -195,7 +195,7 @@ jobs:
 
     java-build:
         name: Java build
-        runs-on: anton1
+        runs-on: codebuild-superposition-${{ github.run_id }}-${{ github.run_attempt }}
         defaults:
             run:
                 working-directory: clients/java
@@ -252,7 +252,7 @@ jobs:
 
     provider-tests:
         name: Provider Tests
-        runs-on: anton1
+        runs-on: codebuild-superposition-${{ github.run_id }}-${{ github.run_attempt }}
         strategy:
             matrix:
                 provider:

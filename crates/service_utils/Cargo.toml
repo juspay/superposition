@@ -17,7 +17,7 @@ base64 = { workspace = true }
 chrono = { workspace = true }
 derive_more = { workspace = true }
 diesel = { workspace = true }
-fred = { workspace = true, optional = true }
+fred = { workspace = true, features = ["metrics"] }
 futures-util = { workspace = true }
 log = { workspace = true }
 once_cell = { workspace = true }
@@ -41,8 +41,6 @@ url = { workspace = true }
 urlencoding = "~2.1.2"
 tracing-actix-web = { workspace = true }
 
-[features]
-high-performance-mode = ["dep:fred"]
 
 [lints]
 workspace = true
