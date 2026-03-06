@@ -37,7 +37,7 @@ use superposition_types::{
     custom_query::PaginationParams,
     database::{
         models::{Organisation, Workspace, WorkspaceStatus},
-        schema::config_versions::dsl as config_versions,
+        schema::{config_versions::dsl as config_versions, dimensions},
         superposition_schema::superposition::{organisations, workspaces},
     },
     result as superposition,
@@ -187,9 +187,31 @@ async fn update_handler(
     let workspace_name = workspace_name.into_inner();
     let timestamp = Utc::now();
     let schema_name = SchemaName(format!("{}_{}", *org_id, workspace_name));
-    // TODO: mandatory dimensions updation needs to be validated
-    // for the existance of the dimensions in the workspace
     let DbConnection(mut conn) = db_conn;
+
+    if let Some(ref mandatory_dims) = request.mandatory_dimensions {
+        let existing_dimensions: Vec<String> = dimensions::dsl::dimensions
+            .select(dimensions::dimension)
+            .schema_name(&schema_name)
+            .load::<String>(&mut conn)
+            .map_err(|err| {
+                log::error!("failed to fetch dimensions: {}", err);
+                db_error!(err)
+            })?;
+
+        let missing: Vec<&String> = mandatory_dims
+            .iter()
+            .filter(|d| !existing_dimensions.contains(d))
+            .collect();
+
+        if !missing.is_empty() {
+            return Err(bad_argument!(
+                "The following mandatory dimensions do not exist in the workspace: {:?}",
+                missing
+            ));
+        }
+    }
+
     if let Some(I64Update::Add(version)) = request.config_version {
         let _ = config_versions::config_versions
             .select(config_versions::id)
