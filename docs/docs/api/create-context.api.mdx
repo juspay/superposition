@@ -18,6 +18,7 @@ import StatusCodes from "@theme/StatusCodes";
 import OperationTabs from "@theme/OperationTabs";
 import TabItem from "@theme/TabItem";
 import Heading from "@theme/Heading";
+import Translate from "@docusaurus/Translate";
 
 <Heading
   as={"h1"}
@@ -42,27 +43,24 @@ Creates a new context with specified conditions and overrides. Contexts define c
   id={"request"}
   as={"h2"}
   className={"openapi-tabs__heading"}
-  children={"Request"}
 >
+  <Translate id="theme.openapi.request.title">Request</Translate>
 </Heading>
 
 <ParamsDetails
-  parameters={[{"name":"x-config-tags","in":"header","schema":{"type":"string"}},{"name":"x-org-id","in":"header","schema":{"type":"string"},"required":true},{"name":"x-workspace","in":"header","schema":{"type":"string"},"required":true}]}
+  {...require("./create-context.ParamsDetails.json")}
 >
   
 </ParamsDetails>
 
 <RequestSchema
-  title={"Body"}
-  body={{"content":{"application/json":{"schema":{"type":"object","properties":{"context":{"type":"object","additionalProperties":{},"description":"Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.","title":"Condition"},"override":{"type":"object","additionalProperties":{},"description":"Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.","title":"Overrides"},"description":{"type":"string"},"change_reason":{"type":"string"}},"required":["change_reason","context","override"],"title":"ContextPut"}}},"required":true}}
+  {...require("./create-context.RequestSchema.json")}
 >
   
 </RequestSchema>
 
 <StatusCodes
-  id={undefined}
-  label={undefined}
-  responses={{"200":{"description":"CreateContext 200 response","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string"},"value":{"type":"object","additionalProperties":{},"description":"Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.","title":"Condition"},"override":{"type":"object","additionalProperties":{},"description":"Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.","title":"Overrides"},"override_id":{"type":"string"},"weight":{"type":"string","description":"Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution."},"description":{"type":"string"},"change_reason":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"created_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"}},"required":["change_reason","created_at","created_by","description","id","last_modified_at","last_modified_by","override","override_id","value","weight"],"title":"CreateContextResponseContent"}}}},"404":{"description":"ResourceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+  {...require("./create-context.StatusCodes.json")}
 >
   
 </StatusCodes>

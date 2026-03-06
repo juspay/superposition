@@ -18,6 +18,7 @@ import StatusCodes from "@theme/StatusCodes";
 import OperationTabs from "@theme/OperationTabs";
 import TabItem from "@theme/TabItem";
 import Heading from "@theme/Heading";
+import Translate from "@docusaurus/Translate";
 
 <Heading
   as={"h1"}
@@ -42,27 +43,24 @@ Removes members from an existing experiment group.
   id={"request"}
   as={"h2"}
   className={"openapi-tabs__heading"}
-  children={"Request"}
 >
+  <Translate id="theme.openapi.request.title">Request</Translate>
 </Heading>
 
 <ParamsDetails
-  parameters={[{"name":"id","in":"path","schema":{"type":"string"},"required":true},{"name":"x-org-id","in":"header","schema":{"type":"string"},"required":true},{"name":"x-workspace","in":"header","schema":{"type":"string"},"required":true}]}
+  {...require("./remove-members-from-group.ParamsDetails.json")}
 >
   
 </ParamsDetails>
 
 <RequestSchema
-  title={"Body"}
-  body={{"content":{"application/json":{"schema":{"type":"object","description":"Input structure for adding members to an experiment group.","properties":{"change_reason":{"type":"string","description":"Reason for adding these members."},"member_experiment_ids":{"type":"array","items":{"type":"string"},"description":"List of experiment IDs to add/remove to this group."}},"required":["change_reason","member_experiment_ids"],"title":"RemoveMembersFromGroupRequestContent"}}},"required":true}}
+  {...require("./remove-members-from-group.RequestSchema.json")}
 >
   
 </RequestSchema>
 
 <StatusCodes
-  id={undefined}
-  label={undefined}
-  responses={{"200":{"description":"RemoveMembersFromGroup 200 response","content":{"application/json":{"schema":{"type":"object","description":"Standard response structure for an experiment group.","properties":{"id":{"type":"string"},"context_hash":{"type":"string"},"name":{"type":"string"},"description":{"type":"string"},"change_reason":{"type":"string"},"context":{"type":"object","additionalProperties":{},"description":"Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.","title":"Condition"},"traffic_percentage":{"type":"number","maximum":100,"minimum":0},"member_experiment_ids":{"type":"array","items":{"type":"string"}},"created_at":{"type":"string","format":"date-time"},"created_by":{"type":"string"},"last_modified_at":{"type":"string","format":"date-time"},"last_modified_by":{"type":"string"},"buckets":{"type":"array","items":{"type":"object","properties":{"experiment_id":{"type":"string"},"variant_id":{"type":"string"}},"required":["experiment_id","variant_id"],"title":"Bucket"}},"group_type":{"type":"string","enum":["USER_CREATED","SYSTEM_GENERATED"],"title":"GroupType"}},"required":["buckets","change_reason","context","context_hash","created_at","created_by","description","group_type","id","last_modified_at","last_modified_by","member_experiment_ids","name","traffic_percentage"],"title":"RemoveMembersFromGroupResponseContent"}}}},"404":{"description":"ResourceNotFound 404 response"},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+  {...require("./remove-members-from-group.StatusCodes.json")}
 >
   
 </StatusCodes>

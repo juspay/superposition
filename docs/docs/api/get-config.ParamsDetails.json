@@ -1,0 +1,1 @@
+{"parameters":[{"name":"prefix","in":"query","style":"form","schema":{"type":"array","items":{"type":"string"}},"explode":true},{"name":"version","in":"query","schema":{"type":"string"}},{"name":"x-org-id","in":"header","schema":{"type":"string"},"required":true},{"name":"x-workspace","in":"header","schema":{"type":"string"},"required":true}]}
