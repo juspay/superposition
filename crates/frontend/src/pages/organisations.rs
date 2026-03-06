@@ -1,12 +1,11 @@
 use leptos::*;
-use leptos_router::A;
 use serde_json::{Map, Value};
 use superposition_types::custom_query::{CustomQuery, Query};
 use web_sys::{Crypto, MouseEvent};
 
 use crate::api::fetch_organisations;
 use crate::components::alert::AlertType;
-use crate::components::button::Button;
+use crate::components::button::{Button, ButtonAnchor};
 use crate::components::form::label::Label;
 use crate::components::key_rotation_modal::MasterKeyRotationModal;
 use crate::components::modal::PortalModal;
@@ -155,10 +154,11 @@ pub fn Organisations() -> impl IntoView {
                             }>
                                 <div class="flex items-end gap-4">
                                     // TODO: Show only if AuthZ is enabled
-                                    <A class="btn btn-outline btn-sm" href="../settings/authz">
-                                        <i class="ri-lock-2-line" />
-                                        "AuthZ"
-                                    </A>
+                                    <ButtonAnchor
+                                        text="AuthZ"
+                                        href="../settings/authz"
+                                        icon_class="ri-lock-2-line"
+                                    />
                                     <Button
                                         text="Generate MasterKey"
                                         icon_class="ri-key-2-line"

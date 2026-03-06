@@ -4,7 +4,7 @@ use leptos_router::*;
 use serde_json::json;
 
 use crate::components::datetime::DatetimeConversionScript;
-use crate::hoc::layout::{CommonLayout, Layout, Providers, use_org};
+use crate::hoc::layout::{CommonLayout, Layout, OrgLayout, Providers};
 use crate::pages::authz::{AdminAuthz, OrganisationAuthz, WorkspaceAuthz};
 use crate::pages::compare_overrides::CompareOverrides;
 use crate::pages::config_version::ConfigVersion;
@@ -127,7 +127,6 @@ pub fn App(app_envs: Envs) -> impl IntoView {
                         }
                     />
 
-                    // TODO: Add only if AuthZ is enabled
                     <Route
                         ssr=SsrMode::Async
                         path="/admin/settings/authz"
@@ -140,34 +139,11 @@ pub fn App(app_envs: Envs) -> impl IntoView {
                         }
                     />
 
-                    <Route
-                        ssr=SsrMode::Async
-                        path="/admin/:org_id/workspaces"
-                        view=move || {
-                            provide_context(use_org());
+                    <Route ssr=SsrMode::Async path="/admin/:org_id" view=OrgLayout>
+                        <Route ssr=SsrMode::Async path="workspaces" view=Workspace />
 
-                            view! {
-                                <CommonLayout>
-                                    <Workspace />
-                                </CommonLayout>
-                            }
-                        }
-                    />
-
-                    // TODO: Add only if AuthZ is enabled
-                    <Route
-                        ssr=SsrMode::Async
-                        path="/admin/:org_id/settings/authz"
-                        view=move || {
-                            provide_context(use_org());
-
-                            view! {
-                                <CommonLayout>
-                                    <OrganisationAuthz />
-                                </CommonLayout>
-                            }
-                        }
-                    />
+                        <Route ssr=SsrMode::Async path="settings/authz" view=OrganisationAuthz />
+                    </Route>
 
                     <Route ssr=SsrMode::Async path="/admin/:org_id/:workspace" view=Layout>
                         <Route ssr=SsrMode::Async path="dimensions" view=Dimensions />
@@ -252,7 +228,6 @@ pub fn App(app_envs: Envs) -> impl IntoView {
 
                         <Route ssr=SsrMode::Async path="audit-log" view=AuditLog />
 
-                        // TODO: Add only if AuthZ is enabled
                         <Route ssr=SsrMode::Async path="authz" view=WorkspaceAuthz />
 
                         <Route ssr=SsrMode::Async path="variables" view=VariablesList />

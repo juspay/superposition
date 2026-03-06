@@ -276,19 +276,12 @@ pub fn Workspace() -> impl IntoView {
                                 icon="ri-briefcase-fill"
                                 number=total_workspaces
                             />
-                            <div class="flex items-center gap-2">
-                                // TODO: Show only if AuthZ is enabled
-                                <A class="btn btn-outline btn-sm" href="../settings/authz">
-                                    <i class="ri-lock-2-line" />
-                                    "AuthZ"
-                                </A>
-                                <DrawerBtn
-                                    drawer_id="workspace_drawer"
-                                    class="self-end"
-                                    text="Create Workspace"
-                                    icon_class="ri-add-line"
-                                />
-                            </div>
+                            <DrawerBtn
+                                drawer_id="workspace_drawer"
+                                class="self-end"
+                                text="Create Workspace"
+                                icon_class="ri-add-line"
+                            />
                         </div>
                         <div class="card w-full bg-base-100 rounded-xl overflow-hidden shadow">
                             <div class="card-body overflow-y-auto overflow-x-visible">
