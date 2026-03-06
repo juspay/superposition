@@ -1,10 +1,7 @@
 use futures_util::future::LocalBoxFuture;
 use superposition_types::{Resource, User};
 
-use crate::{
-    middlewares::auth_z::AuthZDomain,
-    service::types::{OrganisationId, SchemaName, WorkspaceId},
-};
+use crate::{middlewares::auth_z::AuthZDomain, service::types::SchemaName};
 
 use super::authorization::Authorizer;
 
@@ -32,8 +29,6 @@ impl Authorizer for NoAuth {
 
     fn on_workspace_creation(
         &self,
-        _: OrganisationId,
-        _: WorkspaceId,
         _: SchemaName,
         _: String,
     ) -> LocalBoxFuture<'_, Result<bool, String>> {

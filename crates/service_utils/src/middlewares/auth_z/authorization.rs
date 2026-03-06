@@ -1,10 +1,7 @@
 use futures_util::future::LocalBoxFuture;
 use superposition_types::{Resource, User};
 
-use crate::{
-    middlewares::auth_z::AuthZDomain,
-    service::types::{OrganisationId, SchemaName, WorkspaceId},
-};
+use crate::{middlewares::auth_z::AuthZDomain, service::types::SchemaName};
 
 pub trait Authorizer: Sync + Send {
     fn on_org_creation(
@@ -15,8 +12,6 @@ pub trait Authorizer: Sync + Send {
 
     fn on_workspace_creation(
         &self,
-        organisation_id: OrganisationId,
-        workspace_id: WorkspaceId,
         schema_name: SchemaName,
         workspace_admin_email: String,
     ) -> LocalBoxFuture<'_, Result<bool, String>>;

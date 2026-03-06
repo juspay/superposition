@@ -170,8 +170,6 @@ async fn create_handler(
     // Notify the AuthZHandler about the new workspace creation
     authz_handler
         .on_workspace_creation(
-            org_id,
-            WorkspaceId(created_workspace.workspace_name.clone()),
             workspace_schema_name,
             created_workspace.workspace_admin_email.clone(),
         )

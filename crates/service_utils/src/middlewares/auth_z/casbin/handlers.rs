@@ -476,23 +476,16 @@ async fn backfill_workspaces_handler(
     let workspaces = workspaces::table
         .filter(workspaces::organisation_id.eq(org_id.to_string()))
         .select((
-            workspaces::workspace_name,
             workspaces::workspace_schema_name,
             workspaces::workspace_admin_email,
         ))
-        .get_results::<(String, String, String)>(&mut conn)?;
+        .get_results::<(String, String)>(&mut conn)?;
 
     data.enforcer(async |enforcer| {
-        for (workspace_id, schema_name, admin_email) in workspaces {
-            CasbinPolicyEngine::add_workspace_policy(
-                enforcer,
-                &org_id,
-                &workspace_id,
-                &schema_name,
-                admin_email,
-            )
-            .await
-            .map_err(|e| e.to_string())?;
+        for (schema_name, admin_email) in workspaces {
+            CasbinPolicyEngine::add_workspace_admin(enforcer, &schema_name, admin_email)
+                .await
+                .map_err(|e| e.to_string())?;
         }
         Ok(())
     })

@@ -12,7 +12,7 @@ use crate::{
     db::utils::get_database_url,
     helpers::{get_from_env_or_default, get_from_env_unsafe},
     middlewares::auth_z::AuthZDomain,
-    service::types::{AppEnv, OrganisationId, SchemaName, WorkspaceId},
+    service::types::{AppEnv, SchemaName},
 };
 
 use super::authorization::Authorizer;
@@ -101,78 +101,19 @@ impl CasbinPolicyEngine {
             .map_err(|e| e.to_string())
     }
 
-    fn workspace_reader_group_name(schema_name: &str) -> String {
-        format!("{}_reader", schema_name)
-    }
-
-    pub(self) async fn add_workspace_reader_group(
+    pub(self) async fn add_workspace_admin(
         enforcer: &mut Enforcer,
         schema_name: &str,
-        admin_email: String,
-    ) -> Result<bool, String> {
-        let workspace_reader_grp_name = Self::workspace_reader_group_name(schema_name);
-        enforcer
-            .add_grouping_policy(vec![
-                admin_email,
-                workspace_reader_grp_name,
-                schema_name.to_string(),
-            ])
-            .await
-            .map_err(|e| e.to_string())
-    }
-
-    pub(self) async fn add_workspace_admin_policy(
-        enforcer: &mut Enforcer,
-        schema_name: &str,
-        admin_email: String,
+        workspace_admin_email: String,
     ) -> Result<bool, String> {
         enforcer
             .add_grouping_policy(vec![
-                admin_email,
+                workspace_admin_email,
                 "admin".to_string(),
                 schema_name.to_string(),
             ])
             .await
             .map_err(|e| e.to_string())
-    }
-
-    pub(self) async fn add_workspace_policy(
-        enforcer: &mut Enforcer,
-        organisation_id: &str,
-        workspace_id: &str,
-        schema_name: &str,
-        workspace_admin_email: String,
-    ) -> Result<bool, String> {
-        let workspace_reader_grp_name = Self::workspace_reader_group_name(schema_name);
-        let org_domain = format!("{organisation_id}_*");
-        let policy_added = enforcer
-            .add_policy(vec![
-                workspace_reader_grp_name.clone(),
-                org_domain,
-                Resource::Workspace.to_string(),
-                "read".to_string(),
-                workspace_id.to_string(),
-            ])
-            .await
-            .map_err(|e| e.to_string())?;
-
-        if !policy_added {
-            return Ok(false);
-        }
-
-        let reader_group_added = Self::add_workspace_reader_group(
-            enforcer,
-            schema_name,
-            workspace_admin_email.clone(),
-        )
-        .await?;
-
-        if !reader_group_added {
-            return Ok(false);
-        }
-
-        Self::add_workspace_admin_policy(enforcer, schema_name, workspace_admin_email)
-            .await
     }
 }
 
@@ -242,21 +183,13 @@ impl Authorizer for CasbinPolicyEngine {
 
     fn on_workspace_creation(
         &self,
-        organisation_id: OrganisationId,
-        workspace_id: WorkspaceId,
         schema_name: SchemaName,
         workspace_admin_email: String,
     ) -> LocalBoxFuture<'_, Result<bool, String>> {
         Box::pin(async move {
             self.enforcer(async |enforcer| {
-                Self::add_workspace_policy(
-                    enforcer,
-                    &organisation_id,
-                    &workspace_id,
-                    &schema_name,
-                    workspace_admin_email,
-                )
-                .await
+                Self::add_workspace_admin(enforcer, &schema_name, workspace_admin_email)
+                    .await
             })
             .await
         })
@@ -286,23 +219,8 @@ impl Authorizer for CasbinPolicyEngine {
                     return Err(e.to_string());
                 }
 
-                if let Err(e) = Self::add_workspace_reader_group(
-                    enforcer,
-                    &schema_name,
-                    new_admin_email.clone(),
-                )
-                .await
-                {
-                    log::error!(
-                        "Failed to add new admin to Casbin grouping policy: {}",
-                        e
-                    );
-                    return Err(e.to_string());
-                }
-
                 // Add new admin
-                Self::add_workspace_admin_policy(enforcer, &schema_name, new_admin_email)
-                    .await
+                Self::add_workspace_admin(enforcer, &schema_name, new_admin_email).await
             })
             .await
         })
