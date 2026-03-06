@@ -2,58 +2,46 @@ use leptos::*;
 
 use crate::{
     api::casbin::AuthzScope,
-    pages::authz_shared::{authz_editor, AuthzContext},
+    components::authz::AuthzEditor,
     types::{OrganisationId, Workspace},
 };
 
-fn authz_body(
-    workspace: Option<Signal<Workspace>>,
-    org: Signal<OrganisationId>,
-) -> impl IntoView {
-    let context_key = {
-        let workspace = workspace.clone();
-        move || {
-            let ws = workspace.map(|w| w.get().0.clone());
-            let org_id = org.get().0.clone();
-            let scope = if ws.is_some() {
-                AuthzScope::Workspace
-            } else {
-                AuthzScope::Org
-            };
-            AuthzContext {
-                scope,
-                workspace: ws,
-                org_id: Some(org_id),
-            }
-        }
-    };
-
-    let context_value = move || {
-        let ws = workspace.map(|w| w.get_untracked().0);
-        let org_id = org.get_untracked().0;
-        let scope = if ws.is_some() {
-            AuthzScope::Workspace
-        } else {
-            AuthzScope::Org
-        };
-        AuthzContext {
-            scope,
-            workspace: ws,
-            org_id: Some(org_id),
-        }
-    };
-
-    authz_editor(
-        "Organization Authorization",
-        "Manage organization-level permissions, role assignments, and action-groups that apply across all workspaces.",
-        context_key,
-        context_value,
-    )
+#[component]
+pub fn AdminAuthz() -> impl IntoView {
+    // TODO: Add back support
+    view! {
+        <AuthzEditor
+            title="Admin Authorization"
+            description="Manage global permissions, role assignments, and action-groups for admin scope."
+            authz_scope=AuthzScope::Admin
+        />
+    }
 }
 
 #[component]
-pub fn Authz() -> impl IntoView {
+pub fn OrganisationAuthz() -> impl IntoView {
     let org = use_context::<Signal<OrganisationId>>().unwrap();
-    let workspace = use_context::<Signal<Workspace>>();
-    authz_body(workspace, org)
+
+    // TODO: Add back support
+    view! {
+        <AuthzEditor
+            title="Organization Authorization"
+            description="Manage organization-level permissions, role assignments, and action-groups that apply across all workspaces."
+            authz_scope=AuthzScope::Org(org.get_untracked().0)
+        />
+    }
+}
+
+#[component]
+pub fn WorkspaceAuthz() -> impl IntoView {
+    let org = use_context::<Signal<OrganisationId>>().unwrap();
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
+
+    view! {
+        <AuthzEditor
+            title="Workspace Authorization"
+            description="Manage workspace-level permissions, role assignments, and action-groups that apply only to this workspace."
+            authz_scope=AuthzScope::Workspace(org.get_untracked().0, workspace.get_untracked().0)
+        />
+    }
 }

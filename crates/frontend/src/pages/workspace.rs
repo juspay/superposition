@@ -277,7 +277,8 @@ pub fn Workspace() -> impl IntoView {
                                 number=total_workspaces
                             />
                             <div class="flex items-center gap-2">
-                                <A class="btn btn-outline btn-sm" href="../authz">
+                                // TODO: Show only if AuthZ is enabled
+                                <A class="btn btn-outline btn-sm" href="../settings/authz">
                                     <i class="ri-lock-2-line" />
                                     "AuthZ"
                                 </A>

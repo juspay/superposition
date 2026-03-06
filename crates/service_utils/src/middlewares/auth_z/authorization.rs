@@ -23,7 +23,6 @@ pub trait Authorizer: Sync + Send {
 
     fn on_workspace_admin_update(
         &self,
-        organisation_id: OrganisationId,
         schema_name: SchemaName,
         old_admin_email: String,
         new_admin_email: String,
@@ -38,13 +37,13 @@ pub trait Authorizer: Sync + Send {
         attributes: Option<&[&str]>,
     ) -> LocalBoxFuture<'_, Result<bool, String>>;
 
-    // async fn get_permitted_attributes(
+    // fn get_permitted_attributes<A: Action>(
     //     &self,
     //     domain: &AuthZDomain,
     //     user: &User,
-    //     resource: &ResourceContext,
-    //     action: &Action,
-    // ) -> Result<Vec<String>, String>;
+    //     resource: &Resource,
+    //     action: &AuthZ<A>,
+    // ) -> LocalBoxFuture<'_, Result<PermittedAttributes, String>>;
 
     // async fn enforce_with_context(
     //     &self,

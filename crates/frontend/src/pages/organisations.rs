@@ -154,7 +154,8 @@ pub fn Organisations() -> impl IntoView {
                                 admin_params_rws.with(|p| p.admin.unwrap_or_default())
                             }>
                                 <div class="flex items-end gap-4">
-                                    <A class="btn btn-outline btn-sm" href="../authz">
+                                    // TODO: Show only if AuthZ is enabled
+                                    <A class="btn btn-outline btn-sm" href="../settings/authz">
                                         <i class="ri-lock-2-line" />
                                         "AuthZ"
                                     </A>

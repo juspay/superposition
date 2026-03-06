@@ -10,7 +10,7 @@ use tokio::sync::RwLock;
 
 use crate::{
     db::utils::get_database_url,
-    helpers::get_from_env_or_default,
+    helpers::{get_from_env_or_default, get_from_env_unsafe},
     middlewares::auth_z::AuthZDomain,
     service::types::{AppEnv, OrganisationId, SchemaName, WorkspaceId},
 };
@@ -28,9 +28,10 @@ pub struct CasbinPolicyEngine {
 impl CasbinPolicyEngine {
     /// Acquire an exclusive lock on the enforcer with automatic refresh check.
     /// Returns the enforcer for mutation while ensuring policies are fresh.
-    pub async fn enforcer(
-        &self,
-    ) -> Result<tokio::sync::RwLockWriteGuard<'_, Enforcer>, String> {
+    pub async fn enforcer<T, F>(&self, f: F) -> Result<T, String>
+    where
+        F: AsyncFnOnce(&mut Enforcer) -> Result<T, String>,
+    {
         let mut enforcer = self.enforcer.write().await;
 
         // Check if refresh is needed while holding the write lock
@@ -50,7 +51,14 @@ impl CasbinPolicyEngine {
             *last_load_time = Utc::now();
         }
 
-        Ok(enforcer)
+        let resp = f(&mut enforcer).await?;
+
+        enforcer.save_policy().await.map_err(|e| {
+            log::error!("Failed to save Casbin policies: {}", e);
+            e.to_string()
+        })?;
+
+        Ok(resp)
     }
 
     pub async fn refresh_policies(self: &CasbinPolicyEngine) -> Result<(), String> {
@@ -99,14 +107,16 @@ impl CasbinPolicyEngine {
 
     pub(self) async fn add_workspace_reader_group(
         enforcer: &mut Enforcer,
-        organisation_id: &str,
         schema_name: &str,
         admin_email: String,
     ) -> Result<bool, String> {
         let workspace_reader_grp_name = Self::workspace_reader_group_name(schema_name);
-        let org_domain = format!("{}_*", organisation_id);
         enforcer
-            .add_grouping_policy(vec![admin_email, workspace_reader_grp_name, org_domain])
+            .add_grouping_policy(vec![
+                admin_email,
+                workspace_reader_grp_name,
+                schema_name.to_string(),
+            ])
             .await
             .map_err(|e| e.to_string())
     }
@@ -152,7 +162,6 @@ impl CasbinPolicyEngine {
 
         let reader_group_added = Self::add_workspace_reader_group(
             enforcer,
-            organisation_id,
             schema_name,
             workspace_admin_email.clone(),
         )
@@ -224,8 +233,10 @@ impl Authorizer for CasbinPolicyEngine {
         org_admin_email: String,
     ) -> LocalBoxFuture<'_, Result<bool, String>> {
         Box::pin(async move {
-            let mut enforcer = self.enforcer().await?;
-            Self::add_org_policy(&mut enforcer, organisation_id, org_admin_email).await
+            self.enforcer(async |enforcer| {
+                Self::add_org_policy(enforcer, organisation_id, org_admin_email).await
+            })
+            .await
         })
     }
 
@@ -237,71 +248,74 @@ impl Authorizer for CasbinPolicyEngine {
         workspace_admin_email: String,
     ) -> LocalBoxFuture<'_, Result<bool, String>> {
         Box::pin(async move {
-            let mut enforcer = self.enforcer().await?;
-
-            Self::add_workspace_policy(
-                &mut enforcer,
-                &organisation_id,
-                &workspace_id,
-                &schema_name,
-                workspace_admin_email,
-            )
+            self.enforcer(async |enforcer| {
+                Self::add_workspace_policy(
+                    enforcer,
+                    &organisation_id,
+                    &workspace_id,
+                    &schema_name,
+                    workspace_admin_email,
+                )
+                .await
+            })
             .await
         })
     }
 
     fn on_workspace_admin_update(
         &self,
-        organisation_id: OrganisationId,
         schema_name: SchemaName,
         old_admin_email: String,
         new_admin_email: String,
     ) -> LocalBoxFuture<'_, Result<bool, String>> {
         Box::pin(async move {
-            let mut enforcer = self.enforcer().await?;
+            self.enforcer(async |enforcer| {
+                // Remove old admin
+                if let Err(e) = enforcer
+                    .remove_grouping_policy(vec![
+                        old_admin_email,
+                        "admin".to_string(),
+                        schema_name.to_string(),
+                    ])
+                    .await
+                {
+                    log::error!(
+                        "Failed to remove old admin from Casbin grouping policy: {}",
+                        e
+                    );
+                    return Err(e.to_string());
+                }
 
-            // Remove old admin
-            if let Err(e) = enforcer
-                .remove_grouping_policy(vec![
-                    old_admin_email,
-                    "admin".to_string(),
-                    schema_name.to_string(),
-                ])
+                if let Err(e) = Self::add_workspace_reader_group(
+                    enforcer,
+                    &schema_name,
+                    new_admin_email.clone(),
+                )
                 .await
-            {
-                log::error!(
-                    "Failed to remove old admin from Casbin grouping policy: {}",
-                    e
-                );
-                return Err(e.to_string());
-            }
+                {
+                    log::error!(
+                        "Failed to add new admin to Casbin grouping policy: {}",
+                        e
+                    );
+                    return Err(e.to_string());
+                }
 
-            if let Err(e) = Self::add_workspace_reader_group(
-                &mut enforcer,
-                &organisation_id,
-                &schema_name,
-                new_admin_email.clone(),
-            )
+                // Add new admin
+                Self::add_workspace_admin_policy(enforcer, &schema_name, new_admin_email)
+                    .await
+            })
             .await
-            {
-                log::error!("Failed to add new admin to Casbin grouping policy: {}", e);
-                return Err(e.to_string());
-            }
-
-            // Add new admin
-            Self::add_workspace_admin_policy(&mut enforcer, &schema_name, new_admin_email)
-                .await
         })
     }
 
-    // fn get_permitted_attributes(
+    // async fn get_permitted_attributes<A: Action>(
     //     &self,
     //     domain: &AuthZDomain,
     //     user: &User,
-    //     resource: &ResourceContext,
-    //     action: &Action,
+    //     resource: &Resource,
+    //     action: &AuthZ<A>,
     // ) -> Result<Vec<String>, String> {
-    //     let sub = &user.username;
+    //     let sub = &user.get_email();
     //     let obj = format!("{}:{}", resource.kind, resource.id);
     //     let act = action.0.clone();
 
@@ -351,6 +365,35 @@ impl CasbinPolicyEngine {
                 log::error!("Failed to create Casbin enforcer: {e}");
                 e.to_string()
             })?;
+
+        enforcer.enable_auto_save(false);
+
+        if let Ok(root_admin_email) = get_from_env_unsafe::<String>("ROOT_ADMIN_EMAIL") {
+            let result = enforcer
+                .add_grouping_policy(vec![
+                    root_admin_email,
+                    "admin".to_string(),
+                    "*".to_string(),
+                ])
+                .await
+                .map_err(|e| {
+                    log::error!("Failed to add root admin policy: {e}");
+                    e.to_string()
+                })?;
+
+            if result {
+                log::info!("Root admin policy added");
+            } else {
+                log::info!("Root admin policy already exists");
+            }
+
+            enforcer.save_policy().await.map_err(|e| {
+                log::error!(
+                    "Failed to save Casbin policies after adding root admin: {e}"
+                );
+                e.to_string()
+            })?;
+        }
 
         let now = Utc::now();
         enforcer.load_policy().await.map_err(|e| {

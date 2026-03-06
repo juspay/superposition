@@ -243,7 +243,6 @@ async fn update_handler(
         // Notify the AuthZHandler about the new workspace creation
         authz_handler
             .on_workspace_admin_update(
-                org_id,
                 schema_name,
                 old_email,
                 updated_workspace.workspace_admin_email.clone(),
@@ -256,6 +255,7 @@ async fn update_handler(
     Ok(Json(response))
 }
 
+// TODO: Add ABAC based filtering for this endpoint, currently it returns all the workspaces in the org, we need to filter it based on the permissions of the user
 #[authorized]
 #[get("")]
 async fn list_handler(

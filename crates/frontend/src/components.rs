@@ -1,4 +1,5 @@
 pub mod alert;
+pub mod authz;
 pub mod badge;
 pub mod button;
 pub mod change_form;

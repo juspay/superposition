@@ -42,7 +42,6 @@ impl Authorizer for NoAuth {
 
     fn on_workspace_admin_update(
         &self,
-        _: OrganisationId,
         _: SchemaName,
         _: String,
         _: String,
