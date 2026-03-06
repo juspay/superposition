@@ -44,7 +44,7 @@ env:
 jobs:
     formatting:
         name: Check formatting
-        runs-on: codebuild-superposition-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: anton1
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
@@ -101,7 +101,7 @@ jobs:
 
     test:
         name: Testing
-        runs-on: codebuild-superposition-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: anton1
         services:
             postgres:
                 image: public.ecr.aws/docker/library/postgres:15-alpine3.21
@@ -110,7 +110,10 @@ jobs:
                 env:
                     POSTGRES_PASSWORD: "docker"
                     POSTGRES_DB: "config"
-                    restart: on-failure
+            redis: 
+                image: public.ecr.aws/docker/library/redis:8
+                ports: 
+                    - 6379:6379 
 
         steps:
             - name: Checkout repository
@@ -195,7 +198,7 @@ jobs:
 
     java-build:
         name: Java build
-        runs-on: codebuild-superposition-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: anton1
         defaults:
             run:
                 working-directory: clients/java
@@ -252,7 +255,7 @@ jobs:
 
     provider-tests:
         name: Provider Tests
-        runs-on: codebuild-superposition-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: anton1
         strategy:
             matrix:
                 provider:
@@ -268,7 +271,10 @@ jobs:
                 env:
                     POSTGRES_PASSWORD: "docker"
                     POSTGRES_DB: "config"
-                    restart: on-failure
+            redis: 
+                image: public.ecr.aws/docker/library/redis:8
+                ports: 
+                    - 6379:6379 
 
         steps:
             - name: Checkout repository
