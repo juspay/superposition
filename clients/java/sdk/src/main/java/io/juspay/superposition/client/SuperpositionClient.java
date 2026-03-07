@@ -167,6 +167,7 @@ import io.juspay.superposition.model.UpdateWorkspaceInput;
 import io.juspay.superposition.model.UpdateWorkspaceOutput;
 import io.juspay.superposition.model.ValidateContextInput;
 import io.juspay.superposition.model.ValidateContextOutput;
+import io.juspay.superposition.model.WebhookFailed;
 import io.juspay.superposition.model.WeightRecomputeInput;
 import io.juspay.superposition.model.WeightRecomputeOutput;
 import software.amazon.smithy.aws.traits.protocols.RestJson1Trait;
@@ -228,6 +229,7 @@ public interface SuperpositionClient {
      * efficient batch processing.
      *
      * @throws InternalServerError
+     * @throws WebhookFailed
      * @throws ResourceNotFound
      */
     default BulkOperationOutput bulkOperation(BulkOperationInput input) {
@@ -239,6 +241,7 @@ public interface SuperpositionClient {
      * efficient batch processing.
      *
      * @throws InternalServerError
+     * @throws WebhookFailed
      * @throws ResourceNotFound
      */
     BulkOperationOutput bulkOperation(BulkOperationInput input, RequestOverrideConfig overrideConfig);
@@ -248,6 +251,7 @@ public interface SuperpositionClient {
      * to a concluded state.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default ConcludeExperimentOutput concludeExperiment(ConcludeExperimentInput input) {
@@ -259,6 +263,7 @@ public interface SuperpositionClient {
      * to a concluded state.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     ConcludeExperimentOutput concludeExperiment(ConcludeExperimentInput input, RequestOverrideConfig overrideConfig);
@@ -268,6 +273,7 @@ public interface SuperpositionClient {
      * config management.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default CreateContextOutput createContext(CreateContextInput input) {
@@ -279,6 +285,7 @@ public interface SuperpositionClient {
      * config management.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     CreateContextOutput createContext(CreateContextInput input, RequestOverrideConfig overrideConfig);
@@ -287,6 +294,7 @@ public interface SuperpositionClient {
      * Creates a new default config entry with specified key, value, schema, and metadata. Default configs
      * serve as fallback values when no specific context matches.
      *
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default CreateDefaultConfigOutput createDefaultConfig(CreateDefaultConfigInput input) {
@@ -297,6 +305,7 @@ public interface SuperpositionClient {
      * Creates a new default config entry with specified key, value, schema, and metadata. Default configs
      * serve as fallback values when no specific context matches.
      *
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     CreateDefaultConfigOutput createDefaultConfig(CreateDefaultConfigInput input, RequestOverrideConfig overrideConfig);
@@ -305,6 +314,7 @@ public interface SuperpositionClient {
      * Creates a new dimension with the specified json schema. Dimensions define categorical attributes
      * used for context-based config management.
      *
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default CreateDimensionOutput createDimension(CreateDimensionInput input) {
@@ -315,6 +325,7 @@ public interface SuperpositionClient {
      * Creates a new dimension with the specified json schema. Dimensions define categorical attributes
      * used for context-based config management.
      *
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     CreateDimensionOutput createDimension(CreateDimensionInput input, RequestOverrideConfig overrideConfig);
@@ -323,6 +334,7 @@ public interface SuperpositionClient {
      * Creates a new experiment with variants, context and conditions. You can optionally specify metrics
      * and experiment group for tracking and analysis.
      *
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default CreateExperimentOutput createExperiment(CreateExperimentInput input) {
@@ -333,6 +345,7 @@ public interface SuperpositionClient {
      * Creates a new experiment with variants, context and conditions. You can optionally specify metrics
      * and experiment group for tracking and analysis.
      *
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     CreateExperimentOutput createExperiment(CreateExperimentInput input, RequestOverrideConfig overrideConfig);
@@ -482,6 +495,7 @@ public interface SuperpositionClient {
      * config resolution.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default DeleteContextOutput deleteContext(DeleteContextInput input) {
@@ -493,6 +507,7 @@ public interface SuperpositionClient {
      * config resolution.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     DeleteContextOutput deleteContext(DeleteContextInput input, RequestOverrideConfig overrideConfig);
@@ -502,6 +517,7 @@ public interface SuperpositionClient {
      * it affects config resolution for contexts that rely on this fallback value.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default DeleteDefaultConfigOutput deleteDefaultConfig(DeleteDefaultConfigInput input) {
@@ -513,6 +529,7 @@ public interface SuperpositionClient {
      * it affects config resolution for contexts that rely on this fallback value.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     DeleteDefaultConfigOutput deleteDefaultConfig(DeleteDefaultConfigInput input, RequestOverrideConfig overrideConfig);
@@ -522,6 +539,7 @@ public interface SuperpositionClient {
      * active dependencies or is referenced by existing configurations.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default DeleteDimensionOutput deleteDimension(DeleteDimensionInput input) {
@@ -533,6 +551,7 @@ public interface SuperpositionClient {
      * active dependencies or is referenced by existing configurations.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     DeleteDimensionOutput deleteDimension(DeleteDimensionInput input, RequestOverrideConfig overrideConfig);
@@ -656,6 +675,7 @@ public interface SuperpositionClient {
      * its effects.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default DiscardExperimentOutput discardExperiment(DiscardExperimentInput input) {
@@ -667,6 +687,7 @@ public interface SuperpositionClient {
      * its effects.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     DiscardExperimentOutput discardExperiment(DiscardExperimentInput input, RequestOverrideConfig overrideConfig);
@@ -730,6 +751,7 @@ public interface SuperpositionClient {
      * would apply to specific scenarios.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default GetContextFromConditionOutput getContextFromCondition(GetContextFromConditionInput input) {
@@ -741,6 +763,7 @@ public interface SuperpositionClient {
      * would apply to specific scenarios.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     GetContextFromConditionOutput getContextFromCondition(GetContextFromConditionInput input, RequestOverrideConfig overrideConfig);
@@ -1302,6 +1325,7 @@ public interface SuperpositionClient {
      * it merges the override and effectively deleting the old context
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default MoveContextOutput moveContext(MoveContextInput input) {
@@ -1313,6 +1337,7 @@ public interface SuperpositionClient {
      * it merges the override and effectively deleting the old context
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     MoveContextOutput moveContext(MoveContextInput input, RequestOverrideConfig overrideConfig);
@@ -1322,6 +1347,7 @@ public interface SuperpositionClient {
      * config for later resumption.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default PauseExperimentOutput pauseExperiment(PauseExperimentInput input) {
@@ -1333,6 +1359,7 @@ public interface SuperpositionClient {
      * config for later resumption.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     PauseExperimentOutput pauseExperiment(PauseExperimentInput input, RequestOverrideConfig overrideConfig);
@@ -1362,6 +1389,7 @@ public interface SuperpositionClient {
      * rollback of experimental features.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default RampExperimentOutput rampExperiment(RampExperimentInput input) {
@@ -1373,6 +1401,7 @@ public interface SuperpositionClient {
      * rollback of experimental features.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     RampExperimentOutput rampExperiment(RampExperimentInput input, RequestOverrideConfig overrideConfig);
@@ -1400,6 +1429,7 @@ public interface SuperpositionClient {
      * evaluation.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default ResumeExperimentOutput resumeExperiment(ResumeExperimentInput input) {
@@ -1411,6 +1441,7 @@ public interface SuperpositionClient {
      * evaluation.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     ResumeExperimentOutput resumeExperiment(ResumeExperimentInput input, RequestOverrideConfig overrideConfig);
@@ -1474,6 +1505,7 @@ public interface SuperpositionClient {
      * and description while preserving the key identifier.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default UpdateDefaultConfigOutput updateDefaultConfig(UpdateDefaultConfigInput input) {
@@ -1485,6 +1517,7 @@ public interface SuperpositionClient {
      * and description while preserving the key identifier.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     UpdateDefaultConfigOutput updateDefaultConfig(UpdateDefaultConfigInput input, RequestOverrideConfig overrideConfig);
@@ -1494,6 +1527,7 @@ public interface SuperpositionClient {
      * mappings, and other properties while maintaining dependency relationships.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default UpdateDimensionOutput updateDimension(UpdateDimensionInput input) {
@@ -1505,6 +1539,7 @@ public interface SuperpositionClient {
      * mappings, and other properties while maintaining dependency relationships.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     UpdateDimensionOutput updateDimension(UpdateDimensionInput input, RequestOverrideConfig overrideConfig);
@@ -1572,6 +1607,7 @@ public interface SuperpositionClient {
      * maintaining the context's conditions.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default UpdateOverrideOutput updateOverride(UpdateOverrideInput input) {
@@ -1583,6 +1619,7 @@ public interface SuperpositionClient {
      * maintaining the context's conditions.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     UpdateOverrideOutput updateOverride(UpdateOverrideInput input, RequestOverrideConfig overrideConfig);
@@ -1593,6 +1630,7 @@ public interface SuperpositionClient {
      * modification of experiment behavior while it is in the created state.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     default UpdateOverridesExperimentOutput updateOverridesExperiment(UpdateOverridesExperimentInput input) {
@@ -1605,6 +1643,7 @@ public interface SuperpositionClient {
      * modification of experiment behavior while it is in the created state.
      *
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws InternalServerError
      */
     UpdateOverridesExperimentOutput updateOverridesExperiment(UpdateOverridesExperimentInput input, RequestOverrideConfig overrideConfig);
@@ -1728,6 +1767,7 @@ public interface SuperpositionClient {
      * dimensions.
      *
      * @throws InternalServerError
+     * @throws WebhookFailed
      */
     default WeightRecomputeOutput weightRecompute(WeightRecomputeInput input) {
         return weightRecompute(input, null);
@@ -1738,6 +1778,7 @@ public interface SuperpositionClient {
      * dimensions.
      *
      * @throws InternalServerError
+     * @throws WebhookFailed
      */
     WeightRecomputeOutput weightRecompute(WeightRecomputeInput input, RequestOverrideConfig overrideConfig);
 

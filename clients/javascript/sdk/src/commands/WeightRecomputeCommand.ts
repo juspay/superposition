@@ -70,6 +70,9 @@ export interface WeightRecomputeCommandOutput extends WeightRecomputeOutput, __M
  * @see {@link WeightRecomputeCommandOutput} for command's `response` shape.
  * @see {@link SuperpositionClientResolvedConfig | config} for SuperpositionClient's `config` shape.
  *
+ * @throws {@link WebhookFailed} (server fault)
+ *  Indicates that the operation succeeded but the webhook call failed. The response body contains the successful result, but the client should be aware that webhook notification did not complete.
+ *
  * @throws {@link InternalServerError} (server fault)
  *
  * @throws {@link SuperpositionServiceException}

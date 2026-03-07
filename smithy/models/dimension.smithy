@@ -93,7 +93,7 @@ list DimensionList {
 @documentation("Creates a new dimension with the specified json schema. Dimensions define categorical attributes used for context-based config management.")
 @http(method: "POST", uri: "/dimension")
 @tags(["Dimensions"])
-operation CreateDimension {
+operation CreateDimension with [WebhookOperation] {
     input := for Dimension with [WorkspaceMixin] {
         @required
         $dimension
@@ -151,7 +151,7 @@ operation GetDimension with [GetOperation] {
 @idempotent
 @http(method: "PATCH", uri: "/dimension/{dimension}")
 @tags(["Dimensions"])
-operation UpdateDimension with [GetOperation] {
+operation UpdateDimension with [GetOperation, WebhookOperation] {
     input := for Dimension with [WorkspaceMixin] {
         @httpLabel
         @required
@@ -180,7 +180,7 @@ operation UpdateDimension with [GetOperation] {
 @idempotent
 @http(method: "DELETE", uri: "/dimension/{dimension}", code: 204)
 @tags(["Dimensions"])
-operation DeleteDimension with [GetOperation] {
+operation DeleteDimension with [GetOperation, WebhookOperation] {
     input := for Dimension with [WorkspaceMixin] {
         @httpLabel
         @required

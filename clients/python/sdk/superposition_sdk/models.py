@@ -293,6 +293,7 @@ from ._private.schemas import (
     VARIABLE_RESPONSE as _SCHEMA_VARIABLE_RESPONSE,
     VARIANT as _SCHEMA_VARIANT,
     VARIANT_UPDATE_REQUEST as _SCHEMA_VARIANT_UPDATE_REQUEST,
+    WEBHOOK_FAILED as _SCHEMA_WEBHOOK_FAILED,
     WEBHOOK_RESPONSE as _SCHEMA_WEBHOOK_RESPONSE,
     WEIGHT_RECOMPUTE as _SCHEMA_WEIGHT_RECOMPUTE,
     WEIGHT_RECOMPUTE_INPUT as _SCHEMA_WEIGHT_RECOMPUTE_INPUT,
@@ -1899,6 +1900,53 @@ class BulkOperationOutput:
         deserializer.read_struct(_SCHEMA_BULK_OPERATION_OUTPUT, consumer=_consumer)
         return kwargs
 
+@dataclass(kw_only=True)
+class WebhookFailed(ApiError):
+    """
+    Indicates that the operation succeeded but the webhook call failed. The response
+    body contains the successful result, but the client should be aware that webhook
+    notification did not complete.
+
+    :param message: A message associated with the specific error.
+
+    :param data:
+         The successful operation result that would have been returned with HTTP 200. The
+         structure matches the operation's normal output type.
+
+    """
+
+    code: ClassVar[str] = "WebhookFailed"
+    fault: ClassVar[Literal["client", "server"]] = "server"
+
+    message: str
+    data: Document | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_WEBHOOK_FAILED, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.data is not None:
+            serializer.write_document(_SCHEMA_WEBHOOK_FAILED.members["data"], self.data)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["data"] = de.read_document(_SCHEMA_WEBHOOK_FAILED.members["data"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_WEBHOOK_FAILED, consumer=_consumer)
+        return kwargs
+
 BULK_OPERATION = APIOperation(
         input = BulkOperationInput,
         output = BulkOperationOutput,
@@ -1907,6 +1955,7 @@ BULK_OPERATION = APIOperation(
         output_schema = _SCHEMA_BULK_OPERATION_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#InternalServerError"): InternalServerError,
+ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
 ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
         }),
         effective_auth_schemes = [
@@ -2196,6 +2245,7 @@ CONCLUDE_EXPERIMENT = APIOperation(
         output_schema = _SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -3532,6 +3582,7 @@ CREATE_CONTEXT = APIOperation(
         output_schema = _SCHEMA_CREATE_CONTEXT_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -3616,6 +3667,7 @@ DELETE_CONTEXT = APIOperation(
         output_schema = _SCHEMA_DELETE_CONTEXT_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -3936,6 +3988,7 @@ GET_CONTEXT_FROM_CONDITION = APIOperation(
         output_schema = _SCHEMA_GET_CONTEXT_FROM_CONDITION_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -4288,6 +4341,7 @@ MOVE_CONTEXT = APIOperation(
         output_schema = _SCHEMA_MOVE_CONTEXT_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -4452,6 +4506,7 @@ UPDATE_OVERRIDE = APIOperation(
         output_schema = _SCHEMA_UPDATE_OVERRIDE_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -4704,6 +4759,7 @@ WEIGHT_RECOMPUTE = APIOperation(
         output_schema = _SCHEMA_WEIGHT_RECOMPUTE_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#InternalServerError"): InternalServerError,
+ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBasicAuth"),
@@ -4936,7 +4992,8 @@ CREATE_DEFAULT_CONFIG = APIOperation(
         input_schema = _SCHEMA_CREATE_DEFAULT_CONFIG_INPUT,
         output_schema = _SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBasicAuth"),
@@ -5164,7 +5221,8 @@ CREATE_DIMENSION = APIOperation(
         input_schema = _SCHEMA_CREATE_DIMENSION_INPUT,
         output_schema = _SCHEMA_CREATE_DIMENSION_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBasicAuth"),
@@ -5431,7 +5489,8 @@ CREATE_EXPERIMENT = APIOperation(
         input_schema = _SCHEMA_CREATE_EXPERIMENT_INPUT,
         output_schema = _SCHEMA_CREATE_EXPERIMENT_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
             ShapeID("smithy.api#httpBasicAuth"),
@@ -7108,6 +7167,7 @@ DELETE_DEFAULT_CONFIG = APIOperation(
         output_schema = _SCHEMA_DELETE_DEFAULT_CONFIG_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -7706,6 +7766,7 @@ UPDATE_DEFAULT_CONFIG = APIOperation(
         output_schema = _SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -7786,6 +7847,7 @@ DELETE_DIMENSION = APIOperation(
         output_schema = _SCHEMA_DELETE_DIMENSION_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -9148,6 +9210,7 @@ UPDATE_DIMENSION = APIOperation(
         output_schema = _SCHEMA_UPDATE_DIMENSION_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -9364,6 +9427,7 @@ DISCARD_EXPERIMENT = APIOperation(
         output_schema = _SCHEMA_DISCARD_EXPERIMENT_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -11050,6 +11114,7 @@ PAUSE_EXPERIMENT = APIOperation(
         output_schema = _SCHEMA_PAUSE_EXPERIMENT_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -11273,6 +11338,7 @@ RAMP_EXPERIMENT = APIOperation(
         output_schema = _SCHEMA_RAMP_EXPERIMENT_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -11489,6 +11555,7 @@ RESUME_EXPERIMENT = APIOperation(
         output_schema = _SCHEMA_RESUME_EXPERIMENT_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -11800,6 +11867,7 @@ UPDATE_OVERRIDES_EXPERIMENT = APIOperation(
         output_schema = _SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
