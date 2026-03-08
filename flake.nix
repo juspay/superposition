@@ -80,15 +80,17 @@
                 defaultJava = jdk17;
               })
               jdk17
-              uv
-              # Python dependencies for provider examples
-              (python3.withPackages (ps: with ps; [
-                openfeature-sdk
-                aiohttp
-              ]))
-              # go client
+              python3           # Python 3 runtime
+              python3Packages.pip  # pip for installing Python deps
+              python3Packages.uv  # aiohttp for provider example
               # go
             ];
+
+            env = {
+                # Stop uv from downloading its own Python — use the Nix one
+                UV_PYTHON_DOWNLOADS = "never";
+                UV_PYTHON = "${pkgs.python3}/bin/python3";
+            };
 
             shellHook = ''
                 # If it exists from the host system, kill it
