@@ -1,0 +1,20 @@
+[default-configs]
+timeout = { value = 30, schema = { type = "integer" } }
+currency = { value = "Rupee", schema = { type = "string", enum = ["Rupee", "Dollar", "Euro"] } }
+price = { value = 10000, schema = { type = "integer", minimum = 0 } }
+
+[dimensions]
+os = { position = 1, schema = { type = "string" } }
+city = { position = 2, schema = { type = "string" } }
+
+[[overrides]]
+_context_ = { os = "linux" }
+timeout = 45
+
+[[overrides]]
+_context_ = { city = "Boston" }
+currency = "Dollar"
+
+[[overrides]]
+_context_ = { city = "Berlin" }
+currency = "Euro"
