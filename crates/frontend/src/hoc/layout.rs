@@ -1,7 +1,7 @@
 use crate::{
     api::workspaces,
     components::{
-        side_nav::SideNav,
+        side_nav::{OrgSideNav, SideNav, SideNavCollapsedProvider},
         skeleton::{Skeleton, SkeletonVariant},
         toast::Toast,
     },
@@ -47,6 +47,23 @@ pub fn CommonLayout(children: Children) -> impl IntoView {
             };
             view! { <Toast alerts /> }
         }}
+    }
+}
+
+#[component]
+pub fn OrgLayout() -> impl IntoView {
+    let org = use_org();
+    provide_context(org);
+
+    view! {
+        <OrgSideNav />
+        <CommonLayout>
+            <Suspense fallback=move || {
+                view! { <Skeleton variant=SkeletonVariant::DetailPage /> }
+            }>
+                <Outlet />
+            </Suspense>
+        </CommonLayout>
     }
 }
 
@@ -104,7 +121,9 @@ pub fn Layout() -> impl IntoView {
 pub fn Providers(children: Children) -> impl IntoView {
     view! {
         <ClientSideReadyProvider>
-            <AlertProvider>{children()}</AlertProvider>
+            <AlertProvider>
+                <SideNavCollapsedProvider>{children()}</SideNavCollapsedProvider>
+            </AlertProvider>
         </ClientSideReadyProvider>
     }
 }

@@ -5,8 +5,8 @@ use actix_web::{
 use chrono::Utc;
 use diesel::prelude::*;
 use idgenerator::IdInstance;
-use service_utils::service::types::DbConnection;
-use superposition_derives::authorized;
+use service_utils::{middlewares::auth_z::AuthZHandler, service::types::DbConnection};
+use superposition_derives::{authorized, declare_resource};
 use superposition_types::{
     PaginatedResponse, User,
     api::organisation::{CreateRequest, UpdateRequest},
@@ -19,6 +19,8 @@ use superposition_types::{
     },
     result as superposition,
 };
+
+declare_resource!(Organisation);
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -34,6 +36,7 @@ pub async fn create_handler(
     request: Json<CreateRequest>,
     db_conn: DbConnection,
     user: User,
+    authz_handler: AuthZHandler,
 ) -> superposition::Result<Json<Organisation>> {
     let DbConnection(mut conn) = db_conn;
 
@@ -58,9 +61,19 @@ pub async fn create_handler(
         updated_by: user.get_email(),
     };
 
-    let new_org = diesel::insert_into(organisations::table)
+    let new_org: Organisation = diesel::insert_into(organisations::table)
         .values(&new_org)
         .get_result(&mut conn)?;
+
+    // Notify the AuthZHandler about the new organisation creation
+    let _ = authz_handler
+        .on_org_creation(new_org.id.clone(), new_org.admin_email.clone())
+        .await
+        .map_err(|e| {
+            log::error!(
+                "Failed to update authorization policies for new organisation: {e}"
+            )
+        });
 
     Ok(Json(new_org))
 }

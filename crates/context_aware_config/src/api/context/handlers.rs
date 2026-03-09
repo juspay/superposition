@@ -22,7 +22,7 @@ use service_utils::{
     },
 };
 use superposition_core::helpers::{calculate_context_weight, hash};
-use superposition_derives::authorized;
+use superposition_derives::{authorized, declare_resource};
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
     Contextual, ListResponse, Overridden, Overrides, PaginatedResponse, Resource, SortBy,
@@ -55,6 +55,8 @@ use crate::{
     },
     helpers::{add_config_version, put_config_in_redis, validate_change_reason},
 };
+
+declare_resource!(Context);
 
 pub fn endpoints() -> Scope {
     Scope::new("")

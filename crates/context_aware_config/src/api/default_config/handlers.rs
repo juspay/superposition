@@ -17,7 +17,7 @@ use service_utils::{
     },
 };
 use superposition_core::validations::{try_into_jsonschema, validation_err_to_str};
-use superposition_derives::authorized;
+use superposition_derives::{authorized, declare_resource};
 use superposition_macros::{
     bad_argument, db_error, not_found, unexpected_error, validation_error,
 };
@@ -53,6 +53,8 @@ use crate::{
     },
     helpers::{add_config_version, put_config_in_redis, validate_change_reason},
 };
+
+declare_resource!(DefaultConfig);
 
 pub fn endpoints() -> Scope {
     Scope::new("")

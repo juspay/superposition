@@ -1,8 +1,9 @@
 mod authorization;
-// mod casbin;
+mod casbin;
 mod no_auth;
 
 use std::{
+    fmt::Display,
     future::{Ready, ready},
     sync::Arc,
 };
@@ -13,19 +14,18 @@ use actix_web::{
 };
 use authorization::Authorizer;
 use aws_sdk_kms::Client;
-// use casbin::CasbinPolicyEngine;
+use casbin::CasbinPolicyEngine;
+use derive_more::Deref;
 use futures_util::future::LocalBoxFuture;
 use no_auth::NoAuth;
 use superposition_macros::{forbidden, unexpected_error};
 use superposition_types::{InternalUser, Resource, User, result as superposition};
 
-use crate::{
-    helpers::get_from_env_unsafe,
-    service::types::{AppEnv, OrganisationId, SchemaName, WorkspaceContext},
-};
+use crate::{helpers::get_from_env_unsafe, service::types::AppEnv};
 
 pub trait Action: Send + Sync + 'static {
     fn get() -> String;
+    fn resource() -> Resource;
 }
 
 pub struct AuthZ<A: Action> {
@@ -61,56 +61,15 @@ impl<A: Action> FromRequest for AuthZ<A> {
             }
         };
 
-        let resource = match req.app_data::<Resource>() {
-            Some(resource) => *resource,
+        let domain = match req.extensions().get::<AuthZDomain>() {
+            Some(org_id) => org_id.clone(),
             None => {
                 return Box::pin(async {
-                    Err(unexpected_error!("Resource not found in request app data."))
+                    Err(unexpected_error!(
+                        "Organisation Id not found in request extensions."
+                    ))
                 });
             }
-        };
-
-        let (org_id, schema_name) = match resource {
-            Resource::Organisation | Resource::Workspace => {
-                let org_id = match req.extensions().get::<OrganisationId>() {
-                    Some(org_id) => org_id.clone(),
-                    None => {
-                        return Box::pin(async {
-                            Err(unexpected_error!(
-                                "Organisation Id not found in request extensions."
-                            ))
-                        });
-                    }
-                };
-
-                let schema_name = match req.extensions().get::<SchemaName>() {
-                    Some(schema_name) => schema_name.clone(),
-                    None => {
-                        return Box::pin(async {
-                            Err(unexpected_error!(
-                                "Schema Name not found in request extensions."
-                            ))
-                        });
-                    }
-                };
-
-                (org_id, schema_name)
-            }
-            Resource::MasterEncryptionKey => {
-                (OrganisationId::default(), SchemaName::default())
-            }
-            _ => match req.extensions().get::<WorkspaceContext>() {
-                Some(context) => {
-                    (context.organisation_id.clone(), context.schema_name.clone())
-                }
-                None => {
-                    return Box::pin(async {
-                        Err(unexpected_error!(
-                            "Workspace Context not found in request extensions."
-                        ))
-                    });
-                }
-            },
         };
 
         let user = match req.extensions().get::<User>() {
@@ -122,8 +81,7 @@ impl<A: Action> FromRequest for AuthZ<A> {
 
         Box::pin(async move {
             let is_allowed = auth_z_handler
-                .0
-                .is_allowed(&(org_id, schema_name), &user, &resource, &A::get(), None)
+                .is_allowed(&domain, &user, &A::resource(), &A::get(), None)
                 .await;
 
             match is_allowed {
@@ -162,25 +120,43 @@ where
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Deref)]
 pub struct AuthZHandler(Arc<dyn Authorizer>);
 
-fn get_auth_z_provider() -> String {
+pub fn get_auth_z_provider() -> String {
     get_from_env_unsafe("AUTH_Z_PROVIDER").unwrap()
 }
 
 impl AuthZHandler {
-    pub async fn init(_kms_client: &Option<Client>, _app_env: &AppEnv) -> Self {
+    pub async fn init(kms_client: &Option<Client>, app_env: &AppEnv) -> Self {
         let ap: Arc<dyn Authorizer> = match get_auth_z_provider().as_str() {
-            // "CASBIN" => Arc::new(
-            //     CasbinPolicyEngine::new(kms_client, app_env, None)
-            //         .await
-            //         .unwrap(),
-            // ),
+            "CASBIN" => Arc::new(
+                CasbinPolicyEngine::new(kms_client, app_env, None)
+                    .await
+                    .unwrap(),
+            ),
             "DISABLED" => Arc::new(NoAuth),
             _ => panic!("Missing/Unknown authorizer."),
         };
         Self(ap)
+    }
+}
+
+impl FromRequest for AuthZHandler {
+    type Error = superposition::AppError;
+    type Future = Ready<Result<Self, Self::Error>>;
+
+    fn from_request(
+        req: &actix_web::HttpRequest,
+        _: &mut actix_web::dev::Payload,
+    ) -> Self::Future {
+        let result = req
+            .extensions()
+            .get::<Self>()
+            .cloned()
+            .ok_or_else(|| unexpected_error!("AuthZHandler not found"));
+
+        ready(result)
     }
 }
 
@@ -203,40 +179,86 @@ where
     }
 }
 
+#[derive(Clone, Debug)]
+pub struct AuthZDomain(String);
+
+impl AuthZDomain {
+    pub fn new(schema: String) -> Self {
+        Self(schema)
+    }
+}
+
+impl FromRequest for AuthZDomain {
+    type Error = Error;
+    type Future = Ready<Result<Self, Self::Error>>;
+
+    fn from_request(
+        req: &actix_web::HttpRequest,
+        _: &mut actix_web::dev::Payload,
+    ) -> Self::Future {
+        let result = req.extensions().get::<Self>().cloned().ok_or_else(|| {
+            log::error!("Please check that the organisation id and workspace id are being properly sent");
+            actix_web::error::ErrorInternalServerError("Please check that the organisation id and workspace id are being properly sent")
+        });
+
+        ready(result)
+    }
+}
+
+impl Display for AuthZDomain {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
 #[derive(Clone)]
 pub enum AuthZManager {
     NoAuth,
-    // Casbin(Arc<CasbinPolicyEngine>),
+    Casbin(Arc<CasbinPolicyEngine>),
 }
 
 impl AuthZManager {
-    pub async fn init(_kms_client: &Option<Client>, _app_env: &AppEnv) -> Self {
+    pub async fn init(kms_client: &Option<Client>, app_env: &AppEnv) -> Self {
         match get_auth_z_provider().as_str() {
-            // "CASBIN" => Self::Casbin(Arc::new(
-            //     CasbinPolicyEngine::management(&kms_client, &app_env)
-            //         .await
-            //         .expect("Failed to initialize Casbin policy engine"),
-            // )),
+            "CASBIN" => Self::Casbin(Arc::new(
+                CasbinPolicyEngine::management(kms_client, app_env)
+                    .await
+                    .expect("Failed to initialize Casbin policy engine"),
+            )),
             "DISABLED" => Self::NoAuth,
             _ => panic!("Missing/Unknown authorizer."),
         }
     }
 
-    pub fn endpoints(&self) -> actix_web::Scope {
+    pub fn workspace_endpoints(&self) -> actix_web::Scope {
         match self {
-            // AuthZManager::Casbin(_) => casbin::endpoints(),
+            AuthZManager::Casbin(_) => casbin::workspace_endpoints(),
             AuthZManager::NoAuth => Scope::new(""),
         }
     }
 
-    // pub(self) fn try_get_casbin_policy_engine(
-    //     &self,
-    // ) -> superposition::Result<Arc<CasbinPolicyEngine>> {
-    //     match self {
-    //         AuthZManager::Casbin(engine) => Ok(engine.clone()),
-    //         AuthZManager::NoAuth => {
-    //             Err(unexpected_error!("CasbinPolicyEngine not found."))
-    //         }
-    //     }
-    // }
+    pub fn admin_endpoints(&self) -> actix_web::Scope {
+        match self {
+            AuthZManager::Casbin(_) => casbin::admin_endpoints(),
+            AuthZManager::NoAuth => Scope::new(""),
+        }
+    }
+
+    pub fn org_endpoints(&self) -> actix_web::Scope {
+        match self {
+            AuthZManager::Casbin(_) => casbin::org_endpoints(),
+            AuthZManager::NoAuth => Scope::new(""),
+        }
+    }
+
+    fn try_get_casbin_policy_engine(
+        &self,
+    ) -> superposition::Result<Arc<CasbinPolicyEngine>> {
+        match self {
+            AuthZManager::Casbin(engine) => Ok(engine.clone()),
+            AuthZManager::NoAuth => {
+                Err(unexpected_error!("CasbinPolicyEngine not found."))
+            }
+        }
+    }
 }

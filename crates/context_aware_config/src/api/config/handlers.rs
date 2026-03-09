@@ -17,7 +17,7 @@ use superposition_core::{
     helpers::{calculate_context_weight, hash},
     serialize_to_toml,
 };
-use superposition_derives::authorized;
+use superposition_derives::{authorized, declare_resource};
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
     Cac, Condition, Config, Context, DBConnection, DimensionInfo, OverrideWithKeys,
@@ -53,6 +53,8 @@ use crate::{
 };
 
 use super::helpers::{apply_prefix_filter_to_config, resolve, setup_query_data};
+
+declare_resource!(Config);
 
 pub fn endpoints() -> Scope {
     Scope::new("")

@@ -16,7 +16,7 @@ superposition_types = { workspace = true, features = [
     "experimentation",
     "api",
 ] }
-tokio = { version = "1.29.1", features = ["full"] }
+tokio = { workspace = true }
 
 
 [lib]

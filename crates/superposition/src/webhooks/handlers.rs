@@ -7,7 +7,7 @@ use chrono::Utc;
 use context_aware_config::helpers::validate_change_reason;
 use diesel::{ExpressionMethods, PgArrayExpressionMethods, QueryDsl, RunQueryDsl};
 use service_utils::service::types::{AppState, DbConnection, WorkspaceContext};
-use superposition_derives::authorized;
+use superposition_derives::{authorized, declare_resource};
 use superposition_types::{
     PaginatedResponse, User,
     api::webhook::{CreateWebhookRequest, UpdateWebhookRequest, WebhookName},
@@ -18,6 +18,9 @@ use superposition_types::{
     },
     result as superposition,
 };
+
+declare_resource!(Webhook);
+
 pub fn endpoints() -> Scope {
     Scope::new("")
         .service(create_handler)

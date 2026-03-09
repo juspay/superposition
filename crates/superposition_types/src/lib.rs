@@ -48,7 +48,19 @@ pub trait IsEmpty {
     fn is_empty(&self) -> bool;
 }
 
-#[derive(Copy, Clone, Debug, strum_macros::Display, Deserialize, Serialize)]
+#[derive(
+    Copy,
+    Clone,
+    Debug,
+    strum_macros::Display,
+    Deserialize,
+    Serialize,
+    strum_macros::EnumIter,
+    strum_macros::EnumString,
+    PartialEq,
+    Eq,
+    Hash,
+)]
 #[strum(serialize_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
 pub enum Resource {
@@ -68,6 +80,12 @@ pub enum Resource {
     Variable,
     Secret,
     MasterEncryptionKey,
+}
+
+impl From<Resource> for String {
+    fn from(resource: Resource) -> Self {
+        resource.to_string()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

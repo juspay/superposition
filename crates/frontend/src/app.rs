@@ -4,7 +4,8 @@ use leptos_router::*;
 use serde_json::json;
 
 use crate::components::datetime::DatetimeConversionScript;
-use crate::hoc::layout::{CommonLayout, Layout, Providers, use_org};
+use crate::hoc::layout::{CommonLayout, Layout, OrgLayout, Providers};
+use crate::pages::authz::{AdminAuthz, OrganisationAuthz, WorkspaceAuthz};
 use crate::pages::compare_overrides::CompareOverrides;
 use crate::pages::config_version::ConfigVersion;
 use crate::pages::config_version_list::ConfigVersionList;
@@ -128,17 +129,21 @@ pub fn App(app_envs: Envs) -> impl IntoView {
 
                     <Route
                         ssr=SsrMode::Async
-                        path="/admin/:org_id/workspaces"
+                        path="/admin/settings/authz"
                         view=move || {
-                            provide_context(use_org());
-
                             view! {
                                 <CommonLayout>
-                                    <Workspace />
+                                    <AdminAuthz />
                                 </CommonLayout>
                             }
                         }
                     />
+
+                    <Route ssr=SsrMode::Async path="/admin/:org_id" view=OrgLayout>
+                        <Route ssr=SsrMode::Async path="workspaces" view=Workspace />
+
+                        <Route ssr=SsrMode::Async path="org-authz" view=OrganisationAuthz />
+                    </Route>
 
                     <Route ssr=SsrMode::Async path="/admin/:org_id/:workspace" view=Layout>
                         <Route ssr=SsrMode::Async path="dimensions" view=Dimensions />
@@ -222,6 +227,8 @@ pub fn App(app_envs: Envs) -> impl IntoView {
                         <Route ssr=SsrMode::Async path="webhooks/:webhook_name" view=Webhook />
 
                         <Route ssr=SsrMode::Async path="audit-log" view=AuditLog />
+
+                        <Route ssr=SsrMode::Async path="authz" view=WorkspaceAuthz />
 
                         <Route ssr=SsrMode::Async path="variables" view=VariablesList />
                         <Route ssr=SsrMode::Async path="variables/:variable_name" view=Variable />

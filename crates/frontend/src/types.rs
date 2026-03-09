@@ -52,6 +52,7 @@ pub enum AppEnv {
 pub struct Envs {
     pub host: String,
     pub service_prefix: &'static str,
+    pub auth_z: bool,
 }
 
 #[derive(PartialEq, Clone, IsEmpty, QueryParam, Default, Deserialize)]

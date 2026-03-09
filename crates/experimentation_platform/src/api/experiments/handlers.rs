@@ -36,7 +36,7 @@ use service_utils::{
         AppHeader, AppState, CustomHeaders, DbConnection, WorkspaceContext,
     },
 };
-use superposition_derives::authorized;
+use superposition_derives::{authorized, declare_resource};
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
     Cac, Condition, Contextual, DBConnection, DimensionInfo, Exp, ListResponse,
@@ -105,6 +105,8 @@ use super::{
         validate_override_keys,
     },
 };
+
+declare_resource!(Experiment);
 
 pub fn endpoints(scope: Scope) -> Scope {
     scope

@@ -14,7 +14,7 @@ use service_utils::{
     redis::{CONFIG_KEY_SUFFIX, LAST_MODIFIED_KEY_SUFFIX, read_through_cache},
     service::types::{AppState, WorkspaceContext},
 };
-use superposition_derives::authorized;
+use superposition_derives::{authorized, declare_resource};
 use superposition_macros::unexpected_error;
 use superposition_types::{
     Config,
@@ -24,6 +24,8 @@ use superposition_types::{
 };
 
 use super::types::IdentifierQuery;
+
+declare_resource!(Config);
 
 pub fn endpoints() -> Scope {
     Scope::new("").service(resolve_with_exp_handler)

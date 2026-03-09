@@ -26,6 +26,146 @@ use crate::utils::{
     construct_request_headers, parse_json_response, request, use_host_server,
 };
 
+pub mod casbin {
+    use std::collections::HashMap;
+
+    use superposition_types::{
+        Resource,
+        api::authz::casbin::{
+            ActionGroupPolicyRequest, GroupingPolicyRequest, PolicyRequest,
+        },
+    };
+
+    use super::*;
+
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub enum AuthzScope {
+        Admin,
+        Org(String),
+        Workspace(String, String),
+    }
+
+    fn casbin_url_and_headers(
+        endpoint: &str,
+        scope: AuthzScope,
+    ) -> Result<(String, HeaderMap), String> {
+        let host = use_host_server();
+        match scope {
+            AuthzScope::Admin => Ok((
+                format!("{host}/authz/admin/casbin/{endpoint}"),
+                construct_request_headers(&[])?,
+            )),
+            AuthzScope::Org(org_id) => Ok((
+                format!("{host}/authz/org/casbin/{endpoint}"),
+                construct_request_headers(&[("x-org-id", &org_id)])?,
+            )),
+            AuthzScope::Workspace(org_id, workspace) => Ok((
+                format!("{host}/authz/workspace/casbin/{endpoint}"),
+                construct_request_headers(&[
+                    ("x-workspace", &workspace),
+                    ("x-org-id", &org_id),
+                ])?,
+            )),
+        }
+    }
+
+    pub async fn list_policies(scope: AuthzScope) -> Result<Vec<Vec<String>>, String> {
+        let (url, headers) = casbin_url_and_headers("policy", scope)?;
+
+        let response = request(url, reqwest::Method::GET, None::<()>, headers).await?;
+        parse_json_response(response).await
+    }
+
+    pub async fn add_policy(
+        payload: PolicyRequest,
+        scope: AuthzScope,
+    ) -> Result<(), String> {
+        let (url, headers) = casbin_url_and_headers("policy", scope)?;
+
+        request(url, reqwest::Method::POST, Some(payload), headers).await?;
+        Ok(())
+    }
+
+    pub async fn list_roles(scope: AuthzScope) -> Result<Vec<Vec<String>>, String> {
+        let (url, headers) = casbin_url_and_headers("roles", scope)?;
+
+        let response = request(url, reqwest::Method::GET, None::<()>, headers).await?;
+        parse_json_response(response).await
+    }
+
+    pub async fn add_role(
+        payload: GroupingPolicyRequest,
+        scope: AuthzScope,
+    ) -> Result<(), String> {
+        let (url, headers) = casbin_url_and_headers("roles", scope)?;
+
+        request(url, reqwest::Method::POST, Some(payload), headers).await?;
+        Ok(())
+    }
+
+    pub async fn list_domain_action_groups(
+        scope: AuthzScope,
+    ) -> Result<Vec<Vec<String>>, String> {
+        if matches!(scope, AuthzScope::Admin) {
+            return Err(
+                "domain action groups are only available for org/workspace scopes"
+                    .to_string(),
+            );
+        }
+        let (url, headers) = casbin_url_and_headers("domain-action-groups", scope)?;
+
+        let response = request(url, reqwest::Method::GET, None::<()>, headers).await?;
+        parse_json_response(response).await
+    }
+
+    pub async fn add_domain_action_group(
+        payload: ActionGroupPolicyRequest,
+        scope: AuthzScope,
+    ) -> Result<(), String> {
+        if matches!(scope, AuthzScope::Admin) {
+            return Err(
+                "domain action groups are only available for org/workspace scopes"
+                    .to_string(),
+            );
+        }
+        let (url, headers) = casbin_url_and_headers("domain-action-groups", scope)?;
+
+        request(url, reqwest::Method::POST, Some(payload), headers).await?;
+        Ok(())
+    }
+
+    pub async fn list_action_groups() -> Result<Vec<Vec<String>>, String> {
+        let host = use_host_server();
+
+        let url = format!("{host}/authz/admin/casbin/action-groups");
+        let headers = construct_request_headers(&[])?;
+
+        let response = request(url, reqwest::Method::GET, None::<()>, headers).await?;
+        parse_json_response(response).await
+    }
+
+    pub async fn add_action_group(
+        payload: ActionGroupPolicyRequest,
+    ) -> Result<(), String> {
+        let host = use_host_server();
+
+        let url = format!("{host}/authz/admin/casbin/action-groups");
+        let headers = construct_request_headers(&[])?;
+
+        request(url, reqwest::Method::POST, Some(payload), headers).await?;
+        Ok(())
+    }
+
+    pub async fn get_resource_action_map(
+        scope: AuthzScope,
+    ) -> Result<HashMap<Resource, Vec<String>>, String> {
+        let (url, headers) = casbin_url_and_headers("resource-action-map", scope)?;
+
+        let response = request(url, reqwest::Method::GET, None::<()>, headers).await?;
+        parse_json_response(response).await
+    }
+}
+
 pub mod snapshots {
     use superposition_types::database::models::cac::{
         ConfigVersion, ConfigVersionListItem,
@@ -550,7 +690,7 @@ pub mod workspaces {
         enable_change_reason_validation: bool,
     ) -> Result<UpdateWorkspaceRequest, String> {
         Ok(UpdateWorkspaceRequest {
-            workspace_admin_email,
+            workspace_admin_email: Some(workspace_admin_email),
             config_version: Some(
                 serde_json::from_value(config_version)
                     .map_err(|e| format!("Invalid config version: {}", e))?,

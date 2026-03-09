@@ -14,7 +14,7 @@ use service_utils::{
     redis::{EXPERIMENT_GROUPS_LIST_KEY_SUFFIX, read_through_cache},
     service::types::{AppState, DbConnection, WorkspaceContext},
 };
-use superposition_derives::authorized;
+use superposition_derives::{authorized, declare_resource};
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
     DBConnection, IsEmpty, PaginatedResponse, SortBy, User,
@@ -54,6 +54,8 @@ use crate::api::{
         },
     },
 };
+
+declare_resource!(ExperimentGroup);
 
 pub fn endpoints(scope: Scope) -> Scope {
     scope

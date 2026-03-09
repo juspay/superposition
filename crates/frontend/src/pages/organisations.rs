@@ -5,7 +5,7 @@ use web_sys::{Crypto, MouseEvent};
 
 use crate::api::fetch_organisations;
 use crate::components::alert::AlertType;
-use crate::components::button::Button;
+use crate::components::button::{Button, ButtonAnchor};
 use crate::components::form::label::Label;
 use crate::components::key_rotation_modal::MasterKeyRotationModal;
 use crate::components::modal::PortalModal;
@@ -20,7 +20,7 @@ use crate::components::{
 };
 use crate::providers::alert_provider::enqueue_alert;
 use crate::query_updater::use_signal_from_query;
-use crate::types::AdminPageParams;
+use crate::types::{AdminPageParams, Envs};
 use crate::utils::use_url_base;
 
 fn key_generation_instructions() -> [View; 5] {
@@ -76,6 +76,7 @@ fn try_generate_master_key() -> Option<String> {
 #[component]
 pub fn Organisations() -> impl IntoView {
     let base = use_url_base();
+    let envs = use_context::<Envs>().unwrap();
     // this has to remain as `create_local_resource` as this calls needs to be made from the client side, as long as cookie forwarding is not supported
     let organisation_resource = create_local_resource(
         || (),
@@ -153,6 +154,13 @@ pub fn Organisations() -> impl IntoView {
                                 admin_params_rws.with(|p| p.admin.unwrap_or_default())
                             }>
                                 <div class="flex items-end gap-4">
+                                    <Show when=move || envs.auth_z>
+                                        <ButtonAnchor
+                                            text="Authorization Settings"
+                                            href="../settings/authz"
+                                            icon_class="ri-lock-2-line"
+                                        />
+                                    </Show>
                                     <Button
                                         text="Generate MasterKey"
                                         icon_class="ri-key-2-line"
