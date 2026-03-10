@@ -31,8 +31,7 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
         .putMember("workspace_name", PreludeSchemas.STRING,
                 new HttpLabelTrait(),
                 new RequiredTrait())
-        .putMember("workspace_admin_email", PreludeSchemas.STRING,
-                new RequiredTrait())
+        .putMember("workspace_admin_email", PreludeSchemas.STRING)
         .putMember("config_version", PreludeSchemas.STRING)
         .putMember("mandatory_dimensions", SharedSchemas.LIST_MANDATORY_DIMENSIONS)
         .putMember("workspace_status", WorkspaceStatus.$SCHEMA)
@@ -176,7 +175,9 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
     public void serializeMembers(ShapeSerializer serializer) {
         serializer.writeString($SCHEMA_ORG_ID, orgId);
         serializer.writeString($SCHEMA_WORKSPACE_NAME, workspaceName);
-        serializer.writeString($SCHEMA_WORKSPACE_ADMIN_EMAIL, workspaceAdminEmail);
+        if (workspaceAdminEmail != null) {
+            serializer.writeString($SCHEMA_WORKSPACE_ADMIN_EMAIL, workspaceAdminEmail);
+        }
         if (configVersion != null) {
             serializer.writeString($SCHEMA_CONFIG_VERSION, configVersion);
         }
@@ -297,12 +298,10 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
         }
 
         /**
-         * <p><strong>Required</strong>
          * @return this builder.
          */
         public Builder workspaceAdminEmail(String workspaceAdminEmail) {
-            this.workspaceAdminEmail = Objects.requireNonNull(workspaceAdminEmail, "workspaceAdminEmail cannot be null");
-            tracker.setMember($SCHEMA_WORKSPACE_ADMIN_EMAIL);
+            this.workspaceAdminEmail = workspaceAdminEmail;
             return this;
         }
 
@@ -407,9 +406,6 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
             }
             if (!tracker.checkMember($SCHEMA_WORKSPACE_NAME)) {
                 workspaceName("");
-            }
-            if (!tracker.checkMember($SCHEMA_WORKSPACE_ADMIN_EMAIL)) {
-                workspaceAdminEmail("");
             }
             return this;
         }

@@ -1,24 +1,14 @@
-DO $$
-BEGIN
-    BEGIN
-        CREATE TABLE casbin_rule (
-            id SERIAL PRIMARY KEY,
-            ptype VARCHAR NOT NULL,
-            v0 VARCHAR NOT NULL,
-            v1 VARCHAR NOT NULL,
-            v2 VARCHAR NOT NULL,
-            v3 VARCHAR NOT NULL,
-            v4 VARCHAR NOT NULL,
-            v5 VARCHAR NOT NULL,
-            CONSTRAINT unique_key_diesel_adapter UNIQUE(ptype, v0, v1, v2, v3, v4, v5)
-        );
-    EXCEPTION
-        WHEN duplicate_table THEN
-            -- Table already exists; do not insert the root admin mapping.
-            NULL;
-    END;
-END
-$$;
+CREATE TABLE IF NOT EXISTS casbin_rule (
+    id SERIAL PRIMARY KEY,
+    ptype VARCHAR NOT NULL,
+    v0 VARCHAR NOT NULL,
+    v1 VARCHAR NOT NULL,
+    v2 VARCHAR NOT NULL,
+    v3 VARCHAR NOT NULL,
+    v4 VARCHAR NOT NULL,
+    v5 VARCHAR NOT NULL,
+    CONSTRAINT unique_key_diesel_adapter UNIQUE(ptype, v0, v1, v2, v3, v4, v5)
+);
 
 -- Seed rules (idempotent). Note: this schema stores up to 6 values (v0..v5);
 -- rules with fewer fields use empty-string placeholders.

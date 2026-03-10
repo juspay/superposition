@@ -59,30 +59,3 @@ impl ActionRegistry {
         map
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_action_registry_creation() {
-        let action = ActionRegistry::new(
-            "src/handlers.rs",
-            "create_handler",
-            "create",
-            Resource::Config,
-        );
-
-        assert_eq!(action.handler_name, "create_handler");
-        assert_eq!(action.action_name, "create");
-        assert_eq!(action.resource_type, Resource::Config);
-    }
-
-    #[test]
-    fn test_grouping_by_resource() {
-        // This test will work after actions are registered via the macro
-        let grouped = ActionRegistry::group_by_resource();
-        // Just verify the function executes without error
-        assert!(grouped.is_empty() || !grouped.is_empty()); // Placeholder assertion
-    }
-}

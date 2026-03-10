@@ -42,7 +42,7 @@ import qualified Network.HTTP.Types.Method
 data UpdateWorkspaceInput = UpdateWorkspaceInput {
     org_id :: Data.Text.Text,
     workspace_name :: Data.Text.Text,
-    workspace_admin_email :: Data.Text.Text,
+    workspace_admin_email :: Data.Maybe.Maybe Data.Text.Text,
     config_version :: Data.Maybe.Maybe Data.Text.Text,
     mandatory_dimensions :: Data.Maybe.Maybe ([] Data.Text.Text),
     workspace_status :: Data.Maybe.Maybe Io.Superposition.Model.WorkspaceStatus.WorkspaceStatus,
@@ -79,7 +79,7 @@ instance Data.Aeson.FromJSON UpdateWorkspaceInput where
     parseJSON = Data.Aeson.withObject "UpdateWorkspaceInput" $ \v -> UpdateWorkspaceInput
         Data.Functor.<$> (v Data.Aeson..: "org_id")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_name")
-        Control.Applicative.<*> (v Data.Aeson..: "workspace_admin_email")
+        Control.Applicative.<*> (v Data.Aeson..:? "workspace_admin_email")
         Control.Applicative.<*> (v Data.Aeson..:? "config_version")
         Control.Applicative.<*> (v Data.Aeson..:? "mandatory_dimensions")
         Control.Applicative.<*> (v Data.Aeson..:? "workspace_status")
@@ -133,9 +133,9 @@ setWorkspaceName :: Data.Text.Text -> UpdateWorkspaceInputBuilder ()
 setWorkspaceName value =
    Control.Monad.State.Strict.modify (\s -> (s { workspace_nameBuilderState = Data.Maybe.Just value }))
 
-setWorkspaceAdminEmail :: Data.Text.Text -> UpdateWorkspaceInputBuilder ()
+setWorkspaceAdminEmail :: Data.Maybe.Maybe Data.Text.Text -> UpdateWorkspaceInputBuilder ()
 setWorkspaceAdminEmail value =
-   Control.Monad.State.Strict.modify (\s -> (s { workspace_admin_emailBuilderState = Data.Maybe.Just value }))
+   Control.Monad.State.Strict.modify (\s -> (s { workspace_admin_emailBuilderState = value }))
 
 setConfigVersion :: Data.Maybe.Maybe Data.Text.Text -> UpdateWorkspaceInputBuilder ()
 setConfigVersion value =
@@ -174,7 +174,7 @@ build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateWorkspaceInput.UpdateWorkspaceInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
     workspace_name' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateWorkspaceInput.UpdateWorkspaceInput.workspace_name is a required property.") Data.Either.Right (workspace_nameBuilderState st)
-    workspace_admin_email' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateWorkspaceInput.UpdateWorkspaceInput.workspace_admin_email is a required property.") Data.Either.Right (workspace_admin_emailBuilderState st)
+    workspace_admin_email' <- Data.Either.Right (workspace_admin_emailBuilderState st)
     config_version' <- Data.Either.Right (config_versionBuilderState st)
     mandatory_dimensions' <- Data.Either.Right (mandatory_dimensionsBuilderState st)
     workspace_status' <- Data.Either.Right (workspace_statusBuilderState st)
