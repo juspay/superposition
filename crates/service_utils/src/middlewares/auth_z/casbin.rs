@@ -3,7 +3,7 @@ mod handlers;
 use std::collections::{HashMap, HashSet};
 
 use aws_sdk_kms::Client;
-use casbin::{CoreApi, Enforcer, MgmtApi};
+use casbin::{CoreApi, DefaultModel, Enforcer, MgmtApi};
 use chrono::{DateTime, Utc};
 use diesel_adapter::DieselAdapter;
 use futures_util::future::LocalBoxFuture;
@@ -355,8 +355,7 @@ impl Authorizer for CasbinPolicyEngine {
     // }
 }
 
-const MODEL_CONF_PATH: &str =
-    "crates/service_utils/src/middlewares/auth_z/casbin/model.conf";
+const MODEL_CONF: &str = include_str!("casbin/model.conf");
 
 impl CasbinPolicyEngine {
     pub async fn new(
@@ -372,11 +371,15 @@ impl CasbinPolicyEngine {
             e.to_string()
         })?;
 
-        let mut enforcer =
-            Enforcer::new(MODEL_CONF_PATH, adapter).await.map_err(|e| {
-                log::error!("Failed to create Casbin enforcer: {e}");
-                e.to_string()
-            })?;
+        let model = DefaultModel::from_str(MODEL_CONF).await.map_err(|e| {
+            log::error!("Failed to create Casbin model from config: {e}");
+            e.to_string()
+        })?;
+
+        let mut enforcer = Enforcer::new(model, adapter).await.map_err(|e| {
+            log::error!("Failed to create Casbin enforcer: {e}");
+            e.to_string()
+        })?;
 
         enforcer.enable_auto_save(false);
 
