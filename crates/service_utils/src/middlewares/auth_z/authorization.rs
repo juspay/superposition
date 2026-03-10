@@ -1,7 +1,9 @@
 use std::collections::{HashMap, HashSet};
 
 use futures_util::future::LocalBoxFuture;
-use superposition_types::{Resource, User, api::authz::ResourceActionType};
+use superposition_types::{
+    Resource, User, api::authz::ResourceActionType, result as superposition,
+};
 
 use crate::{
     middlewares::auth_z::AuthZDomain, registry::ActionRegistry,
@@ -13,20 +15,20 @@ pub trait Authorizer: Sync + Send {
         &self,
         organisation_id: String,
         org_admin_email: String,
-    ) -> LocalBoxFuture<'_, Result<bool, String>>;
+    ) -> LocalBoxFuture<'_, superposition::Result<bool>>;
 
     fn on_workspace_creation(
         &self,
         schema_name: SchemaName,
         workspace_admin_email: String,
-    ) -> LocalBoxFuture<'_, Result<bool, String>>;
+    ) -> LocalBoxFuture<'_, superposition::Result<bool>>;
 
     fn on_workspace_admin_update(
         &self,
         schema_name: SchemaName,
         old_admin_email: String,
         new_admin_email: String,
-    ) -> LocalBoxFuture<'_, Result<bool, String>>;
+    ) -> LocalBoxFuture<'_, superposition::Result<bool>>;
 
     fn is_allowed(
         &self,

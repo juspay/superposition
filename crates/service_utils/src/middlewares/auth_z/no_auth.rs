@@ -1,5 +1,5 @@
 use futures_util::future::LocalBoxFuture;
-use superposition_types::{Resource, User};
+use superposition_types::{Resource, User, result as superposition};
 
 use crate::{middlewares::auth_z::AuthZDomain, service::types::SchemaName};
 
@@ -23,7 +23,7 @@ impl Authorizer for NoAuth {
         &self,
         _: String,
         _: String,
-    ) -> LocalBoxFuture<'_, Result<bool, String>> {
+    ) -> LocalBoxFuture<'_, superposition::Result<bool>> {
         Box::pin(async { Ok(true) })
     }
 
@@ -31,7 +31,7 @@ impl Authorizer for NoAuth {
         &self,
         _: SchemaName,
         _: String,
-    ) -> LocalBoxFuture<'_, Result<bool, String>> {
+    ) -> LocalBoxFuture<'_, superposition::Result<bool>> {
         Box::pin(async { Ok(true) })
     }
 
@@ -40,7 +40,7 @@ impl Authorizer for NoAuth {
         _: SchemaName,
         _: String,
         _: String,
-    ) -> LocalBoxFuture<'_, Result<bool, String>> {
+    ) -> LocalBoxFuture<'_, superposition::Result<bool>> {
         Box::pin(async { Ok(true) })
     }
 }

@@ -7,7 +7,10 @@ use casbin::{CoreApi, DefaultModel, Enforcer, MgmtApi};
 use chrono::{DateTime, Utc};
 use diesel_adapter::DieselAdapter;
 use futures_util::future::LocalBoxFuture;
-use superposition_types::{Resource, User, api::authz::ResourceActionType};
+use superposition_macros::unexpected_error;
+use superposition_types::{
+    Resource, User, api::authz::ResourceActionType, result as superposition,
+};
 use tokio::sync::RwLock;
 
 use crate::{
@@ -39,9 +42,9 @@ pub struct CasbinPolicyEngine {
 impl CasbinPolicyEngine {
     /// Acquire an exclusive lock on the enforcer with automatic refresh check.
     /// Returns the enforcer for mutation while ensuring policies are fresh.
-    pub async fn enforcer_mut<T, F>(&self, f: F) -> Result<T, String>
+    pub async fn enforcer_mut<T, F>(&self, f: F) -> superposition::Result<T>
     where
-        F: AsyncFnOnce(&mut Enforcer) -> Result<T, String>,
+        F: AsyncFnOnce(&mut Enforcer) -> superposition::Result<T>,
     {
         let mut enforcer = self.enforcer.write().await;
 
@@ -54,8 +57,7 @@ impl CasbinPolicyEngine {
 
         if needs_refresh {
             enforcer.load_policy().await.map_err(|e| {
-                log::error!("Failed to refresh Casbin policies: {}", e);
-                e.to_string()
+                unexpected_error!("Failed to refresh Casbin policies: {}", e)
             })?;
 
             let mut last_load_time = self.last_policy_load_time.write().await;
@@ -64,10 +66,10 @@ impl CasbinPolicyEngine {
 
         let resp = f(&mut enforcer).await?;
 
-        enforcer.save_policy().await.map_err(|e| {
-            log::error!("Failed to save Casbin policies: {}", e);
-            e.to_string()
-        })?;
+        enforcer
+            .save_policy()
+            .await
+            .map_err(|e| unexpected_error!("Failed to save Casbin policies: {}", e))?;
 
         Ok(resp)
     }
@@ -266,10 +268,14 @@ impl Authorizer for CasbinPolicyEngine {
         &self,
         organisation_id: String,
         org_admin_email: String,
-    ) -> LocalBoxFuture<'_, Result<bool, String>> {
+    ) -> LocalBoxFuture<'_, superposition::Result<bool>> {
         Box::pin(async move {
             self.enforcer_mut(async |enforcer| {
-                Self::add_org_policy(enforcer, organisation_id, org_admin_email).await
+                Self::add_org_policy(enforcer, organisation_id, org_admin_email)
+                    .await
+                    .map_err(|e| {
+                        unexpected_error!("Failed to add org admin data in Casbin: {}", e)
+                    })
             })
             .await
         })
@@ -279,11 +285,17 @@ impl Authorizer for CasbinPolicyEngine {
         &self,
         schema_name: SchemaName,
         workspace_admin_email: String,
-    ) -> LocalBoxFuture<'_, Result<bool, String>> {
+    ) -> LocalBoxFuture<'_, superposition::Result<bool>> {
         Box::pin(async move {
             self.enforcer_mut(async |enforcer| {
                 Self::add_workspace_admin(enforcer, &schema_name, workspace_admin_email)
                     .await
+                    .map_err(|e| {
+                        unexpected_error!(
+                            "Failed to add workspace admin data in Casbin: {}",
+                            e
+                        )
+                    })
             })
             .await
         })
@@ -294,7 +306,7 @@ impl Authorizer for CasbinPolicyEngine {
         schema_name: SchemaName,
         old_admin_email: String,
         new_admin_email: String,
-    ) -> LocalBoxFuture<'_, Result<bool, String>> {
+    ) -> LocalBoxFuture<'_, superposition::Result<bool>> {
         Box::pin(async move {
             self.enforcer_mut(async |enforcer| {
                 // Remove old admin
@@ -306,15 +318,21 @@ impl Authorizer for CasbinPolicyEngine {
                     ])
                     .await
                 {
-                    log::error!(
-                        "Failed to remove old admin from Casbin grouping policy: {}",
+                    return Err(unexpected_error!(
+                        "Failed to remove old workspace admin data in Casbin: {}",
                         e
-                    );
-                    return Err(e.to_string());
+                    ));
                 }
 
                 // Add new admin
-                Self::add_workspace_admin(enforcer, &schema_name, new_admin_email).await
+                Self::add_workspace_admin(enforcer, &schema_name, new_admin_email)
+                    .await
+                    .map_err(|e| {
+                        unexpected_error!(
+                            "Failed to add new workspace admin data in Casbin: {}",
+                            e
+                        )
+                    })
             })
             .await
         })

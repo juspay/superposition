@@ -10,7 +10,7 @@ use diesel::{
     query_dsl::methods::{FilterDsl, OrderDsl, SelectDsl},
 };
 use superposition_derives::{authorized, declare_resource};
-use superposition_macros::unexpected_error;
+use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
     Resource,
     api::authz::{
@@ -94,15 +94,14 @@ async fn add_policy_handler(
         .enforcer_mut(async |enforcer| {
             let action_map = data.get_resource_action_map(enforcer, domain.clone());
 
-            // TODO: change this to return bad request
             action_map
                 .get(&body.obj)
                 .and_then(|actions| actions.contains(&body.act).then_some(()))
                 .ok_or_else(|| {
-                    format!(
-                        "Invalid resource-action pair: {}:{}",
-                        body.obj,
-                        body.act.get_name()
+                    bad_argument!(
+                        "The action '{}' is not valid for resource '{}'",
+                        body.act.get_name(),
+                        body.obj
                     )
                 })?;
 
@@ -115,7 +114,7 @@ async fn add_policy_handler(
                     body.attr.map(|a| a.into_inner()).unwrap_or("*".to_string()),
                 ])
                 .await
-                .map_err(|e| e.to_string())
+                .map_err(|e| unexpected_error!("{}", e))
         })
         .await
         .map_err(|e| unexpected_error!(e))?;
@@ -147,7 +146,7 @@ async fn delete_policy_handler(
                     body.attr.map(|a| a.into_inner()).unwrap_or("*".to_string()),
                 ])
                 .await
-                .map_err(|e| e.to_string())
+                .map_err(|e| unexpected_error!("{}", e))
         })
         .await
         .map_err(|e| unexpected_error!(e))?;
@@ -201,7 +200,7 @@ async fn add_roles_handler(
                     domain.to_string(),
                 ])
                 .await
-                .map_err(|e| e.to_string())
+                .map_err(|e| unexpected_error!("{}", e))
         })
         .await
         .map_err(|e| unexpected_error!(e))?;
@@ -231,7 +230,7 @@ async fn delete_roles_handler(
                     domain.to_string(),
                 ])
                 .await
-                .map_err(|e| e.to_string())
+                .map_err(|e| unexpected_error!("{}", e))
         })
         .await
         .map_err(|e| unexpected_error!(e))?;
@@ -288,7 +287,7 @@ async fn add_domain_action_group_handler(
                     ],
                 )
                 .await
-                .map_err(|e| e.to_string())
+                .map_err(|e| unexpected_error!("{}", e))
         })
         .await
         .map_err(|e| unexpected_error!(e))?;
@@ -321,7 +320,7 @@ async fn delete_domain_action_group_handler(
                     ],
                 )
                 .await
-                .map_err(|e| e.to_string())
+                .map_err(|e| unexpected_error!("{}", e))
         })
         .await
         .map_err(|e| unexpected_error!(e))?;
@@ -370,7 +369,7 @@ async fn add_action_group_handler(
                     ],
                 )
                 .await
-                .map_err(|e| e.to_string())
+                .map_err(|e| unexpected_error!("{}", e))
         })
         .await
         .map_err(|e| unexpected_error!(e))?;
@@ -401,7 +400,7 @@ async fn delete_action_group_handler(
                     ],
                 )
                 .await
-                .map_err(|e| e.to_string())
+                .map_err(|e| unexpected_error!("{}", e))
         })
         .await
         .map_err(|e| unexpected_error!(e))?;
@@ -500,7 +499,7 @@ async fn backfill_orgs_handler(
         for (org_id, admin_email) in orgs {
             CasbinPolicyEngine::add_org_policy(enforcer, org_id, admin_email)
                 .await
-                .map_err(|e| e.to_string())?;
+                .map_err(|e| unexpected_error!("{}", e))?;
         }
         Ok(())
     })
@@ -532,7 +531,7 @@ async fn backfill_workspaces_handler(
         for (schema_name, admin_email) in workspaces {
             CasbinPolicyEngine::add_workspace_admin(enforcer, &schema_name, admin_email)
                 .await
-                .map_err(|e| e.to_string())?;
+                .map_err(|e| unexpected_error!("{}", e))?;
         }
         Ok(())
     })
