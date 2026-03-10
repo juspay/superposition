@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use futures_util::future::LocalBoxFuture;
-use superposition_types::{Resource, User};
+use superposition_types::{Resource, User, api::authz::ResourceActionType};
 
 use crate::{
     middlewares::auth_z::AuthZDomain, registry::ActionRegistry,
@@ -37,13 +37,17 @@ pub trait Authorizer: Sync + Send {
         attributes: Option<&[&str]>,
     ) -> LocalBoxFuture<'_, Result<bool, String>>;
 
-    fn get_source_resource_action_map(&self) -> HashMap<Resource, HashSet<String>> {
+    fn get_source_resource_action_map(
+        &self,
+    ) -> HashMap<Resource, HashSet<ResourceActionType>> {
         ActionRegistry::group_by_resource()
             .into_iter()
             .map(|(resource, actions)| {
                 let action_names = actions
                     .into_iter()
-                    .map(|action| action.action_name.to_string())
+                    .map(|action| {
+                        ResourceActionType::Action(action.action_name.to_string())
+                    })
                     .collect();
                 (resource, action_names)
             })

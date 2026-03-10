@@ -1,12 +1,12 @@
 use serde::{Deserialize, Serialize};
 
-use crate::Resource;
+use crate::{api::authz::ResourceActionType, Resource};
 
 #[derive(Deserialize, Serialize)]
 pub struct PolicyRequest {
     pub sub: String,
     pub obj: Resource,
-    pub act: String,
+    pub act: ResourceActionType,
     pub attr: Option<String>,
 }
 

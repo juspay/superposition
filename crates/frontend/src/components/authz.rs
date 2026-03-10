@@ -5,8 +5,9 @@ use serde_json::{Map, Value};
 use strum::IntoEnumIterator;
 use superposition_types::{
     Resource,
-    api::authz::casbin::{
-        ActionGroupPolicyRequest, GroupingPolicyRequest, PolicyRequest,
+    api::authz::{
+        ResourceActionType,
+        casbin::{ActionGroupPolicyRequest, GroupingPolicyRequest, PolicyRequest},
     },
 };
 
@@ -53,31 +54,56 @@ fn TabularViewer(
     }
 }
 
+impl DropdownOption for ResourceActionType {
+    fn key(&self) -> String {
+        self.get_name().to_string()
+    }
+    fn label(&self) -> String {
+        match self {
+            Self::Action(action) => action.to_string(),
+            Self::Group(group) => format!("{} (group)", group),
+        }
+    }
+}
+
 #[component]
 fn ActionDropdown(
-    resource_action_map_resource: LeptosResource<(), HashMap<Resource, Vec<String>>>,
-    action_rws: RwSignal<String>,
+    resource_action_map_resource: LeptosResource<
+        (),
+        HashMap<Resource, Vec<ResourceActionType>>,
+    >,
+    action_rws: RwSignal<Option<ResourceActionType>>,
     #[prop(into)] resource_rs: Signal<Resource>,
+    #[prop(default = false)] allow_group: bool,
 ) -> impl IntoView {
     view! {
         <Suspense fallback=move || {
             view! { <Skeleton variant=SkeletonVariant::Block style_class="h-10 w-[28rem]" /> }
         }>
             {move || {
+                let dropdown_options = resource_action_map_resource
+                    .get()
+                    .unwrap_or_default()
+                    .get(&resource_rs.get())
+                    .unwrap_or(&vec![])
+                    .to_owned()
+                    .into_iter()
+                    .filter(|action| {
+                        allow_group || !matches!(action, ResourceActionType::Group(_))
+                    })
+                    .collect::<Vec<ResourceActionType>>();
                 view! {
                     <Dropdown
                         dropdown_width="w-80"
-                        dropdown_text=action_rws.get()
+                        dropdown_text=action_rws
+                            .get()
+                            .map(|act| act.get_name().to_string())
+                            .unwrap_or_default()
                         dropdown_direction=DropdownDirection::Down
                         dropdown_btn_type=DropdownBtnType::Select
-                        dropdown_options=resource_action_map_resource
-                            .get()
-                            .unwrap_or_default()
-                            .get(&resource_rs.get())
-                            .unwrap_or(&vec![])
-                            .to_owned()
-                        on_select=move |selected: String| {
-                            action_rws.set(selected);
+                        dropdown_options
+                        on_select=move |selected: ResourceActionType| {
+                            action_rws.set(Some(selected));
                         }
                     />
                 }
@@ -143,11 +169,14 @@ impl DropdownOption for Resource {
 #[component]
 fn PolicyViewer(
     authz_scope: StoredValue<AuthzScope>,
-    resource_action_map_resource: LeptosResource<(), HashMap<Resource, Vec<String>>>,
+    resource_action_map_resource: LeptosResource<
+        (),
+        HashMap<Resource, Vec<ResourceActionType>>,
+    >,
 ) -> impl IntoView {
     let p_sub = RwSignal::new(String::new());
     let p_obj = RwSignal::new(Resource::Config);
-    let p_act = RwSignal::new(String::new());
+    let p_act = RwSignal::new(None as Option<ResourceActionType>);
     let p_attr = RwSignal::new(String::from("*"));
 
     let columns = StoredValue::new(policy_columns());
@@ -180,14 +209,14 @@ fn PolicyViewer(
 
     let add_policy_action = create_action(move |_| async move {
         let sub = p_sub.get_untracked().trim().to_string();
-        let act = p_act.get_untracked().trim().to_string();
+        let act = p_act.get_untracked();
 
         if sub.is_empty() {
             return Err("Subject is required".to_string());
         }
-        if act.is_empty() {
+        let Some(act) = act else {
             return Err("Action is required".to_string());
-        }
+        };
 
         let attr = p_attr.get_untracked().trim().to_string();
         casbin::add_policy(
@@ -253,6 +282,7 @@ fn PolicyViewer(
                             resource_action_map_resource
                             action_rws=p_act
                             resource_rs=p_obj
+                            allow_group=true
                         />
                     </div>
 
@@ -455,10 +485,13 @@ fn domain_resource_action_group_columns() -> Vec<Column> {
 #[component]
 fn DomainResourceActionGroupViewer(
     authz_scope: StoredValue<AuthzScope>,
-    resource_action_map_resource: LeptosResource<(), HashMap<Resource, Vec<String>>>,
+    resource_action_map_resource: LeptosResource<
+        (),
+        HashMap<Resource, Vec<ResourceActionType>>,
+    >,
 ) -> impl IntoView {
     let g2_resource = RwSignal::new(Resource::DefaultConfig);
-    let g2_action = RwSignal::new(String::new());
+    let g2_action = RwSignal::new(None as Option<ResourceActionType>);
     let g2_action_group = RwSignal::new(String::new());
 
     let columns = StoredValue::new(domain_resource_action_group_columns());
@@ -487,12 +520,12 @@ fn DomainResourceActionGroupViewer(
 
     let add_action_group_action = create_action({
         move |_| async move {
-            let action = g2_action.get_untracked().trim().to_string();
+            let action = g2_action.get_untracked();
             let action_group = g2_action_group.get_untracked().trim().to_string();
 
-            if action.is_empty() {
+            let Some(action) = action else {
                 return Err("Action is required (e.g. create)".to_string());
-            }
+            };
             if action_group.is_empty() {
                 return Err("Action group is required (e.g. write)".to_string());
             }
@@ -500,7 +533,7 @@ fn DomainResourceActionGroupViewer(
             casbin::add_domain_action_group(
                 ActionGroupPolicyRequest {
                     resource: g2_resource.get_untracked(),
-                    action,
+                    action: action.get_name().to_string(),
                     action_group,
                 },
                 authz_scope.get_value(),
@@ -609,10 +642,13 @@ fn resource_action_group_columns() -> Vec<Column> {
 
 #[component]
 fn ResourceActionGroupViewer(
-    resource_action_map_resource: LeptosResource<(), HashMap<Resource, Vec<String>>>,
+    resource_action_map_resource: LeptosResource<
+        (),
+        HashMap<Resource, Vec<ResourceActionType>>,
+    >,
 ) -> impl IntoView {
     let g3_resource = RwSignal::new(Resource::DefaultConfig);
-    let g3_action = RwSignal::new(String::new());
+    let g3_action = RwSignal::new(None as Option<ResourceActionType>);
     let g3_action_group = RwSignal::new(String::new());
 
     let columns = StoredValue::new(resource_action_group_columns());
@@ -637,19 +673,19 @@ fn ResourceActionGroupViewer(
 
     let add_action_group_action = create_action({
         move |_| async move {
-            let action = g3_action.get_untracked().trim().to_string();
+            let action = g3_action.get_untracked();
             let action_group = g3_action_group.get_untracked().trim().to_string();
 
-            if action.is_empty() {
+            let Some(action) = action else {
                 return Err("Action is required (e.g. create)".to_string());
-            }
+            };
             if action_group.is_empty() {
                 return Err("Action group is required (e.g. write)".to_string());
             }
 
             casbin::add_action_group(ActionGroupPolicyRequest {
                 resource: g3_resource.get_untracked(),
-                action,
+                action: action.get_name().to_string(),
                 action_group,
             })
             .await?;
@@ -768,10 +804,12 @@ pub fn AuthzEditor(
                     }
                     AuthzScope::Org(_) | AuthzScope::Workspace(_, _) => {
                         view! {
-                            <DomainResourceActionGroupViewer
-                                resource_action_map_resource
-                                authz_scope
-                            />
+                            <Show when=move || false>
+                                <DomainResourceActionGroupViewer
+                                    resource_action_map_resource
+                                    authz_scope
+                                />
+                            </Show>
                         }
                     }
                 }}

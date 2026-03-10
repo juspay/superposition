@@ -7,7 +7,7 @@ use casbin::{CoreApi, Enforcer, MgmtApi};
 use chrono::{DateTime, Utc};
 use diesel_adapter::DieselAdapter;
 use futures_util::future::LocalBoxFuture;
-use superposition_types::{Resource, User};
+use superposition_types::{Resource, User, api::authz::ResourceActionType};
 use tokio::sync::RwLock;
 
 use crate::{
@@ -174,7 +174,7 @@ impl CasbinPolicyEngine {
         &self,
         enforcer: &Enforcer,
         domain: AuthZDomain,
-    ) -> HashMap<Resource, HashSet<String>> {
+    ) -> HashMap<Resource, HashSet<ResourceActionType>> {
         let mut resp = self.get_source_resource_action_map();
 
         let mut helper_fn = |res_act_pair: &str, group: &str| {
@@ -185,7 +185,9 @@ impl CasbinPolicyEngine {
                 return;
             };
 
-            resp.entry(resource).or_default().insert(group.to_string());
+            resp.entry(resource)
+                .or_default()
+                .insert(ResourceActionType::Group(group.to_string()));
         };
 
         for group_policy in Self::list_root_action_groups(enforcer) {

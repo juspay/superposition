@@ -13,8 +13,9 @@ use superposition_derives::{authorized, declare_resource};
 use superposition_macros::unexpected_error;
 use superposition_types::{
     Resource,
-    api::authz::casbin::{
-        ActionGroupPolicyRequest, GroupingPolicyRequest, PolicyRequest,
+    api::authz::{
+        ResourceActionType,
+        casbin::{ActionGroupPolicyRequest, GroupingPolicyRequest, PolicyRequest},
     },
     database::superposition_schema::superposition::{organisations, workspaces},
     result as superposition,
@@ -98,7 +99,11 @@ async fn add_policy_handler(
                 .get(&body.obj)
                 .and_then(|actions| actions.contains(&body.act).then_some(()))
                 .ok_or_else(|| {
-                    format!("Invalid resource-action pair: {}:{}", body.obj, body.act)
+                    format!(
+                        "Invalid resource-action pair: {}:{}",
+                        body.obj,
+                        body.act.get_name()
+                    )
                 })?;
 
             enforcer
@@ -106,7 +111,7 @@ async fn add_policy_handler(
                     body.sub,
                     domain.to_string(),
                     body.obj.to_string(),
-                    body.act,
+                    body.act.get_name().to_string(),
                     body.attr.unwrap_or("*".to_string()),
                 ])
                 .await
@@ -138,7 +143,7 @@ async fn delete_policy_handler(
                     body.sub,
                     domain.to_string(),
                     body.obj.to_string(),
-                    body.act,
+                    body.act.get_name().to_string(),
                     body.attr.unwrap_or("*".to_string()),
                 ])
                 .await
@@ -420,14 +425,18 @@ async fn list_action_group_handler(
 async fn list_resource_action_map_handler(
     data: Data<AuthZManager>,
     domain: AuthZDomain,
-) -> superposition::Result<Json<HashMap<Resource, Vec<String>>>> {
+) -> superposition::Result<Json<HashMap<Resource, Vec<ResourceActionType>>>> {
     let data = data.try_get_casbin_policy_engine()?;
     let map = data
         .enforcer(async |enforcer| {
             Ok(data
                 .get_resource_action_map(enforcer, domain)
                 .into_iter()
-                .map(|(k, v)| (k, v.into_iter().collect::<Vec<_>>()))
+                .map(|(k, v)| {
+                    let mut list = v.into_iter().collect::<Vec<_>>();
+                    list.sort();
+                    (k, list)
+                })
                 .collect::<HashMap<_, _>>())
         })
         .await

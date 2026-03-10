@@ -31,8 +31,9 @@ pub mod casbin {
 
     use superposition_types::{
         Resource,
-        api::authz::casbin::{
-            ActionGroupPolicyRequest, GroupingPolicyRequest, PolicyRequest,
+        api::authz::{
+            ResourceActionType,
+            casbin::{ActionGroupPolicyRequest, GroupingPolicyRequest, PolicyRequest},
         },
     };
 
@@ -158,7 +159,7 @@ pub mod casbin {
 
     pub async fn get_resource_action_map(
         scope: AuthzScope,
-    ) -> Result<HashMap<Resource, Vec<String>>, String> {
+    ) -> Result<HashMap<Resource, Vec<ResourceActionType>>, String> {
         let (url, headers) = casbin_url_and_headers("resource-action-map", scope)?;
 
         let response = request(url, reqwest::Method::GET, None::<()>, headers).await?;
