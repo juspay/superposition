@@ -108,11 +108,11 @@ async fn add_policy_handler(
 
             enforcer
                 .add_policy(vec![
-                    body.sub,
+                    body.sub.into_inner(),
                     domain.to_string(),
                     body.obj.to_string(),
                     body.act.get_name().to_string(),
-                    body.attr.unwrap_or("*".to_string()),
+                    body.attr.map(|a| a.into_inner()).unwrap_or("*".to_string()),
                 ])
                 .await
                 .map_err(|e| e.to_string())
@@ -140,11 +140,11 @@ async fn delete_policy_handler(
         .enforcer_mut(async |enforcer| {
             enforcer
                 .remove_policy(vec![
-                    body.sub,
+                    body.sub.into_inner(),
                     domain.to_string(),
                     body.obj.to_string(),
                     body.act.get_name().to_string(),
-                    body.attr.unwrap_or("*".to_string()),
+                    body.attr.map(|a| a.into_inner()).unwrap_or("*".to_string()),
                 ])
                 .await
                 .map_err(|e| e.to_string())
@@ -195,7 +195,11 @@ async fn add_roles_handler(
         .enforcer_mut(async |enforcer| {
             enforcer
                 // g = user, role, dom
-                .add_grouping_policy(vec![body.user, body.role, domain.to_string()])
+                .add_grouping_policy(vec![
+                    body.user.into_inner(),
+                    body.role.into_inner(),
+                    domain.to_string(),
+                ])
                 .await
                 .map_err(|e| e.to_string())
         })
@@ -221,7 +225,11 @@ async fn delete_roles_handler(
     let removed = data
         .enforcer_mut(async |enforcer| {
             enforcer
-                .remove_grouping_policy(vec![body.user, body.role, domain.to_string()])
+                .remove_grouping_policy(vec![
+                    body.user.into_inner(),
+                    body.role.into_inner(),
+                    domain.to_string(),
+                ])
                 .await
                 .map_err(|e| e.to_string())
         })
@@ -274,9 +282,9 @@ async fn add_domain_action_group_handler(
                 .add_named_grouping_policy(
                     "g2",
                     vec![
-                        format!("{}:{}", body.resource, body.action),
+                        format!("{}:{}", body.resource, body.action.into_inner()),
                         domain.to_string(),
-                        body.action_group,
+                        body.action_group.into_inner(),
                     ],
                 )
                 .await
@@ -307,9 +315,9 @@ async fn delete_domain_action_group_handler(
                 .remove_named_grouping_policy(
                     "g2",
                     vec![
-                        format!("{}:{}", body.resource, body.action),
+                        format!("{}:{}", body.resource, body.action.into_inner()),
                         domain.to_string(),
-                        body.action_group,
+                        body.action_group.into_inner(),
                     ],
                 )
                 .await
@@ -357,8 +365,8 @@ async fn add_action_group_handler(
                 .add_named_grouping_policy(
                     "g3",
                     vec![
-                        format!("{}:{}", body.resource, body.action),
-                        body.action_group,
+                        format!("{}:{}", body.resource, body.action.into_inner()),
+                        body.action_group.into_inner(),
                     ],
                 )
                 .await
@@ -388,8 +396,8 @@ async fn delete_action_group_handler(
                 .remove_named_grouping_policy(
                     "g3",
                     vec![
-                        format!("{}:{}", body.resource, body.action),
-                        body.action_group,
+                        format!("{}:{}", body.resource, body.action.into_inner()),
+                        body.action_group.into_inner(),
                     ],
                 )
                 .await

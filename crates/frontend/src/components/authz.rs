@@ -9,6 +9,7 @@ use superposition_types::{
         ResourceActionType,
         casbin::{ActionGroupPolicyRequest, GroupingPolicyRequest, PolicyRequest},
     },
+    database::models::NonEmptyString,
 };
 
 use crate::{
@@ -213,9 +214,8 @@ fn PolicyViewer(
         let sub = p_sub.get_untracked().trim().to_string();
         let act = p_act.get_untracked();
 
-        if sub.is_empty() {
-            return Err("Subject is required".to_string());
-        }
+        let sub = NonEmptyString::try_from(sub)
+            .map_err(|_| "Subject is required".to_string())?;
         let Some(act) = act else {
             return Err("Action is required".to_string());
         };
@@ -226,11 +226,10 @@ fn PolicyViewer(
                 sub,
                 obj: p_obj.get_untracked(),
                 act,
-                attr: Some(if attr.is_empty() {
-                    "*".to_string()
-                } else {
-                    attr
-                }),
+                attr: Some(
+                    NonEmptyString::try_from(attr)
+                        .or_else(|_| NonEmptyString::try_from("*".to_string()))?,
+                ),
             },
             authz_scope.get_value(),
         )
@@ -387,12 +386,10 @@ fn RolePolicyViewer(authz_scope: StoredValue<AuthzScope>) -> impl IntoView {
         move |_| async move {
             let user = g_user.get_untracked().trim().to_string();
             let role = g_role.get_untracked().trim().to_string();
-            if user.is_empty() {
-                return Err("User is required".to_string());
-            }
-            if role.is_empty() {
-                return Err("Role is required".to_string());
-            }
+            let user = NonEmptyString::try_from(user)
+                .map_err(|_| "User is required".to_string())?;
+            let role = NonEmptyString::try_from(role)
+                .map_err(|_| "Role is required".to_string())?;
 
             casbin::add_role(
                 GroupingPolicyRequest { user, role },
@@ -532,14 +529,14 @@ fn DomainResourceActionGroupViewer(
             let Some(action) = action else {
                 return Err("Action is required (e.g. create)".to_string());
             };
-            if action_group.is_empty() {
-                return Err("Action group is required (e.g. write)".to_string());
-            }
+            let action_group = NonEmptyString::try_from(action_group)
+                .map_err(|_| "Action group is required (e.g. write)".to_string())?;
 
             casbin::add_domain_action_group(
                 ActionGroupPolicyRequest {
                     resource: g2_resource.get_untracked(),
-                    action: action.get_name().to_string(),
+                    action: NonEmptyString::try_from(action.get_name().to_string())
+                        .map_err(|_| "Invalid action".to_string())?,
                     action_group,
                 },
                 authz_scope.get_value(),
@@ -687,13 +684,13 @@ fn ResourceActionGroupViewer(
             let Some(action) = action else {
                 return Err("Action is required (e.g. create)".to_string());
             };
-            if action_group.is_empty() {
-                return Err("Action group is required (e.g. write)".to_string());
-            }
+            let action_group = NonEmptyString::try_from(action_group)
+                .map_err(|_| "Action group is required (e.g. write)".to_string())?;
 
             casbin::add_action_group(ActionGroupPolicyRequest {
                 resource: g3_resource.get_untracked(),
-                action: action.get_name().to_string(),
+                action: NonEmptyString::try_from(action.get_name().to_string())
+                    .map_err(|_| "Invalid action".to_string())?,
                 action_group,
             })
             .await?;

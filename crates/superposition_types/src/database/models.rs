@@ -368,6 +368,16 @@ impl<'de> Deserialize<'de> for Metrics {
 #[cfg_attr(feature = "diesel_derives", diesel(sql_type = Text))]
 pub struct NonEmptyString(String);
 
+impl NonEmptyString {
+    pub fn inner(&self) -> &str {
+        &self.0
+    }
+
+    pub fn into_inner(self) -> String {
+        self.0
+    }
+}
+
 impl Default for NonEmptyString {
     fn default() -> Self {
         Self(String::from("String not provided"))
