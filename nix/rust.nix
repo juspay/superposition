@@ -31,7 +31,8 @@
                 lib.hasSuffix ".toml" path
                 && !lib.hasSuffix "Cargo.toml" path
                 && !lib.hasSuffix "cbindgen.toml" path
-              );
+              )
+              || lib.hasSuffix ".conf" path;
           in
           lib.cleanSourceWith {
             src = inputs.self;

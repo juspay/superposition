@@ -220,7 +220,7 @@ describe("Experiment Groups API Integration Tests", () => {
         };
 
         const cmd = new UpdateWorkspaceCommand(input);
-        const response = await client.send(cmd);
+        await client.send(cmd);
     }
 
     async function removeMandatoryDimension(client: SuperpositionClient) {
@@ -232,7 +232,7 @@ describe("Experiment Groups API Integration Tests", () => {
         };
 
         const cmd = new UpdateWorkspaceCommand(input);
-        const response = await client.send(cmd);
+        await client.send(cmd);
     }
 
     setDefaultTimeout(120000);
@@ -511,7 +511,7 @@ describe("Experiment Groups API Integration Tests", () => {
                 name: groupName,
                 member_experiment_ids: [expValid1Id, expInvalidInProgressId],
             };
-            expect(
+            await expect(
                 superpositionClient.send(
                     new CreateExperimentGroupCommand(input),
                 ),
@@ -527,7 +527,7 @@ describe("Experiment Groups API Integration Tests", () => {
                 name: groupName,
                 member_experiment_ids: [expValid1Id, expInvalidContextId],
             };
-            expect(
+            await expect(
                 superpositionClient.send(
                     new CreateExperimentGroupCommand(input),
                 ),
@@ -542,7 +542,7 @@ describe("Experiment Groups API Integration Tests", () => {
                 member_experiment_ids: [],
             } as any;
             delete input.name;
-            expect(
+            await expect(
                 superpositionClient.send(
                     new CreateExperimentGroupCommand(input),
                 ),
@@ -557,7 +557,7 @@ describe("Experiment Groups API Integration Tests", () => {
                 traffic_percentage: 101,
                 member_experiment_ids: [],
             };
-            expect(
+            await expect(
                 superpositionClient.send(
                     new CreateExperimentGroupCommand(input),
                 ),
@@ -581,7 +581,7 @@ describe("Experiment Groups API Integration Tests", () => {
         });
 
         test("should fail to get a non-existent experiment group", async () => {
-            expect(
+            await expect(
                 superpositionClient.send(
                     new GetExperimentGroupCommand({
                         workspace_id: ENV.workspace_id,
@@ -648,7 +648,7 @@ describe("Experiment Groups API Integration Tests", () => {
                 traffic_percentage: 50,
                 change_reason: "Updating non-existent group",
             };
-            expect(
+            await expect(
                 superpositionClient.send(
                     new UpdateExperimentGroupCommand(input),
                 ),
@@ -700,7 +700,7 @@ describe("Experiment Groups API Integration Tests", () => {
                 member_experiment_ids: [expInvalidInProgressId],
                 change_reason: "Attempting to add invalid member",
             };
-            expect(
+            await expect(
                 superpositionClient.send(new AddMembersToGroupCommand(input)),
             ).rejects.toThrow(
                 `The following experiment IDs are not present in the database/are not in the created stage: ${expInvalidInProgressId}`,
@@ -715,7 +715,7 @@ describe("Experiment Groups API Integration Tests", () => {
                 member_experiment_ids: [],
                 change_reason: "Adding to non-existent group",
             };
-            expect(
+            await expect(
                 superpositionClient.send(new AddMembersToGroupCommand(input)),
             ).rejects.toThrow(
                 "Please provide at least one experiment ID to add to the group",
@@ -774,7 +774,7 @@ describe("Experiment Groups API Integration Tests", () => {
                 member_experiment_ids: [nonExistentId],
                 change_reason: "Removing non-existent member",
             };
-            expect(
+            await expect(
                 superpositionClient.send(
                     new RemoveMembersFromGroupCommand(removeInput),
                 ),
@@ -791,7 +791,7 @@ describe("Experiment Groups API Integration Tests", () => {
                 change_reason: "Test",
                 member_experiment_ids: ["999"],
             };
-            expect(
+            await expect(
                 superpositionClient.send(
                     new RemoveMembersFromGroupCommand(input),
                 ),
@@ -878,7 +878,7 @@ describe("Experiment Groups API Integration Tests", () => {
         });
 
         test("should fail to delete a group with active members", async () => {
-            expect(
+            await expect(
                 superpositionClient.send(
                     new DeleteExperimentGroupCommand({
                         workspace_id: ENV.workspace_id,
@@ -892,7 +892,7 @@ describe("Experiment Groups API Integration Tests", () => {
         });
 
         test("should fail to delete a non-existent group", async () => {
-            expect(
+            await expect(
                 superpositionClient.send(
                     new DeleteExperimentGroupCommand({
                         workspace_id: ENV.workspace_id,

@@ -615,7 +615,7 @@ describe("Experiments API", () => {
                 description: defaultDescription,
                 change_reason: defaultChangeReason,
             });
-            expect(
+            await expect(
                 superpositionClient.send(createFailingTest),
             ).rejects.toThrow();
 
@@ -683,7 +683,7 @@ describe("Experiments API", () => {
                 traffic_percentage: 50, // Example ramp percentage
                 change_reason: "Testing auto-populate control ramp",
             });
-            expect(superpositionClient.send(rampCmd)).rejects.toThrow();
+            await expect(superpositionClient.send(rampCmd)).rejects.toThrow();
 
             const updatedVariants: VariantUpdateRequest[] =
                 expResponse.variants?.map((variant, index) => ({
@@ -897,7 +897,7 @@ describe("Experiments API", () => {
             if (experimentGroupId) {
                 try {
                     console.log("Checking if experiment group is deleted...");
-                    expect(
+                    await expect(
                         superpositionClient.send(
                             new GetExperimentGroupCommand({
                                 workspace_id: ENV.workspace_id,
@@ -1193,7 +1193,7 @@ describe("Experiments API", () => {
         if (experimentGroupId) {
             try {
                 console.log("Checking if experiment group is deleted...");
-                expect(
+                await expect(
                     superpositionClient.send(
                         new GetExperimentGroupCommand({
                             workspace_id: ENV.workspace_id,

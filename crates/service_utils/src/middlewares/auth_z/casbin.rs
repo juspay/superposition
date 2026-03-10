@@ -131,18 +131,16 @@ impl CasbinPolicyEngine {
             .await
             .map_err(|e| e.to_string())?;
 
-        if !policy_added {
-            return Ok(false);
-        }
-
-        enforcer
+        let grouping_added = enforcer
             .add_grouping_policy(vec![
                 org_admin_email.to_string(),
                 "admin".to_string(),
                 org_schema,
             ])
             .await
-            .map_err(|e| e.to_string())
+            .map_err(|e| e.to_string())?;
+
+        Ok(policy_added || grouping_added)
     }
 
     async fn add_workspace_admin(

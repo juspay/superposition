@@ -27,7 +27,7 @@ use service_utils::{
     helpers::{get_from_env_or_default, get_from_env_unsafe},
     middlewares::{
         auth_n::AuthNHandler,
-        auth_z::{AuthZHandler, AuthZManager, get_auth_z_provider},
+        auth_z::{AuthZHandler, AuthZManager, is_auth_z_enabled},
         request_response_logging::RequestResponseLogger,
         workspace_context::OrgWorkspaceMiddlewareFactory,
     },
@@ -114,7 +114,7 @@ async fn main() -> Result<()> {
     let ui_envs = UIEnvs {
         service_prefix: service_prefix_str,
         host: get_from_env_or_default("API_HOSTNAME", String::new()),
-        auth_z: get_auth_z_provider().as_str() != "DISABLED",
+        auth_z: is_auth_z_enabled(),
     };
 
     let routes_ui_envs = ui_envs.clone();

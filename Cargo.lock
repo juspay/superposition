@@ -5847,9 +5847,7 @@ dependencies = [
 name = "superposition_derives"
 version = "0.99.2"
 dependencies = [
- "inventory",
  "proc-macro-crate",
- "proc-macro2",
  "quote",
  "syn 2.0.103",
 ]

@@ -729,10 +729,7 @@ fn ResourceActionGroupViewer(
                         />
                     </div>
                     <div class="form-control">
-                        <Label
-                            title="Action or Action Group"
-                            description="Custom action groups can also be used"
-                        />
+                        <Label title="Action" description="Custom action groups can also be used" />
                         <ActionDropdown
                             resource_action_map_resource
                             action_rws=g3_action

@@ -23,6 +23,30 @@ pub fn use_side_nav_collapsed() -> RwSignal<NavState> {
     use_context::<RwSignal<NavState>>().unwrap()
 }
 
+fn create_org_routes(org: &str) -> Vec<AppRoute> {
+    let base = use_url_base();
+    let envs = use_context::<Envs>().unwrap();
+    let default_routes = vec![AppRoute {
+        key: format!("{base}/admin/{org}/workspaces"),
+        path: format!("{base}/admin/{org}/workspaces"),
+        icon: "ri-briefcase-line".to_string(),
+        label: "Workspaces".to_string(),
+    }];
+
+    let authz_route = vec![AppRoute {
+        key: format!("{base}/admin/{org}/org-authz"),
+        path: format!("{base}/admin/{org}/org-authz"),
+        icon: "ri-lock-2-line".to_string(),
+        label: "Authorization Settings".to_string(),
+    }];
+
+    [Some(default_routes), envs.auth_z.then_some(authz_route)]
+        .into_iter()
+        .flatten()
+        .flatten()
+        .collect()
+}
+
 fn create_routes(org: &str, workspace: &str) -> Vec<AppRoute> {
     let base = use_url_base();
     let envs = use_context::<Envs>().unwrap();
@@ -287,7 +311,9 @@ pub fn NavItem(
 #[component]
 pub fn NavComponent(
     is_placeholder: bool,
-    workspace_resource: Resource<String, PaginatedResponse<WorkspaceResponse>>,
+    #[prop(optional)] workspace_resource: Option<
+        Resource<String, PaginatedResponse<WorkspaceResponse>>,
+    >,
     app_routes: Signal<Vec<AppRoute>>,
     collapsed_rws: RwSignal<NavState>,
 ) -> impl IntoView {
@@ -325,7 +351,12 @@ pub fn NavComponent(
                         on:click=move |_| collapsed_rws.update(|v| **v = !**v)
                     />
                 </div>
-                <WorkspaceSelector workspace_resource app_routes />
+                {match workspace_resource {
+                    Some(workspace_resource) => {
+                        view! { <WorkspaceSelector workspace_resource app_routes /> }
+                    }
+                    None => ().into_view(),
+                }}
                 <ul class="menu flex-1 h-full w-fit xl:w-full xl:group-[.collapsed]:w-fit max-xl:group-hover:w-full !py-0 !px-2 flex-nowrap gap-1 overflow-y-auto">
                     {move || {
                         let pathname = location.pathname.get();
@@ -374,97 +405,6 @@ pub fn SideNav(
     }
 }
 
-fn create_org_routes(org: &str) -> Vec<AppRoute> {
-    let base = use_url_base();
-    let envs = use_context::<Envs>().unwrap();
-    let default_routes = vec![AppRoute {
-        key: format!("{base}/admin/{org}/workspaces"),
-        path: format!("{base}/admin/{org}/workspaces"),
-        icon: "ri-briefcase-line".to_string(),
-        label: "Workspaces".to_string(),
-    }];
-
-    let authz_route = vec![AppRoute {
-        key: format!("{base}/admin/{org}/org-authz"),
-        path: format!("{base}/admin/{org}/org-authz"),
-        icon: "ri-lock-2-line".to_string(),
-        label: "Authorization Settings".to_string(),
-    }];
-
-    [Some(default_routes), envs.auth_z.then_some(authz_route)]
-        .into_iter()
-        .flatten()
-        .flatten()
-        .collect()
-}
-
-#[component]
-pub fn OrgNavComponent(
-    is_placeholder: bool,
-    app_routes: Signal<Vec<AppRoute>>,
-    collapsed_rws: RwSignal<NavState>,
-) -> impl IntoView {
-    let location = use_location();
-    let base = use_url_base();
-
-    move || {
-        let placeholder_class = if is_placeholder {
-            "max-xl:opacity-0 xl:hidden".to_string()
-        } else {
-            let collapsed = if *collapsed_rws.get() {
-                "collapsed"
-            } else {
-                ""
-            };
-            format!("group max-xl:fixed max-xl:z-[999] {collapsed}")
-        };
-
-        view! {
-            <nav
-                aria-hidden=is_placeholder.to_string()
-                class=format!(
-                    "{placeholder_class} h-full max-xl:min-w-fit xl:[&.collapsed]:min-w-fit xl:[&.collapsed]:w-[unset] xl:w-full max-xl:hover:w-full max-w-xs pl-2 xl:pl-4 max-xl:hover:pl-4 xl:[&.collapsed]:pl-2 py-2 max-xl:pr-2 xl:[&.collapsed]:pr-2 flex flex-col gap-2 overflow-x-visible bg-gray-50 max-xl:hover:rounded-r-xl max-xl:[&.group]:shadow-lg xl:[&.collapsed]:shadow-lg transition-all duration-500",
-                )
-            >
-                <div class="h-[84px] px-4 py-2 flex items-center justify-center gap-8">
-                    <A
-                        href=format!("{base}/admin")
-                        class="max-xl:hidden max-xl:group-hover:block xl:group-[.collapsed]:hidden text-sm font-semibold text-center text-slate-700 whitespace-nowrap"
-                    >
-                        Superposition Platform
-                    </A>
-                    <i
-                        class="ri-menu-line ri-xl h-10 w-fit px-2 xl:group-[.collapsed]:flex max-xl:group-hover:hidden flex justify-center items-center border-2 border-solid max-xl:border-transparent xl:hover:border-gray-400 rounded-lg cursor-pointer"
-                        on:click=move |_| collapsed_rws.update(|v| **v = !**v)
-                    />
-                </div>
-                <ul class="menu flex-1 h-full w-fit xl:w-full xl:group-[.collapsed]:w-fit max-xl:group-hover:w-full !py-0 !px-2 flex-nowrap gap-1 overflow-y-auto">
-                    {move || {
-                        let pathname = location.pathname.get();
-                        app_routes
-                            .get()
-                            .into_iter()
-                            .map(|route| {
-                                let is_active = pathname.contains(&route.path);
-                                view! {
-                                    <li class="w-full">
-                                        <NavItem
-                                            href=route.path.to_string()
-                                            icon=route.icon.to_string()
-                                            text=route.label.to_string()
-                                            is_active
-                                        />
-                                    </li>
-                                }
-                            })
-                            .collect_view()
-                    }}
-                </ul>
-            </nav>
-        }
-    }
-}
-
 #[component]
 pub fn OrgSideNav() -> impl IntoView {
     let collapsed_rws = use_side_nav_collapsed();
@@ -472,11 +412,11 @@ pub fn OrgSideNav() -> impl IntoView {
     let app_routes = Signal::derive(move || create_org_routes(&org.get().0));
 
     view! {
-        <OrgNavComponent
+        <NavComponent
             is_placeholder=true
             collapsed_rws=RwSignal::new(NavState::default())
             app_routes
         />
-        <OrgNavComponent is_placeholder=false collapsed_rws app_routes />
+        <NavComponent is_placeholder=false collapsed_rws app_routes />
     }
 }

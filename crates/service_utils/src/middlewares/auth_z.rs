@@ -123,8 +123,12 @@ where
 #[derive(Clone, Deref)]
 pub struct AuthZHandler(Arc<dyn Authorizer>);
 
-pub fn get_auth_z_provider() -> String {
+fn get_auth_z_provider() -> String {
     get_from_env_unsafe("AUTH_Z_PROVIDER").unwrap()
+}
+
+pub fn is_auth_z_enabled() -> bool {
+    get_auth_z_provider().as_str() != "DISABLED"
 }
 
 impl AuthZHandler {

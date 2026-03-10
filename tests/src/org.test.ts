@@ -24,7 +24,7 @@ describe("Organisation Tests", () => {
                 createdOrgId = response.id ?? "";
             } catch (e: any) {
                 console.error(
-                    `Error creating organisation due to ${e.message}`
+                    `Error creating organisation due to ${e.message}`,
                 );
                 expect(true).toBe(false);
             }
@@ -36,8 +36,10 @@ describe("Organisation Tests", () => {
                 name: "",
             });
 
-            expect(superpositionClient.send(createCommand)).rejects.toThrow(
-                /JSON Parse error: Unexpected identifier \"Json\"/
+            await expect(
+                superpositionClient.send(createCommand),
+            ).rejects.toThrow(
+                /JSON Parse error: Unexpected identifier \"Json\"/,
             );
         });
 
@@ -80,8 +82,8 @@ describe("Organisation Tests", () => {
                 id: "non-existent-id",
             });
 
-            expect(superpositionClient.send(getCommand)).rejects.toThrow(
-                "No records found. Please refine or correct your search parameters"
+            await expect(superpositionClient.send(getCommand)).rejects.toThrow(
+                "No records found. Please refine or correct your search parameters",
             );
         });
 
@@ -90,8 +92,8 @@ describe("Organisation Tests", () => {
                 id: "invalid-uuid-format",
             });
 
-            expect(superpositionClient.send(getCommand)).rejects.toThrow(
-                "No records found. Please refine or correct your search parameters"
+            await expect(superpositionClient.send(getCommand)).rejects.toThrow(
+                "No records found. Please refine or correct your search parameters",
             );
         });
 
@@ -100,8 +102,8 @@ describe("Organisation Tests", () => {
                 id: "",
             });
 
-            expect(superpositionClient.send(getCommand)).rejects.toThrow(
-                "Empty value provided for input HTTP label: id."
+            await expect(superpositionClient.send(getCommand)).rejects.toThrow(
+                "Empty value provided for input HTTP label: id.",
             );
         });
     });
@@ -115,7 +117,7 @@ describe("Organisation Tests", () => {
                 expect(Array.isArray(response.data)).toBe(true);
                 expect(response.data?.length).toBeGreaterThan(0);
                 const createdOrg = response.data?.find(
-                    (org: any) => org.id === createdOrgId
+                    (org: any) => org.id === createdOrgId,
                 );
                 expect(createdOrg).toBeDefined();
                 expect(createdOrg?.name).toBe(ORG_NAME);
@@ -148,8 +150,8 @@ describe("Organisation Tests", () => {
                 page: -1,
             });
 
-            expect(superpositionClient.send(listCommand)).rejects.toThrow(
-                "Query deserialize error: Page should be greater than 0."
+            await expect(superpositionClient.send(listCommand)).rejects.toThrow(
+                "Query deserialize error: Page should be greater than 0.",
             );
         });
 
@@ -159,8 +161,8 @@ describe("Organisation Tests", () => {
                 page: 0,
             });
 
-            expect(superpositionClient.send(listCommand)).rejects.toThrow(
-                "Query deserialize error: Count should be greater than 0."
+            await expect(superpositionClient.send(listCommand)).rejects.toThrow(
+                "Query deserialize error: Count should be greater than 0.",
             );
         });
     });
@@ -172,13 +174,12 @@ describe("Organisation Tests", () => {
                 admin_email: "updated-test@gmail.com",
             });
             try {
-                const updateResponse = await superpositionClient.send(
-                    updateCommand
-                );
+                const updateResponse =
+                    await superpositionClient.send(updateCommand);
                 expect(updateResponse).toBeDefined();
                 expect(updateResponse).toHaveProperty("id");
                 expect(updateResponse.admin_email).toBe(
-                    "updated-test@gmail.com"
+                    "updated-test@gmail.com",
                 );
                 const getCommand = new GetOrganisationCommand({
                     id: createdOrgId,
@@ -215,8 +216,10 @@ describe("Organisation Tests", () => {
                 admin_email: "test@gmail.com",
             });
 
-            expect(superpositionClient.send(updateCommand)).rejects.toThrow(
-                "No records found. Please refine or correct your search parameters"
+            await expect(
+                superpositionClient.send(updateCommand),
+            ).rejects.toThrow(
+                "No records found. Please refine or correct your search parameters",
             );
         });
 

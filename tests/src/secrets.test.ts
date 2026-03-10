@@ -39,7 +39,7 @@ describe("Secret Operations", () => {
             } catch (error: any) {
                 console.error(
                     `Failed to delete secret ${secretName}:`,
-                    error.message
+                    error.message,
                 );
             }
         }
@@ -58,7 +58,7 @@ describe("Secret Operations", () => {
             } catch (error: any) {
                 console.error(
                     `Failed to delete function ${funcName}:`,
-                    error.message
+                    error.message,
                 );
             }
         }
@@ -91,7 +91,6 @@ describe("Secret Operations", () => {
     });
 
     test("Get secret by Name", async () => {
-
         try {
             let secretName = "TEST_API_KEY_CREATE";
 
@@ -196,9 +195,8 @@ describe("Secret Operations", () => {
         });
 
         try {
-            const createResponse = await superpositionClient.send(
-                createCommand
-            );
+            const createResponse =
+                await superpositionClient.send(createCommand);
             const secretName = createResponse.name!;
 
             const deleteCommand = new DeleteSecretCommand({
@@ -216,8 +214,8 @@ describe("Secret Operations", () => {
                 name: secretName,
             });
 
-            expect(superpositionClient.send(getCommand)).rejects.toThrow(
-                "No records found"
+            await expect(superpositionClient.send(getCommand)).rejects.toThrow(
+                "No records found",
             );
         } catch (error: any) {
             console.log("Error testing delete:", error.message);
@@ -238,9 +236,8 @@ describe("Secret Operations", () => {
         });
 
         try {
-            const createResponse = await superpositionClient.send(
-                createCommand
-            );
+            const createResponse =
+                await superpositionClient.send(createCommand);
             trackSecret(createResponse.name!);
 
             // Try to create duplicate
@@ -253,9 +250,9 @@ describe("Secret Operations", () => {
                 change_reason: "Testing duplicate",
             });
 
-            expect(superpositionClient.send(duplicateCommand)).rejects.toThrow(
-                "duplicate key value violates unique constraint"
-            );
+            await expect(
+                superpositionClient.send(duplicateCommand),
+            ).rejects.toThrow("duplicate key value violates unique constraint");
         } catch (error: any) {
             console.log("Error testing duplicate prevention:", error.message);
             throw error;
@@ -269,8 +266,8 @@ describe("Secret Operations", () => {
             name: "NON_EXISTENT_secret",
         });
 
-        expect(superpositionClient.send(getCommand)).rejects.toThrow(
-            "No records found"
+        await expect(superpositionClient.send(getCommand)).rejects.toThrow(
+            "No records found",
         );
     });
 
@@ -283,8 +280,8 @@ describe("Secret Operations", () => {
             change_reason: "Testing update of non-existent secret",
         });
 
-        expect(superpositionClient.send(updateCommand)).rejects.toThrow(
-            "No records found"
+        await expect(superpositionClient.send(updateCommand)).rejects.toThrow(
+            "No records found",
         );
     });
 
@@ -295,8 +292,8 @@ describe("Secret Operations", () => {
             name: "NON_EXISTENT_secret",
         });
 
-        expect(superpositionClient.send(deleteCommand)).rejects.toThrow(
-            "No records found"
+        await expect(superpositionClient.send(deleteCommand)).rejects.toThrow(
+            "No records found",
         );
     });
 
@@ -310,8 +307,8 @@ describe("Secret Operations", () => {
             change_reason: "Testing empty name validation",
         });
 
-        expect(superpositionClient.send(command)).rejects.toThrow(
-            "Parse error"
+        await expect(superpositionClient.send(command)).rejects.toThrow(
+            "Parse error",
         );
     });
 
@@ -336,8 +333,8 @@ describe("Secret Operations", () => {
                 change_reason: "Testing invalid name pattern",
             });
 
-            expect(superpositionClient.send(command)).rejects.toThrow(
-                "Parse error"
+            await expect(superpositionClient.send(command)).rejects.toThrow(
+                "Parse error",
             );
         }
     });

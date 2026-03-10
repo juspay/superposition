@@ -35,7 +35,7 @@ describe("Default Config API Integration Tests", () => {
                         workspace_id: ENV.workspace_id,
                         org_id: ENV.org_id,
                         key,
-                    })
+                    }),
                 );
                 console.log(`Deleted config: ${key}`);
             } catch (error) {
@@ -51,13 +51,13 @@ describe("Default Config API Integration Tests", () => {
                         workspace_id: ENV.workspace_id,
                         org_id: ENV.org_id,
                         function_name: functionName,
-                    })
+                    }),
                 );
                 console.log(`Deleted function: ${functionName}`);
             } catch (error) {
                 console.error(
                     `Failed to delete function ${functionName}:`,
-                    error
+                    error,
                 );
             }
         }
@@ -93,7 +93,7 @@ describe("Default Config API Integration Tests", () => {
                 change_reason: "Initial creation",
                 runtime_version: FunctionRuntimeVersion.V1,
                 function_type: FunctionTypes.VALUE_VALIDATION,
-            })
+            }),
         );
         // Track created function
         createdFunctions.push("false_validation");
@@ -109,7 +109,7 @@ describe("Default Config API Integration Tests", () => {
                 change_reason: "Initial creation",
                 runtime_version: FunctionRuntimeVersion.V1,
                 function_type: FunctionTypes.VALUE_VALIDATION,
-            })
+            }),
         );
         // Track created function
         createdFunctions.push("true_function");
@@ -124,7 +124,7 @@ describe("Default Config API Integration Tests", () => {
                 change_reason: "Initial creation",
                 runtime_version: FunctionRuntimeVersion.V1,
                 function_type: FunctionTypes.VALUE_COMPUTE,
-            })
+            }),
         );
 
         createdFunctions.push("auto_fn");
@@ -136,7 +136,7 @@ describe("Default Config API Integration Tests", () => {
                 org_id: ENV.org_id,
                 function_name: "false_validation",
                 change_reason: "Publishing for testing",
-            })
+            }),
         );
 
         console.log("Publishing function true_function");
@@ -146,7 +146,7 @@ describe("Default Config API Integration Tests", () => {
                 org_id: ENV.org_id,
                 function_name: "true_function",
                 change_reason: "Publishing for testing",
-            })
+            }),
         );
 
         await superpositionClient.send(
@@ -155,7 +155,7 @@ describe("Default Config API Integration Tests", () => {
                 org_id: ENV.org_id,
                 function_name: "auto_fn",
                 change_reason: "Publishing for testing",
-            })
+            }),
         );
     }
 
@@ -206,8 +206,8 @@ describe("Default Config API Integration Tests", () => {
             };
 
             const cmd = new CreateDefaultConfigCommand(input);
-            expect(superpositionClient.send(cmd)).rejects.toThrow(
-                "Invalid JSON schema (failed to compile)"
+            await expect(superpositionClient.send(cmd)).rejects.toThrow(
+                "Invalid JSON schema (failed to compile)",
             );
         });
 
@@ -227,8 +227,8 @@ describe("Default Config API Integration Tests", () => {
             };
             const cmd = new CreateDefaultConfigCommand(input);
 
-            expect(superpositionClient.send(cmd)).rejects.toThrow(
-                "Schema cannot be empty."
+            await expect(superpositionClient.send(cmd)).rejects.toThrow(
+                "Schema cannot be empty.",
             );
         });
 
@@ -255,8 +255,8 @@ describe("Default Config API Integration Tests", () => {
             };
             const cmd = new CreateDefaultConfigCommand(input);
 
-            expect(superpositionClient.send(cmd)).rejects.toThrow(
-                "Schema validation failed: value is too small, minimum is 0"
+            await expect(superpositionClient.send(cmd)).rejects.toThrow(
+                "Schema validation failed: value is too small, minimum is 0",
             );
         });
 
@@ -279,8 +279,8 @@ describe("Default Config API Integration Tests", () => {
             };
 
             const cmd = new CreateDefaultConfigCommand(input);
-            expect(superpositionClient.send(cmd)).rejects.toThrow(
-                "Function false_validation validation failed for test-key-2 with error Error: The function did not return a value that was expected. Check the return type and logic of the function\n. "
+            await expect(superpositionClient.send(cmd)).rejects.toThrow(
+                "Function false_validation validation failed for test-key-2 with error Error: The function did not return a value that was expected. Check the return type and logic of the function\n. ",
             );
         });
 
@@ -327,8 +327,8 @@ describe("Default Config API Integration Tests", () => {
                 change_reason: "Test function validation",
             };
             const cmd = new CreateDefaultConfigCommand(input);
-            expect(superpositionClient.send(cmd)).rejects.toThrow(
-                "Function non_existent_function's published code does not exist."
+            await expect(superpositionClient.send(cmd)).rejects.toThrow(
+                "Function non_existent_function's published code does not exist.",
             );
         });
     });
@@ -427,8 +427,8 @@ describe("Default Config API Integration Tests", () => {
                 change_reason: "Update for testing",
             };
             const cmd = new UpdateDefaultConfigCommand(input);
-            expect(superpositionClient.send(cmd)).rejects.toThrow(
-                "No record found for non_existent_key. Use create endpoint instead."
+            await expect(superpositionClient.send(cmd)).rejects.toThrow(
+                "No record found for non_existent_key. Use create endpoint instead.",
             );
         });
 
@@ -444,8 +444,8 @@ describe("Default Config API Integration Tests", () => {
                 change_reason: "Update for testing",
             };
             const cmd = new UpdateDefaultConfigCommand(input);
-            expect(superpositionClient.send(cmd)).rejects.toThrow(
-                "Invalid JSON schema."
+            await expect(superpositionClient.send(cmd)).rejects.toThrow(
+                "Invalid JSON schema.",
             );
         });
 
@@ -472,8 +472,8 @@ describe("Default Config API Integration Tests", () => {
                 change_reason: "Update for testing",
             };
             const cmd = new UpdateDefaultConfigCommand(input);
-            expect(superpositionClient.send(cmd)).rejects.toThrow(
-                'Schema validation failed: required property `"email"` is missing'
+            await expect(superpositionClient.send(cmd)).rejects.toThrow(
+                'Schema validation failed: required property `"email"` is missing',
             );
         });
 
@@ -508,10 +508,10 @@ describe("Default Config API Integration Tests", () => {
             });
             expect(response.description).toBe("Updated configuration");
             expect(response.change_reason).toBe(
-                "Update function to new_function_name for testing"
+                "Update function to new_function_name for testing",
             );
             expect(response.value_validation_function_name).toBe(
-                "true_function"
+                "true_function",
             );
         });
     });
