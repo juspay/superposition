@@ -24,7 +24,7 @@ describe("Workspace API", () => {
             // Log response to see actual structure
             console.log(
                 "ListWorkspace response:",
-                JSON.stringify(response).slice(0, 200) + "..."
+                JSON.stringify(response).slice(0, 200) + "...",
             );
 
             expect(response).toBeDefined();
@@ -61,7 +61,7 @@ describe("Workspace API", () => {
         // Log response to see actual structure
         console.log(
             "CreateWorkspace response:",
-            JSON.stringify(response).slice(0, 200) + "..."
+            JSON.stringify(response).slice(0, 200) + "...",
         );
 
         expect(response).toBeDefined();
@@ -87,7 +87,7 @@ describe("Workspace API", () => {
             } else {
                 console.log(
                     "mandatory_dimensions is in a different format:",
-                    response.mandatory_dimensions
+                    response.mandatory_dimensions,
                 );
             }
         } else {
@@ -102,7 +102,7 @@ describe("Workspace API", () => {
         // Skip if create test failed
         if (!createdWorkspaceId) {
             console.warn(
-                "Skipping GetWorkspace test as workspace creation failed"
+                "Skipping GetWorkspace test as workspace creation failed",
             );
             return;
         }
@@ -121,7 +121,7 @@ describe("Workspace API", () => {
             // Log response to see actual structure
             console.log(
                 "ListWorkspace (for GetWorkspace) response:",
-                JSON.stringify(response).slice(0, 200) + "..."
+                JSON.stringify(response).slice(0, 200) + "...",
             );
 
             expect(response).toBeDefined();
@@ -129,7 +129,7 @@ describe("Workspace API", () => {
 
             // Find our workspace in the list
             const workspace = response.data?.find(
-                (w) => w.workspace_name === testWorkspaceName
+                (w) => w.workspace_name === testWorkspaceName,
             );
             expect(workspace).toBeDefined();
             expect(workspace?.workspace_name).toBe(testWorkspaceName);
@@ -146,7 +146,7 @@ describe("Workspace API", () => {
         // Skip if create test failed
         if (!createdWorkspaceId) {
             console.warn(
-                "Skipping UpdateWorkspace test as workspace creation failed"
+                "Skipping UpdateWorkspace test as workspace creation failed",
             );
             return;
         }
@@ -166,13 +166,13 @@ describe("Workspace API", () => {
             // Log response to see actual structure
             console.log(
                 "UpdateWorkspace response:",
-                JSON.stringify(response).slice(0, 200) + "..."
+                JSON.stringify(response).slice(0, 200) + "...",
             );
 
             expect(response).toBeDefined();
             expect(response.workspace_name).toBe(testWorkspaceName);
             expect(response.workspace_admin_email).toBe(
-                "updated-admin@example.com"
+                "updated-admin@example.com",
             );
             expect(response.workspace_status).toBe(WorkspaceStatus.ENABLED);
             expect(response.allow_experiment_self_approval).toBe(true);
@@ -193,7 +193,7 @@ describe("Workspace API", () => {
                 } else {
                     console.log(
                         "mandatory_dimensions is in a different format:",
-                        response.mandatory_dimensions
+                        response.mandatory_dimensions,
                     );
                 }
             }
@@ -207,7 +207,7 @@ describe("Workspace API", () => {
         // Skip if create test failed
         if (!createdWorkspaceId) {
             console.warn(
-                "Skipping verification test as workspace creation failed"
+                "Skipping verification test as workspace creation failed",
             );
             return;
         }
@@ -226,11 +226,11 @@ describe("Workspace API", () => {
 
         // Find our workspace in the list
         const workspace = response.data?.find(
-            (w) => w.workspace_name === testWorkspaceName
+            (w) => w.workspace_name === testWorkspaceName,
         );
         expect(workspace).toBeDefined();
         expect(workspace?.workspace_admin_email).toBe(
-            "updated-admin@example.com"
+            "updated-admin@example.com",
         );
 
         // Check mandatory_dimensions with flexible type handling
@@ -262,7 +262,7 @@ describe("Workspace API", () => {
         if (response.data) {
             for (const workspace of response.data) {
                 expect(workspace.workspace_status).toBe(
-                    WorkspaceStatus.ENABLED
+                    WorkspaceStatus.ENABLED,
                 );
             }
         }

@@ -223,7 +223,7 @@ async fn update_handler(
                 Some(_) => {
                     let email = workspaces::dsl::workspaces
                         .filter(workspaces::organisation_id.eq(&org_id.0))
-                        .filter(workspaces::workspace_schema_name.eq(&workspace_name))
+                        .filter(workspaces::workspace_name.eq(&workspace_name))
                         .select(workspaces::workspace_admin_email)
                         .get_result(transaction_conn)?;
                     Some(email)
@@ -231,7 +231,7 @@ async fn update_handler(
             };
             diesel::update(workspaces::table)
                 .filter(workspaces::organisation_id.eq(&org_id.0))
-                .filter(workspaces::workspace_name.eq(workspace_name))
+                .filter(workspaces::workspace_name.eq(&workspace_name))
                 .set((
                     request,
                     workspaces::last_modified_by.eq(user.get_email()),

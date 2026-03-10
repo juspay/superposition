@@ -130,7 +130,7 @@ describe("Experiments API", () => {
 
             for (const dimension of requiredDimensions) {
                 const exists = dimensions.some(
-                    (d) => d.dimension === dimension.name
+                    (d) => d.dimension === dimension.name,
                 );
                 if (!exists) {
                     const createCmd = new CreateDimensionCommand({
@@ -161,14 +161,13 @@ describe("Experiments API", () => {
                 count: 100,
                 page: 1,
             });
-            const defaultConfigOut = await superpositionClient.send(
-                defaultConfigCmg
-            );
+            const defaultConfigOut =
+                await superpositionClient.send(defaultConfigCmg);
             const defaultConfigs = defaultConfigOut.data ?? [];
 
             for (const [key, value] of Object.entries(defaultConfigsNeeded)) {
                 const existingConfig = defaultConfigs.find(
-                    (d) => d.key === key
+                    (d) => d.key === key,
                 );
                 if (!existingConfig) {
                     const createCmd = new CreateDefaultConfigCommand({
@@ -183,7 +182,7 @@ describe("Experiments API", () => {
                     await superpositionClient.send(createCmd);
                 } else {
                     console.log(
-                        `Default config for key "${key}" already exists.`
+                        `Default config for key "${key}" already exists.`,
                     );
                 }
             }
@@ -203,7 +202,7 @@ describe("Experiments API", () => {
             };
 
             const groupResponse = await superpositionClient.send(
-                new CreateExperimentGroupCommand(createGroupInput)
+                new CreateExperimentGroupCommand(createGroupInput),
             );
             experimentGroupId = groupResponse.id!;
             console.log(`Created experiment group: ${experimentGroupId}`);
@@ -233,9 +232,8 @@ describe("Experiments API", () => {
                 count: 100,
                 page: 1,
             });
-            const experimentsOut = await superpositionClient.send(
-                experimentsCmd
-            );
+            const experimentsOut =
+                await superpositionClient.send(experimentsCmd);
             const experiments = experimentsOut.data ?? [];
             for (const experiment of experiments) {
                 if (experiment.name && experiment.name.includes("-from-test")) {
@@ -244,7 +242,7 @@ describe("Experiments API", () => {
                         experiment.status !== ExperimentStatusType.DISCARDED
                     ) {
                         const controlVariant = experiment.variants?.find(
-                            (v) => v.variant_type === VariantType.CONTROL
+                            (v) => v.variant_type === VariantType.CONTROL,
                         );
                         if (controlVariant && controlVariant.id) {
                             const concludeCmd = new ConcludeExperimentCommand({
@@ -258,7 +256,7 @@ describe("Experiments API", () => {
                             });
                             await superpositionClient.send(concludeCmd);
                             console.log(
-                                `Concluded experiment: ${experiment.name} (${experiment.id})`
+                                `Concluded experiment: ${experiment.name} (${experiment.id})`,
                             );
                         }
                     }
@@ -270,7 +268,7 @@ describe("Experiments API", () => {
                 try {
                     // First remove all members if any
                     console.log(
-                        `Cleaning up experiment group: ${experimentGroupId}`
+                        `Cleaning up experiment group: ${experimentGroupId}`,
                     );
 
                     // Remove all members from the group first
@@ -288,10 +286,10 @@ describe("Experiments API", () => {
                                     member_experiment_ids: membersToRemove,
                                     change_reason:
                                         "Cleanup - removing members before deleting group",
-                                })
+                                }),
                             );
                             console.log(
-                                `Removed members from experiment group: ${experimentGroupId}`
+                                `Removed members from experiment group: ${experimentGroupId}`,
                             );
                         }
                     }
@@ -302,16 +300,16 @@ describe("Experiments API", () => {
                             workspace_id: ENV.workspace_id,
                             org_id: ENV.org_id,
                             id: experimentGroupId,
-                        })
+                        }),
                     );
                     console.log(
-                        `Deleted experiment group: ${experimentGroupId}`
+                        `Deleted experiment group: ${experimentGroupId}`,
                     );
                 } catch (error: any) {
                     if (error.name !== "ResourceNotFound") {
                         console.error(
                             `Failed to clean up experiment group ${experimentGroupId}:`,
-                            error.message
+                            error.message,
                         );
                     }
                 }
@@ -343,9 +341,8 @@ describe("Experiments API", () => {
                 count: 100,
                 page: 1,
             });
-            const defaultConfigsOut = await superpositionClient.send(
-                defaultConfigsCmd
-            );
+            const defaultConfigsOut =
+                await superpositionClient.send(defaultConfigsCmd);
             const defaultConfigs = defaultConfigsOut.data ?? [];
             for (const config of defaultConfigs) {
                 const deleteCmd = new DeleteDefaultConfigCommand({
@@ -369,7 +366,7 @@ describe("Experiments API", () => {
         } catch (e: any) {
             console.error(
                 "Error in afterAll cleanup:",
-                e?.$response || e.message
+                e?.$response || e.message,
             );
         }
     });
@@ -378,7 +375,6 @@ describe("Experiments API", () => {
         const input = {
             org_id: ENV.org_id,
             workspace_name: ENV.workspace_id,
-            workspace_admin_email: "updated-admin@example.com",
             workspace_status: WorkspaceStatus.ENABLED,
             mandatory_dimensions: ["clientId"],
         };
@@ -391,7 +387,6 @@ describe("Experiments API", () => {
         const input = {
             org_id: ENV.org_id,
             workspace_name: ENV.workspace_id,
-            workspace_admin_email: "updated-admin@example.com",
             workspace_status: WorkspaceStatus.ENABLED,
             mandatory_dimensions: [],
         };
@@ -428,26 +423,26 @@ describe("Experiments API", () => {
             const allInitialOverrideKeys1 = new Set<string>();
             experiment1InitialVariants.forEach((v) =>
                 Object.keys(v.overrides ?? {}).forEach((k) =>
-                    allInitialOverrideKeys1.add(k)
-                )
+                    allInitialOverrideKeys1.add(k),
+                ),
             );
             expect(out.override_keys?.sort()).toEqual(
-                Array.from(allInitialOverrideKeys1).sort()
+                Array.from(allInitialOverrideKeys1).sort(),
             );
             expect(out.chosen_variant).toBeUndefined();
             expect(out.context).toEqual({});
             expect(out.variants).toHaveLength(
-                experiment1InitialVariants.length
+                experiment1InitialVariants.length,
             );
             expect(out.variants?.[0].variant_type).toBe(VariantType.CONTROL);
             expect(out.variants?.[1].variant_type).toBe(
-                VariantType.EXPERIMENTAL
+                VariantType.EXPERIMENTAL,
             );
             expect(out.variants?.[0].overrides).toEqual(
-                experiment1InitialVariants[0].overrides ?? {}
+                experiment1InitialVariants[0].overrides ?? {},
             );
             expect(out.variants?.[1].overrides).toEqual(
-                experiment1InitialVariants[1].overrides ?? {}
+                experiment1InitialVariants[1].overrides ?? {},
             );
             expect(out.variants?.[0].context_id).toBeString();
             expect(out.variants?.[1].context_id).toBeString();
@@ -463,16 +458,15 @@ describe("Experiments API", () => {
                             org_id: ENV.org_id,
                             id: variant.context_id,
                         });
-                        const contextOut = await superpositionClient.send(
-                            getContextCmd
-                        );
+                        const contextOut =
+                            await superpositionClient.send(getContextCmd);
                         expect(contextOut).toBeDefined();
                         expect(contextOut.override).toEqual(
-                            variant.overrides ?? {}
+                            variant.overrides ?? {},
                         );
                     } else {
                         throw new Error(
-                            `Variant ${variant.id} created without a context_id`
+                            `Variant ${variant.id} created without a context_id`,
                         );
                     }
                 }
@@ -480,7 +474,7 @@ describe("Experiments API", () => {
         } catch (e: any) {
             console.error(
                 "Error in test '0. Create experiment for default config':",
-                e?.$response || e.message
+                e?.$response || e.message,
             );
             throw e;
         } finally {
@@ -517,26 +511,26 @@ describe("Experiments API", () => {
             const allInitialOverrideKeys1 = new Set<string>();
             experiment1InitialVariants.forEach((v) =>
                 Object.keys(v.overrides ?? {}).forEach((k) =>
-                    allInitialOverrideKeys1.add(k)
-                )
+                    allInitialOverrideKeys1.add(k),
+                ),
             );
             expect(out.override_keys?.sort()).toEqual(
-                Array.from(allInitialOverrideKeys1).sort()
+                Array.from(allInitialOverrideKeys1).sort(),
             );
             expect(out.chosen_variant).toBeUndefined();
             expect(out.context).toEqual(experiment1Context);
             expect(out.variants).toHaveLength(
-                experiment1InitialVariants.length
+                experiment1InitialVariants.length,
             );
             expect(out.variants?.[0].variant_type).toBe(VariantType.CONTROL);
             expect(out.variants?.[1].variant_type).toBe(
-                VariantType.EXPERIMENTAL
+                VariantType.EXPERIMENTAL,
             );
             expect(out.variants?.[0].overrides).toEqual(
-                experiment1InitialVariants[0].overrides ?? {}
+                experiment1InitialVariants[0].overrides ?? {},
             );
             expect(out.variants?.[1].overrides).toEqual(
-                experiment1InitialVariants[1].overrides ?? {}
+                experiment1InitialVariants[1].overrides ?? {},
             );
             expect(out.variants?.[0].context_id).toBeString();
             expect(out.variants?.[1].context_id).toBeString();
@@ -552,16 +546,15 @@ describe("Experiments API", () => {
                             org_id: ENV.org_id,
                             id: variant.context_id,
                         });
-                        const contextOut = await superpositionClient.send(
-                            getContextCmd
-                        );
+                        const contextOut =
+                            await superpositionClient.send(getContextCmd);
                         expect(contextOut).toBeDefined();
                         expect(contextOut.override).toEqual(
-                            variant.overrides ?? {}
+                            variant.overrides ?? {},
                         );
                     } else {
                         throw new Error(
-                            `Variant ${variant.id} created without a context_id`
+                            `Variant ${variant.id} created without a context_id`,
                         );
                     }
                 }
@@ -569,7 +562,7 @@ describe("Experiments API", () => {
         } catch (e: any) {
             console.error(
                 "Error in test '1. Create Experiment 1':",
-                e?.$response || e.message
+                e?.$response || e.message,
             );
             throw e;
         }
@@ -591,13 +584,13 @@ describe("Experiments API", () => {
             expect(out.name).toBe("experiment-1-from-test");
             expect(out.experiment_group_id).toBe(experimentGroupId ?? ""); // Verify group ID is preserved
             expect(out.variants).toHaveLength(
-                experiment1InitialVariants.length
+                experiment1InitialVariants.length,
             );
             expect(out.variants).toEqual(experiment1Variants ?? []);
         } catch (e: any) {
             console.error(
                 "Error in test '2. Get Experiment 1':",
-                e?.$response || e.message
+                e?.$response || e.message,
             );
             throw e;
         }
@@ -623,7 +616,7 @@ describe("Experiments API", () => {
                 change_reason: defaultChangeReason,
             });
             expect(
-                superpositionClient.send(createFailingTest)
+                superpositionClient.send(createFailingTest),
             ).rejects.toThrow();
 
             const experimentVariants: Omit<
@@ -659,9 +652,8 @@ describe("Experiments API", () => {
                 description: defaultDescription,
                 change_reason: defaultChangeReason,
             });
-            const expResponse = await superpositionClient.send(
-                createExperimentCmd
-            );
+            const expResponse =
+                await superpositionClient.send(createExperimentCmd);
 
             console.log("Experiment created successfully:", expResponse.id);
 
@@ -728,7 +720,7 @@ describe("Experiments API", () => {
         } catch (e: any) {
             console.error(
                 "Error in test '3.1 Check Auto populate Control':",
-                e?.$response || e.message
+                e?.$response || e.message,
             );
             throw e;
         }
@@ -747,15 +739,15 @@ describe("Experiments API", () => {
         try {
             if (!experimentId1 || !experiment1Variants) {
                 throw new Error(
-                    "Experiment 1 ID or variants not set, cannot update overrides."
+                    "Experiment 1 ID or variants not set, cannot update overrides.",
                 );
             }
 
             const controlVariant = experiment1Variants.find(
-                (v) => v.variant_type === VariantType.CONTROL
+                (v) => v.variant_type === VariantType.CONTROL,
             );
             const testVariant = experiment1Variants.find(
-                (v) => v.variant_type === VariantType.EXPERIMENTAL
+                (v) => v.variant_type === VariantType.EXPERIMENTAL,
             );
 
             if (!controlVariant?.id || !testVariant?.id) {
@@ -796,11 +788,11 @@ describe("Experiments API", () => {
             const allUpdatedOverrideKeys = new Set<string>();
             updatedVariants.forEach((uv) =>
                 Object.keys(uv.overrides ?? {}).forEach((k) =>
-                    allUpdatedOverrideKeys.add(k)
-                )
+                    allUpdatedOverrideKeys.add(k),
+                ),
             );
             expect(out.override_keys?.sort()).toEqual(
-                Array.from(allUpdatedOverrideKeys).sort()
+                Array.from(allUpdatedOverrideKeys).sort(),
             );
 
             expect(out.variants).toHaveLength(experiment1Variants.length);
@@ -812,7 +804,7 @@ describe("Experiments API", () => {
         } catch (e: any) {
             console.error(
                 "Error in test '3.2 Update Experiment 1 Overrides':",
-                e?.$response || e.message
+                e?.$response || e.message,
             );
             throw e;
         }
@@ -848,12 +840,12 @@ describe("Experiments API", () => {
             expect(updatedExp.traffic_percentage).toBe(rampPercentage);
             expect(updatedExp.status).toBe(ExperimentStatusType.INPROGRESS);
             expect(updatedExp.experiment_group_id).toBe(
-                experimentGroupId ?? ""
+                experimentGroupId ?? "",
             );
         } catch (e: any) {
             console.error(
                 "Error in test '3.3 Ramp Experiment 1':",
-                e?.$response || e.message
+                e?.$response || e.message,
             );
             throw e;
         }
@@ -863,15 +855,15 @@ describe("Experiments API", () => {
         try {
             if (!experimentId1 || !experiment1Variants) {
                 throw new Error(
-                    "Experiment 1 ID or variants not set, cannot conclude."
+                    "Experiment 1 ID or variants not set, cannot conclude.",
                 );
             }
             const controlVariant = experiment1Variants.find(
-                (v) => v.variant_type === VariantType.CONTROL
+                (v) => v.variant_type === VariantType.CONTROL,
             );
             if (!controlVariant || !controlVariant.id) {
                 throw new Error(
-                    "Could not find control variant ID for Experiment 1."
+                    "Could not find control variant ID for Experiment 1.",
                 );
             }
             const winnerVariantId = controlVariant.id;
@@ -911,16 +903,16 @@ describe("Experiments API", () => {
                                 workspace_id: ENV.workspace_id,
                                 org_id: ENV.org_id,
                                 id: experimentGroupId,
-                            })
-                        )
+                            }),
+                        ),
                     ).rejects.toThrow(
-                        "No records found. Please refine or correct your search parameters"
+                        "No records found. Please refine or correct your search parameters",
                     );
                 } catch (error: any) {
                     if (error.name !== "ResourceNotFound") {
                         console.error(
                             "Unexpected error when checking experiment group:",
-                            error.message
+                            error.message,
                         );
                         throw error;
                     }
@@ -929,7 +921,7 @@ describe("Experiments API", () => {
         } catch (e: any) {
             console.error(
                 "Error in test '4. Conclude Experiment 1':",
-                e?.$response || e.message
+                e?.$response || e.message,
             );
             throw e;
         }
@@ -965,24 +957,24 @@ describe("Experiments API", () => {
             const allInitialOverrideKeys2 = new Set<string>();
             experiment2InitialVariants.forEach((v) =>
                 Object.keys(v.overrides ?? {}).forEach((k) =>
-                    allInitialOverrideKeys2.add(k)
-                )
+                    allInitialOverrideKeys2.add(k),
+                ),
             );
             expect(out.override_keys?.sort()).toEqual(
-                Array.from(allInitialOverrideKeys2).sort()
+                Array.from(allInitialOverrideKeys2).sort(),
             );
             expect(out.variants).toHaveLength(
-                experiment2InitialVariants.length
+                experiment2InitialVariants.length,
             );
             expect(out.variants?.[0].variant_type).toBe(VariantType.CONTROL);
             expect(out.variants?.[1].variant_type).toBe(
-                VariantType.EXPERIMENTAL
+                VariantType.EXPERIMENTAL,
             );
             expect(out.variants?.[0].overrides).toEqual(
-                experiment2InitialVariants[0].overrides ?? {}
+                experiment2InitialVariants[0].overrides ?? {},
             );
             expect(out.variants?.[1].overrides).toEqual(
-                experiment2InitialVariants[1].overrides ?? {}
+                experiment2InitialVariants[1].overrides ?? {},
             );
             expect(out.variants?.[0].context_id).toBeString();
             expect(out.variants?.[1].context_id).toBeString();
@@ -998,16 +990,15 @@ describe("Experiments API", () => {
                             org_id: ENV.org_id,
                             id: variant.context_id,
                         });
-                        const contextOut = await superpositionClient.send(
-                            getContextCmd
-                        );
+                        const contextOut =
+                            await superpositionClient.send(getContextCmd);
                         expect(contextOut).toBeDefined();
                         expect(contextOut.override).toEqual(
-                            variant.overrides ?? {}
+                            variant.overrides ?? {},
                         );
                     } else {
                         throw new Error(
-                            `Variant ${variant.id} created without a context_id`
+                            `Variant ${variant.id} created without a context_id`,
                         );
                     }
                 }
@@ -1015,7 +1006,7 @@ describe("Experiments API", () => {
         } catch (e: any) {
             console.error(
                 "Error in test '5. Create Experiment 2':",
-                e?.$response || e.message
+                e?.$response || e.message,
             );
             throw e;
         }
@@ -1025,15 +1016,15 @@ describe("Experiments API", () => {
         try {
             if (!experimentId2 || !experiment2Variants) {
                 throw new Error(
-                    "Experiment 2 ID or variants not set, cannot update overrides."
+                    "Experiment 2 ID or variants not set, cannot update overrides.",
                 );
             }
 
             const controlVariant = experiment2Variants.find(
-                (v) => v.variant_type === VariantType.CONTROL
+                (v) => v.variant_type === VariantType.CONTROL,
             );
             const testVariant = experiment2Variants.find(
-                (v) => v.variant_type === VariantType.EXPERIMENTAL
+                (v) => v.variant_type === VariantType.EXPERIMENTAL,
             );
 
             if (!controlVariant?.id || !testVariant?.id) {
@@ -1073,11 +1064,11 @@ describe("Experiments API", () => {
             const allUpdatedOverrideKeys = new Set<string>();
             updatedVariants.forEach((uv) =>
                 Object.keys(uv.overrides ?? {}).forEach((k) =>
-                    allUpdatedOverrideKeys.add(k)
-                )
+                    allUpdatedOverrideKeys.add(k),
+                ),
             );
             expect(out.override_keys?.sort()).toEqual(
-                Array.from(allUpdatedOverrideKeys).sort()
+                Array.from(allUpdatedOverrideKeys).sort(),
             );
 
             expect(out.variants).toHaveLength(experiment2Variants.length);
@@ -1090,7 +1081,7 @@ describe("Experiments API", () => {
 
             for (const updatedVariantRequest of updatedVariants) {
                 const returnedVariant = out.variants?.find(
-                    (v) => v.id === updatedVariantRequest.id
+                    (v) => v.id === updatedVariantRequest.id,
                 );
                 expect(returnedVariant).toBeDefined();
                 expect(returnedVariant?.context_id).toBeString();
@@ -1101,16 +1092,15 @@ describe("Experiments API", () => {
                         org_id: ENV.org_id,
                         id: returnedVariant.context_id,
                     });
-                    const contextOut = await superpositionClient.send(
-                        getContextCmd
-                    );
+                    const contextOut =
+                        await superpositionClient.send(getContextCmd);
                     expect(contextOut).toBeDefined();
 
                     expect(contextOut.override).toEqual(
-                        updatedVariantRequest.overrides ?? {}
+                        updatedVariantRequest.overrides ?? {},
                     );
                     expect(returnedVariant.overrides).toEqual(
-                        updatedVariantRequest.overrides ?? {}
+                        updatedVariantRequest.overrides ?? {},
                     );
                 }
             }
@@ -1118,7 +1108,7 @@ describe("Experiments API", () => {
         } catch (e: any) {
             console.error(
                 "Error in test '6. Update Experiment 2 Overrides':",
-                e?.$response || e.message
+                e?.$response || e.message,
             );
             throw e;
         }
@@ -1154,12 +1144,12 @@ describe("Experiments API", () => {
             expect(updatedExp.traffic_percentage).toBe(rampPercentage);
             expect(updatedExp.status).toBe(ExperimentStatusType.INPROGRESS);
             expect(updatedExp.experiment_group_id).toBe(
-                experimentGroupId ?? ""
+                experimentGroupId ?? "",
             );
         } catch (e: any) {
             console.error(
                 "Error in test '7. Ramp Experiment 2':",
-                e?.$response || e.message
+                e?.$response || e.message,
             );
             throw e;
         }
@@ -1194,7 +1184,7 @@ describe("Experiments API", () => {
         } catch (e: any) {
             console.error(
                 "Error in test '8. Discard Experiment 2':",
-                e?.$response || e.message
+                e?.$response || e.message,
             );
             throw e;
         }
@@ -1209,16 +1199,16 @@ describe("Experiments API", () => {
                             workspace_id: ENV.workspace_id,
                             org_id: ENV.org_id,
                             id: experimentGroupId,
-                        })
-                    )
+                        }),
+                    ),
                 ).rejects.toThrow(
-                    "No records found. Please refine or correct your search parameters"
+                    "No records found. Please refine or correct your search parameters",
                 );
             } catch (error: any) {
                 if (error.name !== "ResourceNotFound") {
                     console.error(
                         "Unexpected error when checking experiment group:",
-                        error.message
+                        error.message,
                     );
                     throw error;
                 }
@@ -1247,7 +1237,7 @@ describe("Experiments API", () => {
         } catch (e: any) {
             console.error(
                 "Error in test '9. List Experiments (Basic)':",
-                e?.$response || e.message
+                e?.$response || e.message,
             );
             throw e;
         }

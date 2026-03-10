@@ -44,7 +44,7 @@ fn TabularViewer(
                     .get()
                     .map(|res| match res {
                         Ok(rows) => {
-                            view! { <Table rows key_column="" columns=columns.get_value() /> }
+                            view! { <Table rows key_column="idx" columns=columns.get_value() /> }
                         }
                         Err(e) => view! { <div class="text-sm text-red-600">{e}</div> }.into_view(),
                     })
@@ -188,13 +188,15 @@ fn PolicyViewer(
                 .await
                 .map(|res| {
                     res.into_iter()
-                        .map(|r| {
+                        .enumerate()
+                        .map(|(idx, r)| {
                             let sub = r.first().cloned().unwrap_or_default();
                             let dom = r.get(1).cloned().unwrap_or_default();
                             let obj = r.get(2).cloned().unwrap_or_default();
                             let act = r.get(3).cloned().unwrap_or_default();
                             let attr = r.get(4).cloned().unwrap_or_default();
                             Map::from_iter([
+                                ("idx".to_string(), Value::String(idx.to_string())),
                                 ("subject".to_string(), Value::String(sub)),
                                 ("domain".to_string(), Value::String(dom)),
                                 ("object".to_string(), Value::String(obj)),
@@ -364,11 +366,13 @@ fn RolePolicyViewer(authz_scope: StoredValue<AuthzScope>) -> impl IntoView {
                 .await
                 .map(|res| {
                     res.into_iter()
-                        .map(|r| {
+                        .enumerate()
+                        .map(|(idx, r)| {
                             let sub = r.first().cloned().unwrap_or_default();
                             let role = r.get(1).cloned().unwrap_or_default();
                             let dom = r.get(2).cloned().unwrap_or_default();
                             Map::from_iter([
+                                ("idx".to_string(), Value::String(idx.to_string())),
                                 ("subject".to_string(), Value::String(sub)),
                                 ("role".to_string(), Value::String(role)),
                                 ("domain".to_string(), Value::String(dom)),
@@ -503,11 +507,13 @@ fn DomainResourceActionGroupViewer(
                 .await
                 .map(|res| {
                     res.into_iter()
-                        .map(|r| {
+                        .enumerate()
+                        .map(|(idx, r)| {
                             let res = r.first().cloned().unwrap_or_default();
                             let dom = r.get(1).cloned().unwrap_or_default();
                             let group = r.get(2).cloned().unwrap_or_default();
                             Map::from_iter([
+                                ("idx".to_string(), Value::String(idx.to_string())),
                                 ("subject".to_string(), Value::String(res)),
                                 ("domain".to_string(), Value::String(dom)),
                                 ("group".to_string(), Value::String(group)),
@@ -658,10 +664,12 @@ fn ResourceActionGroupViewer(
         move |_| async move {
             casbin::list_action_groups().await.map(|res| {
                 res.into_iter()
-                    .map(|r| {
+                    .enumerate()
+                    .map(|(idx, r)| {
                         let res = r.first().cloned().unwrap_or_default();
                         let group = r.get(1).cloned().unwrap_or_default();
                         Map::from_iter([
+                            ("idx".to_string(), Value::String(idx.to_string())),
                             ("subject".to_string(), Value::String(res)),
                             ("group".to_string(), Value::String(group)),
                         ])

@@ -65,7 +65,7 @@ describe("Context API Integration Tests", () => {
                         workspace_id: testWorkspaceId,
                         org_id: testOrgId,
                         id: id,
-                    })
+                    }),
                 );
                 console.log(`Deleted context: ${id}`);
             } catch (error: any) {
@@ -75,7 +75,7 @@ describe("Context API Integration Tests", () => {
 
         // Delete default configs
         console.log(
-            `Cleaning up ${createdDefaultConfigs.length} default configs...`
+            `Cleaning up ${createdDefaultConfigs.length} default configs...`,
         );
         for (const key of createdDefaultConfigs) {
             try {
@@ -84,13 +84,13 @@ describe("Context API Integration Tests", () => {
                         workspace_id: testWorkspaceId,
                         org_id: testOrgId,
                         key: key,
-                    })
+                    }),
                 );
                 console.log(`Deleted default config: ${key}`);
             } catch (error: any) {
                 console.error(
                     `Failed to delete default config ${key}:`,
-                    error.message
+                    error.message,
                 );
             }
         }
@@ -105,13 +105,13 @@ describe("Context API Integration Tests", () => {
                         workspace_id: testWorkspaceId,
                         org_id: testOrgId,
                         dimension: dim,
-                    })
+                    }),
                 );
                 console.log(`Deleted dimension: ${dim}`);
             } catch (error: any) {
                 console.error(
                     `Failed to delete dimension ${dim}:`,
-                    error.message
+                    error.message,
                 );
             }
         }
@@ -126,7 +126,6 @@ describe("Context API Integration Tests", () => {
         const input = {
             org_id: testOrgId,
             workspace_name: testWorkspaceId,
-            workspace_admin_email: "updated-admin@example.com",
             workspace_status: WorkspaceStatus.ENABLED,
             mandatory_dimensions: ["clientId"],
         };
@@ -253,7 +252,7 @@ describe("Context API Integration Tests", () => {
                 // If dimension already exists, just log and continue
                 if (e.message && e.message.includes("duplicate key")) {
                     console.log(
-                        `Dimension ${dim.dimension} already exists, updating dimension`
+                        `Dimension ${dim.dimension} already exists, updating dimension`,
                     );
                     const cmd = new UpdateDimensionCommand({
                         workspace_id: testWorkspaceId,
@@ -271,7 +270,7 @@ describe("Context API Integration Tests", () => {
                 } else {
                     console.error(
                         `Failed to create dimension ${dim.dimension}:`,
-                        e.message
+                        e.message,
                     );
                     // Don't throw, we want setup to continue even if some dimensions fail
                 }
@@ -412,12 +411,12 @@ describe("Context API Integration Tests", () => {
                 // If config already exists, just log and continue
                 if (e.message && e.message.includes("already exists")) {
                     console.log(
-                        `Default config ${config.key} already exists, skipping creation`
+                        `Default config ${config.key} already exists, skipping creation`,
                     );
                 } else {
                     console.error(
                         `Failed to create default config ${config.key}:`,
-                        e.message
+                        e.message,
                     );
                     // Don't throw, we want setup to continue even if some configs fail
                 }
@@ -505,7 +504,7 @@ describe("Context API Integration Tests", () => {
                 await client.send(unwrappedCmd);
             } catch (err: any) {
                 expect(err.$response.body).toMatch(
-                    /Context should not be empty/i
+                    /Context should not be empty/i,
                 );
             }
         });
@@ -562,7 +561,7 @@ describe("Context API Integration Tests", () => {
                 },
             });
             expect(client.send(cmd)).rejects.toThrow(
-                /The context should contain all the mandatory dimensions/i
+                /The context should contain all the mandatory dimensions/i,
             );
         });
 
@@ -584,7 +583,7 @@ describe("Context API Integration Tests", () => {
                 },
             });
             expect(client.send(cmd)).rejects.toThrow(
-                "failed to validate dimension value 123: value doesn't match the required type(s) `Single(String)`"
+                "failed to validate dimension value 123: value doesn't match the required type(s) `Single(String)`",
             );
         });
 
@@ -608,7 +607,7 @@ describe("Context API Integration Tests", () => {
             });
             // TODO: Write a display fmt for JSONSchema enum to get rid of Single from the message
             expect(client.send(cmd)).rejects.toThrow(
-                "schema validation failed for key1: value doesn't match the required type(s) `Single(String)`"
+                "schema validation failed for key1: value doesn't match the required type(s) `Single(String)`",
             );
         });
 
@@ -634,7 +633,7 @@ describe("Context API Integration Tests", () => {
             });
 
             await expect(client.send(cmd)).rejects.toThrow(
-                "Cohort Dimension(s): [ local_cohort can be derived from regular dimension ] using the cohort definitions. Hence, usage of this/these dimension(s) is not allowed."
+                "Cohort Dimension(s): [ local_cohort can be derived from regular dimension ] using the cohort definitions. Hence, usage of this/these dimension(s) is not allowed.",
             );
         });
     });
@@ -674,9 +673,8 @@ describe("Context API Integration Tests", () => {
                 id: response.id,
             });
 
-            const fetchedContext: GetContextCommandOutput = await client.send(
-                getCmd
-            );
+            const fetchedContext: GetContextCommandOutput =
+                await client.send(getCmd);
 
             // Verify the overrides were updated correctly
             expect(fetchedContext.override?.key1).toBe("updated-value");
@@ -748,7 +746,7 @@ describe("Context API Integration Tests", () => {
             });
 
             await expect(client.send(updateCmd)).rejects.toThrow(
-                "No records found. Please refine or correct your search parameters"
+                "No records found. Please refine or correct your search parameters",
             );
         });
     });
@@ -815,7 +813,7 @@ describe("Context API Integration Tests", () => {
             expect(fetchedContext.override?.key3).toBe("new-by-id");
             expect(fetchedContext.description).toBe("Updated context by ID");
             expect(fetchedContext.change_reason).toBe(
-                "Updating override by ID"
+                "Updating override by ID",
             );
         });
 
@@ -881,7 +879,7 @@ describe("Context API Integration Tests", () => {
             expect(fetchedContext.override?.key1).toBeUndefined();
             expect(fetchedContext.override?.key2).toBeUndefined();
             expect(fetchedContext.change_reason).toBe(
-                "Replacing all overrides by ID"
+                "Replacing all overrides by ID",
             );
         });
 
@@ -899,7 +897,7 @@ describe("Context API Integration Tests", () => {
             });
 
             await expect(client.send(updateByIdCmd)).rejects.toThrow(
-                "No records found. Please refine or correct your search parameters"
+                "No records found. Please refine or correct your search parameters",
             );
         });
     });
@@ -1045,7 +1043,7 @@ describe("Context API Integration Tests", () => {
                 id: sourceId,
             });
             expect(client.send(getCmd)).rejects.toThrow(
-                "No records found. Please refine or correct your search parameters"
+                "No records found. Please refine or correct your search parameters",
             );
 
             // Fetch the resulting context to verify merge behavior
@@ -1094,7 +1092,7 @@ describe("Context API Integration Tests", () => {
 
             // Warn(TODO): validation for context's content is made beforehand the valid id check
             expect(client.send(moveCmd)).rejects.toThrow(
-                "No records found. Please refine or correct your search parameters"
+                "No records found. Please refine or correct your search parameters",
             );
         });
     });
@@ -1235,7 +1233,7 @@ describe("Context API Integration Tests", () => {
             });
 
             expect(client.send(bulkCmd)).rejects.toThrow(
-                "schema validation failed for invalidKey: value doesn't match the required type(s) `Single(String)`"
+                "schema validation failed for invalidKey: value doesn't match the required type(s) `Single(String)`",
             );
             // TODO: Should add fetching a context by jsonlogic and then assert the first context creation was rolled back
         });
