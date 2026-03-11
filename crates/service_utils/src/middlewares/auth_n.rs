@@ -51,8 +51,12 @@ impl<S> AuthNMiddleware<S> {
 
         let excep = exception.contains(&request_pattern);
         let org_request = request.path().matches("/organisations").count() > 0;
+        let admin_authz_request = request.path().matches("/authz/admin").count() > 0;
+        let admin_settings_request =
+            request.path().matches("/admin/settings").count() > 0;
+        let global_request = org_request || admin_authz_request || admin_settings_request;
 
-        match (excep, org_request) {
+        match (excep, global_request) {
             (true, false) => Login::None,
             (_, true) => Login::Global,
             (false, false) => Login::Org(

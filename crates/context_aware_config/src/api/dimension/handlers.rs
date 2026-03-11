@@ -15,7 +15,7 @@ use service_utils::{
     },
 };
 use superposition_core::validations::validate_schema;
-use superposition_derives::authorized;
+use superposition_derives::{authorized, declare_resource};
 use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
 use superposition_types::{
     PaginatedResponse, Resource, User,
@@ -54,6 +54,8 @@ use crate::{
     },
     helpers::{add_config_version, validate_change_reason},
 };
+
+declare_resource!(Dimension);
 
 pub fn endpoints() -> Scope {
     Scope::new("")

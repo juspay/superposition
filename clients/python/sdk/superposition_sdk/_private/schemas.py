@@ -16880,10 +16880,6 @@ UPDATE_WORKSPACE_INPUT = Schema.collection(
         "workspace_admin_email": {
             "target": STRING,
             "index": 2,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
         },
 
         "config_version": {

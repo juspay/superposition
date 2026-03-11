@@ -19,7 +19,7 @@ once_cell = { workspace = true }
 reqwest = { workspace = true }
 serde_json = { workspace = true }
 superposition_types = { workspace = true, features = ["api"] }
-tokio = { version = "1.29.1", features = ["full"] }
+tokio = { workspace = true }
 
 
 [lib]

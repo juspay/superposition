@@ -5,7 +5,7 @@ use actix_web::{
 use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use service_utils::service::types::{AppState, DbConnection, WorkspaceContext};
-use superposition_derives::authorized;
+use superposition_derives::{authorized, declare_resource};
 use superposition_macros::{bad_argument, not_found, unexpected_error};
 use superposition_types::{
     PaginatedResponse, User,
@@ -28,6 +28,8 @@ use crate::{
 };
 
 use super::helpers::fetch_function;
+
+declare_resource!(Function);
 
 pub fn endpoints() -> Scope {
     Scope::new("")

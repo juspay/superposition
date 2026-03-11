@@ -2780,7 +2780,7 @@ export interface UpdateWebhookInput {
 export interface UpdateWorkspaceRequest {
   org_id: string | undefined;
   workspace_name: string | undefined;
-  workspace_admin_email: string | undefined;
+  workspace_admin_email?: string | undefined;
   /**
    * To unset config version, pass "null" string.
    * @public

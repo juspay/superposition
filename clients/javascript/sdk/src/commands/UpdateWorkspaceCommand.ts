@@ -45,7 +45,7 @@ export interface UpdateWorkspaceCommandOutput extends WorkspaceResponse, __Metad
  * const input = { // UpdateWorkspaceRequest
  *   org_id: "STRING_VALUE", // required
  *   workspace_name: "STRING_VALUE", // required
- *   workspace_admin_email: "STRING_VALUE", // required
+ *   workspace_admin_email: "STRING_VALUE",
  *   config_version: "STRING_VALUE",
  *   mandatory_dimensions: [ // ListMandatoryDimensions
  *     "STRING_VALUE",

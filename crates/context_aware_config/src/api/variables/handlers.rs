@@ -5,7 +5,7 @@ use actix_web::{
 use diesel::prelude::*;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use service_utils::service::types::{AppState, DbConnection, WorkspaceContext};
-use superposition_derives::authorized;
+use superposition_derives::{authorized, declare_resource};
 use superposition_types::{
     PaginatedResponse, SortBy, User,
     api::variables::*,
@@ -15,6 +15,8 @@ use superposition_types::{
 };
 
 use crate::helpers::validate_change_reason;
+
+declare_resource!(Variable);
 
 pub fn endpoints() -> Scope {
     web::scope("")

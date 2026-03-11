@@ -1,14 +1,5 @@
-#[cfg(feature = "diesel_derives")]
-use diesel::{
-    expression::AsExpression,
-    pg::Pg,
-    serialize::ToSql,
-    sql_types::{BigInt, Nullable},
-};
-use serde::{Deserialize, Deserializer, Serialize};
-use serde_json::Value;
-
 pub mod audit_log;
+pub mod authz;
 pub mod config;
 pub mod context;
 pub mod default_config;
@@ -24,6 +15,16 @@ pub mod type_templates;
 pub mod variables;
 pub mod webhook;
 pub mod workspace;
+
+#[cfg(feature = "diesel_derives")]
+use diesel::{
+    expression::AsExpression,
+    pg::Pg,
+    serialize::ToSql,
+    sql_types::{BigInt, Nullable},
+};
+use serde::{Deserialize, Deserializer, Serialize};
+use serde_json::Value;
 
 pub fn default_true() -> bool {
     true

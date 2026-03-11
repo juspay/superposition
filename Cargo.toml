@@ -41,6 +41,7 @@ style-file = "crates/frontend/styles/style.css"
 assets-dir = "crates/frontend/assets"
 
 [workspace.dependencies]
+actix-http = "3.3.1"
 actix-web = "4.5.0"
 anyhow = "1.0.75"
 aws-sdk-kms = { version = "1.38.0" }
@@ -61,6 +62,7 @@ diesel = { version = "2.2.4", package = "juspay_diesel", features = [
 ] }
 fred = { version = "9.2.1" }
 futures-util = "0.3.28"
+inventory = "0.3"
 itertools = { version = "0.10.5" }
 jsonlogic = { version = "0.5.5", package = "juspay_jsonlogic" }
 jsonschema = "~0.17"
@@ -75,14 +77,18 @@ serde_json = { version = "1.0.140" }
 secrecy = "0.10"
 strum = "0.25"
 strum_macros = "0.25"
+tokio = { version = "1.29.1", features = ["full"] }
 toml = { version = "0.8.8", features = ["preserve_order"] }
-actix-http = "3.3.1"
 tracing = "0.1.44"
-tracing-subscriber = { version = "0.3.22", features = ["env-filter", "fmt", "json"] }
+tracing-subscriber = { version = "0.3.22", features = [
+    "env-filter",
+    "fmt",
+    "json",
+] }
 tracing-actix-web = "0.7.21"
 url = "2.5.0"
 uuid = { version = "1.20.0", features = ["v4", "serde", "js"] }
-uniffi = { version = "0.29.3", features = [ "cli" ] }
+uniffi = { version = "0.29.3", features = ["cli"] }
 superposition = { path = "crates/superposition", version = "0.99.2" }
 superposition_types = { path = "crates/superposition_types", version = "0.99.2" }
 superposition_derives = { path = "crates/superposition_derives", version = "0.99.2" }

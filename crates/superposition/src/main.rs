@@ -27,14 +27,13 @@ use service_utils::{
     helpers::{get_from_env_or_default, get_from_env_unsafe},
     middlewares::{
         auth_n::AuthNHandler,
-        auth_z::{AuthZHandler, AuthZManager},
+        auth_z::{AuthZHandler, AuthZManager, is_auth_z_enabled},
         request_response_logging::RequestResponseLogger,
         workspace_context::OrgWorkspaceMiddlewareFactory,
     },
     service::types::AppEnv,
 };
 use superposition_macros::bad_argument;
-use superposition_types::Resource;
 use tracing_actix_web::TracingLogger;
 use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -115,6 +114,7 @@ async fn main() -> Result<()> {
     let ui_envs = UIEnvs {
         service_prefix: service_prefix_str,
         host: get_from_env_or_default("API_HOSTNAME", String::new()),
+        auth_z: is_auth_z_enabled(),
     };
 
     let routes_ui_envs = ui_envs.clone();
@@ -179,100 +179,96 @@ async fn main() -> Result<()> {
                     /***************************** V1 Routes *****************************/
                     .service(
                         scope("/context")
-                            .app_data(Resource::Context)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .service(context::endpoints()),
                     )
                     .service(
                         scope("/dimension")
-                            .app_data(Resource::Dimension)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .service(dimension::endpoints()),
                     )
                     .service(
                         scope("/default-config")
-                            .app_data(Resource::DefaultConfig)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .service(default_config::endpoints()),
                     )
                     .service(
                         scope("/config")
-                            .app_data(Resource::Config)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .service(config::endpoints()),
                     )
                     .service(
                         scope("/audit")
-                            .app_data(Resource::AuditLog)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .service(audit_log::endpoints()),
                     )
                     .service(
                         scope("/function")
-                            .app_data(Resource::Function)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .service(functions::endpoints()),
                     )
                     .service(
                         scope("/types")
-                            .app_data(Resource::TypeTemplate)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .service(type_templates::endpoints()),
                     )
                     .service(
                         experiments::endpoints(scope("/experiments"))
-                            .app_data(Resource::Experiment)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true)),
                     )
                     .service(
                         experiment_groups::endpoints(scope("/experiment-groups"))
-                            .app_data(Resource::ExperimentGroup)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                     )
                     .service(
                         scope("/superposition/organisations")
-                            .app_data(Resource::Organisation)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(false, false))
                             .service(organisation::endpoints()),
                     )
-                    .service(workspace::endpoints(scope("/workspaces"))
-                        .app_data(Resource::Workspace)
-                        .wrap(OrgWorkspaceMiddlewareFactory::new(true, false))
+                    .service(
+                        workspace::endpoints(scope("/workspaces"))
+                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, false))
                     )
                     .service(
                         scope("/webhook")
-                            .app_data(Resource::Webhook)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .service(webhooks::endpoints()),
                     )
                     .service(
                         scope("/variables")
-                            .app_data(Resource::Variable)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .service(variables::endpoints())
                     )
                     .service(
                         scope("/resolve")
-                            .app_data(Resource::Config)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .service(resolve::endpoints()),
                     )
                     .service(
-                        scope("/auth")
-                            .app_data(Resource::Auth)
+                        scope("/authz/admin")
+                            .wrap(OrgWorkspaceMiddlewareFactory::new(false, false))
+                            .app_data(Data::new(auth_z_manager.clone()))
+                            .service(auth_z_manager.admin_endpoints())
+                    )
+                    .service(
+                        scope("/authz/org")
+                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, false))
+                            .app_data(Data::new(auth_z_manager.clone()))
+                            .service(auth_z_manager.org_endpoints())
+                    )
+                    .service(
+                        scope("/authz/workspace")
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .app_data(Data::new(auth_z_manager.clone()))
-                            .service(auth_z_manager.endpoints())
+                            .service(auth_z_manager.workspace_endpoints())
                     )
                     .service(
                         scope("/master-encryption-key")
-                            .app_data(Resource::MasterEncryptionKey)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(false, false))
                             .service(secrets::master_key_endpoints())
                     )
                     .service(
                         scope("/secrets")
-                            .app_data(Resource::Secret)
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                             .service(secrets::endpoints())
                     )

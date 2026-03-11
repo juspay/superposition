@@ -40,9 +40,8 @@ describe("Function Operations", () => {
         });
 
         try {
-            const createResponse = await superpositionClient.send(
-                createCommand
-            );
+            const createResponse =
+                await superpositionClient.send(createCommand);
             valueValidationFunctionName = createResponse.function_name ?? "";
 
             const getCommand = new GetFunctionCommand({
@@ -55,7 +54,7 @@ describe("Function Operations", () => {
 
             expect(getResponse.function_name).toBe(valueValidationFunctionName);
             expect(getResponse.function_type).toBe(
-                FunctionTypes.VALUE_VALIDATION
+                FunctionTypes.VALUE_VALIDATION,
             );
         } catch (error) {
             console.error(error);
@@ -88,9 +87,8 @@ describe("Function Operations", () => {
         });
 
         try {
-            const createResponse = await superpositionClient.send(
-                createCommand
-            );
+            const createResponse =
+                await superpositionClient.send(createCommand);
             valueComputeFunctionName = createResponse.function_name ?? "";
 
             const getCommand = new GetFunctionCommand({
@@ -150,14 +148,13 @@ describe("Function Operations", () => {
         });
 
         try {
-            const updateResponse = await superpositionClient.send(
-                updateCommand
-            );
+            const updateResponse =
+                await superpositionClient.send(updateCommand);
             expect(updateResponse.function_name).toBe(
-                valueValidationFunctionName
+                valueValidationFunctionName,
             );
             expect(updateResponse.description).toBe(
-                "Updated value_validation function"
+                "Updated value_validation function",
             );
         } catch (error) {
             console.error(error);
@@ -188,12 +185,11 @@ describe("Function Operations", () => {
         });
 
         try {
-            const updateResponse = await superpositionClient.send(
-                updateCommand
-            );
+            const updateResponse =
+                await superpositionClient.send(updateCommand);
             expect(updateResponse.function_name).toBe(valueComputeFunctionName);
             expect(updateResponse.description).toBe(
-                "Updated value_compute function"
+                "Updated value_compute function",
             );
         } catch (error) {
             console.error(error);
@@ -299,8 +295,8 @@ describe("Function Operations", () => {
             change_reason: "Publishing for testing",
         });
 
-        expect(superpositionClient.send(publishCommand)).rejects.toThrow(
-            "No records found. Please refine or correct your search parameters"
+        await expect(superpositionClient.send(publishCommand)).rejects.toThrow(
+            "No records found. Please refine or correct your search parameters",
         );
     });
 

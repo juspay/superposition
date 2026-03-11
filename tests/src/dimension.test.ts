@@ -107,9 +107,8 @@ describe("Dimension API", () => {
         });
 
         try {
-            const functionResponse = await superpositionClient.send(
-                createFunctionCmd
-            );
+            const functionResponse =
+                await superpositionClient.send(createFunctionCmd);
             console.log("Created value validation function:", functionResponse);
             valueValidationFunctionName =
                 functionResponse.function_name ?? functionName;
@@ -137,9 +136,8 @@ describe("Dimension API", () => {
         });
 
         try {
-            const functionResponse = await superpositionClient.send(
-                createFunctionCmdAC
-            );
+            const functionResponse =
+                await superpositionClient.send(createFunctionCmdAC);
             console.log("Created value compute function:", functionResponse);
             valueComputeFunctionName =
                 functionResponse.function_name ?? functionNameAC;
@@ -162,7 +160,7 @@ describe("Dimension API", () => {
                 console.log(`Cleaned up test dimension: ${dimensionName}`);
             } catch (e: any) {
                 console.error(
-                    `Failed to clean up dimension ${dimensionName}: ${e.message}`
+                    `Failed to clean up dimension ${dimensionName}: ${e.message}`,
                 );
             }
         }
@@ -180,7 +178,7 @@ describe("Dimension API", () => {
                 });
                 await superpositionClient.send(deleteCmd);
                 console.log(
-                    `Cleaned up test dimension: ${createdDimension.dimension}`
+                    `Cleaned up test dimension: ${createdDimension.dimension}`,
                 );
             } catch (e: any) {
                 console.error(`Failed to clean up dimension: ${e.message}`);
@@ -197,11 +195,11 @@ describe("Dimension API", () => {
                 });
                 await superpositionClient.send(deleteCmd);
                 console.log(
-                    `Cleaned up value validation function: ${valueValidationFunctionName}`
+                    `Cleaned up value validation function: ${valueValidationFunctionName}`,
                 );
             } catch (e: any) {
                 console.error(
-                    `Failed to clean up value validation function: ${e.message}`
+                    `Failed to clean up value validation function: ${e.message}`,
                 );
             }
         }
@@ -215,11 +213,11 @@ describe("Dimension API", () => {
                 });
                 await superpositionClient.send(deleteCmd);
                 console.log(
-                    `Cleaned up value validation function: ${valueComputeFunctionName}`
+                    `Cleaned up value validation function: ${valueComputeFunctionName}`,
                 );
             } catch (e: any) {
                 console.error(
-                    `Failed to clean up value validation function: ${e.message}`
+                    `Failed to clean up value validation function: ${e.message}`,
                 );
             }
         }
@@ -243,7 +241,7 @@ describe("Dimension API", () => {
             // Save for later use and cleanup
             createdDimension = response;
             createdDimensions.push(
-                response.dimension ?? testDimension.dimension
+                response.dimension ?? testDimension.dimension,
             );
 
             // Assertions
@@ -274,8 +272,8 @@ describe("Dimension API", () => {
 
         const cmd = new CreateDimensionCommand(invalidInput);
 
-        expect(superpositionClient.send(cmd)).rejects.toThrow(
-            /JSON Parse error: Unexpected identifier /
+        await expect(superpositionClient.send(cmd)).rejects.toThrow(
+            /JSON Parse error: Unexpected identifier /,
         );
     });
 
@@ -293,8 +291,8 @@ describe("Dimension API", () => {
 
         const cmd = new CreateDimensionCommand(invalidPositionInput);
 
-        expect(superpositionClient.send(cmd)).rejects.toThrow(
-            "Oth position is reserved for variantIds"
+        await expect(superpositionClient.send(cmd)).rejects.toThrow(
+            "Oth position is reserved for variantIds",
         );
     });
 
@@ -310,8 +308,8 @@ describe("Dimension API", () => {
         };
 
         const cmd = new CreateDimensionCommand(invalidPositionInput);
-        expect(superpositionClient.send(cmd)).rejects.toThrow(
-            /Invalid schema: expected a primitive type or an array of primitive types/i
+        await expect(superpositionClient.send(cmd)).rejects.toThrow(
+            /Invalid schema: expected a primitive type or an array of primitive types/i,
         );
     });
 
@@ -319,7 +317,7 @@ describe("Dimension API", () => {
         // Fail if dimension wasn't created
         if (!createdDimension) {
             throw new Error(
-                "Cannot run duplicate position test because the dimension creation test failed"
+                "Cannot run duplicate position test because the dimension creation test failed",
             );
         }
 
@@ -336,8 +334,8 @@ describe("Dimension API", () => {
 
         const cmd = new CreateDimensionCommand(duplicatePositionInput);
 
-        expect(superpositionClient.send(cmd)).rejects.toThrow(
-            "No records found. Please refine or correct your search parameters"
+        await expect(superpositionClient.send(cmd)).rejects.toThrow(
+            "No records found. Please refine or correct your search parameters",
         );
     });
 
@@ -347,7 +345,7 @@ describe("Dimension API", () => {
         // Fail if dimension wasn't created
         if (!createdDimension) {
             throw new Error(
-                "Cannot run get test because the dimension creation test failed"
+                "Cannot run get test because the dimension creation test failed",
             );
         }
 
@@ -387,8 +385,8 @@ describe("Dimension API", () => {
 
         const cmd = new GetDimensionCommand(input);
 
-        expect(superpositionClient.send(cmd)).rejects.toThrow(
-            "No records found. Please refine or correct your search parameters"
+        await expect(superpositionClient.send(cmd)).rejects.toThrow(
+            "No records found. Please refine or correct your search parameters",
         );
     });
     // ==================== LIST DIMENSION TESTS ====================
@@ -415,7 +413,7 @@ describe("Dimension API", () => {
 
             // Verify our created dimension is in the list
             const foundDimension = response.data?.find(
-                (d) => d.dimension === testDimension.dimension
+                (d) => d.dimension === testDimension.dimension,
             );
             expect(foundDimension).toBeDefined();
         } catch (e: any) {
@@ -430,7 +428,7 @@ describe("Dimension API", () => {
         // Fail if dimension wasn't created
         if (!createdDimension) {
             throw new Error(
-                "Cannot run update test because the dimension creation test failed"
+                "Cannot run update test because the dimension creation test failed",
             );
         }
 
@@ -473,8 +471,8 @@ describe("Dimension API", () => {
         };
 
         const cmd = new UpdateDimensionCommand(input);
-        expect(superpositionClient.send(cmd)).rejects.toThrow(
-            /Invalid schema: expected a primitive type or an array of primitive types/i
+        await expect(superpositionClient.send(cmd)).rejects.toThrow(
+            /Invalid schema: expected a primitive type or an array of primitive types/i,
         );
     });
 
@@ -489,8 +487,8 @@ describe("Dimension API", () => {
 
         const cmd = new UpdateDimensionCommand(input);
 
-        expect(superpositionClient.send(cmd)).rejects.toThrow(
-            "No records found. Please refine or correct your search parameters"
+        await expect(superpositionClient.send(cmd)).rejects.toThrow(
+            "No records found. Please refine or correct your search parameters",
         );
     });
 
@@ -512,8 +510,10 @@ describe("Dimension API", () => {
             const dimensionCmd = new CreateDimensionCommand(validatedDimension);
 
             // Assertions
-            expect(superpositionClient.send(dimensionCmd)).rejects.toThrow(
-                `Function ${valueValidationFunctionName}'s published code does not exist.`
+            await expect(
+                superpositionClient.send(dimensionCmd),
+            ).rejects.toThrow(
+                `Function ${valueValidationFunctionName}'s published code does not exist.`,
             );
         } catch (e: any) {
             console.error(e["$response"]);
@@ -542,19 +542,18 @@ describe("Dimension API", () => {
                     function_name: valueValidationFunctionName,
                     change_reason:
                         "Publishing value validation function for dimension test",
-                })
+                }),
             );
 
             const createDimensionCmd = new CreateDimensionCommand(
-                validatedDimension
+                validatedDimension,
             );
-            const dimensionResponse = await superpositionClient.send(
-                createDimensionCmd
-            );
+            const dimensionResponse =
+                await superpositionClient.send(createDimensionCmd);
 
             console.log(
                 "Created dimension with value validation:",
-                dimensionResponse
+                dimensionResponse,
             );
 
             // Add to cleanup list
@@ -563,10 +562,10 @@ describe("Dimension API", () => {
             // Assertions
             expect(dimensionResponse).toBeDefined();
             expect(dimensionResponse.dimension).toBe(
-                validatedDimension.dimension
+                validatedDimension.dimension,
             );
             expect(dimensionResponse.value_validation_function_name).toBe(
-                valueValidationFunctionName
+                valueValidationFunctionName,
             );
         } catch (e: any) {
             console.error(e["$response"]);
@@ -590,8 +589,10 @@ describe("Dimension API", () => {
             const dimensionCmd = new CreateDimensionCommand(validatedDimension);
 
             // Assertions
-            expect(superpositionClient.send(dimensionCmd)).rejects.toThrow(
-                `Function ${valueComputeFunctionName}'s published code does not exist.`
+            await expect(
+                superpositionClient.send(dimensionCmd),
+            ).rejects.toThrow(
+                `Function ${valueComputeFunctionName}'s published code does not exist.`,
             );
         } catch (e: any) {
             console.error(e["$response"]);
@@ -608,7 +609,7 @@ describe("Dimension API", () => {
                     function_name: valueComputeFunctionName,
                     change_reason:
                         "Publishing value compute function for dimension test",
-                })
+                }),
             );
             const dimension = `validated-dimension-${Date.now()}`;
             // Now create a dimension that uses this value validation function
@@ -624,15 +625,14 @@ describe("Dimension API", () => {
             };
 
             const createDimensionCmd = new CreateDimensionCommand(
-                validatedDimension
+                validatedDimension,
             );
-            const dimensionResponse = await superpositionClient.send(
-                createDimensionCmd
-            );
+            const dimensionResponse =
+                await superpositionClient.send(createDimensionCmd);
 
             console.log(
                 "Created dimension with value compute:",
-                dimensionResponse
+                dimensionResponse,
             );
 
             // Add to cleanup list
@@ -641,10 +641,10 @@ describe("Dimension API", () => {
             // Assertions
             expect(dimensionResponse).toBeDefined();
             expect(dimensionResponse.dimension).toBe(
-                validatedDimension.dimension
+                validatedDimension.dimension,
             );
             expect(dimensionResponse.value_compute_function_name).toBe(
-                valueComputeFunctionName
+                valueComputeFunctionName,
             );
         } catch (e: any) {
             console.error(e["$response"]);
@@ -699,10 +699,10 @@ describe("Dimension API", () => {
             org_id: ENV.org_id,
             ...wrongCohort,
         };
-        expect(
-            superpositionClient.send(new CreateDimensionCommand(input))
+        await expect(
+            superpositionClient.send(new CreateDimensionCommand(input)),
         ).rejects.toThrow(
-            `Please specify a valid dimension that this cohort can derive from. Refer our API docs for examples`
+            `Please specify a valid dimension that this cohort can derive from. Refer our API docs for examples`,
         );
     });
 
@@ -725,10 +725,10 @@ describe("Dimension API", () => {
             org_id: ENV.org_id,
             ...wrongCohort,
         };
-        expect(
-            superpositionClient.send(new CreateDimensionCommand(input))
+        await expect(
+            superpositionClient.send(new CreateDimensionCommand(input)),
         ).rejects.toThrow(
-            'schema validation failed: required property `"definitions"` is missing'
+            'schema validation failed: required property `"definitions"` is missing',
         );
     });
 
@@ -765,10 +765,10 @@ describe("Dimension API", () => {
             org_id: ENV.org_id,
             ...wrongCohort,
         };
-        expect(
-            superpositionClient.send(new CreateDimensionCommand(input))
+        await expect(
+            superpositionClient.send(new CreateDimensionCommand(input)),
         ).rejects.toThrow(
-            "schema validation failed: Cohort enum option 'big' does not have a corresponding definition"
+            "schema validation failed: Cohort enum option 'big' does not have a corresponding definition",
         );
     });
 
@@ -819,10 +819,10 @@ describe("Dimension API", () => {
             ...wrongCohort,
         };
 
-        expect(
-            superpositionClient.send(new CreateDimensionCommand(input))
+        await expect(
+            superpositionClient.send(new CreateDimensionCommand(input)),
         ).rejects.toThrow(
-            "Dimension sdk used in cohort schema has not been created or does not exist. Please create the dimension first before using it in cohort schema."
+            "Dimension sdk used in cohort schema has not been created or does not exist. Please create the dimension first before using it in cohort schema.",
         );
     });
 
@@ -873,10 +873,10 @@ describe("Dimension API", () => {
             ...wrongCohort,
         };
 
-        expect(
-            superpositionClient.send(new CreateDimensionCommand(input))
+        await expect(
+            superpositionClient.send(new CreateDimensionCommand(input)),
         ).rejects.toThrow(
-            "schema validation failed: Cohort definition 'big' does not have a corresponding enum option"
+            "schema validation failed: Cohort definition 'big' does not have a corresponding enum option",
         );
     });
 
@@ -927,10 +927,10 @@ describe("Dimension API", () => {
             ...wrongCohort,
         };
 
-        expect(
-            superpositionClient.send(new CreateDimensionCommand(input))
+        await expect(
+            superpositionClient.send(new CreateDimensionCommand(input)),
         ).rejects.toThrow(
-            "schema validation failed: array doesn't contain items conforming to the specified schema"
+            "schema validation failed: array doesn't contain items conforming to the specified schema",
         );
     });
 
@@ -981,10 +981,10 @@ describe("Dimension API", () => {
             ...wrongCohort,
         };
 
-        expect(
-            superpositionClient.send(new CreateDimensionCommand(input))
+        await expect(
+            superpositionClient.send(new CreateDimensionCommand(input)),
         ).rejects.toThrow(
-            /Multiple dimensions used in cohort schema and that is not allowed: .* /
+            /Multiple dimensions used in cohort schema and that is not allowed: .* /,
         );
     });
 
@@ -1004,7 +1004,7 @@ describe("Dimension API", () => {
             // Save for later use and cleanup
             createdDimension = response;
             createdDimensions.push(
-                response.dimension ?? testLocalCohort.dimension
+                response.dimension ?? testLocalCohort.dimension,
             );
 
             // Assertions
@@ -1042,10 +1042,10 @@ describe("Dimension API", () => {
             ...wrongCohort,
         };
 
-        expect(
-            superpositionClient.send(new CreateDimensionCommand(input))
+        await expect(
+            superpositionClient.send(new CreateDimensionCommand(input)),
         ).rejects.toThrow(
-            `Dimension ${testLocalCohort.dimension} is a local cohort and cannot be used in cohorting`
+            `Dimension ${testLocalCohort.dimension} is a local cohort and cannot be used in cohorting`,
         );
     });
 
@@ -1066,7 +1066,7 @@ describe("Dimension API", () => {
             // Save for later use and cleanup
             createdDimension = response;
             createdDimensions.push(
-                response.dimension ?? testRemoteCohort.dimension
+                response.dimension ?? testRemoteCohort.dimension,
             );
 
             // Assertions
@@ -1079,7 +1079,7 @@ describe("Dimension API", () => {
             expect(response.last_modified_at).toBeDefined();
             expect(response.last_modified_by).toBeDefined();
             expect(response.value_compute_function_name).toBe(
-                valueComputeFunctionName
+                valueComputeFunctionName,
             );
         } catch (e: any) {
             console.error(e["$response"]);
@@ -1095,7 +1095,7 @@ describe("Dimension API", () => {
         };
 
         const basedOnDimension = await superpositionClient.send(
-            new GetDimensionCommand(basedOnDimensionInput)
+            new GetDimensionCommand(basedOnDimensionInput),
         );
 
         const input = {
@@ -1106,10 +1106,10 @@ describe("Dimension API", () => {
             change_reason: "Updating position to invalid value",
         };
         try {
-            expect(
-                superpositionClient.send(new UpdateDimensionCommand(input))
+            await expect(
+                superpositionClient.send(new UpdateDimensionCommand(input)),
             ).rejects.toThrow(
-                `While updating dimension, Cohort dimension position ${input.position} must be less than the position ${basedOnDimension.position} of the dimension it is based on`
+                `While updating dimension, Cohort dimension position ${input.position} must be less than the position ${basedOnDimension.position} of the dimension it is based on`,
             );
         } catch (e: any) {
             console.error(e["$response"]);
@@ -1125,7 +1125,7 @@ describe("Dimension API", () => {
         };
 
         const localCohortDimension = await superpositionClient.send(
-            new GetDimensionCommand(localCohortDimensionInput)
+            new GetDimensionCommand(localCohortDimensionInput),
         );
 
         const input = {
@@ -1136,10 +1136,10 @@ describe("Dimension API", () => {
             change_reason: "Updating position to invalid value",
         };
         try {
-            expect(
-                superpositionClient.send(new UpdateDimensionCommand(input))
+            await expect(
+                superpositionClient.send(new UpdateDimensionCommand(input)),
             ).rejects.toThrow(
-                `Position value invalid: position must be greater than the position of dependent dimension ${localCohortDimension.dimension} which is ${localCohortDimension.position}`
+                `Position value invalid: position must be greater than the position of dependent dimension ${localCohortDimension.dimension} which is ${localCohortDimension.position}`,
             );
         } catch (e: any) {
             console.error(e["$response"]);
@@ -1195,7 +1195,7 @@ describe("Dimension API", () => {
         };
 
         expect(
-            superpositionClient.send(new CreateDimensionCommand(input))
+            superpositionClient.send(new CreateDimensionCommand(input)),
         ).resolves.toBeDefined();
     });
 

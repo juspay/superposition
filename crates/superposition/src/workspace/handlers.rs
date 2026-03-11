@@ -19,11 +19,12 @@ use service_utils::{
         rotate_workspace_encryption_key_helper,
     },
     helpers::get_workspace,
+    middlewares::auth_z::AuthZHandler,
     service::types::{
         AppState, DbConnection, OrganisationId, SchemaName, WorkspaceContext, WorkspaceId,
     },
 };
-use superposition_derives::authorized;
+use superposition_derives::{authorized, declare_resource};
 use superposition_macros::{bad_argument, db_error, unexpected_error, validation_error};
 use superposition_types::{
     PaginatedResponse, User,
@@ -42,6 +43,8 @@ use superposition_types::{
     },
     result as superposition,
 };
+
+declare_resource!(Workspace);
 
 const WORKSPACE_TEMPLATE_PATH: &str = "workspace_template.sql";
 
@@ -103,7 +106,8 @@ async fn create_handler(
     db_conn: DbConnection,
     org_id: OrganisationId,
     user: User,
-    state: web::Data<AppState>,
+    state: Data<AppState>,
+    authz_handler: AuthZHandler,
 ) -> superposition::Result<Json<WorkspaceResponse>> {
     let DbConnection(mut conn) = db_conn;
     let org_info: Organisation = organisations::dsl::organisations
@@ -113,7 +117,8 @@ async fn create_handler(
     let request = request.into_inner();
 
     validate_workspace_name(&request.workspace_name)?;
-    let workspace_schema_name = format!("{}_{}", &org_info.id, &request.workspace_name);
+    let workspace_schema_name =
+        SchemaName(format!("{}_{}", &org_info.id, &request.workspace_name));
 
     let encryption_key = match state.master_encryption_key {
         Some(ref master_encryption_key) => {
@@ -136,7 +141,7 @@ async fn create_handler(
         organisation_id: org_info.id,
         organisation_name: org_info.name,
         workspace_name: request.workspace_name,
-        workspace_schema_name: workspace_schema_name.clone(),
+        workspace_schema_name: workspace_schema_name.to_string(),
         workspace_status: WorkspaceStatus::ENABLED,
         workspace_admin_email: request.workspace_admin_email,
         config_version: None,
@@ -167,10 +172,22 @@ async fn create_handler(
 
     put_workspace_in_redis(&created_workspace, &state, &workspace_schema_name).await;
 
+    // Notify the AuthZHandler about the new workspace creation
+    let _ = authz_handler
+        .on_workspace_creation(
+            workspace_schema_name,
+            created_workspace.workspace_admin_email.clone(),
+        )
+        .await
+        .map_err(|e| {
+            log::error!("Failed to notify AuthZHandler about workspace creation: {e}")
+        });
+
     let response = WorkspaceResponse::from(created_workspace);
     Ok(Json(response))
 }
 
+#[allow(clippy::too_many_arguments)]
 #[authorized]
 #[routes]
 #[put("/{workspace_name}")]
@@ -182,6 +199,7 @@ async fn update_handler(
     db_conn: DbConnection,
     org_id: OrganisationId,
     user: User,
+    authz_handler: AuthZHandler,
 ) -> superposition::Result<Json<WorkspaceResponse>> {
     let request = request.into_inner();
     let workspace_name = workspace_name.into_inner();
@@ -198,25 +216,53 @@ async fn update_handler(
             .first::<i64>(&mut conn)?;
     }
 
-    conn.transaction::<(), superposition::AppError, _>(|transaction_conn| {
-        diesel::update(workspaces::table)
-            .filter(workspaces::organisation_id.eq(&org_id.0))
-            .filter(workspaces::workspace_name.eq(workspace_name))
-            .set((
-                request,
-                workspaces::last_modified_by.eq(user.get_email()),
-                workspaces::last_modified_at.eq(timestamp),
-            ))
-            .execute(transaction_conn)
-            .map_err(|err| {
-                log::error!("failed to update workspace with error: {}", err);
-                err
-            })?;
-        Ok(())
-    })?;
+    let old_email =
+        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            let old_admin_email = match &request.workspace_admin_email {
+                None => None,
+                Some(_) => {
+                    let email = workspaces::dsl::workspaces
+                        .filter(workspaces::organisation_id.eq(&org_id.0))
+                        .filter(workspaces::workspace_name.eq(&workspace_name))
+                        .select(workspaces::workspace_admin_email)
+                        .get_result(transaction_conn)?;
+                    Some(email)
+                }
+            };
+            diesel::update(workspaces::table)
+                .filter(workspaces::organisation_id.eq(&org_id.0))
+                .filter(workspaces::workspace_name.eq(&workspace_name))
+                .set((
+                    request,
+                    workspaces::last_modified_by.eq(user.get_email()),
+                    workspaces::last_modified_at.eq(timestamp),
+                ))
+                .execute(transaction_conn)
+                .map_err(|err| {
+                    log::error!("failed to update workspace with error: {}", err);
+                    err
+                })?;
+            Ok(old_admin_email)
+        })?;
 
     let workspace = get_workspace(&schema_name, &mut conn)?;
     put_workspace_in_redis(&workspace, &app_state, &schema_name.0).await;
+
+    if let Some(old_email) = old_email {
+        // Notify the AuthZHandler about the new workspace creation
+        let _ = authz_handler
+            .on_workspace_admin_update(
+                schema_name,
+                old_email,
+                workspace.workspace_admin_email.clone(),
+            )
+            .await
+            .map_err(|e| {
+                log::error!(
+                    "Failed to notify AuthZHandler about workspace admin update: {e}"
+                )
+            });
+    }
 
     let response = WorkspaceResponse::from(workspace);
     Ok(Json(response))
@@ -251,6 +297,7 @@ async fn put_workspace_in_redis(
     };
 }
 
+// TODO: Add ABAC based filtering for this endpoint, currently it returns all the workspaces in the org, we need to filter it based on the permissions of the user
 #[authorized]
 #[get("")]
 async fn list_handler(

@@ -20,6 +20,7 @@ experimentation_platform = { path = "../experimentation_platform" }
 fred = { workspace = true }
 frontend = { path = "../frontend" }
 idgenerator = "2.0.0"
+inventory = { workspace = true }
 leptos = { workspace = true }
 leptos_actix = { version = "0.6.11" }
 log = { workspace = true }

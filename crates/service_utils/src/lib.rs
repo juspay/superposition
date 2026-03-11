@@ -6,4 +6,5 @@ pub mod extensions;
 pub mod helpers;
 pub mod middlewares;
 pub mod redis;
+pub mod registry;
 pub mod service;

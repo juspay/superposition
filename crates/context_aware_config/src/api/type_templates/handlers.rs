@@ -7,7 +7,7 @@ use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use serde_json::Value;
 use service_utils::service::types::{AppState, DbConnection, WorkspaceContext};
 use superposition_core::validations::try_into_jsonschema;
-use superposition_derives::authorized;
+use superposition_derives::{authorized, declare_resource};
 use superposition_macros::bad_argument;
 use superposition_types::{
     PaginatedResponse, User,
@@ -23,6 +23,8 @@ use superposition_types::{
 };
 
 use crate::helpers::validate_change_reason;
+
+declare_resource!(TypeTemplate);
 
 pub fn endpoints() -> Scope {
     Scope::new("")

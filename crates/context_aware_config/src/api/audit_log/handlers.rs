@@ -2,7 +2,7 @@ use actix_web::{Scope, get, web::Json};
 use chrono::{Duration, Utc};
 use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl};
 use service_utils::service::types::{DbConnection, WorkspaceContext};
-use superposition_derives::authorized;
+use superposition_derives::{authorized, declare_resource};
 use superposition_types::{
     PaginatedResponse, SortBy,
     api::audit_log::AuditQueryFilters,
@@ -10,6 +10,8 @@ use superposition_types::{
     database::{models::cac::EventLog, schema::event_log::dsl as event_log},
     result as superposition,
 };
+
+declare_resource!(AuditLog);
 
 pub fn endpoints() -> Scope {
     Scope::new("").service(list_handler)

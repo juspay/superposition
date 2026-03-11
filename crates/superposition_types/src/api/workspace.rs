@@ -76,7 +76,7 @@ pub struct CreateWorkspaceRequest {
 #[cfg_attr(feature = "diesel_derives", derive(AsChangeset))]
 #[cfg_attr(feature = "diesel_derives", diesel(table_name = workspaces))]
 pub struct UpdateWorkspaceRequest {
-    pub workspace_admin_email: String,
+    pub workspace_admin_email: Option<String>,
     pub workspace_status: Option<WorkspaceStatus>,
     pub mandatory_dimensions: Option<Vec<String>>,
     #[serde(default, deserialize_with = "deserialize_option_i64")]

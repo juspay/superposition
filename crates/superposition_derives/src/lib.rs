@@ -1,8 +1,14 @@
+#![deny(unused_crate_dependencies)]
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
+use proc_macro_crate::{FoundCrate, crate_name};
 use quote::{format_ident, quote};
-use syn::{Data, DeriveInput, Fields, ItemFn, LitStr, Type, parse_macro_input};
+use syn::{
+    Data, DeriveInput, Fields, ItemFn, Token, Type,
+    parse::{Parse, ParseStream},
+    parse_macro_input,
+};
 
 /// Implements `FromSql` trait for converting `Json` type to the type for `Pg` backend
 ///
@@ -337,6 +343,84 @@ pub fn derive_query_param(input: TokenStream) -> TokenStream {
     TokenStream::from(expanded)
 }
 
+/// Parsed attribute arguments for `#[authorized]`
+#[derive(Default)]
+struct AuthorizedArgs {
+    action: Option<String>,
+    resource: Option<String>,
+}
+
+impl Parse for AuthorizedArgs {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let mut args = AuthorizedArgs::default();
+
+        if input.is_empty() {
+            return Ok(args);
+        }
+
+        let parsed =
+            syn::punctuated::Punctuated::<syn::Meta, Token![,]>::parse_terminated(input)?;
+
+        for meta in parsed {
+            let syn::Meta::NameValue(nv) = meta else {
+                return Err(syn::Error::new_spanned(
+                    meta,
+                    "Expected key = value syntax (e.g., action = \"create\", resource = Secret)",
+                ));
+            };
+
+            let Some(key) = nv.path.get_ident() else {
+                return Err(syn::Error::new_spanned(
+                    &nv.path,
+                    "Expected simple identifier",
+                ));
+            };
+
+            match key.to_string().as_str() {
+                "action" => {
+                    let syn::Expr::Lit(syn::ExprLit {
+                        lit: syn::Lit::Str(lit_str),
+                        ..
+                    }) = nv.value
+                    else {
+                        return Err(syn::Error::new_spanned(
+                            nv.value,
+                            "action must be a string literal",
+                        ));
+                    };
+                    args.action = Some(lit_str.value());
+                }
+                "resource" => {
+                    let syn::Expr::Path(expr_path) = nv.value else {
+                        return Err(syn::Error::new_spanned(
+                            nv.value,
+                            "resource must be an identifier (e.g., Secret, Config)",
+                        ));
+                    };
+                    let Some(ident) = expr_path.path.get_ident() else {
+                        return Err(syn::Error::new_spanned(
+                            expr_path,
+                            "resource must be a simple identifier",
+                        ));
+                    };
+                    args.resource = Some(ident.to_string());
+                }
+                unknown => {
+                    return Err(syn::Error::new_spanned(
+                        &nv.path,
+                        format!(
+                            "Unknown attribute parameter: '{}'. Valid parameters are 'action' and 'resource'",
+                            unknown
+                        ),
+                    ));
+                }
+            }
+        }
+
+        Ok(args)
+    }
+}
+
 /// For an action `act` on a resource, on a function `act_handler`, this macro generates a struct
 /// `AuthZActionAct` that implements the `Action` trait from `service_utils::middlewares::auth_z`.
 /// It injects an additional parameter `_auth_z: AuthZ<AuthZActionAct>` into the function signature.
@@ -345,27 +429,58 @@ pub fn derive_query_param(input: TokenStream) -> TokenStream {
 /// The struct is used to represent the action and is generated based on the action name and function name.
 /// The handler function name must end with `_handler` to derive the struct name correctly and should not have
 /// the resource part in its name, the name should represent the action only.
+///
+/// The resource is determined by one of two mechanisms (in order of precedence):
+/// 1. An explicit Resource override in the macro: `#[authorized(resource = Secret)]`
+/// 2. A file-level declaration via `declare_resource!(Config)` which sets `__DECLARED_RESOURCE__`
+///
+/// Examples:
+/// - `#[authorized]` - action derived from fn_name, resource from __DECLARED_RESOURCE__
+/// - `#[authorized(action = "custom_action")]` - explicit action, resource from __DECLARED_RESOURCE__
+/// - `#[authorized(resource = Secret)]` - action from fn_name, explicit resource override
+/// - `#[authorized(action = "custom_action", resource = Secret)]` - both explicit
 #[proc_macro_attribute]
 pub fn authorized(attr: TokenStream, item: TokenStream) -> TokenStream {
     // Parse the function
     let mut input_fn = parse_macro_input!(item as ItemFn);
     let fn_name = input_fn.sig.ident.to_string();
 
-    // Use provided action name or derive from function name
-    let action_name = if attr.is_empty() {
-        // Ensure the function name ends with '_handler'
+    let service_utils_path: syn::Path = match crate_name("service_utils") {
+        Ok(FoundCrate::Itself) => syn::parse_quote!(crate),
+        Ok(FoundCrate::Name(name)) => {
+            let ident = format_ident!("{}", name);
+            syn::parse_quote!(::#ident)
+        }
+        Err(_) => syn::parse_quote!(::service_utils),
+    };
+
+    let superposition_types_path: syn::Path = match crate_name("superposition_types") {
+        Ok(FoundCrate::Itself) => syn::parse_quote!(crate),
+        Ok(FoundCrate::Name(name)) => {
+            let ident = format_ident!("{}", name);
+            syn::parse_quote!(::#ident)
+        }
+        Err(_) => syn::parse_quote!(::superposition_types),
+    };
+
+    // Parse attribute arguments using proper syn parsing
+    let args = parse_macro_input!(attr as AuthorizedArgs);
+
+    // Determine action name: use explicit action if provided, otherwise derive from function name
+    let action_name = if let Some(explicit_action) = args.action {
+        explicit_action
+    } else {
+        // Derive action from function name
         let Some(name) = fn_name.strip_suffix("_handler") else {
             return syn::Error::new_spanned(
                 input_fn.sig.ident,
-                "Function name must end with '_handler' to derive action name automatically",
+                "Function name must end with '_handler' to derive action name automatically. \
+                 Alternatively, specify action explicitly: #[authorized(action = \"your_action\")]",
             )
             .to_compile_error()
             .into();
         };
         name.to_string()
-    } else {
-        let lit = parse_macro_input!(attr as LitStr);
-        lit.value()
     };
 
     // Generate mangled struct name: AuthZActionAct
@@ -374,16 +489,53 @@ pub fn authorized(attr: TokenStream, item: TokenStream) -> TokenStream {
     // Inject parameter: _auth_z: AuthZ<AuthZActionAct>
     input_fn.sig.inputs.insert(
         0,
-        syn::parse_quote!(_auth_z: service_utils::middlewares::auth_z::AuthZ<#struct_name>),
+        syn::parse_quote!(_auth_z: #service_utils_path::middlewares::auth_z::AuthZ<#struct_name>),
     );
+
+    // Generate the resource() method implementation and resource value for registry
+    let (resource_impl, resource_value) = if let Some(override_resource) = &args.resource
+    {
+        // Use explicit override
+        let resource_ident = format_ident!("{}", override_resource);
+        (
+            quote! {
+                fn resource() -> #superposition_types_path::Resource {
+                    #superposition_types_path::Resource::#resource_ident
+                }
+            },
+            quote! { #superposition_types_path::Resource::#resource_ident },
+        )
+    } else {
+        // Use __DECLARED_RESOURCE__ from file-level declare_resource! macro
+        (
+            quote! {
+                fn resource() -> #superposition_types_path::Resource {
+                    __DECLARED_RESOURCE__
+                }
+            },
+            quote! { __DECLARED_RESOURCE__ },
+        )
+    };
 
     quote! {
         struct #struct_name;
 
-        impl service_utils::middlewares::auth_z::Action for #struct_name {
+        impl #service_utils_path::middlewares::auth_z::Action for #struct_name {
             fn get() -> String {
                 #action_name.to_string()
             }
+
+            #resource_impl
+        }
+
+        // Register action in inventory for runtime introspection
+        inventory::submit! {
+            #service_utils_path::registry::ActionRegistry::new(
+                file!(),
+                #fn_name,
+                #action_name,
+                #resource_value,
+            )
         }
 
         #input_fn
@@ -401,4 +553,32 @@ fn pascal_case(s: &str) -> String {
             }
         })
         .collect()
+}
+
+/// Declares the default resource for all #[authorized] handlers in this module.
+/// Must be used once at the top of any handlers file that uses #[authorized].
+///
+/// # Example
+/// ```ignore
+/// declare_resource!(Config);
+/// ```
+#[proc_macro]
+pub fn declare_resource(input: TokenStream) -> TokenStream {
+    let resource = parse_macro_input!(input as syn::Ident);
+
+    let superposition_types_path: syn::Path = match crate_name("superposition_types") {
+        Ok(FoundCrate::Itself) => syn::parse_quote!(crate),
+        Ok(FoundCrate::Name(name)) => {
+            let ident = format_ident!("{}", name);
+            syn::parse_quote!(::#ident)
+        }
+        Err(_) => syn::parse_quote!(::superposition_types),
+    };
+
+    quote! {
+        #[doc(hidden)]
+        const __DECLARED_RESOURCE__: #superposition_types_path::Resource =
+            #superposition_types_path::Resource::#resource;
+    }
+    .into()
 }

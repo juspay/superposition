@@ -128,7 +128,6 @@ impl UpdateWorkspaceInputBuilder {
         &self.workspace_name
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// This field is required.
     pub fn workspace_admin_email(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
         self.workspace_admin_email = ::std::option::Option::Some(input.into());
         self

@@ -13,7 +13,7 @@ use service_utils::{
         WorkspaceContext, WorkspaceId,
     },
 };
-use superposition_derives::authorized;
+use superposition_derives::{authorized, declare_resource};
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
     PaginatedResponse, SortBy, User,
@@ -31,6 +31,8 @@ use superposition_types::{
 };
 
 use super::types::UpdateSecretChangeset;
+
+declare_resource!(Secret);
 
 pub fn endpoints() -> Scope {
     web::scope("")
@@ -278,7 +280,7 @@ async fn delete_handler(
 }
 
 // Note: Not to be used during mid migration - to avoid old replicas from failing
-#[authorized]
+#[authorized(resource = MasterEncryptionKey)]
 #[post("/rotate")]
 pub async fn rotate_master_key_handler(
     user: User,

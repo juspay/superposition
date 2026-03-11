@@ -39,7 +39,7 @@ describe("Variable Operations", () => {
             } catch (error: any) {
                 console.error(
                     `Failed to delete variable ${varName}:`,
-                    error.message
+                    error.message,
                 );
             }
         }
@@ -58,7 +58,7 @@ describe("Variable Operations", () => {
             } catch (error: any) {
                 console.error(
                     `Failed to delete function ${funcName}:`,
-                    error.message
+                    error.message,
                 );
             }
         }
@@ -101,9 +101,8 @@ describe("Variable Operations", () => {
         });
 
         try {
-            const createResponse = await superpositionClient.send(
-                createCommand
-            );
+            const createResponse =
+                await superpositionClient.send(createCommand);
             const varName = createResponse.name!;
             trackVariable(varName);
 
@@ -143,13 +142,13 @@ describe("Variable Operations", () => {
             trackVariable(uniqueVariableName);
 
             console.log(
-                `Created template ${uniqueVariableName} for update test`
+                `Created template ${uniqueVariableName} for update test`,
             );
         } catch (error: any) {
             if (!error.message?.includes("duplicate key value")) {
                 console.log(
                     "Error pre-creating variable for update test:",
-                    error.message
+                    error.message,
                 );
             }
         }
@@ -188,9 +187,8 @@ describe("Variable Operations", () => {
         });
 
         try {
-            const createResponse = await superpositionClient.send(
-                createCommand
-            );
+            const createResponse =
+                await superpositionClient.send(createCommand);
             const varName = createResponse.name!;
             trackVariable(varName);
 
@@ -202,9 +200,8 @@ describe("Variable Operations", () => {
                 change_reason: "Updating description",
             });
 
-            const updateResponse = await superpositionClient.send(
-                updateCommand
-            );
+            const updateResponse =
+                await superpositionClient.send(updateCommand);
 
             expect(updateResponse.description).toBe("Updated description");
         } catch (error: any) {
@@ -224,9 +221,8 @@ describe("Variable Operations", () => {
         });
 
         try {
-            const createResponse = await superpositionClient.send(
-                createCommand
-            );
+            const createResponse =
+                await superpositionClient.send(createCommand);
             const varName = createResponse.name!;
 
             const deleteCommand = new DeleteVariableCommand({
@@ -247,8 +243,8 @@ describe("Variable Operations", () => {
             // const response = await superpositionClient.send(getCommand);
             // console.log(`1 response: ${response}`);
 
-            expect(superpositionClient.send(getCommand)).rejects.toThrow(
-                "No records found"
+            await expect(superpositionClient.send(getCommand)).rejects.toThrow(
+                "No records found",
             );
         } catch (error: any) {
             console.log("Error testing delete:", error.message);
@@ -269,9 +265,8 @@ describe("Variable Operations", () => {
         });
 
         try {
-            const createResponse = await superpositionClient.send(
-                createCommand
-            );
+            const createResponse =
+                await superpositionClient.send(createCommand);
             trackVariable(createResponse.name!);
 
             // Try to create duplicate
@@ -284,9 +279,9 @@ describe("Variable Operations", () => {
                 change_reason: "Testing duplicate",
             });
 
-            expect(superpositionClient.send(duplicateCommand)).rejects.toThrow(
-                "duplicate key value violates unique constraint"
-            );
+            await expect(
+                superpositionClient.send(duplicateCommand),
+            ).rejects.toThrow("duplicate key value violates unique constraint");
         } catch (error: any) {
             console.log("Error testing duplicate prevention:", error.message);
             throw error;
@@ -300,8 +295,8 @@ describe("Variable Operations", () => {
             name: "NON_EXISTENT_VARIABLE",
         });
 
-        expect(superpositionClient.send(getCommand)).rejects.toThrow(
-            "No records found"
+        await expect(superpositionClient.send(getCommand)).rejects.toThrow(
+            "No records found",
         );
     });
 
@@ -314,8 +309,8 @@ describe("Variable Operations", () => {
             change_reason: "Testing update of non-existent variable",
         });
 
-        expect(superpositionClient.send(updateCommand)).rejects.toThrow(
-            "No records found"
+        await expect(superpositionClient.send(updateCommand)).rejects.toThrow(
+            "No records found",
         );
     });
 
@@ -326,8 +321,8 @@ describe("Variable Operations", () => {
             name: "NON_EXISTENT_VARIABLE",
         });
 
-        expect(superpositionClient.send(deleteCommand)).rejects.toThrow(
-            "No records found"
+        await expect(superpositionClient.send(deleteCommand)).rejects.toThrow(
+            "No records found",
         );
     });
 
@@ -341,8 +336,8 @@ describe("Variable Operations", () => {
             change_reason: "Testing empty name validation",
         });
 
-        expect(superpositionClient.send(command)).rejects.toThrow(
-            "Parse error"
+        await expect(superpositionClient.send(command)).rejects.toThrow(
+            "Parse error",
         );
     });
 
@@ -367,8 +362,8 @@ describe("Variable Operations", () => {
                 change_reason: "Testing invalid name pattern",
             });
 
-            expect(superpositionClient.send(command)).rejects.toThrow(
-                "Parse error"
+            await expect(superpositionClient.send(command)).rejects.toThrow(
+                "Parse error",
             );
         }
     });
@@ -390,9 +385,8 @@ describe("Variable Operations", () => {
                 change_reason: "Testing variable usage in functions",
             });
 
-            const varResponse = await superpositionClient.send(
-                createVarCommand
-            );
+            const varResponse =
+                await superpositionClient.send(createVarCommand);
             trackVariable(varResponse.name!);
 
             console.log("Step 2: Creating function that uses the variable...");
@@ -414,9 +408,8 @@ describe("Variable Operations", () => {
                 function_type: FunctionTypes.VALUE_VALIDATION,
             });
 
-            const funcResponse = await superpositionClient.send(
-                createFuncCommand
-            );
+            const funcResponse =
+                await superpositionClient.send(createFuncCommand);
             trackFunction(funcResponse.function_name!);
 
             expect(funcResponse.function_name).toBe(functionName);
@@ -452,13 +445,13 @@ describe("Variable Operations", () => {
             expect(testResponse.stdout).toContain(variableValue);
 
             console.log(
-                `✅ Function successfully accessed variable value: ${variableValue}`
+                `✅ Function successfully accessed variable value: ${variableValue}`,
             );
         } catch (error: any) {
             console.error(
                 "Error in variable-function integration test:",
                 error.message,
-                error.$response
+                error.$response,
             );
             throw error;
         }
