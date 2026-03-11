@@ -206,7 +206,7 @@ async fn authorize_update<A: AuthZAction>(
     auth_z
         .authorize_action(
             &AuthZActionUpdate::get(),
-            &changed_keys(&overrides, &new_overrides.deref()),
+            &changed_keys(&overrides, new_overrides.deref()),
         )
         .await
 }
@@ -305,7 +305,7 @@ async fn update_handler(
 
 async fn authorize_action<A: AuthZAction>(
     auth_z: &AuthZ<A>,
-    ctx_id: &String,
+    ctx_id: &str,
     schema_name: &SchemaName,
     conn: &mut DBConnection,
 ) -> superposition::Result<()> {
@@ -623,7 +623,7 @@ async fn list_handler(
 
 async fn authorize_delete<A: AuthZAction>(
     auth_z: &AuthZ<A>,
-    ctx_id: &String,
+    ctx_id: &str,
     schema_name: &SchemaName,
     conn: &mut DBConnection,
 ) -> superposition::Result<()> {

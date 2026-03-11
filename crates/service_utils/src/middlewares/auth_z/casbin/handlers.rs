@@ -15,7 +15,10 @@ use superposition_types::{
     Resource,
     api::authz::{
         ResourceActionType,
-        casbin::{ActionGroupPolicyRequest, GroupingPolicyRequest, PolicyRequest},
+        casbin::{
+            ActionGroupPolicyRequest, ActionResponse, GroupingPolicyRequest,
+            PolicyRequest,
+        },
     },
     database::superposition_schema::superposition::{organisations, workspaces},
     result as superposition,
@@ -87,20 +90,21 @@ async fn add_policy_handler(
     data: Data<AuthZManager>,
     body: Json<PolicyRequest>,
     domain: AuthZDomain,
-) -> superposition::Result<HttpResponse> {
+) -> superposition::Result<Json<ActionResponse>> {
     let data = data.try_get_casbin_policy_engine()?;
     let body = body.into_inner();
     let added = data
         .enforcer_mut(async |enforcer| {
             let action_map = data.get_resource_action_map(enforcer, domain.clone());
+            let act = body.act.to_string();
 
             action_map
                 .get(&body.obj)
-                .and_then(|actions| actions.contains(&body.act).then_some(()))
+                .and_then(|actions| actions.iter().find(|a| a.get_name() == act))
                 .ok_or_else(|| {
                     bad_argument!(
                         "The action '{}' is not valid for resource '{}'",
-                        body.act.get_name(),
+                        act,
                         body.obj
                     )
                 })?;
@@ -110,7 +114,7 @@ async fn add_policy_handler(
                     body.sub.into_inner(),
                     domain.to_string(),
                     body.obj.to_string(),
-                    body.act.get_name().to_string(),
+                    body.act.to_string(),
                     body.attr.map(|a| a.into_inner()).unwrap_or("*".to_string()),
                 ])
                 .await
@@ -119,11 +123,14 @@ async fn add_policy_handler(
         .await
         .map_err(|e| unexpected_error!(e))?;
 
-    if added {
-        Ok(HttpResponse::Ok().body("Policy added"))
-    } else {
-        Ok(HttpResponse::Ok().body("Policy already exists"))
-    }
+    Ok(Json(ActionResponse {
+        success: added,
+        message: if added {
+            "Policy added".to_string()
+        } else {
+            "Policy already exists".to_string()
+        },
+    }))
 }
 
 #[authorized]
@@ -132,7 +139,7 @@ async fn delete_policy_handler(
     data: Data<AuthZManager>,
     body: Json<PolicyRequest>,
     domain: AuthZDomain,
-) -> superposition::Result<HttpResponse> {
+) -> superposition::Result<Json<ActionResponse>> {
     let data = data.try_get_casbin_policy_engine()?;
     let body = body.into_inner();
     let removed = data
@@ -142,7 +149,7 @@ async fn delete_policy_handler(
                     body.sub.into_inner(),
                     domain.to_string(),
                     body.obj.to_string(),
-                    body.act.get_name().to_string(),
+                    body.act.to_string(),
                     body.attr.map(|a| a.into_inner()).unwrap_or("*".to_string()),
                 ])
                 .await
@@ -151,11 +158,14 @@ async fn delete_policy_handler(
         .await
         .map_err(|e| unexpected_error!(e))?;
 
-    if removed {
-        Ok(HttpResponse::Ok().body("Policy removed"))
-    } else {
-        Ok(HttpResponse::Ok().body("Policy does not exist"))
-    }
+    Ok(Json(ActionResponse {
+        success: removed,
+        message: if removed {
+            "Policy removed".to_string()
+        } else {
+            "Policy does not exist".to_string()
+        },
+    }))
 }
 
 #[authorized]
@@ -187,7 +197,7 @@ async fn add_roles_handler(
     data: Data<AuthZManager>,
     body: Json<GroupingPolicyRequest>,
     domain: AuthZDomain,
-) -> superposition::Result<HttpResponse> {
+) -> superposition::Result<Json<ActionResponse>> {
     let data = data.try_get_casbin_policy_engine()?;
     let body = body.into_inner();
     let added = data
@@ -205,11 +215,14 @@ async fn add_roles_handler(
         .await
         .map_err(|e| unexpected_error!(e))?;
 
-    if added {
-        Ok(HttpResponse::Ok().body("Grouping policy added"))
-    } else {
-        Ok(HttpResponse::Ok().body("Grouping policy already exists"))
-    }
+    Ok(Json(ActionResponse {
+        success: added,
+        message: if added {
+            "Grouping policy added".to_string()
+        } else {
+            "Grouping policy already exists".to_string()
+        },
+    }))
 }
 
 #[authorized]
@@ -218,7 +231,7 @@ async fn delete_roles_handler(
     data: Data<AuthZManager>,
     body: Json<GroupingPolicyRequest>,
     domain: AuthZDomain,
-) -> superposition::Result<HttpResponse> {
+) -> superposition::Result<Json<ActionResponse>> {
     let data = data.try_get_casbin_policy_engine()?;
     let body = body.into_inner();
     let removed = data
@@ -235,11 +248,14 @@ async fn delete_roles_handler(
         .await
         .map_err(|e| unexpected_error!(e))?;
 
-    if removed {
-        Ok(HttpResponse::Ok().body("Grouping policy removed"))
-    } else {
-        Ok(HttpResponse::Ok().body("Grouping policy does not exist"))
-    }
+    Ok(Json(ActionResponse {
+        success: removed,
+        message: if removed {
+            "Grouping policy removed".to_string()
+        } else {
+            "Grouping policy does not exist".to_string()
+        },
+    }))
 }
 
 #[authorized]
@@ -272,7 +288,7 @@ async fn add_domain_action_group_handler(
     data: Data<AuthZManager>,
     body: Json<ActionGroupPolicyRequest>,
     domain: AuthZDomain,
-) -> superposition::Result<HttpResponse> {
+) -> superposition::Result<Json<ActionResponse>> {
     let data = data.try_get_casbin_policy_engine()?;
     let body = body.into_inner();
     let added = data
@@ -292,11 +308,14 @@ async fn add_domain_action_group_handler(
         .await
         .map_err(|e| unexpected_error!(e))?;
 
-    if added {
-        Ok(HttpResponse::Ok().body("Action-group policy added"))
-    } else {
-        Ok(HttpResponse::Ok().body("Action-group policy already exists"))
-    }
+    Ok(Json(ActionResponse {
+        success: added,
+        message: if added {
+            "Action-group policy added".to_string()
+        } else {
+            "Action-group policy already exists".to_string()
+        },
+    }))
 }
 
 #[authorized]
@@ -305,7 +324,7 @@ async fn delete_domain_action_group_handler(
     data: Data<AuthZManager>,
     body: Json<ActionGroupPolicyRequest>,
     domain: AuthZDomain,
-) -> superposition::Result<HttpResponse> {
+) -> superposition::Result<Json<ActionResponse>> {
     let data = data.try_get_casbin_policy_engine()?;
     let body = body.into_inner();
     let removed = data
@@ -325,11 +344,14 @@ async fn delete_domain_action_group_handler(
         .await
         .map_err(|e| unexpected_error!(e))?;
 
-    if removed {
-        Ok(HttpResponse::Ok().body("Action-group policy removed"))
-    } else {
-        Ok(HttpResponse::Ok().body("Action-group policy does not exist"))
-    }
+    Ok(Json(ActionResponse {
+        success: removed,
+        message: if removed {
+            "Action-group policy removed".to_string()
+        } else {
+            "Action-group policy does not exist".to_string()
+        },
+    }))
 }
 
 #[authorized]
@@ -355,7 +377,7 @@ async fn list_domain_action_group_handler(
 async fn add_action_group_handler(
     data: Data<AuthZManager>,
     body: Json<ActionGroupPolicyRequest>,
-) -> superposition::Result<HttpResponse> {
+) -> superposition::Result<Json<ActionResponse>> {
     let data = data.try_get_casbin_policy_engine()?;
     let body = body.into_inner();
     let added = data
@@ -374,11 +396,14 @@ async fn add_action_group_handler(
         .await
         .map_err(|e| unexpected_error!(e))?;
 
-    if added {
-        Ok(HttpResponse::Ok().body("Action-group policy added"))
-    } else {
-        Ok(HttpResponse::Ok().body("Action-group policy already exists"))
-    }
+    Ok(Json(ActionResponse {
+        success: added,
+        message: if added {
+            "Action-group policy added".to_string()
+        } else {
+            "Action-group policy already exists".to_string()
+        },
+    }))
 }
 
 #[authorized]
@@ -386,7 +411,7 @@ async fn add_action_group_handler(
 async fn delete_action_group_handler(
     data: Data<AuthZManager>,
     body: Json<ActionGroupPolicyRequest>,
-) -> superposition::Result<HttpResponse> {
+) -> superposition::Result<Json<ActionResponse>> {
     let data = data.try_get_casbin_policy_engine()?;
     let body = body.into_inner();
     let removed = data
@@ -405,11 +430,14 @@ async fn delete_action_group_handler(
         .await
         .map_err(|e| unexpected_error!(e))?;
 
-    if removed {
-        Ok(HttpResponse::Ok().body("Action-group policy removed"))
-    } else {
-        Ok(HttpResponse::Ok().body("Action-group policy does not exist"))
-    }
+    Ok(Json(ActionResponse {
+        success: removed,
+        message: if removed {
+            "Action-group policy removed".to_string()
+        } else {
+            "Action-group policy does not exist".to_string()
+        },
+    }))
 }
 
 #[authorized]

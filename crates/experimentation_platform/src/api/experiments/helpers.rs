@@ -874,5 +874,5 @@ pub fn get_control_overrides_from_exp_id(
             bad_argument!("No control variant found for the given experiment id")
         })?;
 
-    Ok(control_overrides.overrides.into())
+    Ok(control_overrides.overrides)
 }

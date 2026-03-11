@@ -54,7 +54,7 @@ impl<A: Action> AuthZ<A> {
 
     pub async fn authorize_action(
         &self,
-        action: &String,
+        action: &str,
         attributes: &[&String],
     ) -> superposition::Result<()> {
         if self.internal_user {

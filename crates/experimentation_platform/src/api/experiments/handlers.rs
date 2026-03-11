@@ -135,7 +135,7 @@ fn add_config_version_to_header(
 
 async fn authorize_create(
     auth_z: AuthZ<AuthZActionCreate>,
-    variants: &Vec<Variant>,
+    variants: &[Variant],
 ) -> superposition::Result<()> {
     let control_keys = variants
         .iter()
@@ -175,7 +175,7 @@ async fn create_handler(
     // atleast 1 experimental variant
     check_variant_types(&variants)?;
     let unique_override_keys: Vec<String> =
-        extract_override_keys(&variants[0].overrides.deref())
+        extract_override_keys(variants[0].overrides.deref())
             .into_iter()
             .collect();
 

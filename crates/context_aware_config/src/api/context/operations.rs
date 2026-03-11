@@ -103,7 +103,7 @@ pub fn get_overrides_from_ctx_id(
 ) -> result::Result<Overrides> {
     let overrides = dsl::contexts
         .filter(dsl::id.eq(ctx_id))
-        .schema_name(&schema_name)
+        .schema_name(schema_name)
         .select(dsl::override_)
         .first::<Overrides>(conn)?;
 

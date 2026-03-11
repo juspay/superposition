@@ -27,17 +27,32 @@ use crate::utils::{
 };
 
 pub mod casbin {
-    use std::collections::HashMap;
+    use std::{collections::HashMap, fmt::Display};
 
-    use superposition_types::{Resource, api::authz::ResourceActionType};
+    use superposition_types::{
+        Resource,
+        api::authz::{ResourceActionType, casbin::ActionResponse},
+    };
 
     use super::*;
 
-    #[derive(Clone, Debug, PartialEq, Eq)]
+    #[derive(Clone, PartialEq, Eq)]
     pub enum AuthzScope {
         Admin,
         Org(String),
         Workspace(String, String),
+    }
+
+    impl Display for AuthzScope {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            match self {
+                AuthzScope::Admin => write!(f, "*"),
+                AuthzScope::Org(org_id) => write!(f, "{org_id}_*"),
+                AuthzScope::Workspace(org_id, workspace) => {
+                    write!(f, "{org_id}_{workspace}")
+                }
+            }
+        }
     }
 
     fn casbin_url_and_headers(
@@ -80,21 +95,23 @@ pub mod casbin {
         pub async fn add(
             payload: PolicyRequest,
             scope: AuthzScope,
-        ) -> Result<(), String> {
+        ) -> Result<ActionResponse, String> {
             let (url, headers) = casbin_url_and_headers("policy", scope)?;
 
-            request(url, reqwest::Method::POST, Some(payload), headers).await?;
-            Ok(())
+            let response =
+                request(url, reqwest::Method::POST, Some(payload), headers).await?;
+            parse_json_response(response).await
         }
 
         pub async fn delete(
             payload: PolicyRequest,
             scope: AuthzScope,
-        ) -> Result<(), String> {
+        ) -> Result<ActionResponse, String> {
             let (url, headers) = casbin_url_and_headers("policy", scope)?;
 
-            request(url, reqwest::Method::DELETE, Some(payload), headers).await?;
-            Ok(())
+            let response =
+                request(url, reqwest::Method::DELETE, Some(payload), headers).await?;
+            parse_json_response(response).await
         }
     }
 
@@ -114,21 +131,23 @@ pub mod casbin {
         pub async fn add(
             payload: GroupingPolicyRequest,
             scope: AuthzScope,
-        ) -> Result<(), String> {
+        ) -> Result<ActionResponse, String> {
             let (url, headers) = casbin_url_and_headers("roles", scope)?;
 
-            request(url, reqwest::Method::POST, Some(payload), headers).await?;
-            Ok(())
+            let response =
+                request(url, reqwest::Method::POST, Some(payload), headers).await?;
+            parse_json_response(response).await
         }
 
         pub async fn delete(
             payload: GroupingPolicyRequest,
             scope: AuthzScope,
-        ) -> Result<(), String> {
+        ) -> Result<ActionResponse, String> {
             let (url, headers) = casbin_url_and_headers("roles", scope)?;
 
-            request(url, reqwest::Method::DELETE, Some(payload), headers).await?;
-            Ok(())
+            let response =
+                request(url, reqwest::Method::DELETE, Some(payload), headers).await?;
+            parse_json_response(response).await
         }
     }
 
@@ -154,7 +173,7 @@ pub mod casbin {
         pub async fn add_domain(
             payload: ActionGroupPolicyRequest,
             scope: AuthzScope,
-        ) -> Result<(), String> {
+        ) -> Result<ActionResponse, String> {
             if matches!(scope, AuthzScope::Admin) {
                 return Err(
                     "domain action groups are only available for org/workspace scopes"
@@ -163,14 +182,15 @@ pub mod casbin {
             }
             let (url, headers) = casbin_url_and_headers("domain-action-groups", scope)?;
 
-            request(url, reqwest::Method::POST, Some(payload), headers).await?;
-            Ok(())
+            let response =
+                request(url, reqwest::Method::POST, Some(payload), headers).await?;
+            parse_json_response(response).await
         }
 
         pub async fn delete_domain(
             payload: ActionGroupPolicyRequest,
             scope: AuthzScope,
-        ) -> Result<(), String> {
+        ) -> Result<ActionResponse, String> {
             if matches!(scope, AuthzScope::Admin) {
                 return Err(
                     "domain action groups are only available for org/workspace scopes"
@@ -179,8 +199,9 @@ pub mod casbin {
             }
             let (url, headers) = casbin_url_and_headers("domain-action-groups", scope)?;
 
-            request(url, reqwest::Method::DELETE, Some(payload), headers).await?;
-            Ok(())
+            let response =
+                request(url, reqwest::Method::DELETE, Some(payload), headers).await?;
+            parse_json_response(response).await
         }
 
         pub async fn list() -> Result<Vec<Vec<String>>, String> {
@@ -194,24 +215,30 @@ pub mod casbin {
             parse_json_response(response).await
         }
 
-        pub async fn add(payload: ActionGroupPolicyRequest) -> Result<(), String> {
+        pub async fn add(
+            payload: ActionGroupPolicyRequest,
+        ) -> Result<ActionResponse, String> {
             let host = use_host_server();
 
             let url = format!("{host}/authz/admin/casbin/action-groups");
             let headers = construct_request_headers(&[])?;
 
-            request(url, reqwest::Method::POST, Some(payload), headers).await?;
-            Ok(())
+            let response =
+                request(url, reqwest::Method::POST, Some(payload), headers).await?;
+            parse_json_response(response).await
         }
 
-        pub async fn delete(payload: ActionGroupPolicyRequest) -> Result<(), String> {
+        pub async fn delete(
+            payload: ActionGroupPolicyRequest,
+        ) -> Result<ActionResponse, String> {
             let host = use_host_server();
 
             let url = format!("{host}/authz/admin/casbin/action-groups");
             let headers = construct_request_headers(&[])?;
 
-            request(url, reqwest::Method::DELETE, Some(payload), headers).await?;
-            Ok(())
+            let response =
+                request(url, reqwest::Method::DELETE, Some(payload), headers).await?;
+            parse_json_response(response).await
         }
     }
 

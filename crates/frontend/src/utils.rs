@@ -242,7 +242,7 @@ where
 
     let mut request_builder = HTTP_CLIENT.request(method.clone(), url).headers(headers);
     request_builder = match (method, body) {
-        (reqwest::Method::GET | reqwest::Method::DELETE, _) => request_builder,
+        (reqwest::Method::GET, _) => request_builder,
         (_, Some(data)) => request_builder.json(&data),
         _ => request_builder,
     };

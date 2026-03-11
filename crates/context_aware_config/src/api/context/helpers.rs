@@ -513,14 +513,8 @@ pub fn changed_keys<'a>(
 
     keys.into_iter()
         .filter(|key| {
-            let old_value = old_values
-                .get(*key)
-                .cloned()
-                .unwrap_or(Value::String("##NOT_PRESENT##".to_string()));
-            let new_value = new_values
-                .get(*key)
-                .cloned()
-                .unwrap_or(Value::String("##DELETED##".to_string()));
+            let old_value = old_values.get(*key).cloned();
+            let new_value = new_values.get(*key).cloned();
             old_value != new_value
         })
         .collect()
