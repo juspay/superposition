@@ -14,7 +14,7 @@ impl Authorizer for NoAuth {
         _: &User,
         _: &Resource,
         _: &str,
-        _: Option<&[&str]>,
+        _: Option<&[&String]>,
     ) -> LocalBoxFuture<'_, Result<bool, String>> {
         Box::pin(async { Ok(true) })
     }

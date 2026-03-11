@@ -501,3 +501,27 @@ pub fn validate_ctx(
     )?;
     Ok(dimension_info_map)
 }
+
+pub fn changed_keys<'a>(
+    old_values: &'a Map<String, Value>,
+    new_values: &'a Map<String, Value>,
+) -> Vec<&'a String> {
+    let keys = old_values
+        .keys()
+        .chain(new_values.keys())
+        .collect::<std::collections::HashSet<_>>();
+
+    keys.into_iter()
+        .filter(|key| {
+            let old_value = old_values
+                .get(*key)
+                .cloned()
+                .unwrap_or(Value::String("##NOT_PRESENT##".to_string()));
+            let new_value = new_values
+                .get(*key)
+                .cloned()
+                .unwrap_or(Value::String("##DELETED##".to_string()));
+            old_value != new_value
+        })
+        .collect()
+}

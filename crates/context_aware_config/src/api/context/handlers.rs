@@ -1,4 +1,4 @@
-use std::{cmp::min, collections::HashSet};
+use std::{cmp::min, collections::HashSet, ops::Deref};
 
 use actix_web::{
     Either, HttpResponse, Scope, delete, get, post, put, routes,
@@ -17,22 +17,23 @@ use service_utils::{
     helpers::{
         WebhookData, execute_webhook_call, fetch_dimensions_info_map, parse_config_tags,
     },
+    middlewares::auth_z::{Action as AuthZAction, AuthZ},
     service::types::{
-        AppHeader, AppState, CustomHeaders, DbConnection, WorkspaceContext,
+        AppHeader, AppState, CustomHeaders, DbConnection, SchemaName, WorkspaceContext,
     },
 };
 use superposition_core::helpers::{calculate_context_weight, hash};
 use superposition_derives::{authorized, declare_resource};
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    Contextual, InternalUserContext, ListResponse, Overridden, Overrides,
-    PaginatedResponse, Resource, SortBy, User,
+    Cac, Contextual, DBConnection, InternalUserContext, ListResponse, Overridden,
+    Overrides, PaginatedResponse, Resource, SortBy, User,
     api::{
         DimensionMatchStrategy,
         context::{
             BulkOperation, BulkOperationResponse, ContextAction, ContextBulkResponse,
-            ContextListFilters, ContextValidationRequest, MoveRequest, PutRequest,
-            SortOn, UpdateRequest, WeightRecomputeResponse,
+            ContextListFilters, ContextValidationRequest, Identifier, MoveRequest,
+            PutRequest, SortOn, UpdateRequest, WeightRecomputeResponse,
         },
         webhook::Action,
     },
@@ -50,7 +51,7 @@ use superposition_types::{
 
 use crate::{
     api::context::{
-        helpers::{query_description, validate_ctx},
+        helpers::{changed_keys, query_description, validate_ctx},
         operations,
     },
     helpers::{add_config_version, put_config_in_redis, validate_change_reason},
@@ -72,6 +73,16 @@ pub fn endpoints() -> Scope {
         .service(validate_handler)
 }
 
+async fn authorize_create<A: AuthZAction>(
+    auth_z: &AuthZ<A>,
+    override_map: &Cac<Overrides>,
+) -> superposition::Result<()> {
+    let keys = override_map.deref().keys().collect::<Vec<_>>();
+    auth_z
+        .authorize_action(&AuthZActionCreate::get(), &keys)
+        .await
+}
+
 #[allow(clippy::too_many_arguments)]
 #[authorized]
 #[put("")]
@@ -84,6 +95,9 @@ async fn create_handler(
     user: User,
     internal_user: InternalUserContext,
 ) -> superposition::Result<HttpResponse> {
+    let req = req.into_inner();
+    authorize_create(&_auth_z, &req.r#override).await?;
+
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let description = match req.description.clone() {
         Some(val) => val,
@@ -117,7 +131,7 @@ async fn create_handler(
     let (put_response, version_id) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
             let put_response = operations::upsert(
-                req.into_inner(),
+                req,
                 description,
                 transaction_conn,
                 true,
@@ -179,6 +193,24 @@ async fn create_handler(
     Ok(http_resp.json(put_response))
 }
 
+async fn authorize_update<A: AuthZAction>(
+    auth_z: &AuthZ<A>,
+    context: &Identifier,
+    new_overrides: &Cac<Overrides>,
+    schema_name: &SchemaName,
+    conn: &mut DBConnection,
+) -> superposition::Result<()> {
+    let overrides =
+        operations::get_overrides_from_identifier(context, schema_name, conn)?;
+
+    auth_z
+        .authorize_action(
+            &AuthZActionUpdate::get(),
+            &changed_keys(&overrides, &new_overrides.deref()),
+        )
+        .await
+}
+
 #[authorized]
 #[routes]
 #[put("/overrides")]
@@ -193,6 +225,15 @@ async fn update_handler(
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let req_change_reason = req.change_reason.clone();
+
+    authorize_update(
+        &_auth_z,
+        &req.context,
+        &req.override_,
+        &workspace_context.schema_name,
+        &mut db_conn,
+    )
+    .await?;
 
     validate_change_reason(
         &workspace_context,
@@ -262,6 +303,21 @@ async fn update_handler(
     Ok(http_resp.json(override_resp))
 }
 
+async fn authorize_action<A: AuthZAction>(
+    auth_z: &AuthZ<A>,
+    ctx_id: &String,
+    schema_name: &SchemaName,
+    conn: &mut DBConnection,
+) -> superposition::Result<()> {
+    let overrides = operations::get_overrides_from_ctx_id(ctx_id, schema_name, conn)?;
+    auth_z
+        .authorize_action(
+            &AuthZActionMove::get(),
+            &overrides.keys().collect::<Vec<_>>(),
+        )
+        .await
+}
+
 #[allow(clippy::too_many_arguments)]
 #[authorized]
 #[put("/move/{ctx_id}")]
@@ -275,6 +331,15 @@ async fn move_handler(
     user: User,
     internal_user: InternalUserContext,
 ) -> superposition::Result<HttpResponse> {
+    let ctx_id = path.into_inner();
+    authorize_action(
+        &_auth_z,
+        &ctx_id,
+        &workspace_context.schema_name,
+        &mut db_conn,
+    )
+    .await?;
+
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
     let description = match req.description.clone() {
@@ -309,7 +374,7 @@ async fn move_handler(
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
             let move_response = operations::r#move(
                 &workspace_context,
-                path.into_inner(),
+                ctx_id,
                 req,
                 description,
                 transaction_conn,
@@ -556,6 +621,21 @@ async fn list_handler(
     Ok(Json(paginated_response))
 }
 
+async fn authorize_delete<A: AuthZAction>(
+    auth_z: &AuthZ<A>,
+    ctx_id: &String,
+    schema_name: &SchemaName,
+    conn: &mut DBConnection,
+) -> superposition::Result<()> {
+    let overrides = operations::get_overrides_from_ctx_id(ctx_id, schema_name, conn)?;
+    auth_z
+        .authorize_action(
+            &AuthZActionDelete::get(),
+            &overrides.keys().collect::<Vec<_>>(),
+        )
+        .await
+}
+
 #[authorized]
 #[delete("/{ctx_id}")]
 async fn delete_handler(
@@ -570,6 +650,14 @@ async fn delete_handler(
         contexts as contexts_table, id as context_id,
     };
     let ctx_id = path.into_inner();
+    authorize_delete(
+        &_auth_z,
+        &ctx_id,
+        &workspace_context.schema_name,
+        &mut db_conn,
+    )
+    .await?;
+
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let (version_id, deleted_ctx) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -632,6 +720,38 @@ async fn delete_handler(
         .finish())
 }
 
+async fn authorize_bulk<A: AuthZAction>(
+    auth_z: &AuthZ<A>,
+    operations: &Vec<ContextAction>,
+    schema_name: &SchemaName,
+    conn: &mut DBConnection,
+) -> superposition::Result<()> {
+    for op in operations {
+        match op {
+            ContextAction::Put(put_req) => {
+                authorize_create(auth_z, &put_req.r#override).await?;
+            }
+            ContextAction::Replace(update_req) => {
+                authorize_update(
+                    auth_z,
+                    &update_req.context,
+                    &update_req.override_,
+                    schema_name,
+                    conn,
+                )
+                .await?;
+            }
+            ContextAction::Delete(ctx_id) => {
+                authorize_delete(auth_z, ctx_id, schema_name, conn).await?;
+            }
+            ContextAction::Move { id: ctx_id, .. } => {
+                authorize_action(auth_z, ctx_id, schema_name, conn).await?;
+            }
+        }
+    }
+    Ok(())
+}
+
 #[allow(clippy::too_many_arguments)]
 #[authorized]
 #[put("/bulk-operations")]
@@ -655,6 +775,8 @@ async fn bulk_operations_handler(
             bo.into_inner().operations
         }
     };
+    authorize_bulk(&_auth_z, &ops, &workspace_context.schema_name, &mut conn).await?;
+
     // Marking immutable.
     let is_v2 = is_v2;
     let mut all_change_reasons = Vec::new();

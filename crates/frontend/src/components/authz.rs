@@ -185,7 +185,7 @@ fn PolicyViewer(
     let policies_resource = create_blocking_resource(
         move || (),
         move |_| async move {
-            casbin::list_policies(authz_scope.get_value())
+            casbin::policy::list(authz_scope.get_value())
                 .await
                 .map(|res| {
                     res.into_iter()
@@ -221,7 +221,7 @@ fn PolicyViewer(
         };
 
         let attr = p_attr.get_untracked().trim().to_string();
-        casbin::add_policy(
+        casbin::policy::add(
             PolicyRequest {
                 sub,
                 obj: p_obj.get_untracked(),
@@ -361,7 +361,7 @@ fn RolePolicyViewer(authz_scope: StoredValue<AuthzScope>) -> impl IntoView {
     let roles_resource = create_blocking_resource(
         move || (),
         move |_| async move {
-            casbin::list_roles(authz_scope.get_value())
+            casbin::role::list(authz_scope.get_value())
                 .await
                 .map(|res| {
                     res.into_iter()
@@ -391,7 +391,7 @@ fn RolePolicyViewer(authz_scope: StoredValue<AuthzScope>) -> impl IntoView {
             let role = NonEmptyString::try_from(role)
                 .map_err(|_| "Role is required".to_string())?;
 
-            casbin::add_role(
+            casbin::role::add(
                 GroupingPolicyRequest { user, role },
                 authz_scope.get_value(),
             )
@@ -500,7 +500,7 @@ fn DomainResourceActionGroupViewer(
     let action_groups_resource = create_blocking_resource(
         move || (),
         move |_| async move {
-            casbin::list_domain_action_groups(authz_scope.get_value())
+            casbin::action_group::list_domain(authz_scope.get_value())
                 .await
                 .map(|res| {
                     res.into_iter()
@@ -532,7 +532,7 @@ fn DomainResourceActionGroupViewer(
             let action_group = NonEmptyString::try_from(action_group)
                 .map_err(|_| "Action group is required (e.g. write)".to_string())?;
 
-            casbin::add_domain_action_group(
+            casbin::action_group::add_domain(
                 ActionGroupPolicyRequest {
                     resource: g2_resource.get_untracked(),
                     action: NonEmptyString::try_from(action.get_name().to_string())
@@ -659,7 +659,7 @@ fn ResourceActionGroupViewer(
     let action_groups_resource = create_blocking_resource(
         move || (),
         move |_| async move {
-            casbin::list_action_groups().await.map(|res| {
+            casbin::action_group::list().await.map(|res| {
                 res.into_iter()
                     .enumerate()
                     .map(|(idx, r)| {
@@ -687,7 +687,7 @@ fn ResourceActionGroupViewer(
             let action_group = NonEmptyString::try_from(action_group)
                 .map_err(|_| "Action group is required (e.g. write)".to_string())?;
 
-            casbin::add_action_group(ActionGroupPolicyRequest {
+            casbin::action_group::add(ActionGroupPolicyRequest {
                 resource: g3_resource.get_untracked(),
                 action: NonEmptyString::try_from(action.get_name().to_string())
                     .map_err(|_| "Invalid action".to_string())?,

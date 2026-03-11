@@ -30,13 +30,58 @@ pub trait Action: Send + Sync + 'static {
 
 pub struct AuthZ<A: Action> {
     action: std::marker::PhantomData<A>,
+    authz_handler: AuthZHandler,
+    domain: AuthZDomain,
+    user: User,
+    internal_user: bool,
 }
 
 impl<A: Action> AuthZ<A> {
-    fn new() -> Self {
+    fn new(
+        authz_handler: AuthZHandler,
+        domain: AuthZDomain,
+        user: User,
+        internal_user: bool,
+    ) -> Self {
         Self {
             action: std::marker::PhantomData,
+            authz_handler,
+            domain,
+            user,
+            internal_user,
         }
+    }
+
+    pub async fn authorize_action(
+        &self,
+        action: &String,
+        attributes: &[&String],
+    ) -> superposition::Result<()> {
+        if self.internal_user {
+            return Ok(());
+        }
+
+        let resp = self
+            .authz_handler
+            .0
+            .is_allowed(
+                &self.domain,
+                &self.user,
+                &A::resource(),
+                action,
+                Some(attributes),
+            )
+            .await
+            .map_err(|e| unexpected_error!("Error checking authorization: {}", e))?;
+
+        if !resp {
+            return Err(forbidden!("You are not authorized to perform this action."));
+        }
+        Ok(())
+    }
+
+    pub async fn authorize(&self, attributes: &[&String]) -> superposition::Result<()> {
+        self.authorize_action(&A::get(), attributes).await
     }
 }
 
@@ -46,10 +91,6 @@ impl<A: Action> FromRequest for AuthZ<A> {
     type Future = LocalBoxFuture<'static, Result<Self, Self::Error>>;
 
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
-        if req.extensions().get::<InternalUser>().is_some() {
-            return Box::pin(async { Ok(AuthZ::new()) });
-        }
-
         let auth_z_handler = match req.extensions().get::<AuthZHandler>() {
             Some(handler) => handler.clone(),
             None => {
@@ -79,6 +120,12 @@ impl<A: Action> FromRequest for AuthZ<A> {
             }
         };
 
+        if req.extensions().get::<InternalUser>().is_some() {
+            return Box::pin(async {
+                Ok(AuthZ::new(auth_z_handler, domain, user, true))
+            });
+        }
+
         Box::pin(async move {
             let is_allowed = auth_z_handler
                 .is_allowed(&domain, &user, &A::resource(), &A::get(), None)
@@ -88,7 +135,7 @@ impl<A: Action> FromRequest for AuthZ<A> {
                 Err(e) => Err(unexpected_error!("Error checking authorization: {}", e)),
                 Ok(is_allowed) => {
                     if is_allowed {
-                        Ok(AuthZ::new())
+                        Ok(AuthZ::new(auth_z_handler, domain, user, false))
                     } else {
                         Err(forbidden!("You are not authorized to perform this action."))
                     }

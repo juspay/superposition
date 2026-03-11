@@ -36,7 +36,7 @@ pub trait Authorizer: Sync + Send {
         user: &User,
         resource: &Resource,
         action: &str,
-        attributes: Option<&[&str]>,
+        attributes: Option<&[&String]>,
     ) -> LocalBoxFuture<'_, Result<bool, String>>;
 
     fn get_source_resource_action_map(

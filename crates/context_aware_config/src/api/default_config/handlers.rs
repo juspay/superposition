@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use actix_web::{
     HttpResponse, Scope, delete, get, post, routes,
     web::{Data, Json, Path, Query},
@@ -75,8 +77,10 @@ async fn create_handler(
     db_conn: DbConnection,
     user: User,
 ) -> superposition::Result<HttpResponse> {
-    let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
+    _auth_z.authorize(&[req.key.deref()]).await?;
+
+    let DbConnection(mut conn) = db_conn;
     let key = req.key;
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
@@ -228,9 +232,12 @@ async fn update_handler(
     db_conn: DbConnection,
     user: User,
 ) -> superposition::Result<HttpResponse> {
+    let key = key.into_inner();
+    _auth_z.authorize(&[key.deref()]).await?;
+
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
-    let key_str = key.into_inner().into();
+    let key_str = key.into();
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
     let existing = fetch_default_key(&key_str, &mut conn, &workspace_context.schema_name)
@@ -504,10 +511,13 @@ async fn delete_handler(
     db_conn: DbConnection,
     user: User,
 ) -> superposition::Result<HttpResponse> {
+    let key = path.into_inner();
+    _auth_z.authorize(&[key.deref()]).await?;
+
     let DbConnection(mut conn) = db_conn;
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
-    let key: String = path.into_inner().into();
+    let key: String = key.into();
 
     let context_ids =
         get_key_usage_context_ids(&key, &mut conn, &workspace_context.schema_name)
