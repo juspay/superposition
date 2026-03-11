@@ -1,0 +1,295 @@
+# SuperTOML Configuration Example
+# A comprehensive example demonstrating all SuperTOML features
+
+# ============================================================================
+# DEFAULT CONFIGURATIONS
+# Define default values and their JSON schemas for validation
+# ============================================================================
+[default-configs]
+# Simple number configuration
+per_km_rate = { "value" = 20.0, "schema" = { "type" = "number", "minimum" = 5.0, "maximum" = 100.0 } }
+
+# Surge factor for dynamic pricing
+surge_factor = { "value" = 1.0, "schema" = { "type" = "number", "minimum" = 0.0, "maximum" = 10.0 } }
+
+# Currency code with enum constraint
+currency = { "value" = "INR", "schema" = { "type" = "string", "enum" = ["INR", "USD", "EUR", "GBP"] } }
+
+# Boolean feature flag
+enable_surge_pricing = { "value" = true, "schema" = { "type" = "boolean" } }
+
+# String with pattern constraint
+promo_code = { "value" = "", "schema" = { "type" = "string", "pattern" = "^[A-Z]{4}[0-9]{2}$" } }
+
+# Integer configuration
+max_wait_time_minutes = { "value" = 15, "schema" = { "type" = "integer", "minimum" = 5, "maximum" = 60 } }
+
+# Array configuration for supported payment methods
+payment_methods = { "value" = ["cash", "card", "upi"], "schema" = { "type" = "array", "items" = { "type" = "string", "enum" = ["cash", "card", "upi", "wallet", "netbanking"] } } }
+
+# Nested object configuration
+notification_settings = { "value" = { "sms" = true, "email" = false, "push" = true }, "schema" = { "type" = "object", "properties" = { "sms" = { "type" = "boolean" }, "email" = { "type" = "boolean" }, "push" = { "type" = "boolean" } } } }
+
+# Platform fee percentage
+platform_fee_percent = { "value" = 15.0, "schema" = { "type" = "number", "minimum" = 0.0, "maximum" = 50.0 } }
+
+# Driver incentive multiplier
+driver_incentive_multiplier = { "value" = 1.0, "schema" = { "type" = "number", "minimum" = 0.5, "maximum" = 3.0 } }
+
+# ============================================================================
+# DIMENSIONS
+# Define dimensions that can be used in context conditions
+# Position determines priority: higher positions contribute more to priority score
+# ============================================================================
+[dimensions]
+# Geographic dimensions
+country = { position = 1, schema = { "type" = "string", "enum" = ["India", "USA", "UK", "Germany"] } }
+city = { position = 2, schema = { "type" = "string", "enum" = ["Bangalore", "Delhi", "Mumbai", "Chennai", "Hyderabad", "Pune"] } }
+zone = { position = 3, schema = { "type" = "string" } }
+
+# Vehicle and service dimensions
+vehicle_type = { position = 4, schema = { "type" = "string", "enum" = ["auto", "cab", "bike", "premium", "suv"] } }
+service_tier = { position = 5, schema = { "type" = "string", "enum" = ["economy", "standard", "premium", "luxury"] } }
+
+# Time-based dimensions
+hour_of_day = { position = 6, schema = { "type" = "integer", "minimum" = 0, "maximum" = 23 } }
+day_of_week = { position = 7, schema = { "type" = "string", "enum" = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] } }
+
+# User segment dimensions
+user_tier = { position = 8, schema = { "type" = "string", "enum" = ["bronze", "silver", "gold", "platinum"] } }
+payment_preference = { position = 9, schema = { "type" = "string", "enum" = ["cash", "digital", "wallet"] } }
+
+# Cohort dimensions - derived from other dimensions
+# LOCAL_COHORT: computed client-side from another dimension
+city_tier = { position = 10, schema = { "type" = "string", "enum" = ["metro", "tier1", "tier2", "tier3"] }, type = "LOCAL_COHORT:city", definitions = { metro = { in = [{ var = "city" }, ["Bangalore", "Delhi", "Mumbai", "Chennai", "Hyderabad"]] }, tier1 = { in = [{ var = "city" }, ["Pune", "Ahmedabad", "Kolkata"]] } } }
+
+# Time period cohort
+peak_hours = { position = 11, schema = { "type" = "string", "enum" = ["morning_peak", "evening_peak", "off_peak"] }, type = "LOCAL_COHORT:hour_of_day", definitions = { morning_peak = { in = [{ var = "hour_of_day" }, [7, 8, 9, 10]] }, evening_peak = { in = [{ var = "hour_of_day" }, [17, 18, 19, 20, 21]] } } }
+
+# Weekend cohort
+is_weekend = { position = 12, schema = { "type" = "boolean" }, type = "LOCAL_COHORT:day_of_week", definitions = { true = { in = [{ var = "day_of_week" }, ["saturday", "sunday"]] } } }
+
+# REMOTE_COHORT: computed server-side (example for A/B testing)
+experiment_group = { position = 13, schema = { "type" = "string", "enum" = ["control", "variant_a", "variant_b"] }, type = "REMOTE_COHORT:user_id" }
+
+# ============================================================================
+# OVERRIDES
+# Context-specific overrides applied when conditions match
+# Priority = sum of 2^position for each dimension in _context_
+# Higher priority overrides take precedence
+# ============================================================================
+
+# --- Vehicle type specific rates (priority based on position 4 = 16) ---
+[[overrides]]
+_context_ = { vehicle_type = "bike" }
+per_km_rate = 12.0
+max_wait_time_minutes = 10
+
+[[overrides]]
+_context_ = { vehicle_type = "auto" }
+per_km_rate = 15.0
+max_wait_time_minutes = 12
+
+[[overrides]]
+_context_ = { vehicle_type = "cab" }
+per_km_rate = 22.0
+max_wait_time_minutes = 15
+
+[[overrides]]
+_context_ = { vehicle_type = "premium" }
+per_km_rate = 35.0
+surge_factor = 1.5
+max_wait_time_minutes = 20
+notification_settings = { "value" = { "sms" = true, "email" = true, "push" = true }, "schema" = { "type" = "object" } }
+
+[[overrides]]
+_context_ = { vehicle_type = "suv" }
+per_km_rate = 30.0
+max_wait_time_minutes = 18
+
+# --- City specific overrides (priority based on position 2 = 4) ---
+[[overrides]]
+_context_ = { city = "Bangalore" }
+per_km_rate = 18.0
+currency = "INR"
+
+[[overrides]]
+_context_ = { city = "Delhi" }
+per_km_rate = 20.0
+currency = "INR"
+
+[[overrides]]
+_context_ = { city = "Mumbai" }
+per_km_rate = 22.0
+currency = "INR"
+
+# --- Combined city + vehicle overrides (priority = 4 + 16 = 20) ---
+[[overrides]]
+_context_ = { city = "Bangalore", vehicle_type = "cab" }
+per_km_rate = 22.0
+driver_incentive_multiplier = 1.2
+
+[[overrides]]
+_context_ = { city = "Delhi", vehicle_type = "cab" }
+per_km_rate = 24.0
+driver_incentive_multiplier = 1.15
+
+[[overrides]]
+_context_ = { city = "Mumbai", vehicle_type = "premium" }
+per_km_rate = 45.0
+driver_incentive_multiplier = 1.3
+
+# --- Peak hours surge pricing (priority based on position 6 = 64) ---
+[[overrides]]
+_context_ = { hour_of_day = 7 }
+surge_factor = 1.5
+enable_surge_pricing = true
+
+[[overrides]]
+_context_ = { hour_of_day = 8 }
+surge_factor = 2.0
+enable_surge_pricing = true
+
+[[overrides]]
+_context_ = { hour_of_day = 9 }
+surge_factor = 1.8
+enable_surge_pricing = true
+
+[[overrides]]
+_context_ = { hour_of_day = 18 }
+surge_factor = 2.2
+enable_surge_pricing = true
+
+[[overrides]]
+_context_ = { hour_of_day = 19 }
+surge_factor = 2.5
+enable_surge_pricing = true
+
+[[overrides]]
+_context_ = { hour_of_day = 20 }
+surge_factor = 2.0
+enable_surge_pricing = true
+
+# --- Peak hours combined with city (priority = 4 + 64 = 68) ---
+[[overrides]]
+_context_ = { city = "Delhi", hour_of_day = 19 }
+surge_factor = 3.0
+enable_surge_pricing = true
+driver_incentive_multiplier = 1.5
+
+[[overrides]]
+_context_ = { city = "Bangalore", hour_of_day = 18 }
+surge_factor = 2.8
+enable_surge_pricing = true
+
+# --- Weekend pricing (priority based on position 12 = 4096) ---
+[[overrides]]
+_context_ = { is_weekend = true }
+surge_factor = 1.3
+enable_surge_pricing = true
+platform_fee_percent = 12.0
+
+# --- City tier based pricing using cohort (priority based on position 10 = 1024) ---
+[[overrides]]
+_context_ = { city_tier = "metro" }
+platform_fee_percent = 18.0
+payment_methods = ["cash", "card", "upi", "wallet"]
+
+[[overrides]]
+_context_ = { city_tier = "tier1" }
+platform_fee_percent = 15.0
+payment_methods = ["cash", "card", "upi"]
+
+[[overrides]]
+_context_ = { city_tier = "tier2" }
+platform_fee_percent = 12.0
+payment_methods = ["cash", "upi"]
+
+# --- User tier benefits (priority based on position 8 = 256) ---
+[[overrides]]
+_context_ = { user_tier = "gold" }
+surge_factor = 0.9
+promo_code = "GOLD10"
+platform_fee_percent = 12.0
+
+[[overrides]]
+_context_ = { user_tier = "platinum" }
+surge_factor = 0.8
+promo_code = "PLAT20"
+platform_fee_percent = 10.0
+driver_incentive_multiplier = 1.1
+
+# --- Service tier configurations (priority based on position 5 = 32) ---
+[[overrides]]
+_context_ = { service_tier = "premium" }
+per_km_rate = 40.0
+max_wait_time_minutes = 25
+payment_methods = ["card", "wallet"]
+
+[[overrides]]
+_context_ = { service_tier = "luxury" }
+per_km_rate = 80.0
+max_wait_time_minutes = 30
+surge_factor = 1.0
+enable_surge_pricing = false
+notification_settings = { "value" = { "sms" = true, "email" = true, "push" = true }, "schema" = { "type" = "object" } }
+
+# --- Complex combined overrides (higher priority) ---
+# Weekend evening in Delhi with cab: priority = 4 + 64 + 4096 = 4164
+[[overrides]]
+_context_ = { city = "Delhi", vehicle_type = "cab", is_weekend = true, hour_of_day = 20 }
+surge_factor = 2.0
+enable_surge_pricing = true
+per_km_rate = 28.0
+
+# Peak hours for platinum user: priority = 64 + 256 = 320
+[[overrides]]
+_context_ = { user_tier = "platinum", peak_hours = "evening_peak" }
+surge_factor = 1.0
+enable_surge_pricing = false
+
+# Metro city premium vehicle: priority = 1024 + 16 = 1040
+[[overrides]]
+_context_ = { city_tier = "metro", vehicle_type = "premium" }
+per_km_rate = 50.0
+driver_incentive_multiplier = 1.4
+
+# --- Experiment group overrides (for A/B testing) ---
+[[overrides]]
+_context_ = { experiment_group = "variant_a" }
+per_km_rate = 19.0
+surge_factor = 1.0
+
+[[overrides]]
+_context_ = { experiment_group = "variant_b" }
+per_km_rate = 21.0
+platform_fee_percent = 12.0
+driver_incentive_multiplier = 1.2
+
+# --- Country-specific defaults (priority based on position 1 = 2) ---
+[[overrides]]
+_context_ = { country = "USA" }
+currency = "USD"
+per_km_rate = 2.50
+payment_methods = ["card", "wallet"]
+
+[[overrides]]
+_context_ = { country = "UK" }
+currency = "GBP"
+per_km_rate = 2.00
+payment_methods = ["card", "wallet"]
+
+# --- Maximum priority override: all dimensions combined ---
+# This demonstrates the maximum possible priority combination
+# Priority = 2^1 + 2^2 + 2^3 + 2^4 + 2^5 + 2^6 + 2^8 + 2^10 + 2^13 = 8278
+[[overrides]]
+_context_ = { country = "India", city = "Bangalore", zone = "airport", vehicle_type = "premium", service_tier = "luxury", hour_of_day = 19, user_tier = "platinum", city_tier = "metro", experiment_group = "variant_b" }
+per_km_rate = 100.0
+surge_factor = 1.0
+enable_surge_pricing = false
+platform_fee_percent = 5.0
+driver_incentive_multiplier = 2.0
+max_wait_time_minutes = 45
+promo_code = "VIPRIDE"
+payment_methods = ["card", "wallet"]
+notification_settings = { "value" = { "sms" = true, "email" = true, "push" = true }, "schema" = { "type" = "object" } }

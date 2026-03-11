@@ -1,0 +1,23 @@
+[package]
+name = "supertoml_lsp"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Language Server Protocol (LSP) server for the SuperTOML configuration format"
+
+[[bin]]
+name = "supertoml-analyzer"
+path = "src/main.rs"
+
+[dependencies]
+superposition_core = { workspace = true }
+tokio = { workspace = true }
+toml = { workspace = true }
+taplo = "0.14"
+serde_json = { workspace = true }
+tower-lsp = "0.20"
+dashmap = "5"
+
+[lints]
+workspace = true

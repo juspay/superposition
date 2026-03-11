@@ -7,7 +7,6 @@ pub mod ffi_legacy;
 pub mod format;
 pub mod helpers;
 pub mod validations;
-
 // Re-export main config functions
 pub use config::{eval_config, eval_config_with_reasoning, merge, MergeStrategy};
 

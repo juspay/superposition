@@ -8,7 +8,7 @@ use superposition_types::{
     Overrides,
 };
 
-use crate::format::{ConfigFormat, FormatError};
+use crate::format::{ConfigFormat, FormatError, MarkupFormat};
 
 fn dim_type_default() -> String {
     DimensionType::default().to_string()
@@ -156,8 +156,8 @@ impl TryFrom<DetailedConfig> for JsonConfig {
 
 impl ConfigFormat for JsonFormat {
     fn parse_into_detailed(input: &str) -> Result<DetailedConfig, FormatError> {
-        let json_config: JsonConfig =
-            serde_json::from_str(input).map_err(|e| Self::syntax_error(e.to_string()))?;
+        let json_config: JsonConfig = serde_json::from_str(input)
+            .map_err(|e| Self::syntax_error(e.to_string(), None))?;
         DetailedConfig::try_from(json_config)
     }
 
@@ -167,7 +167,7 @@ impl ConfigFormat for JsonFormat {
             .map_err(|e| Self::serialization_error(e.to_string()))
     }
 
-    fn format_name() -> &'static str {
-        "JSON"
+    fn format_name() -> MarkupFormat {
+        MarkupFormat::Json
     }
 }

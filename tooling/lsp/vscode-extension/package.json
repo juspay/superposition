@@ -1,0 +1,121 @@
+{
+  "name": "supertoml-analyzer",
+  "displayName": "SuperTOML Analyzer",
+  "description": "Language server for SuperTOML configuration files",
+  "version": "0.1.0",
+  "publisher": "superposition",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/juspay/superposition.git"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters"
+  ],
+  "keywords": [
+    "toml",
+    "superposition",
+    "configuration",
+    "lsp"
+  ],
+  "activationEvents": [
+    "onLanguage:superTOML"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "superTOML",
+        "aliases": [
+          "SuperTOML",
+          "super-toml",
+          "stoml"
+        ],
+        "extensions": [
+          ".super.toml",
+          ".stoml"
+        ],
+        "filenames": [
+          "super.toml"
+        ],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icons/toml-icon.svg",
+          "dark": "./icons/toml-icon.svg"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "superTOML",
+        "scopeName": "source.superTOML",
+        "path": "./syntaxes/superTOML.tmLanguage.json"
+      }
+    ],
+    "configuration": {
+      "title": "SuperTOML Analyzer",
+      "properties": {
+        "superTOML.server.path": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the supertoml-analyzer binary. If empty, the extension will try to find it in PATH or use the workspace target directory."
+        },
+        "superTOML.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Traces the communication between VS Code and the language server."
+        },
+        "superTOML.diagnostics.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable diagnostics for SuperTOML files."
+        },
+        "superTOML.completions.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable auto-completions for SuperTOML files."
+        },
+        "superTOML.hover.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable hover documentation for SuperTOML files."
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "superTOML.restartServer",
+        "title": "Restart SuperTOML Language Server",
+        "category": "SuperTOML"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts",
+    "package": "vsce package"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "eslint": "^8.54.0",
+    "typescript": "^5.3.2",
+    "@vscode/vsce": "^2.22.0"
+  }
+}

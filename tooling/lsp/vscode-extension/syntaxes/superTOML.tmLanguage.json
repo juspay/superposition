@@ -1,0 +1,265 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "SuperTOML",
+  "scopeName": "source.superTOML",
+  "fileTypes": [".super.toml", ".stoml"],
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#tables"
+    },
+    {
+      "include": "#keys"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#numbers"
+    },
+    {
+      "include": "#booleans"
+    },
+    {
+      "include": "#dates"
+    },
+    {
+      "include": "#arrays"
+    },
+    {
+      "include": "#inline-tables"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "name": "comment.line.number-sign.superTOML",
+      "match": "#.*$",
+      "captures": {
+        "0": {
+          "name": "punctuation.definition.comment.superTOML"
+        }
+      }
+    },
+    "tables": {
+      "patterns": [
+        {
+          "name": "meta.table.array.superTOML",
+          "match": "(\\[\\[)([^\\[\\]]+)(\\]\\])",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.table.array.superTOML"
+            },
+            "2": {
+              "patterns": [
+                {
+                  "include": "#table-key"
+                }
+              ]
+            },
+            "3": {
+              "name": "punctuation.definition.table.array.superTOML"
+            }
+          }
+        },
+        {
+          "name": "meta.table.superTOML",
+          "match": "(\\[)([^\\[\\]]+)(\\])",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.table.superTOML"
+            },
+            "2": {
+              "patterns": [
+                {
+                  "include": "#table-key"
+                }
+              ]
+            },
+            "3": {
+              "name": "punctuation.definition.table.superTOML"
+            }
+          }
+        }
+      ]
+    },
+    "table-key": {
+      "patterns": [
+        {
+          "name": "entity.name.section.superTOML",
+          "match": "[a-zA-Z0-9_\\-]+"
+        },
+        {
+          "name": "punctuation.separator.dot.superTOML",
+          "match": "\\."
+        },
+        {
+          "include": "#strings"
+        }
+      ]
+    },
+    "keys": {
+      "name": "meta.key-value.superTOML",
+      "match": "^(?:([a-zA-Z0-9_\\-]+)|(\"[^\"]*\")|('[^']*'))(?=\\s*=)",
+      "captures": {
+        "1": {
+          "name": "entity.name.tag.superTOML"
+        },
+        "2": {
+          "name": "entity.name.tag.superTOML string.quoted.double.superTOML"
+        },
+        "3": {
+          "name": "entity.name.tag.superTOML string.quoted.single.superTOML"
+        }
+      }
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.triple.double.superTOML",
+          "begin": "\"\"\"",
+          "end": "\"\"\"",
+          "patterns": [
+            {
+              "include": "#escape-characters"
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.triple.single.superTOML",
+          "begin": "'''",
+          "end": "'''"
+        },
+        {
+          "name": "string.quoted.double.superTOML",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "include": "#escape-characters"
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.single.superTOML",
+          "begin": "'",
+          "end": "'"
+        }
+      ]
+    },
+    "escape-characters": {
+      "name": "constant.character.escape.superTOML",
+      "match": "\\\\[btnfr\"\\\\]|\\\\u[0-9a-fA-F]{4}|\\\\U[0-9a-fA-F]{8}"
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.float.superTOML",
+          "match": "[+-]?(?:[0-9]+(?:_[0-9]+)*(?:\\.[0-9]+(?:_[0-9]+)*)?(?:[eE][+-]?[0-9]+(?:_[0-9]+)*)?|inf|nan)"
+        },
+        {
+          "name": "constant.numeric.integer.hex.superTOML",
+          "match": "[+-]?0x[0-9a-fA-F]+(?:_[0-9a-fA-F]+)*"
+        },
+        {
+          "name": "constant.numeric.integer.octal.superTOML",
+          "match": "[+-]?0o[0-7]+(?:_[0-7]+)*"
+        },
+        {
+          "name": "constant.numeric.integer.binary.superTOML",
+          "match": "[+-]?0b[01]+(?:_[01]+)*"
+        },
+        {
+          "name": "constant.numeric.integer.superTOML",
+          "match": "[+-]?[0-9]+(?:_[0-9]+)*"
+        }
+      ]
+    },
+    "booleans": {
+      "name": "constant.language.boolean.superTOML",
+      "match": "\\b(true|false)\\b"
+    },
+    "dates": {
+      "patterns": [
+        {
+          "name": "constant.other.datetime.superTOML",
+          "match": "\\d{4}-\\d{2}-\\d{2}(?:[Tt ]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:[Zz]|[+-]\\d{2}:\\d{2})?)?"
+        },
+        {
+          "name": "constant.other.time.superTOML",
+          "match": "\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?"
+        }
+      ]
+    },
+    "arrays": {
+      "name": "meta.array.superTOML",
+      "begin": "\\[(?=[^\\]\\n]*$|\\s*[#\\[])",
+      "end": "\\]",
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#strings"
+        },
+        {
+          "include": "#numbers"
+        },
+        {
+          "include": "#booleans"
+        },
+        {
+          "include": "#dates"
+        },
+        {
+          "include": "#arrays"
+        },
+        {
+          "include": "#inline-tables"
+        },
+        {
+          "name": "punctuation.separator.array.superTOML",
+          "match": ","
+        }
+      ]
+    },
+    "inline-tables": {
+      "name": "meta.inline-table.superTOML",
+      "begin": "\\{",
+      "end": "\\}",
+      "patterns": [
+        {
+          "include": "#strings"
+        },
+        {
+          "include": "#numbers"
+        },
+        {
+          "include": "#booleans"
+        },
+        {
+          "include": "#dates"
+        },
+        {
+          "include": "#arrays"
+        },
+        {
+          "include": "#inline-tables"
+        },
+        {
+          "name": "entity.name.tag.superTOML",
+          "match": "[a-zA-Z0-9_\\-]+(?=\\s*=)"
+        },
+        {
+          "name": "punctuation.separator.inline-table.superTOML",
+          "match": ","
+        },
+        {
+          "name": "keyword.operator.assignment.superTOML",
+          "match": "="
+        }
+      ]
+    }
+  }
+}
