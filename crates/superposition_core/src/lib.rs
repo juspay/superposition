@@ -1,5 +1,5 @@
+#![deny(unused_crate_dependencies)]
 uniffi::setup_scaffolding!("superposition_client");
-
 pub mod config;
 pub mod experiment;
 pub mod ffi;
