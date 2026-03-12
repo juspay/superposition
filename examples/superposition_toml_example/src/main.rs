@@ -178,6 +178,69 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         result5.get("surge_factor").unwrap_or(&json!(null))
     );
 
+    // Example 6: Auto only
+    println!("\n--- Example 6: auto only (no specific city) ---");
+    println!("Tests that vehicle_type = auto gets per_km_rate=100.0");
+    let mut dims10 = Map::new();
+    dims10.insert("vehicle_type".to_string(), Value::String("auto".to_string()));
+    
+    let result10 = eval_config(
+        default_configs.clone(),
+        &config.contexts,
+        &config.overrides,
+        &config.dimensions,
+        &dims10,
+        MergeStrategy::MERGE,
+        None,
+    )?;
+
+    println!("Input: vehicle_type = auto");
+    println!("Result: per_km_rate = {}, surge_factor = {}", 
+        result10.get("per_km_rate").unwrap_or(&json!(null)),
+        result10.get("surge_factor").unwrap_or(&json!(null)));
+
+    // Example 7: Chennai auto
+    println!("\n--- Example 7: Chennai auto ---");
+    let mut dims11 = Map::new();
+    dims11.insert("city".to_string(), Value::String("Chennai".to_string()));
+    dims11.insert("vehicle_type".to_string(), Value::String("auto".to_string()));
+    
+    let result11 = eval_config(
+        default_configs.clone(),
+        &config.contexts,
+        &config.overrides,
+        &config.dimensions,
+        &dims11,
+        MergeStrategy::MERGE,
+        None,
+    )?;
+
+    println!("Input: city=Chennai, vehicle_type=auto");
+    println!("Result: per_km_rate = {}, surge_factor = {}", 
+        result11.get("per_km_rate").unwrap_or(&json!(null)),
+        result11.get("surge_factor").unwrap_or(&json!(null)));
+
+    // Example 8: Duplicate context test - Bangalore auto
+    println!("\n--- Example 8: Bangalore auto ---");
+    let mut dims11 = Map::new();
+    dims11.insert("city".to_string(), Value::String("Bangalore".to_string()));
+    dims11.insert("vehicle_type".to_string(), Value::String("auto".to_string()));
+    
+    let result11 = eval_config(
+        default_configs.clone(),
+        &config.contexts,
+        &config.overrides,
+        &config.dimensions,
+        &dims11,
+        MergeStrategy::MERGE,
+        None,
+    )?;
+
+    println!("Input: city=Bangalore, vehicle_type=auto");
+    println!("Result: per_km_rate = {}, surge_factor = {}", 
+        result11.get("per_km_rate").unwrap_or(&json!(null)),
+        result11.get("surge_factor").unwrap_or(&json!(null)));
+
     println!("\n=== Example completed successfully! ===");
     println!("\nThis example demonstrated:");
     println!("1. parse_toml_config() - Parsing TOML into a Config struct");
