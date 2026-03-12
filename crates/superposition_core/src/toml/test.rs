@@ -592,19 +592,8 @@ config = { host = "prod.unix.com", port = 8443 }
     assert_eq!(config.contexts.len(), reparsed.contexts.len());
 
     // Verify override object was parsed correctly
+    // contexts[0] has os_cohort="unix" (priority 2) after sorting by priority ascending
     let override_key = config.contexts[0].override_with_keys.get_key();
-    let overrides = config.overrides.get(override_key).unwrap();
-    let override_config = overrides.get("config").unwrap();
-    assert_eq!(
-        override_config.get("host"),
-        Some(&Value::String("prod.example.com".to_string()))
-    );
-    assert_eq!(
-        override_config.get("port"),
-        Some(&Value::Number(serde_json::Number::from(443)))
-    );
-
-    let override_key = config.contexts[1].override_with_keys.get_key();
     let overrides = config.overrides.get(override_key).unwrap();
     let override_config = overrides.get("config").unwrap();
     assert_eq!(
@@ -614,6 +603,19 @@ config = { host = "prod.unix.com", port = 8443 }
     assert_eq!(
         override_config.get("port"),
         Some(&Value::Number(serde_json::Number::from(8443)))
+    );
+
+    // contexts[1] has os="linux" (priority 4) after sorting by priority ascending
+    let override_key = config.contexts[1].override_with_keys.get_key();
+    let overrides = config.overrides.get(override_key).unwrap();
+    let override_config = overrides.get("config").unwrap();
+    assert_eq!(
+        override_config.get("host"),
+        Some(&Value::String("prod.example.com".to_string()))
+    );
+    assert_eq!(
+        override_config.get("port"),
+        Some(&Value::Number(serde_json::Number::from(443)))
     );
 }
 

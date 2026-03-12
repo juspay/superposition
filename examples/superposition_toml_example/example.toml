@@ -31,3 +31,18 @@ surge_factor = 5.0
 [[overrides]]
 _context_ = { city_cohort = "south" }
 per_km_rate = 100.0
+
+[[overrides]]
+_context_ = { vehicle_type = "auto" }
+per_km_rate = 100.0
+surge_factor = 1.0
+
+[[overrides]]
+_context_ = { vehicle_type = "auto",  city = "Chennai" }
+per_km_rate = 200.0
+surge_factor = 2.0
+
+[[overrides]]
+_context_ = { vehicle_type = "auto",  city = "Bangalore" }
+per_km_rate = 300.0
+surge_factor = 3.0

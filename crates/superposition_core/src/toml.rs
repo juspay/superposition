@@ -474,7 +474,7 @@ impl TryFrom<DetailedConfigToml> for DetailedConfig {
         }
 
         // Sort contexts by priority (weight) - higher weight means higher priority
-        contexts.sort_by(|a, b| b.priority.cmp(&a.priority));
+        contexts.sort_by(|a, b| a.priority.cmp(&b.priority));
 
         // Set correct values for weight and priority after sorting
         contexts.iter_mut().enumerate().for_each(|(index, ctx)| {
