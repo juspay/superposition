@@ -20,8 +20,8 @@ use superposition_core::{
 use superposition_derives::{authorized, declare_resource};
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
-    Cac, Condition, Config, Context, DBConnection, DimensionInfo, OverrideWithKeys,
-    Overrides, PaginatedResponse, User,
+    Cac, Condition, Config, Context, DBConnection, DimensionInfo, InternalUserContext,
+    OverrideWithKeys, Overrides, PaginatedResponse, User,
     api::{
         config::{ConfigQuery, ContextPayload, MergeStrategy, ResolveConfigQuery},
         context::PutRequest,
@@ -278,6 +278,8 @@ async fn reduce_config_key(
     workspace_context: &WorkspaceContext,
     state: &AppState,
 ) -> superposition::Result<Config> {
+    let internal_user = InternalUserContext::default();
+
     let default_config_val =
         default_config
             .get(check_key)
@@ -373,6 +375,7 @@ async fn reduce_config_key(
                                 workspace_context,
                                 false,
                                 &state.master_encryption_key,
+                                &internal_user,
                             );
                         }
                     }

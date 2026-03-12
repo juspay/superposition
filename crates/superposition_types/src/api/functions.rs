@@ -97,6 +97,24 @@ pub enum KeyType {
     Dimension,
 }
 
+#[derive(
+    Debug,
+    Display,
+    Clone,
+    Serialize,
+    Deserialize,
+    PartialEq,
+    strum_macros::EnumIter,
+    Default,
+)]
+#[serde(rename_all = "lowercase")]
+#[strum(serialize_all = "lowercase")]
+pub enum ContextValidationTrigger {
+    #[default]
+    Context,
+    Experiment,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum FunctionExecutionRequest {
     #[serde(rename = "value_validate")]
@@ -114,7 +132,10 @@ pub enum FunctionExecutionRequest {
         environment: FunctionEnvironment,
     },
     #[serde(rename = "context_validate")]
-    ContextValidationFunctionRequest { environment: FunctionEnvironment },
+    ContextValidationFunctionRequest {
+        environment: FunctionEnvironment,
+        trigger_reason: ContextValidationTrigger,
+    },
     #[serde(rename = "change_reason_validate")]
     ChangeReasonValidationFunctionRequest { change_reason: ChangeReason },
 }
@@ -148,6 +169,7 @@ impl FunctionExecutionRequest {
     pub fn context_validation_default() -> Self {
         Self::ContextValidationFunctionRequest {
             environment: FunctionEnvironment::default(),
+            trigger_reason: ContextValidationTrigger::default(),
         }
     }
     pub fn change_reason_validation_default() -> Self {
