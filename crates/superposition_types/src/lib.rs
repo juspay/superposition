@@ -96,6 +96,19 @@ pub struct User {
 
 pub struct InternalUser;
 
+#[derive(Deref, Default)]
+pub struct InternalUserContext(bool);
+
+#[cfg(feature = "server")]
+impl FromRequest for InternalUserContext {
+    type Error = actix_web::error::Error;
+    type Future = Ready<Result<Self, Self::Error>>;
+
+    fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
+        ready(Ok(Self(req.extensions().get::<InternalUser>().is_some())))
+    }
+}
+
 impl User {
     pub fn new(email: String, username: String) -> Self {
         Self { email, username }

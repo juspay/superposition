@@ -4,8 +4,8 @@ use leptos::*;
 use serde_json::{Value, from_str};
 use strum::IntoEnumIterator;
 use superposition_types::api::functions::{
-    FunctionEnvironment, FunctionExecutionRequest, FunctionExecutionResponse, KeyType,
-    Stage,
+    ContextValidationTrigger, FunctionEnvironment, FunctionExecutionRequest,
+    FunctionExecutionResponse, KeyType, Stage,
 };
 use superposition_types::database::models::cac::{FunctionRuntimeVersion, FunctionType};
 use utils::{create_function, test_function, update_function};
@@ -70,7 +70,7 @@ pub const VALUE_COMPUTE_DEFAULT_FN: &str = r#"async function execute(payload) {
 
 pub const CONTEXT_VALIDATION_TEMPLATE_FN: &str = r#"Payload structure: {
   version: "1.0",
-  context_validate: { environment: { context, overrides } },
+  context_validate: { environment: { context, overrides }, trigger_reason },
 }
 
 Returns: boolean
@@ -78,7 +78,7 @@ Returns: boolean
 
 pub const CONTEXT_VALIDATION_DEFAULT_FN: &str = r#"async function execute(payload) {
     const { context_validate } = payload;
-    const { environment } = context_validate;
+    const { environment, trigger_reason } = context_validate;
 
     // validation logic goes here
 
@@ -125,6 +125,16 @@ impl DropdownOption for FunctionRuntimeVersion {
 }
 
 impl DropdownOption for KeyType {
+    fn key(&self) -> String {
+        self.to_string()
+    }
+
+    fn label(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl DropdownOption for ContextValidationTrigger {
     fn key(&self) -> String {
         self.to_string()
     }
@@ -683,9 +693,48 @@ pub fn TestForm(
                     _ => ().into_view(),
                 }}
                 {match function_args_rs.get_untracked() {
+                    FunctionExecutionRequest::ContextValidationFunctionRequest {
+                        trigger_reason,
+                        ..
+                    } => {
+                        view! {
+                            <div class="form-control w-full max-w-md">
+                                <Label title="Triggered Reason" />
+                                <Dropdown
+                                    dropdown_width="w-100"
+                                    dropdown_icon="".to_string()
+                                    dropdown_text=trigger_reason.to_string()
+                                    dropdown_direction=DropdownDirection::Down
+                                    dropdown_btn_type=DropdownBtnType::Select
+                                    dropdown_options=ContextValidationTrigger::iter().collect()
+                                    on_select=Callback::new(move |
+                                        selected_item: ContextValidationTrigger|
+                                    {
+                                        logging::log!("selected item {:?}", selected_item);
+                                        function_args_ws
+                                            .update(|args| {
+                                                if let FunctionExecutionRequest::ContextValidationFunctionRequest {
+                                                    trigger_reason,
+                                                    ..
+                                                } = args {
+                                                    *trigger_reason = selected_item;
+                                                }
+                                            });
+                                    })
+                                />
+                            </div>
+                        }
+                            .into_view()
+                    }
+                    _ => ().into_view(),
+                }}
+                {match function_args_rs.get_untracked() {
                     FunctionExecutionRequest::ValueValidationFunctionRequest { environment, .. }
                     | FunctionExecutionRequest::ValueComputeFunctionRequest { environment, .. }
-                    | FunctionExecutionRequest::ContextValidationFunctionRequest { environment } => {
+                    | FunctionExecutionRequest::ContextValidationFunctionRequest {
+                        environment,
+                        ..
+                    } => {
                         view! {
                             <div class="form-control w-full max-w-md">
                                 <Label title="Environment" />
@@ -711,6 +760,7 @@ pub fn TestForm(
                                                                 }
                                                                 | FunctionExecutionRequest::ContextValidationFunctionRequest {
                                                                     environment,
+                                                                    ..
                                                                 } => {
                                                                     *environment = test_val;
                                                                 }

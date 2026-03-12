@@ -11,12 +11,12 @@ use service_utils::{
 use superposition_core::helpers::{calculate_context_weight, hash};
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
-    Cac, Condition, DBConnection, DimensionInfo, Overrides, User,
+    Cac, Condition, DBConnection, DimensionInfo, InternalUserContext, Overrides, User,
     api::{
         context::PutRequest,
         functions::{
-            CONTEXT_VALIDATION_FN_NAME, FunctionEnvironment, FunctionExecutionRequest,
-            FunctionExecutionResponse, KeyType,
+            CONTEXT_VALIDATION_FN_NAME, ContextValidationTrigger, FunctionEnvironment,
+            FunctionExecutionRequest, FunctionExecutionResponse, KeyType,
         },
     },
     database::{
@@ -103,6 +103,7 @@ pub fn validate_condition_with_functions(
     override_: &Map<String, Value>,
     is_context_validation_enabled: bool,
     master_encryption_key: &Option<EncryptionKey>,
+    internal_user: &InternalUserContext,
 ) -> superposition::Result<()> {
     use dimensions::dsl;
     let dimensions_list: Vec<String> = context_map.keys().cloned().collect();
@@ -139,6 +140,11 @@ pub fn validate_condition_with_functions(
                 &function_code,
                 &FunctionExecutionRequest::ContextValidationFunctionRequest {
                     environment: environment.clone(),
+                    trigger_reason: if **internal_user {
+                        ContextValidationTrigger::Experiment
+                    } else {
+                        ContextValidationTrigger::Context
+                    },
                 },
                 published_runtime_version,
                 conn,
@@ -339,6 +345,7 @@ pub fn create_ctx_from_put_req(
     user: &User,
     workspace_context: &WorkspaceContext,
     master_encryption_key: &Option<EncryptionKey>,
+    internal_user: &InternalUserContext,
 ) -> superposition::Result<Context> {
     let ctx_condition = req.context.to_owned().into_inner();
     let condition_val = Value::Object(ctx_condition.clone().into());
@@ -351,6 +358,7 @@ pub fn create_ctx_from_put_req(
         ctx_condition.clone(),
         r_override.clone(),
         master_encryption_key,
+        internal_user,
     )?;
     let change_reason = req.change_reason.clone();
 
@@ -467,6 +475,7 @@ pub fn validate_ctx(
     condition: Condition,
     override_: Overrides,
     master_encryption_key: &Option<EncryptionKey>,
+    internal_user: &InternalUserContext,
 ) -> superposition::Result<HashMap<String, DimensionInfo>> {
     validate_condition_with_mandatory_dimensions(
         &condition,
@@ -488,6 +497,7 @@ pub fn validate_ctx(
         &override_,
         workspace_context.settings.enable_context_validation,
         master_encryption_key,
+        internal_user,
     )?;
     Ok(dimension_info_map)
 }

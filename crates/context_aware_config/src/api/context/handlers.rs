@@ -25,8 +25,8 @@ use superposition_core::helpers::{calculate_context_weight, hash};
 use superposition_derives::{authorized, declare_resource};
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    Contextual, ListResponse, Overridden, Overrides, PaginatedResponse, Resource, SortBy,
-    User,
+    Contextual, InternalUserContext, ListResponse, Overridden, Overrides,
+    PaginatedResponse, Resource, SortBy, User,
     api::{
         DimensionMatchStrategy,
         context::{
@@ -72,6 +72,7 @@ pub fn endpoints() -> Scope {
         .service(validate_handler)
 }
 
+#[allow(clippy::too_many_arguments)]
 #[authorized]
 #[put("")]
 async fn create_handler(
@@ -81,6 +82,7 @@ async fn create_handler(
     req: Json<PutRequest>,
     mut db_conn: DbConnection,
     user: User,
+    internal_user: InternalUserContext,
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let description = match req.description.clone() {
@@ -123,6 +125,7 @@ async fn create_handler(
                 &workspace_context,
                 false,
                 &state.master_encryption_key,
+                &internal_user,
             )
             .map_err(|err: superposition::AppError| {
                 log::error!("context put failed with error: {:?}", err);
@@ -270,6 +273,7 @@ async fn move_handler(
     req: Json<MoveRequest>,
     mut db_conn: DbConnection,
     user: User,
+    internal_user: InternalUserContext,
 ) -> superposition::Result<HttpResponse> {
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
@@ -312,6 +316,7 @@ async fn move_handler(
                 true,
                 &user,
                 &state.master_encryption_key,
+                &internal_user,
             )
             .map_err(|err| {
                 log::error!("move api failed with error: {:?}", err);
@@ -627,6 +632,7 @@ async fn delete_handler(
         .finish())
 }
 
+#[allow(clippy::too_many_arguments)]
 #[authorized]
 #[put("/bulk-operations")]
 async fn bulk_operations_handler(
@@ -636,6 +642,7 @@ async fn bulk_operations_handler(
     req: Either<Json<Vec<ContextAction>>, Json<BulkOperation>>,
     db_conn: DbConnection,
     user: User,
+    internal_user: InternalUserContext,
 ) -> superposition::Result<HttpResponse> {
     use contexts::dsl::contexts;
 
@@ -694,6 +701,7 @@ async fn bulk_operations_handler(
                             &workspace_context,
                             false,
                             &state.master_encryption_key,
+                            &internal_user,
                         )
                         .map_err(|err| {
                             log::error!(
@@ -792,6 +800,7 @@ async fn bulk_operations_handler(
                             true,
                             &user,
                             &state.master_encryption_key,
+                            &internal_user,
                         )
                         .map_err(|err| {
                             log::error!(
@@ -985,6 +994,7 @@ async fn validate_handler(
     db_conn: DbConnection,
     request: Json<ContextValidationRequest>,
     state: Data<AppState>,
+    internal_user: InternalUserContext,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let ctx_condition = request.context.to_owned().into_inner();
@@ -996,6 +1006,7 @@ async fn validate_handler(
         ctx_condition.clone(),
         Overrides::default(),
         &state.master_encryption_key,
+        &internal_user,
     )?;
     log::debug!("Context {:?} is valid", ctx_condition);
     Ok(HttpResponse::Ok().finish())

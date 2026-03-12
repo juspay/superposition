@@ -11,7 +11,7 @@ use service_utils::service::types::{EncryptionKey, SchemaName, WorkspaceContext}
 use superposition_core::helpers::{calculate_context_weight, hash};
 use superposition_macros::{db_error, not_found, unexpected_error};
 use superposition_types::{
-    DBConnection, Overrides, User,
+    DBConnection, InternalUserContext, Overrides, User,
     api::{
         context::{Identifier, MoveRequest, PutRequest, UpdateRequest},
         webhook::Action,
@@ -43,6 +43,7 @@ pub fn upsert(
     workspace_context: &WorkspaceContext,
     replace: bool,
     master_encryption_key: &Option<EncryptionKey>,
+    internal_user: &InternalUserContext,
 ) -> result::Result<Context> {
     use contexts::dsl::contexts;
     let new_ctx = create_ctx_from_put_req(
@@ -52,6 +53,7 @@ pub fn upsert(
         user,
         workspace_context,
         master_encryption_key,
+        internal_user,
     )?;
 
     if already_under_txn {
@@ -163,6 +165,7 @@ pub fn r#move(
     already_under_txn: bool,
     user: &User,
     master_encryption_key: &Option<EncryptionKey>,
+    internal_user: &InternalUserContext,
 ) -> result::Result<MoveResult> {
     use contexts::dsl;
     let req = req.into_inner();
@@ -178,6 +181,7 @@ pub fn r#move(
         ctx_condition.clone(),
         Overrides::default(),
         master_encryption_key,
+        internal_user,
     )?;
     let weight = calculate_context_weight(&ctx_condition, &dimension_data_map)
         .map_err(|_| unexpected_error!("Something Went Wrong"))?;
