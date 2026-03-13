@@ -14,8 +14,8 @@ use service_utils::{
     service::types::{AppState, DbConnection, WorkspaceContext},
 };
 use superposition_core::{
+    ConfigFormat, JsonFormat, TomlFormat,
     helpers::{calculate_context_weight, hash},
-    serialize_to_toml,
 };
 use superposition_derives::{authorized, declare_resource};
 use superposition_macros::{bad_argument, unexpected_error};
@@ -60,6 +60,7 @@ pub fn endpoints() -> Scope {
     Scope::new("")
         .service(get_handler)
         .service(get_toml_handler)
+        .service(get_json_handler)
         .service(resolve_handler)
         .service(reduce_handler)
         .service(list_version_handler)
@@ -569,7 +570,7 @@ async fn get_toml_handler(
     let detailed_config =
         generate_detailed_cac(&mut conn, &workspace_context.schema_name)?;
 
-    let toml_str = serialize_to_toml(detailed_config)
+    let toml_str = TomlFormat::serialize(detailed_config)
         .map_err(|e| unexpected_error!("Failed to serialize config to TOML: {}", e))?;
 
     let mut response = HttpResponse::Ok();
@@ -577,6 +578,40 @@ async fn get_toml_handler(
     response.insert_header(("Content-Type", "application/toml"));
 
     Ok(response.body(toml_str))
+}
+
+/// Handler that returns config in JSON format with schema information.
+/// This uses generate_detailed_cac to fetch schemas from the database.
+#[authorized]
+#[get("/json")]
+async fn get_json_handler(
+    req: HttpRequest,
+    db_conn: DbConnection,
+    workspace_context: WorkspaceContext,
+) -> superposition::Result<HttpResponse> {
+    let DbConnection(mut conn) = db_conn;
+
+    let max_created_at = get_max_created_at(&mut conn, &workspace_context.schema_name)
+        .map_err(|e| log::error!("failed to fetch max timestamp from event_log: {e}"))
+        .ok();
+
+    log::info!("Max created at: {max_created_at:?}");
+
+    if is_not_modified(max_created_at, &req) {
+        return Ok(HttpResponse::NotModified().finish());
+    }
+
+    let detailed_config =
+        generate_detailed_cac(&mut conn, &workspace_context.schema_name)?;
+
+    let json_str = JsonFormat::serialize(detailed_config)
+        .map_err(|e| unexpected_error!("Failed to serialize config to JSON: {}", e))?;
+
+    let mut response = HttpResponse::Ok();
+    add_last_modified_to_header(max_created_at, false, &mut response);
+    response.insert_header(("Content-Type", "application/json"));
+
+    Ok(response.body(json_str))
 }
 
 #[allow(clippy::too_many_arguments)]

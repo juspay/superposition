@@ -56,7 +56,11 @@ import io.juspay.superposition.model.DiscardExperimentOutput;
 import io.juspay.superposition.model.GetConfigFastInput;
 import io.juspay.superposition.model.GetConfigFastOutput;
 import io.juspay.superposition.model.GetConfigInput;
+import io.juspay.superposition.model.GetConfigJsonInput;
+import io.juspay.superposition.model.GetConfigJsonOutput;
 import io.juspay.superposition.model.GetConfigOutput;
+import io.juspay.superposition.model.GetConfigTomlInput;
+import io.juspay.superposition.model.GetConfigTomlOutput;
 import io.juspay.superposition.model.GetContextFromConditionInput;
 import io.juspay.superposition.model.GetContextFromConditionOutput;
 import io.juspay.superposition.model.GetContextInput;
@@ -705,6 +709,46 @@ public interface SuperpositionAsyncClient {
      * @throws InternalServerError
      */
     CompletableFuture<GetConfigFastOutput> getConfigFast(GetConfigFastInput input, RequestOverrideConfig overrideConfig);
+
+    /**
+     * Retrieves the full config in JSON format, including default configs with schemas, dimensions, and
+     * overrides. This endpoint is optimized for clients that prefer JSON format for configuration
+     * management.
+     *
+     * @throws InternalServerError
+     */
+    default CompletableFuture<GetConfigJsonOutput> getConfigJson(GetConfigJsonInput input) {
+        return getConfigJson(input, null);
+    }
+
+    /**
+     * Retrieves the full config in JSON format, including default configs with schemas, dimensions, and
+     * overrides. This endpoint is optimized for clients that prefer JSON format for configuration
+     * management.
+     *
+     * @throws InternalServerError
+     */
+    CompletableFuture<GetConfigJsonOutput> getConfigJson(GetConfigJsonInput input, RequestOverrideConfig overrideConfig);
+
+    /**
+     * Retrieves the full config in TOML format, including default configs with schemas, dimensions, and
+     * overrides. This endpoint is optimized for clients that prefer TOML format for configuration
+     * management.
+     *
+     * @throws InternalServerError
+     */
+    default CompletableFuture<GetConfigTomlOutput> getConfigToml(GetConfigTomlInput input) {
+        return getConfigToml(input, null);
+    }
+
+    /**
+     * Retrieves the full config in TOML format, including default configs with schemas, dimensions, and
+     * overrides. This endpoint is optimized for clients that prefer TOML format for configuration
+     * management.
+     *
+     * @throws InternalServerError
+     */
+    CompletableFuture<GetConfigTomlOutput> getConfigToml(GetConfigTomlInput input, RequestOverrideConfig overrideConfig);
 
     /**
      * Retrieves detailed information about a specific context by its unique identifier, including
@@ -1773,11 +1817,11 @@ public interface SuperpositionAsyncClient {
             Node.objectNode()
         );
 
-        private static final HttpBearerAuthTrait httpBearerAuthScheme = new HttpBearerAuthTrait();
-        private static final AuthSchemeFactory<HttpBearerAuthTrait> httpBearerAuthSchemeFactory = new HttpBearerAuthScheme.Factory();
-
         private static final HttpBasicAuthTrait httpBasicAuthScheme = new HttpBasicAuthTrait();
         private static final AuthSchemeFactory<HttpBasicAuthTrait> httpBasicAuthSchemeFactory = new HttpBasicAuthAuthScheme.Factory();
+
+        private static final HttpBearerAuthTrait httpBearerAuthScheme = new HttpBearerAuthTrait();
+        private static final AuthSchemeFactory<HttpBearerAuthTrait> httpBearerAuthSchemeFactory = new HttpBearerAuthScheme.Factory();
 
         private Builder() {
             configBuilder().putSupportedAuthSchemes(httpBasicAuthSchemeFactory.createAuthScheme(httpBasicAuthScheme), httpBearerAuthSchemeFactory.createAuthScheme(httpBearerAuthScheme));

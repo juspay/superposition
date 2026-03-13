@@ -14,7 +14,10 @@ main = do
         HUnit.TestLabel "Parse TOML - Valid" $ HUnit.TestCase parseTomlValid,
         HUnit.TestLabel "Parse TOML - Invalid Syntax" $ HUnit.TestCase parseTomlInvalidSyntax,
         HUnit.TestLabel "Parse TOML - Missing Section" $ HUnit.TestCase parseTomlMissingSection,
-        HUnit.TestLabel "Parse TOML - Missing Position" $ HUnit.TestCase parseTomlMissingPosition
+        HUnit.TestLabel "Parse TOML - Missing Position" $ HUnit.TestCase parseTomlMissingPosition,
+        HUnit.TestLabel "Parse JSON - Valid" $ HUnit.TestCase parseJsonValid,
+        HUnit.TestLabel "Parse JSON - Invalid Syntax" $ HUnit.TestCase parseJsonInvalidSyntax,
+        HUnit.TestLabel "Parse JSON - Missing Section" $ HUnit.TestCase parseJsonMissingSection
       ]
 
 validCall :: IO ()
@@ -110,4 +113,52 @@ parseTomlMissingPosition = do
   result <- FFI.parseTomlConfig invalidToml
   case result of
     Right _ -> HUnit.assertFailure "Expected error for missing position field"
+    Left e -> HUnit.assertBool "Error should not be empty" (not $ null e)
+
+-- JSON parsing tests
+exampleJson :: String
+exampleJson = unlines
+  [ "{"
+  , "  \"default-configs\": {"
+  , "    \"per_km_rate\": { \"value\": 20.0, \"schema\": { \"type\": \"number\" } },"
+  , "    \"surge_factor\": { \"value\": 0.0, \"schema\": { \"type\": \"number\" } }"
+  , "  },"
+  , "  \"dimensions\": {"
+  , "    \"city\": { \"position\": 1, \"schema\": { \"type\": \"string\", \"enum\": [\"Bangalore\", \"Delhi\"] } },"
+  , "    \"vehicle_type\": { \"position\": 2, \"schema\": { \"type\": \"string\", \"enum\": [\"auto\", \"cab\", \"bike\"] } }"
+  , "  },"
+  , "  \"overrides\": ["
+  , "    { \"_context_\": { \"vehicle_type\": \"cab\" }, \"per_km_rate\": 25.0 },"
+  , "    { \"_context_\": { \"vehicle_type\": \"bike\" }, \"per_km_rate\": 15.0 }"
+  , "  ]"
+  , "}"
+  ]
+
+parseJsonValid :: IO ()
+parseJsonValid = do
+  result <- FFI.parseJsonConfig exampleJson
+  case result of
+    Right _val -> HUnit.assertBool "Valid JSON should parse successfully" True
+    Left e -> HUnit.assertFailure $ "Failed to parse valid JSON: " ++ e
+
+parseJsonInvalidSyntax :: IO ()
+parseJsonInvalidSyntax = do
+  let invalidJson = "{invalid json content}"
+  result <- FFI.parseJsonConfig invalidJson
+  case result of
+    Right _ -> HUnit.assertFailure "Expected error for invalid JSON syntax"
+    Left e -> HUnit.assertBool "Error should not be empty" (not $ null e)
+
+parseJsonMissingSection :: IO ()
+parseJsonMissingSection = do
+  let invalidJson = unlines
+        [ "{"
+        , "  \"dimensions\": {"
+        , "    \"city\": { \"position\": 1, \"schema\": { \"type\": \"string\" } }"
+        , "  }"
+        , "}"
+        ]
+  result <- FFI.parseJsonConfig invalidJson
+  case result of
+    Right _ -> HUnit.assertFailure "Expected error for missing default-configs section"
     Left e -> HUnit.assertBool "Error should not be empty" (not $ null e)

@@ -43,6 +43,8 @@ from .models import (
     DiscardExperimentInput,
     GetConfigFastInput,
     GetConfigInput,
+    GetConfigJsonInput,
+    GetConfigTomlInput,
     GetContextFromConditionInput,
     GetContextInput,
     GetDefaultConfigInput,
@@ -1067,6 +1069,60 @@ async def _serialize_get_config(input: GetConfigInput, config: Config) -> HTTPRe
 
 async def _serialize_get_config_fast(input: GetConfigFastInput, config: Config) -> HTTPRequest:
     path = "/config/fast"
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    headers = Fields(
+        [
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="GET",
+        fields=headers,
+        body=body,
+    )
+
+async def _serialize_get_config_json(input: GetConfigJsonInput, config: Config) -> HTTPRequest:
+    path = "/config/json"
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    headers = Fields(
+        [
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="GET",
+        fields=headers,
+        body=body,
+    )
+
+async def _serialize_get_config_toml(input: GetConfigTomlInput, config: Config) -> HTTPRequest:
+    path = "/config/toml"
     query: str = f''
 
     body: AsyncIterable[bytes] = AsyncBytesReader(b'')

@@ -298,6 +298,62 @@
                 ]
             }
         },
+        "/config/json": {
+            "get": {
+                "description": "Retrieves the full config in JSON format, including default configs with schemas, dimensions, and overrides. This endpoint is optimized for clients that prefer JSON format for configuration management.",
+                "operationId": "GetConfigJson",
+                "parameters": [
+                    {
+                        "name": "x-org-id",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-workspace",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "GetConfigJson 200 response",
+                        "headers": {
+                            "last-modified": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetConfigJsonOutputPayload"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Configuration Management"
+                ]
+            }
+        },
         "/config/resolve": {
             "post": {
                 "description": "Resolves and merges config values based on context conditions, applying overrides and merge strategies to produce the final configuration.",
@@ -404,6 +460,62 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/GetResolvedConfigOutputPayload"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Configuration Management"
+                ]
+            }
+        },
+        "/config/toml": {
+            "get": {
+                "description": "Retrieves the full config in TOML format, including default configs with schemas, dimensions, and overrides. This endpoint is optimized for clients that prefer TOML format for configuration management.",
+                "operationId": "GetConfigToml",
+                "parameters": [
+                    {
+                        "name": "x-org-id",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-workspace",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "GetConfigToml 200 response",
+                        "headers": {
+                            "last-modified": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetConfigTomlOutputPayload"
                                 }
                             }
                         }
@@ -8263,6 +8375,9 @@
                 ]
             },
             "GetConfigFastOutputPayload": {},
+            "GetConfigJsonOutputPayload": {
+                "type": "string"
+            },
             "GetConfigRequestContent": {
                 "type": "object",
                 "properties": {
@@ -8296,6 +8411,9 @@
                     "dimensions",
                     "overrides"
                 ]
+            },
+            "GetConfigTomlOutputPayload": {
+                "type": "string"
             },
             "GetContextFromConditionInputPayload": {},
             "GetContextFromConditionResponseContent": {

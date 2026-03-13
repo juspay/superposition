@@ -118,7 +118,13 @@ from ._private.schemas import (
     GET_CONFIG_FAST_INPUT as _SCHEMA_GET_CONFIG_FAST_INPUT,
     GET_CONFIG_FAST_OUTPUT as _SCHEMA_GET_CONFIG_FAST_OUTPUT,
     GET_CONFIG_INPUT as _SCHEMA_GET_CONFIG_INPUT,
+    GET_CONFIG_JSON as _SCHEMA_GET_CONFIG_JSON,
+    GET_CONFIG_JSON_INPUT as _SCHEMA_GET_CONFIG_JSON_INPUT,
+    GET_CONFIG_JSON_OUTPUT as _SCHEMA_GET_CONFIG_JSON_OUTPUT,
     GET_CONFIG_OUTPUT as _SCHEMA_GET_CONFIG_OUTPUT,
+    GET_CONFIG_TOML as _SCHEMA_GET_CONFIG_TOML,
+    GET_CONFIG_TOML_INPUT as _SCHEMA_GET_CONFIG_TOML_INPUT,
+    GET_CONFIG_TOML_OUTPUT as _SCHEMA_GET_CONFIG_TOML_OUTPUT,
     GET_CONTEXT as _SCHEMA_GET_CONTEXT,
     GET_CONTEXT_FROM_CONDITION as _SCHEMA_GET_CONTEXT_FROM_CONDITION,
     GET_CONTEXT_FROM_CONDITION_INPUT as _SCHEMA_GET_CONTEXT_FROM_CONDITION_INPUT,
@@ -2807,6 +2813,174 @@ ShapeID("smithy.api#httpBearerAuth")
         ]
 )
 
+@dataclass(kw_only=True)
+class GetConfigJsonInput:
+
+    workspace_id: str | None = None
+    org_id: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_CONFIG_JSON_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_GET_CONFIG_JSON_INPUT.members["workspace_id"])
+
+                case 1:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_GET_CONFIG_JSON_INPUT.members["org_id"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_CONFIG_JSON_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class GetConfigJsonOutput:
+
+    json_config: str
+
+    last_modified: datetime | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_CONFIG_JSON_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["json_config"] = de.read_string(_SCHEMA_GET_CONFIG_JSON_OUTPUT.members["json_config"])
+
+                case 1:
+                    kwargs["last_modified"] = de.read_timestamp(_SCHEMA_GET_CONFIG_JSON_OUTPUT.members["last_modified"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_CONFIG_JSON_OUTPUT, consumer=_consumer)
+        return kwargs
+
+GET_CONFIG_JSON = APIOperation(
+        input = GetConfigJsonInput,
+        output = GetConfigJsonOutput,
+        schema = _SCHEMA_GET_CONFIG_JSON,
+        input_schema = _SCHEMA_GET_CONFIG_JSON_INPUT,
+        output_schema = _SCHEMA_GET_CONFIG_JSON_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+            ShapeID("smithy.api#httpBasicAuth"),
+ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
+@dataclass(kw_only=True)
+class GetConfigTomlInput:
+
+    workspace_id: str | None = None
+    org_id: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_CONFIG_TOML_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_GET_CONFIG_TOML_INPUT.members["workspace_id"])
+
+                case 1:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_GET_CONFIG_TOML_INPUT.members["org_id"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_CONFIG_TOML_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class GetConfigTomlOutput:
+
+    toml_config: str
+
+    last_modified: datetime | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_CONFIG_TOML_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["toml_config"] = de.read_string(_SCHEMA_GET_CONFIG_TOML_OUTPUT.members["toml_config"])
+
+                case 1:
+                    kwargs["last_modified"] = de.read_timestamp(_SCHEMA_GET_CONFIG_TOML_OUTPUT.members["last_modified"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_CONFIG_TOML_OUTPUT, consumer=_consumer)
+        return kwargs
+
+GET_CONFIG_TOML = APIOperation(
+        input = GetConfigTomlInput,
+        output = GetConfigTomlOutput,
+        schema = _SCHEMA_GET_CONFIG_TOML,
+        input_schema = _SCHEMA_GET_CONFIG_TOML_INPUT,
+        output_schema = _SCHEMA_GET_CONFIG_TOML_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+            ShapeID("smithy.api#httpBasicAuth"),
+ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
 class MergeStrategy(StrEnum):
     MERGE = "MERGE"
     REPLACE = "REPLACE"
@@ -2939,7 +3113,7 @@ GET_RESOLVED_CONFIG = APIOperation(
             ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
-            ShapeID("smithy.api#httpBasicAuth"),
+            ShapeID("smithy.api#httpBasicAuth")
 ShapeID("smithy.api#httpBearerAuth")
         ]
 )
@@ -3371,7 +3545,7 @@ LIST_VERSIONS = APIOperation(
             ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
-            ShapeID("smithy.api#httpBasicAuth"),
+            ShapeID("smithy.api#httpBasicAuth")
 ShapeID("smithy.api#httpBearerAuth")
         ]
 )

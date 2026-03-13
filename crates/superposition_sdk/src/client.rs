@@ -187,6 +187,10 @@ mod get_config;
 
 mod get_config_fast;
 
+mod get_config_json;
+
+mod get_config_toml;
+
 mod get_context;
 
 mod get_context_from_condition;

@@ -84,6 +84,12 @@ pub mod get_config;
 /// Types for the `GetConfigFast` operation.
 pub mod get_config_fast;
 
+/// Types for the `GetConfigJson` operation.
+pub mod get_config_json;
+
+/// Types for the `GetConfigToml` operation.
+pub mod get_config_toml;
+
 /// Types for the `GetContext` operation.
 pub mod get_context;
 

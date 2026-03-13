@@ -112,6 +112,14 @@ import {
   GetConfigFastCommandOutput,
 } from "../commands/GetConfigFastCommand";
 import {
+  GetConfigJsonCommandInput,
+  GetConfigJsonCommandOutput,
+} from "../commands/GetConfigJsonCommand";
+import {
+  GetConfigTomlCommandInput,
+  GetConfigTomlCommandOutput,
+} from "../commands/GetConfigTomlCommand";
+import {
   GetContextCommandInput,
   GetContextCommandOutput,
 } from "../commands/GetContextCommand";
@@ -1116,6 +1124,46 @@ export const se_GetConfigFastCommand = async(
     [_xoi]: input[_oi]!,
   });
   b.bp("/config/fast");
+  let body: any;
+  b.m("GET")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
+ * serializeAws_restJson1GetConfigJsonCommand
+ */
+export const se_GetConfigJsonCommand = async(
+  input: GetConfigJsonCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    [_xw]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/config/json");
+  let body: any;
+  b.m("GET")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
+ * serializeAws_restJson1GetConfigTomlCommand
+ */
+export const se_GetConfigTomlCommand = async(
+  input: GetConfigTomlCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    [_xw]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/config/toml");
   let body: any;
   b.m("GET")
   .h(headers)
@@ -3342,6 +3390,44 @@ export const de_GetConfigFastCommand = async(
   const data: any = await collectBodyString(output.body, context);
   contents.config = data;
   contents.config = JSON.parse(data);
+  return contents;
+}
+
+/**
+ * deserializeAws_restJson1GetConfigJsonCommand
+ */
+export const de_GetConfigJsonCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<GetConfigJsonCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+    [_lm_]: [() => void 0 !== output.headers[_lm], () => __expectNonNull(__parseRfc3339DateTimeWithOffset(output.headers[_lm]))],
+  });
+  const data: any = await collectBodyString(output.body, context);
+  contents.json_config = __expectString(data);
+  return contents;
+}
+
+/**
+ * deserializeAws_restJson1GetConfigTomlCommand
+ */
+export const de_GetConfigTomlCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<GetConfigTomlCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+    [_lm_]: [() => void 0 !== output.headers[_lm], () => __expectNonNull(__parseRfc3339DateTimeWithOffset(output.headers[_lm]))],
+  });
+  const data: any = await collectBodyString(output.body, context);
+  contents.toml_config = __expectString(data);
   return contents;
 }
 

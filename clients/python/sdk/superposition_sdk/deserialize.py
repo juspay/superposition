@@ -42,7 +42,9 @@ from .models import (
     DeleteWebhookOutput,
     DiscardExperimentOutput,
     GetConfigFastOutput,
+    GetConfigJsonOutput,
     GetConfigOutput,
+    GetConfigTomlOutput,
     GetContextFromConditionOutput,
     GetContextOutput,
     GetDefaultConfigOutput,
@@ -833,6 +835,70 @@ async def _deserialize_get_config_fast(http_response: HTTPResponse, config: Conf
     return GetConfigFastOutput(**kwargs)
 
 async def _deserialize_error_get_config_fast(http_response: HTTPResponse, config: Config) -> ApiError:
+    code, message, parsed_body = await parse_rest_json_error_info(http_response)
+
+    match code.lower():
+        case "internalservererror":
+            return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
+
+        case _:
+            return UnknownApiError(f"{code}: {message}")
+
+async def _deserialize_get_config_json(http_response: HTTPResponse, config: Config) -> GetConfigJsonOutput:
+    if http_response.status != 200 and http_response.status >= 300:
+        raise await _deserialize_error_get_config_json(http_response, config)
+
+    kwargs: dict[str, Any] = {}
+
+    body = await http_response.consume_body_async()
+    if body:
+        kwargs["json_config"] = body.decode('utf-8')
+
+    for fld in http_response.fields:
+        for key, value in fld.as_tuples():
+            _key_lowercase = key.lower()
+            match _key_lowercase:
+                case "last-modified":
+                    kwargs["last_modified"] = ensure_utc(datetime.fromisoformat(expect_type(str, value)))
+
+                case _:
+                    pass
+
+    return GetConfigJsonOutput(**kwargs)
+
+async def _deserialize_error_get_config_json(http_response: HTTPResponse, config: Config) -> ApiError:
+    code, message, parsed_body = await parse_rest_json_error_info(http_response)
+
+    match code.lower():
+        case "internalservererror":
+            return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
+
+        case _:
+            return UnknownApiError(f"{code}: {message}")
+
+async def _deserialize_get_config_toml(http_response: HTTPResponse, config: Config) -> GetConfigTomlOutput:
+    if http_response.status != 200 and http_response.status >= 300:
+        raise await _deserialize_error_get_config_toml(http_response, config)
+
+    kwargs: dict[str, Any] = {}
+
+    body = await http_response.consume_body_async()
+    if body:
+        kwargs["toml_config"] = body.decode('utf-8')
+
+    for fld in http_response.fields:
+        for key, value in fld.as_tuples():
+            _key_lowercase = key.lower()
+            match _key_lowercase:
+                case "last-modified":
+                    kwargs["last_modified"] = ensure_utc(datetime.fromisoformat(expect_type(str, value)))
+
+                case _:
+                    pass
+
+    return GetConfigTomlOutput(**kwargs)
+
+async def _deserialize_error_get_config_toml(http_response: HTTPResponse, config: Config) -> ApiError:
     code, message, parsed_body = await parse_rest_json_error_info(http_response)
 
     match code.lower():

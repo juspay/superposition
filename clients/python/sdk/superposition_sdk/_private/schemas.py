@@ -2143,6 +2143,164 @@ GET_CONFIG_FAST = Schema(
 
 )
 
+GET_CONFIG_JSON_INPUT = Schema.collection(
+    id=ShapeID("io.superposition#GetConfigJsonInput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#input")),
+
+    ],
+    members={
+        "workspace_id": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-workspace"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "org_id": {
+            "target": STRING,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
+GET_CONFIG_JSON_OUTPUT = Schema.collection(
+    id=ShapeID("io.superposition#GetConfigJsonOutput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#output")),
+
+    ],
+    members={
+        "json_config": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(id=ShapeID("smithy.api#httpPayload")),
+
+            ],
+        },
+
+        "last_modified": {
+            "target": DATE_TIME,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="last-modified"),
+
+            ],
+        },
+
+    }
+)
+
+GET_CONFIG_JSON = Schema(
+    id=ShapeID("io.superposition#GetConfigJson"),
+    shape_type=ShapeType.OPERATION,
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Configuration Management",
+            )),
+        Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
+                "method": "GET",
+                "uri": "/config/json",
+            })),
+        Trait.new(id=ShapeID("smithy.api#readonly")),
+
+    ],
+
+)
+
+GET_CONFIG_TOML_INPUT = Schema.collection(
+    id=ShapeID("io.superposition#GetConfigTomlInput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#input")),
+
+    ],
+    members={
+        "workspace_id": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-workspace"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "org_id": {
+            "target": STRING,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
+GET_CONFIG_TOML_OUTPUT = Schema.collection(
+    id=ShapeID("io.superposition#GetConfigTomlOutput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#output")),
+
+    ],
+    members={
+        "toml_config": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(id=ShapeID("smithy.api#httpPayload")),
+
+            ],
+        },
+
+        "last_modified": {
+            "target": DATE_TIME,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="last-modified"),
+
+            ],
+        },
+
+    }
+)
+
+GET_CONFIG_TOML = Schema(
+    id=ShapeID("io.superposition#GetConfigToml"),
+    shape_type=ShapeType.OPERATION,
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Configuration Management",
+            )),
+        Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
+                "method": "GET",
+                "uri": "/config/toml",
+            })),
+        Trait.new(id=ShapeID("smithy.api#readonly")),
+
+    ],
+
+)
+
 MERGE_STRATEGY = Schema.collection(
     id=ShapeID("io.superposition#MergeStrategy"),
     shape_type=ShapeType.ENUM,

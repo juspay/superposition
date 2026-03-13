@@ -84,7 +84,13 @@ import io.juspay.superposition.model.GetConfigFast;
 import io.juspay.superposition.model.GetConfigFastInput;
 import io.juspay.superposition.model.GetConfigFastOutput;
 import io.juspay.superposition.model.GetConfigInput;
+import io.juspay.superposition.model.GetConfigJson;
+import io.juspay.superposition.model.GetConfigJsonInput;
+import io.juspay.superposition.model.GetConfigJsonOutput;
 import io.juspay.superposition.model.GetConfigOutput;
+import io.juspay.superposition.model.GetConfigToml;
+import io.juspay.superposition.model.GetConfigTomlInput;
+import io.juspay.superposition.model.GetConfigTomlOutput;
 import io.juspay.superposition.model.GetContext;
 import io.juspay.superposition.model.GetContextFromCondition;
 import io.juspay.superposition.model.GetContextFromConditionInput;
@@ -266,9 +272,9 @@ import software.amazon.smithy.utils.SmithyGenerated;
 @SmithyGenerated
 final class SuperpositionClientImpl extends Client implements SuperpositionClient {
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
-        .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
         .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
         .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
+        .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
         .putType(InternalFailureException.$ID, InternalFailureException.class, InternalFailureException::builder)
         .putType(UnknownOperationException.$ID, UnknownOperationException.class, UnknownOperationException::builder)
         .putType(MalformedRequestException.$ID, MalformedRequestException.class, MalformedRequestException::builder)
@@ -526,6 +532,24 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
     public GetConfigFastOutput getConfigFast(GetConfigFastInput input, RequestOverrideConfig overrideConfig) {
         try {
             return call(input, GetConfigFast.instance(), overrideConfig).join();
+        } catch (CompletionException e) {
+            throw unwrapAndThrow(e);
+        }
+    }
+
+    @Override
+    public GetConfigJsonOutput getConfigJson(GetConfigJsonInput input, RequestOverrideConfig overrideConfig) {
+        try {
+            return call(input, GetConfigJson.instance(), overrideConfig).join();
+        } catch (CompletionException e) {
+            throw unwrapAndThrow(e);
+        }
+    }
+
+    @Override
+    public GetConfigTomlOutput getConfigToml(GetConfigTomlInput input, RequestOverrideConfig overrideConfig) {
+        try {
+            return call(input, GetConfigToml.instance(), overrideConfig).join();
         } catch (CompletionException e) {
             throw unwrapAndThrow(e);
         }

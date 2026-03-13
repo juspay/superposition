@@ -118,6 +118,14 @@ import {
   GetConfigFastCommandOutput,
 } from "./commands/GetConfigFastCommand";
 import {
+  GetConfigJsonCommandInput,
+  GetConfigJsonCommandOutput,
+} from "./commands/GetConfigJsonCommand";
+import {
+  GetConfigTomlCommandInput,
+  GetConfigTomlCommandOutput,
+} from "./commands/GetConfigTomlCommand";
+import {
   GetContextCommandInput,
   GetContextCommandOutput,
 } from "./commands/GetContextCommand";
@@ -431,6 +439,8 @@ export type ServiceInputTypes =
   | DiscardExperimentCommandInput
   | GetConfigCommandInput
   | GetConfigFastCommandInput
+  | GetConfigJsonCommandInput
+  | GetConfigTomlCommandInput
   | GetContextCommandInput
   | GetContextFromConditionCommandInput
   | GetDefaultConfigCommandInput
@@ -519,6 +529,8 @@ export type ServiceOutputTypes =
   | DiscardExperimentCommandOutput
   | GetConfigCommandOutput
   | GetConfigFastCommandOutput
+  | GetConfigJsonCommandOutput
+  | GetConfigTomlCommandOutput
   | GetContextCommandOutput
   | GetContextFromConditionCommandOutput
   | GetDefaultConfigCommandOutput

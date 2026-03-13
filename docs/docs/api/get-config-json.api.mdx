@@ -1,0 +1,71 @@
+---
+id: get-config-json
+title: "GetConfigJson"
+description: "Retrieves the full config in JSON format, including default configs with schemas, dimensions, and overrides. This endpoint is optimized for clients that prefer JSON format for configuration management."
+sidebar_label: "GetConfigJson"
+hide_title: true
+hide_table_of_contents: true
+api: eJzdVMFO3DAQ/RXLp1baXVZUe+FGEaIgtSB2e0IcTDJJDI5t7PHCNtp/70wSIEG7qFLVS0+J7eeZN/Oep5E5xCxoj9pZeSSvAYOGNUSBFYgiGSMyZwtdCm3FxfLyhyhcqBVOaJ2ZlGtbihwKlQz2wCieNFYiZhXUKk5ErmuwkaLTv7K5cGsIQVPWmVhVOgqwuXfaoqB/RzRq/QtyziIyo8EiM1EofIACwpBCh2lzpqCYv6iVVSVQPpzJiXQeuv3znCo7AzxpwReRKp1Ir4KqASFEeXTTSEsLQj1PXSinOieA5n5UoHIItOrqkUeNxI1nZKRG2VJuJzLAY9IBKAmGBNvJINiTCw/Rqwz+It4t70RPDYTI+MP5nD9j3UbVCYKIlzuUq0vaXjYq4rR2uS40J2j289gSE+ouUjPbU3jGA28UV7H/1kSiRgPvCV0m9Amv1MY4lXNoir3YVcY55QtWmSUEsslpCCTxYlzMgJPy3uislfjgnlXdxczd3UOGLHhgQ6DuulhDjOSVXYW/FbGDznXP5KSnse2qQVWyj+TJyI/fX/0oSUVyW+XYiiW0fBRWtDjoLNwVQL6ALAWNm9aUsaantJkpr2cVov+qos6OE1+7uWWfvT8HFSC8Am7foi25K13h+2O+doL3icpYmm+r1ZVo0UIRnGrqW/9iZr55x+fs4Q+Y/UmaFv5RnhbQaqVt4dqgvWbLRCp7F3V/h4SLXejD+eFiOv8ynS+YIUGQ5gVf7Z8rWVZ0+ol+RoyoNW/W+6/GZK/G4IFTd1IwXHHn0RvZ3Sdw61IyVkXd44OmIcnhZzDbLW8/JghsXfpdq6DVHUvCXn0ZfOzqXEc+oJdQKBPhgzZ/uu5H4Wexj+gDbMZje61MYpjkB/JPUg2H+ihbBzjOMvA4OBtGGY6Bs9MVOfg30cKf0w==
+sidebar_class_name: "get api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"GetConfigJson"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/config/json"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieves the full config in JSON format, including default configs with schemas, dimensions, and overrides. This endpoint is optimized for clients that prefer JSON format for configuration management.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"x-org-id","in":"header","schema":{"type":"string"},"required":true},{"name":"x-workspace","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"GetConfigJson 200 response","headers":{"last-modified":{"schema":{"type":"string"}}},"content":{"text/plain":{"schema":{"type":"string","title":"GetConfigJsonOutputPayload"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      
