@@ -1,0 +1,29 @@
+{
+  "name": "superposition-cucumber-tests",
+  "version": "1.0.0",
+  "description": "Cucumber/Gherkin BDD tests for Superposition API (reusable for UI testing)",
+  "type": "module",
+  "scripts": {
+    "test": "cucumber-js",
+    "test:api": "cucumber-js --tags '@api'",
+    "test:org": "cucumber-js --tags '@organisation'",
+    "test:workspace": "cucumber-js --tags '@workspace'",
+    "test:config": "cucumber-js --tags '@config'",
+    "test:dimension": "cucumber-js --tags '@dimension'",
+    "test:context": "cucumber-js --tags '@context'",
+    "test:experiment": "cucumber-js --tags '@experiment'",
+    "test:function": "cucumber-js --tags '@function'",
+    "test:variable": "cucumber-js --tags '@variable'",
+    "test:secret": "cucumber-js --tags '@secret'",
+    "test:type-template": "cucumber-js --tags '@type_template'"
+  },
+  "dependencies": {
+    "@cucumber/cucumber": "^11.0.0",
+    "@juspay/superposition-sdk": "file:../../clients/javascript/sdk",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0"
+  }
+}
