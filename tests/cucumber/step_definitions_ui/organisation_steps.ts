@@ -228,14 +228,6 @@ Then(
 );
 
 Then(
-  "the response should contain a list with at most {int} item",
-  async function (this: PlaywrightWorld, count: number) {
-    const rows = await this.tableRowCount();
-    assert.ok(rows <= count, `Expected at most ${count} rows, got ${rows}`);
-  }
-);
-
-Then(
   "getting the organisation by ID should show admin email {string}",
   async function (this: PlaywrightWorld, email: string) {
     await this.goToOrganisations();
