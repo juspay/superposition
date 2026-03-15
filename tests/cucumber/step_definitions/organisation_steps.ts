@@ -174,15 +174,6 @@ Then(
 );
 
 Then(
-  "the response should contain a list with at most {int} item",
-  function (this: SuperpositionWorld, count: number) {
-    const data = this.lastResponse?.data ?? this.lastResponse;
-    assert.ok(Array.isArray(data), "Response is not a list");
-    assert.ok(data.length <= count, `Expected at most ${count}, got ${data.length}`);
-  }
-);
-
-Then(
   "getting the organisation by ID should show admin email {string}",
   async function (this: SuperpositionWorld, email: string) {
     const response = await this.client.send(
