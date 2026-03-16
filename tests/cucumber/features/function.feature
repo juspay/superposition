@@ -61,6 +61,6 @@ Feature: Function Management
     When I create a value_validation function named "invalid-func" with code "invalid code"
     Then the operation should fail
 
-  Scenario: Fail to create a value_compute function with invalid return type
+  Scenario: Create a value_compute function with string return type (validated at runtime)
     When I create a value_compute function named "invalid-return" with code that returns a string
-    Then the operation should fail
+    Then the operation should succeed
