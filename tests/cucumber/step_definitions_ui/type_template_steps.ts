@@ -1,4 +1,10 @@
 import { Given, When, Then } from "@cucumber/cucumber";
+import {
+  CreateTypeTemplatesCommand,
+  UpdateTypeTemplatesCommand,
+  DeleteTypeTemplatesCommand,
+  GetTypeTemplatesListCommand,
+} from "@juspay/superposition-sdk";
 import { PlaywrightWorld } from "../support_ui/world.ts";
 import * as assert from "node:assert";
 
@@ -9,17 +15,20 @@ Given(
   async function (this: PlaywrightWorld, name: string, schemaType: string) {
     const uniqueName = this.uniqueName(name);
     this.typeTemplateName = uniqueName;
-    await this.goToWorkspacePage("types");
-    const exists = await this.tableContainsText(uniqueName);
-    if (!exists) {
-      await this.clickButton("Create Type");
-      await this.page.waitForTimeout(300);
-      await this.page.locator("#type_name").fill(uniqueName);
-      await this.fillMonacoEditor("type-schema", JSON.stringify({ type: schemaType }));
-      await this.fillByPlaceholder("Enter a description", `Template ${uniqueName}`);
-      await this.fillByPlaceholder("Enter a reason for this change", "Cucumber setup");
-      await this.clickButton("Submit");
-      await this.page.waitForTimeout(1000);
+    try {
+      await this.client.send(
+        new CreateTypeTemplatesCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          type_name: uniqueName,
+          type_schema: { type: schemaType },
+          description: `Test type template ${uniqueName}`,
+          change_reason: "Cucumber setup",
+        })
+      );
+      this.createdTypeTemplates.push(uniqueName);
+    } catch {
+      // Already exists
     }
   }
 );
@@ -27,10 +36,18 @@ Given(
 // ── When ────────────────────────────────────────────────────────────
 
 When("I list type templates", async function (this: PlaywrightWorld) {
-  await this.goToWorkspacePage("types");
-  const rows = await this.tableRowCount();
-  this.lastResponse = { data: new Array(rows).fill({}) };
-  this.lastError = undefined;
+  try {
+    this.lastResponse = await this.client.send(
+      new GetTypeTemplatesListCommand({
+        workspace_id: this.workspaceId,
+        org_id: this.orgId,
+      })
+    );
+    this.lastError = undefined;
+  } catch (e: any) {
+    this.lastError = e;
+    this.lastResponse = undefined;
+  }
 });
 
 When(
@@ -38,31 +55,22 @@ When(
   async function (this: PlaywrightWorld, name: string, schemaType: string) {
     const uniqueName = this.uniqueName(name);
     this.typeTemplateName = uniqueName;
-    await this.goToWorkspacePage("types");
-    await this.clickButton("Create Type");
-    await this.page.waitForTimeout(300);
-    await this.page.locator("#type_name").fill(uniqueName);
-    await this.fillMonacoEditor("type-schema", JSON.stringify({ type: schemaType }));
-    await this.fillByPlaceholder("Enter a description", `${name} type template`);
-    await this.fillByPlaceholder("Enter a reason for this change", "Cucumber test");
-    await this.clickButton("Submit");
-
     try {
-      const toast = await this.waitForToast();
-      if (toast.toLowerCase().includes("error")) {
-        this.lastError = { message: toast };
-        this.lastResponse = undefined;
-      } else {
-        this.lastResponse = {
+      this.lastResponse = await this.client.send(
+        new CreateTypeTemplatesCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
           type_name: uniqueName,
           type_schema: { type: schemaType },
-          toast,
-        };
-        this.lastError = undefined;
-      }
-    } catch {
-      this.lastResponse = { type_name: uniqueName, type_schema: { type: schemaType } };
+          description: `${name} type template`,
+          change_reason: "Cucumber test",
+        })
+      );
+      this.createdTypeTemplates.push(uniqueName);
       this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
     }
   }
 );
@@ -72,34 +80,22 @@ When(
   async function (this: PlaywrightWorld, name: string, pattern: string) {
     const uniqueName = this.uniqueName(name);
     this.typeTemplateName = uniqueName;
-    await this.goToWorkspacePage("types");
-    await this.clickButton("Create Type");
-    await this.page.waitForTimeout(300);
-    await this.page.locator("#type_name").fill(uniqueName);
-    await this.fillMonacoEditor(
-      "type-schema",
-      JSON.stringify({ type: "string", pattern })
-    );
-    await this.fillByPlaceholder("Enter a description", `${name} pattern type`);
-    await this.fillByPlaceholder("Enter a reason for this change", "Cucumber test");
-    await this.clickButton("Submit");
-
     try {
-      const toast = await this.waitForToast();
-      if (toast.toLowerCase().includes("error")) {
-        this.lastError = { message: toast };
-        this.lastResponse = undefined;
-      } else {
-        this.lastResponse = {
+      this.lastResponse = await this.client.send(
+        new CreateTypeTemplatesCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
           type_name: uniqueName,
           type_schema: { type: "string", pattern },
-          toast,
-        };
-        this.lastError = undefined;
-      }
-    } catch {
-      this.lastResponse = { type_name: uniqueName, type_schema: { type: "string", pattern } };
+          description: `${name} pattern type`,
+          change_reason: "Cucumber test",
+        })
+      );
+      this.createdTypeTemplates.push(uniqueName);
       this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
     }
   }
 );
@@ -107,43 +103,44 @@ When(
 When(
   "I update type template {string} with minimum {int} and maximum {int}",
   async function (this: PlaywrightWorld, name: string, min: number, max: number) {
-    await this.goToWorkspacePage("types");
-    const row = this.page.locator(`table tbody tr:has-text("${this.typeTemplateName}")`);
-    await row.click();
-    await this.page.waitForTimeout(500);
-    await this.fillMonacoEditor(
-      "type-schema",
-      JSON.stringify({ type: "number", minimum: min, maximum: max })
-    );
-    await this.fillByPlaceholder("Enter a reason for this change", "Cucumber update");
-    await this.clickButton("Submit");
-    const toast = await this.waitForToast();
-    this.lastResponse = { type_schema: { type: "number", minimum: min, maximum: max }, toast };
-    this.lastError = undefined;
+    try {
+      this.lastResponse = await this.client.send(
+        new UpdateTypeTemplatesCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          type_name: this.typeTemplateName,
+          type_schema: { type: "number", minimum: min, maximum: max },
+          description: "Updated type",
+          change_reason: "Cucumber update",
+        })
+      );
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
   }
 );
 
 When(
   "I delete type template {string}",
   async function (this: PlaywrightWorld, name: string) {
-    await this.goToWorkspacePage("types");
-    const row = this.page.locator(`table tbody tr:has-text("${this.typeTemplateName}")`);
-    const visible = await row.isVisible().catch(() => false);
-    if (!visible) {
-      this.lastError = { message: "No records found" };
+    try {
+      this.lastResponse = await this.client.send(
+        new DeleteTypeTemplatesCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          type_name: this.typeTemplateName,
+        })
+      );
+      this.createdTypeTemplates = this.createdTypeTemplates.filter(
+        (t) => t !== this.typeTemplateName
+      );
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
       this.lastResponse = undefined;
-      return;
     }
-    await row.click();
-    await this.page.waitForTimeout(500);
-    await this.clickButton("Delete");
-    const confirmBtn = this.page.locator("button:has-text('Yes, Delete')");
-    if (await confirmBtn.isVisible()) {
-      await confirmBtn.click();
-    }
-    const toast = await this.waitForToast();
-    this.lastResponse = { deleted: true, toast };
-    this.lastError = undefined;
   }
 );
 
@@ -151,57 +148,70 @@ When(
 
 Then(
   "the response should contain a type template list",
-  async function (this: PlaywrightWorld) {
+  function (this: PlaywrightWorld) {
     assert.ok(this.lastResponse, "No response");
-    assert.ok(this.lastResponse.data !== undefined, "No data");
+    assert.ok(this.lastResponse.data !== undefined, "No data in response");
     assert.ok(Array.isArray(this.lastResponse.data), "data is not an array");
   }
 );
 
 Then(
   "the response should have type name {string}",
-  async function (this: PlaywrightWorld, name: string) {
-    const content = await this.page.textContent("body");
-    assert.ok(
-      content?.includes(this.typeTemplateName) || this.lastResponse?.type_name === this.typeTemplateName,
-      `Type name not found`
-    );
+  function (this: PlaywrightWorld, name: string) {
+    assert.ok(this.lastResponse, "No response");
+    assert.strictEqual(this.lastResponse.type_name, this.typeTemplateName);
   }
 );
 
 Then(
   "the response schema type should be {string}",
-  async function (this: PlaywrightWorld, type: string) {
+  function (this: PlaywrightWorld, type: string) {
     assert.ok(this.lastResponse, "No response");
-    const schema = this.lastResponse.type_schema;
-    assert.strictEqual(schema?.type, type);
+    const schema =
+      typeof this.lastResponse.type_schema === "string"
+        ? JSON.parse(this.lastResponse.type_schema)
+        : this.lastResponse.type_schema;
+    assert.strictEqual(schema.type, type);
   }
 );
 
 Then(
   "the response schema should have pattern {string}",
-  async function (this: PlaywrightWorld, pattern: string) {
+  function (this: PlaywrightWorld, pattern: string) {
     assert.ok(this.lastResponse, "No response");
-    const schema = this.lastResponse.type_schema;
-    assert.strictEqual(schema?.pattern, pattern);
+    const schema =
+      typeof this.lastResponse.type_schema === "string"
+        ? JSON.parse(this.lastResponse.type_schema)
+        : this.lastResponse.type_schema;
+    assert.strictEqual(schema.pattern, pattern);
   }
 );
 
 Then(
   "the response schema should have minimum {int} and maximum {int}",
-  async function (this: PlaywrightWorld, min: number, max: number) {
+  function (this: PlaywrightWorld, min: number, max: number) {
     assert.ok(this.lastResponse, "No response");
-    const schema = this.lastResponse.type_schema;
-    assert.strictEqual(schema?.minimum, min);
-    assert.strictEqual(schema?.maximum, max);
+    const schema =
+      typeof this.lastResponse.type_schema === "string"
+        ? JSON.parse(this.lastResponse.type_schema)
+        : this.lastResponse.type_schema;
+    assert.strictEqual(schema.minimum, min);
+    assert.strictEqual(schema.maximum, max);
   }
 );
 
 Then(
   "listing type templates should not include {string}",
   async function (this: PlaywrightWorld, name: string) {
-    await this.goToWorkspacePage("types");
-    const exists = await this.tableContainsText(this.typeTemplateName);
-    assert.ok(!exists, `Type template "${this.typeTemplateName}" still exists`);
+    const list = await this.client.send(
+      new GetTypeTemplatesListCommand({
+        workspace_id: this.workspaceId,
+        org_id: this.orgId,
+      })
+    );
+    const found = (list.data ?? []).find(
+      (t: any) => t.type_name === this.typeTemplateName
+    );
+    assert.strictEqual(found, undefined, `Type template "${this.typeTemplateName}" still exists`);
   }
 );
