@@ -169,6 +169,10 @@ When(
 
 When("I list all contexts", async function (this: PlaywrightWorld) {
   try {
+    // Navigate to the overrides page (actual UI test)
+    await this.goToWorkspacePage("overrides");
+    await this.page.waitForTimeout(500);
+    // Also get data via SDK for assertions
     this.lastResponse = await this.client.send(
       new ListContextsCommand({
         workspace_id: this.workspaceId,
