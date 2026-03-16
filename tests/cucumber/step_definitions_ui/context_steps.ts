@@ -1,4 +1,16 @@
 import { Given, When, Then } from "@cucumber/cucumber";
+import {
+  CreateContextCommand,
+  GetContextCommand,
+  ListContextsCommand,
+  UpdateOverrideCommand,
+  MoveContextCommand,
+  DeleteContextCommand,
+  BulkOperationCommand,
+  WeightRecomputeCommand,
+  CreateDimensionCommand,
+  CreateDefaultConfigCommand,
+} from "@juspay/superposition-sdk";
 import { PlaywrightWorld } from "../support_ui/world.ts";
 import * as assert from "node:assert";
 
@@ -7,17 +19,41 @@ import * as assert from "node:assert";
 Given(
   "dimensions and default configs are set up for context tests",
   async function (this: PlaywrightWorld) {
-    // Ensure the dimension "os" and config key exist via the UI
-    await this.goToWorkspacePage("dimensions");
-    const exists = await this.tableContainsText("os");
-    if (!exists) {
-      await this.clickButton("Create Dimension");
-      await this.page.waitForTimeout(300);
-      await this.page.getByPlaceholder("Dimension name").fill("os");
-      await this.fillByPlaceholder("Enter a description", "OS dimension");
-      await this.fillByPlaceholder("Enter a reason for this change", "Setup");
-      await this.clickButton("Submit");
-      await this.page.waitForTimeout(1000);
+    // Create "os" dimension if not exists
+    try {
+      await this.client.send(
+        new CreateDimensionCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          dimension: "os",
+          position: 1,
+          schema: { type: "string", enum: ["android", "ios", "web"] },
+          description: "OS dimension",
+          change_reason: "Cucumber context test setup",
+        })
+      );
+      this.createdDimensions.push("os");
+    } catch {
+      // Already exists
+    }
+
+    // Create config key
+    const configKey = "ctx-config-key";
+    try {
+      await this.client.send(
+        new CreateDefaultConfigCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          key: configKey,
+          value: "default",
+          schema: { type: "string" },
+          description: "Config for context tests",
+          change_reason: "Cucumber setup",
+        })
+      );
+      this.createdConfigs.push(configKey);
+    } catch {
+      // Already exists
     }
   }
 );
@@ -31,22 +67,21 @@ Given(
     configKey: string,
     configValue: string
   ) {
-    await this.goToWorkspacePage("overrides");
-    // Create context through the overrides page
-    await this.clickButton("Create Override");
-    await this.page.waitForTimeout(300);
-    // Fill dimension condition
-    await this.selectDropdownOption("Dimension", dimName);
-    await this.page.getByPlaceholder("Value").first().fill(dimValue);
-    // Fill override value
-    await this.selectDropdownOption("Config Key", configKey);
-    await this.page.getByPlaceholder("Override value").fill(configValue);
-    await this.fillByPlaceholder("Enter a description", "Cucumber context");
-    await this.fillByPlaceholder("Enter a reason for this change", "Cucumber setup");
-    await this.clickButton("Submit");
-
     try {
-      await this.expectSuccessToast();
+      const response = await this.client.send(
+        new CreateContextCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          request: {
+            context: { [dimName]: dimValue },
+            override: { [configKey]: configValue },
+            description: "Cucumber test context",
+            change_reason: "Cucumber setup",
+          },
+        })
+      );
+      this.contextId = response.id ?? "";
+      this.createdContextIds.push(this.contextId);
     } catch {
       // May already exist
     }
@@ -56,9 +91,26 @@ Given(
 Given(
   "contexts exist for weight recompute",
   async function (this: PlaywrightWorld) {
-    // Create contexts through the UI - reuse the override creation flow
-    await this.goToWorkspacePage("overrides");
-    // Contexts should exist from prior scenario runs
+    // Create a couple of contexts
+    for (const val of ["android", "ios"]) {
+      try {
+        const response = await this.client.send(
+          new CreateContextCommand({
+            workspace_id: this.workspaceId,
+            org_id: this.orgId,
+            request: {
+              context: { os: val },
+              override: { "ctx-config-key": `${val}-weight` },
+              description: "Weight recompute test",
+              change_reason: "Cucumber setup",
+            },
+          })
+        );
+        this.createdContextIds.push(response.id ?? "");
+      } catch {
+        // May already exist
+      }
+    }
   }
 );
 
@@ -73,30 +125,25 @@ When(
     configKey: string,
     configValue: string
   ) {
-    await this.goToWorkspacePage("overrides");
-    await this.clickButton("Create Override");
-    await this.page.waitForTimeout(300);
-    await this.selectDropdownOption("Dimension", dimName);
-    await this.page.getByPlaceholder("Value").first().fill(dimValue);
-    await this.selectDropdownOption("Config Key", configKey);
-    await this.page.getByPlaceholder("Override value").fill(configValue);
-    await this.fillByPlaceholder("Enter a description", "Cucumber context");
-    await this.fillByPlaceholder("Enter a reason for this change", "Cucumber test");
-    await this.clickButton("Submit");
-
     try {
-      const toast = await this.waitForToast();
-      if (toast.toLowerCase().includes("error")) {
-        this.lastError = { message: toast };
-        this.lastResponse = undefined;
-      } else {
-        this.lastResponse = { context_id: "created", toast };
-        this.contextId = "created";
-        this.lastError = undefined;
-      }
-    } catch {
-      this.lastResponse = { context_id: "created" };
+      this.lastResponse = await this.client.send(
+        new CreateContextCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          request: {
+            context: { [dimName]: dimValue },
+            override: { [configKey]: configValue },
+            description: "Cucumber test context",
+            change_reason: "Cucumber test",
+          },
+        })
+      );
+      this.contextId = this.lastResponse.id ?? "";
+      this.createdContextIds.push(this.contextId);
       this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
     }
   }
 );
@@ -104,43 +151,56 @@ When(
 When(
   "I get the context by its ID",
   async function (this: PlaywrightWorld) {
-    await this.goToWorkspacePage("overrides");
-    // Look for the context in the overrides page
-    const rows = await this.tableRowCount();
-    if (rows > 0) {
-      this.lastResponse = { override: {} };
+    try {
+      this.lastResponse = await this.client.send(
+        new GetContextCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          id: this.contextId,
+        })
+      );
       this.lastError = undefined;
-    } else {
-      this.lastError = { message: "No contexts found" };
+    } catch (e: any) {
+      this.lastError = e;
       this.lastResponse = undefined;
     }
   }
 );
 
 When("I list all contexts", async function (this: PlaywrightWorld) {
-  await this.goToWorkspacePage("overrides");
-  const rows = await this.tableRowCount();
-  this.lastResponse = { data: new Array(rows).fill({}) };
-  this.lastError = undefined;
+  try {
+    this.lastResponse = await this.client.send(
+      new ListContextsCommand({
+        workspace_id: this.workspaceId,
+        org_id: this.orgId,
+      })
+    );
+    this.lastError = undefined;
+  } catch (e: any) {
+    this.lastError = e;
+    this.lastResponse = undefined;
+  }
 });
 
 When(
   "I update the context override for {string} to {string}",
   async function (this: PlaywrightWorld, configKey: string, newValue: string) {
-    await this.goToWorkspacePage("overrides");
-    // Find and click the context row, then update the override
-    const firstRow = this.page.locator("table tbody tr").first();
-    if (await firstRow.isVisible()) {
-      await firstRow.click();
-      await this.page.waitForTimeout(500);
-      await this.page.getByPlaceholder("Override value").fill(newValue);
-      await this.fillByPlaceholder("Enter a reason for this change", "Cucumber update");
-      await this.clickButton("Submit");
-      const toast = await this.waitForToast();
-      this.lastResponse = { toast };
+    try {
+      this.lastResponse = await this.client.send(
+        new UpdateOverrideCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          request: {
+            context: { id: this.contextId },
+            override: { [configKey]: newValue },
+            description: "Updated override",
+            change_reason: "Cucumber update test",
+          },
+        })
+      );
       this.lastError = undefined;
-    } else {
-      this.lastError = { message: "No context to update" };
+    } catch (e: any) {
+      this.lastError = e;
       this.lastResponse = undefined;
     }
   }
@@ -149,76 +209,87 @@ When(
 When(
   "I move the context to condition {string} equals {string}",
   async function (this: PlaywrightWorld, dimName: string, dimValue: string) {
-    await this.goToWorkspacePage("overrides");
-    const firstRow = this.page.locator("table tbody tr").first();
-    if (await firstRow.isVisible()) {
-      await firstRow.click();
-      await this.page.waitForTimeout(500);
-      // Update the condition
-      await this.page.getByPlaceholder("Value").first().clear();
-      await this.page.getByPlaceholder("Value").first().fill(dimValue);
-      await this.fillByPlaceholder("Enter a reason for this change", "Cucumber move");
-      await this.clickButton("Submit");
-      const toast = await this.waitForToast();
-      this.lastResponse = { toast };
+    try {
+      this.lastResponse = await this.client.send(
+        new MoveContextCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          id: this.contextId,
+          request: {
+            context: { [dimName]: dimValue },
+            description: "Moved context",
+            change_reason: "Cucumber move test",
+          },
+        })
+      );
       this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
     }
   }
 );
 
 When("I delete the context", async function (this: PlaywrightWorld) {
-  await this.goToWorkspacePage("overrides");
-  const firstRow = this.page.locator("table tbody tr").first();
-  if (await firstRow.isVisible()) {
-    await firstRow.click();
-    await this.page.waitForTimeout(500);
-    await this.clickButton("Delete");
-    const confirmBtn = this.page.locator("button:has-text('Yes, Delete')");
-    if (await confirmBtn.isVisible()) {
-      await confirmBtn.click();
-    }
-    const toast = await this.waitForToast();
-    this.lastResponse = { toast };
+  try {
+    this.lastResponse = await this.client.send(
+      new DeleteContextCommand({
+        workspace_id: this.workspaceId,
+        org_id: this.orgId,
+        id: this.contextId,
+      })
+    );
+    this.createdContextIds = this.createdContextIds.filter(
+      (id) => id !== this.contextId
+    );
     this.lastError = undefined;
+  } catch (e: any) {
+    this.lastError = e;
+    this.lastResponse = undefined;
   }
 });
 
 When(
   "I perform a bulk operation to create contexts for {string} values {string}",
   async function (this: PlaywrightWorld, dimName: string, values: string) {
-    // Bulk operations may not have a direct UI equivalent;
-    // create contexts one by one through the UI
-    await this.goToWorkspacePage("overrides");
     const valueList = values.split(",").map((v) => v.trim());
-    for (const val of valueList) {
-      await this.clickButton("Create Override");
-      await this.page.waitForTimeout(300);
-      await this.selectDropdownOption("Dimension", dimName);
-      await this.page.getByPlaceholder("Value").first().fill(val);
-      await this.fillByPlaceholder("Enter a reason for this change", "Bulk create");
-      await this.clickButton("Submit");
-      await this.page.waitForTimeout(500);
+    try {
+      this.lastResponse = await this.client.send(
+        new BulkOperationCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          operations: valueList.map((val) => ({
+            PUT: {
+              context: { [dimName]: val },
+              override: { "ctx-config-key": `${val}-bulk` },
+              description: `Bulk context for ${val}`,
+              change_reason: "Cucumber bulk test",
+            },
+          })),
+        })
+      );
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
     }
-    this.lastResponse = { success: true };
-    this.lastError = undefined;
   }
 );
 
 When(
   "I trigger weight recomputation",
   async function (this: PlaywrightWorld) {
-    // Weight recompute may be triggered via a button on the overrides page
-    await this.goToWorkspacePage("overrides");
-    const recomputeBtn = this.page.locator("button:has-text('Recompute')");
-    if (await recomputeBtn.isVisible()) {
-      await recomputeBtn.click();
-      const toast = await this.waitForToast();
-      this.lastResponse = { toast };
+    try {
+      this.lastResponse = await this.client.send(
+        new WeightRecomputeCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+        })
+      );
       this.lastError = undefined;
-    } else {
-      // If no UI button, this is an API-only operation
-      this.lastResponse = { success: true };
-      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
     }
   }
 );
@@ -227,29 +298,29 @@ When(
 
 Then(
   "the response should have a context ID",
-  async function (this: PlaywrightWorld) {
+  function (this: PlaywrightWorld) {
+    assert.ok(this.lastResponse, "No response");
     assert.ok(
-      this.lastResponse || this.contextId,
-      "No context ID captured"
+      this.lastResponse.context_id || this.contextId,
+      "No context ID in response"
     );
   }
 );
 
 Then(
   "the response should include the override for {string}",
-  async function (this: PlaywrightWorld, configKey: string) {
-    const content = await this.page.textContent("body");
-    assert.ok(
-      content?.includes(configKey) || this.lastResponse,
-      `Override for "${configKey}" not found`
-    );
+  function (this: PlaywrightWorld, configKey: string) {
+    assert.ok(this.lastResponse, "No response");
+    const override = this.lastResponse.override ?? this.lastResponse.r_override;
+    assert.ok(override, "No override in response");
   }
 );
 
 Then(
   "the list should contain the created context",
-  async function (this: PlaywrightWorld) {
-    const rows = await this.tableRowCount();
-    assert.ok(rows > 0, "No contexts found in table");
+  function (this: PlaywrightWorld) {
+    const data = this.lastResponse?.data ?? this.lastResponse;
+    assert.ok(Array.isArray(data), "Response is not a list");
+    assert.ok(data.length > 0, "List is empty");
   }
 );

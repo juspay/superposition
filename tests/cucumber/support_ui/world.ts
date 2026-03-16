@@ -1,5 +1,6 @@
 import { World, setWorldConstructor, setDefaultTimeout } from "@cucumber/cucumber";
-import { Browser, BrowserContext, Page, chromium } from "playwright";
+import { Browser, BrowserContext, Page } from "playwright";
+import { SuperpositionClient } from "@juspay/superposition-sdk";
 
 // UI tests need more time for page loads, animations, etc.
 setDefaultTimeout(120000);
@@ -12,13 +13,16 @@ setDefaultTimeout(120000);
  * that this world holds a Playwright browser/page instead of an SDK client.
  */
 export class PlaywrightWorld extends World {
+  // ── SDK client ──────────────────────────────────────────────────
+  public client!: SuperpositionClient;
+
   // ── Playwright ────────────────────────────────────────────────────
   public browser!: Browser;
   public context!: BrowserContext;
   public page!: Page;
 
   // ── Environment ───────────────────────────────────────────────────
-  public appUrl: string = process.env.SUPERPOSITION_UI_URL || "http://localhost:1234";
+  public appUrl: string = process.env.SUPERPOSITION_UI_URL || "http://localhost:8080";
   public baseUrl: string = process.env.SUPERPOSITION_BASE_URL || "http://127.0.0.1:8080";
   public token: string = process.env.SUPERPOSITION_TOKEN || "some-token";
 
@@ -85,10 +89,14 @@ export class PlaywrightWorld extends World {
 
   constructor(options: any) {
     super(options);
+    this.client = new SuperpositionClient({
+      endpoint: this.baseUrl,
+      token: { token: this.token },
+    });
   }
 
   uniqueName(prefix: string): string {
-    return `${prefix}_${this.testRunId}`;
+    return `${prefix}${this.testRunId}`;
   }
 
   // ── Navigation helpers ────────────────────────────────────────────
