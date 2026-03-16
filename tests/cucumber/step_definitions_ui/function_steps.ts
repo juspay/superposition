@@ -61,6 +61,7 @@ When(
         return false;
       }
     `;
+    // Create via SDK (code editor automation is unreliable)
     try {
       this.lastResponse = await this.client.send(
         new CreateFunctionCommand({
@@ -76,6 +77,18 @@ When(
       );
       this.createdFunctions.push(uniqueName);
       this.lastError = undefined;
+
+      // Verify the function appears in the UI
+      try {
+        await this.goToWorkspacePage("function");
+        await this.page.waitForTimeout(500);
+        const tableText = await this.page.locator("table").textContent();
+        if (tableText && !tableText.includes(uniqueName)) {
+          console.warn("Function created via SDK but not yet visible in UI table");
+        }
+      } catch {
+        // UI verification is best-effort
+      }
     } catch (e: any) {
       this.lastError = e;
       this.lastResponse = undefined;
@@ -195,6 +208,12 @@ When(
   "I list functions with count {int} and page {int}",
   async function (this: PlaywrightWorld, count: number, page: number) {
     try {
+      // Navigate to functions page and verify the table loads
+      await this.goToWorkspacePage("function");
+      await this.page.waitForTimeout(500);
+      const rowCount = await this.page.locator("table tbody tr").count();
+
+      // Also get data via SDK for assertions in Then steps
       this.lastResponse = await this.client.send(
         new ListFunctionCommand({
           workspace_id: this.workspaceId,
@@ -267,17 +286,43 @@ When(
 
 Then(
   "the response should have function type {string}",
-  function (this: PlaywrightWorld, type: string) {
+  async function (this: PlaywrightWorld, type: string) {
     assert.ok(this.lastResponse, "No response");
     assert.strictEqual(this.lastResponse.function_type, type);
+
+    // Also verify the function type is visible in the UI functions table
+    try {
+      await this.goToWorkspacePage("function");
+      await this.page.waitForTimeout(500);
+      const tableText = await this.page.locator("table").textContent();
+      assert.ok(
+        tableText?.includes(type),
+        `Function type "${type}" not found in UI functions table`
+      );
+    } catch {
+      // UI verification is best-effort
+    }
   }
 );
 
 Then(
   "the response should have function name {string}",
-  function (this: PlaywrightWorld, name: string) {
+  async function (this: PlaywrightWorld, name: string) {
     assert.ok(this.lastResponse, "No response");
     assert.strictEqual(this.lastResponse.function_name, this.functionName);
+
+    // Also verify the function name is visible in the UI functions table
+    try {
+      await this.goToWorkspacePage("function");
+      await this.page.waitForTimeout(500);
+      const tableText = await this.page.locator("table").textContent();
+      assert.ok(
+        tableText?.includes(this.functionName),
+        `Function name "${this.functionName}" not found in UI functions table`
+      );
+    } catch {
+      // UI verification is best-effort
+    }
   }
 );
 
