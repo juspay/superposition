@@ -236,14 +236,20 @@ When(
     const experimentalVariant = this.experimentVariants.find(
       (v: any) => v.variant_type === VariantType.EXPERIMENTAL
     );
+    // Server requires all variants in the update request
+    const variantList = this.experimentVariants.map((v: any) => ({
+      id: v.id ?? v.variant_type,
+      overrides: v.id === experimentalVariant?.id
+        ? { ...v.overrides, [key]: value }
+        : v.overrides ?? {},
+    }));
     try {
       this.lastResponse = await this.client.send(
         new UpdateOverridesExperimentCommand({
           workspace_id: this.workspaceId,
           org_id: this.orgId,
           id: this.experimentId,
-          variant_id: experimentalVariant?.id ?? "experimental",
-          overrides: { [key]: value },
+          variant_list: variantList,
           change_reason: "Cucumber override update",
         })
       );

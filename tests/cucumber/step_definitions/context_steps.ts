@@ -72,17 +72,15 @@ Given(
         new CreateContextCommand({
           workspace_id: this.workspaceId,
           org_id: this.orgId,
-          context: {
-            [dimName]: dimValue,
+          request: {
+            context: { [dimName]: dimValue },
+            override: { [configKey]: configValue },
+            description: "Cucumber test context",
+            change_reason: "Cucumber setup",
           },
-          override: {
-            [configKey]: configValue,
-          },
-          description: "Cucumber test context",
-          change_reason: "Cucumber setup",
         })
       );
-      this.contextId = response.context_id ?? "";
+      this.contextId = response.id ?? "";
       this.createdContextIds.push(this.contextId);
     } catch {
       // May already exist
@@ -100,13 +98,15 @@ Given(
           new CreateContextCommand({
             workspace_id: this.workspaceId,
             org_id: this.orgId,
-            context: { os: val },
-            override: { "ctx-config-key": `${val}-weight` },
-            description: "Weight recompute test",
-            change_reason: "Cucumber setup",
+            request: {
+              context: { os: val },
+              override: { "ctx-config-key": `${val}-weight` },
+              description: "Weight recompute test",
+              change_reason: "Cucumber setup",
+            },
           })
         );
-        this.createdContextIds.push(response.context_id ?? "");
+        this.createdContextIds.push(response.id ?? "");
       } catch {
         // May already exist
       }
@@ -130,13 +130,15 @@ When(
         new CreateContextCommand({
           workspace_id: this.workspaceId,
           org_id: this.orgId,
-          context: { [dimName]: dimValue },
-          override: { [configKey]: configValue },
-          description: "Cucumber test context",
-          change_reason: "Cucumber test",
+          request: {
+            context: { [dimName]: dimValue },
+            override: { [configKey]: configValue },
+            description: "Cucumber test context",
+            change_reason: "Cucumber test",
+          },
         })
       );
-      this.contextId = this.lastResponse.context_id ?? "";
+      this.contextId = this.lastResponse.id ?? "";
       this.createdContextIds.push(this.contextId);
       this.lastError = undefined;
     } catch (e: any) {
@@ -188,10 +190,12 @@ When(
         new UpdateOverrideCommand({
           workspace_id: this.workspaceId,
           org_id: this.orgId,
-          id: this.contextId,
-          override: { [configKey]: newValue },
-          description: "Updated override",
-          change_reason: "Cucumber update test",
+          request: {
+            context: { id: this.contextId },
+            override: { [configKey]: newValue },
+            description: "Updated override",
+            change_reason: "Cucumber update test",
+          },
         })
       );
       this.lastError = undefined;
@@ -211,9 +215,11 @@ When(
           workspace_id: this.workspaceId,
           org_id: this.orgId,
           id: this.contextId,
-          context: { [dimName]: dimValue },
-          description: "Moved context",
-          change_reason: "Cucumber move test",
+          request: {
+            context: { [dimName]: dimValue },
+            description: "Moved context",
+            change_reason: "Cucumber move test",
+          },
         })
       );
       this.lastError = undefined;
@@ -252,9 +258,12 @@ When(
         new BulkOperationCommand({
           workspace_id: this.workspaceId,
           org_id: this.orgId,
-          put: valueList.map((val) => ({
-            context: { [dimName]: val },
-            override: { "ctx-config-key": `${val}-bulk` },
+          operations: valueList.map((val) => ({
+            PUT: {
+              context: { [dimName]: val },
+              override: { "ctx-config-key": `${val}-bulk` },
+              change_reason: "Cucumber bulk test",
+            },
           })),
         })
       );

@@ -62,11 +62,11 @@ Feature: Secret Management
 
   Scenario: Fail to create secret with empty name
     When I create a secret named "" with value "test-value"
-    Then the operation should fail with error matching "Parse error"
+    Then the operation should fail with error matching "Json deserialize error"
 
   Scenario Outline: Fail to create secret with invalid name pattern
     When I create a secret named "<invalid_name>" with value "test-value"
-    Then the operation should fail with error matching "Parse error"
+    Then the operation should fail with error matching "Json deserialize error"
 
     Examples:
       | invalid_name               |

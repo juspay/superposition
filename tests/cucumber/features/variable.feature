@@ -64,11 +64,11 @@ Feature: Variable Management
 
   Scenario: Fail to create variable with empty name
     When I create a variable named "" with value "test-value"
-    Then the operation should fail with error matching "Parse error"
+    Then the operation should fail with error matching "Json deserialize error"
 
   Scenario Outline: Fail to create variable with invalid name pattern
     When I create a variable named "<invalid_name>" with value "test-value"
-    Then the operation should fail with error matching "Parse error"
+    Then the operation should fail with error matching "Json deserialize error"
 
     Examples:
       | invalid_name               |
