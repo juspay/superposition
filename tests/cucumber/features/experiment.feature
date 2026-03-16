@@ -52,7 +52,7 @@ Feature: Experiment Management
   # ── Conclude ───────────────────────────────────────────────────────
 
   Scenario: Conclude an experiment
-    Given an experiment "exp-conclude" exists and is ramped to 100 percent
+    Given an experiment "exp-conclude" exists and is ramped to 50 percent
     When I conclude the experiment with the experimental variant
     Then the experiment status should be "CONCLUDED"
 
