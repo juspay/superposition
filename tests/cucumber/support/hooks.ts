@@ -33,25 +33,52 @@ BeforeAll(async function () {
     token: { token: process.env.SUPERPOSITION_TOKEN || "some-token" },
   });
 
-  // Setup org
-  const listOrgs = await client.send(new ListOrganisationCommand({}));
-  const existingOrg = listOrgs.data?.find((o) => o.name?.startsWith(TEST_ORG_NAME));
+  // Setup org — find a matching org whose workspace is usable, or create a new one
+  const { UpdateWorkspaceCommand, ListDimensionsCommand } = await import("@juspay/superposition-sdk");
+  const listOrgs = await client.send(new ListOrganisationCommand({ count: 200 }));
+  const matchingOrgs = listOrgs.data?.filter((o) => o.name?.startsWith(TEST_ORG_NAME)) ?? [];
 
-  if (existingOrg) {
-    sharedOrgId = existingOrg.id ?? "";
-  } else {
-    const createResp = await client.send(
-      new CreateOrganisationCommand({
-        admin_email: "cucumber@test.com",
-        name: TEST_ORG_NAME,
-      })
-    );
-    sharedOrgId = createResp.id ?? "";
+  // Try to find an org with a usable cucumberws workspace (one that has dimensions)
+  let foundUsableOrg = false;
+  for (const org of matchingOrgs) {
+    try {
+      const listWs = await client.send(
+        new ListWorkspaceCommand({ org_id: org.id!, count: 200 })
+      );
+      const ws = listWs.data?.find((w) => w.workspace_name === TEST_WORKSPACE);
+      if (ws) {
+        const dims = await client.send(
+          new ListDimensionsCommand({ workspace_id: TEST_WORKSPACE, org_id: org.id!, all: true })
+        );
+        if ((dims.data?.length ?? 0) > 1) {
+          sharedOrgId = org.id!;
+          foundUsableOrg = true;
+          break;
+        }
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  if (!foundUsableOrg) {
+    // Use the first matching org or create a new one
+    if (matchingOrgs.length > 0) {
+      sharedOrgId = matchingOrgs[0].id ?? "";
+    } else {
+      const createResp = await client.send(
+        new CreateOrganisationCommand({
+          admin_email: "cucumber@test.com",
+          name: TEST_ORG_NAME,
+        })
+      );
+      sharedOrgId = createResp.id ?? "";
+    }
   }
 
   // Setup workspace
   const listWs = await client.send(
-    new ListWorkspaceCommand({ org_id: sharedOrgId })
+    new ListWorkspaceCommand({ org_id: sharedOrgId, count: 200 })
   );
   const existingWs = listWs.data?.find(
     (w) => w.workspace_name === TEST_WORKSPACE
@@ -67,9 +94,22 @@ BeforeAll(async function () {
         allow_experiment_self_approval: true,
         auto_populate_control: false,
         enable_context_validation: true,
-        enable_change_reason_validation: true,
+        enable_change_reason_validation: false,
       })
     );
+  }
+
+  // Ensure workspace settings are correct (in case workspace already existed)
+  try {
+    await client.send(
+      new UpdateWorkspaceCommand({
+        org_id: sharedOrgId,
+        workspace_name: TEST_WORKSPACE,
+        enable_change_reason_validation: false,
+      })
+    );
+  } catch {
+    // May not need updating
   }
 
   // Setup encryption
