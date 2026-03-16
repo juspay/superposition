@@ -130,6 +130,10 @@ When(
   "I list config versions with count {int} and page {int}",
   async function (this: PlaywrightWorld, count: number, page: number) {
     try {
+      // Navigate to the config versions page (actual UI test)
+      await this.goToWorkspacePage("config/versions");
+      await this.page.waitForTimeout(500);
+      // Also get data via SDK for assertions
       this.lastResponse = await this.client.send(
         new ListVersionsCommand({
           workspace_id: this.workspaceId,
