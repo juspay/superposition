@@ -11,7 +11,7 @@ use serde_json::{Map, Value, json};
 use service_utils::{
     helpers::fetch_dimensions_info_map,
     redis::{CONFIG_KEY_SUFFIX, LAST_MODIFIED_KEY_SUFFIX, read_through_cache},
-    service::types::{AppState, DbConnection, WorkspaceContext},
+    service::types::{AppHeader, AppState, DbConnection, WorkspaceContext},
 };
 use superposition_core::{
     ConfigFormat, JsonFormat, TomlFormat,
@@ -43,7 +43,6 @@ use superposition_types::{
 use crate::{
     api::{
         config::helpers::{
-            add_config_version_to_header, add_last_modified_to_header,
             generate_config_from_version, get_config_version, get_max_created_at,
             is_not_modified,
         },
@@ -541,8 +540,8 @@ async fn get_handler(
     if !context.is_empty() {
         config = config.filter_by_dimensions(&context);
     }
-    add_last_modified_to_header(max_created_at, is_smithy, &mut response);
-    add_config_version_to_header(&Some(version), &mut response);
+    AppHeader::add_last_modified(max_created_at, is_smithy, &mut response);
+    AppHeader::add_config_version(&Some(version), &mut response);
     Ok(response.json(config))
 }
 
@@ -574,7 +573,7 @@ async fn get_toml_handler(
         .map_err(|e| unexpected_error!("Failed to serialize config to TOML: {}", e))?;
 
     let mut response = HttpResponse::Ok();
-    add_last_modified_to_header(max_created_at, false, &mut response);
+    AppHeader::add_last_modified(max_created_at, false, &mut response);
     response.insert_header(("Content-Type", "application/toml"));
 
     Ok(response.body(toml_str))
@@ -692,8 +691,8 @@ async fn resolve_handler(
     };
 
     let mut resp = HttpResponse::Ok();
-    add_last_modified_to_header(max_created_at, is_smithy, &mut resp);
-    add_config_version_to_header(&Some(config_version), &mut resp);
+    AppHeader::add_last_modified(max_created_at, is_smithy, &mut resp);
+    AppHeader::add_config_version(&Some(config_version), &mut resp);
     Ok(resp.json(resolved_config))
 }
 

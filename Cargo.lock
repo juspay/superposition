@@ -1683,7 +1683,6 @@ checksum = "7c74b8349d32d297c9134b8c88677813a227df8f779daa29bfc29c183fe3dca6"
 name = "context_aware_config"
 version = "0.101.0"
 dependencies = [
- "actix-http",
  "actix-web",
  "anyhow",
  "bigdecimal",

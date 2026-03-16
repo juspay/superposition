@@ -12,7 +12,7 @@ use superposition_types::{
         experiments::{ExperimentResponse, OverrideKeysUpdateRequest},
         functions::FunctionEnvironment,
     },
-    custom_query::PaginationParams,
+    custom_query::{DimensionQuery, PaginationParams},
     database::models::{
         Metrics,
         cac::DefaultConfig,
@@ -118,6 +118,7 @@ pub fn ExperimentForm(
                 experiment_groups::list(
                     &ExpGroupFilters::default(),
                     &PaginationParams::all_entries(),
+                    &DimensionQuery::default(),
                     &workspace,
                     &org,
                 )

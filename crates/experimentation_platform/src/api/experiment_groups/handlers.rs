@@ -1,8 +1,10 @@
+use std::cmp::min;
+
 use actix_web::{
-    Scope, delete, get, patch, post,
+    HttpRequest, HttpResponse, Scope, delete, get, patch, post, routes,
     web::{self, Data, Json},
 };
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use diesel::{
     Connection, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
     TextExpressionMethods,
@@ -10,19 +12,27 @@ use diesel::{
 use serde_json::Value;
 use service_utils::{
     db::run_query,
-    helpers::{generate_snowflake_id, get_from_env_or_default},
+    helpers::{
+        fetch_dimensions_info_map, generate_snowflake_id, get_from_env_or_default,
+    },
     redis::{EXPERIMENT_GROUPS_LIST_KEY_SUFFIX, read_through_cache},
-    service::types::{AppState, DbConnection, WorkspaceContext},
+    service::types::{AppHeader, AppState, DbConnection, WorkspaceContext},
 };
 use superposition_derives::{authorized, declare_resource};
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
-    DBConnection, IsEmpty, PaginatedResponse, SortBy, User,
-    api::experiment_groups::{
-        ExpGroupCreateRequest, ExpGroupFilters, ExpGroupMemberRequest,
-        ExpGroupUpdateRequest, SortOn,
+    Contextual, DBConnection, IsEmpty, PaginatedResponse, SortBy, User,
+    api::{
+        DimensionMatchStrategy,
+        experiment_groups::{
+            ExpGroupCreateRequest, ExpGroupFilters, ExpGroupListRequest,
+            ExpGroupMemberRequest, ExpGroupUpdateRequest, SortOn,
+        },
     },
-    custom_query::{self as superposition_query, CustomQuery, PaginationParams},
+    custom_query::{
+        self as superposition_query, CustomQuery, DimensionQuery, PaginationParams,
+        QueryMap,
+    },
     database::{
         models::{
             ChangeReason,
@@ -32,9 +42,11 @@ use superposition_types::{
             },
         },
         schema::{
-            experiment_groups::dsl as experiment_groups, experiments::dsl as experiments,
+            event_log, experiment_groups::dsl as experiment_groups,
+            experiments::dsl as experiments,
         },
     },
+    logic::evaluate_local_cohorts_skip_unresolved,
     result as superposition,
 };
 
@@ -307,19 +319,70 @@ async fn remove_members_handler(
     Ok(experiment_group)
 }
 
+#[allow(clippy::too_many_arguments)]
 #[authorized]
+#[routes]
 #[get("")]
+#[post("/list")]
 async fn list_handler(
     workspace_context: WorkspaceContext,
     pagination_params: superposition_query::Query<PaginationParams>,
     filters: superposition_query::Query<ExpGroupFilters>,
+    dimension_params: DimensionQuery<QueryMap>,
+    body: Option<Json<ExpGroupListRequest>>,
     state: Data<AppState>,
-) -> superposition::Result<Json<PaginatedResponse<ExperimentGroup>>> {
+    req: HttpRequest,
+) -> superposition::Result<HttpResponse> {
+    let max_event_timestamp = read_through_cache::<Option<DateTime<Utc>>>(
+        format!(
+            "{}{EXPERIMENT_GROUPS_LIST_KEY_SUFFIX}",
+            *workspace_context.schema_name
+        ),
+        &workspace_context.schema_name,
+        &state.redis,
+        &state.db_pool,
+        |conn| {
+            event_log::table
+                .filter(event_log::table_name.eq("experiment_groups"))
+                .select(diesel::dsl::max(event_log::timestamp))
+                .schema_name(&workspace_context.schema_name)
+                .first(conn)
+        },
+    )
+    .await?;
+
+    let last_modified = req
+        .headers()
+        .get("If-Modified-Since")
+        .and_then(|header_val| header_val.to_str().ok())
+        .and_then(|header_str| {
+            DateTime::parse_from_rfc2822(header_str)
+                .map(|datetime| datetime.with_timezone(&Utc))
+                .ok()
+        });
+
+    if max_event_timestamp.is_some() && max_event_timestamp < last_modified {
+        return Ok(HttpResponse::NotModified().finish());
+    };
+
+    let is_smithy = matches!(req.method(), &actix_web::http::Method::POST);
+    let dimension_params = if req.method() == actix_web::http::Method::GET {
+        dimension_params.into_inner()
+    } else {
+        body.and_then(|b| b.into_inner().context)
+            .map(Into::into)
+            .unwrap_or_default()
+    };
+
     let key = format!(
         "{}{}",
         *workspace_context.schema_name, EXPERIMENT_GROUPS_LIST_KEY_SUFFIX
     );
     let read_from_redis = pagination_params.all.is_some_and(|e| e) && filters.is_empty();
+
+    let mut response = HttpResponse::Ok();
+    AppHeader::add_last_modified(max_event_timestamp, is_smithy, &mut response);
+
     if read_from_redis {
         read_through_cache::<PaginatedResponse<ExperimentGroup>>(
             key,
@@ -330,30 +393,31 @@ async fn list_handler(
                 list_experiment_groups_db(
                     &pagination_params,
                     filters,
+                    dimension_params,
                     conn,
                     &workspace_context,
                 )
             },
         )
         .await
-        .map(Json)
-        .map_err(|e| unexpected_error!(e))
     } else {
         run_query(&state.db_pool, |conn| {
             list_experiment_groups_db(
                 &pagination_params,
                 filters,
+                dimension_params,
                 conn,
                 &workspace_context,
             )
         })
-        .map(Json)
     }
+    .map(|r| response.json(r))
 }
 
 fn list_experiment_groups_db(
     pagination_params: &superposition_query::Query<PaginationParams>,
     filters: superposition_query::Query<ExpGroupFilters>,
+    dimension_params: QueryMap,
     conn: &mut DBConnection,
     workspace_context: &WorkspaceContext,
 ) -> superposition::DieselResult<PaginatedResponse<ExperimentGroup>> {
@@ -383,6 +447,10 @@ fn list_experiment_groups_db(
     let count_query = query_builder(&filters);
     let sort_by = filters.sort_by.unwrap_or(SortBy::Desc);
     let sort_on = filters.sort_on.unwrap_or_default();
+    let show_all = pagination_params.all.unwrap_or_default();
+    let limit = pagination_params.count.unwrap_or(10);
+    let offset = (pagination_params.page.unwrap_or(1) - 1) * limit;
+
     #[rustfmt::skip]
     let base_query = match (sort_on, sort_by) {
         (SortOn::LastModifiedAt, SortBy::Desc) => base_query.order(experiment_groups::last_modified_at.desc()),
@@ -392,22 +460,67 @@ fn list_experiment_groups_db(
         (SortOn::Name, SortBy::Desc)           => base_query.order(experiment_groups::name.desc()),
         (SortOn::Name, SortBy::Asc)            => base_query.order(experiment_groups::name.asc()),
     };
-    if let Some(true) = pagination_params.all {
-        let result: ExperimentGroups = base_query.get_results::<ExperimentGroup>(conn)?;
-        return Ok(PaginatedResponse::all(result));
-    }
-    let total_items = count_query.count().get_result(conn)?;
-    let limit = pagination_params.count.unwrap_or(10);
-    let offset = (pagination_params.page.unwrap_or(1) - 1) * limit;
 
-    let query = base_query.limit(limit).offset(offset);
-    let data = query.load::<ExperimentGroup>(conn)?;
-    let total_pages = (total_items as f64 / limit as f64).ceil() as i64;
-    Ok(PaginatedResponse {
-        total_pages,
-        total_items,
-        data,
-    })
+    let perform_in_memory_filter = !dimension_params.is_empty();
+
+    let paginated_response = if perform_in_memory_filter {
+        let all_experiments: Vec<ExperimentGroup> = base_query.load(conn)?;
+
+        let dimensions_info =
+            fetch_dimensions_info_map(conn, &workspace_context.schema_name)?;
+        let dimension_params =
+            evaluate_local_cohorts_skip_unresolved(&dimensions_info, &dimension_params);
+        let dimension_keys = dimension_params.keys().cloned().collect::<Vec<_>>();
+
+        let filter_fn = match filters.dimension_match_strategy.unwrap_or_default() {
+            DimensionMatchStrategy::Exact => ExperimentGroup::filter_exact_match,
+            DimensionMatchStrategy::Subset => ExperimentGroup::filter_by_eval,
+        };
+
+        let dimension_filtered_experiments =
+            filter_fn(all_experiments, &dimension_params);
+
+        let filtered_experiments = ExperimentGroup::filter_by_dimension(
+            dimension_filtered_experiments,
+            &dimension_keys,
+        );
+
+        if show_all {
+            PaginatedResponse::all(filtered_experiments)
+        } else {
+            let total_items = filtered_experiments.len();
+            let start = offset as usize;
+            let end = min((offset + limit) as usize, total_items);
+            let data = filtered_experiments
+                .get(start..end)
+                .map(|slice| slice.to_vec())
+                .unwrap_or_default();
+
+            PaginatedResponse {
+                total_pages: (total_items as f64 / limit as f64).ceil() as i64,
+                total_items: total_items as i64,
+                data,
+            }
+        }
+    } else if show_all {
+        let result: ExperimentGroups = base_query.get_results::<ExperimentGroup>(conn)?;
+        PaginatedResponse::all(result)
+    } else {
+        let total_items = count_query.count().get_result(conn)?;
+        let limit = pagination_params.count.unwrap_or(10);
+        let offset = (pagination_params.page.unwrap_or(1) - 1) * limit;
+
+        let query = base_query.limit(limit).offset(offset);
+        let data = query.load::<ExperimentGroup>(conn)?;
+        let total_pages = (total_items as f64 / limit as f64).ceil() as i64;
+        PaginatedResponse {
+            total_pages,
+            total_items,
+            data,
+        }
+    };
+
+    Ok(paginated_response)
 }
 
 #[authorized]

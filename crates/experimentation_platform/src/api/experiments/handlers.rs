@@ -53,8 +53,8 @@ use superposition_types::{
         experiments::{
             ApplicableVariantsQuery, ApplicableVariantsRequest,
             ConcludeExperimentRequest, ExperimentCreateRequest, ExperimentListFilters,
-            ExperimentResponse, ExperimentSortOn, ExperimentStateChangeRequest,
-            OverrideKeysUpdateRequest, RampRequest,
+            ExperimentListRequest, ExperimentResponse, ExperimentSortOn,
+            ExperimentStateChangeRequest, OverrideKeysUpdateRequest, RampRequest,
         },
         webhook::Action,
     },
@@ -1019,11 +1019,15 @@ async fn get_applicable_variants_handler(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 #[authorized]
+#[routes]
 #[get("")]
+#[post("/list")]
 async fn list_handler(
     workspace_context: WorkspaceContext,
     req: HttpRequest,
+    body: Option<Json<ExperimentListRequest>>,
     pagination_params: superposition_query::Query<PaginationParams>,
     filters: superposition_query::Query<ExperimentListFilters>,
     dimension_params: DimensionQuery<QueryMap>,
@@ -1061,14 +1065,28 @@ async fn list_handler(
         return Ok(HttpResponse::NotModified().finish());
     };
     let show_all = pagination_params.all.unwrap_or_default();
+
+    let is_smithy = matches!(req.method(), &actix_web::http::Method::POST);
+    let dimension_params = if req.method() == actix_web::http::Method::GET {
+        dimension_params.into_inner()
+    } else {
+        body.and_then(|b| b.into_inner().context)
+            .map(Into::into)
+            .unwrap_or_default()
+    };
+
     let read_from_redis = show_all
         && filters
             .status
             .clone()
             .is_some_and(|v| *v == ExperimentStatusType::active_list())
         && dimension_params.is_empty();
+
+    let mut response = HttpResponse::Ok();
+    AppHeader::add_last_modified(max_event_timestamp, is_smithy, &mut response);
+
     if read_from_redis {
-        let response = read_through_cache::<PaginatedResponse<ExperimentResponse>>(
+        read_through_cache::<PaginatedResponse<ExperimentResponse>>(
             format!(
                 "{}{EXPERIMENTS_LIST_KEY_SUFFIX}",
                 *workspace_context.schema_name
@@ -1078,18 +1096,17 @@ async fn list_handler(
             &state.db_pool,
             |conn| {
                 list_experiments_db(
-                    pagination_params.clone(),
-                    filters.clone(),
-                    dimension_params.clone(),
+                    pagination_params,
+                    filters,
+                    dimension_params,
                     conn,
                     &workspace_context,
                 )
             },
         )
-        .await?;
-        Ok(HttpResponse::Ok().json(response))
+        .await
     } else {
-        let paginated_response = run_query(&state.db_pool, |conn| {
+        run_query(&state.db_pool, |conn| {
             list_experiments_db(
                 pagination_params,
                 filters,
@@ -1097,20 +1114,18 @@ async fn list_handler(
                 conn,
                 &workspace_context,
             )
-        })?;
-        Ok(HttpResponse::Ok().json(paginated_response))
+        })
     }
+    .map(|r| response.json(r))
 }
 
 fn list_experiments_db(
     pagination_params: superposition_query::Query<PaginationParams>,
     filters: superposition_query::Query<ExperimentListFilters>,
-    dimension_params: DimensionQuery<QueryMap>,
+    dimension_params: QueryMap,
     conn: &mut DBConnection,
     workspace_context: &WorkspaceContext,
 ) -> superposition::DieselResult<PaginatedResponse<ExperimentResponse>> {
-    let dimension_params = dimension_params.into_inner();
-
     let query_builder = |filters: &ExperimentListFilters| {
         let mut builder = experiments::experiments
             .schema_name(&workspace_context.schema_name)
