@@ -13,7 +13,7 @@ use superposition_types::{
         dimension::DimensionResponse,
         experiment_groups::{ExpGroupFilters, SortOn},
     },
-    custom_query::{CustomQuery, PaginationParams, Query},
+    custom_query::{CustomQuery, DimensionQuery, PaginationParams, Query, QueryMap},
     database::models::experimentation::ExperimentGroup,
 };
 use web_sys::MouseEvent;
@@ -231,11 +231,12 @@ pub fn ExperimentGroupListing() -> impl IntoView {
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let delete_inprogress_rws = RwSignal::new(false);
 
-    let (filters_rws, pagination_params_rws) =
+    let (filters_rws, pagination_params_rws, dimension_params_rws) =
         use_signal_from_query(move |query_string| {
             (
                 Query::<ExpGroupFilters>::extract_non_empty(query_string).into_inner(),
                 Query::<PaginationParams>::extract_non_empty(query_string).into_inner(),
+                DimensionQuery::<QueryMap>::extract_non_empty(query_string),
             )
         });
 
@@ -246,6 +247,7 @@ pub fn ExperimentGroupListing() -> impl IntoView {
         (
             filters_rws.get(),
             pagination_params_rws.get(),
+            dimension_params_rws.get(),
             workspace.get().0,
             org.get().0,
         )
@@ -253,11 +255,16 @@ pub fn ExperimentGroupListing() -> impl IntoView {
 
     let experiment_groups_resource = create_blocking_resource(
         source,
-        |(filters, pagination, workspace, org_id)| async move {
-            let experiment_groups =
-                experiment_groups::list(&filters, &pagination, &workspace, &org_id)
-                    .await
-                    .unwrap_or_default();
+        |(filters, pagination, dimension_params, workspace, org_id)| async move {
+            let experiment_groups = experiment_groups::list(
+                &filters,
+                &pagination,
+                &dimension_params,
+                &workspace,
+                &org_id,
+            )
+            .await
+            .unwrap_or_default();
             let dimensions =
                 dimensions::list(&PaginationParams::all_entries(), &workspace, &org_id)
                     .await
@@ -323,7 +330,14 @@ pub fn ExperimentGroupListing() -> impl IntoView {
                                 number=total_items
                             />
                             <div class="flex items-end gap-4">
-                                <ExperimentGroupFilterWidget filters_rws pagination_params_rws />
+                                <ExperimentGroupFilterWidget
+                                    filters_rws
+                                    pagination_params_rws
+                                    dimension_params_rws
+                                    combined_resource=experiment_groups_resource
+                                        .get()
+                                        .unwrap_or_default()
+                                />
                                 <DrawerBtn
                                     drawer_id="create_exp_group_drawer".to_string()
                                     text="Create Group"
@@ -332,7 +346,7 @@ pub fn ExperimentGroupListing() -> impl IntoView {
                             </div>
                         </div>
                     }
-                }} <FilterSummary filters_rws />
+                }} <FilterSummary filters_rws dimension_params_rws />
                 <div class="card w-full bg-base-100 rounded-xl overflow-hidden shadow">
                     <div class="card-body overflow-y-auto overflow-x-visible">
                         {move || {

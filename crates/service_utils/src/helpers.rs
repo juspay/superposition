@@ -12,7 +12,6 @@ use diesel::{
     ExpressionMethods, OptionalExtension, PgArrayExpressionMethods, QueryDsl,
     RunQueryDsl, SelectableHelper,
 };
-
 use log::warn;
 use once_cell::sync::Lazy;
 use regex::Regex;

@@ -1429,16 +1429,18 @@ pub mod experiment_groups {
     pub async fn list(
         filters: &ExpGroupFilters,
         pagination: &PaginationParams,
+        dimension_params: &DimensionQuery<QueryMap>,
         workspace: &str,
         org_id: &str,
     ) -> Result<PaginatedResponse<ExperimentGroup>, String> {
         let host = use_host_server();
 
         let url = format!(
-            "{}/experiment-groups?{}&{}",
+            "{}/experiment-groups?{}&{}&{}",
             host,
             filters.to_query_param(),
-            pagination.to_query_param()
+            pagination.to_query_param(),
+            dimension_params.to_query_param()
         );
         let response = request::<()>(
             url,

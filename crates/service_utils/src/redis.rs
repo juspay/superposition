@@ -17,6 +17,8 @@ pub const CONFIG_KEY_SUFFIX: &str = "::cac_config";
 pub const EXPERIMENTS_LIST_KEY_SUFFIX: &str = "::experiments_list";
 pub const EXPERIMENTS_LAST_MODIFIED_KEY_SUFFIX: &str = "::experiments::last_modified_at";
 pub const EXPERIMENT_GROUPS_LIST_KEY_SUFFIX: &str = "::experiment_groups_list";
+pub const EXPERIMENT_GROUPS_LAST_MODIFIED_KEY_SUFFIX: &str =
+    "::experiment_groups::last_modified_at";
 
 /// Fetch data from Redis if available, else fall back to database call and write back to Redis
 /// if redis is disabled read from the database directly

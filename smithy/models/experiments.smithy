@@ -30,7 +30,6 @@ resource Experiments {
         experiment_group_id: String
     }
     read: GetExperiment
-    list: ListExperiment
     create: CreateExperiment
     operations: [
         UpdateOverridesExperiment
@@ -41,6 +40,7 @@ resource Experiments {
         ResumeExperiment
     ]
     collectionOperations: [
+        ListExperiment
         ApplicableVariants
     ]
 }
@@ -318,11 +318,15 @@ operation GetExperiment with [GetOperation] {
 }
 
 @documentation("Retrieves a paginated list of experiments with support for filtering by status, date range, name, creator, and experiment group.")
-@readonly
-@http(method: "GET", uri: "/experiments")
+@http(method: "POST", uri: "/experiments/list")
 @tags(["Experimentation"])
 operation ListExperiment {
     input := with [PaginationParams, WorkspaceMixin] {
+        @documentation("While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.")
+        @httpHeader("If-Modified-Since")
+        @notProperty
+        if_modified_since: DateTime
+
         @httpQuery("status")
         status: ExperimentStatusTypeList
 
@@ -365,11 +369,18 @@ operation ListExperiment {
         @httpQuery("dimension_match_strategy")
         @notProperty
         dimension_match_strategy: DimensionMatchStrategy
+
+        @notProperty
+        context: ContextMap
     }
 
     output := with [PaginatedResponse] {
         @required
         data: ExperimentList
+
+        @httpHeader("last-modified")
+        @required
+        last_modified_at: DateTime
     }
 }
 

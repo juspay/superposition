@@ -391,6 +391,12 @@ pub struct ExperimentGroup {
     pub group_type: GroupType,
 }
 
+impl Contextual for ExperimentGroup {
+    fn get_condition(&self) -> Condition {
+        self.context.clone()
+    }
+}
+
 pub type ExperimentGroups = Vec<ExperimentGroup>;
 
 pub mod i64_vec_formatter {
