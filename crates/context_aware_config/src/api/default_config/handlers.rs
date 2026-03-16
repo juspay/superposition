@@ -78,7 +78,7 @@ async fn create_handler(
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let req = request.into_inner();
-    _auth_z.authorize(&[req.key.deref()]).await?;
+    _auth_z.authorized(&[req.key.deref()]).await?;
 
     let DbConnection(mut conn) = db_conn;
     let key = req.key;
@@ -233,7 +233,7 @@ async fn update_handler(
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let key = key.into_inner();
-    _auth_z.authorize(&[key.deref()]).await?;
+    _auth_z.authorized(&[key.deref()]).await?;
 
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
@@ -512,7 +512,7 @@ async fn delete_handler(
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let key = path.into_inner();
-    _auth_z.authorize(&[key.deref()]).await?;
+    _auth_z.authorized(&[key.deref()]).await?;
 
     let DbConnection(mut conn) = db_conn;
     let tags = parse_config_tags(custom_headers.config_tags)?;

@@ -52,7 +52,7 @@ impl<A: Action> AuthZ<A> {
         }
     }
 
-    pub async fn authorize_action(
+    pub async fn action_authorized(
         &self,
         action: &str,
         attributes: &[&String],
@@ -80,8 +80,8 @@ impl<A: Action> AuthZ<A> {
         Ok(())
     }
 
-    pub async fn authorize(&self, attributes: &[&String]) -> superposition::Result<()> {
-        self.authorize_action(&A::get(), attributes).await
+    pub async fn authorized(&self, attributes: &[&String]) -> superposition::Result<()> {
+        self.action_authorized(&A::get(), attributes).await
     }
 }
 
@@ -129,17 +129,13 @@ impl<A: Action> FromRequest for AuthZ<A> {
         Box::pin(async move {
             let is_allowed = auth_z_handler
                 .is_allowed(&domain, &user, &A::resource(), &A::get(), None)
-                .await;
+                .await
+                .map_err(|e| unexpected_error!("Error checking authorization: {}", e))?;
 
-            match is_allowed {
-                Err(e) => Err(unexpected_error!("Error checking authorization: {}", e)),
-                Ok(is_allowed) => {
-                    if is_allowed {
-                        Ok(AuthZ::new(auth_z_handler, domain, user, false))
-                    } else {
-                        Err(forbidden!("You are not authorized to perform this action."))
-                    }
-                }
+            if is_allowed {
+                Ok(AuthZ::new(auth_z_handler, domain, user, false))
+            } else {
+                Err(forbidden!("You are not authorized to perform this action."))
             }
         })
     }

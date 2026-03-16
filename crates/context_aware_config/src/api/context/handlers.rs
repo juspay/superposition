@@ -1,4 +1,4 @@
-use std::{cmp::min, collections::HashSet, ops::Deref};
+use std::{cmp::min, collections::HashSet};
 
 use actix_web::{
     Either, HttpResponse, Scope, delete, get, post, put, routes,
@@ -26,8 +26,8 @@ use superposition_core::helpers::{calculate_context_weight, hash};
 use superposition_derives::{authorized, declare_resource};
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    Cac, Contextual, DBConnection, InternalUserContext, ListResponse, Overridden,
-    Overrides, PaginatedResponse, Resource, SortBy, User,
+    Contextual, DBConnection, InternalUserContext, ListResponse, Overridden, Overrides,
+    PaginatedResponse, Resource, SortBy, User,
     api::{
         DimensionMatchStrategy,
         context::{
@@ -73,13 +73,13 @@ pub fn endpoints() -> Scope {
         .service(validate_handler)
 }
 
-async fn authorize_create<A: AuthZAction>(
+async fn create_authorized<A: AuthZAction>(
     auth_z: &AuthZ<A>,
-    override_map: &Cac<Overrides>,
+    override_map: &Overrides,
 ) -> superposition::Result<()> {
-    let keys = override_map.deref().keys().collect::<Vec<_>>();
+    let keys = override_map.keys().collect::<Vec<_>>();
     auth_z
-        .authorize_action(&AuthZActionCreate::get(), &keys)
+        .action_authorized(&AuthZActionCreate::get(), &keys)
         .await
 }
 
@@ -96,7 +96,7 @@ async fn create_handler(
     internal_user: InternalUserContext,
 ) -> superposition::Result<HttpResponse> {
     let req = req.into_inner();
-    authorize_create(&_auth_z, &req.r#override).await?;
+    create_authorized(&_auth_z, &req.r#override).await?;
 
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let description = match req.description.clone() {
@@ -193,10 +193,10 @@ async fn create_handler(
     Ok(http_resp.json(put_response))
 }
 
-async fn authorize_update<A: AuthZAction>(
+async fn update_authorized<A: AuthZAction>(
     auth_z: &AuthZ<A>,
     context: &Identifier,
-    new_overrides: &Cac<Overrides>,
+    new_overrides: &Overrides,
     schema_name: &SchemaName,
     conn: &mut DBConnection,
 ) -> superposition::Result<()> {
@@ -204,9 +204,9 @@ async fn authorize_update<A: AuthZAction>(
         operations::get_overrides_from_identifier(context, schema_name, conn)?;
 
     auth_z
-        .authorize_action(
+        .action_authorized(
             &AuthZActionUpdate::get(),
-            &changed_keys(&overrides, new_overrides.deref()),
+            &changed_keys(&overrides, new_overrides),
         )
         .await
 }
@@ -226,7 +226,7 @@ async fn update_handler(
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let req_change_reason = req.change_reason.clone();
 
-    authorize_update(
+    update_authorized(
         &_auth_z,
         &req.context,
         &req.override_,
@@ -303,7 +303,7 @@ async fn update_handler(
     Ok(http_resp.json(override_resp))
 }
 
-async fn authorize_action<A: AuthZAction>(
+async fn move_authorized<A: AuthZAction>(
     auth_z: &AuthZ<A>,
     ctx_id: &str,
     schema_name: &SchemaName,
@@ -311,7 +311,7 @@ async fn authorize_action<A: AuthZAction>(
 ) -> superposition::Result<()> {
     let overrides = operations::get_overrides_from_ctx_id(ctx_id, schema_name, conn)?;
     auth_z
-        .authorize_action(
+        .action_authorized(
             &AuthZActionMove::get(),
             &overrides.keys().collect::<Vec<_>>(),
         )
@@ -332,7 +332,7 @@ async fn move_handler(
     internal_user: InternalUserContext,
 ) -> superposition::Result<HttpResponse> {
     let ctx_id = path.into_inner();
-    authorize_action(
+    move_authorized(
         &_auth_z,
         &ctx_id,
         &workspace_context.schema_name,
@@ -621,7 +621,7 @@ async fn list_handler(
     Ok(Json(paginated_response))
 }
 
-async fn authorize_delete<A: AuthZAction>(
+async fn delete_authorized<A: AuthZAction>(
     auth_z: &AuthZ<A>,
     ctx_id: &str,
     schema_name: &SchemaName,
@@ -629,7 +629,7 @@ async fn authorize_delete<A: AuthZAction>(
 ) -> superposition::Result<()> {
     let overrides = operations::get_overrides_from_ctx_id(ctx_id, schema_name, conn)?;
     auth_z
-        .authorize_action(
+        .action_authorized(
             &AuthZActionDelete::get(),
             &overrides.keys().collect::<Vec<_>>(),
         )
@@ -650,7 +650,7 @@ async fn delete_handler(
         contexts as contexts_table, id as context_id,
     };
     let ctx_id = path.into_inner();
-    authorize_delete(
+    delete_authorized(
         &_auth_z,
         &ctx_id,
         &workspace_context.schema_name,
@@ -720,7 +720,7 @@ async fn delete_handler(
         .finish())
 }
 
-async fn authorize_bulk<A: AuthZAction>(
+async fn bulk_authorized<A: AuthZAction>(
     auth_z: &AuthZ<A>,
     operations: &Vec<ContextAction>,
     schema_name: &SchemaName,
@@ -729,10 +729,10 @@ async fn authorize_bulk<A: AuthZAction>(
     for op in operations {
         match op {
             ContextAction::Put(put_req) => {
-                authorize_create(auth_z, &put_req.r#override).await?;
+                create_authorized(auth_z, &put_req.r#override).await?;
             }
             ContextAction::Replace(update_req) => {
-                authorize_update(
+                update_authorized(
                     auth_z,
                     &update_req.context,
                     &update_req.override_,
@@ -742,10 +742,10 @@ async fn authorize_bulk<A: AuthZAction>(
                 .await?;
             }
             ContextAction::Delete(ctx_id) => {
-                authorize_delete(auth_z, ctx_id, schema_name, conn).await?;
+                delete_authorized(auth_z, ctx_id, schema_name, conn).await?;
             }
             ContextAction::Move { id: ctx_id, .. } => {
-                authorize_action(auth_z, ctx_id, schema_name, conn).await?;
+                move_authorized(auth_z, ctx_id, schema_name, conn).await?;
             }
         }
     }
@@ -775,7 +775,7 @@ async fn bulk_operations_handler(
             bo.into_inner().operations
         }
     };
-    authorize_bulk(&_auth_z, &ops, &workspace_context.schema_name, &mut conn).await?;
+    bulk_authorized(&_auth_z, &ops, &workspace_context.schema_name, &mut conn).await?;
 
     // Marking immutable.
     let is_v2 = is_v2;

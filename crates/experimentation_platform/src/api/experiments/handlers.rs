@@ -133,16 +133,16 @@ fn add_config_version_to_header(
     }
 }
 
-async fn authorize_create(
+async fn create_authorized(
     auth_z: AuthZ<AuthZActionCreate>,
     variants: &[Variant],
 ) -> superposition::Result<()> {
     let control_keys = variants
         .iter()
         .filter(|v| v.variant_type == VariantType::CONTROL)
-        .flat_map(|v| v.overrides.deref().keys())
+        .flat_map(|v| v.overrides.keys())
         .collect::<Vec<_>>();
-    auth_z.authorize(&control_keys).await
+    auth_z.authorized(&control_keys).await
 }
 
 #[authorized]
@@ -157,7 +157,7 @@ async fn create_handler(
 ) -> superposition::Result<HttpResponse> {
     use superposition_types::database::schema::experiments::dsl::experiments;
     let req = req.into_inner();
-    authorize_create(_auth_z, &req.variants).await?;
+    create_authorized(_auth_z, &req.variants).await?;
 
     let mut variants = req.variants;
     let DbConnection(mut conn) = db_conn;
@@ -174,10 +174,9 @@ async fn create_handler(
     // Checking if experiment has exactly 1 control variant, and
     // atleast 1 experimental variant
     check_variant_types(&variants)?;
-    let unique_override_keys: Vec<String> =
-        extract_override_keys(variants[0].overrides.deref())
-            .into_iter()
-            .collect();
+    let unique_override_keys: Vec<String> = extract_override_keys(&variants[0].overrides)
+        .into_iter()
+        .collect();
 
     let unique_ids_of_variants_from_req: HashSet<&str> =
         HashSet::from_iter(variants.iter().map(|v| v.id.as_str()));
@@ -426,7 +425,7 @@ async fn create_handler(
     Ok(http_resp.json(response))
 }
 
-async fn authorize_action<A: AuthZAction>(
+async fn action_authorized<A: AuthZAction>(
     auth_z: AuthZ<A>,
     exp_id: &i64,
     schema_name: &SchemaName,
@@ -435,7 +434,7 @@ async fn authorize_action<A: AuthZAction>(
     let overrides = get_control_overrides_from_exp_id(exp_id, schema_name, conn)?;
 
     auth_z
-        .authorize(&overrides.deref().keys().collect::<Vec<_>>())
+        .authorized(&overrides.keys().collect::<Vec<_>>())
         .await
 }
 
@@ -453,7 +452,8 @@ async fn conclude_handler(
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let exp_id = path.into_inner();
-    authorize_action(_auth_z, &exp_id, &workspace_context.schema_name, &mut conn).await?;
+    action_authorized(_auth_z, &exp_id, &workspace_context.schema_name, &mut conn)
+        .await?;
 
     fetch_and_validate_change_reason_with_function(
         &workspace_context,
@@ -727,7 +727,8 @@ async fn discard_handler(
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let exp_id = path.into_inner();
-    authorize_action(_auth_z, &exp_id, &workspace_context.schema_name, &mut conn).await?;
+    action_authorized(_auth_z, &exp_id, &workspace_context.schema_name, &mut conn)
+        .await?;
 
     fetch_and_validate_change_reason_with_function(
         &workspace_context,
@@ -1289,7 +1290,8 @@ async fn ramp_handler(
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let exp_id = params.into_inner();
-    authorize_action(_auth_z, &exp_id, &workspace_context.schema_name, &mut conn).await?;
+    action_authorized(_auth_z, &exp_id, &workspace_context.schema_name, &mut conn)
+        .await?;
 
     let change_reason = req.change_reason.clone();
 
@@ -1482,7 +1484,7 @@ async fn update_handler(
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let experiment_id = params.into_inner();
-    authorize_action(
+    action_authorized(
         _auth_z,
         &experiment_id,
         &workspace_context.schema_name,
@@ -1830,7 +1832,8 @@ async fn pause_handler(
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let exp_id = path.into_inner();
-    authorize_action(_auth_z, &exp_id, &workspace_context.schema_name, &mut conn).await?;
+    action_authorized(_auth_z, &exp_id, &workspace_context.schema_name, &mut conn)
+        .await?;
 
     fetch_and_validate_change_reason_with_function(
         &workspace_context,
@@ -1925,7 +1928,8 @@ async fn resume_handler(
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let exp_id = path.into_inner();
-    authorize_action(_auth_z, &exp_id, &workspace_context.schema_name, &mut conn).await?;
+    action_authorized(_auth_z, &exp_id, &workspace_context.schema_name, &mut conn)
+        .await?;
 
     fetch_and_validate_change_reason_with_function(
         &workspace_context,
