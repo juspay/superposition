@@ -1,4 +1,17 @@
 import { Given, When, Then } from "@cucumber/cucumber";
+import {
+  CreateExperimentCommand,
+  GetExperimentCommand,
+  ListExperimentCommand,
+  RampExperimentCommand,
+  ConcludeExperimentCommand,
+  DiscardExperimentCommand,
+  UpdateOverridesExperimentCommand,
+  CreateDimensionCommand,
+  CreateDefaultConfigCommand,
+  VariantType,
+  ExperimentStatusType,
+} from "@juspay/superposition-sdk";
 import { PlaywrightWorld } from "../support_ui/world.ts";
 import * as assert from "node:assert";
 
@@ -7,49 +20,101 @@ import * as assert from "node:assert";
 Given(
   "dimensions and default configs are set up for experiment tests",
   async function (this: PlaywrightWorld) {
-    // In UI mode, we rely on these already existing from workspace setup
-    // or create them via the UI
-    await this.goToWorkspacePage("dimensions");
-    const exists = await this.tableContainsText("os");
-    if (!exists) {
-      await this.clickButton("Create Dimension");
-      await this.page.waitForTimeout(300);
-      await this.page.getByPlaceholder("Dimension name").fill("os");
-      await this.selectDropdownOption("Set Schema", "Enum");
-      await this.fillByPlaceholder("Enter a description", "OS dimension");
-      await this.fillByPlaceholder("Enter a reason for this change", "Setup");
-      await this.clickButton("Submit");
-      await this.page.waitForTimeout(1000);
+    // Create "os" dimension
+    try {
+      await this.client.send(
+        new CreateDimensionCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          dimension: "os",
+          position: 1,
+          schema: { type: "string", enum: ["android", "ios", "web"] },
+          description: "OS dimension",
+          change_reason: "Cucumber experiment setup",
+        })
+      );
+      this.createdDimensions.push("os");
+    } catch {
+      // Already exists
+    }
+
+    // Create config key
+    const configKey = "exp-config-key";
+    try {
+      await this.client.send(
+        new CreateDefaultConfigCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          key: configKey,
+          value: "default-value",
+          schema: { type: "string" },
+          description: "Config for experiment tests",
+          change_reason: "Cucumber setup",
+        })
+      );
+      this.createdConfigs.push(configKey);
+    } catch {
+      // Already exists
     }
   }
 );
 
+async function createExperiment(
+  world: PlaywrightWorld,
+  name: string,
+  dimName: string,
+  dimValue: string,
+  configKey: string = "exp-config-key"
+) {
+  const uniqueName = world.uniqueName(name);
+  const response = await world.client.send(
+    new CreateExperimentCommand({
+      workspace_id: world.workspaceId,
+      org_id: world.orgId,
+      name: uniqueName,
+      context: { [dimName]: dimValue },
+      variants: [
+        {
+          variant_type: VariantType.CONTROL,
+          id: "control",
+          overrides: { [configKey]: "control-val" },
+        },
+        {
+          variant_type: VariantType.EXPERIMENTAL,
+          id: "experimental",
+          overrides: { [configKey]: "experimental-val" },
+        },
+      ],
+      description: `Test experiment ${uniqueName}`,
+      change_reason: "Cucumber test",
+    })
+  );
+  world.experimentId = response.id ?? "";
+  world.experimentVariants = response.variants ?? [];
+  world.createdExperimentIds.push(world.experimentId);
+  return response;
+}
+
 Given(
   "an experiment {string} exists with context {string} equals {string}",
   async function (this: PlaywrightWorld, name: string, dim: string, val: string) {
-    await this.goToWorkspacePage("experiments");
-    const uniqueName = this.uniqueName(name);
-    const exists = await this.tableContainsText(uniqueName);
-    if (!exists) {
-      await this.openDrawer("create_exp_drawer");
-      await this.page.locator("#expName").fill(uniqueName);
-      await this.fillByPlaceholder("ex: testing hyperpay release", "Cucumber experiment");
-      await this.fillByPlaceholder("Enter a reason for this change", "Cucumber setup");
-      await this.clickButton("Submit");
-      await this.page.waitForTimeout(1000);
-    }
-    this.experimentId = uniqueName;
+    await createExperiment(this, name, dim, val);
   }
 );
 
 Given(
   "an experiment {string} exists and is ramped to {int} percent",
   async function (this: PlaywrightWorld, name: string, traffic: number) {
-    // Create experiment first, then ramp
-    await this.goToWorkspacePage("experiments");
-    const uniqueName = this.uniqueName(name);
-    this.experimentId = uniqueName;
-    // For UI, the experiment creation and ramping happen through the experiment detail page
+    await createExperiment(this, name, "os", "android");
+    await this.client.send(
+      new RampExperimentCommand({
+        workspace_id: this.workspaceId,
+        org_id: this.orgId,
+        id: this.experimentId,
+        traffic_percentage: traffic,
+        change_reason: "Cucumber ramp",
+      })
+    );
   }
 );
 
@@ -58,47 +123,53 @@ Given(
 When(
   "I create an experiment with name {string} and context {string} equals {string}",
   async function (this: PlaywrightWorld, name: string, dim: string, val: string) {
-    const uniqueName = this.uniqueName(name);
-    (this as any)._pendingExpName = uniqueName;
-    await this.goToWorkspacePage("experiments");
-    await this.openDrawer("create_exp_drawer");
-    await this.page.locator("#expName").fill(uniqueName);
+    // Store for the multi-step creation
+    this.experimentId = ""; // Will be set in the final step
+    (this as any)._pendingExpName = this.uniqueName(name);
+    (this as any)._pendingExpContext = { [dim]: val };
+    (this as any)._pendingExpVariants = [];
   }
 );
 
 When(
   "the experiment has a control variant with override {string} = {string}",
-  async function (this: PlaywrightWorld, key: string, value: string) {
-    // In the experiment form, fill in the control variant override
-    // The form structure has variant sections
+  function (this: PlaywrightWorld, key: string, value: string) {
+    (this as any)._pendingExpVariants.push({
+      variant_type: VariantType.CONTROL,
+      id: "control",
+      overrides: { [key]: value },
+    });
   }
 );
 
 When(
   "the experiment has an experimental variant with override {string} = {string}",
   async function (this: PlaywrightWorld, key: string, value: string) {
-    // Fill in the experimental variant and submit the form
-    await this.fillByPlaceholder("ex: testing hyperpay release", "Cucumber test experiment");
-    await this.fillByPlaceholder("Enter a reason for this change", "Cucumber test");
-    await this.clickButton("Submit");
+    (this as any)._pendingExpVariants.push({
+      variant_type: VariantType.EXPERIMENTAL,
+      id: "experimental",
+      overrides: { [key]: value },
+    });
 
+    // Now create the experiment
     try {
-      const toast = await this.waitForToast();
-      if (toast.toLowerCase().includes("error")) {
-        this.lastError = { message: toast };
-        this.lastResponse = undefined;
-      } else {
-        this.experimentId = (this as any)._pendingExpName;
-        this.lastResponse = {
-          id: this.experimentId,
-          name: this.experimentId,
-          status: "CREATED",
-          variants: [],
-        };
-        this.lastError = undefined;
-      }
-    } catch {
-      this.lastError = { message: "No feedback" };
+      this.lastResponse = await this.client.send(
+        new CreateExperimentCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          name: (this as any)._pendingExpName,
+          context: (this as any)._pendingExpContext,
+          variants: (this as any)._pendingExpVariants,
+          description: "Cucumber test experiment",
+          change_reason: "Cucumber test",
+        })
+      );
+      this.experimentId = this.lastResponse.id ?? "";
+      this.experimentVariants = this.lastResponse.variants ?? [];
+      this.createdExperimentIds.push(this.experimentId);
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
       this.lastResponse = undefined;
     }
   }
@@ -107,57 +178,53 @@ When(
 When(
   "I get the experiment by its ID",
   async function (this: PlaywrightWorld) {
-    await this.goToWorkspacePage("experiments");
-    const row = this.page.locator(`table tbody tr:has-text("${this.experimentId}")`);
-    const visible = await row.isVisible().catch(() => false);
-    if (visible) {
-      await row.click();
-      await this.page.waitForTimeout(500);
-      const content = await this.page.textContent("body");
-      this.lastResponse = {
-        id: this.experimentId,
-        name: this.experimentId,
-        status: content?.includes("IN_PROGRESS") ? "IN_PROGRESS" : "CREATED",
-      };
+    try {
+      this.lastResponse = await this.client.send(
+        new GetExperimentCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          id: this.experimentId,
+        })
+      );
       this.lastError = undefined;
-    } else {
-      this.lastError = { message: "No records found" };
+    } catch (e: any) {
+      this.lastError = e;
       this.lastResponse = undefined;
     }
   }
 );
 
 When("I list experiments", async function (this: PlaywrightWorld) {
-  await this.goToWorkspacePage("experiments");
-  const rows = await this.tableRowCount();
-  this.lastResponse = { data: new Array(rows).fill({}) };
-  this.lastError = undefined;
+  try {
+    this.lastResponse = await this.client.send(
+      new ListExperimentCommand({
+        workspace_id: this.workspaceId,
+        org_id: this.orgId,
+      })
+    );
+    this.lastError = undefined;
+  } catch (e: any) {
+    this.lastError = e;
+    this.lastResponse = undefined;
+  }
 });
 
 When(
   "I ramp the experiment to {int} percent traffic",
   async function (this: PlaywrightWorld, traffic: number) {
-    await this.goToWorkspacePage("experiments");
-    const row = this.page.locator(`table tbody tr:has-text("${this.experimentId}")`);
-    await row.click();
-    await this.page.waitForTimeout(500);
-
-    // Look for ramp button/input
-    const rampBtn = this.page.locator("button:has-text('Ramp')");
-    if (await rampBtn.isVisible()) {
-      await rampBtn.click();
-      await this.page.waitForTimeout(300);
-      const trafficInput = this.page.locator("input[type='number']").first();
-      if (await trafficInput.isVisible()) {
-        await trafficInput.clear();
-        await trafficInput.fill(String(traffic));
-      }
-      await this.clickButton("Submit");
-      const toast = await this.waitForToast();
-      this.lastResponse = { status: "IN_PROGRESS", traffic_percentage: traffic, toast };
+    try {
+      this.lastResponse = await this.client.send(
+        new RampExperimentCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          id: this.experimentId,
+          traffic_percentage: traffic,
+          change_reason: "Cucumber ramp test",
+        })
+      );
       this.lastError = undefined;
-    } else {
-      this.lastError = { message: "Ramp button not found" };
+    } catch (e: any) {
+      this.lastError = e;
       this.lastResponse = undefined;
     }
   }
@@ -166,20 +233,30 @@ When(
 When(
   "I update the experimental variant override for {string} to {string}",
   async function (this: PlaywrightWorld, key: string, value: string) {
-    // Navigate to experiment detail and update override
-    await this.goToWorkspacePage("experiments");
-    const row = this.page.locator(`table tbody tr:has-text("${this.experimentId}")`);
-    await row.click();
-    await this.page.waitForTimeout(500);
-    // Find override edit area and update
-    const overrideBtn = this.page.locator("button:has-text('Update Overrides')");
-    if (await overrideBtn.isVisible()) {
-      await overrideBtn.click();
-      await this.page.waitForTimeout(300);
-      await this.clickButton("Submit");
-      const toast = await this.waitForToast();
-      this.lastResponse = { toast };
+    const experimentalVariant = this.experimentVariants.find(
+      (v: any) => v.variant_type === VariantType.EXPERIMENTAL
+    );
+    // Server requires all variants in the update request
+    const variantList = this.experimentVariants.map((v: any) => ({
+      id: v.id ?? v.variant_type,
+      overrides: v.id === experimentalVariant?.id
+        ? { ...v.overrides, [key]: value }
+        : v.overrides ?? {},
+    }));
+    try {
+      this.lastResponse = await this.client.send(
+        new UpdateOverridesExperimentCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          id: this.experimentId,
+          variant_list: variantList,
+          change_reason: "Cucumber override update",
+        })
+      );
       this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
     }
   }
 );
@@ -187,40 +264,41 @@ When(
 When(
   "I conclude the experiment with the experimental variant",
   async function (this: PlaywrightWorld) {
-    await this.goToWorkspacePage("experiments");
-    const row = this.page.locator(`table tbody tr:has-text("${this.experimentId}")`);
-    await row.click();
-    await this.page.waitForTimeout(500);
-    const concludeBtn = this.page.locator("button:has-text('Conclude')");
-    if (await concludeBtn.isVisible()) {
-      await concludeBtn.click();
-      await this.page.waitForTimeout(300);
-      // Select the experimental variant
-      await this.page.locator("text=experimental").first().click();
-      await this.clickButton("Submit");
-      const toast = await this.waitForToast();
-      this.lastResponse = { status: "CONCLUDED", toast };
+    const experimentalVariant = this.experimentVariants.find(
+      (v: any) => v.variant_type === VariantType.EXPERIMENTAL
+    );
+    try {
+      this.lastResponse = await this.client.send(
+        new ConcludeExperimentCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          id: this.experimentId,
+          chosen_variant: experimentalVariant?.id ?? "experimental",
+          change_reason: "Cucumber conclude test",
+        })
+      );
       this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
     }
   }
 );
 
 When("I discard the experiment", async function (this: PlaywrightWorld) {
-  await this.goToWorkspacePage("experiments");
-  const row = this.page.locator(`table tbody tr:has-text("${this.experimentId}")`);
-  await row.click();
-  await this.page.waitForTimeout(500);
-  const discardBtn = this.page.locator("button:has-text('Discard')");
-  if (await discardBtn.isVisible()) {
-    await discardBtn.click();
-    await this.page.waitForTimeout(300);
-    const confirmBtn = this.page.locator("button:has-text('Yes')");
-    if (await confirmBtn.isVisible()) {
-      await confirmBtn.click();
-    }
-    const toast = await this.waitForToast();
-    this.lastResponse = { status: "DISCARDED", toast };
+  try {
+    this.lastResponse = await this.client.send(
+      new DiscardExperimentCommand({
+        workspace_id: this.workspaceId,
+        org_id: this.orgId,
+        id: this.experimentId,
+        change_reason: "Cucumber discard test",
+      })
+    );
     this.lastError = undefined;
+  } catch (e: any) {
+    this.lastError = e;
+    this.lastResponse = undefined;
   }
 });
 
@@ -228,50 +306,42 @@ When("I discard the experiment", async function (this: PlaywrightWorld) {
 
 Then(
   "the response should have experiment status {string}",
-  async function (this: PlaywrightWorld, status: string) {
-    const content = await this.page.textContent("body");
-    assert.ok(
-      content?.includes(status),
-      `Experiment status "${status}" not found on page`
-    );
+  function (this: PlaywrightWorld, status: string) {
+    assert.ok(this.lastResponse, "No response");
+    assert.strictEqual(this.lastResponse.status, status);
   }
 );
 
 Then(
   "the experiment status should be {string}",
-  async function (this: PlaywrightWorld, status: string) {
-    const content = await this.page.textContent("body");
-    assert.ok(
-      content?.includes(status),
-      `Experiment status "${status}" not found on page`
-    );
+  function (this: PlaywrightWorld, status: string) {
+    assert.ok(this.lastResponse, "No response");
+    assert.strictEqual(this.lastResponse.status, status);
   }
 );
 
 Then(
   "the response should have {int} variants",
-  async function (this: PlaywrightWorld, count: number) {
-    // Variants are displayed as sections on the experiment detail page
-    const content = await this.page.textContent("body");
-    assert.ok(content, "Page has no content");
+  function (this: PlaywrightWorld, count: number) {
+    assert.ok(this.lastResponse, "No response");
+    assert.strictEqual(this.lastResponse.variants?.length, count);
   }
 );
 
 Then(
   "the response should have the experiment name",
-  async function (this: PlaywrightWorld) {
-    const content = await this.page.textContent("body");
-    assert.ok(
-      content?.includes(this.experimentId),
-      "Experiment name not found on page"
-    );
+  function (this: PlaywrightWorld) {
+    assert.ok(this.lastResponse, "No response");
+    assert.ok(this.lastResponse.name, "No experiment name in response");
   }
 );
 
 Then(
   "the list should contain the created experiment",
-  async function (this: PlaywrightWorld) {
-    const exists = await this.tableContainsText(this.experimentId);
-    assert.ok(exists, `Experiment not found in table`);
+  function (this: PlaywrightWorld) {
+    const data = this.lastResponse?.data ?? this.lastResponse;
+    assert.ok(Array.isArray(data), "Response is not a list");
+    const found = data.find((e: any) => e.id === this.experimentId);
+    assert.ok(found, `Experiment ${this.experimentId} not found in list`);
   }
 );

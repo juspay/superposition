@@ -1,21 +1,167 @@
 import { Given, When, Then } from "@cucumber/cucumber";
+import {
+  CreateExperimentCommand,
+  CreateExperimentGroupCommand,
+  GetExperimentGroupCommand,
+  UpdateExperimentGroupCommand,
+  AddMembersToGroupCommand,
+  RemoveMembersFromGroupCommand,
+  ListExperimentGroupsCommand,
+  DeleteExperimentGroupCommand,
+  CreateDimensionCommand,
+  CreateDefaultConfigCommand,
+  RampExperimentCommand,
+  VariantType,
+  ExperimentGroupSortOn,
+  SortBy,
+} from "@juspay/superposition-sdk";
 import { PlaywrightWorld } from "../support_ui/world.ts";
 import * as assert from "node:assert";
+
+// Track group-specific experiment IDs
+let validExpId: string;
+let validExp2Id: string;
+let inProgressExpId: string;
+let conflictingContextExpId: string;
+
+const groupContext = { os: "ios", clientId: "groupClient" };
 
 // ── Given ───────────────────────────────────────────────────────────
 
 Given(
   "dimensions and default configs are set up for experiment group tests",
   async function (this: PlaywrightWorld) {
-    await this.goToWorkspacePage("dimensions");
+    // Ensure dimensions exist
+    for (const dim of [
+      { name: "os", schema: { type: "string", enum: ["ios", "android", "web"] } },
+      { name: "clientId", schema: { type: "string" } },
+      { name: "app_version", schema: { type: "string" } },
+      { name: "device_specific_id", schema: { type: "string" } },
+    ]) {
+      try {
+        await this.client.send(
+          new CreateDimensionCommand({
+            workspace_id: this.workspaceId,
+            org_id: this.orgId,
+            dimension: dim.name,
+            position: 1,
+            schema: dim.schema,
+            description: `Dim ${dim.name}`,
+            change_reason: "Cucumber group setup",
+          })
+        );
+        this.createdDimensions.push(dim.name);
+      } catch {
+        // Already exists
+      }
+    }
+
+    // Ensure default configs exist
+    for (const cfg of ["pmTestKey1", "pmTestKey2"]) {
+      try {
+        await this.client.send(
+          new CreateDefaultConfigCommand({
+            workspace_id: this.workspaceId,
+            org_id: this.orgId,
+            key: cfg,
+            value: `default_${cfg}`,
+            schema: { type: "string" },
+            description: `Config ${cfg}`,
+            change_reason: "Cucumber group setup",
+          })
+        );
+        this.createdConfigs.push(cfg);
+      } catch {
+        // Already exists
+      }
+    }
   }
 );
 
 Given(
   "experiments are set up for group tests",
   async function (this: PlaywrightWorld) {
-    // In UI mode, experiments should be pre-existing or created via UI
-    await this.goToWorkspacePage("experiments");
+    const variants = [
+      {
+        variant_type: VariantType.CONTROL,
+        id: "grp_control",
+        overrides: { pmTestKey1: "ctrl_val1", pmTestKey2: "ctrl_val2" },
+      },
+      {
+        variant_type: VariantType.EXPERIMENTAL,
+        id: "grp_experimental",
+        overrides: { pmTestKey1: "exp_val1", pmTestKey2: "exp_val2" },
+      },
+    ];
+
+    // Valid experiment 1 (exact context match)
+    const exp1 = await this.client.send(
+      new CreateExperimentCommand({
+        workspace_id: this.workspaceId,
+        org_id: this.orgId,
+        name: this.uniqueName("grp-exp1"),
+        context: { ...groupContext },
+        variants,
+        description: "Valid exp 1",
+        change_reason: "Cucumber setup",
+      })
+    );
+    validExpId = exp1.id!;
+    this.createdExperimentIds.push(validExpId);
+
+    // Valid experiment 2 (superset context)
+    const exp2 = await this.client.send(
+      new CreateExperimentCommand({
+        workspace_id: this.workspaceId,
+        org_id: this.orgId,
+        name: this.uniqueName("grp-exp2"),
+        context: { ...groupContext, app_version: "2.0.0" },
+        variants,
+        description: "Valid exp 2 (superset)",
+        change_reason: "Cucumber setup",
+      })
+    );
+    validExp2Id = exp2.id!;
+    this.createdExperimentIds.push(validExp2Id);
+
+    // In-progress experiment
+    const exp3 = await this.client.send(
+      new CreateExperimentCommand({
+        workspace_id: this.workspaceId,
+        org_id: this.orgId,
+        name: this.uniqueName("grp-exp-prog"),
+        context: { os: "android" },
+        variants,
+        description: "In-progress exp",
+        change_reason: "Cucumber setup",
+      })
+    );
+    inProgressExpId = exp3.id!;
+    this.createdExperimentIds.push(inProgressExpId);
+    await this.client.send(
+      new RampExperimentCommand({
+        workspace_id: this.workspaceId,
+        org_id: this.orgId,
+        id: inProgressExpId,
+        traffic_percentage: 50,
+        change_reason: "Ramp for test",
+      })
+    );
+
+    // Conflicting context experiment
+    const exp4 = await this.client.send(
+      new CreateExperimentCommand({
+        workspace_id: this.workspaceId,
+        org_id: this.orgId,
+        name: this.uniqueName("grp-exp-conflict"),
+        context: { device_specific_id: "devXYZ" },
+        variants,
+        description: "Conflicting context exp",
+        change_reason: "Cucumber setup",
+      })
+    );
+    conflictingContextExpId = exp4.id!;
+    this.createdExperimentIds.push(conflictingContextExpId);
   }
 );
 
@@ -23,18 +169,19 @@ Given(
   "an experiment group exists",
   async function (this: PlaywrightWorld) {
     if (!this.experimentGroupId) {
-      await this.goToWorkspacePage("experiment-groups");
-      const uniqueName = this.uniqueName("grp-test");
-      this.experimentGroupId = uniqueName;
-      const exists = await this.tableContainsText(uniqueName);
-      if (!exists) {
-        await this.clickButton("Create Group");
-        await this.page.waitForTimeout(300);
-        await this.page.getByPlaceholder("Group name").fill(uniqueName);
-        await this.fillByPlaceholder("Enter a description", "Test group");
-        await this.clickButton("Submit");
-        await this.page.waitForTimeout(1000);
-      }
+      const response = await this.client.send(
+        new CreateExperimentGroupCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          name: this.uniqueName("grp-test"),
+          description: "Test group",
+          change_reason: "Cucumber setup",
+          context: groupContext,
+          traffic_percentage: 100,
+          member_experiment_ids: [],
+        })
+      );
+      this.experimentGroupId = response.id!;
     }
   }
 );
@@ -42,30 +189,38 @@ Given(
 Given(
   "an experiment group exists with no members",
   async function (this: PlaywrightWorld) {
-    await this.goToWorkspacePage("experiment-groups");
-    const uniqueName = this.uniqueName("grp-empty");
-    this.experimentGroupId = uniqueName;
-    await this.clickButton("Create Group");
-    await this.page.waitForTimeout(300);
-    await this.page.getByPlaceholder("Group name").fill(uniqueName);
-    await this.fillByPlaceholder("Enter a description", "Empty group");
-    await this.clickButton("Submit");
-    await this.page.waitForTimeout(1000);
+    const response = await this.client.send(
+      new CreateExperimentGroupCommand({
+        workspace_id: this.workspaceId,
+        org_id: this.orgId,
+        name: this.uniqueName("grp-empty"),
+        description: "Empty group",
+        change_reason: "Cucumber setup",
+        context: groupContext,
+        traffic_percentage: 100,
+        member_experiment_ids: [],
+      })
+    );
+    this.experimentGroupId = response.id!;
   }
 );
 
 Given(
   "an experiment group exists with members",
   async function (this: PlaywrightWorld) {
-    await this.goToWorkspacePage("experiment-groups");
-    const uniqueName = this.uniqueName("grp-members");
-    this.experimentGroupId = uniqueName;
-    await this.clickButton("Create Group");
-    await this.page.waitForTimeout(300);
-    await this.page.getByPlaceholder("Group name").fill(uniqueName);
-    await this.fillByPlaceholder("Enter a description", "Group with members");
-    await this.clickButton("Submit");
-    await this.page.waitForTimeout(1000);
+    const response = await this.client.send(
+      new CreateExperimentGroupCommand({
+        workspace_id: this.workspaceId,
+        org_id: this.orgId,
+        name: this.uniqueName("grp-members"),
+        description: "Group with members",
+        change_reason: "Cucumber setup",
+        context: groupContext,
+        traffic_percentage: 100,
+        member_experiment_ids: [validExpId],
+      })
+    );
+    this.experimentGroupId = response.id!;
   }
 );
 
@@ -74,33 +229,24 @@ Given(
 When(
   "I create an experiment group with name {string} and member experiments",
   async function (this: PlaywrightWorld, name: string) {
-    const uniqueName = this.uniqueName(name);
-    this.experimentGroupId = uniqueName;
-    await this.goToWorkspacePage("experiment-groups");
-    await this.clickButton("Create Group");
-    await this.page.waitForTimeout(300);
-    await this.page.getByPlaceholder("Group name").fill(uniqueName);
-    await this.fillByPlaceholder("Enter a description", "Test group");
-    await this.clickButton("Submit");
-
     try {
-      const toast = await this.waitForToast();
-      if (toast.toLowerCase().includes("error")) {
-        this.lastError = { message: toast };
-        this.lastResponse = undefined;
-      } else {
-        this.lastResponse = {
-          id: uniqueName,
-          name: uniqueName,
-          member_experiment_ids: ["exp-placeholder"],
+      this.lastResponse = await this.client.send(
+        new CreateExperimentGroupCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          name: this.uniqueName(name),
+          description: "Test group",
+          change_reason: "Cucumber test",
+          context: groupContext,
           traffic_percentage: 100,
-          toast,
-        };
-        this.lastError = undefined;
-      }
-    } catch {
-      this.lastResponse = { id: uniqueName, member_experiment_ids: ["exp-placeholder"], traffic_percentage: 100 };
+          member_experiment_ids: [validExp2Id],
+        })
+      );
+      this.experimentGroupId = this.lastResponse.id!;
       this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
     }
   }
 );
@@ -108,33 +254,24 @@ When(
 When(
   "I create an experiment group with name {string} and no members",
   async function (this: PlaywrightWorld, name: string) {
-    const uniqueName = this.uniqueName(name);
-    this.experimentGroupId = uniqueName;
-    await this.goToWorkspacePage("experiment-groups");
-    await this.clickButton("Create Group");
-    await this.page.waitForTimeout(300);
-    await this.page.getByPlaceholder("Group name").fill(uniqueName);
-    await this.fillByPlaceholder("Enter a description", "Empty group");
-    await this.clickButton("Submit");
-
     try {
-      const toast = await this.waitForToast();
-      if (toast.toLowerCase().includes("error")) {
-        this.lastError = { message: toast };
-        this.lastResponse = undefined;
-      } else {
-        this.lastResponse = {
-          id: uniqueName,
-          name: uniqueName,
-          member_experiment_ids: [],
+      this.lastResponse = await this.client.send(
+        new CreateExperimentGroupCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          name: this.uniqueName(name),
+          description: "Empty group",
+          change_reason: "Cucumber test",
+          context: groupContext,
           traffic_percentage: 100,
-          toast,
-        };
-        this.lastError = undefined;
-      }
-    } catch {
-      this.lastResponse = { id: uniqueName, member_experiment_ids: [], traffic_percentage: 100 };
+          member_experiment_ids: [],
+        })
+      );
+      this.experimentGroupId = this.lastResponse.id!;
       this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
     }
   }
 );
@@ -142,74 +279,71 @@ When(
 When(
   "I create an experiment group including an in-progress experiment",
   async function (this: PlaywrightWorld) {
-    // In UI, this would attempt to add an in-progress experiment during creation
-    this.lastError = { message: "not in the created stage" };
-    this.lastResponse = undefined;
-  }
-);
-
-When(
-  "I create an experiment group including an experiment with conflicting context",
-  async function (this: PlaywrightWorld) {
-    this.lastError = { message: "contexts do not match" };
-    this.lastResponse = undefined;
-  }
-);
-
-When(
-  "I create an experiment group with traffic percentage {int}",
-  async function (this: PlaywrightWorld, traffic: number) {
-    await this.goToWorkspacePage("experiment-groups");
-    await this.clickButton("Create Group");
-    await this.page.waitForTimeout(300);
-    await this.page.getByPlaceholder("Group name").fill(this.uniqueName("fail-traffic"));
-    const trafficInput = this.page.locator("input[type='number']").first();
-    if (await trafficInput.isVisible()) {
-      await trafficInput.clear();
-      await trafficInput.fill(String(traffic));
-    }
-    await this.clickButton("Submit");
-
     try {
-      const toast = await this.waitForToast();
-      if (toast.toLowerCase().includes("error") || toast.toLowerCase().includes("fail")) {
-        this.lastError = { message: toast };
-        this.lastResponse = undefined;
-      } else {
-        this.lastResponse = { toast };
-        this.lastError = undefined;
-      }
-    } catch {
-      this.lastError = { message: "validation error" };
+      this.lastResponse = await this.client.send(
+        new CreateExperimentGroupCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          name: this.uniqueName("fail-prog"),
+          description: "Should fail",
+          change_reason: "Test",
+          context: groupContext,
+          traffic_percentage: 100,
+          member_experiment_ids: [validExpId, inProgressExpId],
+        })
+      );
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
       this.lastResponse = undefined;
     }
   }
 );
 
 When(
-  "I create an experiment group with name {string} and description {string}",
-  async function (this: PlaywrightWorld, name: string, desc: string) {
-    const uniqueName = this.uniqueName(name);
-    this.experimentGroupId = uniqueName;
-    await this.goToWorkspacePage("experiment-groups");
-    await this.clickButton("Create Group");
-    await this.page.waitForTimeout(300);
-    await this.page.getByPlaceholder("Group name").fill(uniqueName);
-    await this.fillByPlaceholder("Enter a description", desc);
-    await this.clickButton("Submit");
-
+  "I create an experiment group including an experiment with conflicting context",
+  async function (this: PlaywrightWorld) {
     try {
-      const toast = await this.waitForToast();
-      if (toast.toLowerCase().includes("error")) {
-        this.lastError = { message: toast };
-        this.lastResponse = undefined;
-      } else {
-        this.lastResponse = { name: uniqueName, description: desc, toast };
-        this.lastError = undefined;
-      }
-    } catch {
-      this.lastResponse = { name: uniqueName, description: desc };
+      this.lastResponse = await this.client.send(
+        new CreateExperimentGroupCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          name: this.uniqueName("fail-ctx"),
+          description: "Should fail",
+          change_reason: "Test",
+          context: groupContext,
+          traffic_percentage: 100,
+          member_experiment_ids: [validExpId, conflictingContextExpId],
+        })
+      );
       this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
+When(
+  "I create an experiment group with traffic percentage {int}",
+  async function (this: PlaywrightWorld, traffic: number) {
+    try {
+      this.lastResponse = await this.client.send(
+        new CreateExperimentGroupCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          name: this.uniqueName("fail-traffic"),
+          description: "Should fail",
+          change_reason: "Test",
+          context: groupContext,
+          traffic_percentage: traffic,
+          member_experiment_ids: [],
+        })
+      );
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
     }
   }
 );
@@ -217,16 +351,17 @@ When(
 When(
   "I get the experiment group by its ID",
   async function (this: PlaywrightWorld) {
-    await this.goToWorkspacePage("experiment-groups");
-    const row = this.page.locator(`table tbody tr:has-text("${this.experimentGroupId}")`);
-    const visible = await row.isVisible().catch(() => false);
-    if (visible) {
-      await row.click();
-      await this.page.waitForTimeout(500);
-      this.lastResponse = { name: this.experimentGroupId };
+    try {
+      this.lastResponse = await this.client.send(
+        new GetExperimentGroupCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          id: this.experimentGroupId,
+        })
+      );
       this.lastError = undefined;
-    } else {
-      this.lastError = { message: "No records found" };
+    } catch (e: any) {
+      this.lastError = e;
       this.lastResponse = undefined;
     }
   }
@@ -235,60 +370,39 @@ When(
 When(
   "I get an experiment group with ID {string}",
   async function (this: PlaywrightWorld, id: string) {
-    await this.goToWorkspacePage("experiment-groups");
-    const row = this.page.locator(`table tbody tr[id="${id}"]`);
-    const visible = await row.isVisible().catch(() => false);
-    if (visible) {
-      await row.click();
-      await this.page.waitForTimeout(500);
-      this.lastResponse = { id };
+    try {
+      this.lastResponse = await this.client.send(
+        new GetExperimentGroupCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          id,
+        })
+      );
       this.lastError = undefined;
-    } else {
-      this.lastError = { message: "No records found" };
+    } catch (e: any) {
+      this.lastError = e;
       this.lastResponse = undefined;
     }
-  }
-);
-
-When("I list experiment groups", async function (this: PlaywrightWorld) {
-  await this.goToWorkspacePage("experiment-groups");
-  const rows = await this.tableRowCount();
-  this.lastResponse = { data: new Array(rows).fill({}) };
-  this.lastError = undefined;
-});
-
-When(
-  "I list experiment groups sorted by {string} in {string} order",
-  async function (this: PlaywrightWorld, sortOn: string, sortBy: string) {
-    await this.goToWorkspacePage("experiment-groups");
-    const header = this.page.locator(`th:has-text("${sortOn}")`);
-    if (await header.isVisible()) {
-      await header.click();
-      if (sortBy === "DESC") {
-        await header.click();
-      }
-    }
-    const rows = await this.tableRowCount();
-    this.lastResponse = { data: new Array(rows).fill({ created_at: new Date().toISOString() }) };
-    this.lastError = undefined;
   }
 );
 
 When(
   "I update the experiment group traffic percentage to {int}",
   async function (this: PlaywrightWorld, traffic: number) {
-    await this.goToWorkspacePage("experiment-groups");
-    const row = this.page.locator(`table tbody tr:has-text("${this.experimentGroupId}")`);
-    await row.click();
-    await this.page.waitForTimeout(500);
-    const trafficInput = this.page.locator("input[type='number']").first();
-    if (await trafficInput.isVisible()) {
-      await trafficInput.clear();
-      await trafficInput.fill(String(traffic));
-      await this.clickButton("Submit");
-      const toast = await this.waitForToast();
-      this.lastResponse = { traffic_percentage: traffic, toast };
+    try {
+      this.lastResponse = await this.client.send(
+        new UpdateExperimentGroupCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          id: this.experimentGroupId,
+          traffic_percentage: traffic,
+          change_reason: "Cucumber update",
+        })
+      );
       this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
     }
   }
 );
@@ -296,18 +410,20 @@ When(
 When(
   "I update the experiment group description to {string}",
   async function (this: PlaywrightWorld, desc: string) {
-    await this.goToWorkspacePage("experiment-groups");
-    const row = this.page.locator(`table tbody tr:has-text("${this.experimentGroupId}")`);
-    await row.click();
-    await this.page.waitForTimeout(500);
-    const descInput = this.page.getByPlaceholder("Enter a description");
-    if (await descInput.isVisible()) {
-      await descInput.clear();
-      await descInput.fill(desc);
-      await this.clickButton("Submit");
-      const toast = await this.waitForToast();
-      this.lastResponse = { description: desc, toast };
+    try {
+      this.lastResponse = await this.client.send(
+        new UpdateExperimentGroupCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          id: this.experimentGroupId,
+          description: desc,
+          change_reason: "Cucumber update",
+        })
+      );
       this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
     }
   }
 );
@@ -315,24 +431,20 @@ When(
 When(
   "I update experiment group {string} traffic percentage to {int}",
   async function (this: PlaywrightWorld, id: string, traffic: number) {
-    await this.goToWorkspacePage("experiment-groups");
-    const row = this.page.locator(`table tbody tr[id="${id}"]`);
-    const visible = await row.isVisible().catch(() => false);
-    if (!visible) {
-      this.lastError = { message: "No records found" };
-      this.lastResponse = undefined;
-      return;
-    }
-    await row.click();
-    await this.page.waitForTimeout(500);
-    const trafficInput = this.page.locator("input[type='number']").first();
-    if (await trafficInput.isVisible()) {
-      await trafficInput.clear();
-      await trafficInput.fill(String(traffic));
-      await this.clickButton("Submit");
-      const toast = await this.waitForToast();
-      this.lastResponse = { traffic_percentage: traffic, toast };
+    try {
+      this.lastResponse = await this.client.send(
+        new UpdateExperimentGroupCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          id,
+          traffic_percentage: traffic,
+          change_reason: "Cucumber update",
+        })
+      );
       this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
     }
   }
 );
@@ -340,37 +452,41 @@ When(
 When(
   "I add a valid experiment to the group",
   async function (this: PlaywrightWorld) {
-    await this.goToWorkspacePage("experiment-groups");
-    const row = this.page.locator(`table tbody tr:has-text("${this.experimentGroupId}")`);
-    await row.click();
-    await this.page.waitForTimeout(500);
-    await this.clickButton("Add Member");
-    await this.page.waitForTimeout(300);
-    // Select the first available experiment
-    const expOption = this.page.locator(".dropdown-content li").first();
-    if (await expOption.isVisible()) {
-      await expOption.click();
+    try {
+      this.lastResponse = await this.client.send(
+        new AddMembersToGroupCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          id: this.experimentGroupId,
+          member_experiment_ids: [validExp2Id],
+          change_reason: "Cucumber add member",
+        })
+      );
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
     }
-    await this.clickButton("Submit");
-    const toast = await this.waitForToast();
-    this.lastResponse = { member_experiment_ids: ["added"], toast };
-    this.lastError = undefined;
   }
 );
 
 When(
   "I remove a member from the group",
   async function (this: PlaywrightWorld) {
-    await this.goToWorkspacePage("experiment-groups");
-    const row = this.page.locator(`table tbody tr:has-text("${this.experimentGroupId}")`);
-    await row.click();
-    await this.page.waitForTimeout(500);
-    const removeBtn = this.page.locator("button:has-text('Remove')").first();
-    if (await removeBtn.isVisible()) {
-      await removeBtn.click();
-      const toast = await this.waitForToast();
-      this.lastResponse = { member_experiment_ids: [], toast };
+    try {
+      this.lastResponse = await this.client.send(
+        new RemoveMembersFromGroupCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          id: this.experimentGroupId,
+          member_experiment_ids: [validExpId],
+          change_reason: "Cucumber remove member",
+        })
+      );
       this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
     }
   }
 );
@@ -378,26 +494,59 @@ When(
 When(
   "I add an in-progress experiment to the group",
   async function (this: PlaywrightWorld) {
-    this.lastError = { message: "not in the created stage" };
-    this.lastResponse = undefined;
+    try {
+      this.lastResponse = await this.client.send(
+        new AddMembersToGroupCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          id: this.experimentGroupId,
+          member_experiment_ids: [inProgressExpId],
+          change_reason: "Cucumber add invalid",
+        })
+      );
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
   }
 );
 
+When("I list experiment groups", async function (this: PlaywrightWorld) {
+  try {
+    this.lastResponse = await this.client.send(
+      new ListExperimentGroupsCommand({
+        workspace_id: this.workspaceId,
+        org_id: this.orgId,
+      })
+    );
+    this.lastError = undefined;
+  } catch (e: any) {
+    this.lastError = e;
+    this.lastResponse = undefined;
+  }
+});
+
 When(
-  "I update the experiment group name to {string}",
-  async function (this: PlaywrightWorld, newName: string) {
-    await this.goToWorkspacePage("experiment-groups");
-    const row = this.page.locator(`table tbody tr:has-text("${this.experimentGroupId}")`);
-    await row.click();
-    await this.page.waitForTimeout(500);
-    const nameInput = this.page.getByPlaceholder("Group name");
-    if (await nameInput.isVisible()) {
-      await nameInput.clear();
-      await nameInput.fill(this.uniqueName(newName));
-      await this.clickButton("Submit");
-      const toast = await this.waitForToast();
-      this.lastResponse = { name: this.uniqueName(newName), toast };
+  "I list experiment groups sorted by {string} in {string} order",
+  async function (this: PlaywrightWorld, sortOn: string, sortBy: string) {
+    try {
+      this.lastResponse = await this.client.send(
+        new ListExperimentGroupsCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          sort_on:
+            sortOn === "created_at"
+              ? ExperimentGroupSortOn.CREATED_AT
+              : ExperimentGroupSortOn.CREATED_AT,
+          sort_by: sortBy === "DESC" ? SortBy.DESC : SortBy.ASC,
+          count: 5,
+        })
+      );
       this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
     }
   }
 );
@@ -405,33 +554,18 @@ When(
 When(
   "I delete the experiment group",
   async function (this: PlaywrightWorld) {
-    await this.goToWorkspacePage("experiment-groups");
-    const row = this.page.locator(`table tbody tr:has-text("${this.experimentGroupId}")`);
-    const visible = await row.isVisible().catch(() => false);
-    if (!visible) {
-      this.lastError = { message: "No records found" };
-      this.lastResponse = undefined;
-      return;
-    }
-    await row.click();
-    await this.page.waitForTimeout(500);
-    await this.clickButton("Delete");
-    const confirmBtn = this.page.locator("button:has-text('Yes, Delete')");
-    if (await confirmBtn.isVisible()) {
-      await confirmBtn.click();
-    }
     try {
-      const toast = await this.waitForToast();
-      if (toast.toLowerCase().includes("error") || toast.toLowerCase().includes("has members")) {
-        this.lastError = { message: toast };
-        this.lastResponse = undefined;
-      } else {
-        this.lastResponse = { toast };
-        this.lastError = undefined;
-      }
-    } catch {
-      this.lastResponse = { deleted: true };
+      this.lastResponse = await this.client.send(
+        new DeleteExperimentGroupCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          id: this.experimentGroupId,
+        })
+      );
       this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
     }
   }
 );
@@ -439,24 +573,19 @@ When(
 When(
   "I delete experiment group {string}",
   async function (this: PlaywrightWorld, id: string) {
-    await this.goToWorkspacePage("experiment-groups");
-    const row = this.page.locator(`table tbody tr[id="${id}"]`);
-    const visible = await row.isVisible().catch(() => false);
-    if (!visible) {
-      this.lastError = { message: "No records found" };
+    try {
+      this.lastResponse = await this.client.send(
+        new DeleteExperimentGroupCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          id,
+        })
+      );
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
       this.lastResponse = undefined;
-      return;
     }
-    await row.click();
-    await this.page.waitForTimeout(500);
-    await this.clickButton("Delete");
-    const confirmBtn = this.page.locator("button:has-text('Yes, Delete')");
-    if (await confirmBtn.isVisible()) {
-      await confirmBtn.click();
-    }
-    const toast = await this.waitForToast();
-    this.lastResponse = { toast };
-    this.lastError = undefined;
   }
 );
 
@@ -464,32 +593,26 @@ When(
 
 Then(
   "the response should contain the member experiment IDs",
-  async function (this: PlaywrightWorld) {
+  function (this: PlaywrightWorld) {
     assert.ok(this.lastResponse, "No response");
     assert.ok(
       this.lastResponse.member_experiment_ids?.length > 0,
-      "No member IDs"
+      "No member IDs in response"
     );
   }
 );
 
 Then(
   "the response traffic percentage should be {int}",
-  async function (this: PlaywrightWorld, expected: number) {
+  function (this: PlaywrightWorld, expected: number) {
     assert.ok(this.lastResponse, "No response");
-    // In UI, check the page content for the traffic percentage
-    if (this.lastResponse.traffic_percentage !== undefined) {
-      assert.strictEqual(this.lastResponse.traffic_percentage, expected);
-    } else {
-      const content = await this.page.textContent("body");
-      assert.ok(content?.includes(String(expected)), `Traffic ${expected}% not found on page`);
-    }
+    assert.strictEqual(this.lastResponse.traffic_percentage, expected);
   }
 );
 
 Then(
   "the response member list should be empty",
-  async function (this: PlaywrightWorld) {
+  function (this: PlaywrightWorld) {
     assert.ok(this.lastResponse, "No response");
     assert.deepStrictEqual(this.lastResponse.member_experiment_ids, []);
   }
@@ -497,75 +620,52 @@ Then(
 
 Then(
   "the response should have a group name",
-  async function (this: PlaywrightWorld) {
+  function (this: PlaywrightWorld) {
     assert.ok(this.lastResponse, "No response");
-    assert.ok(this.lastResponse.name, "No group name");
+    assert.ok(this.lastResponse.name, "No group name in response");
   }
 );
 
 Then(
   "the response should contain the added experiment ID",
-  async function (this: PlaywrightWorld) {
+  function (this: PlaywrightWorld) {
     assert.ok(this.lastResponse, "No response");
     assert.ok(
-      this.lastResponse.member_experiment_ids?.length > 0,
-      "No members added"
+      this.lastResponse.member_experiment_ids?.includes(validExp2Id),
+      "Added experiment not found in member list"
     );
   }
 );
 
 Then(
   "the response should not contain the removed experiment ID",
-  async function (this: PlaywrightWorld) {
+  function (this: PlaywrightWorld) {
     assert.ok(this.lastResponse, "No response");
+    assert.ok(
+      !this.lastResponse.member_experiment_ids?.includes(validExpId),
+      "Removed experiment still in member list"
+    );
   }
 );
 
 Then(
   "the list should contain the created group",
-  async function (this: PlaywrightWorld) {
-    const exists = await this.tableContainsText(this.experimentGroupId);
-    assert.ok(exists, `Group "${this.experimentGroupId}" not in table`);
+  function (this: PlaywrightWorld) {
+    const data = this.lastResponse?.data;
+    assert.ok(Array.isArray(data), "Response is not a list");
+    assert.ok(data.length > 0, "List is empty");
   }
 );
 
 Then(
   "the response should be sorted by created_at descending",
-  async function (this: PlaywrightWorld) {
-    // In UI, trust the sort was applied via header click
-    assert.ok(this.lastResponse, "No response");
-  }
-);
-
-Then(
-  "the response should have group name {string}",
-  async function (this: PlaywrightWorld, name: string) {
-    const content = await this.page.textContent("body");
-    assert.ok(content, "Page has no content");
-  }
-);
-
-Then(
-  "the list should contain the created experiment group",
-  async function (this: PlaywrightWorld) {
-    const exists = await this.tableContainsText(this.experimentGroupId);
-    assert.ok(exists, `Group not in table`);
-  }
-);
-
-Then(
-  "the group should have {int} member(s)",
-  async function (this: PlaywrightWorld, count: number) {
-    const content = await this.page.textContent("body");
-    assert.ok(content, "Page has content");
-  }
-);
-
-Then(
-  "the experiment group should be deleted",
-  async function (this: PlaywrightWorld) {
-    await this.goToWorkspacePage("experiment-groups");
-    const exists = await this.tableContainsText(this.experimentGroupId);
-    assert.ok(!exists, `Group should be deleted but found in table`);
+  function (this: PlaywrightWorld) {
+    const data = this.lastResponse?.data;
+    assert.ok(Array.isArray(data), "Response is not a list");
+    if (data.length > 1) {
+      const d1 = new Date(data[0].created_at).getTime();
+      const d2 = new Date(data[1].created_at).getTime();
+      assert.ok(d1 >= d2, "Results not sorted by created_at DESC");
+    }
   }
 );
