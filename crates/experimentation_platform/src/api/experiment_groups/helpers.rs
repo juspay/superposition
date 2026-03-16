@@ -264,13 +264,13 @@ fn assign_additional_buckets(
             unassigned_buckets.len()
         ));
     }
-    let variants = experiment.variants.clone().into_inner();
-    let variants_len = variants.len();
+
+    let variants_len = experiment.variants.len();
 
     // Reverse the unassigned_buckets to fill from the front
     unassigned_buckets.reverse();
 
-    for variant in variants {
+    for variant in experiment.variants.iter() {
         for _ in 0..additional_needed / variants_len {
             if let Some(bucket) = unassigned_buckets.pop() {
                 *bucket = Some(Bucket {
@@ -289,9 +289,8 @@ fn unassign_excess_buckets(
     experiment: &Experiment,
     excess_count: usize,
 ) {
-    let variants = experiment.variants.clone().into_inner();
-    let variants_len = variants.len();
-    for variant in variants {
+    let variants_len = experiment.variants.len();
+    for variant in experiment.variants.iter() {
         for _ in 0..excess_count / variants_len {
             if let Some(bucket) = current_buckets
                 .iter_mut()
@@ -363,10 +362,10 @@ pub fn create_system_generated_experiment_group(
     let context_hash = hash(&Value::Object(context.clone().into()));
     let now = chrono::Utc::now();
 
-    let variants = experiment.variants.clone().into_inner();
-    let group_traffic_percentage =
-        TrafficPercentage::try_from(variants.len() as u8 * **exp_traffic_percentage)
-            .map_err(|e| unexpected_error!(e))?;
+    let group_traffic_percentage = TrafficPercentage::try_from(
+        experiment.variants.len() as u8 * **exp_traffic_percentage,
+    )
+    .map_err(|e| unexpected_error!(e))?;
 
     let mut buckets = Buckets::default();
     update_bucket_allocation(experiment, &mut buckets, exp_traffic_percentage)?;
@@ -416,8 +415,7 @@ pub fn update_experiment_group_buckets(
 
     let new_traffic_percentage = match experiment_group.group_type {
         GroupType::SystemGenerated => TrafficPercentage::try_from(
-            experiment.variants.clone().into_inner().len() as i32
-                * (**exp_traffic_percentage as i32),
+            experiment.variants.len() as i32 * (**exp_traffic_percentage as i32),
         )
         .map_err(|e| unexpected_error!(e))?,
         GroupType::UserCreated => experiment_group.traffic_percentage,

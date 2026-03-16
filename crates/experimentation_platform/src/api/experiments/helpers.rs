@@ -866,7 +866,6 @@ pub fn get_control_overrides_from_exp_id(
         .get_result::<Variants>(conn)?;
 
     let control_overrides = variants
-        .into_inner()
         .into_iter()
         .find(|variant| variant.variant_type == VariantType::CONTROL)
         .ok_or_else(|| {

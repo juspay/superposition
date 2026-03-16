@@ -123,13 +123,12 @@ async fn add_policy_handler(
         .await
         .map_err(|e| unexpected_error!(e))?;
 
+    if !added {
+        bad_argument!("The specified policy already exists");
+    }
+
     Ok(Json(ActionResponse {
-        success: added,
-        message: if added {
-            "Policy added".to_string()
-        } else {
-            "Policy already exists".to_string()
-        },
+        message: "Policy added".to_string(),
     }))
 }
 
@@ -158,13 +157,12 @@ async fn delete_policy_handler(
         .await
         .map_err(|e| unexpected_error!(e))?;
 
+    if !removed {
+        bad_argument!("The specified policy does not exist");
+    }
+
     Ok(Json(ActionResponse {
-        success: removed,
-        message: if removed {
-            "Policy removed".to_string()
-        } else {
-            "Policy does not exist".to_string()
-        },
+        message: "Policy removed".to_string(),
     }))
 }
 
@@ -215,13 +213,12 @@ async fn add_roles_handler(
         .await
         .map_err(|e| unexpected_error!(e))?;
 
+    if !added {
+        bad_argument!("The specified grouping policy already exists");
+    }
+
     Ok(Json(ActionResponse {
-        success: added,
-        message: if added {
-            "Grouping policy added".to_string()
-        } else {
-            "Grouping policy already exists".to_string()
-        },
+        message: "Grouping policy added".to_string(),
     }))
 }
 
@@ -248,13 +245,12 @@ async fn delete_roles_handler(
         .await
         .map_err(|e| unexpected_error!(e))?;
 
+    if !removed {
+        bad_argument!("The specified grouping policy does not exist");
+    }
+
     Ok(Json(ActionResponse {
-        success: removed,
-        message: if removed {
-            "Grouping policy removed".to_string()
-        } else {
-            "Grouping policy does not exist".to_string()
-        },
+        message: "Grouping policy removed".to_string(),
     }))
 }
 
@@ -308,13 +304,12 @@ async fn add_domain_action_group_handler(
         .await
         .map_err(|e| unexpected_error!(e))?;
 
+    if !added {
+        bad_argument!("The specified policy already exists");
+    }
+
     Ok(Json(ActionResponse {
-        success: added,
-        message: if added {
-            "Action-group policy added".to_string()
-        } else {
-            "Action-group policy already exists".to_string()
-        },
+        message: "Action-group policy added".to_string(),
     }))
 }
 
@@ -344,13 +339,12 @@ async fn delete_domain_action_group_handler(
         .await
         .map_err(|e| unexpected_error!(e))?;
 
+    if !removed {
+        bad_argument!("The specified action-group policy does not exist");
+    }
+
     Ok(Json(ActionResponse {
-        success: removed,
-        message: if removed {
-            "Action-group policy removed".to_string()
-        } else {
-            "Action-group policy does not exist".to_string()
-        },
+        message: "Action-group policy removed".to_string(),
     }))
 }
 
@@ -396,13 +390,12 @@ async fn add_action_group_handler(
         .await
         .map_err(|e| unexpected_error!(e))?;
 
+    if !added {
+        bad_argument!("The specified action-group policy already exists");
+    }
+
     Ok(Json(ActionResponse {
-        success: added,
-        message: if added {
-            "Action-group policy added".to_string()
-        } else {
-            "Action-group policy already exists".to_string()
-        },
+        message: "Action-group policy added".to_string(),
     }))
 }
 
@@ -430,13 +423,12 @@ async fn delete_action_group_handler(
         .await
         .map_err(|e| unexpected_error!(e))?;
 
+    if !removed {
+        bad_argument!("The specified action-group policy does not exist");
+    }
+
     Ok(Json(ActionResponse {
-        success: removed,
-        message: if removed {
-            "Action-group policy removed".to_string()
-        } else {
-            "Action-group policy does not exist".to_string()
-        },
+        message: "Action-group policy removed".to_string(),
     }))
 }
 

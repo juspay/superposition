@@ -265,15 +265,7 @@ fn PolicyViewer(
                 Ok(resp) => {
                     policies_resource.refetch();
                     delete_item_rws.set(None);
-                    enqueue_alert(
-                        resp.message,
-                        if resp.success {
-                            AlertType::Success
-                        } else {
-                            AlertType::Error
-                        },
-                        4000,
-                    );
+                    enqueue_alert(resp.message, AlertType::Success, 4000);
                 }
                 Err(e) => {
                     enqueue_alert(
@@ -315,15 +307,7 @@ fn PolicyViewer(
 
         policies_resource.refetch();
         resource_action_map_resource.refetch();
-        enqueue_alert(
-            resp.message,
-            if resp.success {
-                AlertType::Success
-            } else {
-                AlertType::Error
-            },
-            4000,
-        );
+        enqueue_alert(resp.message, AlertType::Success, 4000);
         Ok(())
     });
 
@@ -559,15 +543,7 @@ fn RolePolicyViewer(authz_scope: StoredValue<AuthzScope>) -> impl IntoView {
                 Ok(resp) => {
                     roles_resource.refetch();
                     delete_item_rws.set(None);
-                    enqueue_alert(
-                        resp.message,
-                        if resp.success {
-                            AlertType::Success
-                        } else {
-                            AlertType::Error
-                        },
-                        4000,
-                    );
+                    enqueue_alert(resp.message, AlertType::Success, 4000);
                 }
                 Err(e) => {
                     enqueue_alert(
@@ -596,15 +572,7 @@ fn RolePolicyViewer(authz_scope: StoredValue<AuthzScope>) -> impl IntoView {
             .await?;
 
             roles_resource.refetch();
-            enqueue_alert(
-                resp.message,
-                if resp.success {
-                    AlertType::Success
-                } else {
-                    AlertType::Error
-                },
-                4000,
-            );
+            enqueue_alert(resp.message, AlertType::Success, 4000);
             Ok(())
         }
     });
@@ -837,15 +805,7 @@ fn DomainResourceActionGroupViewer(
                 Ok(resp) => {
                     action_groups_resource.refetch();
                     delete_item_rws.set(None);
-                    enqueue_alert(
-                        resp.message,
-                        if resp.success {
-                            AlertType::Success
-                        } else {
-                            AlertType::Error
-                        },
-                        4000,
-                    );
+                    enqueue_alert(resp.message, AlertType::Success, 4000);
                 }
                 Err(e) => {
                     enqueue_alert(
@@ -882,15 +842,7 @@ fn DomainResourceActionGroupViewer(
 
             action_groups_resource.refetch();
             resource_action_map_resource.refetch();
-            enqueue_alert(
-                resp.message,
-                if resp.success {
-                    AlertType::Success
-                } else {
-                    AlertType::Error
-                },
-                4000,
-            );
+            enqueue_alert(resp.message, AlertType::Success, 4000);
             Ok(())
         }
     });
@@ -1110,15 +1062,7 @@ fn ResourceActionGroupViewer(
                 Ok(resp) => {
                     action_groups_resource.refetch();
                     delete_item_rws.set(None);
-                    enqueue_alert(
-                        resp.message,
-                        if resp.success {
-                            AlertType::Success
-                        } else {
-                            AlertType::Error
-                        },
-                        4000,
-                    );
+                    enqueue_alert(resp.message, AlertType::Success, 4000);
                 }
                 Err(e) => {
                     enqueue_alert(
@@ -1152,15 +1096,7 @@ fn ResourceActionGroupViewer(
 
             action_groups_resource.refetch();
             resource_action_map_resource.refetch();
-            enqueue_alert(
-                resp.message,
-                if resp.success {
-                    AlertType::Success
-                } else {
-                    AlertType::Error
-                },
-                4000,
-            );
+            enqueue_alert(resp.message, AlertType::Success, 4000);
             Ok(())
         }
     });

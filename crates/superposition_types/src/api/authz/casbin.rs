@@ -25,6 +25,5 @@ pub struct ActionGroupPolicyRequest {
 
 #[derive(Deserialize, Serialize)]
 pub struct ActionResponse {
-    pub success: bool,
     pub message: String,
 }

@@ -539,7 +539,7 @@ pub async fn conclude(
     let mut operations: Vec<ContextAction> = vec![];
 
     let mut is_valid_winner_variant = false;
-    for variant in experiment.variants.clone().into_inner() {
+    for variant in experiment.variants.clone().into_iter() {
         let context_id = variant.context_id.ok_or_else(|| {
             log::error!("context id not available for variant {:?}", variant.id);
             unexpected_error!("Something went wrong, failed to conclude experiment")
@@ -803,7 +803,6 @@ pub async fn discard(
     let operations: Vec<ContextAction> = experiment
         .variants
         .clone()
-        .into_inner()
         .into_iter()
         .map(|variant| {
             variant
@@ -1007,7 +1006,6 @@ async fn get_applicable_variants_handler(
         .filter_map(|(_, experiment)| {
             experiment
                 .variants
-                .into_inner()
                 .into_iter()
                 .find(|variant| applicable_variants.contains(&variant.id))
         })
@@ -1323,15 +1321,14 @@ async fn ramp_handler(
         ));
     }
 
-    let experiment_variants = experiment.variants.clone().into_inner();
-
     match experiment.experiment_type {
         ExperimentType::Default => {
             // Validate control overrides against resolved config when auto-populate is enabled and experiment is in CREATED state
             if workspace_context.settings.auto_populate_control
                 && experiment.status == ExperimentStatusType::CREATED
             {
-                let control_variant = experiment_variants
+                let control_variant = experiment
+                    .variants
                     .iter()
                     .find(|v| v.variant_type == VariantType::CONTROL)
                     .ok_or_else(|| {
@@ -1368,7 +1365,7 @@ async fn ramp_handler(
 
     let old_traffic_percentage = experiment.traffic_percentage;
     let new_traffic_percentage = &req.traffic_percentage;
-    let variants_count = experiment.variants.clone().into_inner().len() as u8;
+    let variants_count = experiment.variants.len() as u8;
 
     new_traffic_percentage
         .check_max_allowed(variants_count)
@@ -1526,10 +1523,9 @@ async fn update_handler(
         ));
     }
 
-    let experiment_variants: Vec<Variant> = experiment.variants.clone().into_inner();
-
     let id_to_existing_variant: HashMap<String, &Variant> = HashMap::from_iter(
-        experiment_variants
+        experiment
+            .variants
             .iter()
             .map(|variant| (variant.id.to_string(), variant))
             .collect::<Vec<(String, &Variant)>>(),

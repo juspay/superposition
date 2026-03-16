@@ -151,9 +151,7 @@ pub fn ExperimentPage() -> impl IntoView {
                                                             context=Conditions::from_iter(
                                                                 experiment_ef.context.into_inner(),
                                                             )
-                                                            variants=FromIterator::from_iter(
-                                                                experiment_ef.variants.into_inner(),
-                                                            )
+                                                            variants=FromIterator::from_iter(experiment_ef.variants)
                                                             default_config
                                                             dimensions
                                                             experiment_form_type=ExperimentFormType::from(

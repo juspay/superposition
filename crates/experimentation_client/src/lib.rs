@@ -212,7 +212,6 @@ impl Client {
             .filter_map(|experiment| {
                 let variants: Vec<_> = experiment
                     .variants
-                    .into_inner()
                     .into_iter()
                     .filter_map(|mut variant| {
                         Variant::filter_keys_by_prefix(&variant, &prefix_list)
