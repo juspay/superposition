@@ -41,6 +41,8 @@ Given(
 
 // ── When ────────────────────────────────────────────────────────────
 
+// Dimension creation uses SDK because the Monaco JSON editor is difficult to automate reliably.
+// After creation, we verify the dimension appears in the UI list.
 When(
   "I create a dimension with name {string} and schema type {string}",
   async function (this: PlaywrightWorld, name: string, schemaType: string) {
@@ -94,6 +96,7 @@ When(
   }
 );
 
+// SDK: no detail page easily accessible by name
 When(
   "I get dimension {string}",
   async function (this: PlaywrightWorld, name: string) {
@@ -113,15 +116,27 @@ When(
   }
 );
 
+// PLAYWRIGHT: Navigate to dimensions page, read the table data
 When("I list all dimensions", async function (this: PlaywrightWorld) {
   try {
-    this.lastResponse = await this.client.send(
-      new ListDimensionsCommand({
-        workspace_id: this.workspaceId,
-        org_id: this.orgId,
-        count: 200,
-      })
-    );
+    await this.goToWorkspacePage("dimensions");
+
+    // Wait for the table to be present
+    await this.page.locator("table").waitFor({ state: "visible", timeout: 10000 });
+
+    // Extract dimension data from the table
+    const rows = this.page.locator("table tbody tr");
+    const rowCount = await rows.count();
+    const dimensions: any[] = [];
+
+    for (let i = 0; i < rowCount; i++) {
+      const row = rows.nth(i);
+      const cells = row.locator("td");
+      const dimensionName = (await cells.nth(0).textContent())?.trim() ?? "";
+      dimensions.push({ dimension: dimensionName });
+    }
+
+    this.lastResponse = { data: dimensions };
     this.lastError = undefined;
   } catch (e: any) {
     this.lastError = e;
@@ -129,6 +144,7 @@ When("I list all dimensions", async function (this: PlaywrightWorld) {
   }
 });
 
+// SDK: no UI edit form available
 When(
   "I update dimension {string} description to {string}",
   async function (this: PlaywrightWorld, name: string, description: string) {
@@ -150,6 +166,7 @@ When(
   }
 );
 
+// SDK: no UI delete button available
 When(
   "I delete dimension {string}",
   async function (this: PlaywrightWorld, name: string) {
@@ -183,12 +200,25 @@ Then(
   }
 );
 
+// PLAYWRIGHT: Verify dimension exists in the table on the dimensions page
 Then(
   "the list should contain dimension {string}",
-  function (this: PlaywrightWorld, name: string) {
-    const data = this.lastResponse?.data;
-    assert.ok(Array.isArray(data), "No list data");
-    const found = data.find((d: any) => d.dimension === this.dimensionName);
-    assert.ok(found, `Dimension "${this.dimensionName}" not found in list`);
+  async function (this: PlaywrightWorld, name: string) {
+    // If lastResponse came from the Playwright table read, check it
+    if (this.lastResponse?.data && Array.isArray(this.lastResponse.data)) {
+      const found = this.lastResponse.data.find(
+        (d: any) => d.dimension === this.dimensionName
+      );
+      if (found) return; // Found in existing response data
+    }
+
+    // Fallback: navigate to dimensions page and verify in the table directly
+    await this.goToWorkspacePage("dimensions");
+    await this.page.locator("table").waitFor({ state: "visible", timeout: 10000 });
+    const tableText = await this.page.locator("table").textContent();
+    assert.ok(
+      tableText?.includes(this.dimensionName),
+      `Dimension "${this.dimensionName}" not found in dimensions table`
+    );
   }
 );
