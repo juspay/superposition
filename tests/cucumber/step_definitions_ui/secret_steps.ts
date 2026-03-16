@@ -13,6 +13,7 @@ import { PlaywrightWorld } from "../support_ui/world.ts";
 import * as assert from "node:assert";
 
 // ── Given ───────────────────────────────────────────────────────────
+// All Given steps use SDK for reliable setup
 
 Given(
   "a secret {string} exists with value {string}",
@@ -67,25 +68,67 @@ Given(
 
 // ── When ────────────────────────────────────────────────────────────
 
+// HYBRID: Create a secret via the UI drawer for valid names, SDK for error cases
 When(
   "I create a secret named {string} with value {string}",
   async function (this: PlaywrightWorld, name: string, value: string) {
     this.secretName = name;
-    try {
-      this.lastResponse = await this.client.send(
-        new CreateSecretCommand({
-          workspace_id: this.workspaceId,
-          org_id: this.orgId,
-          name,
-          value,
-          description: `Test secret ${name}`,
-          change_reason: "Cucumber test",
-        })
-      );
-      if (this.lastResponse.name) {
-        this.createdSecrets.push(this.lastResponse.name);
+    // Use SDK for error cases (empty, invalid names, duplicates) since UI toast detection is unreliable
+    const isValidName = /^[A-Z][A-Z0-9_]*$/.test(name);
+    const isDuplicate = this.createdSecrets.includes(name);
+    if (!isValidName || isDuplicate) {
+      try {
+        this.lastResponse = await this.client.send(
+          new CreateSecretCommand({
+            workspace_id: this.workspaceId,
+            org_id: this.orgId,
+            name,
+            value,
+            description: `Test secret ${name}`,
+            change_reason: "Cucumber test",
+          })
+        );
+        this.createdSecrets.push(name);
+        this.lastError = undefined;
+      } catch (e: any) {
+        this.lastError = e;
+        this.lastResponse = undefined;
       }
-      this.lastError = undefined;
+      return;
+    }
+    // PLAYWRIGHT: Use UI drawer for valid secret names
+    try {
+      await this.goToWorkspacePage("secrets");
+      await this.page.getByRole("button", { name: "Create Secret" }).click();
+      await this.page.waitForTimeout(300);
+
+      await this.page
+        .getByPlaceholder("Enter secret name (uppercase, digits, underscore)")
+        .fill(name);
+      await this.page
+        .getByPlaceholder("Enter a description")
+        .fill(`Test secret ${name}`);
+      await this.page
+        .getByPlaceholder("Enter a reason for this change")
+        .fill("Cucumber test");
+      await this.page
+        .getByPlaceholder("Enter secret value (will be encrypted)")
+        .fill(value);
+
+      await this.page.getByRole("button", { name: "Submit" }).last().click();
+
+      const toastText = await this.waitForToast();
+      if (
+        toastText.toLowerCase().includes("error") ||
+        toastText.toLowerCase().includes("failed")
+      ) {
+        this.lastError = { message: toastText };
+        this.lastResponse = undefined;
+      } else {
+        this.lastResponse = { name, toast: toastText };
+        this.createdSecrets.push(name);
+        this.lastError = undefined;
+      }
     } catch (e: any) {
       this.lastError = e;
       this.lastResponse = undefined;
@@ -93,6 +136,7 @@ When(
   }
 );
 
+// SDK: get secret details by name
 When(
   "I get secret {string}",
   async function (this: PlaywrightWorld, name: string) {
@@ -112,6 +156,25 @@ When(
   }
 );
 
+// PLAYWRIGHT: List secrets by navigating to the secrets page
+When(
+  "I list secrets",
+  async function (this: PlaywrightWorld) {
+    try {
+      await this.goToWorkspacePage("secrets");
+      await this.page.locator("table").waitFor({ state: "visible", timeout: 10000 });
+
+      const rowCount = await this.page.locator("table tbody tr").count();
+      this.lastResponse = { count: rowCount };
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
+// SDK: no edit UI available for secrets
 When(
   "I update secret {string} value to {string}",
   async function (this: PlaywrightWorld, name: string, value: string) {
@@ -133,6 +196,7 @@ When(
   }
 );
 
+// SDK: no UI delete button for secrets
 When(
   "I delete secret {string}",
   async function (this: PlaywrightWorld, name: string) {
@@ -153,6 +217,7 @@ When(
   }
 );
 
+// SDK: test compute function execution
 When(
   "I test the compute function",
   async function (this: PlaywrightWorld) {
@@ -213,9 +278,20 @@ When(
 
 Then(
   "the response should have secret name {string}",
-  function (this: PlaywrightWorld, name: string) {
-    assert.ok(this.lastResponse, "No response");
-    assert.strictEqual(this.lastResponse.name, name);
+  async function (this: PlaywrightWorld, name: string) {
+    // If lastResponse came from Playwright (toast-based), verify via the UI table
+    if (this.lastResponse?.toast) {
+      await this.goToWorkspacePage("secrets");
+      await this.page.locator("table").waitFor({ state: "visible", timeout: 10000 });
+      const tableText = await this.page.locator("table").textContent();
+      assert.ok(
+        tableText?.includes(name),
+        `Secret "${name}" not found in secrets table`
+      );
+    } else {
+      assert.ok(this.lastResponse, "No response");
+      assert.strictEqual(this.lastResponse.name, name);
+    }
   }
 );
 
