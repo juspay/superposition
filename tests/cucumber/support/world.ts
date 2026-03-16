@@ -85,7 +85,7 @@ export class SuperpositionWorld extends World {
 
   /** Generate a unique name for test resources */
   uniqueName(prefix: string): string {
-    return `${prefix}_${this.testRunId}`;
+    return `${prefix}${this.testRunId}`;
   }
 }
 

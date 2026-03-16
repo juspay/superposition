@@ -9,7 +9,7 @@ import {
 import { SuperpositionWorld } from "../support/world.ts";
 import * as assert from "node:assert";
 
-let positionCounter = 10;
+let positionCounter = 1;
 
 function nextPosition(): number {
   return positionCounter++;
