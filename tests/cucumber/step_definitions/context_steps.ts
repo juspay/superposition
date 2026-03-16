@@ -262,6 +262,7 @@ When(
             PUT: {
               context: { [dimName]: val },
               override: { "ctx-config-key": `${val}-bulk` },
+              description: `Bulk context for ${val}`,
               change_reason: "Cucumber bulk test",
             },
           })),
