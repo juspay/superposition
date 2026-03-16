@@ -9,10 +9,8 @@ import {
 import { SuperpositionWorld } from "../support/world.ts";
 import * as assert from "node:assert";
 
-let positionCounter = 1;
-
 function nextPosition(): number {
-  return positionCounter++;
+  return 1; // Always insert at position 1 (front) to avoid exceeding dimension count
 }
 
 // ── Given ───────────────────────────────────────────────────────────
