@@ -44,7 +44,7 @@ Given(
             workspace_id: this.workspaceId,
             org_id: this.orgId,
             dimension: dim.name,
-            position: Math.floor(Math.random() * 900) + 100,
+            position: 1,
             schema: dim.schema,
             description: `Dim ${dim.name}`,
             change_reason: "Cucumber group setup",

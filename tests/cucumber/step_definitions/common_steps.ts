@@ -5,8 +5,8 @@ import * as assert from "node:assert";
 // ── Generic outcome assertions ──────────────────────────────────────
 
 Then("the operation should succeed", function (this: SuperpositionWorld) {
-  assert.ok(this.lastResponse !== undefined, "Expected a successful response but got none");
   assert.strictEqual(this.lastError, undefined, `Operation failed unexpectedly: ${this.lastError?.message}`);
+  assert.ok(this.lastResponse !== undefined, "Expected a successful response but got none");
 });
 
 Then("the operation should fail", function (this: SuperpositionWorld) {
@@ -17,7 +17,12 @@ Then(
   "the operation should fail with error matching {string}",
   function (this: SuperpositionWorld, errorPattern: string) {
     assert.ok(this.lastError !== undefined, "Expected an error but operation succeeded");
-    const message = this.lastError?.message || String(this.lastError);
+    // The SDK may throw a SyntaxError when the server returns non-JSON error responses.
+    // In that case, the raw server response is available on $response.body.
+    const rawBody = typeof this.lastError?.$response?.body === "string"
+      ? this.lastError.$response.body
+      : "";
+    const message = rawBody || this.lastError?.message || String(this.lastError);
     assert.ok(
       message.includes(errorPattern),
       `Error "${message}" does not contain "${errorPattern}"`
