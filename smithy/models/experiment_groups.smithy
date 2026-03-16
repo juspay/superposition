@@ -61,10 +61,12 @@ resource ExperimentGroup {
     update: UpdateExperimentGroup
     delete: DeleteExperimentGroup
     read: GetExperimentGroup
-    list: ListExperimentGroups
     operations: [
         AddMembersToGroup
         RemoveMembersFromGroup
+    ]
+    collectionOperations: [
+        ListExperimentGroups
     ]
 }
 
@@ -237,11 +239,15 @@ list ExperimentGroupList {
 }
 
 @documentation("Lists experiment groups, with support for filtering and pagination.")
-@readonly
-@http(method: "GET", uri: "/experiment-groups")
+@http(method: "POST", uri: "/experiment-groups/list")
 @tags(["Experiment Groups"])
 operation ListExperimentGroups {
     input := with [PaginationParams, WorkspaceMixin] {
+        @documentation("While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.")
+        @httpHeader("If-Modified-Since")
+        @notProperty
+        if_modified_since: DateTime
+
         @httpQuery("name")
         @documentation("Filter by experiment group name (exact match or substring, depending on backend implementation).")
         name: String
@@ -267,10 +273,17 @@ operation ListExperimentGroups {
         @httpQuery("group_type")
         @documentation("Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).")
         group_type: GroupTypeList
+
+        @notProperty
+        context: ContextMap
     }
 
     output := with [PaginatedResponse] {
         @required
         data: ExperimentGroupList
+
+        @httpHeader("last-modified")
+        @required
+        last_modified: DateTime
     }
 }

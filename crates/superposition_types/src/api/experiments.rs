@@ -192,6 +192,11 @@ impl Default for ExperimentSortOn {
     }
 }
 
+#[derive(Deserialize)]
+pub struct ExperimentListRequest {
+    pub context: Option<Map<String, Value>>,
+}
+
 #[derive(Deserialize, Clone, PartialEq, IsEmpty, QueryParam)]
 pub struct ExperimentListFilters {
     #[query_param(skip_if_empty, iterable)]

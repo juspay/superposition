@@ -1,15 +1,16 @@
-use std::sync::Mutex;
 use std::{
     collections::HashSet,
     future::{Ready, ready},
     str::FromStr,
-    sync::Arc,
+    sync::{Arc, Mutex},
 };
 
-use actix_web::{Error, FromRequest, HttpMessage, error, web::Data};
+use actix_web::{Error, FromRequest, HttpMessage, HttpResponseBuilder, error, web::Data};
+use chrono::{DateTime, Utc};
 use derive_more::{Deref, DerefMut};
 use diesel::r2d2::{ConnectionManager, PooledConnection};
 use diesel::{Connection, PgConnection};
+use reqwest::header::HeaderValue;
 use secrecy::SecretString;
 use snowflake::SnowflakeIdGenerator;
 use superposition_types::database::models::Workspace;
@@ -35,6 +36,42 @@ pub enum AppEnv {
 pub enum AppHeader {
     XConfigVersion,
     LastModified,
+}
+
+impl AppHeader {
+    pub fn add_last_modified(
+        max_created_at: Option<DateTime<Utc>>,
+        is_smithy: bool,
+        resp_builder: &mut HttpResponseBuilder,
+    ) {
+        if let Some(date) = max_created_at {
+            let value = if is_smithy {
+                // Smithy needs to be in this format otherwise they can't
+                // deserialize it.
+                HeaderValue::from_str(date.to_rfc3339().as_str())
+            } else {
+                HeaderValue::from_str(date.to_rfc2822().as_str())
+            };
+            if let Ok(header_value) = value {
+                resp_builder
+                    .insert_header((Self::LastModified.to_string(), header_value));
+            } else {
+                log::error!("failed parsing datetime_utc {:?}", value);
+            }
+        }
+    }
+
+    pub fn add_config_version(
+        config_version: &Option<i64>,
+        resp_builder: &mut HttpResponseBuilder,
+    ) {
+        if let Some(val) = config_version {
+            resp_builder.insert_header((
+                Self::XConfigVersion.to_string(),
+                val.clone().to_string(),
+            ));
+        }
+    }
 }
 
 pub struct EncryptionKey {

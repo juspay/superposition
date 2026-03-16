@@ -1,6 +1,5 @@
-use actix_http::header::HeaderValue;
 use actix_web::{
-    HttpRequest, HttpResponseBuilder,
+    HttpRequest,
     web::{Data, Header, Json},
 };
 use cac_client::{eval_cac, eval_cac_with_reasoning};
@@ -9,7 +8,7 @@ use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, dsl::max};
 use serde_json::{Map, Value};
 use service_utils::{
     redis::{CONFIG_VERSION_KEY_SUFFIX, read_through_cache},
-    service::types::{AppHeader, AppState, EncryptionKey, SchemaName, WorkspaceContext},
+    service::types::{AppState, EncryptionKey, SchemaName, WorkspaceContext},
 };
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
@@ -67,40 +66,6 @@ pub async fn get_config_version(
             .await
             .map_err(|e| unexpected_error!("Config version not found due to: {}", e)),
         },
-    }
-}
-
-pub fn add_last_modified_to_header(
-    max_created_at: Option<DateTime<Utc>>,
-    is_smithy: bool,
-    resp_builder: &mut HttpResponseBuilder,
-) {
-    if let Some(date) = max_created_at {
-        let value = if is_smithy {
-            // Smithy needs to be in this format otherwise they can't
-            // deserialize it.
-            HeaderValue::from_str(date.to_rfc3339().as_str())
-        } else {
-            HeaderValue::from_str(date.to_rfc2822().as_str())
-        };
-        if let Ok(header_value) = value {
-            resp_builder
-                .insert_header((AppHeader::LastModified.to_string(), header_value));
-        } else {
-            log::error!("failed parsing datetime_utc {:?}", value);
-        }
-    }
-}
-
-pub fn add_config_version_to_header(
-    config_version: &Option<i64>,
-    resp_builder: &mut HttpResponseBuilder,
-) {
-    if let Some(val) = config_version {
-        resp_builder.insert_header((
-            AppHeader::XConfigVersion.to_string(),
-            val.clone().to_string(),
-        ));
     }
 }
 

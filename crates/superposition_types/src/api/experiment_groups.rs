@@ -1,6 +1,13 @@
 #[cfg(feature = "diesel_derives")]
+use diesel::query_builder::AsChangeset;
+use serde::{Deserialize, Serialize};
+use serde_json::{Map, Value};
+use superposition_derives::{IsEmpty, QueryParam};
+
+#[cfg(feature = "diesel_derives")]
 use crate::database::schema::experiment_groups;
 use crate::{
+    api::DimensionMatchStrategy,
     custom_query::{CommaSeparatedQParams, QueryParam},
     database::models::{
         experimentation::{
@@ -10,10 +17,6 @@ use crate::{
     },
     Condition, Exp, IsEmpty, SortBy,
 };
-#[cfg(feature = "diesel_derives")]
-use diesel::query_builder::AsChangeset;
-use serde::{Deserialize, Serialize};
-use superposition_derives::{IsEmpty, QueryParam};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExpGroupCreateRequest {
@@ -76,6 +79,7 @@ pub struct ExpGroupFilters {
     pub sort_by: Option<SortBy>,
     #[query_param(skip_if_empty, iterable)]
     pub group_type: Option<CommaSeparatedQParams<GroupType>>,
+    pub dimension_match_strategy: Option<DimensionMatchStrategy>,
 }
 
 // default with group type which contains only usercreated as value
@@ -90,6 +94,12 @@ impl Default for ExpGroupFilters {
             group_type: Some(CommaSeparatedQParams(
                 vec![GroupType::UserCreated].into_iter().collect(),
             )),
+            dimension_match_strategy: None,
         }
     }
+}
+
+#[derive(Deserialize)]
+pub struct ExpGroupListRequest {
+    pub context: Option<Map<String, Value>>,
 }
