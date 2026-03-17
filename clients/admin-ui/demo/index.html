@@ -89,7 +89,7 @@
 
     <div class="toolbar">
       <label for="host">Host:</label>
-      <input id="host" type="text" value="http://localhost:8080" style="width:220px" />
+      <input id="host" type="text" value="/api" style="width:220px" title="Use /api to go through Vite proxy (avoids CORS)" />
 
       <label for="org">Org ID:</label>
       <input id="org" type="text" value="juspay" style="width:120px" />
@@ -149,13 +149,13 @@
 
         // Quick health-check
         try {
-          const resp = await fetch(host + "/health", { mode: "cors" });
+          const resp = await fetch(host + "/health");
           if (!resp.ok) throw new Error("HTTP " + resp.status);
           showStatus("Connected to " + host, "success");
         } catch (err) {
           showStatus(
             "Cannot reach " + host + "/health — " + err.message +
-            ". Make sure the Superposition server is running and CORS is enabled.",
+            ". Make sure the Superposition server is running on localhost:8080.",
             "error",
           );
           // Still render the UI — it will show API errors inline

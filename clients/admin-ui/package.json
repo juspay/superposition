@@ -27,7 +27,7 @@
     "format": "prettier --write 'src/**/*.{ts,tsx}' '__tests__/**/*.{ts,tsx}'",
     "format:check": "prettier --check 'src/**/*.{ts,tsx}' '__tests__/**/*.{ts,tsx}'",
     "typecheck": "tsc --noEmit",
-    "demo": "vite serve demo --open"
+    "demo": "vite dev --config demo/vite.config.ts --open demo/index.html"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
