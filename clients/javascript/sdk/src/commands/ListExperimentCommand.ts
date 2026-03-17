@@ -68,9 +68,12 @@ export interface ListExperimentCommandOutput extends ListExperimentOutput, __Met
  *   sort_by: "desc" || "asc",
  *   global_experiments_only: true || false,
  *   dimension_match_strategy: "exact" || "subset",
+<<<<<<< HEAD
  *   prefix: [
  *     "STRING_VALUE",
  *   ],
+=======
+>>>>>>> 6e8749e1 (Test)
  *   context: { // ContextMap
  *     "<keys>": "DOCUMENT_VALUE",
  *   },
@@ -118,7 +121,11 @@ export interface ListExperimentCommandOutput extends ListExperimentOutput, __Met
  * //       experiment_group_id: "STRING_VALUE",
  * //     },
  * //   ],
+<<<<<<< HEAD
  * //   last_modified: new Date("TIMESTAMP"), // required
+=======
+ * //   last_modified_at: new Date("TIMESTAMP"), // required
+>>>>>>> 6e8749e1 (Test)
  * // };
  *
  * ```

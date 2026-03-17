@@ -269,6 +269,7 @@ impl ListExperimentGroupsFluentBuilder {
     pub fn get_group_type(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::GroupType>> {
                     self.inner.get_group_type()
                 }
+<<<<<<< HEAD
     /// Strategy to follow while filter items based on the context
     pub fn dimension_match_strategy(mut self, input: crate::types::DimensionMatchStrategy) -> Self {
                     self.inner = self.inner.dimension_match_strategy(input);
@@ -283,6 +284,8 @@ impl ListExperimentGroupsFluentBuilder {
     pub fn get_dimension_match_strategy(&self) -> &::std::option::Option<crate::types::DimensionMatchStrategy> {
                     self.inner.get_dimension_match_strategy()
                 }
+=======
+>>>>>>> 6e8749e1 (Test)
     /// 
     /// Adds a key-value pair to `context`.
     /// 

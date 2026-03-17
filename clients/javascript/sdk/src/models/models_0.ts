@@ -2011,12 +2011,15 @@ export interface ListExperimentGroupsInput {
   group_type?: (GroupType)[] | undefined;
 
   /**
+<<<<<<< HEAD
    * Strategy to follow while filter items based on the context
    * @public
    */
   dimension_match_strategy?: DimensionMatchStrategy | undefined;
 
   /**
+=======
+>>>>>>> 6e8749e1 (Test)
    * Map representing the context.
    * Keys correspond to the names of the dimensions.
    * @public
@@ -2139,7 +2142,10 @@ export interface ListExperimentInput {
    */
   dimension_match_strategy?: DimensionMatchStrategy | undefined;
 
+<<<<<<< HEAD
   prefix?: (string)[] | undefined;
+=======
+>>>>>>> 6e8749e1 (Test)
   /**
    * Map representing the context.
    * Keys correspond to the names of the dimensions.
@@ -2155,7 +2161,11 @@ export interface ListExperimentOutput {
   total_pages: number | undefined;
   total_items: number | undefined;
   data: (ExperimentResponse)[] | undefined;
+<<<<<<< HEAD
   last_modified: Date | undefined;
+=======
+  last_modified_at: Date | undefined;
+>>>>>>> 6e8749e1 (Test)
 }
 
 /**

@@ -83,7 +83,11 @@ pub fn ser_list_experiment_groups_headers(
                                 err
                             ))
                             })?;
+<<<<<<< HEAD
                             builder = builder.header("if-modified-since", header_value);
+=======
+                            builder = builder.header("If-Modified-Since", header_value);
+>>>>>>> 6e8749e1 (Test)
     }
     Ok(builder)
 }

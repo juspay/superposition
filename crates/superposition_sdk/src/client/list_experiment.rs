@@ -20,13 +20,20 @@ impl super::Client {
     ///   - [`sort_by(SortBy)`](crate::operation::list_experiment::builders::ListExperimentFluentBuilder::sort_by) / [`set_sort_by(Option<SortBy>)`](crate::operation::list_experiment::builders::ListExperimentFluentBuilder::set_sort_by):<br>required: **false**<br>Sort order enumeration for list operations.<br>
     ///   - [`global_experiments_only(bool)`](crate::operation::list_experiment::builders::ListExperimentFluentBuilder::global_experiments_only) / [`set_global_experiments_only(Option<bool>)`](crate::operation::list_experiment::builders::ListExperimentFluentBuilder::set_global_experiments_only):<br>required: **false**<br>(undocumented)<br>
     ///   - [`dimension_match_strategy(DimensionMatchStrategy)`](crate::operation::list_experiment::builders::ListExperimentFluentBuilder::dimension_match_strategy) / [`set_dimension_match_strategy(Option<DimensionMatchStrategy>)`](crate::operation::list_experiment::builders::ListExperimentFluentBuilder::set_dimension_match_strategy):<br>required: **false**<br>Strategy to follow while filter items based on the context<br>
+<<<<<<< HEAD
     ///   - [`prefix(impl Into<String>)`](crate::operation::list_experiment::builders::ListExperimentFluentBuilder::prefix) / [`set_prefix(Option<Vec::<String>>)`](crate::operation::list_experiment::builders::ListExperimentFluentBuilder::set_prefix):<br>required: **false**<br>(undocumented)<br>
+=======
+>>>>>>> 6e8749e1 (Test)
     ///   - [`context(impl Into<String>, Document)`](crate::operation::list_experiment::builders::ListExperimentFluentBuilder::context) / [`set_context(Option<HashMap::<String, Document>>)`](crate::operation::list_experiment::builders::ListExperimentFluentBuilder::set_context):<br>required: **false**<br>Map representing the context. Keys correspond to the names of the dimensions.<br>
                             /// - On success, responds with [`ListExperimentOutput`](crate::operation::list_experiment::ListExperimentOutput) with field(s):
     ///   - [`total_pages(i32)`](crate::operation::list_experiment::ListExperimentOutput::total_pages): (undocumented)
     ///   - [`total_items(i32)`](crate::operation::list_experiment::ListExperimentOutput::total_items): (undocumented)
     ///   - [`data(Vec::<ExperimentResponse>)`](crate::operation::list_experiment::ListExperimentOutput::data): (undocumented)
+<<<<<<< HEAD
     ///   - [`last_modified(DateTime)`](crate::operation::list_experiment::ListExperimentOutput::last_modified): (undocumented)
+=======
+    ///   - [`last_modified_at(DateTime)`](crate::operation::list_experiment::ListExperimentOutput::last_modified_at): (undocumented)
+>>>>>>> 6e8749e1 (Test)
                             /// - On failure, responds with [`SdkError<ListExperimentError>`](crate::operation::list_experiment::ListExperimentError)
     pub fn list_experiment(&self) -> crate::operation::list_experiment::builders::ListExperimentFluentBuilder {
                                 crate::operation::list_experiment::builders::ListExperimentFluentBuilder::new(self.handle.clone())

@@ -272,6 +272,15 @@ import software.amazon.smithy.utils.SmithyGenerated;
 @SmithyGenerated
 final class SuperpositionClientImpl extends Client implements SuperpositionClient {
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+        .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
+        .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
+>>>>>>> 6e8749e1 (Test)
+        .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
+>>>>>>> 5f8110af (Test)
         .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
         .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
         .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)

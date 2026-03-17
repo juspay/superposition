@@ -57,7 +57,10 @@ export interface ListExperimentGroupsCommandOutput extends ListExperimentGroupsO
  *   group_type: [ // GroupTypeList
  *     "USER_CREATED" || "SYSTEM_GENERATED",
  *   ],
+<<<<<<< HEAD
  *   dimension_match_strategy: "exact" || "subset",
+=======
+>>>>>>> 6e8749e1 (Test)
  *   context: { // ContextMap
  *     "<keys>": "DOCUMENT_VALUE",
  *   },
