@@ -2,8 +2,6 @@ import { Given, When, Then } from "@cucumber/cucumber";
 import {
   CreateSecretCommand,
   GetSecretCommand,
-  UpdateSecretCommand,
-  DeleteSecretCommand,
   CreateFunctionCommand,
   TestCommand,
   FunctionTypes,
@@ -174,21 +172,61 @@ When(
   }
 );
 
-// SDK: no edit UI available for secrets
+// PLAYWRIGHT: edit secret value via UI detail page (SDK fallback for non-existent)
 When(
   "I update secret {string} value to {string}",
   async function (this: PlaywrightWorld, name: string, value: string) {
+    // Check if secret exists first; if not, use SDK to get proper error
     try {
-      this.lastResponse = await this.client.send(
-        new UpdateSecretCommand({
+      await this.client.send(
+        new GetSecretCommand({
           workspace_id: this.workspaceId,
           org_id: this.orgId,
           name,
-          value,
-          change_reason: "Cucumber update",
         })
       );
-      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+      return;
+    }
+    try {
+      await this.goToDetailPage("secrets", name);
+      await this.page.waitForTimeout(300);
+
+      await this.page.getByRole("button", { name: "Edit" }).click();
+      await this.page.waitForTimeout(300);
+
+      await this.page
+        .getByPlaceholder("Enter secret value (will be encrypted)")
+        .fill(value);
+
+      await this.page
+        .getByPlaceholder("Enter a reason for this change")
+        .fill("Cucumber update");
+
+      await this.page.getByRole("button", { name: "Submit" }).last().click();
+
+      await this.page.getByRole("button", { name: "Yes, Update" }).click();
+
+      const toastText = await this.waitForToast();
+      if (
+        toastText.toLowerCase().includes("error") ||
+        toastText.toLowerCase().includes("failed")
+      ) {
+        this.lastError = { message: toastText };
+        this.lastResponse = undefined;
+      } else {
+        // Fetch updated secret via SDK for response assertions
+        this.lastResponse = await this.client.send(
+          new GetSecretCommand({
+            workspace_id: this.workspaceId,
+            org_id: this.orgId,
+            name,
+          })
+        );
+        this.lastError = undefined;
+      }
     } catch (e: any) {
       this.lastError = e;
       this.lastResponse = undefined;
@@ -196,20 +234,45 @@ When(
   }
 );
 
-// SDK: no UI delete button for secrets
+// PLAYWRIGHT: delete secret via UI detail page (SDK fallback for non-existent)
 When(
   "I delete secret {string}",
   async function (this: PlaywrightWorld, name: string) {
+    // Check if secret exists first; if not, use SDK to get proper error
     try {
-      this.lastResponse = await this.client.send(
-        new DeleteSecretCommand({
+      await this.client.send(
+        new GetSecretCommand({
           workspace_id: this.workspaceId,
           org_id: this.orgId,
           name,
         })
       );
-      this.createdSecrets = this.createdSecrets.filter((s) => s !== name);
-      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+      return;
+    }
+    try {
+      await this.goToDetailPage("secrets", name);
+      await this.page.waitForTimeout(300);
+
+      await this.page.getByRole("button", { name: "Delete" }).click();
+      await this.page.waitForTimeout(300);
+
+      await this.page.getByRole("button", { name: "Yes, Delete" }).click();
+
+      const toastText = await this.waitForToast();
+      if (
+        toastText.toLowerCase().includes("error") ||
+        toastText.toLowerCase().includes("failed")
+      ) {
+        this.lastError = { message: toastText };
+        this.lastResponse = undefined;
+      } else {
+        this.createdSecrets = this.createdSecrets.filter((s) => s !== name);
+        this.lastResponse = { deleted: true, toast: toastText };
+        this.lastError = undefined;
+      }
     } catch (e: any) {
       this.lastError = e;
       this.lastResponse = undefined;
