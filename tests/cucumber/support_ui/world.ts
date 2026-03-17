@@ -121,6 +121,14 @@ export class PlaywrightWorld extends World {
     await this.page.waitForLoadState("networkidle");
   }
 
+  /** Navigate to a specific entity's detail page */
+  async goToDetailPage(section: string, entityName: string): Promise<void> {
+    await this.page.goto(
+      `${this.appUrl}/admin/${this.orgId}/${this.workspaceId}/${section}/${entityName}`
+    );
+    await this.page.waitForLoadState("networkidle");
+  }
+
   // ── UI interaction helpers ────────────────────────────────────────
 
   /** Open a drawer by clicking its trigger button */
@@ -191,7 +199,8 @@ export class PlaywrightWorld extends World {
     const editor = this.page.locator(`#${editorId} .monaco-editor`);
     await editor.click();
     // Select all and replace
-    await this.page.keyboard.press("Control+a");
+    const modifier = process.platform === "darwin" ? "Meta" : "Control";
+    await this.page.keyboard.press(`${modifier}+a`);
     await this.page.keyboard.type(content, { delay: 10 });
   }
 
