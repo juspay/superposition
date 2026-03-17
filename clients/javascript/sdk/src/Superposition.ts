@@ -144,6 +144,16 @@ import {
   GetConfigFastCommandOutput,
 } from "./commands/GetConfigFastCommand";
 import {
+  GetConfigJsonCommand,
+  GetConfigJsonCommandInput,
+  GetConfigJsonCommandOutput,
+} from "./commands/GetConfigJsonCommand";
+import {
+  GetConfigTomlCommand,
+  GetConfigTomlCommandInput,
+  GetConfigTomlCommandOutput,
+} from "./commands/GetConfigTomlCommand";
+import {
   GetContextCommand,
   GetContextCommandInput,
   GetContextCommandOutput,
@@ -450,6 +460,8 @@ const commands = {
   DiscardExperimentCommand,
   GetConfigCommand,
   GetConfigFastCommand,
+  GetConfigJsonCommand,
+  GetConfigTomlCommand,
   GetContextCommand,
   GetContextFromConditionCommand,
   GetDefaultConfigCommand,
@@ -982,6 +994,40 @@ export interface Superposition {
     args: GetConfigFastCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: GetConfigFastCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link GetConfigJsonCommand}
+   */
+  getConfigJson(
+    args: GetConfigJsonCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<GetConfigJsonCommandOutput>;
+  getConfigJson(
+    args: GetConfigJsonCommandInput,
+    cb: (err: any, data?: GetConfigJsonCommandOutput) => void
+  ): void;
+  getConfigJson(
+    args: GetConfigJsonCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: GetConfigJsonCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link GetConfigTomlCommand}
+   */
+  getConfigToml(
+    args: GetConfigTomlCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<GetConfigTomlCommandOutput>;
+  getConfigToml(
+    args: GetConfigTomlCommandInput,
+    cb: (err: any, data?: GetConfigTomlCommandOutput) => void
+  ): void;
+  getConfigToml(
+    args: GetConfigTomlCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: GetConfigTomlCommandOutput) => void
   ): void;
 
   /**

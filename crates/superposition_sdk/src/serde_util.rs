@@ -303,6 +303,16 @@ if builder.last_modified.is_none() { builder.last_modified = Some(::aws_smithy_t
                 builder
             }
 
+pub(crate) fn get_config_json_output_output_correct_errors(mut builder: crate::operation::get_config_json::builders::GetConfigJsonOutputBuilder) -> crate::operation::get_config_json::builders::GetConfigJsonOutputBuilder {
+                if builder.json_config.is_none() { builder.json_config = Some(Default::default()) }
+                builder
+            }
+
+pub(crate) fn get_config_toml_output_output_correct_errors(mut builder: crate::operation::get_config_toml::builders::GetConfigTomlOutputBuilder) -> crate::operation::get_config_toml::builders::GetConfigTomlOutputBuilder {
+                if builder.toml_config.is_none() { builder.toml_config = Some(Default::default()) }
+                builder
+            }
+
 pub(crate) fn get_context_output_output_correct_errors(mut builder: crate::operation::get_context::builders::GetContextOutputBuilder) -> crate::operation::get_context::builders::GetContextOutputBuilder {
                 if builder.id.is_none() { builder.id = Some(Default::default()) }
 if builder.value.is_none() { builder.value = Some(Default::default()) }

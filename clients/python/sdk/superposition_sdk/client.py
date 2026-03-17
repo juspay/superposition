@@ -62,6 +62,8 @@ from .deserialize import (
     _deserialize_discard_experiment,
     _deserialize_get_config,
     _deserialize_get_config_fast,
+    _deserialize_get_config_json,
+    _deserialize_get_config_toml,
     _deserialize_get_context,
     _deserialize_get_context_from_condition,
     _deserialize_get_default_config,
@@ -199,6 +201,8 @@ from .models import (
     DiscardExperimentOutput,
     GET_CONFIG,
     GET_CONFIG_FAST,
+    GET_CONFIG_JSON,
+    GET_CONFIG_TOML,
     GET_CONTEXT,
     GET_CONTEXT_FROM_CONDITION,
     GET_DEFAULT_CONFIG,
@@ -220,7 +224,11 @@ from .models import (
     GetConfigFastInput,
     GetConfigFastOutput,
     GetConfigInput,
+    GetConfigJsonInput,
+    GetConfigJsonOutput,
     GetConfigOutput,
+    GetConfigTomlInput,
+    GetConfigTomlOutput,
     GetContextFromConditionInput,
     GetContextFromConditionOutput,
     GetContextInput,
@@ -399,6 +407,8 @@ from .serialize import (
     _serialize_discard_experiment,
     _serialize_get_config,
     _serialize_get_config_fast,
+    _serialize_get_config_json,
+    _serialize_get_config_toml,
     _serialize_get_context,
     _serialize_get_context_from_condition,
     _serialize_get_default_config,
@@ -1237,6 +1247,62 @@ class Superposition:
             deserialize=_deserialize_get_config_fast,
             config=self._config,
             operation=GET_CONFIG_FAST,
+        )
+
+    async def get_config_json(self, input: GetConfigJsonInput, plugins: list[Plugin] | None = None) -> GetConfigJsonOutput:
+        """
+        Retrieves the full config in JSON format, including default configs with
+        schemas, dimensions, and overrides. This endpoint is optimized for clients that
+        prefer JSON format for configuration management.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_get_config_json,
+            deserialize=_deserialize_get_config_json,
+            config=self._config,
+            operation=GET_CONFIG_JSON,
+        )
+
+    async def get_config_toml(self, input: GetConfigTomlInput, plugins: list[Plugin] | None = None) -> GetConfigTomlOutput:
+        """
+        Retrieves the full config in TOML format, including default configs with
+        schemas, dimensions, and overrides. This endpoint is optimized for clients that
+        prefer TOML format for configuration management.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_get_config_toml,
+            deserialize=_deserialize_get_config_toml,
+            config=self._config,
+            operation=GET_CONFIG_TOML,
         )
 
     async def get_context(self, input: GetContextInput, plugins: list[Plugin] | None = None) -> GetContextOutput:

@@ -331,7 +331,7 @@
               };
             };
           };
-          "superposition_toml_example" = {
+          "superposition_config_file_examples" = {
             crane = {
               args = {
                 buildInputs =

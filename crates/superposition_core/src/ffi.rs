@@ -5,7 +5,7 @@ use thiserror::Error;
 
 use crate::{
     eval_config, eval_config_with_reasoning, experiment::ExperimentationArgs,
-    get_applicable_variants, MergeStrategy,
+    get_applicable_variants, ConfigFormat, JsonFormat, MergeStrategy, TomlFormat,
 };
 
 #[derive(Debug, Error, uniffi::Error)]
@@ -180,6 +180,38 @@ fn ffi_get_applicable_variants(
 /// ```
 #[uniffi::export]
 fn ffi_parse_toml_config(toml_content: String) -> Result<Config, OperationError> {
-    crate::parse_toml_config(&toml_content)
+    TomlFormat::parse_config(&toml_content)
+        .map_err(|e| OperationError::Unexpected(e.to_string()))
+}
+
+/// Parse JSON configuration string
+///
+/// # Arguments
+/// * `json_content` - JSON string with configuration
+///
+/// # Returns
+/// * `Ok(Config)` - Parsed configuration with all components
+/// * `Err(OperationError)` - Detailed error message
+///
+/// # Example JSON
+/// ```json
+/// {
+///   "default-configs": {
+///     "timeout": { "value": 30, "schema": { "type": "integer" } }
+///   },
+///   "dimensions": {
+///     "os": { "position": 1, "schema": { "type": "string" } }
+///   },
+///   "overrides": [
+///     {
+///       "_context_": { "os": "linux" },
+///       "timeout": 60
+///     }
+///   ]
+/// }
+/// ```
+#[uniffi::export]
+fn ffi_parse_json_config(json_content: String) -> Result<Config, OperationError> {
+    JsonFormat::parse_config(&json_content)
         .map_err(|e| OperationError::Unexpected(e.to_string()))
 }

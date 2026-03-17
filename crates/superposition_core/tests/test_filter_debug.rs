@@ -1,6 +1,5 @@
 use serde_json::{Map, Value};
-use superposition_core::parse_toml_config;
-use superposition_core::serialize_to_toml;
+use superposition_core::{ConfigFormat, TomlFormat};
 use superposition_types::{
     Config, DefaultConfigInfo, DefaultConfigsWithSchema, DetailedConfig,
 };
@@ -62,7 +61,7 @@ _context_ = { dimension = "d2" }
 timeout = 90
 "#;
 
-    let config: Config = parse_toml_config(toml).unwrap();
+    let config: Config = TomlFormat::parse_config(toml).unwrap();
     println!("\n=== Before filter ===");
     println!("Contexts count: {}", config.contexts.len());
     for ctx in &config.contexts {
@@ -97,6 +96,6 @@ timeout = 90
 
     println!("\n=== Serialized output ===");
     let detailed_config = config_to_detailed(&filtered_config);
-    let serialized = serialize_to_toml(detailed_config).unwrap();
+    let serialized = TomlFormat::serialize(detailed_config).unwrap();
     println!("{}", serialized);
 }

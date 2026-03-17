@@ -1,7 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
-module FFI.Superposition (getResolvedConfig, ResolveConfigParams (..), defaultResolveParams, MergeStrategy (..), parseTomlConfig) where
+module FFI.Superposition (getResolvedConfig, ResolveConfigParams (..), defaultResolveParams, MergeStrategy (..), parseTomlConfig, parseJsonConfig) where
 
 import Control.Monad (when)
 import Data.Aeson (Value, eitherDecodeStrict')
@@ -48,6 +48,15 @@ foreign import capi "superposition_core.h core_get_resolved_config"
 foreign import capi "superposition_core.h core_parse_toml_config"
   parse_toml_config ::
     -- | toml_content
+    CString ->
+    -- | error-buffer
+    CString ->
+    -- | parsed config json
+    IO CString
+
+foreign import capi "superposition_core.h core_parse_json_config"
+  parse_json_config ::
+    -- | json_content
     CString ->
     -- | error-buffer
     CString ->
@@ -142,6 +151,33 @@ parseTomlConfig tomlContent = do
       withForeignPtr resFptr $ fmap Just . packCString
     else pure Nothing
   free tomlStr
+  free ebuf
+  pure $ case (result, errText) of
+    (Just cfg, t) | T.null t -> case eitherDecodeStrict' cfg of
+      Right val -> Right val
+      Left e    -> Left $ "JSON parse error: " ++ e
+    (Nothing, t) | T.null t -> Left "null pointer returned"
+    _ -> Left (unpack errText)
+
+-- | Parse JSON configuration string into structured format
+-- Returns JSON matching the Config type with:
+--   - contexts: array of context objects with id, condition, priority, weight, override_with_keys
+--   - overrides: object mapping override IDs to override key-value pairs
+--   - default_configs: object with configuration key-value pairs
+--   - dimensions: object mapping dimension names to dimension info (schema, position, etc.)
+parseJsonConfig :: String -> IO (Either String Value)
+parseJsonConfig jsonContent = do
+  ebuf <- callocBytes errorBufferSize
+  jsonStr <- newCString jsonContent
+  res <- parse_json_config jsonStr ebuf
+  errBytes <- packCString ebuf
+  let errText = fromRight mempty $ decodeUtf8' errBytes
+  result <- if res /= nullPtr
+    then do
+      resFptr <- newForeignPtr p_free_string res
+      withForeignPtr resFptr $ fmap Just . packCString
+    else pure Nothing
+  free jsonStr
   free ebuf
   pure $ case (result, errText) of
     (Just cfg, t) | T.null t -> case eitherDecodeStrict' cfg of

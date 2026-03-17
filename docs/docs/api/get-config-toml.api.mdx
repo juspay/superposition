@@ -1,0 +1,71 @@
+---
+id: get-config-toml
+title: "GetConfigToml"
+description: "Retrieves the full config in TOML format, including default configs with schemas, dimensions, and overrides. This endpoint is optimized for clients that prefer TOML format for configuration management."
+sidebar_label: "GetConfigToml"
+hide_title: true
+hide_table_of_contents: true
+api: eJzdVE1P3DAQ/SuWT620X6LaCzeKEEUqAsH2hDiYZJIYnNjY44VttP+9M3GABO0ipKqXnhJ73sy8mXmeVuYQMq8datvIQ3kF6DWsIQisQBTRGJHZptCl0I1YXZz/FIX1tcIJnTMTc92UIodCRYM9MIgnjZUIWQW1ChOR6xqaQNHpXzW5sGvwXlPWmVhVOghocmd1g4L+LdGo9W/IOYvIjIYGmYlC4TwU4IcUEqbLGb1i/qJWjSqB8uFMTqR1kO7PcqrsFPC4A69sbcjqlFc1IPggD29a2dCBUM9T68upzgmguR8VqBw8nVI98rCVuHGMDNSoppTbifTwGLUHSoI+wnYyCPZk/UNwKoO/iHfLN8FRAyEw/mCx4M94bqPqBEHEiw/lSkk7Z6MCTmub60JzgnY/jy0xoe4iNbOzwjPOnVFcxX6viUSNBt4TuojoIl6qjbEq59AUe7mrjDPK5xtlrsGTTE68pxEvx8UMOCnnjM66Ec/vg93NzN7dQ4Y8cM+CQJ26WEMIpJVdhb8VsYPOVc/kuKexTdWgKllH8nikx/NXPUqaIqmtsizFEjo+Cis6zJOE55hkGSCLXuOmE2Wo6SltZsrpWYXovqugs6PIbje3rLP3dlAe/Cvg9i3aNXclFb4/5msn+J6ojEfzY7W6FB1aKIJTTX3rX8TMnndsZw1/wOwzaTr4R3k6QDcr3RS2C9rP7DrSlJ0NuvehwYUU+mBxsJwuvk0XS2ZIEKR9wa79cyXJijQ/0e+IEbX2TXr/1ZrspzF44NSd6A1XnDR6I5M/g7kxJKyKuseGtqWRwy9vtlu+fozgWbr0u1ZeqzseCWv1ZfGxqnMd2EAvoVAmwAdt/nLVr8KvYh/RB9iM1/ZamcgwyQ/kn6QaLvVRtgQ4yjJwOLANowzXwOnJihT8ByiHn+c=
+sidebar_class_name: "get api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"GetConfigToml"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/config/toml"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieves the full config in TOML format, including default configs with schemas, dimensions, and overrides. This endpoint is optimized for clients that prefer TOML format for configuration management.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"x-org-id","in":"header","schema":{"type":"string"},"required":true},{"name":"x-workspace","in":"header","schema":{"type":"string"},"required":true}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"GetConfigToml 200 response","headers":{"last-modified":{"schema":{"type":"string"}}},"content":{"text/plain":{"schema":{"type":"string","title":"GetConfigTomlOutputPayload"}}}},"500":{"description":"InternalServerError 500 response","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}},"title":"InternalServerErrorResponseContent"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

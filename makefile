@@ -436,13 +436,13 @@ bindings-test: uniffi-bindings
 	else \
 		cp $(CARGO_TARGET_DIR)/release/superposition_core.dll clients/python/bindings/superposition_bindings/libsuperposition_core-x86_64-pc-windows-msvc.dll; \
 	fi
-	cd clients/python/bindings && python3 test_toml_functions.py
+	cd clients/python/bindings && python3 test_toml_functions.py && python3 test_json_functions.py
 	@echo ""
 	@echo "========================================"
 	@echo "Running JavaScript/TypeScript TOML binding tests"
 	@echo "========================================"
 	bash ./scripts/setup_provider_binaries.sh js bindings release
-	cd clients/javascript/bindings && npm install && npm run build && node dist/test-toml.js
+	cd clients/javascript/bindings && npm install && npm run build && node dist/test-toml.js && node dist/test-json.js
 	@echo ""
 	@echo "========================================"
 	@echo "Running Java/Kotlin TOML binding tests"

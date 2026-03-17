@@ -17,6 +17,8 @@ resource Config {
         GetConfig
         GetResolvedConfig
         GetResolvedConfigWithIdentifier
+        GetConfigToml
+        GetConfigJson
     ]
 }
 
@@ -140,6 +142,42 @@ operation GetConfig {
         @httpHeader("x-audit-id")
         @notProperty
         audit_id: String
+    }
+}
+
+@documentation("Retrieves the full config in TOML format, including default configs with schemas, dimensions, and overrides. This endpoint is optimized for clients that prefer TOML format for configuration management.")
+@readonly
+@http(method: "GET", uri: "/config/toml")
+@tags(["Configuration Management"])
+operation GetConfigToml {
+    input := with [WorkspaceMixin] {}
+
+    output := for Config {
+        @httpPayload
+        @required
+        @notProperty
+        toml_config: String
+
+        @httpHeader("last-modified")
+        $last_modified
+    }
+}
+
+@documentation("Retrieves the full config in JSON format, including default configs with schemas, dimensions, and overrides. This endpoint is optimized for clients that prefer JSON format for configuration management.")
+@readonly
+@http(method: "GET", uri: "/config/json")
+@tags(["Configuration Management"])
+operation GetConfigJson {
+    input := with [WorkspaceMixin] {}
+
+    output := for Config {
+        @httpPayload
+        @required
+        @notProperty
+        json_config: String
+
+        @httpHeader("last-modified")
+        $last_modified
     }
 }
 

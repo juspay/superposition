@@ -805,6 +805,38 @@ export interface GetConfigFastOutput {
 
 /**
  * @public
+ */
+export interface GetConfigJsonInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+}
+
+/**
+ * @public
+ */
+export interface GetConfigJsonOutput {
+  json_config: string | undefined;
+  last_modified?: Date | undefined;
+}
+
+/**
+ * @public
+ */
+export interface GetConfigTomlInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+}
+
+/**
+ * @public
+ */
+export interface GetConfigTomlOutput {
+  toml_config: string | undefined;
+  last_modified?: Date | undefined;
+}
+
+/**
+ * @public
  * @enum
  */
 export const MergeStrategy = {

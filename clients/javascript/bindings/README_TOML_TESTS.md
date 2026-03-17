@@ -113,7 +113,7 @@ Tests 5 scenarios:
 
 ### 3. Parse External File
 - Demonstrates reading TOML from filesystem
-- Parses `examples/superposition_toml_example/example.toml`
+- Parses `examples/superposition_config_file_examples/example.toml`
 
 ### 4. Error Handling
 - Invalid TOML syntax

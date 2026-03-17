@@ -75,6 +75,10 @@ pub(crate) mod shape_get_config;
 
 pub(crate) mod shape_get_config_fast;
 
+pub(crate) mod shape_get_config_json;
+
+pub(crate) mod shape_get_config_toml;
+
 pub(crate) mod shape_get_context;
 
 pub(crate) mod shape_get_context_from_condition;
@@ -245,7 +249,11 @@ pub(crate) mod shape_get_config_fast_output;
 
 pub(crate) mod shape_get_config_input;
 
+pub(crate) mod shape_get_config_json_output;
+
 pub(crate) mod shape_get_config_output;
+
+pub(crate) mod shape_get_config_toml_output;
 
 pub(crate) mod shape_get_resolved_config_input;
 
