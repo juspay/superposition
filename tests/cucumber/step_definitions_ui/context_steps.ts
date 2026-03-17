@@ -5,7 +5,6 @@ import {
   ListContextsCommand,
   UpdateOverrideCommand,
   MoveContextCommand,
-  DeleteContextCommand,
   BulkOperationCommand,
   WeightRecomputeCommand,
   CreateDimensionCommand,
