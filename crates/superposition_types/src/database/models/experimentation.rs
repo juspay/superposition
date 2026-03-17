@@ -272,6 +272,15 @@ impl Variants {
     }
 }
 
+impl IntoIterator for Variants {
+    type Item = Variant;
+    type IntoIter = std::vec::IntoIter<Variant>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone)]
 #[cfg_attr(
     feature = "diesel_derives",

@@ -145,7 +145,7 @@ impl FromRequest for User {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Copy, Serialize)]
+#[derive(Clone, Debug, PartialEq, Copy, Serialize, Deref)]
 pub struct Cac<T>(T);
 impl<T> Cac<T> {
     pub fn into_inner(self) -> T {
@@ -153,7 +153,7 @@ impl<T> Cac<T> {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Copy, Serialize)]
+#[derive(Clone, Debug, PartialEq, Copy, Serialize, Deref)]
 pub struct Exp<T>(T);
 impl<T> Exp<T> {
     pub fn into_inner(self) -> T {

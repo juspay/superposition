@@ -38,6 +38,7 @@ use superposition_types::{
             ChangeReason,
             experimentation::{
                 Experiment, ExperimentStatusType, GroupType, Variant, VariantType,
+                Variants,
             },
         },
         schema::experiments::dsl as experiments,
@@ -849,4 +850,28 @@ pub async fn put_experiments_in_redis(
 
     log::debug!("Successfully updated experiments cache in Redis");
     Ok(())
+}
+
+pub fn get_control_overrides_from_exp_id(
+    exp_id: &i64,
+    schema_name: &SchemaName,
+    conn: &mut DBConnection,
+) -> superposition::Result<Exp<Overrides>> {
+    use superposition_types::database::schema::experiments::dsl as experiments_dsl;
+
+    let variants = experiments_dsl::experiments
+        .find(exp_id)
+        .schema_name(schema_name)
+        .select(experiments_dsl::variants)
+        .get_result::<Variants>(conn)?;
+
+    let control_overrides = variants
+        .into_iter()
+        .find(|variant| variant.variant_type == VariantType::CONTROL)
+        .ok_or_else(|| {
+            log::error!("No control variant found for experiment id {}", exp_id);
+            bad_argument!("No control variant found for the given experiment id")
+        })?;
+
+    Ok(control_overrides.overrides)
 }

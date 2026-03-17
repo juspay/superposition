@@ -28,12 +28,13 @@ use service_utils::{
         WebhookData, construct_request_headers, execute_webhook_call,
         fetch_dimensions_info_map, generate_snowflake_id, request,
     },
+    middlewares::auth_z::{Action as AuthZAction, AuthZ},
     redis::{
         EXPERIMENT_GROUPS_LIST_KEY_SUFFIX, EXPERIMENTS_LAST_MODIFIED_KEY_SUFFIX,
         EXPERIMENTS_LIST_KEY_SUFFIX, read_through_cache,
     },
     service::types::{
-        AppHeader, AppState, CustomHeaders, DbConnection, WorkspaceContext,
+        AppHeader, AppState, CustomHeaders, DbConnection, SchemaName, WorkspaceContext,
     },
 };
 use superposition_derives::{authorized, declare_resource};
@@ -86,7 +87,8 @@ use crate::api::{
     },
     experiments::{
         helpers::{
-            fetch_and_validate_change_reason_with_function, put_experiments_in_redis,
+            fetch_and_validate_change_reason_with_function,
+            get_control_overrides_from_exp_id, put_experiments_in_redis,
             validate_control_overrides, validate_delete_experiment_variants,
         },
         types::StartedByChangeSet,
@@ -131,6 +133,18 @@ fn add_config_version_to_header(
     }
 }
 
+async fn create_authorized(
+    auth_z: AuthZ<AuthZActionCreate>,
+    variants: &[Variant],
+) -> superposition::Result<()> {
+    let control_keys = variants
+        .iter()
+        .filter(|v| v.variant_type == VariantType::CONTROL)
+        .flat_map(|v| v.overrides.keys())
+        .collect::<Vec<_>>();
+    auth_z.authorized(&control_keys).await
+}
+
 #[authorized]
 #[post("")]
 async fn create_handler(
@@ -142,7 +156,10 @@ async fn create_handler(
     user: User,
 ) -> superposition::Result<HttpResponse> {
     use superposition_types::database::schema::experiments::dsl::experiments;
-    let mut variants = req.variants.to_vec();
+    let req = req.into_inner();
+    create_authorized(_auth_z, &req.variants).await?;
+
+    let mut variants = req.variants;
     let DbConnection(mut conn) = db_conn;
     let description = req.description.clone();
     let change_reason = req.change_reason.clone();
@@ -157,10 +174,9 @@ async fn create_handler(
     // Checking if experiment has exactly 1 control variant, and
     // atleast 1 experimental variant
     check_variant_types(&variants)?;
-    let unique_override_keys: Vec<String> =
-        extract_override_keys(&variants[0].overrides.clone().into_inner())
-            .into_iter()
-            .collect();
+    let unique_override_keys: Vec<String> = extract_override_keys(&variants[0].overrides)
+        .into_iter()
+        .collect();
 
     let unique_ids_of_variants_from_req: HashSet<&str> =
         HashSet::from_iter(variants.iter().map(|v| v.id.as_str()));
@@ -178,7 +194,7 @@ async fn create_handler(
     // Checking if all the variants are overriding the mentioned keys
     let variant_overrides = variants
         .iter()
-        .map(|variant| variant.overrides.clone().into_inner())
+        .map(|variant| variant.overrides.deref().clone())
         .collect::<Vec<Overrides>>();
 
     match req.experiment_type {
@@ -409,6 +425,19 @@ async fn create_handler(
     Ok(http_resp.json(response))
 }
 
+async fn action_authorized<A: AuthZAction>(
+    auth_z: AuthZ<A>,
+    exp_id: &i64,
+    schema_name: &SchemaName,
+    conn: &mut DBConnection,
+) -> superposition::Result<()> {
+    let overrides = get_control_overrides_from_exp_id(exp_id, schema_name, conn)?;
+
+    auth_z
+        .authorized(&overrides.keys().collect::<Vec<_>>())
+        .await
+}
+
 #[allow(clippy::too_many_arguments)]
 #[authorized]
 #[patch("/{experiment_id}/conclude")]
@@ -422,6 +451,9 @@ async fn conclude_handler(
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
+    let exp_id = path.into_inner();
+    action_authorized(_auth_z, &exp_id, &workspace_context.schema_name, &mut conn)
+        .await?;
 
     fetch_and_validate_change_reason_with_function(
         &workspace_context,
@@ -432,7 +464,7 @@ async fn conclude_handler(
 
     let (response, config_version_id) = conclude(
         &state,
-        path.into_inner(),
+        exp_id,
         custom_headers.config_tags,
         req.into_inner(),
         &mut conn,
@@ -507,7 +539,7 @@ pub async fn conclude(
     let mut operations: Vec<ContextAction> = vec![];
 
     let mut is_valid_winner_variant = false;
-    for variant in experiment.variants.clone().into_inner() {
+    for variant in experiment.variants.clone().into_iter() {
         let context_id = variant.context_id.ok_or_else(|| {
             log::error!("context id not available for variant {:?}", variant.id);
             unexpected_error!("Something went wrong, failed to conclude experiment")
@@ -694,6 +726,9 @@ async fn discard_handler(
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
+    let exp_id = path.into_inner();
+    action_authorized(_auth_z, &exp_id, &workspace_context.schema_name, &mut conn)
+        .await?;
 
     fetch_and_validate_change_reason_with_function(
         &workspace_context,
@@ -704,7 +739,7 @@ async fn discard_handler(
 
     let (response, config_version_id) = discard(
         &state,
-        path.into_inner(),
+        exp_id,
         custom_headers.config_tags,
         req.into_inner(),
         &mut conn,
@@ -768,7 +803,6 @@ pub async fn discard(
     let operations: Vec<ContextAction> = experiment
         .variants
         .clone()
-        .into_inner()
         .into_iter()
         .map(|variant| {
             variant
@@ -972,7 +1006,6 @@ async fn get_applicable_variants_handler(
         .filter_map(|(_, experiment)| {
             experiment
                 .variants
-                .into_inner()
                 .into_iter()
                 .find(|variant| applicable_variants.contains(&variant.id))
         })
@@ -1255,6 +1288,9 @@ async fn ramp_handler(
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let exp_id = params.into_inner();
+    action_authorized(_auth_z, &exp_id, &workspace_context.schema_name, &mut conn)
+        .await?;
+
     let change_reason = req.change_reason.clone();
 
     fetch_and_validate_change_reason_with_function(
@@ -1285,15 +1321,14 @@ async fn ramp_handler(
         ));
     }
 
-    let experiment_variants = experiment.variants.clone().into_inner();
-
     match experiment.experiment_type {
         ExperimentType::Default => {
             // Validate control overrides against resolved config when auto-populate is enabled and experiment is in CREATED state
             if workspace_context.settings.auto_populate_control
                 && experiment.status == ExperimentStatusType::CREATED
             {
-                let control_variant = experiment_variants
+                let control_variant = experiment
+                    .variants
                     .iter()
                     .find(|v| v.variant_type == VariantType::CONTROL)
                     .ok_or_else(|| {
@@ -1330,7 +1365,7 @@ async fn ramp_handler(
 
     let old_traffic_percentage = experiment.traffic_percentage;
     let new_traffic_percentage = &req.traffic_percentage;
-    let variants_count = experiment.variants.clone().into_inner().len() as u8;
+    let variants_count = experiment.variants.len() as u8;
 
     new_traffic_percentage
         .check_max_allowed(variants_count)
@@ -1446,6 +1481,14 @@ async fn update_handler(
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let experiment_id = params.into_inner();
+    action_authorized(
+        _auth_z,
+        &experiment_id,
+        &workspace_context.schema_name,
+        &mut conn,
+    )
+    .await?;
+
     let experiment_group_id = req.experiment_group_id.clone();
     let description = req.description.clone();
     let change_reason = req.change_reason.clone();
@@ -1480,10 +1523,9 @@ async fn update_handler(
         ));
     }
 
-    let experiment_variants: Vec<Variant> = experiment.variants.clone().into_inner();
-
     let id_to_existing_variant: HashMap<String, &Variant> = HashMap::from_iter(
-        experiment_variants
+        experiment
+            .variants
             .iter()
             .map(|variant| (variant.id.to_string(), variant))
             .collect::<Vec<(String, &Variant)>>(),
@@ -1785,6 +1827,9 @@ async fn pause_handler(
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
+    let exp_id = path.into_inner();
+    action_authorized(_auth_z, &exp_id, &workspace_context.schema_name, &mut conn)
+        .await?;
 
     fetch_and_validate_change_reason_with_function(
         &workspace_context,
@@ -1794,7 +1839,7 @@ async fn pause_handler(
     .await?;
 
     let response = pause(
-        path.into_inner(),
+        exp_id,
         req.into_inner(),
         &mut conn,
         &workspace_context,
@@ -1878,6 +1923,9 @@ async fn resume_handler(
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
+    let exp_id = path.into_inner();
+    action_authorized(_auth_z, &exp_id, &workspace_context.schema_name, &mut conn)
+        .await?;
 
     fetch_and_validate_change_reason_with_function(
         &workspace_context,
@@ -1887,7 +1935,7 @@ async fn resume_handler(
     .await?;
 
     let response = resume(
-        path.into_inner(),
+        exp_id,
         req.into_inner(),
         &mut conn,
         &workspace_context,

@@ -19,6 +19,7 @@ use crate::{
         button::Button,
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection, utils::DropdownOption},
         form::label::Label,
+        modal::PortalModal,
         skeleton::{Skeleton, SkeletonVariant},
         table::{
             Table,
@@ -113,10 +114,37 @@ fn ActionDropdown(
     }
 }
 
-fn policy_columns() -> Vec<Column> {
+fn policy_columns(
+    delete_click_handler: Callback<Map<String, Value>>,
+    authz_scope: AuthzScope,
+) -> Vec<Column> {
+    let actions_col_formatter = move |_: &str, row: &Map<String, Value>| {
+        let domain = row
+            .get("domain")
+            .and_then(|v| v.as_str())
+            .unwrap_or_default()
+            .to_string();
+
+        if domain != authz_scope.to_string() {
+            ().into_view()
+        } else {
+            let row = row.clone();
+            view! {
+                <span
+                    class="cursor-pointer"
+                    on:click=move |_| delete_click_handler.call(row.clone())
+                    title="Delete policy"
+                >
+                    <i class="ri-delete-bin-6-line ri-xl text-red-600" />
+                </span>
+            }
+            .into_view()
+        }
+    };
+
     vec![
         Column::new(
-            "subject".to_string(),
+            "sub".to_string(),
             false,
             default_formatter,
             ColumnSortable::No,
@@ -132,7 +160,7 @@ fn policy_columns() -> Vec<Column> {
             |_| default_column_formatter("Domain"),
         ),
         Column::new(
-            "object".to_string(),
+            "obj".to_string(),
             false,
             default_formatter,
             ColumnSortable::No,
@@ -140,7 +168,7 @@ fn policy_columns() -> Vec<Column> {
             |_| default_column_formatter("Resource"),
         ),
         Column::new(
-            "action".to_string(),
+            "act".to_string(),
             false,
             default_formatter,
             ColumnSortable::No,
@@ -148,13 +176,14 @@ fn policy_columns() -> Vec<Column> {
             |_| default_column_formatter("Action"),
         ),
         Column::new(
-            "attribute".to_string(),
+            "attr".to_string(),
             false,
             default_formatter,
             ColumnSortable::No,
             Expandable::Disabled,
             |_| default_column_formatter("Attribute"),
         ),
+        Column::default_with_cell_formatter("actions".to_string(), actions_col_formatter),
     ]
 }
 
@@ -180,12 +209,16 @@ fn PolicyViewer(
     let p_act = RwSignal::new(None as Option<ResourceActionType>);
     let p_attr = RwSignal::new(String::from("*"));
 
-    let columns = StoredValue::new(policy_columns());
+    let delete_item_rws = RwSignal::new(None as Option<Map<String, Value>>);
+    let columns = StoredValue::new(policy_columns(
+        Callback::new(move |row| delete_item_rws.set(Some(row))),
+        authz_scope.get_value(),
+    ));
 
     let policies_resource = create_blocking_resource(
         move || (),
         move |_| async move {
-            casbin::list_policies(authz_scope.get_value())
+            casbin::policy::list(authz_scope.get_value())
                 .await
                 .map(|res| {
                     res.into_iter()
@@ -198,11 +231,11 @@ fn PolicyViewer(
                             let attr = r.get(4).cloned().unwrap_or_default();
                             Map::from_iter([
                                 ("idx".to_string(), Value::String(idx.to_string())),
-                                ("subject".to_string(), Value::String(sub)),
+                                ("sub".to_string(), Value::String(sub)),
                                 ("domain".to_string(), Value::String(dom)),
-                                ("object".to_string(), Value::String(obj)),
-                                ("action".to_string(), Value::String(act)),
-                                ("attribute".to_string(), Value::String(attr)),
+                                ("obj".to_string(), Value::String(obj)),
+                                ("act".to_string(), Value::String(act)),
+                                ("attr".to_string(), Value::String(attr)),
                             ])
                         })
                         .collect()
@@ -210,18 +243,55 @@ fn PolicyViewer(
         },
     );
 
-    let add_policy_action = create_action(move |_| async move {
+    let on_delete = Callback::new(move |row: Map<String, Value>| {
+        spawn_local(async move {
+            let policy_request = match serde_json::from_value(Value::Object(row)) {
+                Ok(pr) => pr,
+                Err(e) => {
+                    logging::error!("Failed to parse policy for deletion: {}", e);
+                    enqueue_alert(
+                        "Error converting to policy request".to_string(),
+                        AlertType::Error,
+                        4000,
+                    );
+                    return;
+                }
+            };
+
+            let resp =
+                casbin::policy::delete(policy_request, authz_scope.get_value()).await;
+
+            match resp {
+                Ok(resp) => {
+                    policies_resource.refetch();
+                    delete_item_rws.set(None);
+                    enqueue_alert(resp.message, AlertType::Success, 4000);
+                }
+                Err(e) => {
+                    enqueue_alert(
+                        format!("Failed to delete policy: {}", e),
+                        AlertType::Error,
+                        5000,
+                    );
+                }
+            }
+        })
+    });
+
+    let add_policy_action = Action::new(move |_| async move {
         let sub = p_sub.get_untracked().trim().to_string();
         let act = p_act.get_untracked();
 
         let sub = NonEmptyString::try_from(sub)
             .map_err(|_| "Subject is required".to_string())?;
-        let Some(act) = act else {
+        let Some(act) =
+            act.and_then(|s| NonEmptyString::try_from(s.get_name().to_string()).ok())
+        else {
             return Err("Action is required".to_string());
         };
 
         let attr = p_attr.get_untracked().trim().to_string();
-        casbin::add_policy(
+        let resp = casbin::policy::add(
             PolicyRequest {
                 sub,
                 obj: p_obj.get_untracked(),
@@ -237,7 +307,7 @@ fn PolicyViewer(
 
         policies_resource.refetch();
         resource_action_map_resource.refetch();
-        enqueue_alert("Policy added".to_string(), AlertType::Success, 4000);
+        enqueue_alert(resp.message, AlertType::Success, 4000);
         Ok(())
     });
 
@@ -319,13 +389,78 @@ fn PolicyViewer(
                 <TabularViewer columns resource=policies_resource />
             </div>
         </div>
+        {move || match delete_item_rws.get() {
+            Some(row) => {
+                view! {
+                    <PortalModal
+                        heading="Confirm policy deletion"
+                        handle_close=move |_| delete_item_rws.set(None)
+                        class="w-full max-w-5xl"
+                    >
+                        <p>"Are you sure you want to delete this item?"</p>
+                        <Table
+                            rows=vec![row.clone()]
+                            key_column="idx"
+                            columns={
+                                let mut cols = columns.get_value();
+                                cols.pop();
+                                cols
+                            }
+                        />
+                        <div class="modal-action">
+                            <Button
+                                text="Cancel"
+                                icon_class="ri-close-line"
+                                on_click=move |_| delete_item_rws.set(None)
+                            />
+                            <Button
+                                text="Delete"
+                                icon_class="ri-delete-bin-6-line"
+                                on_click={
+                                    let row = row.clone();
+                                    move |_| on_delete.call(row.clone())
+                                }
+                            />
+                        </div>
+                    </PortalModal>
+                }
+            }
+            None => ().into_view(),
+        }}
     }
 }
 
-fn role_policy_columns() -> Vec<Column> {
+fn role_policy_columns(
+    delete_click_handler: Callback<Map<String, Value>>,
+    authz_scope: AuthzScope,
+) -> Vec<Column> {
+    let actions_col_formatter = move |_: &str, row: &Map<String, Value>| {
+        let domain = row
+            .get("domain")
+            .and_then(|v| v.as_str())
+            .unwrap_or_default()
+            .to_string();
+
+        if domain != authz_scope.to_string() {
+            ().into_view()
+        } else {
+            let row = row.clone();
+            view! {
+                <span
+                    class="cursor-pointer"
+                    on:click=move |_| delete_click_handler.call(row.clone())
+                    title="Delete role assignment"
+                >
+                    <i class="ri-delete-bin-6-line ri-xl text-red-600" />
+                </span>
+            }
+            .into_view()
+        }
+    };
+
     vec![
         Column::new(
-            "subject".to_string(),
+            "user".to_string(),
             false,
             default_formatter,
             ColumnSortable::No,
@@ -348,6 +483,7 @@ fn role_policy_columns() -> Vec<Column> {
             Expandable::Disabled,
             |_| default_column_formatter("Domain"),
         ),
+        Column::default_with_cell_formatter("actions".to_string(), actions_col_formatter),
     ]
 }
 
@@ -356,12 +492,16 @@ fn RolePolicyViewer(authz_scope: StoredValue<AuthzScope>) -> impl IntoView {
     let g_user = RwSignal::new(String::new());
     let g_role = RwSignal::new(String::new());
 
-    let columns = StoredValue::new(role_policy_columns());
+    let delete_item_rws = RwSignal::new(None as Option<Map<String, Value>>);
+    let columns = StoredValue::new(role_policy_columns(
+        Callback::new(move |row| delete_item_rws.set(Some(row))),
+        authz_scope.get_value(),
+    ));
 
     let roles_resource = create_blocking_resource(
         move || (),
         move |_| async move {
-            casbin::list_roles(authz_scope.get_value())
+            casbin::role::list(authz_scope.get_value())
                 .await
                 .map(|res| {
                     res.into_iter()
@@ -372,7 +512,7 @@ fn RolePolicyViewer(authz_scope: StoredValue<AuthzScope>) -> impl IntoView {
                             let dom = r.get(2).cloned().unwrap_or_default();
                             Map::from_iter([
                                 ("idx".to_string(), Value::String(idx.to_string())),
-                                ("subject".to_string(), Value::String(sub)),
+                                ("user".to_string(), Value::String(sub)),
                                 ("role".to_string(), Value::String(role)),
                                 ("domain".to_string(), Value::String(dom)),
                             ])
@@ -382,7 +522,41 @@ fn RolePolicyViewer(authz_scope: StoredValue<AuthzScope>) -> impl IntoView {
         },
     );
 
-    let add_role_action = create_action({
+    let on_delete = Callback::new(move |row: Map<String, Value>| {
+        spawn_local(async move {
+            let role_request = match serde_json::from_value(Value::Object(row)) {
+                Ok(pr) => pr,
+                Err(e) => {
+                    logging::error!("Failed to parse role for deletion: {}", e);
+                    enqueue_alert(
+                        "Error converting to role request".to_string(),
+                        AlertType::Error,
+                        4000,
+                    );
+                    return;
+                }
+            };
+
+            let resp = casbin::role::delete(role_request, authz_scope.get_value()).await;
+
+            match resp {
+                Ok(resp) => {
+                    roles_resource.refetch();
+                    delete_item_rws.set(None);
+                    enqueue_alert(resp.message, AlertType::Success, 4000);
+                }
+                Err(e) => {
+                    enqueue_alert(
+                        format!("Failed to delete role: {}", e),
+                        AlertType::Error,
+                        5000,
+                    );
+                }
+            }
+        })
+    });
+
+    let add_role_action = Action::new({
         move |_| async move {
             let user = g_user.get_untracked().trim().to_string();
             let role = g_role.get_untracked().trim().to_string();
@@ -391,14 +565,14 @@ fn RolePolicyViewer(authz_scope: StoredValue<AuthzScope>) -> impl IntoView {
             let role = NonEmptyString::try_from(role)
                 .map_err(|_| "Role is required".to_string())?;
 
-            casbin::add_role(
+            let resp = casbin::role::add(
                 GroupingPolicyRequest { user, role },
                 authz_scope.get_value(),
             )
             .await?;
 
             roles_resource.refetch();
-            enqueue_alert("Role assigned".to_string(), AlertType::Success, 4000);
+            enqueue_alert(resp.message, AlertType::Success, 4000);
             Ok(())
         }
     });
@@ -451,18 +625,91 @@ fn RolePolicyViewer(authz_scope: StoredValue<AuthzScope>) -> impl IntoView {
                 <TabularViewer columns resource=roles_resource />
             </div>
         </div>
+        {move || match delete_item_rws.get() {
+            Some(row) => {
+                view! {
+                    <PortalModal
+                        heading="Confirm role assignment deletion"
+                        handle_close=move |_| delete_item_rws.set(None)
+                        class="w-full max-w-5xl"
+                    >
+                        <p>"Are you sure you want to delete this item?"</p>
+                        <Table
+                            rows=vec![row.clone()]
+                            key_column="idx"
+                            columns={
+                                let mut cols = columns.get_value();
+                                cols.pop();
+                                cols
+                            }
+                        />
+                        <div class="modal-action">
+                            <Button
+                                text="Cancel"
+                                icon_class="ri-close-line"
+                                on_click=move |_| delete_item_rws.set(None)
+                            />
+                            <Button
+                                text="Delete"
+                                icon_class="ri-delete-bin-6-line"
+                                on_click={
+                                    let row = row.clone();
+                                    move |_| on_delete.call(row.clone())
+                                }
+                            />
+                        </div>
+                    </PortalModal>
+                }
+            }
+            None => ().into_view(),
+        }}
     }
 }
 
-fn domain_resource_action_group_columns() -> Vec<Column> {
+fn domain_resource_action_group_columns(
+    delete_click_handler: Callback<Map<String, Value>>,
+    authz_scope: AuthzScope,
+) -> Vec<Column> {
+    let actions_col_formatter = move |_: &str, row: &Map<String, Value>| {
+        let domain = row
+            .get("domain")
+            .and_then(|v| v.as_str())
+            .unwrap_or_default()
+            .to_string();
+
+        if domain != authz_scope.to_string() {
+            ().into_view()
+        } else {
+            let row = row.clone();
+            view! {
+                <span
+                    class="cursor-pointer"
+                    on:click=move |_| delete_click_handler.call(row.clone())
+                    title="Delete action group mapping"
+                >
+                    <i class="ri-delete-bin-6-line ri-xl text-red-600" />
+                </span>
+            }
+            .into_view()
+        }
+    };
+
     vec![
         Column::new(
-            "subject".to_string(),
+            "resource".to_string(),
             false,
             default_formatter,
             ColumnSortable::No,
             Expandable::Disabled,
-            |_| default_column_formatter("Resource:Action"),
+            |_| default_column_formatter("Resource"),
+        ),
+        Column::new(
+            "action".to_string(),
+            false,
+            default_formatter,
+            ColumnSortable::No,
+            Expandable::Disabled,
+            |_| default_column_formatter("Action"),
         ),
         Column::new(
             "domain".to_string(),
@@ -473,13 +720,14 @@ fn domain_resource_action_group_columns() -> Vec<Column> {
             |_| default_column_formatter("Domain"),
         ),
         Column::new(
-            "group".to_string(),
+            "action_group".to_string(),
             false,
             default_formatter,
             ColumnSortable::No,
             Expandable::Disabled,
             |_| default_column_formatter("Action Group"),
         ),
+        Column::default_with_cell_formatter("actions".to_string(), actions_col_formatter),
     ]
 }
 
@@ -495,25 +743,36 @@ fn DomainResourceActionGroupViewer(
     let g2_action = RwSignal::new(None as Option<ResourceActionType>);
     let g2_action_group = RwSignal::new(String::new());
 
-    let columns = StoredValue::new(domain_resource_action_group_columns());
+    let delete_item_rws = RwSignal::new(None as Option<Map<String, Value>>);
+    let columns = StoredValue::new(domain_resource_action_group_columns(
+        Callback::new(move |row| delete_item_rws.set(Some(row))),
+        authz_scope.get_value(),
+    ));
 
     let action_groups_resource = create_blocking_resource(
         move || (),
         move |_| async move {
-            casbin::list_domain_action_groups(authz_scope.get_value())
+            casbin::action_group::list_domain(authz_scope.get_value())
                 .await
                 .map(|res| {
                     res.into_iter()
                         .enumerate()
                         .map(|(idx, r)| {
-                            let res = r.first().cloned().unwrap_or_default();
+                            let (res, action) = r
+                                .first()
+                                .and_then(|s| s.split_once(":"))
+                                .map(|(res, action)| {
+                                    (res.to_string(), action.to_string())
+                                })
+                                .unwrap_or_default();
                             let dom = r.get(1).cloned().unwrap_or_default();
                             let group = r.get(2).cloned().unwrap_or_default();
                             Map::from_iter([
                                 ("idx".to_string(), Value::String(idx.to_string())),
-                                ("subject".to_string(), Value::String(res)),
+                                ("resource".to_string(), Value::String(res)),
+                                ("action".to_string(), Value::String(action)),
                                 ("domain".to_string(), Value::String(dom)),
-                                ("group".to_string(), Value::String(group)),
+                                ("action_group".to_string(), Value::String(group)),
                             ])
                         })
                         .collect()
@@ -521,7 +780,45 @@ fn DomainResourceActionGroupViewer(
         },
     );
 
-    let add_action_group_action = create_action({
+    let on_delete = Callback::new(move |row: Map<String, Value>| {
+        spawn_local(async move {
+            let action_group_request = match serde_json::from_value(Value::Object(row)) {
+                Ok(pr) => pr,
+                Err(e) => {
+                    logging::error!("Failed to parse action group for deletion: {}", e);
+                    enqueue_alert(
+                        "Error converting to action group request".to_string(),
+                        AlertType::Error,
+                        4000,
+                    );
+                    return;
+                }
+            };
+
+            let resp = casbin::action_group::delete_domain(
+                action_group_request,
+                authz_scope.get_value(),
+            )
+            .await;
+
+            match resp {
+                Ok(resp) => {
+                    action_groups_resource.refetch();
+                    delete_item_rws.set(None);
+                    enqueue_alert(resp.message, AlertType::Success, 4000);
+                }
+                Err(e) => {
+                    enqueue_alert(
+                        format!("Failed to delete role: {}", e),
+                        AlertType::Error,
+                        5000,
+                    );
+                }
+            }
+        })
+    });
+
+    let add_action_group_action = Action::new({
         move |_| async move {
             let action = g2_action.get_untracked();
             let action_group = g2_action_group.get_untracked().trim().to_string();
@@ -532,7 +829,7 @@ fn DomainResourceActionGroupViewer(
             let action_group = NonEmptyString::try_from(action_group)
                 .map_err(|_| "Action group is required (e.g. write)".to_string())?;
 
-            casbin::add_domain_action_group(
+            let resp = casbin::action_group::add_domain(
                 ActionGroupPolicyRequest {
                     resource: g2_resource.get_untracked(),
                     action: NonEmptyString::try_from(action.get_name().to_string())
@@ -545,11 +842,7 @@ fn DomainResourceActionGroupViewer(
 
             action_groups_resource.refetch();
             resource_action_map_resource.refetch();
-            enqueue_alert(
-                "Action group mapping added".to_string(),
-                AlertType::Success,
-                4000,
-            );
+            enqueue_alert(resp.message, AlertType::Success, 4000);
             Ok(())
         }
     });
@@ -619,27 +912,90 @@ fn DomainResourceActionGroupViewer(
                 <TabularViewer columns resource=action_groups_resource />
             </div>
         </div>
+        {move || match delete_item_rws.get() {
+            Some(row) => {
+                view! {
+                    <PortalModal
+                        heading="Confirm resource action mapping deletion"
+                        handle_close=move |_| delete_item_rws.set(None)
+                        class="w-full max-w-5xl"
+                    >
+                        <p>"Are you sure you want to delete this item?"</p>
+                        <Table
+                            rows=vec![row.clone()]
+                            key_column="idx"
+                            columns={
+                                let mut cols = columns.get_value();
+                                cols.pop();
+                                cols
+                            }
+                        />
+                        <div class="modal-action">
+                            <Button
+                                text="Cancel"
+                                icon_class="ri-close-line"
+                                on_click=move |_| delete_item_rws.set(None)
+                            />
+                            <Button
+                                text="Delete"
+                                icon_class="ri-delete-bin-6-line"
+                                on_click={
+                                    let row = row.clone();
+                                    move |_| on_delete.call(row.clone())
+                                }
+                            />
+                        </div>
+                    </PortalModal>
+                }
+            }
+            None => ().into_view(),
+        }}
     }
 }
 
-fn resource_action_group_columns() -> Vec<Column> {
+fn resource_action_group_columns(
+    delete_click_handler: Callback<Map<String, Value>>,
+) -> Vec<Column> {
+    let actions_col_formatter = move |_: &str, row: &Map<String, Value>| {
+        let row = row.clone();
+        view! {
+            <span
+                class="cursor-pointer"
+                on:click=move |_| delete_click_handler.call(row.clone())
+                title="Delete action group mapping"
+            >
+                <i class="ri-delete-bin-6-line ri-xl text-red-600" />
+            </span>
+        }
+        .into_view()
+    };
+
     vec![
         Column::new(
-            "subject".to_string(),
+            "resource".to_string(),
             false,
             default_formatter,
             ColumnSortable::No,
             Expandable::Disabled,
-            |_| default_column_formatter("Resource:Action"),
+            |_| default_column_formatter("Resource"),
         ),
         Column::new(
-            "group".to_string(),
+            "action".to_string(),
+            false,
+            default_formatter,
+            ColumnSortable::No,
+            Expandable::Disabled,
+            |_| default_column_formatter("Action"),
+        ),
+        Column::new(
+            "action_group".to_string(),
             false,
             default_formatter,
             ColumnSortable::No,
             Expandable::Disabled,
             |_| default_column_formatter("Action Group"),
         ),
+        Column::default_with_cell_formatter("actions".to_string(), actions_col_formatter),
     ]
 }
 
@@ -654,21 +1010,30 @@ fn ResourceActionGroupViewer(
     let g3_action = RwSignal::new(None as Option<ResourceActionType>);
     let g3_action_group = RwSignal::new(String::new());
 
-    let columns = StoredValue::new(resource_action_group_columns());
+    let delete_item_rws = RwSignal::new(None as Option<Map<String, Value>>);
+    let columns =
+        StoredValue::new(resource_action_group_columns(Callback::new(move |row| {
+            delete_item_rws.set(Some(row))
+        })));
 
     let action_groups_resource = create_blocking_resource(
         move || (),
         move |_| async move {
-            casbin::list_action_groups().await.map(|res| {
+            casbin::action_group::list().await.map(|res| {
                 res.into_iter()
                     .enumerate()
                     .map(|(idx, r)| {
-                        let res = r.first().cloned().unwrap_or_default();
+                        let (res, action) = r
+                            .first()
+                            .and_then(|s| s.split_once(":"))
+                            .map(|(res, action)| (res.to_string(), action.to_string()))
+                            .unwrap_or_default();
                         let group = r.get(1).cloned().unwrap_or_default();
                         Map::from_iter([
                             ("idx".to_string(), Value::String(idx.to_string())),
-                            ("subject".to_string(), Value::String(res)),
-                            ("group".to_string(), Value::String(group)),
+                            ("resource".to_string(), Value::String(res)),
+                            ("action".to_string(), Value::String(action)),
+                            ("action_group".to_string(), Value::String(group)),
                         ])
                     })
                     .collect()
@@ -676,7 +1041,41 @@ fn ResourceActionGroupViewer(
         },
     );
 
-    let add_action_group_action = create_action({
+    let on_delete = Callback::new(move |row: Map<String, Value>| {
+        spawn_local(async move {
+            let action_group_request = match serde_json::from_value(Value::Object(row)) {
+                Ok(pr) => pr,
+                Err(e) => {
+                    logging::error!("Failed to parse action group for deletion: {}", e);
+                    enqueue_alert(
+                        "Error converting to action group request".to_string(),
+                        AlertType::Error,
+                        4000,
+                    );
+                    return;
+                }
+            };
+
+            let resp = casbin::action_group::delete(action_group_request).await;
+
+            match resp {
+                Ok(resp) => {
+                    action_groups_resource.refetch();
+                    delete_item_rws.set(None);
+                    enqueue_alert(resp.message, AlertType::Success, 4000);
+                }
+                Err(e) => {
+                    enqueue_alert(
+                        format!("Failed to delete action group: {}", e),
+                        AlertType::Error,
+                        5000,
+                    );
+                }
+            }
+        })
+    });
+
+    let add_action_group_action = Action::new({
         move |_| async move {
             let action = g3_action.get_untracked();
             let action_group = g3_action_group.get_untracked().trim().to_string();
@@ -687,7 +1086,7 @@ fn ResourceActionGroupViewer(
             let action_group = NonEmptyString::try_from(action_group)
                 .map_err(|_| "Action group is required (e.g. write)".to_string())?;
 
-            casbin::add_action_group(ActionGroupPolicyRequest {
+            let resp = casbin::action_group::add(ActionGroupPolicyRequest {
                 resource: g3_resource.get_untracked(),
                 action: NonEmptyString::try_from(action.get_name().to_string())
                     .map_err(|_| "Invalid action".to_string())?,
@@ -697,11 +1096,7 @@ fn ResourceActionGroupViewer(
 
             action_groups_resource.refetch();
             resource_action_map_resource.refetch();
-            enqueue_alert(
-                "Action group mapping added".to_string(),
-                AlertType::Success,
-                4000,
-            );
+            enqueue_alert(resp.message, AlertType::Success, 4000);
             Ok(())
         }
     });
@@ -768,6 +1163,44 @@ fn ResourceActionGroupViewer(
                 <TabularViewer columns resource=action_groups_resource />
             </div>
         </div>
+        {move || match delete_item_rws.get() {
+            Some(row) => {
+                view! {
+                    <PortalModal
+                        heading="Confirm resource action mapping deletion"
+                        handle_close=move |_| delete_item_rws.set(None)
+                        class="w-full max-w-5xl"
+                    >
+                        <p>"Are you sure you want to delete this item?"</p>
+                        <Table
+                            rows=vec![row.clone()]
+                            key_column="idx"
+                            columns={
+                                let mut cols = columns.get_value();
+                                cols.pop();
+                                cols
+                            }
+                        />
+                        <div class="modal-action">
+                            <Button
+                                text="Cancel"
+                                icon_class="ri-close-line"
+                                on_click=move |_| delete_item_rws.set(None)
+                            />
+                            <Button
+                                text="Delete"
+                                icon_class="ri-delete-bin-6-line"
+                                on_click={
+                                    let row = row.clone();
+                                    move |_| on_delete.call(row.clone())
+                                }
+                            />
+                        </div>
+                    </PortalModal>
+                }
+            }
+            None => ().into_view(),
+        }}
     }
 }
 

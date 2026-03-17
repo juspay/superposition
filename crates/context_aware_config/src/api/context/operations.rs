@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use actix_web::web::Json;
 use chrono::Utc;
 use diesel::{
@@ -92,6 +94,35 @@ pub fn upsert(
             Err(db_error!(e))
         }
     }
+}
+
+pub fn get_overrides_from_ctx_id(
+    ctx_id: &str,
+    schema_name: &SchemaName,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+) -> result::Result<Overrides> {
+    let overrides = dsl::contexts
+        .filter(dsl::id.eq(ctx_id))
+        .schema_name(schema_name)
+        .select(dsl::override_)
+        .first::<Overrides>(conn)?;
+
+    Ok(overrides)
+}
+
+pub fn get_overrides_from_identifier(
+    identifier: &Identifier,
+    schema_name: &SchemaName,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+) -> result::Result<Overrides> {
+    let context_id = match identifier {
+        Identifier::Context(context) => {
+            &hash(&Value::Object((**context.deref()).clone()))
+        }
+        Identifier::Id(id) => id,
+    };
+
+    get_overrides_from_ctx_id(context_id, schema_name, conn)
 }
 
 pub fn update(

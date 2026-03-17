@@ -218,7 +218,7 @@ impl Authorizer for CasbinPolicyEngine {
         user: &User,
         resource: &Resource,
         action: &str,
-        attributes: Option<&[&str]>,
+        attributes: Option<&[&String]>,
     ) -> LocalBoxFuture<'_, Result<bool, String>> {
         let sub = user.get_email();
         let domain = domain.to_string();
