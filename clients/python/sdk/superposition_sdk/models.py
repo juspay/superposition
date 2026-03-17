@@ -3113,7 +3113,7 @@ GET_RESOLVED_CONFIG = APIOperation(
             ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
-            ShapeID("smithy.api#httpBasicAuth")
+            ShapeID("smithy.api#httpBasicAuth"),
 ShapeID("smithy.api#httpBearerAuth")
         ]
 )
@@ -3545,7 +3545,7 @@ LIST_VERSIONS = APIOperation(
             ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
-            ShapeID("smithy.api#httpBasicAuth")
+            ShapeID("smithy.api#httpBasicAuth"),
 ShapeID("smithy.api#httpBearerAuth")
         ]
 )
