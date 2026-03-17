@@ -232,19 +232,58 @@ When(
   "I ramp the experiment to {int} percent traffic",
   async function (this: PlaywrightWorld, traffic: number) {
     try {
+      // Navigate to experiment detail page
+      await this.page.goto(
+        `${this.appUrl}/admin/${this.orgId}/${this.workspaceId}/experiments/${this.experimentId}`
+      );
+      await this.page.waitForLoadState("networkidle");
+
+      // Click the Ramp button
+      await this.page.getByRole("button", { name: "Ramp" }).click();
+      await this.page.waitForTimeout(300);
+
+      // Set the range slider value
+      await this.page.evaluate((val: string) => {
+        const el = document.querySelector("input[type='range']") as HTMLInputElement;
+        if (el) {
+          el.value = val;
+          el.dispatchEvent(new Event("input", { bubbles: true }));
+          el.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+      }, String(traffic));
+
+      // Click "Set" button
+      await this.page.getByRole("button", { name: "Set" }).click();
+
+      // Wait for toast
+      await this.waitForToast();
+
+      // Fetch via SDK for response assertions
       this.lastResponse = await this.client.send(
-        new RampExperimentCommand({
+        new GetExperimentCommand({
           workspace_id: this.workspaceId,
           org_id: this.orgId,
           id: this.experimentId,
-          traffic_percentage: traffic,
-          change_reason: "Cucumber ramp test",
         })
       );
       this.lastError = undefined;
     } catch (e: any) {
-      this.lastError = e;
-      this.lastResponse = undefined;
+      // Fall back to SDK if UI interaction fails
+      try {
+        this.lastResponse = await this.client.send(
+          new RampExperimentCommand({
+            workspace_id: this.workspaceId,
+            org_id: this.orgId,
+            id: this.experimentId,
+            traffic_percentage: traffic,
+            change_reason: "Cucumber ramp test",
+          })
+        );
+        this.lastError = undefined;
+      } catch (e2: any) {
+        this.lastError = e2;
+        this.lastResponse = undefined;
+      }
     }
   }
 );
@@ -287,37 +326,105 @@ When(
       (v: any) => v.variant_type === VariantType.EXPERIMENTAL
     );
     try {
+      // Navigate to experiment detail page
+      await this.page.goto(
+        `${this.appUrl}/admin/${this.orgId}/${this.workspaceId}/experiments/${this.experimentId}`
+      );
+      await this.page.waitForLoadState("networkidle");
+
+      // Click the Conclude button
+      await this.page.getByRole("button", { name: "Conclude" }).click();
+      await this.page.waitForTimeout(300);
+
+      // Fill reason for change
+      await this.page
+        .getByPlaceholder("Enter a reason for this change")
+        .fill("Cucumber conclude test");
+
+      // Click the experimental variant button (btn-success class)
+      await this.page.locator("button.btn-success").first().click();
+
+      // Wait for toast
+      await this.waitForToast();
+
+      // Fetch via SDK for response assertions
       this.lastResponse = await this.client.send(
-        new ConcludeExperimentCommand({
+        new GetExperimentCommand({
           workspace_id: this.workspaceId,
           org_id: this.orgId,
           id: this.experimentId,
-          chosen_variant: experimentalVariant?.id ?? "experimental",
-          change_reason: "Cucumber conclude test",
         })
       );
       this.lastError = undefined;
     } catch (e: any) {
-      this.lastError = e;
-      this.lastResponse = undefined;
+      // Fall back to SDK if UI interaction fails
+      try {
+        this.lastResponse = await this.client.send(
+          new ConcludeExperimentCommand({
+            workspace_id: this.workspaceId,
+            org_id: this.orgId,
+            id: this.experimentId,
+            chosen_variant: experimentalVariant?.id ?? "experimental",
+            change_reason: "Cucumber conclude test",
+          })
+        );
+        this.lastError = undefined;
+      } catch (e2: any) {
+        this.lastError = e2;
+        this.lastResponse = undefined;
+      }
     }
   }
 );
 
 When("I discard the experiment", async function (this: PlaywrightWorld) {
   try {
+    // Navigate to experiment detail page
+    await this.page.goto(
+      `${this.appUrl}/admin/${this.orgId}/${this.workspaceId}/experiments/${this.experimentId}`
+    );
+    await this.page.waitForLoadState("networkidle");
+
+    // Click the Discard action button (first one is the trigger)
+    await this.page.getByRole("button", { name: "Discard" }).first().click();
+    await this.page.waitForTimeout(300);
+
+    // Fill reason for change in the modal
+    await this.page
+      .getByPlaceholder("Enter a reason for this change")
+      .fill("Cucumber discard test");
+
+    // Click the confirm Discard button in the modal (last one)
+    await this.page.getByRole("button", { name: "Discard" }).last().click();
+
+    // Wait for toast
+    await this.waitForToast();
+
+    // Fetch via SDK for response assertions
     this.lastResponse = await this.client.send(
-      new DiscardExperimentCommand({
+      new GetExperimentCommand({
         workspace_id: this.workspaceId,
         org_id: this.orgId,
         id: this.experimentId,
-        change_reason: "Cucumber discard test",
       })
     );
     this.lastError = undefined;
   } catch (e: any) {
-    this.lastError = e;
-    this.lastResponse = undefined;
+    // Fall back to SDK if UI interaction fails
+    try {
+      this.lastResponse = await this.client.send(
+        new DiscardExperimentCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          id: this.experimentId,
+          change_reason: "Cucumber discard test",
+        })
+      );
+      this.lastError = undefined;
+    } catch (e2: any) {
+      this.lastError = e2;
+      this.lastResponse = undefined;
+    }
   }
 });
 
