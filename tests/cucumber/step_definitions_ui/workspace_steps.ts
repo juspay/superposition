@@ -2,7 +2,6 @@ import { Given, When, Then } from "@cucumber/cucumber";
 import {
   CreateWorkspaceCommand,
   ListWorkspaceCommand,
-  UpdateWorkspaceCommand,
   WorkspaceStatus,
 } from "@juspay/superposition-sdk";
 import { PlaywrightWorld } from "../support_ui/world.ts";
@@ -197,21 +196,57 @@ When(
   }
 );
 
-// SDK: No edit form readily available in UI
+// PLAYWRIGHT: Edit workspace via UI drawer
 When(
   "I update workspace {string} admin email to {string}",
   async function (this: PlaywrightWorld, name: string, email: string) {
     const uniqueName = this.uniqueName(name);
     try {
-      this.lastResponse = await this.client.send(
-        new UpdateWorkspaceCommand({
-          org_id: this.orgId,
-          workspace_name: uniqueName,
-          workspace_admin_email: email,
-          workspace_status: WorkspaceStatus.ENABLED,
-        })
-      );
-      this.lastError = undefined;
+      await this.goToWorkspaces();
+      await this.page.waitForTimeout(300);
+
+      // Find the row with the workspace name and click its edit icon
+      await this.page
+        .locator("table tbody tr", { hasText: uniqueName })
+        .locator("i.ri-pencil-line")
+        .click();
+      await this.page.waitForTimeout(300);
+
+      // Clear and fill the admin email field
+      const emailField = this.page.getByPlaceholder("Admin Email");
+      await emailField.clear();
+      await emailField.fill(email);
+
+      // Click Submit (use .last() in case multiple submit buttons)
+      await this.page.getByRole("button", { name: "Submit" }).last().click();
+
+      // Wait for toast notification
+      const alert = this.page
+        .locator("div.toast div[role='alert']")
+        .first();
+      await alert.waitFor({ state: "visible", timeout: 10000 });
+      const toastText = (await alert.textContent()) ?? "";
+      this.lastToastText = toastText;
+
+      const lowerToast = toastText.toLowerCase();
+      if (lowerToast.includes("error") || lowerToast.includes("failed")) {
+        this.lastError = { message: toastText };
+        this.lastResponse = undefined;
+      } else {
+        // Fetch via SDK to get updated workspace for assertions
+        const listResp = await this.client.send(
+          new ListWorkspaceCommand({
+            count: 10,
+            page: 1,
+            org_id: this.orgId,
+          })
+        );
+        const updated = listResp.data?.find(
+          (w: any) => w.workspace_name === uniqueName
+        );
+        this.lastResponse = updated ?? listResp;
+        this.lastError = undefined;
+      }
     } catch (e: any) {
       this.lastError = e;
       this.lastResponse = undefined;
