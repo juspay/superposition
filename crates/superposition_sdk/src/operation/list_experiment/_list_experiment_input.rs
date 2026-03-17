@@ -13,6 +13,8 @@ pub struct ListExperimentInput  {
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub org_id: ::std::option::Option<::std::string::String>,
+    /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
+    pub if_modified_since: ::std::option::Option<::aws_smithy_types::DateTime>,
     #[allow(missing_docs)] // documentation missing in model
     pub status: ::std::option::Option<::std::vec::Vec::<crate::types::ExperimentStatusType>>,
     #[allow(missing_docs)] // documentation missing in model
@@ -35,6 +37,8 @@ pub struct ListExperimentInput  {
     pub global_experiments_only: ::std::option::Option<bool>,
     /// Strategy to follow while filter items based on the context
     pub dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
+    /// Map representing the context. Keys correspond to the names of the dimensions.
+    pub context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
 }
 impl  ListExperimentInput  {
     /// Number of items to be returned in each page.
@@ -56,6 +60,10 @@ impl  ListExperimentInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub fn org_id(&self) -> ::std::option::Option<&str> {
         self.org_id.as_deref()
+    }
+    /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
+    pub fn if_modified_since(&self) -> ::std::option::Option<&::aws_smithy_types::DateTime> {
+        self.if_modified_since.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
     /// 
@@ -113,6 +121,10 @@ impl  ListExperimentInput  {
     pub fn dimension_match_strategy(&self) -> ::std::option::Option<&crate::types::DimensionMatchStrategy> {
         self.dimension_match_strategy.as_ref()
     }
+    /// Map representing the context. Keys correspond to the names of the dimensions.
+    pub fn context(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+        self.context.as_ref()
+    }
 }
 impl ListExperimentInput {
     /// Creates a new builder-style object to manufacture [`ListExperimentInput`](crate::operation::list_experiment::ListExperimentInput).
@@ -130,6 +142,7 @@ pub struct ListExperimentInputBuilder {
     pub(crate) all: ::std::option::Option<bool>,
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
+    pub(crate) if_modified_since: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) status: ::std::option::Option<::std::vec::Vec::<crate::types::ExperimentStatusType>>,
     pub(crate) from_date: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) to_date: ::std::option::Option<::aws_smithy_types::DateTime>,
@@ -141,6 +154,7 @@ pub struct ListExperimentInputBuilder {
     pub(crate) sort_by: ::std::option::Option<crate::types::SortBy>,
     pub(crate) global_experiments_only: ::std::option::Option<bool>,
     pub(crate) dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
+    pub(crate) context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
 }
 impl ListExperimentInputBuilder {
     /// Number of items to be returned in each page.
@@ -209,6 +223,19 @@ impl ListExperimentInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.org_id
+    }
+    /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
+    pub fn if_modified_since(mut self, input: ::aws_smithy_types::DateTime) -> Self {
+        self.if_modified_since = ::std::option::Option::Some(input);
+        self
+    }
+    /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
+    pub fn set_if_modified_since(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
+        self.if_modified_since = input; self
+    }
+    /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
+    pub fn get_if_modified_since(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
+        &self.if_modified_since
     }
     /// Appends an item to `status`.
     ///
@@ -373,6 +400,25 @@ impl ListExperimentInputBuilder {
     pub fn get_dimension_match_strategy(&self) -> &::std::option::Option<crate::types::DimensionMatchStrategy> {
         &self.dimension_match_strategy
     }
+    /// Adds a key-value pair to `context`.
+    ///
+    /// To override the contents of this collection use [`set_context`](Self::set_context).
+    ///
+    /// Map representing the context. Keys correspond to the names of the dimensions.
+    pub fn context(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+        let mut hash_map = self.context.unwrap_or_default();
+                        hash_map.insert(k.into(), v);
+                        self.context = ::std::option::Option::Some(hash_map);
+                        self
+    }
+    /// Map representing the context. Keys correspond to the names of the dimensions.
+    pub fn set_context(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
+        self.context = input; self
+    }
+    /// Map representing the context. Keys correspond to the names of the dimensions.
+    pub fn get_context(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+        &self.context
+    }
     /// Consumes the builder and constructs a [`ListExperimentInput`](crate::operation::list_experiment::ListExperimentInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::list_experiment::ListExperimentInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -386,6 +432,8 @@ impl ListExperimentInputBuilder {
                 workspace_id: self.workspace_id
                 ,
                 org_id: self.org_id
+                ,
+                if_modified_since: self.if_modified_since
                 ,
                 status: self.status
                 ,
@@ -408,6 +456,8 @@ impl ListExperimentInputBuilder {
                 global_experiments_only: self.global_experiments_only
                 ,
                 dimension_match_strategy: self.dimension_match_strategy
+                ,
+                context: self.context
                 ,
             }
         )

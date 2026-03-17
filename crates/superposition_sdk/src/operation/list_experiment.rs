@@ -131,7 +131,7 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for ListExp
                     let mut request_builder = {
                         fn uri_base(_input: &crate::operation::list_experiment::ListExperimentInput, output: &mut ::std::string::String) -> ::std::result::Result<(), ::aws_smithy_types::error::operation::BuildError> {
     use ::std::fmt::Write as _;
-    ::std::write!(output, "/experiments").expect("formatting should succeed");
+    ::std::write!(output, "/experiments/list").expect("formatting should succeed");
     ::std::result::Result::Ok(())
 }
 fn uri_query(_input: &crate::operation::list_experiment::ListExperimentInput, mut output: &mut ::std::string::String) -> ::std::result::Result<(), ::aws_smithy_types::error::operation::BuildError> {
@@ -225,13 +225,17 @@ fn update_http_builder(
     uri_base(input, &mut uri)?;
     uri_query(input, &mut uri)?;
     let builder = crate::protocol_serde::shape_list_experiment::ser_list_experiment_headers(input, builder)?;
-    ::std::result::Result::Ok(builder.method("GET").uri(uri))
+    ::std::result::Result::Ok(builder.method("POST").uri(uri))
 }
 let mut builder = update_http_builder(&input, ::http::request::Builder::new())?;
+builder = _header_serialization_settings.set_default_header(builder, ::http::header::CONTENT_TYPE, "application/json");
 builder
                     };
-                    let body = ::aws_smithy_types::body::SdkBody::from("");
-                    
+                    let body = ::aws_smithy_types::body::SdkBody::from(crate::protocol_serde::shape_list_experiment::ser_list_experiment_input(&input)?);
+                    if let Some(content_length) = body.content_length() {
+                                let content_length = content_length.to_string();
+                                request_builder = _header_serialization_settings.set_default_header(request_builder, ::http::header::CONTENT_LENGTH, &content_length);
+                            }
                     ::std::result::Result::Ok(request_builder.body(body).expect("valid request").try_into().unwrap())
                 }
             }

@@ -19,8 +19,7 @@ public final class Config implements ApiResource {
         "config", PreludeSchemas.DOCUMENT,
         "last_modified", SharedSchemas.DATE_TIME);
 
-    private static final List<Schema> $OPERATIONS = List.of(GetConfigFast.$SCHEMA,
-        GetConfig.$SCHEMA,
+    private static final List<Schema> $OPERATIONS = List.of(GetConfig.$SCHEMA,
         GetResolvedConfig.$SCHEMA,
         GetResolvedConfigWithIdentifier.$SCHEMA,
         GetConfigToml.$SCHEMA,

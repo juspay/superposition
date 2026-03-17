@@ -139,11 +139,6 @@ import {
   GetConfigCommandOutput,
 } from "./commands/GetConfigCommand";
 import {
-  GetConfigFastCommand,
-  GetConfigFastCommandInput,
-  GetConfigFastCommandOutput,
-} from "./commands/GetConfigFastCommand";
-import {
   GetConfigJsonCommand,
   GetConfigJsonCommandInput,
   GetConfigJsonCommandOutput,
@@ -459,7 +454,6 @@ const commands = {
   DeleteWebhookCommand,
   DiscardExperimentCommand,
   GetConfigCommand,
-  GetConfigFastCommand,
   GetConfigJsonCommand,
   GetConfigTomlCommand,
   GetContextCommand,
@@ -977,23 +971,6 @@ export interface Superposition {
     args: GetConfigCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: GetConfigCommandOutput) => void
-  ): void;
-
-  /**
-   * @see {@link GetConfigFastCommand}
-   */
-  getConfigFast(
-    args: GetConfigFastCommandInput,
-    options?: __HttpHandlerOptions,
-  ): Promise<GetConfigFastCommandOutput>;
-  getConfigFast(
-    args: GetConfigFastCommandInput,
-    cb: (err: any, data?: GetConfigFastCommandOutput) => void
-  ): void;
-  getConfigFast(
-    args: GetConfigFastCommandInput,
-    options: __HttpHandlerOptions,
-    cb: (err: any, data?: GetConfigFastCommandOutput) => void
   ): void;
 
   /**

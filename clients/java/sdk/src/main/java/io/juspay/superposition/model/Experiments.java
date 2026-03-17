@@ -88,11 +88,6 @@ public final class Experiments implements ApiResource {
     }
 
     @Override
-    public Schema list() {
-        return ListExperiment.$SCHEMA;
-    }
-
-    @Override
     public List<Schema> collectionOperations() {
         return $COLLECTION_OPERATIONS;
     }

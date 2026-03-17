@@ -166,6 +166,20 @@ impl ListExperimentFluentBuilder {
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_org_id()
                 }
+    /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
+    pub fn if_modified_since(mut self, input: ::aws_smithy_types::DateTime) -> Self {
+                    self.inner = self.inner.if_modified_since(input);
+                    self
+                }
+    /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
+    pub fn set_if_modified_since(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
+                    self.inner = self.inner.set_if_modified_since(input);
+                    self
+                }
+    /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
+    pub fn get_if_modified_since(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
+                    self.inner.get_if_modified_since()
+                }
     /// 
     /// Appends an item to `status`.
     /// 
@@ -339,6 +353,25 @@ impl ListExperimentFluentBuilder {
     /// Strategy to follow while filter items based on the context
     pub fn get_dimension_match_strategy(&self) -> &::std::option::Option<crate::types::DimensionMatchStrategy> {
                     self.inner.get_dimension_match_strategy()
+                }
+    /// 
+    /// Adds a key-value pair to `context`.
+    /// 
+    /// To override the contents of this collection use [`set_context`](Self::set_context).
+    /// 
+    /// Map representing the context. Keys correspond to the names of the dimensions.
+    pub fn context(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+                    self.inner = self.inner.context(k.into(), v);
+                    self
+                }
+    /// Map representing the context. Keys correspond to the names of the dimensions.
+    pub fn set_context(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
+                    self.inner = self.inner.set_context(input);
+                    self
+                }
+    /// Map representing the context. Keys correspond to the names of the dimensions.
+    pub fn get_context(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+                    self.inner.get_context()
                 }
 }
 

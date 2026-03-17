@@ -41,7 +41,6 @@ from .models import (
     DeleteVariableInput,
     DeleteWebhookInput,
     DiscardExperimentInput,
-    GetConfigFastInput,
     GetConfigInput,
     GetConfigJsonInput,
     GetConfigTomlInput,
@@ -1055,6 +1054,8 @@ async def _serialize_get_config(input: GetConfigInput, config: Config) -> HTTPRe
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.if_modified_since is not None:
+        headers.extend(Fields([Field(name="If-Modified-Since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -1063,33 +1064,6 @@ async def _serialize_get_config(input: GetConfigInput, config: Config) -> HTTPRe
             query=query,
         ),
         method="POST",
-        fields=headers,
-        body=body,
-    )
-
-async def _serialize_get_config_fast(input: GetConfigFastInput, config: Config) -> HTTPRequest:
-    path = "/config/fast"
-    query: str = f''
-
-    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
-    headers = Fields(
-        [
-
-        ]
-    )
-
-    if input.workspace_id:
-        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
-    if input.org_id:
-        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
-    return _HTTPRequest(
-        destination=_URI(
-            host="",
-            path=path,
-            scheme="https",
-            query=query,
-        ),
-        method="GET",
         fields=headers,
         body=body,
     )
@@ -1946,7 +1920,7 @@ async def _serialize_list_dimensions(input: ListDimensionsInput, config: Config)
     )
 
 async def _serialize_list_experiment(input: ListExperimentInput, config: Config) -> HTTPRequest:
-    path = "/experiments"
+    path = "/experiments/list"
     query: str = f''
 
     query_params: list[tuple[str, str | None]] = []
@@ -1982,8 +1956,17 @@ async def _serialize_list_experiment(input: ListExperimentInput, config: Config)
     query = join_query_params(params=query_params, prefix=query)
 
     body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+    content = codec.serialize(input)
+    if not content:
+        content = b"{}"
+    content_length = len(content)
+    body = SeekableAsyncBytesReader(content)
+
     headers = Fields(
         [
+            Field(name="Content-Type", values=["application/json"]),
+            Field(name="Content-Length", values=[str(content_length)]),
 
         ]
     )
@@ -1992,6 +1975,8 @@ async def _serialize_list_experiment(input: ListExperimentInput, config: Config)
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.if_modified_since is not None:
+        headers.extend(Fields([Field(name="If-Modified-Since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -1999,13 +1984,13 @@ async def _serialize_list_experiment(input: ListExperimentInput, config: Config)
             scheme="https",
             query=query,
         ),
-        method="GET",
+        method="POST",
         fields=headers,
         body=body,
     )
 
 async def _serialize_list_experiment_groups(input: ListExperimentGroupsInput, config: Config) -> HTTPRequest:
-    path = "/experiment-groups"
+    path = "/experiment-groups/list"
     query: str = f''
 
     query_params: list[tuple[str, str | None]] = []
@@ -2031,8 +2016,17 @@ async def _serialize_list_experiment_groups(input: ListExperimentGroupsInput, co
     query = join_query_params(params=query_params, prefix=query)
 
     body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+    content = codec.serialize(input)
+    if not content:
+        content = b"{}"
+    content_length = len(content)
+    body = SeekableAsyncBytesReader(content)
+
     headers = Fields(
         [
+            Field(name="Content-Type", values=["application/json"]),
+            Field(name="Content-Length", values=[str(content_length)]),
 
         ]
     )
@@ -2041,6 +2035,8 @@ async def _serialize_list_experiment_groups(input: ListExperimentGroupsInput, co
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.if_modified_since is not None:
+        headers.extend(Fields([Field(name="If-Modified-Since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2048,7 +2044,7 @@ async def _serialize_list_experiment_groups(input: ListExperimentGroupsInput, co
             scheme="https",
             query=query,
         ),
-        method="GET",
+        method="POST",
         fields=headers,
         body=body,
     )

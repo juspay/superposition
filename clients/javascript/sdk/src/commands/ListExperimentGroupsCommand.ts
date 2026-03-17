@@ -48,6 +48,7 @@ export interface ListExperimentGroupsCommandOutput extends ListExperimentGroupsO
  *   all: true || false,
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   if_modified_since: new Date("TIMESTAMP"),
  *   name: "STRING_VALUE",
  *   created_by: "STRING_VALUE",
  *   last_modified_by: "STRING_VALUE",
@@ -56,6 +57,9 @@ export interface ListExperimentGroupsCommandOutput extends ListExperimentGroupsO
  *   group_type: [ // GroupTypeList
  *     "USER_CREATED" || "SYSTEM_GENERATED",
  *   ],
+ *   context: { // ContextMap
+ *     "<keys>": "DOCUMENT_VALUE",
+ *   },
  * };
  * const command = new ListExperimentGroupsCommand(input);
  * const response = await client.send(command);
@@ -89,6 +93,7 @@ export interface ListExperimentGroupsCommandOutput extends ListExperimentGroupsO
  * //       group_type: "USER_CREATED" || "SYSTEM_GENERATED", // required
  * //     },
  * //   ],
+ * //   last_modified: new Date("TIMESTAMP"), // required
  * // };
  *
  * ```

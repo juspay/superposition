@@ -23,7 +23,7 @@ public final class ListExperiment implements ApiOperation<ListExperimentInput, L
     private static final ListExperiment $INSTANCE = new ListExperiment();
 
     static final Schema $SCHEMA = Schema.createOperation($ID,
-            HttpTrait.builder().method("GET").code(200).uri(UriPattern.parse("/experiments")).build());
+            HttpTrait.builder().method("POST").code(200).uri(UriPattern.parse("/experiments/list")).build());
 
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
         .putType(InternalServerError.$ID, InternalServerError.class, InternalServerError::builder)

@@ -80,9 +80,6 @@ import io.juspay.superposition.model.DiscardExperiment;
 import io.juspay.superposition.model.DiscardExperimentInput;
 import io.juspay.superposition.model.DiscardExperimentOutput;
 import io.juspay.superposition.model.GetConfig;
-import io.juspay.superposition.model.GetConfigFast;
-import io.juspay.superposition.model.GetConfigFastInput;
-import io.juspay.superposition.model.GetConfigFastOutput;
 import io.juspay.superposition.model.GetConfigInput;
 import io.juspay.superposition.model.GetConfigJson;
 import io.juspay.superposition.model.GetConfigJsonInput;
@@ -272,8 +269,8 @@ import software.amazon.smithy.utils.SmithyGenerated;
 @SmithyGenerated
 final class SuperpositionAsyncClientImpl extends Client implements SuperpositionAsyncClient {
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
-        .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
         .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
+        .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
         .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
         .putType(InternalFailureException.$ID, InternalFailureException.class, InternalFailureException::builder)
         .putType(UnknownOperationException.$ID, UnknownOperationException.class, UnknownOperationException::builder)
@@ -391,10 +388,6 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
 
     @Override
     public CompletableFuture<GetConfigOutput> getConfig(GetConfigInput input, RequestOverrideConfig overrideConfig) {return call(input, GetConfig.instance(), overrideConfig);
-    }
-
-    @Override
-    public CompletableFuture<GetConfigFastOutput> getConfigFast(GetConfigFastInput input, RequestOverrideConfig overrideConfig) {return call(input, GetConfigFast.instance(), overrideConfig);
     }
 
     @Override

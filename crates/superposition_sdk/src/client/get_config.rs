@@ -7,6 +7,7 @@ impl super::Client {
     ///   - [`org_id(impl Into<String>)`](crate::operation::get_config::builders::GetConfigFluentBuilder::org_id) / [`set_org_id(Option<String>)`](crate::operation::get_config::builders::GetConfigFluentBuilder::set_org_id):<br>required: **true**<br>(undocumented)<br>
     ///   - [`prefix(impl Into<String>)`](crate::operation::get_config::builders::GetConfigFluentBuilder::prefix) / [`set_prefix(Option<Vec::<String>>)`](crate::operation::get_config::builders::GetConfigFluentBuilder::set_prefix):<br>required: **false**<br>(undocumented)<br>
     ///   - [`version(impl Into<String>)`](crate::operation::get_config::builders::GetConfigFluentBuilder::version) / [`set_version(Option<String>)`](crate::operation::get_config::builders::GetConfigFluentBuilder::set_version):<br>required: **false**<br>(undocumented)<br>
+    ///   - [`if_modified_since(DateTime)`](crate::operation::get_config::builders::GetConfigFluentBuilder::if_modified_since) / [`set_if_modified_since(Option<DateTime>)`](crate::operation::get_config::builders::GetConfigFluentBuilder::set_if_modified_since):<br>required: **false**<br>While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.<br>
     ///   - [`context(impl Into<String>, Document)`](crate::operation::get_config::builders::GetConfigFluentBuilder::context) / [`set_context(Option<HashMap::<String, Document>>)`](crate::operation::get_config::builders::GetConfigFluentBuilder::set_context):<br>required: **false**<br>Map representing the context. Keys correspond to the names of the dimensions.<br>
                             /// - On success, responds with [`GetConfigOutput`](crate::operation::get_config::GetConfigOutput) with field(s):
     ///   - [`contexts(Vec::<ContextPartial>)`](crate::operation::get_config::GetConfigOutput::contexts): (undocumented)
@@ -15,7 +16,6 @@ impl super::Client {
     ///   - [`dimensions(HashMap::<String, DimensionInfo>)`](crate::operation::get_config::GetConfigOutput::dimensions): (undocumented)
     ///   - [`version(String)`](crate::operation::get_config::GetConfigOutput::version): (undocumented)
     ///   - [`last_modified(DateTime)`](crate::operation::get_config::GetConfigOutput::last_modified): (undocumented)
-    ///   - [`audit_id(Option<String>)`](crate::operation::get_config::GetConfigOutput::audit_id): (undocumented)
                             /// - On failure, responds with [`SdkError<GetConfigError>`](crate::operation::get_config::GetConfigError)
     pub fn get_config(&self) -> crate::operation::get_config::builders::GetConfigFluentBuilder {
                                 crate::operation::get_config::builders::GetConfigFluentBuilder::new(self.handle.clone())

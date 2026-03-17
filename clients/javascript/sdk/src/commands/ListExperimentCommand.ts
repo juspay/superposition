@@ -48,6 +48,7 @@ export interface ListExperimentCommandOutput extends ListExperimentOutput, __Met
  *   all: true || false,
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   if_modified_since: new Date("TIMESTAMP"),
  *   status: [ // ExperimentStatusTypeList
  *     "CREATED" || "CONCLUDED" || "INPROGRESS" || "DISCARDED" || "PAUSED",
  *   ],
@@ -67,6 +68,9 @@ export interface ListExperimentCommandOutput extends ListExperimentOutput, __Met
  *   sort_by: "desc" || "asc",
  *   global_experiments_only: true || false,
  *   dimension_match_strategy: "exact" || "subset",
+ *   context: { // ContextMap
+ *     "<keys>": "DOCUMENT_VALUE",
+ *   },
  * };
  * const command = new ListExperimentCommand(input);
  * const response = await client.send(command);
@@ -111,6 +115,7 @@ export interface ListExperimentCommandOutput extends ListExperimentOutput, __Met
  * //       experiment_group_id: "STRING_VALUE",
  * //     },
  * //   ],
+ * //   last_modified_at: new Date("TIMESTAMP"), // required
  * // };
  *
  * ```

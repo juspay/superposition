@@ -34,13 +34,6 @@ const sidebar: SidebarsConfig = {
         },
         {
           type: "doc",
-          id: "api/get-config-fast",
-          label: "GetConfigFast",
-          customProps: {},
-          className: "api-method get",
-        },
-        {
-          type: "doc",
           id: "api/get-config-json",
           label: "GetConfigJson",
           customProps: {},
@@ -251,15 +244,15 @@ const sidebar: SidebarsConfig = {
       items: [
         {
           type: "doc",
-          id: "api/list-experiment-groups",
-          label: "ListExperimentGroups",
+          id: "api/create-experiment-group",
+          label: "CreateExperimentGroup",
           customProps: {},
-          className: "api-method get",
+          className: "api-method post",
         },
         {
           type: "doc",
-          id: "api/create-experiment-group",
-          label: "CreateExperimentGroup",
+          id: "api/list-experiment-groups",
+          label: "ListExperimentGroups",
           customProps: {},
           className: "api-method post",
         },
@@ -307,13 +300,6 @@ const sidebar: SidebarsConfig = {
       items: [
         {
           type: "doc",
-          id: "api/list-experiment",
-          label: "ListExperiment",
-          customProps: {},
-          className: "api-method get",
-        },
-        {
-          type: "doc",
           id: "api/create-experiment",
           label: "CreateExperiment",
           customProps: {},
@@ -323,6 +309,13 @@ const sidebar: SidebarsConfig = {
           type: "doc",
           id: "api/applicable-variants",
           label: "ApplicableVariants",
+          customProps: {},
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "api/list-experiment",
+          label: "ListExperiment",
           customProps: {},
           className: "api-method post",
         },

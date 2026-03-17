@@ -34,6 +34,8 @@ public final class ExperimentGroup implements ApiResource {
         Map.entry("context", SharedSchemas.CONDITION),
         Map.entry("member_experiment_ids", SharedSchemas.STRING_LIST));
 
+    private static final List<Schema>$COLLECTION_OPERATIONS = List.of(AddMembersToGroup.$SCHEMA,
+        RemoveMembersFromGroup.$SCHEMA);
     private static final List<Schema> $OPERATIONS = List.of(AddMembersToGroup.$SCHEMA,
         RemoveMembersFromGroup.$SCHEMA);
     private static final Schema $SCHEMA = Schema.createResource($ID);
@@ -85,10 +87,9 @@ public final class ExperimentGroup implements ApiResource {
     }
 
     @Override
-    public Schema list() {
-        return ListExperimentGroups.$SCHEMA;
+    public List<Schema> collectionOperations() {
+        return $COLLECTION_OPERATIONS;
     }
-
     @Override
     public List<Schema> operations() {
         return $OPERATIONS;

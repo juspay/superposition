@@ -37,10 +37,6 @@ pub fn de_get_config_http_response(_response_status: u16, _response_headers: &::
         #[allow(unused_mut)]
         let mut output = crate::operation::get_config::builders::GetConfigOutputBuilder::default();
         output = crate::protocol_serde::shape_get_config::de_get_config(_response_body, output).map_err(crate::operation::get_config::GetConfigError::unhandled)?;
-        output = output.set_audit_id(
-            crate::protocol_serde::shape_get_config_output::de_audit_id_header(_response_headers)
-                                        .map_err(|_|crate::operation::get_config::GetConfigError::unhandled("Failed to parse audit_id from header `x-audit-id"))?
-        );
         output = output.set_last_modified(
             crate::protocol_serde::shape_get_config_output::de_last_modified_header(_response_headers)
                                         .map_err(|_|crate::operation::get_config::GetConfigError::unhandled("Failed to parse last_modified from header `last-modified"))?
@@ -80,6 +76,18 @@ pub fn ser_get_config_headers(
                             ))
                             })?;
                             builder = builder.header("x-org-id", header_value);
+    }
+    if let ::std::option::Option::Some(inner_5) = &input.if_modified_since {
+        let formatted_6 = inner_5.fmt(::aws_smithy_types::date_time::Format::DateTime)?;
+        let header_value = formatted_6;
+                            let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
+                                ::aws_smithy_types::error::operation::BuildError::invalid_field("if_modified_since", format!(
+                                "`{}` cannot be used as a header value: {}",
+                                &header_value,
+                                err
+                            ))
+                            })?;
+                            builder = builder.header("If-Modified-Since", header_value);
     }
     Ok(builder)
 }

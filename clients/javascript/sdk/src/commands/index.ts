@@ -26,7 +26,6 @@ export * from "./DeleteVariableCommand";
 export * from "./DeleteWebhookCommand";
 export * from "./DiscardExperimentCommand";
 export * from "./GetConfigCommand";
-export * from "./GetConfigFastCommand";
 export * from "./GetConfigJsonCommand";
 export * from "./GetConfigTomlCommand";
 export * from "./GetContextCommand";

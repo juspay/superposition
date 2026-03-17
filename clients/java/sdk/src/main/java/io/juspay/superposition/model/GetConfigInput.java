@@ -1,6 +1,7 @@
 
 package io.juspay.superposition.model;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,8 @@ public final class GetConfigInput implements SerializableStruct {
                 new HttpQueryTrait("prefix"))
         .putMember("version", PreludeSchemas.STRING,
                 new HttpQueryTrait("version"))
+        .putMember("if_modified_since", SharedSchemas.DATE_TIME,
+                new HttpHeaderTrait("If-Modified-Since"))
         .putMember("context", SharedSchemas.CONTEXT_MAP)
         .build();
 
@@ -43,12 +46,14 @@ public final class GetConfigInput implements SerializableStruct {
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
     private static final Schema $SCHEMA_PREFIX = $SCHEMA.member("prefix");
     private static final Schema $SCHEMA_VERSION = $SCHEMA.member("version");
+    private static final Schema $SCHEMA_IF_MODIFIED_SINCE = $SCHEMA.member("if_modified_since");
     private static final Schema $SCHEMA_CONTEXT = $SCHEMA.member("context");
 
     private final transient String workspaceId;
     private final transient String orgId;
     private final transient List<String> prefix;
     private final transient String version;
+    private final transient Instant ifModifiedSince;
     private final transient Map<String, Document> context;
 
     private GetConfigInput(Builder builder) {
@@ -56,6 +61,7 @@ public final class GetConfigInput implements SerializableStruct {
         this.orgId = builder.orgId;
         this.prefix = builder.prefix == null ? null : Collections.unmodifiableList(builder.prefix);
         this.version = builder.version;
+        this.ifModifiedSince = builder.ifModifiedSince;
         this.context = builder.context == null ? null : Collections.unmodifiableMap(builder.context);
     }
 
@@ -80,6 +86,15 @@ public final class GetConfigInput implements SerializableStruct {
 
     public String version() {
         return version;
+    }
+
+    /**
+     * While using this, 304 response is treated as error, which needs to be handled separately by checking
+     * the response code of the http response. This is required to make sure that clients can cache the
+     * response and avoid unnecessary calls when there are no updates.
+     */
+    public Instant ifModifiedSince() {
+        return ifModifiedSince;
     }
 
     public Map<String, Document> context() {
@@ -111,12 +126,13 @@ public final class GetConfigInput implements SerializableStruct {
                && Objects.equals(this.orgId, that.orgId)
                && Objects.equals(this.prefix, that.prefix)
                && Objects.equals(this.version, that.version)
+               && Objects.equals(this.ifModifiedSince, that.ifModifiedSince)
                && Objects.equals(this.context, that.context);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, prefix, version, context);
+        return Objects.hash(workspaceId, orgId, prefix, version, ifModifiedSince, context);
     }
 
     @Override
@@ -134,6 +150,9 @@ public final class GetConfigInput implements SerializableStruct {
         if (version != null) {
             serializer.writeString($SCHEMA_VERSION, version);
         }
+        if (ifModifiedSince != null) {
+            serializer.writeTimestamp($SCHEMA_IF_MODIFIED_SINCE, ifModifiedSince);
+        }
         if (context != null) {
             serializer.writeMap($SCHEMA_CONTEXT, context, context.size(), SharedSerde.ContextMapSerializer.INSTANCE);
         }
@@ -147,7 +166,8 @@ public final class GetConfigInput implements SerializableStruct {
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, prefix);
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, version);
-            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
+            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_IF_MODIFIED_SINCE, member, ifModifiedSince);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -165,6 +185,7 @@ public final class GetConfigInput implements SerializableStruct {
         builder.orgId(this.orgId);
         builder.prefix(this.prefix);
         builder.version(this.version);
+        builder.ifModifiedSince(this.ifModifiedSince);
         builder.context(this.context);
         return builder;
     }
@@ -185,6 +206,7 @@ public final class GetConfigInput implements SerializableStruct {
         private String orgId;
         private List<String> prefix;
         private String version;
+        private Instant ifModifiedSince;
         private Map<String, Document> context;
 
         private Builder() {}
@@ -231,6 +253,18 @@ public final class GetConfigInput implements SerializableStruct {
         }
 
         /**
+         * While using this, 304 response is treated as error, which needs to be handled separately by checking
+         * the response code of the http response. This is required to make sure that clients can cache the
+         * response and avoid unnecessary calls when there are no updates.
+         *
+         * @return this builder.
+         */
+        public Builder ifModifiedSince(Instant ifModifiedSince) {
+            this.ifModifiedSince = ifModifiedSince;
+            return this;
+        }
+
+        /**
          * @return this builder.
          */
         public Builder context(Map<String, Document> context) {
@@ -252,7 +286,8 @@ public final class GetConfigInput implements SerializableStruct {
                 case 1 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 case 2 -> prefix((List<String>) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, value));
                 case 3 -> version((String) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, value));
-                case 4 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
+                case 4 -> ifModifiedSince((Instant) SchemaUtils.validateSameMember($SCHEMA_IF_MODIFIED_SINCE, member, value));
+                case 5 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -293,7 +328,8 @@ public final class GetConfigInput implements SerializableStruct {
                     case 1 -> builder.orgId(de.readString(member));
                     case 2 -> builder.prefix(SharedSerde.deserializeStringList(member, de));
                     case 3 -> builder.version(de.readString(member));
-                    case 4 -> builder.context(SharedSerde.deserializeContextMap(member, de));
+                    case 4 -> builder.ifModifiedSince(de.readTimestamp(member));
+                    case 5 -> builder.context(SharedSerde.deserializeContextMap(member, de));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }
