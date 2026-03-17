@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Superposition Admin UI — Demo</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: #f3f4f6;
+        color: #111827;
+      }
+      header {
+        background: #1e1b4b;
+        color: white;
+        padding: 16px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      header h1 { font-size: 18px; font-weight: 600; }
+      header .badge {
+        font-size: 11px;
+        background: #6366f1;
+        padding: 3px 8px;
+        border-radius: 4px;
+      }
+      .toolbar {
+        background: white;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 12px 24px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .toolbar label { font-size: 13px; font-weight: 500; color: #374151; }
+      .toolbar input, .toolbar select {
+        font-size: 13px;
+        padding: 6px 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        background: white;
+      }
+      .toolbar input:focus, .toolbar select:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 2px rgba(99,102,241,0.15);
+      }
+      .toolbar button {
+        font-size: 13px;
+        padding: 6px 16px;
+        border: none;
+        border-radius: 6px;
+        background: #4f46e5;
+        color: white;
+        cursor: pointer;
+        font-weight: 500;
+      }
+      .toolbar button:hover { background: #4338ca; }
+      .toolbar button:disabled { opacity: 0.5; cursor: not-allowed; }
+      #app-root {
+        max-width: 1200px;
+        margin: 24px auto;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        padding: 24px;
+        min-height: 400px;
+      }
+      #status {
+        font-size: 13px;
+        padding: 8px 16px;
+        border-radius: 6px;
+        margin: 12px 24px;
+        display: none;
+      }
+      #status.error { display: block; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+      #status.success { display: block; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+      #status.info { display: block; background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Superposition Admin UI Demo</h1>
+      <span class="badge">Embeddable Component</span>
+    </header>
+
+    <div class="toolbar">
+      <label for="host">Host:</label>
+      <input id="host" type="text" value="http://localhost:8080" style="width:220px" />
+
+      <label for="org">Org ID:</label>
+      <input id="org" type="text" value="juspay" style="width:120px" />
+
+      <label for="workspace">Workspace:</label>
+      <input id="workspace" type="text" value="dev" style="width:120px" />
+
+      <label for="token">Token:</label>
+      <input id="token" type="password" placeholder="(optional)" style="width:150px" />
+
+      <label for="features">Features:</label>
+      <select id="features">
+        <option value="">All</option>
+        <option value="config,overrides">Config + Overrides</option>
+        <option value="experiments">Experiments only</option>
+        <option value="config,dimensions,overrides,resolve">Config suite</option>
+        <option value="audit">Audit only</option>
+      </select>
+
+      <button id="connect-btn">Connect</button>
+    </div>
+
+    <div id="status"></div>
+    <div id="app-root"><p style="color:#9ca3af;text-align:center;padding-top:80px">Configure connection above and click <strong>Connect</strong></p></div>
+
+    <script type="module">
+      import React from "react";
+      import ReactDOM from "react-dom/client";
+      import {
+        SuperpositionProvider,
+        AlertProvider,
+        SuperpositionAdmin,
+      } from "../src/index.ts";
+
+      const statusEl = document.getElementById("status");
+
+      function showStatus(msg, type) {
+        statusEl.className = type;
+        statusEl.textContent = msg;
+      }
+
+      let root = null;
+
+      document.getElementById("connect-btn").addEventListener("click", async () => {
+        const host = document.getElementById("host").value.replace(/\/+$/, "");
+        const orgId = document.getElementById("org").value;
+        const workspace = document.getElementById("workspace").value;
+        const token = document.getElementById("token").value;
+        const featuresRaw = document.getElementById("features").value;
+
+        if (!host || !orgId || !workspace) {
+          showStatus("Host, Org ID, and Workspace are required.", "error");
+          return;
+        }
+
+        showStatus("Connecting to " + host + " ...", "info");
+
+        // Quick health-check
+        try {
+          const resp = await fetch(host + "/health", { mode: "cors" });
+          if (!resp.ok) throw new Error("HTTP " + resp.status);
+          showStatus("Connected to " + host, "success");
+        } catch (err) {
+          showStatus(
+            "Cannot reach " + host + "/health — " + err.message +
+            ". Make sure the Superposition server is running and CORS is enabled.",
+            "error",
+          );
+          // Still render the UI — it will show API errors inline
+        }
+
+        const config = {
+          host,
+          orgId,
+          workspace,
+          auth: token ? { token } : undefined,
+          features: featuresRaw ? featuresRaw.split(",") : undefined,
+        };
+
+        const container = document.getElementById("app-root");
+        container.innerHTML = "";
+
+        if (!root) {
+          root = ReactDOM.createRoot(container);
+        }
+
+        root.render(
+          React.createElement(
+            SuperpositionProvider,
+            { config },
+            React.createElement(
+              AlertProvider,
+              null,
+              React.createElement(SuperpositionAdmin),
+            ),
+          ),
+        );
+      });
+    </script>
+  </body>
+</html>
