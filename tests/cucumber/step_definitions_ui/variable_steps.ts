@@ -2,8 +2,6 @@ import { Given, When, Then } from "@cucumber/cucumber";
 import {
   CreateVariableCommand,
   GetVariableCommand,
-  UpdateVariableCommand,
-  DeleteVariableCommand,
   CreateFunctionCommand,
   TestCommand,
   FunctionTypes,
@@ -197,21 +195,61 @@ When(
   }
 );
 
-// SDK: no edit UI in the simple drawer
+// PLAYWRIGHT: edit variable value via UI detail page (SDK fallback for non-existent)
 When(
   "I update variable {string} value to {string}",
   async function (this: PlaywrightWorld, name: string, value: string) {
+    // Check if variable exists first; if not, use SDK to get proper error
     try {
-      this.lastResponse = await this.client.send(
-        new UpdateVariableCommand({
+      await this.client.send(
+        new GetVariableCommand({
           workspace_id: this.workspaceId,
           org_id: this.orgId,
           name,
-          value,
-          change_reason: "Cucumber update",
         })
       );
-      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+      return;
+    }
+    try {
+      await this.goToDetailPage("variables", name);
+      await this.page.waitForTimeout(300);
+
+      await this.page.getByRole("button", { name: "Edit" }).click();
+      await this.page.waitForTimeout(300);
+
+      const valueInput = this.page.getByPlaceholder("Enter variable value");
+      await valueInput.clear();
+      await valueInput.fill(value);
+
+      await this.page
+        .getByPlaceholder("Enter a reason for this change")
+        .fill("Cucumber update");
+
+      await this.page.getByRole("button", { name: "Submit" }).last().click();
+
+      await this.page.getByRole("button", { name: "Yes, Update" }).click();
+
+      const toastText = await this.waitForToast();
+      if (
+        toastText.toLowerCase().includes("error") ||
+        toastText.toLowerCase().includes("failed")
+      ) {
+        this.lastError = { message: toastText };
+        this.lastResponse = undefined;
+      } else {
+        // Fetch updated variable via SDK for response assertions
+        this.lastResponse = await this.client.send(
+          new GetVariableCommand({
+            workspace_id: this.workspaceId,
+            org_id: this.orgId,
+            name,
+          })
+        );
+        this.lastError = undefined;
+      }
     } catch (e: any) {
       this.lastError = e;
       this.lastResponse = undefined;
@@ -219,21 +257,47 @@ When(
   }
 );
 
-// SDK: no edit UI for description
+// PLAYWRIGHT: edit variable description via UI detail page
 When(
   "I update variable {string} description to {string}",
   async function (this: PlaywrightWorld, name: string, desc: string) {
     try {
-      this.lastResponse = await this.client.send(
-        new UpdateVariableCommand({
-          workspace_id: this.workspaceId,
-          org_id: this.orgId,
-          name,
-          description: desc,
-          change_reason: "Cucumber update description",
-        })
-      );
-      this.lastError = undefined;
+      await this.goToDetailPage("variables", name);
+      await this.page.waitForTimeout(300);
+
+      await this.page.getByRole("button", { name: "Edit" }).click();
+      await this.page.waitForTimeout(300);
+
+      const descInput = this.page.getByPlaceholder("Enter a description");
+      await descInput.clear();
+      await descInput.fill(desc);
+
+      await this.page
+        .getByPlaceholder("Enter a reason for this change")
+        .fill("Cucumber update description");
+
+      await this.page.getByRole("button", { name: "Submit" }).last().click();
+
+      await this.page.getByRole("button", { name: "Yes, Update" }).click();
+
+      const toastText = await this.waitForToast();
+      if (
+        toastText.toLowerCase().includes("error") ||
+        toastText.toLowerCase().includes("failed")
+      ) {
+        this.lastError = { message: toastText };
+        this.lastResponse = undefined;
+      } else {
+        // Fetch updated variable via SDK for response assertions
+        this.lastResponse = await this.client.send(
+          new GetVariableCommand({
+            workspace_id: this.workspaceId,
+            org_id: this.orgId,
+            name,
+          })
+        );
+        this.lastError = undefined;
+      }
     } catch (e: any) {
       this.lastError = e;
       this.lastResponse = undefined;
@@ -241,20 +305,45 @@ When(
   }
 );
 
-// SDK: no UI delete button
+// PLAYWRIGHT: delete variable via UI detail page (SDK fallback for non-existent)
 When(
   "I delete variable {string}",
   async function (this: PlaywrightWorld, name: string) {
+    // Check if variable exists first; if not, use SDK to get proper error
     try {
-      this.lastResponse = await this.client.send(
-        new DeleteVariableCommand({
+      await this.client.send(
+        new GetVariableCommand({
           workspace_id: this.workspaceId,
           org_id: this.orgId,
           name,
         })
       );
-      this.createdVariables = this.createdVariables.filter((v) => v !== name);
-      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+      return;
+    }
+    try {
+      await this.goToDetailPage("variables", name);
+      await this.page.waitForTimeout(300);
+
+      await this.page.getByRole("button", { name: "Delete" }).click();
+      await this.page.waitForTimeout(300);
+
+      await this.page.getByRole("button", { name: "Yes, Delete" }).click();
+
+      const toastText = await this.waitForToast();
+      if (
+        toastText.toLowerCase().includes("error") ||
+        toastText.toLowerCase().includes("failed")
+      ) {
+        this.lastError = { message: toastText };
+        this.lastResponse = undefined;
+      } else {
+        this.createdVariables = this.createdVariables.filter((v) => v !== name);
+        this.lastResponse = { deleted: true, toast: toastText };
+        this.lastError = undefined;
+      }
     } catch (e: any) {
       this.lastError = e;
       this.lastResponse = undefined;
