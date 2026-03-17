@@ -189,6 +189,11 @@ When(
   "I get function {string}",
   async function (this: PlaywrightWorld, name: string) {
     try {
+      // Navigate to the function detail page
+      await this.goToDetailPage("function", this.functionName);
+      await this.page.waitForTimeout(300);
+
+      // Fetch via SDK for response assertions
       this.lastResponse = await this.client.send(
         new GetFunctionCommand({
           workspace_id: this.workspaceId,
@@ -263,14 +268,25 @@ When(
 When(
   "I publish function {string}",
   async function (this: PlaywrightWorld, name: string) {
-    // Use the tracked function name if it matches, otherwise use as-is
     const funcName = this.functionName || this.uniqueName(name);
+    const isErrorCase = name === "non-existent-function";
+
+    if (!isErrorCase) {
+      try {
+        // Navigate to function detail page for UI context
+        await this.goToDetailPage("function", funcName);
+        await this.page.waitForTimeout(300);
+      } catch {
+        // Best-effort UI navigation
+      }
+    }
+
     try {
       this.lastResponse = await this.client.send(
         new PublishCommand({
           workspace_id: this.workspaceId,
           org_id: this.orgId,
-          function_name: name === "non-existent-function" ? name : funcName,
+          function_name: isErrorCase ? name : funcName,
           change_reason: "Cucumber publish",
         })
       );
