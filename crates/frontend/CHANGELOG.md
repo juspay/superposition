@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.51.0 - 2026-03-17
+#### Features
+- **(authz)** ABAC for default_config, context and experiment (#910) - (453266d) - Ayush Jain
+- Support trigger reason for context validation (#913) - (eb00e04) - Ayush Jain
+- Add casbin as AuthZ provider option (#908) - (29dcef7) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.99.0 [skip ci] - (ce74bf1) - Superposition Bot
+
+- - -
+
 ## frontend-v0.50.0 - 2026-02-18
 #### Bug Fixes
 - **(UI)** Improve query params auto-updation behaviour (#866) - (54eafba) - Ayush Jain

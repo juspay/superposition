@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_client-v0.21.0 - 2026-03-17
+#### Bug Fixes
+- update build.rs to ignore header file generation in docs.rs (#895) - (fd65be5) - Datron
+#### Features
+- **(authz)** ABAC for default_config, context and experiment (#910) - (453266d) - Ayush Jain
+- Add casbin as AuthZ provider option (#908) - (29dcef7) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.97.2 [skip ci] - (b6f916b) - Superposition Bot
+
+- - -
+
 ## experimentation_client-v0.20.4 - 2026-01-29
 #### Bug Fixes
 - exp and config partial apply (#831) - (0fceab3) - Ayush Jain

@@ -2,6 +2,24 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.70.0 - 2026-03-17
+#### Features
+- **(authz)** ABAC for default_config, context and experiment (#910) - (453266d) - Ayush Jain
+- Support trigger reason for context validation (#913) - (eb00e04) - Ayush Jain
+- Add casbin as AuthZ provider option (#908) - (29dcef7) - Ayush Jain
+- introduce redis for caching configurations (#797) - (e1ca4f6) - Datron
+- added ConfigChanged webhook event for config mutation notifications (#877) - (07cea38) - sauraww
+#### Miscellaneous Chores
+- **(deps)** bump flatted in /crates/context_aware_config (#915) - (fa50848) - dependabot[bot]
+- **(deps)** bump minimatch in /crates/context_aware_config (#893) - (8813bf2) - dependabot[bot]
+- **(deps)** bump ajv in /crates/context_aware_config (#889) - (b302a3d) - dependabot[bot]
+- **(version)** v0.99.0 [skip ci] - (ce74bf1) - Superposition Bot
+- email consistency across the repo (#891) - (01372a3) - Ayush Jain
+#### Refactoring
+- config format framework with json support (#907) - (439ba41) - Natarajan Kannan
+
+- - -
+
 ## context_aware_config-v0.69.0 - 2026-02-18
 #### Features
 - add toml parsing to superposition_core (#796) - (512da7b) - Natarajan Kannan

@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_derives-v0.10.0 - 2026-03-17
+#### Build system
+- setup msrv and edition consistently in all Cargo.toml (#706) - (8c6e51a) - Natarajan Kannan
+#### Features
+- Add casbin as AuthZ provider option (#908) - (29dcef7) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.97.0 [skip ci] - (23c354d) - Superposition Bot
+
+- - -
+
 ## superposition_derives-v0.9.0 - 2026-01-07
 #### Features
 - AuthZ setup (#543) - (08b03e0) - Ayush Jain

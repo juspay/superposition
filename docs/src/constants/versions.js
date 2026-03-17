@@ -1,4 +1,4 @@
 export const VERSIONS = {
-  superposition: "0.99.2",
+  superposition: "0.100.0",
   openfeature: "1.15.1"
 };

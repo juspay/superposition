@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_sdk-v0.14.0 - 2026-03-17
+#### Features
+- Add casbin as AuthZ provider option (#908) - (29dcef7) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.98.0 [skip ci] - (c1e4625) - Superposition Bot
+#### Refactoring
+- config format framework with json support (#907) - (439ba41) - Natarajan Kannan
+
+- - -
+
 ## superposition_sdk-v0.13.0 - 2026-02-09
 #### Bug Fixes
 - smithy and minor refactor (#862) - (fd427fe) - Ayush Jain

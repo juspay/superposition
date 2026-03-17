@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_provider-v0.8.0 - 2026-03-17
+#### Features
+- Add casbin as AuthZ provider option (#908) - (29dcef7) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.99.2 [skip ci] - (e5917d3) - Superposition Bot
+
+- - -
+
 ## superposition_provider-v0.7.2 - 2026-02-20
 #### Bug Fixes
 - change to bump version via tracked files (#885) - (20a108d) - Natarajan Kannan

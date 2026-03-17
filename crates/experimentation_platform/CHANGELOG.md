@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.50.0 - 2026-03-17
+#### Features
+- **(authz)** ABAC for default_config, context and experiment (#910) - (453266d) - Ayush Jain
+- Add casbin as AuthZ provider option (#908) - (29dcef7) - Ayush Jain
+- introduce redis for caching configurations (#797) - (e1ca4f6) - Datron
+- added ConfigChanged webhook event for config mutation notifications (#877) - (07cea38) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.99.0 [skip ci] - (ce74bf1) - Superposition Bot
+- email consistency across the repo (#891) - (01372a3) - Ayush Jain
+
+- - -
+
 ## experimentation_platform-v0.49.0 - 2026-02-18
 #### Features
 - add toml parsing to superposition_core (#796) - (512da7b) - Natarajan Kannan

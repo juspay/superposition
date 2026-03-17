@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.41.0 - 2026-03-17
+#### Features
+- **(authz)** ABAC for default_config, context and experiment (#910) - (453266d) - Ayush Jain
+- Support trigger reason for context validation (#913) - (eb00e04) - Ayush Jain
+- Add casbin as AuthZ provider option (#908) - (29dcef7) - Ayush Jain
+- introduce redis for caching configurations (#797) - (e1ca4f6) - Datron
+- added ConfigChanged webhook event for config mutation notifications (#877) - (07cea38) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.99.0 [skip ci] - (ce74bf1) - Superposition Bot
+- email consistency across the repo (#891) - (01372a3) - Ayush Jain
+
+- - -
+
 ## superposition_types-v0.40.0 - 2026-02-18
 #### Features
 - **(UI)** allow variant ids as array for resolve/filter (#835) - (d6fc574) - Ayush Jain
