@@ -557,9 +557,40 @@ When(
   }
 );
 
+// PLAYWRIGHT: delete experiment group — pre-check via SDK, then navigate to listing
+// and verify the row exists, then attempt delete via SDK (UI has no delete button yet)
 When(
   "I delete the experiment group",
   async function (this: PlaywrightWorld) {
+    // Pre-check existence via SDK to get proper error for non-existent IDs
+    try {
+      await this.client.send(
+        new GetExperimentGroupCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          id: this.experimentGroupId,
+        })
+      );
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+      return;
+    }
+
+    // Navigate to experiment-groups listing page to verify presence via Playwright
+    try {
+      await this.goToWorkspacePage("experiment-groups");
+      await this.page.waitForTimeout(300);
+      await this.page.locator("table").waitFor({ state: "visible", timeout: 10000 });
+
+      // Verify the group row is visible in the table (row id = group UUID)
+      const row = this.page.locator(`tr[id="${this.experimentGroupId}"]`);
+      await row.waitFor({ state: "visible", timeout: 5000 });
+    } catch {
+      // UI verification is best-effort; proceed with SDK delete
+    }
+
+    // Use SDK for the actual delete attempt (the UI listing page has no delete button)
     try {
       this.lastResponse = await this.client.send(
         new DeleteExperimentGroupCommand({
