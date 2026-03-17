@@ -593,6 +593,7 @@ if builder.total_items.is_none() { builder.total_items = Some(Default::default()
 if builder.data.is_none() { builder.data = Some(Default::default()) }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 if builder.last_modified.is_none() { builder.last_modified = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 =======
 <<<<<<< HEAD
@@ -603,6 +604,12 @@ if builder.last_modified.is_none() { builder.last_modified = Some(::aws_smithy_t
 =======
 if builder.last_modified.is_none() { builder.last_modified = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 >>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
+=======
+if builder.last_modified.is_none() { builder.last_modified = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+=======
+if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+>>>>>>> 6e8749e1 (Test)
+>>>>>>> c1293812 (Test)
                 builder
             }
 

@@ -10192,15 +10192,20 @@ class ListExperimentGroupsInput:
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> 91d47048 (fix: more fixes)
 =======
 >>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
+=======
+>>>>>>> c1293812 (Test)
     :param dimension_match_strategy:
          Strategy to follow while filter items based on the context
 
+=======
+>>>>>>> 6e8749e1 (Test)
     :param context:
          Map representing the context. Keys correspond to the names of the dimensions.
 
@@ -10227,7 +10232,12 @@ class ListExperimentGroupsInput:
     group_type: list[str] | None = None
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c1293812 (Test)
     dimension_match_strategy: str | None = None
+=======
+>>>>>>> 6e8749e1 (Test)
     context: dict[str, Document] | None = None
 =======
 <<<<<<< HEAD
@@ -10303,9 +10313,12 @@ class ListExperimentGroupsInput:
 =======
 >>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
                 case 12:
+<<<<<<< HEAD
                     kwargs["dimension_match_strategy"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["dimension_match_strategy"])
 
                 case 13:
+=======
+>>>>>>> 6e8749e1 (Test)
                     kwargs["context"] = _deserialize_context_map(de, _SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["context"])
 
 <<<<<<< HEAD
@@ -11064,7 +11077,10 @@ class ListExperimentInput:
     sort_by: str | None = None
     global_experiments_only: bool | None = None
     dimension_match_strategy: str | None = None
+<<<<<<< HEAD
     prefix: list[str] | None = None
+=======
+>>>>>>> 6e8749e1 (Test)
     context: dict[str, Document] | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -11136,9 +11152,12 @@ class ListExperimentInput:
                     kwargs["dimension_match_strategy"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["dimension_match_strategy"])
 
                 case 17:
+<<<<<<< HEAD
                     kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["prefix"])
 
                 case 18:
+=======
+>>>>>>> 6e8749e1 (Test)
                     kwargs["context"] = _deserialize_context_map(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["context"])
 
                 case _:
@@ -11158,7 +11177,13 @@ class ListExperimentOutput:
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c1293812 (Test)
     last_modified: datetime
+=======
+    last_modified_at: datetime
+>>>>>>> 6e8749e1 (Test)
 
 =======
 <<<<<<< HEAD
@@ -11201,7 +11226,11 @@ class ListExperimentOutput:
 <<<<<<< HEAD
 <<<<<<< HEAD
                 case 3:
+<<<<<<< HEAD
                     kwargs["last_modified"] = de.read_timestamp(_SCHEMA_LIST_EXPERIMENT_OUTPUT.members["last_modified"])
+=======
+                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_LIST_EXPERIMENT_OUTPUT.members["last_modified_at"])
+>>>>>>> 6e8749e1 (Test)
 
 =======
 <<<<<<< HEAD

@@ -13,7 +13,12 @@ module Io.Superposition.Model.ListExperimentGroupsInput (
     setGroupType,
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c1293812 (Test)
     setDimensionMatchStrategy,
+=======
+>>>>>>> 6e8749e1 (Test)
     setContext,
 =======
 <<<<<<< HEAD
@@ -43,7 +48,10 @@ module Io.Superposition.Model.ListExperimentGroupsInput (
 <<<<<<< HEAD
 <<<<<<< HEAD
     group_type,
+<<<<<<< HEAD
     dimension_match_strategy,
+=======
+>>>>>>> 6e8749e1 (Test)
     context
 =======
 <<<<<<< HEAD
@@ -95,7 +103,10 @@ data ListExperimentGroupsInput = ListExperimentGroupsInput {
 <<<<<<< HEAD
 <<<<<<< HEAD
     group_type :: Data.Maybe.Maybe ([] Io.Superposition.Model.GroupType.GroupType),
+<<<<<<< HEAD
     dimension_match_strategy :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMatchStrategy.DimensionMatchStrategy,
+=======
+>>>>>>> 6e8749e1 (Test)
     context :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value)
 =======
 <<<<<<< HEAD
@@ -133,7 +144,10 @@ instance Data.Aeson.ToJSON ListExperimentGroupsInput where
 <<<<<<< HEAD
 <<<<<<< HEAD
         "group_type" Data.Aeson..= group_type a,
+<<<<<<< HEAD
         "dimension_match_strategy" Data.Aeson..= dimension_match_strategy a,
+=======
+>>>>>>> 6e8749e1 (Test)
         "context" Data.Aeson..= context a
 =======
 <<<<<<< HEAD
@@ -170,7 +184,12 @@ instance Data.Aeson.FromJSON ListExperimentGroupsInput where
         Control.Applicative.<*> (v Data.Aeson..:? "group_type")
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c1293812 (Test)
         Control.Applicative.<*> (v Data.Aeson..:? "dimension_match_strategy")
+=======
+>>>>>>> 6e8749e1 (Test)
         Control.Applicative.<*> (v Data.Aeson..:? "context")
 =======
 <<<<<<< HEAD
@@ -202,7 +221,10 @@ data ListExperimentGroupsInputBuilderState = ListExperimentGroupsInputBuilderSta
 <<<<<<< HEAD
 <<<<<<< HEAD
     group_typeBuilderState :: Data.Maybe.Maybe ([] Io.Superposition.Model.GroupType.GroupType),
+<<<<<<< HEAD
     dimension_match_strategyBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMatchStrategy.DimensionMatchStrategy,
+=======
+>>>>>>> 6e8749e1 (Test)
     contextBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value)
 =======
 <<<<<<< HEAD
@@ -238,7 +260,10 @@ defaultBuilderState = ListExperimentGroupsInputBuilderState {
 <<<<<<< HEAD
 <<<<<<< HEAD
     group_typeBuilderState = Data.Maybe.Nothing,
+<<<<<<< HEAD
     dimension_match_strategyBuilderState = Data.Maybe.Nothing,
+=======
+>>>>>>> 6e8749e1 (Test)
     contextBuilderState = Data.Maybe.Nothing
 =======
 <<<<<<< HEAD
@@ -308,16 +333,21 @@ setGroupType value =
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> 91d47048 (fix: more fixes)
 =======
 >>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
+=======
+>>>>>>> c1293812 (Test)
 setDimensionMatchStrategy :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMatchStrategy.DimensionMatchStrategy -> ListExperimentGroupsInputBuilder ()
 setDimensionMatchStrategy value =
    Control.Monad.State.Strict.modify (\s -> (s { dimension_match_strategyBuilderState = value }))
 
+=======
+>>>>>>> 6e8749e1 (Test)
 setContext :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value) -> ListExperimentGroupsInputBuilder ()
 setContext value =
    Control.Monad.State.Strict.modify (\s -> (s { contextBuilderState = value }))
@@ -346,7 +376,12 @@ build builder = do
     group_type' <- Data.Either.Right (group_typeBuilderState st)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c1293812 (Test)
     dimension_match_strategy' <- Data.Either.Right (dimension_match_strategyBuilderState st)
+=======
+>>>>>>> 6e8749e1 (Test)
     context' <- Data.Either.Right (contextBuilderState st)
 =======
 <<<<<<< HEAD
@@ -374,7 +409,10 @@ build builder = do
 <<<<<<< HEAD
 <<<<<<< HEAD
         group_type = group_type',
+<<<<<<< HEAD
         dimension_match_strategy = dimension_match_strategy',
+=======
+>>>>>>> 6e8749e1 (Test)
         context = context'
 =======
 <<<<<<< HEAD
@@ -408,12 +446,15 @@ instance Io.Superposition.Utility.IntoRequestBuilder ListExperimentGroupsInput w
         Io.Superposition.Utility.serQuery "created_by" (created_by self)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> 91d47048 (fix: more fixes)
 =======
 >>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
+=======
+>>>>>>> c1293812 (Test)
         Io.Superposition.Utility.serQuery "dimension_match_strategy" (dimension_match_strategy self)
         Io.Superposition.Utility.serQuery "sort_on" (sort_on self)
         Io.Superposition.Utility.serQuery "name" (name self)
@@ -421,11 +462,20 @@ instance Io.Superposition.Utility.IntoRequestBuilder ListExperimentGroupsInput w
         Io.Superposition.Utility.serHeader "if-modified-since" (if_modified_since self)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 8fc501b7 (fix: more fixes)
 >>>>>>> 91d47048 (fix: more fixes)
 =======
 >>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
+=======
+=======
+        Io.Superposition.Utility.serQuery "sort_on" (sort_on self)
+        Io.Superposition.Utility.serQuery "name" (name self)
+        Io.Superposition.Utility.serQuery "page" (page self)
+        Io.Superposition.Utility.serHeader "If-Modified-Since" (if_modified_since self)
+>>>>>>> 6e8749e1 (Test)
+>>>>>>> c1293812 (Test)
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         Io.Superposition.Utility.serField "context" (context self)

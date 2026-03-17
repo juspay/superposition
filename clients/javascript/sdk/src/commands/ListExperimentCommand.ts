@@ -68,9 +68,12 @@ export interface ListExperimentCommandOutput extends ListExperimentOutput, __Met
  *   sort_by: "desc" || "asc",
  *   global_experiments_only: true || false,
  *   dimension_match_strategy: "exact" || "subset",
+<<<<<<< HEAD
  *   prefix: [
  *     "STRING_VALUE",
  *   ],
+=======
+>>>>>>> 6e8749e1 (Test)
  *   context: { // ContextMap
  *     "<keys>": "DOCUMENT_VALUE",
  *   },
@@ -120,6 +123,7 @@ export interface ListExperimentCommandOutput extends ListExperimentOutput, __Met
  * //   ],
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * //   last_modified: new Date("TIMESTAMP"), // required
 =======
 <<<<<<< HEAD
@@ -130,6 +134,12 @@ export interface ListExperimentCommandOutput extends ListExperimentOutput, __Met
 =======
  * //   last_modified: new Date("TIMESTAMP"), // required
 >>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
+=======
+ * //   last_modified: new Date("TIMESTAMP"), // required
+=======
+ * //   last_modified_at: new Date("TIMESTAMP"), // required
+>>>>>>> 6e8749e1 (Test)
+>>>>>>> c1293812 (Test)
  * // };
  *
  * ```

@@ -4119,6 +4119,7 @@ export const de_ListExperimentCommand = async(
     $metadata: deserializeMetadata(output),
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     [_lm_]: [() => void 0 !== output.headers[_lm], () => __expectNonNull(__parseRfc3339DateTimeWithOffset(output.headers[_lm]))],
 =======
 <<<<<<< HEAD
@@ -4129,6 +4130,12 @@ export const de_ListExperimentCommand = async(
 =======
     [_lm_]: [() => void 0 !== output.headers[_lm], () => __expectNonNull(__parseRfc3339DateTimeWithOffset(output.headers[_lm]))],
 >>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
+=======
+    [_lm_]: [() => void 0 !== output.headers[_lm], () => __expectNonNull(__parseRfc3339DateTimeWithOffset(output.headers[_lm]))],
+=======
+    [_lma]: [() => void 0 !== output.headers[_lm], () => __expectNonNull(__parseRfc3339DateTimeWithOffset(output.headers[_lm]))],
+>>>>>>> 6e8749e1 (Test)
+>>>>>>> c1293812 (Test)
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
@@ -6240,6 +6247,7 @@ const de_CommandError = async(
   const _ims_ = "if-modified-since";
   const _lm = "last-modified";
   const _lm_ = "last_modified";
+  const _lma = "last_modified_at";
   const _lmb = "last_modified_by";
   const _ms = "merge_strategy";
   const _n = "name";

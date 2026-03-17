@@ -29,14 +29,19 @@ pub struct ListExperimentGroupsInput  {
     pub group_type: ::std::option::Option<::std::vec::Vec::<crate::types::GroupType>>,
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> 91d47048 (fix: more fixes)
 =======
 >>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
+=======
+>>>>>>> c1293812 (Test)
     /// Strategy to follow while filter items based on the context
     pub dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
+=======
+>>>>>>> 6e8749e1 (Test)
     /// Map representing the context. Keys correspond to the names of the dimensions.
     pub context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
 <<<<<<< HEAD
@@ -101,16 +106,21 @@ impl  ListExperimentGroupsInput  {
     }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> 91d47048 (fix: more fixes)
 =======
 >>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
+=======
+>>>>>>> c1293812 (Test)
     /// Strategy to follow while filter items based on the context
     pub fn dimension_match_strategy(&self) -> ::std::option::Option<&crate::types::DimensionMatchStrategy> {
         self.dimension_match_strategy.as_ref()
     }
+=======
+>>>>>>> 6e8749e1 (Test)
     /// Map representing the context. Keys correspond to the names of the dimensions.
     pub fn context(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
         self.context.as_ref()
@@ -148,7 +158,12 @@ pub struct ListExperimentGroupsInputBuilder {
     pub(crate) group_type: ::std::option::Option<::std::vec::Vec::<crate::types::GroupType>>,
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c1293812 (Test)
     pub(crate) dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
+=======
+>>>>>>> 6e8749e1 (Test)
     pub(crate) context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
 =======
 <<<<<<< HEAD
@@ -329,12 +344,15 @@ impl ListExperimentGroupsInputBuilder {
     }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> 91d47048 (fix: more fixes)
 =======
 >>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
+=======
+>>>>>>> c1293812 (Test)
     /// Strategy to follow while filter items based on the context
     pub fn dimension_match_strategy(mut self, input: crate::types::DimensionMatchStrategy) -> Self {
         self.dimension_match_strategy = ::std::option::Option::Some(input);
@@ -348,6 +366,8 @@ impl ListExperimentGroupsInputBuilder {
     pub fn get_dimension_match_strategy(&self) -> &::std::option::Option<crate::types::DimensionMatchStrategy> {
         &self.dimension_match_strategy
     }
+=======
+>>>>>>> 6e8749e1 (Test)
     /// Adds a key-value pair to `context`.
     ///
     /// To override the contents of this collection use [`set_context`](Self::set_context).
@@ -404,14 +424,19 @@ impl ListExperimentGroupsInputBuilder {
                 ,
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> 91d47048 (fix: more fixes)
 =======
 >>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
+=======
+>>>>>>> c1293812 (Test)
                 dimension_match_strategy: self.dimension_match_strategy
                 ,
+=======
+>>>>>>> 6e8749e1 (Test)
                 context: self.context
                 ,
 <<<<<<< HEAD

@@ -274,6 +274,7 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
         .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
 =======
@@ -281,6 +282,16 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
         .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
 =======
 >>>>>>> 0dd5da56 (fix: some fixes)
+=======
+=======
+<<<<<<< HEAD
+=======
+        .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
+        .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
+>>>>>>> 6e8749e1 (Test)
+        .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
+>>>>>>> 5f8110af (Test)
+>>>>>>> c1293812 (Test)
         .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
         .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
         .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)

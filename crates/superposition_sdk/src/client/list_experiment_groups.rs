@@ -17,7 +17,12 @@ impl super::Client {
     ///   - [`group_type(GroupType)`](crate::operation::list_experiment_groups::builders::ListExperimentGroupsFluentBuilder::group_type) / [`set_group_type(Option<Vec::<GroupType>>)`](crate::operation::list_experiment_groups::builders::ListExperimentGroupsFluentBuilder::set_group_type):<br>required: **false**<br>Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).<br>
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c1293812 (Test)
     ///   - [`dimension_match_strategy(DimensionMatchStrategy)`](crate::operation::list_experiment_groups::builders::ListExperimentGroupsFluentBuilder::dimension_match_strategy) / [`set_dimension_match_strategy(Option<DimensionMatchStrategy>)`](crate::operation::list_experiment_groups::builders::ListExperimentGroupsFluentBuilder::set_dimension_match_strategy):<br>required: **false**<br>Strategy to follow while filter items based on the context<br>
+=======
+>>>>>>> 6e8749e1 (Test)
     ///   - [`context(impl Into<String>, Document)`](crate::operation::list_experiment_groups::builders::ListExperimentGroupsFluentBuilder::context) / [`set_context(Option<HashMap::<String, Document>>)`](crate::operation::list_experiment_groups::builders::ListExperimentGroupsFluentBuilder::set_context):<br>required: **false**<br>Map representing the context. Keys correspond to the names of the dimensions.<br>
 =======
 <<<<<<< HEAD
