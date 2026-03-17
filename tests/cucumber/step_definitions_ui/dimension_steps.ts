@@ -2,9 +2,6 @@ import { Given, When, Then } from "@cucumber/cucumber";
 import {
   CreateDimensionCommand,
   GetDimensionCommand,
-  ListDimensionsCommand,
-  UpdateDimensionCommand,
-  DeleteDimensionCommand,
 } from "@juspay/superposition-sdk";
 import { PlaywrightWorld } from "../support_ui/world.ts";
 import * as assert from "node:assert";
@@ -96,11 +93,16 @@ When(
   }
 );
 
-// SDK: no detail page easily accessible by name
+// PLAYWRIGHT: Navigate to dimension detail page, then fetch via SDK for assertions
 When(
   "I get dimension {string}",
   async function (this: PlaywrightWorld, name: string) {
     try {
+      // Navigate to the detail page for UI interaction
+      await this.goToDetailPage("dimensions", this.dimensionName);
+      await this.page.waitForTimeout(300);
+
+      // Fetch via SDK for response assertions (detail page doesn't expose all fields in DOM)
       this.lastResponse = await this.client.send(
         new GetDimensionCommand({
           workspace_id: this.workspaceId,
@@ -144,21 +146,49 @@ When("I list all dimensions", async function (this: PlaywrightWorld) {
   }
 });
 
-// SDK: no UI edit form available
+// PLAYWRIGHT: edit dimension description via UI detail page (full-page form)
 When(
   "I update dimension {string} description to {string}",
   async function (this: PlaywrightWorld, name: string, description: string) {
     try {
-      this.lastResponse = await this.client.send(
-        new UpdateDimensionCommand({
-          workspace_id: this.workspaceId,
-          org_id: this.orgId,
-          dimension: this.dimensionName,
-          description,
-          change_reason: "Cucumber update test",
-        })
-      );
-      this.lastError = undefined;
+      await this.goToDetailPage("dimensions", this.dimensionName);
+      await this.page.waitForTimeout(300);
+
+      // Edit is an <a> link on dimension detail page, not a button
+      await this.page.getByRole("link", { name: "Edit" }).click();
+      await this.page.waitForLoadState("networkidle");
+      await this.page.waitForTimeout(300);
+
+      const descInput = this.page.getByPlaceholder("Enter a description");
+      await descInput.clear();
+      await descInput.fill(description);
+
+      await this.page
+        .getByPlaceholder("Enter a reason for this change")
+        .fill("Cucumber update description");
+
+      await this.page.getByRole("button", { name: "Submit" }).last().click();
+
+      await this.page.getByRole("button", { name: "Yes, Update" }).click();
+
+      const toastText = await this.waitForToast();
+      if (
+        toastText.toLowerCase().includes("error") ||
+        toastText.toLowerCase().includes("failed")
+      ) {
+        this.lastError = { message: toastText };
+        this.lastResponse = undefined;
+      } else {
+        // Fetch updated dimension via SDK for response assertions
+        this.lastResponse = await this.client.send(
+          new GetDimensionCommand({
+            workspace_id: this.workspaceId,
+            org_id: this.orgId,
+            dimension: this.dimensionName,
+          })
+        );
+        this.lastError = undefined;
+      }
     } catch (e: any) {
       this.lastError = e;
       this.lastResponse = undefined;
@@ -166,23 +196,48 @@ When(
   }
 );
 
-// SDK: no UI delete button available
+// PLAYWRIGHT: delete dimension via UI detail page
 When(
   "I delete dimension {string}",
   async function (this: PlaywrightWorld, name: string) {
+    // Check if dimension exists first; if not, use SDK to get proper error
     try {
-      this.lastResponse = await this.client.send(
-        new DeleteDimensionCommand({
+      await this.client.send(
+        new GetDimensionCommand({
           workspace_id: this.workspaceId,
           org_id: this.orgId,
           dimension: this.dimensionName,
         })
       );
-      // Remove from cleanup list since we deleted it
-      this.createdDimensions = this.createdDimensions.filter(
-        (d) => d !== this.dimensionName
-      );
-      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+      return;
+    }
+    try {
+      await this.goToDetailPage("dimensions", this.dimensionName);
+      await this.page.waitForTimeout(300);
+
+      await this.page.getByRole("button", { name: "Delete" }).click();
+      await this.page.waitForTimeout(300);
+
+      await this.page.getByRole("button", { name: "Yes, Delete" }).click();
+
+      const toastText = await this.waitForToast();
+      if (
+        toastText.toLowerCase().includes("error") ||
+        toastText.toLowerCase().includes("failed")
+      ) {
+        this.lastError = { message: toastText };
+        this.lastResponse = undefined;
+      } else {
+        // Remove from cleanup list since we deleted it
+        this.createdDimensions = this.createdDimensions.filter(
+          (d) => d !== this.dimensionName
+        );
+        this.lastResponse = { deleted: true, toast: toastText };
+        this.lastError = undefined;
+      }
     } catch (e: any) {
       this.lastError = e;
       this.lastResponse = undefined;
