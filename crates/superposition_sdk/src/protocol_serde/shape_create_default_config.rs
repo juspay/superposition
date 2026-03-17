@@ -11,6 +11,22 @@ pub fn de_create_default_config_http_error(_response_status: u16, _response_head
     
                             let _error_message = generic.message().map(|msg|msg.to_owned());
     Err(match error_code {
+        "WebhookFailed" => crate::operation::create_default_config::CreateDefaultConfigError::WebhookFailed({
+            #[allow(unused_mut)]
+            let mut tmp =
+                 {
+                    #[allow(unused_mut)]
+                    let mut output = crate::types::error::builders::WebhookFailedBuilder::default();
+                    output = crate::protocol_serde::shape_webhook_failed::de_webhook_failed_json_err(_response_body, output).map_err(crate::operation::create_default_config::CreateDefaultConfigError::unhandled)?;
+                    let output = output.meta(generic);
+                    output.build()
+                }
+            ;
+            if tmp.message.is_none() {
+                                                            tmp.message = _error_message;
+                                                        }
+            tmp
+        }),
         "InternalServerError" => crate::operation::create_default_config::CreateDefaultConfigError::InternalServerError({
             #[allow(unused_mut)]
             let mut tmp =

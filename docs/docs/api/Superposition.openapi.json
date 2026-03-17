@@ -693,6 +693,16 @@
                                 }
                             }
                         }
+                    },
+                    "512": {
+                        "description": "WebhookFailed 512 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WebhookFailedResponseContent"
+                                }
+                            }
+                        }
                     }
                 },
                 "tags": [
@@ -762,6 +772,16 @@
                                 }
                             }
                         }
+                    },
+                    "512": {
+                        "description": "WebhookFailed 512 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WebhookFailedResponseContent"
+                                }
+                            }
+                        }
                     }
                 },
                 "tags": [
@@ -820,6 +840,16 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "512": {
+                        "description": "WebhookFailed 512 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WebhookFailedResponseContent"
                                 }
                             }
                         }
@@ -893,6 +923,16 @@
                                 }
                             }
                         }
+                    },
+                    "512": {
+                        "description": "WebhookFailed 512 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WebhookFailedResponseContent"
+                                }
+                            }
+                        }
                     }
                 },
                 "tags": [
@@ -959,6 +999,16 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "512": {
+                        "description": "WebhookFailed 512 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WebhookFailedResponseContent"
                                 }
                             }
                         }
@@ -1070,6 +1120,16 @@
                                 }
                             }
                         }
+                    },
+                    "512": {
+                        "description": "WebhookFailed 512 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WebhookFailedResponseContent"
+                                }
+                            }
+                        }
                     }
                 },
                 "tags": [
@@ -1127,6 +1187,16 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "512": {
+                        "description": "WebhookFailed 512 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WebhookFailedResponseContent"
                                 }
                             }
                         }
@@ -1328,6 +1398,16 @@
                                 }
                             }
                         }
+                    },
+                    "512": {
+                        "description": "WebhookFailed 512 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WebhookFailedResponseContent"
+                                }
+                            }
+                        }
                     }
                 },
                 "tags": [
@@ -1378,6 +1458,16 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "512": {
+                        "description": "WebhookFailed 512 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WebhookFailedResponseContent"
                                 }
                             }
                         }
@@ -1504,6 +1594,16 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "512": {
+                        "description": "WebhookFailed 512 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WebhookFailedResponseContent"
                                 }
                             }
                         }
@@ -1640,6 +1740,16 @@
                                 }
                             }
                         }
+                    },
+                    "512": {
+                        "description": "WebhookFailed 512 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WebhookFailedResponseContent"
+                                }
+                            }
+                        }
                     }
                 },
                 "tags": [
@@ -1690,6 +1800,16 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "512": {
+                        "description": "WebhookFailed 512 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WebhookFailedResponseContent"
                                 }
                             }
                         }
@@ -1816,6 +1936,16 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "512": {
+                        "description": "WebhookFailed 512 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WebhookFailedResponseContent"
                                 }
                             }
                         }
@@ -2569,6 +2699,16 @@
                                 }
                             }
                         }
+                    },
+                    "512": {
+                        "description": "WebhookFailed 512 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WebhookFailedResponseContent"
+                                }
+                            }
+                        }
                     }
                 },
                 "tags": [
@@ -2758,6 +2898,16 @@
                                 }
                             }
                         }
+                    },
+                    "512": {
+                        "description": "WebhookFailed 512 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WebhookFailedResponseContent"
+                                }
+                            }
+                        }
                     }
                 },
                 "tags": [
@@ -2825,6 +2975,16 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "512": {
+                        "description": "WebhookFailed 512 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WebhookFailedResponseContent"
                                 }
                             }
                         }
@@ -2898,6 +3058,16 @@
                                 }
                             }
                         }
+                    },
+                    "512": {
+                        "description": "WebhookFailed 512 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WebhookFailedResponseContent"
+                                }
+                            }
+                        }
                     }
                 },
                 "tags": [
@@ -2965,6 +3135,16 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "512": {
+                        "description": "WebhookFailed 512 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WebhookFailedResponseContent"
                                 }
                             }
                         }
@@ -3038,6 +3218,16 @@
                                 }
                             }
                         }
+                    },
+                    "512": {
+                        "description": "WebhookFailed 512 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WebhookFailedResponseContent"
+                                }
+                            }
+                        }
                     }
                 },
                 "tags": [
@@ -3105,6 +3295,16 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "512": {
+                        "description": "WebhookFailed 512 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WebhookFailedResponseContent"
                                 }
                             }
                         }
@@ -11530,6 +11730,15 @@
                 "enum": [
                     "V1"
                 ]
+            },
+            "WebhookFailedResponseContent": {
+                "type": "object",
+                "description": "Indicates that the operation succeeded but the webhook call failed. The response body contains the successful result, but the client should be aware that webhook notification did not complete.",
+                "properties": {
+                    "data": {
+                        "description": "The successful operation result that would have been returned with HTTP 200. The structure matches the operation's normal output type."
+                    }
+                }
             },
             "WebhookResponse": {
                 "type": "object",
