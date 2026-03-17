@@ -235,17 +235,63 @@ When(
 );
 
 When("I delete the context", async function (this: PlaywrightWorld) {
+  // Pre-check existence via SDK to avoid long Playwright timeout on missing entity
   try {
-    this.lastResponse = await this.client.send(
-      new DeleteContextCommand({
+    await this.client.send(
+      new GetContextCommand({
         workspace_id: this.workspaceId,
         org_id: this.orgId,
         id: this.contextId,
       })
     );
+  } catch (e: any) {
+    this.lastError = e;
+    this.lastResponse = undefined;
+    return;
+  }
+  try {
+    // Navigate to the overrides page
+    await this.goToWorkspacePage("overrides");
+    await this.page.waitForTimeout(500);
+
+    // The ConditionComponent for each context card renders with id=contextId on the <ol> element.
+    // Use attribute selector to handle IDs starting with digits (which are invalid CSS #id selectors)
+    const conditionEl = this.page.locator(`[id="${this.contextId}"]`);
+    await conditionEl.waitFor({ state: "visible", timeout: 10000 });
+
+    // The card is the closest ancestor div with rounded-lg shadow bg-base-100 classes
+    const card = conditionEl.locator(
+      "xpath=ancestor::div[contains(@class,'rounded-lg') and contains(@class,'shadow')][1]"
+    );
+
+    // The dropdown toggle is a <label> element with the ri-more-2-fill icon inside
+    await card.locator("label:has(i.ri-more-2-fill)").click();
+    await this.page.waitForTimeout(300);
+
+    // Click "Delete Overrides" in the dropdown menu
+    await this.page.getByText("Delete Overrides").last().click();
+    await this.page.waitForTimeout(500);
+
+    // The ChangeLogPopup modal appears with a portal overlay.
+    // The "Yes, Delete" button starts in loading/disabled state (showing a spinner)
+    // until the context data is fetched. Wait for it to become enabled with text visible.
+    const confirmBtn = this.page.getByRole("button", { name: "Yes, Delete" });
+    await confirmBtn.waitFor({ state: "visible", timeout: 15000 });
+    await confirmBtn.click();
+
+    // The context delete does NOT produce a toast — it just closes the modal and refetches.
+    // Wait for the modal to disappear and the card to no longer be visible.
+    await this.page.waitForTimeout(1000);
+    // Wait for the condition element to be gone (context deleted from the page)
+    await this.page.locator(`[id="${this.contextId}"]`).waitFor({
+      state: "hidden",
+      timeout: 10000,
+    });
+
     this.createdContextIds = this.createdContextIds.filter(
       (id) => id !== this.contextId
     );
+    this.lastResponse = { deleted: true };
     this.lastError = undefined;
   } catch (e: any) {
     this.lastError = e;
