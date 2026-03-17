@@ -2,6 +2,21 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_core-v0.11.0 - 2026-03-17
+#### Bug Fixes
+- context sort order to ensure specific overrides win over generic ones (#912) - (95468ee) - sweta-sharma
+- update build.rs to ignore header file generation in docs.rs (#895) - (fd65be5) - Datron
+#### Features
+- **(authz)** ABAC for default_config, context and experiment (#910) - (453266d) - Ayush Jain
+- Add casbin as AuthZ provider option (#908) - (29dcef7) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.99.0 [skip ci] - (ce74bf1) - Superposition Bot
+- remove unused dependencies (#911) - (e24eaa6) - Datron
+#### Refactoring
+- config format framework with json support (#907) - (439ba41) - Natarajan Kannan
+
+- - -
+
 ## superposition_core-v0.10.0 - 2026-02-18
 #### Features
 - add toml parsing to superposition_core (#796) - (512da7b) - Natarajan Kannan

@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## haskell_client-v0.14.0 - 2026-03-17
+#### Features
+- Add casbin as AuthZ provider option (#908) - (29dcef7) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.99.0 [skip ci] - (ce74bf1) - Superposition Bot
+#### Refactoring
+- config format framework with json support (#907) - (439ba41) - Natarajan Kannan
+
+- - -
+
 ## haskell_client-v0.13.0 - 2026-02-18
 #### Features
 - add toml parsing to superposition_core (#796) - (512da7b) - Natarajan Kannan

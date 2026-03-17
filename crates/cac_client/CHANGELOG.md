@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cac_client-v0.24.0 - 2026-03-17
+#### Bug Fixes
+- update build.rs to ignore header file generation in docs.rs (#895) - (fd65be5) - Datron
+#### Features
+- Add casbin as AuthZ provider option (#908) - (29dcef7) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.99.0 [skip ci] - (ce74bf1) - Superposition Bot
+
+- - -
+
 ## cac_client-v0.23.0 - 2026-02-18
 #### Build system
 - setup msrv and edition consistently in all Cargo.toml (#706) - (8c6e51a) - Natarajan Kannan

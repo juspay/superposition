@@ -2,6 +2,44 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.100.0 - 2026-03-17
+### Package updates
+- superposition_types bumped to superposition_types-v0.41.0
+- experimentation_platform bumped to experimentation_platform-v0.50.0
+- superposition_sdk bumped to superposition_sdk-v0.14.0
+- superposition_core bumped to superposition_core-v0.11.0
+- frontend bumped to frontend-v0.51.0
+- context_aware_config bumped to context_aware_config-v0.70.0
+- haskell_client bumped to haskell_client-v0.14.0
+- superposition_derives bumped to superposition_derives-v0.10.0
+- service_utils bumped to service_utils-v0.39.0
+- experimentation_client bumped to experimentation_client-v0.21.0
+- cac_client bumped to cac_client-v0.24.0
+- superposition_provider bumped to superposition_provider-v0.8.0
+### Global changes
+#### Bug Fixes
+- context sort order to ensure specific overrides win over generic ones (#912) - (95468ee) - sweta-sharma
+#### Features
+- added ConfigChanged webhook event for config mutation notifications (#877) - (07cea38) - sauraww
+- introduce redis for caching configurations (#797) - (e1ca4f6) - Datron
+- Add casbin as AuthZ provider option (#908) - (29dcef7) - Ayush Jain
+#### Miscellaneous Chores
+- **(deps)** bump flask from 3.0.3 to 3.1.3 in /locust (#887) - (7116aa4) - dependabot[bot]
+- **(deps)** bump werkzeug from 3.1.5 to 3.1.6 in /locust (#886) - (a1474e5) - dependabot[bot]
+- **(deps)** bump minimatch from 9.0.5 to 9.0.7 in /clients/javascript (#892) - (9517889) - dependabot[bot]
+- **(deps)** bump rollup in /examples/dynamic-payment-fields (#894) - (df81731) - dependabot[bot]
+- **(deps)** bump immutable from 5.1.3 to 5.1.5 in /docs (#901) - (1a982cf) - dependabot[bot]
+- **(deps)** bump svgo from 3.3.2 to 3.3.3 in /docs (#902) - (e79e5ae) - dependabot[bot]
+- **(deps-dev)** bump rollup in /clients/javascript (#897) - (a9a8848) - dependabot[bot]
+- **(version)** v0.99.2 [skip ci] - (e5917d3) - Superposition Bot
+- email consistency across the repo (#891) - (01372a3) - Ayush Jain
+- use redis in builds to test critical read paths (#905) - (61349d8) - Datron
+- remove unused dependencies (#911) - (e24eaa6) - Datron
+#### Refactoring
+- config format framework with json support (#907) - (439ba41) - Natarajan Kannan
+
+- - -
+
 ## v0.99.2 - 2026-02-20
 ### Package updates
 - superposition_provider bumped to superposition_provider-v0.7.2
