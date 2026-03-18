@@ -10,7 +10,7 @@ pub struct ListExperimentOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub data: ::std::vec::Vec::<crate::types::ExperimentResponse>,
     #[allow(missing_docs)] // documentation missing in model
-    pub last_modified_at: ::aws_smithy_types::DateTime,
+    pub last_modified: ::aws_smithy_types::DateTime,
 }
 impl  ListExperimentOutput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -26,8 +26,8 @@ impl  ListExperimentOutput  {
         use std::ops::Deref; self.data.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn last_modified_at(&self) -> &::aws_smithy_types::DateTime {
-        &self.last_modified_at
+    pub fn last_modified(&self) -> &::aws_smithy_types::DateTime {
+        &self.last_modified
     }
 }
 impl ListExperimentOutput {
@@ -44,7 +44,7 @@ pub struct ListExperimentOutputBuilder {
     pub(crate) total_pages: ::std::option::Option<i32>,
     pub(crate) total_items: ::std::option::Option<i32>,
     pub(crate) data: ::std::option::Option<::std::vec::Vec::<crate::types::ExperimentResponse>>,
-    pub(crate) last_modified_at: ::std::option::Option<::aws_smithy_types::DateTime>,
+    pub(crate) last_modified: ::std::option::Option<::aws_smithy_types::DateTime>,
 }
 impl ListExperimentOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -95,24 +95,24 @@ impl ListExperimentOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn last_modified_at(mut self, input: ::aws_smithy_types::DateTime) -> Self {
-        self.last_modified_at = ::std::option::Option::Some(input);
+    pub fn last_modified(mut self, input: ::aws_smithy_types::DateTime) -> Self {
+        self.last_modified = ::std::option::Option::Some(input);
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_last_modified_at(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.last_modified_at = input; self
+    pub fn set_last_modified(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
+        self.last_modified = input; self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_last_modified_at(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
-        &self.last_modified_at
+    pub fn get_last_modified(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
+        &self.last_modified
     }
     /// Consumes the builder and constructs a [`ListExperimentOutput`](crate::operation::list_experiment::ListExperimentOutput).
     /// This method will fail if any of the following fields are not set:
     /// - [`total_pages`](crate::operation::list_experiment::builders::ListExperimentOutputBuilder::total_pages)
     /// - [`total_items`](crate::operation::list_experiment::builders::ListExperimentOutputBuilder::total_items)
     /// - [`data`](crate::operation::list_experiment::builders::ListExperimentOutputBuilder::data)
-    /// - [`last_modified_at`](crate::operation::list_experiment::builders::ListExperimentOutputBuilder::last_modified_at)
+    /// - [`last_modified`](crate::operation::list_experiment::builders::ListExperimentOutputBuilder::last_modified)
     pub fn build(self) -> ::std::result::Result<crate::operation::list_experiment::ListExperimentOutput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
             crate::operation::list_experiment::ListExperimentOutput {
@@ -131,9 +131,9 @@ impl ListExperimentOutputBuilder {
                         ::aws_smithy_types::error::operation::BuildError::missing_field("data", "data was not specified but it is required when building ListExperimentOutput")
                     )?
                 ,
-                last_modified_at: self.last_modified_at
+                last_modified: self.last_modified
                     .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("last_modified_at", "last_modified_at was not specified but it is required when building ListExperimentOutput")
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("last_modified", "last_modified was not specified but it is required when building ListExperimentOutput")
                     )?
                 ,
             }

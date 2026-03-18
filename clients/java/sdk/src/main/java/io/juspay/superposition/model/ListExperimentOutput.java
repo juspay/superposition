@@ -30,7 +30,7 @@ public final class ListExperimentOutput implements SerializableStruct {
                 new RequiredTrait())
         .putMember("data", SharedSchemas.EXPERIMENT_LIST,
                 new RequiredTrait())
-        .putMember("last_modified_at", SharedSchemas.DATE_TIME,
+        .putMember("last_modified", SharedSchemas.DATE_TIME,
                 new HttpHeaderTrait("last-modified"),
                 new RequiredTrait())
         .build();
@@ -38,18 +38,18 @@ public final class ListExperimentOutput implements SerializableStruct {
     private static final Schema $SCHEMA_TOTAL_PAGES = $SCHEMA.member("total_pages");
     private static final Schema $SCHEMA_TOTAL_ITEMS = $SCHEMA.member("total_items");
     private static final Schema $SCHEMA_DATA = $SCHEMA.member("data");
-    private static final Schema $SCHEMA_LAST_MODIFIED_AT = $SCHEMA.member("last_modified_at");
+    private static final Schema $SCHEMA_LAST_MODIFIED = $SCHEMA.member("last_modified");
 
     private final transient int totalPages;
     private final transient int totalItems;
     private final transient List<ExperimentResponse> data;
-    private final transient Instant lastModifiedAt;
+    private final transient Instant lastModified;
 
     private ListExperimentOutput(Builder builder) {
         this.totalPages = builder.totalPages;
         this.totalItems = builder.totalItems;
         this.data = Collections.unmodifiableList(builder.data);
-        this.lastModifiedAt = builder.lastModifiedAt;
+        this.lastModified = builder.lastModified;
     }
 
     public int totalPages() {
@@ -68,8 +68,8 @@ public final class ListExperimentOutput implements SerializableStruct {
         return true;
     }
 
-    public Instant lastModifiedAt() {
-        return lastModifiedAt;
+    public Instant lastModified() {
+        return lastModified;
     }
 
     @Override
@@ -89,12 +89,12 @@ public final class ListExperimentOutput implements SerializableStruct {
         return this.totalPages == that.totalPages
                && this.totalItems == that.totalItems
                && Objects.equals(this.data, that.data)
-               && Objects.equals(this.lastModifiedAt, that.lastModifiedAt);
+               && Objects.equals(this.lastModified, that.lastModified);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(totalPages, totalItems, data, lastModifiedAt);
+        return Objects.hash(totalPages, totalItems, data, lastModified);
     }
 
     @Override
@@ -107,7 +107,7 @@ public final class ListExperimentOutput implements SerializableStruct {
         serializer.writeInteger($SCHEMA_TOTAL_PAGES, totalPages);
         serializer.writeInteger($SCHEMA_TOTAL_ITEMS, totalItems);
         serializer.writeList($SCHEMA_DATA, data, data.size(), SharedSerde.ExperimentListSerializer.INSTANCE);
-        serializer.writeTimestamp($SCHEMA_LAST_MODIFIED_AT, lastModifiedAt);
+        serializer.writeTimestamp($SCHEMA_LAST_MODIFIED, lastModified);
     }
 
     @Override
@@ -117,7 +117,7 @@ public final class ListExperimentOutput implements SerializableStruct {
             case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_TOTAL_PAGES, member, totalPages);
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_TOTAL_ITEMS, member, totalItems);
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_DATA, member, data);
-            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_AT, member, lastModifiedAt);
+            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED, member, lastModified);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -134,7 +134,7 @@ public final class ListExperimentOutput implements SerializableStruct {
         builder.totalPages(this.totalPages);
         builder.totalItems(this.totalItems);
         builder.data(this.data);
-        builder.lastModifiedAt(this.lastModifiedAt);
+        builder.lastModified(this.lastModified);
         return builder;
     }
 
@@ -153,7 +153,7 @@ public final class ListExperimentOutput implements SerializableStruct {
         private int totalPages;
         private int totalItems;
         private List<ExperimentResponse> data;
-        private Instant lastModifiedAt;
+        private Instant lastModified;
 
         private Builder() {}
 
@@ -196,9 +196,9 @@ public final class ListExperimentOutput implements SerializableStruct {
          * <p><strong>Required</strong>
          * @return this builder.
          */
-        public Builder lastModifiedAt(Instant lastModifiedAt) {
-            this.lastModifiedAt = Objects.requireNonNull(lastModifiedAt, "lastModifiedAt cannot be null");
-            tracker.setMember($SCHEMA_LAST_MODIFIED_AT);
+        public Builder lastModified(Instant lastModified) {
+            this.lastModified = Objects.requireNonNull(lastModified, "lastModified cannot be null");
+            tracker.setMember($SCHEMA_LAST_MODIFIED);
             return this;
         }
 
@@ -215,7 +215,7 @@ public final class ListExperimentOutput implements SerializableStruct {
                 case 0 -> totalPages((int) SchemaUtils.validateSameMember($SCHEMA_TOTAL_PAGES, member, value));
                 case 1 -> totalItems((int) SchemaUtils.validateSameMember($SCHEMA_TOTAL_ITEMS, member, value));
                 case 2 -> data((List<ExperimentResponse>) SchemaUtils.validateSameMember($SCHEMA_DATA, member, value));
-                case 3 -> lastModifiedAt((Instant) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_AT, member, value));
+                case 3 -> lastModified((Instant) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -234,8 +234,8 @@ public final class ListExperimentOutput implements SerializableStruct {
             if (!tracker.checkMember($SCHEMA_DATA)) {
                 data(Collections.emptyList());
             }
-            if (!tracker.checkMember($SCHEMA_LAST_MODIFIED_AT)) {
-                lastModifiedAt(Instant.EPOCH);
+            if (!tracker.checkMember($SCHEMA_LAST_MODIFIED)) {
+                lastModified(Instant.EPOCH);
             }
             return this;
         }
@@ -261,7 +261,7 @@ public final class ListExperimentOutput implements SerializableStruct {
                     case 0 -> builder.totalPages(de.readInteger(member));
                     case 1 -> builder.totalItems(de.readInteger(member));
                     case 2 -> builder.data(SharedSerde.deserializeExperimentList(member, de));
-                    case 3 -> builder.lastModifiedAt(de.readTimestamp(member));
+                    case 3 -> builder.lastModified(de.readTimestamp(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

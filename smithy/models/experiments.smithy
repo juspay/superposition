@@ -323,7 +323,7 @@ operation GetExperiment with [GetOperation] {
 operation ListExperiment {
     input := with [PaginationParams, WorkspaceMixin] {
         @documentation("While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.")
-        @httpHeader("If-Modified-Since")
+        @httpHeader("if-modified-since")
         @notProperty
         if_modified_since: DateTime
 
@@ -380,7 +380,7 @@ operation ListExperiment {
 
         @httpHeader("last-modified")
         @required
-        last_modified_at: DateTime
+        last_modified: DateTime
     }
 }
 

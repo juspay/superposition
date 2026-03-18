@@ -142,7 +142,7 @@ fn update_http_builder(
     let mut uri = ::std::string::String::new();
     uri_base(input, &mut uri)?;
     let builder = crate::protocol_serde::shape_get_config_json::ser_get_config_json_headers(input, builder)?;
-    ::std::result::Result::Ok(builder.method("GET").uri(uri))
+    ::std::result::Result::Ok(builder.method("POST").uri(uri))
 }
 let mut builder = update_http_builder(&input, ::http::request::Builder::new())?;
 builder

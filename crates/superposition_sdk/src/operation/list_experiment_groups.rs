@@ -183,6 +183,11 @@ fn uri_query(_input: &crate::operation::list_experiment_groups::ListExperimentGr
             }
         }
     }
+    if let ::std::option::Option::Some(inner_11) = &_input.dimension_match_strategy {
+         {
+            query.push_kv("dimension_match_strategy", &::aws_smithy_http::query::fmt_string(inner_11));
+        }
+    }
     ::std::result::Result::Ok(())
 }
 #[allow(clippy::unnecessary_wraps)]

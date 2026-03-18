@@ -170,7 +170,7 @@
                         }
                     },
                     {
-                        "name": "If-Modified-Since",
+                        "name": "if-modified-since",
                         "in": "header",
                         "description": "While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.",
                         "schema": {
@@ -237,10 +237,19 @@
             }
         },
         "/config/json": {
-            "get": {
+            "post": {
                 "description": "Retrieves the full config in JSON format, including default configs with schemas, dimensions, and overrides. This endpoint is optimized for clients that prefer JSON format for configuration management.",
                 "operationId": "GetConfigJson",
                 "parameters": [
+                    {
+                        "name": "if-modified-since",
+                        "in": "header",
+                        "description": "While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.",
+                        "schema": {
+                            "type": "string",
+                            "description": "While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates."
+                        }
+                    },
                     {
                         "name": "x-org-id",
                         "in": "header",
@@ -419,10 +428,19 @@
             }
         },
         "/config/toml": {
-            "get": {
+            "post": {
                 "description": "Retrieves the full config in TOML format, including default configs with schemas, dimensions, and overrides. This endpoint is optimized for clients that prefer TOML format for configuration management.",
                 "operationId": "GetConfigToml",
                 "parameters": [
+                    {
+                        "name": "if-modified-since",
+                        "in": "header",
+                        "description": "While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.",
+                        "schema": {
+                            "type": "string",
+                            "description": "While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates."
+                        }
+                    },
                     {
                         "name": "x-org-id",
                         "in": "header",
@@ -2034,7 +2052,15 @@
                         "explode": true
                     },
                     {
-                        "name": "If-Modified-Since",
+                        "name": "dimension_match_strategy",
+                        "in": "query",
+                        "description": "Strategy to follow while filter items based on the context",
+                        "schema": {
+                            "$ref": "#/components/schemas/DimensionMatchStrategy"
+                        }
+                    },
+                    {
+                        "name": "if-modified-since",
                         "in": "header",
                         "description": "While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.",
                         "schema": {
@@ -2681,7 +2707,7 @@
                         }
                     },
                     {
-                        "name": "If-Modified-Since",
+                        "name": "if-modified-since",
                         "in": "header",
                         "description": "While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.",
                         "schema": {

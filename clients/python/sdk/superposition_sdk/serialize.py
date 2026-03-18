@@ -1055,7 +1055,7 @@ async def _serialize_get_config(input: GetConfigInput, config: Config) -> HTTPRe
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     if input.if_modified_since is not None:
-        headers.extend(Fields([Field(name="If-Modified-Since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
+        headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -1083,6 +1083,8 @@ async def _serialize_get_config_json(input: GetConfigJsonInput, config: Config) 
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.if_modified_since is not None:
+        headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -1090,7 +1092,7 @@ async def _serialize_get_config_json(input: GetConfigJsonInput, config: Config) 
             scheme="https",
             query=query,
         ),
-        method="GET",
+        method="POST",
         fields=headers,
         body=body,
     )
@@ -1110,6 +1112,8 @@ async def _serialize_get_config_toml(input: GetConfigTomlInput, config: Config) 
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.if_modified_since is not None:
+        headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -1117,7 +1121,7 @@ async def _serialize_get_config_toml(input: GetConfigTomlInput, config: Config) 
             scheme="https",
             query=query,
         ),
-        method="GET",
+        method="POST",
         fields=headers,
         body=body,
     )
@@ -1976,7 +1980,7 @@ async def _serialize_list_experiment(input: ListExperimentInput, config: Config)
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     if input.if_modified_since is not None:
-        headers.extend(Fields([Field(name="If-Modified-Since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
+        headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2012,6 +2016,8 @@ async def _serialize_list_experiment_groups(input: ListExperimentGroupsInput, co
         query_params.append(("sort_by", input.sort_by))
     if input.group_type is not None:
         query_params.extend(("group_type", e) for e in input.group_type)
+    if input.dimension_match_strategy is not None:
+        query_params.append(("dimension_match_strategy", input.dimension_match_strategy))
 
     query = join_query_params(params=query_params, prefix=query)
 
@@ -2036,7 +2042,7 @@ async def _serialize_list_experiment_groups(input: ListExperimentGroupsInput, co
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
     if input.if_modified_since is not None:
-        headers.extend(Fields([Field(name="If-Modified-Since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
+        headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
     return _HTTPRequest(
         destination=_URI(
             host="",

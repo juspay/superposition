@@ -1216,6 +1216,7 @@ describe("Experiments API", () => {
         }
     });
 
+    let lastModifiedTime: Date | undefined;
     test("9. List Experiments (Basic)", async () => {
         try {
             const cmd = new ListExperimentCommand({
@@ -1234,12 +1235,37 @@ describe("Experiments API", () => {
             const exp2 = out.data?.find((exp) => exp.id === experimentId2);
             expect(exp1?.experiment_group_id).toBeUndefined();
             expect(exp2?.experiment_group_id).toBeUndefined();
+            lastModifiedTime = out.last_modified;
         } catch (e: any) {
             console.error(
                 "Error in test '9. List Experiments (Basic)':",
                 e?.$response || e.message,
             );
             throw e;
+        }
+    });
+
+    test("9.1. List Experiments with if-modified-since header", async () => {
+        if (!lastModifiedTime) {
+            throw new Error(
+                "Last modified time not set from previous test, cannot test if-modified-since functionality.",
+            );
+        }
+        const cmd = new ListExperimentCommand({
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            if_modified_since: lastModifiedTime,
+        });
+        try {
+            await superpositionClient.send(cmd);
+            throw new Error(
+                "Expected Not Modified error, but request succeeded",
+            );
+        } catch (e: any) {
+            expect(e).toBeDefined();
+            expect(e["$response"]).toBeDefined();
+            expect(e["$response"].statusCode).toBe(304);
+            console.log("Received expected Not Modified response");
         }
     });
 });

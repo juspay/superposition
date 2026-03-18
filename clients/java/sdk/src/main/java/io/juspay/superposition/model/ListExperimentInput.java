@@ -40,7 +40,7 @@ public final class ListExperimentInput implements SerializableStruct {
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
         .putMember("if_modified_since", SharedSchemas.DATE_TIME,
-                new HttpHeaderTrait("If-Modified-Since"))
+                new HttpHeaderTrait("if-modified-since"))
         .putMember("status", SharedSchemas.EXPERIMENT_STATUS_TYPE_LIST,
                 new HttpQueryTrait("status"))
         .putMember("from_date", SharedSchemas.DATE_TIME,

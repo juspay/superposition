@@ -37,9 +37,9 @@ pub fn de_list_experiment_http_response(_response_status: u16, _response_headers
         #[allow(unused_mut)]
         let mut output = crate::operation::list_experiment::builders::ListExperimentOutputBuilder::default();
         output = crate::protocol_serde::shape_list_experiment::de_list_experiment(_response_body, output).map_err(crate::operation::list_experiment::ListExperimentError::unhandled)?;
-        output = output.set_last_modified_at(
-            crate::protocol_serde::shape_list_experiment_output::de_last_modified_at_header(_response_headers)
-                                        .map_err(|_|crate::operation::list_experiment::ListExperimentError::unhandled("Failed to parse last_modified_at from header `last-modified"))?
+        output = output.set_last_modified(
+            crate::protocol_serde::shape_list_experiment_output::de_last_modified_header(_response_headers)
+                                        .map_err(|_|crate::operation::list_experiment::ListExperimentError::unhandled("Failed to parse last_modified from header `last-modified"))?
         );
         crate::serde_util::list_experiment_output_output_correct_errors(output).build().map_err(crate::operation::list_experiment::ListExperimentError::unhandled)?
     })
@@ -83,7 +83,7 @@ pub fn ser_list_experiment_headers(
                                 err
                             ))
                             })?;
-                            builder = builder.header("If-Modified-Since", header_value);
+                            builder = builder.header("if-modified-since", header_value);
     }
     Ok(builder)
 }

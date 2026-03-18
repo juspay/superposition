@@ -87,7 +87,7 @@ operation GetConfig {
         version: String
 
         @documentation("While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.")
-        @httpHeader("If-Modified-Since")
+        @httpHeader("if-modified-since")
         @notProperty
         if_modified_since: DateTime
 
@@ -124,10 +124,15 @@ operation GetConfig {
 
 @documentation("Retrieves the full config in TOML format, including default configs with schemas, dimensions, and overrides. This endpoint is optimized for clients that prefer TOML format for configuration management.")
 @readonly
-@http(method: "GET", uri: "/config/toml")
+@http(method: "POST", uri: "/config/toml")
 @tags(["Configuration Management"])
 operation GetConfigToml {
-    input := with [WorkspaceMixin] {}
+    input := with [WorkspaceMixin] {
+        @documentation("While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.")
+        @httpHeader("if-modified-since")
+        @notProperty
+        if_modified_since: DateTime
+    }
 
     output := for Config {
         @httpPayload
@@ -142,10 +147,15 @@ operation GetConfigToml {
 
 @documentation("Retrieves the full config in JSON format, including default configs with schemas, dimensions, and overrides. This endpoint is optimized for clients that prefer JSON format for configuration management.")
 @readonly
-@http(method: "GET", uri: "/config/json")
+@http(method: "POST", uri: "/config/json")
 @tags(["Configuration Management"])
 operation GetConfigJson {
-    input := with [WorkspaceMixin] {}
+    input := with [WorkspaceMixin] {
+        @documentation("While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.")
+        @httpHeader("if-modified-since")
+        @notProperty
+        if_modified_since: DateTime
+    }
 
     output := for Config {
         @httpPayload

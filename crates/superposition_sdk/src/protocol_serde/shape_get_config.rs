@@ -87,7 +87,7 @@ pub fn ser_get_config_headers(
                                 err
                             ))
                             })?;
-                            builder = builder.header("If-Modified-Since", header_value);
+                            builder = builder.header("if-modified-since", header_value);
     }
     Ok(builder)
 }

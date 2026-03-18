@@ -1721,7 +1721,7 @@ GET_CONFIG_INPUT = Schema.collection(
             "target": DATE_TIME,
             "index": 4,
             "traits": [
-                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="If-Modified-Since"),
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="if-modified-since"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
             ],
@@ -2075,6 +2075,16 @@ GET_CONFIG_JSON_INPUT = Schema.collection(
             ],
         },
 
+        "if_modified_since": {
+            "target": DATE_TIME,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="if-modified-since"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
     }
 )
 
@@ -2117,7 +2127,7 @@ GET_CONFIG_JSON = Schema(
                 "Configuration Management",
             )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
-                "method": "GET",
+                "method": "POST",
                 "uri": "/config/json",
             })),
         Trait.new(id=ShapeID("smithy.api#readonly")),
@@ -2150,6 +2160,16 @@ GET_CONFIG_TOML_INPUT = Schema.collection(
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
                 Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "if_modified_since": {
+            "target": DATE_TIME,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="if-modified-since"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
 
             ],
         },
@@ -2196,7 +2216,7 @@ GET_CONFIG_TOML = Schema(
                 "Configuration Management",
             )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
-                "method": "GET",
+                "method": "POST",
                 "uri": "/config/toml",
             })),
         Trait.new(id=ShapeID("smithy.api#readonly")),
@@ -9548,7 +9568,7 @@ LIST_EXPERIMENT_GROUPS_INPUT = Schema.collection(
             "target": DATE_TIME,
             "index": 5,
             "traits": [
-                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="If-Modified-Since"),
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="if-modified-since"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
             ],
@@ -9610,9 +9630,19 @@ LIST_EXPERIMENT_GROUPS_INPUT = Schema.collection(
             ],
         },
 
+        "dimension_match_strategy": {
+            "target": DIMENSION_MATCH_STRATEGY,
+            "index": 12,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="dimension_match_strategy"),
+
+            ],
+        },
+
         "context": {
             "target": CONTEXT_MAP,
-            "index": 12,
+            "index": 13,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
@@ -10777,7 +10807,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
             "target": DATE_TIME,
             "index": 5,
             "traits": [
-                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="If-Modified-Since"),
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="if-modified-since"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
             ],
@@ -10939,7 +10969,7 @@ LIST_EXPERIMENT_OUTPUT = Schema.collection(
             ],
         },
 
-        "last_modified_at": {
+        "last_modified": {
             "target": DATE_TIME,
             "index": 3,
             "traits": [

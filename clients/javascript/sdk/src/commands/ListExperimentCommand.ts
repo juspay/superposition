@@ -115,7 +115,7 @@ export interface ListExperimentCommandOutput extends ListExperimentOutput, __Met
  * //       experiment_group_id: "STRING_VALUE",
  * //     },
  * //   ],
- * //   last_modified_at: new Date("TIMESTAMP"), // required
+ * //   last_modified: new Date("TIMESTAMP"), // required
  * // };
  *
  * ```

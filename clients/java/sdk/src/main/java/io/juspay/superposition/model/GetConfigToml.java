@@ -24,7 +24,7 @@ public final class GetConfigToml implements ApiOperation<GetConfigTomlInput, Get
     private static final GetConfigToml $INSTANCE = new GetConfigToml();
 
     static final Schema $SCHEMA = Schema.createOperation($ID,
-            HttpTrait.builder().method("GET").code(200).uri(UriPattern.parse("/config/toml")).build());
+            HttpTrait.builder().method("POST").code(200).uri(UriPattern.parse("/config/toml")).build());
 
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
         .putType(InternalServerError.$ID, InternalServerError.class, InternalServerError::builder)

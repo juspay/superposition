@@ -83,7 +83,7 @@ pub fn ser_list_experiment_groups_headers(
                                 err
                             ))
                             })?;
-                            builder = builder.header("If-Modified-Since", header_value);
+                            builder = builder.header("if-modified-since", header_value);
     }
     Ok(builder)
 }

@@ -1119,10 +1119,11 @@ export const se_GetConfigJsonCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ims_]: [() => isSerializableHeaderValue(input[_ims]), () => __serializeDateTime(input[_ims]!).toString()],
   });
   b.bp("/config/json");
   let body: any;
-  b.m("GET")
+  b.m("POST")
   .h(headers)
   .b(body);
   return b.build();
@@ -1139,10 +1140,11 @@ export const se_GetConfigTomlCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ims_]: [() => isSerializableHeaderValue(input[_ims]), () => __serializeDateTime(input[_ims]!).toString()],
   });
   b.bp("/config/toml");
   let body: any;
-  b.m("GET")
+  b.m("POST")
   .h(headers)
   .b(body);
   return b.build();
@@ -1746,6 +1748,7 @@ export const se_ListExperimentGroupsCommand = async(
     [_so]: [,input[_so]!],
     [_sb]: [,input[_sb]!],
     [_gt]: [() => input.group_type !== void 0, () => ((input[_gt]! || []))],
+    [_dms]: [,input[_dms]!],
   });
   let body: any;
   body = JSON.stringify(take(input, {
@@ -4049,7 +4052,7 @@ export const de_ListExperimentCommand = async(
   }
   const contents: any = map({
     $metadata: deserializeMetadata(output),
-    [_lma]: [() => void 0 !== output.headers[_lm], () => __expectNonNull(__parseRfc3339DateTimeWithOffset(output.headers[_lm]))],
+    [_lm_]: [() => void 0 !== output.headers[_lm], () => __expectNonNull(__parseRfc3339DateTimeWithOffset(output.headers[_lm]))],
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
@@ -6161,7 +6164,6 @@ const de_CommandError = async(
   const _ims_ = "if-modified-since";
   const _lm = "last-modified";
   const _lm_ = "last_modified";
-  const _lma = "last_modified_at";
   const _lmb = "last_modified_by";
   const _ms = "merge_strategy";
   const _n = "name";

@@ -1507,7 +1507,7 @@ async def _deserialize_list_experiment(http_response: HTTPResponse, config: Conf
             _key_lowercase = key.lower()
             match _key_lowercase:
                 case "last-modified":
-                    kwargs["last_modified_at"] = ensure_utc(datetime.fromisoformat(expect_type(str, value)))
+                    kwargs["last_modified"] = ensure_utc(datetime.fromisoformat(expect_type(str, value)))
 
                 case _:
                     pass
