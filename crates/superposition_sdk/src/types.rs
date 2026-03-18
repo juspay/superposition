@@ -13,7 +13,11 @@ pub use crate::types::_group_type::GroupType;
 
 pub use crate::types::_bucket::Bucket;
 
+<<<<<<< HEAD
 pub use crate::types::_experiment_group_response::ExperimentGroupResponse;
+=======
+pub use crate::types::_dimension_match_strategy::DimensionMatchStrategy;
+>>>>>>> 8fc501b7 (fix: more fixes)
 
 pub use crate::types::_experiment_group_sort_on::ExperimentGroupSortOn;
 
@@ -37,12 +41,15 @@ pub use crate::types::_experiment_status_type::ExperimentStatusType;
 
 pub use crate::types::_experiment_type::ExperimentType;
 
+<<<<<<< HEAD
 pub use crate::types::_variant_update_request::VariantUpdateRequest;
 
 pub use crate::types::_experiment_response::ExperimentResponse;
 
 pub use crate::types::_dimension_match_strategy::DimensionMatchStrategy;
 
+=======
+>>>>>>> 8fc501b7 (fix: more fixes)
 pub use crate::types::_experiment_sort_on::ExperimentSortOn;
 
 pub use crate::types::_org_status::OrgStatus;

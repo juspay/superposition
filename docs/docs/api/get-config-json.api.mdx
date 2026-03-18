@@ -5,8 +5,8 @@ description: "Retrieves the full config in JSON format, including default config
 sidebar_label: "GetConfigJson"
 hide_title: true
 hide_table_of_contents: true
-api: eJzdVMFO3DAQ/RXLp1baXVZUe+FGEaIgtSB2e0IcTDJJDI5t7PHCNtp/70wSIEG7qFLVS0+J7eeZN/Oep5E5xCxoj9pZeSSvAYOGNUSBFYgiGSMyZwtdCm3FxfLyhyhcqBVOaJ2ZlGtbihwKlQz2wCieNFYiZhXUKk5ErmuwkaLTv7K5cGsIQVPWmVhVOgqwuXfaoqB/RzRq/QtyziIyo8EiM1EofIACwpBCh2lzpqCYv6iVVSVQPpzJiXQeuv3znCo7AzxpwReRKp1Ir4KqASFEeXTTSEsLQj1PXSinOieA5n5UoHIItOrqkUeNxI1nZKRG2VJuJzLAY9IBKAmGBNvJINiTCw/Rqwz+It4t70RPDYTI+MP5nD9j3UbVCYKIlzuUq0vaXjYq4rR2uS40J2j289gSE+ouUjPbU3jGA28UV7H/1kSiRgPvCV0m9Amv1MY4lXNoir3YVcY55QtWmSUEsslpCCTxYlzMgJPy3uislfjgnlXdxczd3UOGLHhgQ6DuulhDjOSVXYW/FbGDznXP5KSnse2qQVWyj+TJyI/fX/0oSUVyW+XYiiW0fBRWtDjoLNwVQL6ALAWNm9aUsaantJkpr2cVov+qos6OE1+7uWWfvT8HFSC8Am7foi25K13h+2O+doL3icpYmm+r1ZVo0UIRnGrqW/9iZr55x+fs4Q+Y/UmaFv5RnhbQaqVt4dqgvWbLRCp7F3V/h4SLXejD+eFiOv8ynS+YIUGQ5gVf7Z8rWVZ0+ol+RoyoNW/W+6/GZK/G4IFTd1IwXHHn0RvZ3Sdw61IyVkXd44OmIcnhZzDbLW8/JghsXfpdq6DVHUvCXn0ZfOzqXEc+oJdQKBPhgzZ/uu5H4Wexj+gDbMZje61MYpjkB/JPUg2H+ihbBzjOMvA4OBtGGY6Bs9MVOfg30cKf0w==
-sidebar_class_name: "get api-method"
+api: eJztVk1vGzkM/SuETruAnRjp5pJbGxS7LdAmiLPYQ5ADPeJ41GikqT6ceg3/9yVHE8fT2kEuvSwK2PCMSJF8j0+UN0pTrILpkvFOXagbSsHQiiKkhqDO1kLlXW2WYBx8nF99htqHFtOE3yubtXFL0FRjtmlwjPBoUgOxaqjFOAFtWnKRo/MzOg1+RSEYznoCt42JQE533rgE/Oy5jNb8S1qyQGUNuSSVYIIuUE1hv4Ti0+fMAaV+aNHhkjhfOlET5Tsq6x80I/uT0mXv/DEy0onqMGBLiUJUF3cb5fiFvUw9bb02tSE9jQyR2NMIMQ2hpsBvY77+aYwlyFF4SAxnAm9mf0Cg2DFgEkwpECZGhAw1BB8m8NiYqgFHpNnqYUHQMDGWfSJJVYnsGhZrYAarhxKYnkNWXhP4ul9sUup2loFP/gT6mk3geBy9xQeCmAMVGp84rdDxlzOMg0uDcOWNhuwcVRQjBi4EreW2NuTEm0Mhf52H3GkuNgrXpd3qYqPSuhMiI+vILX/xdZCv7XayU9y3qQ/LqdE/CO0YpduJeipYXaSQaRTs0YeH2OEB4b4+3r2sFIRR/M9mM/kZd3J0noBddqxwrpK032wxpt2ZkoWjdTAris9zYsJ7K31Lp51FQXF810Qlkyx9X9BVTl1O17i2HrWE5tjnh2B84HzBoZ1T4MH0XhQH52MwezVh11lT9UPl9IvMkUOV+cUXqpKMmCAjKJnCYivqWNIh4M8gDpRzM1RyOZSxLWgSLmVyqcvRBPy0m4CKu8jzrfEy/Dof+4IwNfx2WqZmQcDCoCoHk9b9HIwtT+/1CXbmRE7LO4ymeptl2929CO17O7G2w87h/jnaXGgpyI/H3FEh6z8Mi79ub6+h9wZkdwY1cP+kZtm5ELuI+IXKXpOmd38pT+/QN8u42vdBh6bNM7eZKTbDHu5cLKHPZmfn09mb6excKpQu8BUlW4fzypqF0kAYrqVRaZtn7f2vbuahG3snnNnJwQriotE7Vfazc69SFlYjGmbDZsMtp7+D3W5l+WumINLlxxUGgwtpiWj1afKJqrWJYuCjUKON9ALNvy6ocqEfbNEDrY/8R1qhzeKvZEa8nu3fbgZkv8PLOfduyZ+fav8OHWUrDm+rirq0Z9uPsj91r6/mtzww/gMsZgLp
+sidebar_class_name: "post api-method"
 info_path: docs/api/superposition
 custom_edit_url: null
 ---
@@ -28,7 +28,7 @@ import Translate from "@docusaurus/Translate";
 </Heading>
 
 <MethodEndpoint
-  method={"get"}
+  method={"post"}
   path={"/config/json"}
   context={"endpoint"}
 >
@@ -48,7 +48,11 @@ Retrieves the full config in JSON format, including default configs with schemas
 </Heading>
 
 <ParamsDetails
+<<<<<<< HEAD
   {...require("./get-config-json.ParamsDetails.json")}
+=======
+  parameters={[{"name":"if-modified-since","in":"header","description":"While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.","schema":{"type":"string","description":"While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates."}},{"name":"x-org-id","in":"header","schema":{"type":"string"},"required":true},{"name":"x-workspace","in":"header","schema":{"type":"string"},"required":true}]}
+>>>>>>> 8fc501b7 (fix: more fixes)
 >
   
 </ParamsDetails>

@@ -244,7 +244,7 @@ list ExperimentGroupList {
 operation ListExperimentGroups {
     input := with [PaginationParams, WorkspaceMixin] {
         @documentation("While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.")
-        @httpHeader("If-Modified-Since")
+        @httpHeader("if-modified-since")
         @notProperty
         if_modified_since: DateTime
 
@@ -273,6 +273,10 @@ operation ListExperimentGroups {
         @httpQuery("group_type")
         @documentation("Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).")
         group_type: GroupTypeList
+
+        @httpQuery("dimension_match_strategy")
+        @notProperty
+        dimension_match_strategy: DimensionMatchStrategy
 
         @notProperty
         context: ContextMap

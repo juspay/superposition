@@ -802,6 +802,7 @@ describe("Experiment Groups API Integration Tests", () => {
     });
 
     describe("ListExperimentGroupsCommand", () => {
+        let lastModifiedTime: Date | undefined;
         test("should list experiment groups and find the created one", async () => {
             expect(expGroupId).toBeString();
             const groupDetails = await superpositionClient.send(
@@ -824,6 +825,31 @@ describe("Experiment Groups API Integration Tests", () => {
             const found = response.data!.find((g) => g.id === expGroupId);
             expect(found).toBeDefined();
             expect(found!.name).toBe(groupDetails.name!);
+            lastModifiedTime = response.last_modified;
+        });
+
+        test("list experiment groups with last_modified_after filter should return correct results", async () => {
+            if (!lastModifiedTime) {
+                throw new Error(
+                    "Last modified time not set from previous test, cannot test if-modified-since functionality.",
+                );
+            }
+            const cmd = new ListExperimentGroupsCommand({
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+                if_modified_since: lastModifiedTime,
+            });
+            try {
+                await superpositionClient.send(cmd);
+                throw new Error(
+                    "Expected Not Modified error, but request succeeded",
+                );
+            } catch (e: any) {
+                expect(e).toBeDefined();
+                expect(e["$response"]).toBeDefined();
+                expect(e["$response"].statusCode).toBe(304);
+                console.log("Received expected Not Modified response");
+            }
         });
 
         test("should respect pagination parameters (all=true)", async () => {

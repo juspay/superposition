@@ -255,5 +255,41 @@ impl ListExperimentGroupsFluentBuilder {
     pub fn get_group_type(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::GroupType>> {
                     self.inner.get_group_type()
                 }
+<<<<<<< HEAD
+=======
+    /// Strategy to follow while filter items based on the context
+    pub fn dimension_match_strategy(mut self, input: crate::types::DimensionMatchStrategy) -> Self {
+                    self.inner = self.inner.dimension_match_strategy(input);
+                    self
+                }
+    /// Strategy to follow while filter items based on the context
+    pub fn set_dimension_match_strategy(mut self, input: ::std::option::Option<crate::types::DimensionMatchStrategy>) -> Self {
+                    self.inner = self.inner.set_dimension_match_strategy(input);
+                    self
+                }
+    /// Strategy to follow while filter items based on the context
+    pub fn get_dimension_match_strategy(&self) -> &::std::option::Option<crate::types::DimensionMatchStrategy> {
+                    self.inner.get_dimension_match_strategy()
+                }
+    /// 
+    /// Adds a key-value pair to `context`.
+    /// 
+    /// To override the contents of this collection use [`set_context`](Self::set_context).
+    /// 
+    /// Map representing the context. Keys correspond to the names of the dimensions.
+    pub fn context(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+                    self.inner = self.inner.context(k.into(), v);
+                    self
+                }
+    /// Map representing the context. Keys correspond to the names of the dimensions.
+    pub fn set_context(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
+                    self.inner = self.inner.set_context(input);
+                    self
+                }
+    /// Map representing the context. Keys correspond to the names of the dimensions.
+    pub fn get_context(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+                    self.inner.get_context()
+                }
+>>>>>>> 8fc501b7 (fix: more fixes)
 }
 

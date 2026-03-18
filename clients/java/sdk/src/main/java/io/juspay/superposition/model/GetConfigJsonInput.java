@@ -1,6 +1,7 @@
 
 package io.juspay.superposition.model;
 
+import java.time.Instant;
 import java.util.Objects;
 import software.amazon.smithy.java.core.schema.PreludeSchemas;
 import software.amazon.smithy.java.core.schema.PresenceTracker;
@@ -27,17 +28,22 @@ public final class GetConfigJsonInput implements SerializableStruct {
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
+        .putMember("if_modified_since", SharedSchemas.DATE_TIME,
+                new HttpHeaderTrait("if-modified-since"))
         .build();
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
+    private static final Schema $SCHEMA_IF_MODIFIED_SINCE = $SCHEMA.member("if_modified_since");
 
     private final transient String workspaceId;
     private final transient String orgId;
+    private final transient Instant ifModifiedSince;
 
     private GetConfigJsonInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
+        this.ifModifiedSince = builder.ifModifiedSince;
     }
 
     public String workspaceId() {
@@ -46,6 +52,15 @@ public final class GetConfigJsonInput implements SerializableStruct {
 
     public String orgId() {
         return orgId;
+    }
+
+    /**
+     * While using this, 304 response is treated as error, which needs to be handled separately by checking
+     * the response code of the http response. This is required to make sure that clients can cache the
+     * response and avoid unnecessary calls when there are no updates.
+     */
+    public Instant ifModifiedSince() {
+        return ifModifiedSince;
     }
 
     @Override
@@ -63,12 +78,13 @@ public final class GetConfigJsonInput implements SerializableStruct {
         }
         GetConfigJsonInput that = (GetConfigJsonInput) other;
         return Objects.equals(this.workspaceId, that.workspaceId)
-               && Objects.equals(this.orgId, that.orgId);
+               && Objects.equals(this.orgId, that.orgId)
+               && Objects.equals(this.ifModifiedSince, that.ifModifiedSince);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId);
+        return Objects.hash(workspaceId, orgId, ifModifiedSince);
     }
 
     @Override
@@ -80,6 +96,9 @@ public final class GetConfigJsonInput implements SerializableStruct {
     public void serializeMembers(ShapeSerializer serializer) {
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
+        if (ifModifiedSince != null) {
+            serializer.writeTimestamp($SCHEMA_IF_MODIFIED_SINCE, ifModifiedSince);
+        }
     }
 
     @Override
@@ -88,6 +107,7 @@ public final class GetConfigJsonInput implements SerializableStruct {
         return switch (member.memberIndex()) {
             case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, workspaceId);
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
+            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_IF_MODIFIED_SINCE, member, ifModifiedSince);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -103,6 +123,7 @@ public final class GetConfigJsonInput implements SerializableStruct {
         var builder = new Builder();
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
+        builder.ifModifiedSince(this.ifModifiedSince);
         return builder;
     }
 
@@ -120,6 +141,7 @@ public final class GetConfigJsonInput implements SerializableStruct {
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String workspaceId;
         private String orgId;
+        private Instant ifModifiedSince;
 
         private Builder() {}
 
@@ -148,6 +170,18 @@ public final class GetConfigJsonInput implements SerializableStruct {
             return this;
         }
 
+        /**
+         * While using this, 304 response is treated as error, which needs to be handled separately by checking
+         * the response code of the http response. This is required to make sure that clients can cache the
+         * response and avoid unnecessary calls when there are no updates.
+         *
+         * @return this builder.
+         */
+        public Builder ifModifiedSince(Instant ifModifiedSince) {
+            this.ifModifiedSince = ifModifiedSince;
+            return this;
+        }
+
         @Override
         public GetConfigJsonInput build() {
             tracker.validate();
@@ -160,6 +194,7 @@ public final class GetConfigJsonInput implements SerializableStruct {
             switch (member.memberIndex()) {
                 case 0 -> workspaceId((String) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, value));
                 case 1 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
+                case 2 -> ifModifiedSince((Instant) SchemaUtils.validateSameMember($SCHEMA_IF_MODIFIED_SINCE, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -198,6 +233,7 @@ public final class GetConfigJsonInput implements SerializableStruct {
                 switch (member.memberIndex()) {
                     case 0 -> builder.workspaceId(de.readString(member));
                     case 1 -> builder.orgId(de.readString(member));
+                    case 2 -> builder.ifModifiedSince(de.readTimestamp(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

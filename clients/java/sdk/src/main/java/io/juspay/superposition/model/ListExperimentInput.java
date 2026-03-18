@@ -37,6 +37,11 @@ public final class ListExperimentInput implements SerializableStruct {
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
+<<<<<<< HEAD
+=======
+        .putMember("if_modified_since", SharedSchemas.DATE_TIME,
+                new HttpHeaderTrait("if-modified-since"))
+>>>>>>> 8fc501b7 (fix: more fixes)
         .putMember("status", SharedSchemas.EXPERIMENT_STATUS_TYPE_LIST,
                 new HttpQueryTrait("status"))
         .putMember("from_date", SharedSchemas.DATE_TIME,

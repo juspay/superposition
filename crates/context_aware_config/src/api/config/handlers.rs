@@ -9,7 +9,7 @@ use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use itertools::Itertools;
 use serde_json::{Map, Value, json};
 use service_utils::{
-    helpers::fetch_dimensions_info_map,
+    helpers::{fetch_dimensions_info_map, is_not_modified},
     redis::{CONFIG_KEY_SUFFIX, LAST_MODIFIED_KEY_SUFFIX, read_through_cache},
     service::types::{AppHeader, AppState, DbConnection, WorkspaceContext},
 };
@@ -44,7 +44,6 @@ use crate::{
     api::{
         config::helpers::{
             generate_config_from_version, get_config_version, get_max_created_at,
-            is_not_modified,
         },
         context::{self, helpers::query_description},
     },
@@ -484,23 +483,24 @@ async fn get_handler(
     state: Data<AppState>,
 ) -> superposition::Result<HttpResponse> {
     let mut response = HttpResponse::Ok();
-    let is_smithy = req.method() != actix_web::http::Method::GET;
-    let schema_name = &workspace_context.schema_name;
+    let is_smithy = matches!(req.method(), &actix_web::http::Method::POST);
+
     let max_created_at = read_through_cache::<DateTime<Utc>>(
-        format!("{}{LAST_MODIFIED_KEY_SUFFIX}", **schema_name),
-        schema_name,
+        format!(
+            "{}{LAST_MODIFIED_KEY_SUFFIX}",
+            *workspace_context.schema_name
+        ),
+        &workspace_context.schema_name,
         &state.redis,
         &state.db_pool,
-        |conn| get_max_created_at(conn, schema_name),
+        |conn| get_max_created_at(conn, &workspace_context.schema_name),
     )
     .await
     .ok();
 
     log::trace!("Max created at: {max_created_at:?}");
 
-    let is_not_modified = is_not_modified(max_created_at, &req);
-
-    if is_not_modified {
+    if is_not_modified(max_created_at, &req) {
         return Ok(HttpResponse::NotModified().finish());
     }
 
@@ -509,8 +509,11 @@ async fn get_handler(
         get_config_version(&query_filters.version, &workspace_context, &state).await?;
 
     let mut config = read_through_cache::<Config>(
-        format!("{}::{}{CONFIG_KEY_SUFFIX}", **schema_name, version),
-        schema_name,
+        format!(
+            "{}::{}{CONFIG_KEY_SUFFIX}",
+            *workspace_context.schema_name, version
+        ),
+        &workspace_context.schema_name,
         &state.redis,
         &state.db_pool,
         |conn| {
@@ -548,17 +551,30 @@ async fn get_handler(
 /// Handler that returns config in TOML format with schema information.
 /// This uses generate_detailed_cac to fetch schemas from the database.
 #[authorized]
+#[routes]
 #[get("/toml")]
+#[post("/toml")]
 async fn get_toml_handler(
     req: HttpRequest,
     db_conn: DbConnection,
     workspace_context: WorkspaceContext,
+    state: Data<AppState>,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
+    let is_smithy = matches!(req.method(), &actix_web::http::Method::POST);
 
-    let max_created_at = get_max_created_at(&mut conn, &workspace_context.schema_name)
-        .map_err(|e| log::error!("failed to fetch max timestamp from event_log: {e}"))
-        .ok();
+    let max_created_at = read_through_cache::<DateTime<Utc>>(
+        format!(
+            "{}{LAST_MODIFIED_KEY_SUFFIX}",
+            *workspace_context.schema_name
+        ),
+        &workspace_context.schema_name,
+        &state.redis,
+        &state.db_pool,
+        |conn| get_max_created_at(conn, &workspace_context.schema_name),
+    )
+    .await
+    .ok();
 
     log::info!("Max created at: {max_created_at:?}");
 
@@ -573,7 +589,7 @@ async fn get_toml_handler(
         .map_err(|e| unexpected_error!("Failed to serialize config to TOML: {}", e))?;
 
     let mut response = HttpResponse::Ok();
-    AppHeader::add_last_modified(max_created_at, false, &mut response);
+    AppHeader::add_last_modified(max_created_at, is_smithy, &mut response);
     response.insert_header(("Content-Type", "application/toml"));
 
     Ok(response.body(toml_str))
@@ -582,17 +598,30 @@ async fn get_toml_handler(
 /// Handler that returns config in JSON format with schema information.
 /// This uses generate_detailed_cac to fetch schemas from the database.
 #[authorized]
+#[routes]
 #[get("/json")]
+#[post("/json")]
 async fn get_json_handler(
     req: HttpRequest,
     db_conn: DbConnection,
     workspace_context: WorkspaceContext,
+    state: Data<AppState>,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
+    let is_smithy = matches!(req.method(), &actix_web::http::Method::POST);
 
-    let max_created_at = get_max_created_at(&mut conn, &workspace_context.schema_name)
-        .map_err(|e| log::error!("failed to fetch max timestamp from event_log: {e}"))
-        .ok();
+    let max_created_at = read_through_cache::<DateTime<Utc>>(
+        format!(
+            "{}{LAST_MODIFIED_KEY_SUFFIX}",
+            *workspace_context.schema_name
+        ),
+        &workspace_context.schema_name,
+        &state.redis,
+        &state.db_pool,
+        |conn| get_max_created_at(conn, &workspace_context.schema_name),
+    )
+    .await
+    .ok();
 
     log::info!("Max created at: {max_created_at:?}");
 
@@ -607,7 +636,7 @@ async fn get_json_handler(
         .map_err(|e| unexpected_error!("Failed to serialize config to JSON: {}", e))?;
 
     let mut response = HttpResponse::Ok();
-    add_last_modified_to_header(max_created_at, false, &mut response);
+    AppHeader::add_last_modified(max_created_at, is_smithy, &mut response);
     response.insert_header(("Content-Type", "application/json"));
 
     Ok(response.body(json_str))
@@ -671,7 +700,7 @@ async fn resolve_handler(
     .await
     .map_err(|e| unexpected_error!("failed to generate config: {}", e))?;
 
-    let (is_smithy, query_data) = setup_query_data(&req, &body, &dimension_params)?;
+    let (is_smithy, query_data) = setup_query_data(&req, body, dimension_params)?;
 
     let resolved_config = {
         let mut conn = state.db_pool.get().map_err(|e| {
