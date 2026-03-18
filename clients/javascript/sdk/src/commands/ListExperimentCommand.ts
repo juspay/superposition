@@ -122,10 +122,14 @@ export interface ListExperimentCommandOutput extends ListExperimentOutput, __Met
  * //     },
  * //   ],
 <<<<<<< HEAD
+<<<<<<< HEAD
  * //   last_modified: new Date("TIMESTAMP"), // required
 =======
  * //   last_modified_at: new Date("TIMESTAMP"), // required
 >>>>>>> 6e8749e1 (Test)
+=======
+ * //   last_modified: new Date("TIMESTAMP"), // required
+>>>>>>> 82479b8f (fix: more fixes)
  * // };
  *
  * ```
