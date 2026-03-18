@@ -14,6 +14,7 @@ use service_utils::{
     db::run_query,
     helpers::{
         fetch_dimensions_info_map, generate_snowflake_id, get_from_env_or_default,
+        is_not_modified,
     },
     redis::{EXPERIMENT_GROUPS_LIST_KEY_SUFFIX, read_through_cache},
     service::types::{AppHeader, AppState, DbConnection, WorkspaceContext},
@@ -351,17 +352,7 @@ async fn list_handler(
     )
     .await?;
 
-    let last_modified = req
-        .headers()
-        .get("If-Modified-Since")
-        .and_then(|header_val| header_val.to_str().ok())
-        .and_then(|header_str| {
-            DateTime::parse_from_rfc2822(header_str)
-                .map(|datetime| datetime.with_timezone(&Utc))
-                .ok()
-        });
-
-    if max_event_timestamp.is_some() && max_event_timestamp < last_modified {
+    if is_not_modified(max_event_timestamp, &req) {
         return Ok(HttpResponse::NotModified().finish());
     };
 
@@ -378,7 +369,10 @@ async fn list_handler(
         "{}{}",
         *workspace_context.schema_name, EXPERIMENT_GROUPS_LIST_KEY_SUFFIX
     );
-    let read_from_redis = pagination_params.all.is_some_and(|e| e) && filters.is_empty();
+
+    let read_from_redis = pagination_params.all.is_some_and(|e| e)
+        && filters.is_empty()
+        && dimension_params.is_empty();
 
     let mut response = HttpResponse::Ok();
     AppHeader::add_last_modified(max_event_timestamp, is_smithy, &mut response);
@@ -468,6 +462,7 @@ fn list_experiment_groups_db(
 
         let dimensions_info =
             fetch_dimensions_info_map(conn, &workspace_context.schema_name)?;
+        let original_request_len = dimension_params.len();
         let dimension_params =
             evaluate_local_cohorts_skip_unresolved(&dimensions_info, &dimension_params);
         let dimension_keys = dimension_params.keys().cloned().collect::<Vec<_>>();
@@ -483,6 +478,8 @@ fn list_experiment_groups_db(
         let filtered_experiments = ExperimentGroup::filter_by_dimension(
             dimension_filtered_experiments,
             &dimension_keys,
+            original_request_len,
+            &dimensions_info,
         );
 
         if show_all {

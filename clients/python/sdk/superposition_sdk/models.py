@@ -2815,9 +2815,19 @@ ShapeID("smithy.api#httpBearerAuth")
 
 @dataclass(kw_only=True)
 class GetConfigJsonInput:
+    """
+
+    :param if_modified_since:
+         While using this, 304 response is treated as error, which needs to be handled
+         separately by checking the response code of the http response. This is required
+         to make sure that clients can cache the response and avoid unnecessary calls
+         when there are no updates.
+
+    """
 
     workspace_id: str | None = None
     org_id: str | None = None
+    if_modified_since: datetime | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_CONFIG_JSON_INPUT, self)
@@ -2840,6 +2850,9 @@ class GetConfigJsonInput:
 
                 case 1:
                     kwargs["org_id"] = de.read_string(_SCHEMA_GET_CONFIG_JSON_INPUT.members["org_id"])
+
+                case 2:
+                    kwargs["if_modified_since"] = de.read_timestamp(_SCHEMA_GET_CONFIG_JSON_INPUT.members["if_modified_since"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -2899,9 +2912,19 @@ ShapeID("smithy.api#httpBearerAuth")
 
 @dataclass(kw_only=True)
 class GetConfigTomlInput:
+    """
+
+    :param if_modified_since:
+         While using this, 304 response is treated as error, which needs to be handled
+         separately by checking the response code of the http response. This is required
+         to make sure that clients can cache the response and avoid unnecessary calls
+         when there are no updates.
+
+    """
 
     workspace_id: str | None = None
     org_id: str | None = None
+    if_modified_since: datetime | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_CONFIG_TOML_INPUT, self)
@@ -2924,6 +2947,9 @@ class GetConfigTomlInput:
 
                 case 1:
                     kwargs["org_id"] = de.read_string(_SCHEMA_GET_CONFIG_TOML_INPUT.members["org_id"])
+
+                case 2:
+                    kwargs["if_modified_since"] = de.read_timestamp(_SCHEMA_GET_CONFIG_TOML_INPUT.members["if_modified_since"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -9784,6 +9810,15 @@ class ListExperimentGroupsInput:
     :param group_type:
          Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
 
+<<<<<<< HEAD
+=======
+    :param dimension_match_strategy:
+         Strategy to follow while filter items based on the context
+
+    :param context:
+         Map representing the context. Keys correspond to the names of the dimensions.
+
+>>>>>>> 8fc501b7 (fix: more fixes)
     """
 
     count: int | None = None
@@ -9797,6 +9832,11 @@ class ListExperimentGroupsInput:
     sort_on: str | None = None
     sort_by: str | None = None
     group_type: list[str] | None = None
+<<<<<<< HEAD
+=======
+    dimension_match_strategy: str | None = None
+    context: dict[str, Document] | None = None
+>>>>>>> 8fc501b7 (fix: more fixes)
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT, self)
@@ -9847,6 +9887,15 @@ class ListExperimentGroupsInput:
                 case 10:
                     kwargs["group_type"] = _deserialize_group_type_list(de, _SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["group_type"])
 
+<<<<<<< HEAD
+=======
+                case 12:
+                    kwargs["dimension_match_strategy"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["dimension_match_strategy"])
+
+                case 13:
+                    kwargs["context"] = _deserialize_context_map(de, _SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["context"])
+
+>>>>>>> 8fc501b7 (fix: more fixes)
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
@@ -10968,6 +11017,11 @@ class ListExperimentOutput:
 
     data: list[ExperimentResponse]
 
+<<<<<<< HEAD
+=======
+    last_modified: datetime
+
+>>>>>>> 8fc501b7 (fix: more fixes)
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_EXPERIMENT_OUTPUT, self)
 
@@ -10995,6 +11049,12 @@ class ListExperimentOutput:
                 case 2:
                     kwargs["data"] = _deserialize_experiment_list(de, _SCHEMA_LIST_EXPERIMENT_OUTPUT.members["data"])
 
+<<<<<<< HEAD
+=======
+                case 3:
+                    kwargs["last_modified"] = de.read_timestamp(_SCHEMA_LIST_EXPERIMENT_OUTPUT.members["last_modified"])
+
+>>>>>>> 8fc501b7 (fix: more fixes)
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 

@@ -288,6 +288,10 @@ instance Io.Superposition.Utility.IntoRequestBuilder ListExperimentInput where
         Io.Superposition.Utility.serQuery "to_date" (to_date self)
         Io.Superposition.Utility.serQuery "page" (page self)
         Io.Superposition.Utility.serQuery "status" (status self)
+<<<<<<< HEAD
+=======
+        Io.Superposition.Utility.serHeader "if-modified-since" (if_modified_since self)
+>>>>>>> 8fc501b7 (fix: more fixes)
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         

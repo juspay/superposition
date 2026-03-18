@@ -24,7 +24,7 @@ public final class GetConfigJson implements ApiOperation<GetConfigJsonInput, Get
     private static final GetConfigJson $INSTANCE = new GetConfigJson();
 
     static final Schema $SCHEMA = Schema.createOperation($ID,
-            HttpTrait.builder().method("GET").code(200).uri(UriPattern.parse("/config/json")).build());
+            HttpTrait.builder().method("POST").code(200).uri(UriPattern.parse("/config/json")).build());
 
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
         .putType(InternalServerError.$ID, InternalServerError.class, InternalServerError::builder)

@@ -1546,6 +1546,19 @@ async def _deserialize_list_experiment(http_response: HTTPResponse, config: Conf
         body_kwargs = ListExperimentOutput.deserialize_kwargs(deserializer)
         kwargs.update(body_kwargs)
 
+<<<<<<< HEAD
+=======
+    for fld in http_response.fields:
+        for key, value in fld.as_tuples():
+            _key_lowercase = key.lower()
+            match _key_lowercase:
+                case "last-modified":
+                    kwargs["last_modified"] = ensure_utc(datetime.fromisoformat(expect_type(str, value)))
+
+                case _:
+                    pass
+
+>>>>>>> 8fc501b7 (fix: more fixes)
     return ListExperimentOutput(**kwargs)
 
 async def _deserialize_error_list_experiment(http_response: HTTPResponse, config: Config) -> ApiError:

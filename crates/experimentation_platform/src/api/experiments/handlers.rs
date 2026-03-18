@@ -26,7 +26,7 @@ use service_utils::{
     db::run_query,
     helpers::{
         WebhookData, construct_request_headers, execute_webhook_call,
-        fetch_dimensions_info_map, generate_snowflake_id, request,
+        fetch_dimensions_info_map, generate_snowflake_id, is_not_modified, request,
     },
     middlewares::auth_z::{Action as AuthZAction, AuthZ},
     redis::{
@@ -1051,17 +1051,7 @@ async fn list_handler(
     )
     .await?;
 
-    let last_modified = req
-        .headers()
-        .get("If-Modified-Since")
-        .and_then(|header_val| header_val.to_str().ok())
-        .and_then(|header_str| {
-            DateTime::parse_from_rfc2822(header_str)
-                .map(|datetime| datetime.with_timezone(&Utc))
-                .ok()
-        });
-
-    if max_event_timestamp.is_some() && max_event_timestamp < last_modified {
+    if is_not_modified(max_event_timestamp, &req) {
         return Ok(HttpResponse::NotModified().finish());
     };
     let show_all = pagination_params.all.unwrap_or_default();

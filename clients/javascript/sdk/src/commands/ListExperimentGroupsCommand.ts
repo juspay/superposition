@@ -56,6 +56,13 @@ export interface ListExperimentGroupsCommandOutput extends ListExperimentGroupsO
  *   group_type: [ // GroupTypeList
  *     "USER_CREATED" || "SYSTEM_GENERATED",
  *   ],
+<<<<<<< HEAD
+=======
+ *   dimension_match_strategy: "exact" || "subset",
+ *   context: { // ContextMap
+ *     "<keys>": "DOCUMENT_VALUE",
+ *   },
+>>>>>>> 8fc501b7 (fix: more fixes)
  * };
  * const command = new ListExperimentGroupsCommand(input);
  * const response = await client.send(command);

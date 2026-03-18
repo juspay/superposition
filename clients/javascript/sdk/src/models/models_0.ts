@@ -809,6 +809,11 @@ export interface GetConfigFastOutput {
 export interface GetConfigJsonInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  /**
+   * While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
+   * @public
+   */
+  if_modified_since?: Date | undefined;
 }
 
 /**
@@ -825,6 +830,11 @@ export interface GetConfigJsonOutput {
 export interface GetConfigTomlInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  /**
+   * While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
+   * @public
+   */
+  if_modified_since?: Date | undefined;
 }
 
 /**
@@ -1966,6 +1976,22 @@ export interface ListExperimentGroupsInput {
    * @public
    */
   group_type?: (GroupType)[] | undefined;
+<<<<<<< HEAD
+=======
+
+  /**
+   * Strategy to follow while filter items based on the context
+   * @public
+   */
+  dimension_match_strategy?: DimensionMatchStrategy | undefined;
+
+  /**
+   * Map representing the context.
+   * Keys correspond to the names of the dimensions.
+   * @public
+   */
+  context?: Record<string, __DocumentType> | undefined;
+>>>>>>> 8fc501b7 (fix: more fixes)
 }
 
 /**
@@ -2083,6 +2109,10 @@ export interface ListExperimentOutput {
   total_pages: number | undefined;
   total_items: number | undefined;
   data: (ExperimentResponse)[] | undefined;
+<<<<<<< HEAD
+=======
+  last_modified: Date | undefined;
+>>>>>>> 8fc501b7 (fix: more fixes)
 }
 
 /**
