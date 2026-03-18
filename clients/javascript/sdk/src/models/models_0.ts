@@ -2029,14 +2029,20 @@ export interface ListExperimentGroupsInput {
 
   /**
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 82479b8f (fix: more fixes)
    * Strategy to follow while filter items based on the context
    * @public
    */
   dimension_match_strategy?: DimensionMatchStrategy | undefined;
 
   /**
+<<<<<<< HEAD
 =======
 >>>>>>> 6e8749e1 (Test)
+=======
+>>>>>>> 82479b8f (fix: more fixes)
    * Map representing the context.
    * Keys correspond to the names of the dimensions.
    * @public
@@ -2188,6 +2194,7 @@ export interface ListExperimentOutput {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   last_modified: Date | undefined;
 =======
 <<<<<<< HEAD
@@ -2199,11 +2206,19 @@ export interface ListExperimentOutput {
   last_modified: Date | undefined;
 >>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 =======
+=======
+>>>>>>> de718464 (fix: more fixes)
   last_modified: Date | undefined;
 =======
   last_modified_at: Date | undefined;
 >>>>>>> 6e8749e1 (Test)
+<<<<<<< HEAD
 >>>>>>> c1293812 (Test)
+=======
+=======
+  last_modified: Date | undefined;
+>>>>>>> 82479b8f (fix: more fixes)
+>>>>>>> de718464 (fix: more fixes)
 }
 
 /**

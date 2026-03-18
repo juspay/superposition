@@ -124,6 +124,7 @@ export interface ListExperimentCommandOutput extends ListExperimentOutput, __Met
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * //   last_modified: new Date("TIMESTAMP"), // required
 =======
 <<<<<<< HEAD
@@ -135,11 +136,19 @@ export interface ListExperimentCommandOutput extends ListExperimentOutput, __Met
  * //   last_modified: new Date("TIMESTAMP"), // required
 >>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 =======
+=======
+>>>>>>> de718464 (fix: more fixes)
  * //   last_modified: new Date("TIMESTAMP"), // required
 =======
  * //   last_modified_at: new Date("TIMESTAMP"), // required
 >>>>>>> 6e8749e1 (Test)
+<<<<<<< HEAD
 >>>>>>> c1293812 (Test)
+=======
+=======
+ * //   last_modified: new Date("TIMESTAMP"), // required
+>>>>>>> 82479b8f (fix: more fixes)
+>>>>>>> de718464 (fix: more fixes)
  * // };
  *
  * ```

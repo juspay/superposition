@@ -1059,6 +1059,7 @@ async def _serialize_get_config(input: GetConfigInput, config: Config) -> HTTPRe
 <<<<<<< HEAD
     if input.if_modified_since is not None:
 <<<<<<< HEAD
+<<<<<<< HEAD
         headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
 =======
 <<<<<<< HEAD
@@ -1075,7 +1076,13 @@ async def _serialize_get_config(input: GetConfigInput, config: Config) -> HTTPRe
 =======
         headers.extend(Fields([Field(name="If-Modified-Since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
 >>>>>>> 6e8749e1 (Test)
+<<<<<<< HEAD
 >>>>>>> c1293812 (Test)
+=======
+=======
+        headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
+>>>>>>> 82479b8f (fix: more fixes)
+>>>>>>> de718464 (fix: more fixes)
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2059,6 +2066,7 @@ async def _serialize_list_experiment(input: ListExperimentInput, config: Config)
 <<<<<<< HEAD
     if input.if_modified_since is not None:
 <<<<<<< HEAD
+<<<<<<< HEAD
         headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
 =======
 <<<<<<< HEAD
@@ -2075,7 +2083,13 @@ async def _serialize_list_experiment(input: ListExperimentInput, config: Config)
 =======
         headers.extend(Fields([Field(name="If-Modified-Since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
 >>>>>>> 6e8749e1 (Test)
+<<<<<<< HEAD
 >>>>>>> c1293812 (Test)
+=======
+=======
+        headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
+>>>>>>> 82479b8f (fix: more fixes)
+>>>>>>> de718464 (fix: more fixes)
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2140,6 +2154,7 @@ async def _serialize_list_experiment_groups(input: ListExperimentGroupsInput, co
 <<<<<<< HEAD
     if input.if_modified_since is not None:
 <<<<<<< HEAD
+<<<<<<< HEAD
         headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
 =======
 <<<<<<< HEAD
@@ -2156,7 +2171,13 @@ async def _serialize_list_experiment_groups(input: ListExperimentGroupsInput, co
 =======
         headers.extend(Fields([Field(name="If-Modified-Since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
 >>>>>>> 6e8749e1 (Test)
+<<<<<<< HEAD
 >>>>>>> c1293812 (Test)
+=======
+=======
+        headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
+>>>>>>> 82479b8f (fix: more fixes)
+>>>>>>> de718464 (fix: more fixes)
     return _HTTPRequest(
         destination=_URI(
             host="",

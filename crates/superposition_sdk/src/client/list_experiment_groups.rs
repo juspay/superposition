@@ -18,11 +18,17 @@ impl super::Client {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c1293812 (Test)
+=======
+>>>>>>> de718464 (fix: more fixes)
     ///   - [`dimension_match_strategy(DimensionMatchStrategy)`](crate::operation::list_experiment_groups::builders::ListExperimentGroupsFluentBuilder::dimension_match_strategy) / [`set_dimension_match_strategy(Option<DimensionMatchStrategy>)`](crate::operation::list_experiment_groups::builders::ListExperimentGroupsFluentBuilder::set_dimension_match_strategy):<br>required: **false**<br>Strategy to follow while filter items based on the context<br>
 =======
 >>>>>>> 6e8749e1 (Test)
+=======
+    ///   - [`dimension_match_strategy(DimensionMatchStrategy)`](crate::operation::list_experiment_groups::builders::ListExperimentGroupsFluentBuilder::dimension_match_strategy) / [`set_dimension_match_strategy(Option<DimensionMatchStrategy>)`](crate::operation::list_experiment_groups::builders::ListExperimentGroupsFluentBuilder::set_dimension_match_strategy):<br>required: **false**<br>Strategy to follow while filter items based on the context<br>
+>>>>>>> 82479b8f (fix: more fixes)
     ///   - [`context(impl Into<String>, Document)`](crate::operation::list_experiment_groups::builders::ListExperimentGroupsFluentBuilder::context) / [`set_context(Option<HashMap::<String, Document>>)`](crate::operation::list_experiment_groups::builders::ListExperimentGroupsFluentBuilder::set_context):<br>required: **false**<br>Map representing the context. Keys correspond to the names of the dimensions.<br>
 =======
 <<<<<<< HEAD

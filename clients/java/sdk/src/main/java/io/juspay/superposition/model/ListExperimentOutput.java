@@ -33,12 +33,18 @@ public final class ListExperimentOutput implements SerializableStruct {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c1293812 (Test)
+=======
+>>>>>>> de718464 (fix: more fixes)
         .putMember("last_modified", SharedSchemas.DATE_TIME,
 =======
         .putMember("last_modified_at", SharedSchemas.DATE_TIME,
 >>>>>>> 6e8749e1 (Test)
+=======
+        .putMember("last_modified", SharedSchemas.DATE_TIME,
+>>>>>>> 82479b8f (fix: more fixes)
                 new HttpHeaderTrait("last-modified"),
                 new RequiredTrait())
 =======
@@ -62,6 +68,7 @@ public final class ListExperimentOutput implements SerializableStruct {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     private static final Schema $SCHEMA_LAST_MODIFIED = $SCHEMA.member("last_modified");
 =======
 <<<<<<< HEAD
@@ -73,11 +80,19 @@ public final class ListExperimentOutput implements SerializableStruct {
     private static final Schema $SCHEMA_LAST_MODIFIED = $SCHEMA.member("last_modified");
 >>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 =======
+=======
+>>>>>>> de718464 (fix: more fixes)
     private static final Schema $SCHEMA_LAST_MODIFIED = $SCHEMA.member("last_modified");
 =======
     private static final Schema $SCHEMA_LAST_MODIFIED_AT = $SCHEMA.member("last_modified_at");
 >>>>>>> 6e8749e1 (Test)
+<<<<<<< HEAD
 >>>>>>> c1293812 (Test)
+=======
+=======
+    private static final Schema $SCHEMA_LAST_MODIFIED = $SCHEMA.member("last_modified");
+>>>>>>> 82479b8f (fix: more fixes)
+>>>>>>> de718464 (fix: more fixes)
 
     private final transient int totalPages;
     private final transient int totalItems;
@@ -85,6 +100,7 @@ public final class ListExperimentOutput implements SerializableStruct {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     private final transient Instant lastModified;
 =======
 <<<<<<< HEAD
@@ -96,11 +112,19 @@ public final class ListExperimentOutput implements SerializableStruct {
     private final transient Instant lastModified;
 >>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 =======
+=======
+>>>>>>> de718464 (fix: more fixes)
     private final transient Instant lastModified;
 =======
     private final transient Instant lastModifiedAt;
 >>>>>>> 6e8749e1 (Test)
+<<<<<<< HEAD
 >>>>>>> c1293812 (Test)
+=======
+=======
+    private final transient Instant lastModified;
+>>>>>>> 82479b8f (fix: more fixes)
+>>>>>>> de718464 (fix: more fixes)
 
     private ListExperimentOutput(Builder builder) {
         this.totalPages = builder.totalPages;
@@ -109,6 +133,7 @@ public final class ListExperimentOutput implements SerializableStruct {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         this.lastModified = builder.lastModified;
 =======
 <<<<<<< HEAD
@@ -120,11 +145,19 @@ public final class ListExperimentOutput implements SerializableStruct {
         this.lastModified = builder.lastModified;
 >>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 =======
+=======
+>>>>>>> de718464 (fix: more fixes)
         this.lastModified = builder.lastModified;
 =======
         this.lastModifiedAt = builder.lastModifiedAt;
 >>>>>>> 6e8749e1 (Test)
+<<<<<<< HEAD
 >>>>>>> c1293812 (Test)
+=======
+=======
+        this.lastModified = builder.lastModified;
+>>>>>>> 82479b8f (fix: more fixes)
+>>>>>>> de718464 (fix: more fixes)
     }
 
     public int totalPages() {
@@ -146,6 +179,7 @@ public final class ListExperimentOutput implements SerializableStruct {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -154,12 +188,18 @@ public final class ListExperimentOutput implements SerializableStruct {
 >>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 =======
 >>>>>>> c1293812 (Test)
+=======
+>>>>>>> de718464 (fix: more fixes)
     public Instant lastModified() {
         return lastModified;
 =======
     public Instant lastModifiedAt() {
         return lastModifiedAt;
 >>>>>>> 6e8749e1 (Test)
+=======
+    public Instant lastModified() {
+        return lastModified;
+>>>>>>> 82479b8f (fix: more fixes)
     }
 
 <<<<<<< HEAD
@@ -189,6 +229,7 @@ public final class ListExperimentOutput implements SerializableStruct {
 <<<<<<< HEAD
                && Objects.equals(this.data, that.data)
 <<<<<<< HEAD
+<<<<<<< HEAD
                && Objects.equals(this.lastModified, that.lastModified);
 =======
 <<<<<<< HEAD
@@ -206,11 +247,18 @@ public final class ListExperimentOutput implements SerializableStruct {
 =======
                && Objects.equals(this.lastModifiedAt, that.lastModifiedAt);
 >>>>>>> 6e8749e1 (Test)
+<<<<<<< HEAD
 >>>>>>> c1293812 (Test)
+=======
+=======
+               && Objects.equals(this.lastModified, that.lastModified);
+>>>>>>> 82479b8f (fix: more fixes)
+>>>>>>> de718464 (fix: more fixes)
     }
 
     @Override
     public int hashCode() {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -226,11 +274,19 @@ public final class ListExperimentOutput implements SerializableStruct {
         return Objects.hash(totalPages, totalItems, data, lastModified);
 >>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 =======
+=======
+>>>>>>> de718464 (fix: more fixes)
         return Objects.hash(totalPages, totalItems, data, lastModified);
 =======
         return Objects.hash(totalPages, totalItems, data, lastModifiedAt);
 >>>>>>> 6e8749e1 (Test)
+<<<<<<< HEAD
 >>>>>>> c1293812 (Test)
+=======
+=======
+        return Objects.hash(totalPages, totalItems, data, lastModified);
+>>>>>>> 82479b8f (fix: more fixes)
+>>>>>>> de718464 (fix: more fixes)
     }
 
     @Override
@@ -246,6 +302,7 @@ public final class ListExperimentOutput implements SerializableStruct {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         serializer.writeTimestamp($SCHEMA_LAST_MODIFIED, lastModified);
 =======
 <<<<<<< HEAD
@@ -257,11 +314,19 @@ public final class ListExperimentOutput implements SerializableStruct {
         serializer.writeTimestamp($SCHEMA_LAST_MODIFIED, lastModified);
 >>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 =======
+=======
+>>>>>>> de718464 (fix: more fixes)
         serializer.writeTimestamp($SCHEMA_LAST_MODIFIED, lastModified);
 =======
         serializer.writeTimestamp($SCHEMA_LAST_MODIFIED_AT, lastModifiedAt);
 >>>>>>> 6e8749e1 (Test)
+<<<<<<< HEAD
 >>>>>>> c1293812 (Test)
+=======
+=======
+        serializer.writeTimestamp($SCHEMA_LAST_MODIFIED, lastModified);
+>>>>>>> 82479b8f (fix: more fixes)
+>>>>>>> de718464 (fix: more fixes)
     }
 
     @Override
@@ -274,6 +339,7 @@ public final class ListExperimentOutput implements SerializableStruct {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED, member, lastModified);
 =======
 <<<<<<< HEAD
@@ -285,11 +351,19 @@ public final class ListExperimentOutput implements SerializableStruct {
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED, member, lastModified);
 >>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 =======
+=======
+>>>>>>> de718464 (fix: more fixes)
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED, member, lastModified);
 =======
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_AT, member, lastModifiedAt);
 >>>>>>> 6e8749e1 (Test)
+<<<<<<< HEAD
 >>>>>>> c1293812 (Test)
+=======
+=======
+            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED, member, lastModified);
+>>>>>>> 82479b8f (fix: more fixes)
+>>>>>>> de718464 (fix: more fixes)
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -309,6 +383,7 @@ public final class ListExperimentOutput implements SerializableStruct {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         builder.lastModified(this.lastModified);
 =======
 <<<<<<< HEAD
@@ -320,11 +395,19 @@ public final class ListExperimentOutput implements SerializableStruct {
         builder.lastModified(this.lastModified);
 >>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 =======
+=======
+>>>>>>> de718464 (fix: more fixes)
         builder.lastModified(this.lastModified);
 =======
         builder.lastModifiedAt(this.lastModifiedAt);
 >>>>>>> 6e8749e1 (Test)
+<<<<<<< HEAD
 >>>>>>> c1293812 (Test)
+=======
+=======
+        builder.lastModified(this.lastModified);
+>>>>>>> 82479b8f (fix: more fixes)
+>>>>>>> de718464 (fix: more fixes)
         return builder;
     }
 
@@ -346,6 +429,7 @@ public final class ListExperimentOutput implements SerializableStruct {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         private Instant lastModified;
 =======
 <<<<<<< HEAD
@@ -357,11 +441,19 @@ public final class ListExperimentOutput implements SerializableStruct {
         private Instant lastModified;
 >>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 =======
+=======
+>>>>>>> de718464 (fix: more fixes)
         private Instant lastModified;
 =======
         private Instant lastModifiedAt;
 >>>>>>> 6e8749e1 (Test)
+<<<<<<< HEAD
 >>>>>>> c1293812 (Test)
+=======
+=======
+        private Instant lastModified;
+>>>>>>> 82479b8f (fix: more fixes)
+>>>>>>> de718464 (fix: more fixes)
 
         private Builder() {}
 
@@ -413,6 +505,7 @@ public final class ListExperimentOutput implements SerializableStruct {
          * @return this builder.
          */
 <<<<<<< HEAD
+<<<<<<< HEAD
         public Builder lastModified(Instant lastModified) {
             this.lastModified = Objects.requireNonNull(lastModified, "lastModified cannot be null");
             tracker.setMember($SCHEMA_LAST_MODIFIED);
@@ -421,6 +514,11 @@ public final class ListExperimentOutput implements SerializableStruct {
             this.lastModifiedAt = Objects.requireNonNull(lastModifiedAt, "lastModifiedAt cannot be null");
             tracker.setMember($SCHEMA_LAST_MODIFIED_AT);
 >>>>>>> 6e8749e1 (Test)
+=======
+        public Builder lastModified(Instant lastModified) {
+            this.lastModified = Objects.requireNonNull(lastModified, "lastModified cannot be null");
+            tracker.setMember($SCHEMA_LAST_MODIFIED);
+>>>>>>> 82479b8f (fix: more fixes)
             return this;
         }
 
@@ -447,6 +545,7 @@ public final class ListExperimentOutput implements SerializableStruct {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 case 3 -> lastModified((Instant) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED, member, value));
 =======
 <<<<<<< HEAD
@@ -458,11 +557,19 @@ public final class ListExperimentOutput implements SerializableStruct {
                 case 3 -> lastModified((Instant) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED, member, value));
 >>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 =======
+=======
+>>>>>>> de718464 (fix: more fixes)
                 case 3 -> lastModified((Instant) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED, member, value));
 =======
                 case 3 -> lastModifiedAt((Instant) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_AT, member, value));
 >>>>>>> 6e8749e1 (Test)
+<<<<<<< HEAD
 >>>>>>> c1293812 (Test)
+=======
+=======
+                case 3 -> lastModified((Instant) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED, member, value));
+>>>>>>> 82479b8f (fix: more fixes)
+>>>>>>> de718464 (fix: more fixes)
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -484,14 +591,21 @@ public final class ListExperimentOutput implements SerializableStruct {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c1293812 (Test)
+=======
+>>>>>>> de718464 (fix: more fixes)
             if (!tracker.checkMember($SCHEMA_LAST_MODIFIED)) {
                 lastModified(Instant.EPOCH);
 =======
             if (!tracker.checkMember($SCHEMA_LAST_MODIFIED_AT)) {
                 lastModifiedAt(Instant.EPOCH);
 >>>>>>> 6e8749e1 (Test)
+=======
+            if (!tracker.checkMember($SCHEMA_LAST_MODIFIED)) {
+                lastModified(Instant.EPOCH);
+>>>>>>> 82479b8f (fix: more fixes)
             }
 =======
 <<<<<<< HEAD
@@ -533,6 +647,7 @@ public final class ListExperimentOutput implements SerializableStruct {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                     case 3 -> builder.lastModified(de.readTimestamp(member));
 =======
 <<<<<<< HEAD
@@ -544,11 +659,19 @@ public final class ListExperimentOutput implements SerializableStruct {
                     case 3 -> builder.lastModified(de.readTimestamp(member));
 >>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 =======
+=======
+>>>>>>> de718464 (fix: more fixes)
                     case 3 -> builder.lastModified(de.readTimestamp(member));
 =======
                     case 3 -> builder.lastModifiedAt(de.readTimestamp(member));
 >>>>>>> 6e8749e1 (Test)
+<<<<<<< HEAD
 >>>>>>> c1293812 (Test)
+=======
+=======
+                    case 3 -> builder.lastModified(de.readTimestamp(member));
+>>>>>>> 82479b8f (fix: more fixes)
+>>>>>>> de718464 (fix: more fixes)
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }
