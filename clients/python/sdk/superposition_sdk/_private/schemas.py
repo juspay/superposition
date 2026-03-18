@@ -1717,6 +1717,11 @@ GET_CONFIG_INPUT = Schema.collection(
             ],
         },
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 91d47048 (fix: more fixes)
         "if_modified_since": {
             "target": DATE_TIME,
             "index": 4,
@@ -1727,6 +1732,10 @@ GET_CONFIG_INPUT = Schema.collection(
             ],
         },
 
+<<<<<<< HEAD
+=======
+>>>>>>> 8fc501b7 (fix: more fixes)
+>>>>>>> 91d47048 (fix: more fixes)
         "context": {
             "target": CONTEXT_MAP,
             "index": 5,
@@ -10013,6 +10022,11 @@ LIST_EXPERIMENT_GROUPS_INPUT = Schema.collection(
             ],
         },
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 91d47048 (fix: more fixes)
         "if_modified_since": {
             "target": DATE_TIME,
             "index": 5,
@@ -10023,6 +10037,10 @@ LIST_EXPERIMENT_GROUPS_INPUT = Schema.collection(
             ],
         },
 
+<<<<<<< HEAD
+=======
+>>>>>>> 8fc501b7 (fix: more fixes)
+>>>>>>> 91d47048 (fix: more fixes)
         "name": {
             "target": STRING,
             "index": 6,
@@ -10079,9 +10097,44 @@ LIST_EXPERIMENT_GROUPS_INPUT = Schema.collection(
             ],
         },
 
+<<<<<<< HEAD
         "dimension_match_strategy": {
             "target": DIMENSION_MATCH_STRATEGY,
             "index": 12,
+=======
+<<<<<<< HEAD
+=======
+        "dimension_match_strategy": {
+            "target": DIMENSION_MATCH_STRATEGY,
+            "index": 12,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="dimension_match_strategy"),
+
+            ],
+        },
+
+        "context": {
+            "target": CONTEXT_MAP,
+            "index": 13,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+>>>>>>> 8fc501b7 (fix: more fixes)
+    }
+)
+
+EXPERIMENT_GROUP_RESPONSE = Schema.collection(
+    id=ShapeID("io.superposition#ExperimentGroupResponse"),
+
+    members={
+        "id": {
+            "target": STRING,
+            "index": 0,
+>>>>>>> 91d47048 (fix: more fixes)
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="dimension_match_strategy"),
@@ -10928,6 +10981,11 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
             ],
         },
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 91d47048 (fix: more fixes)
         "if_modified_since": {
             "target": DATE_TIME,
             "index": 5,
@@ -10938,6 +10996,10 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
             ],
         },
 
+<<<<<<< HEAD
+=======
+>>>>>>> 8fc501b7 (fix: more fixes)
+>>>>>>> 91d47048 (fix: more fixes)
         "status": {
             "target": EXPERIMENT_STATUS_TYPE_LIST,
             "index": 6,
@@ -11104,6 +11166,11 @@ LIST_EXPERIMENT_OUTPUT = Schema.collection(
             ],
         },
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 91d47048 (fix: more fixes)
         "last_modified": {
             "target": DATE_TIME,
             "index": 3,
@@ -11114,6 +11181,10 @@ LIST_EXPERIMENT_OUTPUT = Schema.collection(
             ],
         },
 
+<<<<<<< HEAD
+=======
+>>>>>>> 8fc501b7 (fix: more fixes)
+>>>>>>> 91d47048 (fix: more fixes)
     }
 )
 

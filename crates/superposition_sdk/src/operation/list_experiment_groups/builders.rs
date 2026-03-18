@@ -269,6 +269,11 @@ impl ListExperimentGroupsFluentBuilder {
     pub fn get_group_type(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::GroupType>> {
                     self.inner.get_group_type()
                 }
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 91d47048 (fix: more fixes)
     /// Strategy to follow while filter items based on the context
     pub fn dimension_match_strategy(mut self, input: crate::types::DimensionMatchStrategy) -> Self {
                     self.inner = self.inner.dimension_match_strategy(input);
@@ -302,5 +307,9 @@ impl ListExperimentGroupsFluentBuilder {
     pub fn get_context(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
                     self.inner.get_context()
                 }
+<<<<<<< HEAD
+=======
+>>>>>>> 8fc501b7 (fix: more fixes)
+>>>>>>> 91d47048 (fix: more fixes)
 }
 

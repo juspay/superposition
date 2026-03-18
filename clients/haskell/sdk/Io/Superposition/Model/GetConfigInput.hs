@@ -143,7 +143,14 @@ instance Io.Superposition.Utility.IntoRequestBuilder GetConfigInput where
         Io.Superposition.Utility.serQuery "prefix" (prefix self)
         Io.Superposition.Utility.serQuery "version" (version self)
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
+<<<<<<< HEAD
         Io.Superposition.Utility.serHeader "if-modified-since" (if_modified_since self)
+=======
+<<<<<<< HEAD
+=======
+        Io.Superposition.Utility.serHeader "if-modified-since" (if_modified_since self)
+>>>>>>> 8fc501b7 (fix: more fixes)
+>>>>>>> 91d47048 (fix: more fixes)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         Io.Superposition.Utility.serField "context" (context self)
 

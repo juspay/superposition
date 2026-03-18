@@ -1538,6 +1538,11 @@ async def _deserialize_list_experiment(http_response: HTTPResponse, config: Conf
         body_kwargs = ListExperimentOutput.deserialize_kwargs(deserializer)
         kwargs.update(body_kwargs)
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 91d47048 (fix: more fixes)
     for fld in http_response.fields:
         for key, value in fld.as_tuples():
             _key_lowercase = key.lower()
@@ -1548,6 +1553,10 @@ async def _deserialize_list_experiment(http_response: HTTPResponse, config: Conf
                 case _:
                     pass
 
+<<<<<<< HEAD
+=======
+>>>>>>> 8fc501b7 (fix: more fixes)
+>>>>>>> 91d47048 (fix: more fixes)
     return ListExperimentOutput(**kwargs)
 
 async def _deserialize_error_list_experiment(http_response: HTTPResponse, config: Config) -> ApiError:

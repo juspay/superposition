@@ -26,7 +26,14 @@ impl super::Client {
     ///   - [`total_pages(i32)`](crate::operation::list_experiment::ListExperimentOutput::total_pages): (undocumented)
     ///   - [`total_items(i32)`](crate::operation::list_experiment::ListExperimentOutput::total_items): (undocumented)
     ///   - [`data(Vec::<ExperimentResponse>)`](crate::operation::list_experiment::ListExperimentOutput::data): (undocumented)
+<<<<<<< HEAD
     ///   - [`last_modified(DateTime)`](crate::operation::list_experiment::ListExperimentOutput::last_modified): (undocumented)
+=======
+<<<<<<< HEAD
+=======
+    ///   - [`last_modified(DateTime)`](crate::operation::list_experiment::ListExperimentOutput::last_modified): (undocumented)
+>>>>>>> 8fc501b7 (fix: more fixes)
+>>>>>>> 91d47048 (fix: more fixes)
                             /// - On failure, responds with [`SdkError<ListExperimentError>`](crate::operation::list_experiment::ListExperimentError)
     pub fn list_experiment(&self) -> crate::operation::list_experiment::builders::ListExperimentFluentBuilder {
                                 crate::operation::list_experiment::builders::ListExperimentFluentBuilder::new(self.handle.clone())

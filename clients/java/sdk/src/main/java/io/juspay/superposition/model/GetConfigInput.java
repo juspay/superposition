@@ -37,8 +37,16 @@ public final class GetConfigInput implements SerializableStruct {
                 new HttpQueryTrait("prefix"))
         .putMember("version", PreludeSchemas.STRING,
                 new HttpQueryTrait("version"))
+<<<<<<< HEAD
         .putMember("if_modified_since", SharedSchemas.DATE_TIME,
                 new HttpHeaderTrait("if-modified-since"))
+=======
+<<<<<<< HEAD
+=======
+        .putMember("if_modified_since", SharedSchemas.DATE_TIME,
+                new HttpHeaderTrait("if-modified-since"))
+>>>>>>> 8fc501b7 (fix: more fixes)
+>>>>>>> 91d47048 (fix: more fixes)
         .putMember("context", SharedSchemas.CONTEXT_MAP)
         .build();
 

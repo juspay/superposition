@@ -10165,12 +10165,21 @@ class ListExperimentGroupsInput:
     :param group_type:
          Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 91d47048 (fix: more fixes)
     :param dimension_match_strategy:
          Strategy to follow while filter items based on the context
 
     :param context:
          Map representing the context. Keys correspond to the names of the dimensions.
 
+<<<<<<< HEAD
+=======
+>>>>>>> 8fc501b7 (fix: more fixes)
+>>>>>>> 91d47048 (fix: more fixes)
     """
 
     count: int | None = None
@@ -10185,8 +10194,16 @@ class ListExperimentGroupsInput:
     sort_on: str | None = None
     sort_by: str | None = None
     group_type: list[str] | None = None
+<<<<<<< HEAD
     dimension_match_strategy: str | None = None
     context: dict[str, Document] | None = None
+=======
+<<<<<<< HEAD
+=======
+    dimension_match_strategy: str | None = None
+    context: dict[str, Document] | None = None
+>>>>>>> 8fc501b7 (fix: more fixes)
+>>>>>>> 91d47048 (fix: more fixes)
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT, self)
@@ -10241,12 +10258,21 @@ class ListExperimentGroupsInput:
                 case 11:
                     kwargs["group_type"] = _deserialize_group_type_list(de, _SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["group_type"])
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 91d47048 (fix: more fixes)
                 case 12:
                     kwargs["dimension_match_strategy"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["dimension_match_strategy"])
 
                 case 13:
                     kwargs["context"] = _deserialize_context_map(de, _SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["context"])
 
+<<<<<<< HEAD
+=======
+>>>>>>> 8fc501b7 (fix: more fixes)
+>>>>>>> 91d47048 (fix: more fixes)
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
@@ -11088,8 +11114,16 @@ class ListExperimentOutput:
 
     data: list[ExperimentResponse]
 
+<<<<<<< HEAD
     last_modified: datetime
 
+=======
+<<<<<<< HEAD
+=======
+    last_modified: datetime
+
+>>>>>>> 8fc501b7 (fix: more fixes)
+>>>>>>> 91d47048 (fix: more fixes)
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_EXPERIMENT_OUTPUT, self)
 
@@ -11117,9 +11151,18 @@ class ListExperimentOutput:
                 case 2:
                     kwargs["data"] = _deserialize_experiment_list(de, _SCHEMA_LIST_EXPERIMENT_OUTPUT.members["data"])
 
+<<<<<<< HEAD
                 case 3:
                     kwargs["last_modified"] = de.read_timestamp(_SCHEMA_LIST_EXPERIMENT_OUTPUT.members["last_modified"])
 
+=======
+<<<<<<< HEAD
+=======
+                case 3:
+                    kwargs["last_modified"] = de.read_timestamp(_SCHEMA_LIST_EXPERIMENT_OUTPUT.members["last_modified"])
+
+>>>>>>> 8fc501b7 (fix: more fixes)
+>>>>>>> 91d47048 (fix: more fixes)
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 

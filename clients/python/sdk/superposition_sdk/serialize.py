@@ -1055,8 +1055,16 @@ async def _serialize_get_config(input: GetConfigInput, config: Config) -> HTTPRe
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+<<<<<<< HEAD
     if input.if_modified_since is not None:
         headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
+=======
+<<<<<<< HEAD
+=======
+    if input.if_modified_since is not None:
+        headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
+>>>>>>> 8fc501b7 (fix: more fixes)
+>>>>>>> 91d47048 (fix: more fixes)
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2028,8 +2036,16 @@ async def _serialize_list_experiment(input: ListExperimentInput, config: Config)
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+<<<<<<< HEAD
     if input.if_modified_since is not None:
         headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
+=======
+<<<<<<< HEAD
+=======
+    if input.if_modified_since is not None:
+        headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
+>>>>>>> 8fc501b7 (fix: more fixes)
+>>>>>>> 91d47048 (fix: more fixes)
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2090,8 +2106,16 @@ async def _serialize_list_experiment_groups(input: ListExperimentGroupsInput, co
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+<<<<<<< HEAD
     if input.if_modified_since is not None:
         headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
+=======
+<<<<<<< HEAD
+=======
+    if input.if_modified_since is not None:
+        headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
+>>>>>>> 8fc501b7 (fix: more fixes)
+>>>>>>> 91d47048 (fix: more fixes)
     return _HTTPRequest(
         destination=_URI(
             host="",

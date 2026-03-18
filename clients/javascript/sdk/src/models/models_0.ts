@@ -2009,6 +2009,11 @@ export interface ListExperimentGroupsInput {
    * @public
    */
   group_type?: (GroupType)[] | undefined;
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 91d47048 (fix: more fixes)
 
   /**
    * Strategy to follow while filter items based on the context
@@ -2022,6 +2027,10 @@ export interface ListExperimentGroupsInput {
    * @public
    */
   context?: Record<string, __DocumentType> | undefined;
+<<<<<<< HEAD
+=======
+>>>>>>> 8fc501b7 (fix: more fixes)
+>>>>>>> 91d47048 (fix: more fixes)
 }
 
 /**
@@ -2155,7 +2164,14 @@ export interface ListExperimentOutput {
   total_pages: number | undefined;
   total_items: number | undefined;
   data: (ExperimentResponse)[] | undefined;
+<<<<<<< HEAD
   last_modified: Date | undefined;
+=======
+<<<<<<< HEAD
+=======
+  last_modified: Date | undefined;
+>>>>>>> 8fc501b7 (fix: more fixes)
+>>>>>>> 91d47048 (fix: more fixes)
 }
 
 /**
