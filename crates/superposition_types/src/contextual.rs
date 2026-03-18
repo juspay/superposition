@@ -1,7 +1,9 @@
+use std::collections::HashMap;
+
 use serde_json::{Map, Value};
 
 use crate::config::Condition;
-use crate::logic;
+use crate::{logic, DimensionInfo};
 
 pub trait Contextual: Clone {
     fn get_condition(&self) -> Condition;
@@ -32,14 +34,27 @@ pub trait Contextual: Clone {
             .collect()
     }
 
-    fn filter_by_dimension(contexts: Vec<Self>, dimension_keys: &[String]) -> Vec<Self> {
+    fn filter_by_dimension(
+        contexts: Vec<Self>,
+        dimension_keys: &[String],
+        request_keys_len: usize,
+        dimensions_info: &HashMap<String, DimensionInfo>,
+    ) -> Vec<Self> {
         contexts
             .into_iter()
             .filter(|context| {
-                !context
-                    .get_condition()
-                    .keys()
-                    .all(|key| !dimension_keys.contains(key))
+                let variables: Map<String, Value> = context.get_condition().into();
+                dimension_keys.iter().all(|dimension| {
+                    variables.contains_key(dimension)
+                        || dimensions_info
+                            .get(dimension)
+                            .map(|info| {
+                                info.dependency_graph
+                                    .keys()
+                                    .any(|k| variables.contains_key(k))
+                            })
+                            .unwrap_or_default()
+                }) && request_keys_len <= variables.len()
             })
             .collect()
     }
@@ -87,7 +102,9 @@ mod tests {
         assert_eq!(
             Contextual::filter_by_dimension(
                 config.contexts.clone(),
-                &get_dimension_data1().keys().cloned().collect::<Vec<_>>()
+                &get_dimension_data1().keys().cloned().collect::<Vec<_>>(),
+                get_dimension_data1().len(),
+                &config.dimensions
             ),
             get_dimension_filtered_contexts1()
         );
@@ -95,17 +112,21 @@ mod tests {
         assert_eq!(
             Contextual::filter_by_dimension(
                 config.contexts.clone(),
-                &get_dimension_data2().keys().cloned().collect::<Vec<_>>()
+                &get_dimension_data2().keys().cloned().collect::<Vec<_>>(),
+                get_dimension_data2().len(),
+                &config.dimensions
             ),
-            get_dimension_filtered_contexts1()
+            get_dimension_filtered_contexts2()
         );
 
         assert_eq!(
             Contextual::filter_by_dimension(
                 config.contexts,
-                &get_dimension_data3().keys().cloned().collect::<Vec<_>>()
+                &get_dimension_data3().keys().cloned().collect::<Vec<_>>(),
+                get_dimension_data3().len(),
+                &config.dimensions
             ),
-            get_dimension_filtered_contexts2()
+            Vec::new()
         );
     }
 }

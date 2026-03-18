@@ -569,6 +569,7 @@ async fn list_handler(
         }
         let dimensions_info =
             fetch_dimensions_info_map(&mut conn, &workspace_context.schema_name)?;
+        let original_request_len = dimension_params.len();
         let dimension_params =
             evaluate_local_cohorts_skip_unresolved(&dimensions_info, &dimension_params);
         let dimension_keys = dimension_params.keys().cloned().collect::<Vec<_>>();
@@ -580,8 +581,12 @@ async fn list_handler(
 
         let eval_filter_contexts = filter_fn(all_contexts, &dimension_params);
 
-        let eval_filter_contexts =
-            Context::filter_by_dimension(eval_filter_contexts, &dimension_keys);
+        let eval_filter_contexts = Context::filter_by_dimension(
+            eval_filter_contexts,
+            &dimension_keys,
+            original_request_len,
+            &dimensions_info,
+        );
 
         if show_all {
             PaginatedResponse::all(eval_filter_contexts)

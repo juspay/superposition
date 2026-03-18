@@ -1186,6 +1186,7 @@ fn list_experiments_db(
         } else {
             let dimensions_info =
                 fetch_dimensions_info_map(conn, &workspace_context.schema_name)?;
+            let original_request_len = dimension_params.len();
             let dimension_params = evaluate_local_cohorts_skip_unresolved(
                 &dimensions_info,
                 &dimension_params,
@@ -1203,6 +1204,8 @@ fn list_experiments_db(
             Experiment::filter_by_dimension(
                 dimension_filtered_experiments,
                 &dimension_keys,
+                original_request_len,
+                &dimensions_info,
             )
         };
 
