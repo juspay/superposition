@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.100.1 - 2026-03-18
+### Package updates
+- superposition_types bumped to superposition_types-v0.41.1
+- experimentation_platform bumped to experimentation_platform-v0.50.1
+- context_aware_config bumped to context_aware_config-v0.70.1
+### Global changes
+#### Miscellaneous Chores
+- **(deps-dev)** bump minimatch from 9.0.5 to 9.0.9 (#906) - (6219f24) - dependabot[bot]
+- **(version)** v0.100.0 [skip ci] - (d7cc300) - Superposition Bot
+
+- - -
+
 ## v0.100.0 - 2026-03-17
 ### Package updates
 - superposition_types bumped to superposition_types-v0.41.0
