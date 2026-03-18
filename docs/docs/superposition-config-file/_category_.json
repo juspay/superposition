@@ -1,0 +1,8 @@
+{
+    "label": "Superposition Config File (SuperTOML)",
+    "position": 4,
+    "link": {
+        "type": "generated-index",
+        "description": "Type-safe, cascading configuration files with SuperTOML - an extension of TOML that adds JSON Schema validation and CSS-inspired override cascading."
+    }
+}
