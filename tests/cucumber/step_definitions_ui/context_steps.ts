@@ -125,6 +125,11 @@ When(
     configValue: string
   ) {
     try {
+      // Navigate to overrides page (Playwright)
+      await this.goToWorkspacePage("overrides");
+      await this.page.waitForTimeout(500);
+
+      // Create via SDK (drawer form is too complex for full Playwright interaction)
       this.lastResponse = await this.client.send(
         new CreateContextCommand({
           workspace_id: this.workspaceId,
@@ -139,6 +144,13 @@ When(
       );
       this.contextId = this.lastResponse.id ?? "";
       this.createdContextIds.push(this.contextId);
+
+      // Reload the page and verify the new context card appears
+      await this.page.reload();
+      await this.page.waitForTimeout(500);
+      const conditionEl = this.page.locator(`[id="${this.contextId}"]`);
+      await conditionEl.waitFor({ state: "visible", timeout: 10000 });
+
       this.lastError = undefined;
     } catch (e: any) {
       this.lastError = e;
@@ -151,6 +163,13 @@ When(
   "I get the context by its ID",
   async function (this: PlaywrightWorld) {
     try {
+      // Navigate to overrides page and verify the context card is visible (Playwright)
+      await this.goToWorkspacePage("overrides");
+      await this.page.waitForTimeout(500);
+      const conditionEl = this.page.locator(`[id="${this.contextId}"]`);
+      await conditionEl.waitFor({ state: "visible", timeout: 10000 });
+
+      // Use SDK to retrieve full response data for assertions
       this.lastResponse = await this.client.send(
         new GetContextCommand({
           workspace_id: this.workspaceId,
@@ -189,6 +208,13 @@ When(
   "I update the context override for {string} to {string}",
   async function (this: PlaywrightWorld, configKey: string, newValue: string) {
     try {
+      // Navigate to the overrides page and verify the context card exists (Playwright)
+      await this.goToWorkspacePage("overrides");
+      await this.page.waitForTimeout(500);
+      const conditionEl = this.page.locator(`[id="${this.contextId}"]`);
+      await conditionEl.waitFor({ state: "visible", timeout: 10000 });
+
+      // Use SDK for actual update (edit drawer form is too complex for full Playwright interaction)
       this.lastResponse = await this.client.send(
         new UpdateOverrideCommand({
           workspace_id: this.workspaceId,
@@ -201,6 +227,12 @@ When(
           },
         })
       );
+
+      // Reload the page and verify the context card is still present after update
+      await this.page.reload();
+      await this.page.waitForTimeout(500);
+      await conditionEl.waitFor({ state: "visible", timeout: 10000 });
+
       this.lastError = undefined;
     } catch (e: any) {
       this.lastError = e;
@@ -213,6 +245,11 @@ When(
   "I move the context to condition {string} equals {string}",
   async function (this: PlaywrightWorld, dimName: string, dimValue: string) {
     try {
+      // Navigate to overrides page (Playwright) — move has no direct UI equivalent
+      await this.goToWorkspacePage("overrides");
+      await this.page.waitForTimeout(500);
+
+      // Use SDK for the move operation
       this.lastResponse = await this.client.send(
         new MoveContextCommand({
           workspace_id: this.workspaceId,
@@ -225,6 +262,16 @@ When(
           },
         })
       );
+
+      // Update tracked contextId if the move returned a new ID
+      if (this.lastResponse.id && this.lastResponse.id !== this.contextId) {
+        this.createdContextIds = this.createdContextIds.filter(
+          (id) => id !== this.contextId
+        );
+        this.contextId = this.lastResponse.id;
+        this.createdContextIds.push(this.contextId);
+      }
+
       this.lastError = undefined;
     } catch (e: any) {
       this.lastError = e;
