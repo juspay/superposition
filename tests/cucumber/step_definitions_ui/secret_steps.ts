@@ -134,11 +134,16 @@ When(
   }
 );
 
-// SDK: get secret details by name
+// PLAYWRIGHT: Navigate to secret detail page, then fetch via SDK for assertions
 When(
   "I get secret {string}",
   async function (this: PlaywrightWorld, name: string) {
     try {
+      // Navigate to the detail page for UI interaction
+      await this.goToDetailPage("secrets", name);
+      await this.page.waitForTimeout(300);
+
+      // Fetch via SDK for response assertions
       this.lastResponse = await this.client.send(
         new GetSecretCommand({
           workspace_id: this.workspaceId,

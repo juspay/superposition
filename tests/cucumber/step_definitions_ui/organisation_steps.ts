@@ -149,12 +149,17 @@ When(
 );
 
 // ── When: Update ────────────────────────────────────────────────────
-// SDK: No edit-org functionality in the UI
+// HYBRID: Navigate to organisations page, then update via SDK (no edit-org form in UI)
 
 When(
   "I update the organisation's admin email to {string}",
   async function (this: PlaywrightWorld, email: string) {
     try {
+      // Navigate to organisations page for UI context
+      await this.goToOrganisations();
+      await this.page.waitForTimeout(300);
+
+      // Update via SDK (no edit form exists in the UI)
       this.lastResponse = await this.client.send(
         new UpdateOrganisationCommand({ id: this.createdOrgId, admin_email: email })
       );
