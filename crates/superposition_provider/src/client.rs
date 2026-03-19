@@ -215,7 +215,7 @@ impl CacConfig {
             })?;
 
         // Use ConversionUtils to convert to proper Config type
-        let config = ConversionUtils::convert_get_config_response(&response)?;
+        let config = ConversionUtils::convert_get_config_response(response)?;
 
         info!("Successfully fetched and converted config with {} contexts, {} overrides, {} default configs",
               config.contexts.len(), config.overrides.len(), config.default_configs.len());
@@ -518,7 +518,7 @@ impl ExperimentationConfig {
                 ))
             })?;
 
-        let experiments = ConversionUtils::convert_experiments_response(&response)?;
+        let experiments = ConversionUtils::convert_experiments_response(response)?;
 
         info!(
             "Successfully fetched and converted {} experiments",
@@ -559,7 +559,7 @@ impl ExperimentationConfig {
             })?;
 
         let experiment_groups =
-            ConversionUtils::convert_experiment_groups_response(&response)?;
+            ConversionUtils::convert_experiment_groups_response(response)?;
 
         info!(
             "Successfully fetched and converted {} experiment groups",

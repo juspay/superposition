@@ -19,6 +19,20 @@ pub(crate) fn filter_config_keys_by_prefix(
         .collect()
 }
 
+pub(crate) fn filter_into_config_keys_by_prefix(
+    overrides: Map<String, Value>,
+    prefix_list: &HashSet<String>,
+) -> Map<String, Value> {
+    overrides
+        .into_iter()
+        .filter(|(key, _)| {
+            prefix_list
+                .iter()
+                .any(|prefix_str| key.starts_with(prefix_str))
+        })
+        .collect()
+}
+
 pub trait Overridden<T: TryFrom<Map<String, Value>>>: Clone {
     fn get_overrides(&self) -> Overrides;
 

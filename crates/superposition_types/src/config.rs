@@ -20,7 +20,7 @@ use crate::database::schema::dimensions;
 use crate::{
     database::models::cac::{DependencyGraph, DimensionType},
     logic::evaluate_local_cohorts_skip_unresolved,
-    overridden::filter_config_keys_by_prefix,
+    overridden::{filter_config_keys_by_prefix, filter_into_config_keys_by_prefix},
     Cac, Contextual, Exp, ExtendedMap,
 };
 
@@ -87,6 +87,10 @@ impl Overrides {
             return Err("Override should not be empty".to_owned());
         }
         Ok(Self(override_map))
+    }
+
+    pub fn into_inner(self) -> Map<String, Value> {
+        self.0
     }
 }
 
@@ -289,28 +293,27 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn filter_by_dimensions(&self, dimension_data: &Map<String, Value>) -> Self {
+    pub fn filter_by_dimensions(self, dimension_data: &Map<String, Value>) -> Self {
         let modified_context =
             evaluate_local_cohorts_skip_unresolved(&self.dimensions, dimension_data);
 
-        let filtered_context =
-            Context::filter_by_eval(self.contexts.clone(), &modified_context);
-
+        let filtered_context = Context::filter_by_eval(self.contexts, &modified_context);
+        let mut initial_overrides = self.overrides;
         let filtered_overrides: HashMap<String, Overrides> = filtered_context
             .iter()
             .flat_map(|ele| {
                 let override_with_key = ele.override_with_keys.get_key();
-                self.overrides
-                    .get(override_with_key)
-                    .map(|value| (override_with_key.to_string(), value.clone()))
+                initial_overrides
+                    .remove(override_with_key)
+                    .map(|value| (override_with_key.to_string(), value))
             })
             .collect();
 
         Self {
             contexts: filtered_context,
             overrides: filtered_overrides,
-            default_configs: self.default_configs.clone(),
-            dimensions: self.dimensions.clone(),
+            default_configs: self.default_configs,
+            dimensions: self.dimensions,
         }
     }
 
@@ -318,38 +321,59 @@ impl Config {
         filter_config_keys_by_prefix(&self.default_configs, prefix_list).into()
     }
 
-    pub fn filter_by_prefix(&self, prefix_list: &HashSet<String>) -> Self {
-        let mut filtered_overrides: HashMap<String, Overrides> = HashMap::new();
-
+    pub fn filter_by_prefix(self, prefix_list: &HashSet<String>) -> Self {
         let filtered_default_config = self.filter_default_by_prefix(prefix_list);
 
-        for (key, overrides) in &self.overrides {
-            let filtered_overrides_map =
-                filter_config_keys_by_prefix(overrides, prefix_list);
-
-            let _ = Cac::<Overrides>::try_from(filtered_overrides_map).map(
-                |filtered_overrides_map| {
-                    filtered_overrides
-                        .insert(key.clone(), filtered_overrides_map.into_inner())
-                },
-            );
-        }
+        let filtered_overrides = self
+            .overrides
+            .into_iter()
+            .filter_map(|(key, overrides)| {
+                let filtered_overrides_map = filter_into_config_keys_by_prefix(
+                    overrides.into_inner(),
+                    prefix_list,
+                );
+                Cac::<Overrides>::try_from(filtered_overrides_map).ok().map(
+                    |filtered_overrides_map| (key, filtered_overrides_map.into_inner()),
+                )
+            })
+            .collect::<HashMap<_, _>>();
 
         let filtered_context: Vec<Context> = self
             .contexts
-            .iter()
+            .into_iter()
             .filter(|context| {
                 filtered_overrides.contains_key(context.override_with_keys.get_key())
             })
-            .cloned()
             .collect();
 
         Self {
             contexts: filtered_context,
             overrides: filtered_overrides,
             default_configs: filtered_default_config,
-            dimensions: self.dimensions.clone(),
+            dimensions: self.dimensions,
         }
+    }
+
+    pub fn filter(
+        self,
+        dimension_data: Option<&Map<String, Value>>,
+        prefix_list: Option<&HashSet<String>>,
+    ) -> Self {
+        let mut config = self;
+
+        if let Some(prefixes) = prefix_list {
+            if !prefixes.is_empty() {
+                config = config.filter_by_prefix(prefixes);
+            }
+        }
+
+        if let Some(ctx) = dimension_data {
+            if !ctx.is_empty() {
+                config = config.filter_by_dimensions(ctx);
+            }
+        }
+
+        config
     }
 }
 
