@@ -157,11 +157,16 @@ When(
   }
 );
 
-// SDK: get variable details by name
+// PLAYWRIGHT: Navigate to variable detail page, then fetch via SDK for assertions
 When(
   "I get variable {string}",
   async function (this: PlaywrightWorld, name: string) {
     try {
+      // Navigate to the detail page for UI interaction
+      await this.goToDetailPage("variables", name);
+      await this.page.waitForTimeout(300);
+
+      // Fetch via SDK for response assertions
       this.lastResponse = await this.client.send(
         new GetVariableCommand({
           workspace_id: this.workspaceId,

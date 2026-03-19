@@ -192,6 +192,14 @@ When(
   "I get the experiment by its ID",
   async function (this: PlaywrightWorld) {
     try {
+      // Navigate to experiment detail page
+      await this.page.goto(
+        `${this.appUrl}/admin/${this.orgId}/${this.workspaceId}/experiments/${this.experimentId}`
+      );
+      await this.page.waitForLoadState("networkidle");
+      await this.page.waitForTimeout(300);
+
+      // Fetch via SDK for response assertions
       this.lastResponse = await this.client.send(
         new GetExperimentCommand({
           workspace_id: this.workspaceId,
@@ -212,7 +220,7 @@ When("I list experiments", async function (this: PlaywrightWorld) {
     // Navigate to experiments page and verify the table loads
     await this.goToWorkspacePage("experiments");
     await this.page.waitForTimeout(500);
-    const rowCount = await this.page.locator("table tbody tr").count();
+    await this.page.locator("table").waitFor({ state: "visible", timeout: 10000 });
 
     // Also get data via SDK for assertions in Then steps
     this.lastResponse = await this.client.send(
@@ -302,6 +310,14 @@ When(
         : v.overrides ?? {},
     }));
     try {
+      // Navigate to experiment detail page
+      await this.page.goto(
+        `${this.appUrl}/admin/${this.orgId}/${this.workspaceId}/experiments/${this.experimentId}`
+      );
+      await this.page.waitForLoadState("networkidle");
+      await this.page.waitForTimeout(300);
+
+      // Use SDK for the update (variant override editing is complex in UI)
       this.lastResponse = await this.client.send(
         new UpdateOverridesExperimentCommand({
           workspace_id: this.workspaceId,
