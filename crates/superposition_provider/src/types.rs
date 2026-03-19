@@ -122,7 +122,7 @@ impl Default for WatchStrategy {
 
 /// A stream of change notifications from a data source.
 pub struct WatchStream {
-    pub receiver: tokio::sync::mpsc::Receiver<()>,
+    pub receiver: tokio::sync::broadcast::Receiver<()>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

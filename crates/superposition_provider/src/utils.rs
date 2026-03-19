@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-use aws_smithy_types::Document;
 use log::debug;
 use serde_json::{json, Map, Value};
 use superposition_core::experiment::{ExperimentGroups, FfiExperimentGroup};
@@ -18,43 +17,39 @@ use superposition_types::{
     Overrides,
 };
 
-use crate::types::*;
+use crate::{conversions, types::*};
 
 pub struct ConversionUtils;
 
 impl ConversionUtils {
     pub fn convert_get_config_response(
-        response: &superposition_sdk::operation::get_config::GetConfigOutput,
+        response: superposition_sdk::operation::get_config::GetConfigOutput,
     ) -> Result<Config> {
         debug!("Converting get_config response to superposition_types::Config");
 
         // Convert default configs - these are already Value types
-        let default_configs =
-            Self::convert_condition_document(response.default_configs())?;
+        let default_configs = conversions::hashmap_to_map(response.default_configs);
 
         // Convert overrides - HashMap<String, HashMap<String, Document>>
-        let overrides = {
-            let mut result_map = HashMap::new();
-            for (override_key, inner_map) in response.overrides() {
-                let override_values = Self::convert_condition_document(inner_map)?;
-
-                // Create Overrides directly from Map<String, Value>
-                let overrides_obj = Cac::<Overrides>::try_from(override_values)
+        let overrides = response
+            .overrides
+            .into_iter()
+            .map(|(k, v)| {
+                let override_values = conversions::hashmap_to_map(v);
+                let override_obj = Cac::<Overrides>::try_from(override_values)
                     .map_err(|e| SuperpositionError::SerializationError(e.to_string()))?;
-
-                result_map.insert(override_key.clone(), overrides_obj.into_inner());
-            }
-            result_map
-        };
+                Ok((k, override_obj.into_inner()))
+            })
+            .collect::<Result<HashMap<String, Overrides>>>()?;
 
         // Convert contexts - Vec<ContextPartial>
         let contexts = response
-            .contexts()
-            .iter()
+            .contexts
+            .into_iter()
             .map(|context_partial| {
                 // Convert condition Document to Map<String, Value>
                 let condition_map =
-                    Self::convert_condition_document(context_partial.condition())?;
+                    conversions::hashmap_to_map(context_partial.condition);
 
                 // Create Condition directly from Map<String, Value>
                 let condition =
@@ -65,48 +60,40 @@ impl ConversionUtils {
                         ))
                     })?;
 
-                let override_with_keys = OverrideWithKeys::try_from(
-                    context_partial.override_with_keys().to_vec(),
-                )
-                .map_err(|e| {
-                    SuperpositionError::SerializationError(format!(
-                        "Invalid override_with_keys: {e}",
-                    ))
-                })?;
+                let override_with_keys =
+                    OverrideWithKeys::try_from(context_partial.override_with_keys)
+                        .map_err(|e| {
+                            SuperpositionError::SerializationError(format!(
+                                "Invalid override_with_keys: {e}",
+                            ))
+                        })?;
 
                 Ok(Context {
-                    id: context_partial.id().to_string(),
+                    id: context_partial.id,
                     condition: condition.into_inner(),
-                    priority: context_partial.priority(),
-                    weight: context_partial.weight(),
+                    priority: context_partial.priority,
+                    weight: context_partial.weight,
                     override_with_keys,
                 })
             })
             .collect::<Result<Vec<Context>>>()?;
 
         let dimensions = response
-            .dimensions()
-            .iter()
+            .dimensions
+            .into_iter()
             .map(|(key, dimension_info)| {
-                let schema = dimension_info
-                    .schema()
-                    .iter()
-                    .map(|(k, v)| Self::document_to_value(v).map(|val| (k.clone(), val)))
-                    .collect::<Result<Map<String, Value>>>()?;
+                let schema = conversions::hashmap_to_map(dimension_info.schema);
                 let dim_info = DimensionInfo {
                     schema: ExtendedMap::from(schema),
-                    position: dimension_info.position(),
+                    position: dimension_info.position,
                     dimension_type: Self::try_dimension_type(
-                        dimension_info.dimension_type(),
+                        dimension_info.dimension_type,
                     )?,
-                    dependency_graph: DependencyGraph(
-                        dimension_info.dependency_graph().clone(),
-                    ),
+                    dependency_graph: DependencyGraph(dimension_info.dependency_graph),
                     value_compute_function_name: dimension_info
-                        .value_compute_function_name()
-                        .map(String::from),
+                        .value_compute_function_name,
                 };
-                Ok((key.clone(), dim_info))
+                Ok((key, dim_info))
             })
             .collect::<Result<HashMap<String, DimensionInfo>>>()?;
 
@@ -124,14 +111,14 @@ impl ConversionUtils {
     }
 
     fn try_dimension_type(
-        dim_type: &superposition_sdk::types::DimensionType,
+        dim_type: superposition_sdk::types::DimensionType,
     ) -> Result<DimensionType> {
         match dim_type {
             superposition_sdk::types::DimensionType::RemoteCohort(cohort_based_on) => {
-                Ok(DimensionType::RemoteCohort(cohort_based_on.clone()))
+                Ok(DimensionType::RemoteCohort(cohort_based_on))
             }
             superposition_sdk::types::DimensionType::LocalCohort(cohort_based_on) => {
-                Ok(DimensionType::LocalCohort(cohort_based_on.clone()))
+                Ok(DimensionType::LocalCohort(cohort_based_on))
             }
             superposition_sdk::types::DimensionType::Regular => {
                 Ok(DimensionType::Regular {})
@@ -314,34 +301,22 @@ impl ConversionUtils {
         })
     }
 
-    fn convert_condition_document(
-        context: &HashMap<String, Document>,
-    ) -> Result<Map<String, Value>> {
-        let mut condition_map = Map::new();
-        for (key, doc) in context {
-            let value = Self::document_to_value(doc)?;
-            condition_map.insert(key.clone(), value);
-        }
-        Ok(condition_map)
-    }
-
     /// Convert list_experiment SDK response to structured experiment data
     pub fn convert_experiments_response(
-        response: &superposition_sdk::operation::list_experiment::ListExperimentOutput,
+        response: superposition_sdk::operation::list_experiment::ListExperimentOutput,
     ) -> Result<Experiments> {
         debug!("Converting experiments response");
 
-        let exp_list = response.data();
         let mut trimmed_exp_list: Experiments = Vec::new();
 
-        for exp in exp_list {
+        for exp in response.data {
             // Convert experiment context (condition)
-            let condition_map = Self::convert_condition_document(exp.context())?;
+            let condition_map = conversions::hashmap_to_map(exp.context);
 
             // Convert variants
             let mut variants: Variants = Variants::new(vec![]);
-            for variant in exp.variants() {
-                let variant_type = match variant.variant_type() {
+            for variant in exp.variants {
+                let variant_type = match variant.variant_type {
                     superposition_sdk::types::VariantType::Control => {
                         VariantType::CONTROL
                     }
@@ -356,7 +331,7 @@ impl ConversionUtils {
                 };
 
                 // Convert variant overrides - check if overrides exist
-                let overrides_map = Self::hashmap_to_map(variant.overrides())?;
+                let overrides_map = conversions::hashmap_to_map(variant.overrides);
 
                 let override_ = Exp::<Overrides>::try_from(overrides_map)
                     .map_err(|e| SuperpositionError::SerializationError(e.to_string()))?;
@@ -405,16 +380,15 @@ impl ConversionUtils {
     }
 
     pub fn convert_experiment_groups_response(
-        response: &ListExperimentGroupsOutput,
+        response: ListExperimentGroupsOutput,
     ) -> Result<ExperimentGroups> {
         debug!("Converting experiment groups response");
 
-        let group_list = response.data();
         let mut trimmed_group_list: ExperimentGroups = Vec::new();
 
-        for exp_group in group_list {
+        for exp_group in response.data {
             // Convert experiment context (condition)
-            let condition_map = Self::convert_condition_document(exp_group.context())?;
+            let condition_map = conversions::hashmap_to_map(exp_group.context);
 
             let context = Exp::<Condition>::try_from(condition_map)
                 .map_err(|e| {
@@ -438,7 +412,7 @@ impl ConversionUtils {
                 id: exp_group.id.clone(),
                 context,
                 traffic_percentage: exp_group.traffic_percentage as u8,
-                member_experiment_ids: exp_group.member_experiment_ids().to_vec(),
+                member_experiment_ids: exp_group.member_experiment_ids,
                 group_type,
                 buckets: Buckets::try_from(
                     exp_group
@@ -459,68 +433,6 @@ impl ConversionUtils {
         }
 
         Ok(trimmed_group_list)
-    }
-
-    /// Convert AWS Smithy Document to serde_json::Value
-    pub fn document_to_value(doc: &aws_smithy_types::Document) -> Result<Value> {
-        Self::document_to_value_recursive(doc)
-    }
-
-    pub fn hashmap_to_map(
-        hashmap: &HashMap<String, aws_smithy_types::Document>,
-    ) -> Result<Map<String, Value>> {
-        hashmap
-            .iter()
-            .map(|(k, v)| {
-                let value = Self::document_to_value(v)?;
-                Ok((k.clone(), value))
-            })
-            .collect()
-    }
-
-    /// Recursively convert AWS Smithy Document to serde_json::Value by properly matching variants
-    fn document_to_value_recursive(doc: &aws_smithy_types::Document) -> Result<Value> {
-        use aws_smithy_types::Document;
-
-        match doc {
-            Document::Object(obj) => {
-                let mut map = Map::new();
-                for (key, value) in obj {
-                    let converted_value = Self::document_to_value_recursive(value)?;
-                    map.insert(key.clone(), converted_value);
-                }
-                Ok(Value::Object(map))
-            }
-            Document::Array(arr) => {
-                let mut vec = Vec::new();
-                for item in arr {
-                    let converted_item = Self::document_to_value_recursive(item)?;
-                    vec.push(converted_item);
-                }
-                Ok(Value::Array(vec))
-            }
-            Document::Number(num) => {
-                use aws_smithy_types::Number;
-                match num {
-                    Number::PosInt(val) => {
-                        Ok(Value::Number(serde_json::Number::from(*val)))
-                    }
-                    Number::NegInt(val) => {
-                        Ok(Value::Number(serde_json::Number::from(*val)))
-                    }
-                    Number::Float(val) => Ok(Value::Number(
-                        serde_json::Number::from_f64(*val).ok_or_else(|| {
-                            SuperpositionError::SerializationError(
-                                "Invalid float value".into(),
-                            )
-                        })?,
-                    )),
-                }
-            }
-            Document::String(s) => Ok(Value::String(s.clone())),
-            Document::Bool(b) => Ok(Value::Bool(*b)),
-            Document::Null => Ok(Value::Null),
-        }
     }
 
     pub fn convert_evaluation_context_value_to_serde_value(
@@ -641,7 +553,7 @@ impl ConversionUtils {
 
     /// Evaluate config using superposition_types logic and return resolved values
     pub fn evaluate_config(
-        config: &Config,
+        config: Config,
         dimension_data: &Map<String, Value>,
         prefix_filter: Option<&[String]>,
     ) -> Result<HashMap<String, Value>> {

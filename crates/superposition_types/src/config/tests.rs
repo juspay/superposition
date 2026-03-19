@@ -91,12 +91,12 @@ fn filter_by_dimensions_with_dimension() {
     let config = with_dimensions::get_config();
 
     assert_eq!(
-        config.filter_by_dimensions(&get_dimension_data1()),
+        config.clone().filter_by_dimensions(&get_dimension_data1()),
         with_dimensions::get_dimension_filtered_config1()
     );
 
     assert_eq!(
-        config.filter_by_dimensions(&get_dimension_data2()),
+        config.clone().filter_by_dimensions(&get_dimension_data2()),
         with_dimensions::get_dimension_filtered_config2()
     );
 
@@ -111,12 +111,12 @@ fn filter_by_dimensions_without_dimension() {
     let config = without_dimensions::get_config();
 
     assert_eq!(
-        config.filter_by_dimensions(&get_dimension_data1()),
+        config.clone().filter_by_dimensions(&get_dimension_data1()),
         without_dimensions::get_dimension_filtered_config1()
     );
 
     assert_eq!(
-        config.filter_by_dimensions(&get_dimension_data2()),
+        config.clone().filter_by_dimensions(&get_dimension_data2()),
         without_dimensions::get_dimension_filtered_config2()
     );
 
@@ -185,7 +185,7 @@ fn filter_by_prefix_with_dimension() {
     let prefix_list = HashSet::from_iter(vec![String::from("test.")]);
 
     assert_eq!(
-        config.filter_by_prefix(&prefix_list),
+        config.clone().filter_by_prefix(&prefix_list),
         with_dimensions::get_prefix_filtered_config1()
     );
 
@@ -193,19 +193,20 @@ fn filter_by_prefix_with_dimension() {
         HashSet::from_iter(vec![String::from("test."), String::from("test2.")]);
 
     assert_eq!(
-        config.filter_by_prefix(&prefix_list),
+        config.clone().filter_by_prefix(&prefix_list),
         with_dimensions::get_prefix_filtered_config2()
     );
 
     let prefix_list = HashSet::from_iter(vec![String::from("abcd")]);
 
+    let dimensions = config.dimensions.clone();
     assert_eq!(
         config.filter_by_prefix(&prefix_list),
         Config {
             contexts: Vec::new(),
             overrides: HashMap::new(),
             default_configs: Map::new().into(),
-            dimensions: config.dimensions.clone(),
+            dimensions,
         }
     );
 }
@@ -217,7 +218,7 @@ fn filter_by_prefix_without_dimension() {
     let prefix_list = HashSet::from_iter(vec![String::from("test.")]);
 
     assert_eq!(
-        config.filter_by_prefix(&prefix_list),
+        config.clone().filter_by_prefix(&prefix_list),
         without_dimensions::get_prefix_filtered_config1()
     );
 
@@ -225,19 +226,20 @@ fn filter_by_prefix_without_dimension() {
         HashSet::from_iter(vec![String::from("test."), String::from("test2.")]);
 
     assert_eq!(
-        config.filter_by_prefix(&prefix_list),
+        config.clone().filter_by_prefix(&prefix_list),
         without_dimensions::get_prefix_filtered_config2()
     );
 
     let prefix_list = HashSet::from_iter(vec![String::from("abcd")]);
 
+    let dimensions = config.dimensions.clone();
     assert_eq!(
         config.filter_by_prefix(&prefix_list),
         Config {
             contexts: Vec::new(),
             overrides: HashMap::new(),
             default_configs: Map::new().into(),
-            dimensions: config.dimensions.clone(),
+            dimensions,
         }
     );
 }

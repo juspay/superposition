@@ -1,4 +1,5 @@
 pub mod client;
+pub mod conversions;
 pub mod data_source;
 pub mod local_provider;
 pub mod provider;
