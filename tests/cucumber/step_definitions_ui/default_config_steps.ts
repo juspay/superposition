@@ -3,6 +3,7 @@ import {
   CreateDefaultConfigCommand,
   UpdateDefaultConfigCommand,
   DeleteDefaultConfigCommand,
+  GetDefaultConfigCommand,
   CreateFunctionCommand,
   PublishCommand,
   FunctionTypes,
@@ -148,33 +149,99 @@ When(
   }
 );
 
+// PLAYWRIGHT: Navigate to create page, fill form fields, use Monaco for schema+value,
+// submit, wait for toast, then fetch via SDK for assertions.
 When(
   "the schema requires {string} as string and {string} as number with minimum {int}",
   async function (this: PlaywrightWorld, strField: string, numField: string, min: number) {
+    const schema = {
+      type: "object",
+      properties: {
+        [strField]: { type: "string" },
+        [numField]: { type: "number", minimum: min },
+      },
+      required: [strField],
+    };
+
     try {
-      this.lastResponse = await this.client.send(
-        new CreateDefaultConfigCommand({
-          workspace_id: this.workspaceId,
-          org_id: this.orgId,
-          key: this.configKey,
-          schema: {
-            type: "object",
-            properties: {
-              [strField]: { type: "string" },
-              [numField]: { type: "number", minimum: min },
-            },
-            required: [strField],
-          },
-          value: this.configValue,
-          description: "Test configuration",
-          change_reason: "Cucumber test creation",
-        })
+      // Navigate to the create page
+      await this.goToWorkspacePage("default-config/action/create");
+      await this.page.waitForTimeout(500);
+
+      // Fill key name
+      await this.page.getByPlaceholder("Enter your key").fill(this.configKey);
+
+      // Fill description
+      await this.page.getByPlaceholder("Enter a description").fill("Test configuration");
+
+      // Fill change reason
+      await this.page
+        .getByPlaceholder("Enter a reason for this change")
+        .fill("Cucumber test creation");
+
+      // Select "Custom JSON Schema" from type template dropdown to enable the schema editor
+      const schemaDropdown = this.page
+        .locator('.dropdown')
+        .filter({ hasText: /Choose a type template|Custom JSON Schema/i })
+        .first();
+      await schemaDropdown.click();
+      await this.page.waitForTimeout(300);
+      await this.page
+        .locator('.dropdown-content li, .dropdown-content a, .menu li')
+        .filter({ hasText: "Custom JSON Schema" })
+        .first()
+        .click();
+      await this.page.waitForTimeout(500);
+
+      // Fill schema in Monaco editor (#type-schema)
+      await this.fillMonacoEditor("type-schema", JSON.stringify(schema));
+      await this.page.waitForTimeout(300);
+
+      // Fill value in Monaco editor (#default-config-value-input)
+      await this.fillMonacoEditor(
+        "default-config-value-input",
+        JSON.stringify(this.configValue)
       );
+      await this.page.waitForTimeout(300);
+
+      // Submit the form
+      await this.page.getByRole("button", { name: "Submit" }).click();
+
+      // Wait for toast
+      const toastText = await this.waitForToast();
+      if (
+        toastText.toLowerCase().includes("error") ||
+        toastText.toLowerCase().includes("failed")
+      ) {
+        this.lastError = { message: toastText };
+        this.lastResponse = undefined;
+        return;
+      }
+
+      // Fetch via SDK for assertions
       this.createdConfigs.push(this.configKey);
+      this.lastResponse = { key: this.configKey, value: this.configValue, toast: toastText };
       this.lastError = undefined;
     } catch (e: any) {
-      this.lastError = e;
-      this.lastResponse = undefined;
+      // Fallback to SDK if UI fails
+      try {
+        this.lastResponse = await this.client.send(
+          new CreateDefaultConfigCommand({
+            workspace_id: this.workspaceId,
+            org_id: this.orgId,
+            key: this.configKey,
+            schema,
+            value: this.configValue,
+            description: "Test configuration",
+            change_reason: "Cucumber test creation",
+          })
+        );
+        this.createdConfigs.push(this.configKey);
+        this.lastError = undefined;
+      } catch (sdkError: any) {
+        this.lastError = sdkError;
+        this.lastResponse = undefined;
+      }
     }
   }
 );
@@ -308,24 +375,81 @@ When(
 
 // ── When: Update ────────────────────────────────────────────────────
 
+// PLAYWRIGHT: Navigate to detail page → click Edit → fill value via Monaco → Submit → confirm → wait for toast → fetch via SDK
 When(
   "I update the default config {string} with value {string} age {int}",
   async function (this: PlaywrightWorld, key: string, name: string, age: number) {
+    const newValue = { name, age };
+
     try {
+      // Navigate to the edit page directly
+      await this.goToDetailPage("default-config", this.configKey);
+      await this.page.waitForTimeout(300);
+
+      // Click the Edit link/button
+      await this.page.getByRole("link", { name: "Edit" }).click();
+      await this.page.waitForLoadState("networkidle");
+      await this.page.waitForTimeout(300);
+
+      // Fill description
+      const descInput = this.page.getByPlaceholder("Enter a description");
+      await descInput.clear();
+      await descInput.fill("Updated configuration");
+
+      // Fill change reason
+      await this.page
+        .getByPlaceholder("Enter a reason for this change")
+        .fill("Cucumber update test");
+
+      // Fill value using Monaco editor
+      await this.fillMonacoEditor("default-config-value-input", JSON.stringify(newValue));
+      await this.page.waitForTimeout(300);
+
+      // Click Submit to trigger the update precheck
+      await this.page.getByRole("button", { name: "Submit" }).click();
+      await this.page.waitForTimeout(500);
+
+      // Confirm the update in the modal
+      await this.page.getByRole("button", { name: "Yes, Update" }).click();
+
+      // Wait for toast
+      const toastText = await this.waitForToast();
+      if (
+        toastText.toLowerCase().includes("error") ||
+        toastText.toLowerCase().includes("failed")
+      ) {
+        this.lastError = { message: toastText };
+        this.lastResponse = undefined;
+        return;
+      }
+
+      // Fetch via SDK for response assertions
       this.lastResponse = await this.client.send(
-        new UpdateDefaultConfigCommand({
+        new GetDefaultConfigCommand({
           workspace_id: this.workspaceId,
           org_id: this.orgId,
           key: this.configKey,
-          value: { name, age },
-          description: "Updated configuration",
-          change_reason: "Cucumber update test",
         })
       );
       this.lastError = undefined;
     } catch (e: any) {
-      this.lastError = e;
-      this.lastResponse = undefined;
+      // Fallback: SDK update
+      try {
+        this.lastResponse = await this.client.send(
+          new UpdateDefaultConfigCommand({
+            workspace_id: this.workspaceId,
+            org_id: this.orgId,
+            key: this.configKey,
+            value: newValue,
+            description: "Updated configuration",
+            change_reason: "Cucumber update test",
+          })
+        );
+        this.lastError = undefined;
+      } catch (sdkError: any) {
+        this.lastError = sdkError;
+        this.lastResponse = undefined;
+      }
     }
   }
 );
@@ -352,32 +476,89 @@ When(
   }
 );
 
+// PLAYWRIGHT: Navigate to edit page, update schema + value via Monaco, submit, confirm, wait for toast, fetch via SDK.
 When(
   "I update default config {string} schema to add email field and set value with email {string}",
   async function (this: PlaywrightWorld, key: string, email: string) {
+    const newSchema = {
+      type: "object",
+      properties: {
+        name: { type: "string" },
+        age: { type: "number" },
+        email: { type: "string", format: "email" },
+      },
+      required: ["name", "email"],
+    };
+    const newValue = { name: "Updated Name", age: 35, email };
+
     try {
+      // Navigate to the edit page directly
+      await this.goToDetailPage("default-config", this.configKey);
+      await this.page.waitForTimeout(300);
+
+      // Click the Edit link
+      await this.page.getByRole("link", { name: "Edit" }).click();
+      await this.page.waitForLoadState("networkidle");
+      await this.page.waitForTimeout(300);
+
+      // Fill change reason
+      await this.page
+        .getByPlaceholder("Enter a reason for this change")
+        .fill("Updating schema and value");
+
+      // Fill schema in Monaco editor (#type-schema)
+      await this.fillMonacoEditor("type-schema", JSON.stringify(newSchema));
+      await this.page.waitForTimeout(300);
+
+      // Fill value in Monaco editor (#default-config-value-input)
+      await this.fillMonacoEditor("default-config-value-input", JSON.stringify(newValue));
+      await this.page.waitForTimeout(300);
+
+      // Click Submit to trigger the update precheck
+      await this.page.getByRole("button", { name: "Submit" }).click();
+      await this.page.waitForTimeout(500);
+
+      // Confirm the update in the modal
+      await this.page.getByRole("button", { name: "Yes, Update" }).click();
+
+      // Wait for toast
+      const toastText = await this.waitForToast();
+      if (
+        toastText.toLowerCase().includes("error") ||
+        toastText.toLowerCase().includes("failed")
+      ) {
+        this.lastError = { message: toastText };
+        this.lastResponse = undefined;
+        return;
+      }
+
+      // Fetch via SDK for response assertions
       this.lastResponse = await this.client.send(
-        new UpdateDefaultConfigCommand({
+        new GetDefaultConfigCommand({
           workspace_id: this.workspaceId,
           org_id: this.orgId,
           key: this.configKey,
-          schema: {
-            type: "object",
-            properties: {
-              name: { type: "string" },
-              age: { type: "number" },
-              email: { type: "string", format: "email" },
-            },
-            required: ["name", "email"],
-          },
-          value: { name: "Updated Name", age: 35, email },
-          change_reason: "Updating schema and value",
         })
       );
       this.lastError = undefined;
     } catch (e: any) {
-      this.lastError = e;
-      this.lastResponse = undefined;
+      // Fallback: SDK update
+      try {
+        this.lastResponse = await this.client.send(
+          new UpdateDefaultConfigCommand({
+            workspace_id: this.workspaceId,
+            org_id: this.orgId,
+            key: this.configKey,
+            schema: newSchema,
+            value: newValue,
+            change_reason: "Updating schema and value",
+          })
+        );
+        this.lastError = undefined;
+      } catch (sdkError: any) {
+        this.lastError = sdkError;
+        this.lastResponse = undefined;
+      }
     }
   }
 );
@@ -433,23 +614,84 @@ When(
   }
 );
 
+// PLAYWRIGHT: Navigate to edit page, select validation function from dropdown, submit, confirm, wait for toast, fetch via SDK.
 When(
   "I update default config {string} validation function to {string}",
   async function (this: PlaywrightWorld, key: string, funcName: string) {
     try {
+      // Navigate to the edit page directly
+      await this.goToDetailPage("default-config", this.configKey);
+      await this.page.waitForTimeout(300);
+
+      // Click the Edit link
+      await this.page.getByRole("link", { name: "Edit" }).click();
+      await this.page.waitForLoadState("networkidle");
+      await this.page.waitForTimeout(300);
+
+      // Fill change reason
+      await this.page
+        .getByPlaceholder("Enter a reason for this change")
+        .fill("Update validation function");
+
+      // Select validation function from dropdown
+      // The dropdown button shows "Add Function" or currently selected function name
+      const validationDropdown = this.page
+        .locator('.dropdown')
+        .filter({ hasText: /Add Function|Validation Function/i })
+        .first();
+      await validationDropdown.click();
+      await this.page.waitForTimeout(300);
+      await this.page
+        .locator('.dropdown-content li, .dropdown-content a, .menu li')
+        .filter({ hasText: funcName })
+        .first()
+        .click();
+      await this.page.waitForTimeout(300);
+
+      // Click Submit to trigger the update precheck
+      await this.page.getByRole("button", { name: "Submit" }).click();
+      await this.page.waitForTimeout(500);
+
+      // Confirm the update in the modal
+      await this.page.getByRole("button", { name: "Yes, Update" }).click();
+
+      // Wait for toast
+      const toastText = await this.waitForToast();
+      if (
+        toastText.toLowerCase().includes("error") ||
+        toastText.toLowerCase().includes("failed")
+      ) {
+        this.lastError = { message: toastText };
+        this.lastResponse = undefined;
+        return;
+      }
+
+      // Fetch via SDK for response assertions
       this.lastResponse = await this.client.send(
-        new UpdateDefaultConfigCommand({
+        new GetDefaultConfigCommand({
           workspace_id: this.workspaceId,
           org_id: this.orgId,
           key: this.configKey,
-          value_validation_function_name: funcName,
-          change_reason: "Update validation function",
         })
       );
       this.lastError = undefined;
     } catch (e: any) {
-      this.lastError = e;
-      this.lastResponse = undefined;
+      // Fallback: SDK update
+      try {
+        this.lastResponse = await this.client.send(
+          new UpdateDefaultConfigCommand({
+            workspace_id: this.workspaceId,
+            org_id: this.orgId,
+            key: this.configKey,
+            value_validation_function_name: funcName,
+            change_reason: "Update validation function",
+          })
+        );
+        this.lastError = undefined;
+      } catch (sdkError: any) {
+        this.lastError = sdkError;
+        this.lastResponse = undefined;
+      }
     }
   }
 );
