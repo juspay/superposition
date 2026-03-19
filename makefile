@@ -57,6 +57,13 @@ export SMITHY_MAVEN_REPOS = https://repo1.maven.org/maven2|https://sandbox.asset
 	bindings-test \
 	build \
 	check \
+	ci \
+	ci-binding-check \
+	ci-formatting \
+	ci-java-build \
+	ci-provider-tests \
+	ci-smithy-check \
+	ci-test \
 	cleanup \
 	clients \
 	commit \
@@ -462,4 +469,77 @@ bindings-test: uniffi-bindings
 	@echo ""
 	@echo "========================================"
 	@echo "All TOML binding tests passed!"
+	@echo "========================================"
+
+# =============================================================================
+# CI Mirror Targets
+# These targets mirror the CI jobs in .github/workflows/ci_check_pr.yaml
+# so that the same checks can be run locally before pushing.
+# Usage: `make ci` to run all checks, or individual targets below.
+# =============================================================================
+
+# Mirrors CI job: formatting
+# Runs formatting, linting, and conventional commit check on last commit.
+ci-formatting: check
+	@echo "Checking conventional commit on last commit..."
+	cog verify "$$(git log --format=%B -n 1)"
+	@echo "ci-formatting: PASSED"
+
+# Mirrors CI job: test
+# Requires PostgreSQL on :5432 and Redis on :6379 (use `docker compose up -d postgres redis` or set CI=1).
+ci-test:
+	$(MAKE) test CI=1
+	@echo "ci-test: PASSED"
+
+# Mirrors CI job: java-build
+ci-java-build:
+	cd clients/java && chmod +x gradlew && ./gradlew assemble
+	@echo "ci-java-build: PASSED"
+
+# Mirrors CI job: provider-tests (runs all four providers sequentially)
+# Requires PostgreSQL on :5432 and Redis on :6379.
+ci-provider-tests:
+	cargo build --package superposition_core
+	$(MAKE) test-kotlin-provider
+	$(MAKE) test-js-provider
+	$(MAKE) test-py-provider
+	$(MAKE) test-rust-provider
+	@echo "ci-provider-tests: PASSED"
+
+# Mirrors CI job: binding-generation-check
+# Generates uniffi bindings and fails if any files were modified.
+ci-binding-check: uniffi-bindings
+	@if ! git diff --quiet; then \
+		echo "ci-binding-check: FAILED — the following files were modified after generation:"; \
+		git diff --name-only; \
+		exit 1; \
+	fi
+	@echo "ci-binding-check: PASSED"
+
+# Mirrors CI job: smithy-sdk-generation-check
+# Generates smithy SDKs and fails if any unexpected files were modified.
+ci-smithy-check: smithy-updates
+	@if ! git diff --exit-code -- \
+		. \
+		':(exclude)**/*.api.mdx' \
+		':(exclude)clients/java/sdk/src/main/java/io/juspay/superposition/client/SuperpositionAsyncClientImpl.java' \
+		':(exclude)clients/java/sdk/src/main/java/io/juspay/superposition/client/SuperpositionAsyncClient.java' \
+		':(exclude)clients/java/sdk/src/main/java/io/juspay/superposition/client/SuperpositionClient.java' \
+		':(exclude)clients/java/sdk/src/main/java/io/juspay/superposition/client/SuperpositionClientImpl.java'; then \
+		echo "ci-smithy-check: FAILED — unexpected files were modified:"; \
+		git diff --name-only; \
+		exit 1; \
+	fi
+	@if ! git diff -I '^api:' --exit-code -- '**/*.api.mdx'; then \
+		echo "ci-smithy-check: FAILED — .api.mdx files had non-api changes"; \
+		exit 1; \
+	fi
+	@echo "ci-smithy-check: PASSED"
+
+# Run all CI checks locally (mirrors the full CI pipeline).
+# Prerequisites: PostgreSQL on :5432, Redis on :6379, Smithy CLI, cocogitto.
+ci: ci-formatting ci-test ci-java-build ci-binding-check ci-smithy-check
+	@echo ""
+	@echo "========================================"
+	@echo "All CI checks passed!"
 	@echo "========================================"
