@@ -33,12 +33,8 @@ pub fn doc_to_json(doc: &Document) -> serde_json::Value {
         Document::Null => serde_json::Value::Null,
         Document::Bool(b) => serde_json::Value::Bool(*b),
         Document::Number(n) => match n {
-            aws_smithy_types::Number::PosInt(i) => {
-                serde_json::Value::Number((*i).into())
-            }
-            aws_smithy_types::Number::NegInt(i) => {
-                serde_json::Value::Number((*i).into())
-            }
+            aws_smithy_types::Number::PosInt(i) => serde_json::Value::Number((*i).into()),
+            aws_smithy_types::Number::NegInt(i) => serde_json::Value::Number((*i).into()),
             aws_smithy_types::Number::Float(f) => serde_json::json!(*f),
         },
         Document::String(s) => serde_json::Value::String(s.clone()),
@@ -46,19 +42,21 @@ pub fn doc_to_json(doc: &Document) -> serde_json::Value {
             serde_json::Value::Array(arr.iter().map(doc_to_json).collect())
         }
         Document::Object(obj) => {
-            let map: serde_json::Map<String, serde_json::Value> =
-                obj.iter().map(|(k, v)| (k.clone(), doc_to_json(v))).collect();
+            let map: serde_json::Map<String, serde_json::Value> = obj
+                .iter()
+                .map(|(k, v)| (k.clone(), doc_to_json(v)))
+                .collect();
             serde_json::Value::Object(map)
         }
     }
 }
 
 /// Convert a `HashMap<String, Document>` into a `serde_json::Value::Object`.
-pub fn doc_map_to_json(
-    map: &HashMap<String, Document>,
-) -> serde_json::Value {
-    let obj: serde_json::Map<String, serde_json::Value> =
-        map.iter().map(|(k, v)| (k.clone(), doc_to_json(v))).collect();
+pub fn doc_map_to_json(map: &HashMap<String, Document>) -> serde_json::Value {
+    let obj: serde_json::Map<String, serde_json::Value> = map
+        .iter()
+        .map(|(k, v)| (k.clone(), doc_to_json(v)))
+        .collect();
     serde_json::Value::Object(obj)
 }
 
@@ -331,16 +329,16 @@ macro_rules! secret_to_json {
     }}
 }
 
+pub(crate) use audit_log_to_json;
 pub(crate) use context_to_json;
 pub(crate) use default_config_to_json;
 pub(crate) use dimension_to_json;
-pub(crate) use experiment_to_json;
 pub(crate) use experiment_group_to_json;
+pub(crate) use experiment_to_json;
 pub(crate) use function_to_json;
 pub(crate) use organisation_to_json;
-pub(crate) use workspace_to_json;
+pub(crate) use secret_to_json;
 pub(crate) use type_template_to_json;
-pub(crate) use audit_log_to_json;
 pub(crate) use variable_to_json;
 pub(crate) use webhook_to_json;
-pub(crate) use secret_to_json;
+pub(crate) use workspace_to_json;

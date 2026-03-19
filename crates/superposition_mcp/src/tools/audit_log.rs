@@ -2,8 +2,8 @@ use rmcp::model::*;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
-use crate::helpers::*;
 use crate::SuperpositionMcpServer;
+use crate::helpers::*;
 
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct ListAuditLogsParams {
@@ -72,8 +72,9 @@ impl SuperpositionMcpServer {
             };
             req = req.sort_by(sort);
         }
-        let resp = req.send().await.map_err(|e| mcp_err(e))?;
-        let items: Vec<serde_json::Value> = resp.data.iter().map(|r| audit_log_to_json!(r)).collect();
+        let resp = req.send().await.map_err(mcp_err)?;
+        let items: Vec<serde_json::Value> =
+            resp.data.iter().map(|r| audit_log_to_json!(r)).collect();
         let result = serde_json::json!({
             "total_pages": resp.total_pages,
             "total_items": resp.total_items,

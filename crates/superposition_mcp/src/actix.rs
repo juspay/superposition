@@ -26,9 +26,13 @@ use crate::{McpServerConfig, SuperpositionMcpServer};
 ///         .service(web::scope("/mcp").service(mcp_service.clone()))
 /// })
 /// ```
-pub fn mcp_scope(config: McpServerConfig) -> StreamableHttpService<SuperpositionMcpServer> {
+pub fn mcp_scope(
+    config: McpServerConfig,
+) -> StreamableHttpService<SuperpositionMcpServer> {
     StreamableHttpService::builder()
-        .service_factory(Arc::new(move || Ok(SuperpositionMcpServer::new(config.clone()))))
+        .service_factory(Arc::new(move || {
+            Ok(SuperpositionMcpServer::new(config.clone()))
+        }))
         .session_manager(Arc::new(LocalSessionManager::default()))
         .stateful_mode(true)
         .sse_keep_alive(Duration::from_secs(30))
@@ -38,9 +42,7 @@ pub fn mcp_scope(config: McpServerConfig) -> StreamableHttpService<Superposition
 /// Creates an actix-web `Scope` mounted at `/mcp`.
 ///
 /// This is a convenience wrapper that creates the scope with the standard path.
-pub fn mcp_service(
-    config: McpServerConfig,
-) -> actix_web::Scope {
+pub fn mcp_service(config: McpServerConfig) -> actix_web::Scope {
     let service = mcp_scope(config);
     web::scope("/mcp").service(service.scope())
 }

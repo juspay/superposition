@@ -35,9 +35,9 @@ fn test_json_to_doc_number_int() {
 
 #[test]
 fn test_json_to_doc_number_float() {
-    let doc = json_to_doc(serde_json::json!(3.14));
+    let doc = json_to_doc(serde_json::json!(2.72));
     match doc {
-        Document::Number(Number::Float(f)) => assert!((f - 3.14).abs() < f64::EPSILON),
+        Document::Number(Number::Float(f)) => assert!((f - 2.72).abs() < f64::EPSILON),
         _ => panic!("Expected Float, got {:?}", doc),
     }
 }

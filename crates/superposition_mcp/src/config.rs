@@ -27,10 +27,12 @@ impl McpServerConfig {
         Ok(Self {
             endpoint_url: env::var("SUPERPOSITION_URL")
                 .map_err(|_| anyhow::anyhow!("SUPERPOSITION_URL env var is required"))?,
-            workspace_id: env::var("SUPERPOSITION_WORKSPACE")
-                .map_err(|_| anyhow::anyhow!("SUPERPOSITION_WORKSPACE env var is required"))?,
-            org_id: env::var("SUPERPOSITION_ORG_ID")
-                .map_err(|_| anyhow::anyhow!("SUPERPOSITION_ORG_ID env var is required"))?,
+            workspace_id: env::var("SUPERPOSITION_WORKSPACE").map_err(|_| {
+                anyhow::anyhow!("SUPERPOSITION_WORKSPACE env var is required")
+            })?,
+            org_id: env::var("SUPERPOSITION_ORG_ID").map_err(|_| {
+                anyhow::anyhow!("SUPERPOSITION_ORG_ID env var is required")
+            })?,
             auth_token: env::var("SUPERPOSITION_AUTH_TOKEN").ok(),
         })
     }

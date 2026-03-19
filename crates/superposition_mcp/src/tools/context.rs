@@ -2,8 +2,8 @@ use rmcp::model::*;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
-use crate::helpers::*;
 use crate::SuperpositionMcpServer;
+use crate::helpers::*;
 
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct CreateContextParams {
@@ -117,7 +117,7 @@ impl SuperpositionMcpServer {
         if let Some(d) = args.description {
             put_builder = put_builder.description(d);
         }
-        let put = put_builder.build().map_err(|e| mcp_err(e))?;
+        let put = put_builder.build().map_err(mcp_err)?;
         let mut req = self
             .client
             .create_context()
@@ -127,8 +127,9 @@ impl SuperpositionMcpServer {
         if let Some(tags) = args.config_tags {
             req = req.config_tags(tags);
         }
-        let resp = req.send().await.map_err(|e| mcp_err(e))?;
-        let json = serde_json::to_string_pretty(&context_to_json!(resp)).map_err(mcp_err)?;
+        let resp = req.send().await.map_err(mcp_err)?;
+        let json =
+            serde_json::to_string_pretty(&context_to_json!(resp)).map_err(mcp_err)?;
         Ok(CallToolResult::success(vec![Content::text(json)]))
     }
 
@@ -144,8 +145,9 @@ impl SuperpositionMcpServer {
             .id(args.id)
             .send()
             .await
-            .map_err(|e| mcp_err(e))?;
-        let json = serde_json::to_string_pretty(&context_to_json!(resp)).map_err(mcp_err)?;
+            .map_err(mcp_err)?;
+        let json =
+            serde_json::to_string_pretty(&context_to_json!(resp)).map_err(mcp_err)?;
         Ok(CallToolResult::success(vec![Content::text(json)]))
     }
 
@@ -190,8 +192,9 @@ impl SuperpositionMcpServer {
         if let Some(pt) = args.plaintext {
             req = req.plaintext(pt);
         }
-        let resp = req.send().await.map_err(|e| mcp_err(e))?;
-        let items: Vec<serde_json::Value> = resp.data.iter().map(|r| context_to_json!(r)).collect();
+        let resp = req.send().await.map_err(mcp_err)?;
+        let items: Vec<serde_json::Value> =
+            resp.data.iter().map(|r| context_to_json!(r)).collect();
         let result = serde_json::json!({
             "total_pages": resp.total_pages,
             "total_items": resp.total_items,
@@ -214,7 +217,7 @@ impl SuperpositionMcpServer {
         if let Some(tags) = args.config_tags {
             req = req.config_tags(tags);
         }
-        req.send().await.map_err(|e| mcp_err(e))?;
+        req.send().await.map_err(mcp_err)?;
         Ok(CallToolResult::success(vec![Content::text(
             "Context deleted successfully",
         )]))
@@ -225,7 +228,8 @@ impl SuperpositionMcpServer {
         args: UpdateOverrideParams,
     ) -> Result<CallToolResult, rmcp::ErrorData> {
         let ovr_map = json_to_doc_map(args.r#override).map_err(mcp_err)?;
-        let ctx_ident = if let Some(id) = args.context.get("id").and_then(|v| v.as_str()) {
+        let ctx_ident = if let Some(id) = args.context.get("id").and_then(|v| v.as_str())
+        {
             superposition_sdk::types::ContextIdentifier::Id(id.to_string())
         } else if let Some(cond) = args.context.get("context") {
             let cond_map = json_to_doc_map(cond.clone()).map_err(mcp_err)?;
@@ -241,7 +245,7 @@ impl SuperpositionMcpServer {
         if let Some(d) = args.description {
             ucr_builder = ucr_builder.description(d);
         }
-        let ucr = ucr_builder.build().map_err(|e| mcp_err(e))?;
+        let ucr = ucr_builder.build().map_err(mcp_err)?;
         let mut req = self
             .client
             .update_override()
@@ -251,8 +255,9 @@ impl SuperpositionMcpServer {
         if let Some(tags) = args.config_tags {
             req = req.config_tags(tags);
         }
-        let resp = req.send().await.map_err(|e| mcp_err(e))?;
-        let json = serde_json::to_string_pretty(&context_to_json!(resp)).map_err(mcp_err)?;
+        let resp = req.send().await.map_err(mcp_err)?;
+        let json =
+            serde_json::to_string_pretty(&context_to_json!(resp)).map_err(mcp_err)?;
         Ok(CallToolResult::success(vec![Content::text(json)]))
     }
 
@@ -267,7 +272,7 @@ impl SuperpositionMcpServer {
         if let Some(d) = args.description {
             move_builder = move_builder.description(d);
         }
-        let mv = move_builder.build().map_err(|e| mcp_err(e))?;
+        let mv = move_builder.build().map_err(mcp_err)?;
         let resp = self
             .client
             .move_context()
@@ -277,8 +282,9 @@ impl SuperpositionMcpServer {
             .request(mv)
             .send()
             .await
-            .map_err(|e| mcp_err(e))?;
-        let json = serde_json::to_string_pretty(&context_to_json!(resp)).map_err(mcp_err)?;
+            .map_err(mcp_err)?;
+        let json =
+            serde_json::to_string_pretty(&context_to_json!(resp)).map_err(mcp_err)?;
         Ok(CallToolResult::success(vec![Content::text(json)]))
     }
 
@@ -295,8 +301,9 @@ impl SuperpositionMcpServer {
             .context(doc)
             .send()
             .await
-            .map_err(|e| mcp_err(e))?;
-        let json = serde_json::to_string_pretty(&context_to_json!(resp)).map_err(mcp_err)?;
+            .map_err(mcp_err)?;
+        let json =
+            serde_json::to_string_pretty(&context_to_json!(resp)).map_err(mcp_err)?;
         Ok(CallToolResult::success(vec![Content::text(json)]))
     }
 
@@ -312,7 +319,7 @@ impl SuperpositionMcpServer {
         if let Some(tags) = args.config_tags {
             req = req.config_tags(tags);
         }
-        let resp = req.send().await.map_err(|e| mcp_err(e))?;
+        let resp = req.send().await.map_err(mcp_err)?;
         let items: Vec<serde_json::Value> = resp
             .data
             .as_deref()
@@ -344,7 +351,7 @@ impl SuperpositionMcpServer {
             .set_context(Some(ctx_map))
             .send()
             .await
-            .map_err(|e| mcp_err(e))?;
+            .map_err(mcp_err)?;
         Ok(CallToolResult::success(vec![Content::text(
             "Context is valid",
         )]))

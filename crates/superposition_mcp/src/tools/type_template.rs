@@ -2,8 +2,8 @@ use rmcp::model::*;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
-use crate::helpers::*;
 use crate::SuperpositionMcpServer;
+use crate::helpers::*;
 
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct CreateTypeTemplateParams {
@@ -68,9 +68,9 @@ impl SuperpositionMcpServer {
             .change_reason(args.change_reason)
             .send()
             .await
-            .map_err(|e| mcp_err(e))?;
-        let json =
-            serde_json::to_string_pretty(&type_template_to_json!(resp)).map_err(mcp_err)?;
+            .map_err(mcp_err)?;
+        let json = serde_json::to_string_pretty(&type_template_to_json!(resp))
+            .map_err(mcp_err)?;
         Ok(CallToolResult::success(vec![Content::text(json)]))
     }
 
@@ -86,9 +86,9 @@ impl SuperpositionMcpServer {
             .type_name(args.type_name)
             .send()
             .await
-            .map_err(|e| mcp_err(e))?;
-        let json =
-            serde_json::to_string_pretty(&type_template_to_json!(resp)).map_err(mcp_err)?;
+            .map_err(mcp_err)?;
+        let json = serde_json::to_string_pretty(&type_template_to_json!(resp))
+            .map_err(mcp_err)?;
         Ok(CallToolResult::success(vec![Content::text(json)]))
     }
 
@@ -110,9 +110,12 @@ impl SuperpositionMcpServer {
         if let Some(a) = args.all {
             req = req.all(a);
         }
-        let resp = req.send().await.map_err(|e| mcp_err(e))?;
-        let items: Vec<serde_json::Value> =
-            resp.data.iter().map(|r| type_template_to_json!(r)).collect();
+        let resp = req.send().await.map_err(mcp_err)?;
+        let items: Vec<serde_json::Value> = resp
+            .data
+            .iter()
+            .map(|r| type_template_to_json!(r))
+            .collect();
         let result = serde_json::json!({
             "total_pages": resp.total_pages,
             "total_items": resp.total_items,
@@ -138,9 +141,9 @@ impl SuperpositionMcpServer {
         if let Some(d) = args.description {
             req = req.description(d);
         }
-        let resp = req.send().await.map_err(|e| mcp_err(e))?;
-        let json =
-            serde_json::to_string_pretty(&type_template_to_json!(resp)).map_err(mcp_err)?;
+        let resp = req.send().await.map_err(mcp_err)?;
+        let json = serde_json::to_string_pretty(&type_template_to_json!(resp))
+            .map_err(mcp_err)?;
         Ok(CallToolResult::success(vec![Content::text(json)]))
     }
 
@@ -156,9 +159,9 @@ impl SuperpositionMcpServer {
             .type_name(args.type_name)
             .send()
             .await
-            .map_err(|e| mcp_err(e))?;
-        let json =
-            serde_json::to_string_pretty(&type_template_to_json!(resp)).map_err(mcp_err)?;
+            .map_err(mcp_err)?;
+        let json = serde_json::to_string_pretty(&type_template_to_json!(resp))
+            .map_err(mcp_err)?;
         Ok(CallToolResult::success(vec![Content::text(json)]))
     }
 }

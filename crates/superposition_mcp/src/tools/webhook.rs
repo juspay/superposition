@@ -2,8 +2,8 @@ use rmcp::model::*;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
-use crate::helpers::*;
 use crate::SuperpositionMcpServer;
+use crate::helpers::*;
 
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct CreateWebhookParams {
@@ -84,7 +84,6 @@ fn parse_http_method(s: &str) -> superposition_sdk::types::HttpMethod {
     }
 }
 
-
 impl SuperpositionMcpServer {
     pub async fn create_webhook_impl(
         &self,
@@ -109,8 +108,9 @@ impl SuperpositionMcpServer {
             let headers_map = json_to_doc_map(ch).map_err(mcp_err)?;
             req = req.set_custom_headers(Some(headers_map));
         }
-        let resp = req.send().await.map_err(|e| mcp_err(e))?;
-        let json = serde_json::to_string_pretty(&webhook_to_json!(resp)).map_err(mcp_err)?;
+        let resp = req.send().await.map_err(mcp_err)?;
+        let json =
+            serde_json::to_string_pretty(&webhook_to_json!(resp)).map_err(mcp_err)?;
         Ok(CallToolResult::success(vec![Content::text(json)]))
     }
 
@@ -126,8 +126,9 @@ impl SuperpositionMcpServer {
             .name(args.name)
             .send()
             .await
-            .map_err(|e| mcp_err(e))?;
-        let json = serde_json::to_string_pretty(&webhook_to_json!(resp)).map_err(mcp_err)?;
+            .map_err(mcp_err)?;
+        let json =
+            serde_json::to_string_pretty(&webhook_to_json!(resp)).map_err(mcp_err)?;
         Ok(CallToolResult::success(vec![Content::text(json)]))
     }
 
@@ -149,8 +150,9 @@ impl SuperpositionMcpServer {
         if let Some(a) = args.all {
             req = req.all(a);
         }
-        let resp = req.send().await.map_err(|e| mcp_err(e))?;
-        let items: Vec<serde_json::Value> = resp.data.iter().map(|r| webhook_to_json!(r)).collect();
+        let resp = req.send().await.map_err(mcp_err)?;
+        let items: Vec<serde_json::Value> =
+            resp.data.iter().map(|r| webhook_to_json!(r)).collect();
         let result = serde_json::json!({
             "total_pages": resp.total_pages,
             "total_items": resp.total_items,
@@ -192,8 +194,9 @@ impl SuperpositionMcpServer {
             let headers_map = json_to_doc_map(ch).map_err(mcp_err)?;
             req = req.set_custom_headers(Some(headers_map));
         }
-        let resp = req.send().await.map_err(|e| mcp_err(e))?;
-        let json = serde_json::to_string_pretty(&webhook_to_json!(resp)).map_err(mcp_err)?;
+        let resp = req.send().await.map_err(mcp_err)?;
+        let json =
+            serde_json::to_string_pretty(&webhook_to_json!(resp)).map_err(mcp_err)?;
         Ok(CallToolResult::success(vec![Content::text(json)]))
     }
 
@@ -208,7 +211,7 @@ impl SuperpositionMcpServer {
             .name(args.name)
             .send()
             .await
-            .map_err(|e| mcp_err(e))?;
+            .map_err(mcp_err)?;
         Ok(CallToolResult::success(vec![Content::text(
             "Webhook deleted successfully",
         )]))
@@ -226,8 +229,9 @@ impl SuperpositionMcpServer {
             .event(args.event)
             .send()
             .await
-            .map_err(|e| mcp_err(e))?;
-        let json = serde_json::to_string_pretty(&webhook_to_json!(resp)).map_err(mcp_err)?;
+            .map_err(mcp_err)?;
+        let json =
+            serde_json::to_string_pretty(&webhook_to_json!(resp)).map_err(mcp_err)?;
         Ok(CallToolResult::success(vec![Content::text(json)]))
     }
 }

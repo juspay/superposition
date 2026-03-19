@@ -2,8 +2,8 @@ use rmcp::model::*;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
-use crate::helpers::*;
 use crate::SuperpositionMcpServer;
+use crate::helpers::*;
 
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct CreateWorkspaceParams {
@@ -63,8 +63,9 @@ impl SuperpositionMcpServer {
             };
             req = req.workspace_status(status);
         }
-        let resp = req.send().await.map_err(|e| mcp_err(e))?;
-        let json = serde_json::to_string_pretty(&workspace_to_json!(resp)).map_err(mcp_err)?;
+        let resp = req.send().await.map_err(mcp_err)?;
+        let json =
+            serde_json::to_string_pretty(&workspace_to_json!(resp)).map_err(mcp_err)?;
         Ok(CallToolResult::success(vec![Content::text(json)]))
     }
 
@@ -79,8 +80,9 @@ impl SuperpositionMcpServer {
             .workspace_name(args.workspace_name)
             .send()
             .await
-            .map_err(|e| mcp_err(e))?;
-        let json = serde_json::to_string_pretty(&workspace_to_json!(resp)).map_err(mcp_err)?;
+            .map_err(mcp_err)?;
+        let json =
+            serde_json::to_string_pretty(&workspace_to_json!(resp)).map_err(mcp_err)?;
         Ok(CallToolResult::success(vec![Content::text(json)]))
     }
 
@@ -98,8 +100,9 @@ impl SuperpositionMcpServer {
         if let Some(a) = args.all {
             req = req.all(a);
         }
-        let resp = req.send().await.map_err(|e| mcp_err(e))?;
-        let items: Vec<serde_json::Value> = resp.data.iter().map(|r| workspace_to_json!(r)).collect();
+        let resp = req.send().await.map_err(mcp_err)?;
+        let items: Vec<serde_json::Value> =
+            resp.data.iter().map(|r| workspace_to_json!(r)).collect();
         let result = serde_json::json!({
             "total_pages": resp.total_pages,
             "total_items": resp.total_items,
@@ -136,8 +139,9 @@ impl SuperpositionMcpServer {
                 req = req.mandatory_dimensions(d);
             }
         }
-        let resp = req.send().await.map_err(|e| mcp_err(e))?;
-        let json = serde_json::to_string_pretty(&workspace_to_json!(resp)).map_err(mcp_err)?;
+        let resp = req.send().await.map_err(mcp_err)?;
+        let json =
+            serde_json::to_string_pretty(&workspace_to_json!(resp)).map_err(mcp_err)?;
         Ok(CallToolResult::success(vec![Content::text(json)]))
     }
 }

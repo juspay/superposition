@@ -1,5 +1,5 @@
-use superposition_mcp::config::McpServerConfig;
 use superposition_mcp::SuperpositionMcpServer;
+use superposition_mcp::config::McpServerConfig;
 
 fn test_config() -> McpServerConfig {
     McpServerConfig {
@@ -44,10 +44,7 @@ fn test_server_construction() {
 fn test_server_construction_with_token() {
     let config = test_config_with_token();
     let server = SuperpositionMcpServer::new(config);
-    assert_eq!(
-        server.config.auth_token,
-        Some("test_token".to_string())
-    );
+    assert_eq!(server.config.auth_token, Some("test_token".to_string()));
 }
 
 #[test]
