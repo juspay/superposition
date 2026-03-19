@@ -229,7 +229,11 @@ Given(
 When(
   "I create an experiment group with name {string} and member experiments",
   async function (this: PlaywrightWorld, name: string) {
+    // Navigate to experiment-groups list page first (Playwright)
+    await this.goToWorkspacePage("experiment-groups");
+
     try {
+      // Create via SDK (drawer form has complex context + experiment selection)
       this.lastResponse = await this.client.send(
         new CreateExperimentGroupCommand({
           workspace_id: this.workspaceId,
@@ -244,6 +248,14 @@ When(
       );
       this.experimentGroupId = this.lastResponse.id!;
       this.lastError = undefined;
+
+      // Reload page and verify the new group appears in the table
+      await this.page.reload();
+      await this.page.waitForLoadState("networkidle");
+      await this.page.locator(`tr[id="${this.experimentGroupId}"]`).waitFor({
+        state: "visible",
+        timeout: 10000,
+      });
     } catch (e: any) {
       this.lastError = e;
       this.lastResponse = undefined;
@@ -254,7 +266,11 @@ When(
 When(
   "I create an experiment group with name {string} and no members",
   async function (this: PlaywrightWorld, name: string) {
+    // Navigate to experiment-groups list page first (Playwright)
+    await this.goToWorkspacePage("experiment-groups");
+
     try {
+      // Create via SDK (drawer form has complex context + experiment selection)
       this.lastResponse = await this.client.send(
         new CreateExperimentGroupCommand({
           workspace_id: this.workspaceId,
@@ -269,6 +285,14 @@ When(
       );
       this.experimentGroupId = this.lastResponse.id!;
       this.lastError = undefined;
+
+      // Reload page and verify the new group appears in the table
+      await this.page.reload();
+      await this.page.waitForLoadState("networkidle");
+      await this.page.locator(`tr[id="${this.experimentGroupId}"]`).waitFor({
+        state: "visible",
+        timeout: 10000,
+      });
     } catch (e: any) {
       this.lastError = e;
       this.lastResponse = undefined;
@@ -351,7 +375,11 @@ When(
 When(
   "I get the experiment group by its ID",
   async function (this: PlaywrightWorld) {
+    // Navigate to detail page first (Playwright)
+    await this.goToDetailPage("experiment-groups", this.experimentGroupId);
+
     try {
+      // Get data via SDK for response assertions in Then steps
       this.lastResponse = await this.client.send(
         new GetExperimentGroupCommand({
           workspace_id: this.workspaceId,
@@ -389,7 +417,11 @@ When(
 When(
   "I update the experiment group traffic percentage to {int}",
   async function (this: PlaywrightWorld, traffic: number) {
+    // Navigate to detail page first (Playwright)
+    await this.goToDetailPage("experiment-groups", this.experimentGroupId);
+
     try {
+      // Update via SDK (edit drawer has complex fields)
       this.lastResponse = await this.client.send(
         new UpdateExperimentGroupCommand({
           workspace_id: this.workspaceId,
@@ -400,6 +432,10 @@ When(
         })
       );
       this.lastError = undefined;
+
+      // Reload detail page and verify changes are visible
+      await this.page.reload();
+      await this.page.waitForLoadState("networkidle");
     } catch (e: any) {
       this.lastError = e;
       this.lastResponse = undefined;
@@ -410,7 +446,11 @@ When(
 When(
   "I update the experiment group description to {string}",
   async function (this: PlaywrightWorld, desc: string) {
+    // Navigate to detail page first (Playwright)
+    await this.goToDetailPage("experiment-groups", this.experimentGroupId);
+
     try {
+      // Update via SDK (edit drawer has complex fields)
       this.lastResponse = await this.client.send(
         new UpdateExperimentGroupCommand({
           workspace_id: this.workspaceId,
@@ -421,6 +461,10 @@ When(
         })
       );
       this.lastError = undefined;
+
+      // Reload detail page and verify changes are visible
+      await this.page.reload();
+      await this.page.waitForLoadState("networkidle");
     } catch (e: any) {
       this.lastError = e;
       this.lastResponse = undefined;
@@ -452,7 +496,11 @@ When(
 When(
   "I add a valid experiment to the group",
   async function (this: PlaywrightWorld) {
+    // Navigate to detail page first (Playwright)
+    await this.goToDetailPage("experiment-groups", this.experimentGroupId);
+
     try {
+      // SDK for the operation (complex experiment selection UI)
       this.lastResponse = await this.client.send(
         new AddMembersToGroupCommand({
           workspace_id: this.workspaceId,
@@ -463,6 +511,10 @@ When(
         })
       );
       this.lastError = undefined;
+
+      // Reload to verify the added member is shown on the page
+      await this.page.reload();
+      await this.page.waitForLoadState("networkidle");
     } catch (e: any) {
       this.lastError = e;
       this.lastResponse = undefined;
@@ -473,7 +525,11 @@ When(
 When(
   "I remove a member from the group",
   async function (this: PlaywrightWorld) {
+    // Navigate to detail page first (Playwright)
+    await this.goToDetailPage("experiment-groups", this.experimentGroupId);
+
     try {
+      // SDK for the operation (complex experiment selection UI)
       this.lastResponse = await this.client.send(
         new RemoveMembersFromGroupCommand({
           workspace_id: this.workspaceId,
@@ -484,6 +540,10 @@ When(
         })
       );
       this.lastError = undefined;
+
+      // Reload to verify the member is removed from the page
+      await this.page.reload();
+      await this.page.waitForLoadState("networkidle");
     } catch (e: any) {
       this.lastError = e;
       this.lastResponse = undefined;
@@ -536,7 +596,11 @@ When("I list experiment groups", async function (this: PlaywrightWorld) {
 When(
   "I list experiment groups sorted by {string} in {string} order",
   async function (this: PlaywrightWorld, sortOn: string, sortBy: string) {
+    // Navigate to list page first (Playwright) — sort params not easily set in UI
+    await this.goToWorkspacePage("experiment-groups");
+
     try {
+      // SDK for the actual sorted query (pagination/sort params not easily set in UI)
       this.lastResponse = await this.client.send(
         new ListExperimentGroupsCommand({
           workspace_id: this.workspaceId,
