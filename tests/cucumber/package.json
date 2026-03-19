@@ -1,0 +1,41 @@
+{
+  "name": "superposition-cucumber-tests",
+  "version": "1.0.0",
+  "description": "Cucumber/Gherkin BDD tests for Superposition - shared feature files for API and UI testing",
+  "type": "module",
+  "scripts": {
+    "test": "tsx node_modules/.bin/cucumber-js --profile api",
+    "test:api": "tsx node_modules/.bin/cucumber-js --profile api",
+    "test:ui": "tsx node_modules/.bin/cucumber-js --profile ui",
+    "test:ui:headed": "HEADLESS=false tsx node_modules/.bin/cucumber-js --profile ui",
+    "test:org": "tsx node_modules/.bin/cucumber-js --profile api --tags '@organisation'",
+    "test:workspace": "tsx node_modules/.bin/cucumber-js --profile api --tags '@workspace'",
+    "test:config": "tsx node_modules/.bin/cucumber-js --profile api --tags '@config'",
+    "test:dimension": "tsx node_modules/.bin/cucumber-js --profile api --tags '@dimension'",
+    "test:context": "tsx node_modules/.bin/cucumber-js --profile api --tags '@context'",
+    "test:experiment": "tsx node_modules/.bin/cucumber-js --profile api --tags '@experiment'",
+    "test:function": "tsx node_modules/.bin/cucumber-js --profile api --tags '@function'",
+    "test:variable": "tsx node_modules/.bin/cucumber-js --profile api --tags '@variable'",
+    "test:secret": "tsx node_modules/.bin/cucumber-js --profile api --tags '@secret'",
+    "test:type-template": "tsx node_modules/.bin/cucumber-js --profile api --tags '@type_template'",
+    "test:ui:org": "tsx node_modules/.bin/cucumber-js --profile ui --tags '@organisation'",
+    "test:ui:workspace": "tsx node_modules/.bin/cucumber-js --profile ui --tags '@workspace'",
+    "test:ui:dimension": "tsx node_modules/.bin/cucumber-js --profile ui --tags '@dimension'",
+    "test:ui:experiment": "tsx node_modules/.bin/cucumber-js --profile ui --tags '@experiment'",
+    "test:ui:variable": "tsx node_modules/.bin/cucumber-js --profile ui --tags '@variable'",
+    "test:ui:secret": "tsx node_modules/.bin/cucumber-js --profile ui --tags '@secret'",
+    "test:ui:function": "tsx node_modules/.bin/cucumber-js --profile ui --tags '@function'",
+    "test:ui:config": "tsx node_modules/.bin/cucumber-js --profile ui --tags '@config'"
+  },
+  "dependencies": {
+    "@cucumber/cucumber": "^11.0.0",
+    "@juspay/superposition-sdk": "file:../../clients/javascript/sdk",
+    "@playwright/test": "^1.40.0",
+    "playwright": "^1.40.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0"
+  }
+}
