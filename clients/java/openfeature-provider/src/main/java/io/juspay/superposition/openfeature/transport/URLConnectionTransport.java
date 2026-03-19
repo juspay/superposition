@@ -1,5 +1,6 @@
 package io.juspay.superposition.openfeature.transport;
 
+import software.amazon.smithy.java.client.core.ClientConfig;
 import software.amazon.smithy.java.client.core.ClientTransport;
 import software.amazon.smithy.java.client.core.MessageExchange;
 import software.amazon.smithy.java.client.http.HttpMessageExchange;
@@ -14,11 +15,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.SocketTimeoutException;
+import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * An HTTP transport implementation using {@link java.net.HttpURLConnection}.
@@ -64,74 +66,87 @@ public final class URLConnectionTransport implements ClientTransport<HttpRequest
     }
 
     @Override
-    public HttpResponse send(Context context, HttpRequest request) {
-        try {
-            HttpURLConnection conn = (HttpURLConnection) request.uri().toURL().openConnection();
+    public CompletableFuture<HttpResponse> send(Context context, HttpRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
             try {
-                conn.setRequestMethod(request.method());
-                conn.setConnectTimeout((int) connectTimeout.toMillis());
-                conn.setReadTimeout((int) readTimeout.toMillis());
-
-                // Set headers
-                for (Map.Entry<String, List<String>> header : request.headers()) {
-                    for (String value : header.getValue()) {
-                        conn.addRequestProperty(header.getKey(), value);
-                    }
-                }
-
-                // Write request body if present
-                DataStream body = request.body();
-                if (body != null && body.contentLength() != 0) {
-                    conn.setDoOutput(true);
-                    try (OutputStream os = conn.getOutputStream()) {
-                        writeBody(body, os);
-                    }
-                }
-
-                // Read the response
-                int statusCode = conn.getResponseCode();
-
-                // Build response headers
-                Map<String, List<String>> responseHeaders = new HashMap<>();
-                for (Map.Entry<String, List<String>> entry : conn.getHeaderFields().entrySet()) {
-                    if (entry.getKey() != null) {
-                        responseHeaders.put(entry.getKey().toLowerCase(), entry.getValue());
-                    }
-                }
-
-                // Read response body
-                InputStream responseStream;
-                try {
-                    responseStream = conn.getInputStream();
-                } catch (IOException e) {
-                    responseStream = conn.getErrorStream();
-                }
-
-                byte[] responseBody;
-                if (responseStream != null) {
-                    responseBody = readAllBytes(responseStream);
-                    responseStream.close();
-                } else {
-                    responseBody = new byte[0];
-                }
-
-                return HttpResponse.builder()
-                    .statusCode(statusCode)
-                    .headers(HttpHeaders.of(responseHeaders))
-                    .body(DataStream.ofBytes(responseBody))
-                    .build();
-            } finally {
-                conn.disconnect();
+                return doSend(request);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
-        } catch (SocketTimeoutException e) {
-            throw ClientTransport.remapExceptions(e);
-        } catch (IOException e) {
-            throw ClientTransport.remapExceptions(e);
+        });
+    }
+
+    private HttpResponse doSend(HttpRequest request) throws IOException {
+        HttpURLConnection conn = (HttpURLConnection) request.uri().toURL().openConnection();
+        try {
+            conn.setRequestMethod(request.method());
+            conn.setConnectTimeout((int) connectTimeout.toMillis());
+            conn.setReadTimeout((int) readTimeout.toMillis());
+
+            // Set headers
+            for (Map.Entry<String, List<String>> header : request.headers()) {
+                for (String value : header.getValue()) {
+                    conn.addRequestProperty(header.getKey(), value);
+                }
+            }
+
+            // Write request body if present
+            DataStream body = request.body();
+            if (body != null && body.contentLength() != 0) {
+                conn.setDoOutput(true);
+                try (OutputStream os = conn.getOutputStream()) {
+                    writeBody(body, os);
+                }
+            }
+
+            // Read the response
+            int statusCode = conn.getResponseCode();
+
+            // Build response headers
+            Map<String, List<String>> responseHeaders = new HashMap<>();
+            for (Map.Entry<String, List<String>> entry : conn.getHeaderFields().entrySet()) {
+                if (entry.getKey() != null) {
+                    responseHeaders.put(entry.getKey().toLowerCase(), entry.getValue());
+                }
+            }
+
+            // Read response body
+            InputStream responseStream;
+            try {
+                responseStream = conn.getInputStream();
+            } catch (IOException e) {
+                responseStream = conn.getErrorStream();
+            }
+
+            byte[] responseBody;
+            if (responseStream != null) {
+                responseBody = readAllBytes(responseStream);
+                responseStream.close();
+            } else {
+                responseBody = new byte[0];
+            }
+
+            return HttpResponse.builder()
+                .statusCode(statusCode)
+                .headers(HttpHeaders.of(responseHeaders))
+                .body(DataStream.ofBytes(responseBody))
+                .build();
+        } finally {
+            conn.disconnect();
         }
     }
 
-    private void writeBody(DataStream body, OutputStream os) throws IOException {
-        body.writeTo(os);
+    private static void writeBody(DataStream body, OutputStream os) throws IOException {
+        ByteBuffer buffer = body.waitForByteBuffer();
+        byte[] bytes;
+        if (buffer.hasArray()) {
+            bytes = buffer.array();
+            os.write(bytes, buffer.arrayOffset() + buffer.position(), buffer.remaining());
+        } else {
+            bytes = new byte[buffer.remaining()];
+            buffer.get(bytes);
+            os.write(bytes);
+        }
     }
 
     private static byte[] readAllBytes(InputStream is) throws IOException {
@@ -145,7 +160,7 @@ public final class URLConnectionTransport implements ClientTransport<HttpRequest
     }
 
     @Override
-    public void close() {
-        // No persistent resources to clean up
+    public void configureClient(ClientConfig.Builder config) {
+        // No additional client configuration needed
     }
 }
