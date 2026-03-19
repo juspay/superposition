@@ -54,6 +54,11 @@ When(
   "I get the config with the test config key prefix",
   async function (this: PlaywrightWorld) {
     try {
+      // Navigate to default-config page for UI context
+      await this.goToWorkspacePage("default-config");
+      await this.page.waitForTimeout(300);
+
+      // Fetch via SDK for response assertions
       this.lastResponse = await this.client.send(
         new GetConfigCommand({
           workspace_id: this.workspaceId,
@@ -91,6 +96,11 @@ When(
 
 When("I get the config again", async function (this: PlaywrightWorld) {
   try {
+    // Navigate to default-config page for UI context
+    await this.goToWorkspacePage("default-config");
+    await this.page.waitForTimeout(300);
+
+    // Fetch via SDK for response assertions
     this.lastResponse = await this.client.send(
       new GetConfigCommand({
         workspace_id: this.workspaceId,
