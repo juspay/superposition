@@ -577,7 +577,7 @@ When("I list experiment groups", async function (this: PlaywrightWorld) {
     // Navigate to experiment groups page and verify the table loads
     await this.goToWorkspacePage("experiment-groups");
     await this.page.waitForTimeout(500);
-    const rowCount = await this.page.locator("table tbody tr").count();
+    await this.page.locator("table tbody tr").first().waitFor({ state: "visible", timeout: 10000 });
 
     // Also get data via SDK for assertions in Then steps
     this.lastResponse = await this.client.send(
