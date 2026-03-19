@@ -84,6 +84,12 @@ pub struct GetContextFromConditionParams {
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
+pub struct ValidateContextParams {
+    /// Condition map: dimension names to their criteria values
+    pub context: serde_json::Value,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
 pub struct BulkOperationParams {
     /// List of operations: each is one of PUT, REPLACE, DELETE, or MOVE
     pub operations: serde_json::Value,
@@ -324,6 +330,24 @@ impl SuperpositionMcpServer {
         let json = serde_json::to_string_pretty(&serde_json::json!({"data": items}))
             .map_err(mcp_err)?;
         Ok(CallToolResult::success(vec![Content::text(json)]))
+    }
+
+    pub async fn validate_context_impl(
+        &self,
+        args: ValidateContextParams,
+    ) -> Result<CallToolResult, rmcp::ErrorData> {
+        let ctx_map = json_to_doc_map(args.context).map_err(mcp_err)?;
+        self.client
+            .validate_context()
+            .workspace_id(&self.config.workspace_id)
+            .org_id(&self.config.org_id)
+            .set_context(Some(ctx_map))
+            .send()
+            .await
+            .map_err(|e| mcp_err(e))?;
+        Ok(CallToolResult::success(vec![Content::text(
+            "Context is valid",
+        )]))
     }
 
     pub async fn bulk_operation_impl(

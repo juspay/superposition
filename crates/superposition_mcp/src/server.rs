@@ -48,6 +48,14 @@ impl SuperpositionMcpServer {
     }
 
     #[tool(
+        name = "config.resolve_with_identifier",
+        description = "Resolves and merges config values like config.resolve, but also accepts an identifier (e.g. user ID) for cohort-based resolution and returns an audit_id."
+    )]
+    async fn config_resolve_with_identifier(&self, Parameters(args): Parameters<ResolveConfigWithIdentifierParams>) -> Result<CallToolResult, rmcp::ErrorData> {
+        self.resolve_config_with_identifier_impl(args).await
+    }
+
+    #[tool(
         name = "config.get_fast",
         description = "Retrieves the latest raw config with no processing for high-performance access."
     )]
@@ -224,6 +232,14 @@ impl SuperpositionMcpServer {
     )]
     async fn context_get_by_condition(&self, Parameters(args): Parameters<GetContextFromConditionParams>) -> Result<CallToolResult, rmcp::ErrorData> {
         self.get_context_from_condition_impl(args).await
+    }
+
+    #[tool(
+        name = "context.validate",
+        description = "Validates a context's conditions without creating it. Returns success if the context is valid, or an error describing why it is invalid."
+    )]
+    async fn context_validate(&self, Parameters(args): Parameters<ValidateContextParams>) -> Result<CallToolResult, rmcp::ErrorData> {
+        self.validate_context_impl(args).await
     }
 
     #[tool(

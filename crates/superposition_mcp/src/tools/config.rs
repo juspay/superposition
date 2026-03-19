@@ -13,6 +13,19 @@ pub struct GetVersionParams { pub id: String }
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct ListVersionsParams { pub count: Option<i32>, pub page: Option<i32> }
 
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct ResolveConfigWithIdentifierParams {
+    pub context: Option<serde_json::Value>,
+    pub prefix: Option<Vec<String>>,
+    pub version: Option<String>,
+    pub show_reasoning: Option<bool>,
+    pub merge_strategy: Option<String>,
+    pub context_id: Option<String>,
+    pub resolve_remote: Option<bool>,
+    /// Identifier for config resolution (e.g. user ID, session ID)
+    pub identifier: Option<String>,
+}
+
 impl SuperpositionMcpServer {
     pub async fn get_config_impl(&self, args: GetConfigParams) -> Result<CallToolResult, rmcp::ErrorData> {
         let mut req = self.client.get_config().workspace_id(&self.config.workspace_id).org_id(&self.config.org_id);
@@ -42,6 +55,22 @@ impl SuperpositionMcpServer {
         if let Some(rr) = args.resolve_remote { req = req.resolve_remote(rr); }
         let resp = req.send().await.map_err(|e| mcp_err(e))?;
         let result = serde_json::json!({"config": doc_to_json(&resp.config), "version": resp.version, "last_modified": format_datetime(&resp.last_modified)});
+        Ok(CallToolResult::success(vec![Content::text(serde_json::to_string_pretty(&result).map_err(mcp_err)?)]))
+    }
+    pub async fn resolve_config_with_identifier_impl(&self, args: ResolveConfigWithIdentifierParams) -> Result<CallToolResult, rmcp::ErrorData> {
+        let mut req = self.client.get_resolved_config_with_identifier().workspace_id(&self.config.workspace_id).org_id(&self.config.org_id);
+        if let Some(ctx) = args.context { req = req.set_context(Some(json_to_doc_map(ctx).map_err(mcp_err)?)); }
+        if let Some(prefix) = args.prefix { for p in prefix { req = req.prefix(p); } }
+        if let Some(v) = args.version { req = req.version(v); }
+        if let Some(sr) = args.show_reasoning { req = req.show_reasoning(sr); }
+        if let Some(ms) = args.merge_strategy {
+            req = req.merge_strategy(if ms.to_uppercase() == "REPLACE" { superposition_sdk::types::MergeStrategy::Replace } else { superposition_sdk::types::MergeStrategy::Merge });
+        }
+        if let Some(cid) = args.context_id { req = req.context_id(cid); }
+        if let Some(rr) = args.resolve_remote { req = req.resolve_remote(rr); }
+        if let Some(id) = args.identifier { req = req.identifier(id); }
+        let resp = req.send().await.map_err(|e| mcp_err(e))?;
+        let result = serde_json::json!({"config": doc_to_json(&resp.config), "version": resp.version, "last_modified": format_datetime(&resp.last_modified), "audit_id": resp.audit_id});
         Ok(CallToolResult::success(vec![Content::text(serde_json::to_string_pretty(&result).map_err(mcp_err)?)]))
     }
     pub async fn get_config_fast_impl(&self) -> Result<CallToolResult, rmcp::ErrorData> {
