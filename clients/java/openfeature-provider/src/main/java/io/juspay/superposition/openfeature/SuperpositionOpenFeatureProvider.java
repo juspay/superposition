@@ -4,6 +4,7 @@ import com.google.gson.JsonSyntaxException;
 import io.juspay.superposition.client.SuperpositionAsyncClient;
 import io.juspay.superposition.client.auth.BearerTokenIdentityResolver;
 import io.juspay.superposition.model.*;
+import io.juspay.superposition.openfeature.transport.URLConnectionTransport;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -77,7 +78,9 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
         } else {
             fallbackArgs = Optional.empty();
         }
+        var transport = options.transport != null ? options.transport : new URLConnectionTransport();
         var builder = SuperpositionAsyncClient.builder()
+            .transport(transport)
             .endpointResolver(EndpointResolver.staticEndpoint(options.endpoint))
             .addIdentityResolver(new BearerTokenIdentityResolver(options.token));
         this.sdk = builder.build();

@@ -6,9 +6,6 @@ import io.juspay.superposition.model.*;
 import software.amazon.smithy.java.client.core.endpoint.EndpointResolver;
 import software.amazon.smithy.java.core.serde.document.Document;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
