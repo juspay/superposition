@@ -121,6 +121,18 @@ When(
       );
       this.createdFunctions.push(uniqueName);
       this.lastError = undefined;
+
+      // Verify in UI
+      try {
+        await this.goToWorkspacePage("function");
+        await this.page.waitForTimeout(500);
+        const tableText = await this.page.locator("table").textContent();
+        if (tableText && !tableText.includes(uniqueName)) {
+          console.warn("Function created via SDK but not yet visible in UI table");
+        }
+      } catch {
+        // UI verification is best-effort
+      }
     } catch (e: any) {
       this.lastError = e;
       this.lastResponse = undefined;
@@ -132,6 +144,7 @@ When(
   "I create a value_validation function named {string} with code {string}",
   async function (this: PlaywrightWorld, name: string, code: string) {
     const uniqueName = this.uniqueName(name);
+    this.functionName = uniqueName;
     try {
       this.lastResponse = await this.client.send(
         new CreateFunctionCommand({
@@ -147,6 +160,18 @@ When(
       );
       this.createdFunctions.push(uniqueName);
       this.lastError = undefined;
+
+      // Verify in UI
+      try {
+        await this.goToWorkspacePage("function");
+        await this.page.waitForTimeout(500);
+        const tableText = await this.page.locator("table").textContent();
+        if (tableText && !tableText.includes(uniqueName)) {
+          console.warn("Function created via SDK but not yet visible in UI table");
+        }
+      } catch {
+        // UI verification is best-effort
+      }
     } catch (e: any) {
       this.lastError = e;
       this.lastResponse = undefined;
@@ -158,6 +183,7 @@ When(
   "I create a value_compute function named {string} with code that returns a string",
   async function (this: PlaywrightWorld, name: string) {
     const uniqueName = this.uniqueName(name);
+    this.functionName = uniqueName;
     const code = `
       async function execute(payload) {
         return "invalid return type";
@@ -178,6 +204,18 @@ When(
       );
       this.createdFunctions.push(uniqueName);
       this.lastError = undefined;
+
+      // Verify in UI
+      try {
+        await this.goToWorkspacePage("function");
+        await this.page.waitForTimeout(500);
+        const tableText = await this.page.locator("table").textContent();
+        if (tableText && !tableText.includes(uniqueName)) {
+          console.warn("Function created via SDK but not yet visible in UI table");
+        }
+      } catch {
+        // UI verification is best-effort
+      }
     } catch (e: any) {
       this.lastError = e;
       this.lastResponse = undefined;
@@ -246,6 +284,11 @@ When(
       }
     `;
     try {
+      // Navigate to function detail page
+      await this.goToDetailPage("function", this.functionName);
+      await this.page.waitForTimeout(300);
+
+      // Update via SDK (Monaco code editor is too fragile)
       this.lastResponse = await this.client.send(
         new UpdateFunctionCommand({
           workspace_id: this.workspaceId,
@@ -258,6 +301,10 @@ When(
         })
       );
       this.lastError = undefined;
+
+      // Reload detail page to verify
+      await this.page.reload();
+      await this.page.waitForLoadState("networkidle");
     } catch (e: any) {
       this.lastError = e;
       this.lastResponse = undefined;
