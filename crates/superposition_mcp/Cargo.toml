@@ -5,14 +5,20 @@ version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 
+[features]
+default = []
+actix = ["rmcp-actix-web", "actix-web"]
+
 [dependencies]
 rmcp = { version = "1.2.0", features = ["server", "transport-io"] }
+rmcp-actix-web = { version = "0.12", optional = true }
 superposition_sdk = { workspace = true }
 aws-smithy-types = "1.3.0"
 aws-smithy-runtime-api = "1.8.3"
 serde = { workspace = true }
 serde_json = { workspace = true }
 tokio = { workspace = true }
+actix-web = { workspace = true, optional = true }
 schemars = "1"
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
