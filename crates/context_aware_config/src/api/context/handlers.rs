@@ -569,10 +569,9 @@ async fn list_handler(
         }
         let dimensions_info =
             fetch_dimensions_info_map(&mut conn, &workspace_context.schema_name)?;
-        let original_request_len = dimension_params.len();
+        let original_req_keys = dimension_params.keys().collect::<Vec<_>>();
         let dimension_params =
             evaluate_local_cohorts_skip_unresolved(&dimensions_info, &dimension_params);
-        let dimension_keys = dimension_params.keys().cloned().collect::<Vec<_>>();
 
         let filter_fn = match filter_params.dimension_match_strategy.unwrap_or_default() {
             DimensionMatchStrategy::Exact => Context::filter_exact_match,
@@ -583,8 +582,7 @@ async fn list_handler(
 
         let eval_filter_contexts = Context::filter_by_dimension(
             eval_filter_contexts,
-            &dimension_keys,
-            original_request_len,
+            &original_req_keys,
             &dimensions_info,
         );
 
