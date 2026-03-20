@@ -24,7 +24,6 @@ class SuperpositionProvider(AbstractProvider):
         self.options = provider_options
         self.client = None
 
-        # )
     async def initialize(self, context: Optional[EvaluationContext] = None):
         try:
             self.status = ProviderStatus.NOT_READY
@@ -61,56 +60,21 @@ class SuperpositionProvider(AbstractProvider):
         self.cached_config = self.client.eval(context or EvaluationContext(attributes={}))
 
     async def shutdown(self):
-        """
-        Shutdown the provider and clean up all resources.
-        This includes stopping polling tasks, clearing caches, and closing connections.
-        """
+        """Shutdown the provider — cancels polling tasks and releases resources."""
         logger.info("Shutting down SuperpositionProvider...")
 
         try:
-            # Stop polling tasks if running
-            if self.client and hasattr(self.client, '_polling_task') and self.client._polling_task:
-                logger.debug("Cancelling polling task...")
-                self.client._polling_task.cancel()
-                try:
-                    await self.client._polling_task
-                except asyncio.CancelledError:
-                    logger.debug("Polling task cancelled successfully")
-                except Exception as e:
-                    logger.warning(f"Error while cancelling polling task: {e}")
+            if self.client:
+                await self.client.close()
+                self.client = None
 
-            # Clear evaluation cache if it exists
-            if self.client and hasattr(self.client, '_clear_eval_cache'):
-                logger.debug("Clearing evaluation cache...")
-                self.client._clear_eval_cache()
-
-            # Reset cached configuration
-            if self.client and hasattr(self.client, 'cached_config'):
-                self.client.cached_config = None
-                self.client.last_updated = None
-
-            # Close the client if it has a close method
-            if self.client and hasattr(self.client, 'close'):
-                logger.debug("Closing client connection...")
-                if asyncio.iscoroutinefunction(self.client.close):
-                    await self.client.close()
-                else:
-                    self.client.close()
-
-            # Reset client reference
-            self.client = None
-
-            # Update provider status
             self.status = ProviderStatus.NOT_READY
-
-            # Clear hooks if any
             self.hooks.clear()
 
-            logger.info("SuperpositionProvider shutdown completed successfully")
+            logger.info("SuperpositionProvider shutdown completed")
 
         except Exception as e:
             logger.error(f"Error during provider shutdown: {e}")
-            # Even if there's an error, ensure we're in a clean state
             self.client = None
             self.status = ProviderStatus.FATAL
             raise
