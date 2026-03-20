@@ -11022,9 +11022,13 @@ class ListExperimentInput:
     global_experiments_only: bool | None = None
     dimension_match_strategy: str | None = None
 <<<<<<< HEAD
+<<<<<<< HEAD
     prefix: list[str] | None = None
 =======
 >>>>>>> 6e8749e1 (Test)
+=======
+    prefix: list[str] | None = None
+>>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
     context: dict[str, Document] | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -11097,11 +11101,17 @@ class ListExperimentInput:
 
                 case 17:
 <<<<<<< HEAD
+<<<<<<< HEAD
                     kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["prefix"])
 
                 case 18:
 =======
 >>>>>>> 6e8749e1 (Test)
+=======
+                    kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["prefix"])
+
+                case 18:
+>>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
                     kwargs["context"] = _deserialize_context_map(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["context"])
 
                 case _:

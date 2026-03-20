@@ -17,9 +17,13 @@ module Io.Superposition.Model.ListExperimentInput (
     setGlobalExperimentsOnly,
     setDimensionMatchStrategy,
 <<<<<<< HEAD
+<<<<<<< HEAD
     setPrefix,
 =======
 >>>>>>> 6e8749e1 (Test)
+=======
+    setPrefix,
+>>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
     setContext,
     build,
     ListExperimentInputBuilder,
@@ -42,9 +46,13 @@ module Io.Superposition.Model.ListExperimentInput (
     global_experiments_only,
     dimension_match_strategy,
 <<<<<<< HEAD
+<<<<<<< HEAD
     prefix,
 =======
 >>>>>>> 6e8749e1 (Test)
+=======
+    prefix,
+>>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
     context
 ) where
 import qualified Control.Applicative
@@ -86,9 +94,13 @@ data ListExperimentInput = ListExperimentInput {
     global_experiments_only :: Data.Maybe.Maybe Bool,
     dimension_match_strategy :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMatchStrategy.DimensionMatchStrategy,
 <<<<<<< HEAD
+<<<<<<< HEAD
     prefix :: Data.Maybe.Maybe ([] Data.Text.Text),
 =======
 >>>>>>> 6e8749e1 (Test)
+=======
+    prefix :: Data.Maybe.Maybe ([] Data.Text.Text),
+>>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
     context :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value)
 } deriving (
   GHC.Show.Show,
@@ -116,9 +128,13 @@ instance Data.Aeson.ToJSON ListExperimentInput where
         "global_experiments_only" Data.Aeson..= global_experiments_only a,
         "dimension_match_strategy" Data.Aeson..= dimension_match_strategy a,
 <<<<<<< HEAD
+<<<<<<< HEAD
         "prefix" Data.Aeson..= prefix a,
 =======
 >>>>>>> 6e8749e1 (Test)
+=======
+        "prefix" Data.Aeson..= prefix a,
+>>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
         "context" Data.Aeson..= context a
         ]
     
@@ -145,9 +161,13 @@ instance Data.Aeson.FromJSON ListExperimentInput where
         Control.Applicative.<*> (v Data.Aeson..:? "global_experiments_only")
         Control.Applicative.<*> (v Data.Aeson..:? "dimension_match_strategy")
 <<<<<<< HEAD
+<<<<<<< HEAD
         Control.Applicative.<*> (v Data.Aeson..:? "prefix")
 =======
 >>>>>>> 6e8749e1 (Test)
+=======
+        Control.Applicative.<*> (v Data.Aeson..:? "prefix")
+>>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
         Control.Applicative.<*> (v Data.Aeson..:? "context")
     
 
@@ -172,9 +192,13 @@ data ListExperimentInputBuilderState = ListExperimentInputBuilderState {
     global_experiments_onlyBuilderState :: Data.Maybe.Maybe Bool,
     dimension_match_strategyBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMatchStrategy.DimensionMatchStrategy,
 <<<<<<< HEAD
+<<<<<<< HEAD
     prefixBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
 =======
 >>>>>>> 6e8749e1 (Test)
+=======
+    prefixBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
+>>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
     contextBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value)
 } deriving (
   GHC.Generics.Generic
@@ -200,9 +224,13 @@ defaultBuilderState = ListExperimentInputBuilderState {
     global_experiments_onlyBuilderState = Data.Maybe.Nothing,
     dimension_match_strategyBuilderState = Data.Maybe.Nothing,
 <<<<<<< HEAD
+<<<<<<< HEAD
     prefixBuilderState = Data.Maybe.Nothing,
 =======
 >>>>>>> 6e8749e1 (Test)
+=======
+    prefixBuilderState = Data.Maybe.Nothing,
+>>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
     contextBuilderState = Data.Maybe.Nothing
 }
 
@@ -277,12 +305,18 @@ setDimensionMatchStrategy value =
    Control.Monad.State.Strict.modify (\s -> (s { dimension_match_strategyBuilderState = value }))
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
 setPrefix :: Data.Maybe.Maybe ([] Data.Text.Text) -> ListExperimentInputBuilder ()
 setPrefix value =
    Control.Monad.State.Strict.modify (\s -> (s { prefixBuilderState = value }))
 
+<<<<<<< HEAD
 =======
 >>>>>>> 6e8749e1 (Test)
+=======
+>>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
 setContext :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value) -> ListExperimentInputBuilder ()
 setContext value =
    Control.Monad.State.Strict.modify (\s -> (s { contextBuilderState = value }))
@@ -308,9 +342,13 @@ build builder = do
     global_experiments_only' <- Data.Either.Right (global_experiments_onlyBuilderState st)
     dimension_match_strategy' <- Data.Either.Right (dimension_match_strategyBuilderState st)
 <<<<<<< HEAD
+<<<<<<< HEAD
     prefix' <- Data.Either.Right (prefixBuilderState st)
 =======
 >>>>>>> 6e8749e1 (Test)
+=======
+    prefix' <- Data.Either.Right (prefixBuilderState st)
+>>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
     context' <- Data.Either.Right (contextBuilderState st)
     Data.Either.Right (ListExperimentInput { 
         count = count',
@@ -331,9 +369,13 @@ build builder = do
         global_experiments_only = global_experiments_only',
         dimension_match_strategy = dimension_match_strategy',
 <<<<<<< HEAD
+<<<<<<< HEAD
         prefix = prefix',
 =======
 >>>>>>> 6e8749e1 (Test)
+=======
+        prefix = prefix',
+>>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
         context = context'
     })
 

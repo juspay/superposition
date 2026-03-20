@@ -274,6 +274,7 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -284,6 +285,10 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
         .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
         .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
 >>>>>>> 82479b8f (fix: more fixes)
+=======
+        .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
+        .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
+>>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
         .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
 >>>>>>> 5f8110af (Test)
         .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
