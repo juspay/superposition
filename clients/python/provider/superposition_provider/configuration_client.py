@@ -1,12 +1,18 @@
 import asyncio
 import logging
 import json
+import time
+import weakref
 from typing import Dict, Any, Optional
 from .cac_config import CacConfig
 from .exp_config import ExperimentationConfig
 from .types import SuperpositionOptions, ConfigurationOptions, ExperimentationOptions
-from superposition_bindings.superposition_client import ExperimentationArgs, ffi_eval_config, ffi_get_applicable_variants
-from superposition_bindings.superposition_client import MergeStrategy
+from superposition_bindings.superposition_client import (
+    ExperimentationArgs, 
+    ffi_get_applicable_variants,
+    ProviderCache,
+    MergeStrategy,
+)
 logger = logging.getLogger(__name__)
 
 
@@ -18,10 +24,29 @@ class ConfigurationClient:
         self.cac_options = cac_options
         self.exp_options = exp_options
 
-        # Initialize the CAC client
+        try:
+            self.cache = ProviderCache()
+            logger.info("Created ProviderCache instance")
+        except Exception as e:
+            logger.error(f"Failed to create cache: {e}")
+            self.cache = None
+
+        weak_self = weakref.ref(self)
+
+        def _weak_reinit_config_cache():
+            s = weak_self()
+            if s is not None:
+                s._reinit_config_cache()
+
+        def _weak_reinit_experiments_cache():
+            s = weak_self()
+            if s is not None:
+                s._reinit_experiments_cache()
+
         self.cac_config = CacConfig(
             superposition_options=superposition_options,
-            options=cac_options
+            options=cac_options,
+            on_config_change=_weak_reinit_config_cache
         )
 
         # Initialize the experimentation client if options are provided
@@ -29,15 +54,16 @@ class ConfigurationClient:
         if exp_options:
             self.exp_config = ExperimentationConfig(
                 superposition_options=superposition_options,
-                experiment_options=exp_options
+                experiment_options=exp_options,
+                on_config_change=_weak_reinit_experiments_cache
             )
 
         self._polling_task = None
         self.cached_config = None
         self.last_updated = None
+        self._cache_initialized = False  # Track if Rust cache has been initialized
 
     async def create_config(self):
-        """Initialize both CAC and experimentation clients"""
         logger.info("Creating SuperpositionClient configuration...")
 
         # Initialize CAC client
@@ -48,7 +74,47 @@ class ConfigurationClient:
             logger.info("Creating ExperimentationClient configuration...")
             await self.exp_config.create_config()
 
+        self._cache_initialized = True
+
         logger.info("SuperpositionClient configuration created successfully")
+
+    def _reinit_config_cache(self):
+        """Callback when config data changes - reinitialize config cache only"""
+        if not self.cache:
+            logger.error("Cache instance not initialized, cannot reinitialize config")
+            return
+
+        config = self.cac_config.cached_config
+        if config:
+            try:
+                self.cache.init_config(
+                    config.get('default_configs', {}),
+                    config.get('contexts', []),
+                    config.get('overrides', {}),
+                    config.get('dimensions', {})
+                )
+                logger.debug("Config cache initialized")
+            except Exception as e:
+                logger.error(f"Failed to initialize config cache: {e}", exc_info=True)
+
+    def _reinit_experiments_cache(self):
+        """Callback when experiments data changes - reinitialize experiments cache only"""
+        if not self.cache:
+            logger.error("Cache instance not initialized, cannot reinitialize experiments")
+            return
+
+        if self.exp_config:
+            try:
+                experimentdata = ExperimentationArgs(
+                    experiments=self.exp_config.cached_experiments or [],
+                    experiment_groups=self.exp_config.cached_experiment_groups or [],
+                    targeting_key="",
+                )
+                self.cache.init_experiments(experimentdata)
+                logger.debug("Experiments cache initialized")
+            except Exception as e:
+                logger.error(f"Failed to initialize experiments cache: {e}", exc_info=True)
+
 
     def start_polling(self):
         """Start polling for both CAC and experimentation updates"""
@@ -62,36 +128,38 @@ class ConfigurationClient:
         if self.exp_config and hasattr(self.exp_config, 'start_polling_update'):
             self.exp_config.start_polling_update()
 
-    def eval(self, query_data: dict, targeting_key: Optional[str]) -> dict[str, Any]:
-        experimentdata = None
-        if self.exp_config:
-            experimentdata = ExperimentationArgs(
-                experiments=self.exp_config.cached_experiments,
-                experiment_groups=self.exp_config.cached_experiment_groups,
-                targeting_key= targeting_key if targeting_key else "",
-            )
+
+    def eval(self, query_data: dict, targeting_key: Optional[str] = None) -> dict[str, Any]:
+        if not self._cache_initialized:
+            logger.warning("Attempted to evaluate config before cache initialization. Returning empty config.")
+            return {}
+
+        if not self.cache:
+            logger.error("Provider cache not initialized")
+            return {}
+        
         try:
+            cache_ref = id(self.cache)
+            logger.debug(f"Evaluating config with cache {cache_ref}")
+            
             cache_key = self.cac_config._generate_cache_key(query_data)
             cached = self.cac_config._get_from_eval_cache(cache_key)
             if cached:
-                logger.debug("Using cached evaluation result")
+                logger.debug(f"Using cached evaluation result (cache {cache_ref})")
                 return cached
-            print(f"Evaluating configuration with query data: {query_data}")
-            result = ffi_eval_config(
-                self.cac_config.cached_config.get('default_configs', {}),
-                self.cac_config.cached_config.get('contexts', []),
-                self.cac_config.cached_config.get('overrides', {}),
-                self.cac_config.cached_config.get('dimensions', {}),
+
+            # Use instance method
+            result = self.cache.eval_config(
                 query_data,
                 MergeStrategy.MERGE,
-                filter_prefixes=None,
-                experimentation=experimentdata
+                None, 
+                targeting_key
             )
-            print(f"Evaluation result: {result}")
+
             eval_result = {}
             for (key, value) in result.items():
                 eval_result[key] = json.loads(value)
-            logger.info(f"Resolution result: {eval_result}")
+            logger.debug(f"Resolution result for cache {cache_ref}: {list(eval_result.keys())[:3]}...")
 
             return eval_result
 
@@ -170,9 +238,9 @@ class ConfigurationClient:
         """Get applicable variant from experimentation client"""
         if self.exp_config:
             experimentdata = ExperimentationArgs(
-                experiments=self.exp_config.cached_experiments(),
-                experiment_groups=self.exp_config.cached_experiment_groups(),
-                targeting_key= targeting_key if targeting_key else "",
+                experiments=self.exp_config.cached_experiments or [],
+                experiment_groups=self.exp_config.cached_experiment_groups or [],
+                targeting_key=targeting_key if targeting_key else "",
             )
             return ffi_get_applicable_variants(experimentdata, self.cac_config.cached_config.get('dimensions', {}), context, prefix=None)
         return []
@@ -227,30 +295,16 @@ class ConfigurationClient:
         logger.info("Closing SuperpositionClient...")
 
         try:
-            # Cancel polling task if running
-            if self._polling_task and not self._polling_task.done():
-                logger.debug("Cancelling polling task...")
-                self._polling_task.cancel()
-                try:
-                    await self._polling_task
-                except asyncio.CancelledError:
-                    logger.debug("Polling task cancelled successfully")
+            if self.cac_config:
+                await self.cac_config.close()
 
-            # Close CAC client
-            if self.cac_config and hasattr(self.cac_config, 'close'):
-                if asyncio.iscoroutinefunction(self.cac_config.close):
-                    await self.cac_config.close()
-                else:
-                    await self.cac_config.close()
+            if self.exp_config:
+                await self.exp_config.close()
 
-            # Close experimentation client
-            if self.exp_config and hasattr(self.exp_config, 'free_client'):
-                self.exp_config.free_client()
-
-            # Clear cached data
             self._clear_eval_cache()
+            self.cache = None
 
-            logger.info("SuperpositionClient closed successfully")
+            logger.info("SuperpositionClient closed")
 
         except Exception as e:
             logger.error(f"Error while closing SuperpositionClient: {e}")
