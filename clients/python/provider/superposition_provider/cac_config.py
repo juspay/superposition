@@ -1,5 +1,6 @@
 import json
 import logging
+import weakref
 from decimal import Decimal
 from typing import Any, Dict, Optional, TypeVar
 
@@ -124,9 +125,10 @@ def convert_fallback_config(fallback_config: Optional[Dict[str, Any]]) -> Option
     return converted
 
 class CacConfig:
-    def __init__(self, superposition_options: SuperpositionOptions, options: ConfigurationOptions):
+    def __init__(self, superposition_options: SuperpositionOptions, options: ConfigurationOptions, on_config_change=None):
         self.superposition_options = superposition_options
         self.options = options
+        self.on_config_change = on_config_change  # Callback when config changes
         self.fallback_config = None
         if options.fallback_config:
             self.fallback_config = convert_fallback_config(options.fallback_config)
@@ -137,20 +139,38 @@ class CacConfig:
         self._polling_task = None
 
     async def create_config(self) -> None:
+        weak_self = weakref.ref(self)
+
         async def poll_config(interval: int, timeout: int) -> None:
             while True:
+                self_ref = weak_self()
+                if self_ref is None:
+                    logger.info("CacConfig has been garbage collected, stopping polling task.")
+                    return
+
                 try:
-                    latest_config = await self._get_config(self.superposition_options)
-                    if latest_config is None and self.cached_config is None:
+                    latest_config = await self_ref._get_config(self_ref.superposition_options)
+                    if latest_config is None and self_ref.cached_config is None:
                         logger.warning("No config found, using fallback config.")
-                        self.cached_config = self.fallback_config
+                        self_ref.cached_config = self_ref.fallback_config
+                        if self_ref.on_config_change:
+                            self_ref.on_config_change()
                     elif latest_config is not None:
-                        self.cached_config = latest_config
-                        self.last_updated = datetime.utcnow()
-                        logger.info("Config fetched successfully.")
+                        # Only trigger callback if config actually changed
+                        if self_ref.cached_config != latest_config:
+                            self_ref.cached_config = latest_config
+                            self_ref.last_updated = datetime.utcnow()
+                            logger.info("Config fetched and updated.")
+                            # Trigger callback for cache reinitialization
+                            if self_ref.on_config_change:
+                                self_ref.on_config_change()
+                        else:
+                            logger.info("Config unchanged (skipping callback)")
 
                 except Exception as e:
                     logger.error(f"Polling error: {e}")
+                finally:
+                    del self_ref
 
                 await asyncio.sleep(interval)
 
@@ -161,10 +181,14 @@ class CacConfig:
                 raise ValueError("No configuration available and no fallback config provided.")
             logger.warning("No config found, using fallback config.")
             self.cached_config = self.fallback_config
+            if self.on_config_change:
+                self.on_config_change()
         elif latest_config is not None:
             self.cached_config = latest_config
             self.last_updated = datetime.utcnow()
             logger.info("Config fetched successfully.")
+            if self.on_config_change:
+                self.on_config_change()
 
         match self.options.refresh_strategy:
             case PollingStrategy(interval=interval, timeout=timeout):
@@ -282,10 +306,16 @@ class CacConfig:
                 if latest_config is None and self.cached_config is None:
                     logger.warning("No config found, using fallback config.")
                     self.cached_config = self.fallback_config
+                    if self.on_config_change:
+                        self.on_config_change()
                 elif latest_config is not None:
-                    logger.info("Config fetched successfully.")
-                    self.cached_config = latest_config
-                    self.last_updated = datetime.utcnow()
+                    if self.cached_config != latest_config:
+                        logger.info("Config fetched and updated successfully.")
+                        self.cached_config = latest_config
+                        self.last_updated = datetime.utcnow()
+                        # Trigger callback for cache reinitialization
+                        if self.on_config_change:
+                            self.on_config_change()
 
             except Exception as e:
                 logger.warning(f"On-demand fetch failed: {e}")

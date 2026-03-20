@@ -505,6 +505,14 @@ def _uniffi_check_api_checksums(lib):
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_superposition_core_checksum_func_ffi_parse_toml_config() != 1558:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    if lib.uniffi_superposition_core_checksum_method_providercache_eval_config() != 7889:
+        raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    if lib.uniffi_superposition_core_checksum_method_providercache_init_config() != 28151:
+        raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    if lib.uniffi_superposition_core_checksum_method_providercache_init_experiments() != 29243:
+        raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    if lib.uniffi_superposition_core_checksum_constructor_providercache_new() != 32331:
+        raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
 
 # A ctypes library to expose the extern-C FFI definitions.
 # This is an implementation detail which will be called internally by the public API.
@@ -611,6 +619,44 @@ class _UniffiForeignFutureStructVoid(ctypes.Structure):
     ]
 _UNIFFI_FOREIGN_FUTURE_COMPLETE_VOID = ctypes.CFUNCTYPE(None,ctypes.c_uint64,_UniffiForeignFutureStructVoid,
 )
+_UniffiLib.uniffi_superposition_core_fn_clone_providercache.argtypes = (
+    ctypes.c_void_p,
+    ctypes.POINTER(_UniffiRustCallStatus),
+)
+_UniffiLib.uniffi_superposition_core_fn_clone_providercache.restype = ctypes.c_void_p
+_UniffiLib.uniffi_superposition_core_fn_free_providercache.argtypes = (
+    ctypes.c_void_p,
+    ctypes.POINTER(_UniffiRustCallStatus),
+)
+_UniffiLib.uniffi_superposition_core_fn_free_providercache.restype = None
+_UniffiLib.uniffi_superposition_core_fn_constructor_providercache_new.argtypes = (
+    ctypes.POINTER(_UniffiRustCallStatus),
+)
+_UniffiLib.uniffi_superposition_core_fn_constructor_providercache_new.restype = ctypes.c_void_p
+_UniffiLib.uniffi_superposition_core_fn_method_providercache_eval_config.argtypes = (
+    ctypes.c_void_p,
+    _UniffiRustBuffer,
+    _UniffiRustBufferMergeStrategy,
+    _UniffiRustBuffer,
+    _UniffiRustBuffer,
+    ctypes.POINTER(_UniffiRustCallStatus),
+)
+_UniffiLib.uniffi_superposition_core_fn_method_providercache_eval_config.restype = _UniffiRustBuffer
+_UniffiLib.uniffi_superposition_core_fn_method_providercache_init_config.argtypes = (
+    ctypes.c_void_p,
+    _UniffiRustBuffer,
+    _UniffiRustBuffer,
+    _UniffiRustBuffer,
+    _UniffiRustBuffer,
+    ctypes.POINTER(_UniffiRustCallStatus),
+)
+_UniffiLib.uniffi_superposition_core_fn_method_providercache_init_config.restype = None
+_UniffiLib.uniffi_superposition_core_fn_method_providercache_init_experiments.argtypes = (
+    ctypes.c_void_p,
+    _UniffiRustBuffer,
+    ctypes.POINTER(_UniffiRustCallStatus),
+)
+_UniffiLib.uniffi_superposition_core_fn_method_providercache_init_experiments.restype = None
 _UniffiLib.uniffi_superposition_core_fn_func_ffi_eval_config.argtypes = (
     _UniffiRustBuffer,
     _UniffiRustBuffer,
@@ -936,6 +982,18 @@ _UniffiLib.uniffi_superposition_core_checksum_func_ffi_parse_json_config.restype
 _UniffiLib.uniffi_superposition_core_checksum_func_ffi_parse_toml_config.argtypes = (
 )
 _UniffiLib.uniffi_superposition_core_checksum_func_ffi_parse_toml_config.restype = ctypes.c_uint16
+_UniffiLib.uniffi_superposition_core_checksum_method_providercache_eval_config.argtypes = (
+)
+_UniffiLib.uniffi_superposition_core_checksum_method_providercache_eval_config.restype = ctypes.c_uint16
+_UniffiLib.uniffi_superposition_core_checksum_method_providercache_init_config.argtypes = (
+)
+_UniffiLib.uniffi_superposition_core_checksum_method_providercache_init_config.restype = ctypes.c_uint16
+_UniffiLib.uniffi_superposition_core_checksum_method_providercache_init_experiments.argtypes = (
+)
+_UniffiLib.uniffi_superposition_core_checksum_method_providercache_init_experiments.restype = ctypes.c_uint16
+_UniffiLib.uniffi_superposition_core_checksum_constructor_providercache_new.argtypes = (
+)
+_UniffiLib.uniffi_superposition_core_checksum_constructor_providercache_new.restype = ctypes.c_uint16
 _UniffiLib.ffi_superposition_core_uniffi_contract_version.argtypes = (
 )
 _UniffiLib.ffi_superposition_core_uniffi_contract_version.restype = ctypes.c_uint32
@@ -990,6 +1048,8 @@ class _UniffiConverterString:
         with _UniffiRustBuffer.alloc_with_builder() as builder:
             builder.write(value.encode("utf-8"))
             return builder.finalize()
+
+
 
 
 class ExperimentationArgs:
@@ -1209,6 +1269,33 @@ class _UniffiConverterTypeOperationError(_UniffiConverterRustBuffer):
         if isinstance(value, OperationError.Unexpected):
             buf.write_i32(1)
             _UniffiConverterString.write(value._values[0], buf)
+
+
+
+class _UniffiConverterOptionalString(_UniffiConverterRustBuffer):
+    @classmethod
+    def check_lower(cls, value):
+        if value is not None:
+            _UniffiConverterString.check_lower(value)
+
+    @classmethod
+    def write(cls, value, buf):
+        if value is None:
+            buf.write_u8(0)
+            return
+
+        buf.write_u8(1)
+        _UniffiConverterString.write(value, buf)
+
+    @classmethod
+    def read(cls, buf):
+        flag = buf.read_u8()
+        if flag == 0:
+            return None
+        elif flag == 1:
+            return _UniffiConverterString.read(buf)
+        else:
+            raise InternalError("Unexpected flag byte for optional type")
 
 
 
@@ -1541,6 +1628,118 @@ class _UniffiConverterMapStringTypeOverrides(_UniffiConverterRustBuffer):
         return d
 
 # objects.
+class ProviderCacheProtocol(typing.Protocol):
+    def eval_config(self, query_data: "dict[str, str]",merge_strategy: "MergeStrategy",filter_prefixes: "typing.Optional[typing.List[str]]",targeting_key: "typing.Optional[str]"):
+        raise NotImplementedError
+    def init_config(self, default_config: "dict[str, str]",contexts: "typing.List[Context]",overrides: "dict[str, Overrides]",dimensions: "dict[str, DimensionInfo]"):
+        raise NotImplementedError
+    def init_experiments(self, experimentation: "ExperimentationArgs"):
+        raise NotImplementedError
+# ProviderCache is a Rust-only trait - it's a wrapper around a Rust implementation.
+class ProviderCache():
+    _pointer: ctypes.c_void_p
+    def __init__(self, ):
+        self._pointer = _uniffi_rust_call(_UniffiLib.uniffi_superposition_core_fn_constructor_providercache_new,)
+
+    def __del__(self):
+        # In case of partial initialization of instances.
+        pointer = getattr(self, "_pointer", None)
+        if pointer is not None:
+            _uniffi_rust_call(_UniffiLib.uniffi_superposition_core_fn_free_providercache, pointer)
+
+    def _uniffi_clone_pointer(self):
+        return _uniffi_rust_call(_UniffiLib.uniffi_superposition_core_fn_clone_providercache, self._pointer)
+
+    # Used by alternative constructors or any methods which return this type.
+    @classmethod
+    def _make_instance_(cls, pointer):
+        # Lightly yucky way to bypass the usual __init__ logic
+        # and just create a new instance with the required pointer.
+        inst = cls.__new__(cls)
+        inst._pointer = pointer
+        return inst
+
+
+    def eval_config(self, query_data: "dict[str, str]",merge_strategy: "MergeStrategy",filter_prefixes: "typing.Optional[typing.List[str]]",targeting_key: "typing.Optional[str]") -> "dict[str, str]":
+        _UniffiConverterMapStringString.check_lower(query_data)
+        
+        _UniffiConverterTypeMergeStrategy.check_lower(merge_strategy)
+        
+        _UniffiConverterOptionalSequenceString.check_lower(filter_prefixes)
+        
+        _UniffiConverterOptionalString.check_lower(targeting_key)
+        
+        return _UniffiConverterMapStringString.lift(
+            _uniffi_rust_call_with_error(_UniffiConverterTypeOperationError,_UniffiLib.uniffi_superposition_core_fn_method_providercache_eval_config,self._uniffi_clone_pointer(),
+        _UniffiConverterMapStringString.lower(query_data),
+        _UniffiConverterTypeMergeStrategy.lower(merge_strategy),
+        _UniffiConverterOptionalSequenceString.lower(filter_prefixes),
+        _UniffiConverterOptionalString.lower(targeting_key))
+        )
+
+
+
+
+
+    def init_config(self, default_config: "dict[str, str]",contexts: "typing.List[Context]",overrides: "dict[str, Overrides]",dimensions: "dict[str, DimensionInfo]") -> None:
+        _UniffiConverterMapStringString.check_lower(default_config)
+        
+        _UniffiConverterSequenceTypeContext.check_lower(contexts)
+        
+        _UniffiConverterMapStringTypeOverrides.check_lower(overrides)
+        
+        _UniffiConverterMapStringTypeDimensionInfo.check_lower(dimensions)
+        
+        _uniffi_rust_call_with_error(_UniffiConverterTypeOperationError,_UniffiLib.uniffi_superposition_core_fn_method_providercache_init_config,self._uniffi_clone_pointer(),
+        _UniffiConverterMapStringString.lower(default_config),
+        _UniffiConverterSequenceTypeContext.lower(contexts),
+        _UniffiConverterMapStringTypeOverrides.lower(overrides),
+        _UniffiConverterMapStringTypeDimensionInfo.lower(dimensions))
+
+
+
+
+
+
+    def init_experiments(self, experimentation: "ExperimentationArgs") -> None:
+        _UniffiConverterTypeExperimentationArgs.check_lower(experimentation)
+        
+        _uniffi_rust_call_with_error(_UniffiConverterTypeOperationError,_UniffiLib.uniffi_superposition_core_fn_method_providercache_init_experiments,self._uniffi_clone_pointer(),
+        _UniffiConverterTypeExperimentationArgs.lower(experimentation))
+
+
+
+
+
+
+
+class _UniffiConverterTypeProviderCache:
+
+    @staticmethod
+    def lift(value: int):
+        return ProviderCache._make_instance_(value)
+
+    @staticmethod
+    def check_lower(value: ProviderCache):
+        if not isinstance(value, ProviderCache):
+            raise TypeError("Expected ProviderCache instance, {} found".format(type(value).__name__))
+
+    @staticmethod
+    def lower(value: ProviderCacheProtocol):
+        if not isinstance(value, ProviderCache):
+            raise TypeError("Expected ProviderCache instance, {} found".format(type(value).__name__))
+        return value._uniffi_clone_pointer()
+
+    @classmethod
+    def read(cls, buf: _UniffiRustBuffer):
+        ptr = buf.read_u64()
+        if ptr == 0:
+            raise InternalError("Raw pointer value was null")
+        return cls.lift(ptr)
+
+    @classmethod
+    def write(cls, value: ProviderCacheProtocol, buf: _UniffiRustBuffer):
+        buf.write_u64(cls.lower(value))
 
 # External type Bucket: `from .superposition_types import Bucket`
 
@@ -1718,5 +1917,6 @@ __all__ = [
     "ffi_get_applicable_variants",
     "ffi_parse_json_config",
     "ffi_parse_toml_config",
+    "ProviderCache",
 ]
 
