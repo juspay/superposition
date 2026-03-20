@@ -36,25 +36,24 @@ pub trait Contextual: Clone {
 
     fn filter_by_dimension(
         contexts: Vec<Self>,
-        dimension_keys: &[String],
-        request_keys_len: usize,
+        original_dimension_keys: &[&String],
         dimensions_info: &HashMap<String, DimensionInfo>,
     ) -> Vec<Self> {
         contexts
             .into_iter()
             .filter(|context| {
                 let variables: Map<String, Value> = context.get_condition().into();
-                dimension_keys.iter().all(|dimension| {
-                    variables.contains_key(dimension)
+                original_dimension_keys.iter().all(|dimension| {
+                    variables.contains_key(*dimension)
                         || dimensions_info
-                            .get(dimension)
+                            .get(*dimension)
                             .map(|info| {
                                 info.dependency_graph
                                     .keys()
                                     .any(|k| variables.contains_key(k))
                             })
                             .unwrap_or_default()
-                }) && request_keys_len <= variables.len()
+                })
             })
             .collect()
     }
@@ -102,8 +101,7 @@ mod tests {
         assert_eq!(
             Contextual::filter_by_dimension(
                 config.contexts.clone(),
-                &get_dimension_data1().keys().cloned().collect::<Vec<_>>(),
-                get_dimension_data1().len(),
+                &get_dimension_data1().keys().collect::<Vec<_>>(),
                 &config.dimensions
             ),
             get_dimension_filtered_contexts1()
@@ -112,8 +110,7 @@ mod tests {
         assert_eq!(
             Contextual::filter_by_dimension(
                 config.contexts.clone(),
-                &get_dimension_data2().keys().cloned().collect::<Vec<_>>(),
-                get_dimension_data2().len(),
+                &get_dimension_data2().keys().collect::<Vec<_>>(),
                 &config.dimensions
             ),
             get_dimension_filtered_contexts2()
@@ -122,8 +119,7 @@ mod tests {
         assert_eq!(
             Contextual::filter_by_dimension(
                 config.contexts,
-                &get_dimension_data3().keys().cloned().collect::<Vec<_>>(),
-                get_dimension_data3().len(),
+                &get_dimension_data3().keys().collect::<Vec<_>>(),
                 &config.dimensions
             ),
             Vec::new()
