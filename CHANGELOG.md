@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.100.2 - 2026-03-20
+### Package updates
+- superposition_types bumped to superposition_types-v0.41.2
+- context_aware_config bumped to context_aware_config-v0.70.2
+- experimentation_platform bumped to experimentation_platform-v0.50.2
+### Global changes
+#### Documentation
+- Add docs for SuperTOML (#919) - (600e6a2) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.100.1 [skip ci] - (331e333) - Superposition Bot
+
+- - -
+
 ## v0.100.1 - 2026-03-18
 ### Package updates
 - superposition_types bumped to superposition_types-v0.41.1
