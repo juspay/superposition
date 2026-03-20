@@ -86,7 +86,8 @@ async fn create_handler(
         &create_req.change_reason,
         &mut conn,
         &state.master_encryption_key,
-    )?;
+    )
+    .await?;
 
     let num_rows = dimensions
         .count()
@@ -325,7 +326,8 @@ async fn update_handler(
         &update_req.change_reason,
         &mut conn,
         &state.master_encryption_key,
-    )?;
+    )
+    .await?;
 
     let dimension_data: Dimension = dimensions::dsl::dimensions
         .filter(dimensions::dimension.eq(name.clone()))
