@@ -4111,6 +4111,7 @@ export const de_ListExperimentCommand = async(
   const contents: any = map({
     $metadata: deserializeMetadata(output),
 <<<<<<< HEAD
+<<<<<<< HEAD
     [_lm_]: [() => void 0 !== output.headers[_lm], () => __expectNonNull(__parseRfc3339DateTimeWithOffset(output.headers[_lm]))],
 =======
 <<<<<<< HEAD
@@ -4118,6 +4119,9 @@ export const de_ListExperimentCommand = async(
     [_lm_]: [() => void 0 !== output.headers[_lm], () => __expectNonNull(__parseRfc3339DateTimeWithOffset(output.headers[_lm]))],
 >>>>>>> 8fc501b7 (fix: more fixes)
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+    [_lm_]: [() => void 0 !== output.headers[_lm], () => __expectNonNull(__parseRfc3339DateTimeWithOffset(output.headers[_lm]))],
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {

@@ -3,6 +3,7 @@ module Io.Superposition.Model.ListExperimentOutput (
     setTotalItems,
     setData',
 <<<<<<< HEAD
+<<<<<<< HEAD
     setLastModified,
 =======
 <<<<<<< HEAD
@@ -10,11 +11,15 @@ module Io.Superposition.Model.ListExperimentOutput (
     setLastModified,
 >>>>>>> 8fc501b7 (fix: more fixes)
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+    setLastModified,
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
     build,
     ListExperimentOutputBuilder,
     ListExperimentOutput,
     total_pages,
     total_items,
+<<<<<<< HEAD
 <<<<<<< HEAD
     data',
     last_modified
@@ -26,6 +31,10 @@ module Io.Superposition.Model.ListExperimentOutput (
     last_modified
 >>>>>>> 8fc501b7 (fix: more fixes)
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+    data',
+    last_modified
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad.State.Strict
@@ -47,6 +56,7 @@ data ListExperimentOutput = ListExperimentOutput {
     total_pages :: Data.Int.Int32,
     total_items :: Data.Int.Int32,
 <<<<<<< HEAD
+<<<<<<< HEAD
     data' :: [] Io.Superposition.Model.ExperimentResponse.ExperimentResponse,
     last_modified :: Data.Time.UTCTime
 =======
@@ -57,6 +67,10 @@ data ListExperimentOutput = ListExperimentOutput {
     last_modified :: Data.Time.UTCTime
 >>>>>>> 8fc501b7 (fix: more fixes)
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+    data' :: [] Io.Superposition.Model.ExperimentResponse.ExperimentResponse,
+    last_modified :: Data.Time.UTCTime
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -68,6 +82,7 @@ instance Data.Aeson.ToJSON ListExperimentOutput where
         "total_pages" Data.Aeson..= total_pages a,
         "total_items" Data.Aeson..= total_items a,
 <<<<<<< HEAD
+<<<<<<< HEAD
         "data" Data.Aeson..= data' a,
         "last_modified" Data.Aeson..= last_modified a
 =======
@@ -78,6 +93,10 @@ instance Data.Aeson.ToJSON ListExperimentOutput where
         "last_modified" Data.Aeson..= last_modified a
 >>>>>>> 8fc501b7 (fix: more fixes)
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+        "data" Data.Aeson..= data' a,
+        "last_modified" Data.Aeson..= last_modified a
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
         ]
     
 
@@ -89,6 +108,7 @@ instance Data.Aeson.FromJSON ListExperimentOutput where
         Control.Applicative.<*> (v Data.Aeson..: "total_items")
         Control.Applicative.<*> (v Data.Aeson..: "data")
 <<<<<<< HEAD
+<<<<<<< HEAD
         Control.Applicative.<*> (v Data.Aeson..: "last_modified")
 =======
 <<<<<<< HEAD
@@ -96,6 +116,9 @@ instance Data.Aeson.FromJSON ListExperimentOutput where
         Control.Applicative.<*> (v Data.Aeson..: "last_modified")
 >>>>>>> 8fc501b7 (fix: more fixes)
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+        Control.Applicative.<*> (v Data.Aeson..: "last_modified")
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
     
 
 
@@ -103,6 +126,7 @@ instance Data.Aeson.FromJSON ListExperimentOutput where
 data ListExperimentOutputBuilderState = ListExperimentOutputBuilderState {
     total_pagesBuilderState :: Data.Maybe.Maybe Data.Int.Int32,
     total_itemsBuilderState :: Data.Maybe.Maybe Data.Int.Int32,
+<<<<<<< HEAD
 <<<<<<< HEAD
     data'BuilderState :: Data.Maybe.Maybe ([] Io.Superposition.Model.ExperimentResponse.ExperimentResponse),
     last_modifiedBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime
@@ -114,6 +138,10 @@ data ListExperimentOutputBuilderState = ListExperimentOutputBuilderState {
     last_modifiedBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime
 >>>>>>> 8fc501b7 (fix: more fixes)
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+    data'BuilderState :: Data.Maybe.Maybe ([] Io.Superposition.Model.ExperimentResponse.ExperimentResponse),
+    last_modifiedBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 } deriving (
   GHC.Generics.Generic
   )
@@ -122,6 +150,7 @@ defaultBuilderState :: ListExperimentOutputBuilderState
 defaultBuilderState = ListExperimentOutputBuilderState {
     total_pagesBuilderState = Data.Maybe.Nothing,
     total_itemsBuilderState = Data.Maybe.Nothing,
+<<<<<<< HEAD
 <<<<<<< HEAD
     data'BuilderState = Data.Maybe.Nothing,
     last_modifiedBuilderState = Data.Maybe.Nothing
@@ -133,6 +162,10 @@ defaultBuilderState = ListExperimentOutputBuilderState {
     last_modifiedBuilderState = Data.Maybe.Nothing
 >>>>>>> 8fc501b7 (fix: more fixes)
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+    data'BuilderState = Data.Maybe.Nothing,
+    last_modifiedBuilderState = Data.Maybe.Nothing
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 }
 
 type ListExperimentOutputBuilder = Control.Monad.State.Strict.State ListExperimentOutputBuilderState
@@ -150,24 +183,31 @@ setData' value =
    Control.Monad.State.Strict.modify (\s -> (s { data'BuilderState = Data.Maybe.Just value }))
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 setLastModified :: Data.Time.UTCTime -> ListExperimentOutputBuilder ()
 setLastModified value =
    Control.Monad.State.Strict.modify (\s -> (s { last_modifiedBuilderState = Data.Maybe.Just value }))
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 8fc501b7 (fix: more fixes)
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 build :: ListExperimentOutputBuilder () -> Data.Either.Either Data.Text.Text ListExperimentOutput
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
     total_pages' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListExperimentOutput.ListExperimentOutput.total_pages is a required property.") Data.Either.Right (total_pagesBuilderState st)
     total_items' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListExperimentOutput.ListExperimentOutput.total_items is a required property.") Data.Either.Right (total_itemsBuilderState st)
     data'' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListExperimentOutput.ListExperimentOutput.data' is a required property.") Data.Either.Right (data'BuilderState st)
+<<<<<<< HEAD
 <<<<<<< HEAD
     last_modified' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListExperimentOutput.ListExperimentOutput.last_modified is a required property.") Data.Either.Right (last_modifiedBuilderState st)
     Data.Either.Right (ListExperimentOutput { 
@@ -182,14 +222,19 @@ build builder = do
         total_items = total_items',
         data' = data''
 =======
+=======
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
     last_modified' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListExperimentOutput.ListExperimentOutput.last_modified is a required property.") Data.Either.Right (last_modifiedBuilderState st)
     Data.Either.Right (ListExperimentOutput { 
         total_pages = total_pages',
         total_items = total_items',
         data' = data'',
         last_modified = last_modified'
+<<<<<<< HEAD
 >>>>>>> 8fc501b7 (fix: more fixes)
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
     })
 
 
@@ -202,6 +247,7 @@ instance Io.Superposition.Utility.FromResponseParser ListExperimentOutput where
         var3 <- Io.Superposition.Utility.deSerField "total_items"
         pure $ ListExperimentOutput {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
             total_pages = var1,
@@ -209,13 +255,18 @@ instance Io.Superposition.Utility.FromResponseParser ListExperimentOutput where
             data' = var0
 =======
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
             total_pages = var2,
             total_items = var3,
             data' = var1,
             last_modified = var0
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 8fc501b7 (fix: more fixes)
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
         }
 

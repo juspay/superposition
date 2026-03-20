@@ -40,6 +40,7 @@ public final class ListExperimentInput implements SerializableStruct {
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
 <<<<<<< HEAD
+<<<<<<< HEAD
         .putMember("if_modified_since", SharedSchemas.DATE_TIME,
                 new HttpHeaderTrait("if-modified-since"))
 =======
@@ -49,6 +50,10 @@ public final class ListExperimentInput implements SerializableStruct {
                 new HttpHeaderTrait("if-modified-since"))
 >>>>>>> 8fc501b7 (fix: more fixes)
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+        .putMember("if_modified_since", SharedSchemas.DATE_TIME,
+                new HttpHeaderTrait("if-modified-since"))
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
         .putMember("status", SharedSchemas.EXPERIMENT_STATUS_TYPE_LIST,
                 new HttpQueryTrait("status"))
         .putMember("from_date", SharedSchemas.DATE_TIME,

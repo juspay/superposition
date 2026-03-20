@@ -28,18 +28,24 @@ pub struct ListExperimentGroupsInput  {
     /// Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
     pub group_type: ::std::option::Option<::std::vec::Vec::<crate::types::GroupType>>,
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
     /// Strategy to follow while filter items based on the context
     pub dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
     /// Map representing the context. Keys correspond to the names of the dimensions.
     pub context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 8fc501b7 (fix: more fixes)
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 }
 impl  ListExperimentGroupsInput  {
     /// Number of items to be returned in each page.
@@ -94,10 +100,13 @@ impl  ListExperimentGroupsInput  {
         .unwrap_or_default()
     }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
     /// Strategy to follow while filter items based on the context
     pub fn dimension_match_strategy(&self) -> ::std::option::Option<&crate::types::DimensionMatchStrategy> {
         self.dimension_match_strategy.as_ref()
@@ -107,9 +116,12 @@ impl  ListExperimentGroupsInput  {
         self.context.as_ref()
     }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 8fc501b7 (fix: more fixes)
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 }
 impl ListExperimentGroupsInput {
     /// Creates a new builder-style object to manufacture [`ListExperimentGroupsInput`](crate::operation::list_experiment_groups::ListExperimentGroupsInput).
@@ -135,6 +147,7 @@ pub struct ListExperimentGroupsInputBuilder {
     pub(crate) sort_by: ::std::option::Option<crate::types::SortBy>,
     pub(crate) group_type: ::std::option::Option<::std::vec::Vec::<crate::types::GroupType>>,
 <<<<<<< HEAD
+<<<<<<< HEAD
     pub(crate) dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
     pub(crate) context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
 =======
@@ -144,6 +157,10 @@ pub struct ListExperimentGroupsInputBuilder {
     pub(crate) context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
 >>>>>>> 8fc501b7 (fix: more fixes)
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+    pub(crate) dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
+    pub(crate) context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 }
 impl ListExperimentGroupsInputBuilder {
     /// Number of items to be returned in each page.
@@ -311,10 +328,13 @@ impl ListExperimentGroupsInputBuilder {
         &self.group_type
     }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
     /// Strategy to follow while filter items based on the context
     pub fn dimension_match_strategy(mut self, input: crate::types::DimensionMatchStrategy) -> Self {
         self.dimension_match_strategy = ::std::option::Option::Some(input);
@@ -348,9 +368,12 @@ impl ListExperimentGroupsInputBuilder {
         &self.context
     }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 8fc501b7 (fix: more fixes)
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
     /// Consumes the builder and constructs a [`ListExperimentGroupsInput`](crate::operation::list_experiment_groups::ListExperimentGroupsInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::list_experiment_groups::ListExperimentGroupsInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -380,18 +403,24 @@ impl ListExperimentGroupsInputBuilder {
                 group_type: self.group_type
                 ,
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
                 dimension_match_strategy: self.dimension_match_strategy
                 ,
                 context: self.context
                 ,
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 8fc501b7 (fix: more fixes)
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
             }
         )
     }

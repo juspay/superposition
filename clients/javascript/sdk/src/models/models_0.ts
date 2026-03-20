@@ -2010,10 +2010,13 @@ export interface ListExperimentGroupsInput {
    */
   group_type?: (GroupType)[] | undefined;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 
   /**
    * Strategy to follow while filter items based on the context
@@ -2028,9 +2031,12 @@ export interface ListExperimentGroupsInput {
    */
   context?: Record<string, __DocumentType> | undefined;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 8fc501b7 (fix: more fixes)
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 }
 
 /**
@@ -2165,6 +2171,7 @@ export interface ListExperimentOutput {
   total_items: number | undefined;
   data: (ExperimentResponse)[] | undefined;
 <<<<<<< HEAD
+<<<<<<< HEAD
   last_modified: Date | undefined;
 =======
 <<<<<<< HEAD
@@ -2172,6 +2179,9 @@ export interface ListExperimentOutput {
   last_modified: Date | undefined;
 >>>>>>> 8fc501b7 (fix: more fixes)
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+  last_modified: Date | undefined;
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 }
 
 /**

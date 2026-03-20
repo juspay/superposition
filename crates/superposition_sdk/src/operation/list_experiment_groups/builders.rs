@@ -270,10 +270,13 @@ impl ListExperimentGroupsFluentBuilder {
                     self.inner.get_group_type()
                 }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
     /// Strategy to follow while filter items based on the context
     pub fn dimension_match_strategy(mut self, input: crate::types::DimensionMatchStrategy) -> Self {
                     self.inner = self.inner.dimension_match_strategy(input);
@@ -308,8 +311,11 @@ impl ListExperimentGroupsFluentBuilder {
                     self.inner.get_context()
                 }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 8fc501b7 (fix: more fixes)
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 }
 

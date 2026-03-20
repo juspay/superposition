@@ -1056,6 +1056,7 @@ async def _serialize_get_config(input: GetConfigInput, config: Config) -> HTTPRe
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
 <<<<<<< HEAD
+<<<<<<< HEAD
     if input.if_modified_since is not None:
         headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
 =======
@@ -1065,6 +1066,10 @@ async def _serialize_get_config(input: GetConfigInput, config: Config) -> HTTPRe
         headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
 >>>>>>> 8fc501b7 (fix: more fixes)
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+    if input.if_modified_since is not None:
+        headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2037,6 +2042,7 @@ async def _serialize_list_experiment(input: ListExperimentInput, config: Config)
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
 <<<<<<< HEAD
+<<<<<<< HEAD
     if input.if_modified_since is not None:
         headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
 =======
@@ -2046,6 +2052,10 @@ async def _serialize_list_experiment(input: ListExperimentInput, config: Config)
         headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
 >>>>>>> 8fc501b7 (fix: more fixes)
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+    if input.if_modified_since is not None:
+        headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2107,6 +2117,7 @@ async def _serialize_list_experiment_groups(input: ListExperimentGroupsInput, co
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
 <<<<<<< HEAD
+<<<<<<< HEAD
     if input.if_modified_since is not None:
         headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
 =======
@@ -2116,6 +2127,10 @@ async def _serialize_list_experiment_groups(input: ListExperimentGroupsInput, co
         headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
 >>>>>>> 8fc501b7 (fix: more fixes)
 >>>>>>> 91d47048 (fix: more fixes)
+=======
+    if input.if_modified_since is not None:
+        headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
+>>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
     return _HTTPRequest(
         destination=_URI(
             host="",
