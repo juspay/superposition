@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.41.2 - 2026-03-20
+#### Bug Fixes
+- Filtering for list context and experiments (#924) - (63eb506) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.100.1 [skip ci] - (331e333) - Superposition Bot
+
+- - -
+
 ## superposition_types-v0.41.1 - 2026-03-18
 #### Bug Fixes
 - filter logic (#920) - (e54cd89) - Ayush Jain
