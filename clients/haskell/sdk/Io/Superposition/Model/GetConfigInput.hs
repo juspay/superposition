@@ -3,6 +3,7 @@ module Io.Superposition.Model.GetConfigInput (
     setOrgId,
     setPrefix,
     setVersion,
+    setIfModifiedSince,
     setContext,
     build,
     GetConfigInputBuilder,
@@ -11,6 +12,7 @@ module Io.Superposition.Model.GetConfigInput (
     org_id,
     prefix,
     version,
+    if_modified_since,
     context
 ) where
 import qualified Control.Applicative
@@ -22,6 +24,7 @@ import qualified Data.Functor
 import qualified Data.Map
 import qualified Data.Maybe
 import qualified Data.Text
+import qualified Data.Time
 import qualified GHC.Generics
 import qualified GHC.Show
 import qualified Io.Superposition.Utility
@@ -32,6 +35,7 @@ data GetConfigInput = GetConfigInput {
     org_id :: Data.Text.Text,
     prefix :: Data.Maybe.Maybe ([] Data.Text.Text),
     version :: Data.Maybe.Maybe Data.Text.Text,
+    if_modified_since :: Data.Maybe.Maybe Data.Time.UTCTime,
     context :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value)
 } deriving (
   GHC.Show.Show,
@@ -45,6 +49,7 @@ instance Data.Aeson.ToJSON GetConfigInput where
         "org_id" Data.Aeson..= org_id a,
         "prefix" Data.Aeson..= prefix a,
         "version" Data.Aeson..= version a,
+        "if_modified_since" Data.Aeson..= if_modified_since a,
         "context" Data.Aeson..= context a
         ]
     
@@ -57,6 +62,7 @@ instance Data.Aeson.FromJSON GetConfigInput where
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
         Control.Applicative.<*> (v Data.Aeson..:? "prefix")
         Control.Applicative.<*> (v Data.Aeson..:? "version")
+        Control.Applicative.<*> (v Data.Aeson..:? "if_modified_since")
         Control.Applicative.<*> (v Data.Aeson..:? "context")
     
 
@@ -67,6 +73,7 @@ data GetConfigInputBuilderState = GetConfigInputBuilderState {
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     prefixBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     versionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    if_modified_sinceBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     contextBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value)
 } deriving (
   GHC.Generics.Generic
@@ -78,6 +85,7 @@ defaultBuilderState = GetConfigInputBuilderState {
     org_idBuilderState = Data.Maybe.Nothing,
     prefixBuilderState = Data.Maybe.Nothing,
     versionBuilderState = Data.Maybe.Nothing,
+    if_modified_sinceBuilderState = Data.Maybe.Nothing,
     contextBuilderState = Data.Maybe.Nothing
 }
 
@@ -99,6 +107,10 @@ setVersion :: Data.Maybe.Maybe Data.Text.Text -> GetConfigInputBuilder ()
 setVersion value =
    Control.Monad.State.Strict.modify (\s -> (s { versionBuilderState = value }))
 
+setIfModifiedSince :: Data.Maybe.Maybe Data.Time.UTCTime -> GetConfigInputBuilder ()
+setIfModifiedSince value =
+   Control.Monad.State.Strict.modify (\s -> (s { if_modified_sinceBuilderState = value }))
+
 setContext :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value) -> GetConfigInputBuilder ()
 setContext value =
    Control.Monad.State.Strict.modify (\s -> (s { contextBuilderState = value }))
@@ -110,12 +122,14 @@ build builder = do
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetConfigInput.GetConfigInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
     prefix' <- Data.Either.Right (prefixBuilderState st)
     version' <- Data.Either.Right (versionBuilderState st)
+    if_modified_since' <- Data.Either.Right (if_modified_sinceBuilderState st)
     context' <- Data.Either.Right (contextBuilderState st)
     Data.Either.Right (GetConfigInput { 
         workspace_id = workspace_id',
         org_id = org_id',
         prefix = prefix',
         version = version',
+        if_modified_since = if_modified_since',
         context = context'
     })
 
@@ -129,10 +143,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder GetConfigInput where
         Io.Superposition.Utility.serQuery "prefix" (prefix self)
         Io.Superposition.Utility.serQuery "version" (version self)
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
-<<<<<<< HEAD
-=======
         Io.Superposition.Utility.serHeader "if-modified-since" (if_modified_since self)
->>>>>>> 8fc501b7 (fix: more fixes)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         Io.Superposition.Utility.serField "context" (context self)
 

@@ -9,11 +9,8 @@ pub struct ListExperimentOutput  {
     pub total_items: i32,
     #[allow(missing_docs)] // documentation missing in model
     pub data: ::std::vec::Vec::<crate::types::ExperimentResponse>,
-<<<<<<< HEAD
-=======
     #[allow(missing_docs)] // documentation missing in model
     pub last_modified: ::aws_smithy_types::DateTime,
->>>>>>> 8fc501b7 (fix: more fixes)
 }
 impl  ListExperimentOutput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -28,13 +25,10 @@ impl  ListExperimentOutput  {
     pub fn data(&self) -> &[crate::types::ExperimentResponse] {
         use std::ops::Deref; self.data.deref()
     }
-<<<<<<< HEAD
-=======
     #[allow(missing_docs)] // documentation missing in model
     pub fn last_modified(&self) -> &::aws_smithy_types::DateTime {
         &self.last_modified
     }
->>>>>>> 8fc501b7 (fix: more fixes)
 }
 impl ListExperimentOutput {
     /// Creates a new builder-style object to manufacture [`ListExperimentOutput`](crate::operation::list_experiment::ListExperimentOutput).
@@ -50,10 +44,7 @@ pub struct ListExperimentOutputBuilder {
     pub(crate) total_pages: ::std::option::Option<i32>,
     pub(crate) total_items: ::std::option::Option<i32>,
     pub(crate) data: ::std::option::Option<::std::vec::Vec::<crate::types::ExperimentResponse>>,
-<<<<<<< HEAD
-=======
     pub(crate) last_modified: ::std::option::Option<::aws_smithy_types::DateTime>,
->>>>>>> 8fc501b7 (fix: more fixes)
 }
 impl ListExperimentOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -102,8 +93,6 @@ impl ListExperimentOutputBuilder {
     pub fn get_data(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::ExperimentResponse>> {
         &self.data
     }
-<<<<<<< HEAD
-=======
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
     pub fn last_modified(mut self, input: ::aws_smithy_types::DateTime) -> Self {
@@ -118,16 +107,12 @@ impl ListExperimentOutputBuilder {
     pub fn get_last_modified(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
         &self.last_modified
     }
->>>>>>> 8fc501b7 (fix: more fixes)
     /// Consumes the builder and constructs a [`ListExperimentOutput`](crate::operation::list_experiment::ListExperimentOutput).
     /// This method will fail if any of the following fields are not set:
     /// - [`total_pages`](crate::operation::list_experiment::builders::ListExperimentOutputBuilder::total_pages)
     /// - [`total_items`](crate::operation::list_experiment::builders::ListExperimentOutputBuilder::total_items)
     /// - [`data`](crate::operation::list_experiment::builders::ListExperimentOutputBuilder::data)
-<<<<<<< HEAD
-=======
     /// - [`last_modified`](crate::operation::list_experiment::builders::ListExperimentOutputBuilder::last_modified)
->>>>>>> 8fc501b7 (fix: more fixes)
     pub fn build(self) -> ::std::result::Result<crate::operation::list_experiment::ListExperimentOutput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
             crate::operation::list_experiment::ListExperimentOutput {
@@ -146,14 +131,11 @@ impl ListExperimentOutputBuilder {
                         ::aws_smithy_types::error::operation::BuildError::missing_field("data", "data was not specified but it is required when building ListExperimentOutput")
                     )?
                 ,
-<<<<<<< HEAD
-=======
                 last_modified: self.last_modified
                     .ok_or_else(||
                         ::aws_smithy_types::error::operation::BuildError::missing_field("last_modified", "last_modified was not specified but it is required when building ListExperimentOutput")
                     )?
                 ,
->>>>>>> 8fc501b7 (fix: more fixes)
             }
         )
     }

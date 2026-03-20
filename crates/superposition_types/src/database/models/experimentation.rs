@@ -312,8 +312,8 @@ pub struct Experiment {
 }
 
 impl Contextual for Experiment {
-    fn get_condition(&self) -> Condition {
-        self.context.clone()
+    fn get_condition(&self) -> &Condition {
+        &self.context
     }
 }
 
@@ -392,8 +392,8 @@ pub struct ExperimentGroup {
 }
 
 impl Contextual for ExperimentGroup {
-    fn get_condition(&self) -> Condition {
-        self.context.clone()
+    fn get_condition(&self) -> &Condition {
+        &self.context
     }
 }
 

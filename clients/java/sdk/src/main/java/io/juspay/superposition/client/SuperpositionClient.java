@@ -53,8 +53,6 @@ import io.juspay.superposition.model.DeleteWebhookInput;
 import io.juspay.superposition.model.DeleteWebhookOutput;
 import io.juspay.superposition.model.DiscardExperimentInput;
 import io.juspay.superposition.model.DiscardExperimentOutput;
-import io.juspay.superposition.model.GetConfigFastInput;
-import io.juspay.superposition.model.GetConfigFastOutput;
 import io.juspay.superposition.model.GetConfigInput;
 import io.juspay.superposition.model.GetConfigJsonInput;
 import io.juspay.superposition.model.GetConfigJsonOutput;
@@ -692,22 +690,6 @@ public interface SuperpositionClient {
      * @throws InternalServerError
      */
     GetConfigOutput getConfig(GetConfigInput input, RequestOverrideConfig overrideConfig);
-
-    /**
-     * Retrieves the latest config with no processing for high-performance access.
-     *
-     * @throws InternalServerError
-     */
-    default GetConfigFastOutput getConfigFast(GetConfigFastInput input) {
-        return getConfigFast(input, null);
-    }
-
-    /**
-     * Retrieves the latest config with no processing for high-performance access.
-     *
-     * @throws InternalServerError
-     */
-    GetConfigFastOutput getConfigFast(GetConfigFastInput input, RequestOverrideConfig overrideConfig);
 
     /**
      * Retrieves the full config in JSON format, including default configs with schemas, dimensions, and
@@ -1816,11 +1798,11 @@ public interface SuperpositionClient {
             Node.objectNode()
         );
 
-        private static final HttpBasicAuthTrait httpBasicAuthScheme = new HttpBasicAuthTrait();
-        private static final AuthSchemeFactory<HttpBasicAuthTrait> httpBasicAuthSchemeFactory = new HttpBasicAuthAuthScheme.Factory();
-
         private static final HttpBearerAuthTrait httpBearerAuthScheme = new HttpBearerAuthTrait();
         private static final AuthSchemeFactory<HttpBearerAuthTrait> httpBearerAuthSchemeFactory = new HttpBearerAuthScheme.Factory();
+
+        private static final HttpBasicAuthTrait httpBasicAuthScheme = new HttpBasicAuthTrait();
+        private static final AuthSchemeFactory<HttpBasicAuthTrait> httpBasicAuthSchemeFactory = new HttpBasicAuthAuthScheme.Factory();
 
         private Builder() {
             configBuilder().putSupportedAuthSchemes(httpBasicAuthSchemeFactory.createAuthScheme(httpBasicAuthScheme), httpBearerAuthSchemeFactory.createAuthScheme(httpBearerAuthScheme));

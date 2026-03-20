@@ -40,8 +40,6 @@ public final class GetConfigOutput implements SerializableStruct {
         .putMember("last_modified", SharedSchemas.DATE_TIME,
                 new HttpHeaderTrait("last-modified"),
                 new RequiredTrait())
-        .putMember("audit_id", PreludeSchemas.STRING,
-                new HttpHeaderTrait("x-audit-id"))
         .build();
 
     private static final Schema $SCHEMA_CONTEXTS = $SCHEMA.member("contexts");
@@ -50,7 +48,6 @@ public final class GetConfigOutput implements SerializableStruct {
     private static final Schema $SCHEMA_DIMENSIONS = $SCHEMA.member("dimensions");
     private static final Schema $SCHEMA_VERSION = $SCHEMA.member("version");
     private static final Schema $SCHEMA_LAST_MODIFIED = $SCHEMA.member("last_modified");
-    private static final Schema $SCHEMA_AUDIT_ID = $SCHEMA.member("audit_id");
 
     private final transient List<ContextPartial> contexts;
     private final transient Map<String, Map<String, Document>> overrides;
@@ -58,7 +55,6 @@ public final class GetConfigOutput implements SerializableStruct {
     private final transient Map<String, DimensionInfo> dimensions;
     private final transient String version;
     private final transient Instant lastModified;
-    private final transient String auditId;
 
     private GetConfigOutput(Builder builder) {
         this.contexts = Collections.unmodifiableList(builder.contexts);
@@ -67,7 +63,6 @@ public final class GetConfigOutput implements SerializableStruct {
         this.dimensions = Collections.unmodifiableMap(builder.dimensions);
         this.version = builder.version;
         this.lastModified = builder.lastModified;
-        this.auditId = builder.auditId;
     }
 
     public List<ContextPartial> contexts() {
@@ -110,10 +105,6 @@ public final class GetConfigOutput implements SerializableStruct {
         return lastModified;
     }
 
-    public String auditId() {
-        return auditId;
-    }
-
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -133,13 +124,12 @@ public final class GetConfigOutput implements SerializableStruct {
                && Objects.equals(this.defaultConfigs, that.defaultConfigs)
                && Objects.equals(this.dimensions, that.dimensions)
                && Objects.equals(this.version, that.version)
-               && Objects.equals(this.lastModified, that.lastModified)
-               && Objects.equals(this.auditId, that.auditId);
+               && Objects.equals(this.lastModified, that.lastModified);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(contexts, overrides, defaultConfigs, dimensions, version, lastModified, auditId);
+        return Objects.hash(contexts, overrides, defaultConfigs, dimensions, version, lastModified);
     }
 
     @Override
@@ -155,9 +145,6 @@ public final class GetConfigOutput implements SerializableStruct {
         serializer.writeMap($SCHEMA_DIMENSIONS, dimensions, dimensions.size(), SharedSerde.DimensionDataSerializer.INSTANCE);
         serializer.writeString($SCHEMA_VERSION, version);
         serializer.writeTimestamp($SCHEMA_LAST_MODIFIED, lastModified);
-        if (auditId != null) {
-            serializer.writeString($SCHEMA_AUDIT_ID, auditId);
-        }
     }
 
     @Override
@@ -170,7 +157,6 @@ public final class GetConfigOutput implements SerializableStruct {
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSIONS, member, dimensions);
             case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, version);
             case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED, member, lastModified);
-            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_AUDIT_ID, member, auditId);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -190,7 +176,6 @@ public final class GetConfigOutput implements SerializableStruct {
         builder.dimensions(this.dimensions);
         builder.version(this.version);
         builder.lastModified(this.lastModified);
-        builder.auditId(this.auditId);
         return builder;
     }
 
@@ -212,7 +197,6 @@ public final class GetConfigOutput implements SerializableStruct {
         private Map<String, DimensionInfo> dimensions;
         private String version;
         private Instant lastModified;
-        private String auditId;
 
         private Builder() {}
 
@@ -281,14 +265,6 @@ public final class GetConfigOutput implements SerializableStruct {
             return this;
         }
 
-        /**
-         * @return this builder.
-         */
-        public Builder auditId(String auditId) {
-            this.auditId = auditId;
-            return this;
-        }
-
         @Override
         public GetConfigOutput build() {
             tracker.validate();
@@ -305,7 +281,6 @@ public final class GetConfigOutput implements SerializableStruct {
                 case 3 -> dimensions((Map<String, DimensionInfo>) SchemaUtils.validateSameMember($SCHEMA_DIMENSIONS, member, value));
                 case 4 -> version((String) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, value));
                 case 5 -> lastModified((Instant) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED, member, value));
-                case 6 -> auditId((String) SchemaUtils.validateSameMember($SCHEMA_AUDIT_ID, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -360,7 +335,6 @@ public final class GetConfigOutput implements SerializableStruct {
                     case 3 -> builder.dimensions(SharedSerde.deserializeDimensionData(member, de));
                     case 4 -> builder.version(de.readString(member));
                     case 5 -> builder.lastModified(de.readTimestamp(member));
-                    case 6 -> builder.auditId(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

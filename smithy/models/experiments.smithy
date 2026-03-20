@@ -370,6 +370,10 @@ operation ListExperiment {
         @notProperty
         dimension_match_strategy: DimensionMatchStrategy
 
+        @httpQuery("prefix")
+        @notProperty
+        prefix: StringList
+
         @notProperty
         context: ContextMap
     }

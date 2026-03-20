@@ -185,8 +185,6 @@ mod discard_experiment;
 
 mod get_config;
 
-mod get_config_fast;
-
 mod get_config_json;
 
 mod get_config_toml;

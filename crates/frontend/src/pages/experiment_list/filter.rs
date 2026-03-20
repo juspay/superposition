@@ -57,6 +57,7 @@ pub(super) fn FilterSummary(
                         && f.status.is_none() && f.experiment_name.is_none()
                         && f.experiment_ids.is_none() && f.dimension_match_strategy.is_none()
                         && f.global_experiments_only.is_none() && f.experiment_group_ids.is_none()
+                        && f.prefix.is_none()
                 });
             let dimension_params_empty = dimension_params_rws.with(|f| f.is_empty());
             !filters_empty || !dimension_params_empty
@@ -151,6 +152,17 @@ pub(super) fn FilterSummary(
                                 .into_view()
                         } else {
                             ().into_view()
+                        }
+                    }}
+                    {move || {
+                        view! {
+                            <ListPills
+                                label="Key prefix"
+                                items=filters_rws.with(|f| f.prefix.clone().unwrap_or_default()).0
+                                on_delete=move |idx| {
+                                    filters_rws.update(|f| f.prefix = filter_index(&f.prefix, idx))
+                                }
+                            />
                         }
                     }}
                     {move || {

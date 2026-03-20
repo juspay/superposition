@@ -73,8 +73,6 @@ pub(crate) mod shape_discard_experiment;
 
 pub(crate) mod shape_get_config;
 
-pub(crate) mod shape_get_config_fast;
-
 pub(crate) mod shape_get_config_json;
 
 pub(crate) mod shape_get_config_toml;
@@ -245,8 +243,6 @@ pub(crate) mod shape_create_workspace_input;
 
 pub(crate) mod shape_discard_experiment_input;
 
-pub(crate) mod shape_get_config_fast_output;
-
 pub(crate) mod shape_get_config_input;
 
 pub(crate) mod shape_get_config_json_output;
@@ -264,6 +260,14 @@ pub(crate) mod shape_get_resolved_config_with_identifier_input;
 pub(crate) mod shape_get_resolved_config_with_identifier_output;
 
 pub(crate) mod shape_internal_server_error;
+
+pub(crate) mod shape_list_experiment_groups_input;
+
+pub(crate) mod shape_list_experiment_groups_output;
+
+pub(crate) mod shape_list_experiment_input;
+
+pub(crate) mod shape_list_experiment_output;
 
 pub(crate) mod shape_pause_experiment_input;
 

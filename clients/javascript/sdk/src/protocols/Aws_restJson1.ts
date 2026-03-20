@@ -108,10 +108,6 @@ import {
   GetConfigCommandOutput,
 } from "../commands/GetConfigCommand";
 import {
-  GetConfigFastCommandInput,
-  GetConfigFastCommandOutput,
-} from "../commands/GetConfigFastCommand";
-import {
   GetConfigJsonCommandInput,
   GetConfigJsonCommandOutput,
 } from "../commands/GetConfigJsonCommand";
@@ -1094,6 +1090,7 @@ export const se_GetConfigCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ims_]: [() => isSerializableHeaderValue(input[_ims]), () => __serializeDateTime(input[_ims]!).toString()],
   });
   b.bp("/config");
   const query: any = map({
@@ -1107,26 +1104,6 @@ export const se_GetConfigCommand = async(
   b.m("POST")
   .h(headers)
   .q(query)
-  .b(body);
-  return b.build();
-}
-
-/**
- * serializeAws_restJson1GetConfigFastCommand
- */
-export const se_GetConfigFastCommand = async(
-  input: GetConfigFastCommandInput,
-  context: __SerdeContext
-): Promise<__HttpRequest> => {
-  const b = rb(input, context);
-  const headers: any = map({}, isSerializableHeaderValue, {
-    [_xw]: input[_wi]!,
-    [_xoi]: input[_oi]!,
-  });
-  b.bp("/config/fast");
-  let body: any;
-  b.m("GET")
-  .h(headers)
   .b(body);
   return b.build();
 }
@@ -1713,10 +1690,12 @@ export const se_ListExperimentCommand = async(
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
+    'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ims_]: [() => isSerializableHeaderValue(input[_ims]), () => __serializeDateTime(input[_ims]!).toString()],
   });
-  b.bp("/experiments");
+  b.bp("/experiments/list");
   const query: any = map({
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
@@ -1732,9 +1711,13 @@ export const se_ListExperimentCommand = async(
     [_sb]: [,input[_sb]!],
     [_geo]: [() => input.global_experiments_only !== void 0, () => (input[_geo]!.toString())],
     [_dms]: [,input[_dms]!],
+    [_p]: [() => input.prefix !== void 0, () => ((input[_p]! || []))],
   });
   let body: any;
-  b.m("GET")
+  body = JSON.stringify(take(input, {
+    'context': _ => se_ContextMap(_, context),
+  }));
+  b.m("POST")
   .h(headers)
   .q(query)
   .b(body);
@@ -1750,10 +1733,12 @@ export const se_ListExperimentGroupsCommand = async(
 ): Promise<__HttpRequest> => {
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
+    'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ims_]: [() => isSerializableHeaderValue(input[_ims]), () => __serializeDateTime(input[_ims]!).toString()],
   });
-  b.bp("/experiment-groups");
+  b.bp("/experiment-groups/list");
   const query: any = map({
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
@@ -1767,7 +1752,10 @@ export const se_ListExperimentGroupsCommand = async(
     [_dms]: [,input[_dms]!],
   });
   let body: any;
-  b.m("GET")
+  body = JSON.stringify(take(input, {
+    'context': _ => se_ContextMap(_, context),
+  }));
+  b.m("POST")
   .h(headers)
   .q(query)
   .b(body);
@@ -3361,7 +3349,6 @@ export const de_GetConfigCommand = async(
     $metadata: deserializeMetadata(output),
     [_v]: [, output.headers[_xcv]],
     [_lm_]: [() => void 0 !== output.headers[_lm], () => __expectNonNull(__parseRfc3339DateTimeWithOffset(output.headers[_lm]))],
-    [_ai]: [, output.headers[_xai]],
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
@@ -3371,28 +3358,6 @@ export const de_GetConfigCommand = async(
     'overrides': _ => de_OverridesMap(_, context),
   });
   Object.assign(contents, doc);
-  return contents;
-}
-
-/**
- * deserializeAws_restJson1GetConfigFastCommand
- */
-export const de_GetConfigFastCommand = async(
-  output: __HttpResponse,
-  context: __SerdeContext
-): Promise<GetConfigFastCommandOutput> => {
-  if (output.statusCode !== 200 && output.statusCode >= 300) {
-    return de_CommandError(output, context);
-  }
-  const contents: any = map({
-    $metadata: deserializeMetadata(output),
-    [_v]: [, output.headers[_xcv]],
-    [_lm_]: [() => void 0 !== output.headers[_lm], () => __expectNonNull(__parseRfc3339DateTimeWithOffset(output.headers[_lm]))],
-    [_ai]: [, output.headers[_xai]],
-  });
-  const data: any = await collectBodyString(output.body, context);
-  contents.config = data;
-  contents.config = JSON.parse(data);
   return contents;
 }
 
@@ -4088,10 +4053,7 @@ export const de_ListExperimentCommand = async(
   }
   const contents: any = map({
     $metadata: deserializeMetadata(output),
-<<<<<<< HEAD
-=======
     [_lm_]: [() => void 0 !== output.headers[_lm], () => __expectNonNull(__parseRfc3339DateTimeWithOffset(output.headers[_lm]))],
->>>>>>> 8fc501b7 (fix: more fixes)
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
@@ -4115,6 +4077,7 @@ export const de_ListExperimentGroupsCommand = async(
   }
   const contents: any = map({
     $metadata: deserializeMetadata(output),
+    [_lm_]: [() => void 0 !== output.headers[_lm], () => __expectNonNull(__parseRfc3339DateTimeWithOffset(output.headers[_lm]))],
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
@@ -6198,6 +6161,8 @@ const de_CommandError = async(
   const _geo = "global_experiments_only";
   const _gt = "group_type";
   const _i = "identifier";
+  const _ims = "if_modified_since";
+  const _ims_ = "if-modified-since";
   const _lm = "last-modified";
   const _lm_ = "last_modified";
   const _lmb = "last_modified_by";
