@@ -1,0 +1,1 @@
+{"title":"Body","body":{"content":{"application/json":{"schema":{"type":"object","properties":{"country_code":{"type":"string"},"contact_email":{"type":"string"},"contact_phone":{"type":"string"},"admin_email":{"type":"string"},"sector":{"type":"string"},"name":{"type":"string"}},"required":["admin_email","name"],"title":"CreateOrganisationRequestContent"}}},"required":true}}
