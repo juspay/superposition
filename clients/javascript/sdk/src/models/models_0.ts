@@ -2099,6 +2099,7 @@ export interface ListExperimentInput {
    */
   dimension_match_strategy?: DimensionMatchStrategy | undefined;
 
+  prefix?: (string)[] | undefined;
   /**
    * Map representing the context.
    * Keys correspond to the names of the dimensions.

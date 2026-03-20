@@ -63,6 +63,8 @@ public final class ListExperimentInput implements SerializableStruct {
                 new HttpQueryTrait("global_experiments_only"))
         .putMember("dimension_match_strategy", DimensionMatchStrategy.$SCHEMA,
                 new HttpQueryTrait("dimension_match_strategy"))
+        .putMember("prefix", SharedSchemas.STRING_LIST,
+                new HttpQueryTrait("prefix"))
         .putMember("context", SharedSchemas.CONTEXT_MAP)
         .build();
 
@@ -83,6 +85,7 @@ public final class ListExperimentInput implements SerializableStruct {
     private static final Schema $SCHEMA_SORT_BY = $SCHEMA.member("sort_by");
     private static final Schema $SCHEMA_GLOBAL_EXPERIMENTS_ONLY = $SCHEMA.member("global_experiments_only");
     private static final Schema $SCHEMA_DIMENSION_MATCH_STRATEGY = $SCHEMA.member("dimension_match_strategy");
+    private static final Schema $SCHEMA_PREFIX = $SCHEMA.member("prefix");
     private static final Schema $SCHEMA_CONTEXT = $SCHEMA.member("context");
 
     private final transient Integer count;
@@ -102,6 +105,7 @@ public final class ListExperimentInput implements SerializableStruct {
     private final transient SortBy sortBy;
     private final transient Boolean globalExperimentsOnly;
     private final transient DimensionMatchStrategy dimensionMatchStrategy;
+    private final transient List<String> prefix;
     private final transient Map<String, Document> context;
 
     private ListExperimentInput(Builder builder) {
@@ -122,6 +126,7 @@ public final class ListExperimentInput implements SerializableStruct {
         this.sortBy = builder.sortBy;
         this.globalExperimentsOnly = builder.globalExperimentsOnly;
         this.dimensionMatchStrategy = builder.dimensionMatchStrategy;
+        this.prefix = builder.prefix == null ? null : Collections.unmodifiableList(builder.prefix);
         this.context = builder.context == null ? null : Collections.unmodifiableMap(builder.context);
     }
 
@@ -235,6 +240,17 @@ public final class ListExperimentInput implements SerializableStruct {
         return dimensionMatchStrategy;
     }
 
+    public List<String> prefix() {
+        if (prefix == null) {
+            return Collections.emptyList();
+        }
+        return prefix;
+    }
+
+    public boolean hasPrefix() {
+        return prefix != null;
+    }
+
     public Map<String, Document> context() {
         if (context == null) {
             return Collections.emptyMap();
@@ -277,12 +293,13 @@ public final class ListExperimentInput implements SerializableStruct {
                && Objects.equals(this.sortBy, that.sortBy)
                && Objects.equals(this.globalExperimentsOnly, that.globalExperimentsOnly)
                && Objects.equals(this.dimensionMatchStrategy, that.dimensionMatchStrategy)
+               && Objects.equals(this.prefix, that.prefix)
                && Objects.equals(this.context, that.context);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(count, page, all, workspaceId, orgId, ifModifiedSince, status, fromDate, toDate, experimentName, experimentIds, experimentGroupIds, createdBy, sortOn, sortBy, globalExperimentsOnly, dimensionMatchStrategy, context);
+        return Objects.hash(count, page, all, workspaceId, orgId, ifModifiedSince, status, fromDate, toDate, experimentName, experimentIds, experimentGroupIds, createdBy, sortOn, sortBy, globalExperimentsOnly, dimensionMatchStrategy, prefix, context);
     }
 
     @Override
@@ -339,6 +356,9 @@ public final class ListExperimentInput implements SerializableStruct {
         if (dimensionMatchStrategy != null) {
             serializer.writeString($SCHEMA_DIMENSION_MATCH_STRATEGY, dimensionMatchStrategy.value());
         }
+        if (prefix != null) {
+            serializer.writeList($SCHEMA_PREFIX, prefix, prefix.size(), SharedSerde.StringListSerializer.INSTANCE);
+        }
         if (context != null) {
             serializer.writeMap($SCHEMA_CONTEXT, context, context.size(), SharedSerde.ContextMapSerializer.INSTANCE);
         }
@@ -365,7 +385,8 @@ public final class ListExperimentInput implements SerializableStruct {
             case 14 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, sortBy);
             case 15 -> (T) SchemaUtils.validateSameMember($SCHEMA_GLOBAL_EXPERIMENTS_ONLY, member, globalExperimentsOnly);
             case 16 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, dimensionMatchStrategy);
-            case 17 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
+            case 17 -> (T) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, prefix);
+            case 18 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -396,6 +417,7 @@ public final class ListExperimentInput implements SerializableStruct {
         builder.sortBy(this.sortBy);
         builder.globalExperimentsOnly(this.globalExperimentsOnly);
         builder.dimensionMatchStrategy(this.dimensionMatchStrategy);
+        builder.prefix(this.prefix);
         builder.context(this.context);
         return builder;
     }
@@ -429,6 +451,7 @@ public final class ListExperimentInput implements SerializableStruct {
         private SortBy sortBy;
         private Boolean globalExperimentsOnly;
         private DimensionMatchStrategy dimensionMatchStrategy;
+        private List<String> prefix;
         private Map<String, Document> context;
 
         private Builder() {}
@@ -591,6 +614,14 @@ public final class ListExperimentInput implements SerializableStruct {
         /**
          * @return this builder.
          */
+        public Builder prefix(List<String> prefix) {
+            this.prefix = prefix;
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
         public Builder context(Map<String, Document> context) {
             this.context = context;
             return this;
@@ -623,7 +654,8 @@ public final class ListExperimentInput implements SerializableStruct {
                 case 14 -> sortBy((SortBy) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, value));
                 case 15 -> globalExperimentsOnly((boolean) SchemaUtils.validateSameMember($SCHEMA_GLOBAL_EXPERIMENTS_ONLY, member, value));
                 case 16 -> dimensionMatchStrategy((DimensionMatchStrategy) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, value));
-                case 17 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
+                case 17 -> prefix((List<String>) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, value));
+                case 18 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -677,7 +709,8 @@ public final class ListExperimentInput implements SerializableStruct {
                     case 14 -> builder.sortBy(SortBy.builder().deserializeMember(de, member).build());
                     case 15 -> builder.globalExperimentsOnly(de.readBoolean(member));
                     case 16 -> builder.dimensionMatchStrategy(DimensionMatchStrategy.builder().deserializeMember(de, member).build());
-                    case 17 -> builder.context(SharedSerde.deserializeContextMap(member, de));
+                    case 17 -> builder.prefix(SharedSerde.deserializeStringList(member, de));
+                    case 18 -> builder.context(SharedSerde.deserializeContextMap(member, de));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

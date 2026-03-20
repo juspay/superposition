@@ -10865,6 +10865,7 @@ class ListExperimentInput:
     sort_by: str | None = None
     global_experiments_only: bool | None = None
     dimension_match_strategy: str | None = None
+    prefix: list[str] | None = None
     context: dict[str, Document] | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -10936,6 +10937,9 @@ class ListExperimentInput:
                     kwargs["dimension_match_strategy"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["dimension_match_strategy"])
 
                 case 17:
+                    kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["prefix"])
+
+                case 18:
                     kwargs["context"] = _deserialize_context_map(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["context"])
 
                 case _:

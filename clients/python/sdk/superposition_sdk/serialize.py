@@ -1956,6 +1956,8 @@ async def _serialize_list_experiment(input: ListExperimentInput, config: Config)
         query_params.append(("global_experiments_only", ('true' if input.global_experiments_only else 'false')))
     if input.dimension_match_strategy is not None:
         query_params.append(("dimension_match_strategy", input.dimension_match_strategy))
+    if input.prefix is not None:
+        query_params.extend(("prefix", e) for e in input.prefix)
 
     query = join_query_params(params=query_params, prefix=query)
 

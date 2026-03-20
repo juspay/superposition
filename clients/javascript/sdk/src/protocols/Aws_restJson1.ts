@@ -1711,6 +1711,7 @@ export const se_ListExperimentCommand = async(
     [_sb]: [,input[_sb]!],
     [_geo]: [() => input.global_experiments_only !== void 0, () => (input[_geo]!.toString())],
     [_dms]: [,input[_dms]!],
+    [_p]: [() => input.prefix !== void 0, () => ((input[_p]! || []))],
   });
   let body: any;
   body = JSON.stringify(take(input, {

@@ -16,6 +16,7 @@ module Io.Superposition.Model.ListExperimentInput (
     setSortBy,
     setGlobalExperimentsOnly,
     setDimensionMatchStrategy,
+    setPrefix,
     setContext,
     build,
     ListExperimentInputBuilder,
@@ -37,6 +38,7 @@ module Io.Superposition.Model.ListExperimentInput (
     sort_by,
     global_experiments_only,
     dimension_match_strategy,
+    prefix,
     context
 ) where
 import qualified Control.Applicative
@@ -77,6 +79,7 @@ data ListExperimentInput = ListExperimentInput {
     sort_by :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy,
     global_experiments_only :: Data.Maybe.Maybe Bool,
     dimension_match_strategy :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMatchStrategy.DimensionMatchStrategy,
+    prefix :: Data.Maybe.Maybe ([] Data.Text.Text),
     context :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value)
 } deriving (
   GHC.Show.Show,
@@ -103,6 +106,7 @@ instance Data.Aeson.ToJSON ListExperimentInput where
         "sort_by" Data.Aeson..= sort_by a,
         "global_experiments_only" Data.Aeson..= global_experiments_only a,
         "dimension_match_strategy" Data.Aeson..= dimension_match_strategy a,
+        "prefix" Data.Aeson..= prefix a,
         "context" Data.Aeson..= context a
         ]
     
@@ -128,6 +132,7 @@ instance Data.Aeson.FromJSON ListExperimentInput where
         Control.Applicative.<*> (v Data.Aeson..:? "sort_by")
         Control.Applicative.<*> (v Data.Aeson..:? "global_experiments_only")
         Control.Applicative.<*> (v Data.Aeson..:? "dimension_match_strategy")
+        Control.Applicative.<*> (v Data.Aeson..:? "prefix")
         Control.Applicative.<*> (v Data.Aeson..:? "context")
     
 
@@ -151,6 +156,7 @@ data ListExperimentInputBuilderState = ListExperimentInputBuilderState {
     sort_byBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy,
     global_experiments_onlyBuilderState :: Data.Maybe.Maybe Bool,
     dimension_match_strategyBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMatchStrategy.DimensionMatchStrategy,
+    prefixBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     contextBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value)
 } deriving (
   GHC.Generics.Generic
@@ -175,6 +181,7 @@ defaultBuilderState = ListExperimentInputBuilderState {
     sort_byBuilderState = Data.Maybe.Nothing,
     global_experiments_onlyBuilderState = Data.Maybe.Nothing,
     dimension_match_strategyBuilderState = Data.Maybe.Nothing,
+    prefixBuilderState = Data.Maybe.Nothing,
     contextBuilderState = Data.Maybe.Nothing
 }
 
@@ -248,6 +255,10 @@ setDimensionMatchStrategy :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMa
 setDimensionMatchStrategy value =
    Control.Monad.State.Strict.modify (\s -> (s { dimension_match_strategyBuilderState = value }))
 
+setPrefix :: Data.Maybe.Maybe ([] Data.Text.Text) -> ListExperimentInputBuilder ()
+setPrefix value =
+   Control.Monad.State.Strict.modify (\s -> (s { prefixBuilderState = value }))
+
 setContext :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value) -> ListExperimentInputBuilder ()
 setContext value =
    Control.Monad.State.Strict.modify (\s -> (s { contextBuilderState = value }))
@@ -272,6 +283,7 @@ build builder = do
     sort_by' <- Data.Either.Right (sort_byBuilderState st)
     global_experiments_only' <- Data.Either.Right (global_experiments_onlyBuilderState st)
     dimension_match_strategy' <- Data.Either.Right (dimension_match_strategyBuilderState st)
+    prefix' <- Data.Either.Right (prefixBuilderState st)
     context' <- Data.Either.Right (contextBuilderState st)
     Data.Either.Right (ListExperimentInput { 
         count = count',
@@ -291,6 +303,7 @@ build builder = do
         sort_by = sort_by',
         global_experiments_only = global_experiments_only',
         dimension_match_strategy = dimension_match_strategy',
+        prefix = prefix',
         context = context'
     })
 
@@ -305,6 +318,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder ListExperimentInput where
         Io.Superposition.Utility.serQuery "all" (all' self)
         Io.Superposition.Utility.serQuery "experiment_name" (experiment_name self)
         Io.Superposition.Utility.serQuery "from_date" (from_date self)
+        Io.Superposition.Utility.serQuery "prefix" (prefix self)
         Io.Superposition.Utility.serQuery "count" (count self)
         Io.Superposition.Utility.serQuery "experiment_ids" (experiment_ids self)
         Io.Superposition.Utility.serQuery "global_experiments_only" (global_experiments_only self)

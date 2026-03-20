@@ -214,6 +214,13 @@ fn uri_query(_input: &crate::operation::list_experiment::ListExperimentInput, mu
             query.push_kv("dimension_match_strategy", &::aws_smithy_http::query::fmt_string(inner_18));
         }
     }
+    if let ::std::option::Option::Some(inner_19) = &_input.prefix {
+         {
+            for inner_20 in inner_19 {
+                query.push_kv("prefix", &::aws_smithy_http::query::fmt_string(inner_20));
+            }
+        }
+    }
     ::std::result::Result::Ok(())
 }
 #[allow(clippy::unnecessary_wraps)]

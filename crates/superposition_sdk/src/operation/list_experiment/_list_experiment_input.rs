@@ -37,6 +37,8 @@ pub struct ListExperimentInput  {
     pub global_experiments_only: ::std::option::Option<bool>,
     /// Strategy to follow while filter items based on the context
     pub dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     /// Map representing the context. Keys correspond to the names of the dimensions.
     pub context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
 }
@@ -121,6 +123,13 @@ impl  ListExperimentInput  {
     pub fn dimension_match_strategy(&self) -> ::std::option::Option<&crate::types::DimensionMatchStrategy> {
         self.dimension_match_strategy.as_ref()
     }
+    #[allow(missing_docs)] // documentation missing in model
+    /// 
+    /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.prefix.is_none()`.
+    pub fn prefix(&self) -> &[::std::string::String] {
+        self.prefix.as_deref()
+        .unwrap_or_default()
+    }
     /// Map representing the context. Keys correspond to the names of the dimensions.
     pub fn context(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
         self.context.as_ref()
@@ -154,6 +163,7 @@ pub struct ListExperimentInputBuilder {
     pub(crate) sort_by: ::std::option::Option<crate::types::SortBy>,
     pub(crate) global_experiments_only: ::std::option::Option<bool>,
     pub(crate) dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
+    pub(crate) prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     pub(crate) context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
 }
 impl ListExperimentInputBuilder {
@@ -400,6 +410,24 @@ impl ListExperimentInputBuilder {
     pub fn get_dimension_match_strategy(&self) -> &::std::option::Option<crate::types::DimensionMatchStrategy> {
         &self.dimension_match_strategy
     }
+    /// Appends an item to `prefix`.
+    ///
+    /// To override the contents of this collection use [`set_prefix`](Self::set_prefix).
+    ///
+    pub fn prefix(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        let mut v = self.prefix.unwrap_or_default();
+                        v.push(input.into());
+                        self.prefix = ::std::option::Option::Some(v);
+                        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_prefix(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
+        self.prefix = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_prefix(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+        &self.prefix
+    }
     /// Adds a key-value pair to `context`.
     ///
     /// To override the contents of this collection use [`set_context`](Self::set_context).
@@ -456,6 +484,8 @@ impl ListExperimentInputBuilder {
                 global_experiments_only: self.global_experiments_only
                 ,
                 dimension_match_strategy: self.dimension_match_strategy
+                ,
+                prefix: self.prefix
                 ,
                 context: self.context
                 ,

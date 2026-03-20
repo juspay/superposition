@@ -10922,9 +10922,19 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
             ],
         },
 
+        "prefix": {
+            "target": STRING_LIST,
+            "index": 17,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="prefix"),
+
+            ],
+        },
+
         "context": {
             "target": CONTEXT_MAP,
-            "index": 17,
+            "index": 18,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
