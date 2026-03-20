@@ -22,7 +22,7 @@ public final class ListExperimentGroups implements ApiOperation<ListExperimentGr
     private static final ListExperimentGroups $INSTANCE = new ListExperimentGroups();
 
     static final Schema $SCHEMA = Schema.createOperation($ID,
-            HttpTrait.builder().method("GET").code(200).uri(UriPattern.parse("/experiment-groups")).build());
+            HttpTrait.builder().method("POST").code(200).uri(UriPattern.parse("/experiment-groups/list")).build());
 
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
         .putType(InternalServerError.$ID, InternalServerError.class, InternalServerError::builder)

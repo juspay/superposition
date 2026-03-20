@@ -5,7 +5,6 @@ module Io.Superposition.Model.GetConfigOutput (
     setDimensions,
     setVersion,
     setLastModified,
-    setAuditId,
     build,
     GetConfigOutputBuilder,
     GetConfigOutput,
@@ -14,8 +13,7 @@ module Io.Superposition.Model.GetConfigOutput (
     default_configs,
     dimensions,
     version,
-    last_modified,
-    audit_id
+    last_modified
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad.State.Strict
@@ -40,8 +38,7 @@ data GetConfigOutput = GetConfigOutput {
     default_configs :: Data.Map.Map Data.Text.Text Data.Aeson.Value,
     dimensions :: Data.Map.Map Data.Text.Text Io.Superposition.Model.DimensionInfo.DimensionInfo,
     version :: Data.Text.Text,
-    last_modified :: Data.Time.UTCTime,
-    audit_id :: Data.Maybe.Maybe Data.Text.Text
+    last_modified :: Data.Time.UTCTime
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -55,8 +52,7 @@ instance Data.Aeson.ToJSON GetConfigOutput where
         "default_configs" Data.Aeson..= default_configs a,
         "dimensions" Data.Aeson..= dimensions a,
         "version" Data.Aeson..= version a,
-        "last_modified" Data.Aeson..= last_modified a,
-        "audit_id" Data.Aeson..= audit_id a
+        "last_modified" Data.Aeson..= last_modified a
         ]
     
 
@@ -70,7 +66,6 @@ instance Data.Aeson.FromJSON GetConfigOutput where
         Control.Applicative.<*> (v Data.Aeson..: "dimensions")
         Control.Applicative.<*> (v Data.Aeson..: "version")
         Control.Applicative.<*> (v Data.Aeson..: "last_modified")
-        Control.Applicative.<*> (v Data.Aeson..:? "audit_id")
     
 
 
@@ -81,8 +76,7 @@ data GetConfigOutputBuilderState = GetConfigOutputBuilderState {
     default_configsBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
     dimensionsBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Io.Superposition.Model.DimensionInfo.DimensionInfo),
     versionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    last_modifiedBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
-    audit_idBuilderState :: Data.Maybe.Maybe Data.Text.Text
+    last_modifiedBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime
 } deriving (
   GHC.Generics.Generic
   )
@@ -94,8 +88,7 @@ defaultBuilderState = GetConfigOutputBuilderState {
     default_configsBuilderState = Data.Maybe.Nothing,
     dimensionsBuilderState = Data.Maybe.Nothing,
     versionBuilderState = Data.Maybe.Nothing,
-    last_modifiedBuilderState = Data.Maybe.Nothing,
-    audit_idBuilderState = Data.Maybe.Nothing
+    last_modifiedBuilderState = Data.Maybe.Nothing
 }
 
 type GetConfigOutputBuilder = Control.Monad.State.Strict.State GetConfigOutputBuilderState
@@ -124,10 +117,6 @@ setLastModified :: Data.Time.UTCTime -> GetConfigOutputBuilder ()
 setLastModified value =
    Control.Monad.State.Strict.modify (\s -> (s { last_modifiedBuilderState = Data.Maybe.Just value }))
 
-setAuditId :: Data.Maybe.Maybe Data.Text.Text -> GetConfigOutputBuilder ()
-setAuditId value =
-   Control.Monad.State.Strict.modify (\s -> (s { audit_idBuilderState = value }))
-
 build :: GetConfigOutputBuilder () -> Data.Either.Either Data.Text.Text GetConfigOutput
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
@@ -137,35 +126,31 @@ build builder = do
     dimensions' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetConfigOutput.GetConfigOutput.dimensions is a required property.") Data.Either.Right (dimensionsBuilderState st)
     version' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetConfigOutput.GetConfigOutput.version is a required property.") Data.Either.Right (versionBuilderState st)
     last_modified' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetConfigOutput.GetConfigOutput.last_modified is a required property.") Data.Either.Right (last_modifiedBuilderState st)
-    audit_id' <- Data.Either.Right (audit_idBuilderState st)
     Data.Either.Right (GetConfigOutput { 
         contexts = contexts',
         overrides = overrides',
         default_configs = default_configs',
         dimensions = dimensions',
         version = version',
-        last_modified = last_modified',
-        audit_id = audit_id'
+        last_modified = last_modified'
     })
 
 
 instance Io.Superposition.Utility.FromResponseParser GetConfigOutput where
     expectedStatus = Network.HTTP.Types.status200
     responseParser = do
-        var0 <- Io.Superposition.Utility.deSerHeader "x-audit-id"
-        var1 <- Io.Superposition.Utility.deSerHeader "x-config-version"
-        var2 <- Io.Superposition.Utility.deSerHeader "last-modified"
-        var3 <- Io.Superposition.Utility.deSerField "contexts"
-        var4 <- Io.Superposition.Utility.deSerField "overrides"
-        var5 <- Io.Superposition.Utility.deSerField "default_configs"
-        var6 <- Io.Superposition.Utility.deSerField "dimensions"
+        var0 <- Io.Superposition.Utility.deSerHeader "x-config-version"
+        var1 <- Io.Superposition.Utility.deSerHeader "last-modified"
+        var2 <- Io.Superposition.Utility.deSerField "contexts"
+        var3 <- Io.Superposition.Utility.deSerField "overrides"
+        var4 <- Io.Superposition.Utility.deSerField "default_configs"
+        var5 <- Io.Superposition.Utility.deSerField "dimensions"
         pure $ GetConfigOutput {
-            contexts = var3,
-            overrides = var4,
-            default_configs = var5,
-            dimensions = var6,
-            version = var1,
-            last_modified = var2,
-            audit_id = var0
+            contexts = var2,
+            overrides = var3,
+            default_configs = var4,
+            dimensions = var5,
+            version = var0,
+            last_modified = var1
         }
 

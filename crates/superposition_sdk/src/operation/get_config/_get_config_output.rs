@@ -15,8 +15,6 @@ pub struct GetConfigOutput  {
     pub version: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
     pub last_modified: ::aws_smithy_types::DateTime,
-    #[allow(missing_docs)] // documentation missing in model
-    pub audit_id: ::std::option::Option<::std::string::String>,
 }
 impl  GetConfigOutput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -43,10 +41,6 @@ impl  GetConfigOutput  {
     pub fn last_modified(&self) -> &::aws_smithy_types::DateTime {
         &self.last_modified
     }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn audit_id(&self) -> ::std::option::Option<&str> {
-        self.audit_id.as_deref()
-    }
 }
 impl GetConfigOutput {
     /// Creates a new builder-style object to manufacture [`GetConfigOutput`](crate::operation::get_config::GetConfigOutput).
@@ -65,7 +59,6 @@ pub struct GetConfigOutputBuilder {
     pub(crate) dimensions: ::std::option::Option<::std::collections::HashMap::<::std::string::String, crate::types::DimensionInfo>>,
     pub(crate) version: ::std::option::Option<::std::string::String>,
     pub(crate) last_modified: ::std::option::Option<::aws_smithy_types::DateTime>,
-    pub(crate) audit_id: ::std::option::Option<::std::string::String>,
 }
 impl GetConfigOutputBuilder {
     /// Appends an item to `contexts`.
@@ -169,19 +162,6 @@ impl GetConfigOutputBuilder {
     pub fn get_last_modified(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
         &self.last_modified
     }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn audit_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.audit_id = ::std::option::Option::Some(input.into());
-        self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn set_audit_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.audit_id = input; self
-    }
-    #[allow(missing_docs)] // documentation missing in model
-    pub fn get_audit_id(&self) -> &::std::option::Option<::std::string::String> {
-        &self.audit_id
-    }
     /// Consumes the builder and constructs a [`GetConfigOutput`](crate::operation::get_config::GetConfigOutput).
     /// This method will fail if any of the following fields are not set:
     /// - [`contexts`](crate::operation::get_config::builders::GetConfigOutputBuilder::contexts)
@@ -222,8 +202,6 @@ impl GetConfigOutputBuilder {
                     .ok_or_else(||
                         ::aws_smithy_types::error::operation::BuildError::missing_field("last_modified", "last_modified was not specified but it is required when building GetConfigOutput")
                     )?
-                ,
-                audit_id: self.audit_id
                 ,
             }
         )

@@ -9,6 +9,8 @@ pub struct ListExperimentGroupsOutput  {
     pub total_items: i32,
     /// A list of experiment group responses.
     pub data: ::std::vec::Vec::<crate::types::ExperimentGroupResponse>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub last_modified: ::aws_smithy_types::DateTime,
 }
 impl  ListExperimentGroupsOutput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -22,6 +24,10 @@ impl  ListExperimentGroupsOutput  {
     /// A list of experiment group responses.
     pub fn data(&self) -> &[crate::types::ExperimentGroupResponse] {
         use std::ops::Deref; self.data.deref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn last_modified(&self) -> &::aws_smithy_types::DateTime {
+        &self.last_modified
     }
 }
 impl ListExperimentGroupsOutput {
@@ -38,6 +44,7 @@ pub struct ListExperimentGroupsOutputBuilder {
     pub(crate) total_pages: ::std::option::Option<i32>,
     pub(crate) total_items: ::std::option::Option<i32>,
     pub(crate) data: ::std::option::Option<::std::vec::Vec::<crate::types::ExperimentGroupResponse>>,
+    pub(crate) last_modified: ::std::option::Option<::aws_smithy_types::DateTime>,
 }
 impl ListExperimentGroupsOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -87,11 +94,26 @@ impl ListExperimentGroupsOutputBuilder {
     pub fn get_data(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::ExperimentGroupResponse>> {
         &self.data
     }
+    #[allow(missing_docs)] // documentation missing in model
+    /// This field is required.
+    pub fn last_modified(mut self, input: ::aws_smithy_types::DateTime) -> Self {
+        self.last_modified = ::std::option::Option::Some(input);
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_last_modified(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
+        self.last_modified = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_last_modified(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
+        &self.last_modified
+    }
     /// Consumes the builder and constructs a [`ListExperimentGroupsOutput`](crate::operation::list_experiment_groups::ListExperimentGroupsOutput).
     /// This method will fail if any of the following fields are not set:
     /// - [`total_pages`](crate::operation::list_experiment_groups::builders::ListExperimentGroupsOutputBuilder::total_pages)
     /// - [`total_items`](crate::operation::list_experiment_groups::builders::ListExperimentGroupsOutputBuilder::total_items)
     /// - [`data`](crate::operation::list_experiment_groups::builders::ListExperimentGroupsOutputBuilder::data)
+    /// - [`last_modified`](crate::operation::list_experiment_groups::builders::ListExperimentGroupsOutputBuilder::last_modified)
     pub fn build(self) -> ::std::result::Result<crate::operation::list_experiment_groups::ListExperimentGroupsOutput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
             crate::operation::list_experiment_groups::ListExperimentGroupsOutput {
@@ -108,6 +130,11 @@ impl ListExperimentGroupsOutputBuilder {
                 data: self.data
                     .ok_or_else(||
                         ::aws_smithy_types::error::operation::BuildError::missing_field("data", "data was not specified but it is required when building ListExperimentGroupsOutput")
+                    )?
+                ,
+                last_modified: self.last_modified
+                    .ok_or_else(||
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("last_modified", "last_modified was not specified but it is required when building ListExperimentGroupsOutput")
                     )?
                 ,
             }

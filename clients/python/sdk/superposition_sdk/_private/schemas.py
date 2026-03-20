@@ -1717,8 +1717,6 @@ GET_CONFIG_INPUT = Schema.collection(
             ],
         },
 
-<<<<<<< HEAD
-=======
         "if_modified_since": {
             "target": DATE_TIME,
             "index": 4,
@@ -1729,10 +1727,9 @@ GET_CONFIG_INPUT = Schema.collection(
             ],
         },
 
->>>>>>> 8fc501b7 (fix: more fixes)
         "context": {
             "target": CONTEXT_MAP,
-            "index": 4,
+            "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
@@ -2031,16 +2028,6 @@ GET_CONFIG_OUTPUT = Schema.collection(
             ],
         },
 
-        "audit_id": {
-            "target": STRING,
-            "index": 6,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-audit-id"),
-                Trait.new(id=ShapeID("smithy.api#notProperty")),
-
-            ],
-        },
-
     }
 )
 
@@ -2054,102 +2041,6 @@ GET_CONFIG = Schema(
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "POST",
                 "uri": "/config",
-            })),
-
-    ],
-
-)
-
-GET_CONFIG_FAST_INPUT = Schema.collection(
-    id=ShapeID("io.superposition#GetConfigFastInput"),
-
-    traits=[
-        Trait.new(id=ShapeID("smithy.api#input")),
-
-    ],
-    members={
-        "workspace_id": {
-            "target": STRING,
-            "index": 0,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-workspace"),
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
-        "org_id": {
-            "target": STRING,
-            "index": 1,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
-    }
-)
-
-GET_CONFIG_FAST_OUTPUT = Schema.collection(
-    id=ShapeID("io.superposition#GetConfigFastOutput"),
-
-    traits=[
-        Trait.new(id=ShapeID("smithy.api#output")),
-
-    ],
-    members={
-        "config": {
-            "target": DOCUMENT,
-            "index": 0,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#httpPayload")),
-
-            ],
-        },
-
-        "version": {
-            "target": STRING,
-            "index": 1,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-config-version"),
-                Trait.new(id=ShapeID("smithy.api#notProperty")),
-
-            ],
-        },
-
-        "last_modified": {
-            "target": DATE_TIME,
-            "index": 2,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="last-modified"),
-
-            ],
-        },
-
-        "audit_id": {
-            "target": STRING,
-            "index": 3,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-audit-id"),
-                Trait.new(id=ShapeID("smithy.api#notProperty")),
-
-            ],
-        },
-
-    }
-)
-
-GET_CONFIG_FAST = Schema(
-    id=ShapeID("io.superposition#GetConfigFast"),
-    shape_type=ShapeType.OPERATION,
-    traits=[
-        Trait.new(id=ShapeID("smithy.api#tags"), value=(
-                "Configuration Management",
-            )),
-        Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
-                "method": "GET",
-                "uri": "/config/fast",
             })),
 
     ],
@@ -9673,8 +9564,6 @@ LIST_EXPERIMENT_GROUPS_INPUT = Schema.collection(
             ],
         },
 
-<<<<<<< HEAD
-=======
         "if_modified_since": {
             "target": DATE_TIME,
             "index": 5,
@@ -9685,10 +9574,9 @@ LIST_EXPERIMENT_GROUPS_INPUT = Schema.collection(
             ],
         },
 
->>>>>>> 8fc501b7 (fix: more fixes)
         "name": {
             "target": STRING,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="name"),
 
@@ -9697,7 +9585,7 @@ LIST_EXPERIMENT_GROUPS_INPUT = Schema.collection(
 
         "created_by": {
             "target": STRING,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="created_by"),
 
@@ -9706,7 +9594,7 @@ LIST_EXPERIMENT_GROUPS_INPUT = Schema.collection(
 
         "last_modified_by": {
             "target": STRING,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="last_modified_by"),
 
@@ -9715,7 +9603,7 @@ LIST_EXPERIMENT_GROUPS_INPUT = Schema.collection(
 
         "sort_on": {
             "target": EXPERIMENT_GROUP_SORT_ON,
-            "index": 8,
+            "index": 9,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="sort_on"),
@@ -9725,7 +9613,7 @@ LIST_EXPERIMENT_GROUPS_INPUT = Schema.collection(
 
         "sort_by": {
             "target": SORT_BY,
-            "index": 9,
+            "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="sort_by"),
@@ -9735,15 +9623,13 @@ LIST_EXPERIMENT_GROUPS_INPUT = Schema.collection(
 
         "group_type": {
             "target": GROUP_TYPE_LIST,
-            "index": 10,
+            "index": 11,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="group_type"),
 
             ],
         },
 
-<<<<<<< HEAD
-=======
         "dimension_match_strategy": {
             "target": DIMENSION_MATCH_STRATEGY,
             "index": 12,
@@ -9763,7 +9649,6 @@ LIST_EXPERIMENT_GROUPS_INPUT = Schema.collection(
             ],
         },
 
->>>>>>> 8fc501b7 (fix: more fixes)
     }
 )
 
@@ -9951,6 +9836,16 @@ LIST_EXPERIMENT_GROUPS_OUTPUT = Schema.collection(
             ],
         },
 
+        "last_modified": {
+            "target": DATE_TIME,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="last-modified"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
     }
 )
 
@@ -9962,10 +9857,9 @@ LIST_EXPERIMENT_GROUPS = Schema(
                 "Experiment Groups",
             )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
-                "method": "GET",
-                "uri": "/experiment-groups",
+                "method": "POST",
+                "uri": "/experiment-groups/list",
             })),
-        Trait.new(id=ShapeID("smithy.api#readonly")),
 
     ],
 
@@ -10909,8 +10803,6 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
             ],
         },
 
-<<<<<<< HEAD
-=======
         "if_modified_since": {
             "target": DATE_TIME,
             "index": 5,
@@ -10921,10 +10813,9 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
             ],
         },
 
->>>>>>> 8fc501b7 (fix: more fixes)
         "status": {
             "target": EXPERIMENT_STATUS_TYPE_LIST,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="status"),
 
@@ -10933,7 +10824,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
 
         "from_date": {
             "target": DATE_TIME,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="from_date"),
@@ -10943,7 +10834,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
 
         "to_date": {
             "target": DATE_TIME,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="to_date"),
@@ -10953,7 +10844,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
 
         "experiment_name": {
             "target": STRING,
-            "index": 8,
+            "index": 9,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="experiment_name"),
@@ -10963,7 +10854,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
 
         "experiment_ids": {
             "target": STRING_LIST,
-            "index": 9,
+            "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="experiment_ids"),
@@ -10973,7 +10864,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
 
         "experiment_group_ids": {
             "target": STRING_LIST,
-            "index": 10,
+            "index": 11,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="experiment_group_ids"),
@@ -10983,7 +10874,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
 
         "created_by": {
             "target": STRING_LIST,
-            "index": 11,
+            "index": 12,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="created_by"),
@@ -10993,7 +10884,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
 
         "sort_on": {
             "target": EXPERIMENT_SORT_ON,
-            "index": 12,
+            "index": 13,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="sort_on"),
@@ -11003,7 +10894,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
 
         "sort_by": {
             "target": SORT_BY,
-            "index": 13,
+            "index": 14,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="sort_by"),
@@ -11013,7 +10904,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
 
         "global_experiments_only": {
             "target": BOOLEAN,
-            "index": 14,
+            "index": 15,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="global_experiments_only"),
@@ -11023,10 +10914,29 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
 
         "dimension_match_strategy": {
             "target": DIMENSION_MATCH_STRATEGY,
-            "index": 15,
+            "index": 16,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="dimension_match_strategy"),
+
+            ],
+        },
+
+        "prefix": {
+            "target": STRING_LIST,
+            "index": 17,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="prefix"),
+
+            ],
+        },
+
+        "context": {
+            "target": CONTEXT_MAP,
+            "index": 18,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
 
             ],
         },
@@ -11069,8 +10979,6 @@ LIST_EXPERIMENT_OUTPUT = Schema.collection(
             ],
         },
 
-<<<<<<< HEAD
-=======
         "last_modified": {
             "target": DATE_TIME,
             "index": 3,
@@ -11081,7 +10989,6 @@ LIST_EXPERIMENT_OUTPUT = Schema.collection(
             ],
         },
 
->>>>>>> 8fc501b7 (fix: more fixes)
     }
 )
 
@@ -11093,10 +11000,9 @@ LIST_EXPERIMENT = Schema(
                 "Experimentation",
             )),
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
-                "method": "GET",
-                "uri": "/experiments",
+                "method": "POST",
+                "uri": "/experiments/list",
             })),
-        Trait.new(id=ShapeID("smithy.api#readonly")),
 
     ],
 

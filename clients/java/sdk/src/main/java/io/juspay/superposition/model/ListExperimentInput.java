@@ -4,6 +4,7 @@ package io.juspay.superposition.model;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import software.amazon.smithy.java.core.schema.PreludeSchemas;
 import software.amazon.smithy.java.core.schema.PresenceTracker;
@@ -14,6 +15,7 @@ import software.amazon.smithy.java.core.schema.ShapeBuilder;
 import software.amazon.smithy.java.core.serde.ShapeDeserializer;
 import software.amazon.smithy.java.core.serde.ShapeSerializer;
 import software.amazon.smithy.java.core.serde.ToStringSerializer;
+import software.amazon.smithy.java.core.serde.document.Document;
 import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpHeaderTrait;
 import software.amazon.smithy.model.traits.HttpQueryTrait;
@@ -37,11 +39,8 @@ public final class ListExperimentInput implements SerializableStruct {
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
-<<<<<<< HEAD
-=======
         .putMember("if_modified_since", SharedSchemas.DATE_TIME,
                 new HttpHeaderTrait("if-modified-since"))
->>>>>>> 8fc501b7 (fix: more fixes)
         .putMember("status", SharedSchemas.EXPERIMENT_STATUS_TYPE_LIST,
                 new HttpQueryTrait("status"))
         .putMember("from_date", SharedSchemas.DATE_TIME,
@@ -64,6 +63,9 @@ public final class ListExperimentInput implements SerializableStruct {
                 new HttpQueryTrait("global_experiments_only"))
         .putMember("dimension_match_strategy", DimensionMatchStrategy.$SCHEMA,
                 new HttpQueryTrait("dimension_match_strategy"))
+        .putMember("prefix", SharedSchemas.STRING_LIST,
+                new HttpQueryTrait("prefix"))
+        .putMember("context", SharedSchemas.CONTEXT_MAP)
         .build();
 
     private static final Schema $SCHEMA_COUNT = $SCHEMA.member("count");
@@ -71,6 +73,7 @@ public final class ListExperimentInput implements SerializableStruct {
     private static final Schema $SCHEMA_ALL = $SCHEMA.member("all");
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
+    private static final Schema $SCHEMA_IF_MODIFIED_SINCE = $SCHEMA.member("if_modified_since");
     private static final Schema $SCHEMA_STATUS = $SCHEMA.member("status");
     private static final Schema $SCHEMA_FROM_DATE = $SCHEMA.member("from_date");
     private static final Schema $SCHEMA_TO_DATE = $SCHEMA.member("to_date");
@@ -82,12 +85,15 @@ public final class ListExperimentInput implements SerializableStruct {
     private static final Schema $SCHEMA_SORT_BY = $SCHEMA.member("sort_by");
     private static final Schema $SCHEMA_GLOBAL_EXPERIMENTS_ONLY = $SCHEMA.member("global_experiments_only");
     private static final Schema $SCHEMA_DIMENSION_MATCH_STRATEGY = $SCHEMA.member("dimension_match_strategy");
+    private static final Schema $SCHEMA_PREFIX = $SCHEMA.member("prefix");
+    private static final Schema $SCHEMA_CONTEXT = $SCHEMA.member("context");
 
     private final transient Integer count;
     private final transient Integer page;
     private final transient Boolean all;
     private final transient String workspaceId;
     private final transient String orgId;
+    private final transient Instant ifModifiedSince;
     private final transient List<ExperimentStatusType> status;
     private final transient Instant fromDate;
     private final transient Instant toDate;
@@ -99,6 +105,8 @@ public final class ListExperimentInput implements SerializableStruct {
     private final transient SortBy sortBy;
     private final transient Boolean globalExperimentsOnly;
     private final transient DimensionMatchStrategy dimensionMatchStrategy;
+    private final transient List<String> prefix;
+    private final transient Map<String, Document> context;
 
     private ListExperimentInput(Builder builder) {
         this.count = builder.count;
@@ -106,6 +114,7 @@ public final class ListExperimentInput implements SerializableStruct {
         this.all = builder.all;
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
+        this.ifModifiedSince = builder.ifModifiedSince;
         this.status = builder.status == null ? null : Collections.unmodifiableList(builder.status);
         this.fromDate = builder.fromDate;
         this.toDate = builder.toDate;
@@ -117,6 +126,8 @@ public final class ListExperimentInput implements SerializableStruct {
         this.sortBy = builder.sortBy;
         this.globalExperimentsOnly = builder.globalExperimentsOnly;
         this.dimensionMatchStrategy = builder.dimensionMatchStrategy;
+        this.prefix = builder.prefix == null ? null : Collections.unmodifiableList(builder.prefix);
+        this.context = builder.context == null ? null : Collections.unmodifiableMap(builder.context);
     }
 
     /**
@@ -146,6 +157,15 @@ public final class ListExperimentInput implements SerializableStruct {
 
     public String orgId() {
         return orgId;
+    }
+
+    /**
+     * While using this, 304 response is treated as error, which needs to be handled separately by checking
+     * the response code of the http response. This is required to make sure that clients can cache the
+     * response and avoid unnecessary calls when there are no updates.
+     */
+    public Instant ifModifiedSince() {
+        return ifModifiedSince;
     }
 
     public List<ExperimentStatusType> status() {
@@ -220,6 +240,28 @@ public final class ListExperimentInput implements SerializableStruct {
         return dimensionMatchStrategy;
     }
 
+    public List<String> prefix() {
+        if (prefix == null) {
+            return Collections.emptyList();
+        }
+        return prefix;
+    }
+
+    public boolean hasPrefix() {
+        return prefix != null;
+    }
+
+    public Map<String, Document> context() {
+        if (context == null) {
+            return Collections.emptyMap();
+        }
+        return context;
+    }
+
+    public boolean hasContext() {
+        return context != null;
+    }
+
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -239,6 +281,7 @@ public final class ListExperimentInput implements SerializableStruct {
                && Objects.equals(this.all, that.all)
                && Objects.equals(this.workspaceId, that.workspaceId)
                && Objects.equals(this.orgId, that.orgId)
+               && Objects.equals(this.ifModifiedSince, that.ifModifiedSince)
                && Objects.equals(this.status, that.status)
                && Objects.equals(this.fromDate, that.fromDate)
                && Objects.equals(this.toDate, that.toDate)
@@ -249,12 +292,14 @@ public final class ListExperimentInput implements SerializableStruct {
                && Objects.equals(this.sortOn, that.sortOn)
                && Objects.equals(this.sortBy, that.sortBy)
                && Objects.equals(this.globalExperimentsOnly, that.globalExperimentsOnly)
-               && Objects.equals(this.dimensionMatchStrategy, that.dimensionMatchStrategy);
+               && Objects.equals(this.dimensionMatchStrategy, that.dimensionMatchStrategy)
+               && Objects.equals(this.prefix, that.prefix)
+               && Objects.equals(this.context, that.context);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(count, page, all, workspaceId, orgId, status, fromDate, toDate, experimentName, experimentIds, experimentGroupIds, createdBy, sortOn, sortBy, globalExperimentsOnly, dimensionMatchStrategy);
+        return Objects.hash(count, page, all, workspaceId, orgId, ifModifiedSince, status, fromDate, toDate, experimentName, experimentIds, experimentGroupIds, createdBy, sortOn, sortBy, globalExperimentsOnly, dimensionMatchStrategy, prefix, context);
     }
 
     @Override
@@ -275,6 +320,9 @@ public final class ListExperimentInput implements SerializableStruct {
         }
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
+        if (ifModifiedSince != null) {
+            serializer.writeTimestamp($SCHEMA_IF_MODIFIED_SINCE, ifModifiedSince);
+        }
         if (status != null) {
             serializer.writeList($SCHEMA_STATUS, status, status.size(), SharedSerde.ExperimentStatusTypeListSerializer.INSTANCE);
         }
@@ -308,6 +356,12 @@ public final class ListExperimentInput implements SerializableStruct {
         if (dimensionMatchStrategy != null) {
             serializer.writeString($SCHEMA_DIMENSION_MATCH_STRATEGY, dimensionMatchStrategy.value());
         }
+        if (prefix != null) {
+            serializer.writeList($SCHEMA_PREFIX, prefix, prefix.size(), SharedSerde.StringListSerializer.INSTANCE);
+        }
+        if (context != null) {
+            serializer.writeMap($SCHEMA_CONTEXT, context, context.size(), SharedSerde.ContextMapSerializer.INSTANCE);
+        }
     }
 
     @Override
@@ -319,17 +373,20 @@ public final class ListExperimentInput implements SerializableStruct {
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, count);
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, page);
             case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_ALL, member, all);
-            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_STATUS, member, status);
-            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_FROM_DATE, member, fromDate);
-            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_TO_DATE, member, toDate);
-            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_NAME, member, experimentName);
-            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_IDS, member, experimentIds);
-            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_GROUP_IDS, member, experimentGroupIds);
-            case 11 -> (T) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, createdBy);
-            case 12 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, sortOn);
-            case 13 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, sortBy);
-            case 14 -> (T) SchemaUtils.validateSameMember($SCHEMA_GLOBAL_EXPERIMENTS_ONLY, member, globalExperimentsOnly);
-            case 15 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, dimensionMatchStrategy);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_IF_MODIFIED_SINCE, member, ifModifiedSince);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_STATUS, member, status);
+            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_FROM_DATE, member, fromDate);
+            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_TO_DATE, member, toDate);
+            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_NAME, member, experimentName);
+            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_IDS, member, experimentIds);
+            case 11 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_GROUP_IDS, member, experimentGroupIds);
+            case 12 -> (T) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, createdBy);
+            case 13 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, sortOn);
+            case 14 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, sortBy);
+            case 15 -> (T) SchemaUtils.validateSameMember($SCHEMA_GLOBAL_EXPERIMENTS_ONLY, member, globalExperimentsOnly);
+            case 16 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, dimensionMatchStrategy);
+            case 17 -> (T) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, prefix);
+            case 18 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -348,6 +405,7 @@ public final class ListExperimentInput implements SerializableStruct {
         builder.all(this.all);
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
+        builder.ifModifiedSince(this.ifModifiedSince);
         builder.status(this.status);
         builder.fromDate(this.fromDate);
         builder.toDate(this.toDate);
@@ -359,6 +417,8 @@ public final class ListExperimentInput implements SerializableStruct {
         builder.sortBy(this.sortBy);
         builder.globalExperimentsOnly(this.globalExperimentsOnly);
         builder.dimensionMatchStrategy(this.dimensionMatchStrategy);
+        builder.prefix(this.prefix);
+        builder.context(this.context);
         return builder;
     }
 
@@ -379,6 +439,7 @@ public final class ListExperimentInput implements SerializableStruct {
         private Boolean all;
         private String workspaceId;
         private String orgId;
+        private Instant ifModifiedSince;
         private List<ExperimentStatusType> status;
         private Instant fromDate;
         private Instant toDate;
@@ -390,6 +451,8 @@ public final class ListExperimentInput implements SerializableStruct {
         private SortBy sortBy;
         private Boolean globalExperimentsOnly;
         private DimensionMatchStrategy dimensionMatchStrategy;
+        private List<String> prefix;
+        private Map<String, Document> context;
 
         private Builder() {}
 
@@ -445,6 +508,18 @@ public final class ListExperimentInput implements SerializableStruct {
         public Builder orgId(String orgId) {
             this.orgId = Objects.requireNonNull(orgId, "orgId cannot be null");
             tracker.setMember($SCHEMA_ORG_ID);
+            return this;
+        }
+
+        /**
+         * While using this, 304 response is treated as error, which needs to be handled separately by checking
+         * the response code of the http response. This is required to make sure that clients can cache the
+         * response and avoid unnecessary calls when there are no updates.
+         *
+         * @return this builder.
+         */
+        public Builder ifModifiedSince(Instant ifModifiedSince) {
+            this.ifModifiedSince = ifModifiedSince;
             return this;
         }
 
@@ -536,6 +611,22 @@ public final class ListExperimentInput implements SerializableStruct {
             return this;
         }
 
+        /**
+         * @return this builder.
+         */
+        public Builder prefix(List<String> prefix) {
+            this.prefix = prefix;
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
+        public Builder context(Map<String, Document> context) {
+            this.context = context;
+            return this;
+        }
+
         @Override
         public ListExperimentInput build() {
             tracker.validate();
@@ -551,17 +642,20 @@ public final class ListExperimentInput implements SerializableStruct {
                 case 2 -> count((int) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, value));
                 case 3 -> page((int) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, value));
                 case 4 -> all((boolean) SchemaUtils.validateSameMember($SCHEMA_ALL, member, value));
-                case 5 -> status((List<ExperimentStatusType>) SchemaUtils.validateSameMember($SCHEMA_STATUS, member, value));
-                case 6 -> fromDate((Instant) SchemaUtils.validateSameMember($SCHEMA_FROM_DATE, member, value));
-                case 7 -> toDate((Instant) SchemaUtils.validateSameMember($SCHEMA_TO_DATE, member, value));
-                case 8 -> experimentName((String) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_NAME, member, value));
-                case 9 -> experimentIds((List<String>) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_IDS, member, value));
-                case 10 -> experimentGroupIds((List<String>) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_GROUP_IDS, member, value));
-                case 11 -> createdBy((List<String>) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, value));
-                case 12 -> sortOn((ExperimentSortOn) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, value));
-                case 13 -> sortBy((SortBy) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, value));
-                case 14 -> globalExperimentsOnly((boolean) SchemaUtils.validateSameMember($SCHEMA_GLOBAL_EXPERIMENTS_ONLY, member, value));
-                case 15 -> dimensionMatchStrategy((DimensionMatchStrategy) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, value));
+                case 5 -> ifModifiedSince((Instant) SchemaUtils.validateSameMember($SCHEMA_IF_MODIFIED_SINCE, member, value));
+                case 6 -> status((List<ExperimentStatusType>) SchemaUtils.validateSameMember($SCHEMA_STATUS, member, value));
+                case 7 -> fromDate((Instant) SchemaUtils.validateSameMember($SCHEMA_FROM_DATE, member, value));
+                case 8 -> toDate((Instant) SchemaUtils.validateSameMember($SCHEMA_TO_DATE, member, value));
+                case 9 -> experimentName((String) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_NAME, member, value));
+                case 10 -> experimentIds((List<String>) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_IDS, member, value));
+                case 11 -> experimentGroupIds((List<String>) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_GROUP_IDS, member, value));
+                case 12 -> createdBy((List<String>) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, value));
+                case 13 -> sortOn((ExperimentSortOn) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, value));
+                case 14 -> sortBy((SortBy) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, value));
+                case 15 -> globalExperimentsOnly((boolean) SchemaUtils.validateSameMember($SCHEMA_GLOBAL_EXPERIMENTS_ONLY, member, value));
+                case 16 -> dimensionMatchStrategy((DimensionMatchStrategy) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, value));
+                case 17 -> prefix((List<String>) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, value));
+                case 18 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -603,17 +697,20 @@ public final class ListExperimentInput implements SerializableStruct {
                     case 2 -> builder.count(de.readInteger(member));
                     case 3 -> builder.page(de.readInteger(member));
                     case 4 -> builder.all(de.readBoolean(member));
-                    case 5 -> builder.status(SharedSerde.deserializeExperimentStatusTypeList(member, de));
-                    case 6 -> builder.fromDate(de.readTimestamp(member));
-                    case 7 -> builder.toDate(de.readTimestamp(member));
-                    case 8 -> builder.experimentName(de.readString(member));
-                    case 9 -> builder.experimentIds(SharedSerde.deserializeStringList(member, de));
-                    case 10 -> builder.experimentGroupIds(SharedSerde.deserializeStringList(member, de));
-                    case 11 -> builder.createdBy(SharedSerde.deserializeStringList(member, de));
-                    case 12 -> builder.sortOn(ExperimentSortOn.builder().deserializeMember(de, member).build());
-                    case 13 -> builder.sortBy(SortBy.builder().deserializeMember(de, member).build());
-                    case 14 -> builder.globalExperimentsOnly(de.readBoolean(member));
-                    case 15 -> builder.dimensionMatchStrategy(DimensionMatchStrategy.builder().deserializeMember(de, member).build());
+                    case 5 -> builder.ifModifiedSince(de.readTimestamp(member));
+                    case 6 -> builder.status(SharedSerde.deserializeExperimentStatusTypeList(member, de));
+                    case 7 -> builder.fromDate(de.readTimestamp(member));
+                    case 8 -> builder.toDate(de.readTimestamp(member));
+                    case 9 -> builder.experimentName(de.readString(member));
+                    case 10 -> builder.experimentIds(SharedSerde.deserializeStringList(member, de));
+                    case 11 -> builder.experimentGroupIds(SharedSerde.deserializeStringList(member, de));
+                    case 12 -> builder.createdBy(SharedSerde.deserializeStringList(member, de));
+                    case 13 -> builder.sortOn(ExperimentSortOn.builder().deserializeMember(de, member).build());
+                    case 14 -> builder.sortBy(SortBy.builder().deserializeMember(de, member).build());
+                    case 15 -> builder.globalExperimentsOnly(de.readBoolean(member));
+                    case 16 -> builder.dimensionMatchStrategy(DimensionMatchStrategy.builder().deserializeMember(de, member).build());
+                    case 17 -> builder.prefix(SharedSerde.deserializeStringList(member, de));
+                    case 18 -> builder.context(SharedSerde.deserializeContextMap(member, de));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }
