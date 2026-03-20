@@ -69,11 +69,17 @@ export interface ListExperimentCommandOutput extends ListExperimentOutput, __Met
  *   global_experiments_only: true || false,
  *   dimension_match_strategy: "exact" || "subset",
 <<<<<<< HEAD
+<<<<<<< HEAD
  *   prefix: [
  *     "STRING_VALUE",
  *   ],
 =======
 >>>>>>> 6e8749e1 (Test)
+=======
+ *   prefix: [
+ *     "STRING_VALUE",
+ *   ],
+>>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
  *   context: { // ContextMap
  *     "<keys>": "DOCUMENT_VALUE",
  *   },

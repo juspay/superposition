@@ -11205,6 +11205,9 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
         },
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
         "prefix": {
             "target": STRING_LIST,
             "index": 17,
@@ -11215,15 +11218,18 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
             ],
         },
 
+<<<<<<< HEAD
         "context": {
             "target": CONTEXT_MAP,
             "index": 18,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 =======
+=======
+>>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
         "context": {
             "target": CONTEXT_MAP,
-            "index": 17,
+            "index": 18,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 >>>>>>> 6e8749e1 (Test)

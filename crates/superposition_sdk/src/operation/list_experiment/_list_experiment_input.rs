@@ -38,10 +38,15 @@ pub struct ListExperimentInput  {
     /// Strategy to follow while filter items based on the context
     pub dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
 <<<<<<< HEAD
+<<<<<<< HEAD
     #[allow(missing_docs)] // documentation missing in model
     pub prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
 =======
 >>>>>>> 6e8749e1 (Test)
+=======
+    #[allow(missing_docs)] // documentation missing in model
+    pub prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+>>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
     /// Map representing the context. Keys correspond to the names of the dimensions.
     pub context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
 }
@@ -127,6 +132,9 @@ impl  ListExperimentInput  {
         self.dimension_match_strategy.as_ref()
     }
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
     #[allow(missing_docs)] // documentation missing in model
     /// 
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.prefix.is_none()`.
@@ -134,8 +142,11 @@ impl  ListExperimentInput  {
         self.prefix.as_deref()
         .unwrap_or_default()
     }
+<<<<<<< HEAD
 =======
 >>>>>>> 6e8749e1 (Test)
+=======
+>>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
     /// Map representing the context. Keys correspond to the names of the dimensions.
     pub fn context(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
         self.context.as_ref()
@@ -170,9 +181,13 @@ pub struct ListExperimentInputBuilder {
     pub(crate) global_experiments_only: ::std::option::Option<bool>,
     pub(crate) dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
 <<<<<<< HEAD
+<<<<<<< HEAD
     pub(crate) prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
 =======
 >>>>>>> 6e8749e1 (Test)
+=======
+    pub(crate) prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+>>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
     pub(crate) context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
 }
 impl ListExperimentInputBuilder {
@@ -420,6 +435,9 @@ impl ListExperimentInputBuilder {
         &self.dimension_match_strategy
     }
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
     /// Appends an item to `prefix`.
     ///
     /// To override the contents of this collection use [`set_prefix`](Self::set_prefix).
@@ -438,8 +456,11 @@ impl ListExperimentInputBuilder {
     pub fn get_prefix(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
         &self.prefix
     }
+<<<<<<< HEAD
 =======
 >>>>>>> 6e8749e1 (Test)
+=======
+>>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
     /// Adds a key-value pair to `context`.
     ///
     /// To override the contents of this collection use [`set_context`](Self::set_context).
@@ -498,10 +519,15 @@ impl ListExperimentInputBuilder {
                 dimension_match_strategy: self.dimension_match_strategy
                 ,
 <<<<<<< HEAD
+<<<<<<< HEAD
                 prefix: self.prefix
                 ,
 =======
 >>>>>>> 6e8749e1 (Test)
+=======
+                prefix: self.prefix
+                ,
+>>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
                 context: self.context
                 ,
             }

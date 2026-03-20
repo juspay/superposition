@@ -276,6 +276,7 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
         .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
 =======
@@ -287,6 +288,8 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
 =======
 >>>>>>> de718464 (fix: more fixes)
 =======
+>>>>>>> 964966cd (feat: Add prefix filter in list exp)
+=======
 <<<<<<< HEAD
 =======
         .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
@@ -296,6 +299,10 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
         .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
         .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
 >>>>>>> 82479b8f (fix: more fixes)
+=======
+        .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
+        .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
+>>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
         .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
 >>>>>>> 5f8110af (Test)
 >>>>>>> c1293812 (Test)

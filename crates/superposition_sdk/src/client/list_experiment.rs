@@ -21,9 +21,13 @@ impl super::Client {
     ///   - [`global_experiments_only(bool)`](crate::operation::list_experiment::builders::ListExperimentFluentBuilder::global_experiments_only) / [`set_global_experiments_only(Option<bool>)`](crate::operation::list_experiment::builders::ListExperimentFluentBuilder::set_global_experiments_only):<br>required: **false**<br>(undocumented)<br>
     ///   - [`dimension_match_strategy(DimensionMatchStrategy)`](crate::operation::list_experiment::builders::ListExperimentFluentBuilder::dimension_match_strategy) / [`set_dimension_match_strategy(Option<DimensionMatchStrategy>)`](crate::operation::list_experiment::builders::ListExperimentFluentBuilder::set_dimension_match_strategy):<br>required: **false**<br>Strategy to follow while filter items based on the context<br>
 <<<<<<< HEAD
+<<<<<<< HEAD
     ///   - [`prefix(impl Into<String>)`](crate::operation::list_experiment::builders::ListExperimentFluentBuilder::prefix) / [`set_prefix(Option<Vec::<String>>)`](crate::operation::list_experiment::builders::ListExperimentFluentBuilder::set_prefix):<br>required: **false**<br>(undocumented)<br>
 =======
 >>>>>>> 6e8749e1 (Test)
+=======
+    ///   - [`prefix(impl Into<String>)`](crate::operation::list_experiment::builders::ListExperimentFluentBuilder::prefix) / [`set_prefix(Option<Vec::<String>>)`](crate::operation::list_experiment::builders::ListExperimentFluentBuilder::set_prefix):<br>required: **false**<br>(undocumented)<br>
+>>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
     ///   - [`context(impl Into<String>, Document)`](crate::operation::list_experiment::builders::ListExperimentFluentBuilder::context) / [`set_context(Option<HashMap::<String, Document>>)`](crate::operation::list_experiment::builders::ListExperimentFluentBuilder::set_context):<br>required: **false**<br>Map representing the context. Keys correspond to the names of the dimensions.<br>
                             /// - On success, responds with [`ListExperimentOutput`](crate::operation::list_experiment::ListExperimentOutput) with field(s):
     ///   - [`total_pages(i32)`](crate::operation::list_experiment::ListExperimentOutput::total_pages): (undocumented)

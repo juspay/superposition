@@ -2173,9 +2173,13 @@ export interface ListExperimentInput {
   dimension_match_strategy?: DimensionMatchStrategy | undefined;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   prefix?: (string)[] | undefined;
 =======
 >>>>>>> 6e8749e1 (Test)
+=======
+  prefix?: (string)[] | undefined;
+>>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
   /**
    * Map representing the context.
    * Keys correspond to the names of the dimensions.
