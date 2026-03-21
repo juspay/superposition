@@ -1,0 +1,11 @@
+[import]
+file = "circular_a.cac.toml"
+
+[default-config]
+surge_factor = { "value" = 0.0, "schema" = { "type" = "number" } }
+
+[dimensions]
+vehicle_type = { schema = { "type" = "string", "enum" = ["cab"] } }
+
+[context."$vehicle_type == 'cab'"]
+surge_factor = 2.0

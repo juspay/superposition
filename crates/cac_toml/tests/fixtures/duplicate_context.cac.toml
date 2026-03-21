@@ -1,0 +1,11 @@
+[import]
+file = "imported.cac.toml"
+
+[default-config]
+per_km_rate = { "value" = 20.0, "schema" = { "type" = "number" } }
+
+[dimensions]
+city = { schema = { "type" = "string", "enum" = ["Bangalore", "Delhi"] } }
+
+[context."$city == 'Delhi' && $vehicle_type == 'cab' && $hour_of_day >= 18"]
+per_km_rate = 30.0

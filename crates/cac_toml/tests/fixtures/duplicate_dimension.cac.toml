@@ -1,0 +1,11 @@
+[import]
+file = "imported.cac.toml"
+
+[default-config]
+per_km_rate = { "value" = 20.0, "schema" = { "type" = "number" } }
+
+[dimensions]
+hour_of_day = { schema = { "type" = "integer", "minimum" = 0, "maximum" = 23 } }
+
+[context."$hour_of_day >= 18"]
+per_km_rate = 25.0

@@ -1,0 +1,8 @@
+[default-config]
+surge_factor = { "value" = 0.0, "schema" = { "type" = "number" } }
+
+[dimensions]
+hour_of_day = { schema = { "type" = "integer", "minimum" = 0, "maximum" = 23 } }
+
+[context."$city == 'Delhi' && $vehicle_type == 'cab' && $hour_of_day >= 18"]
+surge_factor = 5.0

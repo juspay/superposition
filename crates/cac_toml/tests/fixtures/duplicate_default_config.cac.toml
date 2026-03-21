@@ -1,0 +1,11 @@
+[import]
+file = "imported.cac.toml"
+
+[default-config]
+surge_factor = { "value" = 1.0, "schema" = { "type" = "number" } }
+
+[dimensions]
+city = { schema = { "type" = "string", "enum" = ["Bangalore", "Delhi"] } }
+
+[context."$city == 'Bangalore'"]
+surge_factor = 2.0

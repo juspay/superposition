@@ -1,0 +1,11 @@
+[import]
+file = "circular_b.cac.toml"
+
+[default-config]
+per_km_rate = { "value" = 20.0, "schema" = { "type" = "number" } }
+
+[dimensions]
+city = { schema = { "type" = "string", "enum" = ["Bangalore"] } }
+
+[context."$city == 'Bangalore'"]
+per_km_rate = 25.0
