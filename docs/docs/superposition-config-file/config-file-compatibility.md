@@ -63,7 +63,7 @@ ForwardAgent = true
 
 ### EditorConfig (`.editorconfig`)
 
-EditorConfig uses glob-based cascading (root defaults with file-type overrides). This maps to dimensions like `file_extension` and `file_path`.
+EditorConfig uses glob-based cascading (root defaults with file-type and path-pattern overrides). This maps to dimensions like `filetype` and `file_path_pattern`.
 
 **Traditional format:**
 ```ini
@@ -77,15 +77,21 @@ charset = utf-8
 [*.md]
 trim_trailing_whitespace = false
 
+[*.{js,ts}]
+indent_size = 2
+
 [Makefile]
 indent_style = tab
+
+[lib/**.js]
+indent_size = 4
 ```
 
 **As SuperTOML:**
 ```toml
 [dimensions]
-file_extension = { position = 1, schema = { type = "string", enum = ["md", "mk", "yml", "js", "py"] } }
-filename = { position = 2, schema = { type = "string" } }
+filetype = { position = 1, schema = { type = "string", enum = ["md", "js", "ts", "py", "yml", "Makefile"] } }
+file_path_pattern = { position = 2, schema = { type = "string" } }
 
 [default-configs]
 indent_style = { value = "space", schema = { type = "string", enum = ["space", "tab"] } }
@@ -94,12 +100,24 @@ charset = { value = "utf-8", schema = { type = "string", enum = ["utf-8", "latin
 trim_trailing_whitespace = { value = true, schema = { type = "boolean" } }
 
 [[overrides]]
-_context_ = { file_extension = "md" }
+_context_ = { filetype = "md" }
 trim_trailing_whitespace = false
 
 [[overrides]]
-_context_ = { filename = "Makefile" }
+_context_ = { filetype = "js" }
+indent_size = 2
+
+[[overrides]]
+_context_ = { filetype = "ts" }
+indent_size = 2
+
+[[overrides]]
+_context_ = { filetype = "Makefile" }
 indent_style = "tab"
+
+[[overrides]]
+_context_ = { file_path_pattern = "lib/**", filetype = "js" }
+indent_size = 4
 ```
 
 ### SSHD Config (`/etc/ssh/sshd_config`)
