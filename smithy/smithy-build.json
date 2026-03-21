@@ -18,7 +18,8 @@
       "software.amazon.smithy.java:client-core:0.0.1",
       "software.amazon.smithy.java.codegen:plugins:0.0.1",
       "in.juspay.smithy.haskell:client-codegen:0.0.5",
-      "software.amazon.smithy.java:aws-client-restjson:0.0.1"
+      "software.amazon.smithy.java:aws-client-restjson:0.0.1",
+      "io.superposition.cli:cli-codegen:0.1.0"
     ]
   },
   "plugins": {
@@ -60,6 +61,12 @@
       "edition": "2010",
       "version": "0.0.1",
       "service": "io.superposition#Superposition"
+    },
+    "cli-codegen": {
+      "service": "io.superposition#Superposition",
+      "outputCrate": "superposition_cli",
+      "sdkCrate": "superposition_sdk",
+      "binaryName": "superposition"
     },
     "openapi": {
       "service": "io.superposition#Superposition",
