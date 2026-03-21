@@ -155,3 +155,4 @@ This makes editing SuperTOML files as comfortable as working with code in an IDE
 - [Cascading Model](./cascading-model) - How overrides cascade
 - [Deterministic Resolution](./deterministic-resolution) - Priority and conflict resolution
 - [Examples](./examples) - Complete working examples
+- [Config File Compatibility](./config-file-compatibility) - Common Linux/macOS configs as SuperTOML
