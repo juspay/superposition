@@ -15,6 +15,47 @@ use crate::{
     RegexEnum, Resource,
 };
 
+/// A string wrapper that redacts its value in Debug and Display output.
+/// Used for sensitive fields like signing secrets to prevent accidental
+/// exposure in logs, error messages, or debug output.
+#[derive(Clone, Serialize, Deserialize, Default, PartialEq)]
+#[serde(transparent)]
+pub struct RedactedString(String);
+
+impl RedactedString {
+    pub fn expose(&self) -> &str {
+        &self.0
+    }
+
+    pub fn into_inner(self) -> String {
+        self.0
+    }
+}
+
+impl From<String> for RedactedString {
+    fn from(s: String) -> Self {
+        Self(s)
+    }
+}
+
+impl From<RedactedString> for String {
+    fn from(s: RedactedString) -> Self {
+        s.0
+    }
+}
+
+impl fmt::Debug for RedactedString {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "[REDACTED]")
+    }
+}
+
+impl fmt::Display for RedactedString {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "[REDACTED]")
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateWebhookRequest {
     pub name: WebhookName,
@@ -25,7 +66,7 @@ pub struct CreateWebhookRequest {
     pub payload_version: Option<PayloadVersion>,
     pub custom_headers: Option<CustomHeaders>,
     pub events: Vec<WebhookEvent>,
-    pub signing_secret: Option<String>,
+    pub signing_secret: Option<RedactedString>,
     pub change_reason: ChangeReason,
 }
 
@@ -40,7 +81,8 @@ pub struct UpdateWebhookRequest {
     pub payload_version: Option<PayloadVersion>,
     pub custom_headers: Option<CustomHeaders>,
     pub events: Option<Vec<WebhookEvent>>,
-    pub signing_secret: Option<String>,
+    #[cfg_attr(feature = "diesel_derives", diesel(serialize_as = String))]
+    pub signing_secret: Option<RedactedString>,
     pub change_reason: ChangeReason,
 }
 

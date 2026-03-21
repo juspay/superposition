@@ -82,9 +82,13 @@ async fn create_handler(
 
     let encrypted_secret = req
         .signing_secret
-        .as_deref()
+        .as_ref()
         .map(|s| {
-            encrypt_signing_secret(s, &workspace_context, &state.master_encryption_key)
+            encrypt_signing_secret(
+                s.expose(),
+                &workspace_context,
+                &state.master_encryption_key,
+            )
         })
         .transpose()?;
 
@@ -148,11 +152,11 @@ async fn update_handler(
 
     if let Some(ref secret) = req.signing_secret {
         let encrypted = encrypt_signing_secret(
-            secret,
+            secret.expose(),
             &workspace_context,
             &state.master_encryption_key,
         )?;
-        req.signing_secret = Some(encrypted);
+        req.signing_secret = Some(encrypted.into());
     }
 
     let update = diesel::update(webhooks::table)
