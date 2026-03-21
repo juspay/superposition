@@ -80,6 +80,9 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
         var builder = SuperpositionAsyncClient.builder()
             .endpointResolver(EndpointResolver.staticEndpoint(options.endpoint))
             .addIdentityResolver(new BearerTokenIdentityResolver(options.token));
+        if (options.transport != null) {
+            builder.transport(options.transport);
+        }
         this.sdk = builder.build();
         var getConfigInput = GetConfigInput.builder()
             .context(Map.of())

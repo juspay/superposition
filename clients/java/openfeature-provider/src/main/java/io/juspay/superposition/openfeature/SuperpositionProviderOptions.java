@@ -6,6 +6,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
+import software.amazon.smithy.java.client.core.ClientTransport;
+import software.amazon.smithy.java.http.api.HttpRequest;
+import software.amazon.smithy.java.http.api.HttpResponse;
 
 /**
  * Options for configuring the Superposition OpenFeature provider.
@@ -33,6 +36,13 @@ public class SuperpositionProviderOptions {
     @Nullable SuperpositionConfig fallbackConfig;
     /** Experimentation-specific options (optional). */
     @Nullable ExperimentationOptions experimentationOptions;
+    /**
+     * Custom transport for HTTP communication (optional).
+     * When not set, the SDK default transport is used. Set this to use
+     * {@link io.juspay.superposition.openfeature.transport.URLConnectionTransport}
+     * for Android compatibility, or any other {@link ClientTransport} implementation.
+     */
+    @Nullable ClientTransport<HttpRequest, HttpResponse> transport;
 
     /**
      * Options for experimentation mode, allowing separate refresh and cache settings.
