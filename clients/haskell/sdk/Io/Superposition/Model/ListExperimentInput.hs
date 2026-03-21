@@ -4,6 +4,7 @@ module Io.Superposition.Model.ListExperimentInput (
     setAll',
     setWorkspaceId,
     setOrgId,
+    setIfModifiedSince,
     setStatus,
     setFromDate,
     setToDate,
@@ -15,6 +16,8 @@ module Io.Superposition.Model.ListExperimentInput (
     setSortBy,
     setGlobalExperimentsOnly,
     setDimensionMatchStrategy,
+    setPrefix,
+    setContext,
     build,
     ListExperimentInputBuilder,
     ListExperimentInput,
@@ -23,6 +26,7 @@ module Io.Superposition.Model.ListExperimentInput (
     all',
     workspace_id,
     org_id,
+    if_modified_since,
     status,
     from_date,
     to_date,
@@ -33,7 +37,9 @@ module Io.Superposition.Model.ListExperimentInput (
     sort_on,
     sort_by,
     global_experiments_only,
-    dimension_match_strategy
+    dimension_match_strategy,
+    prefix,
+    context
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad.State.Strict
@@ -42,6 +48,7 @@ import qualified Data.Either
 import qualified Data.Eq
 import qualified Data.Functor
 import qualified Data.Int
+import qualified Data.Map
 import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Time
@@ -60,6 +67,7 @@ data ListExperimentInput = ListExperimentInput {
     all' :: Data.Maybe.Maybe Bool,
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
+    if_modified_since :: Data.Maybe.Maybe Data.Time.UTCTime,
     status :: Data.Maybe.Maybe ([] Io.Superposition.Model.ExperimentStatusType.ExperimentStatusType),
     from_date :: Data.Maybe.Maybe Data.Time.UTCTime,
     to_date :: Data.Maybe.Maybe Data.Time.UTCTime,
@@ -70,7 +78,9 @@ data ListExperimentInput = ListExperimentInput {
     sort_on :: Data.Maybe.Maybe Io.Superposition.Model.ExperimentSortOn.ExperimentSortOn,
     sort_by :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy,
     global_experiments_only :: Data.Maybe.Maybe Bool,
-    dimension_match_strategy :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMatchStrategy.DimensionMatchStrategy
+    dimension_match_strategy :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMatchStrategy.DimensionMatchStrategy,
+    prefix :: Data.Maybe.Maybe ([] Data.Text.Text),
+    context :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value)
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -84,6 +94,7 @@ instance Data.Aeson.ToJSON ListExperimentInput where
         "all" Data.Aeson..= all' a,
         "workspace_id" Data.Aeson..= workspace_id a,
         "org_id" Data.Aeson..= org_id a,
+        "if_modified_since" Data.Aeson..= if_modified_since a,
         "status" Data.Aeson..= status a,
         "from_date" Data.Aeson..= from_date a,
         "to_date" Data.Aeson..= to_date a,
@@ -94,7 +105,9 @@ instance Data.Aeson.ToJSON ListExperimentInput where
         "sort_on" Data.Aeson..= sort_on a,
         "sort_by" Data.Aeson..= sort_by a,
         "global_experiments_only" Data.Aeson..= global_experiments_only a,
-        "dimension_match_strategy" Data.Aeson..= dimension_match_strategy a
+        "dimension_match_strategy" Data.Aeson..= dimension_match_strategy a,
+        "prefix" Data.Aeson..= prefix a,
+        "context" Data.Aeson..= context a
         ]
     
 
@@ -107,6 +120,7 @@ instance Data.Aeson.FromJSON ListExperimentInput where
         Control.Applicative.<*> (v Data.Aeson..:? "all")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "if_modified_since")
         Control.Applicative.<*> (v Data.Aeson..:? "status")
         Control.Applicative.<*> (v Data.Aeson..:? "from_date")
         Control.Applicative.<*> (v Data.Aeson..:? "to_date")
@@ -118,6 +132,8 @@ instance Data.Aeson.FromJSON ListExperimentInput where
         Control.Applicative.<*> (v Data.Aeson..:? "sort_by")
         Control.Applicative.<*> (v Data.Aeson..:? "global_experiments_only")
         Control.Applicative.<*> (v Data.Aeson..:? "dimension_match_strategy")
+        Control.Applicative.<*> (v Data.Aeson..:? "prefix")
+        Control.Applicative.<*> (v Data.Aeson..:? "context")
     
 
 
@@ -128,6 +144,7 @@ data ListExperimentInputBuilderState = ListExperimentInputBuilderState {
     all'BuilderState :: Data.Maybe.Maybe Bool,
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    if_modified_sinceBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     statusBuilderState :: Data.Maybe.Maybe ([] Io.Superposition.Model.ExperimentStatusType.ExperimentStatusType),
     from_dateBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     to_dateBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
@@ -138,7 +155,9 @@ data ListExperimentInputBuilderState = ListExperimentInputBuilderState {
     sort_onBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.ExperimentSortOn.ExperimentSortOn,
     sort_byBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy,
     global_experiments_onlyBuilderState :: Data.Maybe.Maybe Bool,
-    dimension_match_strategyBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMatchStrategy.DimensionMatchStrategy
+    dimension_match_strategyBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMatchStrategy.DimensionMatchStrategy,
+    prefixBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
+    contextBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value)
 } deriving (
   GHC.Generics.Generic
   )
@@ -150,6 +169,7 @@ defaultBuilderState = ListExperimentInputBuilderState {
     all'BuilderState = Data.Maybe.Nothing,
     workspace_idBuilderState = Data.Maybe.Nothing,
     org_idBuilderState = Data.Maybe.Nothing,
+    if_modified_sinceBuilderState = Data.Maybe.Nothing,
     statusBuilderState = Data.Maybe.Nothing,
     from_dateBuilderState = Data.Maybe.Nothing,
     to_dateBuilderState = Data.Maybe.Nothing,
@@ -160,7 +180,9 @@ defaultBuilderState = ListExperimentInputBuilderState {
     sort_onBuilderState = Data.Maybe.Nothing,
     sort_byBuilderState = Data.Maybe.Nothing,
     global_experiments_onlyBuilderState = Data.Maybe.Nothing,
-    dimension_match_strategyBuilderState = Data.Maybe.Nothing
+    dimension_match_strategyBuilderState = Data.Maybe.Nothing,
+    prefixBuilderState = Data.Maybe.Nothing,
+    contextBuilderState = Data.Maybe.Nothing
 }
 
 type ListExperimentInputBuilder = Control.Monad.State.Strict.State ListExperimentInputBuilderState
@@ -184,6 +206,10 @@ setWorkspaceId value =
 setOrgId :: Data.Text.Text -> ListExperimentInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
+
+setIfModifiedSince :: Data.Maybe.Maybe Data.Time.UTCTime -> ListExperimentInputBuilder ()
+setIfModifiedSince value =
+   Control.Monad.State.Strict.modify (\s -> (s { if_modified_sinceBuilderState = value }))
 
 setStatus :: Data.Maybe.Maybe ([] Io.Superposition.Model.ExperimentStatusType.ExperimentStatusType) -> ListExperimentInputBuilder ()
 setStatus value =
@@ -229,6 +255,14 @@ setDimensionMatchStrategy :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMa
 setDimensionMatchStrategy value =
    Control.Monad.State.Strict.modify (\s -> (s { dimension_match_strategyBuilderState = value }))
 
+setPrefix :: Data.Maybe.Maybe ([] Data.Text.Text) -> ListExperimentInputBuilder ()
+setPrefix value =
+   Control.Monad.State.Strict.modify (\s -> (s { prefixBuilderState = value }))
+
+setContext :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value) -> ListExperimentInputBuilder ()
+setContext value =
+   Control.Monad.State.Strict.modify (\s -> (s { contextBuilderState = value }))
+
 build :: ListExperimentInputBuilder () -> Data.Either.Either Data.Text.Text ListExperimentInput
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
@@ -237,6 +271,7 @@ build builder = do
     all'' <- Data.Either.Right (all'BuilderState st)
     workspace_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListExperimentInput.ListExperimentInput.workspace_id is a required property.") Data.Either.Right (workspace_idBuilderState st)
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListExperimentInput.ListExperimentInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
+    if_modified_since' <- Data.Either.Right (if_modified_sinceBuilderState st)
     status' <- Data.Either.Right (statusBuilderState st)
     from_date' <- Data.Either.Right (from_dateBuilderState st)
     to_date' <- Data.Either.Right (to_dateBuilderState st)
@@ -248,12 +283,15 @@ build builder = do
     sort_by' <- Data.Either.Right (sort_byBuilderState st)
     global_experiments_only' <- Data.Either.Right (global_experiments_onlyBuilderState st)
     dimension_match_strategy' <- Data.Either.Right (dimension_match_strategyBuilderState st)
+    prefix' <- Data.Either.Right (prefixBuilderState st)
+    context' <- Data.Either.Right (contextBuilderState st)
     Data.Either.Right (ListExperimentInput { 
         count = count',
         page = page',
         all' = all'',
         workspace_id = workspace_id',
         org_id = org_id',
+        if_modified_since = if_modified_since',
         status = status',
         from_date = from_date',
         to_date = to_date',
@@ -264,19 +302,23 @@ build builder = do
         sort_on = sort_on',
         sort_by = sort_by',
         global_experiments_only = global_experiments_only',
-        dimension_match_strategy = dimension_match_strategy'
+        dimension_match_strategy = dimension_match_strategy',
+        prefix = prefix',
+        context = context'
     })
 
 
 instance Io.Superposition.Utility.IntoRequestBuilder ListExperimentInput where
     intoRequestBuilder self = do
-        Io.Superposition.Utility.setMethod Network.HTTP.Types.Method.methodGet
+        Io.Superposition.Utility.setMethod Network.HTTP.Types.Method.methodPost
         Io.Superposition.Utility.setPath [
-            "experiments"
+            "experiments",
+            "list"
             ]
         Io.Superposition.Utility.serQuery "all" (all' self)
         Io.Superposition.Utility.serQuery "experiment_name" (experiment_name self)
         Io.Superposition.Utility.serQuery "from_date" (from_date self)
+        Io.Superposition.Utility.serQuery "prefix" (prefix self)
         Io.Superposition.Utility.serQuery "count" (count self)
         Io.Superposition.Utility.serQuery "experiment_ids" (experiment_ids self)
         Io.Superposition.Utility.serQuery "global_experiments_only" (global_experiments_only self)
@@ -288,7 +330,8 @@ instance Io.Superposition.Utility.IntoRequestBuilder ListExperimentInput where
         Io.Superposition.Utility.serQuery "to_date" (to_date self)
         Io.Superposition.Utility.serQuery "page" (page self)
         Io.Superposition.Utility.serQuery "status" (status self)
+        Io.Superposition.Utility.serHeader "if-modified-since" (if_modified_since self)
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
-        
+        Io.Superposition.Utility.serField "context" (context self)
 

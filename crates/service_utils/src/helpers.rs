@@ -5,14 +5,13 @@ use std::{
     str::FromStr,
 };
 
-use actix_web::{Error, error::ErrorInternalServerError, web::Data};
+use actix_web::{Error, HttpRequest, error::ErrorInternalServerError, web::Data};
 use anyhow::anyhow;
-use chrono::Utc;
+use chrono::{DateTime, Timelike, Utc};
 use diesel::{
     ExpressionMethods, OptionalExtension, PgArrayExpressionMethods, QueryDsl,
     RunQueryDsl, SelectableHelper,
 };
-
 use log::warn;
 use once_cell::sync::Lazy;
 use regex::Regex;
@@ -473,4 +472,28 @@ pub fn fetch_dimensions_info_map(
         .collect();
 
     Ok(dimensions_map)
+}
+
+pub fn is_not_modified(max_created_at: Option<DateTime<Utc>>, req: &HttpRequest) -> bool {
+    let is_smithy = matches!(req.method(), &actix_web::http::Method::POST);
+    let nanosecond_erasure = |t: DateTime<Utc>| t.with_nanosecond(0);
+
+    let last_modified = req
+        .headers()
+        .get("if-modified-since")
+        .and_then(|header_val| {
+            let header_str = header_val.to_str().ok()?;
+            if is_smithy {
+                DateTime::parse_from_rfc3339(header_str)
+            } else {
+                DateTime::parse_from_rfc2822(header_str)
+            }
+            .map(|datetime| datetime.with_timezone(&Utc))
+            .ok()
+        })
+        .and_then(nanosecond_erasure);
+
+    log::info!("last modified {last_modified:?}");
+    let parsed_max: Option<DateTime<Utc>> = max_created_at.and_then(nanosecond_erasure);
+    max_created_at.is_some() && parsed_max <= last_modified
 }

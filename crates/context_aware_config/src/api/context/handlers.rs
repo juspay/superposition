@@ -770,18 +770,13 @@ async fn bulk_operations_handler(
     use contexts::dsl::contexts;
 
     let DbConnection(mut conn) = db_conn;
-    let mut is_v2 = false;
+    let is_v2 = matches!(req, Either::Right(_));
     let ops = match req {
         Either::Left(o) => o.into_inner(),
-        Either::Right(bo) => {
-            is_v2 = true;
-            bo.into_inner().operations
-        }
+        Either::Right(bo) => bo.into_inner().operations,
     };
     bulk_authorized(&_auth_z, &ops, &workspace_context.schema_name, &mut conn).await?;
 
-    // Marking immutable.
-    let is_v2 = is_v2;
     let mut all_change_reasons = Vec::new();
     let mut webhook_actions: Vec<Action> = Vec::new();
     let mut webhook_contexts: Vec<Context> = Vec::new();

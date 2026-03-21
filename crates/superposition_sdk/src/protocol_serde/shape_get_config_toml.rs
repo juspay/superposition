@@ -75,6 +75,18 @@ pub fn ser_get_config_toml_headers(
                             })?;
                             builder = builder.header("x-org-id", header_value);
     }
+    if let ::std::option::Option::Some(inner_5) = &input.if_modified_since {
+        let formatted_6 = inner_5.fmt(::aws_smithy_types::date_time::Format::DateTime)?;
+        let header_value = formatted_6;
+                            let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
+                                ::aws_smithy_types::error::operation::BuildError::invalid_field("if_modified_since", format!(
+                                "`{}` cannot be used as a header value: {}",
+                                &header_value,
+                                err
+                            ))
+                            })?;
+                            builder = builder.header("if-modified-since", header_value);
+    }
     Ok(builder)
 }
 

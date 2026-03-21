@@ -312,8 +312,8 @@ pub struct Experiment {
 }
 
 impl Contextual for Experiment {
-    fn get_condition(&self) -> Condition {
-        self.context.clone()
+    fn get_condition(&self) -> &Condition {
+        &self.context
     }
 }
 
@@ -389,6 +389,12 @@ pub struct ExperimentGroup {
     pub last_modified_by: String,
     pub buckets: Buckets,
     pub group_type: GroupType,
+}
+
+impl Contextual for ExperimentGroup {
+    fn get_condition(&self) -> &Condition {
+        &self.context
+    }
 }
 
 pub type ExperimentGroups = Vec<ExperimentGroup>;

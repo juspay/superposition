@@ -81,9 +81,6 @@ pub mod discard_experiment;
 /// Types for the `GetConfig` operation.
 pub mod get_config;
 
-/// Types for the `GetConfigFast` operation.
-pub mod get_config_fast;
-
 /// Types for the `GetConfigJson` operation.
 pub mod get_config_json;
 

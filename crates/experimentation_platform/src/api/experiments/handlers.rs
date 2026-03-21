@@ -26,7 +26,7 @@ use service_utils::{
     db::run_query,
     helpers::{
         WebhookData, construct_request_headers, execute_webhook_call,
-        fetch_dimensions_info_map, generate_snowflake_id, request,
+        fetch_dimensions_info_map, generate_snowflake_id, is_not_modified, request,
     },
     middlewares::auth_z::{Action as AuthZAction, AuthZ},
     redis::{
@@ -41,7 +41,7 @@ use superposition_derives::{authorized, declare_resource};
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
     Cac, Condition, Contextual, DBConnection, DimensionInfo, Exp, ListResponse,
-    Overrides, PaginatedResponse, Resource, SortBy, User,
+    Overridden, Overrides, PaginatedResponse, Resource, SortBy, User,
     api::{
         DimensionMatchStrategy,
         context::{
@@ -53,8 +53,8 @@ use superposition_types::{
         experiments::{
             ApplicableVariantsQuery, ApplicableVariantsRequest,
             ConcludeExperimentRequest, ExperimentCreateRequest, ExperimentListFilters,
-            ExperimentResponse, ExperimentSortOn, ExperimentStateChangeRequest,
-            OverrideKeysUpdateRequest, RampRequest,
+            ExperimentListRequest, ExperimentResponse, ExperimentSortOn,
+            ExperimentStateChangeRequest, OverrideKeysUpdateRequest, RampRequest,
         },
         webhook::Action,
     },
@@ -1019,11 +1019,15 @@ async fn get_applicable_variants_handler(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 #[authorized]
+#[routes]
 #[get("")]
+#[post("/list")]
 async fn list_handler(
     workspace_context: WorkspaceContext,
     req: HttpRequest,
+    body: Option<Json<ExperimentListRequest>>,
     pagination_params: superposition_query::Query<PaginationParams>,
     filters: superposition_query::Query<ExperimentListFilters>,
     dimension_params: DimensionQuery<QueryMap>,
@@ -1047,28 +1051,32 @@ async fn list_handler(
     )
     .await?;
 
-    let last_modified = req
-        .headers()
-        .get("If-Modified-Since")
-        .and_then(|header_val| header_val.to_str().ok())
-        .and_then(|header_str| {
-            DateTime::parse_from_rfc2822(header_str)
-                .map(|datetime| datetime.with_timezone(&Utc))
-                .ok()
-        });
-
-    if max_event_timestamp.is_some() && max_event_timestamp < last_modified {
+    if is_not_modified(max_event_timestamp, &req) {
         return Ok(HttpResponse::NotModified().finish());
     };
     let show_all = pagination_params.all.unwrap_or_default();
+
+    let is_smithy = matches!(req.method(), &actix_web::http::Method::POST);
+    let dimension_params = if req.method() == actix_web::http::Method::GET {
+        dimension_params.into_inner()
+    } else {
+        body.and_then(|b| b.into_inner().context)
+            .map(Into::into)
+            .unwrap_or_default()
+    };
+
     let read_from_redis = show_all
         && filters
             .status
             .clone()
             .is_some_and(|v| *v == ExperimentStatusType::active_list())
         && dimension_params.is_empty();
+
+    let mut response = HttpResponse::Ok();
+    AppHeader::add_last_modified(max_event_timestamp, is_smithy, &mut response);
+
     if read_from_redis {
-        let response = read_through_cache::<PaginatedResponse<ExperimentResponse>>(
+        read_through_cache::<PaginatedResponse<ExperimentResponse>>(
             format!(
                 "{}{EXPERIMENTS_LIST_KEY_SUFFIX}",
                 *workspace_context.schema_name
@@ -1078,18 +1086,17 @@ async fn list_handler(
             &state.db_pool,
             |conn| {
                 list_experiments_db(
-                    pagination_params.clone(),
-                    filters.clone(),
-                    dimension_params.clone(),
+                    pagination_params,
+                    filters,
+                    dimension_params,
                     conn,
                     &workspace_context,
                 )
             },
         )
-        .await?;
-        Ok(HttpResponse::Ok().json(response))
+        .await
     } else {
-        let paginated_response = run_query(&state.db_pool, |conn| {
+        run_query(&state.db_pool, |conn| {
             list_experiments_db(
                 pagination_params,
                 filters,
@@ -1097,20 +1104,18 @@ async fn list_handler(
                 conn,
                 &workspace_context,
             )
-        })?;
-        Ok(HttpResponse::Ok().json(paginated_response))
+        })
     }
+    .map(|r| response.json(r))
 }
 
 fn list_experiments_db(
     pagination_params: superposition_query::Query<PaginationParams>,
     filters: superposition_query::Query<ExperimentListFilters>,
-    dimension_params: DimensionQuery<QueryMap>,
+    dimension_params: QueryMap,
     conn: &mut DBConnection,
     workspace_context: &WorkspaceContext,
 ) -> superposition::DieselResult<PaginatedResponse<ExperimentResponse>> {
-    let dimension_params = dimension_params.into_inner();
-
     let query_builder = |filters: &ExperimentListFilters| {
         let mut builder = experiments::experiments
             .schema_name(&workspace_context.schema_name)
@@ -1173,10 +1178,42 @@ fn list_experiments_db(
     let offset = (pagination_params.page.unwrap_or(1) - 1) * limit;
 
     let perform_in_memory_filter = !dimension_params.is_empty()
-        || filters.global_experiments_only.unwrap_or_default();
+        || filters.global_experiments_only.unwrap_or_default()
+        || filters.prefix.is_some();
 
     let paginated_response = if perform_in_memory_filter {
-        let all_experiments: Vec<Experiment> = base_query.load(conn)?;
+        let mut all_experiments: Vec<Experiment> = base_query.load(conn)?;
+
+        if let Some(prefix) = filters.prefix {
+            let prefix_list = HashSet::from_iter(prefix.0);
+            all_experiments = all_experiments
+                .into_iter()
+                .filter_map(|experiment| {
+                    let variants: Vec<_> = experiment
+                        .variants
+                        .into_iter()
+                        .filter_map(|mut variant| {
+                            Variant::filter_keys_by_prefix(&variant, &prefix_list)
+                                .map(|filtered_overrides_map| {
+                                    variant.overrides = filtered_overrides_map;
+                                    variant
+                                })
+                                .ok()
+                        })
+                        .collect();
+
+                    if !variants.is_empty() {
+                        Some(Experiment {
+                            variants: Variants::new(variants),
+                            ..experiment
+                        })
+                    } else {
+                        None // Skip this experiment
+                    }
+                })
+                .collect()
+        }
+
         let filtered_experiments = if filters.global_experiments_only.unwrap_or_default()
         {
             all_experiments

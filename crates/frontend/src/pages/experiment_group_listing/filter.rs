@@ -1,21 +1,38 @@
-use std::{fmt::Display, str::FromStr};
+use std::{fmt::Display, ops::Deref, str::FromStr};
 
 use leptos::*;
+use serde_json::Map;
 use superposition_types::{
-    api::experiment_groups::ExpGroupFilters,
-    custom_query::{CommaSeparatedQParams, PaginationParams},
+    api::{
+        DimensionMatchStrategy, experiment_groups::ExpGroupFilters,
+        functions::FunctionEnvironment,
+    },
+    custom_query::{
+        CommaSeparatedQParams, CustomQuery, DimensionQuery, PaginationParams, QueryMap,
+    },
 };
 use web_sys::MouseEvent;
 
-use crate::components::{
-    badge::{GlassyPills, GrayPill, ListPills},
-    button::{Button, ButtonStyle},
-    drawer::{Drawer, DrawerBtn, close_drawer},
-    form::label::Label,
+use crate::{
+    components::{
+        badge::{GlassyPills, GrayPill, ListPills},
+        button::{Button, ButtonStyle},
+        condition_pills::Condition,
+        context_form::ContextForm,
+        drawer::{Drawer, DrawerBtn, close_drawer},
+        form::label::Label,
+        input::Toggle,
+    },
+    logic::Conditions,
+    pages::experiment_group_listing::CombinedResource,
+    providers::condition_collapse_provider::ConditionCollapseProvider,
 };
 
 #[component]
-pub(super) fn FilterSummary(filters_rws: RwSignal<ExpGroupFilters>) -> impl IntoView {
+pub(super) fn FilterSummary(
+    filters_rws: RwSignal<ExpGroupFilters>,
+    dimension_params_rws: RwSignal<DimensionQuery<QueryMap>>,
+) -> impl IntoView {
     let force_open_rws = RwSignal::new(true);
     // let force_open_rws = RwSignal::new(scrolled_to_top.get_untracked());
 
@@ -36,7 +53,8 @@ pub(super) fn FilterSummary(filters_rws: RwSignal<ExpGroupFilters>) -> impl Into
                     f.created_by.is_none() && f.name.is_none() && f.last_modified_by.is_none()
                         && f.group_type.is_none()
                 });
-            !filters_empty
+            let dimension_params_empty = dimension_params_rws.with(|f| f.is_empty());
+            !filters_empty || !dimension_params_empty
         }>
             <div class="flex gap-2">
                 <div
@@ -71,6 +89,52 @@ pub(super) fn FilterSummary(filters_rws: RwSignal<ExpGroupFilters>) -> impl Into
                         if force_open_rws.get() { "max-h-[1000px]" } else { "max-h-0" },
                     )
                 }>
+                    {move || {
+                        if !dimension_params_rws.with(|d| d.is_empty()) {
+                            let dimension_params = dimension_params_rws.get();
+                            let conditions = Conditions::from_iter(
+                                dimension_params.clone().into_inner(),
+                            );
+                            let condition_id = serde_json::to_string(
+                                    dimension_params.clone().into_inner().deref(),
+                                )
+                                .unwrap_or_else(|_| "[]".to_string());
+                            view! {
+                                <div class="flex justify-end gap-2">
+                                    <div class="min-w-fit pt-1 text-xs">"Context"</div>
+                                    <ConditionCollapseProvider>
+                                        <Condition
+                                            conditions
+                                            id=condition_id
+                                            grouped_view=false
+                                            resolve_summary=true
+                                            class="xl:w-[400px] h-fit"
+                                        />
+                                    </ConditionCollapseProvider>
+                                </div>
+                                <Show when=move || {
+                                    filters_rws
+                                        .with(|f| {
+                                            f.dimension_match_strategy.unwrap_or_default()
+                                                == DimensionMatchStrategy::Exact
+                                        })
+                                }>
+                                    <div class="flex gap-2 items-center">
+                                        <span class="text-xs">"Exact match context"</span>
+                                        <GrayPill
+                                            data="Enabled"
+                                            on_delete=move |_: String| {
+                                                filters_rws.update(|f| f.dimension_match_strategy = None)
+                                            }
+                                        />
+                                    </div>
+                                </Show>
+                            }
+                                .into_view()
+                        } else {
+                            ().into_view()
+                        }
+                    }}
                     {move || {
                         filters_rws
                             .with(|f| f.name.clone())
@@ -150,8 +214,19 @@ pub(super) fn FilterSummary(filters_rws: RwSignal<ExpGroupFilters>) -> impl Into
 pub(super) fn ExperimentGroupFilterWidget(
     pagination_params_rws: RwSignal<PaginationParams>,
     filters_rws: RwSignal<ExpGroupFilters>,
+    dimension_params_rws: RwSignal<DimensionQuery<QueryMap>>,
+    combined_resource: CombinedResource,
 ) -> impl IntoView {
     let filters_buffer_rws = RwSignal::new(filters_rws.get_untracked());
+    let dimension_buffer_rws = RwSignal::new(dimension_params_rws.get_untracked());
+    let context_rws = RwSignal::new(Conditions::from_iter(
+        dimension_params_rws.get_untracked().into_inner(),
+    ));
+
+    let fn_environment = Memo::new(move |_| FunctionEnvironment {
+        context: context_rws.get().into(),
+        overrides: Map::new(),
+    });
 
     view! {
         <DrawerBtn
@@ -167,7 +242,50 @@ pub(super) fn ExperimentGroupFilterWidget(
             handle_close=move || close_drawer("experiment_group_filter_drawer")
         >
             <div class="flex flex-col gap-5">
-                <div class="form-control">
+                {move || {
+                    view! {
+                        <ContextForm
+                            dimensions=combined_resource.dimensions.clone()
+                            context=context_rws.get_untracked()
+                            on_context_change=move |context: Conditions| {
+                                context_rws.set(context.clone());
+                                dimension_buffer_rws.set(DimensionQuery::from(Map::from(context)));
+                            }
+                            heading_sub_text="Search By Context"
+                            resolve_mode=true
+                            fn_environment
+                        />
+                    }
+                }}
+                {move || {
+                    view! {
+                        <div class="w-fit flex items-center gap-2">
+                            <Toggle
+                                name="dimension-match-strategy-toggle"
+                                disabled=dimension_buffer_rws.with(|d| d.is_empty())
+                                value=filters_buffer_rws
+                                    .with(|f| {
+                                        f.dimension_match_strategy.unwrap_or_default()
+                                            == DimensionMatchStrategy::Exact
+                                    })
+                                on_change=move |flag| {
+                                    filters_buffer_rws
+                                        .update(|f| {
+                                            f.dimension_match_strategy = if flag
+                                                && !dimension_buffer_rws.with(|d| d.is_empty())
+                                            {
+                                                Some(DimensionMatchStrategy::Exact)
+                                            } else {
+                                                None
+                                            };
+                                        });
+                                }
+                            />
+                            <Label title="Exact match context" />
+                        // extra_info="Enabling this will disable context filter"
+                        </div>
+                    }
+                }} <div class="form-control">
                     <Label title="Experiment Group Name" />
                     <input
                         type="text"
@@ -181,8 +299,7 @@ pub(super) fn ExperimentGroupFilterWidget(
                             filters_buffer_rws.update(|f| f.name = group_name);
                         }
                     />
-                </div>
-                <div class="form-control">
+                </div> <div class="form-control">
                     <Label title="Created By" />
                     <input
                         type="text"
@@ -200,8 +317,7 @@ pub(super) fn ExperimentGroupFilterWidget(
                             filters_buffer_rws.update(|filter| filter.created_by = created_by);
                         }
                     />
-                </div>
-                <div class="form-control">
+                </div> <div class="form-control">
                     <Label title="Last Modified By" />
                     <input
                         type="text"
@@ -231,8 +347,7 @@ pub(super) fn ExperimentGroupFilterWidget(
                         filters_buffer_rws
                             .update(|f| f.group_type = Some(CommaSeparatedQParams(items)))
                     }
-                />
-                <div class="flex justify-end gap-2">
+                /> <div class="flex justify-end gap-2">
                     <Button
                         class="h-12 w-48"
                         text="Submit"
@@ -240,10 +355,12 @@ pub(super) fn ExperimentGroupFilterWidget(
                         on_click=move |event: MouseEvent| {
                             event.prevent_default();
                             let filter = filters_buffer_rws.get();
+                            let dimension_params = dimension_buffer_rws.get();
                             close_drawer("experiment_group_filter_drawer");
                             batch(|| {
-                                pagination_params_rws.update(|f| f.reset_page());
                                 filters_rws.set(filter);
+                                dimension_params_rws.set(dimension_params);
+                                pagination_params_rws.update(|f| f.reset_page());
                             });
                         }
                     />

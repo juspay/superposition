@@ -7,6 +7,8 @@ pub struct GetConfigTomlInput  {
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub org_id: ::std::option::Option<::std::string::String>,
+    /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
+    pub if_modified_since: ::std::option::Option<::aws_smithy_types::DateTime>,
 }
 impl  GetConfigTomlInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -16,6 +18,10 @@ impl  GetConfigTomlInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub fn org_id(&self) -> ::std::option::Option<&str> {
         self.org_id.as_deref()
+    }
+    /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
+    pub fn if_modified_since(&self) -> ::std::option::Option<&::aws_smithy_types::DateTime> {
+        self.if_modified_since.as_ref()
     }
 }
 impl GetConfigTomlInput {
@@ -31,6 +37,7 @@ impl GetConfigTomlInput {
 pub struct GetConfigTomlInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
+    pub(crate) if_modified_since: ::std::option::Option<::aws_smithy_types::DateTime>,
 }
 impl GetConfigTomlInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -61,6 +68,19 @@ impl GetConfigTomlInputBuilder {
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.org_id
     }
+    /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
+    pub fn if_modified_since(mut self, input: ::aws_smithy_types::DateTime) -> Self {
+        self.if_modified_since = ::std::option::Option::Some(input);
+        self
+    }
+    /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
+    pub fn set_if_modified_since(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
+        self.if_modified_since = input; self
+    }
+    /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
+    pub fn get_if_modified_since(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
+        &self.if_modified_since
+    }
     /// Consumes the builder and constructs a [`GetConfigTomlInput`](crate::operation::get_config_toml::GetConfigTomlInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::get_config_toml::GetConfigTomlInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -68,6 +88,8 @@ impl GetConfigTomlInputBuilder {
                 workspace_id: self.workspace_id
                 ,
                 org_id: self.org_id
+                ,
+                if_modified_since: self.if_modified_since
                 ,
             }
         )

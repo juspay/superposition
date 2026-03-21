@@ -36,7 +36,7 @@ index 0de33755..a0155187 100644
      private static final Schema $SCHEMA = Schema.createResource($ID);
 
 diff --git a/clients/java/sdk/src/main/java/io/juspay/superposition/model/ExperimentGroup.java b/clients/java/sdk/src/main/java/io/juspay/superposition/model/ExperimentGroup.java
-index 84b85d58..04ffb1bc 100644
+index 002b1991..8be02229 100644
 --- a/clients/java/sdk/src/main/java/io/juspay/superposition/model/ExperimentGroup.java
 +++ b/clients/java/sdk/src/main/java/io/juspay/superposition/model/ExperimentGroup.java
 @@ -19,19 +19,20 @@ public final class ExperimentGroup implements ApiResource {
@@ -71,7 +71,7 @@ index 84b85d58..04ffb1bc 100644
 +        Map.entry("context", SharedSchemas.CONDITION),
 +        Map.entry("member_experiment_ids", SharedSchemas.STRING_LIST));
  
-     private static final List<Schema> $OPERATIONS = List.of(AddMembersToGroup.$SCHEMA,
+     private static final List<Schema>$COLLECTION_OPERATIONS = List.of(AddMembersToGroup.$SCHEMA,
          RemoveMembersFromGroup.$SCHEMA);
 diff --git a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Experiments.java b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Experiments.java
 index 5b0dd5e8..05445da7 100644

@@ -37,6 +37,10 @@ pub fn de_list_experiment_groups_http_response(_response_status: u16, _response_
         #[allow(unused_mut)]
         let mut output = crate::operation::list_experiment_groups::builders::ListExperimentGroupsOutputBuilder::default();
         output = crate::protocol_serde::shape_list_experiment_groups::de_list_experiment_groups(_response_body, output).map_err(crate::operation::list_experiment_groups::ListExperimentGroupsError::unhandled)?;
+        output = output.set_last_modified(
+            crate::protocol_serde::shape_list_experiment_groups_output::de_last_modified_header(_response_headers)
+                                        .map_err(|_|crate::operation::list_experiment_groups::ListExperimentGroupsError::unhandled("Failed to parse last_modified from header `last-modified"))?
+        );
         crate::serde_util::list_experiment_groups_output_output_correct_errors(output).build().map_err(crate::operation::list_experiment_groups::ListExperimentGroupsError::unhandled)?
     })
 }
@@ -69,7 +73,27 @@ pub fn ser_list_experiment_groups_headers(
                             })?;
                             builder = builder.header("x-org-id", header_value);
     }
+    if let ::std::option::Option::Some(inner_5) = &input.if_modified_since {
+        let formatted_6 = inner_5.fmt(::aws_smithy_types::date_time::Format::DateTime)?;
+        let header_value = formatted_6;
+                            let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
+                                ::aws_smithy_types::error::operation::BuildError::invalid_field("if_modified_since", format!(
+                                "`{}` cannot be used as a header value: {}",
+                                &header_value,
+                                err
+                            ))
+                            })?;
+                            builder = builder.header("if-modified-since", header_value);
+    }
     Ok(builder)
+}
+
+pub fn ser_list_experiment_groups_input(input: &crate::operation::list_experiment_groups::ListExperimentGroupsInput) -> ::std::result::Result<::aws_smithy_types::body::SdkBody, ::aws_smithy_types::error::operation::SerializationError> {
+    let mut out = String::new();
+    let mut object = ::aws_smithy_json::serialize::JsonObjectWriter::new(&mut out);
+    crate::protocol_serde::shape_list_experiment_groups_input::ser_list_experiment_groups_input_input(&mut object, input)?;
+    object.finish();
+    Ok(::aws_smithy_types::body::SdkBody::from(out))
 }
 
 pub(crate) fn de_list_experiment_groups(value: &[u8], mut builder: crate::operation::list_experiment_groups::builders::ListExperimentGroupsOutputBuilder) -> ::std::result::Result<crate::operation::list_experiment_groups::builders::ListExperimentGroupsOutputBuilder, ::aws_smithy_json::deserialize::error::DeserializeError> {

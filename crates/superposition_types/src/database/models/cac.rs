@@ -53,8 +53,8 @@ pub struct Context {
 }
 
 impl Contextual for Context {
-    fn get_condition(&self) -> Condition {
-        self.value.clone()
+    fn get_condition(&self) -> &Condition {
+        &self.value
     }
 }
 

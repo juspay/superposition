@@ -192,6 +192,11 @@ impl Default for ExperimentSortOn {
     }
 }
 
+#[derive(Deserialize)]
+pub struct ExperimentListRequest {
+    pub context: Option<Map<String, Value>>,
+}
+
 #[derive(Deserialize, Clone, PartialEq, IsEmpty, QueryParam)]
 pub struct ExperimentListFilters {
     #[query_param(skip_if_empty, iterable)]
@@ -209,6 +214,8 @@ pub struct ExperimentListFilters {
     pub sort_on: Option<ExperimentSortOn>,
     pub sort_by: Option<SortBy>,
     pub global_experiments_only: Option<bool>,
+    #[query_param(skip_if_empty, iterable)]
+    pub prefix: Option<CommaSeparatedStringQParams>,
     pub dimension_match_strategy: Option<DimensionMatchStrategy>,
 }
 
@@ -234,6 +241,7 @@ impl Default for ExperimentListFilters {
             sort_on: None,
             sort_by: Some(SortBy::Desc),
             global_experiments_only: None,
+            prefix: None,
             dimension_match_strategy: None,
         }
     }
