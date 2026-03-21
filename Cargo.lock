@@ -6076,7 +6076,7 @@ version = "0.100.2"
 
 [[package]]
 name = "superposition_mcp"
-version = "0.100.1"
+version = "0.100.2"
 dependencies = [
  "actix-web",
  "anyhow",
