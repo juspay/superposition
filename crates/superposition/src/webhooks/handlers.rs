@@ -59,11 +59,6 @@ fn encrypt_signing_secret(
     })
 }
 
-fn strip_signing_secret(mut webhook: Webhook) -> Webhook {
-    webhook.signing_secret = None;
-    webhook
-}
-
 #[authorized]
 #[post("")]
 async fn create_handler(
@@ -118,7 +113,7 @@ async fn create_handler(
         .schema_name(&workspace_context.schema_name)
         .execute(&mut conn)?;
 
-    Ok(Json(strip_signing_secret(webhook_data)))
+    Ok(Json(webhook_data))
 }
 
 #[authorized]
@@ -170,7 +165,7 @@ async fn update_handler(
         .schema_name(&workspace_context.schema_name)
         .get_result::<Webhook>(&mut conn)?;
 
-    Ok(Json(strip_signing_secret(update)))
+    Ok(Json(update))
 }
 
 #[authorized]
@@ -186,7 +181,7 @@ async fn get_handler(
         &workspace_context.schema_name,
         &mut conn,
     )?;
-    Ok(Json(strip_signing_secret(webhook_row)))
+    Ok(Json(webhook_row))
 }
 
 #[authorized]
@@ -202,7 +197,6 @@ async fn list_handler(
         let result: Vec<Webhook> = webhooks
             .schema_name(&workspace_context.schema_name)
             .get_results(&mut conn)?;
-        let result = result.into_iter().map(strip_signing_secret).collect();
         return Ok(Json(PaginatedResponse::all(result)));
     }
 
@@ -221,7 +215,6 @@ async fn list_handler(
         builder = builder.offset(offset);
     }
     let data: Vec<Webhook> = builder.load(&mut conn)?;
-    let data = data.into_iter().map(strip_signing_secret).collect();
     let total_pages = (total_items as f64 / limit as f64).ceil() as i64;
 
     Ok(Json(PaginatedResponse {
@@ -269,5 +262,5 @@ async fn get_by_event_handler(
         .filter(webhooks::events.contains(vec![event]))
         .schema_name(&workspace_context.schema_name)
         .first::<Webhook>(&mut conn)?;
-    Ok(Json(strip_signing_secret(webhook_row)))
+    Ok(Json(webhook_row))
 }
