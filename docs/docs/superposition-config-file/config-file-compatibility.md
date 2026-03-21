@@ -1,12 +1,12 @@
 ---
 sidebar_position: 11
 title: Config File Compatibility
-description: Evaluating common Linux/Mac configuration files that can be represented as SuperTOML
+description: Evaluating common Linux/macOS configuration files that can be represented as SuperTOML
 ---
 
 # Config File Compatibility
 
-SuperTOML's core strengths — **typed key-value configs**, **dimensional context overrides**, and **cascading resolution** — map naturally to many existing configuration formats in the Linux/Mac ecosystem. This page evaluates which common config files are good candidates for representation as SuperTOML.
+SuperTOML's core strengths — **typed key-value configs**, **dimensional context overrides**, and **cascading resolution** — map naturally to many existing configuration formats in the Linux/macOS ecosystem. This page evaluates which common config files are good candidates for representation as SuperTOML.
 
 ## Excellent Fit
 
@@ -17,7 +17,7 @@ These config files already use a cascading or override model that maps directly 
 SSH config already cascades — `Host *` sets defaults and specific `Host` blocks override them. This maps directly to SuperTOML with a `host` dimension.
 
 **Traditional format:**
-```
+```text
 Host *
     ServerAliveInterval 60
     ServerAliveCountMax 3
@@ -45,7 +45,7 @@ ServerAliveCountMax = { value = 3, schema = { type = "integer", minimum = 1 } }
 ForwardAgent = { value = false, schema = { type = "boolean" } }
 IdentityFile = { value = "~/.ssh/id_ed25519", schema = { type = "string" } }
 Port = { value = 22, schema = { type = "integer", minimum = 1, maximum = 65535 } }
-User = { value = "root", schema = { type = "string" } }
+User = { value = "deploy", schema = { type = "string" } }
 
 [[overrides]]
 _context_ = { host = "github.com" }
