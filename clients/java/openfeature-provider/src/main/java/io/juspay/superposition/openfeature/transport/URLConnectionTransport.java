@@ -14,13 +14,17 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * An HTTP transport implementation using {@link java.net.HttpURLConnection}.
@@ -41,6 +45,7 @@ public final class URLConnectionTransport implements ClientTransport<HttpRequest
 
     private final Duration connectTimeout;
     private final Duration readTimeout;
+    private final ExecutorService executor;
 
     /**
      * Creates a transport with default timeouts (10 seconds connect, 30 seconds read).
@@ -56,8 +61,13 @@ public final class URLConnectionTransport implements ClientTransport<HttpRequest
      * @param readTimeout    the read timeout
      */
     public URLConnectionTransport(Duration connectTimeout, Duration readTimeout) {
-        this.connectTimeout = connectTimeout;
-        this.readTimeout = readTimeout;
+        this.connectTimeout = Objects.requireNonNull(connectTimeout, "connectTimeout");
+        this.readTimeout = Objects.requireNonNull(readTimeout, "readTimeout");
+        this.executor = Executors.newCachedThreadPool(r -> {
+            Thread t = new Thread(r, "url-connection-transport");
+            t.setDaemon(true);
+            return t;
+        });
     }
 
     @Override
@@ -71,9 +81,9 @@ public final class URLConnectionTransport implements ClientTransport<HttpRequest
             try {
                 return doSend(request);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new UncheckedIOException(e);
             }
-        });
+        }, executor);
     }
 
     private HttpResponse doSend(HttpRequest request) throws IOException {
@@ -111,20 +121,7 @@ public final class URLConnectionTransport implements ClientTransport<HttpRequest
             }
 
             // Read response body
-            InputStream responseStream;
-            try {
-                responseStream = conn.getInputStream();
-            } catch (IOException e) {
-                responseStream = conn.getErrorStream();
-            }
-
-            byte[] responseBody;
-            if (responseStream != null) {
-                responseBody = readAllBytes(responseStream);
-                responseStream.close();
-            } else {
-                responseBody = new byte[0];
-            }
+            byte[] responseBody = readResponseBody(conn, statusCode);
 
             return HttpResponse.builder()
                 .statusCode(statusCode)
@@ -136,14 +133,27 @@ public final class URLConnectionTransport implements ClientTransport<HttpRequest
         }
     }
 
+    private static byte[] readResponseBody(HttpURLConnection conn, int statusCode) throws IOException {
+        InputStream responseStream = null;
+        try {
+            responseStream = statusCode >= 400 ? conn.getErrorStream() : conn.getInputStream();
+            if (responseStream == null) {
+                return new byte[0];
+            }
+            return readAllBytes(responseStream);
+        } finally {
+            if (responseStream != null) {
+                responseStream.close();
+            }
+        }
+    }
+
     private static void writeBody(DataStream body, OutputStream os) throws IOException {
         ByteBuffer buffer = body.waitForByteBuffer();
-        byte[] bytes;
         if (buffer.hasArray()) {
-            bytes = buffer.array();
-            os.write(bytes, buffer.arrayOffset() + buffer.position(), buffer.remaining());
+            os.write(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.remaining());
         } else {
-            bytes = new byte[buffer.remaining()];
+            byte[] bytes = new byte[buffer.remaining()];
             buffer.get(bytes);
             os.write(bytes);
         }
