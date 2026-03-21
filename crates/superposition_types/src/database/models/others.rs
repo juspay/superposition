@@ -46,6 +46,7 @@ pub struct Webhook {
     pub created_at: DateTime<Utc>,
     pub last_modified_by: String,
     pub last_modified_at: DateTime<Utc>,
+    pub signing_secret: Option<String>,
 }
 
 #[derive(

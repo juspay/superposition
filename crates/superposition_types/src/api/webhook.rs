@@ -25,6 +25,7 @@ pub struct CreateWebhookRequest {
     pub payload_version: Option<PayloadVersion>,
     pub custom_headers: Option<CustomHeaders>,
     pub events: Vec<WebhookEvent>,
+    pub signing_secret: Option<String>,
     pub change_reason: ChangeReason,
 }
 
@@ -39,6 +40,7 @@ pub struct UpdateWebhookRequest {
     pub payload_version: Option<PayloadVersion>,
     pub custom_headers: Option<CustomHeaders>,
     pub events: Option<Vec<WebhookEvent>>,
+    pub signing_secret: Option<String>,
     pub change_reason: ChangeReason,
 }
 
@@ -67,6 +69,8 @@ impl TryFrom<String> for WebhookName {
 pub enum HeadersEnum {
     ConfigVersion,
     WorkspaceId,
+    Signature256,
+    Timestamp,
 }
 
 impl fmt::Display for HeadersEnum {
@@ -74,6 +78,8 @@ impl fmt::Display for HeadersEnum {
         match self {
             Self::ConfigVersion => write!(f, "x-config-version"),
             Self::WorkspaceId => write!(f, "x-tenant"),
+            Self::Signature256 => write!(f, "x-superposition-signature-256"),
+            Self::Timestamp => write!(f, "x-superposition-timestamp"),
         }
     }
 }

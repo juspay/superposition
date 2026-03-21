@@ -21,6 +21,8 @@ diesel = { workspace = true }
 diesel-adapter = { version = "1.2.0" }
 fred = { workspace = true, features = ["metrics"] }
 futures-util = { workspace = true }
+hmac = "0.12"
+sha2 = "0.10"
 inventory = { workspace = true }
 log = { workspace = true }
 once_cell = { workspace = true }

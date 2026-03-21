@@ -16,12 +16,14 @@ use diesel::{
 use log::warn;
 use once_cell::sync::Lazy;
 use regex::Regex;
+use hmac::{Hmac, Mac};
 use reqwest::{
     StatusCode,
     header::{HeaderMap, HeaderName, HeaderValue},
 };
 use secrecy::ExposeSecret;
 use serde::Serialize;
+use sha2::Sha256;
 use superposition_macros::unexpected_error;
 use superposition_types::{
     DBConnection, DimensionInfo, Resource,
@@ -428,20 +430,80 @@ where
         HttpMethod::Head => state.http_client.head(&*webhook.url),
     };
 
+    let body = WebhookResponse {
+        event_info: WebhookEventInfo {
+            webhook_event: event,
+            resource,
+            action,
+            time: Utc::now().to_string(),
+            workspace_id: workspace_context.workspace_id.to_string(),
+            organisation_id: workspace_context.organisation_id.to_string(),
+            config_version: config_version_opt,
+        },
+        payload,
+    };
+
+    let json_body = match serde_json::to_string(&body) {
+        Ok(b) => b,
+        Err(e) => {
+            log::error!("Failed to serialize webhook body: {}", e);
+            return false;
+        }
+    };
+
+    // HMAC-SHA256 signing if a signing secret is configured
+    if let Some(ref encrypted_secret) = webhook.signing_secret {
+        let workspace_key = match decrypt_workspace_key(
+            &workspace_context.settings.encryption_key,
+            state
+                .master_encryption_key
+                .as_ref()
+                .expect("master encryption key required for webhook signing"),
+        ) {
+            Ok(k) => k,
+            Err(e) => {
+                log::error!("Failed to decrypt workspace key for webhook signing: {}", e);
+                return false;
+            }
+        };
+
+        let signing_key = match decrypt_secret(encrypted_secret, &workspace_key) {
+            Ok(k) => k,
+            Err(e) => {
+                log::error!("Failed to decrypt webhook signing secret: {}", e);
+                return false;
+            }
+        };
+
+        let timestamp = Utc::now().timestamp().to_string();
+        let signed_payload = format!("{}.{}", timestamp, json_body);
+
+        type HmacSha256 = Hmac<Sha256>;
+        let mut mac = HmacSha256::new_from_slice(signing_key.expose_secret().as_bytes())
+            .expect("HMAC can take key of any size");
+        mac.update(signed_payload.as_bytes());
+        let result_bytes = mac.finalize().into_bytes();
+        let signature = result_bytes
+            .iter()
+            .map(|b| format!("{:02x}", b))
+            .collect::<String>();
+
+        insert_header(
+            &mut headers,
+            &HeadersEnum::Signature256.to_string(),
+            &format!("sha256={}", signature),
+        );
+        insert_header(
+            &mut headers,
+            &HeadersEnum::Timestamp.to_string(),
+            &timestamp,
+        );
+    }
+
     let response = request_builder
         .headers(headers)
-        .json(&WebhookResponse {
-            event_info: WebhookEventInfo {
-                webhook_event: event,
-                resource,
-                action,
-                time: Utc::now().to_string(),
-                workspace_id: workspace_context.workspace_id.to_string(),
-                organisation_id: workspace_context.organisation_id.to_string(),
-                config_version: config_version_opt,
-            },
-            payload,
-        })
+        .header("content-type", "application/json")
+        .body(json_body)
         .send()
         .await;
 

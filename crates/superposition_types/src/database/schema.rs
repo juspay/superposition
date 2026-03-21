@@ -721,6 +721,7 @@ diesel::table! {
         created_at -> Timestamptz,
         last_modified_by -> Text,
         last_modified_at -> Timestamptz,
+        signing_secret -> Nullable<Text>,
     }
 }
 

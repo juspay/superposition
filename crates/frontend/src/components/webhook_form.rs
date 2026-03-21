@@ -53,6 +53,7 @@ fn try_update_payload(
         payload_version: Some(payload_version),
         custom_headers: Some(custom_headers),
         events: Some(events),
+        signing_secret: None,
         description: Some(Description::try_from(description)?),
         change_reason: ChangeReason::try_from(change_reason)?,
     })

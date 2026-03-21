@@ -16,6 +16,7 @@ resource Webhook {
         version: Version
         custom_headers: Object
         events: Events
+        signing_secret: String
         max_retries: Integer
         last_triggered_at: DateTime
         change_reason: String
@@ -130,6 +131,8 @@ operation CreateWebhook {
         @required
         events: Events
 
+        signing_secret: String
+
         @required
         change_reason: String
     }
@@ -160,6 +163,8 @@ operation UpdateWebhook with [GetOperation] {
         custom_headers: Object
 
         events: Events
+
+        signing_secret: String
 
         @required
         change_reason: String

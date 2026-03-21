@@ -852,6 +852,7 @@ pub async fn create_webhook(
         payload_version: Some(payload_version),
         custom_headers: Some(custom_headers),
         events,
+        signing_secret: None,
         change_reason: ChangeReason::try_from(change_reason)?,
     };
     let host = use_host_server();

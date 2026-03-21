@@ -6,8 +6,12 @@ use actix_web::{
 use chrono::Utc;
 use context_aware_config::helpers::validate_change_reason;
 use diesel::{ExpressionMethods, PgArrayExpressionMethods, QueryDsl, RunQueryDsl};
-use service_utils::service::types::{AppState, DbConnection, WorkspaceContext};
+use service_utils::{
+    encryption::{decrypt_workspace_key, encrypt_secret},
+    service::types::{AppState, DbConnection, EncryptionKey, WorkspaceContext},
+};
 use superposition_derives::{authorized, declare_resource};
+use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
     PaginatedResponse, User,
     api::webhook::{CreateWebhookRequest, UpdateWebhookRequest, WebhookName},
@@ -31,6 +35,35 @@ pub fn endpoints() -> Scope {
         .service(get_by_event_handler)
 }
 
+fn encrypt_signing_secret(
+    secret: &str,
+    workspace_context: &WorkspaceContext,
+    master_encryption_key: &Option<EncryptionKey>,
+) -> superposition::Result<String> {
+    let Some(master_key) = master_encryption_key else {
+        return Err(bad_argument!(
+            "Master encryption key not configured. Configure master encryption key to use webhook signing secrets"
+        ));
+    };
+
+    let workspace_key =
+        decrypt_workspace_key(&workspace_context.settings.encryption_key, master_key)
+            .map_err(|e| {
+                log::error!("Failed to decrypt workspace key: {}", e);
+                unexpected_error!("Failed to decrypt workspace encryption key")
+            })?;
+
+    encrypt_secret(secret, &workspace_key).map_err(|e| {
+        log::error!("Failed to encrypt signing secret: {}", e);
+        unexpected_error!("Failed to encrypt webhook signing secret")
+    })
+}
+
+fn strip_signing_secret(mut webhook: Webhook) -> Webhook {
+    webhook.signing_secret = None;
+    webhook
+}
+
 #[authorized]
 #[post("")]
 async fn create_handler(
@@ -51,6 +84,15 @@ async fn create_handler(
     )?;
 
     validate_events(&req.events, None, &workspace_context.schema_name, &mut conn)?;
+
+    let encrypted_secret = req
+        .signing_secret
+        .as_deref()
+        .map(|s| {
+            encrypt_signing_secret(s, &workspace_context, &state.master_encryption_key)
+        })
+        .transpose()?;
+
     let now = Utc::now();
     let webhook_data = Webhook {
         name: req.name.to_string(),
@@ -68,6 +110,7 @@ async fn create_handler(
         created_at: now,
         last_modified_by: user.get_email(),
         last_modified_at: now,
+        signing_secret: encrypted_secret,
     };
 
     diesel::insert_into(webhooks::table)
@@ -75,7 +118,7 @@ async fn create_handler(
         .schema_name(&workspace_context.schema_name)
         .execute(&mut conn)?;
 
-    Ok(Json(webhook_data))
+    Ok(Json(strip_signing_secret(webhook_data)))
 }
 
 #[authorized]
@@ -89,7 +132,7 @@ async fn update_handler(
     state: Data<AppState>,
 ) -> superposition::Result<Json<Webhook>> {
     let DbConnection(mut conn) = db_conn;
-    let req = request.into_inner();
+    let mut req = request.into_inner();
     let w_name: String = params.into_inner().into();
 
     validate_change_reason(
@@ -108,6 +151,15 @@ async fn update_handler(
         )?;
     }
 
+    if let Some(ref secret) = req.signing_secret {
+        let encrypted = encrypt_signing_secret(
+            secret,
+            &workspace_context,
+            &state.master_encryption_key,
+        )?;
+        req.signing_secret = Some(encrypted);
+    }
+
     let update = diesel::update(webhooks::table)
         .filter(webhooks::name.eq(w_name))
         .set((
@@ -118,7 +170,7 @@ async fn update_handler(
         .schema_name(&workspace_context.schema_name)
         .get_result::<Webhook>(&mut conn)?;
 
-    Ok(Json(update))
+    Ok(Json(strip_signing_secret(update)))
 }
 
 #[authorized]
@@ -134,7 +186,7 @@ async fn get_handler(
         &workspace_context.schema_name,
         &mut conn,
     )?;
-    Ok(Json(webhook_row))
+    Ok(Json(strip_signing_secret(webhook_row)))
 }
 
 #[authorized]
@@ -150,6 +202,7 @@ async fn list_handler(
         let result: Vec<Webhook> = webhooks
             .schema_name(&workspace_context.schema_name)
             .get_results(&mut conn)?;
+        let result = result.into_iter().map(strip_signing_secret).collect();
         return Ok(Json(PaginatedResponse::all(result)));
     }
 
@@ -168,6 +221,7 @@ async fn list_handler(
         builder = builder.offset(offset);
     }
     let data: Vec<Webhook> = builder.load(&mut conn)?;
+    let data = data.into_iter().map(strip_signing_secret).collect();
     let total_pages = (total_items as f64 / limit as f64).ceil() as i64;
 
     Ok(Json(PaginatedResponse {
@@ -215,5 +269,5 @@ async fn get_by_event_handler(
         .filter(webhooks::events.contains(vec![event]))
         .schema_name(&workspace_context.schema_name)
         .first::<Webhook>(&mut conn)?;
-    Ok(Json(webhook_row))
+    Ok(Json(strip_signing_secret(webhook_row)))
 }
