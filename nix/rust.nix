@@ -306,6 +306,27 @@
               };
             };
           };
+          "superposition_mcp" = {
+            imports = [ globalCrateConfig ];
+            crane = {
+              args = {
+                buildInputs =
+                  lib.optionals isDarwin ([
+                    pkgs.fixDarwinDylibNames
+                  ])
+                  ++ [
+                    pkgs.postgresql_15
+                    pkgs.openssl
+                  ];
+              };
+              extraBuildArgs = {
+                # https://discourse.nixos.org/t/how-to-use-install-name-tool-on-darwin/9931/2
+                postInstall = ''
+                  ${if isDarwin then "fixDarwinDylibNames" else ""}
+                '';
+              };
+            };
+          };
           "superposition" = {
             imports = [ globalCrateConfig ];
             crane = {

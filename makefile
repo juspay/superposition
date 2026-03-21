@@ -264,6 +264,14 @@ smithy-build:
 
 smithy-clean-build: smithy-clean smithy-build
 
+# Build the MCP codegen plugin and install to local Maven
+mcp-codegen-build:
+	cd smithy/mcp-codegen && gradle build publishToMavenLocal
+
+# Run MCP codegen standalone (without smithy CLI)
+mcp-codegen-run: mcp-codegen-build
+	java -cp "$$(cd smithy/mcp-codegen && gradle dependencies --configuration runtimeClasspath -q 2>/dev/null | grep '^\---' | sed 's/.*--- //' | while read dep; do find ~/.gradle/caches -name "$$(echo $$dep | tr ':' '-' | sed 's/.*-\([^-]*\)$$//')*" 2>/dev/null; done | tr '\n' ':')smithy/mcp-codegen/build/libs/mcp-codegen-0.1.0.jar" io.superposition.mcp.codegen.McpCodegenRunner smithy/models crates/superposition_mcp/src/generated
+
 smithy-clients: smithy-build
 ## Moving the Java client like this as smithy publishes it as a java project.
 ## Probably want to use that to publish it ourselves in the future.
