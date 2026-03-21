@@ -4,8 +4,9 @@ use std::fmt;
 #[derive(Debug)]
 pub enum FormatError {
     SyntaxError {
-        format: String,
+        format: super::MarkupFormat,
         message: String,
+        span: Option<std::ops::Range<usize>>,
     },
     InvalidDimension(String),
     InvalidCohortDimensionPosition {
@@ -43,7 +44,11 @@ pub enum FormatError {
 impl fmt::Display for FormatError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::SyntaxError { format, message } => {
+            Self::SyntaxError {
+                format,
+                message,
+                span: _,
+            } => {
                 write!(f, "{} syntax error: {}", format, message)
             }
             Self::InvalidCohortDimensionPosition {
