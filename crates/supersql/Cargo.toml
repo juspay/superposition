@@ -1,0 +1,21 @@
+[package]
+name = "supersql"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "SQL CLI tool for querying Superposition configs"
+
+[[bin]]
+name = "supersql"
+path = "src/main.rs"
+
+[dependencies]
+superposition_sdk = { workspace = true, features = ["behavior-version-latest"] }
+tokio = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+aws-smithy-types = "1.3.0"
+clap = { version = "4.3.0", features = ["derive", "env"] }
+rustyline = "15"
+tabled = "0.17"
