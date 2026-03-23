@@ -1058,9 +1058,8 @@ async def _serialize_get_config(input: GetConfigInput, config: Config) -> HTTPRe
 <<<<<<< HEAD
 <<<<<<< HEAD
     if input.if_modified_since is not None:
-<<<<<<< HEAD
-<<<<<<< HEAD
         headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1083,6 +1082,8 @@ async def _serialize_get_config(input: GetConfigInput, config: Config) -> HTTPRe
         headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
 >>>>>>> 82479b8f (fix: more fixes)
 >>>>>>> de718464 (fix: more fixes)
+=======
+>>>>>>> 45a3cd01 (reabse fix)
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2065,9 +2066,8 @@ async def _serialize_list_experiment(input: ListExperimentInput, config: Config)
 <<<<<<< HEAD
 <<<<<<< HEAD
     if input.if_modified_since is not None:
-<<<<<<< HEAD
-<<<<<<< HEAD
         headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2090,6 +2090,8 @@ async def _serialize_list_experiment(input: ListExperimentInput, config: Config)
         headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
 >>>>>>> 82479b8f (fix: more fixes)
 >>>>>>> de718464 (fix: more fixes)
+=======
+>>>>>>> 45a3cd01 (reabse fix)
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2153,9 +2155,8 @@ async def _serialize_list_experiment_groups(input: ListExperimentGroupsInput, co
 <<<<<<< HEAD
 <<<<<<< HEAD
     if input.if_modified_since is not None:
-<<<<<<< HEAD
-<<<<<<< HEAD
         headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2178,6 +2179,8 @@ async def _serialize_list_experiment_groups(input: ListExperimentGroupsInput, co
         headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
 >>>>>>> 82479b8f (fix: more fixes)
 >>>>>>> de718464 (fix: more fixes)
+=======
+>>>>>>> 45a3cd01 (reabse fix)
     return _HTTPRequest(
         destination=_URI(
             host="",

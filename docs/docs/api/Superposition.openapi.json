@@ -174,6 +174,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -184,13 +185,9 @@
 >>>>>>> c1293812 (Test)
 =======
 >>>>>>> de718464 (fix: more fixes)
-                        "name": "if-modified-since",
 =======
-                        "name": "If-Modified-Since",
->>>>>>> 6e8749e1 (Test)
-=======
+>>>>>>> 45a3cd01 (reabse fix)
                         "name": "if-modified-since",
->>>>>>> 82479b8f (fix: more fixes)
                         "in": "header",
                         "description": "While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.",
                         "schema": {
@@ -2184,6 +2181,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -2196,6 +2194,8 @@
 =======
 >>>>>>> 82479b8f (fix: more fixes)
 >>>>>>> de718464 (fix: more fixes)
+=======
+>>>>>>> 45a3cd01 (reabse fix)
                         "name": "dimension_match_strategy",
                         "in": "query",
                         "description": "Strategy to follow while filter items based on the context",
@@ -2205,12 +2205,6 @@
                     },
                     {
                         "name": "if-modified-since",
-<<<<<<< HEAD
-=======
-                        "name": "If-Modified-Since",
->>>>>>> 6e8749e1 (Test)
-=======
->>>>>>> 82479b8f (fix: more fixes)
                         "in": "header",
                         "description": "While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.",
                         "schema": {
@@ -2869,6 +2863,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 =======
@@ -2879,6 +2874,8 @@
 =======
 >>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
 >>>>>>> 964966cd (feat: Add prefix filter in list exp)
+=======
+>>>>>>> 45a3cd01 (reabse fix)
                         "name": "prefix",
                         "in": "query",
                         "style": "form",
@@ -2899,12 +2896,6 @@
 =======
 >>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
                         "name": "if-modified-since",
-=======
-                        "name": "If-Modified-Since",
->>>>>>> 6e8749e1 (Test)
-=======
-                        "name": "if-modified-since",
->>>>>>> 82479b8f (fix: more fixes)
                         "in": "header",
                         "description": "While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.",
                         "schema": {

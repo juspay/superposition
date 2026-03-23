@@ -6,6 +6,7 @@ module Io.Superposition.Model.ListExperimentOutput (
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     setLastModified,
 =======
 <<<<<<< HEAD
@@ -30,6 +31,9 @@ module Io.Superposition.Model.ListExperimentOutput (
     setLastModified,
 >>>>>>> 82479b8f (fix: more fixes)
 >>>>>>> de718464 (fix: more fixes)
+=======
+    setLastModified,
+>>>>>>> 45a3cd01 (reabse fix)
     build,
     ListExperimentOutputBuilder,
     ListExperimentOutput,
@@ -38,9 +42,8 @@ module Io.Superposition.Model.ListExperimentOutput (
 <<<<<<< HEAD
 <<<<<<< HEAD
     data',
-<<<<<<< HEAD
-<<<<<<< HEAD
     last_modified
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -64,6 +67,8 @@ module Io.Superposition.Model.ListExperimentOutput (
     last_modified
 >>>>>>> 82479b8f (fix: more fixes)
 >>>>>>> de718464 (fix: more fixes)
+=======
+>>>>>>> 45a3cd01 (reabse fix)
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad.State.Strict
@@ -87,9 +92,8 @@ data ListExperimentOutput = ListExperimentOutput {
 <<<<<<< HEAD
 <<<<<<< HEAD
     data' :: [] Io.Superposition.Model.ExperimentResponse.ExperimentResponse,
-<<<<<<< HEAD
-<<<<<<< HEAD
     last_modified :: Data.Time.UTCTime
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -113,6 +117,8 @@ data ListExperimentOutput = ListExperimentOutput {
     last_modified :: Data.Time.UTCTime
 >>>>>>> 82479b8f (fix: more fixes)
 >>>>>>> de718464 (fix: more fixes)
+=======
+>>>>>>> 45a3cd01 (reabse fix)
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -126,9 +132,8 @@ instance Data.Aeson.ToJSON ListExperimentOutput where
 <<<<<<< HEAD
 <<<<<<< HEAD
         "data" Data.Aeson..= data' a,
-<<<<<<< HEAD
-<<<<<<< HEAD
         "last_modified" Data.Aeson..= last_modified a
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -152,6 +157,8 @@ instance Data.Aeson.ToJSON ListExperimentOutput where
         "last_modified" Data.Aeson..= last_modified a
 >>>>>>> 82479b8f (fix: more fixes)
 >>>>>>> de718464 (fix: more fixes)
+=======
+>>>>>>> 45a3cd01 (reabse fix)
         ]
     
 
@@ -162,6 +169,7 @@ instance Data.Aeson.FromJSON ListExperimentOutput where
         Data.Functor.<$> (v Data.Aeson..: "total_pages")
         Control.Applicative.<*> (v Data.Aeson..: "total_items")
         Control.Applicative.<*> (v Data.Aeson..: "data")
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -190,6 +198,9 @@ instance Data.Aeson.FromJSON ListExperimentOutput where
         Control.Applicative.<*> (v Data.Aeson..: "last_modified")
 >>>>>>> 82479b8f (fix: more fixes)
 >>>>>>> de718464 (fix: more fixes)
+=======
+        Control.Applicative.<*> (v Data.Aeson..: "last_modified")
+>>>>>>> 45a3cd01 (reabse fix)
     
 
 
@@ -200,9 +211,8 @@ data ListExperimentOutputBuilderState = ListExperimentOutputBuilderState {
 <<<<<<< HEAD
 <<<<<<< HEAD
     data'BuilderState :: Data.Maybe.Maybe ([] Io.Superposition.Model.ExperimentResponse.ExperimentResponse),
-<<<<<<< HEAD
-<<<<<<< HEAD
     last_modifiedBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -226,6 +236,8 @@ data ListExperimentOutputBuilderState = ListExperimentOutputBuilderState {
     last_modifiedBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime
 >>>>>>> 82479b8f (fix: more fixes)
 >>>>>>> de718464 (fix: more fixes)
+=======
+>>>>>>> 45a3cd01 (reabse fix)
 } deriving (
   GHC.Generics.Generic
   )
@@ -237,9 +249,8 @@ defaultBuilderState = ListExperimentOutputBuilderState {
 <<<<<<< HEAD
 <<<<<<< HEAD
     data'BuilderState = Data.Maybe.Nothing,
-<<<<<<< HEAD
-<<<<<<< HEAD
     last_modifiedBuilderState = Data.Maybe.Nothing
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -263,6 +274,8 @@ defaultBuilderState = ListExperimentOutputBuilderState {
     last_modifiedBuilderState = Data.Maybe.Nothing
 >>>>>>> 82479b8f (fix: more fixes)
 >>>>>>> de718464 (fix: more fixes)
+=======
+>>>>>>> 45a3cd01 (reabse fix)
 }
 
 type ListExperimentOutputBuilder = Control.Monad.State.Strict.State ListExperimentOutputBuilderState
@@ -283,6 +296,7 @@ setData' value =
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -293,19 +307,11 @@ setData' value =
 >>>>>>> c1293812 (Test)
 =======
 >>>>>>> de718464 (fix: more fixes)
+=======
+>>>>>>> 45a3cd01 (reabse fix)
 setLastModified :: Data.Time.UTCTime -> ListExperimentOutputBuilder ()
 setLastModified value =
    Control.Monad.State.Strict.modify (\s -> (s { last_modifiedBuilderState = Data.Maybe.Just value }))
-=======
-setLastModifiedAt :: Data.Time.UTCTime -> ListExperimentOutputBuilder ()
-setLastModifiedAt value =
-   Control.Monad.State.Strict.modify (\s -> (s { last_modified_atBuilderState = Data.Maybe.Just value }))
->>>>>>> 6e8749e1 (Test)
-=======
-setLastModified :: Data.Time.UTCTime -> ListExperimentOutputBuilder ()
-setLastModified value =
-   Control.Monad.State.Strict.modify (\s -> (s { last_modifiedBuilderState = Data.Maybe.Just value }))
->>>>>>> 82479b8f (fix: more fixes)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -324,24 +330,20 @@ build builder = do
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c1293812 (Test)
 =======
 >>>>>>> de718464 (fix: more fixes)
-    last_modified' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListExperimentOutput.ListExperimentOutput.last_modified is a required property.") Data.Either.Right (last_modifiedBuilderState st)
 =======
-    last_modified_at' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListExperimentOutput.ListExperimentOutput.last_modified_at is a required property.") Data.Either.Right (last_modified_atBuilderState st)
->>>>>>> 6e8749e1 (Test)
-=======
+>>>>>>> 45a3cd01 (reabse fix)
     last_modified' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListExperimentOutput.ListExperimentOutput.last_modified is a required property.") Data.Either.Right (last_modifiedBuilderState st)
->>>>>>> 82479b8f (fix: more fixes)
     Data.Either.Right (ListExperimentOutput { 
         total_pages = total_pages',
         total_items = total_items',
         data' = data'',
-<<<<<<< HEAD
-<<<<<<< HEAD
         last_modified = last_modified'
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -373,6 +375,8 @@ build builder = do
         last_modified = last_modified'
 >>>>>>> 82479b8f (fix: more fixes)
 >>>>>>> de718464 (fix: more fixes)
+=======
+>>>>>>> 45a3cd01 (reabse fix)
     })
 
 
@@ -398,9 +402,8 @@ instance Io.Superposition.Utility.FromResponseParser ListExperimentOutput where
             total_pages = var2,
             total_items = var3,
             data' = var1,
-<<<<<<< HEAD
-<<<<<<< HEAD
             last_modified = var0
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -420,5 +423,7 @@ instance Io.Superposition.Utility.FromResponseParser ListExperimentOutput where
             last_modified = var0
 >>>>>>> 82479b8f (fix: more fixes)
 >>>>>>> de718464 (fix: more fixes)
+=======
+>>>>>>> 45a3cd01 (reabse fix)
         }
 

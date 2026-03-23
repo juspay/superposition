@@ -595,6 +595,7 @@ if builder.data.is_none() { builder.data = Some(Default::default()) }
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 if builder.last_modified.is_none() { builder.last_modified = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 =======
 <<<<<<< HEAD
@@ -619,6 +620,9 @@ if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_sm
 if builder.last_modified.is_none() { builder.last_modified = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 >>>>>>> 82479b8f (fix: more fixes)
 >>>>>>> de718464 (fix: more fixes)
+=======
+if builder.last_modified.is_none() { builder.last_modified = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+>>>>>>> 45a3cd01 (reabse fix)
                 builder
             }
 

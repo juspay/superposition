@@ -40,9 +40,8 @@ public final class GetConfigInput implements SerializableStruct {
 <<<<<<< HEAD
 <<<<<<< HEAD
         .putMember("if_modified_since", SharedSchemas.DATE_TIME,
-<<<<<<< HEAD
-<<<<<<< HEAD
                 new HttpHeaderTrait("if-modified-since"))
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -65,6 +64,8 @@ public final class GetConfigInput implements SerializableStruct {
                 new HttpHeaderTrait("if-modified-since"))
 >>>>>>> 82479b8f (fix: more fixes)
 >>>>>>> de718464 (fix: more fixes)
+=======
+>>>>>>> 45a3cd01 (reabse fix)
         .putMember("context", SharedSchemas.CONTEXT_MAP)
         .build();
 

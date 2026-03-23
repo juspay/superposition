@@ -277,6 +277,7 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
         .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
 =======
@@ -308,6 +309,10 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
 >>>>>>> c1293812 (Test)
         .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
         .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
+=======
+        .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
+        .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
+>>>>>>> 45a3cd01 (reabse fix)
         .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
         .putType(InternalFailureException.$ID, InternalFailureException.class, InternalFailureException::builder)
         .putType(UnknownOperationException.$ID, UnknownOperationException.class, UnknownOperationException::builder)

@@ -355,10 +355,6 @@ impl ListExperimentFluentBuilder {
                     self.inner.get_dimension_match_strategy()
                 }
     /// 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
     /// Appends an item to `prefix`.
     /// 
     /// To override the contents of this collection use [`set_prefix`](Self::set_prefix).
@@ -378,11 +374,6 @@ impl ListExperimentFluentBuilder {
                     self.inner.get_prefix()
                 }
     /// 
-<<<<<<< HEAD
-=======
->>>>>>> 6e8749e1 (Test)
-=======
->>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
     /// Adds a key-value pair to `context`.
     /// 
     /// To override the contents of this collection use [`set_context`](Self::set_context).

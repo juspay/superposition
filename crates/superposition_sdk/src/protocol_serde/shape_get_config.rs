@@ -95,15 +95,7 @@ pub fn ser_get_config_headers(
                                 err
                             ))
                             })?;
-<<<<<<< HEAD
-<<<<<<< HEAD
                             builder = builder.header("if-modified-since", header_value);
-=======
-                            builder = builder.header("If-Modified-Since", header_value);
->>>>>>> 6e8749e1 (Test)
-=======
-                            builder = builder.header("if-modified-since", header_value);
->>>>>>> 82479b8f (fix: more fixes)
     }
 <<<<<<< HEAD
 <<<<<<< HEAD

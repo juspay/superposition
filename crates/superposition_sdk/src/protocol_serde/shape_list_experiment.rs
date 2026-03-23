@@ -41,6 +41,7 @@ pub fn de_list_experiment_http_response(_response_status: u16, _response_headers
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -51,19 +52,11 @@ pub fn de_list_experiment_http_response(_response_status: u16, _response_headers
 >>>>>>> c1293812 (Test)
 =======
 >>>>>>> de718464 (fix: more fixes)
+=======
+>>>>>>> 45a3cd01 (reabse fix)
         output = output.set_last_modified(
             crate::protocol_serde::shape_list_experiment_output::de_last_modified_header(_response_headers)
                                         .map_err(|_|crate::operation::list_experiment::ListExperimentError::unhandled("Failed to parse last_modified from header `last-modified"))?
-=======
-        output = output.set_last_modified_at(
-            crate::protocol_serde::shape_list_experiment_output::de_last_modified_at_header(_response_headers)
-                                        .map_err(|_|crate::operation::list_experiment::ListExperimentError::unhandled("Failed to parse last_modified_at from header `last-modified"))?
->>>>>>> 6e8749e1 (Test)
-=======
-        output = output.set_last_modified(
-            crate::protocol_serde::shape_list_experiment_output::de_last_modified_header(_response_headers)
-                                        .map_err(|_|crate::operation::list_experiment::ListExperimentError::unhandled("Failed to parse last_modified from header `last-modified"))?
->>>>>>> 82479b8f (fix: more fixes)
         );
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -122,15 +115,7 @@ pub fn ser_list_experiment_headers(
                                 err
                             ))
                             })?;
-<<<<<<< HEAD
-<<<<<<< HEAD
                             builder = builder.header("if-modified-since", header_value);
-=======
-                            builder = builder.header("If-Modified-Since", header_value);
->>>>>>> 6e8749e1 (Test)
-=======
-                            builder = builder.header("if-modified-since", header_value);
->>>>>>> 82479b8f (fix: more fixes)
     }
 <<<<<<< HEAD
 <<<<<<< HEAD
