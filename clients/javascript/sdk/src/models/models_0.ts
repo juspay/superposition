@@ -1892,14 +1892,20 @@ export interface GetExperimentConfigInput {
    */
   context?: Record<string, __DocumentType> | undefined;
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 0dd5da56 (fix: some fixes)
 
   /**
    * Strategy to follow while filter items based on the context
    * @public
    */
   dimension_match_strategy?: DimensionMatchStrategy | undefined;
+<<<<<<< HEAD
 =======
 >>>>>>> 0c17747c (feat: Add experiment_config endpoint)
+=======
+>>>>>>> 0dd5da56 (fix: some fixes)
 }
 
 /**

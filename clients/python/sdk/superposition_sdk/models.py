@@ -9807,11 +9807,17 @@ class GetExperimentConfigInput:
          Map representing the context. Keys correspond to the names of the dimensions.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     :param dimension_match_strategy:
          Strategy to follow while filter items based on the context
 
 =======
 >>>>>>> 0c17747c (feat: Add experiment_config endpoint)
+=======
+    :param dimension_match_strategy:
+         Strategy to follow while filter items based on the context
+
+>>>>>>> 0dd5da56 (fix: some fixes)
     """
 
     workspace_id: str | None = None
@@ -9820,9 +9826,13 @@ class GetExperimentConfigInput:
     prefix: list[str] | None = None
     context: dict[str, Document] | None = None
 <<<<<<< HEAD
+<<<<<<< HEAD
     dimension_match_strategy: str | None = None
 =======
 >>>>>>> 0c17747c (feat: Add experiment_config endpoint)
+=======
+    dimension_match_strategy: str | None = None
+>>>>>>> 0dd5da56 (fix: some fixes)
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_EXPERIMENT_CONFIG_INPUT, self)
@@ -9857,11 +9867,17 @@ class GetExperimentConfigInput:
                     kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["context"])
 
 <<<<<<< HEAD
+<<<<<<< HEAD
                 case 5:
                     kwargs["dimension_match_strategy"] = de.read_string(_SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["dimension_match_strategy"])
 
 =======
 >>>>>>> 0c17747c (feat: Add experiment_config endpoint)
+=======
+                case 5:
+                    kwargs["dimension_match_strategy"] = de.read_string(_SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["dimension_match_strategy"])
+
+>>>>>>> 0dd5da56 (fix: some fixes)
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
@@ -10368,7 +10384,7 @@ LIST_EXPERIMENT_GROUPS = APIOperation(
             ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
-            ShapeID("smithy.api#httpBasicAuth")
+            ShapeID("smithy.api#httpBasicAuth"),
 ShapeID("smithy.api#httpBearerAuth")
         ]
 )

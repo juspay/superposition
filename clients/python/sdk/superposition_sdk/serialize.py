@@ -1312,10 +1312,15 @@ async def _serialize_get_experiment_config(input: GetExperimentConfigInput, conf
     if input.prefix is not None:
         query_params.extend(("prefix", e) for e in input.prefix)
 <<<<<<< HEAD
+<<<<<<< HEAD
     if input.dimension_match_strategy is not None:
         query_params.append(("dimension_match_strategy", input.dimension_match_strategy))
 =======
 >>>>>>> 0c17747c (feat: Add experiment_config endpoint)
+=======
+    if input.dimension_match_strategy is not None:
+        query_params.append(("dimension_match_strategy", input.dimension_match_strategy))
+>>>>>>> 0dd5da56 (fix: some fixes)
 
     query = join_query_params(params=query_params, prefix=query)
 

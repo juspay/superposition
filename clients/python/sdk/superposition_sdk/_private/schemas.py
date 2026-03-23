@@ -9660,6 +9660,9 @@ GET_EXPERIMENT_CONFIG_INPUT = Schema.collection(
         },
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 0dd5da56 (fix: some fixes)
         "dimension_match_strategy": {
             "target": DIMENSION_MATCH_STRATEGY,
             "index": 5,
@@ -9670,8 +9673,11 @@ GET_EXPERIMENT_CONFIG_INPUT = Schema.collection(
             ],
         },
 
+<<<<<<< HEAD
 =======
 >>>>>>> 0c17747c (feat: Add experiment_config endpoint)
+=======
+>>>>>>> 0dd5da56 (fix: some fixes)
     }
 )
 

@@ -53,9 +53,13 @@ export interface GetExperimentConfigCommandOutput extends GetExperimentConfigOut
  *     "<keys>": "DOCUMENT_VALUE",
  *   },
 <<<<<<< HEAD
+<<<<<<< HEAD
  *   dimension_match_strategy: "exact" || "subset",
 =======
 >>>>>>> 0c17747c (feat: Add experiment_config endpoint)
+=======
+ *   dimension_match_strategy: "exact" || "subset",
+>>>>>>> 0dd5da56 (fix: some fixes)
  * };
  * const command = new GetExperimentConfigCommand(input);
  * const response = await client.send(command);

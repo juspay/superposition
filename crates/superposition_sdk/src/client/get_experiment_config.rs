@@ -9,9 +9,13 @@ impl super::Client {
     ///   - [`prefix(impl Into<String>)`](crate::operation::get_experiment_config::builders::GetExperimentConfigFluentBuilder::prefix) / [`set_prefix(Option<Vec::<String>>)`](crate::operation::get_experiment_config::builders::GetExperimentConfigFluentBuilder::set_prefix):<br>required: **false**<br>(undocumented)<br>
     ///   - [`context(impl Into<String>, Document)`](crate::operation::get_experiment_config::builders::GetExperimentConfigFluentBuilder::context) / [`set_context(Option<HashMap::<String, Document>>)`](crate::operation::get_experiment_config::builders::GetExperimentConfigFluentBuilder::set_context):<br>required: **false**<br>Map representing the context. Keys correspond to the names of the dimensions.<br>
 <<<<<<< HEAD
+<<<<<<< HEAD
     ///   - [`dimension_match_strategy(DimensionMatchStrategy)`](crate::operation::get_experiment_config::builders::GetExperimentConfigFluentBuilder::dimension_match_strategy) / [`set_dimension_match_strategy(Option<DimensionMatchStrategy>)`](crate::operation::get_experiment_config::builders::GetExperimentConfigFluentBuilder::set_dimension_match_strategy):<br>required: **false**<br>Strategy to follow while filter items based on the context<br>
 =======
 >>>>>>> 0c17747c (feat: Add experiment_config endpoint)
+=======
+    ///   - [`dimension_match_strategy(DimensionMatchStrategy)`](crate::operation::get_experiment_config::builders::GetExperimentConfigFluentBuilder::dimension_match_strategy) / [`set_dimension_match_strategy(Option<DimensionMatchStrategy>)`](crate::operation::get_experiment_config::builders::GetExperimentConfigFluentBuilder::set_dimension_match_strategy):<br>required: **false**<br>Strategy to follow while filter items based on the context<br>
+>>>>>>> 0dd5da56 (fix: some fixes)
                             /// - On success, responds with [`GetExperimentConfigOutput`](crate::operation::get_experiment_config::GetExperimentConfigOutput) with field(s):
     ///   - [`last_modified(DateTime)`](crate::operation::get_experiment_config::GetExperimentConfigOutput::last_modified): (undocumented)
     ///   - [`experiments(Vec::<ExperimentResponse>)`](crate::operation::get_experiment_config::GetExperimentConfigOutput::experiments): (undocumented)
