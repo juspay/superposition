@@ -9,6 +9,8 @@ import {
     ListDimensionsCommand,
     CreateDefaultConfigCommand,
     ListDefaultConfigsCommand,
+    CreateWorkspaceCommand,
+    DiscardExperimentCommand,
 } from "@juspay/superposition-sdk";
 import { type DocumentType } from "@smithy/types";
 import { superpositionClient, ENV } from "../env.ts";
@@ -18,9 +20,11 @@ import { nanoid } from "nanoid";
 // Helper function to create unique names/IDs
 const uniqueName = (prefix: string) => `${prefix}-${nanoid(8)}`;
 
+// Use a separate workspace to avoid conflicts with experiments.test.ts
+const testWorkspaceId = `expconfig${Date.now() % 10000}`;
+
 let experimentGroupId: string | undefined;
 let experimentId: string | undefined;
-let createdDimensions: string[] = [];
 
 const testContext: Record<string, DocumentType> = {
     os: "ios",
@@ -31,7 +35,7 @@ const testVariants: Variant[] = [
     {
         id: "control",
         variant_type: VariantType.CONTROL,
-        overrides: { testKey1: "control-value" },
+        overrides: { testKey1: "default-value" },
     },
     {
         id: "experimental",
@@ -44,9 +48,25 @@ const defaultChangeReason = "Automated Test";
 const defaultDescription = "Created by automated test";
 
 beforeAll(async () => {
+    console.log(
+        "Setting up test workspace and experiment for experiment config tests...",
+    );
+    // Create a dedicated workspace for experiment config tests
+    const createWorkspaceCmd = new CreateWorkspaceCommand({
+        org_id: ENV.org_id,
+        workspace_admin_email: "admin@example.com",
+        workspace_name: testWorkspaceId,
+        allow_experiment_self_approval: true,
+        auto_populate_control: true,
+        enable_context_validation: true,
+        enable_change_reason_validation: true,
+    });
+    await superpositionClient.send(createWorkspaceCmd);
+    console.log(`Created test workspace: ${testWorkspaceId}`);
+
     // Setup required dimensions
     const listDimensionsCmd = new ListDimensionsCommand({
-        workspace_id: ENV.workspace_id,
+        workspace_id: testWorkspaceId,
         org_id: ENV.org_id,
         count: 100,
         page: 1,
@@ -54,41 +74,48 @@ beforeAll(async () => {
     const dimensionsOut = await superpositionClient.send(listDimensionsCmd);
     const dimensions = dimensionsOut.data ?? [];
 
-    const requiredDimensions = [
+    const requiredDimensions: Array<{
+        name: string;
+        description: string;
+        schema: Record<string, DocumentType>;
+    }> = [
         {
             name: "clientId",
-            schema: { type: "string" } as Record<string, DocumentType>,
+            description: "Client dimension for testing",
+            schema: { type: "string" },
         },
         {
             name: "os",
+            description: "Operating system dimension for testing",
             schema: {
                 type: "string",
                 enum: ["ios", "android", "web"],
-            } as Record<string, DocumentType>,
+            },
         },
     ];
 
-    for (const dim of requiredDimensions) {
-        const exists = dimensions.some((d) => d.dimension === dim.name);
+    for (const dimension of requiredDimensions) {
+        const exists = dimensions.some(
+            (d: any) => d.dimension === dimension.name,
+        );
         if (!exists) {
             await superpositionClient.send(
                 new CreateDimensionCommand({
-                    dimension: dim.name,
-                    workspace_id: ENV.workspace_id,
+                    dimension: dimension.name,
+                    workspace_id: testWorkspaceId,
                     org_id: ENV.org_id,
-                    schema: dim.schema,
-                    position: dimensions.length + createdDimensions.length,
-                    change_reason: "Automated Test - Adding dimension",
-                    description: `Test dimension ${dim.name}`,
+                    schema: dimension.schema,
+                    position: dimensions.length,
+                    change_reason: "Automated Test - Adding required dimension",
+                    description: dimension.description,
                 }),
             );
-            createdDimensions.push(dim.name);
         }
     }
 
     // Setup required default configs
     const listDefaultsCmd = new ListDefaultConfigsCommand({
-        workspace_id: ENV.workspace_id,
+        workspace_id: testWorkspaceId,
         org_id: ENV.org_id,
         count: 100,
         page: 1,
@@ -99,11 +126,11 @@ beforeAll(async () => {
     const requiredDefaults = { testKey1: "default-value" };
 
     for (const [key, value] of Object.entries(requiredDefaults)) {
-        const exists = defaults.some((d) => d.key === key);
+        const exists = defaults.some((d: any) => d.key === key);
         if (!exists) {
             await superpositionClient.send(
                 new CreateDefaultConfigCommand({
-                    workspace_id: ENV.workspace_id,
+                    workspace_id: testWorkspaceId,
                     org_id: ENV.org_id,
                     key,
                     value,
@@ -117,7 +144,7 @@ beforeAll(async () => {
 
     // Create an experiment group
     const createGroupCmd = new CreateExperimentGroupCommand({
-        workspace_id: ENV.workspace_id,
+        workspace_id: testWorkspaceId,
         org_id: ENV.org_id,
         name: uniqueName("test-exp-config-group"),
         description: "Test experiment group for experiment config tests",
@@ -132,7 +159,7 @@ beforeAll(async () => {
 
     // Create an experiment
     const createExpCmd = new CreateExperimentCommand({
-        workspace_id: ENV.workspace_id,
+        workspace_id: testWorkspaceId,
         org_id: ENV.org_id,
         name: uniqueName("test-exp-config"),
         description: defaultDescription,
@@ -152,11 +179,22 @@ beforeAll(async () => {
 
 afterAll(async () => {
     try {
+        if (experimentId) {
+            await superpositionClient.send(
+                new DiscardExperimentCommand({
+                    workspace_id: testWorkspaceId,
+                    org_id: ENV.org_id,
+                    id: experimentId,
+                    change_reason: "Automated Test - Discarding experiment",
+                }),
+            );
+            console.log(`Discarded experiment: ${experimentId}`);
+        }
         // Clean up experiment group (this should also clean up associated experiments)
         if (experimentGroupId) {
             await superpositionClient.send(
                 new DeleteExperimentGroupCommand({
-                    workspace_id: ENV.workspace_id,
+                    workspace_id: testWorkspaceId,
                     org_id: ENV.org_id,
                     id: experimentGroupId,
                 }),
@@ -173,7 +211,7 @@ describe("Experiment Config API - GetExperimentConfig", () => {
 
     test("should fetch experiment configuration", async () => {
         const cmd = new GetExperimentConfigCommand({
-            workspace_id: ENV.workspace_id,
+            workspace_id: testWorkspaceId,
             org_id: ENV.org_id,
         });
 
@@ -197,7 +235,7 @@ describe("Experiment Config API - GetExperimentConfig", () => {
 
     test("should fetch experiment config with prefix filter", async () => {
         const cmd = new GetExperimentConfigCommand({
-            workspace_id: ENV.workspace_id,
+            workspace_id: testWorkspaceId,
             org_id: ENV.org_id,
             prefix: ["testKey1"],
         });
@@ -216,7 +254,7 @@ describe("Experiment Config API - GetExperimentConfig", () => {
 
     test("should fetch experiment config with context filter", async () => {
         const cmd = new GetExperimentConfigCommand({
-            workspace_id: ENV.workspace_id,
+            workspace_id: testWorkspaceId,
             org_id: ENV.org_id,
             context: { os: "ios" },
         });
@@ -244,7 +282,7 @@ describe("Experiment Config API - GetExperimentConfig", () => {
         );
 
         const cmd = new GetExperimentConfigCommand({
-            workspace_id: ENV.workspace_id,
+            workspace_id: testWorkspaceId,
             org_id: ENV.org_id,
             if_modified_since: lastModified,
         });
@@ -264,7 +302,7 @@ describe("Experiment Config API - GetExperimentConfig", () => {
 
     test("should return experiments matching the created experiment", async () => {
         const cmd = new GetExperimentConfigCommand({
-            workspace_id: ENV.workspace_id,
+            workspace_id: testWorkspaceId,
             org_id: ENV.org_id,
         });
 
@@ -274,7 +312,7 @@ describe("Experiment Config API - GetExperimentConfig", () => {
             // Check if our created experiment is in the response
             const experiments = out.experiments ?? [];
             const foundExperiment = experiments.find(
-                (exp) => exp.id === experimentId,
+                (exp: any) => exp.id === experimentId,
             );
 
             if (foundExperiment) {
@@ -299,7 +337,7 @@ describe("Experiment Config API - GetExperimentConfig", () => {
 
     test("should return experiment groups matching the created group", async () => {
         const cmd = new GetExperimentConfigCommand({
-            workspace_id: ENV.workspace_id,
+            workspace_id: testWorkspaceId,
             org_id: ENV.org_id,
         });
 
@@ -309,7 +347,7 @@ describe("Experiment Config API - GetExperimentConfig", () => {
             // Check if our created experiment group is in the response
             const experimentGroups = out.experiment_groups ?? [];
             const foundGroup = experimentGroups.find(
-                (group) => group.id === experimentGroupId,
+                (group: any) => group.id === experimentGroupId,
             );
 
             if (foundGroup) {
