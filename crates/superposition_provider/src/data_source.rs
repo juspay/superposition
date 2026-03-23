@@ -22,6 +22,13 @@ impl<T> FetchResponse<T> {
         matches!(self, FetchResponse::NotModified)
     }
 
+    pub fn data(&self) -> Option<&T> {
+        match self {
+            FetchResponse::Data(data) => Some(data),
+            FetchResponse::NotModified => None,
+        }
+    }
+
     pub fn into_data(self) -> Option<T> {
         match self {
             FetchResponse::Data(data) => Some(data),
@@ -62,51 +69,33 @@ impl ConfigData {
     }
 }
 
-pub struct ExperimentResponse {
-    pub data: Experiments,
-    pub fetched_at: DateTime<Utc>,
+impl Display for ConfigData {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "ConfigData(fetched_at: {}, config.contexts: {}, config.overrides: {}, config.default_configs: {}, config.dimensions: {})",
+            self.fetched_at,
+            self.config.contexts.len(),
+            self.config.overrides.len(),
+            self.config.default_configs.len(),
+            self.config.dimensions.len()
+        )
+    }
 }
 
-impl ExperimentResponse {
-    pub fn new(experiments: Experiments) -> Self {
-        Self {
-            data: experiments,
-            fetched_at: Utc::now(),
-        }
-    }
+pub struct ExperimentResponse {
+    pub experiments: FetchResponse<Experiments>,
+    pub experiment_groups: FetchResponse<ExperimentGroups>,
+    pub fetched_at: DateTime<Utc>,
 }
 
 impl Display for ExperimentResponse {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "ExperimentResponse(data: {} experiments, fetched_at: {})",
-            self.data.len(),
-            self.fetched_at
-        )
-    }
-}
-
-pub struct ExperimentGroupResponse {
-    pub data: ExperimentGroups,
-    pub fetched_at: DateTime<Utc>,
-}
-
-impl ExperimentGroupResponse {
-    pub fn new(experiment_groups: ExperimentGroups) -> Self {
-        Self {
-            data: experiment_groups,
-            fetched_at: Utc::now(),
-        }
-    }
-}
-
-impl Display for ExperimentGroupResponse {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "ExperimentGroupResponse(data: {} experiment groups, fetched_at: {})",
-            self.data.len(),
+            "ExperimentResponse(data: {} experiments, {} experiment groups, fetched_at: {})",
+            self.experiments.data().map(|e| e.len()).unwrap_or_default(),
+            self.experiment_groups.data().map(|e| e.len()).unwrap_or_default(),
             self.fetched_at
         )
     }
@@ -121,11 +110,41 @@ pub struct ExperimentData {
 }
 
 impl ExperimentData {
-    pub fn new(experiments: Experiments, experiment_groups: ExperimentGroups) -> Self {
-        Self {
-            experiments,
-            experiment_groups,
-            fetched_at: Utc::now(),
+    pub fn update_with(mut self, new_value: ExperimentResponse) -> Self {
+        if let Some(exps) = new_value.experiments.into_data() {
+            self.experiments = exps
+        }
+
+        if let Some(grps) = new_value.experiment_groups.into_data() {
+            self.experiment_groups = grps
+        }
+
+        self.fetched_at = new_value.fetched_at;
+
+        self
+    }
+}
+
+impl TryFrom<ExperimentResponse> for ExperimentData {
+    type Error = String;
+
+    fn try_from(value: ExperimentResponse) -> std::result::Result<Self, Self::Error> {
+        match (
+            value.experiments.into_data(),
+            value.experiment_groups.into_data(),
+        ) {
+            (Some(experiments), Some(experiment_groups)) => Ok(Self {
+                experiments,
+                experiment_groups,
+                fetched_at: value.fetched_at,
+            }),
+            (None, None) => Err("ExperimentResponse contains no data".to_string()),
+            (None, Some(_)) => {
+                Err("ExperimentResponse missing experiments data".to_string())
+            }
+            (Some(_), None) => {
+                Err("ExperimentResponse missing experiment groups data".to_string())
+            }
         }
     }
 }
@@ -154,10 +173,7 @@ pub trait SuperpositionDataSource: Send + Sync {
     async fn fetch_active_experiments(
         &self,
         last_fetched_at: Option<DateTime<Utc>>,
-    ) -> Result<(
-        FetchResponse<ExperimentResponse>,
-        FetchResponse<ExperimentGroupResponse>,
-    )>;
+    ) -> Result<ExperimentResponse>;
 
     /// Fetch active experiments whose conditions are candidates for the given context
     /// and key prefixes.
@@ -166,10 +182,7 @@ pub trait SuperpositionDataSource: Send + Sync {
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
         last_fetched_at: Option<DateTime<Utc>>,
-    ) -> Result<(
-        FetchResponse<ExperimentResponse>,
-        FetchResponse<ExperimentGroupResponse>,
-    )>;
+    ) -> Result<ExperimentResponse>;
 
     /// Fetch active experiments that match the given context and key prefixes.
     async fn fetch_matching_active_experiments(
@@ -177,10 +190,7 @@ pub trait SuperpositionDataSource: Send + Sync {
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
         last_fetched_at: Option<DateTime<Utc>>,
-    ) -> Result<(
-        FetchResponse<ExperimentResponse>,
-        FetchResponse<ExperimentGroupResponse>,
-    )>;
+    ) -> Result<ExperimentResponse>;
 
     /// Whether this data source supports experiments.
     fn supports_experiments(&self) -> bool;

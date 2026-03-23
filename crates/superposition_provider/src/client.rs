@@ -608,20 +608,14 @@ impl ExperimentationConfig {
         ) {
             (Some(experiments), Some(experiment_groups)) => {
                 // Use get_applicable_variants from superposition_core
-                get_applicable_variants(
+                Ok(get_applicable_variants(
                     dimensions_info,
                     experiments.clone(),
                     experiment_groups,
                     contexts,
                     &identifier.unwrap_or_default(),
                     None,
-                )
-                .map_err(|e| {
-                    SuperpositionError::ConfigError(format!(
-                        "Failed to get applicable variants: {}",
-                        e
-                    ))
-                })
+                ))
             }
             _ => Err(SuperpositionError::ConfigError(
                 "No cached experiments or experiment groups available".into(),

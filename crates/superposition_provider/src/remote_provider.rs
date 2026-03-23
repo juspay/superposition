@@ -8,15 +8,16 @@ use log::{debug, error, info, warn};
 use open_feature::{
     provider::FeatureProvider,
     provider::{ProviderMetadata, ProviderStatus, ResolutionDetails},
-    EvaluationContext, EvaluationError, EvaluationErrorCode, EvaluationResult, StructValue,
+    EvaluationContext, EvaluationError, EvaluationErrorCode, EvaluationResult,
+    StructValue,
 };
 use serde_json::{Map, Value};
 use superposition_sdk::{Client, Config as SdkConfig};
 use tokio::sync::RwLock;
 
 use crate::traits::{AllFeatureProvider, FeatureExperimentMeta};
-use crate::types::*;
 use crate::utils::ConversionUtils;
+use crate::{conversions, types::*};
 
 // ---------------------------------------------------------------------------
 // ResponseCache internals
@@ -129,7 +130,10 @@ impl SuperpositionAPIProvider {
     }
 
     /// Create a new provider with response caching.
-    pub fn with_cache(options: SuperpositionOptions, cache_options: CacheOptions) -> Self {
+    pub fn with_cache(
+        options: SuperpositionOptions,
+        cache_options: CacheOptions,
+    ) -> Self {
         let max_entries = cache_options.size.unwrap_or(1000);
         let ttl = Duration::from_secs(cache_options.ttl.unwrap_or(300));
         let cache = ResponseCache::new(max_entries, ttl);
@@ -207,13 +211,7 @@ impl SuperpositionAPIProvider {
         })?;
 
         // 5. Convert response Document to Map<String, Value>
-        let config_doc = response.config();
-        let config_value = ConversionUtils::document_to_value(config_doc).map_err(|e| {
-            SuperpositionError::SerializationError(format!(
-                "Failed to convert resolved config response: {}",
-                e
-            ))
-        })?;
+        let config_value = conversions::document_to_value(response.config);
 
         let full_result = match config_value {
             Value::Object(map) => map,
@@ -244,7 +242,6 @@ impl SuperpositionAPIProvider {
 
         Ok(result)
     }
-
 }
 
 // ---------------------------------------------------------------------------
@@ -252,7 +249,10 @@ impl SuperpositionAPIProvider {
 // ---------------------------------------------------------------------------
 
 /// Filter a config map to only include keys that start with one of the given prefixes.
-fn filter_by_prefix(config: &Map<String, Value>, prefixes: &[String]) -> Map<String, Value> {
+fn filter_by_prefix(
+    config: &Map<String, Value>,
+    prefixes: &[String],
+) -> Map<String, Value> {
     if prefixes.is_empty() {
         return config.clone();
     }
@@ -472,19 +472,21 @@ impl FeatureProvider for SuperpositionAPIProvider {
     ) -> EvaluationResult<ResolutionDetails<StructValue>> {
         match self.resolve_all_features(evaluation_context).await {
             Ok(config) => match config.get(flag_key) {
-                Some(value) => match ConversionUtils::serde_value_to_struct_value(value) {
-                    Ok(struct_value) => Ok(ResolutionDetails::new(struct_value)),
-                    Err(e) => {
-                        error!("Error converting value to StructValue: {}", e);
-                        Err(EvaluationError {
-                            code: EvaluationErrorCode::TypeMismatch,
-                            message: Some(format!(
-                                "Flag '{}' is not a struct: {}",
-                                flag_key, e
-                            )),
-                        })
+                Some(value) => {
+                    match ConversionUtils::serde_value_to_struct_value(value) {
+                        Ok(struct_value) => Ok(ResolutionDetails::new(struct_value)),
+                        Err(e) => {
+                            error!("Error converting value to StructValue: {}", e);
+                            Err(EvaluationError {
+                                code: EvaluationErrorCode::TypeMismatch,
+                                message: Some(format!(
+                                    "Flag '{}' is not a struct: {}",
+                                    flag_key, e
+                                )),
+                            })
+                        }
                     }
-                },
+                }
                 None => Err(EvaluationError {
                     code: EvaluationErrorCode::FlagNotFound,
                     message: Some(format!("Flag '{}' not found", flag_key)),

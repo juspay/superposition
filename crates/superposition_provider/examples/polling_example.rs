@@ -21,8 +21,8 @@ use std::env;
 
 use open_feature::{EvaluationContext, OpenFeature};
 use superposition_provider::{
-    data_source::http::HttpDataSource, local_provider::LocalResolutionProvider, PollingStrategy,
-    RefreshStrategy, SuperpositionOptions,
+    data_source::http::HttpDataSource, local_provider::LocalResolutionProvider,
+    PollingStrategy, RefreshStrategy, SuperpositionOptions,
 };
 use tokio::time::{sleep, Duration};
 

@@ -6004,6 +6004,7 @@ dependencies = [
  "async-trait",
  "aws-smithy-types",
  "chrono",
+ "derive_more 0.99.17",
  "env_logger",
  "log",
  "notify",

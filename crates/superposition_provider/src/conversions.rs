@@ -9,9 +9,9 @@ pub fn value_to_document(value: Value) -> Document {
         Value::Bool(b) => Document::Bool(b),
         Value::Number(n) => {
             if let Some(i) = n.as_i64() {
-                Document::Number(aws_smithy_types::Number::NegInt(i.into()))
+                Document::Number(aws_smithy_types::Number::NegInt(i))
             } else if let Some(u) = n.as_u64() {
-                Document::Number(aws_smithy_types::Number::PosInt(u.into()))
+                Document::Number(aws_smithy_types::Number::PosInt(u))
             } else if let Some(f) = n.as_f64() {
                 Document::Number(aws_smithy_types::Number::Float(f))
             } else {

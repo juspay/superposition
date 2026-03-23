@@ -1,35 +1,47 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use log::{debug, error, info, warn};
+use chrono::{DateTime, Utc};
+use derive_more::{Deref, DerefMut};
+use open_feature::provider::{
+    FeatureProvider, ProviderMetadata, ProviderStatus, ResolutionDetails,
+};
 use open_feature::{
-    provider::FeatureProvider,
-    provider::{ProviderMetadata, ProviderStatus, ResolutionDetails},
-    EvaluationContext, EvaluationError, EvaluationErrorCode, EvaluationResult, StructValue,
+    EvaluationContext, EvaluationError, EvaluationErrorCode, EvaluationResult,
+    StructValue,
 };
 use serde_json::{Map, Value};
-use superposition_core::{eval_config, get_applicable_variants, MergeStrategy};
+use superposition_core::experiment::filter_experiments_by_context;
+use superposition_core::{
+    eval_config, get_applicable_variants, get_satisfied_experiments, MergeStrategy,
+};
 use superposition_types::DimensionInfo;
 use tokio::sync::RwLock;
 use tokio::task::JoinHandle;
 use tokio::time::{sleep, Duration};
 
-use crate::data_source::{ConfigData, ExperimentData, SuperpositionDataSource};
+use crate::data_source::{
+    ConfigData, ExperimentData, ExperimentResponse, FetchResponse,
+    SuperpositionDataSource,
+};
 use crate::traits::{AllFeatureProvider, FeatureExperimentMeta};
 use crate::types::*;
 use crate::utils::ConversionUtils;
 
-pub struct LocalResolutionProvider {
+pub struct LocalResolutionProviderInner {
     primary: Arc<dyn SuperpositionDataSource>,
     fallback: Option<Arc<dyn SuperpositionDataSource>>,
     refresh_strategy: RefreshStrategy,
-    cached_config: Arc<RwLock<Option<ConfigData>>>,
-    cached_experiments: Arc<RwLock<Option<ExperimentData>>>,
+    cached_config: RwLock<Option<ConfigData>>,
+    cached_experiments: RwLock<Option<ExperimentData>>,
     polling_task: RwLock<Option<JoinHandle<()>>>,
     metadata: ProviderMetadata,
     status: RwLock<ProviderStatus>,
 }
+
+#[derive(Deref, DerefMut, Clone)]
+pub struct LocalResolutionProvider(Arc<LocalResolutionProviderInner>);
 
 impl LocalResolutionProvider {
     pub fn new(
@@ -37,35 +49,35 @@ impl LocalResolutionProvider {
         fallback: Option<Box<dyn SuperpositionDataSource>>,
         refresh_strategy: RefreshStrategy,
     ) -> Self {
-        Self {
+        Self(Arc::new(LocalResolutionProviderInner {
             primary: Arc::from(primary),
             fallback: fallback.map(Arc::from),
             refresh_strategy,
-            cached_config: Arc::new(RwLock::new(None)),
-            cached_experiments: Arc::new(RwLock::new(None)),
+            cached_config: RwLock::new(None),
+            cached_experiments: RwLock::new(None),
             polling_task: RwLock::new(None),
             metadata: ProviderMetadata {
                 name: "LocalResolutionProvider".to_string(),
             },
             status: RwLock::new(ProviderStatus::NotReady),
-        }
+        }))
     }
 
     pub async fn init(&self) -> Result<()> {
         // Fetch initial config from primary, fall back if needed
-        let config_data = match self.primary.fetch_config().await {
+        let config_data = match self.primary.fetch_config(None).await {
             Ok(data) => {
-                info!("LocalResolutionProvider: fetched config from primary source");
+                log::info!("LocalResolutionProvider: fetched config from primary source");
                 data
             }
             Err(e) => {
-                warn!(
+                log::warn!(
                     "LocalResolutionProvider: primary config fetch failed: {}",
                     e
                 );
                 if let Some(fallback) = &self.fallback {
-                    fallback.fetch_config().await.map_err(|fb_err| {
-                        error!(
+                    fallback.fetch_config(None).await.map_err(|fb_err| {
+                        log::error!(
                             "LocalResolutionProvider: fallback config fetch also failed: {}",
                             fb_err
                         );
@@ -85,22 +97,22 @@ impl LocalResolutionProvider {
 
         {
             let mut cached = self.cached_config.write().await;
-            *cached = Some(config_data);
+            *cached = config_data.into_data();
         }
 
         // Fetch experiments best-effort: try primary, optionally fallback, but don't fail
-        let exp_data = match self.primary.fetch_active_experiments().await {
-            Ok(data) => data,
+        let exp_data = match self.primary.fetch_active_experiments(None).await {
+            Ok(exp_resp) => ExperimentData::try_from(exp_resp).ok(),
             Err(e) => {
-                warn!(
+                log::warn!(
                     "LocalResolutionProvider: primary experiment fetch failed (best-effort): {}",
                     e
                 );
                 if let Some(fallback) = &self.fallback {
-                    match fallback.fetch_active_experiments().await {
-                        Ok(data) => data,
+                    match fallback.fetch_active_experiments(None).await {
+                        Ok(exp_resp) => ExperimentData::try_from(exp_resp).ok(),
                         Err(fb_err) => {
-                            warn!(
+                            log::warn!(
                                 "LocalResolutionProvider: fallback experiment fetch also failed (best-effort): {}",
                                 fb_err
                             );
@@ -116,13 +128,13 @@ impl LocalResolutionProvider {
         if let Some(data) = exp_data {
             let mut cached = self.cached_experiments.write().await;
             *cached = Some(data);
-            info!("LocalResolutionProvider: experiments cached");
+            log::info!("LocalResolutionProvider: experiments cached");
         }
 
         // Start refresh strategy
         match &self.refresh_strategy {
             RefreshStrategy::Polling(polling_strategy) => {
-                info!(
+                log::info!(
                     "LocalResolutionProvider: starting polling with interval={}s",
                     polling_strategy.interval
                 );
@@ -131,7 +143,7 @@ impl LocalResolutionProvider {
                 *polling_task = Some(task);
             }
             RefreshStrategy::OnDemand(on_demand_strategy) => {
-                info!(
+                log::info!(
                     "LocalResolutionProvider: using OnDemand strategy with ttl={}s",
                     on_demand_strategy.ttl
                 );
@@ -140,7 +152,7 @@ impl LocalResolutionProvider {
                 let debounce_ms = watch_strategy.debounce_ms.unwrap_or(500);
                 match self.primary.watch() {
                     Ok(Some(stream)) => {
-                        info!(
+                        log::info!(
                             "LocalResolutionProvider: starting watch with debounce={}ms",
                             debounce_ms
                         );
@@ -149,15 +161,15 @@ impl LocalResolutionProvider {
                         *polling_task = Some(task);
                     }
                     Ok(None) => {
-                        warn!("Watch strategy selected but data source does not support watching");
+                        log::warn!("Watch strategy selected but data source does not support watching");
                     }
                     Err(e) => {
-                        warn!("Failed to start watch: {}", e);
+                        log::warn!("Failed to start watch: {}", e);
                     }
                 }
             }
             RefreshStrategy::Manual => {
-                info!("LocalResolutionProvider: using Manual refresh strategy");
+                log::info!("LocalResolutionProvider: using Manual refresh strategy");
             }
         }
 
@@ -184,11 +196,14 @@ impl LocalResolutionProvider {
 
         // Close data sources
         if let Err(e) = self.primary.close().await {
-            warn!("LocalResolutionProvider: error closing primary source: {}", e);
+            log::warn!(
+                "LocalResolutionProvider: error closing primary source: {}",
+                e
+            );
         }
         if let Some(fallback) = &self.fallback {
             if let Err(e) = fallback.close().await {
-                warn!(
+                log::warn!(
                     "LocalResolutionProvider: error closing fallback source: {}",
                     e
                 );
@@ -216,80 +231,80 @@ impl LocalResolutionProvider {
 
     async fn do_refresh(&self) -> Result<()> {
         // Fetch config from primary; keep last known good on failure
-        let config_result = self.primary.fetch_config().await;
-        match &config_result {
-            Ok(data) => {
+        let last_fetched_at = {
+            self.cached_config
+                .read()
+                .await
+                .as_ref()
+                .map(|data| data.fetched_at)
+        };
+
+        let config_result = self.primary.fetch_config(last_fetched_at).await;
+        let mut resp = match config_result {
+            Ok(FetchResponse::Data(data)) => {
                 let mut cached = self.cached_config.write().await;
-                *cached = Some(data.clone());
-                debug!("LocalResolutionProvider: config refreshed from primary");
+                *cached = Some(data);
+                log::debug!("LocalResolutionProvider: config refreshed from primary");
+                Ok(())
+            }
+            Ok(FetchResponse::NotModified) => {
+                log::debug!("LocalResolutionProvider: config not modified");
+                Ok(())
             }
             Err(e) => {
-                warn!(
+                log::warn!(
                     "LocalResolutionProvider: config refresh failed, keeping last known good: {}",
                     e
                 );
+                Err(e)
             }
-        }
+        };
 
         // Experiments refresh is best-effort, don't propagate errors
         if self.primary.supports_experiments() {
-            match self.primary.fetch_active_experiments().await {
-                Ok(Some(data)) => {
+            let exp_last_fetched_at = {
+                self.cached_experiments
+                    .read()
+                    .await
+                    .as_ref()
+                    .map(|d| d.fetched_at)
+            };
+            match self
+                .primary
+                .fetch_active_experiments(exp_last_fetched_at)
+                .await
+            {
+                Ok(exp_resp) => {
                     let mut cached = self.cached_experiments.write().await;
-                    *cached = Some(data);
-                    debug!("LocalResolutionProvider: experiments refreshed from primary");
-                }
-                Ok(None) => {
-                    debug!("LocalResolutionProvider: no experiments returned from primary");
+                    *cached = match cached.clone() {
+                        Some(c) => Some(c.update_with(exp_resp)),
+                        None => ExperimentData::try_from(exp_resp).ok(),
+                    };
+                    log::debug!(
+                        "LocalResolutionProvider: experiments refreshed from primary"
+                    );
                 }
                 Err(e) => {
-                    warn!(
+                    log::warn!(
                         "LocalResolutionProvider: experiment refresh failed, keeping last known good: {}",
                         e
                     );
+                    if resp.is_ok() {
+                        resp = Err(e);
+                    }
                 }
             }
         }
 
-        config_result.map(|_| ())
+        resp
     }
 
     async fn start_polling(&self, interval: u64) -> JoinHandle<()> {
-        let primary = self.primary.clone();
-        let cached_config = self.cached_config.clone();
-        let cached_experiments = self.cached_experiments.clone();
-
+        let provider_clone = self.clone();
         tokio::spawn(async move {
             loop {
                 sleep(Duration::from_secs(interval)).await;
-
-                // Refresh config
-                match primary.fetch_config().await {
-                    Ok(data) => {
-                        let mut cached = cached_config.write().await;
-                        *cached = Some(data);
-                        debug!("LocalResolutionProvider: config updated via polling");
-                    }
-                    Err(e) => {
-                        error!("LocalResolutionProvider: polling config error: {}", e);
-                    }
-                }
-
-                // Refresh experiments
-                match primary.fetch_active_experiments().await {
-                    Ok(Some(data)) => {
-                        let mut cached = cached_experiments.write().await;
-                        *cached = Some(data);
-                        debug!("LocalResolutionProvider: experiments updated via polling");
-                    }
-                    Ok(None) => {}
-                    Err(e) => {
-                        error!(
-                            "LocalResolutionProvider: polling experiments error: {}",
-                            e
-                        );
-                    }
-                }
+                let _ = provider_clone.do_refresh().await;
             }
         })
     }
@@ -299,53 +314,86 @@ impl LocalResolutionProvider {
         mut watch_stream: crate::types::WatchStream,
         debounce_ms: u64,
     ) -> JoinHandle<()> {
-        let primary = self.primary.clone();
-        let cached_config = self.cached_config.clone();
-        let cached_experiments = self.cached_experiments.clone();
+        let provider_clone = self.clone();
 
         tokio::spawn(async move {
             loop {
                 match watch_stream.receiver.recv().await {
-                    Some(()) => {
+                    Ok(()) => {
                         // Debounce: wait, then drain any queued events
                         sleep(Duration::from_millis(debounce_ms)).await;
                         while watch_stream.receiver.try_recv().is_ok() {}
 
+                        let last_fetched_at = {
+                            provider_clone
+                                .cached_config
+                                .read()
+                                .await
+                                .as_ref()
+                                .map(|data| data.fetched_at)
+                        };
+
                         // Refresh config
-                        match primary.fetch_config().await {
-                            Ok(data) => {
-                                let mut cached = cached_config.write().await;
+                        match provider_clone.primary.fetch_config(last_fetched_at).await {
+                            Ok(FetchResponse::Data(data)) => {
+                                let mut cached =
+                                    provider_clone.cached_config.write().await;
                                 *cached = Some(data);
-                                debug!("LocalResolutionProvider: config updated via watch");
+                                log::debug!(
+                                    "LocalResolutionProvider: config updated via watch"
+                                );
+                            }
+                            Ok(FetchResponse::NotModified) => {
+                                log::debug!(
+                                    "LocalResolutionProvider: config not modified on watch refresh"
+                                );
                             }
                             Err(e) => {
-                                error!(
+                                log::error!(
                                     "LocalResolutionProvider: watch config refresh error: {}",
                                     e
                                 );
                             }
                         }
 
+                        let exp_last_fetched_at = {
+                            provider_clone
+                                .cached_experiments
+                                .read()
+                                .await
+                                .as_ref()
+                                .map(|d| d.fetched_at)
+                        };
                         // Refresh experiments
-                        match primary.fetch_active_experiments().await {
-                            Ok(Some(data)) => {
-                                let mut cached = cached_experiments.write().await;
-                                *cached = Some(data);
-                                debug!(
-                                    "LocalResolutionProvider: experiments updated via watch"
+                        match provider_clone
+                            .primary
+                            .fetch_active_experiments(exp_last_fetched_at)
+                            .await
+                        {
+                            Ok(exp_resp) => {
+                                let mut cached =
+                                    provider_clone.cached_experiments.write().await;
+                                *cached = match cached.clone() {
+                                    Some(c) => Some(c.update_with(exp_resp)),
+                                    None => ExperimentData::try_from(exp_resp).ok(),
+                                };
+                                log::debug!(
+                                    "LocalResolutionProvider: experiments refreshed from primary on watch update"
                                 );
                             }
-                            Ok(None) => {}
                             Err(e) => {
-                                error!(
-                                    "LocalResolutionProvider: watch experiments refresh error: {}",
+                                log::warn!(
+                                    "LocalResolutionProvider: experiment refresh failed, keeping last known good on watch update: {}",
                                     e
                                 );
                             }
                         }
                     }
-                    None => {
-                        info!("LocalResolutionProvider: watch channel closed, stopping");
+                    Err(e) => {
+                        log::error!(
+                            "LocalResolutionProvider: watch channel error: {}",
+                            e
+                        );
                         break;
                     }
                 }
@@ -371,12 +419,12 @@ impl LocalResolutionProvider {
             };
 
             if should_refresh {
-                debug!("LocalResolutionProvider: TTL expired, refreshing on-demand");
+                log::debug!("LocalResolutionProvider: TTL expired, refreshing on-demand");
                 if let Err(e) = self.do_refresh().await {
                     if !use_stale_on_error {
                         return Err(e);
                     }
-                    warn!(
+                    log::warn!(
                         "LocalResolutionProvider: on-demand refresh failed, using stale data: {}",
                         e
                     );
@@ -410,29 +458,19 @@ impl LocalResolutionProvider {
         {
             let cached_exp = self.cached_experiments.read().await;
             if let Some(exp_data) = cached_exp.as_ref() {
-                match get_applicable_variants(
+                let variant_ids = get_applicable_variants(
                     &dimensions_info,
                     exp_data.experiments.clone(),
                     &exp_data.experiment_groups,
                     &query_data,
                     &targeting_key.clone().unwrap_or_default(),
                     None,
-                ) {
-                    Ok(variant_ids) => {
-                        query_data.insert(
-                            "variantIds".to_string(),
-                            Value::Array(
-                                variant_ids.into_iter().map(Value::String).collect(),
-                            ),
-                        );
-                    }
-                    Err(e) => {
-                        warn!(
-                            "LocalResolutionProvider: failed to get applicable variants: {}",
-                            e
-                        );
-                    }
-                }
+                );
+
+                query_data.insert(
+                    "variantIds".to_string(),
+                    Value::Array(variant_ids.into_iter().map(Value::String).collect()),
+                );
             }
         }
 
@@ -492,32 +530,25 @@ impl FeatureExperimentMeta for LocalResolutionProvider {
         let dimensions_info = self.get_dimensions_info().await;
 
         let cached_exp = self.cached_experiments.read().await;
-        match cached_exp.as_ref() {
-            Some(exp_data) => {
-                get_applicable_variants(
-                    &dimensions_info,
-                    exp_data.experiments.clone(),
-                    &exp_data.experiment_groups,
-                    &query_data,
-                    &targeting_key.unwrap_or_default(),
-                    None,
-                )
-                .map_err(|e| {
-                    SuperpositionError::ConfigError(format!(
-                        "Failed to get applicable variants: {}",
-                        e
-                    ))
-                })
-            }
-            None => Ok(vec![]),
-        }
+        let resp = match cached_exp.as_ref() {
+            Some(exp_data) => get_applicable_variants(
+                &dimensions_info,
+                exp_data.experiments.clone(),
+                &exp_data.experiment_groups,
+                &query_data,
+                &targeting_key.unwrap_or_default(),
+                None,
+            ),
+            None => vec![],
+        };
+        Ok(resp)
     }
 }
 
 #[async_trait]
 impl FeatureProvider for LocalResolutionProvider {
     async fn initialize(&mut self, _context: &EvaluationContext) {
-        info!("Initializing LocalResolutionProvider...");
+        log::info!("Initializing LocalResolutionProvider...");
         {
             let mut status = self.status.write().await;
             *status = ProviderStatus::NotReady;
@@ -531,7 +562,7 @@ impl FeatureProvider for LocalResolutionProvider {
         let mut status = self.status.write().await;
         *status = ProviderStatus::Ready;
 
-        info!("LocalResolutionProvider initialized successfully");
+        log::info!("LocalResolutionProvider initialized successfully");
     }
 
     async fn resolve_bool_value(
@@ -554,7 +585,7 @@ impl FeatureProvider for LocalResolutionProvider {
                 }),
             },
             Err(e) => {
-                error!("Error evaluating boolean flag {}: {}", flag_key, e);
+                log::error!("Error evaluating boolean flag {}: {}", flag_key, e);
                 Err(EvaluationError {
                     code: EvaluationErrorCode::General(format!(
                         "Error evaluating flag '{}': {}",
@@ -586,7 +617,7 @@ impl FeatureProvider for LocalResolutionProvider {
                 }),
             },
             Err(e) => {
-                error!("Error evaluating String flag {}: {}", flag_key, e);
+                log::error!("Error evaluating String flag {}: {}", flag_key, e);
                 Err(EvaluationError {
                     code: EvaluationErrorCode::General(format!(
                         "Error evaluating flag '{}': {}",
@@ -618,7 +649,7 @@ impl FeatureProvider for LocalResolutionProvider {
                 }),
             },
             Err(e) => {
-                error!("Error evaluating integer flag {}: {}", flag_key, e);
+                log::error!("Error evaluating integer flag {}: {}", flag_key, e);
                 Err(EvaluationError {
                     code: EvaluationErrorCode::General(format!(
                         "Error evaluating flag '{}': {}",
@@ -650,7 +681,7 @@ impl FeatureProvider for LocalResolutionProvider {
                 }),
             },
             Err(e) => {
-                error!("Error evaluating float flag {}: {}", flag_key, e);
+                log::error!("Error evaluating float flag {}: {}", flag_key, e);
                 Err(EvaluationError {
                     code: EvaluationErrorCode::General(format!(
                         "Error evaluating flag '{}': {}",
@@ -669,26 +700,28 @@ impl FeatureProvider for LocalResolutionProvider {
     ) -> EvaluationResult<ResolutionDetails<StructValue>> {
         match self.resolve_all_features(evaluation_context).await {
             Ok(config) => match config.get(flag_key) {
-                Some(value) => match ConversionUtils::serde_value_to_struct_value(value) {
-                    Ok(struct_value) => Ok(ResolutionDetails::new(struct_value)),
-                    Err(e) => {
-                        error!("Error converting value to StructValue: {}", e);
-                        Err(EvaluationError {
-                            code: EvaluationErrorCode::TypeMismatch,
-                            message: Some(format!(
-                                "Flag '{}' is not a struct: {}",
-                                flag_key, e
-                            )),
-                        })
+                Some(value) => {
+                    match ConversionUtils::serde_value_to_struct_value(value) {
+                        Ok(struct_value) => Ok(ResolutionDetails::new(struct_value)),
+                        Err(e) => {
+                            log::error!("Error converting value to StructValue: {}", e);
+                            Err(EvaluationError {
+                                code: EvaluationErrorCode::TypeMismatch,
+                                message: Some(format!(
+                                    "Flag '{}' is not a struct: {}",
+                                    flag_key, e
+                                )),
+                            })
+                        }
                     }
-                },
+                }
                 None => Err(EvaluationError {
                     code: EvaluationErrorCode::FlagNotFound,
                     message: Some(format!("Flag '{}' not found", flag_key)),
                 }),
             },
             Err(e) => {
-                error!("Error evaluating Object flag {}: {}", flag_key, e);
+                log::error!("Error evaluating Object flag {}: {}", flag_key, e);
                 Err(EvaluationError {
                     code: EvaluationErrorCode::General(format!(
                         "Error evaluating flag '{}': {}",
@@ -714,5 +747,121 @@ impl FeatureProvider for LocalResolutionProvider {
             },
             Err(_) => ProviderStatus::NotReady,
         }
+    }
+}
+
+#[async_trait]
+impl SuperpositionDataSource for LocalResolutionProvider {
+    async fn fetch_config(
+        &self,
+        _: Option<DateTime<Utc>>,
+    ) -> Result<FetchResponse<ConfigData>> {
+        let cached = self.cached_config.read().await;
+        match cached.as_ref() {
+            Some(data) => Ok(FetchResponse::Data(data.clone())),
+            None => Err(SuperpositionError::ConfigError(
+                "No cached config available".into(),
+            )),
+        }
+    }
+
+    async fn fetch_filtered_config(
+        &self,
+        context: Option<Map<String, Value>>,
+        prefix_filter: Option<Vec<String>>,
+        last_fetched_at: Option<DateTime<Utc>>,
+    ) -> Result<FetchResponse<ConfigData>> {
+        let resp = self.fetch_config(last_fetched_at).await?.map_data(|mut c| {
+            let prefix = prefix_filter.map(HashSet::from_iter);
+            c.config = c.config.filter(context.as_ref(), prefix.as_ref());
+
+            c
+        });
+
+        Ok(resp)
+    }
+
+    async fn fetch_active_experiments(
+        &self,
+        _: Option<DateTime<Utc>>,
+    ) -> Result<ExperimentResponse> {
+        if !self.supports_experiments() {
+            return Err(SuperpositionError::ConfigError(
+                "Experiments not supported by this provider".into(),
+            ));
+        }
+        let cached = self.cached_experiments.read().await;
+        match cached.clone() {
+            Some(data) => Ok(ExperimentResponse {
+                experiments: FetchResponse::Data(data.experiments),
+                experiment_groups: FetchResponse::Data(data.experiment_groups),
+                fetched_at: data.fetched_at,
+            }),
+            None => Err(SuperpositionError::ConfigError(
+                "No cached experiments available".into(),
+            )),
+        }
+    }
+
+    async fn fetch_candidate_active_experiments(
+        &self,
+        context: Option<Map<String, Value>>,
+        prefix_filter: Option<Vec<String>>,
+        last_fetched_at: Option<DateTime<Utc>>,
+    ) -> Result<ExperimentResponse> {
+        if !self.supports_experiments() {
+            return Err(SuperpositionError::ConfigError(
+                "Experiments not supported by this provider".into(),
+            ));
+        }
+        let mut experiments_response =
+            self.fetch_active_experiments(last_fetched_at).await?;
+
+        // TODO: adding experiment group filtering
+        experiments_response.experiments =
+            experiments_response.experiments.map_data(|exp_resp| {
+                get_satisfied_experiments(
+                    exp_resp,
+                    &context.unwrap_or_default(),
+                    prefix_filter,
+                )
+            });
+
+        Ok(experiments_response)
+    }
+
+    async fn fetch_matching_active_experiments(
+        &self,
+        context: Option<Map<String, Value>>,
+        prefix_filter: Option<Vec<String>>,
+        last_fetched_at: Option<DateTime<Utc>>,
+    ) -> Result<ExperimentResponse> {
+        if !self.supports_experiments() {
+            return Err(SuperpositionError::ConfigError(
+                "Experiments not supported by this provider".into(),
+            ));
+        }
+        let mut experiments_response =
+            self.fetch_active_experiments(last_fetched_at).await?;
+
+        // TODO: adding experiment group filtering
+        experiments_response.experiments =
+            experiments_response.experiments.map_data(|exp_resp| {
+                filter_experiments_by_context(
+                    exp_resp,
+                    &context.unwrap_or_default(),
+                    prefix_filter,
+                )
+            });
+
+        Ok(experiments_response)
+    }
+
+    fn supports_experiments(&self) -> bool {
+        self.primary.supports_experiments()
+    }
+
+    async fn close(&self) -> Result<()> {
+        Ok(())
     }
 }
