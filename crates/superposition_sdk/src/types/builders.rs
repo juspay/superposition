@@ -4,17 +4,12 @@ pub use crate::types::_secret_response::SecretResponseBuilder;
 pub use crate::types::_variable_response::VariableResponseBuilder;
 
 pub use crate::types::_experiment_group_response::ExperimentGroupResponseBuilder;
-<<<<<<< HEAD
 
 pub use crate::types::_bucket::BucketBuilder;
 
 pub use crate::types::_experiment_response::ExperimentResponseBuilder;
 
 pub use crate::types::_variant::VariantBuilder;
-=======
->>>>>>> 6e8749e1 (Test)
-
-pub use crate::types::_bucket::BucketBuilder;
 
 pub use crate::types::_webhook_response::WebhookResponseBuilder;
 
@@ -22,13 +17,6 @@ pub use crate::types::_workspace_response::WorkspaceResponseBuilder;
 
 pub use crate::types::_type_templates_response::TypeTemplatesResponseBuilder;
 
-<<<<<<< HEAD
-=======
-pub use crate::types::_variant::VariantBuilder;
-
-pub use crate::types::_experiment_response::ExperimentResponseBuilder;
-
->>>>>>> 6e8749e1 (Test)
 pub use crate::types::_variant_update_request::VariantUpdateRequestBuilder;
 
 pub use crate::types::_organisation_response::OrganisationResponseBuilder;

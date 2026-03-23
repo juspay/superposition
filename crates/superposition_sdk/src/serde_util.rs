@@ -591,15 +591,7 @@ pub(crate) fn list_experiment_output_output_correct_errors(mut builder: crate::o
                 if builder.total_pages.is_none() { builder.total_pages = Some(Default::default()) }
 if builder.total_items.is_none() { builder.total_items = Some(Default::default()) }
 if builder.data.is_none() { builder.data = Some(Default::default()) }
-<<<<<<< HEAD
-<<<<<<< HEAD
 if builder.last_modified.is_none() { builder.last_modified = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
-=======
-if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
->>>>>>> 6e8749e1 (Test)
-=======
-if builder.last_modified.is_none() { builder.last_modified = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
->>>>>>> 82479b8f (fix: more fixes)
                 builder
             }
 
