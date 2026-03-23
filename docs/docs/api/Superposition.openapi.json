@@ -1936,6 +1936,7 @@
                         "explode": true
                     },
                     {
+<<<<<<< HEAD
                         "name": "dimension_match_strategy",
                         "in": "query",
                         "description": "Strategy to follow while filter items based on the context",
@@ -1944,6 +1945,8 @@
                         }
                     },
                     {
+=======
+>>>>>>> 0c17747c (feat: Add experiment_config endpoint)
                         "name": "if-modified-since",
                         "in": "header",
                         "description": "While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.",

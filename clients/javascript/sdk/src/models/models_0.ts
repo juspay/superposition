@@ -1891,12 +1891,15 @@ export interface GetExperimentConfigInput {
    * @public
    */
   context?: Record<string, __DocumentType> | undefined;
+<<<<<<< HEAD
 
   /**
    * Strategy to follow while filter items based on the context
    * @public
    */
   dimension_match_strategy?: DimensionMatchStrategy | undefined;
+=======
+>>>>>>> 0c17747c (feat: Add experiment_config endpoint)
 }
 
 /**

@@ -96,6 +96,10 @@ VALUES
     ('g3', 'experiment_config:get', 'read', '', '', '', ''),
     ('p', 'experiment_config_reader', '*', 'experiment_config', 'read', '*', '')
 
+    -- experiment_config
+    ('g3', 'experiment_config:get', 'read', '', '', '', ''),
+    ('p', 'experiment_config_reader', '*', 'experiment_config', 'read', '*', '')
+
     -- TODO: Figure out what to do about Auth and Organisation resources, which don't fit neatly into the "workspace" schema. For now, we can use a wildcard schema ("*") for these resources in the policy rules, but this is something we may want to revisit for more fine-grained control in the future.
 ON CONFLICT (ptype, v0, v1, v2, v3, v4, v5) DO NOTHING;
 

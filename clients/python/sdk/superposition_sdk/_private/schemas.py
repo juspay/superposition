@@ -9659,6 +9659,7 @@ GET_EXPERIMENT_CONFIG_INPUT = Schema.collection(
             ],
         },
 
+<<<<<<< HEAD
         "dimension_match_strategy": {
             "target": DIMENSION_MATCH_STRATEGY,
             "index": 5,
@@ -9669,6 +9670,8 @@ GET_EXPERIMENT_CONFIG_INPUT = Schema.collection(
             ],
         },
 
+=======
+>>>>>>> 0c17747c (feat: Add experiment_config endpoint)
     }
 )
 
@@ -10141,6 +10144,7 @@ LIST_EXPERIMENT_GROUPS_INPUT = Schema.collection(
     }
 )
 
+<<<<<<< HEAD
 EXPERIMENT_GROUP_RESPONSE = Schema.collection(
     id=ShapeID("io.superposition#ExperimentGroupResponse"),
 
@@ -10168,6 +10172,8 @@ EXPERIMENT_GROUP_RESPONSE = Schema.collection(
     }
 )
 
+=======
+>>>>>>> 0c17747c (feat: Add experiment_config endpoint)
 LIST_EXPERIMENT_GROUPS_OUTPUT = Schema.collection(
     id=ShapeID("io.superposition#ListExperimentGroupsOutput"),
 
