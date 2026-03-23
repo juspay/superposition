@@ -93,22 +93,19 @@ pub fn get_applicable_variants(
     query_data: &Map<String, Value>,
     identifier: &str,
     prefix: Option<Vec<String>>,
-) -> Result<Vec<String>, String> {
+) -> Vec<String> {
     let context = evaluate_local_cohorts(dimensions_info, query_data);
 
     let buckets =
         get_applicable_buckets_from_group(experiment_groups, &context, identifier);
 
     let experiments: HashMap<String, FfiExperiment> =
-        get_satisfied_experiments(experiments, &context, prefix)?
+        get_satisfied_experiments(experiments, &context, prefix)
             .into_iter()
             .map(|exp| (exp.id.clone(), exp))
             .collect();
 
-    let applicable_variants =
-        get_applicable_variants_from_group_response(&experiments, &context, &buckets);
-
-    Ok(applicable_variants)
+    get_applicable_variants_from_group_response(&experiments, &context, &buckets)
 }
 
 pub fn get_applicable_buckets_from_group(
@@ -191,27 +188,24 @@ pub fn get_satisfied_experiments(
     experiments: Experiments,
     context: &Map<String, Value>,
     filter_prefixes: Option<Vec<String>>,
-) -> Result<Experiments, String> {
+) -> Experiments {
     let running_experiments = experiments
         .into_iter()
         .filter(|exp| superposition_types::apply(&exp.context, context))
         .collect();
 
     if let Some(prefix_list) = filter_prefixes {
-        return Ok(filter_experiments_by_prefix(
-            running_experiments,
-            prefix_list,
-        ));
+        return filter_experiments_by_prefix(running_experiments, prefix_list);
     }
 
-    Ok(running_experiments)
+    running_experiments
 }
 
 pub fn filter_experiments_by_context(
     experiments: Experiments,
     context: &Map<String, Value>,
     filter_prefixes: Option<Vec<String>>,
-) -> Result<Experiments, String> {
+) -> Experiments {
     let running_experiments = experiments
         .into_iter()
         .filter_map(|exp| {
@@ -224,13 +218,10 @@ pub fn filter_experiments_by_context(
         .collect();
 
     if let Some(prefix_list) = filter_prefixes {
-        return Ok(filter_experiments_by_prefix(
-            running_experiments,
-            prefix_list,
-        ));
+        return filter_experiments_by_prefix(running_experiments, prefix_list);
     }
 
-    Ok(running_experiments)
+    running_experiments
 }
 
 fn filter_experiments_by_prefix(
