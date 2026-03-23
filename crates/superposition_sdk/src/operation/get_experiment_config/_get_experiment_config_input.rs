@@ -13,6 +13,8 @@ pub struct GetExperimentConfigInput  {
     pub prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     /// Map representing the context. Keys correspond to the names of the dimensions.
     pub context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    /// Strategy to follow while filter items based on the context
+    pub dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
 }
 impl  GetExperimentConfigInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -38,6 +40,10 @@ impl  GetExperimentConfigInput  {
     pub fn context(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
         self.context.as_ref()
     }
+    /// Strategy to follow while filter items based on the context
+    pub fn dimension_match_strategy(&self) -> ::std::option::Option<&crate::types::DimensionMatchStrategy> {
+        self.dimension_match_strategy.as_ref()
+    }
 }
 impl GetExperimentConfigInput {
     /// Creates a new builder-style object to manufacture [`GetExperimentConfigInput`](crate::operation::get_experiment_config::GetExperimentConfigInput).
@@ -55,6 +61,7 @@ pub struct GetExperimentConfigInputBuilder {
     pub(crate) if_modified_since: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     pub(crate) context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub(crate) dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
 }
 impl GetExperimentConfigInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -135,6 +142,19 @@ impl GetExperimentConfigInputBuilder {
     pub fn get_context(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
         &self.context
     }
+    /// Strategy to follow while filter items based on the context
+    pub fn dimension_match_strategy(mut self, input: crate::types::DimensionMatchStrategy) -> Self {
+        self.dimension_match_strategy = ::std::option::Option::Some(input);
+        self
+    }
+    /// Strategy to follow while filter items based on the context
+    pub fn set_dimension_match_strategy(mut self, input: ::std::option::Option<crate::types::DimensionMatchStrategy>) -> Self {
+        self.dimension_match_strategy = input; self
+    }
+    /// Strategy to follow while filter items based on the context
+    pub fn get_dimension_match_strategy(&self) -> &::std::option::Option<crate::types::DimensionMatchStrategy> {
+        &self.dimension_match_strategy
+    }
     /// Consumes the builder and constructs a [`GetExperimentConfigInput`](crate::operation::get_experiment_config::GetExperimentConfigInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::get_experiment_config::GetExperimentConfigInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -148,6 +168,8 @@ impl GetExperimentConfigInputBuilder {
                 prefix: self.prefix
                 ,
                 context: self.context
+                ,
+                dimension_match_strategy: self.dimension_match_strategy
                 ,
             }
         )

@@ -34,6 +34,10 @@ operation GetExperimentConfig {
 
         @notProperty
         context: ContextMap
+
+        @httpQuery("dimension_match_strategy")
+        @notProperty
+        dimension_match_strategy: DimensionMatchStrategy
     }
 
     output := for ExperimentConfig {

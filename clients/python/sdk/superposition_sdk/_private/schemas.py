@@ -9644,6 +9644,16 @@ GET_EXPERIMENT_CONFIG_INPUT = Schema.collection(
             ],
         },
 
+        "dimension_match_strategy": {
+            "target": DIMENSION_MATCH_STRATEGY,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="dimension_match_strategy"),
+
+            ],
+        },
+
     }
 )
 

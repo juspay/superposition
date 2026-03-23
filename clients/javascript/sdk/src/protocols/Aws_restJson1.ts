@@ -1284,6 +1284,7 @@ export const se_GetExperimentConfigCommand = async(
   b.bp("/experiment-config");
   const query: any = map({
     [_p]: [() => input.prefix !== void 0, () => ((input[_p]! || []))],
+    [_dms]: [,input[_dms]!],
   });
   let body: any;
   body = JSON.stringify(take(input, {

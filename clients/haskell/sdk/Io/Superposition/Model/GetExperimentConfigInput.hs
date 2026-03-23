@@ -4,6 +4,7 @@ module Io.Superposition.Model.GetExperimentConfigInput (
     setIfModifiedSince,
     setPrefix,
     setContext,
+    setDimensionMatchStrategy,
     build,
     GetExperimentConfigInputBuilder,
     GetExperimentConfigInput,
@@ -11,7 +12,8 @@ module Io.Superposition.Model.GetExperimentConfigInput (
     org_id,
     if_modified_since,
     prefix,
-    context
+    context,
+    dimension_match_strategy
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad.State.Strict
@@ -25,6 +27,7 @@ import qualified Data.Text
 import qualified Data.Time
 import qualified GHC.Generics
 import qualified GHC.Show
+import qualified Io.Superposition.Model.DimensionMatchStrategy
 import qualified Io.Superposition.Utility
 import qualified Network.HTTP.Types.Method
 
@@ -33,7 +36,8 @@ data GetExperimentConfigInput = GetExperimentConfigInput {
     org_id :: Data.Text.Text,
     if_modified_since :: Data.Maybe.Maybe Data.Time.UTCTime,
     prefix :: Data.Maybe.Maybe ([] Data.Text.Text),
-    context :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value)
+    context :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
+    dimension_match_strategy :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMatchStrategy.DimensionMatchStrategy
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -46,7 +50,8 @@ instance Data.Aeson.ToJSON GetExperimentConfigInput where
         "org_id" Data.Aeson..= org_id a,
         "if_modified_since" Data.Aeson..= if_modified_since a,
         "prefix" Data.Aeson..= prefix a,
-        "context" Data.Aeson..= context a
+        "context" Data.Aeson..= context a,
+        "dimension_match_strategy" Data.Aeson..= dimension_match_strategy a
         ]
     
 
@@ -59,6 +64,7 @@ instance Data.Aeson.FromJSON GetExperimentConfigInput where
         Control.Applicative.<*> (v Data.Aeson..:? "if_modified_since")
         Control.Applicative.<*> (v Data.Aeson..:? "prefix")
         Control.Applicative.<*> (v Data.Aeson..:? "context")
+        Control.Applicative.<*> (v Data.Aeson..:? "dimension_match_strategy")
     
 
 
@@ -68,7 +74,8 @@ data GetExperimentConfigInputBuilderState = GetExperimentConfigInputBuilderState
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     if_modified_sinceBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     prefixBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
-    contextBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value)
+    contextBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
+    dimension_match_strategyBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMatchStrategy.DimensionMatchStrategy
 } deriving (
   GHC.Generics.Generic
   )
@@ -79,7 +86,8 @@ defaultBuilderState = GetExperimentConfigInputBuilderState {
     org_idBuilderState = Data.Maybe.Nothing,
     if_modified_sinceBuilderState = Data.Maybe.Nothing,
     prefixBuilderState = Data.Maybe.Nothing,
-    contextBuilderState = Data.Maybe.Nothing
+    contextBuilderState = Data.Maybe.Nothing,
+    dimension_match_strategyBuilderState = Data.Maybe.Nothing
 }
 
 type GetExperimentConfigInputBuilder = Control.Monad.State.Strict.State GetExperimentConfigInputBuilderState
@@ -104,6 +112,10 @@ setContext :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value) ->
 setContext value =
    Control.Monad.State.Strict.modify (\s -> (s { contextBuilderState = value }))
 
+setDimensionMatchStrategy :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMatchStrategy.DimensionMatchStrategy -> GetExperimentConfigInputBuilder ()
+setDimensionMatchStrategy value =
+   Control.Monad.State.Strict.modify (\s -> (s { dimension_match_strategyBuilderState = value }))
+
 build :: GetExperimentConfigInputBuilder () -> Data.Either.Either Data.Text.Text GetExperimentConfigInput
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
@@ -112,12 +124,14 @@ build builder = do
     if_modified_since' <- Data.Either.Right (if_modified_sinceBuilderState st)
     prefix' <- Data.Either.Right (prefixBuilderState st)
     context' <- Data.Either.Right (contextBuilderState st)
+    dimension_match_strategy' <- Data.Either.Right (dimension_match_strategyBuilderState st)
     Data.Either.Right (GetExperimentConfigInput { 
         workspace_id = workspace_id',
         org_id = org_id',
         if_modified_since = if_modified_since',
         prefix = prefix',
-        context = context'
+        context = context',
+        dimension_match_strategy = dimension_match_strategy'
     })
 
 
@@ -127,6 +141,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder GetExperimentConfigInput wh
         Io.Superposition.Utility.setPath [
             "experiment-config"
             ]
+        Io.Superposition.Utility.serQuery "dimension_match_strategy" (dimension_match_strategy self)
         Io.Superposition.Utility.serQuery "prefix" (prefix self)
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "if-modified-since" (if_modified_since self)

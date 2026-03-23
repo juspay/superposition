@@ -3,8 +3,9 @@ use serde_json::{Map, Value};
 use superposition_derives::{IsEmpty, QueryParam};
 
 use crate::{
-    api::experiments::ExperimentResponse, custom_query::CommaSeparatedStringQParams,
-    custom_query::QueryParam, database::models::experimentation::ExperimentGroups,
+    api::{experiments::ExperimentResponse, DimensionMatchStrategy},
+    custom_query::{CommaSeparatedStringQParams, QueryParam},
+    database::models::experimentation::ExperimentGroups,
     IsEmpty,
 };
 
@@ -18,6 +19,7 @@ pub struct ExperimentConfig {
 pub struct ExperimentConfigFilters {
     #[query_param(skip_if_empty, iterable)]
     pub prefix: Option<CommaSeparatedStringQParams>,
+    pub dimension_match_strategy: Option<DimensionMatchStrategy>,
 }
 
 #[derive(Deserialize)]

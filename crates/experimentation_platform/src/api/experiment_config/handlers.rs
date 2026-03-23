@@ -19,6 +19,7 @@ use superposition_derives::{authorized, declare_resource};
 use superposition_types::{
     DBConnection, IsEmpty, PaginatedResponse,
     api::{
+        DimensionMatchStrategy,
         experiment_config::{
             ExperimentConfig, ExperimentConfigFilters, ExperimentConfigRequest,
         },
@@ -174,8 +175,11 @@ fn get_experiment_config_db(
         }
 
         if !dimension_params.is_empty() {
-            experiment_list =
-                Experiment::filter_by_eval(experiment_list, &dimension_params)
+            let filter_fn = match filters.dimension_match_strategy.unwrap_or_default() {
+                DimensionMatchStrategy::Exact => Experiment::get_satisfied,
+                DimensionMatchStrategy::Subset => Experiment::filter_by_eval,
+            };
+            experiment_list = filter_fn(experiment_list, &dimension_params);
         }
 
         experiment_list
@@ -191,7 +195,11 @@ fn get_experiment_config_db(
             .load::<ExperimentGroup>(conn)?;
 
         if !dimension_params.is_empty() {
-            group_list = ExperimentGroup::filter_by_eval(group_list, &dimension_params);
+            let filter_fn = match filters.dimension_match_strategy.unwrap_or_default() {
+                DimensionMatchStrategy::Exact => ExperimentGroup::get_satisfied,
+                DimensionMatchStrategy::Subset => ExperimentGroup::filter_by_eval,
+            };
+            group_list = filter_fn(group_list, &dimension_params);
         }
 
         group_list

@@ -9806,6 +9806,9 @@ class GetExperimentConfigInput:
     :param context:
          Map representing the context. Keys correspond to the names of the dimensions.
 
+    :param dimension_match_strategy:
+         Strategy to follow while filter items based on the context
+
     """
 
     workspace_id: str | None = None
@@ -9813,6 +9816,7 @@ class GetExperimentConfigInput:
     if_modified_since: datetime | None = None
     prefix: list[str] | None = None
     context: dict[str, Document] | None = None
+    dimension_match_strategy: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_EXPERIMENT_CONFIG_INPUT, self)
@@ -9845,6 +9849,9 @@ class GetExperimentConfigInput:
 
                 case 4:
                     kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["context"])
+
+                case 5:
+                    kwargs["dimension_match_strategy"] = de.read_string(_SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["dimension_match_strategy"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -10309,7 +10316,7 @@ LIST_EXPERIMENT_GROUPS = APIOperation(
             ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
-            ShapeID("smithy.api#httpBasicAuth")
+            ShapeID("smithy.api#httpBasicAuth"),
 ShapeID("smithy.api#httpBearerAuth")
         ]
 )
