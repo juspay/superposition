@@ -68,6 +68,7 @@ from .deserialize import (
     _deserialize_get_default_config,
     _deserialize_get_dimension,
     _deserialize_get_experiment,
+    _deserialize_get_experiment_config,
     _deserialize_get_experiment_group,
     _deserialize_get_function,
     _deserialize_get_organisation,
@@ -206,6 +207,7 @@ from .models import (
     GET_DEFAULT_CONFIG,
     GET_DIMENSION,
     GET_EXPERIMENT,
+    GET_EXPERIMENT_CONFIG,
     GET_EXPERIMENT_GROUP,
     GET_FUNCTION,
     GET_ORGANISATION,
@@ -233,6 +235,8 @@ from .models import (
     GetDefaultConfigOutput,
     GetDimensionInput,
     GetDimensionOutput,
+    GetExperimentConfigInput,
+    GetExperimentConfigOutput,
     GetExperimentGroupInput,
     GetExperimentGroupOutput,
     GetExperimentInput,
@@ -409,6 +413,7 @@ from .serialize import (
     _serialize_get_default_config,
     _serialize_get_dimension,
     _serialize_get_experiment,
+    _serialize_get_experiment_config,
     _serialize_get_experiment_group,
     _serialize_get_function,
     _serialize_get_organisation,
@@ -1407,6 +1412,34 @@ class Superposition:
             deserialize=_deserialize_get_experiment,
             config=self._config,
             operation=GET_EXPERIMENT,
+        )
+
+    async def get_experiment_config(self, input: GetExperimentConfigInput, plugins: list[Plugin] | None = None) -> GetExperimentConfigOutput:
+        """
+        Retrieves the experiment configuration for a given workspace and organization.
+        The response includes details of all experiment groups and experiments that
+        match the specified filters.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_get_experiment_config,
+            deserialize=_deserialize_get_experiment_config,
+            config=self._config,
+            operation=GET_EXPERIMENT_CONFIG,
         )
 
     async def get_experiment_group(self, input: GetExperimentGroupInput, plugins: list[Plugin] | None = None) -> GetExperimentGroupOutput:

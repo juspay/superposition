@@ -102,6 +102,9 @@ pub mod get_dimension;
 /// Types for the `GetExperiment` operation.
 pub mod get_experiment;
 
+/// Types for the `GetExperimentConfig` operation.
+pub mod get_experiment_config;
+
 /// Types for the `GetExperimentGroup` operation.
 pub mod get_experiment_group;
 

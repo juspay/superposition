@@ -101,6 +101,9 @@ import io.juspay.superposition.model.GetDimension;
 import io.juspay.superposition.model.GetDimensionInput;
 import io.juspay.superposition.model.GetDimensionOutput;
 import io.juspay.superposition.model.GetExperiment;
+import io.juspay.superposition.model.GetExperimentConfig;
+import io.juspay.superposition.model.GetExperimentConfigInput;
+import io.juspay.superposition.model.GetExperimentConfigOutput;
 import io.juspay.superposition.model.GetExperimentGroup;
 import io.juspay.superposition.model.GetExperimentGroupInput;
 import io.juspay.superposition.model.GetExperimentGroupOutput;
@@ -269,8 +272,8 @@ import software.amazon.smithy.utils.SmithyGenerated;
 @SmithyGenerated
 final class SuperpositionClientImpl extends Client implements SuperpositionClient {
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
-        .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
         .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
+        .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
         .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
         .putType(InternalFailureException.$ID, InternalFailureException.class, InternalFailureException::builder)
         .putType(UnknownOperationException.$ID, UnknownOperationException.class, UnknownOperationException::builder)
@@ -583,6 +586,15 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
     public GetExperimentOutput getExperiment(GetExperimentInput input, RequestOverrideConfig overrideConfig) {
         try {
             return call(input, GetExperiment.instance(), overrideConfig).join();
+        } catch (CompletionException e) {
+            throw unwrapAndThrow(e);
+        }
+    }
+
+    @Override
+    public GetExperimentConfigOutput getExperimentConfig(GetExperimentConfigInput input, RequestOverrideConfig overrideConfig) {
+        try {
+            return call(input, GetExperimentConfig.instance(), overrideConfig).join();
         } catch (CompletionException e) {
             throw unwrapAndThrow(e);
         }

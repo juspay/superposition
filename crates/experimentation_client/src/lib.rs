@@ -16,10 +16,11 @@ use superposition_types::{
     api::experiments::ExperimentListFilters,
     custom_query::{CommaSeparatedQParams, PaginationParams, QueryParam},
     database::models::experimentation::{
-        Bucket, ExperimentGroup, ExperimentStatusType, GroupType, Variant,
+        Bucket, ExperimentGroup, ExperimentStatusType, GroupType,
     },
+    experimental::{Experimental, ExperimentalVariants},
     logic::evaluate_local_cohorts,
-    DimensionInfo, Overridden, PaginatedResponse,
+    DimensionInfo, PaginatedResponse,
 };
 pub use superposition_types::{
     api::experiments::ExperimentResponse, database::models::experimentation::Variants,
@@ -148,23 +149,27 @@ impl Client {
         context: &Map<String, Value>,
         prefix: Option<Vec<String>>,
     ) -> Result<Experiments, String> {
-        let running_experiments = self
+        let mut experiments = self
             .experiments
             .read()
             .await
-            .iter()
-            .filter(|(_, exp)| superposition_types::apply(&exp.context, context))
-            .map(|(_, exp)| exp.clone())
+            .values()
+            .cloned()
             .collect::<Experiments>();
 
         if let Some(prefix_list) = prefix {
-            return Ok(Self::filter_experiments_by_prefix(
-                running_experiments,
-                prefix_list,
-            ));
+            if !prefix_list.is_empty() {
+                let prefix_set: HashSet<String> = HashSet::from_iter(prefix_list);
+                experiments =
+                    ExperimentResponse::filter_keys_by_prefix(experiments, &prefix_set);
+            }
         }
 
-        Ok(running_experiments)
+        if !context.is_empty() {
+            experiments = ExperimentResponse::get_satisfied(experiments, context);
+        }
+
+        Ok(experiments)
     }
 
     pub async fn get_filtered_satisfied_experiments(
@@ -172,67 +177,33 @@ impl Client {
         context: &Map<String, Value>,
         prefix: Option<Vec<String>>,
     ) -> Result<Experiments, String> {
-        let experiments = self.experiments.read().await;
-
-        let filtered_running_experiments = experiments
-            .iter()
-            .filter_map(|(_, exp)| {
-                if exp.context.is_empty() {
-                    Some(exp.clone())
-                } else {
-                    superposition_types::partial_apply(&exp.context, context)
-                        .then(|| exp.clone())
-                }
-            })
-            .collect::<Vec<_>>();
+        let mut experiments = self
+            .experiments
+            .read()
+            .await
+            .values()
+            .cloned()
+            .collect::<Experiments>();
 
         if let Some(prefix_list) = prefix {
-            return Ok(Self::filter_experiments_by_prefix(
-                filtered_running_experiments,
-                prefix_list,
-            ));
+            if !prefix_list.is_empty() {
+                let prefix_list: HashSet<String> = HashSet::from_iter(prefix_list);
+                experiments =
+                    ExperimentResponse::filter_keys_by_prefix(experiments, &prefix_list);
+            }
         }
 
-        Ok(filtered_running_experiments)
+        if !context.is_empty() {
+            experiments = ExperimentResponse::filter_by_eval(experiments, context);
+        }
+
+        Ok(experiments)
     }
 
     pub async fn get_running_experiments(&self) -> Result<Experiments, String> {
         let running_experiments = self.experiments.read().await;
         let experiments: Experiments = running_experiments.values().cloned().collect();
         Ok(experiments)
-    }
-
-    fn filter_experiments_by_prefix(
-        experiments: Vec<ExperimentResponse>,
-        prefix_list: Vec<String>,
-    ) -> Vec<ExperimentResponse> {
-        let prefix_list: HashSet<String> = HashSet::from_iter(prefix_list);
-        experiments
-            .into_iter()
-            .filter_map(|experiment| {
-                let variants: Vec<_> = experiment
-                    .variants
-                    .into_iter()
-                    .filter_map(|mut variant| {
-                        Variant::filter_keys_by_prefix(&variant, &prefix_list)
-                            .map(|filtered_overrides_map| {
-                                variant.overrides = filtered_overrides_map;
-                                variant
-                            })
-                            .ok()
-                    })
-                    .collect();
-
-                if !variants.is_empty() {
-                    Some(ExperimentResponse {
-                        variants: Variants::new(variants),
-                        ..experiment
-                    })
-                } else {
-                    None // Skip this experiment
-                }
-            })
-            .collect()
     }
 }
 

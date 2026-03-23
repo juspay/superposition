@@ -1185,33 +1185,35 @@ fn list_experiments_db(
         let mut all_experiments: Vec<Experiment> = base_query.load(conn)?;
 
         if let Some(prefix) = filters.prefix {
-            let prefix_list = HashSet::from_iter(prefix.0);
-            all_experiments = all_experiments
-                .into_iter()
-                .filter_map(|experiment| {
-                    let variants: Vec<_> = experiment
-                        .variants
-                        .into_iter()
-                        .filter_map(|mut variant| {
-                            Variant::filter_keys_by_prefix(&variant, &prefix_list)
-                                .map(|filtered_overrides_map| {
-                                    variant.overrides = filtered_overrides_map;
-                                    variant
-                                })
-                                .ok()
-                        })
-                        .collect();
+            if !prefix.0.is_empty() {
+                let prefix_list = HashSet::from_iter(prefix.0);
+                all_experiments = all_experiments
+                    .into_iter()
+                    .filter_map(|experiment| {
+                        let variants: Vec<_> = experiment
+                            .variants
+                            .into_iter()
+                            .filter_map(|mut variant| {
+                                Variant::filter_keys_by_prefix(&variant, &prefix_list)
+                                    .map(|filtered_overrides_map| {
+                                        variant.overrides = filtered_overrides_map;
+                                        variant
+                                    })
+                                    .ok()
+                            })
+                            .collect();
 
-                    if !variants.is_empty() {
-                        Some(Experiment {
-                            variants: Variants::new(variants),
-                            ..experiment
-                        })
-                    } else {
-                        None // Skip this experiment
-                    }
-                })
-                .collect()
+                        if !variants.is_empty() {
+                            Some(Experiment {
+                                variants: Variants::new(variants),
+                                ..experiment
+                            })
+                        } else {
+                            None // Skip this experiment
+                        }
+                    })
+                    .collect()
+            }
         }
 
         let filtered_experiments = if filters.global_experiments_only.unwrap_or_default()

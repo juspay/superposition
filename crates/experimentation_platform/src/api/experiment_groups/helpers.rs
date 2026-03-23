@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 
 use actix_web::web::{Data, Json};
+use chrono::{DateTime, Utc};
 use diesel::{
     BoolExpressionMethods, ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper,
 };
@@ -11,7 +12,10 @@ use fred::{
 use serde_json::Value;
 use service_utils::{
     helpers::{generate_snowflake_id, get_from_env_or_default},
-    redis::EXPERIMENT_GROUPS_LIST_KEY_SUFFIX,
+    redis::{
+        EXPERIMENT_CONFIG_LAST_MODIFIED_KEY_SUFFIX,
+        EXPERIMENT_GROUPS_LAST_MODIFIED_KEY_SUFFIX, EXPERIMENT_GROUPS_LIST_KEY_SUFFIX,
+    },
     service::types::{AppState, SchemaName, WorkspaceContext},
 };
 use superposition_macros::{bad_argument, unexpected_error};
@@ -27,7 +31,8 @@ use superposition_types::{
             },
         },
         schema::{
-            experiment_groups::dsl as experiment_groups, experiments::dsl as experiments,
+            event_log::dsl as event_log, experiment_groups::dsl as experiment_groups,
+            experiments::dsl as experiments,
         },
     },
     result as superposition,
@@ -482,11 +487,55 @@ pub async fn put_experiment_groups_in_redis(
         unexpected_error!("Failed to serialize experiment groups for redis: {}", e)
     })?;
 
+    let last_modified: Option<DateTime<Utc>> = event_log::event_log
+        .filter(event_log::table_name.eq("experiment_groups"))
+        .select(diesel::dsl::max(event_log::timestamp))
+        .schema_name(schema_name)
+        .first(conn)?;
+
     let key = format!("{}{EXPERIMENT_GROUPS_LIST_KEY_SUFFIX}", **schema_name);
+    let last_modified_at_key = format!(
+        "{}{EXPERIMENT_GROUPS_LAST_MODIFIED_KEY_SUFFIX}",
+        **schema_name,
+    );
+    let config_modified_at_key = format!(
+        "{}{EXPERIMENT_CONFIG_LAST_MODIFIED_KEY_SUFFIX}",
+        **schema_name,
+    );
+    let last_modified = last_modified.map(|dt| dt.to_rfc2822()).unwrap_or_default();
     let key_ttl: i64 = get_from_env_or_default("REDIS_KEY_TTL", 604800);
     let expiration = Some(Expiration::EX(key_ttl));
-    pool.next_connected()
-        .set::<(), String, String>(key, serialized, expiration, None, false)
+
+    pool.set::<(), String, String>(
+        config_modified_at_key,
+        last_modified.clone(),
+        expiration.clone(),
+        None,
+        false,
+    )
+    .await
+    .map_err(|e| {
+        log::warn!(
+            "failed to set experiment config last_modified_key in redis: {}",
+            e
+        );
+        unexpected_error!("failed to set experiment config last_modified_key in redis")
+    })?;
+
+    pool.set::<(), String, String>(
+        last_modified_at_key,
+        last_modified,
+        expiration.clone(),
+        None,
+        false,
+    )
+    .await
+    .map_err(|e| {
+        log::warn!("failed to set experiment last_modified_key in redis: {}", e);
+        unexpected_error!("failed to set experiment last_modified_key in redis")
+    })?;
+
+    pool.set::<(), String, String>(key, serialized, expiration, None, false)
         .await
         .map_err(|e| {
             log::warn!("Failed to write experiment groups to redis: {}", e);

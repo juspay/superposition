@@ -199,6 +199,8 @@ mod get_dimension;
 
 mod get_experiment;
 
+mod get_experiment_config;
+
 mod get_experiment_group;
 
 mod get_function;

@@ -128,7 +128,7 @@ async fn create_handler(
         &state.master_encryption_key,
     )?;
 
-    let (put_response, version_id) = db_conn
+    let (put_response, config_version) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
             let put_response = operations::upsert(
                 req,
@@ -146,19 +146,19 @@ async fn create_handler(
                 err
             })?;
 
-            let version_id = add_config_version(
+            let config_version = add_config_version(
                 &state,
                 tags,
                 req_change_reason.into(),
                 transaction_conn,
                 &workspace_context.schema_name,
             )?;
-            Ok((put_response, version_id))
+            Ok((put_response, config_version))
         })?;
 
     let DbConnection(mut conn) = db_conn;
     let _ = put_config_in_redis(
-        version_id,
+        &config_version,
         &state,
         &workspace_context.schema_name,
         &mut conn,
@@ -169,7 +169,7 @@ async fn create_handler(
         payload: &put_response,
         resource: Resource::Context,
         event: WebhookEvent::ConfigChanged,
-        config_version_opt: Some(version_id.to_string()),
+        config_version_opt: Some(config_version.id.to_string()),
         action: Action::Create,
     };
 
@@ -187,7 +187,7 @@ async fn create_handler(
 
     http_resp.insert_header((
         AppHeader::XConfigVersion.to_string(),
-        version_id.to_string(),
+        config_version.id.to_string(),
     ));
 
     Ok(http_resp.json(put_response))
@@ -242,7 +242,7 @@ async fn update_handler(
         &state.master_encryption_key,
     )?;
 
-    let (override_resp, version_id) = db_conn
+    let (override_resp, config_version) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
             let override_resp = operations::update(
                 &workspace_context,
@@ -256,19 +256,19 @@ async fn update_handler(
                 err
             })?;
 
-            let version_id = add_config_version(
+            let config_version = add_config_version(
                 &state,
                 tags,
                 req_change_reason.into(),
                 transaction_conn,
                 &workspace_context.schema_name,
             )?;
-            Ok((override_resp, version_id))
+            Ok((override_resp, config_version))
         })?;
 
     let DbConnection(mut conn) = db_conn;
     let _ = put_config_in_redis(
-        version_id,
+        &config_version,
         &state,
         &workspace_context.schema_name,
         &mut conn,
@@ -279,7 +279,7 @@ async fn update_handler(
         payload: &override_resp,
         resource: Resource::Context,
         event: WebhookEvent::ConfigChanged,
-        config_version_opt: Some(version_id.to_string()),
+        config_version_opt: Some(config_version.id.to_string()),
         action: Action::Update,
     };
 
@@ -297,7 +297,7 @@ async fn update_handler(
 
     http_resp.insert_header((
         AppHeader::XConfigVersion.to_string(),
-        version_id.to_string(),
+        config_version.id.to_string(),
     ));
 
     Ok(http_resp.json(override_resp))
@@ -370,7 +370,7 @@ async fn move_handler(
         &state.master_encryption_key,
     )?;
 
-    let (move_response, version_id) = db_conn
+    let (move_response, config_version) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
             let move_response = operations::r#move(
                 &workspace_context,
@@ -387,7 +387,7 @@ async fn move_handler(
                 log::error!("move api failed with error: {:?}", err);
                 err
             })?;
-            let version_id = add_config_version(
+            let config_version = add_config_version(
                 &state,
                 tags,
                 move_response.context.change_reason.clone().into(),
@@ -395,13 +395,13 @@ async fn move_handler(
                 &workspace_context.schema_name,
             )?;
 
-            Ok((move_response, version_id))
+            Ok((move_response, config_version))
         })?;
 
     let DbConnection(mut conn) = db_conn;
 
     let _ = put_config_in_redis(
-        version_id,
+        &config_version,
         &state,
         &workspace_context.schema_name,
         &mut conn,
@@ -412,7 +412,7 @@ async fn move_handler(
         payload: vec![&move_response.deleted_context, &move_response.context],
         resource: Resource::Context,
         event: WebhookEvent::ConfigChanged,
-        config_version_opt: Some(version_id.to_string()),
+        config_version_opt: Some(config_version.id.to_string()),
         action: Action::Batch(vec![Action::Delete, move_response.action]),
     };
 
@@ -430,7 +430,7 @@ async fn move_handler(
 
     http_resp.insert_header((
         AppHeader::XConfigVersion.to_string(),
-        version_id.to_string(),
+        config_version.id.to_string(),
     ));
 
     Ok(http_resp.json(move_response.context))
@@ -662,7 +662,7 @@ async fn delete_handler(
     .await?;
 
     let tags = parse_config_tags(custom_headers.config_tags)?;
-    let (version_id, deleted_ctx) = db_conn
+    let (config_version, deleted_ctx) = db_conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
             contexts_table
                 .filter(context_id.eq(ctx_id.clone()))
@@ -677,19 +677,19 @@ async fn delete_handler(
             let config_version_desc =
                 Description::try_from(format!("Deleted context by {}", user.get_email()))
                     .map_err(|e| unexpected_error!(e))?;
-            let version_id = add_config_version(
+            let config_version = add_config_version(
                 &state,
                 tags,
                 config_version_desc,
                 transaction_conn,
                 &workspace_context.schema_name,
             )?;
-            Ok((version_id, deleted_ctx))
+            Ok((config_version, deleted_ctx))
         })?;
 
     let DbConnection(mut conn) = db_conn;
     let _ = put_config_in_redis(
-        version_id,
+        &config_version,
         &state,
         &workspace_context.schema_name,
         &mut conn,
@@ -699,7 +699,7 @@ async fn delete_handler(
         payload: &deleted_ctx,
         resource: Resource::Context,
         event: WebhookEvent::ConfigChanged,
-        config_version_opt: Some(version_id.to_string()),
+        config_version_opt: Some(config_version.id.to_string()),
         action: Action::Delete,
     };
 
@@ -718,7 +718,7 @@ async fn delete_handler(
     Ok(http_resp
         .insert_header((
             AppHeader::XConfigVersion.to_string().as_str(),
-            version_id.to_string().as_str(),
+            config_version.id.to_string().as_str(),
         ))
         .finish())
 }
@@ -782,7 +782,7 @@ async fn bulk_operations_handler(
     let mut webhook_contexts: Vec<Context> = Vec::new();
 
     let tags = parse_config_tags(custom_headers.config_tags)?;
-    let (response, version_id) =
+    let (response, config_version) =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
             let mut response = Vec::<ContextBulkResponse>::new();
             for action in ops.into_iter() {
@@ -945,7 +945,7 @@ async fn bulk_operations_handler(
                 }
             }
 
-            let version_id = add_config_version(
+            let config_version = add_config_version(
                 &state,
                 tags,
                 Description::try_from_change_reasons(all_change_reasons)
@@ -953,11 +953,11 @@ async fn bulk_operations_handler(
                 transaction_conn,
                 &workspace_context.schema_name,
             )?;
-            Ok((response, version_id))
+            Ok((response, config_version))
         })?;
 
     let _ = put_config_in_redis(
-        version_id,
+        &config_version,
         &state,
         &workspace_context.schema_name,
         &mut conn,
@@ -968,7 +968,7 @@ async fn bulk_operations_handler(
         payload: &webhook_contexts,
         resource: Resource::Context,
         event: WebhookEvent::ConfigChanged,
-        config_version_opt: Some(version_id.to_string()),
+        config_version_opt: Some(config_version.id.to_string()),
         action: Action::Batch(webhook_actions),
     };
 
@@ -985,7 +985,7 @@ async fn bulk_operations_handler(
     };
     resp_builder.insert_header((
         AppHeader::XConfigVersion.to_string(),
-        version_id.to_string(),
+        config_version.id.to_string(),
     ));
 
     let http_resp = if is_v2 {
@@ -1051,7 +1051,7 @@ async fn weight_recompute_handler(
 
     // Update database and add config version
     let last_modified_time = Utc::now();
-    let config_version_id =
+    let config_version =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
             for (context_weight, context_id) in contexts_new_weight.clone() {
                 diesel::update(contexts.filter(id.eq(context_id)))
@@ -1070,11 +1070,10 @@ async fn weight_recompute_handler(
                     })?;
             }
             let config_version_desc = Description::try_from("Recomputed weight".to_string()).map_err(|e| unexpected_error!(e))?;
-            let version_id = add_config_version(&state, tags, config_version_desc, transaction_conn, &workspace_context.schema_name)?;
-            Ok(version_id)
+            add_config_version(&state, tags, config_version_desc, transaction_conn, &workspace_context.schema_name)
         })?;
     let _ = put_config_in_redis(
-        config_version_id,
+        &config_version,
         &state,
         &workspace_context.schema_name,
         &mut conn,
@@ -1085,7 +1084,7 @@ async fn weight_recompute_handler(
         payload: &response,
         resource: Resource::Context,
         event: WebhookEvent::ConfigChanged,
-        config_version_opt: Some(config_version_id.to_string()),
+        config_version_opt: Some(config_version.id.to_string()),
         action: Action::Update,
     };
 
@@ -1102,7 +1101,7 @@ async fn weight_recompute_handler(
     };
     http_resp.insert_header((
         AppHeader::XConfigVersion.to_string(),
-        config_version_id.to_string(),
+        config_version.id.to_string(),
     ));
     Ok(http_resp.json(ListResponse::new(response)))
 }

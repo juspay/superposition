@@ -1894,6 +1894,90 @@
                 ]
             }
         },
+        "/experiment-config": {
+            "post": {
+                "description": "Retrieves the experiment configuration for a given workspace and organization. The response includes details of all experiment groups and experiments that match the specified filters.",
+                "operationId": "GetExperimentConfig",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GetExperimentConfigRequestContent"
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "prefix",
+                        "in": "query",
+                        "style": "form",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "explode": true
+                    },
+                    {
+                        "name": "if-modified-since",
+                        "in": "header",
+                        "description": "While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.",
+                        "schema": {
+                            "type": "string",
+                            "description": "While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates."
+                        }
+                    },
+                    {
+                        "name": "x-org-id",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-workspace",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "GetExperimentConfig 200 response",
+                        "headers": {
+                            "last-modified": {
+                                "schema": {
+                                    "type": "string"
+                                },
+                                "required": true
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetExperimentConfigResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/experiment-groups": {
             "post": {
                 "description": "Creates a new experiment group.",
@@ -8665,6 +8749,36 @@
                     "mandatory",
                     "position",
                     "schema"
+                ]
+            },
+            "GetExperimentConfigRequestContent": {
+                "type": "object",
+                "properties": {
+                    "context": {
+                        "$ref": "#/components/schemas/ContextMap"
+                    }
+                }
+            },
+            "GetExperimentConfigResponseContent": {
+                "type": "object",
+                "properties": {
+                    "experiments": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ExperimentResponse"
+                        }
+                    },
+                    "experiment_groups": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ExperimentGroupResponse"
+                        },
+                        "description": "A list of experiment group responses."
+                    }
+                },
+                "required": [
+                    "experiment_groups",
+                    "experiments"
                 ]
             },
             "GetExperimentGroupResponseContent": {

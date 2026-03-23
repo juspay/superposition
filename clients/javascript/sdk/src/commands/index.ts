@@ -33,6 +33,7 @@ export * from "./GetContextFromConditionCommand";
 export * from "./GetDefaultConfigCommand";
 export * from "./GetDimensionCommand";
 export * from "./GetExperimentCommand";
+export * from "./GetExperimentConfigCommand";
 export * from "./GetExperimentGroupCommand";
 export * from "./GetFunctionCommand";
 export * from "./GetOrganisationCommand";

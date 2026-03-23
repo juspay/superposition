@@ -152,7 +152,7 @@ async fn create_handler(
         &workspace_context.schema_name,
     )?;
 
-    let version_id =
+    let config_version =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
             diesel::insert_into(dsl::default_configs)
                 .values(&default_config)
@@ -160,18 +160,18 @@ async fn create_handler(
                 .schema_name(&workspace_context.schema_name)
                 .execute(transaction_conn)?;
 
-            let version_id = add_config_version(
+            let config_version = add_config_version(
                 &state,
                 tags,
                 req.change_reason.into(),
                 transaction_conn,
                 &workspace_context.schema_name,
             )?;
-            Ok(version_id)
+            Ok(config_version)
         })?;
 
     let _ = put_config_in_redis(
-        version_id,
+        &config_version,
         &state,
         &workspace_context.schema_name,
         &mut conn,
@@ -182,7 +182,7 @@ async fn create_handler(
         payload: &default_config,
         resource: Resource::DefaultConfig,
         event: WebhookEvent::ConfigChanged,
-        config_version_opt: Some(version_id.to_string()),
+        config_version_opt: Some(config_version.id.to_string()),
         action: Action::Create,
     };
 
@@ -200,7 +200,7 @@ async fn create_handler(
 
     http_resp.insert_header((
         AppHeader::XConfigVersion.to_string(),
-        version_id.to_string(),
+        config_version.id.to_string(),
     ));
 
     Ok(http_resp.json(default_config))
@@ -304,7 +304,7 @@ async fn update_handler(
         )?;
     }
 
-    let (db_row, version_id) =
+    let (db_row, config_version) =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
             let change_reason = req.change_reason.clone();
             let val = diesel::update(dsl::default_configs)
@@ -317,7 +317,7 @@ async fn update_handler(
                 .schema_name(&workspace_context.schema_name)
                 .get_result::<DefaultConfig>(transaction_conn)?;
 
-            let version_id = add_config_version(
+            let config_version = add_config_version(
                 &state,
                 tags.clone(),
                 change_reason.into(),
@@ -325,11 +325,11 @@ async fn update_handler(
                 &workspace_context.schema_name,
             )?;
 
-            Ok((val, version_id))
+            Ok((val, config_version))
         })?;
 
     let _ = put_config_in_redis(
-        version_id,
+        &config_version,
         &state,
         &workspace_context.schema_name,
         &mut conn,
@@ -340,7 +340,7 @@ async fn update_handler(
         payload: &db_row,
         resource: Resource::DefaultConfig,
         event: WebhookEvent::ConfigChanged,
-        config_version_opt: Some(version_id.to_string()),
+        config_version_opt: Some(config_version.id.to_string()),
         action: Action::Update,
     };
 
@@ -357,7 +357,7 @@ async fn update_handler(
     };
     http_resp.insert_header((
         AppHeader::XConfigVersion.to_string(),
-        version_id.to_string(),
+        config_version.id.to_string(),
     ));
     Ok(http_resp.json(db_row))
 }
@@ -523,7 +523,7 @@ async fn delete_handler(
         get_key_usage_context_ids(&key, &mut conn, &workspace_context.schema_name)
             .map_err(|_| unexpected_error!("Something went wrong"))?;
     if context_ids.is_empty() {
-        let (version_id, default_config) = conn
+        let (config_version, default_config) = conn
             .transaction::<_, superposition::AppError, _>(|transaction_conn| {
                 diesel::update(dsl::default_configs)
                     .filter(dsl::key.eq(&key))
@@ -549,7 +549,7 @@ async fn delete_handler(
                             user.get_email()
                         ))
                         .map_err(|e| unexpected_error!(e))?;
-                        let version_id = add_config_version(
+                        let config_version = add_config_version(
                             &state,
                             tags,
                             config_version_desc,
@@ -560,13 +560,13 @@ async fn delete_handler(
                             "default config key: {key} deleted by {}",
                             user.get_email()
                         );
-                        Ok((version_id, default_config))
+                        Ok((config_version, default_config))
                     }
                 }
             })?;
 
         let _ = put_config_in_redis(
-            version_id,
+            &config_version,
             &state,
             &workspace_context.schema_name,
             &mut conn,
@@ -577,7 +577,7 @@ async fn delete_handler(
             payload: &default_config,
             resource: Resource::DefaultConfig,
             event: WebhookEvent::ConfigChanged,
-            config_version_opt: Some(version_id.to_string()),
+            config_version_opt: Some(config_version.id.to_string()),
             action: Action::Delete,
         };
 
@@ -594,7 +594,7 @@ async fn delete_handler(
         };
         http_resp.insert_header((
             AppHeader::XConfigVersion.to_string(),
-            version_id.to_string(),
+            config_version.id.to_string(),
         ));
 
         Ok(http_resp.finish())

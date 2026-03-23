@@ -95,6 +95,8 @@ pub(crate) mod shape_get_dimension;
 
 pub(crate) mod shape_get_experiment;
 
+pub(crate) mod shape_get_experiment_config;
+
 pub(crate) mod shape_get_experiment_group;
 
 pub(crate) mod shape_get_function;
@@ -250,6 +252,10 @@ pub(crate) mod shape_get_config_json_output;
 pub(crate) mod shape_get_config_output;
 
 pub(crate) mod shape_get_config_toml_output;
+
+pub(crate) mod shape_get_experiment_config_input;
+
+pub(crate) mod shape_get_experiment_config_output;
 
 pub(crate) mod shape_get_resolved_config_input;
 

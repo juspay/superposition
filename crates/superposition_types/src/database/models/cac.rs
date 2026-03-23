@@ -354,6 +354,18 @@ pub struct ConfigVersionListItem {
     pub description: Description,
 }
 
+impl From<ConfigVersion> for ConfigVersionListItem {
+    fn from(config_version: ConfigVersion) -> Self {
+        ConfigVersionListItem {
+            id: config_version.id,
+            config_hash: config_version.config_hash,
+            tags: config_version.tags,
+            created_at: config_version.created_at,
+            description: config_version.description,
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 #[cfg_attr(
     feature = "diesel_derives",

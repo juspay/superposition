@@ -15,7 +15,10 @@ use serde_json::Value;
 use superposition_derives::{JsonFromSql, JsonToSql};
 use uniffi::deps::anyhow;
 
-use crate::{Condition, Contextual, Exp, Overridden, Overrides};
+use crate::{
+    experimental::{Experimental, ExperimentalVariants},
+    Condition, Contextual, Exp, Overridden, Overrides,
+};
 
 #[cfg(feature = "diesel_derives")]
 use super::super::schema::*;
@@ -317,6 +320,18 @@ impl Contextual for Experiment {
     }
 }
 
+impl Experimental for Experiment {
+    fn get_condition(&self) -> &Condition {
+        &self.context
+    }
+}
+
+impl ExperimentalVariants for Experiment {
+    fn get_variants_mut(&mut self) -> &mut Vec<Variant> {
+        &mut self.variants
+    }
+}
+
 pub type Experiments = Vec<Experiment>;
 
 #[derive(Clone, Serialize, Debug)]
@@ -392,6 +407,12 @@ pub struct ExperimentGroup {
 }
 
 impl Contextual for ExperimentGroup {
+    fn get_condition(&self) -> &Condition {
+        &self.context
+    }
+}
+
+impl Experimental for ExperimentGroup {
     fn get_condition(&self) -> &Condition {
         &self.context
     }

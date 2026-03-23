@@ -4,7 +4,7 @@ use actix_web::{
     http::header::{HeaderMap, HeaderName, HeaderValue},
     web::Data,
 };
-use chrono::{DateTime, Utc};
+use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use fred::{interfaces::KeysInterface, types::Expiration};
 use serde_json::{Map, Value, json};
@@ -28,8 +28,8 @@ use superposition_types::{
         models::{
             ChangeReason, Description,
             cac::{
-                ConfigVersion, DependencyGraph, DimensionType, FunctionCode,
-                FunctionRuntimeVersion, FunctionType,
+                ConfigVersion, ConfigVersionListItem, DependencyGraph, DimensionType,
+                FunctionCode, FunctionRuntimeVersion, FunctionType,
             },
         },
         schema::{
@@ -198,7 +198,7 @@ pub fn add_config_version(
     description: Description,
     db_conn: &mut DBConnection,
     schema_name: &SchemaName,
-) -> superposition::Result<i64> {
+) -> superposition::Result<ConfigVersionListItem> {
     use config_versions::dsl::config_versions;
     let version_id = generate_snowflake_id(state)?;
     let config = generate_cac(db_conn, schema_name)?;
@@ -219,11 +219,11 @@ pub fn add_config_version(
         .schema_name(schema_name)
         .execute(db_conn)?;
 
-    Ok(version_id)
+    Ok(ConfigVersionListItem::from(config_version))
 }
 
 pub async fn put_config_in_redis(
-    version_id: i64,
+    config_version: &ConfigVersionListItem,
     state: &Data<AppState>,
     schema_name: &SchemaName,
     db_conn: &mut DBConnection,
@@ -243,10 +243,13 @@ pub async fn put_config_in_redis(
         log::error!("failed to convert cac config to string: {}", e);
         unexpected_error!("could not convert cac config to string")
     })?;
-    let config_key = format!("{}::{}{CONFIG_KEY_SUFFIX}", **schema_name, version_id);
+    let config_key = format!(
+        "{}::{}{CONFIG_KEY_SUFFIX}",
+        **schema_name, config_version.id
+    );
     let last_modified_at_key = format!("{}{LAST_MODIFIED_KEY_SUFFIX}", **schema_name);
     let config_version_key = format!("{}{CONFIG_VERSION_KEY_SUFFIX}", **schema_name);
-    let last_modified = DateTime::to_rfc2822(&Utc::now());
+
     redis_pool
         .set::<(), String, String>(
             config_key,
@@ -263,7 +266,7 @@ pub async fn put_config_in_redis(
     redis_pool
         .set::<(), String, String>(
             last_modified_at_key,
-            last_modified,
+            config_version.created_at.to_rfc2822(),
             expiration.clone(),
             None,
             false,
@@ -274,11 +277,17 @@ pub async fn put_config_in_redis(
             unexpected_error!("failed to set last_modified_key in redis")
         })?;
     redis_pool
-        .set::<(), String, i64>(config_version_key, version_id, expiration, None, false)
+        .set::<(), String, i64>(
+            config_version_key,
+            config_version.id,
+            expiration,
+            None,
+            false,
+        )
         .await
         .map_err(|e| {
             log::warn!("failed to set config_version_key in redis: {}", e);
-            unexpected_error!("failed to set config_version_keyx in redis")
+            unexpected_error!("failed to set config_version_key in redis")
         })?;
     Ok(())
 }

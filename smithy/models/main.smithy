@@ -25,6 +25,7 @@ service Superposition {
         Workspace
         Webhook
         ExperimentGroup
+        ExperimentConfig
         Variable
         Secret
         MasterKey

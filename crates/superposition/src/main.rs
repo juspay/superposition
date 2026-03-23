@@ -221,6 +221,10 @@ async fn main() -> Result<()> {
                             .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                     )
                     .service(
+                        experiment_config::endpoints(scope("/experiment-config"))
+                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                    )
+                    .service(
                         scope("/superposition/organisations")
                             .wrap(OrgWorkspaceMiddlewareFactory::new(false, false))
                             .service(organisation::endpoints()),

@@ -15,6 +15,16 @@ pub use crate::types::_group_type::GroupType;
 
 pub use crate::types::_bucket::Bucket;
 
+pub use crate::types::_experiment_response::ExperimentResponse;
+
+pub use crate::types::_variant::Variant;
+
+pub use crate::types::_variant_type::VariantType;
+
+pub use crate::types::_experiment_status_type::ExperimentStatusType;
+
+pub use crate::types::_experiment_type::ExperimentType;
+
 pub use crate::types::_dimension_match_strategy::DimensionMatchStrategy;
 
 pub use crate::types::_experiment_group_sort_on::ExperimentGroupSortOn;
@@ -30,16 +40,6 @@ pub use crate::types::_workspace_status::WorkspaceStatus;
 pub use crate::types::_workspace_response::WorkspaceResponse;
 
 pub use crate::types::_type_templates_response::TypeTemplatesResponse;
-
-pub use crate::types::_variant::Variant;
-
-pub use crate::types::_variant_type::VariantType;
-
-pub use crate::types::_experiment_response::ExperimentResponse;
-
-pub use crate::types::_experiment_status_type::ExperimentStatusType;
-
-pub use crate::types::_experiment_type::ExperimentType;
 
 pub use crate::types::_experiment_sort_on::ExperimentSortOn;
 

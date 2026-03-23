@@ -1,0 +1,69 @@
+---
+id: get-experiment-config
+title: "GetExperimentConfig"
+description: "Retrieves the experiment configuration for a given workspace and organization. The response includes details of all experiment groups and experiments that match the specified filters."
+sidebar_label: "GetExperimentConfig"
+hide_title: true
+hide_table_of_contents: true
+api: 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
+sidebar_class_name: "post api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+import Translate from "@docusaurus/Translate";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"GetExperimentConfig"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/experiment-config"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieves the experiment configuration for a given workspace and organization. The response includes details of all experiment groups and experiments that match the specified filters.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+>
+  <Translate id="theme.openapi.request.title">Request</Translate>
+</Heading>
+
+<ParamsDetails
+  {...require("./get-experiment-config.ParamsDetails.json")}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  {...require("./get-experiment-config.RequestSchema.json")}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  {...require("./get-experiment-config.StatusCodes.json")}
+>
+  
+</StatusCodes>
+
+
+      

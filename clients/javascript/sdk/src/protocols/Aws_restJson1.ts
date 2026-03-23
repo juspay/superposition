@@ -136,6 +136,10 @@ import {
   GetExperimentCommandOutput,
 } from "../commands/GetExperimentCommand";
 import {
+  GetExperimentConfigCommandInput,
+  GetExperimentConfigCommandOutput,
+} from "../commands/GetExperimentConfigCommand";
+import {
   GetExperimentGroupCommandInput,
   GetExperimentGroupCommandOutput,
 } from "../commands/GetExperimentGroupCommand";
@@ -1259,6 +1263,35 @@ export const se_GetExperimentCommand = async(
   let body: any;
   b.m("GET")
   .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
+ * serializeAws_restJson1GetExperimentConfigCommand
+ */
+export const se_GetExperimentConfigCommand = async(
+  input: GetExperimentConfigCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    'content-type': 'application/json',
+    [_xw]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+    [_ims_]: [() => isSerializableHeaderValue(input[_ims]), () => __serializeDateTime(input[_ims]!).toString()],
+  });
+  b.bp("/experiment-config");
+  const query: any = map({
+    [_p]: [() => input.prefix !== void 0, () => ((input[_p]! || []))],
+  });
+  let body: any;
+  body = JSON.stringify(take(input, {
+    'context': _ => se_ContextMap(_, context),
+  }));
+  b.m("POST")
+  .h(headers)
+  .q(query)
   .b(body);
   return b.build();
 }
@@ -3561,6 +3594,29 @@ export const de_GetExperimentCommand = async(
     'status': __expectString,
     'traffic_percentage': __expectInt32,
     'variants': _ => de_ListVariant(_, context),
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
+ * deserializeAws_restJson1GetExperimentConfigCommand
+ */
+export const de_GetExperimentConfigCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<GetExperimentConfigCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+    [_lm_]: [() => void 0 !== output.headers[_lm], () => __expectNonNull(__parseRfc3339DateTimeWithOffset(output.headers[_lm]))],
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'experiment_groups': _ => de_ExperimentGroupList(_, context),
+    'experiments': _ => de_ExperimentList(_, context),
   });
   Object.assign(contents, doc);
   return contents;

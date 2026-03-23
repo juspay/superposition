@@ -650,6 +650,13 @@ const sidebar: SidebarsConfig = {
       items: [
         {
           type: "doc",
+          id: "api/get-experiment-config",
+          label: "GetExperimentConfig",
+          customProps: {},
+          className: "api-method post",
+        },
+        {
+          type: "doc",
           id: "api/rotate-master-encryption-key",
           label: "RotateMasterEncryptionKey",
           customProps: {},

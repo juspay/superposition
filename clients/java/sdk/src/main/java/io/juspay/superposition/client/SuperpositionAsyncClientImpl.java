@@ -101,6 +101,9 @@ import io.juspay.superposition.model.GetDimension;
 import io.juspay.superposition.model.GetDimensionInput;
 import io.juspay.superposition.model.GetDimensionOutput;
 import io.juspay.superposition.model.GetExperiment;
+import io.juspay.superposition.model.GetExperimentConfig;
+import io.juspay.superposition.model.GetExperimentConfigInput;
+import io.juspay.superposition.model.GetExperimentConfigOutput;
 import io.juspay.superposition.model.GetExperimentGroup;
 import io.juspay.superposition.model.GetExperimentGroupInput;
 import io.juspay.superposition.model.GetExperimentGroupOutput;
@@ -269,8 +272,8 @@ import software.amazon.smithy.utils.SmithyGenerated;
 @SmithyGenerated
 final class SuperpositionAsyncClientImpl extends Client implements SuperpositionAsyncClient {
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
-        .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
         .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
+        .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
         .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
         .putType(InternalFailureException.$ID, InternalFailureException.class, InternalFailureException::builder)
         .putType(UnknownOperationException.$ID, UnknownOperationException.class, UnknownOperationException::builder)
@@ -416,6 +419,10 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
 
     @Override
     public CompletableFuture<GetExperimentOutput> getExperiment(GetExperimentInput input, RequestOverrideConfig overrideConfig) {return call(input, GetExperiment.instance(), overrideConfig);
+    }
+
+    @Override
+    public CompletableFuture<GetExperimentConfigOutput> getExperimentConfig(GetExperimentConfigInput input, RequestOverrideConfig overrideConfig) {return call(input, GetExperimentConfig.instance(), overrideConfig);
     }
 
     @Override

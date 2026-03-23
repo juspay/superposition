@@ -390,6 +390,13 @@ if builder.change_reason.is_none() { builder.change_reason = Some(Default::defau
                 builder
             }
 
+pub(crate) fn get_experiment_config_output_output_correct_errors(mut builder: crate::operation::get_experiment_config::builders::GetExperimentConfigOutputBuilder) -> crate::operation::get_experiment_config::builders::GetExperimentConfigOutputBuilder {
+                if builder.last_modified.is_none() { builder.last_modified = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.experiments.is_none() { builder.experiments = Some(Default::default()) }
+if builder.experiment_groups.is_none() { builder.experiment_groups = Some(Default::default()) }
+                builder
+            }
+
 pub(crate) fn get_experiment_group_output_output_correct_errors(mut builder: crate::operation::get_experiment_group::builders::GetExperimentGroupOutputBuilder) -> crate::operation::get_experiment_group::builders::GetExperimentGroupOutputBuilder {
                 if builder.id.is_none() { builder.id = Some(Default::default()) }
 if builder.context_hash.is_none() { builder.context_hash = Some(Default::default()) }

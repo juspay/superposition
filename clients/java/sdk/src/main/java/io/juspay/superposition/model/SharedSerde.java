@@ -328,6 +328,37 @@ final class SharedSerde {
         }
     }
 
+    static final class GroupTypeListSerializer implements BiConsumer<List<GroupType>, ShapeSerializer> {
+        static final GroupTypeListSerializer INSTANCE = new GroupTypeListSerializer();
+
+        @Override
+        public void accept(List<GroupType> values, ShapeSerializer serializer) {
+            for (var value : values) {
+                serializer.writeString(SharedSchemas.GROUP_TYPE_LIST.listMember(), value.value());
+            }
+        }
+    }
+
+    static List<GroupType> deserializeGroupTypeList(Schema schema, ShapeDeserializer deserializer) {
+        var size = deserializer.containerSize();
+        List<GroupType> result = size == -1 ? new ArrayList<>() : new ArrayList<>(size);
+        deserializer.readList(schema, result, GroupTypeList$MemberDeserializer.INSTANCE);
+        return result;
+    }
+
+    private static final class GroupTypeList$MemberDeserializer implements ShapeDeserializer.ListMemberConsumer<List<GroupType>> {
+        static final GroupTypeList$MemberDeserializer INSTANCE = new GroupTypeList$MemberDeserializer();
+
+        @Override
+        public void accept(List<GroupType> state, ShapeDeserializer deserializer) {
+            if (deserializer.isNull()) {
+
+                return;
+            }
+            state.add(GroupType.builder().deserializeMember(deserializer, SharedSchemas.GROUP_TYPE_LIST.listMember()).build());
+        }
+    }
+
     static final class ExperimentListSerializer implements BiConsumer<List<ExperimentResponse>, ShapeSerializer> {
         static final ExperimentListSerializer INSTANCE = new ExperimentListSerializer();
 
@@ -387,37 +418,6 @@ final class SharedSerde {
                 return;
             }
             state.add(ExperimentGroupResponse.builder().deserializeMember(deserializer, SharedSchemas.EXPERIMENT_GROUP_LIST.listMember()).build());
-        }
-    }
-
-    static final class GroupTypeListSerializer implements BiConsumer<List<GroupType>, ShapeSerializer> {
-        static final GroupTypeListSerializer INSTANCE = new GroupTypeListSerializer();
-
-        @Override
-        public void accept(List<GroupType> values, ShapeSerializer serializer) {
-            for (var value : values) {
-                serializer.writeString(SharedSchemas.GROUP_TYPE_LIST.listMember(), value.value());
-            }
-        }
-    }
-
-    static List<GroupType> deserializeGroupTypeList(Schema schema, ShapeDeserializer deserializer) {
-        var size = deserializer.containerSize();
-        List<GroupType> result = size == -1 ? new ArrayList<>() : new ArrayList<>(size);
-        deserializer.readList(schema, result, GroupTypeList$MemberDeserializer.INSTANCE);
-        return result;
-    }
-
-    private static final class GroupTypeList$MemberDeserializer implements ShapeDeserializer.ListMemberConsumer<List<GroupType>> {
-        static final GroupTypeList$MemberDeserializer INSTANCE = new GroupTypeList$MemberDeserializer();
-
-        @Override
-        public void accept(List<GroupType> state, ShapeDeserializer deserializer) {
-            if (deserializer.isNull()) {
-
-                return;
-            }
-            state.add(GroupType.builder().deserializeMember(deserializer, SharedSchemas.GROUP_TYPE_LIST.listMember()).build());
         }
     }
 

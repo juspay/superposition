@@ -142,6 +142,10 @@ import {
   GetExperimentCommandOutput,
 } from "./commands/GetExperimentCommand";
 import {
+  GetExperimentConfigCommandInput,
+  GetExperimentConfigCommandOutput,
+} from "./commands/GetExperimentConfigCommand";
+import {
   GetExperimentGroupCommandInput,
   GetExperimentGroupCommandOutput,
 } from "./commands/GetExperimentGroupCommand";
@@ -441,6 +445,7 @@ export type ServiceInputTypes =
   | GetDefaultConfigCommandInput
   | GetDimensionCommandInput
   | GetExperimentCommandInput
+  | GetExperimentConfigCommandInput
   | GetExperimentGroupCommandInput
   | GetFunctionCommandInput
   | GetOrganisationCommandInput
@@ -530,6 +535,7 @@ export type ServiceOutputTypes =
   | GetDefaultConfigCommandOutput
   | GetDimensionCommandOutput
   | GetExperimentCommandOutput
+  | GetExperimentConfigCommandOutput
   | GetExperimentGroupCommandOutput
   | GetFunctionCommandOutput
   | GetOrganisationCommandOutput

@@ -18,6 +18,7 @@ use crate::{
         },
         ChangeReason, Description, MetricSource, Metrics,
     },
+    experimental::{Experimental, ExperimentalVariants},
     Condition, Exp, IsEmpty, Overrides, SortBy,
 };
 
@@ -103,6 +104,18 @@ impl From<Experiment> for ExperimentResponse {
             metrics_url,
             experiment_group_id: experiment.experiment_group_id.map(|id| id.to_string()),
         }
+    }
+}
+
+impl Experimental for ExperimentResponse {
+    fn get_condition(&self) -> &Condition {
+        &self.context
+    }
+}
+
+impl ExperimentalVariants for ExperimentResponse {
+    fn get_variants_mut(&mut self) -> &mut Vec<Variant> {
+        &mut self.variants
     }
 }
 

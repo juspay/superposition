@@ -15,7 +15,7 @@ pub trait Contextual: Clone {
         contexts
             .into_iter()
             .filter(|context| {
-                crate::partial_apply(context.get_condition(), dimension_data)
+                logic::partial_apply(context.get_condition(), dimension_data)
             })
             .collect()
     }
