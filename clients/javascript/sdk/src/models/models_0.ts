@@ -1891,21 +1891,12 @@ export interface GetExperimentConfigInput {
    * @public
    */
   context?: Record<string, __DocumentType> | undefined;
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 0dd5da56 (fix: some fixes)
 
   /**
    * Strategy to follow while filter items based on the context
    * @public
    */
   dimension_match_strategy?: DimensionMatchStrategy | undefined;
-<<<<<<< HEAD
-=======
->>>>>>> 0c17747c (feat: Add experiment_config endpoint)
-=======
->>>>>>> 0dd5da56 (fix: some fixes)
 }
 
 /**
@@ -2018,14 +2009,6 @@ export interface ListExperimentGroupsInput {
    * @public
    */
   group_type?: (GroupType)[] | undefined;
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 
   /**
    * Strategy to follow while filter items based on the context
@@ -2039,13 +2022,6 @@ export interface ListExperimentGroupsInput {
    * @public
    */
   context?: Record<string, __DocumentType> | undefined;
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 }
 
 /**
@@ -2179,38 +2155,7 @@ export interface ListExperimentOutput {
   total_pages: number | undefined;
   total_items: number | undefined;
   data: (ExperimentResponse)[] | undefined;
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
   last_modified: Date | undefined;
-=======
-<<<<<<< HEAD
-=======
-  last_modified: Date | undefined;
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
-  last_modified: Date | undefined;
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
-=======
-=======
->>>>>>> de718464 (fix: more fixes)
-  last_modified: Date | undefined;
-=======
-  last_modified_at: Date | undefined;
->>>>>>> 6e8749e1 (Test)
-<<<<<<< HEAD
->>>>>>> c1293812 (Test)
-=======
-=======
-  last_modified: Date | undefined;
->>>>>>> 82479b8f (fix: more fixes)
->>>>>>> de718464 (fix: more fixes)
-=======
-  last_modified: Date | undefined;
->>>>>>> 45a3cd01 (reabse fix)
 }
 
 /**

@@ -1055,35 +1055,8 @@ async def _serialize_get_config(input: GetConfigInput, config: Config) -> HTTPRe
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
-<<<<<<< HEAD
-<<<<<<< HEAD
     if input.if_modified_since is not None:
         headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-    if input.if_modified_since is not None:
-        headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
-    if input.if_modified_since is not None:
-        headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
-=======
-        headers.extend(Fields([Field(name="If-Modified-Since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
->>>>>>> 6e8749e1 (Test)
-<<<<<<< HEAD
->>>>>>> c1293812 (Test)
-=======
-=======
-        headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
->>>>>>> 82479b8f (fix: more fixes)
->>>>>>> de718464 (fix: more fixes)
-=======
->>>>>>> 45a3cd01 (reabse fix)
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -1325,16 +1298,8 @@ async def _serialize_get_experiment_config(input: GetExperimentConfigInput, conf
     query_params: list[tuple[str, str | None]] = []
     if input.prefix is not None:
         query_params.extend(("prefix", e) for e in input.prefix)
-<<<<<<< HEAD
-<<<<<<< HEAD
     if input.dimension_match_strategy is not None:
         query_params.append(("dimension_match_strategy", input.dimension_match_strategy))
-=======
->>>>>>> 0c17747c (feat: Add experiment_config endpoint)
-=======
-    if input.dimension_match_strategy is not None:
-        query_params.append(("dimension_match_strategy", input.dimension_match_strategy))
->>>>>>> 0dd5da56 (fix: some fixes)
 
     query = join_query_params(params=query_params, prefix=query)
 
@@ -2063,35 +2028,8 @@ async def _serialize_list_experiment(input: ListExperimentInput, config: Config)
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
-<<<<<<< HEAD
-<<<<<<< HEAD
     if input.if_modified_since is not None:
         headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-    if input.if_modified_since is not None:
-        headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
-    if input.if_modified_since is not None:
-        headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
-=======
-        headers.extend(Fields([Field(name="If-Modified-Since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
->>>>>>> 6e8749e1 (Test)
-<<<<<<< HEAD
->>>>>>> c1293812 (Test)
-=======
-=======
-        headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
->>>>>>> 82479b8f (fix: more fixes)
->>>>>>> de718464 (fix: more fixes)
-=======
->>>>>>> 45a3cd01 (reabse fix)
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2152,35 +2090,8 @@ async def _serialize_list_experiment_groups(input: ListExperimentGroupsInput, co
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
-<<<<<<< HEAD
-<<<<<<< HEAD
     if input.if_modified_since is not None:
         headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-    if input.if_modified_since is not None:
-        headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
-    if input.if_modified_since is not None:
-        headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
-=======
-        headers.extend(Fields([Field(name="If-Modified-Since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
->>>>>>> 6e8749e1 (Test)
-<<<<<<< HEAD
->>>>>>> c1293812 (Test)
-=======
-=======
-        headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
->>>>>>> 82479b8f (fix: more fixes)
->>>>>>> de718464 (fix: more fixes)
-=======
->>>>>>> 45a3cd01 (reabse fix)
     return _HTTPRequest(
         destination=_URI(
             host="",

@@ -176,10 +176,6 @@ impl GetExperimentConfigFluentBuilder {
     pub fn get_context(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
                     self.inner.get_context()
                 }
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 0dd5da56 (fix: some fixes)
     /// Strategy to follow while filter items based on the context
     pub fn dimension_match_strategy(mut self, input: crate::types::DimensionMatchStrategy) -> Self {
                     self.inner = self.inner.dimension_match_strategy(input);
@@ -194,10 +190,5 @@ impl GetExperimentConfigFluentBuilder {
     pub fn get_dimension_match_strategy(&self) -> &::std::option::Option<crate::types::DimensionMatchStrategy> {
                     self.inner.get_dimension_match_strategy()
                 }
-<<<<<<< HEAD
-=======
->>>>>>> 0c17747c (feat: Add experiment_config endpoint)
-=======
->>>>>>> 0dd5da56 (fix: some fixes)
 }
 

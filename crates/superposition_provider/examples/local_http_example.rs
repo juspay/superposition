@@ -25,16 +25,19 @@ async fn main() {
             timeout: Some(10),
         }),
     );
-    provider.init().await.unwrap();
+    provider.init(EvaluationContext::default()).await.unwrap();
 
     let context = EvaluationContext::default()
         .with_targeting_key("user-1234")
         .with_custom_field("dimension", "d2");
 
-    let all_config = provider.resolve_all_features(&context).await.unwrap();
+    let all_config = provider
+        .resolve_all_features(context.clone())
+        .await
+        .unwrap();
     println!("All config: {:?}", all_config);
 
-    let variants = provider.get_applicable_variants(&context).await.unwrap();
+    let variants = provider.get_applicable_variants(context).await.unwrap();
     println!("Variants: {:?}", variants);
 
     provider.close().await.unwrap();

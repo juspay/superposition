@@ -1,8 +1,9 @@
 use fred::{
     prelude::{KeysInterface, RedisClient, RedisPool},
-    types::Expiration,
+    types::{Expiration, RedisValue},
 };
 use serde::{Serialize, de::DeserializeOwned};
+use superposition_macros::unexpected_error;
 use superposition_types::{DBConnection, result as superposition};
 
 use crate::{
@@ -113,4 +114,19 @@ where
         format!("Failed to parse value from redis due to: {}", e)
     })?;
     Ok(value)
+}
+
+pub async fn redis_set_data<T: Send + Into<RedisValue>>(
+    pool: &RedisPool,
+    key_name: String,
+    value: T,
+    expiration: Option<Expiration>,
+) -> superposition::Result<()> {
+    let key = key_name.clone();
+    pool.set::<(), String, T>(key_name, value, expiration, None, false)
+        .await
+        .map_err(|e| {
+            log::warn!("Failed to set {} in redis: {}", key, e);
+            unexpected_error!("failed to set {} in redis", key)
+        })
 }

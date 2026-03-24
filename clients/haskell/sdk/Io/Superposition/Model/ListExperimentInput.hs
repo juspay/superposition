@@ -330,38 +330,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder ListExperimentInput where
         Io.Superposition.Utility.serQuery "to_date" (to_date self)
         Io.Superposition.Utility.serQuery "page" (page self)
         Io.Superposition.Utility.serQuery "status" (status self)
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
         Io.Superposition.Utility.serHeader "if-modified-since" (if_modified_since self)
-=======
-<<<<<<< HEAD
-=======
-        Io.Superposition.Utility.serHeader "if-modified-since" (if_modified_since self)
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
-        Io.Superposition.Utility.serHeader "if-modified-since" (if_modified_since self)
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
-=======
-=======
->>>>>>> de718464 (fix: more fixes)
-        Io.Superposition.Utility.serHeader "if-modified-since" (if_modified_since self)
-=======
-        Io.Superposition.Utility.serHeader "If-Modified-Since" (if_modified_since self)
->>>>>>> 6e8749e1 (Test)
-<<<<<<< HEAD
->>>>>>> c1293812 (Test)
-=======
-=======
-        Io.Superposition.Utility.serHeader "if-modified-since" (if_modified_since self)
->>>>>>> 82479b8f (fix: more fixes)
->>>>>>> de718464 (fix: more fixes)
-=======
-        Io.Superposition.Utility.serHeader "if-modified-since" (if_modified_since self)
->>>>>>> 45a3cd01 (reabse fix)
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         Io.Superposition.Utility.serField "context" (context self)

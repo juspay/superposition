@@ -118,38 +118,7 @@ export interface ListExperimentCommandOutput extends ListExperimentOutput, __Met
  * //       experiment_group_id: "STRING_VALUE",
  * //     },
  * //   ],
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
  * //   last_modified: new Date("TIMESTAMP"), // required
-=======
-<<<<<<< HEAD
-=======
- * //   last_modified: new Date("TIMESTAMP"), // required
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
- * //   last_modified: new Date("TIMESTAMP"), // required
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
-=======
-=======
->>>>>>> de718464 (fix: more fixes)
- * //   last_modified: new Date("TIMESTAMP"), // required
-=======
- * //   last_modified_at: new Date("TIMESTAMP"), // required
->>>>>>> 6e8749e1 (Test)
-<<<<<<< HEAD
->>>>>>> c1293812 (Test)
-=======
-=======
- * //   last_modified: new Date("TIMESTAMP"), // required
->>>>>>> 82479b8f (fix: more fixes)
->>>>>>> de718464 (fix: more fixes)
-=======
- * //   last_modified: new Date("TIMESTAMP"), // required
->>>>>>> 45a3cd01 (reabse fix)
  * // };
  *
  * ```

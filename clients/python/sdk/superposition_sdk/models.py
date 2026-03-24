@@ -9806,18 +9806,9 @@ class GetExperimentConfigInput:
     :param context:
          Map representing the context. Keys correspond to the names of the dimensions.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
     :param dimension_match_strategy:
          Strategy to follow while filter items based on the context
 
-=======
->>>>>>> 0c17747c (feat: Add experiment_config endpoint)
-=======
-    :param dimension_match_strategy:
-         Strategy to follow while filter items based on the context
-
->>>>>>> 0dd5da56 (fix: some fixes)
     """
 
     workspace_id: str | None = None
@@ -9825,14 +9816,7 @@ class GetExperimentConfigInput:
     if_modified_since: datetime | None = None
     prefix: list[str] | None = None
     context: dict[str, Document] | None = None
-<<<<<<< HEAD
-<<<<<<< HEAD
     dimension_match_strategy: str | None = None
-=======
->>>>>>> 0c17747c (feat: Add experiment_config endpoint)
-=======
-    dimension_match_strategy: str | None = None
->>>>>>> 0dd5da56 (fix: some fixes)
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_EXPERIMENT_CONFIG_INPUT, self)
@@ -9866,18 +9850,9 @@ class GetExperimentConfigInput:
                 case 4:
                     kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["context"])
 
-<<<<<<< HEAD
-<<<<<<< HEAD
                 case 5:
                     kwargs["dimension_match_strategy"] = de.read_string(_SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["dimension_match_strategy"])
 
-=======
->>>>>>> 0c17747c (feat: Add experiment_config endpoint)
-=======
-                case 5:
-                    kwargs["dimension_match_strategy"] = de.read_string(_SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["dimension_match_strategy"])
-
->>>>>>> 0dd5da56 (fix: some fixes)
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
@@ -10190,36 +10165,12 @@ class ListExperimentGroupsInput:
     :param group_type:
          Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
-=======
->>>>>>> c1293812 (Test)
-=======
->>>>>>> de718464 (fix: more fixes)
-=======
->>>>>>> 45a3cd01 (reabse fix)
     :param dimension_match_strategy:
          Strategy to follow while filter items based on the context
 
     :param context:
          Map representing the context. Keys correspond to the names of the dimensions.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
     """
 
     count: int | None = None
@@ -10234,30 +10185,8 @@ class ListExperimentGroupsInput:
     sort_on: str | None = None
     sort_by: str | None = None
     group_type: list[str] | None = None
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> c1293812 (Test)
-=======
->>>>>>> de718464 (fix: more fixes)
-=======
->>>>>>> 45a3cd01 (reabse fix)
     dimension_match_strategy: str | None = None
     context: dict[str, Document] | None = None
-=======
-<<<<<<< HEAD
-=======
-    dimension_match_strategy: str | None = None
-    context: dict[str, Document] | None = None
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
-    dimension_match_strategy: str | None = None
-    context: dict[str, Document] | None = None
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT, self)
@@ -10312,27 +10241,12 @@ class ListExperimentGroupsInput:
                 case 11:
                     kwargs["group_type"] = _deserialize_group_type_list(de, _SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["group_type"])
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
                 case 12:
                     kwargs["dimension_match_strategy"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["dimension_match_strategy"])
 
                 case 13:
                     kwargs["context"] = _deserialize_context_map(de, _SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["context"])
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
@@ -11174,30 +11088,8 @@ class ListExperimentOutput:
 
     data: list[ExperimentResponse]
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> c1293812 (Test)
-=======
->>>>>>> de718464 (fix: more fixes)
-=======
->>>>>>> 45a3cd01 (reabse fix)
     last_modified: datetime
 
-=======
-<<<<<<< HEAD
-=======
-    last_modified: datetime
-
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
-    last_modified: datetime
-
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_EXPERIMENT_OUTPUT, self)
 
@@ -11225,24 +11117,9 @@ class ListExperimentOutput:
                 case 2:
                     kwargs["data"] = _deserialize_experiment_list(de, _SCHEMA_LIST_EXPERIMENT_OUTPUT.members["data"])
 
-<<<<<<< HEAD
-<<<<<<< HEAD
                 case 3:
                     kwargs["last_modified"] = de.read_timestamp(_SCHEMA_LIST_EXPERIMENT_OUTPUT.members["last_modified"])
 
-=======
-<<<<<<< HEAD
-=======
-                case 3:
-                    kwargs["last_modified"] = de.read_timestamp(_SCHEMA_LIST_EXPERIMENT_OUTPUT.members["last_modified"])
-
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
-                case 3:
-                    kwargs["last_modified"] = de.read_timestamp(_SCHEMA_LIST_EXPERIMENT_OUTPUT.members["last_modified"])
-
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 

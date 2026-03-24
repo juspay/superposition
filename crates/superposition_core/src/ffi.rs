@@ -308,8 +308,7 @@ impl ProviderCache {
                 &_q,
                 targeting_key.as_deref().unwrap_or(""),
                 filter_prefixes.clone(),
-            )
-            .map_err(OperationError::Unexpected)?;
+            );
             _q.insert("variantIds".to_string(), variants.into());
         }
 

@@ -39,35 +39,8 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
-<<<<<<< HEAD
-<<<<<<< HEAD
         .putMember("if_modified_since", SharedSchemas.DATE_TIME,
                 new HttpHeaderTrait("if-modified-since"))
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-        .putMember("if_modified_since", SharedSchemas.DATE_TIME,
-                new HttpHeaderTrait("if-modified-since"))
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
-        .putMember("if_modified_since", SharedSchemas.DATE_TIME,
-                new HttpHeaderTrait("if-modified-since"))
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
-=======
-                new HttpHeaderTrait("If-Modified-Since"))
->>>>>>> 6e8749e1 (Test)
-<<<<<<< HEAD
->>>>>>> c1293812 (Test)
-=======
-=======
-                new HttpHeaderTrait("if-modified-since"))
->>>>>>> 82479b8f (fix: more fixes)
->>>>>>> de718464 (fix: more fixes)
-=======
->>>>>>> 45a3cd01 (reabse fix)
         .putMember("name", PreludeSchemas.STRING,
                 new HttpQueryTrait("name"))
         .putMember("created_by", PreludeSchemas.STRING,
@@ -80,33 +53,9 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
                 new HttpQueryTrait("sort_by"))
         .putMember("group_type", SharedSchemas.GROUP_TYPE_LIST,
                 new HttpQueryTrait("group_type"))
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> c1293812 (Test)
-=======
->>>>>>> de718464 (fix: more fixes)
-=======
->>>>>>> 45a3cd01 (reabse fix)
         .putMember("dimension_match_strategy", DimensionMatchStrategy.$SCHEMA,
                 new HttpQueryTrait("dimension_match_strategy"))
         .putMember("context", SharedSchemas.CONTEXT_MAP)
-=======
-<<<<<<< HEAD
-=======
-        .putMember("dimension_match_strategy", DimensionMatchStrategy.$SCHEMA,
-                new HttpQueryTrait("dimension_match_strategy"))
-        .putMember("context", SharedSchemas.CONTEXT_MAP)
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
-        .putMember("dimension_match_strategy", DimensionMatchStrategy.$SCHEMA,
-                new HttpQueryTrait("dimension_match_strategy"))
-        .putMember("context", SharedSchemas.CONTEXT_MAP)
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
         .build();
 
     private static final Schema $SCHEMA_COUNT = $SCHEMA.member("count");
@@ -121,30 +70,8 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
     private static final Schema $SCHEMA_SORT_ON = $SCHEMA.member("sort_on");
     private static final Schema $SCHEMA_SORT_BY = $SCHEMA.member("sort_by");
     private static final Schema $SCHEMA_GROUP_TYPE = $SCHEMA.member("group_type");
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> c1293812 (Test)
-=======
->>>>>>> de718464 (fix: more fixes)
-=======
->>>>>>> 45a3cd01 (reabse fix)
     private static final Schema $SCHEMA_DIMENSION_MATCH_STRATEGY = $SCHEMA.member("dimension_match_strategy");
     private static final Schema $SCHEMA_CONTEXT = $SCHEMA.member("context");
-=======
-<<<<<<< HEAD
-=======
-    private static final Schema $SCHEMA_DIMENSION_MATCH_STRATEGY = $SCHEMA.member("dimension_match_strategy");
-    private static final Schema $SCHEMA_CONTEXT = $SCHEMA.member("context");
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
-    private static final Schema $SCHEMA_DIMENSION_MATCH_STRATEGY = $SCHEMA.member("dimension_match_strategy");
-    private static final Schema $SCHEMA_CONTEXT = $SCHEMA.member("context");
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 
     private final transient Integer count;
     private final transient Integer page;
@@ -158,30 +85,8 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
     private final transient ExperimentGroupSortOn sortOn;
     private final transient SortBy sortBy;
     private final transient List<GroupType> groupType;
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> c1293812 (Test)
-=======
->>>>>>> de718464 (fix: more fixes)
-=======
->>>>>>> 45a3cd01 (reabse fix)
     private final transient DimensionMatchStrategy dimensionMatchStrategy;
     private final transient Map<String, Document> context;
-=======
-<<<<<<< HEAD
-=======
-    private final transient DimensionMatchStrategy dimensionMatchStrategy;
-    private final transient Map<String, Document> context;
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
-    private final transient DimensionMatchStrategy dimensionMatchStrategy;
-    private final transient Map<String, Document> context;
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 
     private ListExperimentGroupsInput(Builder builder) {
         this.count = builder.count;
@@ -196,30 +101,8 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
         this.sortOn = builder.sortOn;
         this.sortBy = builder.sortBy;
         this.groupType = builder.groupType == null ? null : Collections.unmodifiableList(builder.groupType);
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> c1293812 (Test)
-=======
->>>>>>> de718464 (fix: more fixes)
-=======
->>>>>>> 45a3cd01 (reabse fix)
         this.dimensionMatchStrategy = builder.dimensionMatchStrategy;
         this.context = builder.context == null ? null : Collections.unmodifiableMap(builder.context);
-=======
-<<<<<<< HEAD
-=======
-        this.dimensionMatchStrategy = builder.dimensionMatchStrategy;
-        this.context = builder.context == null ? null : Collections.unmodifiableMap(builder.context);
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
-        this.dimensionMatchStrategy = builder.dimensionMatchStrategy;
-        this.context = builder.context == null ? null : Collections.unmodifiableMap(builder.context);
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
     }
 
     /**
@@ -309,25 +192,6 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
         return groupType != null;
     }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
-=======
->>>>>>> c1293812 (Test)
-=======
-=======
->>>>>>> 82479b8f (fix: more fixes)
->>>>>>> de718464 (fix: more fixes)
-=======
->>>>>>> 45a3cd01 (reabse fix)
     public DimensionMatchStrategy dimensionMatchStrategy() {
         return dimensionMatchStrategy;
     }
@@ -343,13 +207,6 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
         return context != null;
     }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -375,62 +232,14 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
                && Objects.equals(this.lastModifiedBy, that.lastModifiedBy)
                && Objects.equals(this.sortOn, that.sortOn)
                && Objects.equals(this.sortBy, that.sortBy)
-<<<<<<< HEAD
-<<<<<<< HEAD
                && Objects.equals(this.groupType, that.groupType)
                && Objects.equals(this.dimensionMatchStrategy, that.dimensionMatchStrategy)
                && Objects.equals(this.context, that.context);
-=======
-<<<<<<< HEAD
-               && Objects.equals(this.groupType, that.groupType);
-=======
-               && Objects.equals(this.groupType, that.groupType)
-               && Objects.equals(this.dimensionMatchStrategy, that.dimensionMatchStrategy)
-               && Objects.equals(this.context, that.context);
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
-               && Objects.equals(this.groupType, that.groupType)
-               && Objects.equals(this.dimensionMatchStrategy, that.dimensionMatchStrategy)
-               && Objects.equals(this.context, that.context);
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
     }
 
     @Override
     public int hashCode() {
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
         return Objects.hash(count, page, all, workspaceId, orgId, ifModifiedSince, name, createdBy, lastModifiedBy, sortOn, sortBy, groupType, dimensionMatchStrategy, context);
-=======
-<<<<<<< HEAD
-        return Objects.hash(count, page, all, workspaceId, orgId, name, createdBy, lastModifiedBy, sortOn, sortBy, groupType);
-=======
-        return Objects.hash(count, page, all, workspaceId, orgId, ifModifiedSince, name, createdBy, lastModifiedBy, sortOn, sortBy, groupType, dimensionMatchStrategy, context);
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
-        return Objects.hash(count, page, all, workspaceId, orgId, ifModifiedSince, name, createdBy, lastModifiedBy, sortOn, sortBy, groupType, dimensionMatchStrategy, context);
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
-=======
-=======
->>>>>>> de718464 (fix: more fixes)
-        return Objects.hash(count, page, all, workspaceId, orgId, ifModifiedSince, name, createdBy, lastModifiedBy, sortOn, sortBy, groupType, dimensionMatchStrategy, context);
-=======
-        return Objects.hash(count, page, all, workspaceId, orgId, ifModifiedSince, name, createdBy, lastModifiedBy, sortOn, sortBy, groupType, context);
->>>>>>> 6e8749e1 (Test)
-<<<<<<< HEAD
->>>>>>> c1293812 (Test)
-=======
-=======
-        return Objects.hash(count, page, all, workspaceId, orgId, ifModifiedSince, name, createdBy, lastModifiedBy, sortOn, sortBy, groupType, dimensionMatchStrategy, context);
->>>>>>> 82479b8f (fix: more fixes)
->>>>>>> de718464 (fix: more fixes)
-=======
-        return Objects.hash(count, page, all, workspaceId, orgId, ifModifiedSince, name, createdBy, lastModifiedBy, sortOn, sortBy, groupType, dimensionMatchStrategy, context);
->>>>>>> 45a3cd01 (reabse fix)
     }
 
     @Override
@@ -472,36 +281,12 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
         if (groupType != null) {
             serializer.writeList($SCHEMA_GROUP_TYPE, groupType, groupType.size(), SharedSerde.GroupTypeListSerializer.INSTANCE);
         }
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
-=======
->>>>>>> c1293812 (Test)
-=======
->>>>>>> de718464 (fix: more fixes)
-=======
->>>>>>> 45a3cd01 (reabse fix)
         if (dimensionMatchStrategy != null) {
             serializer.writeString($SCHEMA_DIMENSION_MATCH_STRATEGY, dimensionMatchStrategy.value());
         }
         if (context != null) {
             serializer.writeMap($SCHEMA_CONTEXT, context, context.size(), SharedSerde.ContextMapSerializer.INSTANCE);
         }
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
     }
 
     @Override
@@ -513,20 +298,6 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, count);
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, page);
             case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_ALL, member, all);
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_NAME, member, name);
-            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, createdBy);
-            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, lastModifiedBy);
-            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, sortOn);
-            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, sortBy);
-            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_GROUP_TYPE, member, groupType);
-=======
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
             case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_IF_MODIFIED_SINCE, member, ifModifiedSince);
             case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_NAME, member, name);
             case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, createdBy);
@@ -536,29 +307,6 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
             case 11 -> (T) SchemaUtils.validateSameMember($SCHEMA_GROUP_TYPE, member, groupType);
             case 12 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, dimensionMatchStrategy);
             case 13 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
-=======
-=======
-            case 12 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
->>>>>>> 6e8749e1 (Test)
-<<<<<<< HEAD
->>>>>>> c1293812 (Test)
-=======
-=======
-            case 12 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, dimensionMatchStrategy);
-            case 13 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
->>>>>>> 82479b8f (fix: more fixes)
->>>>>>> de718464 (fix: more fixes)
-=======
->>>>>>> 45a3cd01 (reabse fix)
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -584,30 +332,8 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
         builder.sortOn(this.sortOn);
         builder.sortBy(this.sortBy);
         builder.groupType(this.groupType);
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> c1293812 (Test)
-=======
->>>>>>> de718464 (fix: more fixes)
-=======
->>>>>>> 45a3cd01 (reabse fix)
         builder.dimensionMatchStrategy(this.dimensionMatchStrategy);
         builder.context(this.context);
-=======
-<<<<<<< HEAD
-=======
-        builder.dimensionMatchStrategy(this.dimensionMatchStrategy);
-        builder.context(this.context);
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
-        builder.dimensionMatchStrategy(this.dimensionMatchStrategy);
-        builder.context(this.context);
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
         return builder;
     }
 
@@ -635,30 +361,8 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
         private ExperimentGroupSortOn sortOn;
         private SortBy sortBy;
         private List<GroupType> groupType;
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> c1293812 (Test)
-=======
->>>>>>> de718464 (fix: more fixes)
-=======
->>>>>>> 45a3cd01 (reabse fix)
         private DimensionMatchStrategy dimensionMatchStrategy;
         private Map<String, Document> context;
-=======
-<<<<<<< HEAD
-=======
-        private DimensionMatchStrategy dimensionMatchStrategy;
-        private Map<String, Document> context;
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
-        private DimensionMatchStrategy dimensionMatchStrategy;
-        private Map<String, Document> context;
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 
         private Builder() {}
 
@@ -789,14 +493,6 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
             return this;
         }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
         /**
          * @return this builder.
          */
@@ -813,13 +509,6 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
             return this;
         }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
         @Override
         public ListExperimentGroupsInput build() {
             tracker.validate();
@@ -835,20 +524,6 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
                 case 2 -> count((int) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, value));
                 case 3 -> page((int) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, value));
                 case 4 -> all((boolean) SchemaUtils.validateSameMember($SCHEMA_ALL, member, value));
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-                case 5 -> name((String) SchemaUtils.validateSameMember($SCHEMA_NAME, member, value));
-                case 6 -> createdBy((String) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, value));
-                case 7 -> lastModifiedBy((String) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, value));
-                case 8 -> sortOn((ExperimentGroupSortOn) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, value));
-                case 9 -> sortBy((SortBy) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, value));
-                case 10 -> groupType((List<GroupType>) SchemaUtils.validateSameMember($SCHEMA_GROUP_TYPE, member, value));
-=======
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
                 case 5 -> ifModifiedSince((Instant) SchemaUtils.validateSameMember($SCHEMA_IF_MODIFIED_SINCE, member, value));
                 case 6 -> name((String) SchemaUtils.validateSameMember($SCHEMA_NAME, member, value));
                 case 7 -> createdBy((String) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, value));
@@ -858,29 +533,6 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
                 case 11 -> groupType((List<GroupType>) SchemaUtils.validateSameMember($SCHEMA_GROUP_TYPE, member, value));
                 case 12 -> dimensionMatchStrategy((DimensionMatchStrategy) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, value));
                 case 13 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
-=======
-=======
-                case 12 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
->>>>>>> 6e8749e1 (Test)
-<<<<<<< HEAD
->>>>>>> c1293812 (Test)
-=======
-=======
-                case 12 -> dimensionMatchStrategy((DimensionMatchStrategy) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, value));
-                case 13 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
->>>>>>> 82479b8f (fix: more fixes)
->>>>>>> de718464 (fix: more fixes)
-=======
->>>>>>> 45a3cd01 (reabse fix)
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -922,20 +574,6 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
                     case 2 -> builder.count(de.readInteger(member));
                     case 3 -> builder.page(de.readInteger(member));
                     case 4 -> builder.all(de.readBoolean(member));
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-                    case 5 -> builder.name(de.readString(member));
-                    case 6 -> builder.createdBy(de.readString(member));
-                    case 7 -> builder.lastModifiedBy(de.readString(member));
-                    case 8 -> builder.sortOn(ExperimentGroupSortOn.builder().deserializeMember(de, member).build());
-                    case 9 -> builder.sortBy(SortBy.builder().deserializeMember(de, member).build());
-                    case 10 -> builder.groupType(SharedSerde.deserializeGroupTypeList(member, de));
-=======
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
                     case 5 -> builder.ifModifiedSince(de.readTimestamp(member));
                     case 6 -> builder.name(de.readString(member));
                     case 7 -> builder.createdBy(de.readString(member));
@@ -945,29 +583,6 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
                     case 11 -> builder.groupType(SharedSerde.deserializeGroupTypeList(member, de));
                     case 12 -> builder.dimensionMatchStrategy(DimensionMatchStrategy.builder().deserializeMember(de, member).build());
                     case 13 -> builder.context(SharedSerde.deserializeContextMap(member, de));
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
-=======
-=======
-                    case 12 -> builder.context(SharedSerde.deserializeContextMap(member, de));
->>>>>>> 6e8749e1 (Test)
-<<<<<<< HEAD
->>>>>>> c1293812 (Test)
-=======
-=======
-                    case 12 -> builder.dimensionMatchStrategy(DimensionMatchStrategy.builder().deserializeMember(de, member).build());
-                    case 13 -> builder.context(SharedSerde.deserializeContextMap(member, de));
->>>>>>> 82479b8f (fix: more fixes)
->>>>>>> de718464 (fix: more fixes)
-=======
->>>>>>> 45a3cd01 (reabse fix)
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

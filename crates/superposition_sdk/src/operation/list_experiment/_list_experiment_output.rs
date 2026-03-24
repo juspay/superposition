@@ -9,35 +9,8 @@ pub struct ListExperimentOutput  {
     pub total_items: i32,
     #[allow(missing_docs)] // documentation missing in model
     pub data: ::std::vec::Vec::<crate::types::ExperimentResponse>,
-<<<<<<< HEAD
-<<<<<<< HEAD
     #[allow(missing_docs)] // documentation missing in model
     pub last_modified: ::aws_smithy_types::DateTime,
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-    #[allow(missing_docs)] // documentation missing in model
-    pub last_modified: ::aws_smithy_types::DateTime,
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
-    #[allow(missing_docs)] // documentation missing in model
-    pub last_modified: ::aws_smithy_types::DateTime,
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
-=======
-    pub last_modified_at: ::aws_smithy_types::DateTime,
->>>>>>> 6e8749e1 (Test)
-<<<<<<< HEAD
->>>>>>> c1293812 (Test)
-=======
-=======
-    pub last_modified: ::aws_smithy_types::DateTime,
->>>>>>> 82479b8f (fix: more fixes)
->>>>>>> de718464 (fix: more fixes)
-=======
->>>>>>> 45a3cd01 (reabse fix)
 }
 impl  ListExperimentOutput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -52,25 +25,10 @@ impl  ListExperimentOutput  {
     pub fn data(&self) -> &[crate::types::ExperimentResponse] {
         use std::ops::Deref; self.data.deref()
     }
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
     #[allow(missing_docs)] // documentation missing in model
     pub fn last_modified(&self) -> &::aws_smithy_types::DateTime {
         &self.last_modified
     }
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
 }
 impl ListExperimentOutput {
     /// Creates a new builder-style object to manufacture [`ListExperimentOutput`](crate::operation::list_experiment::ListExperimentOutput).
@@ -86,38 +44,7 @@ pub struct ListExperimentOutputBuilder {
     pub(crate) total_pages: ::std::option::Option<i32>,
     pub(crate) total_items: ::std::option::Option<i32>,
     pub(crate) data: ::std::option::Option<::std::vec::Vec::<crate::types::ExperimentResponse>>,
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
     pub(crate) last_modified: ::std::option::Option<::aws_smithy_types::DateTime>,
-=======
-<<<<<<< HEAD
-=======
-    pub(crate) last_modified: ::std::option::Option<::aws_smithy_types::DateTime>,
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
-    pub(crate) last_modified: ::std::option::Option<::aws_smithy_types::DateTime>,
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
-=======
-=======
->>>>>>> de718464 (fix: more fixes)
-    pub(crate) last_modified: ::std::option::Option<::aws_smithy_types::DateTime>,
-=======
-    pub(crate) last_modified_at: ::std::option::Option<::aws_smithy_types::DateTime>,
->>>>>>> 6e8749e1 (Test)
-<<<<<<< HEAD
->>>>>>> c1293812 (Test)
-=======
-=======
-    pub(crate) last_modified: ::std::option::Option<::aws_smithy_types::DateTime>,
->>>>>>> 82479b8f (fix: more fixes)
->>>>>>> de718464 (fix: more fixes)
-=======
-    pub(crate) last_modified: ::std::option::Option<::aws_smithy_types::DateTime>,
->>>>>>> 45a3cd01 (reabse fix)
 }
 impl ListExperimentOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -166,14 +93,6 @@ impl ListExperimentOutputBuilder {
     pub fn get_data(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::ExperimentResponse>> {
         &self.data
     }
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
     pub fn last_modified(mut self, input: ::aws_smithy_types::DateTime) -> Self {
@@ -188,50 +107,12 @@ impl ListExperimentOutputBuilder {
     pub fn get_last_modified(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
         &self.last_modified
     }
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
     /// Consumes the builder and constructs a [`ListExperimentOutput`](crate::operation::list_experiment::ListExperimentOutput).
     /// This method will fail if any of the following fields are not set:
     /// - [`total_pages`](crate::operation::list_experiment::builders::ListExperimentOutputBuilder::total_pages)
     /// - [`total_items`](crate::operation::list_experiment::builders::ListExperimentOutputBuilder::total_items)
     /// - [`data`](crate::operation::list_experiment::builders::ListExperimentOutputBuilder::data)
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
     /// - [`last_modified`](crate::operation::list_experiment::builders::ListExperimentOutputBuilder::last_modified)
-=======
-<<<<<<< HEAD
-=======
-    /// - [`last_modified`](crate::operation::list_experiment::builders::ListExperimentOutputBuilder::last_modified)
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
-    /// - [`last_modified`](crate::operation::list_experiment::builders::ListExperimentOutputBuilder::last_modified)
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
-=======
-=======
->>>>>>> de718464 (fix: more fixes)
-    /// - [`last_modified`](crate::operation::list_experiment::builders::ListExperimentOutputBuilder::last_modified)
-=======
-    /// - [`last_modified_at`](crate::operation::list_experiment::builders::ListExperimentOutputBuilder::last_modified_at)
->>>>>>> 6e8749e1 (Test)
-<<<<<<< HEAD
->>>>>>> c1293812 (Test)
-=======
-=======
-    /// - [`last_modified`](crate::operation::list_experiment::builders::ListExperimentOutputBuilder::last_modified)
->>>>>>> 82479b8f (fix: more fixes)
->>>>>>> de718464 (fix: more fixes)
-=======
-    /// - [`last_modified`](crate::operation::list_experiment::builders::ListExperimentOutputBuilder::last_modified)
->>>>>>> 45a3cd01 (reabse fix)
     pub fn build(self) -> ::std::result::Result<crate::operation::list_experiment::ListExperimentOutput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
             crate::operation::list_experiment::ListExperimentOutput {
@@ -250,35 +131,11 @@ impl ListExperimentOutputBuilder {
                         ::aws_smithy_types::error::operation::BuildError::missing_field("data", "data was not specified but it is required when building ListExperimentOutput")
                     )?
                 ,
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
-=======
->>>>>>> c1293812 (Test)
-=======
->>>>>>> de718464 (fix: more fixes)
-=======
->>>>>>> 45a3cd01 (reabse fix)
                 last_modified: self.last_modified
                     .ok_or_else(||
                         ::aws_smithy_types::error::operation::BuildError::missing_field("last_modified", "last_modified was not specified but it is required when building ListExperimentOutput")
                     )?
                 ,
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
             }
         )
     }

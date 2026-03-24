@@ -6,7 +6,6 @@ use actix_web::{
 };
 use chrono::{DateTime, Utc};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
-use futures::join;
 use service_utils::{
     db::run_query,
     helpers::is_not_modified,
@@ -158,6 +157,7 @@ fn get_experiment_config_db(
     workspace_context: &WorkspaceContext,
 ) -> superposition::DieselResult<ExperimentConfig> {
     let filters = filters.into_inner();
+    let dimension_match_strategy = filters.dimension_match_strategy.unwrap_or_default();
 
     let exp_list = {
         let mut experiment_list: Vec<Experiment> = experiments::experiments
@@ -174,7 +174,7 @@ fn get_experiment_config_db(
         }
 
         if !dimension_params.is_empty() {
-            let filter_fn = match filters.dimension_match_strategy.unwrap_or_default() {
+            let filter_fn = match dimension_match_strategy {
                 DimensionMatchStrategy::Exact => Experiment::get_satisfied,
                 DimensionMatchStrategy::Subset => Experiment::filter_by_eval,
             };
@@ -194,7 +194,7 @@ fn get_experiment_config_db(
             .load::<ExperimentGroup>(conn)?;
 
         if !dimension_params.is_empty() {
-            let filter_fn = match filters.dimension_match_strategy.unwrap_or_default() {
+            let filter_fn = match dimension_match_strategy {
                 DimensionMatchStrategy::Exact => ExperimentGroup::get_satisfied,
                 DimensionMatchStrategy::Subset => ExperimentGroup::filter_by_eval,
             };

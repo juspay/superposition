@@ -57,34 +57,10 @@ export interface ListExperimentGroupsCommandOutput extends ListExperimentGroupsO
  *   group_type: [ // GroupTypeList
  *     "USER_CREATED" || "SYSTEM_GENERATED",
  *   ],
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
-=======
->>>>>>> c1293812 (Test)
-=======
->>>>>>> de718464 (fix: more fixes)
-=======
->>>>>>> 45a3cd01 (reabse fix)
  *   dimension_match_strategy: "exact" || "subset",
  *   context: { // ContextMap
  *     "<keys>": "DOCUMENT_VALUE",
  *   },
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
  * };
  * const command = new ListExperimentGroupsCommand(input);
  * const response = await client.send(command);

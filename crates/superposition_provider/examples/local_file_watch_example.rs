@@ -23,7 +23,7 @@ async fn main() {
         None,
         RefreshStrategy::Watch(WatchStrategy::default()),
     );
-    provider.init().await.unwrap();
+    provider.init(EvaluationContext::default()).await.unwrap();
 
     let context = EvaluationContext::default()
         .with_custom_field("os", "linux")
@@ -31,7 +31,10 @@ async fn main() {
 
     // Poll in a loop to show updated values after file changes
     loop {
-        let config = provider.resolve_all_features(&context).await.unwrap();
+        let config = provider
+            .resolve_all_features(context.clone())
+            .await
+            .unwrap();
         println!("Config: {:?}", config);
         tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
     }

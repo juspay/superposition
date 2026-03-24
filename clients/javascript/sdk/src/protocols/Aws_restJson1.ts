@@ -1284,14 +1284,7 @@ export const se_GetExperimentConfigCommand = async(
   b.bp("/experiment-config");
   const query: any = map({
     [_p]: [() => input.prefix !== void 0, () => ((input[_p]! || []))],
-<<<<<<< HEAD
-<<<<<<< HEAD
     [_dms]: [,input[_dms]!],
-=======
->>>>>>> 0c17747c (feat: Add experiment_config endpoint)
-=======
-    [_dms]: [,input[_dms]!],
->>>>>>> 0dd5da56 (fix: some fixes)
   });
   let body: any;
   body = JSON.stringify(take(input, {
@@ -4117,38 +4110,7 @@ export const de_ListExperimentCommand = async(
   }
   const contents: any = map({
     $metadata: deserializeMetadata(output),
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
     [_lm_]: [() => void 0 !== output.headers[_lm], () => __expectNonNull(__parseRfc3339DateTimeWithOffset(output.headers[_lm]))],
-=======
-<<<<<<< HEAD
-=======
-    [_lm_]: [() => void 0 !== output.headers[_lm], () => __expectNonNull(__parseRfc3339DateTimeWithOffset(output.headers[_lm]))],
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
-    [_lm_]: [() => void 0 !== output.headers[_lm], () => __expectNonNull(__parseRfc3339DateTimeWithOffset(output.headers[_lm]))],
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
-=======
-=======
->>>>>>> de718464 (fix: more fixes)
-    [_lm_]: [() => void 0 !== output.headers[_lm], () => __expectNonNull(__parseRfc3339DateTimeWithOffset(output.headers[_lm]))],
-=======
-    [_lma]: [() => void 0 !== output.headers[_lm], () => __expectNonNull(__parseRfc3339DateTimeWithOffset(output.headers[_lm]))],
->>>>>>> 6e8749e1 (Test)
-<<<<<<< HEAD
->>>>>>> c1293812 (Test)
-=======
-=======
-    [_lm_]: [() => void 0 !== output.headers[_lm], () => __expectNonNull(__parseRfc3339DateTimeWithOffset(output.headers[_lm]))],
->>>>>>> 82479b8f (fix: more fixes)
->>>>>>> de718464 (fix: more fixes)
-=======
-    [_lm_]: [() => void 0 !== output.headers[_lm], () => __expectNonNull(__parseRfc3339DateTimeWithOffset(output.headers[_lm]))],
->>>>>>> 45a3cd01 (reabse fix)
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {

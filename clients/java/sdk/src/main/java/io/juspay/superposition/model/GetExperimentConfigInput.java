@@ -38,16 +38,8 @@ public final class GetExperimentConfigInput implements SerializableStruct {
         .putMember("prefix", SharedSchemas.STRING_LIST,
                 new HttpQueryTrait("prefix"))
         .putMember("context", SharedSchemas.CONTEXT_MAP)
-<<<<<<< HEAD
-<<<<<<< HEAD
         .putMember("dimension_match_strategy", DimensionMatchStrategy.$SCHEMA,
                 new HttpQueryTrait("dimension_match_strategy"))
-=======
->>>>>>> 0c17747c (feat: Add experiment_config endpoint)
-=======
-        .putMember("dimension_match_strategy", DimensionMatchStrategy.$SCHEMA,
-                new HttpQueryTrait("dimension_match_strategy"))
->>>>>>> 0dd5da56 (fix: some fixes)
         .build();
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
@@ -55,28 +47,14 @@ public final class GetExperimentConfigInput implements SerializableStruct {
     private static final Schema $SCHEMA_IF_MODIFIED_SINCE = $SCHEMA.member("if_modified_since");
     private static final Schema $SCHEMA_PREFIX = $SCHEMA.member("prefix");
     private static final Schema $SCHEMA_CONTEXT = $SCHEMA.member("context");
-<<<<<<< HEAD
-<<<<<<< HEAD
     private static final Schema $SCHEMA_DIMENSION_MATCH_STRATEGY = $SCHEMA.member("dimension_match_strategy");
-=======
->>>>>>> 0c17747c (feat: Add experiment_config endpoint)
-=======
-    private static final Schema $SCHEMA_DIMENSION_MATCH_STRATEGY = $SCHEMA.member("dimension_match_strategy");
->>>>>>> 0dd5da56 (fix: some fixes)
 
     private final transient String workspaceId;
     private final transient String orgId;
     private final transient Instant ifModifiedSince;
     private final transient List<String> prefix;
     private final transient Map<String, Document> context;
-<<<<<<< HEAD
-<<<<<<< HEAD
     private final transient DimensionMatchStrategy dimensionMatchStrategy;
-=======
->>>>>>> 0c17747c (feat: Add experiment_config endpoint)
-=======
-    private final transient DimensionMatchStrategy dimensionMatchStrategy;
->>>>>>> 0dd5da56 (fix: some fixes)
 
     private GetExperimentConfigInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
@@ -84,14 +62,7 @@ public final class GetExperimentConfigInput implements SerializableStruct {
         this.ifModifiedSince = builder.ifModifiedSince;
         this.prefix = builder.prefix == null ? null : Collections.unmodifiableList(builder.prefix);
         this.context = builder.context == null ? null : Collections.unmodifiableMap(builder.context);
-<<<<<<< HEAD
-<<<<<<< HEAD
         this.dimensionMatchStrategy = builder.dimensionMatchStrategy;
-=======
->>>>>>> 0c17747c (feat: Add experiment_config endpoint)
-=======
-        this.dimensionMatchStrategy = builder.dimensionMatchStrategy;
->>>>>>> 0dd5da56 (fix: some fixes)
     }
 
     public String workspaceId() {
@@ -133,19 +104,10 @@ public final class GetExperimentConfigInput implements SerializableStruct {
         return context != null;
     }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 0dd5da56 (fix: some fixes)
     public DimensionMatchStrategy dimensionMatchStrategy() {
         return dimensionMatchStrategy;
     }
 
-<<<<<<< HEAD
-=======
->>>>>>> 0c17747c (feat: Add experiment_config endpoint)
-=======
->>>>>>> 0dd5da56 (fix: some fixes)
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -164,30 +126,13 @@ public final class GetExperimentConfigInput implements SerializableStruct {
                && Objects.equals(this.orgId, that.orgId)
                && Objects.equals(this.ifModifiedSince, that.ifModifiedSince)
                && Objects.equals(this.prefix, that.prefix)
-<<<<<<< HEAD
-<<<<<<< HEAD
                && Objects.equals(this.context, that.context)
                && Objects.equals(this.dimensionMatchStrategy, that.dimensionMatchStrategy);
-=======
-               && Objects.equals(this.context, that.context);
->>>>>>> 0c17747c (feat: Add experiment_config endpoint)
-=======
-               && Objects.equals(this.context, that.context)
-               && Objects.equals(this.dimensionMatchStrategy, that.dimensionMatchStrategy);
->>>>>>> 0dd5da56 (fix: some fixes)
     }
 
     @Override
     public int hashCode() {
-<<<<<<< HEAD
-<<<<<<< HEAD
         return Objects.hash(workspaceId, orgId, ifModifiedSince, prefix, context, dimensionMatchStrategy);
-=======
-        return Objects.hash(workspaceId, orgId, ifModifiedSince, prefix, context);
->>>>>>> 0c17747c (feat: Add experiment_config endpoint)
-=======
-        return Objects.hash(workspaceId, orgId, ifModifiedSince, prefix, context, dimensionMatchStrategy);
->>>>>>> 0dd5da56 (fix: some fixes)
     }
 
     @Override
@@ -208,18 +153,9 @@ public final class GetExperimentConfigInput implements SerializableStruct {
         if (context != null) {
             serializer.writeMap($SCHEMA_CONTEXT, context, context.size(), SharedSerde.ContextMapSerializer.INSTANCE);
         }
-<<<<<<< HEAD
-<<<<<<< HEAD
         if (dimensionMatchStrategy != null) {
             serializer.writeString($SCHEMA_DIMENSION_MATCH_STRATEGY, dimensionMatchStrategy.value());
         }
-=======
->>>>>>> 0c17747c (feat: Add experiment_config endpoint)
-=======
-        if (dimensionMatchStrategy != null) {
-            serializer.writeString($SCHEMA_DIMENSION_MATCH_STRATEGY, dimensionMatchStrategy.value());
-        }
->>>>>>> 0dd5da56 (fix: some fixes)
     }
 
     @Override
@@ -231,14 +167,7 @@ public final class GetExperimentConfigInput implements SerializableStruct {
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_IF_MODIFIED_SINCE, member, ifModifiedSince);
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, prefix);
             case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
-<<<<<<< HEAD
-<<<<<<< HEAD
             case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, dimensionMatchStrategy);
-=======
->>>>>>> 0c17747c (feat: Add experiment_config endpoint)
-=======
-            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, dimensionMatchStrategy);
->>>>>>> 0dd5da56 (fix: some fixes)
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -257,14 +186,7 @@ public final class GetExperimentConfigInput implements SerializableStruct {
         builder.ifModifiedSince(this.ifModifiedSince);
         builder.prefix(this.prefix);
         builder.context(this.context);
-<<<<<<< HEAD
-<<<<<<< HEAD
         builder.dimensionMatchStrategy(this.dimensionMatchStrategy);
-=======
->>>>>>> 0c17747c (feat: Add experiment_config endpoint)
-=======
-        builder.dimensionMatchStrategy(this.dimensionMatchStrategy);
->>>>>>> 0dd5da56 (fix: some fixes)
         return builder;
     }
 
@@ -285,14 +207,7 @@ public final class GetExperimentConfigInput implements SerializableStruct {
         private Instant ifModifiedSince;
         private List<String> prefix;
         private Map<String, Document> context;
-<<<<<<< HEAD
-<<<<<<< HEAD
         private DimensionMatchStrategy dimensionMatchStrategy;
-=======
->>>>>>> 0c17747c (feat: Add experiment_config endpoint)
-=======
-        private DimensionMatchStrategy dimensionMatchStrategy;
->>>>>>> 0dd5da56 (fix: some fixes)
 
         private Builder() {}
 
@@ -349,10 +264,6 @@ public final class GetExperimentConfigInput implements SerializableStruct {
             return this;
         }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 0dd5da56 (fix: some fixes)
         /**
          * @return this builder.
          */
@@ -361,11 +272,6 @@ public final class GetExperimentConfigInput implements SerializableStruct {
             return this;
         }
 
-<<<<<<< HEAD
-=======
->>>>>>> 0c17747c (feat: Add experiment_config endpoint)
-=======
->>>>>>> 0dd5da56 (fix: some fixes)
         @Override
         public GetExperimentConfigInput build() {
             tracker.validate();
@@ -381,14 +287,7 @@ public final class GetExperimentConfigInput implements SerializableStruct {
                 case 2 -> ifModifiedSince((Instant) SchemaUtils.validateSameMember($SCHEMA_IF_MODIFIED_SINCE, member, value));
                 case 3 -> prefix((List<String>) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, value));
                 case 4 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
-<<<<<<< HEAD
-<<<<<<< HEAD
                 case 5 -> dimensionMatchStrategy((DimensionMatchStrategy) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, value));
-=======
->>>>>>> 0c17747c (feat: Add experiment_config endpoint)
-=======
-                case 5 -> dimensionMatchStrategy((DimensionMatchStrategy) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, value));
->>>>>>> 0dd5da56 (fix: some fixes)
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -430,14 +329,7 @@ public final class GetExperimentConfigInput implements SerializableStruct {
                     case 2 -> builder.ifModifiedSince(de.readTimestamp(member));
                     case 3 -> builder.prefix(SharedSerde.deserializeStringList(member, de));
                     case 4 -> builder.context(SharedSerde.deserializeContextMap(member, de));
-<<<<<<< HEAD
-<<<<<<< HEAD
                     case 5 -> builder.dimensionMatchStrategy(DimensionMatchStrategy.builder().deserializeMember(de, member).build());
-=======
->>>>>>> 0c17747c (feat: Add experiment_config endpoint)
-=======
-                    case 5 -> builder.dimensionMatchStrategy(DimensionMatchStrategy.builder().deserializeMember(de, member).build());
->>>>>>> 0dd5da56 (fix: some fixes)
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

@@ -1717,14 +1717,6 @@ GET_CONFIG_INPUT = Schema.collection(
             ],
         },
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
         "if_modified_since": {
             "target": DATE_TIME,
             "index": 4,
@@ -1735,13 +1727,6 @@ GET_CONFIG_INPUT = Schema.collection(
             ],
         },
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
         "context": {
             "target": CONTEXT_MAP,
             "index": 5,
@@ -9659,10 +9644,6 @@ GET_EXPERIMENT_CONFIG_INPUT = Schema.collection(
             ],
         },
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 0dd5da56 (fix: some fixes)
         "dimension_match_strategy": {
             "target": DIMENSION_MATCH_STRATEGY,
             "index": 5,
@@ -9673,11 +9654,6 @@ GET_EXPERIMENT_CONFIG_INPUT = Schema.collection(
             ],
         },
 
-<<<<<<< HEAD
-=======
->>>>>>> 0c17747c (feat: Add experiment_config endpoint)
-=======
->>>>>>> 0dd5da56 (fix: some fixes)
     }
 )
 
@@ -10037,14 +10013,6 @@ LIST_EXPERIMENT_GROUPS_INPUT = Schema.collection(
             ],
         },
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
         "if_modified_since": {
             "target": DATE_TIME,
             "index": 5,
@@ -10055,13 +10023,6 @@ LIST_EXPERIMENT_GROUPS_INPUT = Schema.collection(
             ],
         },
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
         "name": {
             "target": STRING,
             "index": 6,
@@ -10118,25 +10079,6 @@ LIST_EXPERIMENT_GROUPS_INPUT = Schema.collection(
             ],
         },
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-        "dimension_match_strategy": {
-            "target": DIMENSION_MATCH_STRATEGY,
-            "index": 12,
-=======
-<<<<<<< HEAD
-=======
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
-=======
->>>>>>> c1293812 (Test)
-=======
->>>>>>> de718464 (fix: more fixes)
-=======
->>>>>>> 45a3cd01 (reabse fix)
         "dimension_match_strategy": {
             "target": DIMENSION_MATCH_STRATEGY,
             "index": 12,
@@ -10159,36 +10101,6 @@ LIST_EXPERIMENT_GROUPS_INPUT = Schema.collection(
     }
 )
 
-<<<<<<< HEAD
-EXPERIMENT_GROUP_RESPONSE = Schema.collection(
-    id=ShapeID("io.superposition#ExperimentGroupResponse"),
-
-    members={
-        "id": {
-            "target": STRING,
-            "index": 0,
->>>>>>> 91d47048 (fix: more fixes)
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#notProperty")),
-                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="dimension_match_strategy"),
-
-            ],
-        },
-
-        "context": {
-            "target": CONTEXT_MAP,
-            "index": 13,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#notProperty")),
-
-            ],
-        },
-
-    }
-)
-
-=======
->>>>>>> 0c17747c (feat: Add experiment_config endpoint)
 LIST_EXPERIMENT_GROUPS_OUTPUT = Schema.collection(
     id=ShapeID("io.superposition#ListExperimentGroupsOutput"),
 
@@ -11016,14 +10928,6 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
             ],
         },
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
         "if_modified_since": {
             "target": DATE_TIME,
             "index": 5,
@@ -11034,13 +10938,6 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
             ],
         },
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
         "status": {
             "target": EXPERIMENT_STATUS_TYPE_LIST,
             "index": 6,
@@ -11207,23 +11104,6 @@ LIST_EXPERIMENT_OUTPUT = Schema.collection(
             ],
         },
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
-=======
->>>>>>> c1293812 (Test)
-=======
->>>>>>> de718464 (fix: more fixes)
-=======
->>>>>>> 45a3cd01 (reabse fix)
         "last_modified": {
             "target": DATE_TIME,
             "index": 3,
@@ -11234,13 +11114,6 @@ LIST_EXPERIMENT_OUTPUT = Schema.collection(
             ],
         },
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 8fc501b7 (fix: more fixes)
->>>>>>> 91d47048 (fix: more fixes)
-=======
->>>>>>> 588a53c4 (feat: Add prefix filter in list exp)
     }
 )
 

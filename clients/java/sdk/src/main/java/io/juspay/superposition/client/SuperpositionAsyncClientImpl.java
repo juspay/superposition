@@ -272,47 +272,8 @@ import software.amazon.smithy.utils.SmithyGenerated;
 @SmithyGenerated
 final class SuperpositionAsyncClientImpl extends Client implements SuperpositionAsyncClient {
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
         .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
         .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
-=======
->>>>>>> 0c17747c (feat: Add experiment_config endpoint)
-        .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
-=======
->>>>>>> 0dd5da56 (fix: some fixes)
-=======
-=======
->>>>>>> de718464 (fix: more fixes)
-=======
->>>>>>> 964966cd (feat: Add prefix filter in list exp)
-=======
-<<<<<<< HEAD
-=======
-        .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
-        .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
->>>>>>> 6e8749e1 (Test)
-=======
-        .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
-        .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
->>>>>>> 82479b8f (fix: more fixes)
-=======
-        .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
-        .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
->>>>>>> 7f7fa5af (feat: Add prefix filter in list exp)
-        .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
->>>>>>> 5f8110af (Test)
->>>>>>> c1293812 (Test)
-        .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
-        .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
-=======
-        .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
-        .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
->>>>>>> 45a3cd01 (reabse fix)
         .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
         .putType(InternalFailureException.$ID, InternalFailureException.class, InternalFailureException::builder)
         .putType(UnknownOperationException.$ID, UnknownOperationException.class, UnknownOperationException::builder)
