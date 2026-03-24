@@ -12,7 +12,7 @@ use tokio::sync::broadcast;
 use crate::data_source::FetchResponse;
 use crate::types::{Result, SuperpositionError, WatchStream};
 
-use super::{ConfigData, ExperimentResponse, SuperpositionDataSource};
+use super::{ConfigData, ExperimentData, SuperpositionDataSource};
 
 pub struct FileDataSource {
     file_path: PathBuf,
@@ -75,7 +75,7 @@ impl SuperpositionDataSource for FileDataSource {
     async fn fetch_active_experiments(
         &self,
         _last_fetched_at: Option<DateTime<Utc>>,
-    ) -> Result<ExperimentResponse> {
+    ) -> Result<FetchResponse<ExperimentData>> {
         Err(SuperpositionError::ConfigError(
             "Experiments not supported by FileDataSource".into(),
         ))
@@ -86,7 +86,7 @@ impl SuperpositionDataSource for FileDataSource {
         _context: Option<Map<String, Value>>,
         _prefix_filter: Option<Vec<String>>,
         _last_fetched_at: Option<DateTime<Utc>>,
-    ) -> Result<ExperimentResponse> {
+    ) -> Result<FetchResponse<ExperimentData>> {
         Err(SuperpositionError::ConfigError(
             "Experiments not supported by FileDataSource".into(),
         ))
@@ -97,7 +97,7 @@ impl SuperpositionDataSource for FileDataSource {
         _context: Option<Map<String, Value>>,
         _prefix_filter: Option<Vec<String>>,
         _last_fetched_at: Option<DateTime<Utc>>,
-    ) -> Result<ExperimentResponse> {
+    ) -> Result<FetchResponse<ExperimentData>> {
         Err(SuperpositionError::ConfigError(
             "Experiments not supported by FileDataSource".into(),
         ))

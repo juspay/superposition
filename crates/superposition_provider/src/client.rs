@@ -518,7 +518,7 @@ impl ExperimentationConfig {
                 ))
             })?;
 
-        let experiments = ConversionUtils::convert_experiments_response(response)?;
+        let experiments = ConversionUtils::convert_experiments_response(response.data)?;
 
         info!(
             "Successfully fetched and converted {} experiments",
@@ -559,7 +559,7 @@ impl ExperimentationConfig {
             })?;
 
         let experiment_groups =
-            ConversionUtils::convert_experiment_groups_response(response)?;
+            ConversionUtils::convert_experiment_groups_response(response.data)?;
 
         info!(
             "Successfully fetched and converted {} experiment groups",

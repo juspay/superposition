@@ -3,15 +3,14 @@ use chrono::{DateTime, Utc};
 use log::info;
 use serde_json::{Map, Value};
 use superposition_sdk::error::SdkError;
-use superposition_sdk::types::{DimensionMatchStrategy, ExperimentStatusType};
+use superposition_sdk::types::DimensionMatchStrategy;
 use superposition_sdk::{Client, Config as SdkConfig};
 
 use crate::conversions;
-use crate::data_source::{ExperimentResponse, FetchResponse};
 use crate::types::{Result, SuperpositionError, SuperpositionOptions};
 use crate::utils::ConversionUtils;
 
-use super::{ConfigData, SuperpositionDataSource};
+use super::{ConfigData, ExperimentData, FetchResponse, SuperpositionDataSource};
 
 pub struct HttpDataSource {
     options: SuperpositionOptions,
@@ -38,39 +37,25 @@ impl HttpDataSource {
         prefix_filter: Option<Vec<String>>,
         last_fetched_at: Option<DateTime<Utc>>,
         filter: Option<bool>,
-    ) -> Result<ExperimentResponse> {
+    ) -> Result<FetchResponse<ExperimentData>> {
         let client = self.create_client();
 
         let mut experiment_builder = client
-            .list_experiment()
+            .get_experiment_config()
             .workspace_id(&self.options.workspace_id)
-            .org_id(&self.options.org_id)
-            .all(true)
-            .status(ExperimentStatusType::Created)
-            .status(ExperimentStatusType::Inprogress);
-
-        let mut experiment_group_builder = client
-            .list_experiment_groups()
-            .workspace_id(&self.options.workspace_id)
-            .org_id(&self.options.org_id)
-            .all(true);
+            .org_id(&self.options.org_id);
 
         if let Some(fetched_at) = last_fetched_at
             .and_then(|t| t.timestamp_nanos_opt())
             .and_then(|t| aws_smithy_types::DateTime::from_nanos(t.into()).ok())
         {
             experiment_builder = experiment_builder.if_modified_since(fetched_at);
-            experiment_group_builder =
-                experiment_group_builder.if_modified_since(fetched_at);
         }
 
         if let Some(context) = context {
             if !context.is_empty() {
                 let context = conversions::map_to_hashmap(context);
-                experiment_builder =
-                    experiment_builder.set_context(Some(context.clone()));
-                experiment_group_builder =
-                    experiment_group_builder.set_context(Some(context));
+                experiment_builder = experiment_builder.set_context(Some(context));
             }
         }
 
@@ -84,24 +69,18 @@ impl HttpDataSource {
             if filter {
                 experiment_builder = experiment_builder
                     .dimension_match_strategy(DimensionMatchStrategy::Subset);
-                experiment_group_builder = experiment_group_builder
-                    .dimension_match_strategy(DimensionMatchStrategy::Subset);
             } else {
                 experiment_builder = experiment_builder
-                    .dimension_match_strategy(DimensionMatchStrategy::Exact);
-                experiment_group_builder = experiment_group_builder
                     .dimension_match_strategy(DimensionMatchStrategy::Exact);
             }
         }
 
-        let start_time = Utc::now();
-        let (experiments_result, groups_result) =
-            tokio::join!(async { experiment_builder.send().await }, async {
-                experiment_group_builder.send().await
-            });
+        info!("Fetching experiments from Superposition service using SDK");
+        let experiments_result = experiment_builder.send().await;
 
         let experiments_response = match experiments_result {
-            Ok(res) => ConversionUtils::convert_experiments_response(res)
+            Ok(res) => ConversionUtils::convert_experiment_config_response(res)
+                .map(ExperimentData::new)
                 .map(FetchResponse::Data),
             Err(SdkError::ResponseError(r)) if r.raw().status().as_u16() == 304 => {
                 Ok(FetchResponse::NotModified)
@@ -111,27 +90,10 @@ impl HttpDataSource {
                 e
             ))),
         }?;
-        let groups_response = match groups_result {
-            Ok(res) => ConversionUtils::convert_experiment_groups_response(res)
-                .map(FetchResponse::Data),
-            Err(SdkError::ResponseError(r)) if r.raw().status().as_u16() == 304 => {
-                Ok(FetchResponse::NotModified)
-            }
-            Err(e) => Err(SuperpositionError::NetworkError(format!(
-                "Failed to list experiment groups: {}",
-                e
-            ))),
-        }?;
 
-        let resp = ExperimentResponse {
-            experiments: experiments_response,
-            experiment_groups: groups_response,
-            fetched_at: start_time,
-        };
+        info!("Successfully fetched {}", experiments_response);
 
-        info!("Successfully fetched {}", resp);
-
-        Ok(resp)
+        Ok(experiments_response)
     }
 
     async fn fetch_config_with_filters(
@@ -210,7 +172,7 @@ impl SuperpositionDataSource for HttpDataSource {
     async fn fetch_active_experiments(
         &self,
         last_fetched_at: Option<DateTime<Utc>>,
-    ) -> Result<ExperimentResponse> {
+    ) -> Result<FetchResponse<ExperimentData>> {
         self.fetch_experiments_with_filters(None, None, last_fetched_at, None)
             .await
     }
@@ -220,7 +182,7 @@ impl SuperpositionDataSource for HttpDataSource {
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
         last_fetched_at: Option<DateTime<Utc>>,
-    ) -> Result<ExperimentResponse> {
+    ) -> Result<FetchResponse<ExperimentData>> {
         self.fetch_experiments_with_filters(
             context,
             prefix_filter,
@@ -235,7 +197,7 @@ impl SuperpositionDataSource for HttpDataSource {
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
         last_fetched_at: Option<DateTime<Utc>>,
-    ) -> Result<ExperimentResponse> {
+    ) -> Result<FetchResponse<ExperimentData>> {
         self.fetch_experiments_with_filters(
             context,
             prefix_filter,

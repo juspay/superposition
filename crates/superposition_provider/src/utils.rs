@@ -1,10 +1,11 @@
 use std::collections::HashMap;
 
 use log::debug;
-use serde_json::{json, Map, Value};
-use superposition_core::experiment::{ExperimentGroups, FfiExperimentGroup};
+use serde_json::{Map, Value};
+use superposition_core::experiment::{
+    ExperimentConfig, ExperimentGroups, FfiExperimentGroup,
+};
 use superposition_core::{Experiments, FfiExperiment};
-use superposition_sdk::operation::list_experiment_groups::ListExperimentGroupsOutput;
 use superposition_sdk::types::{
     ExperimentStatusType as SDKExperimentStatusType, GroupType as SdkGroupType,
 };
@@ -303,13 +304,13 @@ impl ConversionUtils {
 
     /// Convert list_experiment SDK response to structured experiment data
     pub fn convert_experiments_response(
-        response: superposition_sdk::operation::list_experiment::ListExperimentOutput,
+        response: Vec<superposition_sdk::types::ExperimentResponse>,
     ) -> Result<Experiments> {
         debug!("Converting experiments response");
 
         let mut trimmed_exp_list: Experiments = Vec::new();
 
-        for exp in response.data {
+        for exp in response {
             // Convert experiment context (condition)
             let condition_map = conversions::hashmap_to_map(exp.context);
 
@@ -380,13 +381,13 @@ impl ConversionUtils {
     }
 
     pub fn convert_experiment_groups_response(
-        response: ListExperimentGroupsOutput,
+        response: Vec<superposition_sdk::types::ExperimentGroupResponse>,
     ) -> Result<ExperimentGroups> {
         debug!("Converting experiment groups response");
 
         let mut trimmed_group_list: ExperimentGroups = Vec::new();
 
-        for exp_group in response.data {
+        for exp_group in response {
             // Convert experiment context (condition)
             let condition_map = conversions::hashmap_to_map(exp_group.context);
 
@@ -435,78 +436,19 @@ impl ConversionUtils {
         Ok(trimmed_group_list)
     }
 
-    pub fn convert_evaluation_context_value_to_serde_value(
-        value: &open_feature::EvaluationContextFieldValue,
-    ) -> Value {
-        match value {
-            open_feature::EvaluationContextFieldValue::Bool(b) => Value::Bool(*b),
-            open_feature::EvaluationContextFieldValue::Int(i) => {
-                Value::Number(serde_json::Number::from(*i))
-            }
-            open_feature::EvaluationContextFieldValue::Float(f) => json!(f),
-            open_feature::EvaluationContextFieldValue::String(s) => {
-                Value::String(s.clone())
-            }
-            open_feature::EvaluationContextFieldValue::DateTime(dt) => {
-                Value::String(dt.to_string())
-            }
-            open_feature::EvaluationContextFieldValue::Struct(s) => {
-                // Convert struct to serde_json::Value
-                let struct_map: Map<String, Value> = s
-                    .as_ref()
-                    .downcast_ref::<Map<String, Value>>()
-                    .cloned()
-                    .unwrap_or_default();
-                Value::Object(struct_map)
-            }
-        }
-    }
-    /// Convert evaluation context to dimension data format expected by superposition_types
-    pub fn context_to_dimension_data(
-        context: &open_feature::EvaluationContext,
-    ) -> Map<String, Value> {
-        let mut dimension_data = Map::new();
+    pub fn convert_experiment_config_response(
+        response: superposition_sdk::operation::get_experiment_config::GetExperimentConfigOutput,
+    ) -> Result<ExperimentConfig> {
+        debug!("Converting experiment config response");
 
-        // Add targeting key if present
-        if let Some(targeting_key) = &context.targeting_key {
-            dimension_data.insert(
-                "targeting_key".to_string(),
-                Value::String(targeting_key.to_string()),
-            );
-        }
+        let experiments = Self::convert_experiments_response(response.experiments)?;
+        let experiment_groups =
+            Self::convert_experiment_groups_response(response.experiment_groups)?;
 
-        // Add all other fields from the context
-        for (key, value) in &context.custom_fields {
-            let serde_value =
-                Self::convert_evaluation_context_value_to_serde_value(value);
-            dimension_data.insert(key.clone(), serde_value);
-        }
-
-        debug!(
-            "Converted evaluation context to dimension data with {} keys",
-            dimension_data.len()
-        );
-        dimension_data
-    }
-
-    /// Convert an EvaluationContext into a (Map<String, Value>, Option<String>) tuple
-    /// containing the custom fields as serde values and the targeting key.
-    /// This is used by both local and remote providers.
-    pub fn evaluation_context_to_query(
-        ctx: &open_feature::EvaluationContext,
-    ) -> (Map<String, Value>, Option<String>) {
-        let context = ctx
-            .custom_fields
-            .iter()
-            .map(|(k, v)| {
-                (
-                    k.clone(),
-                    Self::convert_evaluation_context_value_to_serde_value(v),
-                )
-            })
-            .collect();
-
-        (context, ctx.targeting_key.clone())
+        Ok(ExperimentConfig {
+            experiments,
+            experiment_groups,
+        })
     }
 
     /// Convert Config back to the legacy format for compatibility with existing provider logic
