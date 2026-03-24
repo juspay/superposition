@@ -16,7 +16,10 @@ use service_utils::{
         fetch_dimensions_info_map, generate_snowflake_id, get_from_env_or_default,
         is_not_modified,
     },
-    redis::{EXPERIMENT_GROUPS_LIST_KEY_SUFFIX, read_through_cache},
+    redis::{
+        EXPERIMENT_GROUPS_LAST_MODIFIED_KEY_SUFFIX, EXPERIMENT_GROUPS_LIST_KEY_SUFFIX,
+        read_through_cache,
+    },
     service::types::{AppHeader, AppState, DbConnection, WorkspaceContext},
 };
 use superposition_derives::{authorized, declare_resource};
@@ -336,7 +339,7 @@ async fn list_handler(
 ) -> superposition::Result<HttpResponse> {
     let max_event_timestamp = read_through_cache::<Option<DateTime<Utc>>>(
         format!(
-            "{}{EXPERIMENT_GROUPS_LIST_KEY_SUFFIX}",
+            "{}{EXPERIMENT_GROUPS_LAST_MODIFIED_KEY_SUFFIX}",
             *workspace_context.schema_name
         ),
         &workspace_context.schema_name,

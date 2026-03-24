@@ -90,7 +90,7 @@ VALUES
     -- workspace
     ('g3', 'workspace:get', 'read', '', '', '', ''),
     ('g3', 'workspace:list', 'read', '', '', '', ''),
-    ('p', 'workspace_reader', '*', 'workspace', 'read', '*', '')
+    ('p', 'workspace_reader', '*', 'workspace', 'read', '*', ''),
 
     -- experiment_config
     ('g3', 'experiment_config:get', 'read', '', '', '', ''),
