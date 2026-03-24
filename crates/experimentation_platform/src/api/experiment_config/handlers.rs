@@ -165,13 +165,11 @@ fn get_experiment_config_db(
             .schema_name(&workspace_context.schema_name)
             .load::<Experiment>(conn)?;
 
-        if let Some(prefix_list) = filters.prefix {
-            if !prefix_list.is_empty() {
-                experiment_list = Experiment::filter_keys_by_prefix(
-                    experiment_list,
-                    &HashSet::from_iter(prefix_list.0),
-                );
-            }
+        if let Some(prefix_list) = filters.prefix.filter(|p| !p.is_empty()) {
+            experiment_list = Experiment::filter_keys_by_prefix(
+                experiment_list,
+                &HashSet::from_iter(prefix_list.0),
+            );
         }
 
         if !dimension_params.is_empty() {

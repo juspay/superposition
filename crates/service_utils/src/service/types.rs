@@ -44,19 +44,24 @@ impl AppHeader {
         is_smithy: bool,
         resp_builder: &mut HttpResponseBuilder,
     ) {
-        if let Some(date) = max_created_at {
-            let value = if is_smithy {
-                // Smithy needs to be in this format otherwise they can't
-                // deserialize it.
-                HeaderValue::from_str(date.to_rfc3339().as_str())
-            } else {
-                HeaderValue::from_str(date.to_rfc2822().as_str())
-            };
-            if let Ok(header_value) = value {
+        let Some(date) = max_created_at else {
+            return;
+        };
+        let value = if is_smithy {
+            // Smithy needs to be in this format otherwise they can't
+            // deserialize it.
+            HeaderValue::from_str(date.to_rfc3339().as_str())
+        } else {
+            HeaderValue::from_str(date.to_rfc2822().as_str())
+        };
+
+        match value {
+            Ok(header_value) => {
                 resp_builder
                     .insert_header((Self::LastModified.to_string(), header_value));
-            } else {
-                log::error!("failed parsing datetime_utc {:?}", value);
+            }
+            Err(e) => {
+                log::error!("failed parsing datetime_utc {:?}, error: {:?}", date, e);
             }
         }
     }

@@ -203,11 +203,9 @@ pub fn get_satisfied_experiments(
     context: &Map<String, Value>,
     filter_prefixes: Option<Vec<String>>,
 ) -> Result<Experiments, String> {
-    if let Some(prefix_list) = filter_prefixes {
-        if !prefix_list.is_empty() {
-            let prefix_list: HashSet<String> = HashSet::from_iter(prefix_list);
-            experiments = FfiExperiment::filter_keys_by_prefix(experiments, &prefix_list);
-        }
+    if let Some(prefix_list) = filter_prefixes.filter(|p| !p.is_empty()) {
+        let prefix_list: HashSet<String> = HashSet::from_iter(prefix_list);
+        experiments = FfiExperiment::filter_keys_by_prefix(experiments, &prefix_list);
     }
 
     if !context.is_empty() {
@@ -222,11 +220,9 @@ pub fn filter_experiments_by_context(
     context: &Map<String, Value>,
     filter_prefixes: Option<Vec<String>>,
 ) -> Result<Experiments, String> {
-    if let Some(prefix_list) = filter_prefixes {
-        if !prefix_list.is_empty() {
-            let prefix_list: HashSet<String> = HashSet::from_iter(prefix_list);
-            experiments = FfiExperiment::filter_keys_by_prefix(experiments, &prefix_list);
-        }
+    if let Some(prefix_list) = filter_prefixes.filter(|p| !p.is_empty()) {
+        let prefix_list: HashSet<String> = HashSet::from_iter(prefix_list);
+        experiments = FfiExperiment::filter_keys_by_prefix(experiments, &prefix_list);
     }
 
     if !context.is_empty() {
