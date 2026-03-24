@@ -185,8 +185,6 @@ mod discard_experiment;
 
 mod get_config;
 
-mod get_config_fast;
-
 mod get_config_json;
 
 mod get_config_toml;
@@ -200,6 +198,8 @@ mod get_default_config;
 mod get_dimension;
 
 mod get_experiment;
+
+mod get_experiment_config;
 
 mod get_experiment_group;
 

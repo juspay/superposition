@@ -1,5 +1,7 @@
 import {
     GetConfigCommand,
+    GetConfigJsonCommand,
+    GetConfigTomlCommand,
     ListVersionsCommand,
     UpdateWorkspaceCommand,
     CreateDefaultConfigCommand,
@@ -61,6 +63,7 @@ afterAll(async () => {
 });
 
 describe("Config API - GetConfig and GetConfigFast", () => {
+    let lastModified: Date | undefined = undefined;
     test("GetConfig: should fetch configuration with context and version", async () => {
         const cmd = new GetConfigCommand({
             workspace_id: ENV.workspace_id,
@@ -109,6 +112,7 @@ describe("Config API - GetConfig and GetConfigFast", () => {
                 configVersionId?.toString() ?? "",
             );
             console.log(out);
+            lastModified = out.last_modified;
         } catch (e: any) {
             console.error(e["$response"]);
             throw e;
@@ -145,6 +149,35 @@ describe("Config API - GetConfig and GetConfigFast", () => {
     //         throw e;
     //     }
     // });
+
+    test("GetConfig: should return 304 Not Modified if config version is unchanged", async () => {
+        if (!lastModified) {
+            console.warn("Last modified timestamp not set. Skipping test.");
+            return;
+        }
+
+        console.log(
+            `Testing Not Modified with last modified timestamp: ${lastModified.toISOString()}`,
+        );
+        const input = {
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            prefix: [testConfigKey],
+            if_modified_since: lastModified,
+        };
+        const cmd = new GetConfigCommand(input);
+        try {
+            await superpositionClient.send(cmd);
+            throw new Error(
+                "Expected Not Modified error, but request succeeded",
+            );
+        } catch (e: any) {
+            expect(e).toBeDefined();
+            expect(e["$response"]).toBeDefined();
+            expect(e["$response"].statusCode).toBe(304);
+            console.log("Received expected Not Modified response");
+        }
+    });
 });
 
 describe("Config API - ListVersions", () => {
@@ -162,6 +195,101 @@ describe("Config API - ListVersions", () => {
         } catch (e: any) {
             console.error(e["$response"]);
             throw e;
+        }
+    });
+});
+
+describe("Config API - get config file formats", () => {
+    let tomlLastModified: Date | undefined = undefined;
+    let jsonLastModified: Date | undefined = undefined;
+    test("should fetch config in TOML format", async () => {
+        try {
+            const input = {
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+            };
+            const cmd = new GetConfigTomlCommand(input);
+            const out = await superpositionClient.send(cmd);
+            // verify TOML content
+            expect(out.toml_config).toBeDefined();
+            expect(out.toml_config).toContain("enabled = true");
+            expect(out.toml_config).toContain('message = "test config"');
+
+            tomlLastModified = out.last_modified;
+        } catch (e: any) {
+            console.error(e["$response"]);
+            throw e;
+        }
+    });
+
+    test("should fetch config in JSON format", async () => {
+        try {
+            const input = {
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+            };
+            const cmd = new GetConfigJsonCommand(input);
+            const out = await superpositionClient.send(cmd);
+            // verify JSON content
+            expect(out.json_config).toBeDefined();
+            jsonLastModified = out.last_modified;
+        } catch (e: any) {
+            console.error(e["$response"]);
+            throw e;
+        }
+    });
+
+    test("should return 304 Not Modified for TOML if config is unchanged", async () => {
+        if (!tomlLastModified) {
+            console.warn(
+                "TOML last modified timestamp not set. Skipping test.",
+            );
+            return;
+        }
+
+        const input = {
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            if_modified_since: tomlLastModified,
+        };
+        const cmd = new GetConfigTomlCommand(input);
+        try {
+            await superpositionClient.send(cmd);
+            throw new Error(
+                "Expected Not Modified error, but request succeeded",
+            );
+        } catch (e: any) {
+            expect(e).toBeDefined();
+            expect(e["$response"]).toBeDefined();
+            expect(e["$response"].statusCode).toBe(304);
+            console.log("Received expected Not Modified response for TOML");
+        }
+    });
+
+    test("should return 304 Not Modified for JSON if config is unchanged", async () => {
+        if (!jsonLastModified) {
+            console.warn(
+                "JSON last modified timestamp not set. Skipping test.",
+            );
+            return;
+        }
+
+        const input = {
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            if_modified_since: jsonLastModified,
+        };
+        const cmd = new GetConfigJsonCommand(input);
+        try {
+            await superpositionClient.send(cmd);
+            throw new Error(
+                "Expected Not Modified error, but request succeeded",
+            );
+        } catch (e: any) {
+            expect(e).toBeDefined();
+            expect(e["$response"]).toBeDefined();
+            expect(e["$response"].statusCode).toBe(304);
+            console.log("Received expected Not Modified response for JSON");
         }
     });
 });

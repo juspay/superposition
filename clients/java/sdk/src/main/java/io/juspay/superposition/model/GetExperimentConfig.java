@@ -13,16 +13,17 @@ import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
 /**
- * Retrieves the latest config with no processing for high-performance access.
+ * Retrieves the experiment configuration for a given workspace and organization. The response includes
+ * details of all experiment groups and experiments that match the specified filters.
  */
 @SmithyGenerated
-public final class GetConfigFast implements ApiOperation<GetConfigFastInput, GetConfigFastOutput> {
-    public static final ShapeId $ID = ShapeId.from("io.superposition#GetConfigFast");
+public final class GetExperimentConfig implements ApiOperation<GetExperimentConfigInput, GetExperimentConfigOutput> {
+    public static final ShapeId $ID = ShapeId.from("io.superposition#GetExperimentConfig");
 
-    private static final GetConfigFast $INSTANCE = new GetConfigFast();
+    private static final GetExperimentConfig $INSTANCE = new GetExperimentConfig();
 
     static final Schema $SCHEMA = Schema.createOperation($ID,
-            HttpTrait.builder().method("GET").code(200).uri(UriPattern.parse("/config/fast")).build());
+            HttpTrait.builder().method("POST").code(200).uri(UriPattern.parse("/experiment-config")).build());
 
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
         .putType(InternalServerError.$ID, InternalServerError.class, InternalServerError::builder)
@@ -35,20 +36,20 @@ public final class GetConfigFast implements ApiOperation<GetConfigFastInput, Get
      *
      * @return An instance of this class.
      */
-    public static GetConfigFast instance() {
+    public static GetExperimentConfig instance() {
         return $INSTANCE;
     }
 
-    private GetConfigFast() {}
+    private GetExperimentConfig() {}
 
     @Override
-    public ShapeBuilder<GetConfigFastInput> inputBuilder() {
-        return GetConfigFastInput.builder();
+    public ShapeBuilder<GetExperimentConfigInput> inputBuilder() {
+        return GetExperimentConfigInput.builder();
     }
 
     @Override
-    public ShapeBuilder<GetConfigFastOutput> outputBuilder() {
-        return GetConfigFastOutput.builder();
+    public ShapeBuilder<GetExperimentConfigOutput> outputBuilder() {
+        return GetExperimentConfigOutput.builder();
     }
 
     @Override
@@ -58,12 +59,12 @@ public final class GetConfigFast implements ApiOperation<GetConfigFastInput, Get
 
     @Override
     public Schema inputSchema() {
-        return GetConfigFastInput.$SCHEMA;
+        return GetExperimentConfigInput.$SCHEMA;
     }
 
     @Override
     public Schema outputSchema() {
-        return GetConfigFastOutput.$SCHEMA;
+        return GetExperimentConfigOutput.$SCHEMA;
     }
 
     @Override
@@ -93,7 +94,7 @@ public final class GetConfigFast implements ApiOperation<GetConfigFastInput, Get
 
     @Override
     public ApiResource boundResource() {
-        return Config.instance();
+        return ExperimentConfig.instance();
     }
 }
 

@@ -18,6 +18,7 @@ use crate::{
         },
         ChangeReason, Description, MetricSource, Metrics,
     },
+    experimental::{Experimental, ExperimentalVariants},
     Condition, Exp, IsEmpty, Overrides, SortBy,
 };
 
@@ -103,6 +104,18 @@ impl From<Experiment> for ExperimentResponse {
             metrics_url,
             experiment_group_id: experiment.experiment_group_id.map(|id| id.to_string()),
         }
+    }
+}
+
+impl Experimental for ExperimentResponse {
+    fn get_condition(&self) -> &Condition {
+        &self.context
+    }
+}
+
+impl ExperimentalVariants for ExperimentResponse {
+    fn get_variants_mut(&mut self) -> &mut Vec<Variant> {
+        &mut self.variants
     }
 }
 
@@ -192,6 +205,11 @@ impl Default for ExperimentSortOn {
     }
 }
 
+#[derive(Deserialize)]
+pub struct ExperimentListRequest {
+    pub context: Option<Map<String, Value>>,
+}
+
 #[derive(Deserialize, Clone, PartialEq, IsEmpty, QueryParam)]
 pub struct ExperimentListFilters {
     #[query_param(skip_if_empty, iterable)]
@@ -209,6 +227,8 @@ pub struct ExperimentListFilters {
     pub sort_on: Option<ExperimentSortOn>,
     pub sort_by: Option<SortBy>,
     pub global_experiments_only: Option<bool>,
+    #[query_param(skip_if_empty, iterable)]
+    pub prefix: Option<CommaSeparatedStringQParams>,
     pub dimension_match_strategy: Option<DimensionMatchStrategy>,
 }
 
@@ -234,6 +254,7 @@ impl Default for ExperimentListFilters {
             sort_on: None,
             sort_by: Some(SortBy::Desc),
             global_experiments_only: None,
+            prefix: None,
             dimension_match_strategy: None,
         }
     }

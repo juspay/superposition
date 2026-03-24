@@ -114,10 +114,6 @@ import {
   GetConfigCommandOutput,
 } from "./commands/GetConfigCommand";
 import {
-  GetConfigFastCommandInput,
-  GetConfigFastCommandOutput,
-} from "./commands/GetConfigFastCommand";
-import {
   GetConfigJsonCommandInput,
   GetConfigJsonCommandOutput,
 } from "./commands/GetConfigJsonCommand";
@@ -145,6 +141,10 @@ import {
   GetExperimentCommandInput,
   GetExperimentCommandOutput,
 } from "./commands/GetExperimentCommand";
+import {
+  GetExperimentConfigCommandInput,
+  GetExperimentConfigCommandOutput,
+} from "./commands/GetExperimentConfigCommand";
 import {
   GetExperimentGroupCommandInput,
   GetExperimentGroupCommandOutput,
@@ -438,7 +438,6 @@ export type ServiceInputTypes =
   | DeleteWebhookCommandInput
   | DiscardExperimentCommandInput
   | GetConfigCommandInput
-  | GetConfigFastCommandInput
   | GetConfigJsonCommandInput
   | GetConfigTomlCommandInput
   | GetContextCommandInput
@@ -446,6 +445,7 @@ export type ServiceInputTypes =
   | GetDefaultConfigCommandInput
   | GetDimensionCommandInput
   | GetExperimentCommandInput
+  | GetExperimentConfigCommandInput
   | GetExperimentGroupCommandInput
   | GetFunctionCommandInput
   | GetOrganisationCommandInput
@@ -528,7 +528,6 @@ export type ServiceOutputTypes =
   | DeleteWebhookCommandOutput
   | DiscardExperimentCommandOutput
   | GetConfigCommandOutput
-  | GetConfigFastCommandOutput
   | GetConfigJsonCommandOutput
   | GetConfigTomlCommandOutput
   | GetContextCommandOutput
@@ -536,6 +535,7 @@ export type ServiceOutputTypes =
   | GetDefaultConfigCommandOutput
   | GetDimensionCommandOutput
   | GetExperimentCommandOutput
+  | GetExperimentConfigCommandOutput
   | GetExperimentGroupCommandOutput
   | GetFunctionCommandOutput
   | GetOrganisationCommandOutput

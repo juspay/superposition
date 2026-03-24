@@ -53,8 +53,6 @@ import io.juspay.superposition.model.DeleteWebhookInput;
 import io.juspay.superposition.model.DeleteWebhookOutput;
 import io.juspay.superposition.model.DiscardExperimentInput;
 import io.juspay.superposition.model.DiscardExperimentOutput;
-import io.juspay.superposition.model.GetConfigFastInput;
-import io.juspay.superposition.model.GetConfigFastOutput;
 import io.juspay.superposition.model.GetConfigInput;
 import io.juspay.superposition.model.GetConfigJsonInput;
 import io.juspay.superposition.model.GetConfigJsonOutput;
@@ -69,6 +67,8 @@ import io.juspay.superposition.model.GetDefaultConfigInput;
 import io.juspay.superposition.model.GetDefaultConfigOutput;
 import io.juspay.superposition.model.GetDimensionInput;
 import io.juspay.superposition.model.GetDimensionOutput;
+import io.juspay.superposition.model.GetExperimentConfigInput;
+import io.juspay.superposition.model.GetExperimentConfigOutput;
 import io.juspay.superposition.model.GetExperimentGroupInput;
 import io.juspay.superposition.model.GetExperimentGroupOutput;
 import io.juspay.superposition.model.GetExperimentInput;
@@ -694,22 +694,6 @@ public interface SuperpositionClient {
     GetConfigOutput getConfig(GetConfigInput input, RequestOverrideConfig overrideConfig);
 
     /**
-     * Retrieves the latest config with no processing for high-performance access.
-     *
-     * @throws InternalServerError
-     */
-    default GetConfigFastOutput getConfigFast(GetConfigFastInput input) {
-        return getConfigFast(input, null);
-    }
-
-    /**
-     * Retrieves the latest config with no processing for high-performance access.
-     *
-     * @throws InternalServerError
-     */
-    GetConfigFastOutput getConfigFast(GetConfigFastInput input, RequestOverrideConfig overrideConfig);
-
-    /**
      * Retrieves the full config in JSON format, including default configs with schemas, dimensions, and
      * overrides. This endpoint is optimized for clients that prefer JSON format for configuration
      * management.
@@ -848,6 +832,24 @@ public interface SuperpositionClient {
      * @throws InternalServerError
      */
     GetExperimentOutput getExperiment(GetExperimentInput input, RequestOverrideConfig overrideConfig);
+
+    /**
+     * Retrieves the experiment configuration for a given workspace and organization. The response includes
+     * details of all experiment groups and experiments that match the specified filters.
+     *
+     * @throws InternalServerError
+     */
+    default GetExperimentConfigOutput getExperimentConfig(GetExperimentConfigInput input) {
+        return getExperimentConfig(input, null);
+    }
+
+    /**
+     * Retrieves the experiment configuration for a given workspace and organization. The response includes
+     * details of all experiment groups and experiments that match the specified filters.
+     *
+     * @throws InternalServerError
+     */
+    GetExperimentConfigOutput getExperimentConfig(GetExperimentConfigInput input, RequestOverrideConfig overrideConfig);
 
     /**
      * Retrieves an existing experiment group by its ID.
@@ -1816,11 +1818,11 @@ public interface SuperpositionClient {
             Node.objectNode()
         );
 
-        private static final HttpBasicAuthTrait httpBasicAuthScheme = new HttpBasicAuthTrait();
-        private static final AuthSchemeFactory<HttpBasicAuthTrait> httpBasicAuthSchemeFactory = new HttpBasicAuthAuthScheme.Factory();
-
         private static final HttpBearerAuthTrait httpBearerAuthScheme = new HttpBearerAuthTrait();
         private static final AuthSchemeFactory<HttpBearerAuthTrait> httpBearerAuthSchemeFactory = new HttpBearerAuthScheme.Factory();
+
+        private static final HttpBasicAuthTrait httpBasicAuthScheme = new HttpBasicAuthTrait();
+        private static final AuthSchemeFactory<HttpBasicAuthTrait> httpBasicAuthSchemeFactory = new HttpBasicAuthAuthScheme.Factory();
 
         private Builder() {
             configBuilder().putSupportedAuthSchemes(httpBasicAuthSchemeFactory.createAuthScheme(httpBasicAuthScheme), httpBearerAuthSchemeFactory.createAuthScheme(httpBearerAuthScheme));

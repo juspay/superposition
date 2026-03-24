@@ -13,36 +13,12 @@ resource Config {
         last_modified: DateTime
     }
     operations: [
-        GetConfigFast
         GetConfig
         GetResolvedConfig
         GetResolvedConfigWithIdentifier
         GetConfigToml
         GetConfigJson
     ]
-}
-
-@documentation("Retrieves the latest config with no processing for high-performance access.")
-@http(method: "GET", uri: "/config/fast")
-@tags(["Configuration Management"])
-operation GetConfigFast {
-    input := with [WorkspaceMixin] {}
-
-    output := for Config {
-        @httpPayload
-        $config
-
-        @httpHeader("x-config-version")
-        @notProperty
-        $version
-
-        @httpHeader("last-modified")
-        $last_modified
-
-        @httpHeader("x-audit-id")
-        @notProperty
-        audit_id: String
-    }
 }
 
 @length(max: 1, min: 1)
@@ -110,6 +86,11 @@ operation GetConfig {
         @notProperty
         version: String
 
+        @documentation("While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.")
+        @httpHeader("if-modified-since")
+        @notProperty
+        if_modified_since: DateTime
+
         @notProperty
         context: ContextMap
     }
@@ -138,19 +119,20 @@ operation GetConfig {
         @httpHeader("last-modified")
         @required
         $last_modified
-
-        @httpHeader("x-audit-id")
-        @notProperty
-        audit_id: String
     }
 }
 
 @documentation("Retrieves the full config in TOML format, including default configs with schemas, dimensions, and overrides. This endpoint is optimized for clients that prefer TOML format for configuration management.")
 @readonly
-@http(method: "GET", uri: "/config/toml")
+@http(method: "POST", uri: "/config/toml")
 @tags(["Configuration Management"])
 operation GetConfigToml {
-    input := with [WorkspaceMixin] {}
+    input := with [WorkspaceMixin] {
+        @documentation("While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.")
+        @httpHeader("if-modified-since")
+        @notProperty
+        if_modified_since: DateTime
+    }
 
     output := for Config {
         @httpPayload
@@ -165,10 +147,15 @@ operation GetConfigToml {
 
 @documentation("Retrieves the full config in JSON format, including default configs with schemas, dimensions, and overrides. This endpoint is optimized for clients that prefer JSON format for configuration management.")
 @readonly
-@http(method: "GET", uri: "/config/json")
+@http(method: "POST", uri: "/config/json")
 @tags(["Configuration Management"])
 operation GetConfigJson {
-    input := with [WorkspaceMixin] {}
+    input := with [WorkspaceMixin] {
+        @documentation("While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.")
+        @httpHeader("if-modified-since")
+        @notProperty
+        if_modified_since: DateTime
+    }
 
     output := for Config {
         @httpPayload

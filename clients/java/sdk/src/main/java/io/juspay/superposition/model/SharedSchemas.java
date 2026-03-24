@@ -123,16 +123,16 @@ final class SharedSchemas {
         .putMember("member", DimensionResponse.$SCHEMA)
         .build();
 
-    static final Schema GROUP_TYPE_LIST = Schema.listBuilder(ShapeId.from("io.superposition#GroupTypeList"))
-        .putMember("member", GroupType.$SCHEMA)
-        .build();
-
     static final Schema EXPERIMENT_GROUP_LIST = Schema.listBuilder(ShapeId.from("io.superposition#ExperimentGroupList"))
         .putMember("member", ExperimentGroupResponse.$SCHEMA)
         .build();
 
     static final Schema EXPERIMENT_LIST = Schema.listBuilder(ShapeId.from("io.superposition#ExperimentList"))
         .putMember("member", ExperimentResponse.$SCHEMA)
+        .build();
+
+    static final Schema GROUP_TYPE_LIST = Schema.listBuilder(ShapeId.from("io.superposition#GroupTypeList"))
+        .putMember("member", GroupType.$SCHEMA)
         .build();
 
     static final Schema EXPERIMENT_STATUS_TYPE_LIST = Schema.listBuilder(ShapeId.from("io.superposition#ExperimentStatusTypeList"))

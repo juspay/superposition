@@ -1,27 +1,27 @@
-module Io.Superposition.Command.GetConfigFast (
-    GetConfigFastError (..),
-    getConfigFast
+module Io.Superposition.Command.GetExperimentConfig (
+    GetExperimentConfigError (..),
+    getExperimentConfig
 ) where
 import qualified Data.Aeson
 import qualified Data.Maybe
 import qualified Data.Text
 import qualified GHC.Generics
 import qualified GHC.Show
-import qualified Io.Superposition.Model.GetConfigFastInput
-import qualified Io.Superposition.Model.GetConfigFastOutput
+import qualified Io.Superposition.Model.GetExperimentConfigInput
+import qualified Io.Superposition.Model.GetExperimentConfigOutput
 import qualified Io.Superposition.Model.InternalServerError
 import qualified Io.Superposition.SuperpositionClient
 import qualified Io.Superposition.Utility
 
-data GetConfigFastError =
+data GetExperimentConfigError =
     InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | DeSerializationError Io.Superposition.Utility.HttpMetadata Data.Text.Text
     | UnexpectedError (Data.Maybe.Maybe Io.Superposition.Utility.HttpMetadata) Data.Text.Text
        deriving (GHC.Generics.Generic, GHC.Show.Show)
 
-instance Data.Aeson.ToJSON GetConfigFastError
-instance Io.Superposition.Utility.OperationError GetConfigFastError where
+instance Data.Aeson.ToJSON GetExperimentConfigError
+instance Io.Superposition.Utility.OperationError GetExperimentConfigError where
     mkBuilderError = BuilderError
     mkDeSerializationError = DeSerializationError
     mkUnexpectedError = UnexpectedError
@@ -31,10 +31,10 @@ instance Io.Superposition.Utility.OperationError GetConfigFastError where
         | otherwise = Nothing
 
 
-getConfigFast :: Io.Superposition.SuperpositionClient.SuperpositionClient -> Io.Superposition.Model.GetConfigFastInput.GetConfigFastInputBuilder () -> IO (Either GetConfigFastError Io.Superposition.Model.GetConfigFastOutput.GetConfigFastOutput)
-getConfigFast client builder =
+getExperimentConfig :: Io.Superposition.SuperpositionClient.SuperpositionClient -> Io.Superposition.Model.GetExperimentConfigInput.GetExperimentConfigInputBuilder () -> IO (Either GetExperimentConfigError Io.Superposition.Model.GetExperimentConfigOutput.GetExperimentConfigOutput)
+getExperimentConfig client builder =
     let endpoint = Io.Superposition.SuperpositionClient.endpointUri client
         manager = Io.Superposition.SuperpositionClient.httpManager client
         auth = Io.Superposition.SuperpositionClient.getAuth client
-    in Io.Superposition.Utility.runOperation endpoint manager auth (Io.Superposition.Model.GetConfigFastInput.build builder)
+    in Io.Superposition.Utility.runOperation endpoint manager auth (Io.Superposition.Model.GetExperimentConfigInput.build builder)
 

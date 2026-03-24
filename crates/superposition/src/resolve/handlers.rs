@@ -4,15 +4,15 @@ use actix_web::{
 };
 use chrono::{DateTime, Utc};
 use context_aware_config::api::config::helpers::{
-    add_config_version_to_header, add_last_modified_to_header,
-    generate_config_from_version, get_config_version, get_max_created_at,
-    is_not_modified, resolve, setup_query_data,
+    generate_config_from_version, get_config_version, get_max_created_at, resolve,
+    setup_query_data,
 };
 use experimentation_platform::api::experiments::handlers::get_applicable_variants_helper;
 use serde_json::{Map, Value};
 use service_utils::{
+    helpers::is_not_modified,
     redis::{CONFIG_KEY_SUFFIX, LAST_MODIFIED_KEY_SUFFIX, read_through_cache},
-    service::types::{AppState, WorkspaceContext},
+    service::types::{AppHeader, AppState, WorkspaceContext},
 };
 use superposition_derives::{authorized, declare_resource};
 use superposition_macros::unexpected_error;
@@ -64,7 +64,7 @@ async fn resolve_with_exp_handler(
         return Ok(HttpResponse::NotModified().finish());
     }
 
-    let (is_smithy, mut query_data) = setup_query_data(&req, &body, &dimension_params)?;
+    let (is_smithy, mut query_data) = setup_query_data(&req, body, dimension_params)?;
 
     let config_version =
         get_config_version(&query_filters.version, &workspace_context, &state).await?;
@@ -125,8 +125,8 @@ async fn resolve_with_exp_handler(
     };
 
     let mut resp = HttpResponse::Ok();
-    add_last_modified_to_header(max_created_at, is_smithy, &mut resp);
+    AppHeader::add_last_modified(max_created_at, is_smithy, &mut resp);
 
-    add_config_version_to_header(&Some(config_version), &mut resp);
+    AppHeader::add_config_version(&Some(config_version), &mut resp);
     Ok(resp.json(resolved_config))
 }

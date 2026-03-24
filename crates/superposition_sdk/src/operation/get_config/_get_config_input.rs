@@ -11,6 +11,8 @@ pub struct GetConfigInput  {
     pub prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     #[allow(missing_docs)] // documentation missing in model
     pub version: ::std::option::Option<::std::string::String>,
+    /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
+    pub if_modified_since: ::std::option::Option<::aws_smithy_types::DateTime>,
     /// Map representing the context. Keys correspond to the names of the dimensions.
     pub context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
 }
@@ -34,6 +36,10 @@ impl  GetConfigInput  {
     pub fn version(&self) -> ::std::option::Option<&str> {
         self.version.as_deref()
     }
+    /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
+    pub fn if_modified_since(&self) -> ::std::option::Option<&::aws_smithy_types::DateTime> {
+        self.if_modified_since.as_ref()
+    }
     /// Map representing the context. Keys correspond to the names of the dimensions.
     pub fn context(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
         self.context.as_ref()
@@ -54,6 +60,7 @@ pub struct GetConfigInputBuilder {
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
     pub(crate) prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     pub(crate) version: ::std::option::Option<::std::string::String>,
+    pub(crate) if_modified_since: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
 }
 impl GetConfigInputBuilder {
@@ -116,6 +123,19 @@ impl GetConfigInputBuilder {
     pub fn get_version(&self) -> &::std::option::Option<::std::string::String> {
         &self.version
     }
+    /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
+    pub fn if_modified_since(mut self, input: ::aws_smithy_types::DateTime) -> Self {
+        self.if_modified_since = ::std::option::Option::Some(input);
+        self
+    }
+    /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
+    pub fn set_if_modified_since(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
+        self.if_modified_since = input; self
+    }
+    /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
+    pub fn get_if_modified_since(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
+        &self.if_modified_since
+    }
     /// Adds a key-value pair to `context`.
     ///
     /// To override the contents of this collection use [`set_context`](Self::set_context).
@@ -146,6 +166,8 @@ impl GetConfigInputBuilder {
                 prefix: self.prefix
                 ,
                 version: self.version
+                ,
+                if_modified_since: self.if_modified_since
                 ,
                 context: self.context
                 ,

@@ -170,6 +170,15 @@
                         }
                     },
                     {
+                        "name": "if-modified-since",
+                        "in": "header",
+                        "description": "While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.",
+                        "schema": {
+                            "type": "string",
+                            "description": "While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates."
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -195,11 +204,6 @@
                                     "type": "string"
                                 },
                                 "required": true
-                            },
-                            "x-audit-id": {
-                                "schema": {
-                                    "type": "string"
-                                }
                             },
                             "x-config-version": {
                                 "schema": {
@@ -232,77 +236,20 @@
                 ]
             }
         },
-        "/config/fast": {
-            "get": {
-                "description": "Retrieves the latest config with no processing for high-performance access.",
-                "operationId": "GetConfigFast",
-                "parameters": [
-                    {
-                        "name": "x-org-id",
-                        "in": "header",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "required": true
-                    },
-                    {
-                        "name": "x-workspace",
-                        "in": "header",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "GetConfigFast 200 response",
-                        "headers": {
-                            "last-modified": {
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "x-audit-id": {
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "x-config-version": {
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        },
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/GetConfigFastOutputPayload"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "InternalServerError 500 response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "Configuration Management"
-                ]
-            }
-        },
         "/config/json": {
-            "get": {
+            "post": {
                 "description": "Retrieves the full config in JSON format, including default configs with schemas, dimensions, and overrides. This endpoint is optimized for clients that prefer JSON format for configuration management.",
                 "operationId": "GetConfigJson",
                 "parameters": [
+                    {
+                        "name": "if-modified-since",
+                        "in": "header",
+                        "description": "While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.",
+                        "schema": {
+                            "type": "string",
+                            "description": "While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates."
+                        }
+                    },
                     {
                         "name": "x-org-id",
                         "in": "header",
@@ -481,10 +428,19 @@
             }
         },
         "/config/toml": {
-            "get": {
+            "post": {
                 "description": "Retrieves the full config in TOML format, including default configs with schemas, dimensions, and overrides. This endpoint is optimized for clients that prefer TOML format for configuration management.",
                 "operationId": "GetConfigToml",
                 "parameters": [
+                    {
+                        "name": "if-modified-since",
+                        "in": "header",
+                        "description": "While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.",
+                        "schema": {
+                            "type": "string",
+                            "description": "While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates."
+                        }
+                    },
                     {
                         "name": "x-org-id",
                         "in": "header",
@@ -1938,10 +1894,170 @@
                 ]
             }
         },
+        "/experiment-config": {
+            "post": {
+                "description": "Retrieves the experiment configuration for a given workspace and organization. The response includes details of all experiment groups and experiments that match the specified filters.",
+                "operationId": "GetExperimentConfig",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GetExperimentConfigRequestContent"
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "prefix",
+                        "in": "query",
+                        "style": "form",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "explode": true
+                    },
+                    {
+                        "name": "dimension_match_strategy",
+                        "in": "query",
+                        "description": "Strategy to follow while filter items based on the context",
+                        "schema": {
+                            "$ref": "#/components/schemas/DimensionMatchStrategy"
+                        }
+                    },
+                    {
+                        "name": "if-modified-since",
+                        "in": "header",
+                        "description": "While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.",
+                        "schema": {
+                            "type": "string",
+                            "description": "While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates."
+                        }
+                    },
+                    {
+                        "name": "x-org-id",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-workspace",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "GetExperimentConfig 200 response",
+                        "headers": {
+                            "last-modified": {
+                                "schema": {
+                                    "type": "string"
+                                },
+                                "required": true
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetExperimentConfigResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/experiment-groups": {
-            "get": {
+            "post": {
+                "description": "Creates a new experiment group.",
+                "operationId": "CreateExperimentGroup",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateExperimentGroupRequestContent"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "parameters": [
+                    {
+                        "name": "x-org-id",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-workspace",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "CreateExperimentGroup 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CreateExperimentGroupResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Experiment Groups"
+                ]
+            }
+        },
+        "/experiment-groups/list": {
+            "post": {
                 "description": "Lists experiment groups, with support for filtering and pagination.",
                 "operationId": "ListExperimentGroups",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ListExperimentGroupsRequestContent"
+                            }
+                        }
+                    }
+                },
                 "parameters": [
                     {
                         "name": "count",
@@ -2028,6 +2144,23 @@
                         "explode": true
                     },
                     {
+                        "name": "dimension_match_strategy",
+                        "in": "query",
+                        "description": "Strategy to follow while filter items based on the context",
+                        "schema": {
+                            "$ref": "#/components/schemas/DimensionMatchStrategy"
+                        }
+                    },
+                    {
+                        "name": "if-modified-since",
+                        "in": "header",
+                        "description": "While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.",
+                        "schema": {
+                            "type": "string",
+                            "description": "While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates."
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -2047,67 +2180,18 @@
                 "responses": {
                     "200": {
                         "description": "ListExperimentGroups 200 response",
+                        "headers": {
+                            "last-modified": {
+                                "schema": {
+                                    "type": "string"
+                                },
+                                "required": true
+                            }
+                        },
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ListExperimentGroupsResponseContent"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "InternalServerError 500 response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "Experiment Groups"
-                ]
-            },
-            "post": {
-                "description": "Creates a new experiment group.",
-                "operationId": "CreateExperimentGroup",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/CreateExperimentGroupRequestContent"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "parameters": [
-                    {
-                        "name": "x-org-id",
-                        "in": "header",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "required": true
-                    },
-                    {
-                        "name": "x-workspace",
-                        "in": "header",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "CreateExperimentGroup 200 response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/CreateExperimentGroupResponseContent"
                                 }
                             }
                         }
@@ -2455,9 +2539,136 @@
             }
         },
         "/experiments": {
-            "get": {
+            "post": {
+                "description": "Creates a new experiment with variants, context and conditions. You can optionally specify metrics and experiment group for tracking and analysis.",
+                "operationId": "CreateExperiment",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateExperimentRequestContent"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "parameters": [
+                    {
+                        "name": "x-org-id",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-workspace",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "CreateExperiment 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CreateExperimentResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Experimentation"
+                ]
+            }
+        },
+        "/experiments/applicable-variants": {
+            "post": {
+                "description": "Determines which experiment variants are applicable to a given context, used for experiment evaluation and variant selection.",
+                "operationId": "ApplicableVariants",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ApplicableVariantsRequestContent"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "parameters": [
+                    {
+                        "name": "x-org-id",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-workspace",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ApplicableVariants 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApplicableVariantsResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Experimentation"
+                ]
+            }
+        },
+        "/experiments/list": {
+            "post": {
                 "description": "Retrieves a paginated list of experiments with support for filtering by status, date range, name, creator, and experiment group.",
                 "operationId": "ListExperiment",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ListExperimentRequestContent"
+                            }
+                        }
+                    }
+                },
                 "parameters": [
                     {
                         "name": "count",
@@ -2588,6 +2799,27 @@
                         }
                     },
                     {
+                        "name": "prefix",
+                        "in": "query",
+                        "style": "form",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "explode": true
+                    },
+                    {
+                        "name": "if-modified-since",
+                        "in": "header",
+                        "description": "While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.",
+                        "schema": {
+                            "type": "string",
+                            "description": "While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates."
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -2607,126 +2839,18 @@
                 "responses": {
                     "200": {
                         "description": "ListExperiment 200 response",
+                        "headers": {
+                            "last-modified": {
+                                "schema": {
+                                    "type": "string"
+                                },
+                                "required": true
+                            }
+                        },
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ListExperimentResponseContent"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "InternalServerError 500 response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "Experimentation"
-                ]
-            },
-            "post": {
-                "description": "Creates a new experiment with variants, context and conditions. You can optionally specify metrics and experiment group for tracking and analysis.",
-                "operationId": "CreateExperiment",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/CreateExperimentRequestContent"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "parameters": [
-                    {
-                        "name": "x-org-id",
-                        "in": "header",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "required": true
-                    },
-                    {
-                        "name": "x-workspace",
-                        "in": "header",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "CreateExperiment 200 response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/CreateExperimentResponseContent"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "InternalServerError 500 response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "Experimentation"
-                ]
-            }
-        },
-        "/experiments/applicable-variants": {
-            "post": {
-                "description": "Determines which experiment variants are applicable to a given context, used for experiment evaluation and variant selection.",
-                "operationId": "ApplicableVariants",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/ApplicableVariantsRequestContent"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "parameters": [
-                    {
-                        "name": "x-org-id",
-                        "in": "header",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "required": true
-                    },
-                    {
-                        "name": "x-workspace",
-                        "in": "header",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "ApplicableVariants 200 response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApplicableVariantsResponseContent"
                                 }
                             }
                         }
@@ -8374,7 +8498,6 @@
                     "CHANGE_REASON_VALIDATION"
                 ]
             },
-            "GetConfigFastOutputPayload": {},
             "GetConfigJsonOutputPayload": {
                 "type": "string"
             },
@@ -8634,6 +8757,36 @@
                     "mandatory",
                     "position",
                     "schema"
+                ]
+            },
+            "GetExperimentConfigRequestContent": {
+                "type": "object",
+                "properties": {
+                    "context": {
+                        "$ref": "#/components/schemas/ContextMap"
+                    }
+                }
+            },
+            "GetExperimentConfigResponseContent": {
+                "type": "object",
+                "properties": {
+                    "experiments": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ExperimentResponse"
+                        }
+                    },
+                    "experiment_groups": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ExperimentGroupResponse"
+                        },
+                        "description": "A list of experiment group responses."
+                    }
+                },
+                "required": [
+                    "experiment_groups",
+                    "experiments"
                 ]
             },
             "GetExperimentGroupResponseContent": {
@@ -9437,6 +9590,14 @@
                     "total_pages"
                 ]
             },
+            "ListExperimentGroupsRequestContent": {
+                "type": "object",
+                "properties": {
+                    "context": {
+                        "$ref": "#/components/schemas/ContextMap"
+                    }
+                }
+            },
             "ListExperimentGroupsResponseContent": {
                 "type": "object",
                 "properties": {
@@ -9459,6 +9620,14 @@
                     "total_items",
                     "total_pages"
                 ]
+            },
+            "ListExperimentRequestContent": {
+                "type": "object",
+                "properties": {
+                    "context": {
+                        "$ref": "#/components/schemas/ContextMap"
+                    }
+                }
             },
             "ListExperimentResponseContent": {
                 "type": "object",

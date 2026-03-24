@@ -53,8 +53,8 @@ pub struct Context {
 }
 
 impl Contextual for Context {
-    fn get_condition(&self) -> Condition {
-        self.value.clone()
+    fn get_condition(&self) -> &Condition {
+        &self.value
     }
 }
 
@@ -352,6 +352,18 @@ pub struct ConfigVersionListItem {
     pub tags: Option<Vec<String>>,
     pub created_at: DateTime<Utc>,
     pub description: Description,
+}
+
+impl From<ConfigVersion> for ConfigVersionListItem {
+    fn from(config_version: ConfigVersion) -> Self {
+        ConfigVersionListItem {
+            id: config_version.id,
+            config_hash: config_version.config_hash,
+            tags: config_version.tags,
+            created_at: config_version.created_at,
+            description: config_version.description,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]

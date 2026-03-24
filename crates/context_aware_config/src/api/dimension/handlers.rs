@@ -168,8 +168,8 @@ async fn create_handler(
         dimension_type: create_req.dimension_type,
     };
 
-    let (inserted_dimension, is_mandatory, version_id) = conn
-        .transaction::<_, superposition::AppError, _>(|transaction_conn| {
+    let (inserted_dimension, is_mandatory, config_version) =
+        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
             diesel::update(dimensions::table)
                 .filter(dimensions::position.ge(dimension_data.position))
                 .set((
@@ -213,14 +213,14 @@ async fn create_handler(
                         .unwrap_or_default()
                         .contains(&inserted_dimension.dimension);
 
-                    let version_id = add_config_version(
+                    let config_version = add_config_version(
                         &state,
                         tags,
                         dimension_data.change_reason.into(),
                         transaction_conn,
                         &workspace_context.schema_name,
                     )?;
-                    Ok((inserted_dimension, is_mandatory, version_id))
+                    Ok((inserted_dimension, is_mandatory, config_version))
                 }
                 Err(diesel::result::Error::DatabaseError(
                     diesel::result::DatabaseErrorKind::ForeignKeyViolation,
@@ -244,7 +244,7 @@ async fn create_handler(
         })?;
 
     let _ = put_config_in_redis(
-        version_id,
+        &config_version,
         &state,
         &workspace_context.schema_name,
         &mut conn,
@@ -255,7 +255,7 @@ async fn create_handler(
         payload: &inserted_dimension,
         resource: Resource::Dimension,
         event: WebhookEvent::ConfigChanged,
-        config_version_opt: Some(version_id.to_string()),
+        config_version_opt: Some(config_version.id.to_string()),
         action: Action::Create,
     };
 
@@ -272,7 +272,7 @@ async fn create_handler(
     };
     http_resp.insert_header((
         AppHeader::XConfigVersion.to_string(),
-        version_id.to_string(),
+        config_version.id.to_string(),
     ));
     Ok(http_resp.json(DimensionResponse::new(inserted_dimension, is_mandatory)))
 }
@@ -395,7 +395,7 @@ async fn update_handler(
 
     let update_change_reason = update_req.change_reason.clone();
 
-    let (result, is_mandatory, version_id) = conn
+    let (result, is_mandatory, config_version) = conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
             if let Some(position_val) = update_req.position {
                 let new_position = position_val;
@@ -469,7 +469,7 @@ async fn update_handler(
                 .unwrap_or_default()
                 .contains(&result.dimension);
 
-            let version_id = add_config_version(
+            let config_version = add_config_version(
                 &state,
                 tags,
                 update_change_reason.into(),
@@ -477,11 +477,11 @@ async fn update_handler(
                 &workspace_context.schema_name,
             )?;
 
-            Ok((result, is_mandatory, version_id))
+            Ok((result, is_mandatory, config_version))
         })?;
 
     let _ = put_config_in_redis(
-        version_id,
+        &config_version,
         &state,
         &workspace_context.schema_name,
         &mut conn,
@@ -492,7 +492,7 @@ async fn update_handler(
         payload: &result,
         resource: Resource::Dimension,
         event: WebhookEvent::ConfigChanged,
-        config_version_opt: Some(version_id.to_string()),
+        config_version_opt: Some(config_version.id.to_string()),
         action: Action::Update,
     };
 
@@ -509,7 +509,7 @@ async fn update_handler(
     };
     http_resp.insert_header((
         AppHeader::XConfigVersion.to_string(),
-        version_id.to_string(),
+        config_version.id.to_string(),
     ));
     Ok(http_resp.json(DimensionResponse::new(result, is_mandatory)))
 }
@@ -598,7 +598,7 @@ async fn delete_handler(
     )?;
 
     if context_ids.is_empty() {
-        let (version_id, dimension_data) = conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+        let (config_version, dimension_data) = conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
             use dimensions::dsl;
 
             if !dimension_data.dependency_graph.is_empty() {
@@ -651,7 +651,7 @@ async fn delete_handler(
                         user.get_email()
                     ))
                     .map_err(|e| unexpected_error!(e))?;
-                    let version_id = add_config_version(
+                    let config_version = add_config_version(
                         &state,
                         tags,
                         config_version_desc,
@@ -662,13 +662,13 @@ async fn delete_handler(
                         "Dimension: {name} deleted by {}",
                         user.get_email()
                     );
-                    Ok((version_id, dimension_data))
+                    Ok((config_version, dimension_data))
                 }
             }
         })?;
 
         let _ = put_config_in_redis(
-            version_id,
+            &config_version,
             &state,
             &workspace_context.schema_name,
             &mut conn,
@@ -678,7 +678,7 @@ async fn delete_handler(
             payload: &dimension_data,
             resource: Resource::Dimension,
             event: WebhookEvent::ConfigChanged,
-            config_version_opt: Some(version_id.to_string()),
+            config_version_opt: Some(config_version.id.to_string()),
             action: Action::Delete,
         };
 
@@ -695,7 +695,7 @@ async fn delete_handler(
         };
         http_resp.insert_header((
             AppHeader::XConfigVersion.to_string(),
-            version_id.to_string(),
+            config_version.id.to_string(),
         ));
 
         Ok(http_resp.finish())

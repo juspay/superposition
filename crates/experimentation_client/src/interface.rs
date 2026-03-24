@@ -306,7 +306,7 @@ pub extern "C" fn expt_get_filtered_satisfied_experiments(
         let prefix_list: Vec<String> =
             filter_string.split(',').map(String::from).collect();
 
-        Some(prefix_list).filter(|list| !list.is_empty())
+        Some(prefix_list)
     };
 
     let context = evaluate_local_cohorts_skip_unresolved(&dimensions, &context);

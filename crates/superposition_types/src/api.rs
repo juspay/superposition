@@ -5,6 +5,8 @@ pub mod context;
 pub mod default_config;
 pub mod dimension;
 #[cfg(feature = "experimentation")]
+pub mod experiment_config;
+#[cfg(feature = "experimentation")]
 pub mod experiment_groups;
 #[cfg(feature = "experimentation")]
 pub mod experiments;

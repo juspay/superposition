@@ -114,9 +114,6 @@ from ._private.schemas import (
     FUNCTION_EXECUTION_REQUEST as _SCHEMA_FUNCTION_EXECUTION_REQUEST,
     FUNCTION_RESPONSE as _SCHEMA_FUNCTION_RESPONSE,
     GET_CONFIG as _SCHEMA_GET_CONFIG,
-    GET_CONFIG_FAST as _SCHEMA_GET_CONFIG_FAST,
-    GET_CONFIG_FAST_INPUT as _SCHEMA_GET_CONFIG_FAST_INPUT,
-    GET_CONFIG_FAST_OUTPUT as _SCHEMA_GET_CONFIG_FAST_OUTPUT,
     GET_CONFIG_INPUT as _SCHEMA_GET_CONFIG_INPUT,
     GET_CONFIG_JSON as _SCHEMA_GET_CONFIG_JSON,
     GET_CONFIG_JSON_INPUT as _SCHEMA_GET_CONFIG_JSON_INPUT,
@@ -138,6 +135,9 @@ from ._private.schemas import (
     GET_DIMENSION_INPUT as _SCHEMA_GET_DIMENSION_INPUT,
     GET_DIMENSION_OUTPUT as _SCHEMA_GET_DIMENSION_OUTPUT,
     GET_EXPERIMENT as _SCHEMA_GET_EXPERIMENT,
+    GET_EXPERIMENT_CONFIG as _SCHEMA_GET_EXPERIMENT_CONFIG,
+    GET_EXPERIMENT_CONFIG_INPUT as _SCHEMA_GET_EXPERIMENT_CONFIG_INPUT,
+    GET_EXPERIMENT_CONFIG_OUTPUT as _SCHEMA_GET_EXPERIMENT_CONFIG_OUTPUT,
     GET_EXPERIMENT_GROUP as _SCHEMA_GET_EXPERIMENT_GROUP,
     GET_EXPERIMENT_GROUP_INPUT as _SCHEMA_GET_EXPERIMENT_GROUP_INPUT,
     GET_EXPERIMENT_GROUP_OUTPUT as _SCHEMA_GET_EXPERIMENT_GROUP_OUTPUT,
@@ -2232,6 +2232,12 @@ def _deserialize_context_map(deserializer: ShapeDeserializer, schema: Schema) ->
 class GetConfigInput:
     """
 
+    :param if_modified_since:
+         While using this, 304 response is treated as error, which needs to be handled
+         separately by checking the response code of the http response. This is required
+         to make sure that clients can cache the response and avoid unnecessary calls
+         when there are no updates.
+
     :param context:
          Map representing the context. Keys correspond to the names of the dimensions.
 
@@ -2241,6 +2247,7 @@ class GetConfigInput:
     org_id: str | None = None
     prefix: list[str] | None = None
     version: str | None = None
+    if_modified_since: datetime | None = None
     context: dict[str, Document] | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -2273,6 +2280,9 @@ class GetConfigInput:
                     kwargs["version"] = de.read_string(_SCHEMA_GET_CONFIG_INPUT.members["version"])
 
                 case 4:
+                    kwargs["if_modified_since"] = de.read_timestamp(_SCHEMA_GET_CONFIG_INPUT.members["if_modified_since"])
+
+                case 5:
                     kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_CONFIG_INPUT.members["context"])
 
                 case _:
@@ -2659,8 +2669,6 @@ class GetConfigOutput:
 
     last_modified: datetime
 
-    audit_id: str | None = None
-
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_CONFIG_OUTPUT, self)
 
@@ -2698,9 +2706,6 @@ class GetConfigOutput:
                 case 5:
                     kwargs["last_modified"] = de.read_timestamp(_SCHEMA_GET_CONFIG_OUTPUT.members["last_modified"])
 
-                case 6:
-                    kwargs["audit_id"] = de.read_string(_SCHEMA_GET_CONFIG_OUTPUT.members["audit_id"])
-
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
@@ -2723,101 +2728,20 @@ ShapeID("smithy.api#httpBearerAuth")
 )
 
 @dataclass(kw_only=True)
-class GetConfigFastInput:
-
-    workspace_id: str | None = None
-    org_id: str | None = None
-
-    def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_GET_CONFIG_FAST_INPUT, self)
-
-    def serialize_members(self, serializer: ShapeSerializer):
-        pass
-
-    @classmethod
-    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(**cls.deserialize_kwargs(deserializer))
-
-    @classmethod
-    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
-        kwargs: dict[str, Any] = {}
-
-        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
-            match schema.expect_member_index():
-                case 0:
-                    kwargs["workspace_id"] = de.read_string(_SCHEMA_GET_CONFIG_FAST_INPUT.members["workspace_id"])
-
-                case 1:
-                    kwargs["org_id"] = de.read_string(_SCHEMA_GET_CONFIG_FAST_INPUT.members["org_id"])
-
-                case _:
-                    logger.debug("Unexpected member schema: %s", schema)
-
-        deserializer.read_struct(_SCHEMA_GET_CONFIG_FAST_INPUT, consumer=_consumer)
-        return kwargs
-
-@dataclass(kw_only=True)
-class GetConfigFastOutput:
-
-    config: Document | None = None
-    version: str | None = None
-    last_modified: datetime | None = None
-    audit_id: str | None = None
-
-    def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_GET_CONFIG_FAST_OUTPUT, self)
-
-    def serialize_members(self, serializer: ShapeSerializer):
-        pass
-
-    @classmethod
-    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(**cls.deserialize_kwargs(deserializer))
-
-    @classmethod
-    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
-        kwargs: dict[str, Any] = {}
-
-        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
-            match schema.expect_member_index():
-                case 0:
-                    kwargs["config"] = de.read_document(_SCHEMA_GET_CONFIG_FAST_OUTPUT.members["config"])
-
-                case 1:
-                    kwargs["version"] = de.read_string(_SCHEMA_GET_CONFIG_FAST_OUTPUT.members["version"])
-
-                case 2:
-                    kwargs["last_modified"] = de.read_timestamp(_SCHEMA_GET_CONFIG_FAST_OUTPUT.members["last_modified"])
-
-                case 3:
-                    kwargs["audit_id"] = de.read_string(_SCHEMA_GET_CONFIG_FAST_OUTPUT.members["audit_id"])
-
-                case _:
-                    logger.debug("Unexpected member schema: %s", schema)
-
-        deserializer.read_struct(_SCHEMA_GET_CONFIG_FAST_OUTPUT, consumer=_consumer)
-        return kwargs
-
-GET_CONFIG_FAST = APIOperation(
-        input = GetConfigFastInput,
-        output = GetConfigFastOutput,
-        schema = _SCHEMA_GET_CONFIG_FAST,
-        input_schema = _SCHEMA_GET_CONFIG_FAST_INPUT,
-        output_schema = _SCHEMA_GET_CONFIG_FAST_OUTPUT,
-        error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
-        }),
-        effective_auth_schemes = [
-            ShapeID("smithy.api#httpBasicAuth"),
-ShapeID("smithy.api#httpBearerAuth")
-        ]
-)
-
-@dataclass(kw_only=True)
 class GetConfigJsonInput:
+    """
+
+    :param if_modified_since:
+         While using this, 304 response is treated as error, which needs to be handled
+         separately by checking the response code of the http response. This is required
+         to make sure that clients can cache the response and avoid unnecessary calls
+         when there are no updates.
+
+    """
 
     workspace_id: str | None = None
     org_id: str | None = None
+    if_modified_since: datetime | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_CONFIG_JSON_INPUT, self)
@@ -2840,6 +2764,9 @@ class GetConfigJsonInput:
 
                 case 1:
                     kwargs["org_id"] = de.read_string(_SCHEMA_GET_CONFIG_JSON_INPUT.members["org_id"])
+
+                case 2:
+                    kwargs["if_modified_since"] = de.read_timestamp(_SCHEMA_GET_CONFIG_JSON_INPUT.members["if_modified_since"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -2899,9 +2826,19 @@ ShapeID("smithy.api#httpBearerAuth")
 
 @dataclass(kw_only=True)
 class GetConfigTomlInput:
+    """
+
+    :param if_modified_since:
+         While using this, 304 response is treated as error, which needs to be handled
+         separately by checking the response code of the http response. This is required
+         to make sure that clients can cache the response and avoid unnecessary calls
+         when there are no updates.
+
+    """
 
     workspace_id: str | None = None
     org_id: str | None = None
+    if_modified_since: datetime | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_CONFIG_TOML_INPUT, self)
@@ -2924,6 +2861,9 @@ class GetConfigTomlInput:
 
                 case 1:
                     kwargs["org_id"] = de.read_string(_SCHEMA_GET_CONFIG_TOML_INPUT.members["org_id"])
+
+                case 2:
+                    kwargs["if_modified_since"] = de.read_timestamp(_SCHEMA_GET_CONFIG_TOML_INPUT.members["if_modified_since"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -9547,6 +9487,441 @@ ShapeID("smithy.api#httpBearerAuth")
 )
 
 @dataclass(kw_only=True)
+class ExperimentGroupResponse:
+    """
+    Standard response structure for an experiment group.
+
+    :param context:
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
+
+    """
+
+    id: str
+
+    context_hash: str
+
+    name: str
+
+    description: str
+
+    change_reason: str
+
+    context: dict[str, Document]
+
+    traffic_percentage: int
+
+    member_experiment_ids: list[str]
+
+    created_at: datetime
+
+    created_by: str
+
+    last_modified_at: datetime
+
+    last_modified_by: str
+
+    buckets: list[Bucket | None]
+
+    group_type: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_EXPERIMENT_GROUP_RESPONSE, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["id"], self.id)
+        serializer.write_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["context_hash"], self.context_hash)
+        serializer.write_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["name"], self.name)
+        serializer.write_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["description"], self.description)
+        serializer.write_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["change_reason"], self.change_reason)
+        _serialize_condition(serializer, _SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["context"], self.context)
+        serializer.write_integer(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["traffic_percentage"], self.traffic_percentage)
+        _serialize_string_list(serializer, _SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["member_experiment_ids"], self.member_experiment_ids)
+        serializer.write_timestamp(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["created_at"], self.created_at)
+        serializer.write_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["created_by"], self.created_by)
+        serializer.write_timestamp(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["last_modified_at"], self.last_modified_at)
+        serializer.write_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["last_modified_by"], self.last_modified_by)
+        _serialize_buckets(serializer, _SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["buckets"], self.buckets)
+        serializer.write_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["group_type"], self.group_type)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["id"] = de.read_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["id"])
+
+                case 1:
+                    kwargs["context_hash"] = de.read_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["context_hash"])
+
+                case 2:
+                    kwargs["name"] = de.read_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["name"])
+
+                case 3:
+                    kwargs["description"] = de.read_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["description"])
+
+                case 4:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["change_reason"])
+
+                case 5:
+                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["context"])
+
+                case 6:
+                    kwargs["traffic_percentage"] = de.read_integer(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["traffic_percentage"])
+
+                case 7:
+                    kwargs["member_experiment_ids"] = _deserialize_string_list(de, _SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["member_experiment_ids"])
+
+                case 8:
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["created_at"])
+
+                case 9:
+                    kwargs["created_by"] = de.read_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["created_by"])
+
+                case 10:
+                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["last_modified_at"])
+
+                case 11:
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["last_modified_by"])
+
+                case 12:
+                    kwargs["buckets"] = _deserialize_buckets(de, _SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["buckets"])
+
+                case 13:
+                    kwargs["group_type"] = de.read_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["group_type"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_EXPERIMENT_GROUP_RESPONSE, consumer=_consumer)
+        return kwargs
+
+def _serialize_experiment_group_list(serializer: ShapeSerializer, schema: Schema, value: list[ExperimentGroupResponse]) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_struct(member_schema, e)
+
+def _deserialize_experiment_group_list(deserializer: ShapeDeserializer, schema: Schema) -> list[ExperimentGroupResponse]:
+    result: list[ExperimentGroupResponse] = []
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(ExperimentGroupResponse.deserialize(d))
+    deserializer.read_list(schema, _read_value)
+    return result
+
+@dataclass(kw_only=True)
+class ExperimentResponse:
+    """
+
+    :param context:
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
+
+    """
+
+    id: str
+
+    created_at: datetime
+
+    created_by: str
+
+    last_modified: datetime
+
+    name: str
+
+    experiment_type: str
+
+    override_keys: list[str]
+
+    status: str
+
+    traffic_percentage: int
+
+    context: dict[str, Document]
+
+    variants: list[Variant]
+
+    last_modified_by: str
+
+    description: str
+
+    change_reason: str
+
+    chosen_variant: str | None = None
+    started_at: datetime | None = None
+    started_by: str | None = None
+    metrics_url: str | None = None
+    metrics: Document | None = None
+    experiment_group_id: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_EXPERIMENT_RESPONSE, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["id"], self.id)
+        serializer.write_timestamp(_SCHEMA_EXPERIMENT_RESPONSE.members["created_at"], self.created_at)
+        serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["created_by"], self.created_by)
+        serializer.write_timestamp(_SCHEMA_EXPERIMENT_RESPONSE.members["last_modified"], self.last_modified)
+        serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["name"], self.name)
+        serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["experiment_type"], self.experiment_type)
+        _serialize_list_override_keys(serializer, _SCHEMA_EXPERIMENT_RESPONSE.members["override_keys"], self.override_keys)
+        serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["status"], self.status)
+        serializer.write_integer(_SCHEMA_EXPERIMENT_RESPONSE.members["traffic_percentage"], self.traffic_percentage)
+        _serialize_condition(serializer, _SCHEMA_EXPERIMENT_RESPONSE.members["context"], self.context)
+        _serialize_list_variant(serializer, _SCHEMA_EXPERIMENT_RESPONSE.members["variants"], self.variants)
+        serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["last_modified_by"], self.last_modified_by)
+        if self.chosen_variant is not None:
+            serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["chosen_variant"], self.chosen_variant)
+
+        serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["description"], self.description)
+        serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["change_reason"], self.change_reason)
+        if self.started_at is not None:
+            serializer.write_timestamp(_SCHEMA_EXPERIMENT_RESPONSE.members["started_at"], self.started_at)
+
+        if self.started_by is not None:
+            serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["started_by"], self.started_by)
+
+        if self.metrics_url is not None:
+            serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["metrics_url"], self.metrics_url)
+
+        if self.metrics is not None:
+            serializer.write_document(_SCHEMA_EXPERIMENT_RESPONSE.members["metrics"], self.metrics)
+
+        if self.experiment_group_id is not None:
+            serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["experiment_group_id"], self.experiment_group_id)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["id"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["id"])
+
+                case 1:
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_EXPERIMENT_RESPONSE.members["created_at"])
+
+                case 2:
+                    kwargs["created_by"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["created_by"])
+
+                case 3:
+                    kwargs["last_modified"] = de.read_timestamp(_SCHEMA_EXPERIMENT_RESPONSE.members["last_modified"])
+
+                case 4:
+                    kwargs["name"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["name"])
+
+                case 5:
+                    kwargs["experiment_type"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["experiment_type"])
+
+                case 6:
+                    kwargs["override_keys"] = _deserialize_list_override_keys(de, _SCHEMA_EXPERIMENT_RESPONSE.members["override_keys"])
+
+                case 7:
+                    kwargs["status"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["status"])
+
+                case 8:
+                    kwargs["traffic_percentage"] = de.read_integer(_SCHEMA_EXPERIMENT_RESPONSE.members["traffic_percentage"])
+
+                case 9:
+                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_EXPERIMENT_RESPONSE.members["context"])
+
+                case 10:
+                    kwargs["variants"] = _deserialize_list_variant(de, _SCHEMA_EXPERIMENT_RESPONSE.members["variants"])
+
+                case 11:
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["last_modified_by"])
+
+                case 12:
+                    kwargs["chosen_variant"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["chosen_variant"])
+
+                case 13:
+                    kwargs["description"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["description"])
+
+                case 14:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["change_reason"])
+
+                case 15:
+                    kwargs["started_at"] = de.read_timestamp(_SCHEMA_EXPERIMENT_RESPONSE.members["started_at"])
+
+                case 16:
+                    kwargs["started_by"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["started_by"])
+
+                case 17:
+                    kwargs["metrics_url"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["metrics_url"])
+
+                case 18:
+                    kwargs["metrics"] = de.read_document(_SCHEMA_EXPERIMENT_RESPONSE.members["metrics"])
+
+                case 19:
+                    kwargs["experiment_group_id"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["experiment_group_id"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_EXPERIMENT_RESPONSE, consumer=_consumer)
+        return kwargs
+
+def _serialize_experiment_list(serializer: ShapeSerializer, schema: Schema, value: list[ExperimentResponse]) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_struct(member_schema, e)
+
+def _deserialize_experiment_list(deserializer: ShapeDeserializer, schema: Schema) -> list[ExperimentResponse]:
+    result: list[ExperimentResponse] = []
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(ExperimentResponse.deserialize(d))
+    deserializer.read_list(schema, _read_value)
+    return result
+
+@dataclass(kw_only=True)
+class GetExperimentConfigInput:
+    """
+
+    :param if_modified_since:
+         While using this, 304 response is treated as error, which needs to be handled
+         separately by checking the response code of the http response. This is required
+         to make sure that clients can cache the response and avoid unnecessary calls
+         when there are no updates.
+
+    :param context:
+         Map representing the context. Keys correspond to the names of the dimensions.
+
+    :param dimension_match_strategy:
+         Strategy to follow while filter items based on the context
+
+    """
+
+    workspace_id: str | None = None
+    org_id: str | None = None
+    if_modified_since: datetime | None = None
+    prefix: list[str] | None = None
+    context: dict[str, Document] | None = None
+    dimension_match_strategy: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_EXPERIMENT_CONFIG_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.context is not None:
+            _serialize_context_map(serializer, _SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["context"], self.context)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["workspace_id"])
+
+                case 1:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["org_id"])
+
+                case 2:
+                    kwargs["if_modified_since"] = de.read_timestamp(_SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["if_modified_since"])
+
+                case 3:
+                    kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["prefix"])
+
+                case 4:
+                    kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["context"])
+
+                case 5:
+                    kwargs["dimension_match_strategy"] = de.read_string(_SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["dimension_match_strategy"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_EXPERIMENT_CONFIG_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class GetExperimentConfigOutput:
+    """
+
+    :param experiment_groups:
+        **[Required]** - A list of experiment group responses.
+
+    """
+
+    last_modified: datetime
+
+    experiments: list[ExperimentResponse]
+
+    experiment_groups: list[ExperimentGroupResponse]
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_EXPERIMENT_CONFIG_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        _serialize_experiment_list(serializer, _SCHEMA_GET_EXPERIMENT_CONFIG_OUTPUT.members["experiments"], self.experiments)
+        _serialize_experiment_group_list(serializer, _SCHEMA_GET_EXPERIMENT_CONFIG_OUTPUT.members["experiment_groups"], self.experiment_groups)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["last_modified"] = de.read_timestamp(_SCHEMA_GET_EXPERIMENT_CONFIG_OUTPUT.members["last_modified"])
+
+                case 1:
+                    kwargs["experiments"] = _deserialize_experiment_list(de, _SCHEMA_GET_EXPERIMENT_CONFIG_OUTPUT.members["experiments"])
+
+                case 2:
+                    kwargs["experiment_groups"] = _deserialize_experiment_group_list(de, _SCHEMA_GET_EXPERIMENT_CONFIG_OUTPUT.members["experiment_groups"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_EXPERIMENT_CONFIG_OUTPUT, consumer=_consumer)
+        return kwargs
+
+GET_EXPERIMENT_CONFIG = APIOperation(
+        input = GetExperimentConfigInput,
+        output = GetExperimentConfigOutput,
+        schema = _SCHEMA_GET_EXPERIMENT_CONFIG,
+        input_schema = _SCHEMA_GET_EXPERIMENT_CONFIG_INPUT,
+        output_schema = _SCHEMA_GET_EXPERIMENT_CONFIG_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+            ShapeID("smithy.api#httpBasicAuth"),
+ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
+@dataclass(kw_only=True)
 class GetExperimentGroupInput:
 
     workspace_id: str | None = None
@@ -9765,6 +10140,12 @@ class ListExperimentGroupsInput:
          If true, returns all requested items, ignoring pagination parameters page and
          count.
 
+    :param if_modified_since:
+         While using this, 304 response is treated as error, which needs to be handled
+         separately by checking the response code of the http response. This is required
+         to make sure that clients can cache the response and avoid unnecessary calls
+         when there are no updates.
+
     :param name:
          Filter by experiment group name (exact match or substring, depending on backend
          implementation).
@@ -9784,6 +10165,12 @@ class ListExperimentGroupsInput:
     :param group_type:
          Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
 
+    :param dimension_match_strategy:
+         Strategy to follow while filter items based on the context
+
+    :param context:
+         Map representing the context. Keys correspond to the names of the dimensions.
+
     """
 
     count: int | None = None
@@ -9791,18 +10178,22 @@ class ListExperimentGroupsInput:
     all: bool | None = None
     workspace_id: str | None = None
     org_id: str | None = None
+    if_modified_since: datetime | None = None
     name: str | None = None
     created_by: str | None = None
     last_modified_by: str | None = None
     sort_on: str | None = None
     sort_by: str | None = None
     group_type: list[str] | None = None
+    dimension_match_strategy: str | None = None
+    context: dict[str, Document] | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        pass
+        if self.context is not None:
+            _serialize_context_map(serializer, _SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["context"], self.context)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -9830,161 +10221,37 @@ class ListExperimentGroupsInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["org_id"])
 
                 case 5:
-                    kwargs["name"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["name"])
+                    kwargs["if_modified_since"] = de.read_timestamp(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["if_modified_since"])
 
                 case 6:
-                    kwargs["created_by"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["created_by"])
+                    kwargs["name"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["name"])
 
                 case 7:
-                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["last_modified_by"])
+                    kwargs["created_by"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["created_by"])
 
                 case 8:
-                    kwargs["sort_on"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["sort_on"])
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["last_modified_by"])
 
                 case 9:
-                    kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["sort_by"])
+                    kwargs["sort_on"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["sort_on"])
 
                 case 10:
+                    kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["sort_by"])
+
+                case 11:
                     kwargs["group_type"] = _deserialize_group_type_list(de, _SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["group_type"])
+
+                case 12:
+                    kwargs["dimension_match_strategy"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["dimension_match_strategy"])
+
+                case 13:
+                    kwargs["context"] = _deserialize_context_map(de, _SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["context"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT, consumer=_consumer)
         return kwargs
-
-@dataclass(kw_only=True)
-class ExperimentGroupResponse:
-    """
-    Standard response structure for an experiment group.
-
-    :param context:
-        **[Required]** - Represents conditional criteria used for context matching. Keys
-        define dimension names and values specify the criteria that must be met.
-
-    """
-
-    id: str
-
-    context_hash: str
-
-    name: str
-
-    description: str
-
-    change_reason: str
-
-    context: dict[str, Document]
-
-    traffic_percentage: int
-
-    member_experiment_ids: list[str]
-
-    created_at: datetime
-
-    created_by: str
-
-    last_modified_at: datetime
-
-    last_modified_by: str
-
-    buckets: list[Bucket | None]
-
-    group_type: str
-
-    def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_EXPERIMENT_GROUP_RESPONSE, self)
-
-    def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["id"], self.id)
-        serializer.write_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["context_hash"], self.context_hash)
-        serializer.write_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["name"], self.name)
-        serializer.write_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["description"], self.description)
-        serializer.write_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["change_reason"], self.change_reason)
-        _serialize_condition(serializer, _SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["context"], self.context)
-        serializer.write_integer(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["traffic_percentage"], self.traffic_percentage)
-        _serialize_string_list(serializer, _SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["member_experiment_ids"], self.member_experiment_ids)
-        serializer.write_timestamp(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["created_at"], self.created_at)
-        serializer.write_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["created_by"], self.created_by)
-        serializer.write_timestamp(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["last_modified_at"], self.last_modified_at)
-        serializer.write_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["last_modified_by"], self.last_modified_by)
-        _serialize_buckets(serializer, _SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["buckets"], self.buckets)
-        serializer.write_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["group_type"], self.group_type)
-
-    @classmethod
-    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(**cls.deserialize_kwargs(deserializer))
-
-    @classmethod
-    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
-        kwargs: dict[str, Any] = {}
-
-        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
-            match schema.expect_member_index():
-                case 0:
-                    kwargs["id"] = de.read_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["id"])
-
-                case 1:
-                    kwargs["context_hash"] = de.read_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["context_hash"])
-
-                case 2:
-                    kwargs["name"] = de.read_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["name"])
-
-                case 3:
-                    kwargs["description"] = de.read_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["description"])
-
-                case 4:
-                    kwargs["change_reason"] = de.read_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["change_reason"])
-
-                case 5:
-                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["context"])
-
-                case 6:
-                    kwargs["traffic_percentage"] = de.read_integer(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["traffic_percentage"])
-
-                case 7:
-                    kwargs["member_experiment_ids"] = _deserialize_string_list(de, _SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["member_experiment_ids"])
-
-                case 8:
-                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["created_at"])
-
-                case 9:
-                    kwargs["created_by"] = de.read_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["created_by"])
-
-                case 10:
-                    kwargs["last_modified_at"] = de.read_timestamp(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["last_modified_at"])
-
-                case 11:
-                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["last_modified_by"])
-
-                case 12:
-                    kwargs["buckets"] = _deserialize_buckets(de, _SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["buckets"])
-
-                case 13:
-                    kwargs["group_type"] = de.read_string(_SCHEMA_EXPERIMENT_GROUP_RESPONSE.members["group_type"])
-
-                case _:
-                    logger.debug("Unexpected member schema: %s", schema)
-
-        deserializer.read_struct(_SCHEMA_EXPERIMENT_GROUP_RESPONSE, consumer=_consumer)
-        return kwargs
-
-def _serialize_experiment_group_list(serializer: ShapeSerializer, schema: Schema, value: list[ExperimentGroupResponse]) -> None:
-    member_schema = schema.members["member"]
-    with serializer.begin_list(schema, len(value)) as ls:
-        for e in value:
-            ls.write_struct(member_schema, e)
-
-def _deserialize_experiment_group_list(deserializer: ShapeDeserializer, schema: Schema) -> list[ExperimentGroupResponse]:
-    result: list[ExperimentGroupResponse] = []
-    def _read_value(d: ShapeDeserializer):
-        if d.is_null():
-            d.read_null()
-
-        else:
-            result.append(ExperimentGroupResponse.deserialize(d))
-    deserializer.read_list(schema, _read_value)
-    return result
 
 @dataclass(kw_only=True)
 class ListExperimentGroupsOutput:
@@ -10000,6 +10267,8 @@ class ListExperimentGroupsOutput:
     total_items: int
 
     data: list[ExperimentGroupResponse]
+
+    last_modified: datetime
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_EXPERIMENT_GROUPS_OUTPUT, self)
@@ -10027,6 +10296,9 @@ class ListExperimentGroupsOutput:
 
                 case 2:
                     kwargs["data"] = _deserialize_experiment_group_list(de, _SCHEMA_LIST_EXPERIMENT_GROUPS_OUTPUT.members["data"])
+
+                case 3:
+                    kwargs["last_modified"] = de.read_timestamp(_SCHEMA_LIST_EXPERIMENT_GROUPS_OUTPUT.members["last_modified"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -10444,180 +10716,6 @@ ShapeID("smithy.api#httpBearerAuth")
 )
 
 @dataclass(kw_only=True)
-class ExperimentResponse:
-    """
-
-    :param context:
-        **[Required]** - Represents conditional criteria used for context matching. Keys
-        define dimension names and values specify the criteria that must be met.
-
-    """
-
-    id: str
-
-    created_at: datetime
-
-    created_by: str
-
-    last_modified: datetime
-
-    name: str
-
-    experiment_type: str
-
-    override_keys: list[str]
-
-    status: str
-
-    traffic_percentage: int
-
-    context: dict[str, Document]
-
-    variants: list[Variant]
-
-    last_modified_by: str
-
-    description: str
-
-    change_reason: str
-
-    chosen_variant: str | None = None
-    started_at: datetime | None = None
-    started_by: str | None = None
-    metrics_url: str | None = None
-    metrics: Document | None = None
-    experiment_group_id: str | None = None
-
-    def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_EXPERIMENT_RESPONSE, self)
-
-    def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["id"], self.id)
-        serializer.write_timestamp(_SCHEMA_EXPERIMENT_RESPONSE.members["created_at"], self.created_at)
-        serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["created_by"], self.created_by)
-        serializer.write_timestamp(_SCHEMA_EXPERIMENT_RESPONSE.members["last_modified"], self.last_modified)
-        serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["name"], self.name)
-        serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["experiment_type"], self.experiment_type)
-        _serialize_list_override_keys(serializer, _SCHEMA_EXPERIMENT_RESPONSE.members["override_keys"], self.override_keys)
-        serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["status"], self.status)
-        serializer.write_integer(_SCHEMA_EXPERIMENT_RESPONSE.members["traffic_percentage"], self.traffic_percentage)
-        _serialize_condition(serializer, _SCHEMA_EXPERIMENT_RESPONSE.members["context"], self.context)
-        _serialize_list_variant(serializer, _SCHEMA_EXPERIMENT_RESPONSE.members["variants"], self.variants)
-        serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["last_modified_by"], self.last_modified_by)
-        if self.chosen_variant is not None:
-            serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["chosen_variant"], self.chosen_variant)
-
-        serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["description"], self.description)
-        serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["change_reason"], self.change_reason)
-        if self.started_at is not None:
-            serializer.write_timestamp(_SCHEMA_EXPERIMENT_RESPONSE.members["started_at"], self.started_at)
-
-        if self.started_by is not None:
-            serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["started_by"], self.started_by)
-
-        if self.metrics_url is not None:
-            serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["metrics_url"], self.metrics_url)
-
-        if self.metrics is not None:
-            serializer.write_document(_SCHEMA_EXPERIMENT_RESPONSE.members["metrics"], self.metrics)
-
-        if self.experiment_group_id is not None:
-            serializer.write_string(_SCHEMA_EXPERIMENT_RESPONSE.members["experiment_group_id"], self.experiment_group_id)
-
-    @classmethod
-    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(**cls.deserialize_kwargs(deserializer))
-
-    @classmethod
-    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
-        kwargs: dict[str, Any] = {}
-
-        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
-            match schema.expect_member_index():
-                case 0:
-                    kwargs["id"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["id"])
-
-                case 1:
-                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_EXPERIMENT_RESPONSE.members["created_at"])
-
-                case 2:
-                    kwargs["created_by"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["created_by"])
-
-                case 3:
-                    kwargs["last_modified"] = de.read_timestamp(_SCHEMA_EXPERIMENT_RESPONSE.members["last_modified"])
-
-                case 4:
-                    kwargs["name"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["name"])
-
-                case 5:
-                    kwargs["experiment_type"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["experiment_type"])
-
-                case 6:
-                    kwargs["override_keys"] = _deserialize_list_override_keys(de, _SCHEMA_EXPERIMENT_RESPONSE.members["override_keys"])
-
-                case 7:
-                    kwargs["status"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["status"])
-
-                case 8:
-                    kwargs["traffic_percentage"] = de.read_integer(_SCHEMA_EXPERIMENT_RESPONSE.members["traffic_percentage"])
-
-                case 9:
-                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_EXPERIMENT_RESPONSE.members["context"])
-
-                case 10:
-                    kwargs["variants"] = _deserialize_list_variant(de, _SCHEMA_EXPERIMENT_RESPONSE.members["variants"])
-
-                case 11:
-                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["last_modified_by"])
-
-                case 12:
-                    kwargs["chosen_variant"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["chosen_variant"])
-
-                case 13:
-                    kwargs["description"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["description"])
-
-                case 14:
-                    kwargs["change_reason"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["change_reason"])
-
-                case 15:
-                    kwargs["started_at"] = de.read_timestamp(_SCHEMA_EXPERIMENT_RESPONSE.members["started_at"])
-
-                case 16:
-                    kwargs["started_by"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["started_by"])
-
-                case 17:
-                    kwargs["metrics_url"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["metrics_url"])
-
-                case 18:
-                    kwargs["metrics"] = de.read_document(_SCHEMA_EXPERIMENT_RESPONSE.members["metrics"])
-
-                case 19:
-                    kwargs["experiment_group_id"] = de.read_string(_SCHEMA_EXPERIMENT_RESPONSE.members["experiment_group_id"])
-
-                case _:
-                    logger.debug("Unexpected member schema: %s", schema)
-
-        deserializer.read_struct(_SCHEMA_EXPERIMENT_RESPONSE, consumer=_consumer)
-        return kwargs
-
-def _serialize_experiment_list(serializer: ShapeSerializer, schema: Schema, value: list[ExperimentResponse]) -> None:
-    member_schema = schema.members["member"]
-    with serializer.begin_list(schema, len(value)) as ls:
-        for e in value:
-            ls.write_struct(member_schema, e)
-
-def _deserialize_experiment_list(deserializer: ShapeDeserializer, schema: Schema) -> list[ExperimentResponse]:
-    result: list[ExperimentResponse] = []
-    def _read_value(d: ShapeDeserializer):
-        if d.is_null():
-            d.read_null()
-
-        else:
-            result.append(ExperimentResponse.deserialize(d))
-    deserializer.read_list(schema, _read_value)
-    return result
-
-@dataclass(kw_only=True)
 class GetExperimentInput:
 
     workspace_id: str | None = None
@@ -10864,11 +10962,20 @@ class ListExperimentInput:
          If true, returns all requested items, ignoring pagination parameters page and
          count.
 
+    :param if_modified_since:
+         While using this, 304 response is treated as error, which needs to be handled
+         separately by checking the response code of the http response. This is required
+         to make sure that clients can cache the response and avoid unnecessary calls
+         when there are no updates.
+
     :param sort_by:
          Sort order enumeration for list operations.
 
     :param dimension_match_strategy:
          Strategy to follow while filter items based on the context
+
+    :param context:
+         Map representing the context. Keys correspond to the names of the dimensions.
 
     """
 
@@ -10877,6 +10984,7 @@ class ListExperimentInput:
     all: bool | None = None
     workspace_id: str | None = None
     org_id: str | None = None
+    if_modified_since: datetime | None = None
     status: list[str] | None = None
     from_date: datetime | None = None
     to_date: datetime | None = None
@@ -10888,12 +10996,15 @@ class ListExperimentInput:
     sort_by: str | None = None
     global_experiments_only: bool | None = None
     dimension_match_strategy: str | None = None
+    prefix: list[str] | None = None
+    context: dict[str, Document] | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_EXPERIMENT_INPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        pass
+        if self.context is not None:
+            _serialize_context_map(serializer, _SCHEMA_LIST_EXPERIMENT_INPUT.members["context"], self.context)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -10921,37 +11032,46 @@ class ListExperimentInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["org_id"])
 
                 case 5:
-                    kwargs["status"] = _deserialize_experiment_status_type_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["status"])
+                    kwargs["if_modified_since"] = de.read_timestamp(_SCHEMA_LIST_EXPERIMENT_INPUT.members["if_modified_since"])
 
                 case 6:
-                    kwargs["from_date"] = de.read_timestamp(_SCHEMA_LIST_EXPERIMENT_INPUT.members["from_date"])
+                    kwargs["status"] = _deserialize_experiment_status_type_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["status"])
 
                 case 7:
-                    kwargs["to_date"] = de.read_timestamp(_SCHEMA_LIST_EXPERIMENT_INPUT.members["to_date"])
+                    kwargs["from_date"] = de.read_timestamp(_SCHEMA_LIST_EXPERIMENT_INPUT.members["from_date"])
 
                 case 8:
-                    kwargs["experiment_name"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["experiment_name"])
+                    kwargs["to_date"] = de.read_timestamp(_SCHEMA_LIST_EXPERIMENT_INPUT.members["to_date"])
 
                 case 9:
-                    kwargs["experiment_ids"] = _deserialize_string_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["experiment_ids"])
+                    kwargs["experiment_name"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["experiment_name"])
 
                 case 10:
-                    kwargs["experiment_group_ids"] = _deserialize_string_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["experiment_group_ids"])
+                    kwargs["experiment_ids"] = _deserialize_string_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["experiment_ids"])
 
                 case 11:
-                    kwargs["created_by"] = _deserialize_string_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["created_by"])
+                    kwargs["experiment_group_ids"] = _deserialize_string_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["experiment_group_ids"])
 
                 case 12:
-                    kwargs["sort_on"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["sort_on"])
+                    kwargs["created_by"] = _deserialize_string_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["created_by"])
 
                 case 13:
-                    kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["sort_by"])
+                    kwargs["sort_on"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["sort_on"])
 
                 case 14:
-                    kwargs["global_experiments_only"] = de.read_boolean(_SCHEMA_LIST_EXPERIMENT_INPUT.members["global_experiments_only"])
+                    kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["sort_by"])
 
                 case 15:
+                    kwargs["global_experiments_only"] = de.read_boolean(_SCHEMA_LIST_EXPERIMENT_INPUT.members["global_experiments_only"])
+
+                case 16:
                     kwargs["dimension_match_strategy"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["dimension_match_strategy"])
+
+                case 17:
+                    kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["prefix"])
+
+                case 18:
+                    kwargs["context"] = _deserialize_context_map(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["context"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -10967,6 +11087,8 @@ class ListExperimentOutput:
     total_items: int
 
     data: list[ExperimentResponse]
+
+    last_modified: datetime
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_EXPERIMENT_OUTPUT, self)
@@ -10994,6 +11116,9 @@ class ListExperimentOutput:
 
                 case 2:
                     kwargs["data"] = _deserialize_experiment_list(de, _SCHEMA_LIST_EXPERIMENT_OUTPUT.members["data"])
+
+                case 3:
+                    kwargs["last_modified"] = de.read_timestamp(_SCHEMA_LIST_EXPERIMENT_OUTPUT.members["last_modified"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)

@@ -49,6 +49,7 @@ export interface GetConfigCommandOutput extends GetConfigOutput, __MetadataBeare
  *     "STRING_VALUE",
  *   ],
  *   version: "STRING_VALUE",
+ *   if_modified_since: new Date("TIMESTAMP"),
  *   context: { // ContextMap
  *     "<keys>": "DOCUMENT_VALUE",
  *   },
@@ -98,7 +99,6 @@ export interface GetConfigCommandOutput extends GetConfigOutput, __MetadataBeare
  * //   },
  * //   version: "STRING_VALUE", // required
  * //   last_modified: new Date("TIMESTAMP"), // required
- * //   audit_id: "STRING_VALUE",
  * // };
  *
  * ```

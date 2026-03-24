@@ -6,7 +6,7 @@ use crate::config::Condition;
 use crate::{logic, DimensionInfo};
 
 pub trait Contextual: Clone {
-    fn get_condition(&self) -> Condition;
+    fn get_condition(&self) -> &Condition;
 
     fn filter_by_eval(
         contexts: Vec<Self>,
@@ -15,7 +15,7 @@ pub trait Contextual: Clone {
         contexts
             .into_iter()
             .filter(|context| {
-                crate::partial_apply(&context.get_condition().into(), dimension_data)
+                logic::partial_apply(context.get_condition(), dimension_data)
             })
             .collect()
     }
@@ -27,8 +27,8 @@ pub trait Contextual: Clone {
         contexts
             .into_iter()
             .filter(|context| {
-                let condition = context.get_condition().into();
-                logic::apply(&condition, dimension_data)
+                let condition = context.get_condition();
+                logic::apply(condition, dimension_data)
                     && condition.len() == dimension_data.len()
             })
             .collect()
@@ -42,7 +42,7 @@ pub trait Contextual: Clone {
         contexts
             .into_iter()
             .filter(|context| {
-                let variables: Map<String, Value> = context.get_condition().into();
+                let variables = context.get_condition();
                 original_dimension_keys.iter().all(|dimension| {
                     variables.contains_key(*dimension)
                         || dimensions_info

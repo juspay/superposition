@@ -24,11 +24,8 @@ pub fn eval_config(
     };
 
     // Apply prefix filtering if keys are provided (using existing superposition_types logic)
-    if let Some(prefixes) = filter_prefixes {
-        if !prefixes.is_empty() {
-            config =
-                config.filter_by_prefix(&HashSet::from_iter(prefixes.iter().cloned()));
-        }
+    if let Some(prefixes) = filter_prefixes.filter(|p| !p.is_empty()) {
+        config = config.filter_by_prefix(&HashSet::from_iter(prefixes.iter().cloned()));
     }
 
     let modified_query_data = evaluate_local_cohorts(&config.dimensions, query_data);
@@ -66,11 +63,8 @@ pub fn eval_config_with_reasoning(
         dimensions: dimensions.clone(),
     };
 
-    if let Some(prefixes) = filter_prefixes {
-        if !prefixes.is_empty() {
-            config =
-                config.filter_by_prefix(&HashSet::from_iter(prefixes.iter().cloned()));
-        }
+    if let Some(prefixes) = filter_prefixes.filter(|p| !p.is_empty()) {
+        config = config.filter_by_prefix(&HashSet::from_iter(prefixes.iter().cloned()));
     }
 
     let mut reasoning_collector = |context: Context| {

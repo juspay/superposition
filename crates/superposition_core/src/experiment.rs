@@ -7,9 +7,8 @@ use superposition_types::database::models::experimentation::{
     Bucket, Buckets, Experiment, ExperimentGroup, ExperimentStatusType, GroupType,
     Variant, Variants,
 };
-use superposition_types::{
-    logic::evaluate_local_cohorts, Condition, DimensionInfo, Overridden,
-};
+use superposition_types::experimental::{Experimental, ExperimentalVariants};
+use superposition_types::{logic::evaluate_local_cohorts, Condition, DimensionInfo};
 
 use std::fmt;
 
@@ -33,6 +32,18 @@ pub struct FfiExperiment {
     pub variants: Variants,
     pub context: Condition,
     pub status: ExperimentStatusType,
+}
+
+impl Experimental for FfiExperiment {
+    fn get_condition(&self) -> &Condition {
+        &self.context
+    }
+}
+
+impl ExperimentalVariants for FfiExperiment {
+    fn get_variants_mut(&mut self) -> &mut Vec<Variant> {
+        &mut self.variants
+    }
 }
 
 impl From<Experiment> for FfiExperiment {
@@ -188,80 +199,35 @@ pub fn calculate_bucket_index(identifier: &str, group_id: &str) -> usize {
 }
 
 pub fn get_satisfied_experiments(
-    experiments: Experiments,
+    mut experiments: Experiments,
     context: &Map<String, Value>,
     filter_prefixes: Option<Vec<String>>,
 ) -> Result<Experiments, String> {
-    let running_experiments = experiments
-        .into_iter()
-        .filter(|exp| superposition_types::apply(&exp.context, context))
-        .collect();
-
-    if let Some(prefix_list) = filter_prefixes {
-        return Ok(filter_experiments_by_prefix(
-            running_experiments,
-            prefix_list,
-        ));
+    if let Some(prefix_list) = filter_prefixes.filter(|p| !p.is_empty()) {
+        let prefix_list: HashSet<String> = HashSet::from_iter(prefix_list);
+        experiments = FfiExperiment::filter_keys_by_prefix(experiments, &prefix_list);
     }
 
-    Ok(running_experiments)
+    if !context.is_empty() {
+        experiments = FfiExperiment::get_satisfied(experiments, context);
+    }
+
+    Ok(experiments)
 }
 
 pub fn filter_experiments_by_context(
-    experiments: Experiments,
+    mut experiments: Experiments,
     context: &Map<String, Value>,
     filter_prefixes: Option<Vec<String>>,
 ) -> Result<Experiments, String> {
-    let running_experiments = experiments
-        .into_iter()
-        .filter_map(|exp| {
-            if exp.context.is_empty() {
-                Some(exp)
-            } else {
-                superposition_types::partial_apply(&exp.context, context).then_some(exp)
-            }
-        })
-        .collect();
-
-    if let Some(prefix_list) = filter_prefixes {
-        return Ok(filter_experiments_by_prefix(
-            running_experiments,
-            prefix_list,
-        ));
+    if let Some(prefix_list) = filter_prefixes.filter(|p| !p.is_empty()) {
+        let prefix_list: HashSet<String> = HashSet::from_iter(prefix_list);
+        experiments = FfiExperiment::filter_keys_by_prefix(experiments, &prefix_list);
     }
 
-    Ok(running_experiments)
-}
+    if !context.is_empty() {
+        experiments = FfiExperiment::filter_by_eval(experiments, context);
+    }
 
-fn filter_experiments_by_prefix(
-    experiments: Experiments,
-    filter_prefixes: Vec<String>,
-) -> Experiments {
-    let prefix_list: HashSet<String> = HashSet::from_iter(filter_prefixes);
-    experiments
-        .into_iter()
-        .filter_map(|experiment| {
-            let variants: Vec<_> = experiment
-                .variants
-                .into_iter()
-                .filter_map(|mut variant| {
-                    Variant::filter_keys_by_prefix(&variant, &prefix_list)
-                        .map(|filtered_overrides_map| {
-                            variant.overrides = filtered_overrides_map;
-                            variant
-                        })
-                        .ok()
-                })
-                .collect();
-
-            if !variants.is_empty() {
-                Some(FfiExperiment {
-                    variants: Variants::new(variants),
-                    ..experiment
-                })
-            } else {
-                None // Skip this experiment
-            }
-        })
-        .collect()
+    Ok(experiments)
 }

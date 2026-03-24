@@ -139,11 +139,6 @@ import {
   GetConfigCommandOutput,
 } from "./commands/GetConfigCommand";
 import {
-  GetConfigFastCommand,
-  GetConfigFastCommandInput,
-  GetConfigFastCommandOutput,
-} from "./commands/GetConfigFastCommand";
-import {
   GetConfigJsonCommand,
   GetConfigJsonCommandInput,
   GetConfigJsonCommandOutput,
@@ -178,6 +173,11 @@ import {
   GetExperimentCommandInput,
   GetExperimentCommandOutput,
 } from "./commands/GetExperimentCommand";
+import {
+  GetExperimentConfigCommand,
+  GetExperimentConfigCommandInput,
+  GetExperimentConfigCommandOutput,
+} from "./commands/GetExperimentConfigCommand";
 import {
   GetExperimentGroupCommand,
   GetExperimentGroupCommandInput,
@@ -459,7 +459,6 @@ const commands = {
   DeleteWebhookCommand,
   DiscardExperimentCommand,
   GetConfigCommand,
-  GetConfigFastCommand,
   GetConfigJsonCommand,
   GetConfigTomlCommand,
   GetContextCommand,
@@ -467,6 +466,7 @@ const commands = {
   GetDefaultConfigCommand,
   GetDimensionCommand,
   GetExperimentCommand,
+  GetExperimentConfigCommand,
   GetExperimentGroupCommand,
   GetFunctionCommand,
   GetOrganisationCommand,
@@ -980,23 +980,6 @@ export interface Superposition {
   ): void;
 
   /**
-   * @see {@link GetConfigFastCommand}
-   */
-  getConfigFast(
-    args: GetConfigFastCommandInput,
-    options?: __HttpHandlerOptions,
-  ): Promise<GetConfigFastCommandOutput>;
-  getConfigFast(
-    args: GetConfigFastCommandInput,
-    cb: (err: any, data?: GetConfigFastCommandOutput) => void
-  ): void;
-  getConfigFast(
-    args: GetConfigFastCommandInput,
-    options: __HttpHandlerOptions,
-    cb: (err: any, data?: GetConfigFastCommandOutput) => void
-  ): void;
-
-  /**
    * @see {@link GetConfigJsonCommand}
    */
   getConfigJson(
@@ -1113,6 +1096,23 @@ export interface Superposition {
     args: GetExperimentCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: GetExperimentCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link GetExperimentConfigCommand}
+   */
+  getExperimentConfig(
+    args: GetExperimentConfigCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<GetExperimentConfigCommandOutput>;
+  getExperimentConfig(
+    args: GetExperimentConfigCommandInput,
+    cb: (err: any, data?: GetExperimentConfigCommandOutput) => void
+  ): void;
+  getExperimentConfig(
+    args: GetExperimentConfigCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: GetExperimentConfigCommandOutput) => void
   ): void;
 
   /**

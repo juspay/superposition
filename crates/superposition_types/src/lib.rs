@@ -8,6 +8,8 @@ mod config;
 mod contextual;
 pub mod custom_query;
 pub mod database;
+#[cfg(feature = "experimentation")]
+pub mod experimental;
 pub mod logic;
 mod overridden;
 #[cfg(feature = "result")]
@@ -72,6 +74,7 @@ pub enum Resource {
     Config,
     Experiment,
     ExperimentGroup,
+    ExperimentConfig,
     Workspace,
     Organisation,
     Webhook,
