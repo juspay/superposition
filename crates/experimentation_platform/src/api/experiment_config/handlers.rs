@@ -6,6 +6,7 @@ use actix_web::{
 };
 use chrono::{DateTime, Utc};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
+use futures::join;
 use service_utils::{
     db::run_query,
     helpers::is_not_modified,

@@ -17,6 +17,7 @@ chrono = { workspace = true }
 diesel = { workspace = true }
 experimentation_client = { path = "../experimentation_client" }
 fred = { workspace = true, features = ["metrics"] }
+futures = { workspace = true }
 inventory = { workspace = true }
 log = { workspace = true }
 reqwest = { workspace = true }
