@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_core-v0.12.0 - 2026-03-24
+#### Features
+- improve provider performance (#909) - (7ea5852) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(version)** v0.100.0 [skip ci] - (d7cc300) - Superposition Bot
+
+- - -
+
 ## superposition_core-v0.11.0 - 2026-03-17
 #### Bug Fixes
 - context sort order to ensure specific overrides win over generic ones (#912) - (95468ee) - sweta-sharma

@@ -2,6 +2,20 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.101.0 - 2026-03-24
+### Package updates
+- superposition_core bumped to superposition_core-v0.12.0
+### Global changes
+#### Documentation
+- add config file compatibility assessment to SuperTOML docs (#926) - (96c51f9) - Natarajan Kannan
+#### Features
+- improve provider performance (#909) - (7ea5852) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(version)** v0.100.2 [skip ci] - (c56fea0) - Superposition Bot
+- docusaurus plugin version update (#890) - (30c1c63) - Ayush Jain
+
+- - -
+
 ## v0.100.2 - 2026-03-20
 ### Package updates
 - superposition_types bumped to superposition_types-v0.41.2
