@@ -31,7 +31,7 @@ pub struct LocalResolutionProviderInner {
     refresh_strategy: RefreshStrategy,
     cached_config: RwLock<Option<ConfigData>>,
     cached_experiments: RwLock<Option<ExperimentData>>,
-    polling_task: RwLock<Option<JoinHandle<()>>>,
+    background_task: RwLock<Option<JoinHandle<()>>>,
     metadata: ProviderMetadata,
     status: RwLock<ProviderStatus>,
     global_context: RwLock<EvaluationContext>,
@@ -52,7 +52,7 @@ impl LocalResolutionProvider {
             refresh_strategy,
             cached_config: RwLock::new(None),
             cached_experiments: RwLock::new(None),
-            polling_task: RwLock::new(None),
+            background_task: RwLock::new(None),
             metadata: ProviderMetadata {
                 name: "LocalResolutionProvider".to_string(),
             },
@@ -98,29 +98,46 @@ impl LocalResolutionProvider {
             *cached = config_data.into_data();
         }
 
-        // Fetch experiments best-effort: try primary, optionally fallback, but don't fail
-        let exp_data = match self.primary.fetch_active_experiments(None).await {
-            Ok(exp_resp) => exp_resp.into_data(),
-            Err(e) => {
-                log::warn!(
-                    "LocalResolutionProvider: primary experiment fetch failed (best-effort): {}",
-                    e
-                );
-                if let Some(fallback) = &self.fallback {
-                    match fallback.fetch_active_experiments(None).await {
-                        Ok(exp_resp) => exp_resp.into_data(),
-                        Err(fb_err) => {
+        // Fetch experiments best-effort: try primary, else fallback
+        let exp_data = if self.primary.supports_experiments() {
+            match self.primary.fetch_active_experiments(None).await {
+                Ok(exp_resp) => exp_resp.into_data(),
+                Err(e) => {
+                    log::warn!(
+                        "LocalResolutionProvider: primary experiment fetch failed: {}",
+                        e
+                    );
+                    if let Some(fallback) = &self.fallback {
+                        if fallback.supports_experiments() {
+                            match fallback.fetch_active_experiments(None).await {
+                                Ok(exp_resp) => exp_resp.into_data(),
+                                Err(fb_err) => {
+                                    log::warn!(
+                                        "LocalResolutionProvider: fallback experiment fetch also failed: {}",
+                                        fb_err
+                                    );
+                                    return Err(SuperpositionError::ConfigError(format!(
+                                        "Both primary and fallback experiment fetch failed. Primary: {}. Fallback: {}",
+                                        e, fb_err
+                                    )));
+                                }
+                            }
+                        } else {
                             log::warn!(
-                                "LocalResolutionProvider: fallback experiment fetch also failed (best-effort): {}",
-                                fb_err
+                                "LocalResolutionProvider: fallback does not support experiments"
                             );
                             None
                         }
+                    } else {
+                        return Err(SuperpositionError::ConfigError(format!(
+                            "Primary experiment fetch failed and no fallback configured: {}",
+                            e
+                        )));
                     }
-                } else {
-                    None
                 }
             }
+        } else {
+            None
         };
 
         if let Some(data) = exp_data {
@@ -136,8 +153,8 @@ impl LocalResolutionProvider {
                     polling_strategy.interval
                 );
                 let task = self.start_polling(polling_strategy.interval).await;
-                let mut polling_task = self.polling_task.write().await;
-                *polling_task = Some(task);
+                let mut background_task = self.background_task.write().await;
+                *background_task = Some(task);
             }
             RefreshStrategy::OnDemand(on_demand_strategy) => {
                 log::info!(
@@ -154,14 +171,19 @@ impl LocalResolutionProvider {
                             debounce_ms
                         );
                         let task = self.start_watching(stream, debounce_ms).await;
-                        let mut polling_task = self.polling_task.write().await;
-                        *polling_task = Some(task);
+                        let mut background_task = self.background_task.write().await;
+                        *background_task = Some(task);
                     }
                     Ok(None) => {
-                        log::warn!("Watch strategy selected but data source does not support watching");
+                        return Err(SuperpositionError::ConfigError(
+                            "Watch strategy selected but data source does not support watching".into(),
+                        ));
                     }
                     Err(e) => {
-                        log::warn!("Failed to start watch: {}", e);
+                        return Err(SuperpositionError::ConfigError(format!(
+                            "Failed to start watch: {}",
+                            e
+                        )));
                     }
                 }
             }
@@ -171,13 +193,13 @@ impl LocalResolutionProvider {
         }
 
         {
-            let mut status = self.status.write().await;
-            *status = ProviderStatus::Ready;
+            let mut global_context = self.global_context.write().await;
+            *global_context = context;
         }
 
         {
-            let mut global_context = self.global_context.write().await;
-            *global_context = context;
+            let mut status = self.status.write().await;
+            *status = ProviderStatus::Ready;
         }
 
         Ok(())
@@ -187,11 +209,11 @@ impl LocalResolutionProvider {
         self.do_refresh().await
     }
 
-    pub async fn close(&self) -> Result<()> {
-        // Abort polling task
+    pub async fn close_provider(&self) -> Result<()> {
+        // Abort background task
         {
-            let mut polling_task = self.polling_task.write().await;
-            if let Some(task) = polling_task.take() {
+            let mut background_task = self.background_task.write().await;
+            if let Some(task) = background_task.take() {
                 task.abort();
             }
         }
@@ -220,6 +242,11 @@ impl LocalResolutionProvider {
         {
             let mut cached = self.cached_experiments.write().await;
             *cached = None;
+        }
+
+        {
+            let mut global_context = self.global_context.write().await;
+            *global_context = EvaluationContext::default();
         }
 
         // Set status to NotReady
@@ -262,7 +289,6 @@ impl LocalResolutionProvider {
             }
         };
 
-        // Experiments refresh is best-effort, don't propagate errors
         if self.primary.supports_experiments() {
             let exp_last_fetched_at = {
                 self.cached_experiments
@@ -301,11 +327,11 @@ impl LocalResolutionProvider {
     }
 
     async fn start_polling(&self, interval: u64) -> JoinHandle<()> {
-        let provider_clone = self.clone();
+        let provider = self.clone();
         tokio::spawn(async move {
             loop {
                 sleep(Duration::from_secs(interval)).await;
-                let _ = provider_clone.do_refresh().await;
+                let _ = provider.do_refresh().await;
             }
         })
     }
@@ -315,7 +341,7 @@ impl LocalResolutionProvider {
         mut watch_stream: crate::types::WatchStream,
         debounce_ms: u64,
     ) -> JoinHandle<()> {
-        let provider_clone = self.clone();
+        let provider = self.clone();
 
         tokio::spawn(async move {
             loop {
@@ -324,77 +350,13 @@ impl LocalResolutionProvider {
                         // Debounce: wait, then drain any queued events
                         sleep(Duration::from_millis(debounce_ms)).await;
                         while watch_stream.receiver.try_recv().is_ok() {}
-
-                        let last_fetched_at = {
-                            provider_clone
-                                .cached_config
-                                .read()
-                                .await
-                                .as_ref()
-                                .map(|data| data.fetched_at)
-                        };
-
-                        // Refresh config
-                        match provider_clone.primary.fetch_config(last_fetched_at).await {
-                            Ok(FetchResponse::Data(data)) => {
-                                let mut cached =
-                                    provider_clone.cached_config.write().await;
-                                *cached = Some(data);
-                                log::debug!(
-                                    "LocalResolutionProvider: config updated via watch"
-                                );
-                            }
-                            Ok(FetchResponse::NotModified) => {
-                                log::debug!(
-                                    "LocalResolutionProvider: config not modified on watch refresh"
-                                );
-                            }
-                            Err(e) => {
-                                log::error!(
-                                    "LocalResolutionProvider: watch config refresh error: {}",
-                                    e
-                                );
-                            }
-                        }
-
-                        let exp_last_fetched_at = {
-                            provider_clone
-                                .cached_experiments
-                                .read()
-                                .await
-                                .as_ref()
-                                .map(|d| d.fetched_at)
-                        };
-                        // Refresh experiments
-                        match provider_clone
-                            .primary
-                            .fetch_active_experiments(exp_last_fetched_at)
-                            .await
-                        {
-                            Ok(exp_resp) => {
-                                let mut cached =
-                                    provider_clone.cached_experiments.write().await;
-                                if let Some(data) = exp_resp.into_data() {
-                                    *cached = Some(data);
-                                }
-                                log::debug!(
-                                    "LocalResolutionProvider: experiments refreshed from primary on watch update"
-                                );
-                            }
-                            Err(e) => {
-                                log::warn!(
-                                    "LocalResolutionProvider: experiment refresh failed, keeping last known good on watch update: {}",
-                                    e
-                                );
-                            }
-                        }
+                        let _ = provider.do_refresh().await;
                     }
                     Err(e) => {
                         log::error!(
                             "LocalResolutionProvider: watch channel error: {}",
                             e
                         );
-                        break;
                     }
                 }
             }
@@ -406,19 +368,27 @@ impl LocalResolutionProvider {
             let ttl = on_demand.ttl;
             let use_stale_on_error = on_demand.use_stale_on_error.unwrap_or_default();
 
-            let should_refresh = {
-                let cached = self.cached_config.read().await;
-                match cached.as_ref() {
-                    Some(data) => {
-                        let elapsed =
-                            (chrono::Utc::now() - data.fetched_at).num_seconds();
-                        elapsed > ttl as i64
-                    }
-                    None => true,
-                }
+            let is_elapsed = |cached_at: DateTime<Utc>| {
+                (chrono::Utc::now() - cached_at).num_seconds() > ttl as i64
             };
 
-            if should_refresh {
+            let should_refresh_config = {
+                let cached = self.cached_config.read().await;
+                cached
+                    .as_ref()
+                    .map(|data| is_elapsed(data.fetched_at))
+                    .unwrap_or(true)
+            };
+
+            let should_refresh_experiments = {
+                let cached = self.cached_experiments.read().await;
+                cached
+                    .as_ref()
+                    .map(|data| is_elapsed(data.fetched_at))
+                    .unwrap_or(true)
+            };
+
+            if should_refresh_config || should_refresh_experiments {
                 log::debug!("LocalResolutionProvider: TTL expired, refreshing on-demand");
                 if let Err(e) = self.do_refresh().await {
                     if !use_stale_on_error {
@@ -467,7 +437,7 @@ impl LocalResolutionProvider {
                     &exp_data.data.experiment_groups,
                     &query_data,
                     &targeting_key.clone().unwrap_or_default(),
-                    None,
+                    prefix_filter.map(|p| p.to_vec()),
                 );
 
                 query_data.insert(
@@ -618,6 +588,7 @@ impl FeatureProvider for LocalResolutionProvider {
 
     fn status(&self) -> ProviderStatus {
         match self.status.try_read() {
+            // need to do this as ProviderStatus neither implements Copy nor Clone
             Ok(status) => match *status {
                 ProviderStatus::Ready => ProviderStatus::Ready,
                 ProviderStatus::Error => ProviderStatus::Error,
@@ -633,8 +604,11 @@ impl FeatureProvider for LocalResolutionProvider {
 impl SuperpositionDataSource for LocalResolutionProvider {
     async fn fetch_config(
         &self,
-        _: Option<DateTime<Utc>>,
+        if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ConfigData>> {
+        if if_modified_since.is_some() {
+            log::debug!("LocalResolutionProvider: ignoring if_modified_since for config, always returning cached data");
+        }
         let cached = self.cached_config.read().await;
         match cached.as_ref() {
             Some(data) => Ok(FetchResponse::Data(data.clone())),
@@ -648,26 +622,32 @@ impl SuperpositionDataSource for LocalResolutionProvider {
         &self,
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
-        last_fetched_at: Option<DateTime<Utc>>,
+        if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ConfigData>> {
-        let resp = self.fetch_config(last_fetched_at).await?.map_data(|mut c| {
-            let prefix = prefix_filter.map(HashSet::from_iter);
-            c.config = c.config.filter(context.as_ref(), prefix.as_ref());
+        let resp = self
+            .fetch_config(if_modified_since)
+            .await?
+            .map_data(|mut c| {
+                let prefix = prefix_filter.map(HashSet::from_iter);
+                c.config = c.config.filter(context.as_ref(), prefix.as_ref());
 
-            c
-        });
+                c
+            });
 
         Ok(resp)
     }
 
     async fn fetch_active_experiments(
         &self,
-        _: Option<DateTime<Utc>>,
+        if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ExperimentData>> {
         if !self.supports_experiments() {
             return Err(SuperpositionError::ConfigError(
                 "Experiments not supported by this provider".into(),
             ));
+        }
+        if if_modified_since.is_some() {
+            log::debug!("LocalResolutionProvider: ignoring if_modified_since for experiments, always returning cached data");
         }
         let cached = self.cached_experiments.read().await;
         match cached.clone() {
@@ -682,7 +662,7 @@ impl SuperpositionDataSource for LocalResolutionProvider {
         &self,
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
-        last_fetched_at: Option<DateTime<Utc>>,
+        if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ExperimentData>> {
         if !self.supports_experiments() {
             return Err(SuperpositionError::ConfigError(
@@ -691,7 +671,7 @@ impl SuperpositionDataSource for LocalResolutionProvider {
         }
 
         let resp = self
-            .fetch_active_experiments(last_fetched_at)
+            .fetch_active_experiments(if_modified_since)
             .await?
             .map_data(|mut exp_data| {
                 let context = context.unwrap_or_default();
@@ -714,7 +694,7 @@ impl SuperpositionDataSource for LocalResolutionProvider {
         &self,
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
-        last_fetched_at: Option<DateTime<Utc>>,
+        if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ExperimentData>> {
         if !self.supports_experiments() {
             return Err(SuperpositionError::ConfigError(
@@ -723,7 +703,7 @@ impl SuperpositionDataSource for LocalResolutionProvider {
         }
 
         let resp = self
-            .fetch_active_experiments(last_fetched_at)
+            .fetch_active_experiments(if_modified_since)
             .await?
             .map_data(|mut exp_data| {
                 let context = context.unwrap_or_default();
@@ -747,6 +727,6 @@ impl SuperpositionDataSource for LocalResolutionProvider {
     }
 
     async fn close(&self) -> Result<()> {
-        Ok(())
+        self.close_provider().await
     }
 }

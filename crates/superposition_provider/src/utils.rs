@@ -338,10 +338,10 @@ impl ConversionUtils {
                     .map_err(|e| SuperpositionError::SerializationError(e.to_string()))?;
 
                 let variant_value = Variant {
-                    id: variant.id.clone(),
+                    id: variant.id,
                     variant_type,
-                    context_id: variant.context_id.clone(),
-                    override_id: variant.override_id.clone(),
+                    context_id: variant.context_id,
+                    override_id: variant.override_id,
                     overrides: override_,
                 };
                 variants.push(variant_value);
@@ -367,7 +367,7 @@ impl ConversionUtils {
                 }
             };
             let experiment = FfiExperiment {
-                id: exp.id.clone(),
+                id: exp.id,
                 context,
                 variants,
                 traffic_percentage: exp.traffic_percentage as u8,
@@ -410,7 +410,7 @@ impl ConversionUtils {
             };
 
             let experiment_group = FfiExperimentGroup {
-                id: exp_group.id.clone(),
+                id: exp_group.id,
                 context,
                 traffic_percentage: exp_group.traffic_percentage as u8,
                 member_experiment_ids: exp_group.member_experiment_ids,
@@ -418,11 +418,11 @@ impl ConversionUtils {
                 buckets: Buckets::try_from(
                     exp_group
                         .buckets
-                        .iter()
+                        .into_iter()
                         .map(|b| {
-                            b.as_ref().map(|bucket| Bucket {
-                                variant_id: bucket.variant_id.clone(),
-                                experiment_id: bucket.experiment_id.clone(),
+                            b.map(|bucket| Bucket {
+                                variant_id: bucket.variant_id,
+                                experiment_id: bucket.experiment_id,
                             })
                         })
                         .collect::<Vec<_>>(),
@@ -552,152 +552,5 @@ impl ConversionUtils {
         // Convert Map<String, Value> to HashMap<String, Value>
         let final_result: HashMap<String, Value> = result.into_iter().collect();
         Ok(final_result)
-    }
-
-    /// Convert serde_json Value to boolean for OpenFeature provider
-    pub fn serde_value_to_bool(value: &Value) -> Result<bool> {
-        match value {
-            Value::Bool(b) => Ok(*b),
-            Value::String(s) => s.parse::<bool>().map_err(|_| {
-                SuperpositionError::ConfigError(format!(
-                    "Cannot convert string '{}' to boolean",
-                    s
-                ))
-            }),
-            _ => Err(SuperpositionError::ConfigError(format!(
-                "Cannot convert {:?} to boolean",
-                value
-            ))),
-        }
-    }
-
-    /// Convert serde_json Value to string for OpenFeature provider
-    pub fn serde_value_to_string(value: &Value) -> Result<String> {
-        match value {
-            Value::String(s) => Ok(s.clone()),
-            Value::Number(n) => Ok(n.to_string()),
-            Value::Bool(b) => Ok(b.to_string()),
-            _ => Err(SuperpositionError::ConfigError(format!(
-                "Cannot convert {:?} to string",
-                value
-            ))),
-        }
-    }
-
-    /// Convert serde_json Value to integer for OpenFeature provider
-    pub fn serde_value_to_int(value: &Value) -> Result<i64> {
-        match value {
-            Value::Number(n) => n.as_i64().ok_or_else(|| {
-                SuperpositionError::ConfigError(format!(
-                    "Cannot convert number {} to i64",
-                    n
-                ))
-            }),
-            Value::String(s) => s.parse::<i64>().map_err(|_| {
-                SuperpositionError::ConfigError(format!(
-                    "Cannot convert string '{}' to i64",
-                    s
-                ))
-            }),
-            _ => Err(SuperpositionError::ConfigError(format!(
-                "Cannot convert {:?} to i64",
-                value
-            ))),
-        }
-    }
-
-    /// Convert serde_json Value to float for OpenFeature provider
-    pub fn serde_value_to_float(value: &Value) -> Result<f64> {
-        match value {
-            Value::Number(n) => n.as_f64().ok_or_else(|| {
-                SuperpositionError::ConfigError(format!(
-                    "Cannot convert number {} to f64",
-                    n
-                ))
-            }),
-            Value::String(s) => s.parse::<f64>().map_err(|_| {
-                SuperpositionError::ConfigError(format!(
-                    "Cannot convert string '{}' to f64",
-                    s
-                ))
-            }),
-            _ => Err(SuperpositionError::ConfigError(format!(
-                "Cannot convert {:?} to f64",
-                value
-            ))),
-        }
-    }
-
-    /// Convert serde_json Value to OpenFeature StructValue
-    pub fn serde_value_to_struct_value(
-        value: &Value,
-    ) -> Result<open_feature::StructValue> {
-        match value {
-            Value::Object(map) => {
-                let mut fields = HashMap::new();
-                for (k, v) in map {
-                    let open_feature_value = Self::serde_value_to_openfeature_value(v)?;
-                    fields.insert(k.clone(), open_feature_value);
-                }
-                // StructValue is just a struct with a fields HashMap, not a complex conversion
-                Ok(open_feature::StructValue { fields })
-            }
-            Value::Array(list) => {
-                let mut fields = HashMap::new();
-                for (index, item) in list.iter().enumerate() {
-                    let open_feature_value =
-                        Self::serde_value_to_openfeature_value(item)?;
-                    fields.insert(index.to_string(), open_feature_value);
-                }
-                Ok(open_feature::StructValue { fields })
-            }
-            _ => Err(SuperpositionError::ConfigError(format!(
-                "Cannot convert {:?} to StructValue - flag must be an object/array",
-                value
-            ))),
-        }
-    }
-
-    /// Convert serde_json Value to OpenFeature Value
-    pub fn serde_value_to_openfeature_value(
-        value: &Value,
-    ) -> Result<open_feature::Value> {
-        match value {
-            Value::Bool(b) => Ok(open_feature::Value::Bool(*b)),
-            Value::String(s) => Ok(open_feature::Value::String(s.clone())),
-            Value::Number(n) => {
-                if let Some(i) = n.as_i64() {
-                    Ok(open_feature::Value::Int(i))
-                } else if let Some(f) = n.as_f64() {
-                    Ok(open_feature::Value::Float(f))
-                } else {
-                    Err(SuperpositionError::ConfigError(format!(
-                        "Cannot convert number {} to OpenFeature value",
-                        n
-                    )))
-                }
-            }
-            Value::Array(arr) => {
-                let mut list = Vec::new();
-                for item in arr {
-                    list.push(Self::serde_value_to_openfeature_value(item)?);
-                }
-                // OpenFeature uses Array, not List
-                Ok(open_feature::Value::Array(list))
-            }
-            Value::Object(map) => {
-                let mut fields = HashMap::new();
-                for (k, v) in map {
-                    let open_feature_value = Self::serde_value_to_openfeature_value(v)?;
-                    fields.insert(k.clone(), open_feature_value);
-                }
-                // Create StructValue directly with fields HashMap
-                let struct_value = open_feature::StructValue { fields };
-                Ok(open_feature::Value::Struct(struct_value))
-            }
-            Value::Null => Err(SuperpositionError::ConfigError(
-                "Cannot convert null to OpenFeature value".to_string(),
-            )),
-        }
     }
 }

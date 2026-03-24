@@ -111,12 +111,24 @@ pub struct SuperpositionAPIProvider {
     global_context: RwLock<EvaluationContext>,
     metadata: ProviderMetadata,
     status: RwLock<ProviderStatus>,
+    client: Client,
+}
+
+fn create_client(options: &SuperpositionOptions) -> Client {
+    let sdk_config = SdkConfig::builder()
+        .endpoint_url(&options.endpoint)
+        .bearer_token(options.token.clone().into())
+        .behavior_version_latest()
+        .build();
+
+    Client::from_conf(sdk_config)
 }
 
 impl SuperpositionAPIProvider {
     /// Create a new provider without response caching.
     pub fn new(options: SuperpositionOptions) -> Self {
         Self {
+            client: create_client(&options),
             options,
             cache: None,
             global_context: RwLock::new(EvaluationContext::default()),
@@ -137,6 +149,7 @@ impl SuperpositionAPIProvider {
         let cache = ResponseCache::new(max_entries, ttl);
 
         Self {
+            client: create_client(&options),
             options,
             cache: Some(Arc::new(RwLock::new(cache))),
             global_context: RwLock::new(EvaluationContext::default()),
@@ -145,16 +158,6 @@ impl SuperpositionAPIProvider {
             },
             status: RwLock::new(ProviderStatus::NotReady),
         }
-    }
-
-    fn create_client(&self) -> Client {
-        let sdk_config = SdkConfig::builder()
-            .endpoint_url(&self.options.endpoint)
-            .bearer_token(self.options.token.clone().into())
-            .behavior_version_latest()
-            .build();
-
-        Client::from_conf(sdk_config)
     }
 
     async fn resolve_remote(
@@ -178,7 +181,7 @@ impl SuperpositionAPIProvider {
         }
 
         // 2. Create SDK client
-        let client = self.create_client();
+        let client = &self.client;
 
         let global_context = self.global_context.read().await;
         context.merge_missing(&global_context);
@@ -300,6 +303,7 @@ impl FeatureExperimentMeta for SuperpositionAPIProvider {
 
 #[async_trait]
 impl FeatureProvider for SuperpositionAPIProvider {
+    // TODO: use context and set as global context for the provider
     async fn initialize(&mut self, _context: &EvaluationContext) {
         log::info!("Initializing SuperpositionAPIProvider...");
         {
@@ -359,6 +363,7 @@ impl FeatureProvider for SuperpositionAPIProvider {
 
     fn status(&self) -> ProviderStatus {
         match self.status.try_read() {
+            // need to do this as ProviderStatus neither implements Copy nor Clone
             Ok(status) => match *status {
                 ProviderStatus::Ready => ProviderStatus::Ready,
                 ProviderStatus::Error => ProviderStatus::Error,

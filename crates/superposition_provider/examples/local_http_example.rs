@@ -40,5 +40,5 @@ async fn main() {
     let variants = provider.get_applicable_variants(context).await.unwrap();
     println!("Variants: {:?}", variants);
 
-    provider.close().await.unwrap();
+    provider.close_provider().await.unwrap();
 }

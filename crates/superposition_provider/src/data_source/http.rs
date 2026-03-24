@@ -1,6 +1,5 @@
 use async_trait::async_trait;
-use chrono::{DateTime, Utc};
-use log::info;
+use chrono::{DateTime, TimeZone, Utc};
 use serde_json::{Map, Value};
 use superposition_sdk::error::SdkError;
 use superposition_sdk::types::DimensionMatchStrategy;
@@ -14,42 +13,45 @@ use super::{ConfigData, ExperimentData, FetchResponse, SuperpositionDataSource};
 
 pub struct HttpDataSource {
     options: SuperpositionOptions,
+    client: Client,
+}
+
+fn create_client(options: &SuperpositionOptions) -> Client {
+    let sdk_config = SdkConfig::builder()
+        .endpoint_url(&options.endpoint)
+        .bearer_token(options.token.clone().into())
+        .behavior_version_latest()
+        .build();
+
+    Client::from_conf(sdk_config)
 }
 
 impl HttpDataSource {
     pub fn new(options: SuperpositionOptions) -> Self {
-        Self { options }
-    }
-
-    fn create_client(&self) -> Client {
-        let sdk_config = SdkConfig::builder()
-            .endpoint_url(&self.options.endpoint)
-            .bearer_token(self.options.token.clone().into())
-            .behavior_version_latest()
-            .build();
-
-        Client::from_conf(sdk_config)
+        Self {
+            client: create_client(&options),
+            options,
+        }
     }
 
     async fn fetch_experiments_with_filters(
         &self,
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
-        last_fetched_at: Option<DateTime<Utc>>,
-        filter: Option<bool>,
+        if_modified_since: Option<DateTime<Utc>>,
+        filter: Option<DimensionMatchStrategy>,
     ) -> Result<FetchResponse<ExperimentData>> {
-        let client = self.create_client();
-
-        let mut experiment_builder = client
+        let mut experiment_builder = self
+            .client
             .get_experiment_config()
             .workspace_id(&self.options.workspace_id)
             .org_id(&self.options.org_id);
 
-        if let Some(fetched_at) = last_fetched_at
+        if let Some(modified_since) = if_modified_since
             .and_then(|t| t.timestamp_nanos_opt())
             .and_then(|t| aws_smithy_types::DateTime::from_nanos(t.into()).ok())
         {
-            experiment_builder = experiment_builder.if_modified_since(fetched_at);
+            experiment_builder = experiment_builder.if_modified_since(modified_since);
         }
 
         if let Some(context) = context {
@@ -66,22 +68,23 @@ impl HttpDataSource {
         }
 
         if let Some(filter) = filter {
-            if filter {
-                experiment_builder = experiment_builder
-                    .dimension_match_strategy(DimensionMatchStrategy::Subset);
-            } else {
-                experiment_builder = experiment_builder
-                    .dimension_match_strategy(DimensionMatchStrategy::Exact);
-            }
+            experiment_builder = experiment_builder.dimension_match_strategy(filter);
         }
 
-        info!("Fetching experiments from Superposition service using SDK");
+        log::info!("Fetching experiments from Superposition service using SDK");
         let experiments_result = experiment_builder.send().await;
 
         let experiments_response = match experiments_result {
-            Ok(res) => ConversionUtils::convert_experiment_config_response(res)
-                .map(ExperimentData::new)
-                .map(FetchResponse::Data),
+            Ok(res) => {
+                let modified_at =
+                    Utc.timestamp_nanos(res.last_modified.as_nanos() as i64);
+                ConversionUtils::convert_experiment_config_response(res)
+                    .map(|d| ExperimentData {
+                        data: d,
+                        fetched_at: modified_at,
+                    })
+                    .map(FetchResponse::Data)
+            }
             Err(SdkError::ResponseError(r)) if r.raw().status().as_u16() == 304 => {
                 Ok(FetchResponse::NotModified)
             }
@@ -91,7 +94,7 @@ impl HttpDataSource {
             ))),
         }?;
 
-        info!("Successfully fetched {}", experiments_response);
+        log::info!("Successfully fetched {}", experiments_response);
 
         Ok(experiments_response)
     }
@@ -100,21 +103,20 @@ impl HttpDataSource {
         &self,
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
-        last_fetched_at: Option<DateTime<Utc>>,
+        if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ConfigData>> {
-        let client = self.create_client();
-
-        info!("Fetching config from Superposition service using SDK");
-        let mut builder = client
+        log::info!("Fetching config from Superposition service using SDK");
+        let mut builder = self
+            .client
             .get_config()
             .workspace_id(&self.options.workspace_id)
             .org_id(&self.options.org_id);
 
-        if let Some(fetched_at) = last_fetched_at
+        if let Some(modified_since) = if_modified_since
             .and_then(|t| t.timestamp_nanos_opt())
             .and_then(|t| aws_smithy_types::DateTime::from_nanos(t.into()).ok())
         {
-            builder = builder.if_modified_since(fetched_at);
+            builder = builder.if_modified_since(modified_since);
         }
 
         if let Some(context) = context {
@@ -133,9 +135,16 @@ impl HttpDataSource {
         let config_result = builder.send().await;
 
         let resp = match config_result {
-            Ok(res) => ConversionUtils::convert_get_config_response(res)
-                .map(ConfigData::new)
-                .map(FetchResponse::Data),
+            Ok(res) => {
+                let modified_at =
+                    Utc.timestamp_nanos(res.last_modified.as_nanos() as i64);
+                ConversionUtils::convert_get_config_response(res)
+                    .map(|d| ConfigData {
+                        config: d,
+                        fetched_at: modified_at,
+                    })
+                    .map(FetchResponse::Data)
+            }
             Err(SdkError::ResponseError(r)) if r.raw().status().as_u16() == 304 => {
                 Ok(FetchResponse::NotModified)
             }
@@ -153,9 +162,9 @@ impl HttpDataSource {
 impl SuperpositionDataSource for HttpDataSource {
     async fn fetch_config(
         &self,
-        last_fetched_at: Option<DateTime<Utc>>,
+        if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ConfigData>> {
-        self.fetch_config_with_filters(None, None, last_fetched_at)
+        self.fetch_config_with_filters(None, None, if_modified_since)
             .await
     }
 
@@ -163,17 +172,17 @@ impl SuperpositionDataSource for HttpDataSource {
         &self,
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
-        last_fetched_at: Option<DateTime<Utc>>,
+        if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ConfigData>> {
-        self.fetch_config_with_filters(context, prefix_filter, last_fetched_at)
+        self.fetch_config_with_filters(context, prefix_filter, if_modified_since)
             .await
     }
 
     async fn fetch_active_experiments(
         &self,
-        last_fetched_at: Option<DateTime<Utc>>,
+        if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ExperimentData>> {
-        self.fetch_experiments_with_filters(None, None, last_fetched_at, None)
+        self.fetch_experiments_with_filters(None, None, if_modified_since, None)
             .await
     }
 
@@ -181,13 +190,13 @@ impl SuperpositionDataSource for HttpDataSource {
         &self,
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
-        last_fetched_at: Option<DateTime<Utc>>,
+        if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ExperimentData>> {
         self.fetch_experiments_with_filters(
             context,
             prefix_filter,
-            last_fetched_at,
-            Some(false),
+            if_modified_since,
+            Some(DimensionMatchStrategy::Exact),
         )
         .await
     }
@@ -196,13 +205,13 @@ impl SuperpositionDataSource for HttpDataSource {
         &self,
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
-        last_fetched_at: Option<DateTime<Utc>>,
+        if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ExperimentData>> {
         self.fetch_experiments_with_filters(
             context,
             prefix_filter,
-            last_fetched_at,
-            Some(true),
+            if_modified_since,
+            Some(DimensionMatchStrategy::Subset),
         )
         .await
     }

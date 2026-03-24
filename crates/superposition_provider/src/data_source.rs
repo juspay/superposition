@@ -59,15 +59,6 @@ pub struct ConfigData {
     pub fetched_at: DateTime<Utc>,
 }
 
-impl ConfigData {
-    pub fn new(config: Config) -> Self {
-        Self {
-            config,
-            fetched_at: Utc::now(),
-        }
-    }
-}
-
 impl Display for ConfigData {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
@@ -87,15 +78,6 @@ impl Display for ConfigData {
 pub struct ExperimentData {
     pub data: ExperimentConfig,
     pub fetched_at: DateTime<Utc>,
-}
-
-impl ExperimentData {
-    pub fn new(config: ExperimentConfig) -> Self {
-        Self {
-            data: config,
-            fetched_at: Utc::now(),
-        }
-    }
 }
 
 impl Display for ExperimentData {
@@ -119,7 +101,7 @@ pub trait SuperpositionDataSource: Send + Sync {
     /// Fetch the full resolved configuration.
     async fn fetch_config(
         &self,
-        last_fetched_at: Option<DateTime<Utc>>,
+        if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ConfigData>>;
 
     /// Fetch a resolved configuration filtered by the given context and key prefixes.
@@ -127,13 +109,13 @@ pub trait SuperpositionDataSource: Send + Sync {
         &self,
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
-        last_fetched_at: Option<DateTime<Utc>>,
+        if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ConfigData>>;
 
     /// Fetch all active experiments.
     async fn fetch_active_experiments(
         &self,
-        last_fetched_at: Option<DateTime<Utc>>,
+        if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ExperimentData>>;
 
     /// Fetch active experiments whose conditions are candidates for the given context
@@ -142,7 +124,7 @@ pub trait SuperpositionDataSource: Send + Sync {
         &self,
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
-        last_fetched_at: Option<DateTime<Utc>>,
+        if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ExperimentData>>;
 
     /// Fetch active experiments that match the given context and key prefixes.
@@ -150,7 +132,7 @@ pub trait SuperpositionDataSource: Send + Sync {
         &self,
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
-        last_fetched_at: Option<DateTime<Utc>>,
+        if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ExperimentData>>;
 
     /// Whether this data source supports experiments.

@@ -4,15 +4,17 @@ use aws_smithy_types::Document;
 use open_feature::{EvaluationContext, EvaluationContextFieldValue};
 use serde_json::{Map, Value};
 
+use crate::{types::Result, SuperpositionError};
+
 pub fn value_to_document(value: Value) -> Document {
     match value {
         Value::Null => Document::Null,
         Value::Bool(b) => Document::Bool(b),
         Value::Number(n) => {
-            if let Some(i) = n.as_i64() {
-                Document::Number(aws_smithy_types::Number::NegInt(i))
-            } else if let Some(u) = n.as_u64() {
+            if let Some(u) = n.as_u64() {
                 Document::Number(aws_smithy_types::Number::PosInt(u))
+            } else if let Some(i) = n.as_i64() {
+                Document::Number(aws_smithy_types::Number::NegInt(i))
             } else if let Some(f) = n.as_f64() {
                 Document::Number(aws_smithy_types::Number::Float(f))
             } else {
@@ -65,8 +67,13 @@ pub fn document_to_value(doc: Document) -> Value {
                 Number::PosInt(val) => Value::Number(serde_json::Number::from(val)),
                 Number::NegInt(val) => Value::Number(serde_json::Number::from(val)),
                 Number::Float(val) => Value::Number(
-                    serde_json::Number::from_f64(val)
-                        .unwrap_or_else(|| serde_json::Number::from(0)),
+                    serde_json::Number::from_f64(val).unwrap_or_else(|| {
+                        log::warn!(
+                            "Failed to convert float {} to JSON number, using 0 instead",
+                            val
+                        );
+                        serde_json::Number::from(0)
+                    }),
                 ),
             }
         }
@@ -80,10 +87,15 @@ pub fn evaluation_context_to_value(value: EvaluationContextFieldValue) -> Value 
     match value {
         EvaluationContextFieldValue::Bool(b) => Value::Bool(b),
         EvaluationContextFieldValue::Int(i) => Value::Number(serde_json::Number::from(i)),
-        EvaluationContextFieldValue::Float(f) => Value::Number(
-            serde_json::Number::from_f64(f)
-                .unwrap_or_else(|| serde_json::Number::from(0)),
-        ),
+        EvaluationContextFieldValue::Float(f) => {
+            Value::Number(serde_json::Number::from_f64(f).unwrap_or_else(|| {
+                log::warn!(
+                    "Failed to convert float {} to JSON number, using 0 instead",
+                    f
+                );
+                serde_json::Number::from(0)
+            }))
+        }
         EvaluationContextFieldValue::String(s) => Value::String(s),
         EvaluationContextFieldValue::DateTime(dt) => Value::String(dt.to_string()),
         EvaluationContextFieldValue::Struct(s) => {
@@ -95,7 +107,10 @@ pub fn evaluation_context_to_value(value: EvaluationContextFieldValue) -> Value 
                         .map(|(k, v)| (k.clone(), evaluation_context_to_value(v.clone())))
                         .collect()
                 })
-                .unwrap_or_default();
+                .unwrap_or_else(|| {
+                    log::warn!("Failed to downcast struct value to expected HashMap format, got {:?}. Returning empty object.", s.type_id());
+                    Map::new()
+                });
             Value::Object(struct_map)
         }
     }
@@ -135,4 +150,69 @@ pub fn evaluation_context_to_map(context: EvaluationContext) -> Map<String, Valu
         dimension_data.len()
     );
     dimension_data
+}
+
+/// Convert serde_json Value to OpenFeature StructValue
+pub fn value_to_struct(value: Value) -> Result<open_feature::StructValue> {
+    match value {
+        Value::Object(map) => {
+            let mut fields = HashMap::new();
+            for (k, v) in map {
+                let open_feature_value = value_to_openfeature_value(v)?;
+                fields.insert(k, open_feature_value);
+            }
+            // StructValue is just a struct with a fields HashMap, not a complex conversion
+            Ok(open_feature::StructValue { fields })
+        }
+        Value::Array(list) => {
+            let mut fields = HashMap::new();
+            for (index, item) in list.into_iter().enumerate() {
+                let open_feature_value = value_to_openfeature_value(item)?;
+                fields.insert(index.to_string(), open_feature_value);
+            }
+            Ok(open_feature::StructValue { fields })
+        }
+        _ => Err(SuperpositionError::ConfigError(format!(
+            "Cannot convert {:?} to StructValue - flag must be an object/array",
+            value
+        ))),
+    }
+}
+
+/// Convert serde_json Value to OpenFeature Value
+pub fn value_to_openfeature_value(value: Value) -> Result<open_feature::Value> {
+    match value {
+        Value::Bool(b) => Ok(open_feature::Value::Bool(b)),
+        Value::String(s) => Ok(open_feature::Value::String(s)),
+        Value::Number(n) => {
+            if let Some(i) = n.as_i64() {
+                Ok(open_feature::Value::Int(i))
+            } else if let Some(f) = n.as_f64() {
+                Ok(open_feature::Value::Float(f))
+            } else {
+                Err(SuperpositionError::ConfigError(format!(
+                    "Cannot convert number {} to OpenFeature value",
+                    n
+                )))
+            }
+        }
+        Value::Array(arr) => Ok(open_feature::Value::Array(
+            arr.into_iter()
+                .map(value_to_openfeature_value)
+                .collect::<Result<Vec<_>>>()?,
+        )),
+        Value::Object(map) => {
+            let fields = map
+                .into_iter()
+                .map(|(k, v)| Ok((k, value_to_openfeature_value(v)?)))
+                .collect::<Result<HashMap<String, open_feature::Value>>>()?;
+
+            // Create StructValue directly with fields HashMap
+            let struct_value = open_feature::StructValue { fields };
+            Ok(open_feature::Value::Struct(struct_value))
+        }
+        Value::Null => Err(SuperpositionError::ConfigError(
+            "Cannot convert null to OpenFeature value".to_string(),
+        )),
+    }
 }

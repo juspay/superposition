@@ -16,7 +16,6 @@ use superposition_types::{Config, DimensionInfo};
 use tokio::sync::RwLock;
 
 use crate::types::*;
-use crate::utils::ConversionUtils;
 use crate::{
     client::{CacConfig, ExperimentationConfig},
     conversions,
@@ -315,10 +314,10 @@ impl FeatureProvider for SuperpositionProvider {
         evaluation_context: &EvaluationContext,
     ) -> EvaluationResult<ResolutionDetails<StructValue>> {
         match self.eval_config(evaluation_context).await {
-            Ok(config) => {
-                if let Some(value) = config.get(flag_key) {
+            Ok(mut config) => {
+                if let Some(value) = config.remove(flag_key) {
                     // Use the conversion utility we added earlier
-                    match ConversionUtils::serde_value_to_struct_value(value) {
+                    match conversions::value_to_struct(value) {
                         Ok(struct_value) => {
                             return Ok(ResolutionDetails::new(struct_value));
                         }

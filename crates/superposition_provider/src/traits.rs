@@ -5,7 +5,7 @@ use open_feature::{
 };
 use serde_json::{Map, Value};
 
-use crate::{types::Result, utils::ConversionUtils};
+use crate::{conversions, types::Result};
 
 /// Trait for experiment variant resolution.
 ///
@@ -40,27 +40,32 @@ pub trait AllFeatureProvider: Send + Sync {
         prefix_filter: Option<&[String]>,
     ) -> Result<Map<String, Value>>;
 
-    async fn resolve_bool(
+    async fn resolve_typed<T: Send + Sync>(
         &self,
         flag_key: &str,
         evaluation_context: EvaluationContext,
-    ) -> EvaluationResult<ResolutionDetails<bool>> {
+        type_name: &str,
+        extractor: impl Fn(Value) -> Option<T> + Send + Sync,
+    ) -> EvaluationResult<ResolutionDetails<T>> {
         match self.resolve_all_features(evaluation_context).await {
-            Ok(config) => match config.get(flag_key) {
-                Some(value) => match value.as_bool() {
-                    Some(bool_val) => Ok(ResolutionDetails::new(bool_val)),
+            Ok(mut config) => {
+                match config.remove(flag_key) {
+                    Some(value) => extractor(value)
+                        .map(ResolutionDetails::new)
+                        .ok_or_else(|| EvaluationError {
+                            code: EvaluationErrorCode::TypeMismatch,
+                            message: Some(format!(
+                                "Flag '{flag_key}' is not a {type_name}",
+                            )),
+                        }),
                     None => Err(EvaluationError {
-                        code: EvaluationErrorCode::TypeMismatch,
-                        message: Some(format!("Flag '{}' is not a boolean", flag_key)),
+                        code: EvaluationErrorCode::FlagNotFound,
+                        message: Some(format!("Flag '{}' not found", flag_key)),
                     }),
-                },
-                None => Err(EvaluationError {
-                    code: EvaluationErrorCode::FlagNotFound,
-                    message: Some(format!("Flag '{}' not found", flag_key)),
-                }),
-            },
+                }
+            }
             Err(e) => {
-                log::error!("Error evaluating boolean flag {}: {}", flag_key, e);
+                log::error!("Error evaluating {} flag {}: {}", type_name, flag_key, e);
                 Err(EvaluationError {
                     code: EvaluationErrorCode::General(format!(
                         "Error evaluating flag '{}': {}",
@@ -70,6 +75,15 @@ pub trait AllFeatureProvider: Send + Sync {
                 })
             }
         }
+    }
+
+    async fn resolve_bool(
+        &self,
+        flag_key: &str,
+        evaluation_context: EvaluationContext,
+    ) -> EvaluationResult<ResolutionDetails<bool>> {
+        self.resolve_typed(flag_key, evaluation_context, "boolean", |v| v.as_bool())
+            .await
     }
 
     async fn resolve_string(
@@ -77,31 +91,11 @@ pub trait AllFeatureProvider: Send + Sync {
         flag_key: &str,
         evaluation_context: EvaluationContext,
     ) -> EvaluationResult<ResolutionDetails<String>> {
-        match self.resolve_all_features(evaluation_context).await {
-            Ok(config) => match config.get(flag_key) {
-                Some(value) => match value.as_str() {
-                    Some(str_val) => Ok(ResolutionDetails::new(str_val.to_owned())),
-                    None => Err(EvaluationError {
-                        code: EvaluationErrorCode::TypeMismatch,
-                        message: Some(format!("Flag '{}' is not a string", flag_key)),
-                    }),
-                },
-                None => Err(EvaluationError {
-                    code: EvaluationErrorCode::FlagNotFound,
-                    message: Some(format!("Flag '{}' not found", flag_key)),
-                }),
-            },
-            Err(e) => {
-                log::error!("Error evaluating String flag {}: {}", flag_key, e);
-                Err(EvaluationError {
-                    code: EvaluationErrorCode::General(format!(
-                        "Error evaluating flag '{}': {}",
-                        flag_key, e
-                    )),
-                    message: Some(format!("Error evaluating flag '{}': {}", flag_key, e)),
-                })
-            }
-        }
+        self.resolve_typed(flag_key, evaluation_context, "string", |v| match v {
+            Value::String(s) => Some(s),
+            _ => None,
+        })
+        .await
     }
 
     async fn resolve_int(
@@ -109,31 +103,8 @@ pub trait AllFeatureProvider: Send + Sync {
         flag_key: &str,
         evaluation_context: EvaluationContext,
     ) -> EvaluationResult<ResolutionDetails<i64>> {
-        match self.resolve_all_features(evaluation_context).await {
-            Ok(config) => match config.get(flag_key) {
-                Some(value) => match value.as_i64() {
-                    Some(int_val) => Ok(ResolutionDetails::new(int_val)),
-                    None => Err(EvaluationError {
-                        code: EvaluationErrorCode::TypeMismatch,
-                        message: Some(format!("Flag '{}' is not an integer", flag_key)),
-                    }),
-                },
-                None => Err(EvaluationError {
-                    code: EvaluationErrorCode::FlagNotFound,
-                    message: Some(format!("Flag '{}' not found", flag_key)),
-                }),
-            },
-            Err(e) => {
-                log::error!("Error evaluating integer flag {}: {}", flag_key, e);
-                Err(EvaluationError {
-                    code: EvaluationErrorCode::General(format!(
-                        "Error evaluating flag '{}': {}",
-                        flag_key, e
-                    )),
-                    message: Some(format!("Error evaluating flag '{}': {}", flag_key, e)),
-                })
-            }
-        }
+        self.resolve_typed(flag_key, evaluation_context, "integer", |v| v.as_i64())
+            .await
     }
 
     async fn resolve_float(
@@ -141,31 +112,8 @@ pub trait AllFeatureProvider: Send + Sync {
         flag_key: &str,
         evaluation_context: EvaluationContext,
     ) -> EvaluationResult<ResolutionDetails<f64>> {
-        match self.resolve_all_features(evaluation_context).await {
-            Ok(config) => match config.get(flag_key) {
-                Some(value) => match value.as_f64() {
-                    Some(float_val) => Ok(ResolutionDetails::new(float_val)),
-                    None => Err(EvaluationError {
-                        code: EvaluationErrorCode::TypeMismatch,
-                        message: Some(format!("Flag '{}' is not a float", flag_key)),
-                    }),
-                },
-                None => Err(EvaluationError {
-                    code: EvaluationErrorCode::FlagNotFound,
-                    message: Some(format!("Flag '{}' not found", flag_key)),
-                }),
-            },
-            Err(e) => {
-                log::error!("Error evaluating float flag {}: {}", flag_key, e);
-                Err(EvaluationError {
-                    code: EvaluationErrorCode::General(format!(
-                        "Error evaluating flag '{}': {}",
-                        flag_key, e
-                    )),
-                    message: Some(format!("Error evaluating flag '{}': {}", flag_key, e)),
-                })
-            }
-        }
+        self.resolve_typed(flag_key, evaluation_context, "float", |v| v.as_f64())
+            .await
     }
 
     async fn resolve_struct(
@@ -173,38 +121,9 @@ pub trait AllFeatureProvider: Send + Sync {
         flag_key: &str,
         evaluation_context: EvaluationContext,
     ) -> EvaluationResult<ResolutionDetails<StructValue>> {
-        match self.resolve_all_features(evaluation_context).await {
-            Ok(config) => match config.get(flag_key) {
-                Some(value) => {
-                    match ConversionUtils::serde_value_to_struct_value(value) {
-                        Ok(struct_value) => Ok(ResolutionDetails::new(struct_value)),
-                        Err(e) => {
-                            log::error!("Error converting value to StructValue: {}", e);
-                            Err(EvaluationError {
-                                code: EvaluationErrorCode::TypeMismatch,
-                                message: Some(format!(
-                                    "Flag '{}' is not a struct: {}",
-                                    flag_key, e
-                                )),
-                            })
-                        }
-                    }
-                }
-                None => Err(EvaluationError {
-                    code: EvaluationErrorCode::FlagNotFound,
-                    message: Some(format!("Flag '{}' not found", flag_key)),
-                }),
-            },
-            Err(e) => {
-                log::error!("Error evaluating Object flag {}: {}", flag_key, e);
-                Err(EvaluationError {
-                    code: EvaluationErrorCode::General(format!(
-                        "Error evaluating flag '{}': {}",
-                        flag_key, e
-                    )),
-                    message: Some(format!("Error evaluating flag '{}': {}", flag_key, e)),
-                })
-            }
-        }
+        self.resolve_typed(flag_key, evaluation_context, "struct", |v| {
+            conversions::value_to_struct(v).ok()
+        })
+        .await
     }
 }

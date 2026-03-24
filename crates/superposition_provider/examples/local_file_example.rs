@@ -30,5 +30,5 @@ async fn main() {
     let config = provider.resolve_all_features(context).await.unwrap();
     println!("Config: {:?}", config);
 
-    provider.close().await.unwrap();
+    provider.close_provider().await.unwrap();
 }

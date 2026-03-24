@@ -1,9 +1,8 @@
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
 
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use log::error;
 use notify::{Event, RecommendedWatcher, Watcher};
 use serde_json::{Map, Value};
 use superposition_core::{ConfigFormat, TomlFormat};
@@ -14,18 +13,21 @@ use crate::types::{Result, SuperpositionError, WatchStream};
 
 use super::{ConfigData, ExperimentData, SuperpositionDataSource};
 
+struct WatcherInner {
+    _watcher: RecommendedWatcher,
+    broadcast_tx: broadcast::Sender<()>,
+}
+
 pub struct FileDataSource {
     file_path: PathBuf,
-    watcher: Arc<Mutex<Option<RecommendedWatcher>>>,
-    broadcast_tx: Arc<Mutex<Option<broadcast::Sender<()>>>>,
+    watcher: Mutex<Option<WatcherInner>>,
 }
 
 impl FileDataSource {
     pub fn new(file_path: PathBuf) -> Self {
         Self {
             file_path,
-            watcher: Arc::new(Mutex::new(None)),
-            broadcast_tx: Arc::new(Mutex::new(None)),
+            watcher: Mutex::new(None),
         }
     }
 }
@@ -34,8 +36,12 @@ impl FileDataSource {
 impl SuperpositionDataSource for FileDataSource {
     async fn fetch_config(
         &self,
-        _: Option<DateTime<Utc>>,
+        if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ConfigData>> {
+        if if_modified_since.is_some() {
+            log::debug!("FileDataSource: ignoring if_modified_since, always reading fresh from file");
+        }
+        let now = Utc::now();
         let content = tokio::fs::read_to_string(&self.file_path)
             .await
             .map_err(|e| {
@@ -49,17 +55,20 @@ impl SuperpositionDataSource for FileDataSource {
             SuperpositionError::ConfigError(format!("Failed to parse TOML config: {}", e))
         })?;
 
-        Ok(FetchResponse::Data(ConfigData::new(config)))
+        Ok(FetchResponse::Data(ConfigData {
+            config,
+            fetched_at: now,
+        }))
     }
 
     async fn fetch_filtered_config(
         &self,
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
-        last_fetched_at: Option<DateTime<Utc>>,
+        if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ConfigData>> {
         let resp = self
-            .fetch_config(last_fetched_at)
+            .fetch_config(if_modified_since)
             .await?
             .map_data(|mut data| {
                 data.config = data.config.filter(
@@ -74,7 +83,7 @@ impl SuperpositionDataSource for FileDataSource {
 
     async fn fetch_active_experiments(
         &self,
-        _last_fetched_at: Option<DateTime<Utc>>,
+        _if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ExperimentData>> {
         Err(SuperpositionError::ConfigError(
             "Experiments not supported by FileDataSource".into(),
@@ -85,7 +94,7 @@ impl SuperpositionDataSource for FileDataSource {
         &self,
         _context: Option<Map<String, Value>>,
         _prefix_filter: Option<Vec<String>>,
-        _last_fetched_at: Option<DateTime<Utc>>,
+        _if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ExperimentData>> {
         Err(SuperpositionError::ConfigError(
             "Experiments not supported by FileDataSource".into(),
@@ -96,7 +105,7 @@ impl SuperpositionDataSource for FileDataSource {
         &self,
         _context: Option<Map<String, Value>>,
         _prefix_filter: Option<Vec<String>>,
-        _last_fetched_at: Option<DateTime<Utc>>,
+        _if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ExperimentData>> {
         Err(SuperpositionError::ConfigError(
             "Experiments not supported by FileDataSource".into(),
@@ -108,25 +117,22 @@ impl SuperpositionDataSource for FileDataSource {
     }
 
     fn watch(&self) -> Result<Option<WatchStream>> {
-        // Check if already watching - return a new subscriber to existing broadcast
-        let tx_guard = self.broadcast_tx.lock().map_err(|e| {
+        // Acquire both locks upfront to prevent concurrent watcher creation
+        let mut watcher_guard = self.watcher.lock().map_err(|e| {
             SuperpositionError::ConfigError(format!(
-                "Failed to lock broadcast mutex: {}",
+                "Failed to lock watcher mutex: {}",
                 e
             ))
         })?;
 
-        if let Some(tx) = tx_guard.as_ref() {
-            // Already watching - return a new subscriber
+        // If already watching, return a new subscriber to the existing broadcast
+        if let Some(inner) = watcher_guard.as_ref() {
             return Ok(Some(WatchStream {
-                receiver: tx.subscribe(),
+                receiver: inner.broadcast_tx.subscribe(),
             }));
         }
 
-        // Drop the lock before creating the watcher to avoid holding lock during setup
-        drop(tx_guard);
-
-        // Create broadcast channel for multiple consumers
+        // Both checks confirmed None — safe to create under the lock
         let (tx, _rx) = broadcast::channel(16);
         let tx_clone = tx.clone();
 
@@ -136,7 +142,7 @@ impl SuperpositionDataSource for FileDataSource {
                     let _ = tx_clone.send(());
                 }
                 Err(e) => {
-                    error!("FileDataSource: watch error: {}", e);
+                    log::error!("FileDataSource: watch error: {}", e);
                 }
             },
         )
@@ -156,32 +162,14 @@ impl SuperpositionDataSource for FileDataSource {
                 ))
             })?;
 
-        let mut watcher_guard = self.watcher.lock().map_err(|e| {
-            SuperpositionError::ConfigError(format!(
-                "Failed to lock watcher mutex: {}",
-                e
-            ))
-        })?;
-
-        let mut tx_guard = self.broadcast_tx.lock().map_err(|e| {
-            SuperpositionError::ConfigError(format!(
-                "Failed to lock broadcast mutex: {}",
-                e
-            ))
-        })?;
-
-        // Double-check in case another thread raced us
-        if let Some(tx) = tx_guard.as_ref() {
-            return Ok(Some(WatchStream {
-                receiver: tx.subscribe(),
-            }));
-        }
-
-        *watcher_guard = Some(watcher);
-        *tx_guard = Some(tx.clone());
+        let subscriber = tx.subscribe();
+        *watcher_guard = Some(WatcherInner {
+            _watcher: watcher,
+            broadcast_tx: tx,
+        });
 
         Ok(Some(WatchStream {
-            receiver: tx.subscribe(),
+            receiver: subscriber,
         }))
     }
 
@@ -193,14 +181,6 @@ impl SuperpositionDataSource for FileDataSource {
             ))
         })?;
         *guard = None;
-
-        let mut tx_guard = self.broadcast_tx.lock().map_err(|e| {
-            SuperpositionError::ConfigError(format!(
-                "Failed to lock broadcast mutex: {}",
-                e
-            ))
-        })?;
-        *tx_guard = None;
 
         Ok(())
     }
