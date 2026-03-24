@@ -1,5 +1,6 @@
 import json
 import logging
+import weakref
 from decimal import Decimal
 from typing import Any, Dict, Optional, TypeVar
 from unittest import case
@@ -98,9 +99,10 @@ def to_experiment_status_type(sdk_status_type: str) -> ExperimentStatusType:
             return ExperimentStatusType.DISCARDED
 
 class ExperimentationConfig():
-    def __init__(self, superposition_options: SuperpositionOptions, experiment_options: ExperimentationOptions):
+    def __init__(self, superposition_options: SuperpositionOptions, experiment_options: ExperimentationOptions, on_config_change=None):
         self.superposition_options = superposition_options
         self.options = experiment_options
+        self.on_config_change = on_config_change  # Callback when experiments change
         self.cached_experiments = None
         self.cached_experiment_groups = None
         self.last_updated = None
@@ -108,19 +110,35 @@ class ExperimentationConfig():
         self._polling_task = None
 
     async def create_config(self) -> None:
+        weak_self = weakref.ref(self)
+
         async def poll_config(interval: int, timeout: int) -> None:
             while True:
+                self_ref = weak_self()
+                if self_ref is None:
+                    logger.info("ExperimentationConfig has been garbage collected, stopping polling task.")
+                    return
+
                 try:
-                    latest_exp_list = await self._get_experiments(self.superposition_options)
-                    latest_exp_grp_list = await self._get_experiment_groups(self.superposition_options)
+                    latest_exp_list = await self_ref._get_experiments(self_ref.superposition_options)
+                    latest_exp_grp_list = await self_ref._get_experiment_groups(self_ref.superposition_options)
                     if latest_exp_list is not None and latest_exp_grp_list is not None:
-                        self.cached_experiments = latest_exp_list
-                        self.cached_experiment_groups = latest_exp_grp_list
-                        self.last_updated = datetime.utcnow()
-                        logger.info("Experiment List and Experiment Group List updated successfully.")
+                        # Only trigger callback if experiments or groups actually changed
+                        if self_ref.cached_experiments != latest_exp_list or self_ref.cached_experiment_groups != latest_exp_grp_list:
+                            self_ref.cached_experiments = latest_exp_list
+                            self_ref.cached_experiment_groups = latest_exp_grp_list
+                            self_ref.last_updated = datetime.utcnow()
+                            logger.info("Experiment List and Experiment Group List updated successfully.")
+                            # Trigger callback for cache reinitialization
+                            if self_ref.on_config_change:
+                                self_ref.on_config_change()
+                        else:
+                            logger.info("Experiments/groups unchanged (skipping callback)")
 
                 except Exception as e:
                     logger.error(f"Polling error: {e}")
+                finally:
+                    del self_ref
 
                 await asyncio.sleep(interval)
 
@@ -133,6 +151,9 @@ class ExperimentationConfig():
             self.cached_experiment_groups = latest_exp_grp_list
             self.last_updated = datetime.utcnow()
             logger.info("Experiment List and Experiment Group List fetched successfully.")
+            # Trigger callback on initial fetch
+            if self.on_config_change:
+                self.on_config_change()
 
         match self.options.refresh_strategy:
             case PollingStrategy(interval=interval, timeout=timeout):
@@ -294,10 +315,17 @@ class ExperimentationConfig():
                 latest_exp_grp_list = await self._get_experiment_groups(self.superposition_options)
 
                 if latest_exp_list is not None and latest_exp_grp_list is not None:
-                    logger.info("Experiment List and Experiment Group List updated successfully on-demand.")
-                    self.cached_experiments = latest_exp_list
-                    self.cached_experiment_groups = latest_exp_grp_list
-                    self.last_updated = datetime.utcnow()
+                    # Only trigger callback if experiments or groups actually changed
+                    if self.cached_experiments != latest_exp_list or self.cached_experiment_groups != latest_exp_grp_list:
+                        logger.info("Experiment List and Experiment Group List updated successfully on-demand.")
+                        self.cached_experiments = latest_exp_list
+                        self.cached_experiment_groups = latest_exp_grp_list
+                        self.last_updated = datetime.utcnow()
+                        # Trigger callback for cache reinitialization
+                        if self.on_config_change:
+                            self.on_config_change()
+                    else:
+                        logger.info("Experiments/groups unchanged on-demand (skipping callback)")
 
             except Exception as e:
                 logger.warning(f"On-demand fetch failed: {e}")

@@ -1,11 +1,13 @@
 use serde_json::{Map, Value};
 use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 use superposition_types::{Config, Context, DimensionInfo, Overrides};
 use thiserror::Error;
 
 use crate::{
     eval_config, eval_config_with_reasoning, experiment::ExperimentationArgs,
-    get_applicable_variants, ConfigFormat, JsonFormat, MergeStrategy, TomlFormat,
+    experiment::FfiExperimentGroup, get_applicable_variants, ConfigFormat, FfiExperiment,
+    JsonFormat, MergeStrategy, TomlFormat,
 };
 
 #[derive(Debug, Error, uniffi::Error)]
@@ -214,4 +216,116 @@ fn ffi_parse_toml_config(toml_content: String) -> Result<Config, OperationError>
 fn ffi_parse_json_config(json_content: String) -> Result<Config, OperationError> {
     JsonFormat::parse_config(&json_content)
         .map_err(|e| OperationError::Unexpected(e.to_string()))
+}
+
+pub struct ConfigCacheData {
+    default_config: Map<String, Value>,
+    contexts: Vec<Context>,
+    overrides: HashMap<String, Overrides>,
+    dimensions: HashMap<String, DimensionInfo>,
+    experiments: Vec<FfiExperiment>,
+    experiment_groups: Vec<FfiExperimentGroup>,
+}
+
+#[derive(uniffi::Object)]
+pub struct ProviderCache {
+    data: Mutex<ConfigCacheData>,
+}
+
+#[uniffi::export]
+impl ProviderCache {
+    #[uniffi::constructor]
+    pub fn new() -> Arc<Self> {
+        Arc::new(ProviderCache {
+            data: Mutex::new(ConfigCacheData {
+                default_config: Map::new(),
+                contexts: Vec::new(),
+                overrides: HashMap::new(),
+                dimensions: HashMap::new(),
+                experiments: Vec::new(),
+                experiment_groups: Vec::new(),
+            }),
+        })
+    }
+
+    pub fn init_config(
+        &self,
+        default_config: HashMap<String, String>,
+        contexts: Vec<Context>,
+        overrides: HashMap<String, Overrides>,
+        dimensions: HashMap<String, DimensionInfo>,
+    ) -> Result<(), OperationError> {
+        let default_config_map = json_from_map(default_config)
+            .map_err(|err| OperationError::Unexpected(err.to_string()))?;
+
+        let mut cache_data = self.data.lock().map_err(|err| {
+            OperationError::Unexpected(format!("Failed to acquire cache lock: {}", err))
+        })?;
+
+        cache_data.default_config = default_config_map;
+        cache_data.contexts = contexts;
+        cache_data.overrides = overrides;
+        cache_data.dimensions = dimensions;
+
+        Ok(())
+    }
+
+    pub fn init_experiments(
+        &self,
+        experiments: Vec<FfiExperiment>,
+        experiment_groups: Vec<FfiExperimentGroup>,
+    ) -> Result<(), OperationError> {
+        let mut cache_data = self.data.lock().map_err(|err| {
+            OperationError::Unexpected(format!("Failed to acquire cache lock: {}", err))
+        })?;
+
+        cache_data.experiments = experiments;
+        cache_data.experiment_groups = experiment_groups;
+
+        Ok(())
+    }
+
+    pub fn eval_config(
+        &self,
+        query_data: HashMap<String, String>,
+        merge_strategy: MergeStrategy,
+        filter_prefixes: Option<Vec<String>>,
+        targeting_key: Option<String>,
+    ) -> Result<HashMap<String, String>, OperationError> {
+        let cache_data = self.data.lock().map_err(|err| {
+            OperationError::Unexpected(format!("Failed to acquire cache lock: {}", err))
+        })?;
+
+        let mut _q = json_from_map(query_data)
+            .map_err(|err| OperationError::Unexpected(err.to_string()))?;
+
+        if (!cache_data.experiments.is_empty()
+            || !cache_data.experiment_groups.is_empty())
+            && targeting_key.as_ref().is_some_and(|key| !key.is_empty())
+        {
+            let variants = get_applicable_variants(
+                &cache_data.dimensions,
+                cache_data.experiments.clone(),
+                &cache_data.experiment_groups,
+                &_q,
+                targeting_key.as_deref().unwrap_or(""),
+                filter_prefixes.clone(),
+            )
+            .map_err(OperationError::Unexpected)?;
+            _q.insert("variantIds".to_string(), variants.into());
+        }
+
+        let r = eval_config(
+            cache_data.default_config.clone(),
+            &cache_data.contexts,
+            &cache_data.overrides,
+            &cache_data.dimensions,
+            &_q,
+            merge_strategy,
+            filter_prefixes,
+        )
+        .map_err(OperationError::Unexpected)?;
+
+        json_to_map(r).map_err(|err| OperationError::Unexpected(err.to_string()))
+    }
 }
