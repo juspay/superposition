@@ -6,8 +6,7 @@ use std::fmt::Display;
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use serde_json::{Map, Value};
-use superposition_core::experiment::ExperimentGroups;
-use superposition_core::Experiments;
+use superposition_core::experiment::ExperimentConfig;
 use superposition_types::Config;
 
 use crate::types::Result;
@@ -83,69 +82,31 @@ impl Display for ConfigData {
     }
 }
 
-pub struct ExperimentResponse {
-    pub experiments: FetchResponse<Experiments>,
-    pub experiment_groups: FetchResponse<ExperimentGroups>,
-    pub fetched_at: DateTime<Utc>,
-}
-
-impl Display for ExperimentResponse {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "ExperimentResponse(data: {} experiments, {} experiment groups, fetched_at: {})",
-            self.experiments.data().map(|e| e.len()).unwrap_or_default(),
-            self.experiment_groups.data().map(|e| e.len()).unwrap_or_default(),
-            self.fetched_at
-        )
-    }
-}
-
 /// Holds active experiments and experiment groups along with the time they were fetched.
 #[derive(Debug, Clone)]
 pub struct ExperimentData {
-    pub experiments: Experiments,
-    pub experiment_groups: ExperimentGroups,
+    pub data: ExperimentConfig,
     pub fetched_at: DateTime<Utc>,
 }
 
 impl ExperimentData {
-    pub fn update_with(mut self, new_value: ExperimentResponse) -> Self {
-        if let Some(exps) = new_value.experiments.into_data() {
-            self.experiments = exps
+    pub fn new(config: ExperimentConfig) -> Self {
+        Self {
+            data: config,
+            fetched_at: Utc::now(),
         }
-
-        if let Some(grps) = new_value.experiment_groups.into_data() {
-            self.experiment_groups = grps
-        }
-
-        self.fetched_at = new_value.fetched_at;
-
-        self
     }
 }
 
-impl TryFrom<ExperimentResponse> for ExperimentData {
-    type Error = String;
-
-    fn try_from(value: ExperimentResponse) -> std::result::Result<Self, Self::Error> {
-        match (
-            value.experiments.into_data(),
-            value.experiment_groups.into_data(),
-        ) {
-            (Some(experiments), Some(experiment_groups)) => Ok(Self {
-                experiments,
-                experiment_groups,
-                fetched_at: value.fetched_at,
-            }),
-            (None, None) => Err("ExperimentResponse contains no data".to_string()),
-            (None, Some(_)) => {
-                Err("ExperimentResponse missing experiments data".to_string())
-            }
-            (Some(_), None) => {
-                Err("ExperimentResponse missing experiment groups data".to_string())
-            }
-        }
+impl Display for ExperimentData {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "ExperimentData(data: {} experiments, {} experiment groups, fetched_at: {})",
+            self.data.experiments.len(),
+            self.data.experiment_groups.len(),
+            self.fetched_at
+        )
     }
 }
 
@@ -173,7 +134,7 @@ pub trait SuperpositionDataSource: Send + Sync {
     async fn fetch_active_experiments(
         &self,
         last_fetched_at: Option<DateTime<Utc>>,
-    ) -> Result<ExperimentResponse>;
+    ) -> Result<FetchResponse<ExperimentData>>;
 
     /// Fetch active experiments whose conditions are candidates for the given context
     /// and key prefixes.
@@ -182,7 +143,7 @@ pub trait SuperpositionDataSource: Send + Sync {
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
         last_fetched_at: Option<DateTime<Utc>>,
-    ) -> Result<ExperimentResponse>;
+    ) -> Result<FetchResponse<ExperimentData>>;
 
     /// Fetch active experiments that match the given context and key prefixes.
     async fn fetch_matching_active_experiments(
@@ -190,7 +151,7 @@ pub trait SuperpositionDataSource: Send + Sync {
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
         last_fetched_at: Option<DateTime<Utc>>,
-    ) -> Result<ExperimentResponse>;
+    ) -> Result<FetchResponse<ExperimentData>>;
 
     /// Whether this data source supports experiments.
     fn supports_experiments(&self) -> bool;

@@ -15,9 +15,12 @@ use serde_json::{Map, Value};
 use superposition_types::{Config, DimensionInfo};
 use tokio::sync::RwLock;
 
-use crate::client::{CacConfig, ExperimentationConfig};
 use crate::types::*;
 use crate::utils::ConversionUtils;
+use crate::{
+    client::{CacConfig, ExperimentationConfig},
+    conversions,
+};
 
 #[derive(Debug, Clone)]
 pub struct SuperpositionProvider {
@@ -63,24 +66,6 @@ impl SuperpositionProvider {
             cac_config: Some(cac_config),
             exp_config,
         }
-    }
-
-    fn get_context_from_evaluation_context(
-        &self,
-        evaluation_context: &EvaluationContext,
-    ) -> (serde_json::Map<String, Value>, Option<String>) {
-        let context = evaluation_context
-            .custom_fields
-            .iter()
-            .map(|(k, v)| {
-                (
-                    k.clone(),
-                    ConversionUtils::convert_evaluation_context_value_to_serde_value(v),
-                )
-            })
-            .collect();
-
-        (context, evaluation_context.targeting_key.clone())
     }
 
     async fn get_dimensions_info(&self) -> HashMap<String, DimensionInfo> {
@@ -138,7 +123,7 @@ impl SuperpositionProvider {
     ) -> Result<serde_json::Map<String, Value>> {
         // Get cached config from CAC
         let (mut context, targeting_key) =
-            self.get_context_from_evaluation_context(evaluation_context);
+            conversions::evaluation_context_to_query(evaluation_context.clone());
 
         let dimensions_info = self.get_dimensions_info().await;
         let variant_ids = if let Some(exp_config) = &self.exp_config {

@@ -7,27 +7,23 @@ use derive_more::{Deref, DerefMut};
 use open_feature::provider::{
     FeatureProvider, ProviderMetadata, ProviderStatus, ResolutionDetails,
 };
-use open_feature::{
-    EvaluationContext, EvaluationError, EvaluationErrorCode, EvaluationResult,
-    StructValue,
-};
+use open_feature::{EvaluationContext, EvaluationResult, StructValue};
 use serde_json::{Map, Value};
-use superposition_core::experiment::filter_experiments_by_context;
+use superposition_core::experiment::{filter_experiments_by_context, FfiExperimentGroup};
 use superposition_core::{
     eval_config, get_applicable_variants, get_satisfied_experiments, MergeStrategy,
 };
+use superposition_types::experimental::Experimental;
 use superposition_types::DimensionInfo;
 use tokio::sync::RwLock;
 use tokio::task::JoinHandle;
 use tokio::time::{sleep, Duration};
 
 use crate::data_source::{
-    ConfigData, ExperimentData, ExperimentResponse, FetchResponse,
-    SuperpositionDataSource,
+    ConfigData, ExperimentData, FetchResponse, SuperpositionDataSource,
 };
 use crate::traits::{AllFeatureProvider, FeatureExperimentMeta};
-use crate::types::*;
-use crate::utils::ConversionUtils;
+use crate::{conversions, types::*};
 
 pub struct LocalResolutionProviderInner {
     primary: Arc<dyn SuperpositionDataSource>,
@@ -38,6 +34,7 @@ pub struct LocalResolutionProviderInner {
     polling_task: RwLock<Option<JoinHandle<()>>>,
     metadata: ProviderMetadata,
     status: RwLock<ProviderStatus>,
+    global_context: RwLock<EvaluationContext>,
 }
 
 #[derive(Deref, DerefMut, Clone)]
@@ -60,10 +57,11 @@ impl LocalResolutionProvider {
                 name: "LocalResolutionProvider".to_string(),
             },
             status: RwLock::new(ProviderStatus::NotReady),
+            global_context: RwLock::new(EvaluationContext::default()),
         }))
     }
 
-    pub async fn init(&self) -> Result<()> {
+    pub async fn init(&self, context: EvaluationContext) -> Result<()> {
         // Fetch initial config from primary, fall back if needed
         let config_data = match self.primary.fetch_config(None).await {
             Ok(data) => {
@@ -102,7 +100,7 @@ impl LocalResolutionProvider {
 
         // Fetch experiments best-effort: try primary, optionally fallback, but don't fail
         let exp_data = match self.primary.fetch_active_experiments(None).await {
-            Ok(exp_resp) => ExperimentData::try_from(exp_resp).ok(),
+            Ok(exp_resp) => exp_resp.into_data(),
             Err(e) => {
                 log::warn!(
                     "LocalResolutionProvider: primary experiment fetch failed (best-effort): {}",
@@ -110,7 +108,7 @@ impl LocalResolutionProvider {
                 );
                 if let Some(fallback) = &self.fallback {
                     match fallback.fetch_active_experiments(None).await {
-                        Ok(exp_resp) => ExperimentData::try_from(exp_resp).ok(),
+                        Ok(exp_resp) => exp_resp.into_data(),
                         Err(fb_err) => {
                             log::warn!(
                                 "LocalResolutionProvider: fallback experiment fetch also failed (best-effort): {}",
@@ -128,7 +126,6 @@ impl LocalResolutionProvider {
         if let Some(data) = exp_data {
             let mut cached = self.cached_experiments.write().await;
             *cached = Some(data);
-            log::info!("LocalResolutionProvider: experiments cached");
         }
 
         // Start refresh strategy
@@ -176,6 +173,11 @@ impl LocalResolutionProvider {
         {
             let mut status = self.status.write().await;
             *status = ProviderStatus::Ready;
+        }
+
+        {
+            let mut global_context = self.global_context.write().await;
+            *global_context = context;
         }
 
         Ok(())
@@ -276,10 +278,9 @@ impl LocalResolutionProvider {
             {
                 Ok(exp_resp) => {
                     let mut cached = self.cached_experiments.write().await;
-                    *cached = match cached.clone() {
-                        Some(c) => Some(c.update_with(exp_resp)),
-                        None => ExperimentData::try_from(exp_resp).ok(),
-                    };
+                    if let Some(data) = exp_resp.into_data() {
+                        *cached = Some(data);
+                    }
                     log::debug!(
                         "LocalResolutionProvider: experiments refreshed from primary"
                     );
@@ -373,10 +374,9 @@ impl LocalResolutionProvider {
                             Ok(exp_resp) => {
                                 let mut cached =
                                     provider_clone.cached_experiments.write().await;
-                                *cached = match cached.clone() {
-                                    Some(c) => Some(c.update_with(exp_resp)),
-                                    None => ExperimentData::try_from(exp_resp).ok(),
-                                };
+                                if let Some(data) = exp_resp.into_data() {
+                                    *cached = Some(data);
+                                }
                                 log::debug!(
                                     "LocalResolutionProvider: experiments refreshed from primary on watch update"
                                 );
@@ -404,7 +404,7 @@ impl LocalResolutionProvider {
     async fn ensure_fresh_data(&self) -> Result<()> {
         if let RefreshStrategy::OnDemand(on_demand) = &self.refresh_strategy {
             let ttl = on_demand.ttl;
-            let use_stale_on_error = on_demand.use_stale_on_error.unwrap_or(false);
+            let use_stale_on_error = on_demand.use_stale_on_error.unwrap_or_default();
 
             let should_refresh = {
                 let cached = self.cached_config.read().await;
@@ -444,13 +444,16 @@ impl LocalResolutionProvider {
 
     async fn eval_with_context(
         &self,
-        context: &EvaluationContext,
+        mut context: EvaluationContext,
         prefix_filter: Option<&[String]>,
     ) -> Result<Map<String, Value>> {
         self.ensure_fresh_data().await?;
 
+        let global_context = self.global_context.read().await;
+        context.merge_missing(&global_context);
+
         let (mut query_data, targeting_key) =
-            ConversionUtils::evaluation_context_to_query(context);
+            conversions::evaluation_context_to_query(context);
 
         let dimensions_info = self.get_dimensions_info().await;
 
@@ -460,8 +463,8 @@ impl LocalResolutionProvider {
             if let Some(exp_data) = cached_exp.as_ref() {
                 let variant_ids = get_applicable_variants(
                     &dimensions_info,
-                    exp_data.experiments.clone(),
-                    &exp_data.experiment_groups,
+                    exp_data.data.experiments.clone(),
+                    &exp_data.data.experiment_groups,
                     &query_data,
                     &targeting_key.clone().unwrap_or_default(),
                     None,
@@ -503,14 +506,14 @@ impl LocalResolutionProvider {
 impl AllFeatureProvider for LocalResolutionProvider {
     async fn resolve_all_features(
         &self,
-        context: &EvaluationContext,
+        context: EvaluationContext,
     ) -> Result<Map<String, Value>> {
         self.eval_with_context(context, None).await
     }
 
     async fn resolve_all_features_with_filter(
         &self,
-        context: &EvaluationContext,
+        context: EvaluationContext,
         prefix_filter: Option<&[String]>,
     ) -> Result<Map<String, Value>> {
         self.eval_with_context(context, prefix_filter).await
@@ -521,20 +524,23 @@ impl AllFeatureProvider for LocalResolutionProvider {
 impl FeatureExperimentMeta for LocalResolutionProvider {
     async fn get_applicable_variants(
         &self,
-        context: &EvaluationContext,
+        mut context: EvaluationContext,
     ) -> Result<Vec<String>> {
         self.ensure_fresh_data().await?;
 
+        let global_context = self.global_context.read().await;
+        context.merge_missing(&global_context);
+
         let (query_data, targeting_key) =
-            ConversionUtils::evaluation_context_to_query(context);
+            conversions::evaluation_context_to_query(context);
         let dimensions_info = self.get_dimensions_info().await;
 
         let cached_exp = self.cached_experiments.read().await;
         let resp = match cached_exp.as_ref() {
             Some(exp_data) => get_applicable_variants(
                 &dimensions_info,
-                exp_data.experiments.clone(),
-                &exp_data.experiment_groups,
+                exp_data.data.experiments.clone(),
+                &exp_data.data.experiment_groups,
                 &query_data,
                 &targeting_key.unwrap_or_default(),
                 None,
@@ -547,20 +553,17 @@ impl FeatureExperimentMeta for LocalResolutionProvider {
 
 #[async_trait]
 impl FeatureProvider for LocalResolutionProvider {
-    async fn initialize(&mut self, _context: &EvaluationContext) {
+    async fn initialize(&mut self, context: &EvaluationContext) {
         log::info!("Initializing LocalResolutionProvider...");
         {
             let mut status = self.status.write().await;
             *status = ProviderStatus::NotReady;
         }
-        if (self.init().await).is_err() {
+        if (self.init(context.clone()).await).is_err() {
             let mut status = self.status.write().await;
             *status = ProviderStatus::Error;
             return;
         }
-
-        let mut status = self.status.write().await;
-        *status = ProviderStatus::Ready;
 
         log::info!("LocalResolutionProvider initialized successfully");
     }
@@ -570,31 +573,8 @@ impl FeatureProvider for LocalResolutionProvider {
         flag_key: &str,
         evaluation_context: &EvaluationContext,
     ) -> EvaluationResult<ResolutionDetails<bool>> {
-        match self.resolve_all_features(evaluation_context).await {
-            Ok(config) => match config.get(flag_key) {
-                Some(value) => match value.as_bool() {
-                    Some(bool_val) => Ok(ResolutionDetails::new(bool_val)),
-                    None => Err(EvaluationError {
-                        code: EvaluationErrorCode::TypeMismatch,
-                        message: Some(format!("Flag '{}' is not a boolean", flag_key)),
-                    }),
-                },
-                None => Err(EvaluationError {
-                    code: EvaluationErrorCode::FlagNotFound,
-                    message: Some(format!("Flag '{}' not found", flag_key)),
-                }),
-            },
-            Err(e) => {
-                log::error!("Error evaluating boolean flag {}: {}", flag_key, e);
-                Err(EvaluationError {
-                    code: EvaluationErrorCode::General(format!(
-                        "Error evaluating flag '{}': {}",
-                        flag_key, e
-                    )),
-                    message: Some(format!("Error evaluating flag '{}': {}", flag_key, e)),
-                })
-            }
-        }
+        self.resolve_bool(flag_key, evaluation_context.clone())
+            .await
     }
 
     async fn resolve_string_value(
@@ -602,31 +582,8 @@ impl FeatureProvider for LocalResolutionProvider {
         flag_key: &str,
         evaluation_context: &EvaluationContext,
     ) -> EvaluationResult<ResolutionDetails<String>> {
-        match self.resolve_all_features(evaluation_context).await {
-            Ok(config) => match config.get(flag_key) {
-                Some(value) => match value.as_str() {
-                    Some(str_val) => Ok(ResolutionDetails::new(str_val.to_owned())),
-                    None => Err(EvaluationError {
-                        code: EvaluationErrorCode::TypeMismatch,
-                        message: Some(format!("Flag '{}' is not a string", flag_key)),
-                    }),
-                },
-                None => Err(EvaluationError {
-                    code: EvaluationErrorCode::FlagNotFound,
-                    message: Some(format!("Flag '{}' not found", flag_key)),
-                }),
-            },
-            Err(e) => {
-                log::error!("Error evaluating String flag {}: {}", flag_key, e);
-                Err(EvaluationError {
-                    code: EvaluationErrorCode::General(format!(
-                        "Error evaluating flag '{}': {}",
-                        flag_key, e
-                    )),
-                    message: Some(format!("Error evaluating flag '{}': {}", flag_key, e)),
-                })
-            }
-        }
+        self.resolve_string(flag_key, evaluation_context.clone())
+            .await
     }
 
     async fn resolve_int_value(
@@ -634,31 +591,7 @@ impl FeatureProvider for LocalResolutionProvider {
         flag_key: &str,
         evaluation_context: &EvaluationContext,
     ) -> EvaluationResult<ResolutionDetails<i64>> {
-        match self.resolve_all_features(evaluation_context).await {
-            Ok(config) => match config.get(flag_key) {
-                Some(value) => match value.as_i64() {
-                    Some(int_val) => Ok(ResolutionDetails::new(int_val)),
-                    None => Err(EvaluationError {
-                        code: EvaluationErrorCode::TypeMismatch,
-                        message: Some(format!("Flag '{}' is not an integer", flag_key)),
-                    }),
-                },
-                None => Err(EvaluationError {
-                    code: EvaluationErrorCode::FlagNotFound,
-                    message: Some(format!("Flag '{}' not found", flag_key)),
-                }),
-            },
-            Err(e) => {
-                log::error!("Error evaluating integer flag {}: {}", flag_key, e);
-                Err(EvaluationError {
-                    code: EvaluationErrorCode::General(format!(
-                        "Error evaluating flag '{}': {}",
-                        flag_key, e
-                    )),
-                    message: Some(format!("Error evaluating flag '{}': {}", flag_key, e)),
-                })
-            }
-        }
+        self.resolve_int(flag_key, evaluation_context.clone()).await
     }
 
     async fn resolve_float_value(
@@ -666,31 +599,8 @@ impl FeatureProvider for LocalResolutionProvider {
         flag_key: &str,
         evaluation_context: &EvaluationContext,
     ) -> EvaluationResult<ResolutionDetails<f64>> {
-        match self.resolve_all_features(evaluation_context).await {
-            Ok(config) => match config.get(flag_key) {
-                Some(value) => match value.as_f64() {
-                    Some(float_val) => Ok(ResolutionDetails::new(float_val)),
-                    None => Err(EvaluationError {
-                        code: EvaluationErrorCode::TypeMismatch,
-                        message: Some(format!("Flag '{}' is not a float", flag_key)),
-                    }),
-                },
-                None => Err(EvaluationError {
-                    code: EvaluationErrorCode::FlagNotFound,
-                    message: Some(format!("Flag '{}' not found", flag_key)),
-                }),
-            },
-            Err(e) => {
-                log::error!("Error evaluating float flag {}: {}", flag_key, e);
-                Err(EvaluationError {
-                    code: EvaluationErrorCode::General(format!(
-                        "Error evaluating flag '{}': {}",
-                        flag_key, e
-                    )),
-                    message: Some(format!("Error evaluating flag '{}': {}", flag_key, e)),
-                })
-            }
-        }
+        self.resolve_float(flag_key, evaluation_context.clone())
+            .await
     }
 
     async fn resolve_struct_value(
@@ -698,39 +608,8 @@ impl FeatureProvider for LocalResolutionProvider {
         flag_key: &str,
         evaluation_context: &EvaluationContext,
     ) -> EvaluationResult<ResolutionDetails<StructValue>> {
-        match self.resolve_all_features(evaluation_context).await {
-            Ok(config) => match config.get(flag_key) {
-                Some(value) => {
-                    match ConversionUtils::serde_value_to_struct_value(value) {
-                        Ok(struct_value) => Ok(ResolutionDetails::new(struct_value)),
-                        Err(e) => {
-                            log::error!("Error converting value to StructValue: {}", e);
-                            Err(EvaluationError {
-                                code: EvaluationErrorCode::TypeMismatch,
-                                message: Some(format!(
-                                    "Flag '{}' is not a struct: {}",
-                                    flag_key, e
-                                )),
-                            })
-                        }
-                    }
-                }
-                None => Err(EvaluationError {
-                    code: EvaluationErrorCode::FlagNotFound,
-                    message: Some(format!("Flag '{}' not found", flag_key)),
-                }),
-            },
-            Err(e) => {
-                log::error!("Error evaluating Object flag {}: {}", flag_key, e);
-                Err(EvaluationError {
-                    code: EvaluationErrorCode::General(format!(
-                        "Error evaluating flag '{}': {}",
-                        flag_key, e
-                    )),
-                    message: Some(format!("Error evaluating flag '{}': {}", flag_key, e)),
-                })
-            }
-        }
+        self.resolve_struct(flag_key, evaluation_context.clone())
+            .await
     }
 
     fn metadata(&self) -> &ProviderMetadata {
@@ -784,7 +663,7 @@ impl SuperpositionDataSource for LocalResolutionProvider {
     async fn fetch_active_experiments(
         &self,
         _: Option<DateTime<Utc>>,
-    ) -> Result<ExperimentResponse> {
+    ) -> Result<FetchResponse<ExperimentData>> {
         if !self.supports_experiments() {
             return Err(SuperpositionError::ConfigError(
                 "Experiments not supported by this provider".into(),
@@ -792,11 +671,7 @@ impl SuperpositionDataSource for LocalResolutionProvider {
         }
         let cached = self.cached_experiments.read().await;
         match cached.clone() {
-            Some(data) => Ok(ExperimentResponse {
-                experiments: FetchResponse::Data(data.experiments),
-                experiment_groups: FetchResponse::Data(data.experiment_groups),
-                fetched_at: data.fetched_at,
-            }),
+            Some(data) => Ok(FetchResponse::Data(data)),
             None => Err(SuperpositionError::ConfigError(
                 "No cached experiments available".into(),
             )),
@@ -808,26 +683,31 @@ impl SuperpositionDataSource for LocalResolutionProvider {
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
         last_fetched_at: Option<DateTime<Utc>>,
-    ) -> Result<ExperimentResponse> {
+    ) -> Result<FetchResponse<ExperimentData>> {
         if !self.supports_experiments() {
             return Err(SuperpositionError::ConfigError(
                 "Experiments not supported by this provider".into(),
             ));
         }
-        let mut experiments_response =
-            self.fetch_active_experiments(last_fetched_at).await?;
 
-        // TODO: adding experiment group filtering
-        experiments_response.experiments =
-            experiments_response.experiments.map_data(|exp_resp| {
-                get_satisfied_experiments(
-                    exp_resp,
-                    &context.unwrap_or_default(),
+        let resp = self
+            .fetch_active_experiments(last_fetched_at)
+            .await?
+            .map_data(|mut exp_data| {
+                let context = context.unwrap_or_default();
+                exp_data.data.experiments = get_satisfied_experiments(
+                    exp_data.data.experiments,
+                    &context,
                     prefix_filter,
-                )
+                );
+                exp_data.data.experiment_groups = FfiExperimentGroup::get_satisfied(
+                    exp_data.data.experiment_groups,
+                    &context,
+                );
+                exp_data
             });
 
-        Ok(experiments_response)
+        Ok(resp)
     }
 
     async fn fetch_matching_active_experiments(
@@ -835,26 +715,31 @@ impl SuperpositionDataSource for LocalResolutionProvider {
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
         last_fetched_at: Option<DateTime<Utc>>,
-    ) -> Result<ExperimentResponse> {
+    ) -> Result<FetchResponse<ExperimentData>> {
         if !self.supports_experiments() {
             return Err(SuperpositionError::ConfigError(
                 "Experiments not supported by this provider".into(),
             ));
         }
-        let mut experiments_response =
-            self.fetch_active_experiments(last_fetched_at).await?;
 
-        // TODO: adding experiment group filtering
-        experiments_response.experiments =
-            experiments_response.experiments.map_data(|exp_resp| {
-                filter_experiments_by_context(
-                    exp_resp,
-                    &context.unwrap_or_default(),
+        let resp = self
+            .fetch_active_experiments(last_fetched_at)
+            .await?
+            .map_data(|mut exp_data| {
+                let context = context.unwrap_or_default();
+                exp_data.data.experiments = filter_experiments_by_context(
+                    exp_data.data.experiments,
+                    &context,
                     prefix_filter,
-                )
+                );
+                exp_data.data.experiment_groups = FfiExperimentGroup::filter_by_eval(
+                    exp_data.data.experiment_groups,
+                    &context,
+                );
+                exp_data
             });
 
-        Ok(experiments_response)
+        Ok(resp)
     }
 
     fn supports_experiments(&self) -> bool {

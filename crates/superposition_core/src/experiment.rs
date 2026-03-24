@@ -68,6 +68,12 @@ pub struct FfiExperimentGroup {
     pub buckets: Buckets,
 }
 
+impl Experimental for FfiExperimentGroup {
+    fn get_condition(&self) -> &Condition {
+        &self.context
+    }
+}
+
 impl From<ExperimentGroup> for FfiExperimentGroup {
     fn from(experiment_group: ExperimentGroup) -> Self {
         Self {
@@ -96,6 +102,12 @@ pub struct ExperimentationArgs {
 pub type Experiments = Vec<FfiExperiment>;
 
 pub type ExperimentGroups = Vec<FfiExperimentGroup>;
+
+#[derive(Debug, Clone)]
+pub struct ExperimentConfig {
+    pub experiments: Experiments,
+    pub experiment_groups: ExperimentGroups,
+}
 
 pub fn get_applicable_variants(
     dimensions_info: &HashMap<String, DimensionInfo>,

@@ -4,19 +4,16 @@ use std::time::{Duration, Instant};
 
 use async_trait::async_trait;
 use aws_smithy_types::Document;
-use log::{debug, error, info, warn};
 use open_feature::{
     provider::FeatureProvider,
     provider::{ProviderMetadata, ProviderStatus, ResolutionDetails},
-    EvaluationContext, EvaluationError, EvaluationErrorCode, EvaluationResult,
-    StructValue,
+    EvaluationContext, EvaluationResult, StructValue,
 };
 use serde_json::{Map, Value};
 use superposition_sdk::{Client, Config as SdkConfig};
 use tokio::sync::RwLock;
 
 use crate::traits::{AllFeatureProvider, FeatureExperimentMeta};
-use crate::utils::ConversionUtils;
 use crate::{conversions, types::*};
 
 // ---------------------------------------------------------------------------
@@ -91,12 +88,11 @@ impl ResponseCache {
         }
 
         // Include sorted custom_fields for deterministic keys
-        let mut field_keys: Vec<&String> = context.custom_fields.keys().collect();
+        let mut field_keys: Vec<_> = context.custom_fields.keys().cloned().collect();
         field_keys.sort();
         for k in field_keys {
-            if let Some(v) = context.custom_fields.get(k) {
-                let serde_val =
-                    ConversionUtils::convert_evaluation_context_value_to_serde_value(v);
+            if let Some(v) = context.custom_fields.get(&k) {
+                let serde_val = conversions::evaluation_context_to_value(v.clone());
                 parts.push(format!("{}={}", k, serde_val));
             }
         }
@@ -112,6 +108,7 @@ impl ResponseCache {
 pub struct SuperpositionAPIProvider {
     options: SuperpositionOptions,
     cache: Option<Arc<RwLock<ResponseCache>>>,
+    global_context: RwLock<EvaluationContext>,
     metadata: ProviderMetadata,
     status: RwLock<ProviderStatus>,
 }
@@ -122,6 +119,7 @@ impl SuperpositionAPIProvider {
         Self {
             options,
             cache: None,
+            global_context: RwLock::new(EvaluationContext::default()),
             metadata: ProviderMetadata {
                 name: "SuperpositionAPIProvider".to_string(),
             },
@@ -141,6 +139,7 @@ impl SuperpositionAPIProvider {
         Self {
             options,
             cache: Some(Arc::new(RwLock::new(cache))),
+            global_context: RwLock::new(EvaluationContext::default()),
             metadata: ProviderMetadata {
                 name: "SuperpositionAPIProvider".to_string(),
             },
@@ -160,15 +159,15 @@ impl SuperpositionAPIProvider {
 
     async fn resolve_remote(
         &self,
-        context: &EvaluationContext,
+        mut context: EvaluationContext,
         prefix_filter: Option<&[String]>,
     ) -> Result<Map<String, Value>> {
+        let cache_key = ResponseCache::cache_key(&context);
         // 1. Check cache for the full (unfiltered) result
         if let Some(ref cache_arc) = self.cache {
-            let cache_key = ResponseCache::cache_key(context);
             let cache = cache_arc.read().await;
             if let Some(cached_value) = cache.get(&cache_key) {
-                debug!("SuperpositionAPIProvider: cache hit for key");
+                log::debug!("SuperpositionAPIProvider: cache hit for key");
                 let result = if let Some(prefixes) = prefix_filter {
                     filter_by_prefix(cached_value, prefixes)
                 } else {
@@ -181,9 +180,12 @@ impl SuperpositionAPIProvider {
         // 2. Create SDK client
         let client = self.create_client();
 
+        let global_context = self.global_context.read().await;
+        context.merge_missing(&global_context);
+
         // 3. Extract context and targeting_key
         let (query_data, _targeting_key) =
-            ConversionUtils::evaluation_context_to_query(context);
+            conversions::evaluation_context_to_query(context);
 
         // 4. Build and send the get_resolved_config request
         // Always fetch WITHOUT prefix filter so we can cache the full result
@@ -194,8 +196,8 @@ impl SuperpositionAPIProvider {
 
         // Set context dimensions from evaluation context
         let sdk_context: HashMap<String, Document> = query_data
-            .iter()
-            .map(|(k, v)| (k.clone(), serde_value_to_document(v)))
+            .into_iter()
+            .map(|(k, v)| (k, conversions::value_to_document(v)))
             .collect();
         builder = builder.set_context(Some(sdk_context));
 
@@ -216,7 +218,7 @@ impl SuperpositionAPIProvider {
         let full_result = match config_value {
             Value::Object(map) => map,
             other => {
-                warn!(
+                log::warn!(
                     "SuperpositionAPIProvider: resolved config is not an object, wrapping: {:?}",
                     other
                 );
@@ -228,7 +230,6 @@ impl SuperpositionAPIProvider {
 
         // Cache the full (unfiltered) result
         if let Some(ref cache_arc) = self.cache {
-            let cache_key = ResponseCache::cache_key(context);
             let mut cache = cache_arc.write().await;
             cache.put(cache_key, full_result.clone());
         }
@@ -263,36 +264,6 @@ fn filter_by_prefix(
         .collect()
 }
 
-/// Convert a serde_json::Value to an aws_smithy_types::Document.
-fn serde_value_to_document(value: &Value) -> Document {
-    match value {
-        Value::Null => Document::Null,
-        Value::Bool(b) => Document::Bool(*b),
-        Value::Number(n) => {
-            if let Some(u) = n.as_u64() {
-                Document::Number(aws_smithy_types::Number::PosInt(u))
-            } else if let Some(i) = n.as_i64() {
-                Document::Number(aws_smithy_types::Number::NegInt(i))
-            } else if let Some(f) = n.as_f64() {
-                Document::Number(aws_smithy_types::Number::Float(f))
-            } else {
-                Document::Null
-            }
-        }
-        Value::String(s) => Document::String(s.clone()),
-        Value::Array(arr) => {
-            Document::Array(arr.iter().map(serde_value_to_document).collect())
-        }
-        Value::Object(obj) => {
-            let map: HashMap<String, Document> = obj
-                .iter()
-                .map(|(k, v)| (k.clone(), serde_value_to_document(v)))
-                .collect();
-            Document::Object(map)
-        }
-    }
-}
-
 // ---------------------------------------------------------------------------
 // Trait implementations
 // ---------------------------------------------------------------------------
@@ -301,25 +272,26 @@ fn serde_value_to_document(value: &Value) -> Document {
 impl AllFeatureProvider for SuperpositionAPIProvider {
     async fn resolve_all_features(
         &self,
-        context: &EvaluationContext,
+        context: EvaluationContext,
     ) -> Result<Map<String, Value>> {
         self.resolve_remote(context, None).await
     }
 
     async fn resolve_all_features_with_filter(
         &self,
-        context: &EvaluationContext,
+        context: EvaluationContext,
         prefix_filter: Option<&[String]>,
     ) -> Result<Map<String, Value>> {
         self.resolve_remote(context, prefix_filter).await
     }
 }
 
+// TODO: Pending
 #[async_trait]
 impl FeatureExperimentMeta for SuperpositionAPIProvider {
     async fn get_applicable_variants(
         &self,
-        _context: &EvaluationContext,
+        _context: EvaluationContext,
     ) -> Result<Vec<String>> {
         // Remote resolution handles experiments server-side
         Ok(vec![])
@@ -329,12 +301,12 @@ impl FeatureExperimentMeta for SuperpositionAPIProvider {
 #[async_trait]
 impl FeatureProvider for SuperpositionAPIProvider {
     async fn initialize(&mut self, _context: &EvaluationContext) {
-        info!("Initializing SuperpositionAPIProvider...");
+        log::info!("Initializing SuperpositionAPIProvider...");
         {
             let mut status = self.status.write().await;
             *status = ProviderStatus::Ready;
         }
-        info!("SuperpositionAPIProvider initialized successfully");
+        log::info!("SuperpositionAPIProvider initialized successfully");
     }
 
     async fn resolve_bool_value(
@@ -342,31 +314,8 @@ impl FeatureProvider for SuperpositionAPIProvider {
         flag_key: &str,
         evaluation_context: &EvaluationContext,
     ) -> EvaluationResult<ResolutionDetails<bool>> {
-        match self.resolve_all_features(evaluation_context).await {
-            Ok(config) => match config.get(flag_key) {
-                Some(value) => match value.as_bool() {
-                    Some(bool_val) => Ok(ResolutionDetails::new(bool_val)),
-                    None => Err(EvaluationError {
-                        code: EvaluationErrorCode::TypeMismatch,
-                        message: Some(format!("Flag '{}' is not a boolean", flag_key)),
-                    }),
-                },
-                None => Err(EvaluationError {
-                    code: EvaluationErrorCode::FlagNotFound,
-                    message: Some(format!("Flag '{}' not found", flag_key)),
-                }),
-            },
-            Err(e) => {
-                error!("Error evaluating boolean flag {}: {}", flag_key, e);
-                Err(EvaluationError {
-                    code: EvaluationErrorCode::General(format!(
-                        "Error evaluating flag '{}': {}",
-                        flag_key, e
-                    )),
-                    message: Some(format!("Error evaluating flag '{}': {}", flag_key, e)),
-                })
-            }
-        }
+        self.resolve_bool(flag_key, evaluation_context.clone())
+            .await
     }
 
     async fn resolve_string_value(
@@ -374,31 +323,8 @@ impl FeatureProvider for SuperpositionAPIProvider {
         flag_key: &str,
         evaluation_context: &EvaluationContext,
     ) -> EvaluationResult<ResolutionDetails<String>> {
-        match self.resolve_all_features(evaluation_context).await {
-            Ok(config) => match config.get(flag_key) {
-                Some(value) => match value.as_str() {
-                    Some(str_val) => Ok(ResolutionDetails::new(str_val.to_owned())),
-                    None => Err(EvaluationError {
-                        code: EvaluationErrorCode::TypeMismatch,
-                        message: Some(format!("Flag '{}' is not a string", flag_key)),
-                    }),
-                },
-                None => Err(EvaluationError {
-                    code: EvaluationErrorCode::FlagNotFound,
-                    message: Some(format!("Flag '{}' not found", flag_key)),
-                }),
-            },
-            Err(e) => {
-                error!("Error evaluating String flag {}: {}", flag_key, e);
-                Err(EvaluationError {
-                    code: EvaluationErrorCode::General(format!(
-                        "Error evaluating flag '{}': {}",
-                        flag_key, e
-                    )),
-                    message: Some(format!("Error evaluating flag '{}': {}", flag_key, e)),
-                })
-            }
-        }
+        self.resolve_string(flag_key, evaluation_context.clone())
+            .await
     }
 
     async fn resolve_int_value(
@@ -406,31 +332,7 @@ impl FeatureProvider for SuperpositionAPIProvider {
         flag_key: &str,
         evaluation_context: &EvaluationContext,
     ) -> EvaluationResult<ResolutionDetails<i64>> {
-        match self.resolve_all_features(evaluation_context).await {
-            Ok(config) => match config.get(flag_key) {
-                Some(value) => match value.as_i64() {
-                    Some(int_val) => Ok(ResolutionDetails::new(int_val)),
-                    None => Err(EvaluationError {
-                        code: EvaluationErrorCode::TypeMismatch,
-                        message: Some(format!("Flag '{}' is not an integer", flag_key)),
-                    }),
-                },
-                None => Err(EvaluationError {
-                    code: EvaluationErrorCode::FlagNotFound,
-                    message: Some(format!("Flag '{}' not found", flag_key)),
-                }),
-            },
-            Err(e) => {
-                error!("Error evaluating integer flag {}: {}", flag_key, e);
-                Err(EvaluationError {
-                    code: EvaluationErrorCode::General(format!(
-                        "Error evaluating flag '{}': {}",
-                        flag_key, e
-                    )),
-                    message: Some(format!("Error evaluating flag '{}': {}", flag_key, e)),
-                })
-            }
-        }
+        self.resolve_int(flag_key, evaluation_context.clone()).await
     }
 
     async fn resolve_float_value(
@@ -438,31 +340,8 @@ impl FeatureProvider for SuperpositionAPIProvider {
         flag_key: &str,
         evaluation_context: &EvaluationContext,
     ) -> EvaluationResult<ResolutionDetails<f64>> {
-        match self.resolve_all_features(evaluation_context).await {
-            Ok(config) => match config.get(flag_key) {
-                Some(value) => match value.as_f64() {
-                    Some(float_val) => Ok(ResolutionDetails::new(float_val)),
-                    None => Err(EvaluationError {
-                        code: EvaluationErrorCode::TypeMismatch,
-                        message: Some(format!("Flag '{}' is not a float", flag_key)),
-                    }),
-                },
-                None => Err(EvaluationError {
-                    code: EvaluationErrorCode::FlagNotFound,
-                    message: Some(format!("Flag '{}' not found", flag_key)),
-                }),
-            },
-            Err(e) => {
-                error!("Error evaluating float flag {}: {}", flag_key, e);
-                Err(EvaluationError {
-                    code: EvaluationErrorCode::General(format!(
-                        "Error evaluating flag '{}': {}",
-                        flag_key, e
-                    )),
-                    message: Some(format!("Error evaluating flag '{}': {}", flag_key, e)),
-                })
-            }
-        }
+        self.resolve_float(flag_key, evaluation_context.clone())
+            .await
     }
 
     async fn resolve_struct_value(
@@ -470,39 +349,8 @@ impl FeatureProvider for SuperpositionAPIProvider {
         flag_key: &str,
         evaluation_context: &EvaluationContext,
     ) -> EvaluationResult<ResolutionDetails<StructValue>> {
-        match self.resolve_all_features(evaluation_context).await {
-            Ok(config) => match config.get(flag_key) {
-                Some(value) => {
-                    match ConversionUtils::serde_value_to_struct_value(value) {
-                        Ok(struct_value) => Ok(ResolutionDetails::new(struct_value)),
-                        Err(e) => {
-                            error!("Error converting value to StructValue: {}", e);
-                            Err(EvaluationError {
-                                code: EvaluationErrorCode::TypeMismatch,
-                                message: Some(format!(
-                                    "Flag '{}' is not a struct: {}",
-                                    flag_key, e
-                                )),
-                            })
-                        }
-                    }
-                }
-                None => Err(EvaluationError {
-                    code: EvaluationErrorCode::FlagNotFound,
-                    message: Some(format!("Flag '{}' not found", flag_key)),
-                }),
-            },
-            Err(e) => {
-                error!("Error evaluating Object flag {}: {}", flag_key, e);
-                Err(EvaluationError {
-                    code: EvaluationErrorCode::General(format!(
-                        "Error evaluating flag '{}': {}",
-                        flag_key, e
-                    )),
-                    message: Some(format!("Error evaluating flag '{}': {}", flag_key, e)),
-                })
-            }
-        }
+        self.resolve_struct(flag_key, evaluation_context.clone())
+            .await
     }
 
     fn metadata(&self) -> &ProviderMetadata {

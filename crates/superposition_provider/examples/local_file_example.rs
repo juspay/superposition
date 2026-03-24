@@ -21,13 +21,13 @@ async fn main() {
             ..Default::default()
         }),
     );
-    provider.init().await.unwrap();
+    provider.init(EvaluationContext::default()).await.unwrap();
 
     let context = EvaluationContext::default()
         .with_custom_field("os", "linux")
         .with_custom_field("city", "Boston");
 
-    let config = provider.resolve_all_features(&context).await.unwrap();
+    let config = provider.resolve_all_features(context).await.unwrap();
     println!("Config: {:?}", config);
 
     provider.close().await.unwrap();
