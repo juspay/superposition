@@ -157,12 +157,10 @@ impl Client {
             .cloned()
             .collect::<Experiments>();
 
-        if let Some(prefix_list) = prefix {
-            if !prefix_list.is_empty() {
-                let prefix_set: HashSet<String> = HashSet::from_iter(prefix_list);
-                experiments =
-                    ExperimentResponse::filter_keys_by_prefix(experiments, &prefix_set);
-            }
+        if let Some(prefix_list) = prefix.filter(|p| !p.is_empty()) {
+            let prefix_set: HashSet<String> = HashSet::from_iter(prefix_list);
+            experiments =
+                ExperimentResponse::filter_keys_by_prefix(experiments, &prefix_set);
         }
 
         if !context.is_empty() {
@@ -185,12 +183,10 @@ impl Client {
             .cloned()
             .collect::<Experiments>();
 
-        if let Some(prefix_list) = prefix {
-            if !prefix_list.is_empty() {
-                let prefix_list: HashSet<String> = HashSet::from_iter(prefix_list);
-                experiments =
-                    ExperimentResponse::filter_keys_by_prefix(experiments, &prefix_list);
-            }
+        if let Some(prefix_list) = prefix.filter(|p| !p.is_empty()) {
+            let prefix_list: HashSet<String> = HashSet::from_iter(prefix_list);
+            experiments =
+                ExperimentResponse::filter_keys_by_prefix(experiments, &prefix_list);
         }
 
         if !context.is_empty() {

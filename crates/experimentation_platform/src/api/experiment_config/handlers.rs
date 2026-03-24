@@ -36,6 +36,7 @@ use superposition_types::{
     experimental::{Experimental, ExperimentalVariants},
     result as superposition,
 };
+use tokio::join;
 
 declare_resource!(ExperimentConfig);
 
@@ -95,7 +96,7 @@ async fn get_handler(
     AppHeader::add_last_modified(max_event_timestamp, is_smithy, &mut response);
 
     if read_from_redis {
-        let exp_list = read_through_cache::<PaginatedResponse<ExperimentResponse>>(
+        let exp_list_ft = read_through_cache::<PaginatedResponse<ExperimentResponse>>(
             format!(
                 "{}{EXPERIMENTS_LIST_KEY_SUFFIX}",
                 *workspace_context.schema_name
@@ -104,24 +105,22 @@ async fn get_handler(
             &state.redis,
             &state.db_pool,
             |conn| {
-                let experiment_list: Vec<Experiment> = experiments::experiments
+                let experiment_responses = experiments::experiments
                     .filter(
                         experiments::status.eq_any(ExperimentStatusType::active_list()),
                     )
                     .order(experiments::last_modified.desc())
                     .schema_name(&workspace_context.schema_name)
-                    .load::<Experiment>(conn)?;
-
-                let experiment_responses: Vec<ExperimentResponse> = experiment_list
+                    .load::<Experiment>(conn)?
                     .into_iter()
                     .map(ExperimentResponse::from)
                     .collect();
 
                 Ok(PaginatedResponse::all(experiment_responses))
             },
-        )
-        .await?;
-        let exp_group_list = read_through_cache::<Vec<ExperimentGroup>>(
+        );
+
+        let exp_group_list_ft = read_through_cache::<Vec<ExperimentGroup>>(
             format!(
                 "{}{EXPERIMENT_GROUPS_LIST_KEY_SUFFIX}",
                 *workspace_context.schema_name
@@ -135,12 +134,13 @@ async fn get_handler(
                     .schema_name(&workspace_context.schema_name)
                     .load::<ExperimentGroup>(conn)
             },
-        )
-        .await?;
+        );
+
+        let (exp_list, exp_group_list) = join!(exp_list_ft, exp_group_list_ft);
 
         Ok(ExperimentConfig {
-            experiments: exp_list.data,
-            experiment_groups: exp_group_list,
+            experiments: exp_list?.data,
+            experiment_groups: exp_group_list?,
         })
     } else {
         run_query(&state.db_pool, |conn| {
@@ -165,13 +165,11 @@ fn get_experiment_config_db(
             .schema_name(&workspace_context.schema_name)
             .load::<Experiment>(conn)?;
 
-        if let Some(prefix_list) = filters.prefix {
-            if !prefix_list.is_empty() {
-                experiment_list = Experiment::filter_keys_by_prefix(
-                    experiment_list,
-                    &HashSet::from_iter(prefix_list.0),
-                );
-            }
+        if let Some(prefix_list) = filters.prefix.filter(|p| !p.is_empty()) {
+            experiment_list = Experiment::filter_keys_by_prefix(
+                experiment_list,
+                &HashSet::from_iter(prefix_list.0),
+            );
         }
 
         if !dimension_params.is_empty() {

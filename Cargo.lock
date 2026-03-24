@@ -2383,6 +2383,7 @@ dependencies = [
  "superposition_derives",
  "superposition_macros",
  "superposition_types",
+ "tokio",
 ]
 
 [[package]]
