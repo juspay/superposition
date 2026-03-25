@@ -6,6 +6,9 @@ mod resolve;
 mod webhooks;
 mod workspace;
 
+#[cfg(feature = "mcp")]
+use superposition_mcp as _;
+
 use std::{io::Result, time::Duration};
 
 use actix_files::Files;
@@ -146,36 +149,54 @@ async fn main() -> Result<()> {
     let auth_z = AuthZHandler::init(&kms_client, &app_env).await;
     let auth_z_manager = AuthZManager::init(&kms_client, &app_env).await;
 
+    // MCP server (optional, enabled via `mcp` feature + SUPERPOSITION_MCP=true env var)
+    #[cfg(feature = "mcp")]
+    let mcp_service = {
+        if get_from_env_or_default("SUPERPOSITION_MCP", false) {
+            match superposition_mcp::McpServerConfig::from_env() {
+                Ok(mcp_config) => {
+                    tracing::info!("MCP server enabled at {}/mcp", base);
+                    Some(superposition_mcp::actix::mcp_scope(mcp_config))
+                }
+                Err(e) => {
+                    tracing::warn!("MCP server disabled: {e}");
+                    None
+                }
+            }
+        } else {
+            None
+        }
+    };
+
     HttpServer::new(move || {
         let leptos_options = &conf.leptos_options;
         let site_root = &leptos_options.site_root;
         let leptos_envs = ui_envs.clone();
-        App::new()
-            .app_data(app_state.clone())
-            .app_data(PathConfig::default().error_handler(|err, _| bad_argument!(err).into()))
-            .app_data(QueryConfig::default().error_handler(|err, _| bad_argument!(err).into()))
-            .leptos_routes(
-                leptos_options.to_owned(),
-                routes.to_owned(),
-                move || {
-                    provide_context(use_request_headers());
-                    view! { <App app_envs=leptos_envs.clone() /> }
-                },
+
+        #[allow(unused_mut)]
+        let mut base_scope = scope(&base)
+            .route(
+                "/health",
+                get().to(|| async { HttpResponse::Ok().body("Health is good :D") }),
             )
-            .service(
-                scope(&base)
-                    .route(
-                        "/health",
-                        get().to(|| async { HttpResponse::Ok().body("Health is good :D") }),
-                    )
-                    .service(auth_n.routes())
-                    .service(auth_n.org_routes())
-                    .service(web::redirect("", ui_redirect_path.to_string()))
-                    .service(web::redirect("/", ui_redirect_path.to_string()))
-                    .service(web::redirect("/admin", ui_redirect_path.to_string()))
-                    .service(web::redirect("/admin/", ui_redirect_path.to_string()))
-                    .service(web::redirect("/admin/{org_id}/", "workspaces"))
-                    .service(web::redirect("/admin/{org_id}/{tenant}/", "default-config"))
+            .service(auth_n.routes())
+            .service(auth_n.org_routes())
+            .service(web::redirect("", ui_redirect_path.to_string()))
+            .service(web::redirect("/", ui_redirect_path.to_string()))
+            .service(web::redirect("/admin", ui_redirect_path.to_string()))
+            .service(web::redirect("/admin/", ui_redirect_path.to_string()))
+            .service(web::redirect("/admin/{org_id}/", "workspaces"))
+            .service(web::redirect("/admin/{org_id}/{tenant}/", "default-config"));
+
+        // Mount MCP endpoint if enabled
+        #[cfg(feature = "mcp")]
+        if let Some(ref mcp) = mcp_service {
+            base_scope = base_scope.service(
+                web::scope("/mcp").service(mcp.clone().scope()),
+            );
+        }
+
+        let base_scope = base_scope
                     /***************************** V1 Routes *****************************/
                     .service(
                         scope("/context")
@@ -283,7 +304,21 @@ async fn main() -> Result<()> {
                     // serve other assets from the `assets` directory
                     .service(Files::new("/assets", site_root.to_string()))
                     // serve the favicon from /favicon.ico
+            ;
+
+        App::new()
+            .app_data(app_state.clone())
+            .app_data(PathConfig::default().error_handler(|err, _| bad_argument!(err).into()))
+            .app_data(QueryConfig::default().error_handler(|err, _| bad_argument!(err).into()))
+            .leptos_routes(
+                leptos_options.to_owned(),
+                routes.to_owned(),
+                move || {
+                    provide_context(use_request_headers());
+                    view! { <App app_envs=leptos_envs.clone() /> }
+                },
             )
+            .service(base_scope)
             .route(
                 "/health",
                 get().to(|| async { HttpResponse::Ok().body("Health is good :D") }),

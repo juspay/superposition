@@ -557,7 +557,7 @@ pub fn DefaultConfigForm(
                 view! {
                     <ChangeLogSummary
                         key_name
-                        change_type=ChangeType::Update(update_request)
+                        change_type=ChangeType::Update(Box::new(update_request))
                         on_confirm=on_submit
                         on_close=move |_| update_request_rws.set(None)
                     />
@@ -571,7 +571,7 @@ pub fn DefaultConfigForm(
 #[derive(Clone)]
 pub enum ChangeType {
     Delete,
-    Update(DefaultConfigUpdateRequest),
+    Update(Box<DefaultConfigUpdateRequest>),
 }
 
 #[component]

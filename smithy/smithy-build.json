@@ -18,7 +18,8 @@
       "software.amazon.smithy.java:client-core:0.0.1",
       "software.amazon.smithy.java.codegen:plugins:0.0.1",
       "in.juspay.smithy.haskell:client-codegen:0.0.5",
-      "software.amazon.smithy.java:aws-client-restjson:0.0.1"
+      "software.amazon.smithy.java:aws-client-restjson:0.0.1",
+      "io.superposition:mcp-codegen:0.1.0"
     ]
   },
   "plugins": {
@@ -61,6 +62,7 @@
       "version": "0.0.1",
       "service": "io.superposition#Superposition"
     },
+    "mcp-rust-codegen": {},
     "openapi": {
       "service": "io.superposition#Superposition",
       "protocol": "aws.protocols#restJson1",

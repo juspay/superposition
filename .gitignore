@@ -73,3 +73,5 @@ clients/generated/smithy/typescript/tsconfig.*
 *.dylib
 *.so
 *.dll
+smithy/mcp-codegen/build/
+smithy/mcp-codegen/.gradle/
