@@ -5,8 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.ref.WeakReference;
 import java.util.Optional;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 interface RefreshJob<T> {
@@ -19,46 +21,79 @@ interface RefreshJob<T> {
     final class Poll<T> implements RefreshJob<T> {
         private final RefreshStrategy.Polling config;
         private final Supplier<CompletableFuture<T>> action;
-        private final CompletableFuture<T> output;
+        private final Runnable onChange;
+        private final CompletableFuture<T> firstOutput;
+        private volatile T latestOutput = null;
         private ScheduledFuture<?> poll;
 
-        Poll(RefreshStrategy.Polling config, Supplier<CompletableFuture<T>> action) {
+        Poll(RefreshStrategy.Polling config, Supplier<CompletableFuture<T>> action, Runnable onChange) {
             this.config = config;
             this.action = action;
-            this.output = new CompletableFuture<>();
+            this.onChange = onChange;
+            this.firstOutput = new CompletableFuture<>();
         }
 
         void start() {
             log.debug("Starting polling-refresh.");
-            poll = SEXEC.schedule(
+            WeakReference<Poll<T>> weakSelf = new WeakReference<>(this);
+            AtomicReference<ScheduledFuture<?>> taskRef = new AtomicReference<>();
+
+            ScheduledFuture<?> scheduled = SEXEC.scheduleAtFixedRate(
                 () -> {
-                    var o = RefreshJob.runRefreshWithTimeout(action, config.timeout);
+                    Poll<T> self = weakSelf.get();
+                    if (self == null) {
+                        log.debug("Poll referent GC'd — self-cancelling polling task.");
+                        ScheduledFuture<?> t = taskRef.get();
+                        if (t != null) t.cancel(false);
+                        return;
+                    }
+                    var o = RefreshJob.runRefreshWithTimeout(self.action, self.config.timeout);
                     if (o != null) {
-                        output.complete(o);
+                        boolean changed = !o.equals(self.latestOutput);
+                        self.latestOutput = o;
+                        if (!self.firstOutput.isDone()) {
+                            self.firstOutput.complete(o);
+                        }
+                        if (changed && self.onChange != null) {
+                            try {
+                                self.onChange.run();
+                            } catch (Exception e) {
+                                log.error("onChange callback error: {}", e.getMessage());
+                            }
+                        } else if (!changed) {
+                            log.debug("Output unchanged, skipping onChange callback.");
+                        }
                     }
                 },
+                0,
                 config.interval,
                 TimeUnit.MILLISECONDS
             );
+
+            taskRef.set(scheduled);
+            this.poll = scheduled;
         }
 
         @Override
         public Optional<T> getOutput() {
+            if (latestOutput != null) {
+                return Optional.of(latestOutput);
+            }
             try {
                 if (poll == null) {
                     log.warn("Polling hasn't started but the output is being used.");
-                } else if (!poll.isCancelled() && !output.isDone()) {
-                    return Optional.ofNullable(output.get(config.timeout, TimeUnit.MILLISECONDS));
+                } else if (!firstOutput.isDone()) {
+                    return Optional.ofNullable(firstOutput.get(config.timeout, TimeUnit.MILLISECONDS));
                 }
             } catch (Exception e) {
                 log.warn("Attempted to await for poll output but an exception occurred: {}", e.toString());
             }
-            return Optional.ofNullable(output.getNow(null));
+            return Optional.ofNullable(latestOutput);
         }
 
         @Override
         public void shutdown() {
-            if (!poll.isCancelled()) {
+            if (poll != null && !poll.isCancelled()) {
                 log.debug("Shutting down polling-refresh.");
                 poll.cancel(false);
             }
@@ -71,11 +106,13 @@ interface RefreshJob<T> {
         private T output = null;
         private final RefreshStrategy.OnDemand config;
         private final Supplier<CompletableFuture<T>> action;
+        private final Runnable onChange;
         private boolean stopped = false;
 
-        OnDemand(RefreshStrategy.OnDemand config, Supplier<CompletableFuture<T>> action) {
+        OnDemand(RefreshStrategy.OnDemand config, Supplier<CompletableFuture<T>> action, Runnable onChange) {
             this.config = config;
             this.action = action;
+            this.onChange = onChange;
         }
 
         @Override
@@ -85,8 +122,18 @@ interface RefreshJob<T> {
                     log.debug("Running refresh as current output is stale.");
                     var o = RefreshJob.runRefreshWithTimeout(action, config.timeout);
                     if (o != null) {
+                        boolean changed = !o.equals(output);
                         output = o;
                         lastUpdated = System.currentTimeMillis();
+                        if (changed && onChange != null) {
+                            try {
+                                onChange.run();
+                            } catch (Exception e) {
+                                log.error("onChange callback error: {}", e.getMessage());
+                            }
+                        } else if (!changed) {
+                            log.debug("Output unchanged, skipping onChange callback.");
+                        }
                     }
                 } else {
                     log.debug("Current output is fresh, no refresh required.");
@@ -114,10 +161,14 @@ interface RefreshJob<T> {
     }
 
     static <T> RefreshJob<T> create(RefreshStrategy config, Supplier<CompletableFuture<T>> action) {
+        return create(config, action, null);
+    }
+
+    static <T> RefreshJob<T> create(RefreshStrategy config, Supplier<CompletableFuture<T>> action, Runnable onChange) {
         if (config instanceof RefreshStrategy.Polling) {
-            return new Poll<>((RefreshStrategy.Polling)config, action);
+            return new Poll<>((RefreshStrategy.Polling)config, action, onChange);
         } else if (config instanceof RefreshStrategy.OnDemand) {
-            return new OnDemand<>((RefreshStrategy.OnDemand)config, action);
+            return new OnDemand<>((RefreshStrategy.OnDemand)config, action, onChange);
         }
         throw new IllegalArgumentException("Invalid refresh-strategy: " + config);
     }

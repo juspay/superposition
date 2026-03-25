@@ -15,10 +15,15 @@ import uniffi.superposition_client.ExperimentationArgs;
 import uniffi.superposition_client.FfiExperiment;
 import uniffi.superposition_client.FfiExperimentGroup;
 import uniffi.superposition_client.OperationException;
+import uniffi.superposition_client.ProviderCache;
+import uniffi.superposition_types.MergeStrategy;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 /**
@@ -65,11 +70,14 @@ import java.util.stream.Collectors;
 public class SuperpositionOpenFeatureProvider implements FeatureProvider {
     private static final Gson gson = new Gson();
     private final SuperpositionAsyncClient sdk;
+    private final ProviderCache cache;
     private final RefreshJob<EvaluationArgs> configRefresh;
     private final Optional<RefreshJob<List<FfiExperiment>>> expRefresh;
     private final Optional<RefreshJob<List<FfiExperimentGroup>>> expGroupRefresh;
     private Optional<EvaluationContext> defaultCtx;
     private final Optional<EvaluationArgs> fallbackArgs;
+    private final CompletableFuture<Void> cacheReady = new CompletableFuture<>();
+    private final int configTimeout;
 
     public SuperpositionOpenFeatureProvider(@NonNull SuperpositionProviderOptions options) {
         if (options.fallbackConfig != null) {
@@ -81,6 +89,9 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
             .endpointResolver(EndpointResolver.staticEndpoint(options.endpoint))
             .addIdentityResolver(new BearerTokenIdentityResolver(options.token));
         this.sdk = builder.build();
+        this.cache = new ProviderCache();
+        this.configTimeout = options.refreshStrategy.getTimeout();
+
         var getConfigInput = GetConfigInput.builder()
             .context(Map.of())
             .orgId(options.orgId)
@@ -88,7 +99,8 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
             .build();
         this.configRefresh = RefreshJob.create(
             options.refreshStrategy,
-            () -> sdk.getConfig(getConfigInput).thenApply(EvaluationArgs::new)
+            () -> sdk.getConfig(getConfigInput).thenApply(EvaluationArgs::new),
+            this::reinitConfigCache
         );
 
         if (options.experimentationOptions != null) {
@@ -106,7 +118,8 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
                             .stream()
                             .map(EvaluationArgs.Helpers::toFfiExperiment)
                             .toList()
-                        ))
+                        ),
+                    this::reinitExperimentsCache)
             );
 
             // New logic for experiment_groups
@@ -123,7 +136,8 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
                             .stream()
                             .map(EvaluationArgs.Helpers::toFfiExperimentGroup)
                             .toList()
-                        ))
+                        ),
+                    this::reinitExperimentsCache)
             );
         } else {
             this.expRefresh = Optional.empty();
@@ -159,6 +173,9 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
     @Override
     public void shutdown() {
         configRefresh.shutdown();
+        expRefresh.ifPresent(RefreshJob::shutdown);
+        expGroupRefresh.ifPresent(RefreshJob::shutdown);
+        cache.close();
     }
 
     @SneakyThrows
@@ -282,9 +299,19 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
     }
 
     private Map<String, String> evaluateConfigInternal(EvaluationContext ctx) throws Exception {
-        EvaluationArgs args = getEvaluationArgs(ctx);
+        // Block until cache.initConfig has been called (completed inside reinitConfigCache).
+        // This guarantees cache.evalConfig never runs on an uninitialized cache.
+        if (!cacheReady.isDone()) {
+            try {
+                cacheReady.get(configTimeout, TimeUnit.MILLISECONDS);
+            } catch (TimeoutException e) {
+                throw new Exception("Config cache not initialized within timeout (" + configTimeout + "ms).");
+            }
+        }
         var ctx_ = defaultCtx.isPresent() ? ctx.merge(defaultCtx.get()) : ctx;
-        return args.evaluate(ctx_, getExperimentationArgs(ctx_));
+        var queryData = EvaluationArgs.Companion.buildQueryData(ctx_);
+        String targetingKey = ctx_.getTargetingKey();
+        return cache.evalConfig(queryData, MergeStrategy.MERGE, null, targetingKey);
     }
 
     private List<String> getApplicableVariantsInternal(EvaluationContext ctx) throws Exception {
@@ -310,5 +337,39 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
             }
         }
         return null;
+    }
+
+    private void reinitConfigCache() {
+        var out = configRefresh.getOutput();
+        if (out.isPresent()) {
+            var args = out.get();
+            try {
+                cache.initConfig(
+                    args.getDefaultConfig(),
+                    args.getContexts(),
+                    args.getOverrides(),
+                    args.getDimensions()
+                );
+                cacheReady.complete(null);
+                log.debug("Config cache re-initialized");
+            } catch (Exception e) {
+                log.error("Failed to reinitialize config cache: {}", e.getMessage());
+            }
+        }
+    }
+
+    private void reinitExperimentsCache() {
+        if (expRefresh.isPresent() && expGroupRefresh.isPresent()) {
+            var exps = expRefresh.get().getOutput();
+            var groups = expGroupRefresh.get().getOutput();
+            if (exps.isPresent() && groups.isPresent()) {
+                try {
+                    cache.initExperiments(exps.get(), groups.get());
+                    log.debug("Experiments cache re-initialized");
+                } catch (Exception e) {
+                    log.error("Failed to reinitialize experiments cache: {}", e.getMessage());
+                }
+            }
+        }
     }
 }

@@ -144,6 +144,11 @@ internal class EvaluationArgs {
             return m.mapValues { valueToJsonString(it.value) }
         }
 
+        @JvmStatic
+        fun buildQueryData(eContext: EvaluationContext): Map<String, String> {
+            return toQueryData(eContext)
+        }
+
         private fun serializeDocument(d: Document): String {
             return valueToJsonString(d.asObject())
         }

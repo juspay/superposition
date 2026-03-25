@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.51.1 - 2026-03-25
+#### Bug Fixes
+- Spec for list exp and get config endpoints (#916) - (330279e) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.100.0 [skip ci] - (d7cc300) - Superposition Bot
+
+- - -
+
 ## frontend-v0.51.0 - 2026-03-17
 #### Features
 - **(authz)** ABAC for default_config, context and experiment (#910) - (453266d) - Ayush Jain

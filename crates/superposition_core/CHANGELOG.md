@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_core-v0.13.0 - 2026-03-25
+#### Bug Fixes
+- Spec for list exp and get config endpoints (#916) - (330279e) - Ayush Jain
+#### Features
+- add local/remote provider implementations following new structure (#930) - (ba5d518) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.101.0 [skip ci] - (89d64d2) - Superposition Bot
+
+- - -
+
 ## superposition_core-v0.12.0 - 2026-03-24
 #### Features
 - improve provider performance (#909) - (7ea5852) - Ankit Kumar Mahato
