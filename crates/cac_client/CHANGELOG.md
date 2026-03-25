@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cac_client-v0.25.0 - 2026-03-25
+#### Features
+- add local/remote provider implementations following new structure (#930) - (ba5d518) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.100.0 [skip ci] - (d7cc300) - Superposition Bot
+
+- - -
+
 ## cac_client-v0.24.0 - 2026-03-17
 #### Bug Fixes
 - update build.rs to ignore header file generation in docs.rs (#895) - (fd65be5) - Datron

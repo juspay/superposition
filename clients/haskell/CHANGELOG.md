@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## haskell_client-v0.14.1 - 2026-03-25
+#### Bug Fixes
+- Spec for list exp and get config endpoints (#916) - (330279e) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.100.0 [skip ci] - (d7cc300) - Superposition Bot
+
+- - -
+
 ## haskell_client-v0.14.0 - 2026-03-17
 #### Features
 - Add casbin as AuthZ provider option (#908) - (29dcef7) - Ayush Jain

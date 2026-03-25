@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.42.0 - 2026-03-25
+#### Bug Fixes
+- Spec for list exp and get config endpoints (#916) - (330279e) - Ayush Jain
+#### Features
+- add local/remote provider implementations following new structure (#930) - (ba5d518) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.100.2 [skip ci] - (c56fea0) - Superposition Bot
+
+- - -
+
 ## superposition_types-v0.41.2 - 2026-03-20
 #### Bug Fixes
 - Filtering for list context and experiments (#924) - (63eb506) - Ayush Jain
