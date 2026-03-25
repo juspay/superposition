@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_client-v0.21.1 - 2026-03-25
+#### Bug Fixes
+- Spec for list exp and get config endpoints (#916) - (330279e) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.100.0 [skip ci] - (d7cc300) - Superposition Bot
+
+- - -
+
 ## experimentation_client-v0.21.0 - 2026-03-17
 #### Bug Fixes
 - update build.rs to ignore header file generation in docs.rs (#895) - (fd65be5) - Datron

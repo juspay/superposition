@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_provider-v0.9.0 - 2026-03-25
+#### Features
+- add local/remote provider implementations following new structure (#930) - (ba5d518) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.100.0 [skip ci] - (d7cc300) - Superposition Bot
+
+- - -
+
 ## superposition_provider-v0.8.0 - 2026-03-17
 #### Features
 - Add casbin as AuthZ provider option (#908) - (29dcef7) - Ayush Jain
