@@ -9,16 +9,13 @@ use diesel::{
     pg::PgConnection,
     r2d2::{ConnectionManager, PooledConnection},
 };
-use fred::{
-    prelude::{KeysInterface, RedisPool},
-    types::Expiration,
-};
+use fred::{prelude::RedisPool, types::Expiration};
 use serde_json::{Map, Value};
 use service_utils::{
     helpers::get_from_env_or_default,
     redis::{
         EXPERIMENT_CONFIG_LAST_MODIFIED_KEY_SUFFIX, EXPERIMENTS_LAST_MODIFIED_KEY_SUFFIX,
-        EXPERIMENTS_LIST_KEY_SUFFIX,
+        EXPERIMENTS_LIST_KEY_SUFFIX, redis_set_data,
     },
     service::types::{AppState, ExperimentationFlags, SchemaName, WorkspaceContext},
 };
@@ -858,40 +855,23 @@ pub async fn put_experiments_in_redis(
     let key_ttl: i64 = get_from_env_or_default("REDIS_KEY_TTL", 604800);
     let expiration = Some(Expiration::EX(key_ttl));
 
-    pool.set::<(), String, String>(
+    redis_set_data(
+        pool,
         config_modified_at_key,
         last_modified.clone(),
         expiration.clone(),
-        None,
-        false,
     )
-    .await
-    .map_err(|e| {
-        log::warn!(
-            "failed to set experiment config last_modified_key in redis: {}",
-            e
-        );
-        unexpected_error!("failed to set experiment config last_modified_key in redis")
-    })?;
+    .await?;
 
-    pool.set::<(), String, String>(
+    redis_set_data(
+        pool,
         last_modified_at_key,
         last_modified,
         expiration.clone(),
-        None,
-        false,
     )
-    .await
-    .map_err(|e| {
-        log::warn!("failed to set experiment last_modified_key in redis: {}", e);
-        unexpected_error!("failed to set experiment last_modified_key in redis")
-    })?;
-    pool.set::<(), String, String>(key, serialized, expiration, None, false)
-        .await
-        .map_err(|e| {
-            log::warn!("Failed to write experiments to redis: {}", e);
-            unexpected_error!("Failed to write experiments to redis: {}", e)
-        })?;
+    .await?;
+
+    redis_set_data(pool, key, serialized, expiration).await?;
 
     log::debug!("Successfully updated experiments cache in Redis");
     Ok(())

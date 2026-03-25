@@ -66,8 +66,7 @@ fn ffi_eval_logic(
             &_q,
             &identifier,
             filter_prefixes.clone(),
-        )
-        .map_err(OperationError::Unexpected)?;
+        );
         _q.insert("variantIds".to_string(), variants.into());
     }
 
@@ -153,8 +152,7 @@ fn ffi_get_applicable_variants(
         &_query_data,
         &identifier,
         prefix,
-    )
-    .map_err(OperationError::Unexpected)?;
+    );
 
     Ok(r)
 }
@@ -310,8 +308,7 @@ impl ProviderCache {
                 &_q,
                 targeting_key.as_deref().unwrap_or(""),
                 filter_prefixes.clone(),
-            )
-            .map_err(OperationError::Unexpected)?;
+            );
             _q.insert("variantIds".to_string(), variants.into());
         }
 

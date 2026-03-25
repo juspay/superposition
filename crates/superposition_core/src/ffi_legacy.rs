@@ -147,22 +147,16 @@ pub unsafe extern "C" fn core_get_resolved_config(
     if let Some(e_args) = experimentation {
         let identifier = e_args.targeting_key;
 
-        match get_applicable_variants(
+        let variants = get_applicable_variants(
             &dimensions,
             e_args.experiments,
             &e_args.experiment_groups,
             &query_data,
             &identifier,
             filter_prefixes.clone(),
-        ) {
-            Ok(variants) => {
-                query_data.insert("variantIds".to_string(), variants.into());
-            }
-            Err(e) => {
-                copy_string(ebuf, format!("Failed to get applicable variants: {}", e));
-                return ptr::null_mut();
-            }
-        }
+        );
+
+        query_data.insert("variantIds".to_string(), variants.into());
     }
 
     // Call pure config resolution logic
@@ -297,22 +291,16 @@ pub unsafe extern "C" fn core_get_resolved_config_with_reasoning(
     if let Some(e_args) = experimentation {
         let identifier = e_args.targeting_key;
 
-        match get_applicable_variants(
+        let variants = get_applicable_variants(
             &dimensions,
             e_args.experiments,
             &e_args.experiment_groups,
             &query_data,
             &identifier,
             filter_prefixes.clone(),
-        ) {
-            Ok(variants) => {
-                query_data.insert("variantIds".to_string(), variants.into());
-            }
-            Err(e) => {
-                copy_string(ebuf, format!("Failed to get applicable variants: {}", e));
-                return ptr::null_mut();
-            }
-        }
+        );
+
+        query_data.insert("variantIds".to_string(), variants.into());
     }
 
     // Call config resolution with reasoning
@@ -431,23 +419,18 @@ pub unsafe extern "C" fn core_get_applicable_variants(
     };
 
     // Call the experimentation logic
-    match get_applicable_variants(
+    let result = get_applicable_variants(
         &dimensions,
         experiments,
         &experiment_groups,
         &query_data,
         &identifier,
         filter_prefixes,
-    ) {
-        Ok(result) => match serde_json::to_string(&result) {
-            Ok(json_str) => string_to_c_str(json_str),
-            Err(e) => {
-                copy_string(ebuf, format!("Failed to serialize result: {}", e));
-                ptr::null_mut()
-            }
-        },
+    );
+    match serde_json::to_string(&result) {
+        Ok(json_str) => string_to_c_str(json_str),
         Err(e) => {
-            copy_string(ebuf, e);
+            copy_string(ebuf, format!("Failed to serialize result: {}", e));
             ptr::null_mut()
         }
     }

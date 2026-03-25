@@ -95,6 +95,12 @@ impl CacConfig {
                     on_demand_strategy.timeout.unwrap_or(30)
                 );
             }
+            RefreshStrategy::Watch(_) => {
+                info!("Using Watch refresh strategy");
+            }
+            RefreshStrategy::Manual => {
+                info!("Using Manual refresh strategy");
+            }
         }
 
         Ok(())
@@ -209,7 +215,7 @@ impl CacConfig {
             })?;
 
         // Use ConversionUtils to convert to proper Config type
-        let config = ConversionUtils::convert_get_config_response(&response)?;
+        let config = ConversionUtils::convert_get_config_response(response)?;
 
         info!("Successfully fetched and converted config with {} contexts, {} overrides, {} default configs",
               config.contexts.len(), config.overrides.len(), config.default_configs.len());
@@ -350,6 +356,12 @@ impl ExperimentationConfig {
                     "Using OnDemandStrategy for experiments: ttl={}s",
                     on_demand_strategy.ttl
                 );
+            }
+            RefreshStrategy::Watch(_) => {
+                info!("Using Watch refresh strategy for experiments");
+            }
+            RefreshStrategy::Manual => {
+                info!("Using Manual refresh strategy for experiments");
             }
         }
 
@@ -506,7 +518,7 @@ impl ExperimentationConfig {
                 ))
             })?;
 
-        let experiments = ConversionUtils::convert_experiments_response(&response)?;
+        let experiments = ConversionUtils::convert_experiments_response(response.data)?;
 
         info!(
             "Successfully fetched and converted {} experiments",
@@ -547,7 +559,7 @@ impl ExperimentationConfig {
             })?;
 
         let experiment_groups =
-            ConversionUtils::convert_experiment_groups_response(&response)?;
+            ConversionUtils::convert_experiment_groups_response(response.data)?;
 
         info!(
             "Successfully fetched and converted {} experiment groups",
@@ -596,20 +608,14 @@ impl ExperimentationConfig {
         ) {
             (Some(experiments), Some(experiment_groups)) => {
                 // Use get_applicable_variants from superposition_core
-                get_applicable_variants(
+                Ok(get_applicable_variants(
                     dimensions_info,
                     experiments.clone(),
                     experiment_groups,
                     contexts,
                     &identifier.unwrap_or_default(),
                     None,
-                )
-                .map_err(|e| {
-                    SuperpositionError::ConfigError(format!(
-                        "Failed to get applicable variants: {}",
-                        e
-                    ))
-                })
+                ))
             }
             _ => Err(SuperpositionError::ConfigError(
                 "No cached experiments or experiment groups available".into(),

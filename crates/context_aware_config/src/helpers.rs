@@ -6,11 +6,14 @@ use actix_web::{
 };
 use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
-use fred::{interfaces::KeysInterface, types::Expiration};
+use fred::types::Expiration;
 use serde_json::{Map, Value, json};
 use service_utils::{
     helpers::get_from_env_or_default,
-    redis::{CONFIG_KEY_SUFFIX, CONFIG_VERSION_KEY_SUFFIX, LAST_MODIFIED_KEY_SUFFIX},
+    redis::{
+        CONFIG_KEY_SUFFIX, CONFIG_VERSION_KEY_SUFFIX, LAST_MODIFIED_KEY_SUFFIX,
+        redis_set_data,
+    },
 };
 use service_utils::{
     helpers::{fetch_dimensions_info_map, generate_snowflake_id},
@@ -250,45 +253,24 @@ pub async fn put_config_in_redis(
     let last_modified_at_key = format!("{}{LAST_MODIFIED_KEY_SUFFIX}", **schema_name);
     let config_version_key = format!("{}{CONFIG_VERSION_KEY_SUFFIX}", **schema_name);
 
-    redis_pool
-        .set::<(), String, String>(
-            config_key,
-            parsed_config,
-            expiration.clone(),
-            None,
-            false,
-        )
-        .await
-        .map_err(|e| {
-            log::warn!("failed to set config in redis: {}", e);
-            unexpected_error!("failed to set config in redis")
-        })?;
-    redis_pool
-        .set::<(), String, String>(
-            last_modified_at_key,
-            config_version.created_at.to_rfc2822(),
-            expiration.clone(),
-            None,
-            false,
-        )
-        .await
-        .map_err(|e| {
-            log::warn!("failed to set last_modified_key in redis: {}", e);
-            unexpected_error!("failed to set last_modified_key in redis")
-        })?;
-    redis_pool
-        .set::<(), String, i64>(
-            config_version_key,
-            config_version.id,
-            expiration,
-            None,
-            false,
-        )
-        .await
-        .map_err(|e| {
-            log::warn!("failed to set config_version_key in redis: {}", e);
-            unexpected_error!("failed to set config_version_key in redis")
-        })?;
+    redis_set_data(redis_pool, config_key, parsed_config, expiration.clone()).await?;
+
+    redis_set_data(
+        redis_pool,
+        last_modified_at_key,
+        config_version.created_at.to_rfc2822(),
+        expiration.clone(),
+    )
+    .await?;
+
+    redis_set_data(
+        redis_pool,
+        config_version_key,
+        config_version.id,
+        expiration,
+    )
+    .await?;
+
     Ok(())
 }
 

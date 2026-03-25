@@ -160,20 +160,11 @@ impl Client {
         prefix: Option<Vec<String>>,
     ) -> Result<Config, String> {
         let cac = self.config.read().await;
-        let mut config = cac.to_owned();
-        if let Some(prefix_list) = prefix {
-            config = config.filter_by_prefix(&HashSet::from_iter(prefix_list));
-        }
+        let filtered_config = cac
+            .to_owned()
+            .filter(query_data.as_ref(), prefix.map(HashSet::from_iter).as_ref());
 
-        let dimension_filtered_config = query_data
-            .filter(|query_map| !query_map.is_empty())
-            .map(|query_map| config.filter_by_dimensions(&query_map));
-
-        if let Some(filtered_config) = dimension_filtered_config {
-            config = filtered_config;
-        };
-
-        Ok(config)
+        Ok(filtered_config)
     }
 
     pub async fn get_last_modified(&self) -> DateTime<Utc> {
