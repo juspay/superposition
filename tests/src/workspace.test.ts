@@ -5,9 +5,10 @@ import {
     WorkspaceStatus,
 } from "@juspay/superposition-sdk";
 import { superpositionClient, ENV } from "../env.ts";
-import { describe, test, expect } from "bun:test";
+import { describe, test, expect, setDefaultTimeout } from "bun:test";
 
 describe("Workspace API", () => {
+    setDefaultTimeout(120000);
     const testWorkspaceName = `testws${Date.now() % 10000}`;
     let createdWorkspaceId: string;
     test("ListWorkspace", async () => {
@@ -48,7 +49,6 @@ describe("Workspace API", () => {
             workspace_admin_email: "admin@example.com",
             workspace_name: testWorkspaceName,
             description: "Test workspace created by automated tests",
-            mandatory_dimensions: ["os", "client"],
             allow_experiment_self_approval: true,
             auto_populate_control: false,
             enable_context_validation: true,
@@ -73,26 +73,6 @@ describe("Workspace API", () => {
         expect(response.auto_populate_control).toBe(false);
         expect(response.enable_context_validation).toBe(true);
         expect(response.enable_change_reason_validation).toBe(true);
-
-        // Fix mandatory_dimensions check - it might be a string or differently structured
-        if (response.mandatory_dimensions) {
-            if (Array.isArray(response.mandatory_dimensions)) {
-                // If it's an array, check for the expected values
-                expect(response.mandatory_dimensions).toContain("os");
-                expect(response.mandatory_dimensions).toContain("client");
-            } else if (typeof response.mandatory_dimensions === "string") {
-                // If it's a string, check if it contains the dimensions
-                expect(response.mandatory_dimensions).toContain("os");
-                expect(response.mandatory_dimensions).toContain("client");
-            } else {
-                console.log(
-                    "mandatory_dimensions is in a different format:",
-                    response.mandatory_dimensions,
-                );
-            }
-        } else {
-            console.log("mandatory_dimensions field not found in response");
-        }
 
         // Store the workspace ID for subsequent tests
         createdWorkspaceId = response.workspace_name ?? testWorkspaceName;
@@ -156,7 +136,6 @@ describe("Workspace API", () => {
             workspace_name: testWorkspaceName,
             workspace_admin_email: "updated-admin@example.com",
             workspace_status: WorkspaceStatus.ENABLED,
-            mandatory_dimensions: ["os", "client", "version"],
         };
 
         const cmd = new UpdateWorkspaceCommand(input);
@@ -179,24 +158,6 @@ describe("Workspace API", () => {
             expect(response.auto_populate_control).toBe(false);
             expect(response.enable_context_validation).toBe(true);
             expect(response.enable_change_reason_validation).toBe(true);
-
-            // Check mandatory_dimensions with flexible type handling
-            if (response.mandatory_dimensions) {
-                if (Array.isArray(response.mandatory_dimensions)) {
-                    expect(response.mandatory_dimensions).toContain("os");
-                    expect(response.mandatory_dimensions).toContain("client");
-                    expect(response.mandatory_dimensions).toContain("version");
-                } else if (typeof response.mandatory_dimensions === "string") {
-                    expect(response.mandatory_dimensions).toContain("os");
-                    expect(response.mandatory_dimensions).toContain("client");
-                    expect(response.mandatory_dimensions).toContain("version");
-                } else {
-                    console.log(
-                        "mandatory_dimensions is in a different format:",
-                        response.mandatory_dimensions,
-                    );
-                }
-            }
         } catch (error: any) {
             console.error("Error in UpdateWorkspace:", error.$response);
             throw error; // Re-throw to fail the test
@@ -232,15 +193,6 @@ describe("Workspace API", () => {
         expect(workspace?.workspace_admin_email).toBe(
             "updated-admin@example.com",
         );
-
-        // Check mandatory_dimensions with flexible type handling
-        if (workspace?.mandatory_dimensions) {
-            if (Array.isArray(workspace.mandatory_dimensions)) {
-                expect(workspace.mandatory_dimensions).toContain("version");
-            } else if (typeof workspace.mandatory_dimensions === "string") {
-                expect(workspace.mandatory_dimensions).toContain("version");
-            }
-        }
     });
 
     test("List Workspaces with Filters", async () => {

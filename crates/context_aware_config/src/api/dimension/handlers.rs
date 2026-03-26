@@ -591,6 +591,19 @@ async fn delete_handler(
         .schema_name(&workspace_context.schema_name)
         .get_result(&mut conn)?;
 
+    let is_mandatory = workspace_context
+        .settings
+        .mandatory_dimensions
+        .as_ref()
+        .is_some_and(|dims| dims.contains(&dimension_data.dimension));
+
+    if is_mandatory {
+        return Err(bad_argument!(
+            "Dimension `{}` is mandatory and cannot be deleted",
+            name
+        ));
+    }
+
     let context_ids = get_dimension_usage_context_ids(
         &name,
         &mut conn,
