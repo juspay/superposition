@@ -98,9 +98,10 @@ async fn resolve_with_exp_handler(
     {
         let context_map: &Map<String, Value> = &query_data;
         let (applicable_variants, _) = get_applicable_variants_helper(
-            context_map.clone(),
+            context_map,
             &config.dimensions,
             identifier,
+            query_filters.prefix.clone().map(|p| p.0),
             &workspace_context,
             &state,
         )

@@ -6,7 +6,7 @@ pub struct ListVersionsMember  {
     #[allow(missing_docs)] // documentation missing in model
     pub id: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
-    pub config: ::aws_smithy_types::Document,
+    pub config: crate::types::ConfigData,
     #[allow(missing_docs)] // documentation missing in model
     pub created_at: ::aws_smithy_types::DateTime,
     #[allow(missing_docs)] // documentation missing in model
@@ -20,7 +20,7 @@ impl  ListVersionsMember  {
         use std::ops::Deref; self.id.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn config(&self) -> &::aws_smithy_types::Document {
+    pub fn config(&self) -> &crate::types::ConfigData {
         &self.config
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -51,7 +51,7 @@ impl ListVersionsMember {
 #[non_exhaustive]
 pub struct ListVersionsMemberBuilder {
     pub(crate) id: ::std::option::Option<::std::string::String>,
-    pub(crate) config: ::std::option::Option<::aws_smithy_types::Document>,
+    pub(crate) config: ::std::option::Option<crate::types::ConfigData>,
     pub(crate) created_at: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) description: ::std::option::Option<::std::string::String>,
     pub(crate) tags: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
@@ -73,16 +73,16 @@ impl ListVersionsMemberBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn config(mut self, input: ::aws_smithy_types::Document) -> Self {
+    pub fn config(mut self, input: crate::types::ConfigData) -> Self {
         self.config = ::std::option::Option::Some(input);
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_config(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
+    pub fn set_config(mut self, input: ::std::option::Option<crate::types::ConfigData>) -> Self {
         self.config = input; self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_config(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
+    pub fn get_config(&self) -> &::std::option::Option<crate::types::ConfigData> {
         &self.config
     }
     #[allow(missing_docs)] // documentation missing in model

@@ -157,5 +157,24 @@ impl ApplicableVariantsFluentBuilder {
     pub fn get_identifier(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_identifier()
                 }
+    /// 
+    /// Appends an item to `prefix`.
+    /// 
+    /// To override the contents of this collection use [`set_prefix`](Self::set_prefix).
+    /// 
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn prefix(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+                        self.inner = self.inner.prefix(input.into());
+                        self
+                    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_prefix(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
+                    self.inner = self.inner.set_prefix(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_prefix(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+                    self.inner.get_prefix()
+                }
 }
 

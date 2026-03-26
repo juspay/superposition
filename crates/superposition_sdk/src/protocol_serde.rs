@@ -321,6 +321,8 @@ pub(crate) mod shape_bulk_operation_out_list;
 
 pub(crate) mod shape_condition;
 
+pub(crate) mod shape_config_data;
+
 pub(crate) mod shape_context_action;
 
 pub(crate) mod shape_context_list;

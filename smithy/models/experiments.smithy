@@ -223,7 +223,12 @@ structure ApplicableVariantsInput for Experiments with [WorkspaceMixin] {
 
     @required
     @notProperty
+    @httpQuery("identifier")
     identifier: String
+
+    @notProperty
+    @httpQuery("prefix")
+    prefix: StringList
 }
 
 // Operations

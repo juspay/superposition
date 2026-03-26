@@ -33,13 +33,15 @@ pub use crate::types::_function_response::FunctionResponseBuilder;
 
 pub use crate::types::_audit_log_full::AuditLogFullBuilder;
 
-pub use crate::types::_list_versions_member::ListVersionsMemberBuilder;
+pub use crate::types::_config_data::ConfigDataBuilder;
 
 pub use crate::types::_dimension_info::DimensionInfoBuilder;
 
 pub use crate::types::_unit::UnitBuilder;
 
 pub use crate::types::_context_partial::ContextPartialBuilder;
+
+pub use crate::types::_list_versions_member::ListVersionsMemberBuilder;
 
 pub use crate::types::_context_response::ContextResponseBuilder;
 

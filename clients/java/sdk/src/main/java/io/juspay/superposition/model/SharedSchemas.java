@@ -61,11 +61,6 @@ final class SharedSchemas {
         .putMember("member", PreludeSchemas.STRING)
         .build();
 
-    static final Schema CONTEXT_MAP = Schema.mapBuilder(ShapeId.from("io.superposition#ContextMap"))
-        .putMember("key", PreludeSchemas.STRING)
-        .putMember("value", PreludeSchemas.DOCUMENT)
-        .build();
-
     static final Schema OVERRIDE_WITH_KEYS = Schema.listBuilder(ShapeId.from("io.superposition#OverrideWithKeys"),
             LengthTrait.builder().min(1L).max(1L).build())
         .putMember("member", PreludeSchemas.STRING)
@@ -75,19 +70,24 @@ final class SharedSchemas {
         .putMember("member", ContextPartial.$SCHEMA)
         .build();
 
-    static final Schema OBJECT = Schema.mapBuilder(ShapeId.from("io.superposition#Object"))
-        .putMember("key", PreludeSchemas.STRING)
-        .putMember("value", PreludeSchemas.DOCUMENT)
-        .build();
-
     static final Schema DEPENDENCY_GRAPH = Schema.mapBuilder(ShapeId.from("io.superposition#DependencyGraph"))
         .putMember("key", PreludeSchemas.STRING)
         .putMember("value", SharedSchemas.STRING_LIST)
         .build();
 
+    static final Schema OBJECT = Schema.mapBuilder(ShapeId.from("io.superposition#Object"))
+        .putMember("key", PreludeSchemas.STRING)
+        .putMember("value", PreludeSchemas.DOCUMENT)
+        .build();
+
     static final Schema DIMENSION_DATA = Schema.mapBuilder(ShapeId.from("io.superposition#DimensionData"))
         .putMember("key", PreludeSchemas.STRING)
         .putMember("value", DimensionInfo.$SCHEMA)
+        .build();
+
+    static final Schema CONTEXT_MAP = Schema.mapBuilder(ShapeId.from("io.superposition#ContextMap"))
+        .putMember("key", PreludeSchemas.STRING)
+        .putMember("value", PreludeSchemas.DOCUMENT)
         .build();
 
     static final Schema OVERRIDES_MAP = Schema.mapBuilder(ShapeId.from("io.superposition#OverridesMap"))

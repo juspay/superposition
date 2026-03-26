@@ -149,6 +149,14 @@ async def _serialize_applicable_variants(input: ApplicableVariantsInput, config:
     path = "/experiments/applicable-variants"
     query: str = f''
 
+    query_params: list[tuple[str, str | None]] = []
+    if input.identifier is not None:
+        query_params.append(("identifier", input.identifier))
+    if input.prefix is not None:
+        query_params.extend(("prefix", e) for e in input.prefix)
+
+    query = join_query_params(params=query_params, prefix=query)
+
     body: AsyncIterable[bytes] = AsyncBytesReader(b'')
     codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
     content = codec.serialize(input)

@@ -17,7 +17,7 @@ public final class ConfigVersion implements ApiResource {
         "id", PreludeSchemas.STRING);
     private static final Map<String, Schema> $PROPERTIES = Map.of("created_at", SharedSchemas.DATE_TIME,
         "description", PreludeSchemas.STRING,
-        "config", PreludeSchemas.DOCUMENT,
+        "config", ConfigData.$SCHEMA,
         "config_hash", PreludeSchemas.STRING,
         "tags", SharedSchemas.STRING_LIST);
 

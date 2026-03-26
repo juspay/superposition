@@ -116,6 +116,34 @@ pub fn evaluation_context_to_value(value: EvaluationContextFieldValue) -> Value 
     }
 }
 
+pub fn evaluation_context_to_document(value: EvaluationContextFieldValue) -> Document {
+    match value {
+        EvaluationContextFieldValue::Bool(b) => Document::Bool(b),
+        EvaluationContextFieldValue::Int(i) => {
+            Document::Number(aws_smithy_types::Number::NegInt(i))
+        }
+        EvaluationContextFieldValue::Float(f) => {
+            Document::Number(aws_smithy_types::Number::Float(f))
+        }
+        EvaluationContextFieldValue::String(s) => Document::String(s),
+        EvaluationContextFieldValue::DateTime(dt) => Document::String(dt.to_string()),
+        EvaluationContextFieldValue::Struct(s) => {
+            let struct_map = s
+                .downcast_ref::<HashMap<String, EvaluationContextFieldValue>>()
+                .map(|m| {
+                    m.iter()
+                        .map(|(k, v)| (k.clone(), evaluation_context_to_document(v.clone())))
+                        .collect()
+                })
+                .unwrap_or_else(|| {
+                    log::warn!("Failed to downcast struct value to expected HashMap format, got {:?}. Returning empty object.", s.type_id());
+                    HashMap::new()
+                });
+            Document::Object(struct_map)
+        }
+    }
+}
+
 /// Convert an EvaluationContext into a (Map<String, Value>, Option<String>) tuple
 /// containing the custom fields as serde values and the targeting key.
 /// This is used by both local and remote providers.
@@ -126,6 +154,18 @@ pub fn evaluation_context_to_query(
         .custom_fields
         .into_iter()
         .map(|(k, v)| (k, evaluation_context_to_value(v)))
+        .collect();
+
+    (context, ctx.targeting_key)
+}
+
+pub fn evaluation_context_to_query_document(
+    ctx: EvaluationContext,
+) -> (HashMap<String, Document>, Option<String>) {
+    let context = ctx
+        .custom_fields
+        .into_iter()
+        .map(|(k, v)| (k, evaluation_context_to_document(v)))
         .collect();
 
     (context, ctx.targeting_key)

@@ -122,6 +122,7 @@ export interface ApplicableVariantsInput {
   context: Record<string, __DocumentType> | undefined;
 
   identifier: string | undefined;
+  prefix?: (string)[] | undefined;
 }
 
 /**
@@ -678,28 +679,6 @@ export interface ExperimentResponse {
 /**
  * @public
  */
-export interface GetConfigInput {
-  workspace_id: string | undefined;
-  org_id: string | undefined;
-  prefix?: (string)[] | undefined;
-  version?: string | undefined;
-  /**
-   * While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
-   * @public
-   */
-  if_modified_since?: Date | undefined;
-
-  /**
-   * Map representing the context.
-   * Keys correspond to the names of the dimensions.
-   * @public
-   */
-  context?: Record<string, __DocumentType> | undefined;
-}
-
-/**
- * @public
- */
 export interface ContextPartial {
   id: string | undefined;
   /**
@@ -797,6 +776,28 @@ export interface DimensionInfo {
   dimension_type: DimensionType | undefined;
   dependency_graph: Record<string, (string)[]> | undefined;
   value_compute_function_name?: string | undefined;
+}
+
+/**
+ * @public
+ */
+export interface GetConfigInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  prefix?: (string)[] | undefined;
+  version?: string | undefined;
+  /**
+   * While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
+   * @public
+   */
+  if_modified_since?: Date | undefined;
+
+  /**
+   * Map representing the context.
+   * Keys correspond to the names of the dimensions.
+   * @public
+   */
+  context?: Record<string, __DocumentType> | undefined;
 }
 
 /**
@@ -946,6 +947,21 @@ export interface GetResolvedConfigWithIdentifierOutput {
 /**
  * @public
  */
+export interface ConfigData {
+  contexts: (ContextPartial)[] | undefined;
+  overrides: Record<string, Record<string, __DocumentType>> | undefined;
+  /**
+   * Generic key-value object structure used for flexible data representation throughout the API.
+   * @public
+   */
+  default_configs: Record<string, __DocumentType> | undefined;
+
+  dimensions: Record<string, DimensionInfo> | undefined;
+}
+
+/**
+ * @public
+ */
 export interface GetVersionInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
@@ -957,7 +973,7 @@ export interface GetVersionInput {
  */
 export interface GetVersionResponse {
   id: string | undefined;
-  config: __DocumentType | undefined;
+  config: ConfigData | undefined;
   config_hash: string | undefined;
   created_at: Date | undefined;
   description: string | undefined;
@@ -988,7 +1004,7 @@ export interface ListVersionsInput {
  */
 export interface ListVersionsMember {
   id: string | undefined;
-  config: __DocumentType | undefined;
+  config: ConfigData | undefined;
   created_at: Date | undefined;
   description: string | undefined;
   tags?: (string)[] | undefined;

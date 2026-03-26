@@ -2743,6 +2743,26 @@
                 },
                 "parameters": [
                     {
+                        "name": "identifier",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "prefix",
+                        "in": "query",
+                        "style": "form",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "explode": true
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -6290,14 +6310,10 @@
                 "properties": {
                     "context": {
                         "$ref": "#/components/schemas/Condition"
-                    },
-                    "identifier": {
-                        "type": "string"
                     }
                 },
                 "required": [
-                    "context",
-                    "identifier"
+                    "context"
                 ]
             },
             "ApplicableVariantsResponseContent": {
@@ -6520,6 +6536,32 @@
                 "type": "object",
                 "additionalProperties": {},
                 "description": "Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met."
+            },
+            "ConfigData": {
+                "type": "object",
+                "properties": {
+                    "contexts": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ContextPartial"
+                        }
+                    },
+                    "overrides": {
+                        "$ref": "#/components/schemas/OverridesMap"
+                    },
+                    "default_configs": {
+                        "$ref": "#/components/schemas/Object"
+                    },
+                    "dimensions": {
+                        "$ref": "#/components/schemas/DimensionData"
+                    }
+                },
+                "required": [
+                    "contexts",
+                    "default_configs",
+                    "dimensions",
+                    "overrides"
+                ]
             },
             "ContextAction": {
                 "oneOf": [
@@ -9422,7 +9464,9 @@
                     "id": {
                         "type": "string"
                     },
-                    "config": {},
+                    "config": {
+                        "$ref": "#/components/schemas/ConfigData"
+                    },
                     "config_hash": {
                         "type": "string"
                     },
@@ -9935,7 +9979,9 @@
                     "id": {
                         "type": "string"
                     },
-                    "config": {},
+                    "config": {
+                        "$ref": "#/components/schemas/ConfigData"
+                    },
                     "created_at": {
                         "type": "string",
                         "format": "date-time"

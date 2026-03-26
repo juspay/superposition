@@ -71,9 +71,7 @@ pub use crate::types::_audit_log_full::AuditLogFull;
 
 pub use crate::types::_audit_action::AuditAction;
 
-pub use crate::types::_list_versions_member::ListVersionsMember;
-
-pub use crate::types::_merge_strategy::MergeStrategy;
+pub use crate::types::_config_data::ConfigData;
 
 pub use crate::types::_dimension_info::DimensionInfo;
 
@@ -82,6 +80,10 @@ pub use crate::types::_dimension_type::DimensionType;
 pub use crate::types::_unit::Unit;
 
 pub use crate::types::_context_partial::ContextPartial;
+
+pub use crate::types::_list_versions_member::ListVersionsMember;
+
+pub use crate::types::_merge_strategy::MergeStrategy;
 
 pub use crate::types::_context_action_out::ContextActionOut;
 
@@ -114,6 +116,8 @@ mod _audit_log_full;
 mod _bucket;
 
 mod _change_reason_validation_function_request;
+
+mod _config_data;
 
 mod _context_action;
 

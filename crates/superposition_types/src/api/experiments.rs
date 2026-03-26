@@ -165,15 +165,18 @@ pub struct ExperimentStateChangeRequest {
 }
 
 /********** Applicable Variants API Type *************/
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, IsEmpty, QueryParam)]
 pub struct ApplicableVariantsQuery {
     #[serde(alias = "toss", deserialize_with = "deserialize_identifier")]
     pub identifier: String,
+    #[query_param(skip_if_empty, iterable)]
+    pub prefix: Option<CommaSeparatedStringQParams>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ApplicableVariantsRequest {
     pub context: Map<String, Value>,
+    // TODO: remove this once services start using newer sdk
     #[serde(alias = "toss", deserialize_with = "deserialize_identifier")]
     pub identifier: String,
 }

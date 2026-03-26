@@ -82,6 +82,7 @@ library
                         Io.Superposition.Model.VariantUpdateRequest,
                         Io.Superposition.Model.GetFunctionOutput,
                         Io.Superposition.Model.UpdateOverridesExperimentInput,
+                        Io.Superposition.Model.ConfigData,
                         Io.Superposition.Command.CreateVariable,
                         Io.Superposition.Model.ListDimensionsInput,
                         Io.Superposition.Model.ConcludeExperimentInput,

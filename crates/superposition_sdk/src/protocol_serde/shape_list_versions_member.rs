@@ -22,7 +22,7 @@ pub(crate) fn de_list_versions_member<'a, I>(tokens: &mut ::std::iter::Peekable<
                             }
                             "config" => {
                                 builder = builder.set_config(
-                                    Some(::aws_smithy_json::deserialize::token::expect_document(tokens)?)
+                                    crate::protocol_serde::shape_config_data::de_config_data(tokens)?
                                 );
                             }
                             "created_at" => {

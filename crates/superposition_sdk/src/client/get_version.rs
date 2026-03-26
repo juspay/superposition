@@ -8,7 +8,7 @@ impl super::Client {
     ///   - [`id(impl Into<String>)`](crate::operation::get_version::builders::GetVersionFluentBuilder::id) / [`set_id(Option<String>)`](crate::operation::get_version::builders::GetVersionFluentBuilder::set_id):<br>required: **true**<br>(undocumented)<br>
                             /// - On success, responds with [`GetVersionOutput`](crate::operation::get_version::GetVersionOutput) with field(s):
     ///   - [`id(String)`](crate::operation::get_version::GetVersionOutput::id): (undocumented)
-    ///   - [`config(Document)`](crate::operation::get_version::GetVersionOutput::config): (undocumented)
+    ///   - [`config(ConfigData)`](crate::operation::get_version::GetVersionOutput::config): (undocumented)
     ///   - [`config_hash(String)`](crate::operation::get_version::GetVersionOutput::config_hash): (undocumented)
     ///   - [`created_at(DateTime)`](crate::operation::get_version::GetVersionOutput::created_at): (undocumented)
     ///   - [`description(String)`](crate::operation::get_version::GetVersionOutput::description): (undocumented)

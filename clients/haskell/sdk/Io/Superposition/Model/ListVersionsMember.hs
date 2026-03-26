@@ -24,11 +24,12 @@ import qualified Data.Text
 import qualified Data.Time
 import qualified GHC.Generics
 import qualified GHC.Show
+import qualified Io.Superposition.Model.ConfigData
 import qualified Io.Superposition.Utility
 
 data ListVersionsMember = ListVersionsMember {
     id' :: Data.Text.Text,
-    config :: Data.Aeson.Value,
+    config :: Io.Superposition.Model.ConfigData.ConfigData,
     created_at :: Data.Time.UTCTime,
     description :: Data.Text.Text,
     tags :: Data.Maybe.Maybe ([] Data.Text.Text)
@@ -63,7 +64,7 @@ instance Data.Aeson.FromJSON ListVersionsMember where
 
 data ListVersionsMemberBuilderState = ListVersionsMemberBuilderState {
     id'BuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    configBuilderState :: Data.Maybe.Maybe Data.Aeson.Value,
+    configBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.ConfigData.ConfigData,
     created_atBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     descriptionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     tagsBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text)
@@ -86,7 +87,7 @@ setId' :: Data.Text.Text -> ListVersionsMemberBuilder ()
 setId' value =
    Control.Monad.State.Strict.modify (\s -> (s { id'BuilderState = Data.Maybe.Just value }))
 
-setConfig :: Data.Aeson.Value -> ListVersionsMemberBuilder ()
+setConfig :: Io.Superposition.Model.ConfigData.ConfigData -> ListVersionsMemberBuilder ()
 setConfig value =
    Control.Monad.State.Strict.modify (\s -> (s { configBuilderState = Data.Maybe.Just value }))
 
