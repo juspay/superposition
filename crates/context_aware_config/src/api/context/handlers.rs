@@ -1085,7 +1085,7 @@ async fn weight_recompute_handler(
         resource: Resource::Context,
         event: WebhookEvent::ConfigChanged,
         config_version_opt: Some(config_version.id.to_string()),
-        action: Action::Update,
+        action: Action::Batch(vec![Action::Update; response.len()]),
     };
 
     let webhook_status =

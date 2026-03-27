@@ -11,6 +11,22 @@ pub fn de_create_experiment_http_error(_response_status: u16, _response_headers:
     
                             let _error_message = generic.message().map(|msg|msg.to_owned());
     Err(match error_code {
+        "WebhookFailed" => crate::operation::create_experiment::CreateExperimentError::WebhookFailed({
+            #[allow(unused_mut)]
+            let mut tmp =
+                 {
+                    #[allow(unused_mut)]
+                    let mut output = crate::types::error::builders::WebhookFailedBuilder::default();
+                    output = crate::protocol_serde::shape_webhook_failed::de_webhook_failed_json_err(_response_body, output).map_err(crate::operation::create_experiment::CreateExperimentError::unhandled)?;
+                    let output = output.meta(generic);
+                    crate::serde_util::webhook_failed_correct_errors(output).build().map_err(crate::operation::create_experiment::CreateExperimentError::unhandled)?
+                }
+            ;
+            if tmp.message.is_none() {
+                                                            tmp.message = _error_message;
+                                                        }
+            tmp
+        }),
         "InternalServerError" => crate::operation::create_experiment::CreateExperimentError::InternalServerError({
             #[allow(unused_mut)]
             let mut tmp =

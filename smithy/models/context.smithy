@@ -79,7 +79,7 @@ structure ContextResponse for Context {
 @idempotent
 @http(method: "PUT", uri: "/context")
 @tags(["Context Management"])
-operation CreateContext with [GetOperation] {
+operation CreateContext with [GetOperation, WebhookOperation] {
     input := for Context with [WorkspaceMixin] {
         @httpHeader("x-config-tags")
         @notProperty
@@ -123,7 +123,7 @@ operation GetContext with [GetOperation] {
 @documentation("Updates the condition of the mentioned context, if a context with the new condition already exists, it merges the override and effectively deleting the old context")
 @http(method: "PUT", uri: "/context/move/{id}")
 @tags(["Context Management"])
-operation MoveContext with [GetOperation] {
+operation MoveContext with [GetOperation, WebhookOperation] {
     input := for Context with [WorkspaceMixin] {
         @httpLabel
         @required
@@ -159,7 +159,7 @@ structure UpdateContextOverrideRequest for Context {
 @documentation("Updates the overrides for an existing context. Allows modification of override values while maintaining the context's conditions.")
 @http(method: "PATCH", uri: "/context/overrides")
 @tags(["Context Management"])
-operation UpdateOverride with [GetOperation] {
+operation UpdateOverride with [GetOperation, WebhookOperation] {
     input := for Context with [WorkspaceMixin] {
         // REVIEW Should this be made a property?
         @httpHeader("x-config-tags")
@@ -243,7 +243,7 @@ operation ListContexts {
 @idempotent
 @http(method: "DELETE", uri: "/context/{id}", code: 204)
 @tags(["Context Management"])
-operation DeleteContext with [GetOperation] {
+operation DeleteContext with [GetOperation, WebhookOperation] {
     input := for Context with [WorkspaceMixin] {
         @httpLabel
         @required
@@ -276,7 +276,7 @@ list WeightRecomputeResponses {
 @documentation("Recalculates and updates the priority weights for all contexts in the workspace based on their dimensions.")
 @http(method: "PUT", uri: "/context/weight/recompute")
 @tags(["Context Management"])
-operation WeightRecompute {
+operation WeightRecompute with [WebhookOperation] {
     input := with [WorkspaceMixin] {
         @httpHeader("x-config-tags")
         @notProperty
@@ -345,7 +345,7 @@ list BulkOperationOutList {
 @documentation("Executes multiple context operations (PUT, REPLACE, DELETE, MOVE) in a single atomic transaction for efficient batch processing.")
 @http(method: "PUT", uri: "/context/bulk-operations")
 @tags(["Context Management"])
-operation BulkOperation with [GetOperation] {
+operation BulkOperation with [GetOperation, WebhookOperation] {
     input := for Context with [WorkspaceMixin] {
         @httpHeader("x-config-tags")
         @notProperty

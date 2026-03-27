@@ -1282,6 +1282,27 @@ BULK_OPERATION_OUTPUT = Schema.collection(
     }
 )
 
+WEBHOOK_FAILED = Schema.collection(
+    id=ShapeID("io.superposition#WebhookFailed"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#error"), value="server"),
+        Trait.new(id=ShapeID("smithy.api#httpError"), value=512),
+
+    ],
+    members={
+        "data": {
+            "target": DOCUMENT,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
 BULK_OPERATION = Schema(
     id=ShapeID("io.superposition#BulkOperation"),
     shape_type=ShapeType.OPERATION,

@@ -67,7 +67,7 @@ build builder = do
 
 
 instance Io.Superposition.Utility.FromResponseParser InternalServerError where
-    expectedStatus = Network.HTTP.Types.status500
+    expectedStatus = (Network.HTTP.Types.mkStatus 500 "")
     responseParser = do
         
         var0 <- Io.Superposition.Utility.deSerField "message"

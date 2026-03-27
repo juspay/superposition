@@ -89,7 +89,7 @@ operation GetDefaultConfig with [GetOperation] {
 @documentation("Creates a new default config entry with specified key, value, schema, and metadata. Default configs serve as fallback values when no specific context matches.")
 @http(method: "POST", uri: "/default-config")
 @tags(["Default Configuration"])
-operation CreateDefaultConfig {
+operation CreateDefaultConfig with [WebhookOperation] {
     input := with [DefaultConfigMixin, WorkspaceMixin] {}
     output: DefaultConfigResponse
 }
@@ -115,7 +115,7 @@ operation ListDefaultConfigs {
 @idempotent
 @http(method: "PATCH", uri: "/default-config/{key}")
 @tags(["Default Configuration"])
-operation UpdateDefaultConfig with [GetOperation] {
+operation UpdateDefaultConfig with [GetOperation, WebhookOperation] {
     input := for DefaultConfig with [WorkspaceMixin] {
         @httpLabel
         @required
@@ -144,7 +144,7 @@ operation UpdateDefaultConfig with [GetOperation] {
 @idempotent
 @http(method: "DELETE", uri: "/default-config/{key}", code: 204)
 @tags(["Default Configuration"])
-operation DeleteDefaultConfig with [GetOperation] {
+operation DeleteDefaultConfig with [GetOperation, WebhookOperation] {
     input := for DefaultConfig with [WorkspaceMixin] {
         @httpLabel
         @required

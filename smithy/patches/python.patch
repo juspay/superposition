@@ -3,7 +3,7 @@ index 7c295b28..b7a7bd7e 100644
 --- a/clients/python/sdk/pyproject.toml
 +++ b/clients/python/sdk/pyproject.toml
 @@ -3,7 +3,7 @@
- 
+
  [project]
  name = "superposition_sdk"
 -version = "0.0.1"
@@ -14,7 +14,7 @@ index 7c295b28..b7a7bd7e 100644
 @@ -48,6 +48,10 @@ exclude = [
    "tests",
  ]
- 
+
 +[tool.hatch.version]
 +source = "env"
 +variable = "VERSION"
@@ -22,773 +22,773 @@ index 7c295b28..b7a7bd7e 100644
  [tool.pyright]
  typeCheckingMode = "strict"
  reportPrivateUsage = false
- 
+
 diff --git a/clients/python/sdk/superposition_sdk/models.py b/clients/python/sdk/superposition_sdk/models.py
-index cb471c43..abff3d68 100644
+index a3da84d9..fab5e493 100644
 --- a/clients/python/sdk/superposition_sdk/models.py
 +++ b/clients/python/sdk/superposition_sdk/models.py
-@@ -681,7 +681,7 @@ ADD_MEMBERS_TO_GROUP = APIOperation(
+@@ -682,7 +682,7 @@ ADD_MEMBERS_TO_GROUP = APIOperation(
  ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -883,7 +883,7 @@ APPLICABLE_VARIANTS = APIOperation(
+@@ -884,7 +884,7 @@ APPLICABLE_VARIANTS = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -1157,7 +1157,7 @@ LIST_AUDIT_LOGS = APIOperation(
+@@ -1158,7 +1158,7 @@ LIST_AUDIT_LOGS = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -1916,7 +1916,7 @@ BULK_OPERATION = APIOperation(
+@@ -1965,7 +1965,7 @@ ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
  ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -2205,7 +2205,7 @@ CONCLUDE_EXPERIMENT = APIOperation(
+@@ -2255,7 +2255,7 @@ ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
  ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -2722,7 +2722,7 @@ GET_CONFIG = APIOperation(
+@@ -2772,7 +2772,7 @@ GET_CONFIG = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -2819,7 +2819,7 @@ GET_CONFIG_JSON = APIOperation(
+@@ -2869,7 +2869,7 @@ GET_CONFIG_JSON = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -2916,7 +2916,7 @@ GET_CONFIG_TOML = APIOperation(
+@@ -2966,7 +2966,7 @@ GET_CONFIG_TOML = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -3053,7 +3053,7 @@ GET_RESOLVED_CONFIG = APIOperation(
+@@ -3103,7 +3103,7 @@ GET_RESOLVED_CONFIG = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -3190,7 +3190,7 @@ GET_RESOLVED_CONFIG_WITH_IDENTIFIER = APIOperation(
+@@ -3240,7 +3240,7 @@ GET_RESOLVED_CONFIG_WITH_IDENTIFIER = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -3305,7 +3305,7 @@ GET_VERSION = APIOperation(
+@@ -3355,7 +3355,7 @@ GET_VERSION = APIOperation(
  ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -3485,7 +3485,7 @@ LIST_VERSIONS = APIOperation(
+@@ -3535,7 +3535,7 @@ LIST_VERSIONS = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -3649,7 +3649,7 @@ CREATE_CONTEXT = APIOperation(
+@@ -3700,7 +3700,7 @@ ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
  ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -3733,7 +3733,7 @@ DELETE_CONTEXT = APIOperation(
+@@ -3785,7 +3785,7 @@ ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
  ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -3893,7 +3893,7 @@ GET_CONTEXT = APIOperation(
+@@ -3945,7 +3945,7 @@ GET_CONTEXT = APIOperation(
  ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -4053,7 +4053,7 @@ GET_CONTEXT_FROM_CONDITION = APIOperation(
+@@ -4106,7 +4106,7 @@ ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
  ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -4241,7 +4241,7 @@ LIST_CONTEXTS = APIOperation(
+@@ -4294,7 +4294,7 @@ LIST_CONTEXTS = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -4405,7 +4405,7 @@ MOVE_CONTEXT = APIOperation(
+@@ -4459,7 +4459,7 @@ ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
  ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -4569,7 +4569,7 @@ UPDATE_OVERRIDE = APIOperation(
+@@ -4624,7 +4624,7 @@ ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
  ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -4656,7 +4656,7 @@ VALIDATE_CONTEXT = APIOperation(
+@@ -4711,7 +4711,7 @@ VALIDATE_CONTEXT = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -4820,7 +4820,7 @@ WEIGHT_RECOMPUTE = APIOperation(
+@@ -4876,7 +4876,7 @@ WEIGHT_RECOMPUTE = APIOperation(
+ ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
+         }),
+         effective_auth_schemes = [
+-            ShapeID("smithy.api#httpBasicAuth")
++           ShapeID("smithy.api#httpBasicAuth"),
+ ShapeID("smithy.api#httpBearerAuth")
+         ]
+ )
+@@ -5110,7 +5110,7 @@ CREATE_DEFAULT_CONFIG = APIOperation(
+ ShapeID("io.superposition#InternalServerError"): InternalServerError,
+         }),
+         effective_auth_schemes = [
+-            ShapeID("smithy.api#httpBasicAuth")
++           ShapeID("smithy.api#httpBasicAuth"),
+ ShapeID("smithy.api#httpBearerAuth")
+         ]
+ )
+@@ -5339,7 +5339,7 @@ CREATE_DIMENSION = APIOperation(
+ ShapeID("io.superposition#InternalServerError"): InternalServerError,
+         }),
+         effective_auth_schemes = [
+-            ShapeID("smithy.api#httpBasicAuth")
++           ShapeID("smithy.api#httpBasicAuth"),
+ ShapeID("smithy.api#httpBearerAuth")
+         ]
+ )
+@@ -5607,7 +5607,7 @@ CREATE_EXPERIMENT = APIOperation(
+ ShapeID("io.superposition#InternalServerError"): InternalServerError,
+         }),
+         effective_auth_schemes = [
+-            ShapeID("smithy.api#httpBasicAuth")
++           ShapeID("smithy.api#httpBasicAuth"),
+ ShapeID("smithy.api#httpBearerAuth")
+         ]
+ )
+@@ -5826,7 +5826,7 @@ CREATE_EXPERIMENT_GROUP = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -5053,7 +5053,7 @@ CREATE_DEFAULT_CONFIG = APIOperation(
+@@ -6037,7 +6037,7 @@ CREATE_FUNCTION = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -5281,7 +5281,7 @@ CREATE_DIMENSION = APIOperation(
+@@ -6224,7 +6224,7 @@ CREATE_ORGANISATION = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -5548,7 +5548,7 @@ CREATE_EXPERIMENT = APIOperation(
+@@ -6376,7 +6376,7 @@ CREATE_SECRET = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -5767,7 +5767,7 @@ CREATE_EXPERIMENT_GROUP = APIOperation(
+@@ -6537,7 +6537,7 @@ CREATE_TYPE_TEMPLATES = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -5978,7 +5978,7 @@ CREATE_FUNCTION = APIOperation(
+@@ -6684,7 +6684,7 @@ CREATE_VARIABLE = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -6165,7 +6165,7 @@ CREATE_ORGANISATION = APIOperation(
+@@ -6954,7 +6954,7 @@ CREATE_WEBHOOK = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -6317,7 +6317,7 @@ CREATE_SECRET = APIOperation(
+@@ -7204,7 +7204,7 @@ CREATE_WORKSPACE = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -6478,7 +6478,7 @@ CREATE_TYPE_TEMPLATES = APIOperation(
+@@ -7285,7 +7285,7 @@ ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
+ ShapeID("io.superposition#InternalServerError"): InternalServerError,
+         }),
+         effective_auth_schemes = [
+-            ShapeID("smithy.api#httpBasicAuth")
++           ShapeID("smithy.api#httpBasicAuth"),
+ ShapeID("smithy.api#httpBearerAuth")
+         ]
+ )
+@@ -7439,7 +7439,7 @@ GET_DEFAULT_CONFIG = APIOperation(
+ ShapeID("io.superposition#InternalServerError"): InternalServerError,
+         }),
+         effective_auth_schemes = [
+-            ShapeID("smithy.api#httpBasicAuth")
++           ShapeID("smithy.api#httpBasicAuth"),
+ ShapeID("smithy.api#httpBearerAuth")
+         ]
+ )
+@@ -7676,7 +7676,7 @@ LIST_DEFAULT_CONFIGS = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -6625,7 +6625,7 @@ CREATE_VARIABLE = APIOperation(
+@@ -7884,7 +7884,7 @@ ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
+ ShapeID("io.superposition#InternalServerError"): InternalServerError,
+         }),
+         effective_auth_schemes = [
+-            ShapeID("smithy.api#httpBasicAuth")
++           ShapeID("smithy.api#httpBasicAuth"),
+ ShapeID("smithy.api#httpBearerAuth")
+         ]
+ )
+@@ -7965,7 +7965,7 @@ ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
+ ShapeID("io.superposition#InternalServerError"): InternalServerError,
+         }),
+         effective_auth_schemes = [
+-            ShapeID("smithy.api#httpBasicAuth")
++           ShapeID("smithy.api#httpBasicAuth"),
+ ShapeID("smithy.api#httpBearerAuth")
+         ]
+ )
+@@ -8135,7 +8135,7 @@ DELETE_EXPERIMENT_GROUP = APIOperation(
+ ShapeID("io.superposition#InternalServerError"): InternalServerError,
+         }),
+         effective_auth_schemes = [
+-            ShapeID("smithy.api#httpBasicAuth")
++           ShapeID("smithy.api#httpBasicAuth"),
+ ShapeID("smithy.api#httpBearerAuth")
+         ]
+ )
+@@ -8215,7 +8215,7 @@ DELETE_FUNCTION = APIOperation(
+ ShapeID("io.superposition#InternalServerError"): InternalServerError,
+         }),
+         effective_auth_schemes = [
+-            ShapeID("smithy.api#httpBasicAuth")
++           ShapeID("smithy.api#httpBasicAuth"),
+ ShapeID("smithy.api#httpBearerAuth")
+         ]
+ )
+@@ -8340,7 +8340,7 @@ DELETE_SECRET = APIOperation(
+ ShapeID("io.superposition#InternalServerError"): InternalServerError,
+         }),
+         effective_auth_schemes = [
+-            ShapeID("smithy.api#httpBasicAuth")
++           ShapeID("smithy.api#httpBasicAuth"),
+ ShapeID("smithy.api#httpBearerAuth")
+         ]
+ )
+@@ -8473,7 +8473,7 @@ DELETE_TYPE_TEMPLATES = APIOperation(
+ ShapeID("io.superposition#InternalServerError"): InternalServerError,
+         }),
+         effective_auth_schemes = [
+-            ShapeID("smithy.api#httpBasicAuth")
++           ShapeID("smithy.api#httpBasicAuth"),
+ ShapeID("smithy.api#httpBearerAuth")
+         ]
+ )
+@@ -8599,7 +8599,7 @@ DELETE_VARIABLE = APIOperation(
+ ShapeID("io.superposition#InternalServerError"): InternalServerError,
+         }),
+         effective_auth_schemes = [
+-            ShapeID("smithy.api#httpBasicAuth")
++           ShapeID("smithy.api#httpBasicAuth"),
+ ShapeID("smithy.api#httpBearerAuth")
+         ]
+ )
+@@ -8679,7 +8679,7 @@ DELETE_WEBHOOK = APIOperation(
+ ShapeID("io.superposition#InternalServerError"): InternalServerError,
+         }),
+         effective_auth_schemes = [
+-            ShapeID("smithy.api#httpBasicAuth")
++           ShapeID("smithy.api#httpBasicAuth"),
+ ShapeID("smithy.api#httpBearerAuth")
+         ]
+ )
+@@ -8851,7 +8851,7 @@ GET_DIMENSION = APIOperation(
+ ShapeID("io.superposition#InternalServerError"): InternalServerError,
+         }),
+         effective_auth_schemes = [
+-            ShapeID("smithy.api#httpBasicAuth")
++           ShapeID("smithy.api#httpBasicAuth"),
+ ShapeID("smithy.api#httpBearerAuth")
+         ]
+ )
+@@ -9102,7 +9102,7 @@ LIST_DIMENSIONS = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -6895,7 +6895,7 @@ CREATE_WEBHOOK = APIOperation(
+@@ -9328,7 +9328,7 @@ ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
+ ShapeID("io.superposition#InternalServerError"): InternalServerError,
+         }),
+         effective_auth_schemes = [
+-            ShapeID("smithy.api#httpBasicAuth")
++           ShapeID("smithy.api#httpBasicAuth"),
+ ShapeID("smithy.api#httpBearerAuth")
+         ]
+ )
+@@ -9545,7 +9545,7 @@ ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
+ ShapeID("io.superposition#InternalServerError"): InternalServerError,
+         }),
+         effective_auth_schemes = [
+-            ShapeID("smithy.api#httpBasicAuth")
++           ShapeID("smithy.api#httpBasicAuth"),
+ ShapeID("smithy.api#httpBearerAuth")
+         ]
+ )
+@@ -9980,7 +9980,7 @@ GET_EXPERIMENT_CONFIG = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -7145,7 +7145,7 @@ CREATE_WORKSPACE = APIOperation(
+@@ -10150,7 +10150,7 @@ GET_EXPERIMENT_GROUP = APIOperation(
+ ShapeID("io.superposition#InternalServerError"): InternalServerError,
+         }),
+         effective_auth_schemes = [
+-            ShapeID("smithy.api#httpBasicAuth")
++           ShapeID("smithy.api#httpBasicAuth"),
+ ShapeID("smithy.api#httpBearerAuth")
+         ]
+ )
+@@ -10380,7 +10380,7 @@ LIST_EXPERIMENT_GROUPS = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -7225,7 +7225,7 @@ DELETE_DEFAULT_CONFIG = APIOperation(
+@@ -10572,7 +10572,7 @@ REMOVE_MEMBERS_FROM_GROUP = APIOperation(
  ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -7379,7 +7379,7 @@ GET_DEFAULT_CONFIG = APIOperation(
+@@ -10774,7 +10774,7 @@ UPDATE_EXPERIMENT_GROUP = APIOperation(
  ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -7616,7 +7616,7 @@ LIST_DEFAULT_CONFIGS = APIOperation(
+@@ -10985,7 +10985,7 @@ GET_EXPERIMENT = APIOperation(
+ ShapeID("io.superposition#InternalServerError"): InternalServerError,
+         }),
+         effective_auth_schemes = [
+-            ShapeID("smithy.api#httpBasicAuth")
++           ShapeID("smithy.api#httpBasicAuth"),
+ ShapeID("smithy.api#httpBearerAuth")
+         ]
+ )
+@@ -11200,7 +11200,7 @@ LIST_EXPERIMENT = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -7823,7 +7823,7 @@ UPDATE_DEFAULT_CONFIG = APIOperation(
+@@ -11417,7 +11417,7 @@ ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
  ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -7903,7 +7903,7 @@ DELETE_DIMENSION = APIOperation(
+@@ -11641,7 +11641,7 @@ ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
  ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -8073,7 +8073,7 @@ DELETE_EXPERIMENT_GROUP = APIOperation(
+@@ -11858,7 +11858,7 @@ ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
  ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -8153,7 +8153,7 @@ DELETE_FUNCTION = APIOperation(
+@@ -12170,7 +12170,7 @@ ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
  ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -8278,7 +8278,7 @@ DELETE_SECRET = APIOperation(
+@@ -12337,7 +12337,7 @@ GET_FUNCTION = APIOperation(
  ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -8411,7 +8411,7 @@ DELETE_TYPE_TEMPLATES = APIOperation(
- ShapeID("io.superposition#InternalServerError"): InternalServerError,
-         }),
-         effective_auth_schemes = [
--            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
- ShapeID("smithy.api#httpBearerAuth")
-         ]
- )
-@@ -8537,7 +8537,7 @@ DELETE_VARIABLE = APIOperation(
- ShapeID("io.superposition#InternalServerError"): InternalServerError,
-         }),
-         effective_auth_schemes = [
--            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
- ShapeID("smithy.api#httpBearerAuth")
-         ]
- )
-@@ -8617,7 +8617,7 @@ DELETE_WEBHOOK = APIOperation(
- ShapeID("io.superposition#InternalServerError"): InternalServerError,
-         }),
-         effective_auth_schemes = [
--            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
- ShapeID("smithy.api#httpBearerAuth")
-         ]
- )
-@@ -8789,7 +8789,7 @@ GET_DIMENSION = APIOperation(
- ShapeID("io.superposition#InternalServerError"): InternalServerError,
-         }),
-         effective_auth_schemes = [
--            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
- ShapeID("smithy.api#httpBearerAuth")
-         ]
- )
-@@ -9040,7 +9040,7 @@ LIST_DIMENSIONS = APIOperation(
+@@ -12605,7 +12605,7 @@ LIST_FUNCTION = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -9265,7 +9265,7 @@ UPDATE_DIMENSION = APIOperation(
+@@ -12777,7 +12777,7 @@ PUBLISH = APIOperation(
  ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -9481,7 +9481,7 @@ DISCARD_EXPERIMENT = APIOperation(
+@@ -13099,7 +13099,7 @@ TEST = APIOperation(
  ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -9916,7 +9916,7 @@ GET_EXPERIMENT_CONFIG = APIOperation(
+@@ -13292,7 +13292,7 @@ UPDATE_FUNCTION = APIOperation(
+ ShapeID("io.superposition#InternalServerError"): InternalServerError,
+         }),
+         effective_auth_schemes = [
+-            ShapeID("smithy.api#httpBasicAuth")
++           ShapeID("smithy.api#httpBasicAuth"),
+ ShapeID("smithy.api#httpBearerAuth")
+         ]
+ )
+@@ -13439,7 +13439,7 @@ GET_ORGANISATION = APIOperation(
+ ShapeID("io.superposition#InternalServerError"): InternalServerError,
+         }),
+         effective_auth_schemes = [
+-            ShapeID("smithy.api#httpBasicAuth")
++           ShapeID("smithy.api#httpBasicAuth"),
+ ShapeID("smithy.api#httpBearerAuth")
+         ]
+ )
+@@ -13564,7 +13564,7 @@ GET_SECRET = APIOperation(
+ ShapeID("io.superposition#InternalServerError"): InternalServerError,
+         }),
+         effective_auth_schemes = [
+-            ShapeID("smithy.api#httpBasicAuth")
++           ShapeID("smithy.api#httpBasicAuth"),
+ ShapeID("smithy.api#httpBearerAuth")
+         ]
+ )
+@@ -13697,7 +13697,7 @@ GET_TYPE_TEMPLATE = APIOperation(
+ ShapeID("io.superposition#InternalServerError"): InternalServerError,
+         }),
+         effective_auth_schemes = [
+-            ShapeID("smithy.api#httpBasicAuth")
++           ShapeID("smithy.api#httpBasicAuth"),
+ ShapeID("smithy.api#httpBearerAuth")
+         ]
+ )
+@@ -13909,7 +13909,7 @@ GET_TYPE_TEMPLATES_LIST = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -10086,7 +10086,7 @@ GET_EXPERIMENT_GROUP = APIOperation(
+@@ -14035,7 +14035,7 @@ GET_VARIABLE = APIOperation(
  ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -10316,7 +10316,7 @@ LIST_EXPERIMENT_GROUPS = APIOperation(
+@@ -14213,7 +14213,7 @@ GET_WEBHOOK = APIOperation(
+ ShapeID("io.superposition#InternalServerError"): InternalServerError,
+         }),
+         effective_auth_schemes = [
+-            ShapeID("smithy.api#httpBasicAuth")
++           ShapeID("smithy.api#httpBasicAuth"),
+ ShapeID("smithy.api#httpBearerAuth")
+         ]
+ )
+@@ -14391,7 +14391,7 @@ GET_WEBHOOK_BY_EVENT = APIOperation(
+ ShapeID("io.superposition#InternalServerError"): InternalServerError,
+         }),
+         effective_auth_schemes = [
+-            ShapeID("smithy.api#httpBasicAuth")
++           ShapeID("smithy.api#httpBasicAuth"),
+ ShapeID("smithy.api#httpBearerAuth")
+         ]
+ )
+@@ -14570,7 +14570,7 @@ GET_WORKSPACE = APIOperation(
+ ShapeID("io.superposition#InternalServerError"): InternalServerError,
+         }),
+         effective_auth_schemes = [
+-            ShapeID("smithy.api#httpBasicAuth")
++           ShapeID("smithy.api#httpBasicAuth"),
+ ShapeID("smithy.api#httpBearerAuth")
+         ]
+ )
+@@ -14796,7 +14796,7 @@ LIST_ORGANISATION = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -10508,7 +10508,7 @@ REMOVE_MEMBERS_FROM_GROUP = APIOperation(
- ShapeID("io.superposition#InternalServerError"): InternalServerError,
-         }),
-         effective_auth_schemes = [
--            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
- ShapeID("smithy.api#httpBearerAuth")
-         ]
- )
-@@ -10710,7 +10710,7 @@ UPDATE_EXPERIMENT_GROUP = APIOperation(
- ShapeID("io.superposition#InternalServerError"): InternalServerError,
-         }),
-         effective_auth_schemes = [
--            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
- ShapeID("smithy.api#httpBearerAuth")
-         ]
- )
-@@ -10921,7 +10921,7 @@ GET_EXPERIMENT = APIOperation(
- ShapeID("io.superposition#InternalServerError"): InternalServerError,
-         }),
-         effective_auth_schemes = [
--            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
- ShapeID("smithy.api#httpBearerAuth")
-         ]
- )
-@@ -11136,7 +11136,7 @@ LIST_EXPERIMENT = APIOperation(
+@@ -15040,7 +15040,7 @@ LIST_SECRETS = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -11352,7 +11352,7 @@ PAUSE_EXPERIMENT = APIOperation(
- ShapeID("io.superposition#InternalServerError"): InternalServerError,
-         }),
-         effective_auth_schemes = [
--            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
- ShapeID("smithy.api#httpBearerAuth")
-         ]
- )
-@@ -11575,7 +11575,7 @@ RAMP_EXPERIMENT = APIOperation(
- ShapeID("io.superposition#InternalServerError"): InternalServerError,
-         }),
-         effective_auth_schemes = [
--            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
- ShapeID("smithy.api#httpBearerAuth")
-         ]
- )
-@@ -11791,7 +11791,7 @@ RESUME_EXPERIMENT = APIOperation(
- ShapeID("io.superposition#InternalServerError"): InternalServerError,
-         }),
-         effective_auth_schemes = [
--            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
- ShapeID("smithy.api#httpBearerAuth")
-         ]
- )
-@@ -12102,7 +12102,7 @@ UPDATE_OVERRIDES_EXPERIMENT = APIOperation(
- ShapeID("io.superposition#InternalServerError"): InternalServerError,
-         }),
-         effective_auth_schemes = [
--            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
- ShapeID("smithy.api#httpBearerAuth")
-         ]
- )
-@@ -12269,7 +12269,7 @@ GET_FUNCTION = APIOperation(
- ShapeID("io.superposition#InternalServerError"): InternalServerError,
-         }),
-         effective_auth_schemes = [
--            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
- ShapeID("smithy.api#httpBearerAuth")
-         ]
- )
-@@ -12537,7 +12537,7 @@ LIST_FUNCTION = APIOperation(
+@@ -15286,7 +15286,7 @@ LIST_VARIABLES = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -12709,7 +12709,7 @@ PUBLISH = APIOperation(
- ShapeID("io.superposition#InternalServerError"): InternalServerError,
-         }),
-         effective_auth_schemes = [
--            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
- ShapeID("smithy.api#httpBearerAuth")
-         ]
- )
-@@ -13031,7 +13031,7 @@ TEST = APIOperation(
- ShapeID("io.superposition#InternalServerError"): InternalServerError,
-         }),
-         effective_auth_schemes = [
--            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
- ShapeID("smithy.api#httpBearerAuth")
-         ]
- )
-@@ -13224,7 +13224,7 @@ UPDATE_FUNCTION = APIOperation(
- ShapeID("io.superposition#InternalServerError"): InternalServerError,
-         }),
-         effective_auth_schemes = [
--            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
- ShapeID("smithy.api#httpBearerAuth")
-         ]
- )
-@@ -13371,7 +13371,7 @@ GET_ORGANISATION = APIOperation(
- ShapeID("io.superposition#InternalServerError"): InternalServerError,
-         }),
-         effective_auth_schemes = [
--            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
- ShapeID("smithy.api#httpBearerAuth")
-         ]
- )
-@@ -13496,7 +13496,7 @@ GET_SECRET = APIOperation(
- ShapeID("io.superposition#InternalServerError"): InternalServerError,
-         }),
-         effective_auth_schemes = [
--            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
- ShapeID("smithy.api#httpBearerAuth")
-         ]
- )
-@@ -13629,7 +13629,7 @@ GET_TYPE_TEMPLATE = APIOperation(
- ShapeID("io.superposition#InternalServerError"): InternalServerError,
-         }),
-         effective_auth_schemes = [
--            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
- ShapeID("smithy.api#httpBearerAuth")
-         ]
- )
-@@ -13841,7 +13841,7 @@ GET_TYPE_TEMPLATES_LIST = APIOperation(
+@@ -15543,7 +15543,7 @@ LIST_WEBHOOK = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -13967,7 +13967,7 @@ GET_VARIABLE = APIOperation(
- ShapeID("io.superposition#InternalServerError"): InternalServerError,
-         }),
-         effective_auth_schemes = [
--            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
- ShapeID("smithy.api#httpBearerAuth")
-         ]
- )
-@@ -14145,7 +14145,7 @@ GET_WEBHOOK = APIOperation(
- ShapeID("io.superposition#InternalServerError"): InternalServerError,
-         }),
-         effective_auth_schemes = [
--            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
- ShapeID("smithy.api#httpBearerAuth")
-         ]
- )
-@@ -14323,7 +14323,7 @@ GET_WEBHOOK_BY_EVENT = APIOperation(
- ShapeID("io.superposition#InternalServerError"): InternalServerError,
-         }),
-         effective_auth_schemes = [
--            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
- ShapeID("smithy.api#httpBearerAuth")
-         ]
- )
-@@ -14502,7 +14502,7 @@ GET_WORKSPACE = APIOperation(
- ShapeID("io.superposition#InternalServerError"): InternalServerError,
-         }),
-         effective_auth_schemes = [
--            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
- ShapeID("smithy.api#httpBearerAuth")
-         ]
- )
-@@ -14728,7 +14728,7 @@ LIST_ORGANISATION = APIOperation(
+@@ -15801,7 +15801,7 @@ LIST_WORKSPACE = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -14972,7 +14972,7 @@ LIST_SECRETS = APIOperation(
+@@ -15878,7 +15878,7 @@ ROTATE_MASTER_ENCRYPTION_KEY = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -15218,7 +15218,7 @@ LIST_VARIABLES = APIOperation(
+@@ -16057,7 +16057,7 @@ MIGRATE_WORKSPACE_SCHEMA = APIOperation(
+ ShapeID("io.superposition#InternalServerError"): InternalServerError,
+         }),
+         effective_auth_schemes = [
+-            ShapeID("smithy.api#httpBasicAuth")
++           ShapeID("smithy.api#httpBasicAuth"),
+ ShapeID("smithy.api#httpBearerAuth")
+         ]
+ )
+@@ -16244,7 +16244,7 @@ UPDATE_ORGANISATION = APIOperation(
+ ShapeID("io.superposition#InternalServerError"): InternalServerError,
+         }),
+         effective_auth_schemes = [
+-            ShapeID("smithy.api#httpBasicAuth")
++           ShapeID("smithy.api#httpBasicAuth"),
+ ShapeID("smithy.api#httpBearerAuth")
+         ]
+ )
+@@ -16329,7 +16329,7 @@ ROTATE_WORKSPACE_ENCRYPTION_KEY = APIOperation(
              ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -15475,7 +15475,7 @@ LIST_WEBHOOK = APIOperation(
-             ShapeID("io.superposition#InternalServerError"): InternalServerError,
-         }),
-         effective_auth_schemes = [
--            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
- ShapeID("smithy.api#httpBearerAuth")
-         ]
- )
-@@ -15733,7 +15733,7 @@ LIST_WORKSPACE = APIOperation(
-             ShapeID("io.superposition#InternalServerError"): InternalServerError,
-         }),
-         effective_auth_schemes = [
--            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
- ShapeID("smithy.api#httpBearerAuth")
-         ]
- )
-@@ -15810,7 +15810,7 @@ ROTATE_MASTER_ENCRYPTION_KEY = APIOperation(
-             ShapeID("io.superposition#InternalServerError"): InternalServerError,
-         }),
-         effective_auth_schemes = [
--            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
- ShapeID("smithy.api#httpBearerAuth")
-         ]
- )
-@@ -15989,7 +15989,7 @@ MIGRATE_WORKSPACE_SCHEMA = APIOperation(
+@@ -16480,7 +16480,7 @@ UPDATE_SECRET = APIOperation(
  ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -16176,7 +16176,7 @@ UPDATE_ORGANISATION = APIOperation(
+@@ -16639,7 +16639,7 @@ UPDATE_TYPE_TEMPLATES = APIOperation(
  ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -16261,7 +16261,7 @@ ROTATE_WORKSPACE_ENCRYPTION_KEY = APIOperation(
-             ShapeID("io.superposition#InternalServerError"): InternalServerError,
-         }),
-         effective_auth_schemes = [
--            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
- ShapeID("smithy.api#httpBearerAuth")
-         ]
- )
-@@ -16412,7 +16412,7 @@ UPDATE_SECRET = APIOperation(
+@@ -16784,7 +16784,7 @@ UPDATE_VARIABLE = APIOperation(
  ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -16571,7 +16571,7 @@ UPDATE_TYPE_TEMPLATES = APIOperation(
+@@ -17023,7 +17023,7 @@ UPDATE_WEBHOOK = APIOperation(
  ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )
-@@ -16716,7 +16716,7 @@ UPDATE_VARIABLE = APIOperation(
+@@ -17269,7 +17269,7 @@ UPDATE_WORKSPACE = APIOperation(
  ShapeID("io.superposition#InternalServerError"): InternalServerError,
          }),
          effective_auth_schemes = [
 -            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
- ShapeID("smithy.api#httpBearerAuth")
-         ]
- )
-@@ -16955,7 +16955,7 @@ UPDATE_WEBHOOK = APIOperation(
- ShapeID("io.superposition#InternalServerError"): InternalServerError,
-         }),
-         effective_auth_schemes = [
--            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
- ShapeID("smithy.api#httpBearerAuth")
-         ]
- )
-@@ -17201,7 +17201,7 @@ UPDATE_WORKSPACE = APIOperation(
- ShapeID("io.superposition#InternalServerError"): InternalServerError,
-         }),
-         effective_auth_schemes = [
--            ShapeID("smithy.api#httpBasicAuth")
-+            ShapeID("smithy.api#httpBasicAuth"),
++           ShapeID("smithy.api#httpBasicAuth"),
  ShapeID("smithy.api#httpBearerAuth")
          ]
  )

@@ -27,6 +27,22 @@ pub fn de_pause_experiment_http_error(_response_status: u16, _response_headers: 
                                                         }
             tmp
         }),
+        "WebhookFailed" => crate::operation::pause_experiment::PauseExperimentError::WebhookFailed({
+            #[allow(unused_mut)]
+            let mut tmp =
+                 {
+                    #[allow(unused_mut)]
+                    let mut output = crate::types::error::builders::WebhookFailedBuilder::default();
+                    output = crate::protocol_serde::shape_webhook_failed::de_webhook_failed_json_err(_response_body, output).map_err(crate::operation::pause_experiment::PauseExperimentError::unhandled)?;
+                    let output = output.meta(generic);
+                    crate::serde_util::webhook_failed_correct_errors(output).build().map_err(crate::operation::pause_experiment::PauseExperimentError::unhandled)?
+                }
+            ;
+            if tmp.message.is_none() {
+                                                            tmp.message = _error_message;
+                                                        }
+            tmp
+        }),
         "InternalServerError" => crate::operation::pause_experiment::PauseExperimentError::InternalServerError({
             #[allow(unused_mut)]
             let mut tmp =
