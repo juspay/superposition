@@ -399,6 +399,7 @@ pub fn extract_override_keys(overrides: &Map<String, Value>) -> HashSet<String> 
 pub async fn fetch_cac_config(
     state: &Data<AppState>,
     workspace_context: &WorkspaceContext,
+    user: &User,
 ) -> superposition::Result<(Config, Option<String>)> {
     let http_client = reqwest::Client::new();
     let query_params = ConfigQuery {
@@ -412,7 +413,17 @@ pub async fn fetch_cac_config(
         state.cac_host,
         query_params.to_query_param(),
     );
-    let headers_map = construct_header_map(workspace_context, vec![])?;
+
+    let user_str = serde_json::to_string(user).map_err(|err| {
+        log::error!("Something went wrong, failed to stringify user data {err}");
+        unexpected_error!(
+            "Something went wrong, failed to stringify user data {}",
+            err
+        )
+    })?;
+
+    let headers_map =
+        construct_header_map(workspace_context, vec![("x-user", user_str)])?;
 
     let response = http_client
         .get(&url)
