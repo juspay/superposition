@@ -30,6 +30,7 @@ from ._private.schemas import (
     CONCLUDE_EXPERIMENT as _SCHEMA_CONCLUDE_EXPERIMENT,
     CONCLUDE_EXPERIMENT_INPUT as _SCHEMA_CONCLUDE_EXPERIMENT_INPUT,
     CONCLUDE_EXPERIMENT_OUTPUT as _SCHEMA_CONCLUDE_EXPERIMENT_OUTPUT,
+    CONFIG_DATA as _SCHEMA_CONFIG_DATA,
     CONTEXT_ACTION as _SCHEMA_CONTEXT_ACTION,
     CONTEXT_ACTION_OUT as _SCHEMA_CONTEXT_ACTION_OUT,
     CONTEXT_IDENTIFIER as _SCHEMA_CONTEXT_IDENTIFIER,
@@ -701,6 +702,7 @@ class ApplicableVariantsInput:
     org_id: str | None = None
     context: dict[str, Document] | None = None
     identifier: str | None = None
+    prefix: list[str] | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_APPLICABLE_VARIANTS_INPUT, self)
@@ -708,9 +710,6 @@ class ApplicableVariantsInput:
     def serialize_members(self, serializer: ShapeSerializer):
         if self.context is not None:
             _serialize_condition(serializer, _SCHEMA_APPLICABLE_VARIANTS_INPUT.members["context"], self.context)
-
-        if self.identifier is not None:
-            serializer.write_string(_SCHEMA_APPLICABLE_VARIANTS_INPUT.members["identifier"], self.identifier)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -733,6 +732,9 @@ class ApplicableVariantsInput:
 
                 case 3:
                     kwargs["identifier"] = de.read_string(_SCHEMA_APPLICABLE_VARIANTS_INPUT.members["identifier"])
+
+                case 4:
+                    kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_APPLICABLE_VARIANTS_INPUT.members["prefix"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -2262,87 +2264,6 @@ ShapeID("smithy.api#httpBearerAuth")
         ]
 )
 
-def _serialize_context_map(serializer: ShapeSerializer, schema: Schema, value: dict[str, Document]) -> None:
-    with serializer.begin_map(schema, len(value)) as m:
-        value_schema = schema.members["value"]
-        for k, v in value.items():
-            m.entry(k, lambda vs: vs.write_document(value_schema, v))
-
-def _deserialize_context_map(deserializer: ShapeDeserializer, schema: Schema) -> dict[str, Document]:
-    result: dict[str, Document] = {}
-    value_schema = schema.members["value"]
-    def _read_value(k: str, d: ShapeDeserializer):
-        if d.is_null():
-            d.read_null()
-
-        else:
-            result[k] = d.read_document(value_schema)
-    deserializer.read_map(schema, _read_value)
-    return result
-
-@dataclass(kw_only=True)
-class GetConfigInput:
-    """
-
-    :param if_modified_since:
-         While using this, 304 response is treated as error, which needs to be handled
-         separately by checking the response code of the http response. This is required
-         to make sure that clients can cache the response and avoid unnecessary calls
-         when there are no updates.
-
-    :param context:
-         Map representing the context. Keys correspond to the names of the dimensions.
-
-    """
-
-    workspace_id: str | None = None
-    org_id: str | None = None
-    prefix: list[str] | None = None
-    version: str | None = None
-    if_modified_since: datetime | None = None
-    context: dict[str, Document] | None = None
-
-    def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_GET_CONFIG_INPUT, self)
-
-    def serialize_members(self, serializer: ShapeSerializer):
-        if self.context is not None:
-            _serialize_context_map(serializer, _SCHEMA_GET_CONFIG_INPUT.members["context"], self.context)
-
-    @classmethod
-    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(**cls.deserialize_kwargs(deserializer))
-
-    @classmethod
-    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
-        kwargs: dict[str, Any] = {}
-
-        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
-            match schema.expect_member_index():
-                case 0:
-                    kwargs["workspace_id"] = de.read_string(_SCHEMA_GET_CONFIG_INPUT.members["workspace_id"])
-
-                case 1:
-                    kwargs["org_id"] = de.read_string(_SCHEMA_GET_CONFIG_INPUT.members["org_id"])
-
-                case 2:
-                    kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_GET_CONFIG_INPUT.members["prefix"])
-
-                case 3:
-                    kwargs["version"] = de.read_string(_SCHEMA_GET_CONFIG_INPUT.members["version"])
-
-                case 4:
-                    kwargs["if_modified_since"] = de.read_timestamp(_SCHEMA_GET_CONFIG_INPUT.members["if_modified_since"])
-
-                case 5:
-                    kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_CONFIG_INPUT.members["context"])
-
-                case _:
-                    logger.debug("Unexpected member schema: %s", schema)
-
-        deserializer.read_struct(_SCHEMA_GET_CONFIG_INPUT, consumer=_consumer)
-        return kwargs
-
 def _serialize_override_with_keys(serializer: ShapeSerializer, schema: Schema, value: list[str]) -> None:
     member_schema = schema.members["member"]
     with serializer.begin_list(schema, len(value)) as ls:
@@ -2437,24 +2358,6 @@ def _deserialize_context_list(deserializer: ShapeDeserializer, schema: Schema) -
         else:
             result.append(ContextPartial.deserialize(d))
     deserializer.read_list(schema, _read_value)
-    return result
-
-def _serialize_object(serializer: ShapeSerializer, schema: Schema, value: dict[str, Document]) -> None:
-    with serializer.begin_map(schema, len(value)) as m:
-        value_schema = schema.members["value"]
-        for k, v in value.items():
-            m.entry(k, lambda vs: vs.write_document(value_schema, v))
-
-def _deserialize_object(deserializer: ShapeDeserializer, schema: Schema) -> dict[str, Document]:
-    result: dict[str, Document] = {}
-    value_schema = schema.members["value"]
-    def _read_value(k: str, d: ShapeDeserializer):
-        if d.is_null():
-            d.read_null()
-
-        else:
-            result[k] = d.read_document(value_schema)
-    deserializer.read_map(schema, _read_value)
     return result
 
 def _serialize_dependency_graph(serializer: ShapeSerializer, schema: Schema, value: dict[str, list[str]]) -> None:
@@ -2601,6 +2504,24 @@ class _DimensionTypeDeserializer:
             raise SmithyException("Unions must have exactly one value, but found more than one.")
         self._result = value
 
+def _serialize_object(serializer: ShapeSerializer, schema: Schema, value: dict[str, Document]) -> None:
+    with serializer.begin_map(schema, len(value)) as m:
+        value_schema = schema.members["value"]
+        for k, v in value.items():
+            m.entry(k, lambda vs: vs.write_document(value_schema, v))
+
+def _deserialize_object(deserializer: ShapeDeserializer, schema: Schema) -> dict[str, Document]:
+    result: dict[str, Document] = {}
+    value_schema = schema.members["value"]
+    def _read_value(k: str, d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result[k] = d.read_document(value_schema)
+    deserializer.read_map(schema, _read_value)
+    return result
+
 @dataclass(kw_only=True)
 class DimensionInfo:
     """
@@ -2680,6 +2601,87 @@ def _deserialize_dimension_data(deserializer: ShapeDeserializer, schema: Schema)
             result[k] = DimensionInfo.deserialize(d)
     deserializer.read_map(schema, _read_value)
     return result
+
+def _serialize_context_map(serializer: ShapeSerializer, schema: Schema, value: dict[str, Document]) -> None:
+    with serializer.begin_map(schema, len(value)) as m:
+        value_schema = schema.members["value"]
+        for k, v in value.items():
+            m.entry(k, lambda vs: vs.write_document(value_schema, v))
+
+def _deserialize_context_map(deserializer: ShapeDeserializer, schema: Schema) -> dict[str, Document]:
+    result: dict[str, Document] = {}
+    value_schema = schema.members["value"]
+    def _read_value(k: str, d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result[k] = d.read_document(value_schema)
+    deserializer.read_map(schema, _read_value)
+    return result
+
+@dataclass(kw_only=True)
+class GetConfigInput:
+    """
+
+    :param if_modified_since:
+         While using this, 304 response is treated as error, which needs to be handled
+         separately by checking the response code of the http response. This is required
+         to make sure that clients can cache the response and avoid unnecessary calls
+         when there are no updates.
+
+    :param context:
+         Map representing the context. Keys correspond to the names of the dimensions.
+
+    """
+
+    workspace_id: str | None = None
+    org_id: str | None = None
+    prefix: list[str] | None = None
+    version: str | None = None
+    if_modified_since: datetime | None = None
+    context: dict[str, Document] | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_CONFIG_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.context is not None:
+            _serialize_context_map(serializer, _SCHEMA_GET_CONFIG_INPUT.members["context"], self.context)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_GET_CONFIG_INPUT.members["workspace_id"])
+
+                case 1:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_GET_CONFIG_INPUT.members["org_id"])
+
+                case 2:
+                    kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_GET_CONFIG_INPUT.members["prefix"])
+
+                case 3:
+                    kwargs["version"] = de.read_string(_SCHEMA_GET_CONFIG_INPUT.members["version"])
+
+                case 4:
+                    kwargs["if_modified_since"] = de.read_timestamp(_SCHEMA_GET_CONFIG_INPUT.members["if_modified_since"])
+
+                case 5:
+                    kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_CONFIG_INPUT.members["context"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_CONFIG_INPUT, consumer=_consumer)
+        return kwargs
 
 def _serialize_overrides_map(serializer: ShapeSerializer, schema: Schema, value: dict[str, dict[str, Document]]) -> None:
     with serializer.begin_map(schema, len(value)) as m:
@@ -3248,6 +3250,61 @@ ShapeID("smithy.api#httpBearerAuth")
 )
 
 @dataclass(kw_only=True)
+class ConfigData:
+    """
+
+    :param default_configs:
+        **[Required]** - Generic key-value object structure used for flexible data
+        representation throughout the API.
+
+    """
+
+    contexts: list[ContextPartial]
+
+    overrides: dict[str, dict[str, Document]]
+
+    default_configs: dict[str, Document]
+
+    dimensions: dict[str, DimensionInfo]
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CONFIG_DATA, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        _serialize_context_list(serializer, _SCHEMA_CONFIG_DATA.members["contexts"], self.contexts)
+        _serialize_overrides_map(serializer, _SCHEMA_CONFIG_DATA.members["overrides"], self.overrides)
+        _serialize_object(serializer, _SCHEMA_CONFIG_DATA.members["default_configs"], self.default_configs)
+        _serialize_dimension_data(serializer, _SCHEMA_CONFIG_DATA.members["dimensions"], self.dimensions)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["contexts"] = _deserialize_context_list(de, _SCHEMA_CONFIG_DATA.members["contexts"])
+
+                case 1:
+                    kwargs["overrides"] = _deserialize_overrides_map(de, _SCHEMA_CONFIG_DATA.members["overrides"])
+
+                case 2:
+                    kwargs["default_configs"] = _deserialize_object(de, _SCHEMA_CONFIG_DATA.members["default_configs"])
+
+                case 3:
+                    kwargs["dimensions"] = _deserialize_dimension_data(de, _SCHEMA_CONFIG_DATA.members["dimensions"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_CONFIG_DATA, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
 class GetVersionInput:
 
     workspace_id: str | None = None
@@ -3290,7 +3347,7 @@ class GetVersionOutput:
 
     id: str
 
-    config: Document
+    config: ConfigData
 
     config_hash: str
 
@@ -3305,7 +3362,7 @@ class GetVersionOutput:
 
     def serialize_members(self, serializer: ShapeSerializer):
         serializer.write_string(_SCHEMA_GET_VERSION_OUTPUT.members["id"], self.id)
-        serializer.write_document(_SCHEMA_GET_VERSION_OUTPUT.members["config"], self.config)
+        serializer.write_struct(_SCHEMA_GET_VERSION_OUTPUT.members["config"], self.config)
         serializer.write_string(_SCHEMA_GET_VERSION_OUTPUT.members["config_hash"], self.config_hash)
         serializer.write_timestamp(_SCHEMA_GET_VERSION_OUTPUT.members["created_at"], self.created_at)
         serializer.write_string(_SCHEMA_GET_VERSION_OUTPUT.members["description"], self.description)
@@ -3326,7 +3383,7 @@ class GetVersionOutput:
                     kwargs["id"] = de.read_string(_SCHEMA_GET_VERSION_OUTPUT.members["id"])
 
                 case 1:
-                    kwargs["config"] = de.read_document(_SCHEMA_GET_VERSION_OUTPUT.members["config"])
+                    kwargs["config"] = ConfigData.deserialize(de)
 
                 case 2:
                     kwargs["config_hash"] = de.read_string(_SCHEMA_GET_VERSION_OUTPUT.members["config_hash"])
@@ -3418,7 +3475,7 @@ class ListVersionsMember:
 
     id: str
 
-    config: Document
+    config: ConfigData
 
     created_at: datetime
 
@@ -3431,7 +3488,7 @@ class ListVersionsMember:
 
     def serialize_members(self, serializer: ShapeSerializer):
         serializer.write_string(_SCHEMA_LIST_VERSIONS_MEMBER.members["id"], self.id)
-        serializer.write_document(_SCHEMA_LIST_VERSIONS_MEMBER.members["config"], self.config)
+        serializer.write_struct(_SCHEMA_LIST_VERSIONS_MEMBER.members["config"], self.config)
         serializer.write_timestamp(_SCHEMA_LIST_VERSIONS_MEMBER.members["created_at"], self.created_at)
         serializer.write_string(_SCHEMA_LIST_VERSIONS_MEMBER.members["description"], self.description)
         if self.tags is not None:
@@ -3451,7 +3508,7 @@ class ListVersionsMember:
                     kwargs["id"] = de.read_string(_SCHEMA_LIST_VERSIONS_MEMBER.members["id"])
 
                 case 1:
-                    kwargs["config"] = de.read_document(_SCHEMA_LIST_VERSIONS_MEMBER.members["config"])
+                    kwargs["config"] = ConfigData.deserialize(de)
 
                 case 2:
                     kwargs["created_at"] = de.read_timestamp(_SCHEMA_LIST_VERSIONS_MEMBER.members["created_at"])

@@ -49,6 +49,9 @@ export interface ApplicableVariantsCommandOutput extends ApplicableVariantsOutpu
  *     "<keys>": "DOCUMENT_VALUE",
  *   },
  *   identifier: "STRING_VALUE", // required
+ *   prefix: [ // StringList
+ *     "STRING_VALUE",
+ *   ],
  * };
  * const command = new ApplicableVariantsCommand(input);
  * const response = await client.send(command);

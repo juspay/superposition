@@ -412,19 +412,24 @@ impl LocalResolutionProvider {
         }
     }
 
-    async fn eval_with_context(
+    async fn get_merged_context(
         &self,
         mut context: EvaluationContext,
-        prefix_filter: Option<&[String]>,
-    ) -> Result<Map<String, Value>> {
-        self.ensure_fresh_data().await?;
-
+    ) -> (Map<String, Value>, Option<String>) {
         let global_context = self.global_context.read().await;
         context.merge_missing(&global_context);
 
-        let (mut query_data, targeting_key) =
-            conversions::evaluation_context_to_query(context);
+        conversions::evaluation_context_to_query(context)
+    }
 
+    async fn eval_with_context(
+        &self,
+        context: EvaluationContext,
+        prefix_filter: Option<Vec<String>>,
+    ) -> Result<Map<String, Value>> {
+        self.ensure_fresh_data().await?;
+
+        let (mut query_data, targeting_key) = self.get_merged_context(context).await;
         let dimensions_info = self.get_dimensions_info().await;
 
         // If experiments are cached, get applicable variants and inject variantIds
@@ -436,8 +441,8 @@ impl LocalResolutionProvider {
                     exp_data.data.experiments.clone(),
                     &exp_data.data.experiment_groups,
                     &query_data,
-                    &targeting_key.clone().unwrap_or_default(),
-                    prefix_filter.map(|p| p.to_vec()),
+                    &targeting_key.unwrap_or_default(),
+                    prefix_filter.clone(),
                 );
 
                 query_data.insert(
@@ -457,7 +462,7 @@ impl LocalResolutionProvider {
                 &config_data.config.dimensions,
                 &query_data,
                 MergeStrategy::MERGE,
-                prefix_filter.map(|p| p.to_vec()),
+                prefix_filter,
             )
             .map_err(|e| {
                 SuperpositionError::ConfigError(format!(
@@ -484,7 +489,7 @@ impl AllFeatureProvider for LocalResolutionProvider {
     async fn resolve_all_features_with_filter(
         &self,
         context: EvaluationContext,
-        prefix_filter: Option<&[String]>,
+        prefix_filter: Option<Vec<String>>,
     ) -> Result<Map<String, Value>> {
         self.eval_with_context(context, prefix_filter).await
     }
@@ -494,15 +499,12 @@ impl AllFeatureProvider for LocalResolutionProvider {
 impl FeatureExperimentMeta for LocalResolutionProvider {
     async fn get_applicable_variants(
         &self,
-        mut context: EvaluationContext,
+        context: EvaluationContext,
+        prefix_filter: Option<Vec<String>>,
     ) -> Result<Vec<String>> {
         self.ensure_fresh_data().await?;
 
-        let global_context = self.global_context.read().await;
-        context.merge_missing(&global_context);
-
-        let (query_data, targeting_key) =
-            conversions::evaluation_context_to_query(context);
+        let (query_data, targeting_key) = self.get_merged_context(context).await;
         let dimensions_info = self.get_dimensions_info().await;
 
         let cached_exp = self.cached_experiments.read().await;
@@ -513,7 +515,7 @@ impl FeatureExperimentMeta for LocalResolutionProvider {
                 &exp_data.data.experiment_groups,
                 &query_data,
                 &targeting_key.unwrap_or_default(),
-                None,
+                prefix_filter,
             ),
             None => vec![],
         };

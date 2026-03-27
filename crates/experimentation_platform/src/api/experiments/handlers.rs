@@ -76,6 +76,7 @@ use superposition_types::{
             experiments::dsl as experiments,
         },
     },
+    experimental::ExperimentalVariants,
     logic::{evaluate_local_cohorts, evaluate_local_cohorts_skip_unresolved},
     result as superposition,
 };
@@ -883,9 +884,10 @@ pub async fn discard(
 }
 
 pub async fn get_applicable_variants_helper(
-    context: Map<String, Value>,
+    context: &Map<String, Value>,
     dimensions_info: &HashMap<String, DimensionInfo>,
     identifier: String,
+    prefix_filter: Option<Vec<String>>,
     workspace_context: &WorkspaceContext,
     app_state: &Data<AppState>,
 ) -> superposition::Result<(Vec<String>, HashMap<String, ExperimentResponse>)> {
@@ -906,7 +908,7 @@ pub async fn get_applicable_variants_helper(
         },
     )
     .await?;
-    let context = evaluate_local_cohorts(dimensions_info, &context);
+    let context = evaluate_local_cohorts(dimensions_info, context);
 
     let buckets =
         get_applicable_buckets_from_group(&experiment_groups, &context, &identifier);
@@ -916,7 +918,7 @@ pub async fn get_applicable_variants_helper(
         .filter_map(|(_, bucket)| bucket.experiment_id.parse::<i64>().ok())
         .collect::<HashSet<_>>();
 
-    let exps = read_through_cache::<PaginatedResponse<ExperimentResponse>>(
+    let mut exps = read_through_cache::<PaginatedResponse<ExperimentResponse>>(
         format!(
             "{}{EXPERIMENTS_LIST_KEY_SUFFIX}",
             *workspace_context.schema_name
@@ -944,13 +946,20 @@ pub async fn get_applicable_variants_helper(
         },
     )
     .await?
-    .data
-    .into_iter()
-    .map(|exp| {
-        let id = exp.id.clone();
-        (id, exp)
-    })
-    .collect::<HashMap<String, ExperimentResponse>>();
+    .data;
+
+    if let Some(prefix_filter) = prefix_filter.filter(|f| !f.is_empty()) {
+        let prefix_list: HashSet<String> = HashSet::from_iter(prefix_filter);
+        exps = ExperimentResponse::filter_keys_by_prefix(exps, &prefix_list);
+    }
+
+    let exps = exps
+        .into_iter()
+        .map(|exp| {
+            let id = exp.id.clone();
+            (id, exp)
+        })
+        .collect::<HashMap<String, ExperimentResponse>>();
 
     let applicable_variants =
         get_applicable_variants_from_group_response(&exps, &context, &buckets);
@@ -967,36 +976,26 @@ async fn get_applicable_variants_handler(
     req: HttpRequest,
     state: Data<AppState>,
     req_body: Option<Json<ApplicableVariantsRequest>>,
-    query_data: Option<Query<ApplicableVariantsQuery>>,
-    dimension_params: Option<DimensionQuery<QueryMap>>,
+    query_data: Query<ApplicableVariantsQuery>,
+    dimension_params: DimensionQuery<QueryMap>,
 ) -> superposition::Result<Either<Json<Vec<Variant>>, Json<ListResponse<Variant>>>> {
-    let (context, identifier) =
-        match (req.method().clone(), query_data, dimension_params, req_body) {
-            (
-                actix_web::http::Method::GET,
-                Some(query_data),
-                Some(dimension_params),
-                _,
-            ) => (
-                dimension_params.into_inner().deref().clone(),
-                query_data.into_inner().identifier,
-            ),
-            (actix_web::http::Method::POST, _, _, Some(req_body)) => {
-                let req_body = req_body.into_inner();
-                (req_body.context, req_body.identifier)
-            }
-            _ => {
-                return Err(bad_argument!("Invalid input for the method"));
-            }
-        };
+    let query_data = query_data.into_inner();
+    let (context, identifier) = if req.method() == actix_web::http::Method::GET {
+        (dimension_params.into_inner(), query_data.identifier)
+    } else {
+        let req_body = req_body.map(|body| body.into_inner());
+        let context = req_body.map_or_else(QueryMap::default, |body| body.context.into());
+        (context, query_data.identifier)
+    };
 
     let di = run_query(&state.db_pool, |conn| {
         fetch_dimensions_info_map(conn, &workspace_context.schema_name)
     })?;
     let (applicable_variants, exps) = get_applicable_variants_helper(
-        context,
+        &context,
         &di,
         identifier,
+        query_data.prefix.map(|p| p.0),
         &workspace_context,
         &state,
     )

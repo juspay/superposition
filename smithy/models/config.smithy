@@ -8,8 +8,11 @@ resource Config {
         org_id: String
     }
     properties: {
+        contexts: ContextList
+        overrides: OverridesMap
+        default_configs: Object
+        dimensions: DimensionData
         version: String
-        config: Document
         last_modified: DateTime
     }
     operations: [
@@ -73,6 +76,20 @@ map OverridesMap {
     value: Overrides
 }
 
+structure ConfigData {
+    @required
+    contexts: ContextList
+
+    @required
+    overrides: OverridesMap
+
+    @required
+    default_configs: Object
+
+    @required
+    dimensions: DimensionData
+}
+
 @documentation("Retrieves config data with context evaluation, including applicable contexts, overrides, and default values based on provided conditions.")
 @http(method: "POST", uri: "/config")
 @tags(["Configuration Management"])
@@ -96,21 +113,17 @@ operation GetConfig {
     }
 
     output := for Config {
-        @notProperty
         @required
-        contexts: ContextList
+        $contexts
 
-        @notProperty
         @required
-        overrides: OverridesMap
+        $overrides
 
-        @notProperty
         @required
-        default_configs: Object
+        $default_configs
 
-        @notProperty
         @required
-        dimensions: DimensionData
+        $dimensions
 
         @httpHeader("x-config-version")
         @required
@@ -209,8 +222,9 @@ operation GetResolvedConfig {
 
     output := for Config {
         @httpPayload
+        @notProperty
         @required
-        $config
+        config: Document
 
         @httpHeader("x-config-version")
         @required
@@ -237,7 +251,7 @@ resource ConfigVersion {
         created_at: DateTime
         description: String
         tags: StringList
-        config: Document
+        config: ConfigData
     }
     read: GetVersion
     list: ListVersions
@@ -360,8 +374,9 @@ operation GetResolvedConfigWithIdentifier {
 
     output := for Config {
         @httpPayload
+        @notProperty
         @required
-        $config
+        config: Document
 
         @httpHeader("x-config-version")
         @required

@@ -504,7 +504,7 @@ if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_sm
 
 pub(crate) fn get_version_output_output_correct_errors(mut builder: crate::operation::get_version::builders::GetVersionOutputBuilder) -> crate::operation::get_version::builders::GetVersionOutputBuilder {
                 if builder.id.is_none() { builder.id = Some(Default::default()) }
-if builder.config.is_none() { builder.config = Some(Default::default()) }
+if builder.config.is_none() { builder.config = { let builder = crate::types::builders::ConfigDataBuilder::default(); crate::serde_util::config_data_correct_errors(builder).build().ok() } }
 if builder.config_hash.is_none() { builder.config_hash = Some(Default::default()) }
 if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.description.is_none() { builder.description = Some(Default::default()) }
@@ -972,6 +972,14 @@ if builder.enable_change_reason_validation.is_none() { builder.enable_change_rea
                 builder
             }
 
+pub(crate) fn config_data_correct_errors(mut builder: crate::types::builders::ConfigDataBuilder) -> crate::types::builders::ConfigDataBuilder {
+                if builder.contexts.is_none() { builder.contexts = Some(Default::default()) }
+if builder.overrides.is_none() { builder.overrides = Some(Default::default()) }
+if builder.default_configs.is_none() { builder.default_configs = Some(Default::default()) }
+if builder.dimensions.is_none() { builder.dimensions = Some(Default::default()) }
+                builder
+            }
+
 pub(crate) fn audit_log_full_correct_errors(mut builder: crate::types::builders::AuditLogFullBuilder) -> crate::types::builders::AuditLogFullBuilder {
                 if builder.id.is_none() { builder.id = Some(Default::default()) }
 if builder.table_name.is_none() { builder.table_name = Some(Default::default()) }
@@ -1101,7 +1109,7 @@ if builder.function_type.is_none() { builder.function_type = "no value was set".
 
 pub(crate) fn list_versions_member_correct_errors(mut builder: crate::types::builders::ListVersionsMemberBuilder) -> crate::types::builders::ListVersionsMemberBuilder {
                 if builder.id.is_none() { builder.id = Some(Default::default()) }
-if builder.config.is_none() { builder.config = Some(Default::default()) }
+if builder.config.is_none() { builder.config = { let builder = crate::types::builders::ConfigDataBuilder::default(); crate::serde_util::config_data_correct_errors(builder).build().ok() } }
 if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.description.is_none() { builder.description = Some(Default::default()) }
                 builder

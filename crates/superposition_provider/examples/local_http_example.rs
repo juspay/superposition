@@ -37,7 +37,10 @@ async fn main() {
         .unwrap();
     println!("All config: {:?}", all_config);
 
-    let variants = provider.get_applicable_variants(context).await.unwrap();
+    let variants = provider
+        .get_applicable_variants(context, None)
+        .await
+        .unwrap();
     println!("Variants: {:?}", variants);
 
     provider.close_provider().await.unwrap();

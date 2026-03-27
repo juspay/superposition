@@ -51,11 +51,52 @@ export interface GetVersionCommandOutput extends GetVersionResponse, __MetadataB
  * const response = await client.send(command);
  * // { // GetVersionResponse
  * //   id: "STRING_VALUE", // required
- * //   config: "DOCUMENT_VALUE", // required
+ * //   config: { // ConfigData
+ * //     contexts: [ // ContextList // required
+ * //       { // ContextPartial
+ * //         id: "STRING_VALUE", // required
+ * //         condition: { // Condition // required
+ * //           "<keys>": "DOCUMENT_VALUE",
+ * //         },
+ * //         priority: Number("int"), // required
+ * //         weight: Number("int"), // required
+ * //         override_with_keys: [ // OverrideWithKeys // required
+ * //           "STRING_VALUE",
+ * //         ],
+ * //       },
+ * //     ],
+ * //     overrides: { // OverridesMap // required
+ * //       "<keys>": { // Overrides
+ * //         "<keys>": "DOCUMENT_VALUE",
+ * //       },
+ * //     },
+ * //     default_configs: { // Object // required
+ * //       "<keys>": "DOCUMENT_VALUE",
+ * //     },
+ * //     dimensions: { // DimensionData // required
+ * //       "<keys>": { // DimensionInfo
+ * //         schema: { // required
+ * //           "<keys>": "DOCUMENT_VALUE",
+ * //         },
+ * //         position: Number("int"), // required
+ * //         dimension_type: { // DimensionType Union: only one key present
+ * //           REGULAR: {},
+ * //           LOCAL_COHORT: "STRING_VALUE",
+ * //           REMOTE_COHORT: "STRING_VALUE",
+ * //         },
+ * //         dependency_graph: { // DependencyGraph // required
+ * //           "<keys>": [ // StringList
+ * //             "STRING_VALUE",
+ * //           ],
+ * //         },
+ * //         value_compute_function_name: "STRING_VALUE",
+ * //       },
+ * //     },
+ * //   },
  * //   config_hash: "STRING_VALUE", // required
  * //   created_at: new Date("TIMESTAMP"), // required
  * //   description: "STRING_VALUE", // required
- * //   tags: [ // StringList
+ * //   tags: [
  * //     "STRING_VALUE",
  * //   ],
  * // };

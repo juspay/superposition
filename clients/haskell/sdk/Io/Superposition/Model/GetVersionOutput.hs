@@ -26,12 +26,13 @@ import qualified Data.Text
 import qualified Data.Time
 import qualified GHC.Generics
 import qualified GHC.Show
+import qualified Io.Superposition.Model.ConfigData
 import qualified Io.Superposition.Utility
 import qualified Network.HTTP.Types
 
 data GetVersionOutput = GetVersionOutput {
     id' :: Data.Text.Text,
-    config :: Data.Aeson.Value,
+    config :: Io.Superposition.Model.ConfigData.ConfigData,
     config_hash :: Data.Text.Text,
     created_at :: Data.Time.UTCTime,
     description :: Data.Text.Text,
@@ -69,7 +70,7 @@ instance Data.Aeson.FromJSON GetVersionOutput where
 
 data GetVersionOutputBuilderState = GetVersionOutputBuilderState {
     id'BuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    configBuilderState :: Data.Maybe.Maybe Data.Aeson.Value,
+    configBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.ConfigData.ConfigData,
     config_hashBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     created_atBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     descriptionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
@@ -94,7 +95,7 @@ setId' :: Data.Text.Text -> GetVersionOutputBuilder ()
 setId' value =
    Control.Monad.State.Strict.modify (\s -> (s { id'BuilderState = Data.Maybe.Just value }))
 
-setConfig :: Data.Aeson.Value -> GetVersionOutputBuilder ()
+setConfig :: Io.Superposition.Model.ConfigData.ConfigData -> GetVersionOutputBuilder ()
 setConfig value =
    Control.Monad.State.Strict.modify (\s -> (s { configBuilderState = Data.Maybe.Just value }))
 

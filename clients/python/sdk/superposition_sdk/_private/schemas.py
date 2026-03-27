@@ -402,6 +402,17 @@ APPLICABLE_VARIANTS_INPUT = Schema.collection(
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="identifier"),
+
+            ],
+        },
+
+        "prefix": {
+            "target": STRING_LIST,
+            "index": 4,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="prefix"),
 
             ],
         },
@@ -1673,6 +1684,210 @@ CONCLUDE_EXPERIMENT = Schema(
 
 )
 
+OVERRIDE_WITH_KEYS = Schema.collection(
+    id=ShapeID("io.superposition#OverrideWithKeys"),
+    shape_type=ShapeType.LIST,
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#length"), value=MappingProxyType({
+                "max": 1,
+                "min": 1,
+            })),
+
+    ],
+    members={
+        "member": {
+            "target": STRING,
+            "index": 0,
+        },
+
+    }
+)
+
+CONTEXT_PARTIAL = Schema.collection(
+    id=ShapeID("io.superposition#ContextPartial"),
+
+    members={
+        "id": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "condition": {
+            "target": CONDITION,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "priority": {
+            "target": INTEGER,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "weight": {
+            "target": INTEGER,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "override_with_keys": {
+            "target": OVERRIDE_WITH_KEYS,
+            "index": 4,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
+CONTEXT_LIST = Schema.collection(
+    id=ShapeID("io.superposition#ContextList"),
+    shape_type=ShapeType.LIST,
+    members={
+        "member": {
+            "target": CONTEXT_PARTIAL,
+            "index": 0,
+        },
+
+    }
+)
+
+DEPENDENCY_GRAPH = Schema.collection(
+    id=ShapeID("io.superposition#DependencyGraph"),
+    shape_type=ShapeType.MAP,
+    members={
+        "key": {
+            "target": STRING,
+            "index": 0,
+        },
+
+        "value": {
+            "target": STRING_LIST,
+            "index": 1,
+        },
+
+    }
+)
+
+DIMENSION_TYPE = Schema.collection(
+    id=ShapeID("io.superposition#DimensionType"),
+    shape_type=ShapeType.UNION,
+    members={
+        "REGULAR": {
+            "target": UNIT,
+            "index": 0,
+        },
+
+        "LOCAL_COHORT": {
+            "target": STRING,
+            "index": 1,
+        },
+
+        "REMOTE_COHORT": {
+            "target": STRING,
+            "index": 2,
+        },
+
+    }
+)
+
+OBJECT = Schema.collection(
+    id=ShapeID("io.superposition#Object"),
+    shape_type=ShapeType.MAP,
+    members={
+        "key": {
+            "target": STRING,
+            "index": 0,
+        },
+
+        "value": {
+            "target": DOCUMENT,
+            "index": 1,
+        },
+
+    }
+)
+
+DIMENSION_INFO = Schema.collection(
+    id=ShapeID("io.superposition#DimensionInfo"),
+
+    members={
+        "schema": {
+            "target": OBJECT,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "position": {
+            "target": INTEGER,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "dimension_type": {
+            "target": DIMENSION_TYPE,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "dependency_graph": {
+            "target": DEPENDENCY_GRAPH,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "value_compute_function_name": {
+            "target": STRING,
+            "index": 4,
+        },
+
+    }
+)
+
+DIMENSION_DATA = Schema.collection(
+    id=ShapeID("io.superposition#DimensionData"),
+    shape_type=ShapeType.MAP,
+    members={
+        "key": {
+            "target": STRING,
+            "index": 0,
+        },
+
+        "value": {
+            "target": DIMENSION_INFO,
+            "index": 1,
+        },
+
+    }
+)
+
 CONTEXT_MAP = Schema.collection(
     id=ShapeID("io.superposition#ContextMap"),
     shape_type=ShapeType.MAP,
@@ -1760,210 +1975,6 @@ GET_CONFIG_INPUT = Schema.collection(
     }
 )
 
-OVERRIDE_WITH_KEYS = Schema.collection(
-    id=ShapeID("io.superposition#OverrideWithKeys"),
-    shape_type=ShapeType.LIST,
-    traits=[
-        Trait.new(id=ShapeID("smithy.api#length"), value=MappingProxyType({
-                "max": 1,
-                "min": 1,
-            })),
-
-    ],
-    members={
-        "member": {
-            "target": STRING,
-            "index": 0,
-        },
-
-    }
-)
-
-CONTEXT_PARTIAL = Schema.collection(
-    id=ShapeID("io.superposition#ContextPartial"),
-
-    members={
-        "id": {
-            "target": STRING,
-            "index": 0,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
-        "condition": {
-            "target": CONDITION,
-            "index": 1,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
-        "priority": {
-            "target": INTEGER,
-            "index": 2,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
-        "weight": {
-            "target": INTEGER,
-            "index": 3,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
-        "override_with_keys": {
-            "target": OVERRIDE_WITH_KEYS,
-            "index": 4,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
-    }
-)
-
-CONTEXT_LIST = Schema.collection(
-    id=ShapeID("io.superposition#ContextList"),
-    shape_type=ShapeType.LIST,
-    members={
-        "member": {
-            "target": CONTEXT_PARTIAL,
-            "index": 0,
-        },
-
-    }
-)
-
-OBJECT = Schema.collection(
-    id=ShapeID("io.superposition#Object"),
-    shape_type=ShapeType.MAP,
-    members={
-        "key": {
-            "target": STRING,
-            "index": 0,
-        },
-
-        "value": {
-            "target": DOCUMENT,
-            "index": 1,
-        },
-
-    }
-)
-
-DEPENDENCY_GRAPH = Schema.collection(
-    id=ShapeID("io.superposition#DependencyGraph"),
-    shape_type=ShapeType.MAP,
-    members={
-        "key": {
-            "target": STRING,
-            "index": 0,
-        },
-
-        "value": {
-            "target": STRING_LIST,
-            "index": 1,
-        },
-
-    }
-)
-
-DIMENSION_TYPE = Schema.collection(
-    id=ShapeID("io.superposition#DimensionType"),
-    shape_type=ShapeType.UNION,
-    members={
-        "REGULAR": {
-            "target": UNIT,
-            "index": 0,
-        },
-
-        "LOCAL_COHORT": {
-            "target": STRING,
-            "index": 1,
-        },
-
-        "REMOTE_COHORT": {
-            "target": STRING,
-            "index": 2,
-        },
-
-    }
-)
-
-DIMENSION_INFO = Schema.collection(
-    id=ShapeID("io.superposition#DimensionInfo"),
-
-    members={
-        "schema": {
-            "target": OBJECT,
-            "index": 0,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
-        "position": {
-            "target": INTEGER,
-            "index": 1,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
-        "dimension_type": {
-            "target": DIMENSION_TYPE,
-            "index": 2,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
-        "dependency_graph": {
-            "target": DEPENDENCY_GRAPH,
-            "index": 3,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
-        "value_compute_function_name": {
-            "target": STRING,
-            "index": 4,
-        },
-
-    }
-)
-
-DIMENSION_DATA = Schema.collection(
-    id=ShapeID("io.superposition#DimensionData"),
-    shape_type=ShapeType.MAP,
-    members={
-        "key": {
-            "target": STRING,
-            "index": 0,
-        },
-
-        "value": {
-            "target": DIMENSION_INFO,
-            "index": 1,
-        },
-
-    }
-)
-
 OVERRIDES_MAP = Schema.collection(
     id=ShapeID("io.superposition#OverridesMap"),
     shape_type=ShapeType.MAP,
@@ -1993,7 +2004,6 @@ GET_CONFIG_OUTPUT = Schema.collection(
             "target": CONTEXT_LIST,
             "index": 0,
             "traits": [
-                Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#required")),
 
             ],
@@ -2003,7 +2013,6 @@ GET_CONFIG_OUTPUT = Schema.collection(
             "target": OVERRIDES_MAP,
             "index": 1,
             "traits": [
-                Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#required")),
 
             ],
@@ -2013,7 +2022,6 @@ GET_CONFIG_OUTPUT = Schema.collection(
             "target": OBJECT,
             "index": 2,
             "traits": [
-                Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#required")),
 
             ],
@@ -2023,7 +2031,6 @@ GET_CONFIG_OUTPUT = Schema.collection(
             "target": DIMENSION_DATA,
             "index": 3,
             "traits": [
-                Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#required")),
 
             ],
@@ -2383,6 +2390,7 @@ GET_RESOLVED_CONFIG_OUTPUT = Schema.collection(
             "target": DOCUMENT,
             "index": 0,
             "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpPayload")),
 
@@ -2560,6 +2568,7 @@ GET_RESOLVED_CONFIG_WITH_IDENTIFIER_OUTPUT = Schema.collection(
             "target": DOCUMENT,
             "index": 0,
             "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpPayload")),
 
@@ -2613,6 +2622,49 @@ GET_RESOLVED_CONFIG_WITH_IDENTIFIER = Schema(
 
     ],
 
+)
+
+CONFIG_DATA = Schema.collection(
+    id=ShapeID("io.superposition#ConfigData"),
+
+    members={
+        "contexts": {
+            "target": CONTEXT_LIST,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "overrides": {
+            "target": OVERRIDES_MAP,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "default_configs": {
+            "target": OBJECT,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "dimensions": {
+            "target": DIMENSION_DATA,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
 )
 
 GET_VERSION_INPUT = Schema.collection(
@@ -2675,7 +2727,7 @@ GET_VERSION_OUTPUT = Schema.collection(
         },
 
         "config": {
-            "target": DOCUMENT,
+            "target": CONFIG_DATA,
             "index": 1,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -2800,7 +2852,7 @@ LIST_VERSIONS_MEMBER = Schema.collection(
         },
 
         "config": {
-            "target": DOCUMENT,
+            "target": CONFIG_DATA,
             "index": 1,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),

@@ -344,6 +344,7 @@ import {
   AuditLogFull,
   Bucket,
   ChangeReasonValidationFunctionRequest,
+  ConfigData,
   ContextAction,
   ContextActionOut,
   ContextIdentifier,
@@ -456,13 +457,17 @@ export const se_ApplicableVariantsCommand = async(
     [_xoi]: input[_oi]!,
   });
   b.bp("/experiments/applicable-variants");
+  const query: any = map({
+    [_i]: [,__expectNonNull(input[_i]!, `identifier`)],
+    [_p]: [() => input.prefix !== void 0, () => ((input[_p]! || []))],
+  });
   let body: any;
   body = JSON.stringify(take(input, {
     'context': _ => se_Condition(_, context),
-    'identifier': [],
   }));
   b.m("POST")
   .h(headers)
+  .q(query)
   .b(body);
   return b.build();
 }
@@ -3889,7 +3894,7 @@ export const de_GetVersionCommand = async(
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
-    'config': _ => de_Document(_, context),
+    'config': _ => de_ConfigData(_, context),
     'config_hash': __expectString,
     'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
     'description': __expectString,
@@ -5530,6 +5535,21 @@ const de_CommandError = async(
     }, {} as Record<string, __DocumentType>);}
 
   /**
+   * deserializeAws_restJson1ConfigData
+   */
+  const de_ConfigData = (
+    output: any,
+    context: __SerdeContext
+  ): ConfigData => {
+    return take(output, {
+      'contexts': (_: any) => de_ContextList(_, context),
+      'default_configs': (_: any) => de_Object(_, context),
+      'dimensions': (_: any) => de_DimensionData(_, context),
+      'overrides': (_: any) => de_OverridesMap(_, context),
+    }) as any;
+  }
+
+  /**
    * deserializeAws_restJson1ContextActionOut
    */
   const de_ContextActionOut = (
@@ -5877,7 +5897,7 @@ const de_CommandError = async(
     context: __SerdeContext
   ): ListVersionsMember => {
     return take(output, {
-      'config': (_: any) => de_Document(_, context),
+      'config': (_: any) => de_ConfigData(_, context),
       'created_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
       'description': __expectString,
       'id': __expectString,

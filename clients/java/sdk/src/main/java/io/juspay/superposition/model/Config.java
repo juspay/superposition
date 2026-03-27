@@ -15,9 +15,12 @@ public final class Config implements ApiResource {
     private static final Config $INSTANCE = new Config();
     private static final Map<String, Schema> $IDENTIFIERS = Map.of("workspace_id", PreludeSchemas.STRING,
         "org_id", PreludeSchemas.STRING);
-    private static final Map<String, Schema> $PROPERTIES = Map.of("version", PreludeSchemas.STRING,
-        "config", PreludeSchemas.DOCUMENT,
-        "last_modified", SharedSchemas.DATE_TIME);
+    private static final Map<String, Schema> $PROPERTIES = Map.of("contexts", SharedSchemas.CONTEXT_LIST,
+        "overrides", SharedSchemas.OVERRIDES_MAP,
+        "default_configs", SharedSchemas.OBJECT,
+        "version", PreludeSchemas.STRING,
+        "last_modified", SharedSchemas.DATE_TIME,
+        "dimensions", SharedSchemas.DIMENSION_DATA);
 
     private static final List<Schema> $OPERATIONS = List.of(GetConfig.$SCHEMA,
         GetResolvedConfig.$SCHEMA,

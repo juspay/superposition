@@ -25,8 +25,8 @@ public final class GetResolvedConfigOutput implements SerializableStruct {
 
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
         .putMember("config", PreludeSchemas.DOCUMENT,
-                new HttpPayloadTrait(),
-                new RequiredTrait())
+                new RequiredTrait(),
+                new HttpPayloadTrait())
         .putMember("version", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-config-version"),
                 new RequiredTrait())

@@ -134,6 +134,23 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for Applica
     ::std::write!(output, "/experiments/applicable-variants").expect("formatting should succeed");
     ::std::result::Result::Ok(())
 }
+fn uri_query(_input: &crate::operation::applicable_variants::ApplicableVariantsInput, mut output: &mut ::std::string::String) -> ::std::result::Result<(), ::aws_smithy_types::error::operation::BuildError> {
+    let mut query = ::aws_smithy_http::query::Writer::new(output);
+    let inner_1 = &_input.identifier;
+    let inner_1 = inner_1.as_ref().ok_or_else(|| ::aws_smithy_types::error::operation::BuildError::missing_field("identifier", "cannot be empty or unset"))?;
+    if inner_1.is_empty() {
+        return ::std::result::Result::Err(::aws_smithy_types::error::operation::BuildError::missing_field("identifier", "cannot be empty or unset"));
+    }
+    query.push_kv("identifier", &::aws_smithy_http::query::fmt_string(inner_1));
+    if let ::std::option::Option::Some(inner_2) = &_input.prefix {
+         {
+            for inner_3 in inner_2 {
+                query.push_kv("prefix", &::aws_smithy_http::query::fmt_string(inner_3));
+            }
+        }
+    }
+    ::std::result::Result::Ok(())
+}
 #[allow(clippy::unnecessary_wraps)]
 fn update_http_builder(
                 input: &crate::operation::applicable_variants::ApplicableVariantsInput,
@@ -141,6 +158,7 @@ fn update_http_builder(
             ) -> ::std::result::Result<::http::request::Builder, ::aws_smithy_types::error::operation::BuildError> {
     let mut uri = ::std::string::String::new();
     uri_base(input, &mut uri)?;
+    uri_query(input, &mut uri)?;
     let builder = crate::protocol_serde::shape_applicable_variants::ser_applicable_variants_headers(input, builder)?;
     ::std::result::Result::Ok(builder.method("POST").uri(uri))
 }

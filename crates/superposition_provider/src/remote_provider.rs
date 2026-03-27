@@ -1,6 +1,4 @@
 use std::collections::HashMap;
-use std::sync::Arc;
-use std::time::{Duration, Instant};
 
 use async_trait::async_trait;
 use aws_smithy_types::Document;
@@ -16,98 +14,8 @@ use tokio::sync::RwLock;
 use crate::traits::{AllFeatureProvider, FeatureExperimentMeta};
 use crate::{conversions, types::*};
 
-// ---------------------------------------------------------------------------
-// ResponseCache internals
-// ---------------------------------------------------------------------------
-
-struct CacheEntry {
-    value: Map<String, Value>,
-    created_at: Instant,
-}
-
-struct ResponseCache {
-    entries: HashMap<String, CacheEntry>,
-    max_entries: usize,
-    ttl: Duration,
-}
-
-impl ResponseCache {
-    fn new(max_entries: usize, ttl: Duration) -> Self {
-        Self {
-            entries: HashMap::new(),
-            max_entries,
-            ttl,
-        }
-    }
-
-    fn get(&self, key: &str) -> Option<&Map<String, Value>> {
-        self.entries.get(key).and_then(|entry| {
-            if entry.created_at.elapsed() < self.ttl {
-                Some(&entry.value)
-            } else {
-                None
-            }
-        })
-    }
-
-    fn put(&mut self, key: String, value: Map<String, Value>) {
-        // If at capacity, evict expired entries first
-        if self.entries.len() >= self.max_entries {
-            let now = Instant::now();
-            self.entries
-                .retain(|_, entry| now.duration_since(entry.created_at) < self.ttl);
-        }
-
-        // If still at capacity, remove the oldest entry
-        if self.entries.len() >= self.max_entries {
-            if let Some(oldest_key) = self
-                .entries
-                .iter()
-                .min_by_key(|(_, entry)| entry.created_at)
-                .map(|(k, _)| k.clone())
-            {
-                self.entries.remove(&oldest_key);
-            }
-        }
-
-        self.entries.insert(
-            key,
-            CacheEntry {
-                value,
-                created_at: Instant::now(),
-            },
-        );
-    }
-
-    fn cache_key(context: &EvaluationContext) -> String {
-        let mut parts: Vec<String> = Vec::new();
-
-        // Include targeting_key
-        if let Some(ref tk) = context.targeting_key {
-            parts.push(format!("tk={}", tk));
-        }
-
-        // Include sorted custom_fields for deterministic keys
-        let mut field_keys: Vec<_> = context.custom_fields.keys().cloned().collect();
-        field_keys.sort();
-        for k in field_keys {
-            if let Some(v) = context.custom_fields.get(&k) {
-                let serde_val = conversions::evaluation_context_to_value(v.clone());
-                parts.push(format!("{}={}", k, serde_val));
-            }
-        }
-
-        parts.join("|")
-    }
-}
-
-// ---------------------------------------------------------------------------
-// SuperpositionAPIProvider
-// ---------------------------------------------------------------------------
-
 pub struct SuperpositionAPIProvider {
     options: SuperpositionOptions,
-    cache: Option<Arc<RwLock<ResponseCache>>>,
     global_context: RwLock<EvaluationContext>,
     metadata: ProviderMetadata,
     status: RwLock<ProviderStatus>,
@@ -130,7 +38,6 @@ impl SuperpositionAPIProvider {
         Self {
             client: create_client(&options),
             options,
-            cache: None,
             global_context: RwLock::new(EvaluationContext::default()),
             metadata: ProviderMetadata {
                 name: "SuperpositionAPIProvider".to_string(),
@@ -139,137 +46,58 @@ impl SuperpositionAPIProvider {
         }
     }
 
-    /// Create a new provider with response caching.
-    pub fn with_cache(
-        options: SuperpositionOptions,
-        cache_options: CacheOptions,
-    ) -> Self {
-        let max_entries = cache_options.size.unwrap_or(1000);
-        let ttl = Duration::from_secs(cache_options.ttl.unwrap_or(300));
-        let cache = ResponseCache::new(max_entries, ttl);
+    async fn get_merged_context(
+        &self,
+        mut context: EvaluationContext,
+    ) -> (HashMap<String, Document>, Option<String>) {
+        let global_context = self.global_context.read().await;
+        context.merge_missing(&global_context);
 
-        Self {
-            client: create_client(&options),
-            options,
-            cache: Some(Arc::new(RwLock::new(cache))),
-            global_context: RwLock::new(EvaluationContext::default()),
-            metadata: ProviderMetadata {
-                name: "SuperpositionAPIProvider".to_string(),
-            },
-            status: RwLock::new(ProviderStatus::NotReady),
-        }
+        conversions::evaluation_context_to_query_document(context)
     }
 
     async fn resolve_remote(
         &self,
-        mut context: EvaluationContext,
-        prefix_filter: Option<&[String]>,
+        context: EvaluationContext,
+        prefix_filter: Option<Vec<String>>,
     ) -> Result<Map<String, Value>> {
-        let cache_key = ResponseCache::cache_key(&context);
-        // 1. Check cache for the full (unfiltered) result
-        if let Some(ref cache_arc) = self.cache {
-            let cache = cache_arc.read().await;
-            if let Some(cached_value) = cache.get(&cache_key) {
-                log::debug!("SuperpositionAPIProvider: cache hit for key");
-                let result = if let Some(prefixes) = prefix_filter {
-                    filter_by_prefix(cached_value, prefixes)
-                } else {
-                    cached_value.clone()
-                };
-                return Ok(result);
-            }
-        }
+        // TODO: Check if we need to add a separte check to verify the status of provider before doing stuff
 
-        // 2. Create SDK client
-        let client = &self.client;
+        let (query_data, targeting_key) = self.get_merged_context(context).await;
 
-        let global_context = self.global_context.read().await;
-        context.merge_missing(&global_context);
-
-        // 3. Extract context and targeting_key
-        let (query_data, _targeting_key) =
-            conversions::evaluation_context_to_query(context);
-
-        // 4. Build and send the get_resolved_config request
-        // Always fetch WITHOUT prefix filter so we can cache the full result
-        let mut builder = client
-            .get_resolved_config()
+        let response = self
+            .client
+            .get_resolved_config_with_identifier()
             .workspace_id(&self.options.workspace_id)
-            .org_id(&self.options.org_id);
+            .org_id(&self.options.org_id)
+            .set_context(Some(query_data))
+            .set_identifier(targeting_key)
+            .set_prefix(prefix_filter)
+            .send()
+            .await
+            .map_err(|e| {
+                SuperpositionError::NetworkError(format!(
+                    "Failed to get resolved config: {}",
+                    e
+                ))
+            })?;
 
-        // Set context dimensions from evaluation context
-        let sdk_context: HashMap<String, Document> = query_data
-            .into_iter()
-            .map(|(k, v)| (k, conversions::value_to_document(v)))
-            .collect();
-        builder = builder.set_context(Some(sdk_context));
-
-        // NOTE: We intentionally do NOT set prefix filter on the SDK request
-        // so we always get the full config and can cache it. Prefix filtering
-        // is applied locally after caching.
-
-        let response = builder.send().await.map_err(|e| {
-            SuperpositionError::NetworkError(format!(
-                "Failed to get resolved config: {}",
-                e
-            ))
-        })?;
-
-        // 5. Convert response Document to Map<String, Value>
         let config_value = conversions::document_to_value(response.config);
 
-        let full_result = match config_value {
+        let result = match config_value {
             Value::Object(map) => map,
             other => {
                 log::warn!(
                     "SuperpositionAPIProvider: resolved config is not an object, wrapping: {:?}",
                     other
                 );
-                let mut map = Map::new();
-                map.insert("_value".to_string(), other);
-                map
+                [("_value".to_string(), other)].into_iter().collect()
             }
-        };
-
-        // Cache the full (unfiltered) result
-        if let Some(ref cache_arc) = self.cache {
-            let mut cache = cache_arc.write().await;
-            cache.put(cache_key, full_result.clone());
-        }
-
-        // Apply prefix filtering locally
-        let result = if let Some(prefixes) = prefix_filter {
-            filter_by_prefix(&full_result, prefixes)
-        } else {
-            full_result
         };
 
         Ok(result)
     }
 }
-
-// ---------------------------------------------------------------------------
-// Helper functions
-// ---------------------------------------------------------------------------
-
-/// Filter a config map to only include keys that start with one of the given prefixes.
-fn filter_by_prefix(
-    config: &Map<String, Value>,
-    prefixes: &[String],
-) -> Map<String, Value> {
-    if prefixes.is_empty() {
-        return config.clone();
-    }
-    config
-        .iter()
-        .filter(|(key, _)| prefixes.iter().any(|prefix| key.starts_with(prefix)))
-        .map(|(k, v)| (k.clone(), v.clone()))
-        .collect()
-}
-
-// ---------------------------------------------------------------------------
-// Trait implementations
-// ---------------------------------------------------------------------------
 
 #[async_trait]
 impl AllFeatureProvider for SuperpositionAPIProvider {
@@ -283,29 +111,54 @@ impl AllFeatureProvider for SuperpositionAPIProvider {
     async fn resolve_all_features_with_filter(
         &self,
         context: EvaluationContext,
-        prefix_filter: Option<&[String]>,
+        prefix_filter: Option<Vec<String>>,
     ) -> Result<Map<String, Value>> {
         self.resolve_remote(context, prefix_filter).await
     }
 }
 
-// TODO: Pending
 #[async_trait]
 impl FeatureExperimentMeta for SuperpositionAPIProvider {
     async fn get_applicable_variants(
         &self,
-        _context: EvaluationContext,
+        context: EvaluationContext,
+        prefix_filter: Option<Vec<String>>,
     ) -> Result<Vec<String>> {
-        // Remote resolution handles experiments server-side
-        Ok(vec![])
+        let (query_data, targeting_key) = self.get_merged_context(context).await;
+        let Some(targeting_key) = targeting_key else {
+            return Err(SuperpositionError::ProviderError(
+                "Missing targeting key in evaluation context".to_string(),
+            ));
+        };
+
+        let applicable_variants = self
+            .client
+            .applicable_variants()
+            .workspace_id(&self.options.workspace_id)
+            .org_id(&self.options.org_id)
+            .set_context(Some(query_data))
+            .identifier(targeting_key)
+            .set_prefix(prefix_filter)
+            .send()
+            .await
+            .map_err(|e| {
+                SuperpositionError::NetworkError(format!(
+                    "Failed to get applicable variants: {e}",
+                ))
+            })?;
+
+        Ok(applicable_variants.data.into_iter().map(|v| v.id).collect())
     }
 }
 
 #[async_trait]
 impl FeatureProvider for SuperpositionAPIProvider {
-    // TODO: use context and set as global context for the provider
-    async fn initialize(&mut self, _context: &EvaluationContext) {
+    async fn initialize(&mut self, context: &EvaluationContext) {
         log::info!("Initializing SuperpositionAPIProvider...");
+        {
+            let mut global_context = self.global_context.write().await;
+            *global_context = context.clone();
+        }
         {
             let mut status = self.status.write().await;
             *status = ProviderStatus::Ready;

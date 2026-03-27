@@ -11,6 +11,8 @@ pub struct ApplicableVariantsInput  {
     pub context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
     #[allow(missing_docs)] // documentation missing in model
     pub identifier: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
 }
 impl  ApplicableVariantsInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -29,6 +31,13 @@ impl  ApplicableVariantsInput  {
     pub fn identifier(&self) -> ::std::option::Option<&str> {
         self.identifier.as_deref()
     }
+    #[allow(missing_docs)] // documentation missing in model
+    /// 
+    /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.prefix.is_none()`.
+    pub fn prefix(&self) -> &[::std::string::String] {
+        self.prefix.as_deref()
+        .unwrap_or_default()
+    }
 }
 impl ApplicableVariantsInput {
     /// Creates a new builder-style object to manufacture [`ApplicableVariantsInput`](crate::operation::applicable_variants::ApplicableVariantsInput).
@@ -45,6 +54,7 @@ pub struct ApplicableVariantsInputBuilder {
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
     pub(crate) context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
     pub(crate) identifier: ::std::option::Option<::std::string::String>,
+    pub(crate) prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
 }
 impl ApplicableVariantsInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -108,6 +118,24 @@ impl ApplicableVariantsInputBuilder {
     pub fn get_identifier(&self) -> &::std::option::Option<::std::string::String> {
         &self.identifier
     }
+    /// Appends an item to `prefix`.
+    ///
+    /// To override the contents of this collection use [`set_prefix`](Self::set_prefix).
+    ///
+    pub fn prefix(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        let mut v = self.prefix.unwrap_or_default();
+                        v.push(input.into());
+                        self.prefix = ::std::option::Option::Some(v);
+                        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_prefix(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
+        self.prefix = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_prefix(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+        &self.prefix
+    }
     /// Consumes the builder and constructs a [`ApplicableVariantsInput`](crate::operation::applicable_variants::ApplicableVariantsInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::applicable_variants::ApplicableVariantsInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -119,6 +147,8 @@ impl ApplicableVariantsInputBuilder {
                 context: self.context
                 ,
                 identifier: self.identifier
+                ,
+                prefix: self.prefix
                 ,
             }
         )

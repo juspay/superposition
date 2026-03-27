@@ -17,6 +17,7 @@ pub trait FeatureExperimentMeta: Send + Sync {
     async fn get_applicable_variants(
         &self,
         context: EvaluationContext,
+        prefix_filter: Option<Vec<String>>,
     ) -> Result<Vec<String>>;
 }
 
@@ -37,7 +38,7 @@ pub trait AllFeatureProvider: Send + Sync {
     async fn resolve_all_features_with_filter(
         &self,
         context: EvaluationContext,
-        prefix_filter: Option<&[String]>,
+        prefix_filter: Option<Vec<String>>,
     ) -> Result<Map<String, Value>>;
 
     async fn resolve_typed<T: Send + Sync>(

@@ -99,7 +99,7 @@ pub(crate) fn de_get_version(value: &[u8], mut builder: crate::operation::get_ve
                 match key.to_unescaped()?.as_ref() {
                     "config" => {
                         builder = builder.set_config(
-                            Some(::aws_smithy_json::deserialize::token::expect_document(tokens)?)
+                            crate::protocol_serde::shape_config_data::de_config_data(tokens)?
                         );
                     }
                     "config_hash" => {
