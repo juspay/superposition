@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_provider-v0.9.1 - 2026-03-27
+#### Bug Fixes
+- RemoteProvider cleanup (#932) - (6d09519) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.102.0 [skip ci] - (9f610ad) - Superposition Bot
+
+- - -
+
 ## superposition_provider-v0.9.0 - 2026-03-25
 #### Features
 - add local/remote provider implementations following new structure (#930) - (ba5d518) - Ayush Jain

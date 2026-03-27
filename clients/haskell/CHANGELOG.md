@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## haskell_client-v0.15.0 - 2026-03-27
+#### Bug Fixes
+- RemoteProvider cleanup (#932) - (6d09519) - Ayush Jain
+#### Features
+- added WebhookOperation mixin to all config mutation operations and experimentation (#899) - (e50d84b) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.102.0 [skip ci] - (9f610ad) - Superposition Bot
+
+- - -
+
 ## haskell_client-v0.14.1 - 2026-03-25
 #### Bug Fixes
 - Spec for list exp and get config endpoints (#916) - (330279e) - Ayush Jain
