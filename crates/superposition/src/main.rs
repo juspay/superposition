@@ -10,7 +10,7 @@ use std::{io::Result, time::Duration};
 
 use actix_files::Files;
 use actix_web::{
-    App, HttpRequest, HttpResponse, HttpServer,
+    App, HttpRequest, HttpResponse, HttpServer, Scope,
     middleware::{Compress, Condition},
     web::{self, Data, PathConfig, QueryConfig, get, scope},
 };
@@ -176,106 +176,6 @@ async fn main() -> Result<()> {
                     .service(web::redirect("/admin/", ui_redirect_path.to_string()))
                     .service(web::redirect("/admin/{org_id}/", "workspaces"))
                     .service(web::redirect("/admin/{org_id}/{tenant}/", "default-config"))
-                    /***************************** V1 Routes *****************************/
-                    .service(
-                        scope("/context")
-                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
-                            .service(context::endpoints()),
-                    )
-                    .service(
-                        scope("/dimension")
-                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
-                            .service(dimension::endpoints()),
-                    )
-                    .service(
-                        scope("/default-config")
-                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
-                            .service(default_config::endpoints()),
-                    )
-                    .service(
-                        scope("/config")
-                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
-                            .service(config::endpoints()),
-                    )
-                    .service(
-                        scope("/audit")
-                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
-                            .service(audit_log::endpoints()),
-                    )
-                    .service(
-                        scope("/function")
-                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
-                            .service(functions::endpoints()),
-                    )
-                    .service(
-                        scope("/types")
-                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
-                            .service(type_templates::endpoints()),
-                    )
-                    .service(
-                        experiments::endpoints(scope("/experiments"))
-                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true)),
-                    )
-                    .service(
-                        experiment_groups::endpoints(scope("/experiment-groups"))
-                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
-                    )
-                    .service(
-                        experiment_config::endpoints(scope("/experiment-config"))
-                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
-                    )
-                    .service(
-                        scope("/superposition/organisations")
-                            .wrap(OrgWorkspaceMiddlewareFactory::new(false, false))
-                            .service(organisation::endpoints()),
-                    )
-                    .service(
-                        workspace::endpoints(scope("/workspaces"))
-                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, false))
-                    )
-                    .service(
-                        scope("/webhook")
-                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
-                            .service(webhooks::endpoints()),
-                    )
-                    .service(
-                        scope("/variables")
-                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
-                            .service(variables::endpoints())
-                    )
-                    .service(
-                        scope("/resolve")
-                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
-                            .service(resolve::endpoints()),
-                    )
-                    .service(
-                        scope("/authz/admin")
-                            .wrap(OrgWorkspaceMiddlewareFactory::new(false, false))
-                            .app_data(Data::new(auth_z_manager.clone()))
-                            .service(auth_z_manager.admin_endpoints())
-                    )
-                    .service(
-                        scope("/authz/org")
-                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, false))
-                            .app_data(Data::new(auth_z_manager.clone()))
-                            .service(auth_z_manager.org_endpoints())
-                    )
-                    .service(
-                        scope("/authz/workspace")
-                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
-                            .app_data(Data::new(auth_z_manager.clone()))
-                            .service(auth_z_manager.workspace_endpoints())
-                    )
-                    .service(
-                        scope("/master-encryption-key")
-                            .wrap(OrgWorkspaceMiddlewareFactory::new(false, false))
-                            .service(secrets::master_key_endpoints())
-                    )
-                    .service(
-                        scope("/secrets")
-                            .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
-                            .service(secrets::endpoints())
-                    )
                     /***************************** UI Routes ******************************/
                     .route("/fxn/{tail:.*}", leptos_actix::handle_server_fns())
                     // serve JS/WASM/CSS from `pkg`
@@ -283,6 +183,18 @@ async fn main() -> Result<()> {
                     // serve other assets from the `assets` directory
                     .service(Files::new("/assets", site_root.to_string()))
                     // serve the favicon from /favicon.ico
+                    /***************************** V1 Routes *****************************/
+                    .resource_routes_workspace_specific(auth_z_manager.clone())
+                    .resource_routes_org_specific(auth_z_manager.clone())
+                    .resource_routes(auth_z_manager.clone())
+                    .service(
+                        scope("/{org_id}")
+                            .resource_routes_org_specific(auth_z_manager.clone())
+                            .service(
+                                scope("/{workspace}")
+                                    .resource_routes_workspace_specific(auth_z_manager.clone()),
+                            ),
+                    )
             )
             .route(
                 "/health",
@@ -313,4 +225,121 @@ async fn main() -> Result<()> {
     ))
     .run()
     .await
+}
+
+trait ScopeExt {
+    fn resource_routes_workspace_specific(self, auth_z_manager: AuthZManager) -> Self;
+
+    fn resource_routes_org_specific(self, auth_z_manager: AuthZManager) -> Self;
+    fn resource_routes(self, auth_z_manager: AuthZManager) -> Self;
+}
+
+impl ScopeExt for Scope {
+    fn resource_routes_workspace_specific(self, auth_z_manager: AuthZManager) -> Self {
+        self.service(
+            scope("/context")
+                .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                .service(context::endpoints()),
+        )
+        .service(
+            scope("/dimension")
+                .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                .service(dimension::endpoints()),
+        )
+        .service(
+            scope("/default-config")
+                .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                .service(default_config::endpoints()),
+        )
+        .service(
+            scope("/config")
+                .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                .service(config::endpoints()),
+        )
+        .service(
+            scope("/audit")
+                .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                .service(audit_log::endpoints()),
+        )
+        .service(
+            scope("/function")
+                .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                .service(functions::endpoints()),
+        )
+        .service(
+            scope("/types")
+                .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                .service(type_templates::endpoints()),
+        )
+        .service(
+            experiments::endpoints(scope("/experiments"))
+                .wrap(OrgWorkspaceMiddlewareFactory::new(true, true)),
+        )
+        .service(
+            experiment_groups::endpoints(scope("/experiment-groups"))
+                .wrap(OrgWorkspaceMiddlewareFactory::new(true, true)),
+        )
+        .service(
+            experiment_config::endpoints(scope("/experiment-config"))
+                .wrap(OrgWorkspaceMiddlewareFactory::new(true, true)),
+        )
+        .service(
+            scope("/webhook")
+                .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                .service(webhooks::endpoints()),
+        )
+        .service(
+            scope("/variables")
+                .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                .service(variables::endpoints()),
+        )
+        .service(
+            scope("/resolve")
+                .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                .service(resolve::endpoints()),
+        )
+        .service(
+            scope("/authz/workspace")
+                .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                .app_data(Data::new(auth_z_manager.clone()))
+                .service(auth_z_manager.workspace_endpoints()),
+        )
+        .service(
+            scope("/secrets")
+                .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                .service(secrets::endpoints()),
+        )
+    }
+
+    fn resource_routes_org_specific(self, auth_z_manager: AuthZManager) -> Self {
+        self.service(
+            workspace::endpoints(scope("/workspaces"))
+                .wrap(OrgWorkspaceMiddlewareFactory::new(true, false)),
+        )
+        .service(
+            scope("/authz/org")
+                .wrap(OrgWorkspaceMiddlewareFactory::new(true, false))
+                .app_data(Data::new(auth_z_manager.clone()))
+                .service(auth_z_manager.org_endpoints()),
+        )
+    }
+
+    fn resource_routes(self, auth_z_manager: AuthZManager) -> Self {
+        self.service(
+            scope("/superposition/organisations")
+                .wrap(OrgWorkspaceMiddlewareFactory::new(false, false))
+                .service(organisation::endpoints()),
+        )
+        .service(
+            scope("/authz/admin")
+                .wrap(OrgWorkspaceMiddlewareFactory::new(false, false))
+                .app_data(Data::new(auth_z_manager.clone()))
+                .service(auth_z_manager.admin_endpoints()),
+        )
+        .service(
+            scope("/master-encryption-key")
+                .wrap(OrgWorkspaceMiddlewareFactory::new(false, false))
+                .service(secrets::master_key_endpoints()),
+        )
+    }
 }
