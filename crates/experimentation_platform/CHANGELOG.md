@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.51.1 - 2026-03-27
+#### Bug Fixes
+- RemoteProvider cleanup (#932) - (6d09519) - Ayush Jain
+- send x-user when fetching cac config in ramp handler (#935) - (545cd6e) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.102.0 [skip ci] - (9f610ad) - Superposition Bot
+
+- - -
+
 ## experimentation_platform-v0.51.0 - 2026-03-25
 #### Bug Fixes
 - Spec for list exp and get config endpoints (#916) - (330279e) - Ayush Jain

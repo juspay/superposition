@@ -2,6 +2,30 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.103.0 - 2026-03-27
+### Package updates
+- superposition_sdk bumped to superposition_sdk-v0.15.0
+- experimentation_platform bumped to experimentation_platform-v0.51.1
+- superposition_provider bumped to superposition_provider-v0.9.1
+- haskell_client bumped to haskell_client-v0.15.0
+- context_aware_config bumped to context_aware_config-v0.72.0
+- superposition_types bumped to superposition_types-v0.43.0
+### Global changes
+#### Bug Fixes
+- added mandatory check in the delete handler (#900) - (5194bb5) - sauraww
+- Add domain context to route (#934) - (acfe37e) - Ayush Jain
+- RemoteProvider cleanup (#932) - (6d09519) - Ayush Jain
+#### Features
+- added WebhookOperation mixin to all config mutation operations and experimentation (#899) - (e50d84b) - sauraww
+#### Miscellaneous Chores
+- **(deps)** bump requests from 2.32.4 to 2.33.0 in /locust (#933) - (4fcf099) - dependabot[bot]
+- **(deps)** bump picomatch from 2.3.1 to 2.3.2 in /docs (#937) - (e269143) - dependabot[bot]
+- **(deps)** bump node-forge from 1.3.2 to 1.4.0 in /docs (#936) - (14f23a8) - dependabot[bot]
+- **(deps-dev)** bump picomatch in /examples/dynamic-payment-fields (#931) - (8d24b1a) - dependabot[bot]
+- **(version)** v0.102.0 [skip ci] - (9f610ad) - Superposition Bot
+
+- - -
+
 ## v0.102.0 - 2026-03-25
 ### Package updates
 - haskell_client bumped to haskell_client-v0.14.1
