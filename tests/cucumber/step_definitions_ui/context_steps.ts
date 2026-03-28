@@ -318,12 +318,8 @@ When("I delete the context", async function (this: PlaywrightWorld) {
     await this.page.getByText("Delete Overrides").last().click();
     await this.page.waitForTimeout(500);
 
-    // The ChangeLogPopup modal appears with a portal overlay.
-    // The "Yes, Delete" button starts in loading/disabled state (showing a spinner)
-    // until the context data is fetched. Wait for it to become enabled with text visible.
-    const confirmBtn = this.page.getByRole("button", { name: "Yes, Delete" });
-    await confirmBtn.waitFor({ state: "visible", timeout: 15000 });
-    await confirmBtn.click();
+    await this.waitForConfirmButton("Yes, Delete");
+    await this.page.getByRole("button", { name: "Yes, Delete" }).click();
 
     // The context delete does NOT produce a toast — it just closes the modal and refetches.
     // Wait for the modal to disappear and the card to no longer be visible.

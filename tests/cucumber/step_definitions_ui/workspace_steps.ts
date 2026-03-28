@@ -73,7 +73,7 @@ When(
     try {
       await this.goToWorkspaces();
       await this.page
-        .locator('.btn-purple:has-text("Create Workspace")')
+        .locator("#workspace_drawer-btn")
         .click();
       await this.page.waitForTimeout(500);
 

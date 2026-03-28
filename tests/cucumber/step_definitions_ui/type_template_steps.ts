@@ -322,10 +322,8 @@ When(
       await this.page.getByRole("button", { name: "Submit" }).last().click();
       await this.page.waitForTimeout(500);
 
-      // Wait for confirmation modal and click "Yes, Update"
-      const confirmBtn = this.page.getByRole("button", { name: "Yes, Update" });
-      await confirmBtn.waitFor({ state: "visible", timeout: 10000 });
-      await confirmBtn.click();
+      await this.waitForConfirmButton("Yes, Update");
+      await this.page.getByRole("button", { name: "Yes, Update" }).click();
 
       const toastText = await this.waitForToast();
       if (
@@ -391,10 +389,8 @@ When(
       await this.page.getByRole("button", { name: "Delete" }).click();
       await this.page.waitForTimeout(500);
 
-      // Wait for confirmation modal and click "Yes, Delete"
-      const confirmBtn = this.page.getByRole("button", { name: "Yes, Delete" });
-      await confirmBtn.waitFor({ state: "visible", timeout: 10000 });
-      await confirmBtn.click();
+      await this.waitForConfirmButton("Yes, Delete");
+      await this.page.getByRole("button", { name: "Yes, Delete" }).click();
 
       const toastText = await this.waitForToast();
       if (
