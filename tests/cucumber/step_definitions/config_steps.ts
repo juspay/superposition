@@ -114,7 +114,6 @@ When(
         new UpdateWorkspaceCommand({
           org_id: this.orgId,
           workspace_name: this.workspaceId,
-          description: "Unset config version",
           config_version: "null",
         })
       );
