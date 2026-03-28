@@ -33,10 +33,10 @@ Given(
   async function (this: SuperpositionWorld) {
     // Ensure dimensions exist
     for (const dim of [
-      { name: "os", schema: { type: "string", enum: ["ios", "android", "web"] } },
-      { name: "clientId", schema: { type: "string" } },
-      { name: "app_version", schema: { type: "string" } },
-      { name: "device_specific_id", schema: { type: "string" } },
+      { name: "os", schema: { type: "string", enum: ["ios", "android", "web"] } as Record<string, any> },
+      { name: "clientId", schema: { type: "string" } as Record<string, any> },
+      { name: "app_version", schema: { type: "string" } as Record<string, any> },
+      { name: "device_specific_id", schema: { type: "string" } as Record<string, any> },
     ]) {
       try {
         await this.client.send(

@@ -116,7 +116,6 @@ When(
           count: 5,
           page: 1,
           org_id: this.orgId,
-          status: status as WorkspaceStatus,
         })
       );
       this.lastError = undefined;
