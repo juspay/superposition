@@ -410,6 +410,7 @@ When(
       await this.page.waitForTimeout(500);
 
       // Confirm the update in the modal
+      await this.waitForConfirmButton("Yes, Update");
       await this.page.getByRole("button", { name: "Yes, Update" }).click();
 
       // Wait for toast
@@ -519,6 +520,7 @@ When(
       await this.page.waitForTimeout(500);
 
       // Confirm the update in the modal
+      await this.waitForConfirmButton("Yes, Update");
       await this.page.getByRole("button", { name: "Yes, Update" }).click();
 
       // Wait for toast
@@ -653,6 +655,7 @@ When(
       await this.page.waitForTimeout(500);
 
       // Confirm the update in the modal
+      await this.waitForConfirmButton("Yes, Update");
       await this.page.getByRole("button", { name: "Yes, Update" }).click();
 
       // Wait for toast
