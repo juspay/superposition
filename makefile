@@ -251,7 +251,10 @@ test: setup frontend superposition
 	@echo "Running API tests via cucumber"
 	cd tests/cucumber && npm run test:api
 	@echo "Running UI tests via cucumber"
-	cd tests/cucumber && npx playwright install --with-deps chromium
+	@if [ -z "$$PLAYWRIGHT_BROWSERS_PATH" ]; then \
+		echo "Installing Playwright browsers (not in nix shell)..."; \
+		cd tests/cucumber && npx playwright install --with-deps chromium; \
+	fi
 	cd tests/cucumber && npm run test:ui
 	$(MAKE) kill
 
