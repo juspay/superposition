@@ -101,16 +101,30 @@ export class PlaywrightWorld extends World {
 
   // ── Navigation helpers ────────────────────────────────────────────
 
+  /** Wait for Leptos WASM hydration to complete (buttons stop showing loading spinners) */
+  async waitForHydration(): Promise<void> {
+    // Leptos Button components show a loading-dots spinner until client_side_ready.
+    // Wait until no loading spinners remain in buttons (max 15s).
+    await this.page.waitForFunction(
+      () => document.querySelectorAll("button .loading-dots").length === 0,
+      { timeout: 15000 }
+    ).catch(() => {
+      // If timeout, proceed anyway - some pages may have persistent loaders
+    });
+  }
+
   /** Navigate to the organisations page */
   async goToOrganisations(): Promise<void> {
     await this.page.goto(`${this.appUrl}/admin/organisations`);
     await this.page.waitForLoadState("networkidle");
+    await this.waitForHydration();
   }
 
   /** Navigate to a specific org's workspace list */
   async goToWorkspaces(): Promise<void> {
     await this.page.goto(`${this.appUrl}/admin/${this.orgId}/workspaces`);
     await this.page.waitForLoadState("networkidle");
+    await this.waitForHydration();
   }
 
   /** Navigate to a workspace page (e.g. "dimensions", "variables", "experiments") */
@@ -119,6 +133,7 @@ export class PlaywrightWorld extends World {
       `${this.appUrl}/admin/${this.orgId}/${this.workspaceId}/${section}`
     );
     await this.page.waitForLoadState("networkidle");
+    await this.waitForHydration();
   }
 
   /** Navigate to a specific entity's detail page */
@@ -127,6 +142,7 @@ export class PlaywrightWorld extends World {
       `${this.appUrl}/admin/${this.orgId}/${this.workspaceId}/${section}/${entityName}`
     );
     await this.page.waitForLoadState("networkidle");
+    await this.waitForHydration();
   }
 
   // ── UI interaction helpers ────────────────────────────────────────
@@ -156,6 +172,26 @@ export class PlaywrightWorld extends World {
   /** Click a button by its visible text */
   async clickButton(text: string): Promise<void> {
     await this.page.getByRole("button", { name: text }).click();
+  }
+
+  /** Wait for a ChangeLogPopup confirm button (e.g. "Yes, Delete", "Yes, Update")
+   *  The button starts in loading/disabled state (spinner) until the resource loads,
+   *  then switches to showing the text. This helper polls until the button is clickable. */
+  async waitForConfirmButton(name: string, timeout = 30000): Promise<void> {
+    const btn = this.page.getByRole("button", { name });
+    await btn.waitFor({ state: "visible", timeout });
+    // Ensure the button is also enabled (not disabled by loading state)
+    await btn.waitFor({ state: "attached", timeout: 5000 });
+    await this.page.waitForFunction(
+      (buttonName: string) => {
+        const buttons = Array.from(document.querySelectorAll("button"));
+        return buttons.some(
+          (b) => b.textContent?.includes(buttonName) && !b.disabled
+        );
+      },
+      name,
+      { timeout: 10000 }
+    );
   }
 
   /** Wait for a toast/alert and capture its text */

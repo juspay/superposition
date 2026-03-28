@@ -169,6 +169,7 @@ When(
 
       await this.page.getByRole("button", { name: "Submit" }).last().click();
 
+      await this.waitForConfirmButton("Yes, Update");
       await this.page.getByRole("button", { name: "Yes, Update" }).click();
 
       const toastText = await this.waitForToast();
@@ -221,6 +222,7 @@ When(
       await this.page.getByRole("button", { name: "Delete" }).click();
       await this.page.waitForTimeout(300);
 
+      await this.waitForConfirmButton("Yes, Delete");
       await this.page.getByRole("button", { name: "Yes, Delete" }).click();
 
       const toastText = await this.waitForToast();
