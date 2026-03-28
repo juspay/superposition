@@ -250,6 +250,9 @@ test: setup frontend superposition
 	cd tests/cucumber && npm ci
 	@echo "Running API tests via cucumber"
 	cd tests/cucumber && npm run test:api
+	@echo "Running UI tests via cucumber"
+	cd tests/cucumber && npx playwright install --with-deps chromium
+	cd tests/cucumber && npm run test:ui
 	$(MAKE) kill
 
 ## npm run test
