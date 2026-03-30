@@ -981,11 +981,19 @@ async fn get_applicable_variants_handler(
 ) -> superposition::Result<Either<Json<Vec<Variant>>, Json<ListResponse<Variant>>>> {
     let query_data = query_data.into_inner();
     let (context, identifier) = if req.method() == actix_web::http::Method::GET {
-        (dimension_params.into_inner(), query_data.identifier)
+        let Some(identifier) = query_data.identifier else {
+            return Err(bad_argument!(
+                "Missing query param `identifier` that is required to allocate variants"
+            ));
+        };
+        (dimension_params.into_inner(), identifier)
     } else {
         let req_body = req_body.map(|body| body.into_inner());
-        let context = req_body.map_or_else(QueryMap::default, |body| body.context.into());
-        (context, query_data.identifier)
+        let (context, identifier) = req_body.map_or_else(
+            || (QueryMap::default(), String::default()),
+            |body| (body.context.into(), body.identifier),
+        );
+        (context, identifier)
     };
 
     let di = run_query(&state.db_pool, |conn| {
@@ -1469,7 +1477,8 @@ async fn ramp_handler(
             Ok(updated_experiment)
         })?;
 
-    let (_, config_version_id) = fetch_cac_config(&state, &workspace_context, &user).await?;
+    let (_, config_version_id) =
+        fetch_cac_config(&state, &workspace_context, &user).await?;
     let experiment_response = ExperimentResponse::from(updated_experiment);
 
     let _ =
