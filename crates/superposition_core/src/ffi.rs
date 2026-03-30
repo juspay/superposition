@@ -1,9 +1,12 @@
-use serde_json::{Map, Value};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
+
+use serde_json::{Map, Value};
+use superposition_types::experimental::Experimental;
 use superposition_types::{Config, Context, DimensionInfo, Overrides};
 use thiserror::Error;
 
+use crate::experiment::{filter_experiments_by_context, ExperimentConfig};
 use crate::{
     eval_config, eval_config_with_reasoning, experiment::ExperimentationArgs,
     experiment::FfiExperimentGroup, get_applicable_variants, ConfigFormat, FfiExperiment,
@@ -216,18 +219,14 @@ fn ffi_parse_json_config(json_content: String) -> Result<Config, OperationError>
         .map_err(|e| OperationError::Unexpected(e.to_string()))
 }
 
-pub struct ConfigCacheData {
-    default_config: Map<String, Value>,
-    contexts: Vec<Context>,
-    overrides: HashMap<String, Overrides>,
-    dimensions: HashMap<String, DimensionInfo>,
-    experiments: Vec<FfiExperiment>,
-    experiment_groups: Vec<FfiExperimentGroup>,
+pub struct CacheData {
+    config: Config,
+    experiment: Option<ExperimentConfig>,
 }
 
 #[derive(uniffi::Object)]
 pub struct ProviderCache {
-    data: Mutex<ConfigCacheData>,
+    data: Mutex<CacheData>,
 }
 
 #[uniffi::export]
@@ -235,13 +234,9 @@ impl ProviderCache {
     #[uniffi::constructor]
     pub fn new() -> Arc<Self> {
         Arc::new(ProviderCache {
-            data: Mutex::new(ConfigCacheData {
-                default_config: Map::new(),
-                contexts: Vec::new(),
-                overrides: HashMap::new(),
-                dimensions: HashMap::new(),
-                experiments: Vec::new(),
-                experiment_groups: Vec::new(),
+            data: Mutex::new(CacheData {
+                config: Config::default(),
+                experiment: None,
             }),
         })
     }
@@ -260,10 +255,10 @@ impl ProviderCache {
             OperationError::Unexpected(format!("Failed to acquire cache lock: {}", err))
         })?;
 
-        cache_data.default_config = default_config_map;
-        cache_data.contexts = contexts;
-        cache_data.overrides = overrides;
-        cache_data.dimensions = dimensions;
+        cache_data.config.default_configs = default_config_map.into();
+        cache_data.config.contexts = contexts;
+        cache_data.config.overrides = overrides;
+        cache_data.config.dimensions = dimensions;
 
         Ok(())
     }
@@ -277,8 +272,10 @@ impl ProviderCache {
             OperationError::Unexpected(format!("Failed to acquire cache lock: {}", err))
         })?;
 
-        cache_data.experiments = experiments;
-        cache_data.experiment_groups = experiment_groups;
+        cache_data.experiment = Some(ExperimentConfig {
+            experiments,
+            experiment_groups,
+        });
 
         Ok(())
     }
@@ -297,26 +294,28 @@ impl ProviderCache {
         let mut _q = json_from_map(query_data)
             .map_err(|err| OperationError::Unexpected(err.to_string()))?;
 
-        if (!cache_data.experiments.is_empty()
-            || !cache_data.experiment_groups.is_empty())
-            && targeting_key.as_ref().is_some_and(|key| !key.is_empty())
-        {
-            let variants = get_applicable_variants(
-                &cache_data.dimensions,
-                cache_data.experiments.clone(),
-                &cache_data.experiment_groups,
-                &_q,
-                targeting_key.as_deref().unwrap_or(""),
-                filter_prefixes.clone(),
-            );
-            _q.insert("variantIds".to_string(), variants.into());
+        if let Some(experiment_config) = &cache_data.experiment {
+            if (!experiment_config.experiments.is_empty()
+                || !experiment_config.experiment_groups.is_empty())
+                && targeting_key.as_ref().is_some_and(|key| !key.is_empty())
+            {
+                let variants = get_applicable_variants(
+                    &cache_data.config.dimensions,
+                    experiment_config.experiments.clone(),
+                    &experiment_config.experiment_groups,
+                    &_q,
+                    targeting_key.as_deref().unwrap_or(""),
+                    filter_prefixes.clone(),
+                );
+                _q.insert("variantIds".to_string(), variants.into());
+            }
         }
 
         let r = eval_config(
-            cache_data.default_config.clone(),
-            &cache_data.contexts,
-            &cache_data.overrides,
-            &cache_data.dimensions,
+            cache_data.config.default_configs.inner().clone(),
+            &cache_data.config.contexts,
+            &cache_data.config.overrides,
+            &cache_data.config.dimensions,
             &_q,
             merge_strategy,
             filter_prefixes,
@@ -324,5 +323,69 @@ impl ProviderCache {
         .map_err(OperationError::Unexpected)?;
 
         json_to_map(r).map_err(|err| OperationError::Unexpected(err.to_string()))
+    }
+
+    fn filter_config(
+        &self,
+        dimension_data: Option<HashMap<String, String>>,
+        prefix: Option<Vec<String>>,
+    ) -> Result<Config, OperationError> {
+        let dimension_data = dimension_data
+            .map(json_from_map)
+            .transpose()
+            .map_err(|err| OperationError::Unexpected(err.to_string()))?;
+        let prefix_list = prefix.map(HashSet::from_iter);
+
+        let config = {
+            let cache_data = self.data.lock().map_err(|err| {
+                OperationError::Unexpected(format!(
+                    "Failed to acquire cache lock: {}",
+                    err
+                ))
+            })?;
+            cache_data.config.clone()
+        };
+
+        Ok(config.filter(dimension_data.as_ref(), prefix_list.as_ref()))
+    }
+
+    fn filter_experiment(
+        &self,
+        dimension_data: Option<HashMap<String, String>>,
+        prefix: Option<Vec<String>>,
+    ) -> Result<ExperimentConfig, OperationError> {
+        let dimension_data = dimension_data
+            .map(json_from_map)
+            .transpose()
+            .map_err(|err| OperationError::Unexpected(err.to_string()))?
+            .unwrap_or_default();
+
+        let (exps, exp_grps) = {
+            let cache_data = self.data.lock().map_err(|err| {
+                OperationError::Unexpected(format!(
+                    "Failed to acquire cache lock: {}",
+                    err
+                ))
+            })?;
+
+            let exp_config = cache_data.experiment.as_ref().ok_or_else(|| {
+                OperationError::Unexpected(
+                    "Experiment configuration not initialized".to_string(),
+                )
+            })?;
+
+            (
+                exp_config.experiments.clone(),
+                exp_config.experiment_groups.clone(),
+            )
+        };
+
+        Ok(ExperimentConfig {
+            experiments: filter_experiments_by_context(exps, &dimension_data, prefix),
+            experiment_groups: FfiExperimentGroup::filter_by_eval(
+                exp_grps,
+                &dimension_data,
+            ),
+        })
     }
 }

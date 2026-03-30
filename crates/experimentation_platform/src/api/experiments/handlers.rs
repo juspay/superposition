@@ -1469,7 +1469,8 @@ async fn ramp_handler(
             Ok(updated_experiment)
         })?;
 
-    let (_, config_version_id) = fetch_cac_config(&state, &workspace_context, &user).await?;
+    let (_, config_version_id) =
+        fetch_cac_config(&state, &workspace_context, &user).await?;
     let experiment_response = ExperimentResponse::from(updated_experiment);
 
     let _ =
