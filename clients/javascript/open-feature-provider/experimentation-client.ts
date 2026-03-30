@@ -52,12 +52,15 @@ export class ExperimentationClient {
     private lastUpdated: Date | null = null;
     private evaluationCache: Map<string, any> = new Map();
     private pollingInterval?: NodeJS.Timeout;
+    private onExperimentsChange?: () => void;
 
     constructor(
         private superpositionOptions: SuperpositionOptions,
-        experimentOptions: ExperimentationOptions
+        experimentOptions: ExperimentationOptions,
+        onExperimentsChange?: () => void
     ) {
         this.options = experimentOptions;
+        this.onExperimentsChange = onExperimentsChange;
         this.smithyClient = new SuperpositionClient({
             endpoint: superpositionOptions.endpoint,
             token: { token: superpositionOptions.token },
@@ -89,22 +92,28 @@ export class ExperimentationClient {
     }
 
     private startPolling(interval: number): void {
-        this.pollingInterval = setInterval(async () => {
+        const weakSelf = new WeakRef(this);
+        const intervalId = setInterval(async () => {
+            const self = weakSelf.deref();
+            if (!self) {
+                clearInterval(intervalId);
+                return;
+            }
             try {
-                const experiments = await this.fetchExperiments();
-                const experimentGroups = await this.fetchExperimentGroups();
+                const experiments = await self.fetchExperiments();
+                const experimentGroups = await self.fetchExperimentGroups();
                 if (experiments && experimentGroups) {
-                    this.cachedExperiments = experiments;
-                    this.cachedExperimentGroups = experimentGroups;
-                    this.lastUpdated = new Date();
-                    console.log(
-                        "Experiments and Experiment Groups refreshed successfully."
-                    );
+                    self.cachedExperiments = experiments;
+                    self.cachedExperimentGroups = experimentGroups;
+                    self.lastUpdated = new Date();
+                    console.log("Experiments and Experiment Groups refreshed successfully.");
+                    self.onExperimentsChange?.();
                 }
             } catch (error) {
                 console.error("Polling error:", error);
             }
         }, interval);
+        this.pollingInterval = intervalId;
     }
 
     private async fetchExperiments(): Promise<Experiment[] | null> {
@@ -291,6 +300,7 @@ export class ExperimentationClient {
                     if (experiments) {
                         this.cachedExperiments = experiments;
                         this.lastUpdated = new Date();
+                        this.onExperimentsChange?.();
                     }
                 } catch (error) {
                     console.warn("On-demand fetch failed:", error);
@@ -338,6 +348,7 @@ export class ExperimentationClient {
                     if (experimentGroups) {
                         this.cachedExperimentGroups = experimentGroups;
                         this.lastUpdated = new Date();
+                        this.onExperimentsChange?.();
                     }
                 } catch (error) {
                     console.warn("On-demand fetch failed:", error);
@@ -362,6 +373,14 @@ export class ExperimentationClient {
         }
 
         return this.cachedExperimentGroups || [];
+    }
+
+    getCachedExperiments(): Experiment[] | null {
+        return this.cachedExperiments;
+    }
+
+    getCachedExperimentGroups(): ExperimentGroup[] | null {
+        return this.cachedExperimentGroups;
     }
 
     generateCacheKey(queryData: Record<string, any>): string {

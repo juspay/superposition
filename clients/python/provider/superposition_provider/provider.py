@@ -47,13 +47,12 @@ class SuperpositionProvider(AbstractProvider):
                         refresh_strategy=self.options.experimentation_options.refresh_strategy,
                         evaluation_cache_options=self.options.experimentation_options.evaluation_cache_options,
                         default_toss=self.options.experimentation_options.default_toss
-                    )
+                    ) if self.options.experimentation_options else None
                 )
                 await self.client.create_config()
+                self.status = ProviderStatus.READY
             except Exception as e:
                 self.status = ProviderStatus.ERROR
-
-            self.status = ProviderStatus.READY
         except Exception as e:
             self.status = ProviderStatus.ERROR
     def _do_initialize(self, context: Optional[EvaluationContext]):

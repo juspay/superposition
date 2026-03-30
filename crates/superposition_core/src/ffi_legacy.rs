@@ -2,13 +2,218 @@
 use std::collections::HashMap;
 use std::ffi::{c_char, CStr, CString};
 use std::ptr;
+use std::sync::Mutex;
 
 use serde_json::{Map, Value};
 use superposition_types::{Context, DimensionInfo, Overrides};
 
 use crate::config::{self, MergeStrategy};
 use crate::experiment::{ExperimentGroups, ExperimentationArgs};
-use crate::{get_applicable_variants, ConfigFormat, Experiments, JsonFormat, TomlFormat};
+use crate::{get_applicable_variants, ConfigFormat, Experiments, FfiExperiment, JsonFormat, TomlFormat};
+
+struct ProviderCacheData {
+    default_config: Map<String, Value>,
+    contexts: Vec<Context>,
+    overrides: HashMap<String, Overrides>,
+    dimensions: HashMap<String, DimensionInfo>,
+    experiments: Experiments,
+    experiment_groups: ExperimentGroups,
+}
+
+pub struct ProviderCache {
+    data: Mutex<ProviderCacheData>,
+}
+
+impl Drop for ProviderCache {
+    fn drop(&mut self) {
+        eprintln!("[Rust] ProviderCache dropped — native memory freed");
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn core_provider_cache_new() -> *mut ProviderCache {
+    Box::into_raw(Box::new(ProviderCache {
+        data: Mutex::new(ProviderCacheData {
+            default_config: Map::new(),
+            contexts: Vec::new(),
+            overrides: HashMap::new(),
+            dimensions: HashMap::new(),
+            experiments: Vec::new(),
+            experiment_groups: Vec::new(),
+        }),
+    }))
+}
+
+/// # Safety
+/// `handle` must be a pointer returned by `core_provider_cache_new` and must not be used after this call.
+#[no_mangle]
+pub unsafe extern "C" fn core_provider_cache_free(handle: *mut ProviderCache) {
+    if !handle.is_null() {
+        drop(Box::from_raw(handle));
+    }
+}
+
+/// # Safety
+/// `handle` must be a valid pointer returned by `core_provider_cache_new`.
+/// `ebuf` must be a writable buffer of at least 2048 bytes.
+#[no_mangle]
+pub unsafe extern "C" fn core_provider_cache_init_config(
+    handle: *mut ProviderCache,
+    default_config_json: *const c_char,
+    contexts_json: *const c_char,
+    overrides_json: *const c_char,
+    dimensions_json: *const c_char,
+    ebuf: *mut c_char,
+) {
+    if handle.is_null() {
+        copy_string(ebuf, "handle is null");
+        return;
+    }
+
+    let default_config = match parse_json::<Map<String, Value>>(default_config_json) {
+        Ok(v) => v,
+        Err(e) => { copy_string(ebuf, format!("Failed to parse default_config: {}", e)); return; }
+    };
+    let contexts = match parse_json::<Vec<Context>>(contexts_json) {
+        Ok(v) => v,
+        Err(e) => { copy_string(ebuf, format!("Failed to parse contexts: {}", e)); return; }
+    };
+    let overrides = match parse_json::<HashMap<String, Overrides>>(overrides_json) {
+        Ok(v) => v,
+        Err(e) => { copy_string(ebuf, format!("Failed to parse overrides: {}", e)); return; }
+    };
+    let dimensions = match parse_json::<HashMap<String, DimensionInfo>>(dimensions_json) {
+        Ok(v) => v,
+        Err(e) => { copy_string(ebuf, format!("Failed to parse dimensions: {}", e)); return; }
+    };
+
+    let cache = &*handle;
+    match cache.data.lock() {
+        Ok(mut d) => {
+            d.default_config = default_config;
+            d.contexts = contexts;
+            d.overrides = overrides;
+            d.dimensions = dimensions;
+        }
+        Err(e) => copy_string(ebuf, format!("Failed to acquire cache lock: {}", e)),
+    }
+}
+
+/// # Safety
+/// `handle` must be a valid pointer returned by `core_provider_cache_new`.
+/// `ebuf` must be a writable buffer of at least 2048 bytes.
+#[no_mangle]
+pub unsafe extern "C" fn core_provider_cache_init_experiments(
+    handle: *mut ProviderCache,
+    experiments_json: *const c_char,
+    experiment_groups_json: *const c_char,
+    ebuf: *mut c_char,
+) {
+    if handle.is_null() {
+        copy_string(ebuf, "handle is null");
+        return;
+    }
+
+    let experiments = match parse_json::<Vec<FfiExperiment>>(experiments_json) {
+        Ok(v) => v,
+        Err(e) => { copy_string(ebuf, format!("Failed to parse experiments: {}", e)); return; }
+    };
+    let experiment_groups = match parse_json::<ExperimentGroups>(experiment_groups_json) {
+        Ok(v) => v,
+        Err(e) => { copy_string(ebuf, format!("Failed to parse experiment_groups: {}", e)); return; }
+    };
+
+    let cache = &*handle;
+    match cache.data.lock() {
+        Ok(mut d) => {
+            d.experiments = experiments;
+            d.experiment_groups = experiment_groups;
+        }
+        Err(e) => copy_string(ebuf, format!("Failed to acquire cache lock: {}", e)),
+    }
+}
+
+/// # Safety
+/// `handle` must be a valid pointer returned by `core_provider_cache_new`.
+/// `ebuf` must be a writable buffer of at least 2048 bytes.
+#[no_mangle]
+pub unsafe extern "C" fn core_provider_cache_eval_config(
+    handle: *mut ProviderCache,
+    query_data_json: *const c_char,
+    merge_strategy_str: *const c_char,
+    filter_prefixes_json: *const c_char,
+    targeting_key: *const c_char,
+    ebuf: *mut c_char,
+) -> *mut c_char {
+    if handle.is_null() {
+        copy_string(ebuf, "handle is null");
+        return ptr::null_mut();
+    }
+
+    let mut query_data = match parse_json::<Map<String, Value>>(query_data_json) {
+        Ok(v) => v,
+        Err(e) => { copy_string(ebuf, format!("Failed to parse query_data: {}", e)); return ptr::null_mut(); }
+    };
+    let merge_strategy = match c_str_to_string(merge_strategy_str) {
+        Ok(s) => match s.to_lowercase().as_str() {
+            "replace" => MergeStrategy::REPLACE,
+            _ => MergeStrategy::MERGE,
+        },
+        Err(e) => { copy_string(ebuf, format!("Failed to parse merge_strategy: {}", e)); return ptr::null_mut(); }
+    };
+    let filter_prefixes: Option<Vec<String>> = if filter_prefixes_json.is_null() {
+        None
+    } else {
+        match parse_json::<Vec<String>>(filter_prefixes_json) {
+            Ok(v) => Some(v),
+            Err(e) => { copy_string(ebuf, format!("Failed to parse filter_prefixes: {}", e)); return ptr::null_mut(); }
+        }
+    };
+    let tkey: Option<String> = if targeting_key.is_null() {
+        None
+    } else {
+        match c_str_to_string(targeting_key) {
+            Ok(s) if !s.is_empty() => Some(s),
+            _ => None,
+        }
+    };
+
+    let cache = &*handle;
+    let data = match cache.data.lock() {
+        Ok(d) => d,
+        Err(e) => { copy_string(ebuf, format!("Failed to acquire cache lock: {}", e)); return ptr::null_mut(); }
+    };
+
+    if !data.experiments.is_empty() || !data.experiment_groups.is_empty() {
+        if let Some(ref key) = tkey {
+            let variants = get_applicable_variants(
+                &data.dimensions,
+                data.experiments.clone(),
+                &data.experiment_groups,
+                &query_data,
+                key,
+                filter_prefixes.clone(),
+            );
+            query_data.insert("variantIds".to_string(), variants.into());
+        }
+    }
+
+    match config::eval_config(
+        data.default_config.clone(),
+        &data.contexts,
+        &data.overrides,
+        &data.dimensions,
+        &query_data,
+        merge_strategy,
+        filter_prefixes,
+    ) {
+        Ok(result) => match serde_json::to_string(&result) {
+            Ok(json_str) => string_to_c_str(json_str),
+            Err(e) => { copy_string(ebuf, format!("Failed to serialize result: {}", e)); ptr::null_mut() }
+        },
+        Err(e) => { copy_string(ebuf, e); ptr::null_mut() }
+    }
+}
 
 fn c_str_to_string(s: *const c_char) -> Result<String, String> {
     if s.is_null() {

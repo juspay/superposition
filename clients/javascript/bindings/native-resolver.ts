@@ -37,6 +37,21 @@ export class NativeResolver {
             this.lib.core_parse_json_config = this.lib.func(
                 "char* core_parse_json_config(const char*, char*)"
             );
+            this.lib.core_provider_cache_new = this.lib.func(
+                "void* core_provider_cache_new()"
+            );
+            this.lib.core_provider_cache_free = this.lib.func(
+                "void core_provider_cache_free(void*)"
+            );
+            this.lib.core_provider_cache_init_config = this.lib.func(
+                "void core_provider_cache_init_config(void*, const char*, const char*, const char*, const char*, char*)"
+            );
+            this.lib.core_provider_cache_init_experiments = this.lib.func(
+                "void core_provider_cache_init_experiments(void*, const char*, const char*, char*)"
+            );
+            this.lib.core_provider_cache_eval_config = this.lib.func(
+                "char* core_provider_cache_eval_config(void*, const char*, const char*, const char*, const char*, char*)"
+            );
 
             this.isAvailable = true;
         } catch (error) {
@@ -561,6 +576,79 @@ export class NativeResolver {
             console.trace(`Binary not found for path ${filePath}`);
             return false;
         }
+    }
+
+    createProviderCache() {
+        if (!this.isAvailable) {
+            throw new Error("Native resolver is not available.");
+        }
+        const handle = this.lib.core_provider_cache_new();
+        if (!handle) {
+            throw new Error("core_provider_cache_new returned null");
+        }
+        const lib = this.lib;
+        return {
+            initConfig(
+                defaultConfigs: Record<string, any>,
+                contexts: any[],
+                overrides: Record<string, any>,
+                dimensions: Record<string, any>
+            ): void {
+                const ebuf = Buffer.alloc(ERROR_BUFFER_SIZE);
+                lib.core_provider_cache_init_config(
+                    handle,
+                    JSON.stringify(defaultConfigs || {}),
+                    JSON.stringify(contexts || []),
+                    JSON.stringify(overrides || {}),
+                    JSON.stringify(dimensions || {}),
+                    ebuf
+                );
+                const err = ebuf.toString('utf8').split('\0')[0];
+                if (err.length !== 0) throw new Error("ffi: " + err);
+            },
+            initExperiments(experiments: any[], experimentGroups: any[]): void {
+                const ebuf = Buffer.alloc(ERROR_BUFFER_SIZE);
+                lib.core_provider_cache_init_experiments(
+                    handle,
+                    JSON.stringify(experiments || []),
+                    JSON.stringify(experimentGroups || []),
+                    ebuf
+                );
+                const err = ebuf.toString('utf8').split('\0')[0];
+                if (err.length !== 0) throw new Error("ffi: " + err);
+            },
+            evalConfig(
+                queryData: Record<string, any>,
+                mergeStrategy: string = "merge",
+                filterPrefixes?: string[],
+                targetingKey?: string | null
+            ): Record<string, any> {
+                const ebuf = Buffer.alloc(ERROR_BUFFER_SIZE);
+                const filterPrefixesJson =
+                    filterPrefixes && filterPrefixes.length > 0
+                        ? JSON.stringify(filterPrefixes)
+                        : null;
+                const result = lib.core_provider_cache_eval_config(
+                    handle,
+                    JSON.stringify(queryData || {}),
+                    mergeStrategy,
+                    filterPrefixesJson,
+                    targetingKey || null,
+                    ebuf
+                );
+                const err = ebuf.toString('utf8').split('\0')[0];
+                if (err.length !== 0) throw new Error("ffi: " + err);
+                const configStr =
+                    typeof result === "string"
+                        ? result
+                        : lib.decode(result, "string");
+                if (typeof result !== "string") lib.core_free_string(result);
+                return JSON.parse(configStr);
+            },
+            free(): void {
+                lib.core_provider_cache_free(handle);
+            },
+        };
     }
 
     private throwFFIError(err: String): never {

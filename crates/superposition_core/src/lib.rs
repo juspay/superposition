@@ -20,6 +20,9 @@ pub use experiment::{
 pub use ffi_legacy::{
     core_free_string, core_get_resolved_config, core_get_resolved_config_with_reasoning,
     core_parse_json_config, core_parse_toml_config,
+    core_provider_cache_new, core_provider_cache_free,
+    core_provider_cache_init_config, core_provider_cache_init_experiments,
+    core_provider_cache_eval_config,
 };
 
 // Re-export format module and types

@@ -18,6 +18,13 @@ import {
 } from "./experimentation-client";
 import { ExperimentationOptions } from "./types";
 
+// Auto-free Rust ProviderCache when ConfigurationClient is GC'd.
+// setImmediate defers the koffi call to the event loop — safe to call koffi there,
+// unlike inside the GC callback itself where V8 internals are mid-cleanup.
+const _cacheRegistry = new FinalizationRegistry((freeFn: () => void) => {
+    setImmediate(freeFn);
+});
+
 export class ConfigurationClient {
     private config: SuperpositionOptions;
     private resolver: NativeResolver;
@@ -25,6 +32,8 @@ export class ConfigurationClient {
     private currentConfigData: ConfigData | null = null;
     private experimentationClient?: ExperimentationClient;
     private experimentationOptions?: ExperimentationOptions;
+    private providerCache: ReturnType<NativeResolver["createProviderCache"]> | null = null;
+    private refreshInterval: ReturnType<typeof setInterval> | null = null;
 
     private defaults: ConfigData | null = null;
     private smithyClient: SuperpositionClient;
@@ -38,6 +47,14 @@ export class ConfigurationClient {
         this.config = config;
         this.resolver = resolver;
         this.options = options;
+        this.providerCache = resolver.createProviderCache();
+
+        // Auto-free Rust ProviderCache when this instance is GC'd.
+        // The registry holds 'cache' strongly so it stays valid for the deferred call.
+        // close() unregisters this token to prevent double-free.
+        const cache = this.providerCache;
+        _cacheRegistry.register(this, () => { cache.free(); }, this);
+
 
         if (
             this.options.refreshStrategy &&
@@ -45,10 +62,25 @@ export class ConfigurationClient {
         ) {
             const strategy = this.options.refreshStrategy as PollingStrategy;
 
-            setInterval(async () => {
+            // Use WeakRef so the interval closure does not hold a strong reference
+            // to this instance. When the instance is GC'd, deref() returns undefined
+            // and the interval clears itself.
+            const weakSelf = new WeakRef(this);
+            const intervalId = setInterval(async () => {
+                const self = weakSelf.deref();
+                if (!self) {
+                    clearInterval(intervalId);
+                    return;
+                }
                 try {
-                    const refreshedConfig = await this.fetchConfigData();
-                    this.currentConfigData = refreshedConfig;
+                    const refreshedConfig = await self.fetchConfigData();
+                    self.currentConfigData = refreshedConfig;
+                    self.providerCache?.initConfig(
+                        refreshedConfig.default_configs,
+                        refreshedConfig.contexts,
+                        refreshedConfig.overrides,
+                        refreshedConfig.dimensions,
+                    );
                     console.log("Configuration refreshed successfully.");
                 } catch (error) {
                     console.error(
@@ -57,13 +89,15 @@ export class ConfigurationClient {
                     );
                 }
             }, strategy.interval);
+            this.refreshInterval = intervalId;
         }
 
         if (experimentationOptions) {
             this.experimentationOptions = experimentationOptions;
             this.experimentationClient = new ExperimentationClient(
                 config,
-                experimentationOptions
+                experimentationOptions,
+                () => this.reinitExperimentsCache()
             );
         }
 
@@ -75,9 +109,28 @@ export class ConfigurationClient {
     }
 
     async initialize(): Promise<void> {
-        // Initialize experimentation client if present
+        // Fetch config once and seed the cache
+        const configData = await this.fetchConfigData();
+        this.providerCache!.initConfig(
+            configData.default_configs,
+            configData.contexts,
+            configData.overrides,
+            configData.dimensions,
+        );
+
         if (this.experimentationClient) {
             await this.experimentationClient.initialize();
+            // Seed experiments into Rust cache after initial fetch
+            this.reinitExperimentsCache();
+        }
+    }
+
+    private reinitExperimentsCache(): void {
+        if (!this.experimentationClient || !this.providerCache) return;
+        const experiments = this.experimentationClient.getCachedExperiments();
+        const experimentGroups = this.experimentationClient.getCachedExperimentGroups();
+        if (experiments && experimentGroups) {
+            this.providerCache.initExperiments(experiments, experimentGroups);
         }
     }
 
@@ -97,33 +150,28 @@ export class ConfigurationClient {
         targetingKey?: string
     ): Promise<any> {
         try {
-            const configData = this.currentConfigData || await this.fetchConfigData();
-
-            let experimentationArgs: ExperimentationArgs | undefined;
-
-            if (this.experimentationClient && targetingKey) {
-                const experiments =
-                    await this.experimentationClient.getExperiments();
-                const experiment_groups =
-                    await this.experimentationClient.getExperimentGroups();
-                experimentationArgs = {
-                    experiments,
-                    experiment_groups,
-                    targeting_key: targetingKey,
-                };
+            if (!this.currentConfigData) {
+                const configData = await this.fetchConfigData();
+                this.providerCache!.initConfig(
+                    configData.default_configs,
+                    configData.contexts,
+                    configData.overrides,
+                    configData.dimensions,
+                );
             }
 
-            const result = this.resolver.resolveConfig(
-                configData.default_configs || {},
-                configData.contexts || [],
-                configData.overrides || {},
-                configData.dimensions || {},
-                queryData,
-                "merge",
-                filterPrefixes,
-                experimentationArgs
-            );
-            return result;
+            // For on-demand: getExperiments/getExperimentGroups handle TTL and call
+            // reinitExperimentsCache via onExperimentsChange when fresh data arrives.
+            // For polling: reinitExperimentsCache is called by the interval callback.
+            // Here we only seed on the first call if experiments aren't in the cache yet.
+            if (this.experimentationClient && targetingKey &&
+                !this.experimentationClient.getCachedExperiments()) {
+                await this.experimentationClient.getExperiments();
+                await this.experimentationClient.getExperimentGroups();
+                this.reinitExperimentsCache();
+            }
+
+            return this.providerCache!.evalConfig(queryData, "merge", filterPrefixes, targetingKey);
         } catch (error) {
             if (this.defaults) {
                 console.log("Falling back to defaults");
@@ -181,42 +229,24 @@ export class ConfigurationClient {
         targetingKey?: string
     ): Promise<Record<string, any>> {
         try {
-            const configData = this.currentConfigData || await this.fetchConfigData();
-
-            // Prepare query data with experiment variants if applicable
-            let queryData = { ...context };
-
-            if (this.experimentationClient && targetingKey) {
-                const experiments =
-                    await this.experimentationClient.getExperiments();
-                const experiment_groups =
-                    await this.experimentationClient.getExperimentGroups();
-                const identifier =
-                    this.experimentationOptions?.defaultIdentifier ||
-                    (targetingKey ? targetingKey : "default");
-
-                const variantIds = await this.getApplicableVariants(
-                    experiments,
-                    experiment_groups,
-                    this.currentConfigData?.dimensions || {},
-                    queryData,
-                    identifier
+            if (!this.currentConfigData) {
+                const configData = await this.fetchConfigData();
+                this.providerCache!.initConfig(
+                    configData.default_configs,
+                    configData.contexts,
+                    configData.overrides,
+                    configData.dimensions,
                 );
-                if (variantIds.length > 0) {
-                    queryData.variantIds = variantIds;
-                }
             }
 
-            const result = this.resolver.resolveConfig(
-                configData.default_configs || {},
-                configData.contexts || [],
-                configData.overrides || {},
-                configData.dimensions || {},
-                queryData,
-                "merge"
-            );
+            if (this.experimentationClient && targetingKey &&
+                !this.experimentationClient.getCachedExperiments()) {
+                await this.experimentationClient.getExperiments();
+                await this.experimentationClient.getExperimentGroups();
+                this.reinitExperimentsCache();
+            }
 
-            return result;
+            return this.providerCache!.evalConfig(context, "merge", undefined, targetingKey);
         } catch (error) {
             if (this.defaults) {
                 return this.resolver.resolveConfig(
@@ -254,8 +284,20 @@ export class ConfigurationClient {
 
     // Add method to close and cleanup
     async close(): Promise<void> {
+        // Prevent the FinalizationRegistry from also calling free after explicit close
+        _cacheRegistry.unregister(this);
+
+        if (this.refreshInterval) {
+            clearInterval(this.refreshInterval);
+            this.refreshInterval = null;
+        }
+
         if (this.experimentationClient) {
             await this.experimentationClient.close();
+        }
+        if (this.providerCache) {
+            this.providerCache.free();
+            this.providerCache = null;
         }
     }
 }

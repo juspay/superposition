@@ -230,6 +230,12 @@ pub struct ProviderCache {
     data: Mutex<ConfigCacheData>,
 }
 
+impl Drop for ProviderCache {
+    fn drop(&mut self) {
+        eprintln!("[Rust] ProviderCache dropped — native memory freed");
+    }
+}
+
 #[uniffi::export]
 impl ProviderCache {
     #[uniffi::constructor]
