@@ -768,6 +768,10 @@ internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
 
 
 
+
+
+
+
 // For large crates we prevent `MethodTooLargeException` (see #2340)
 // N.B. the name of the extension is very misleading, since it is 
 // rather `InterfaceTooLargeException`, caused by too many methods 
@@ -794,6 +798,10 @@ fun uniffi_superposition_core_checksum_func_ffi_parse_json_config(
 fun uniffi_superposition_core_checksum_func_ffi_parse_toml_config(
 ): Short
 fun uniffi_superposition_core_checksum_method_providercache_eval_config(
+): Short
+fun uniffi_superposition_core_checksum_method_providercache_filter_config(
+): Short
+fun uniffi_superposition_core_checksum_method_providercache_filter_experiment(
 ): Short
 fun uniffi_superposition_core_checksum_method_providercache_init_config(
 ): Short
@@ -858,6 +866,10 @@ fun uniffi_superposition_core_fn_free_providercache(`ptr`: Pointer,uniffi_out_er
 fun uniffi_superposition_core_fn_constructor_providercache_new(uniffi_out_err: UniffiRustCallStatus, 
 ): Pointer
 fun uniffi_superposition_core_fn_method_providercache_eval_config(`ptr`: Pointer,`queryData`: RustBuffer.ByValue,`mergeStrategy`: RustBufferMergeStrategy.ByValue,`filterPrefixes`: RustBuffer.ByValue,`targetingKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+fun uniffi_superposition_core_fn_method_providercache_filter_config(`ptr`: Pointer,`dimensionData`: RustBuffer.ByValue,`prefix`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBufferConfig.ByValue
+fun uniffi_superposition_core_fn_method_providercache_filter_experiment(`ptr`: Pointer,`dimensionData`: RustBuffer.ByValue,`prefix`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
 fun uniffi_superposition_core_fn_method_providercache_init_config(`ptr`: Pointer,`defaultConfig`: RustBuffer.ByValue,`contexts`: RustBuffer.ByValue,`overrides`: RustBuffer.ByValue,`dimensions`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): Unit
@@ -1015,6 +1027,12 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_superposition_core_checksum_method_providercache_eval_config() != 7889.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_superposition_core_checksum_method_providercache_filter_config() != 21761.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_superposition_core_checksum_method_providercache_filter_experiment() != 60575.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_superposition_core_checksum_method_providercache_init_config() != 28151.toShort()) {
@@ -1352,6 +1370,10 @@ public interface ProviderCacheInterface {
     
     fun `evalConfig`(`queryData`: Map<kotlin.String, kotlin.String>, `mergeStrategy`: MergeStrategy, `filterPrefixes`: List<kotlin.String>?, `targetingKey`: kotlin.String?): Map<kotlin.String, kotlin.String>
     
+    fun `filterConfig`(`dimensionData`: Map<kotlin.String, kotlin.String>?, `prefix`: List<kotlin.String>?): Config
+    
+    fun `filterExperiment`(`dimensionData`: Map<kotlin.String, kotlin.String>?, `prefix`: List<kotlin.String>?): ExperimentConfig
+    
     fun `initConfig`(`defaultConfig`: Map<kotlin.String, kotlin.String>, `contexts`: List<Context>, `overrides`: Map<kotlin.String, Overrides>, `dimensions`: Map<kotlin.String, DimensionInfo>)
     
     fun `initExperiments`(`experiments`: List<FfiExperiment>, `experimentGroups`: List<FfiExperimentGroup>)
@@ -1462,6 +1484,32 @@ open class ProviderCache: Disposable, AutoCloseable, ProviderCacheInterface
     
 
     
+    @Throws(OperationException::class)override fun `filterConfig`(`dimensionData`: Map<kotlin.String, kotlin.String>?, `prefix`: List<kotlin.String>?): Config {
+            return FfiConverterTypeConfig.lift(
+    callWithPointer {
+    uniffiRustCallWithError(OperationException) { _status ->
+    UniffiLib.INSTANCE.uniffi_superposition_core_fn_method_providercache_filter_config(
+        it, FfiConverterOptionalMapStringString.lower(`dimensionData`),FfiConverterOptionalSequenceString.lower(`prefix`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    @Throws(OperationException::class)override fun `filterExperiment`(`dimensionData`: Map<kotlin.String, kotlin.String>?, `prefix`: List<kotlin.String>?): ExperimentConfig {
+            return FfiConverterTypeExperimentConfig.lift(
+    callWithPointer {
+    uniffiRustCallWithError(OperationException) { _status ->
+    UniffiLib.INSTANCE.uniffi_superposition_core_fn_method_providercache_filter_experiment(
+        it, FfiConverterOptionalMapStringString.lower(`dimensionData`),FfiConverterOptionalSequenceString.lower(`prefix`),_status)
+}
+    }
+    )
+    }
+    
+
+    
     @Throws(OperationException::class)override fun `initConfig`(`defaultConfig`: Map<kotlin.String, kotlin.String>, `contexts`: List<Context>, `overrides`: Map<kotlin.String, Overrides>, `dimensions`: Map<kotlin.String, DimensionInfo>)
         = 
     callWithPointer {
@@ -1518,6 +1566,38 @@ public object FfiConverterTypeProviderCache: FfiConverter<ProviderCache, Pointer
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+
+data class ExperimentConfig (
+    var `experiments`: List<FfiExperiment>, 
+    var `experimentGroups`: List<FfiExperimentGroup>
+) {
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeExperimentConfig: FfiConverterRustBuffer<ExperimentConfig> {
+    override fun read(buf: ByteBuffer): ExperimentConfig {
+        return ExperimentConfig(
+            FfiConverterSequenceTypeFfiExperiment.read(buf),
+            FfiConverterSequenceTypeFfiExperimentGroup.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: ExperimentConfig) = (
+            FfiConverterSequenceTypeFfiExperiment.allocationSize(value.`experiments`) +
+            FfiConverterSequenceTypeFfiExperimentGroup.allocationSize(value.`experimentGroups`)
+    )
+
+    override fun write(value: ExperimentConfig, buf: ByteBuffer) {
+            FfiConverterSequenceTypeFfiExperiment.write(value.`experiments`, buf)
+            FfiConverterSequenceTypeFfiExperimentGroup.write(value.`experimentGroups`, buf)
     }
 }
 
@@ -1832,6 +1912,38 @@ public object FfiConverterOptionalSequenceString: FfiConverterRustBuffer<List<ko
         } else {
             buf.put(1)
             FfiConverterSequenceString.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterOptionalMapStringString: FfiConverterRustBuffer<Map<kotlin.String, kotlin.String>?> {
+    override fun read(buf: ByteBuffer): Map<kotlin.String, kotlin.String>? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterMapStringString.read(buf)
+    }
+
+    override fun allocationSize(value: Map<kotlin.String, kotlin.String>?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterMapStringString.allocationSize(value)
+        }
+    }
+
+    override fun write(value: Map<kotlin.String, kotlin.String>?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterMapStringString.write(value, buf)
         }
     }
 }

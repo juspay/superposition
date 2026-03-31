@@ -507,6 +507,10 @@ def _uniffi_check_api_checksums(lib):
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_superposition_core_checksum_method_providercache_eval_config() != 7889:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    if lib.uniffi_superposition_core_checksum_method_providercache_filter_config() != 21761:
+        raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    if lib.uniffi_superposition_core_checksum_method_providercache_filter_experiment() != 60575:
+        raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_superposition_core_checksum_method_providercache_init_config() != 28151:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_superposition_core_checksum_method_providercache_init_experiments() != 55579:
@@ -642,6 +646,20 @@ _UniffiLib.uniffi_superposition_core_fn_method_providercache_eval_config.argtype
     ctypes.POINTER(_UniffiRustCallStatus),
 )
 _UniffiLib.uniffi_superposition_core_fn_method_providercache_eval_config.restype = _UniffiRustBuffer
+_UniffiLib.uniffi_superposition_core_fn_method_providercache_filter_config.argtypes = (
+    ctypes.c_void_p,
+    _UniffiRustBuffer,
+    _UniffiRustBuffer,
+    ctypes.POINTER(_UniffiRustCallStatus),
+)
+_UniffiLib.uniffi_superposition_core_fn_method_providercache_filter_config.restype = _UniffiRustBufferConfig
+_UniffiLib.uniffi_superposition_core_fn_method_providercache_filter_experiment.argtypes = (
+    ctypes.c_void_p,
+    _UniffiRustBuffer,
+    _UniffiRustBuffer,
+    ctypes.POINTER(_UniffiRustCallStatus),
+)
+_UniffiLib.uniffi_superposition_core_fn_method_providercache_filter_experiment.restype = _UniffiRustBuffer
 _UniffiLib.uniffi_superposition_core_fn_method_providercache_init_config.argtypes = (
     ctypes.c_void_p,
     _UniffiRustBuffer,
@@ -986,6 +1004,12 @@ _UniffiLib.uniffi_superposition_core_checksum_func_ffi_parse_toml_config.restype
 _UniffiLib.uniffi_superposition_core_checksum_method_providercache_eval_config.argtypes = (
 )
 _UniffiLib.uniffi_superposition_core_checksum_method_providercache_eval_config.restype = ctypes.c_uint16
+_UniffiLib.uniffi_superposition_core_checksum_method_providercache_filter_config.argtypes = (
+)
+_UniffiLib.uniffi_superposition_core_checksum_method_providercache_filter_config.restype = ctypes.c_uint16
+_UniffiLib.uniffi_superposition_core_checksum_method_providercache_filter_experiment.argtypes = (
+)
+_UniffiLib.uniffi_superposition_core_checksum_method_providercache_filter_experiment.restype = ctypes.c_uint16
 _UniffiLib.uniffi_superposition_core_checksum_method_providercache_init_config.argtypes = (
 )
 _UniffiLib.uniffi_superposition_core_checksum_method_providercache_init_config.restype = ctypes.c_uint16
@@ -1051,6 +1075,42 @@ class _UniffiConverterString:
             return builder.finalize()
 
 
+
+
+class ExperimentConfig:
+    experiments: "typing.List[FfiExperiment]"
+    experiment_groups: "typing.List[FfiExperimentGroup]"
+    def __init__(self, *, experiments: "typing.List[FfiExperiment]", experiment_groups: "typing.List[FfiExperimentGroup]"):
+        self.experiments = experiments
+        self.experiment_groups = experiment_groups
+
+    def __str__(self):
+        return "ExperimentConfig(experiments={}, experiment_groups={})".format(self.experiments, self.experiment_groups)
+
+    def __eq__(self, other):
+        if self.experiments != other.experiments:
+            return False
+        if self.experiment_groups != other.experiment_groups:
+            return False
+        return True
+
+class _UniffiConverterTypeExperimentConfig(_UniffiConverterRustBuffer):
+    @staticmethod
+    def read(buf):
+        return ExperimentConfig(
+            experiments=_UniffiConverterSequenceTypeFfiExperiment.read(buf),
+            experiment_groups=_UniffiConverterSequenceTypeFfiExperimentGroup.read(buf),
+        )
+
+    @staticmethod
+    def check_lower(value):
+        _UniffiConverterSequenceTypeFfiExperiment.check_lower(value.experiments)
+        _UniffiConverterSequenceTypeFfiExperimentGroup.check_lower(value.experiment_groups)
+
+    @staticmethod
+    def write(value, buf):
+        _UniffiConverterSequenceTypeFfiExperiment.write(value.experiments, buf)
+        _UniffiConverterSequenceTypeFfiExperimentGroup.write(value.experiment_groups, buf)
 
 
 class ExperimentationArgs:
@@ -1381,6 +1441,33 @@ class _UniffiConverterOptionalSequenceString(_UniffiConverterRustBuffer):
 
 
 
+class _UniffiConverterOptionalMapStringString(_UniffiConverterRustBuffer):
+    @classmethod
+    def check_lower(cls, value):
+        if value is not None:
+            _UniffiConverterMapStringString.check_lower(value)
+
+    @classmethod
+    def write(cls, value, buf):
+        if value is None:
+            buf.write_u8(0)
+            return
+
+        buf.write_u8(1)
+        _UniffiConverterMapStringString.write(value, buf)
+
+    @classmethod
+    def read(cls, buf):
+        flag = buf.read_u8()
+        if flag == 0:
+            return None
+        elif flag == 1:
+            return _UniffiConverterMapStringString.read(buf)
+        else:
+            raise InternalError("Unexpected flag byte for optional type")
+
+
+
 class _UniffiConverterSequenceString(_UniffiConverterRustBuffer):
     @classmethod
     def check_lower(cls, value):
@@ -1632,6 +1719,10 @@ class _UniffiConverterMapStringTypeOverrides(_UniffiConverterRustBuffer):
 class ProviderCacheProtocol(typing.Protocol):
     def eval_config(self, query_data: "dict[str, str]",merge_strategy: "MergeStrategy",filter_prefixes: "typing.Optional[typing.List[str]]",targeting_key: "typing.Optional[str]"):
         raise NotImplementedError
+    def filter_config(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]"):
+        raise NotImplementedError
+    def filter_experiment(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]"):
+        raise NotImplementedError
     def init_config(self, default_config: "dict[str, str]",contexts: "typing.List[Context]",overrides: "dict[str, Overrides]",dimensions: "dict[str, DimensionInfo]"):
         raise NotImplementedError
     def init_experiments(self, experiments: "typing.List[FfiExperiment]",experiment_groups: "typing.List[FfiExperimentGroup]"):
@@ -1676,6 +1767,36 @@ class ProviderCache():
         _UniffiConverterTypeMergeStrategy.lower(merge_strategy),
         _UniffiConverterOptionalSequenceString.lower(filter_prefixes),
         _UniffiConverterOptionalString.lower(targeting_key))
+        )
+
+
+
+
+
+    def filter_config(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]") -> "Config":
+        _UniffiConverterOptionalMapStringString.check_lower(dimension_data)
+        
+        _UniffiConverterOptionalSequenceString.check_lower(prefix)
+        
+        return _UniffiConverterTypeConfig.lift(
+            _uniffi_rust_call_with_error(_UniffiConverterTypeOperationError,_UniffiLib.uniffi_superposition_core_fn_method_providercache_filter_config,self._uniffi_clone_pointer(),
+        _UniffiConverterOptionalMapStringString.lower(dimension_data),
+        _UniffiConverterOptionalSequenceString.lower(prefix))
+        )
+
+
+
+
+
+    def filter_experiment(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]") -> "ExperimentConfig":
+        _UniffiConverterOptionalMapStringString.check_lower(dimension_data)
+        
+        _UniffiConverterOptionalSequenceString.check_lower(prefix)
+        
+        return _UniffiConverterTypeExperimentConfig.lift(
+            _uniffi_rust_call_with_error(_UniffiConverterTypeOperationError,_UniffiLib.uniffi_superposition_core_fn_method_providercache_filter_experiment,self._uniffi_clone_pointer(),
+        _UniffiConverterOptionalMapStringString.lower(dimension_data),
+        _UniffiConverterOptionalSequenceString.lower(prefix))
         )
 
 
@@ -1913,6 +2034,7 @@ def ffi_parse_toml_config(toml_content: "str") -> "Config":
 __all__ = [
     "InternalError",
     "OperationError",
+    "ExperimentConfig",
     "ExperimentationArgs",
     "FfiExperiment",
     "FfiExperimentGroup",
