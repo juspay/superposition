@@ -12,12 +12,12 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use superposition_types::database::models::cac::{DependencyGraph, DimensionType};
 use superposition_types::{
-    Context, DefaultConfigsWithSchema, DetailedConfig, DimensionInfo, ExtendedMap,
-    Overrides,
+    Config, Context, DefaultConfigsWithSchema, DetailedConfig, DimensionInfo,
+    ExtendedMap, Overrides,
 };
 use toml::Value as TomlValue;
 
-use crate::format::{ConfigFormat, FormatError};
+use crate::format::{ConfigFormat, FormatError, MarkupFormat};
 
 /// TOML format implementation
 pub struct TomlFormat;
@@ -225,7 +225,7 @@ impl TryFrom<DetailedConfigToml> for DetailedConfig {
 impl ConfigFormat for TomlFormat {
     fn parse_into_detailed(input: &str) -> Result<DetailedConfig, FormatError> {
         let detailed_toml = toml::from_str::<DetailedConfigToml>(input)
-            .map_err(|e| TomlFormat::syntax_error(e.to_string()))?;
+            .map_err(|e| TomlFormat::syntax_error(e.to_string(), e.span()))?;
         DetailedConfig::try_from(detailed_toml)
     }
 
@@ -233,7 +233,89 @@ impl ConfigFormat for TomlFormat {
         DetailedConfigToml::try_from(detailed_config)?.serialize_to_toml()
     }
 
-    fn format_name() -> &'static str {
-        "TOML"
+    fn format_name() -> MarkupFormat {
+        MarkupFormat::Toml
     }
+}
+
+/// Parse TOML configuration string into structured components
+///
+/// This function parses a TOML string containing default-config, dimensions, and context sections,
+/// and returns the parsed structures that can be used with other superposition_core functions.
+///
+/// # Arguments
+/// * `toml_content` - TOML string containing default-config, dimensions, and context sections
+///
+/// # Returns
+/// * `Ok(Config)` - Successfully parsed configuration with:
+///   - `default_config`: Map of configuration keys to values
+///   - `contexts`: Vector of context conditions
+///   - `overrides`: HashMap of override configurations
+///   - `dimensions`: HashMap of dimension information
+/// * `Err(TomlError)` - Detailed error about what went wrong
+///
+/// # Example TOML Format
+/// ```toml
+/// [default_configs]
+/// timeout = { value = 30, schema = { type = "integer" } }
+/// enabled = { value = true, schema = { type = "boolean" } }
+///
+/// [dimensions]
+/// os = { schema = { type = "string" } }
+/// region = { schema = { type = "string" } }
+///
+/// [context]
+/// "os=linux" = { timeout = 60 }
+/// "os=linux;region=us-east" = { timeout = 90, enabled = false }
+/// ```
+///
+/// # Example Usage
+/// ```rust,no_run
+/// use superposition_core::format::toml::parse_toml_config;
+///
+/// let toml_content = r#"
+///     [default_configs]
+///     timeout = { value = 30, schema = { type = "integer" } }
+///
+///     [dimensions]
+///     os = { schema = { type = "string" } }
+///
+///     [context]
+///     "os=linux" = { timeout = 60 }
+/// "#;
+///
+/// let parsed = parse_toml_config(toml_content)?;
+/// println!("Parsed {} contexts", parsed.contexts.len());
+/// # Ok::<(), superposition_core::FormatError>(())
+/// ```
+pub fn parse_toml_config(toml_str: &str) -> Result<Config, FormatError> {
+    let detailed_toml_config =
+        toml::from_str::<DetailedConfigToml>(toml_str).map_err(|e| {
+            FormatError::SyntaxError {
+                format: MarkupFormat::Toml,
+                message: e.message().to_string(),
+                span: e.span(),
+            }
+        })?;
+    let detailed_config = DetailedConfig::try_from(detailed_toml_config)?;
+    let config = Config::from(detailed_config);
+
+    Ok(config)
+}
+
+/// Serialize DetailedConfig structure to TOML format
+///
+/// Converts a DetailedConfig object back to TOML string format matching the input specification.
+/// The output can be parsed by `parse_toml_config()` to recreate an equivalent Config.
+///
+/// # Arguments
+/// * `config` - The DetailedConfig structure to serialize
+///
+/// # Returns
+/// * `Ok(String)` - TOML formatted string
+/// * `Err(FormatError)` - Serialization error
+pub fn serialize_to_toml(detailed_config: DetailedConfig) -> Result<String, FormatError> {
+    let toml_config = DetailedConfigToml::try_from(detailed_config)?;
+
+    toml_config.serialize_to_toml()
 }

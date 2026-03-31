@@ -9,7 +9,10 @@ pub mod json;
 pub mod tests;
 pub mod toml;
 
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    fmt::{self, Display},
+};
 
 use serde_json::Value;
 use superposition_types::{
@@ -22,6 +25,23 @@ use crate::{
     validations,
 };
 pub use error::FormatError;
+
+#[derive(Debug)]
+pub enum MarkupFormat {
+    Json,
+    Toml,
+    Yaml,
+}
+
+impl Display for MarkupFormat {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            MarkupFormat::Json => write!(f, "JSON"),
+            MarkupFormat::Toml => write!(f, "TOML"),
+            MarkupFormat::Yaml => write!(f, "YAML"),
+        }
+    }
+}
 
 /// Trait for configuration format parsers/serializers
 pub trait ConfigFormat {
@@ -36,13 +56,17 @@ pub trait ConfigFormat {
     fn serialize(detailed_config: DetailedConfig) -> Result<String, FormatError>;
 
     /// Get the format name for error messages
-    fn format_name() -> &'static str;
+    fn format_name() -> MarkupFormat;
 
     /// Helper to create syntax error for a specific format
-    fn syntax_error(message: impl Into<String>) -> FormatError {
+    fn syntax_error(
+        message: impl Into<String>,
+        span: Option<std::ops::Range<usize>>,
+    ) -> FormatError {
         FormatError::SyntaxError {
-            format: Self::format_name().to_string(),
+            format: Self::format_name(),
             message: message.into(),
+            span,
         }
     }
 

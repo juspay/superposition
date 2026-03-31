@@ -1,0 +1,50 @@
+# Lua
+*.luac
+*.lua~
+
+# Neovim
+*.spl
+*.sug
+
+# Test/coverage
+.nvim_test/
+luacov.*.out
+luacov.report.out
+luacov.stats.out
+
+# Editor
+*.swp
+*.swo
+*~
+.*.sw?
+.idea/
+.vscode/
+*.sublime-*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation
+doc/tags
+doc/*.txt
+
+# Build artifacts
+dist/
+build/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Dependencies (if using luarocks)
+luarocks/
+.lua/
+
+# Neovim plugin manager specific
+lazy-lock.json

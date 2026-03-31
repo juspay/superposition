@@ -160,8 +160,8 @@ fun main() {
         [dimensions]
         region = { schema = { "type" = "string" } }
 
-        [[context]]
-        _condition_ = { region = "us" }
+        [[overrides]]
+        _context_ = { region = "us" }
         rate = 15.0
     """.trimIndent()
 
@@ -208,12 +208,12 @@ key2 = { "value" = <value>, "schema" = <json-schema> }
 dim1 = { schema = <json-schema> }
 dim2 = { schema = <json-schema> }
 
-[[context]]
-_condition_ = { dim1 = "value1" }
+[[overrides]]
+_context_ = { dim1 = "value1" }
 key1 = <override-value>
 
-[[context]]
-_condition_ = { dim1 = "value1", dim2 = "value2" }
+[[overrides]]
+_context_ = { dim1 = "value1", dim2 = "value2" }
 key2 = <override-value>
 ```
 
