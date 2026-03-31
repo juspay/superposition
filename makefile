@@ -246,6 +246,16 @@ test: setup frontend superposition
 				'http://localhost:8080/health' 2>&1 > /dev/null
 	cd tests && bun test:clean
 	$(MAKE) bindings-test
+	@echo "Installing cucumber test dependencies"
+	cd tests/cucumber && npm ci
+	@echo "Running API tests via cucumber"
+	cd tests/cucumber && npm run test:api
+	@echo "Running UI tests via cucumber"
+	@if [ -z "$$PLAYWRIGHT_BROWSERS_PATH" ]; then \
+		echo "Installing Playwright browsers (not in nix shell)..."; \
+		cd tests/cucumber && npx playwright install --with-deps chromium; \
+	fi
+	cd tests/cucumber && npm run test:ui
 	$(MAKE) kill
 
 ## npm run test

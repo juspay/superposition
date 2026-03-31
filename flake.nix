@@ -83,11 +83,14 @@
               uv
               # go client
               # go
+              playwright-driver.browsers
             ];
 
             shellHook = ''
                 # If it exists from the host system, kill it
                 unset DEVELOPER_DIR
+                export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
+                export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
             '';
           };
 
