@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.43.1 - 2026-03-31
+#### Bug Fixes
+- make identifier query param optional (#946) - (8873c09) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.103.0 [skip ci] - (43c17f5) - Superposition Bot
+
+- - -
+
 ## superposition_types-v0.43.0 - 2026-03-27
 #### Bug Fixes
 - RemoteProvider cleanup (#932) - (6d09519) - Ayush Jain
