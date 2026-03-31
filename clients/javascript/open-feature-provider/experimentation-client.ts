@@ -51,13 +51,22 @@ export class ExperimentationClient {
     private cachedExperimentGroups: ExperimentGroup[] | null = null;
     private lastUpdated: Date | null = null;
     private evaluationCache: Map<string, any> = new Map();
-    private pollingInterval?: NodeJS.Timeout;
+    private pollingInterval?: ReturnType<typeof setTimeout>;
+    private onExperimentsChange: (
+        experiments: Experiment[],
+        experimentGroups: ExperimentGroup[],
+    ) => void;
 
     constructor(
         private superpositionOptions: SuperpositionOptions,
-        experimentOptions: ExperimentationOptions
+        experimentOptions: ExperimentationOptions,
+        onExperimentsChange: (
+            experiments: Experiment[],
+            experimentGroups: ExperimentGroup[],
+        ) => void,
     ) {
         this.options = experimentOptions;
+        this.onExperimentsChange = onExperimentsChange;
         this.smithyClient = new SuperpositionClient({
             endpoint: superpositionOptions.endpoint,
             token: { token: superpositionOptions.token },
@@ -72,9 +81,10 @@ export class ExperimentationClient {
         if (experiments && experimentgroups) {
             this.cachedExperiments = experiments;
             this.cachedExperimentGroups = experimentgroups;
+            this.onExperimentsChange(experiments, experimentgroups);
             this.lastUpdated = new Date();
             console.log(
-                "Experiments and Experiment Groups fetched successfully."
+                "Experiments and Experiment Groups fetched successfully.",
             );
         }
 
@@ -89,22 +99,31 @@ export class ExperimentationClient {
     }
 
     private startPolling(interval: number): void {
-        this.pollingInterval = setInterval(async () => {
+        const weakSelf = new WeakRef(this);
+        const poll = async () => {
+            let self = weakSelf.deref();
+            if (!self) return;
             try {
-                const experiments = await this.fetchExperiments();
-                const experimentGroups = await this.fetchExperimentGroups();
+                const experiments = await self.fetchExperiments();
+                const experimentGroups = await self.fetchExperimentGroups();
                 if (experiments && experimentGroups) {
-                    this.cachedExperiments = experiments;
-                    this.cachedExperimentGroups = experimentGroups;
-                    this.lastUpdated = new Date();
+                    self.cachedExperiments = experiments;
+                    self.cachedExperimentGroups = experimentGroups;
+                    self.lastUpdated = new Date();
                     console.log(
-                        "Experiments and Experiment Groups refreshed successfully."
+                        "Experiments and Experiment Groups refreshed successfully.",
                     );
+                    self.onExperimentsChange(experiments, experimentGroups);
                 }
             } catch (error) {
                 console.error("Polling error:", error);
             }
-        }, interval);
+            if (self) {
+                self.pollingInterval = setTimeout(poll, interval);
+            }
+            self = undefined;
+        };
+        this.pollingInterval = setTimeout(poll, interval);
     }
 
     private async fetchExperiments(): Promise<Experiment[] | null> {
@@ -143,7 +162,7 @@ export class ExperimentationClient {
                         // Skip variants without required fields
                         if (!variant.id) {
                             console.warn(
-                                `Skipping variant without ID in experiment ${exp.id}`
+                                `Skipping variant without ID in experiment ${exp.id}`,
                             );
                             continue;
                         }
@@ -154,7 +173,7 @@ export class ExperimentationClient {
                             variantType !== VariantType.EXPERIMENTAL
                         ) {
                             console.warn(
-                                `Invalid variant type: ${variant.variant_type}`
+                                `Invalid variant type: ${variant.variant_type}`,
                             );
                             continue;
                         }
@@ -165,7 +184,7 @@ export class ExperimentationClient {
                             context_id: variant.context_id,
                             override_id: variant.override_id,
                             overrides: this.normalizeToStringRecord(
-                                variant.overrides
+                                variant.overrides,
                             ),
                         });
                     }
@@ -175,7 +194,7 @@ export class ExperimentationClient {
                     id: exp.id,
                     context: this.normalizeToStringRecord(exp.context),
                     variants: variants,
-                    traffic_percentage: exp.traffic_percentage || 100,
+                    traffic_percentage: exp.traffic_percentage ?? 100,
                     status: exp.status || ExperimentStatusType.DISCARDED,
                 });
             }
@@ -184,7 +203,7 @@ export class ExperimentationClient {
         } catch (error) {
             console.error(
                 "Error fetching experiments from Superposition:",
-                error
+                error,
             );
             return null;
         }
@@ -218,7 +237,7 @@ export class ExperimentationClient {
                 experimentGroups.push({
                     id: exp_group.id,
                     context: this.normalizeToStringRecord(exp_group.context),
-                    traffic_percentage: exp_group.traffic_percentage || 100,
+                    traffic_percentage: exp_group.traffic_percentage ?? 100,
                     member_experiment_ids:
                         exp_group.member_experiment_ids || [],
                     group_type:
@@ -236,7 +255,7 @@ export class ExperimentationClient {
         } catch (error) {
             console.error(
                 "Error fetching experiment groups from Superposition:",
-                error
+                error,
             );
             return null;
         }
@@ -291,6 +310,10 @@ export class ExperimentationClient {
                     if (experiments) {
                         this.cachedExperiments = experiments;
                         this.lastUpdated = new Date();
+                        this.onExperimentsChange(
+                            experiments,
+                            this.cachedExperimentGroups || [],
+                        );
                     }
                 } catch (error) {
                     console.warn("On-demand fetch failed:", error);
@@ -310,6 +333,10 @@ export class ExperimentationClient {
             const experiments = await this.fetchExperiments();
             if (experiments) {
                 this.cachedExperiments = experiments;
+                this.onExperimentsChange(
+                    experiments,
+                    this.cachedExperimentGroups || [],
+                );
                 this.lastUpdated = new Date();
             }
         }
@@ -332,12 +359,16 @@ export class ExperimentationClient {
             if (shouldRefresh) {
                 try {
                     console.log(
-                        "TTL expired. Fetching experiment groups on-demand."
+                        "TTL expired. Fetching experiment groups on-demand.",
                     );
                     const experimentGroups = await this.fetchExperimentGroups();
                     if (experimentGroups) {
                         this.cachedExperimentGroups = experimentGroups;
                         this.lastUpdated = new Date();
+                        this.onExperimentsChange(
+                            this.cachedExperiments || [],
+                            experimentGroups,
+                        );
                     }
                 } catch (error) {
                     console.warn("On-demand fetch failed:", error);
@@ -357,11 +388,23 @@ export class ExperimentationClient {
             const experimentGroups = await this.fetchExperimentGroups();
             if (experimentGroups) {
                 this.cachedExperimentGroups = experimentGroups;
+                this.onExperimentsChange(
+                    this.cachedExperiments || [],
+                    experimentGroups,
+                );
                 this.lastUpdated = new Date();
             }
         }
 
         return this.cachedExperimentGroups || [];
+    }
+
+    getCachedExperiments(): Experiment[] | null {
+        return this.cachedExperiments;
+    }
+
+    getCachedExperimentGroups(): ExperimentGroup[] | null {
+        return this.cachedExperimentGroups;
     }
 
     generateCacheKey(queryData: Record<string, any>): string {
@@ -383,7 +426,7 @@ export class ExperimentationClient {
     async close(): Promise<void> {
         try {
             if (this.pollingInterval) {
-                clearInterval(this.pollingInterval);
+                clearTimeout(this.pollingInterval);
                 console.log("Polling stopped successfully");
             }
 
