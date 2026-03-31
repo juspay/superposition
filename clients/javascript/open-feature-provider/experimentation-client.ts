@@ -51,13 +51,16 @@ export class ExperimentationClient {
     private cachedExperimentGroups: ExperimentGroup[] | null = null;
     private lastUpdated: Date | null = null;
     private evaluationCache: Map<string, any> = new Map();
-    private pollingInterval?: NodeJS.Timeout;
+    private pollingInterval?: ReturnType<typeof setTimeout>;
+    private onExperimentsChange?: () => void;
 
     constructor(
         private superpositionOptions: SuperpositionOptions,
-        experimentOptions: ExperimentationOptions
+        experimentOptions: ExperimentationOptions,
+        onExperimentsChange?: () => void
     ) {
         this.options = experimentOptions;
+        this.onExperimentsChange = onExperimentsChange;
         this.smithyClient = new SuperpositionClient({
             endpoint: superpositionOptions.endpoint,
             token: { token: superpositionOptions.token },
@@ -89,22 +92,30 @@ export class ExperimentationClient {
     }
 
     private startPolling(interval: number): void {
-        this.pollingInterval = setInterval(async () => {
+        const weakSelf = new WeakRef(this);
+        const poll = async () => {
+            let self = weakSelf.deref();
+            if (!self) return;
             try {
-                const experiments = await this.fetchExperiments();
-                const experimentGroups = await this.fetchExperimentGroups();
+                const experiments = await self.fetchExperiments();
+                const experimentGroups = await self.fetchExperimentGroups();
                 if (experiments && experimentGroups) {
-                    this.cachedExperiments = experiments;
-                    this.cachedExperimentGroups = experimentGroups;
-                    this.lastUpdated = new Date();
-                    console.log(
-                        "Experiments and Experiment Groups refreshed successfully."
-                    );
+                    self.cachedExperiments = experiments;
+                    self.cachedExperimentGroups = experimentGroups;
+                    self.lastUpdated = new Date();
+                    console.log("Experiments and Experiment Groups refreshed successfully.");
+                    self.onExperimentsChange?.();
                 }
             } catch (error) {
                 console.error("Polling error:", error);
             }
-        }, interval);
+            self = undefined!;
+            const alive = weakSelf.deref();
+            if (alive) {
+                alive.pollingInterval = setTimeout(poll, interval);
+            }
+        };
+        this.pollingInterval = setTimeout(poll, interval);
     }
 
     private async fetchExperiments(): Promise<Experiment[] | null> {
@@ -175,7 +186,7 @@ export class ExperimentationClient {
                     id: exp.id,
                     context: this.normalizeToStringRecord(exp.context),
                     variants: variants,
-                    traffic_percentage: exp.traffic_percentage || 100,
+                    traffic_percentage: exp.traffic_percentage ?? 100,
                     status: exp.status || ExperimentStatusType.DISCARDED,
                 });
             }
@@ -218,7 +229,7 @@ export class ExperimentationClient {
                 experimentGroups.push({
                     id: exp_group.id,
                     context: this.normalizeToStringRecord(exp_group.context),
-                    traffic_percentage: exp_group.traffic_percentage || 100,
+                    traffic_percentage: exp_group.traffic_percentage ?? 100,
                     member_experiment_ids:
                         exp_group.member_experiment_ids || [],
                     group_type:
@@ -291,6 +302,7 @@ export class ExperimentationClient {
                     if (experiments) {
                         this.cachedExperiments = experiments;
                         this.lastUpdated = new Date();
+                        this.onExperimentsChange?.();
                     }
                 } catch (error) {
                     console.warn("On-demand fetch failed:", error);
@@ -338,6 +350,7 @@ export class ExperimentationClient {
                     if (experimentGroups) {
                         this.cachedExperimentGroups = experimentGroups;
                         this.lastUpdated = new Date();
+                        this.onExperimentsChange?.();
                     }
                 } catch (error) {
                     console.warn("On-demand fetch failed:", error);
@@ -364,6 +377,14 @@ export class ExperimentationClient {
         return this.cachedExperimentGroups || [];
     }
 
+    getCachedExperiments(): Experiment[] | null {
+        return this.cachedExperiments;
+    }
+
+    getCachedExperimentGroups(): ExperimentGroup[] | null {
+        return this.cachedExperimentGroups;
+    }
+
     generateCacheKey(queryData: Record<string, any>): string {
         return JSON.stringify(queryData, Object.keys(queryData).sort());
     }
@@ -383,7 +404,7 @@ export class ExperimentationClient {
     async close(): Promise<void> {
         try {
             if (this.pollingInterval) {
-                clearInterval(this.pollingInterval);
+                clearTimeout(this.pollingInterval);
                 console.log("Polling stopped successfully");
             }
 

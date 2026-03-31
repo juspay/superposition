@@ -220,13 +220,19 @@ fn ffi_parse_json_config(json_content: String) -> Result<Config, OperationError>
 }
 
 pub struct CacheData {
-    config: Config,
-    experiment: Option<ExperimentConfig>,
+    pub config: Config,
+    pub experiment: Option<ExperimentConfig>,
 }
 
 #[derive(uniffi::Object)]
 pub struct ProviderCache {
     data: Mutex<CacheData>,
+}
+
+impl Drop for ProviderCache {
+    fn drop(&mut self) {
+        eprintln!("[Rust] ProviderCache dropped — native memory freed");
+    }
 }
 
 #[uniffi::export]
