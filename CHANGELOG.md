@@ -2,6 +2,22 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.104.0 - 2026-03-31
+### Package updates
+- superposition_types bumped to superposition_types-v0.43.1
+- experimentation_platform bumped to experimentation_platform-v0.51.2
+### Global changes
+#### Features
+- Add URLConnectionTransport for Android compatibility (#922) - (b4132cb) - Natarajan Kannan
+#### Miscellaneous Chores
+- **(deps)** bump cryptography from 46.0.5 to 46.0.6 in /locust (#942) - (afb0344) - dependabot[bot]
+- **(deps)** bump brace-expansion in /clients/javascript (#938) - (3616b33) - dependabot[bot]
+- **(deps)** bump brace-expansion in /docs (#941) - (4c0c67a) - dependabot[bot]
+- **(deps)** bump serialize-javascript and @rollup/plugin-terser (#943) - (0d8a887) - dependabot[bot]
+- **(version)** v0.103.0 [skip ci] - (43c17f5) - Superposition Bot
+
+- - -
+
 ## v0.103.0 - 2026-03-27
 ### Package updates
 - superposition_sdk bumped to superposition_sdk-v0.15.0
