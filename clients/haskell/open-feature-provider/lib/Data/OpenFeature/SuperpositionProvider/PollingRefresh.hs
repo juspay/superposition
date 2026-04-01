@@ -1,31 +1,34 @@
 module Data.OpenFeature.SuperpositionProvider.PollingRefresh (PollingRefresh (..)) where
 
-import Control.Concurrent (threadDelay)
-import Control.Monad (forever, unless)
+import Control.Concurrent (threadDelay, forkIO)
+import Control.Monad (void)
+import Data.IORef (IORef)
 import Data.OpenFeature.SuperpositionProvider.RefreshTask
-import GHC.Base (when)
 import GHC.Conc.Sync as Sync
-import GHC.MVar as MVar
+import System.Mem.Weak (mkWeak, deRefWeak)
 
 data PollingRefresh a = PollingRefresh
   { interval :: Int,
     rFn :: RefreshFn a,
     chan :: TVar (Maybe a),
-    tid :: MVar ThreadId
+    anchor :: IORef (),
+    onRefresh :: Maybe (IO ())
   }
 
 instance RefreshTask PollingRefresh a where
-  isRunning r = not <$> (isEmptyMVar (tid r))
+  isRunning _ = pure True
   startRefresh r = do
-    st <- isRunning r
-    unless st $ do
-      t <- forkIO poll
-      putMVar (tid r) t
-    where
-      poll =
-        forever $
-          rFn r
-            >>= mapM_ (atomically . writeTVar (chan r) . Just)
-            >> threadDelay ((interval r) * 1000000)
-  stopRefresh r = isRunning r >>= \b -> when b (takeMVar (tid r) >>= killThread)
+    weak <- mkWeak (anchor r) () Nothing
+    let poll = do
+          alive <- deRefWeak weak
+          case alive of
+            Nothing -> pure ()
+            Just _ -> do
+              rFn r >>= mapM_ (\v -> do
+                atomically $ writeTVar (chan r) (Just v)
+                maybe (pure ()) id (onRefresh r))
+              threadDelay (interval r * 1000000)
+              poll
+    void $ forkIO poll
+  stopRefresh _ = pure ()
   getCurrent r = readTVarIO (chan r)
