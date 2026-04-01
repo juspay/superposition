@@ -8,21 +8,23 @@ module Data.OpenFeature.SuperpositionProvider
     Log.LogLevel (..),
     newSuperpositionProvider,
     SuperpositionProvider,
+    resolveAllConfig,
+    closeSuperpositionProvider,
   )
 where
 
-import Control.Concurrent.MVar (newEmptyMVar)
 import Control.Exception (SomeException, try)
 import Control.Exception.Base (displayException)
-import Control.Monad (join)
 import Control.Monad.Logger (LoggingT, filterLogger, runStdoutLoggingT)
 import Control.Monad.Logger.Aeson qualified as Log
 import Control.Monad.Trans.Class (lift)
-import Data.Aeson (FromJSON, ToJSON (..), encode, object, withObject, (.:?))
+import Data.Aeson (FromJSON, ToJSON (..), encode, withObject, (.:?))
 import Data.Aeson.Decoding (eitherDecode)
 import Data.Aeson.Types (Object, parseEither)
 import Data.Functor
+import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import Data.Maybe (fromMaybe, isJust, isNothing)
+import Data.Time.Clock (UTCTime)
 import Data.OpenFeature.FeatureProvider
 import Data.OpenFeature.EvaluationDetails
 import Data.OpenFeature.EvaluationContext
@@ -40,13 +42,17 @@ import GHC.Conc (TVar, atomically, newTVarIO, readTVarIO)
 import GHC.Conc.Sync (writeTVar)
 import Io.Superposition.Command.GetConfig qualified as SDK
 import Io.Superposition.Command.ListExperiment qualified as Exp
+import Io.Superposition.Command.ListExperimentGroups qualified as ExpGrp
 import Io.Superposition.Model.ExperimentStatusType (ExperimentStatusType (INPROGRESS, CREATED))
 import Io.Superposition.Model.GetConfigInput qualified as SDK
 import Io.Superposition.Model.GetConfigOutput qualified as SDK
 import Io.Superposition.Model.ListExperimentInput qualified as Exp
 import Io.Superposition.Model.ListExperimentOutput qualified as Exp
+import Io.Superposition.Model.ListExperimentGroupsInput qualified as ExpGrp
+import Io.Superposition.Model.ListExperimentGroupsOutput qualified as ExpGrp
 import Io.Superposition.SuperpositionClient qualified as Client
 import Network.HTTP.Client.TLS qualified as Net
+import System.Mem.Weak (addFinalizer)
 
 data DynRefreshTask a = forall r. (RefreshTask r a) => DynRefreshTask (r a)
 
@@ -54,43 +60,68 @@ type ConfigRefreshTask = DynRefreshTask SDK.GetConfigOutput
 
 type ExperimentsRefreshTask = DynRefreshTask Exp.ListExperimentOutput
 
+type ExperimentGroupsRefreshTask = DynRefreshTask ExpGrp.ListExperimentGroupsOutput
+
 type Logger = forall a. LoggingT IO a -> IO a
 
 data SuperpositionProvider = SuperpositionProvider
-  { configRefreshTask :: ConfigRefreshTask,
+  { providerCache :: FFI.ProviderCacheHandle,
+    configRefreshTask :: ConfigRefreshTask,
     expRefreshTask :: Maybe ExperimentsRefreshTask,
+    expGrpRefreshTask :: Maybe ExperimentGroupsRefreshTask,
     _initContext :: TVar (Maybe EvaluationContext),
+    _anchor :: IORef (),
+    _cacheFreed :: IORef Bool,
     runLogger :: Logger,
     -- TODO
     fallbackConfig :: ()
   }
 
-mkResolveParams ::
-  EvaluationContext ->
-  SDK.GetConfigOutput ->
-  Maybe Exp.ListExperimentOutput ->
-  FFI.ResolveConfigParams
-mkResolveParams ec config experiments =
-  FFI.defaultResolveParams
-    { FFI.defaultConfig = intoParam $ SDK.default_configs config,
-      FFI.context = intoParam $ SDK.contexts config,
-      FFI.overrides = intoParam $ SDK.overrides config,
-      FFI.dimensionInfo = intoParam $ SDK.dimensions config,
-      FFI.query = intoParam $ customFields ec,
-      FFI.experimentation = toStr <$> (mkExp <$> experiments <*> targetingKey ec)
-    }
-  where
-    toStr :: (ToJSON a) => a -> String
-    toStr = LT.unpack . LTE.decodeUtf8 . encode
-    intoParam :: (ToJSON a) => a -> Maybe String
-    intoParam = Just . toStr
-    mkExp exs tkey =
-      object
-        [ -- This contract is leaking. Ideally this should have
-          -- been a separate arg in the FFI call.
-          ("targeting_key", toJSON tkey),
-          ("experiments", toJSON exs)
-        ]
+toStr :: (ToJSON a) => a -> String
+toStr = LT.unpack . LTE.decodeUtf8 . encode
+
+reinitCache :: FFI.ProviderCacheHandle -> Logger -> IORef (Maybe UTCTime) -> TVar (Maybe SDK.GetConfigOutput) -> IO ()
+reinitCache cache logger lastModifiedRef configVar = do
+  cfg <- readTVarIO configVar
+  case cfg of
+    Nothing -> pure ()
+    Just config -> do
+      prev <- readIORef lastModifiedRef
+      let cur = SDK.last_modified config
+      if prev == Just cur
+        then logger $ Log.logDebug "Config unchanged (same last_modified), skipping reinit."
+        else do
+          let dc = toStr $ SDK.default_configs config
+              ctx = toStr $ SDK.contexts config
+              ovrs = toStr $ SDK.overrides config
+              dims = toStr $ SDK.dimensions config
+          result <- FFI.initConfig cache dc ctx ovrs dims
+          case result of
+            Nothing -> do
+              writeIORef lastModifiedRef (Just cur)
+              logger $ Log.logDebug "ProviderCache config reinitialised."
+            Just err -> logger $ Log.logError $ fromString $ "ProviderCache initConfig error: " <> err
+
+reinitExperimentsCache :: FFI.ProviderCacheHandle -> Logger -> IORef (Maybe (UTCTime, UTCTime)) -> TVar (Maybe Exp.ListExperimentOutput) -> TVar (Maybe ExpGrp.ListExperimentGroupsOutput) -> IO ()
+reinitExperimentsCache cache logger lastModifiedRef expVar expGrpVar = do
+  exps <- readTVarIO expVar
+  expGrps <- readTVarIO expGrpVar
+  case (exps, expGrps) of
+    (Just e, Just eg) -> do
+      prev <- readIORef lastModifiedRef
+      let cur = (Exp.last_modified e, ExpGrp.last_modified eg)
+      if prev == Just cur
+        then logger $ Log.logDebug "Experiments unchanged (same last_modified), skipping reinit."
+        else do
+          let expsJson = toStr $ Exp.data' e
+              expGrpsJson = toStr $ ExpGrp.data' eg
+          result <- FFI.initExperiments cache expsJson expGrpsJson
+          case result of
+            Nothing -> do
+              writeIORef lastModifiedRef (Just cur)
+              logger $ Log.logDebug "ProviderCache experiments reinitialised."
+            Just err -> logger $ Log.logError $ fromString $ "ProviderCache initExperiments error: " <> err
+    _ -> pure ()
 
 getResolvedKey ::
   (FromJSON a) =>
@@ -99,29 +130,34 @@ getResolvedKey ::
   EvaluationContext ->
   IO (Either EvaluationError a)
 getResolvedKey SuperpositionProvider {..} key ec = do
-  config <- getTaskOutput configRefreshTask
-  exs <- mapM getTaskOutput expRefreshTask
+  let queryJson = toStr $ customFields ec
+      tkey = T.unpack <$> targetingKey ec
   runLogger $
-    when (isJust exs && isNothing (targetingKey ec)) $
+    when (isJust expRefreshTask && isNothing (targetingKey ec)) $
       Log.logWarn "Targeting key missing, experimentation will not have any effect."
-  let params = mkResolveParams ec <$> config <*> Just (join exs)
-  rcfg <- mapM FFI.getResolvedConfig params
+  rcfg <- FFI.evalConfig providerCache queryJson FFI.Merge Nothing tkey
   let parser = withObject "ResolvedConfig" (.:? (fromString $ T.unpack key))
       result =
-        -- Converting to an `Either` for convienence.
-        join (maybe (Left "") Right rcfg)
+        rcfg
           >>= (eitherDecode @Object . fromString)
           >>= parseEither parser . toJSON
   pure $ case (rcfg, result) of
-    -- Have to match these first, otherwise might report an error in-correclty.
-    (Nothing, _) -> Left $ EvaluationError ProviderNotReady (Just "No config available to resolve.")
-    (Just (Left e), _) -> Left $ EvaluationError (General "FFI_ERROR") (Just $ "ffi: " <> fromString e)
-    -- Technically a parse error....
+    (Left e, _) -> Left $ EvaluationError (General "FFI_ERROR") (Just $ "ffi: " <> fromString e)
     (_, Left e) -> Left $ EvaluationError ParseError (Just $ fromString e)
     (_, Right Nothing) -> Left $ EvaluationError FlagNotFound (Just $ "Key not found: " <> key)
     (_, Right (Just v)) -> Right v
-  where
-    getTaskOutput (DynRefreshTask t) = getCurrent t
+
+-- | Resolve the full configuration for a given evaluation context.
+resolveAllConfig ::
+  SuperpositionProvider ->
+  EvaluationContext ->
+  IO (Either String String)
+resolveAllConfig (SuperpositionProvider {..}) ec = do
+  defEc <- readTVarIO _initContext
+  let ec' = fromMaybe ec $ mergeEvaluationContext <$> defEc <*> Just ec
+      queryJson = toStr $ customFields ec'
+      tkey = T.unpack <$> targetingKey ec'
+  FFI.evalConfig providerCache queryJson FFI.Merge Nothing tkey
 
 resolveValue ::
   (FromJSON a) =>
@@ -157,6 +193,8 @@ instance FeatureProvider SuperpositionProvider where
         lift $ startTask configRefreshTask
         when (isJust expRefreshTask) $ Log.logInfo "Starting experiments refresh task."
         lift $ mapM_ startTask expRefreshTask
+        when (isJust expGrpRefreshTask) $ Log.logInfo "Starting experiment groups refresh task."
+        lift $ mapM_ startTask expGrpRefreshTask
         lift $ atomically $ writeTVar _initContext (Just ec)
     where
       startTask (DynRefreshTask t) = startRefresh t
@@ -166,6 +204,14 @@ instance FeatureProvider SuperpositionProvider where
   resolveIntegerValue = resolveValue
   resolveDoubleValue = resolveValue
   resolveObjectValue = resolveValue
+
+-- | Close the provider, freeing the native cache.
+closeSuperpositionProvider :: SuperpositionProvider -> IO ()
+closeSuperpositionProvider SuperpositionProvider {..} = do
+  alreadyFreed <- readIORef _cacheFreed
+  when (not alreadyFreed) $ do
+    writeIORef _cacheFreed True
+    FFI.freeProviderCache providerCache
 
 mkRefreshFn :: (ToJSON e) => Logger -> Text -> IO (Either e a) -> RefreshFn a
 mkRefreshFn runLogger fnName call = runLogger $ do
@@ -214,14 +260,29 @@ refreshExperiments SuperpositionProviderOptions {..} logger client =
       fnName = "ExperimentsRefresh"
    in mkRefreshFn logger fnName call
 
-newRefreshTask :: RefreshOptions -> RefreshFn a -> IO (DynRefreshTask a)
-newRefreshTask (OnDemand ttl) rFn =
+refreshExperimentGroups ::
+  SuperpositionProviderOptions ->
+  Logger ->
+  Client.SuperpositionClient ->
+  RefreshFn ExpGrp.ListExperimentGroupsOutput
+refreshExperimentGroups SuperpositionProviderOptions {..} logger client =
+  let builder =
+        ExpGrp.setOrgId orgId
+          >> ExpGrp.setWorkspaceId workspaceId
+          >> ExpGrp.setAll' (Just True)
+      call = ExpGrp.listExperimentGroups client builder
+      fnName = "ExperimentGroupsRefresh"
+   in mkRefreshFn logger fnName call
+
+newRefreshTask :: RefreshOptions -> IORef () -> RefreshFn a -> Maybe (IO ()) -> IO (DynRefreshTask a)
+newRefreshTask (OnDemand ttl) _anchor rFn _onRefresh =
   DynRefreshTask . OnDemandRefresh rFn ttl
     <$> newTVarIO Nothing
-newRefreshTask (Poll interval) rFn =
+newRefreshTask (Poll interval) anchor rFn onRefresh =
   PollingRefresh interval rFn
     <$> newTVarIO Nothing
-    <*> newEmptyMVar
+    <*> pure anchor
+    <*> pure onRefresh
     <&> DynRefreshTask
 
 newSuperpositionProvider ::
@@ -237,18 +298,66 @@ newSuperpositionProvider options@(SuperpositionProviderOptions {..}) = do
     Right client -> do
       let logger :: Logger
           logger = runStdoutLoggingT . filterLogger (\_ l -> l >= logLevel)
-      ctask <- newRefreshTask refreshOptions (refreshConfig options logger client)
+      cache <- FFI.newProviderCache
+      anchor <- newIORef ()
+
+      -- Shared TVars for refresh callbacks to reinit the native cache
+      configChan <- newTVarIO Nothing
+      expChan <- newTVarIO Nothing
+      expGrpChan <- newTVarIO Nothing
+
+      -- Track last_modified to skip reinit when data hasn't changed
+      configLastModified <- newIORef Nothing
+      expLastModified <- newIORef Nothing
+
+      let onConfigRefresh = reinitCache cache logger configLastModified configChan
+          onExpRefresh = reinitExperimentsCache cache logger expLastModified expChan expGrpChan
+
+      -- Config refresh: fetch, store in TVar, then reinit native cache
+      let configRFn = do
+            v <- refreshConfig options logger client
+            mapM_ (atomically . writeTVar configChan . Just) v
+            pure v
+      ctask <- newRefreshTask refreshOptions anchor configRFn (Just onConfigRefresh)
+
+      -- Experiments refresh: fetch, store in TVar, then reinit native cache
+      let expRFn = do
+            v <- refreshExperiments options logger client
+            mapM_ (atomically . writeTVar expChan . Just) v
+            pure v
       etask <-
         mapM
-          (\ro -> newRefreshTask ro (refreshExperiments options logger client))
+          (\ro -> newRefreshTask ro anchor expRFn (Just onExpRefresh))
           experimentationRefreshOptions
+
+      -- Experiment groups refresh: fetch, store in TVar, then reinit native cache
+      let expGrpRFn = do
+            v <- refreshExperimentGroups options logger client
+            mapM_ (atomically . writeTVar expGrpChan . Just) v
+            pure v
+      egtask <-
+        mapM
+          (\ro -> newRefreshTask ro anchor expGrpRFn (Just onExpRefresh))
+          experimentationRefreshOptions
+
       ctxTVar <- newTVarIO Nothing
-      pure $
-        Right $
-          SuperpositionProvider
-            ctask
-            etask
-            ctxTVar
-            logger
-            fallbackConfig
+      cacheFreed <- newIORef False
+      let provider =
+            SuperpositionProvider
+              cache
+              ctask
+              etask
+              egtask
+              ctxTVar
+              anchor
+              cacheFreed
+              logger
+              fallbackConfig
+      -- Register finalizer to free cache when anchor IORef is GC'd (idempotent)
+      addFinalizer anchor $ do
+        alreadyFreed <- readIORef cacheFreed
+        when (not alreadyFreed) $ do
+          writeIORef cacheFreed True
+          FFI.freeProviderCache cache
+      pure $ Right provider
     Left err -> pure $ Left err
