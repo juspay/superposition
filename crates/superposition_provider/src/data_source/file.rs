@@ -56,7 +56,7 @@ impl SuperpositionDataSource for FileDataSource {
         })?;
 
         Ok(FetchResponse::Data(ConfigData {
-            config,
+            data: config,
             fetched_at: now,
         }))
     }
@@ -71,7 +71,7 @@ impl SuperpositionDataSource for FileDataSource {
             .fetch_config(if_modified_since)
             .await?
             .map_data(|mut data| {
-                data.config = data.config.filter(
+                data.data = data.data.filter(
                     context.as_ref(),
                     prefix_filter.map(|p| p.into_iter().collect()).as_ref(),
                 );

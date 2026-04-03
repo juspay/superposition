@@ -772,6 +772,10 @@ internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
 
 
 
+
+
+
+
 // For large crates we prevent `MethodTooLargeException` (see #2340)
 // N.B. the name of the extension is very misleading, since it is 
 // rather `InterfaceTooLargeException`, caused by too many methods 
@@ -793,6 +797,8 @@ fun uniffi_superposition_core_checksum_func_ffi_eval_config_with_reasoning(
 ): Short
 fun uniffi_superposition_core_checksum_func_ffi_get_applicable_variants(
 ): Short
+fun uniffi_superposition_core_checksum_func_ffi_parse_config_file_with_filters(
+): Short
 fun uniffi_superposition_core_checksum_func_ffi_parse_json_config(
 ): Short
 fun uniffi_superposition_core_checksum_func_ffi_parse_toml_config(
@@ -802,6 +808,8 @@ fun uniffi_superposition_core_checksum_method_providercache_eval_config(
 fun uniffi_superposition_core_checksum_method_providercache_filter_config(
 ): Short
 fun uniffi_superposition_core_checksum_method_providercache_filter_experiment(
+): Short
+fun uniffi_superposition_core_checksum_method_providercache_get_applicable_variants(
 ): Short
 fun uniffi_superposition_core_checksum_method_providercache_init_config(
 ): Short
@@ -871,6 +879,8 @@ fun uniffi_superposition_core_fn_method_providercache_filter_config(`ptr`: Point
 ): RustBufferConfig.ByValue
 fun uniffi_superposition_core_fn_method_providercache_filter_experiment(`ptr`: Pointer,`dimensionData`: RustBuffer.ByValue,`prefix`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
+fun uniffi_superposition_core_fn_method_providercache_get_applicable_variants(`ptr`: Pointer,`dimensionData`: RustBuffer.ByValue,`prefix`: RustBuffer.ByValue,`targetingKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
 fun uniffi_superposition_core_fn_method_providercache_init_config(`ptr`: Pointer,`defaultConfig`: RustBuffer.ByValue,`contexts`: RustBuffer.ByValue,`overrides`: RustBuffer.ByValue,`dimensions`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): Unit
 fun uniffi_superposition_core_fn_method_providercache_init_experiments(`ptr`: Pointer,`experiments`: RustBuffer.ByValue,`experimentGroups`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -881,6 +891,8 @@ fun uniffi_superposition_core_fn_func_ffi_eval_config_with_reasoning(`defaultCon
 ): RustBuffer.ByValue
 fun uniffi_superposition_core_fn_func_ffi_get_applicable_variants(`eargs`: RustBuffer.ByValue,`dimensionsInfo`: RustBuffer.ByValue,`queryData`: RustBuffer.ByValue,`prefix`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
+fun uniffi_superposition_core_fn_func_ffi_parse_config_file_with_filters(`fileContent`: RustBuffer.ByValue,`format`: RustBuffer.ByValue,`dimensionData`: RustBuffer.ByValue,`prefix`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBufferConfig.ByValue
 fun uniffi_superposition_core_fn_func_ffi_parse_json_config(`jsonContent`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBufferConfig.ByValue
 fun uniffi_superposition_core_fn_func_ffi_parse_toml_config(`tomlContent`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -1020,6 +1032,9 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if (lib.uniffi_superposition_core_checksum_func_ffi_get_applicable_variants() != 58234.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_superposition_core_checksum_func_ffi_parse_config_file_with_filters() != 63728.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_superposition_core_checksum_func_ffi_parse_json_config() != 30321.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1033,6 +1048,9 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_superposition_core_checksum_method_providercache_filter_experiment() != 60575.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_superposition_core_checksum_method_providercache_get_applicable_variants() != 12269.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_superposition_core_checksum_method_providercache_init_config() != 28151.toShort()) {
@@ -1374,6 +1392,8 @@ public interface ProviderCacheInterface {
     
     fun `filterExperiment`(`dimensionData`: Map<kotlin.String, kotlin.String>?, `prefix`: List<kotlin.String>?): ExperimentConfig
     
+    fun `getApplicableVariants`(`dimensionData`: Map<kotlin.String, kotlin.String>?, `prefix`: List<kotlin.String>?, `targetingKey`: kotlin.String): List<kotlin.String>
+    
     fun `initConfig`(`defaultConfig`: Map<kotlin.String, kotlin.String>, `contexts`: List<Context>, `overrides`: Map<kotlin.String, Overrides>, `dimensions`: Map<kotlin.String, DimensionInfo>)
     
     fun `initExperiments`(`experiments`: List<FfiExperiment>, `experimentGroups`: List<FfiExperimentGroup>)
@@ -1503,6 +1523,19 @@ open class ProviderCache: Disposable, AutoCloseable, ProviderCacheInterface
     uniffiRustCallWithError(OperationException) { _status ->
     UniffiLib.INSTANCE.uniffi_superposition_core_fn_method_providercache_filter_experiment(
         it, FfiConverterOptionalMapStringString.lower(`dimensionData`),FfiConverterOptionalSequenceString.lower(`prefix`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    @Throws(OperationException::class)override fun `getApplicableVariants`(`dimensionData`: Map<kotlin.String, kotlin.String>?, `prefix`: List<kotlin.String>?, `targetingKey`: kotlin.String): List<kotlin.String> {
+            return FfiConverterSequenceString.lift(
+    callWithPointer {
+    uniffiRustCallWithError(OperationException) { _status ->
+    UniffiLib.INSTANCE.uniffi_superposition_core_fn_method_providercache_get_applicable_variants(
+        it, FfiConverterOptionalMapStringString.lower(`dimensionData`),FfiConverterOptionalSequenceString.lower(`prefix`),FfiConverterString.lower(`targetingKey`),_status)
 }
     }
     )
@@ -2281,6 +2314,16 @@ public object FfiConverterMapStringTypeOverrides: FfiConverterRustBuffer<Map<kot
     uniffiRustCallWithError(OperationException) { _status ->
     UniffiLib.INSTANCE.uniffi_superposition_core_fn_func_ffi_get_applicable_variants(
         FfiConverterTypeExperimentationArgs.lower(`eargs`),FfiConverterMapStringTypeDimensionInfo.lower(`dimensionsInfo`),FfiConverterMapStringString.lower(`queryData`),FfiConverterOptionalSequenceString.lower(`prefix`),_status)
+}
+    )
+    }
+    
+
+    @Throws(OperationException::class) fun `ffiParseConfigFileWithFilters`(`fileContent`: kotlin.String, `format`: kotlin.String, `dimensionData`: Map<kotlin.String, kotlin.String>?, `prefix`: List<kotlin.String>?): Config {
+            return FfiConverterTypeConfig.lift(
+    uniffiRustCallWithError(OperationException) { _status ->
+    UniffiLib.INSTANCE.uniffi_superposition_core_fn_func_ffi_parse_config_file_with_filters(
+        FfiConverterString.lower(`fileContent`),FfiConverterString.lower(`format`),FfiConverterOptionalMapStringString.lower(`dimensionData`),FfiConverterOptionalSequenceString.lower(`prefix`),_status)
 }
     )
     }

@@ -268,62 +268,72 @@ impl LocalResolutionProvider {
                 .map(|data| data.fetched_at)
         };
 
-        let config_result = self.primary.fetch_config(last_fetched_at).await;
-        let mut resp = match config_result {
-            Ok(FetchResponse::Data(data)) => {
-                let mut cached = self.cached_config.write().await;
-                *cached = Some(data);
-                log::debug!("LocalResolutionProvider: config refreshed from primary");
-                Ok(())
-            }
-            Ok(FetchResponse::NotModified) => {
-                log::debug!("LocalResolutionProvider: config not modified");
-                Ok(())
-            }
-            Err(e) => {
-                log::warn!(
-                    "LocalResolutionProvider: config refresh failed, keeping last known good: {}",
-                    e
-                );
-                Err(e)
-            }
-        };
-
-        if self.primary.supports_experiments() {
-            let exp_last_fetched_at = {
-                self.cached_experiments
-                    .read()
-                    .await
-                    .as_ref()
-                    .map(|d| d.fetched_at)
-            };
-            match self
-                .primary
-                .fetch_active_experiments(exp_last_fetched_at)
-                .await
-            {
-                Ok(exp_resp) => {
-                    let mut cached = self.cached_experiments.write().await;
-                    if let Some(data) = exp_resp.into_data() {
-                        *cached = Some(data);
-                    }
-                    log::debug!(
-                        "LocalResolutionProvider: experiments refreshed from primary"
-                    );
+        let config_resp = async {
+            match self.primary.fetch_config(last_fetched_at).await {
+                Ok(FetchResponse::Data(data)) => {
+                    let mut cached = self.cached_config.write().await;
+                    *cached = Some(data);
+                    log::debug!("LocalResolutionProvider: config refreshed from primary");
+                    Ok(())
+                }
+                Ok(FetchResponse::NotModified) => {
+                    log::debug!("LocalResolutionProvider: config not modified");
+                    Ok(())
                 }
                 Err(e) => {
                     log::warn!(
-                        "LocalResolutionProvider: experiment refresh failed, keeping last known good: {}",
-                        e
-                    );
-                    if resp.is_ok() {
-                        resp = Err(e);
-                    }
+                    "LocalResolutionProvider: config refresh failed, keeping last known good: {}",
+                    e
+                );
+                    Err(e)
                 }
             }
-        }
+        };
 
-        resp
+        let exp_resp = async {
+            if self.primary.supports_experiments() {
+                let exp_last_fetched_at = {
+                    self.cached_experiments
+                        .read()
+                        .await
+                        .as_ref()
+                        .map(|d| d.fetched_at)
+                };
+                match self
+                    .primary
+                    .fetch_active_experiments(exp_last_fetched_at)
+                    .await
+                {
+                    Ok(exp_resp) => {
+                        let mut cached = self.cached_experiments.write().await;
+                        if let Some(data) = exp_resp.into_data() {
+                            *cached = Some(data);
+                        }
+                        log::debug!(
+                            "LocalResolutionProvider: experiments refreshed from primary"
+                        );
+                        Ok(())
+                    }
+                    Err(e) => {
+                        log::warn!(
+                            "LocalResolutionProvider: experiment refresh failed, keeping last known good: {}",
+                            e
+                        );
+                        Err(e)
+                    }
+                }
+            } else {
+                Ok(())
+            }
+        };
+
+        let (config_resp, exp_resp) = tokio::join!(config_resp, exp_resp);
+
+        if config_resp.is_ok() {
+            exp_resp
+        } else {
+            config_resp
+        }
     }
 
     async fn start_polling(&self, interval: u64) -> JoinHandle<()> {
@@ -407,7 +417,7 @@ impl LocalResolutionProvider {
     async fn get_dimensions_info(&self) -> HashMap<String, DimensionInfo> {
         let cached = self.cached_config.read().await;
         match cached.as_ref() {
-            Some(data) => data.config.dimensions.clone(),
+            Some(data) => data.data.dimensions.clone(),
             None => HashMap::new(),
         }
     }
@@ -456,10 +466,10 @@ impl LocalResolutionProvider {
         let cached = self.cached_config.read().await;
         match cached.as_ref() {
             Some(config_data) => eval_config(
-                (*config_data.config.default_configs).clone(),
-                &config_data.config.contexts,
-                &config_data.config.overrides,
-                &config_data.config.dimensions,
+                (*config_data.data.default_configs).clone(),
+                &config_data.data.contexts,
+                &config_data.data.overrides,
+                &config_data.data.dimensions,
                 &query_data,
                 MergeStrategy::MERGE,
                 prefix_filter,
@@ -479,13 +489,6 @@ impl LocalResolutionProvider {
 
 #[async_trait]
 impl AllFeatureProvider for LocalResolutionProvider {
-    async fn resolve_all_features(
-        &self,
-        context: EvaluationContext,
-    ) -> Result<Map<String, Value>> {
-        self.eval_with_context(context, None).await
-    }
-
     async fn resolve_all_features_with_filter(
         &self,
         context: EvaluationContext,
@@ -631,7 +634,7 @@ impl SuperpositionDataSource for LocalResolutionProvider {
             .await?
             .map_data(|mut c| {
                 let prefix = prefix_filter.map(HashSet::from_iter);
-                c.config = c.config.filter(context.as_ref(), prefix.as_ref());
+                c.data = c.data.filter(context.as_ref(), prefix.as_ref());
 
                 c
             });

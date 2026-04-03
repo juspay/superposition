@@ -11,6 +11,8 @@ dependencies = [
     "smithy_core==0.0.1",
     "smithy_http[aiohttp]==0.0.1",
     "smithy_json==0.0.1",
+    "openfeature-sdk==0.8.3",
+    "watchdog==6.0.0",
 ]
 
 [build-system]
