@@ -1,8 +1,9 @@
 use open_feature::{provider::FeatureProvider, EvaluationContext, OpenFeature};
 use serde_json::Value;
 use superposition_provider::{
-    ExperimentationOptions, OnDemandStrategy, RefreshStrategy, SuperpositionProvider,
-    SuperpositionProviderOptions,
+    data_source::{file::FileDataSource, http::HttpDataSource},
+    AllFeatureProvider, LocalResolutionProvider, PollingStrategy, RefreshStrategy,
+    SuperpositionAPIProvider, SuperpositionOptions,
 };
 use superposition_sdk::{
     types::{ContextPut, DimensionType, Variant, WorkspaceStatus},
@@ -377,229 +378,624 @@ async fn setup_with_sdk(org_id: &str, workspace_id: &str) {
 async fn run_provider_tests(org_id: &str, workspace_id: &str) {
     println!("\n=== Starting OpenFeature provider tests ===\n");
 
-    // Create provider with on-demand refresh strategy
-    let provider_options = SuperpositionProviderOptions {
+    let refresh_strategy = RefreshStrategy::Polling(PollingStrategy::default());
+    let http_options = SuperpositionOptions {
         endpoint: ENDPOINT.to_string(),
         token: TOKEN.to_string(),
         org_id: org_id.to_string(),
         workspace_id: workspace_id.to_string(),
-        refresh_strategy: RefreshStrategy::OnDemand(OnDemandStrategy::default()),
-        evaluation_cache: None,
-        fallback_config: None,
-        experimentation_options: Some(ExperimentationOptions {
-            refresh_strategy: RefreshStrategy::OnDemand(OnDemandStrategy::default()),
-            evaluation_cache: None,
-            default_toss: None,
-        }),
     };
+    let wrong_http_options = SuperpositionOptions {
+        endpoint: ENDPOINT.to_string(),
+        token: "12345678".to_string(),
+        org_id: org_id.to_string(),
+        workspace_id: "workspace_id".to_string(),
+    };
+    let primary_source = HttpDataSource::new(http_options.clone());
+    let fallback_source = FileDataSource::new("tests/config.toml".into()).unwrap();
 
-    let provider = SuperpositionProvider::new(provider_options);
-    // Test 0: Verify provider clone works (sanity check)
-    println!("Test 0: Verify provider clone works (sanity check)");
     {
-        let mut provider_clone = provider.clone();
-        provider_clone
-            .initialize(&EvaluationContext::default())
-            .await;
-        let ctx = EvaluationContext::default().with_custom_field("name", "karbik");
-        let all_fields = provider_clone.resolve_full_config(&ctx).await.unwrap();
+        println!("Testing LocalResolutionProvider with HTTP data source (no fallback)");
 
-        assert_eq!(
-            all_fields.get("price").unwrap(),
-            &Value::from(1),
-            "Price should be 1 for karbik"
+        let provider = LocalResolutionProvider::new(
+            Box::new(primary_source),
+            None,
+            refresh_strategy.clone(),
         );
-        assert_eq!(
-            all_fields.get("currency").unwrap(),
-            &Value::from("Rupee"),
-            "Currency should be default Rupee"
+
+        // Test 0: Verify provider clone works (sanity check)
+        println!("Test 0: Verify provider clone works (sanity check)");
+        {
+            let mut provider_clone = provider.clone();
+            provider_clone
+                .initialize(&EvaluationContext::default())
+                .await;
+            let ctx = EvaluationContext::default().with_custom_field("name", "karbik");
+            let all_fields = provider_clone.resolve_all_features(ctx).await.unwrap();
+
+            assert_eq!(
+                all_fields.get("price").unwrap(),
+                &Value::from(1),
+                "Price should be 1 for karbik"
+            );
+            assert_eq!(
+                all_fields.get("currency").unwrap(),
+                &Value::from("Rupee"),
+                "Currency should be default Rupee"
+            );
+            println!("  ✓ Test passed\n");
+        }
+
+        // Set provider as the global provider
+        let mut api = OpenFeature::singleton_mut().await;
+        api.set_provider(provider).await;
+
+        let client = api.create_client();
+
+        // Test 1: Default values (no context)
+        println!("Test 1: Default values (no context)");
+        {
+            let ctx = EvaluationContext::default();
+            let price = client
+                .get_float_value("price", Some(&ctx), None)
+                .await
+                .unwrap();
+            let currency = client
+                .get_string_value("currency", Some(&ctx), None)
+                .await
+                .unwrap();
+
+            assert_eq!(price, 10000.0, "Default price should be 10000");
+            assert_eq!(currency, "Rupee", "Default currency should be Rupee");
+            println!("  ✓ Test passed\n");
+        }
+
+        // Test 2: Platinum customer - Agush, no city
+        println!("Test 2: Platinum customer - Agush (no city)");
+        {
+            let ctx = EvaluationContext::default().with_custom_field("name", "Agush");
+            let price = client
+                .get_float_value("price", Some(&ctx), None)
+                .await
+                .unwrap();
+            let currency = client
+                .get_string_value("currency", Some(&ctx), None)
+                .await
+                .unwrap();
+
+            assert_eq!(price, 5000.0, "Price should be 5000 for platinum customer");
+            assert_eq!(currency, "Rupee", "Currency should be default Rupee");
+            println!("  ✓ Test passed\n");
+        }
+
+        // Test 3: Platinum customer - Sauyav, with city Boston
+        println!("Test 3: Platinum customer - Sauyav with city Boston");
+        {
+            let ctx = EvaluationContext::default()
+                .with_custom_field("name", "Sauyav")
+                .with_custom_field("city", "Boston");
+            let price = client
+                .get_float_value("price", Some(&ctx), None)
+                .await
+                .unwrap();
+            let currency = client
+                .get_string_value("currency", Some(&ctx), None)
+                .await
+                .unwrap();
+
+            assert_eq!(price, 5000.0, "Price should be 5000");
+            assert_eq!(currency, "Dollar", "Currency should be Dollar");
+            println!("  ✓ Test passed\n");
+        }
+
+        // Test 4: Regular customer - John (no city)
+        println!("Test 4: Regular customer - John (no city)");
+        {
+            let ctx = EvaluationContext::default().with_custom_field("name", "John");
+            let price = client
+                .get_float_value("price", Some(&ctx), None)
+                .await
+                .unwrap();
+            let currency = client
+                .get_string_value("currency", Some(&ctx), None)
+                .await
+                .unwrap();
+
+            assert_eq!(price, 10000.0, "Price should be default 10000");
+            assert_eq!(currency, "Rupee", "Currency should be default Rupee");
+            println!("  ✓ Test passed\n");
+        }
+
+        // Test 5: Platinum customer - Sauyav with city Berlin
+        println!("Test 5: Platinum customer - Sauyav with city Berlin");
+        {
+            let ctx = EvaluationContext::default()
+                .with_custom_field("name", "Sauyav")
+                .with_custom_field("city", "Berlin");
+            let price = client
+                .get_float_value("price", Some(&ctx), None)
+                .await
+                .unwrap();
+            let currency = client
+                .get_string_value("currency", Some(&ctx), None)
+                .await
+                .unwrap();
+
+            assert_eq!(price, 5000.0, "Price should be 5000");
+            assert_eq!(currency, "Euro", "Currency should be Euro in Berlin");
+            println!("  ✓ Test passed\n");
+        }
+
+        // Test 6: Regular customer - John with city Boston
+        println!("Test 6: Regular customer - John with city Boston");
+        {
+            let ctx = EvaluationContext::default()
+                .with_custom_field("name", "John")
+                .with_custom_field("city", "Boston");
+            let price = client
+                .get_float_value("price", Some(&ctx), None)
+                .await
+                .unwrap();
+            let currency = client
+                .get_string_value("currency", Some(&ctx), None)
+                .await
+                .unwrap();
+
+            assert_eq!(price, 10000.0, "Price should be default 10000");
+            assert_eq!(currency, "Dollar", "Currency should be Dollar in Boston");
+            println!("  ✓ Test passed\n");
+        }
+
+        // Test 7: Edge case customer - karbik (specific override)
+        println!("Test 7: Edge case customer - karbik (specific override)");
+        {
+            let ctx = EvaluationContext::default().with_custom_field("name", "karbik");
+            let price = client
+                .get_float_value("price", Some(&ctx), None)
+                .await
+                .unwrap();
+            let currency = client
+                .get_string_value("currency", Some(&ctx), None)
+                .await
+                .unwrap();
+
+            assert_eq!(price, 1.0, "Price should be 1 for karbik");
+            assert_eq!(currency, "Rupee", "Currency should be default Rupee");
+            println!("  ✓ Test passed\n");
+        }
+
+        // Test 8: Edge case customer - karbik with city Boston
+        println!("Test 8: Edge case customer - karbik with city Boston");
+        {
+            let ctx = EvaluationContext::default()
+                .with_custom_field("name", "karbik")
+                .with_custom_field("city", "Boston");
+            let price = client
+                .get_float_value("price", Some(&ctx), None)
+                .await
+                .unwrap();
+            let currency = client
+                .get_string_value("currency", Some(&ctx), None)
+                .await
+                .unwrap();
+
+            assert_eq!(price, 1.0, "Price should be 1 for karbik");
+            assert_eq!(currency, "Dollar", "Currency should be Dollar in Boston");
+            println!("  ✓ Test passed\n");
+        }
+
+        // Test 9: Experiment case - Kolkata pricing
+        println!("Test 9: Experiment case: Kolkata pricing");
+        {
+            let ctx = EvaluationContext::default()
+                .with_custom_field("city", "Kolkata")
+                .with_targeting_key("test");
+            let price = client
+                .get_float_value("price", Some(&ctx), None)
+                .await
+                .unwrap();
+            let currency = client
+                .get_string_value("currency", Some(&ctx), None)
+                .await
+                .unwrap();
+            println!("  Retrieved price: {}, currency: {}", price, currency);
+
+            assert!(
+                price == 8000.0 || price == 7000.0,
+                "Price should be either 8000 (control) or 7000 (experiment) "
+            );
+            assert_eq!(currency, "Rupee", "Currency should be default Rupee");
+            println!("  ✓ Experiment test passed ");
+        }
+
+        api.shutdown().await;
+
+        println!("\n=== All tests passed! ===\n");
+    }
+    {
+        println!("Testing SuperpositionAPIProvider");
+        let provider = SuperpositionAPIProvider::new(http_options);
+        // Set provider as the global provider
+        let mut api = OpenFeature::singleton_mut().await;
+        api.set_provider(provider).await;
+
+        let client = api.create_client();
+
+        // Test 1: Default values (no context)
+        println!("Test 1: Default values (no context)");
+        {
+            let ctx = EvaluationContext::default();
+            let price = client
+                .get_float_value("price", Some(&ctx), None)
+                .await
+                .unwrap();
+            let currency = client
+                .get_string_value("currency", Some(&ctx), None)
+                .await
+                .unwrap();
+
+            assert_eq!(price, 10000.0, "Default price should be 10000");
+            assert_eq!(currency, "Rupee", "Default currency should be Rupee");
+            println!("  ✓ Test passed\n");
+        }
+
+        // Test 2: Platinum customer - Agush, no city
+        println!("Test 2: Platinum customer - Agush (no city)");
+        {
+            let ctx = EvaluationContext::default().with_custom_field("name", "Agush");
+            let price = client
+                .get_float_value("price", Some(&ctx), None)
+                .await
+                .unwrap();
+            let currency = client
+                .get_string_value("currency", Some(&ctx), None)
+                .await
+                .unwrap();
+
+            assert_eq!(price, 5000.0, "Price should be 5000 for platinum customer");
+            assert_eq!(currency, "Rupee", "Currency should be default Rupee");
+            println!("  ✓ Test passed\n");
+        }
+
+        // Test 3: Platinum customer - Sauyav, with city Boston
+        println!("Test 3: Platinum customer - Sauyav with city Boston");
+        {
+            let ctx = EvaluationContext::default()
+                .with_custom_field("name", "Sauyav")
+                .with_custom_field("city", "Boston");
+            let price = client
+                .get_float_value("price", Some(&ctx), None)
+                .await
+                .unwrap();
+            let currency = client
+                .get_string_value("currency", Some(&ctx), None)
+                .await
+                .unwrap();
+
+            assert_eq!(price, 5000.0, "Price should be 5000");
+            assert_eq!(currency, "Dollar", "Currency should be Dollar");
+            println!("  ✓ Test passed\n");
+        }
+
+        // Test 4: Regular customer - John (no city)
+        println!("Test 4: Regular customer - John (no city)");
+        {
+            let ctx = EvaluationContext::default().with_custom_field("name", "John");
+            let price = client
+                .get_float_value("price", Some(&ctx), None)
+                .await
+                .unwrap();
+            let currency = client
+                .get_string_value("currency", Some(&ctx), None)
+                .await
+                .unwrap();
+
+            assert_eq!(price, 10000.0, "Price should be default 10000");
+            assert_eq!(currency, "Rupee", "Currency should be default Rupee");
+            println!("  ✓ Test passed\n");
+        }
+
+        // Test 5: Platinum customer - Sauyav with city Berlin
+        println!("Test 5: Platinum customer - Sauyav with city Berlin");
+        {
+            let ctx = EvaluationContext::default()
+                .with_custom_field("name", "Sauyav")
+                .with_custom_field("city", "Berlin");
+            let price = client
+                .get_float_value("price", Some(&ctx), None)
+                .await
+                .unwrap();
+            let currency = client
+                .get_string_value("currency", Some(&ctx), None)
+                .await
+                .unwrap();
+
+            assert_eq!(price, 5000.0, "Price should be 5000");
+            assert_eq!(currency, "Euro", "Currency should be Euro in Berlin");
+            println!("  ✓ Test passed\n");
+        }
+
+        // Test 6: Regular customer - John with city Boston
+        println!("Test 6: Regular customer - John with city Boston");
+        {
+            let ctx = EvaluationContext::default()
+                .with_custom_field("name", "John")
+                .with_custom_field("city", "Boston");
+            let price = client
+                .get_float_value("price", Some(&ctx), None)
+                .await
+                .unwrap();
+            let currency = client
+                .get_string_value("currency", Some(&ctx), None)
+                .await
+                .unwrap();
+
+            assert_eq!(price, 10000.0, "Price should be default 10000");
+            assert_eq!(currency, "Dollar", "Currency should be Dollar in Boston");
+            println!("  ✓ Test passed\n");
+        }
+
+        // Test 7: Edge case customer - karbik (specific override)
+        println!("Test 7: Edge case customer - karbik (specific override)");
+        {
+            let ctx = EvaluationContext::default().with_custom_field("name", "karbik");
+            let price = client
+                .get_float_value("price", Some(&ctx), None)
+                .await
+                .unwrap();
+            let currency = client
+                .get_string_value("currency", Some(&ctx), None)
+                .await
+                .unwrap();
+
+            assert_eq!(price, 1.0, "Price should be 1 for karbik");
+            assert_eq!(currency, "Rupee", "Currency should be default Rupee");
+            println!("  ✓ Test passed\n");
+        }
+
+        // Test 8: Edge case customer - karbik with city Boston
+        println!("Test 8: Edge case customer - karbik with city Boston");
+        {
+            let ctx = EvaluationContext::default()
+                .with_custom_field("name", "karbik")
+                .with_custom_field("city", "Boston");
+            let price = client
+                .get_float_value("price", Some(&ctx), None)
+                .await
+                .unwrap();
+            let currency = client
+                .get_string_value("currency", Some(&ctx), None)
+                .await
+                .unwrap();
+
+            assert_eq!(price, 1.0, "Price should be 1 for karbik");
+            assert_eq!(currency, "Dollar", "Currency should be Dollar in Boston");
+            println!("  ✓ Test passed\n");
+        }
+
+        // Test 9: Experiment case - Kolkata pricing
+        println!("Test 9: Experiment case: Kolkata pricing");
+        {
+            let ctx = EvaluationContext::default()
+                .with_custom_field("city", "Kolkata")
+                .with_targeting_key("test");
+            let price = client
+                .get_float_value("price", Some(&ctx), None)
+                .await
+                .unwrap();
+            let currency = client
+                .get_string_value("currency", Some(&ctx), None)
+                .await
+                .unwrap();
+            println!("  Retrieved price: {}, currency: {}", price, currency);
+
+            assert!(
+                price == 8000.0 || price == 7000.0,
+                "Price should be either 8000 (control) or 7000 (experiment) "
+            );
+            assert_eq!(currency, "Rupee", "Currency should be default Rupee");
+            println!("  ✓ Experiment test passed ");
+        }
+
+        api.shutdown().await;
+        println!("\n=== All tests passed! ===\n");
+    }
+
+    {
+        println!("Testing LocalResolutionProvider with wrong HTTP data source but valid file fallback");
+        let provider = LocalResolutionProvider::new(
+            Box::new(HttpDataSource::new(wrong_http_options)),
+            Some(Box::new(fallback_source)),
+            refresh_strategy,
         );
-        println!("  ✓ Test passed\n");
-    }
 
-    // Set provider as the global provider
-    let mut api = OpenFeature::singleton_mut().await;
-    api.set_provider(provider).await;
+        // Set provider as the global provider
+        let mut api = OpenFeature::singleton_mut().await;
+        api.set_provider(provider).await;
 
-    let client = api.create_client();
+        let client = api.create_client();
 
-    // Test 1: Default values (no context)
-    println!("Test 1: Default values (no context)");
-    {
-        let ctx = EvaluationContext::default();
-        let price = client
-            .get_float_value("price", Some(&ctx), None)
-            .await
-            .unwrap();
-        let currency = client
-            .get_string_value("currency", Some(&ctx), None)
-            .await
-            .unwrap();
+        // Test 1: Default values (no context)
+        println!("Test 1: Default values (no context)");
+        {
+            let ctx = EvaluationContext::default();
+            let price = client
+                .get_float_value("price", Some(&ctx), None)
+                .await
+                .unwrap();
+            let currency = client
+                .get_string_value("currency", Some(&ctx), None)
+                .await
+                .unwrap();
 
-        assert_eq!(price, 10000.0, "Default price should be 10000");
-        assert_eq!(currency, "Rupee", "Default currency should be Rupee");
-        println!("  ✓ Test passed\n");
-    }
+            assert_eq!(price, 10000.0, "Default price should be 10000");
+            assert_eq!(currency, "Rupee", "Default currency should be Rupee");
+            println!("  ✓ Test passed\n");
+        }
 
-    // Test 2: Platinum customer - Agush, no city
-    println!("Test 2: Platinum customer - Agush (no city)");
-    {
-        let ctx = EvaluationContext::default().with_custom_field("name", "Agush");
-        let price = client
-            .get_float_value("price", Some(&ctx), None)
-            .await
-            .unwrap();
-        let currency = client
-            .get_string_value("currency", Some(&ctx), None)
-            .await
-            .unwrap();
+        // Test 2: Platinum customer - Agush, no city
+        println!("Test 2: Platinum customer - Agush (no city)");
+        {
+            let ctx = EvaluationContext::default().with_custom_field("name", "Agush");
+            let price = client
+                .get_float_value("price", Some(&ctx), None)
+                .await
+                .unwrap();
+            let currency = client
+                .get_string_value("currency", Some(&ctx), None)
+                .await
+                .unwrap();
 
-        assert_eq!(price, 5000.0, "Price should be 5000 for platinum customer");
-        assert_eq!(currency, "Rupee", "Currency should be default Rupee");
-        println!("  ✓ Test passed\n");
-    }
+            assert_eq!(price, 5000.0, "Price should be 5000 for platinum customer");
+            assert_eq!(currency, "Rupee", "Currency should be default Rupee");
+            println!("  ✓ Test passed\n");
+        }
 
-    // Test 3: Platinum customer - Sauyav, with city Boston
-    println!("Test 3: Platinum customer - Sauyav with city Boston");
-    {
-        let ctx = EvaluationContext::default()
-            .with_custom_field("name", "Sauyav")
-            .with_custom_field("city", "Boston");
-        let price = client
-            .get_float_value("price", Some(&ctx), None)
-            .await
-            .unwrap();
-        let currency = client
-            .get_string_value("currency", Some(&ctx), None)
-            .await
-            .unwrap();
+        // Test 3: Platinum customer - Sauyav, with city Boston
+        println!("Test 3: Platinum customer - Sauyav with city Boston");
+        {
+            let ctx = EvaluationContext::default()
+                .with_custom_field("name", "Sauyav")
+                .with_custom_field("city", "Boston");
+            let price = client
+                .get_float_value("price", Some(&ctx), None)
+                .await
+                .unwrap();
+            let currency = client
+                .get_string_value("currency", Some(&ctx), None)
+                .await
+                .unwrap();
 
-        assert_eq!(price, 5000.0, "Price should be 5000");
-        assert_eq!(currency, "Dollar", "Currency should be Dollar");
-        println!("  ✓ Test passed\n");
-    }
+            assert_eq!(price, 5000.0, "Price should be 5000");
+            assert_eq!(currency, "Dollar", "Currency should be Dollar");
+            println!("  ✓ Test passed\n");
+        }
 
-    // Test 4: Regular customer - John (no city)
-    println!("Test 4: Regular customer - John (no city)");
-    {
-        let ctx = EvaluationContext::default().with_custom_field("name", "John");
-        let price = client
-            .get_float_value("price", Some(&ctx), None)
-            .await
-            .unwrap();
-        let currency = client
-            .get_string_value("currency", Some(&ctx), None)
-            .await
-            .unwrap();
+        // Test 4: Regular customer - John (no city)
+        println!("Test 4: Regular customer - John (no city)");
+        {
+            let ctx = EvaluationContext::default().with_custom_field("name", "John");
+            let price = client
+                .get_float_value("price", Some(&ctx), None)
+                .await
+                .unwrap();
+            let currency = client
+                .get_string_value("currency", Some(&ctx), None)
+                .await
+                .unwrap();
 
-        assert_eq!(price, 10000.0, "Price should be default 10000");
-        assert_eq!(currency, "Rupee", "Currency should be default Rupee");
-        println!("  ✓ Test passed\n");
-    }
+            assert_eq!(price, 10000.0, "Price should be default 10000");
+            assert_eq!(currency, "Rupee", "Currency should be default Rupee");
+            println!("  ✓ Test passed\n");
+        }
 
-    // Test 5: Platinum customer - Sauyav with city Berlin
-    println!("Test 5: Platinum customer - Sauyav with city Berlin");
-    {
-        let ctx = EvaluationContext::default()
-            .with_custom_field("name", "Sauyav")
-            .with_custom_field("city", "Berlin");
-        let price = client
-            .get_float_value("price", Some(&ctx), None)
-            .await
-            .unwrap();
-        let currency = client
-            .get_string_value("currency", Some(&ctx), None)
-            .await
-            .unwrap();
+        // Test 5: Platinum customer - Sauyav with city Berlin
+        println!("Test 5: Platinum customer - Sauyav with city Berlin");
+        {
+            let ctx = EvaluationContext::default()
+                .with_custom_field("name", "Sauyav")
+                .with_custom_field("city", "Berlin");
+            let price = client
+                .get_float_value("price", Some(&ctx), None)
+                .await
+                .unwrap();
+            let currency = client
+                .get_string_value("currency", Some(&ctx), None)
+                .await
+                .unwrap();
 
-        assert_eq!(price, 5000.0, "Price should be 5000");
-        assert_eq!(currency, "Euro", "Currency should be Euro in Berlin");
-        println!("  ✓ Test passed\n");
-    }
+            assert_eq!(price, 5000.0, "Price should be 5000");
+            assert_eq!(currency, "Euro", "Currency should be Euro in Berlin");
+            println!("  ✓ Test passed\n");
+        }
 
-    // Test 6: Regular customer - John with city Boston
-    println!("Test 6: Regular customer - John with city Boston");
-    {
-        let ctx = EvaluationContext::default()
-            .with_custom_field("name", "John")
-            .with_custom_field("city", "Boston");
-        let price = client
-            .get_float_value("price", Some(&ctx), None)
-            .await
-            .unwrap();
-        let currency = client
-            .get_string_value("currency", Some(&ctx), None)
-            .await
-            .unwrap();
+        // Test 6: Regular customer - John with city Boston
+        println!("Test 6: Regular customer - John with city Boston");
+        {
+            let ctx = EvaluationContext::default()
+                .with_custom_field("name", "John")
+                .with_custom_field("city", "Boston");
+            let price = client
+                .get_float_value("price", Some(&ctx), None)
+                .await
+                .unwrap();
+            let currency = client
+                .get_string_value("currency", Some(&ctx), None)
+                .await
+                .unwrap();
 
-        assert_eq!(price, 10000.0, "Price should be default 10000");
-        assert_eq!(currency, "Dollar", "Currency should be Dollar in Boston");
-        println!("  ✓ Test passed\n");
-    }
+            assert_eq!(price, 10000.0, "Price should be default 10000");
+            assert_eq!(currency, "Dollar", "Currency should be Dollar in Boston");
+            println!("  ✓ Test passed\n");
+        }
 
-    // Test 7: Edge case customer - karbik (specific override)
-    println!("Test 7: Edge case customer - karbik (specific override)");
-    {
-        let ctx = EvaluationContext::default().with_custom_field("name", "karbik");
-        let price = client
-            .get_float_value("price", Some(&ctx), None)
-            .await
-            .unwrap();
-        let currency = client
-            .get_string_value("currency", Some(&ctx), None)
-            .await
-            .unwrap();
+        // Test 7: Edge case customer - karbik (specific override)
+        println!("Test 7: Edge case customer - karbik (specific override)");
+        {
+            let ctx = EvaluationContext::default().with_custom_field("name", "karbik");
+            let price = client
+                .get_float_value("price", Some(&ctx), None)
+                .await
+                .unwrap();
+            let currency = client
+                .get_string_value("currency", Some(&ctx), None)
+                .await
+                .unwrap();
 
-        assert_eq!(price, 1.0, "Price should be 1 for karbik");
-        assert_eq!(currency, "Rupee", "Currency should be default Rupee");
-        println!("  ✓ Test passed\n");
-    }
+            assert_eq!(price, 1.0, "Price should be 1 for karbik");
+            assert_eq!(currency, "Rupee", "Currency should be default Rupee");
+            println!("  ✓ Test passed\n");
+        }
 
-    // Test 8: Edge case customer - karbik with city Boston
-    println!("Test 8: Edge case customer - karbik with city Boston");
-    {
-        let ctx = EvaluationContext::default()
-            .with_custom_field("name", "karbik")
-            .with_custom_field("city", "Boston");
-        let price = client
-            .get_float_value("price", Some(&ctx), None)
-            .await
-            .unwrap();
-        let currency = client
-            .get_string_value("currency", Some(&ctx), None)
-            .await
-            .unwrap();
+        // Test 8: Edge case customer - karbik with city Boston
+        println!("Test 8: Edge case customer - karbik with city Boston");
+        {
+            let ctx = EvaluationContext::default()
+                .with_custom_field("name", "karbik")
+                .with_custom_field("city", "Boston");
+            let price = client
+                .get_float_value("price", Some(&ctx), None)
+                .await
+                .unwrap();
+            let currency = client
+                .get_string_value("currency", Some(&ctx), None)
+                .await
+                .unwrap();
 
-        assert_eq!(price, 1.0, "Price should be 1 for karbik");
-        assert_eq!(currency, "Dollar", "Currency should be Dollar in Boston");
-        println!("  ✓ Test passed\n");
-    }
+            assert_eq!(price, 1.0, "Price should be 1 for karbik");
+            assert_eq!(currency, "Dollar", "Currency should be Dollar in Boston");
+            println!("  ✓ Test passed\n");
+        }
 
-    // Test 9: Experiment case - Kolkata pricing
-    println!("Test 9: Experiment case: Kolkata pricing");
-    {
-        let ctx = EvaluationContext::default()
-            .with_custom_field("city", "Kolkata")
-            .with_targeting_key("test");
-        let price = client
-            .get_float_value("price", Some(&ctx), None)
-            .await
-            .unwrap();
-        let currency = client
-            .get_string_value("currency", Some(&ctx), None)
-            .await
-            .unwrap();
-        println!("  Retrieved price: {}, currency: {}", price, currency);
-
-        assert!(
-            price == 8000.0 || price == 7000.0,
-            "Price should be either 8000 (control) or 7000 (experiment) "
+        println!(
+            "Experiment not supported in file data source, skipping experiment test"
         );
-        assert_eq!(currency, "Rupee", "Currency should be default Rupee");
-        println!("  ✓ Experiment test passed ");
-    }
+        // // Test 9: Experiment case - Kolkata pricing
+        // println!("Test 9: Experiment case: Kolkata pricing");
+        // {
+        //     let ctx = EvaluationContext::default()
+        //         .with_custom_field("city", "Kolkata")
+        //         .with_targeting_key("test");
+        //     let price = client
+        //         .get_float_value("price", Some(&ctx), None)
+        //         .await
+        //         .unwrap();
+        //     let currency = client
+        //         .get_string_value("currency", Some(&ctx), None)
+        //         .await
+        //         .unwrap();
+        //     println!("  Retrieved price: {}, currency: {}", price, currency);
 
-    println!("\n=== All tests passed! ===\n");
+        //     assert!(
+        //         price == 8000.0 || price == 7000.0,
+        //         "Price should be either 8000 (control) or 7000 (experiment) "
+        //     );
+        //     assert_eq!(currency, "Rupee", "Currency should be default Rupee");
+        //     println!("  ✓ Experiment test passed ");
+        // }
+
+        println!("\n=== All tests passed! ===\n");
+    }
 }
 
 #[tokio::test]

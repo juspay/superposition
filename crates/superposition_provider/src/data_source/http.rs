@@ -140,7 +140,7 @@ impl HttpDataSource {
                     Utc.timestamp_nanos(res.last_modified.as_nanos() as i64);
                 ConversionUtils::convert_get_config_response(res)
                     .map(|d| ConfigData {
-                        config: d,
+                        data: d,
                         fetched_at: modified_at,
                     })
                     .map(FetchResponse::Data)

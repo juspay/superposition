@@ -3,27 +3,22 @@ import logging
 import weakref
 from decimal import Decimal
 from typing import Any, Dict, Optional, TypeVar
-from unittest import case
 
 from superposition_bindings.superposition_client import FfiExperiment, FfiExperimentGroup
-from superposition_sdk.models import ExperimentStatusType as SDKExperimentStatusType, GroupType as SDKGroupType
-from superposition_bindings.superposition_types import GroupType, ExperimentStatusType
+from superposition_sdk.models import ExperimentStatusType as SDKExperimentStatusType
 from .types import OnDemandStrategy, PollingStrategy, SuperpositionOptions, ExperimentationOptions
 from superposition_sdk.client import Superposition, ListExperimentInput, ListExperimentGroupsInput
 from superposition_sdk.config import Config
 from superposition_sdk.auth_helpers import bearer_auth_config
 import asyncio
 from datetime import datetime, timedelta
-from superposition_bindings.superposition_types import Variant, VariantType
+from .conversions import exp_grps_to_ffi_exp_grps, experiments_to_ffi_experiments
 
 T = TypeVar("T")
 logger = logging.getLogger(__name__)
 for name in logging.root.manager.loggerDict:
     if not name.startswith("python"):  # e.g., "my_project"
         logging.getLogger(name).setLevel(logging.INFO)
-
-from smithy_core.documents import Document
-from smithy_core.shapes import ShapeType
 
 
 class DecimalEncoder(json.JSONEncoder):
@@ -38,65 +33,6 @@ class DecimalEncoder(json.JSONEncoder):
 def safe_json_dumps(obj: Any) -> str:
     """Safely serialize object to JSON, handling Decimal types"""
     return json.dumps(obj, cls=DecimalEncoder)
-
-
-def document_to_python_value(doc: Document) -> Any:
-    """Recursively unwrap smithy_core.Document into plain Python values."""
-    if doc.is_none():
-        return None
-
-    match doc.shape_type:
-        case ShapeType.BOOLEAN:
-            return doc.as_boolean()
-        case ShapeType.STRING:
-            return doc.as_string()
-        case ShapeType.BLOB:
-            return doc.as_blob()
-        case ShapeType.TIMESTAMP:
-            return doc.as_timestamp()
-        case ShapeType.BYTE | ShapeType.SHORT | ShapeType.INTEGER | ShapeType.LONG | ShapeType.BIG_INTEGER:
-            return doc.as_integer()
-        case ShapeType.FLOAT | ShapeType.DOUBLE:
-            return doc.as_float()
-        case ShapeType.BIG_DECIMAL:
-            # Convert Decimal to float for JSON compatibility
-            decimal_val = doc.as_decimal()
-            return float(decimal_val) if decimal_val is not None else None
-        case ShapeType.LIST:
-            return [document_to_python_value(e) for e in doc.as_list()]
-        case ShapeType.STRUCTURE | ShapeType.UNION | ShapeType.MAP:
-            return {
-                key: document_to_python_value(value)
-                for key, value in doc.as_map().items()
-            }
-        case _:
-            # Fallback to doc.as_value() if unknown shape or primitive
-            val = doc.as_value()
-            # Handle Decimal in fallback case too
-            if isinstance(val, Decimal):
-                return float(val)
-            return val
-
-
-def to_group_type(sdk_group_type: str) -> GroupType:
-    match sdk_group_type:
-        case SDKGroupType.USER_CREATED:
-            return SDKGroupType.USER_CREATED
-        case _:
-            return GroupType.SYSTEM_GENERATED
-
-def to_experiment_status_type(sdk_status_type: str) -> ExperimentStatusType:
-    match sdk_status_type:
-        case SDKExperimentStatusType.CREATED:
-            return ExperimentStatusType.CREATED
-        case SDKExperimentStatusType.CONCLUDED:
-            return ExperimentStatusType.CONCLUDED
-        case SDKExperimentStatusType.INPROGRESS:
-            return ExperimentStatusType.INPROGRESS
-        case SDKExperimentStatusType.PAUSED:
-            return ExperimentStatusType.PAUSED
-        case _:
-            return ExperimentStatusType.DISCARDED
 
 class ExperimentationConfig():
     def __init__(self, superposition_options: SuperpositionOptions, experiment_options: ExperimentationOptions, on_config_change=None):
@@ -177,7 +113,7 @@ class ExperimentationConfig():
         """
         try:
             # Create SDK config with bearer token authentication
-            (resolver, schemes) = bearer_auth_config(   
+            (resolver, schemes) = bearer_auth_config(
                 token=superposition_options.token
             )
             sdk_config = Config(
@@ -200,41 +136,7 @@ class ExperimentationConfig():
 
             exp_list = response.data
             logger.info(f"Fetched {len(exp_list)} experiments from Superposition")
-            trimmed_exp_list = []
-            for exp in exp_list:
-                condition = {}
-                for key, value in exp.context.items():
-                    condition[key] = json.dumps(document_to_python_value(value))
-
-                variants = []
-
-                for variant in exp.variants:
-                    variant_type = VariantType.CONTROL if variant.variant_type == "CONTROL" else VariantType.EXPERIMENTAL
-                    overrides = {
-                        key: json.dumps(document_to_python_value(value))
-                        for key, value in variant.overrides.items()
-                    }
-                    variants.append(
-                        Variant(
-                            id=variant.id,
-                            variant_type=variant_type,
-                            context_id=variant.context_id,
-                            override_id=variant.override_id,
-                            overrides=overrides
-                        )
-                    )
-
-                trimmed_exp = FfiExperiment(
-                    id=exp.id,
-                    context=condition,
-                    variants=variants,
-                    traffic_percentage=exp.traffic_percentage,
-                    status=to_experiment_status_type(exp.status),
-                )
-
-                trimmed_exp_list.append(trimmed_exp)
-
-            return trimmed_exp_list
+            return experiments_to_ffi_experiments(exp_list)
 
         except Exception as e:
             # Log the error and return empty config as fallback
@@ -254,7 +156,7 @@ class ExperimentationConfig():
         """
         try:
             # Create SDK config with bearer token authentication
-            (resolver, schemes) = bearer_auth_config(   
+            (resolver, schemes) = bearer_auth_config(
                 token=superposition_options.token
             )
             sdk_config = Config(
@@ -276,24 +178,7 @@ class ExperimentationConfig():
 
             exp_grp_list = response.data
             logger.info(f"Fetched {len(exp_grp_list)} experiment groups from Superposition")
-            trimmed_exp_grp_list = []
-            for exp_gr in exp_grp_list:
-                condition = {}
-                for key, value in exp_gr.context.items():
-                    condition[key] = json.dumps(document_to_python_value(value))
-
-                trimmed_exp_grp = FfiExperimentGroup(
-                    id=exp_gr.id,
-                    context=condition,
-                    member_experiment_ids=exp_gr.member_experiment_ids,
-                    traffic_percentage=exp_gr.traffic_percentage,
-                    group_type=to_group_type(exp_gr.group_type),
-                    buckets=exp_gr.buckets
-                )
-
-                trimmed_exp_grp_list.append(trimmed_exp_grp)
-
-            return trimmed_exp_grp_list
+            return exp_grps_to_ffi_exp_grps(exp_grp_list)
 
         except Exception as e:
             # Log the error and return empty config as fallback

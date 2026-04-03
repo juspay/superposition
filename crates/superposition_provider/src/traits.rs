@@ -31,7 +31,9 @@ pub trait AllFeatureProvider: Send + Sync {
     async fn resolve_all_features(
         &self,
         context: EvaluationContext,
-    ) -> Result<Map<String, Value>>;
+    ) -> Result<Map<String, Value>> {
+        self.resolve_all_features_with_filter(context, None).await
+    }
 
     /// Resolve all features for the given evaluation context, optionally
     /// filtered to only include keys matching the provided prefixes.

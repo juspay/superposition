@@ -5,7 +5,7 @@ use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use notify::{Event, RecommendedWatcher, Watcher};
 use serde_json::{Map, Value};
-use superposition_core::{ConfigFormat, TomlFormat};
+use superposition_core::{ConfigFormat, JsonFormat, TomlFormat};
 use tokio::sync::broadcast;
 
 use crate::data_source::FetchResponse;
@@ -20,15 +20,32 @@ struct WatcherInner {
 
 pub struct FileDataSource {
     file_path: PathBuf,
+    file_format: &'static str,
     watcher: Mutex<Option<WatcherInner>>,
 }
 
 impl FileDataSource {
-    pub fn new(file_path: PathBuf) -> Self {
-        Self {
+    pub fn new(file_path: PathBuf) -> std::result::Result<Self, String> {
+        let file_format = match file_path
+            .extension()
+            .and_then(|ext| ext.to_str())
+            .map(|s| s.to_lowercase())
+        {
+            Some(ref ext) if ext == "json" => "json",
+            Some(ref ext) if ext == "toml" => "toml",
+            Some(ext) => return Err(format!("Unsupported file extension '{}'.", ext)),
+            None => {
+                return Err(
+                    "File path must have an extension to determine format.".into()
+                );
+            }
+        };
+
+        Ok(Self {
             file_path,
+            file_format,
             watcher: Mutex::new(None),
-        }
+        })
     }
 }
 
@@ -51,12 +68,20 @@ impl SuperpositionDataSource for FileDataSource {
                 ))
             })?;
 
-        let config = TomlFormat::parse_config(&content).map_err(|e| {
-            SuperpositionError::ConfigError(format!("Failed to parse TOML config: {}", e))
+        let parser = match self.file_format.to_lowercase().as_str() {
+            "json" => JsonFormat::parse_config,
+            _ => TomlFormat::parse_config,
+        };
+        let config = parser(&content).map_err(|e| {
+            SuperpositionError::ConfigError(format!(
+                "Failed to parse {} config: {}",
+                self.file_format.to_uppercase(),
+                e
+            ))
         })?;
 
         Ok(FetchResponse::Data(ConfigData {
-            config,
+            data: config,
             fetched_at: now,
         }))
     }
@@ -71,7 +96,7 @@ impl SuperpositionDataSource for FileDataSource {
             .fetch_config(if_modified_since)
             .await?
             .map_data(|mut data| {
-                data.config = data.config.filter(
+                data.data = data.data.filter(
                     context.as_ref(),
                     prefix_filter.map(|p| p.into_iter().collect()).as_ref(),
                 );

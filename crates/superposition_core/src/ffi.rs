@@ -219,6 +219,35 @@ fn ffi_parse_json_config(json_content: String) -> Result<Config, OperationError>
         .map_err(|e| OperationError::Unexpected(e.to_string()))
 }
 
+#[uniffi::export]
+fn ffi_parse_config_file_with_filters(
+    file_content: String,
+    format: String,
+    dimension_data: Option<HashMap<String, String>>,
+    prefix: Option<Vec<String>>,
+) -> Result<Config, OperationError> {
+    let dimension_data = dimension_data
+        .map(json_from_map)
+        .transpose()
+        .map_err(|err| OperationError::Unexpected(err.to_string()))?;
+    let prefix_list = prefix.map(HashSet::from_iter);
+
+    let config = match format.to_lowercase().as_str() {
+        "json" => JsonFormat::parse_config(&file_content)
+            .map_err(|e| OperationError::Unexpected(e.to_string()))?,
+        "toml" => TomlFormat::parse_config(&file_content)
+            .map_err(|e| OperationError::Unexpected(e.to_string()))?,
+        _ => {
+            return Err(OperationError::Unexpected(format!(
+                "Unsupported format: {}. Supported formats are 'json' and 'toml'.",
+                format
+            )));
+        }
+    };
+
+    Ok(config.filter(dimension_data.as_ref(), prefix_list.as_ref()))
+}
+
 #[derive(Default)]
 pub struct CacheData {
     pub config: Config,
@@ -394,5 +423,50 @@ impl ProviderCache {
                 &dimension_data,
             ),
         })
+    }
+
+    fn get_applicable_variants(
+        &self,
+        dimension_data: Option<HashMap<String, String>>,
+        prefix: Option<Vec<String>>,
+        targeting_key: String,
+    ) -> Result<Vec<String>, OperationError> {
+        let dimension_data = dimension_data
+            .map(json_from_map)
+            .transpose()
+            .map_err(|err| OperationError::Unexpected(err.to_string()))?
+            .unwrap_or_default();
+
+        let (exps, exp_grps, dimensions_info) = {
+            let cache_data = self.data.lock().map_err(|err| {
+                OperationError::Unexpected(format!(
+                    "Failed to acquire cache lock: {}",
+                    err
+                ))
+            })?;
+
+            let exp_config = cache_data.experiment.as_ref().ok_or_else(|| {
+                OperationError::Unexpected(
+                    "Experiment configuration not initialized".to_string(),
+                )
+            })?;
+
+            (
+                exp_config.experiments.clone(),
+                exp_config.experiment_groups.clone(),
+                cache_data.config.dimensions.clone(),
+            )
+        };
+
+        let variants = get_applicable_variants(
+            &dimensions_info,
+            exps,
+            &exp_grps,
+            &dimension_data,
+            &targeting_key,
+            prefix,
+        );
+
+        Ok(variants)
     }
 }
