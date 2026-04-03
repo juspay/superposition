@@ -4,18 +4,14 @@ import weakref
 from decimal import Decimal
 from typing import Any, Dict, Optional, TypeVar
 
+from .conversions import to_dimension_type, document_to_python_value
 from .types import OnDemandStrategy, PollingStrategy, SuperpositionOptions, ConfigurationOptions
 from superposition_sdk.client import Superposition, GetConfigInput
 from superposition_sdk.config import Config
 from superposition_sdk.auth_helpers import bearer_auth_config
-from superposition_sdk.models import (
-    DimensionType as SDKDimensionType,
-    DimensionTypeLOCAL_COHORT,
-    DimensionTypeREMOTE_COHORT,
-)
 import asyncio
 from datetime import datetime, timedelta
-from superposition_bindings.superposition_types import Context, DimensionInfo, DimensionType
+from superposition_bindings.superposition_types import Context, DimensionInfo
 
 T = TypeVar("T")
 logger = logging.getLogger(__name__)
@@ -34,54 +30,6 @@ class DecimalEncoder(json.JSONEncoder):
 def safe_json_dumps(obj: Any) -> str:
     """Safely serialize object to JSON, handling Decimal types"""
     return json.dumps(obj, cls=DecimalEncoder)
-
-def document_to_python_value(doc: Document) -> Any:
-    """Recursively unwrap smithy_core.Document into plain Python values."""
-    if doc.is_none():
-        return None
-
-    match doc.shape_type:
-        case ShapeType.BOOLEAN:
-            return doc.as_boolean()
-        case ShapeType.STRING:
-            return doc.as_string()
-        case ShapeType.BLOB:
-            return doc.as_blob()
-        case ShapeType.TIMESTAMP:
-            return doc.as_timestamp()
-        case ShapeType.BYTE | ShapeType.SHORT | ShapeType.INTEGER | ShapeType.LONG | ShapeType.BIG_INTEGER:
-            return doc.as_integer()
-        case ShapeType.FLOAT | ShapeType.DOUBLE:
-            return doc.as_float()
-        case ShapeType.BIG_DECIMAL:
-            # Convert Decimal to float for JSON compatibility
-            decimal_val = doc.as_decimal()
-            return float(decimal_val) if decimal_val is not None else None
-        case ShapeType.LIST:
-            return [document_to_python_value(e) for e in doc.as_list()]
-        case ShapeType.STRUCTURE | ShapeType.UNION | ShapeType.MAP:
-            return {
-                key: document_to_python_value(value)
-                for key, value in doc.as_map().items()
-            }
-        case _:
-            # Fallback to doc.as_value() if unknown shape or primitive
-            val = doc.as_value()
-            # Handle Decimal in fallback case too
-            if isinstance(val, Decimal):
-                return float(val)
-            return val
-
-def to_dimension_type(sdk_dim_type: SDKDimensionType) -> DimensionType:
-    match sdk_dim_type:
-        case DimensionTypeLOCAL_COHORT():
-            return DimensionType.LOCAL_COHORT(sdk_dim_type.value)
-
-        case DimensionTypeREMOTE_COHORT():
-            return DimensionType.REMOTE_COHORT(sdk_dim_type.value)
-
-        case _:
-            return DimensionType.REGULAR()
 
 def convert_fallback_config(fallback_config: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
     """Convert fallback config to the expected format."""

@@ -501,6 +501,8 @@ def _uniffi_check_api_checksums(lib):
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_superposition_core_checksum_func_ffi_get_applicable_variants() != 58234:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    if lib.uniffi_superposition_core_checksum_func_ffi_parse_config_file_with_filters() != 63728:
+        raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_superposition_core_checksum_func_ffi_parse_json_config() != 30321:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_superposition_core_checksum_func_ffi_parse_toml_config() != 1558:
@@ -510,6 +512,8 @@ def _uniffi_check_api_checksums(lib):
     if lib.uniffi_superposition_core_checksum_method_providercache_filter_config() != 21761:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_superposition_core_checksum_method_providercache_filter_experiment() != 60575:
+        raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    if lib.uniffi_superposition_core_checksum_method_providercache_get_applicable_variants() != 12269:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_superposition_core_checksum_method_providercache_init_config() != 28151:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
@@ -660,6 +664,14 @@ _UniffiLib.uniffi_superposition_core_fn_method_providercache_filter_experiment.a
     ctypes.POINTER(_UniffiRustCallStatus),
 )
 _UniffiLib.uniffi_superposition_core_fn_method_providercache_filter_experiment.restype = _UniffiRustBuffer
+_UniffiLib.uniffi_superposition_core_fn_method_providercache_get_applicable_variants.argtypes = (
+    ctypes.c_void_p,
+    _UniffiRustBuffer,
+    _UniffiRustBuffer,
+    _UniffiRustBuffer,
+    ctypes.POINTER(_UniffiRustCallStatus),
+)
+_UniffiLib.uniffi_superposition_core_fn_method_providercache_get_applicable_variants.restype = _UniffiRustBuffer
 _UniffiLib.uniffi_superposition_core_fn_method_providercache_init_config.argtypes = (
     ctypes.c_void_p,
     _UniffiRustBuffer,
@@ -708,6 +720,14 @@ _UniffiLib.uniffi_superposition_core_fn_func_ffi_get_applicable_variants.argtype
     ctypes.POINTER(_UniffiRustCallStatus),
 )
 _UniffiLib.uniffi_superposition_core_fn_func_ffi_get_applicable_variants.restype = _UniffiRustBuffer
+_UniffiLib.uniffi_superposition_core_fn_func_ffi_parse_config_file_with_filters.argtypes = (
+    _UniffiRustBuffer,
+    _UniffiRustBuffer,
+    _UniffiRustBuffer,
+    _UniffiRustBuffer,
+    ctypes.POINTER(_UniffiRustCallStatus),
+)
+_UniffiLib.uniffi_superposition_core_fn_func_ffi_parse_config_file_with_filters.restype = _UniffiRustBufferConfig
 _UniffiLib.uniffi_superposition_core_fn_func_ffi_parse_json_config.argtypes = (
     _UniffiRustBuffer,
     ctypes.POINTER(_UniffiRustCallStatus),
@@ -995,6 +1015,9 @@ _UniffiLib.uniffi_superposition_core_checksum_func_ffi_eval_config_with_reasonin
 _UniffiLib.uniffi_superposition_core_checksum_func_ffi_get_applicable_variants.argtypes = (
 )
 _UniffiLib.uniffi_superposition_core_checksum_func_ffi_get_applicable_variants.restype = ctypes.c_uint16
+_UniffiLib.uniffi_superposition_core_checksum_func_ffi_parse_config_file_with_filters.argtypes = (
+)
+_UniffiLib.uniffi_superposition_core_checksum_func_ffi_parse_config_file_with_filters.restype = ctypes.c_uint16
 _UniffiLib.uniffi_superposition_core_checksum_func_ffi_parse_json_config.argtypes = (
 )
 _UniffiLib.uniffi_superposition_core_checksum_func_ffi_parse_json_config.restype = ctypes.c_uint16
@@ -1010,6 +1033,9 @@ _UniffiLib.uniffi_superposition_core_checksum_method_providercache_filter_config
 _UniffiLib.uniffi_superposition_core_checksum_method_providercache_filter_experiment.argtypes = (
 )
 _UniffiLib.uniffi_superposition_core_checksum_method_providercache_filter_experiment.restype = ctypes.c_uint16
+_UniffiLib.uniffi_superposition_core_checksum_method_providercache_get_applicable_variants.argtypes = (
+)
+_UniffiLib.uniffi_superposition_core_checksum_method_providercache_get_applicable_variants.restype = ctypes.c_uint16
 _UniffiLib.uniffi_superposition_core_checksum_method_providercache_init_config.argtypes = (
 )
 _UniffiLib.uniffi_superposition_core_checksum_method_providercache_init_config.restype = ctypes.c_uint16
@@ -1723,6 +1749,8 @@ class ProviderCacheProtocol(typing.Protocol):
         raise NotImplementedError
     def filter_experiment(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]"):
         raise NotImplementedError
+    def get_applicable_variants(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]",targeting_key: "str"):
+        raise NotImplementedError
     def init_config(self, default_config: "dict[str, str]",contexts: "typing.List[Context]",overrides: "dict[str, Overrides]",dimensions: "dict[str, DimensionInfo]"):
         raise NotImplementedError
     def init_experiments(self, experiments: "typing.List[FfiExperiment]",experiment_groups: "typing.List[FfiExperimentGroup]"):
@@ -1797,6 +1825,24 @@ class ProviderCache():
             _uniffi_rust_call_with_error(_UniffiConverterTypeOperationError,_UniffiLib.uniffi_superposition_core_fn_method_providercache_filter_experiment,self._uniffi_clone_pointer(),
         _UniffiConverterOptionalMapStringString.lower(dimension_data),
         _UniffiConverterOptionalSequenceString.lower(prefix))
+        )
+
+
+
+
+
+    def get_applicable_variants(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]",targeting_key: "str") -> "typing.List[str]":
+        _UniffiConverterOptionalMapStringString.check_lower(dimension_data)
+        
+        _UniffiConverterOptionalSequenceString.check_lower(prefix)
+        
+        _UniffiConverterString.check_lower(targeting_key)
+        
+        return _UniffiConverterSequenceString.lift(
+            _uniffi_rust_call_with_error(_UniffiConverterTypeOperationError,_UniffiLib.uniffi_superposition_core_fn_method_providercache_get_applicable_variants,self._uniffi_clone_pointer(),
+        _UniffiConverterOptionalMapStringString.lower(dimension_data),
+        _UniffiConverterOptionalSequenceString.lower(prefix),
+        _UniffiConverterString.lower(targeting_key))
         )
 
 
@@ -1964,6 +2010,22 @@ def ffi_get_applicable_variants(eargs: "ExperimentationArgs",dimensions_info: "d
         _UniffiConverterOptionalSequenceString.lower(prefix)))
 
 
+def ffi_parse_config_file_with_filters(file_content: "str",format: "str",dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]") -> "Config":
+    _UniffiConverterString.check_lower(file_content)
+    
+    _UniffiConverterString.check_lower(format)
+    
+    _UniffiConverterOptionalMapStringString.check_lower(dimension_data)
+    
+    _UniffiConverterOptionalSequenceString.check_lower(prefix)
+    
+    return _UniffiConverterTypeConfig.lift(_uniffi_rust_call_with_error(_UniffiConverterTypeOperationError,_UniffiLib.uniffi_superposition_core_fn_func_ffi_parse_config_file_with_filters,
+        _UniffiConverterString.lower(file_content),
+        _UniffiConverterString.lower(format),
+        _UniffiConverterOptionalMapStringString.lower(dimension_data),
+        _UniffiConverterOptionalSequenceString.lower(prefix)))
+
+
 def ffi_parse_json_config(json_content: "str") -> "Config":
     """
     Parse JSON configuration string
@@ -2041,6 +2103,7 @@ __all__ = [
     "ffi_eval_config",
     "ffi_eval_config_with_reasoning",
     "ffi_get_applicable_variants",
+    "ffi_parse_config_file_with_filters",
     "ffi_parse_json_config",
     "ffi_parse_toml_config",
     "ProviderCache",

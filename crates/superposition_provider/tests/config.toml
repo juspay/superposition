@@ -1,0 +1,59 @@
+[default-configs]
+currency = { value = "Rupee", schema = { enum = [
+    "Rupee",
+    "Dollar",
+    "Euro",
+], type = "string" } }
+price = { value = 10000, schema = { minimum = 0, type = "number" } }
+
+
+[dimensions]
+city = { position = 3, schema = { type = "string" }, type = "REGULAR" }
+customers = { position = 1, schema = { definitions = { gold = { in = [
+    { var = "name" },
+    [
+        "Angit",
+        "Bhrey",
+    ],
+] }, platinum = { in = [
+    { var = "name" },
+    [
+        "Agush",
+        "Sauyav",
+    ],
+] } }, enum = [
+    "platinum",
+    "gold",
+    "otherwise",
+], type = "string" }, type = "LOCAL_COHORT:name" }
+name = { position = 2, schema = { type = "string" }, type = "REGULAR" }
+variantIds = { position = 0, schema = { pattern = ".*", type = "string" }, type = "REGULAR" }
+
+
+[[overrides]]
+_context_ = { customers = "platinum" }
+price = 5000
+
+[[overrides]]
+_context_ = { customers = "gold" }
+price = 8000
+
+[[overrides]]
+_context_ = { name = "karbik" }
+price = 1
+
+[[overrides]]
+_context_ = { city = "Boston" }
+currency = "Dollar"
+
+[[overrides]]
+_context_ = { city = "Berlin" }
+currency = "Euro"
+
+[[overrides]]
+_context_ = { city = "Kolkata", variantIds = "7445772794710855680-test-control" }
+price = 8000
+
+[[overrides]]
+_context_ = { city = "Kolkata", variantIds = "7445772794710855680-test-experimental" }
+price = 7000
