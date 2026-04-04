@@ -4322,7 +4322,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Secrets"
+                ]
             },
             "post": {
                 "description": "Creates a new encrypted secret with the specified name and value. The secret is encrypted with the workspace's current encryption key. Secret values are never returned in responses for security.",
@@ -4376,7 +4379,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Secrets"
+                ]
             }
         },
         "/secrets/{name}": {
@@ -4433,7 +4439,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Secrets"
+                ]
             },
             "get": {
                 "description": "Retrieves detailed information about a specific secret by its name. The value is masked for security.",
@@ -4488,7 +4497,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Secrets"
+                ]
             },
             "patch": {
                 "description": "Updates an existing secret's value or description. The value is re-encrypted with the current workspace encryption key. Returns masked value.",
@@ -4553,7 +4565,10 @@
                             }
                         }
                     }
-                }
+                },
+                "tags": [
+                    "Secrets"
+                ]
             }
         },
         "/superposition/organisations": {
