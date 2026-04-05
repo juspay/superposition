@@ -1,0 +1,427 @@
+.slide {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    padding: 1rem;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-display);
+    box-sizing: border-box;
+    justify-content: center;
+    align-items: center;
+}
+
+.title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0 0 0.25rem;
+    color: var(--text-primary);
+    flex-shrink: 0;
+    align-self: flex-start;
+}
+
+.subtitle {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin: 0 0 1.5rem;
+    flex-shrink: 0;
+    align-self: flex-start;
+}
+
+.demo {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    max-width: 1000px;
+    padding-right: 12px;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Editor */
+.editor {
+    background: #1e1e2e;
+    border-radius: 12px;
+    overflow: hidden;
+    min-width: min(280px, 45%);
+    flex: 1;
+    max-width: 50%;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+}
+
+.editorHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: #2a2a3e;
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.red {
+    background: #ff5f57;
+}
+
+.yellow {
+    background: #febc2e;
+}
+
+.green {
+    background: #28c840;
+}
+
+.filename {
+    flex: 1;
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+}
+
+.editorBody {
+    padding: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    line-height: 1.8;
+}
+
+.codeLine {
+    display: flex;
+    align-items: center;
+    padding: 0.25rem 0;
+}
+
+.highlightLine {
+    background: rgba(239, 68, 68, 0.1);
+    margin: 0 -1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    border-left: 3px solid var(--danger);
+}
+
+.lineNum {
+    color: var(--text-muted);
+    min-width: 2rem;
+    text-align: right;
+    margin-right: 1rem;
+    user-select: none;
+}
+
+.codeContent {
+    color: var(--text-primary);
+}
+
+.jsonKey {
+    color: #60a5fa;
+}
+
+.typeChange {
+    position: relative;
+    display: inline-block;
+}
+
+.valueBefore,
+.valueAfter {
+    display: inline-block;
+    transition:
+        opacity 0.5s,
+        transform 0.5s;
+}
+
+.valueBefore {
+    color: #34d399;
+}
+
+.valueAfter {
+    position: absolute;
+    left: 0;
+    color: var(--danger);
+    opacity: 0;
+    transform: translateY(-10px);
+}
+
+.changed .valueBefore {
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.changed .valueAfter {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Arrow */
+.arrow {
+    color: var(--text-muted);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.arrow svg {
+    width: 40px;
+    height: 16px;
+}
+
+/* Result Cards */
+.results {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: min(180px, 40%);
+    flex: 1;
+}
+
+.card {
+    background: var(--bg-secondary);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    text-align: center;
+    position: relative;
+}
+
+.before {
+    border-color: rgba(34, 197, 94, 0.3);
+}
+
+.after {
+    border-color: rgba(239, 68, 68, 0.3);
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.label {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+}
+
+.card code {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.card code strong {
+    color: #34d399;
+}
+
+.after code strong {
+    color: var(--danger);
+}
+
+.output {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--success);
+}
+
+.output.error {
+    color: var(--danger);
+}
+
+.badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: var(--danger);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    animation: pulse-badge 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-badge {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+/* Explanation */
+.explanation {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 2rem;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 100px;
+    max-width: 600px;
+    margin-top: 2rem;
+    flex-shrink: 0;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.explanationIcon {
+    width: 32px;
+    height: 32px;
+    color: var(--danger);
+    flex-shrink: 0;
+}
+
+.explanationIcon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.explanation p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.explanation strong {
+    color: var(--danger);
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+    .demo {
+        gap: 1.5rem;
+    }
+
+    .editor {
+        min-width: min(260px, 90%);
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 500px) {
+    .slide {
+        padding: 0.75rem;
+    }
+
+    .title {
+        font-size: 1.1rem;
+    }
+
+    .subtitle {
+        font-size: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .demo {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .arrow {
+        transform: rotate(90deg);
+    }
+
+    .arrow svg {
+        width: 40px;
+        height: 16px;
+    }
+
+    .editor {
+        min-width: 100%;
+        max-width: 100%;
+    }
+
+    .editorHeader {
+        padding: 0.5rem 0.75rem;
+        gap: 0.35rem;
+    }
+
+    .dot {
+        width: 10px;
+        height: 10px;
+    }
+
+    .filename {
+        font-size: 0.7rem;
+    }
+
+    .editorBody {
+        padding: 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    .codeLine {
+        padding: 0.15rem 0;
+    }
+
+    .highlightLine {
+        margin: 0 -0.75rem;
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+    .lineNum {
+        min-width: 1.5rem;
+        margin-right: 0.75rem;
+    }
+
+    .results {
+        flex-direction: row;
+        width: 100%;
+        gap: 0.75rem;
+        min-width: unset;
+    }
+
+    .card {
+        flex: 1;
+        padding: 0.75rem 1rem;
+    }
+
+    .label {
+        font-size: 0.6rem;
+    }
+
+    .card code {
+        font-size: 0.75rem;
+    }
+
+    .output {
+        font-size: 1.25rem;
+    }
+
+    .badge {
+        font-size: 0.55rem;
+        padding: 0.2rem 0.4rem;
+        top: -6px;
+        right: -6px;
+    }
+
+    .explanation {
+        padding: 0.75rem 1.5rem;
+        gap: 0.75rem;
+        border-radius: 50px;
+        margin-top: 1rem;
+    }
+
+    .explanationIcon {
+        width: 24px;
+        height: 24px;
+    }
+
+    .explanation p {
+        font-size: 0.8rem;
+    }
+}

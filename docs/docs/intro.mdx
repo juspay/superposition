@@ -3,6 +3,10 @@ sidebar_position: 1
 title: Introduction
 slug: /
 ---
+
+import AnimationSlide from '@site/src/components/AnimationSlide';
+import { TypeSafetyDemo, InvalidValuesDemo, BlastRadiusDemo } from '@site/src/components/animations';
+
 Superposition is a configuration and experimentation management platform that allows software teams to manage their configurations safely and allows them to run multi-variate experiments on those configurations. Superposition places a strong emphasis on safety of configuration changes.  
 
 ## Why use Superposition?
@@ -17,13 +21,17 @@ In this section, lets talk about when you would want to use Superposition over t
 
 ### Cascading
 
-The big differentiator for Superposition is its ability to cascade configurations based on the context matched from the query sent by the application. You can learn more about [overrides add proper link](link), which reduces the number of configurations you need to create to achieve a desired state. [Cascading Style Sheets (CSS)](https://juspay.io/superposition/docs/basic-concepts/context-aware-config#analogy-with-css) is a good mental model to understand this behaviour. 
+The big differentiator for Superposition is its ability to cascade configurations based on the context matched from the query sent by the application. You can learn more about [overrides](./basic-concepts/context-aware-config/overrides.mdx), which reduces the number of configurations you need to create to achieve a desired state. [Cascading Style Sheets (CSS)](https://juspay.io/superposition/docs/basic-concepts/context-aware-config#analogy-with-css) is a good mental model to understand this behaviour. 
 
 As far as we know, no other way to configuration complex applications have this feature. This is why we built Superposition.
 
 ### Strong Typing
 
 Superposition supports strong and flexible typing via jsonschema. 
+
+<AnimationSlide width={800} height={600} mode="auto" loop={true} loopDelay={3000}>
+  <TypeSafetyDemo />
+</AnimationSlide>
 
 - ENVs
 
@@ -51,7 +59,11 @@ Superposition supports strong and flexible typing via jsonschema.
 
 ### Correctness 
 
-Even if the type of a config value is correct, is the value appropriate? For example, how do you an ensure a URL whose type is string is actually valid? Superposition does this with [functions](functions)
+Even if the type of a config value is correct, is the value appropriate? For example, how do you an ensure a URL whose type is string is actually valid? Superposition does this with [functions](./basic-concepts/safety/functions.mdx)
+
+<AnimationSlide width={800} height={650} mode="auto" loop={true} loopDelay={5000}>
+  <InvalidValuesDemo />
+</AnimationSlide>
 
 - ENVs
 
@@ -68,6 +80,10 @@ Even if the type of a config value is correct, is the value appropriate? For exa
 ### Staggering Releases
 
 Superposition lets you stagger configuration changes, letting you catch issues early or experiment with a particular value and making sure it achieves your desired outcome. 
+
+<AnimationSlide width={900} height={750} mode="auto" loop={true} loopDelay={20000}>
+  <BlastRadiusDemo />
+</AnimationSlide>
 
 - Envs & Databases
 
@@ -92,7 +108,7 @@ Once you run this command, you can access the Superposition admin interface at `
 
 ### Integrating Superposition in your application
 
-Once you have played with the Superposition admin interface, you may want to consume the configuration in your application.  Superposition is [OpenFeature](https://openfeature.dev/docs/reference/concepts/provider) compatible.  OpenFeature allows your application code to remain agnostic of the underlying configuration/feature-flag platform (like [open telemetry](https://opentelemetry.io/) for telemetry).  The [quick start guide](https://juspay.io/superposition/docs/quick_start) has details on how to integrate and consume configurations (setup in Superposition) in your application using the Superposition Open Feature provider.
+Once you have played with the Superposition admin interface, you may want to consume the configuration in your application.  Superposition is [OpenFeature](https://openfeature.dev/docs/reference/concepts/provider) compatible.  OpenFeature allows your application code to remain agnostic of the underlying configuration/feature-flag platform (like [open telemetry](https://opentelemetry.io/) for telemetry).  The [quick start guide](./quick_start.mdx) has details on how to integrate and consume configurations (setup in Superposition) in your application using the Superposition Open Feature provider.
 
 ## Superposition Providers
 

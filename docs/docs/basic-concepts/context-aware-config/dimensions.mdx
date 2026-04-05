@@ -1,0 +1,212 @@
+---
+sidebar_position: 2
+title: Dimensions
+description: Parameters/Attributes of A Domain
+---
+
+import AnimationSlide from '@site/src/components/AnimationSlide';
+import { DimensionsDemo } from '@site/src/components/animations';
+
+Dimensions are attributes of your domain that can potentially govern the values that a particular configuration can take. They define the segmentation criteria used to create different contexts for configuration overrides.
+
+<AnimationSlide width={900} height={800} mode="auto" loop={false}>
+  <DimensionsDemo />
+</AnimationSlide>
+
+In our example application, dimensions that could change the configuration values could be one or more of the following:
+
+1. `city` - city where the user is hailing the ride - e.g. Bangalore (India), Delhi (India)
+2. `vehicle_type` - type of vehicle  the user is hailing - e.g. cab (4-wheeler), auto (3-wheeler), bike (2-wheeler)
+3. `hour_of_day` - a number ranging between 0 and 23 denoting the hour of the day the ride is taken
+
+The value of the default configuration could change based on which city the user is hailing the ride and the hour of the day.
+
+```toml
+[dimensions]
+city = { schema = { "type" = "string", "enum" = ["Bangalore", "Delhi"] } }
+vehicle_type = { schema = { "type" = "string", "enum" = [
+    "auto",
+    "cab",
+    "bike",
+] } }
+hour_of_day = { schema = { "type" = "integer", "minimum" = 0, "maximum" = 23 }}
+```
+
+## Dimension Properties
+
+Each dimension has several key properties that control its behavior:
+
+- **Schema**: JSON Schema definition that validates the values this dimension can accept
+- **Position**: Hierarchical ordering that determines evaluation precedence (position 0 is reserved for `variantIds`)
+- **Dependencies**: Other dimensions that this dimension depends on for evaluation
+- **Functions**: Optional validation and autocomplete functions for custom logic
+- **Description**: Human-readable explanation of the dimension's purpose
+
+## Dimension Hierarchy and Dependencies
+
+Dimensions can have dependencies on other dimensions, creating a hierarchy that ensures proper evaluation order:
+
+```toml
+[dimensions]
+# Base dimension - no dependencies
+region = { schema = { "type" = "string", "enum" = ["north", "south"] } }
+
+# Depends on region
+city = { 
+    schema = { "type" = "string", "enum" = ["delhi", "mumbai", "bangalore", "hyderabad"] },
+    dependencies = ["region"]
+}
+
+# Depends on city
+zone = { 
+    schema = { "type" = "string" },
+    dependencies = ["city"]
+}
+```
+
+This hierarchy ensures that:
+- `region` is evaluated first (lowest position)
+- `city` is evaluated after `region` is available
+- `zone` is evaluated after both `region` and `city` are available
+
+## Built-in Dimensions
+
+Every workspace automatically includes the `variantIds` dimension:
+
+- **variantIds**: Reserved dimension (position 0) used for experimentation and A/B testing
+- **Schema**: Array of strings representing experiment variant identifiers
+- **Usage**: Automatically populated during experiment evaluation
+
+## Dimension Correctness with Functions
+
+Two functions that can be linked with dimensions to ensure correctness:
+
+- Value Validation
+- Value Compute
+
+To learn more about these, check out [functions](./basic-concepts/safety/functions.mdx)
+
+## Cohort Dimensions
+
+Cohort dimensions allow you to **derive a new dimension from an existing one**, grouping raw values into meaningful segments. Instead of writing contexts against every possible value of a dimension, you define cohort rules that bucket values into named groups automatically.
+
+There are two types of cohort dimensions:
+
+| Type | Evaluation | Schema | Value Compute Function | Use Case |
+|------|-----------|--------|----------------------|----------|
+| **Local Cohort** | Client-side (SDK) | JSONLogic rules in `definitions` | Not allowed | Simple, rule-based grouping with no external dependencies |
+| **Remote Cohort** | Server-side (API) | Standard JSON Schema | **Required** | Complex grouping that needs database lookups or external calls |
+
+### Key Rules for All Cohort Dimensions
+
+- A cohort dimension must be **based on** exactly one existing dimension (the parent).
+- The parent dimension **cannot** itself be a Local Cohort.
+- The cohort dimension's **position** must be less than or equal to (on create) or strictly less than (on update) the parent dimension's position, ensuring the cohort is evaluated at a higher priority.
+- Deleting a dimension that has cohort dimensions depending on it is **not allowed** — you must delete the cohorts first.
+- When a cohort dimension is created or deleted, the **dependency graph** of the parent dimension and its ancestors is automatically updated.
+
+### Local Cohort
+
+A **Local Cohort** dimension defines its grouping logic entirely within its schema using [JSONLogic](https://jsonlogic.com/) rules. Because the rules are embedded in the schema, SDKs and clients can evaluate local cohorts **without making any server calls** — making them fast and self-contained.
+
+#### Schema Structure
+
+A local cohort schema has two parts:
+
+1. **`enum`** — an array of allowed cohort names, which must always include `"otherwise"` as a fallback.
+2. **`definitions`** — an object mapping each cohort name (except `"otherwise"`) to a JSONLogic expression that references the parent dimension.
+
+#### Example
+
+Suppose you have a `city` dimension and you want to create a `region` cohort that groups cities into regions:
+
+```json
+{
+  "enum": ["north", "south", "otherwise"],
+  "definitions": {
+    "north": { "in": [{ "var": "city" }, ["delhi", "jaipur", "lucknow"]] },
+    "south": { "in": [{ "var": "city" }, ["bangalore", "hyderabad", "chennai"]] }
+  }
+}
+```
+
+With this schema and `dimension_type` set to `LOCAL_COHORT:city`:
+
+- If `city = "bangalore"`, then `region` evaluates to `"south"`.
+- If `city = "delhi"`, then `region` evaluates to `"north"`.
+- If `city = "pune"` (no matching rule), then `region` evaluates to `"otherwise"`.
+
+#### How Evaluation Works
+
+During config resolution (both client-side and server-side), local cohorts are evaluated **before** context matching:
+
+1. The system walks the dependency graph starting from the dimensions present in the query.
+2. For each local cohort dimension encountered, it evaluates the JSONLogic rules in enum order against the parent dimension's value from the query.
+3. The first rule that returns `true` determines the cohort value. If no rule matches, the value defaults to `"otherwise"`.
+4. The computed cohort value is injected into the query data, making it available for context matching.
+
+#### Validation Rules
+
+- The `definitions` field must be a non-empty object.
+- Every key in `definitions` must have a corresponding entry in the `enum` array.
+- All JSONLogic expressions across the definitions must reference **exactly one** dimension, and it must match the declared parent (`cohort_based_on`).
+- A **Value Compute function** must **not** be provided for local cohort dimensions (since evaluation is schema-driven).
+
+### Remote Cohort
+
+A **Remote Cohort** dimension uses a server-side **Value Compute function** to determine the cohort value. This is useful when the grouping logic requires database lookups, API calls, or other computations that cannot be expressed as simple JSONLogic rules embedded in a schema.
+
+#### Schema
+
+Unlike local cohorts, a remote cohort's schema is a **standard JSON Schema** (the same as a regular dimension). It does not contain `definitions` or JSONLogic rules — the logic lives in the linked function instead.
+
+```json
+{
+  "type": "string",
+  "enum": ["premium", "standard", "new"]
+}
+```
+
+#### Value Compute Function (Required)
+
+Every remote cohort **must** have a published Value Compute function. This function receives:
+
+- The **parent dimension name** (the `key`)
+- The current **context** (all dimension values available so far)
+- Any **overrides** applicable
+
+It returns the computed cohort value.
+
+#### Example
+
+Suppose you have a `user_id` dimension and want to create a `user_tier` cohort that classifies users based on data in your database:
+
+1. Create the Value Compute function (e.g., `compute_user_tier`) that looks up the user's tier from a data source.
+2. Create the remote cohort dimension with `dimension_type` set to `REMOTE_COHORT:user_id` and `value_compute_function_name` set to `compute_user_tier`.
+
+#### How Evaluation Works
+
+Remote cohorts are evaluated **server-side only** and must be explicitly opted into during config resolution by setting `resolve_remote = true` in the query:
+
+1. The system walks the dependency graph starting from regular and remote cohort dimensions present in the query.
+2. For each remote cohort encountered, it fetches and executes the published Value Compute function, passing the current context.
+3. The function's return value becomes the cohort dimension's value in the query data.
+4. Local cohort values from the query are passed through unchanged during remote evaluation.
+
+#### Validation Rules
+
+- The schema must be a valid JSON Schema with primitive types (same rules as regular dimensions).
+- The parent dimension must exist and must **not** be a Local Cohort.
+- A published **Value Compute function** is **required** — creation will fail without one.
+
+### Choosing Between Local and Remote Cohorts
+
+Use a **Local Cohort** when:
+- The grouping logic can be expressed as simple rules (e.g., value-in-list, range checks).
+- You want cohort evaluation to happen on the **client side** for speed and offline support.
+- No external data or API calls are needed.
+
+Use a **Remote Cohort** when:
+- The grouping logic requires **database lookups** or **external API calls**.
+- The logic is too complex for JSONLogic expressions.
+- You need the cohort value to be computed fresh on each server-side resolution.

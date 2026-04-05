@@ -1,0 +1,394 @@
+.slide {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    padding: 1rem;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-display);
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0 0 0.25rem;
+    color: var(--text-primary);
+    flex-shrink: 0;
+}
+
+.subtitle {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin: 0 0 1.5rem;
+    flex-shrink: 0;
+}
+
+.blastDemo {
+    width: 100%;
+    max-width: 900px;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.comparison {
+    display: flex;
+    align-items: stretch;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    align-content: center;
+}
+
+.panel {
+    flex: 1;
+    min-width: min(280px, 45%);
+    max-width: 50%;
+    background: var(--bg-secondary);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.panel h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+}
+
+.traditional {
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.superposition {
+    border-color: rgba(34, 197, 94, 0.3);
+}
+
+.deployVisual {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.deploySwitch {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.switchLabel {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.switchToggle {
+    width: 50px;
+    height: 26px;
+}
+
+.toggleTrack {
+    width: 100%;
+    height: 100%;
+    background: var(--bg-tertiary);
+    border-radius: 13px;
+    position: relative;
+    transition: background 0.3s;
+}
+
+.traditional .toggleTrack {
+    background: var(--danger);
+}
+
+.toggleKnob {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: left 0.3s;
+}
+
+.traditional .toggleKnob {
+    left: 27px;
+}
+
+.gradualRollout {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    max-width: 150px;
+}
+
+.rolloutBar {
+    flex: 1;
+    height: 8px;
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.rolloutFill {
+    height: 100%;
+    background: var(--success);
+    border-radius: 4px;
+    transition: width 1s ease-out;
+}
+
+.rolloutPercent {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--success);
+    font-weight: 600;
+}
+
+.impactArrow {
+    height: 60px;
+    color: var(--danger);
+}
+
+.impactArrow.safe {
+    color: var(--success);
+}
+
+.impactArrow svg {
+    height: 100%;
+    width: 40px;
+}
+
+.userGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+}
+
+.userIcon {
+    font-size: 1.5rem;
+    opacity: 0.4;
+    transition:
+        opacity 0.3s,
+        filter 0.3s;
+}
+
+.userIcon.affected {
+    opacity: 1;
+    filter: hue-rotate(320deg) saturate(2);
+    animation: shake-user 0.5s ease-in-out;
+}
+
+.userIcon.safeAffected {
+    opacity: 1;
+    filter: hue-rotate(80deg) saturate(1.5);
+}
+
+@keyframes shake-user {
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-3px);
+    }
+    75% {
+        transform: translateX(3px);
+    }
+}
+
+.impactLabel {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    margin-top: 0.5rem;
+}
+
+.impactLabel.danger {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--danger);
+}
+
+.impactLabel.success {
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--success);
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.explanation {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1rem 2rem;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 100px;
+    max-width: 600px;
+    margin-top: auto;
+    align-self: center;
+    flex-shrink: 0;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.explanationIcon {
+    width: 32px;
+    height: 32px;
+    color: var(--danger);
+    flex-shrink: 0;
+}
+
+.explanationIcon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.explanation p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.explanation strong {
+    color: var(--danger);
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+    .comparison {
+        gap: 1rem;
+    }
+
+    .panel {
+        min-width: min(200px, 80%);
+        max-width: 90%;
+        padding: 1.25rem;
+    }
+}
+
+@media (max-width: 500px) {
+    .slide {
+        padding: 0.75rem;
+    }
+
+    .title {
+        font-size: 1.1rem;
+    }
+
+    .subtitle {
+        font-size: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .comparison {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .divider {
+        transform: rotate(90deg);
+        padding: 0.5rem 0;
+    }
+
+    .panel {
+        width: 100%;
+        max-width: 100%;
+        min-width: unset;
+        padding: 1rem;
+    }
+
+    .panel h3 {
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    .deployVisual {
+        gap: 0.75rem;
+    }
+
+    .switchLabel {
+        font-size: 0.75rem;
+    }
+
+    .switchToggle {
+        width: 44px;
+        height: 22px;
+    }
+
+    .toggleKnob {
+        width: 16px;
+        height: 16px;
+    }
+
+    .traditional .toggleKnob {
+        left: 23px;
+    }
+
+    .gradualRollout {
+        max-width: 120px;
+    }
+
+    .rolloutBar {
+        height: 6px;
+    }
+
+    .rolloutPercent {
+        font-size: 0.75rem;
+    }
+
+    .impactArrow {
+        height: 50px;
+    }
+
+    .impactArrow svg {
+        width: 32px;
+    }
+
+    .userGrid {
+        gap: 0.35rem;
+    }
+
+    .userIcon {
+        font-size: 1.25rem;
+    }
+
+    .impactLabel {
+        font-size: 0.7rem;
+        padding: 0.35rem 0.75rem;
+    }
+
+    .explanation {
+        padding: 0.75rem 1.5rem;
+        gap: 0.75rem;
+        border-radius: 50px;
+    }
+
+    .explanationIcon {
+        width: 24px;
+        height: 24px;
+    }
+
+    .explanation p {
+        font-size: 0.8rem;
+    }
+}

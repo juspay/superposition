@@ -1,0 +1,364 @@
+.slide {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    padding: 2rem;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-display);
+    box-sizing: border-box;
+}
+
+.title {
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    font-weight: 700;
+    margin: 0 0 0.5rem;
+    color: var(--text-primary);
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.subtitle {
+    font-size: clamp(0.875rem, 2vw, 1rem);
+    color: var(--text-secondary);
+    margin: 0 0 1.5rem;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.visual {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    width: 100%;
+}
+
+/* Controls */
+.controls {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 3rem;
+    margin-bottom: 0.5rem;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+.controlGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.controlGroup label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.controlGroup input[type="number"] {
+    width: 80px;
+    padding: 0.5rem 0.75rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    background: var(--bg-tertiary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: var(--text-primary);
+    text-align: center;
+}
+
+.controlGroup input[type="number"]:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.sliderGroup {
+    flex: 1;
+    max-width: 400px;
+}
+
+.controlGroup input[type="range"] {
+    width: 100%;
+    height: 8px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+    outline: none;
+}
+
+.controlGroup input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+
+.controlGroup input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+}
+
+.controlGroup input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+}
+
+/* Legend */
+.legend {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+}
+
+.legendItem {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.legendDot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.legendDot.production {
+    background: #6b7280;
+}
+
+.legendDot.control {
+    background: #3b82f6;
+}
+
+.legendDot.variant-1 {
+    background: #22c55e;
+}
+
+.legendDot.variant-2 {
+    background: #f59e0b;
+}
+
+.legendDot.variant-3 {
+    background: #ec4899;
+}
+
+.legendDot.variant-4 {
+    background: #8b5cf6;
+}
+
+/* Dots Grid */
+.dotsGrid {
+    display: grid;
+    grid-template-columns: repeat(20, 1fr);
+    gap: 8px;
+    padding: 1.5rem;
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto 1rem;
+    flex-shrink: 0;
+}
+
+.dot {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    transition:
+        background-color 0.3s ease,
+        transform 0.2s ease;
+}
+
+.dot.production {
+    background: #6b7280;
+}
+
+.dot.control {
+    background: #3b82f6;
+}
+
+.dot.variant-1 {
+    background: #22c55e;
+}
+
+.dot.variant-2 {
+    background: #f59e0b;
+}
+
+.dot.variant-3 {
+    background: #ec4899;
+}
+
+.dot.variant-4 {
+    background: #8b5cf6;
+}
+
+/* Distribution */
+.distribution {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+.distItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.75rem 1.25rem;
+    background: var(--bg-tertiary);
+    border-radius: 10px;
+    min-width: 90px;
+}
+
+.distItem.production {
+    border-left: 3px solid #6b7280;
+}
+
+.distItem.control {
+    border-left: 3px solid #3b82f6;
+}
+
+.distItem.variant[data-variant="1"] {
+    border-left: 3px solid #22c55e;
+}
+
+.distItem.variant[data-variant="2"] {
+    border-left: 3px solid #f59e0b;
+}
+
+.distItem.variant[data-variant="3"] {
+    border-left: 3px solid #ec4899;
+}
+
+.distItem.variant[data-variant="4"] {
+    border-left: 3px solid #8b5cf6;
+}
+
+.distLabel {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+}
+
+.distValue {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .slide {
+        padding: 1rem;
+    }
+
+    .controls {
+        gap: 1.5rem;
+    }
+
+    .sliderGroup {
+        min-width: 150px;
+    }
+
+    .legend {
+        gap: 0.75rem;
+    }
+
+    .legendItem {
+        font-size: 0.7rem;
+    }
+
+    .legendDot {
+        width: 10px;
+        height: 10px;
+    }
+
+    .dotsGrid {
+        max-width: 260px;
+        gap: 3px;
+    }
+
+    .distribution {
+        gap: 0.5rem;
+    }
+
+    .distItem {
+        padding: 0.5rem 0.75rem;
+        min-width: 70px;
+    }
+
+    .distLabel {
+        font-size: 0.6rem;
+    }
+
+    .distValue {
+        font-size: 0.9rem;
+    }
+
+    .title {
+        font-size: 1.25rem;
+    }
+
+    .subtitle {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .slide {
+        padding: 0.75rem;
+    }
+
+    .controls {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .sliderGroup {
+        width: 100%;
+        max-width: auto;
+    }
+
+    .legend {
+        gap: 0.5rem;
+    }
+
+    .dotsGrid {
+        max-width: 200px;
+        gap: 2px;
+    }
+
+    .distribution {
+        gap: 0.375rem;
+    }
+
+    .distItem {
+        padding: 0.4rem 0.6rem;
+        min-width: 55px;
+    }
+}
