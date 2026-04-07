@@ -18,6 +18,10 @@ import {
 } from "./experimentation-client";
 import { ExperimentationOptions } from "./types";
 
+const _cacheRegistry = new FinalizationRegistry((freeFn: () => void) => {
+    setImmediate(freeFn);
+});
+
 export class ConfigurationClient {
     private config: SuperpositionOptions;
     private resolver: NativeResolver;
@@ -25,6 +29,10 @@ export class ConfigurationClient {
     private currentConfigData: ConfigData | null = null;
     private experimentationClient?: ExperimentationClient;
     private experimentationOptions?: ExperimentationOptions;
+    private providerCache: ReturnType<
+        NativeResolver["createProviderCache"]
+    > | null = null;
+    private refreshInterval: ReturnType<typeof setTimeout> | null = null;
 
     private defaults: ConfigData | null = null;
     private smithyClient: SuperpositionClient;
@@ -33,11 +41,20 @@ export class ConfigurationClient {
         config: SuperpositionOptions,
         resolver: NativeResolver,
         options: ConfigOptions = {},
-        experimentationOptions?: ExperimentationOptions
+        experimentationOptions?: ExperimentationOptions,
     ) {
         this.config = config;
         this.resolver = resolver;
         this.options = options;
+        this.providerCache = resolver.createProviderCache();
+        const cache = this.providerCache;
+        _cacheRegistry.register(
+            this,
+            () => {
+                cache.free();
+            },
+            this,
+        );
 
         if (
             this.options.refreshStrategy &&
@@ -45,25 +62,40 @@ export class ConfigurationClient {
         ) {
             const strategy = this.options.refreshStrategy as PollingStrategy;
 
-            setInterval(async () => {
+            const weakSelf = new WeakRef(this);
+            const poll = async () => {
+                let self = weakSelf.deref();
+                if (!self) return;
                 try {
-                    const refreshedConfig = await this.fetchConfigData();
-                    this.currentConfigData = refreshedConfig;
+                    const refreshedConfig = await self.fetchConfigData();
+                    self.currentConfigData = refreshedConfig;
+                    self.providerCache?.initConfig(
+                        refreshedConfig.default_configs,
+                        refreshedConfig.contexts,
+                        refreshedConfig.overrides,
+                        refreshedConfig.dimensions,
+                    );
                     console.log("Configuration refreshed successfully.");
                 } catch (error) {
                     console.error(
                         "Failed to refresh configuration. Will continue to use the last known good configuration.",
-                        error
+                        error,
                     );
                 }
-            }, strategy.interval);
+                if (self) {
+                    self.refreshInterval = setTimeout(poll, strategy.interval);
+                }
+                self = undefined;
+            };
+            this.refreshInterval = setTimeout(poll, strategy.interval);
         }
 
         if (experimentationOptions) {
             this.experimentationOptions = experimentationOptions;
             this.experimentationClient = new ExperimentationClient(
                 config,
-                experimentationOptions
+                experimentationOptions,
+                this.reinitExperimentsCache.bind(this),
             );
         }
 
@@ -75,55 +107,69 @@ export class ConfigurationClient {
     }
 
     async initialize(): Promise<void> {
-        // Initialize experimentation client if present
+        const configData = await this.fetchConfigData();
+        this.providerCache!.initConfig(
+            configData.default_configs,
+            configData.contexts,
+            configData.overrides,
+            configData.dimensions,
+        );
+
         if (this.experimentationClient) {
             await this.experimentationClient.initialize();
+        }
+    }
+
+    private reinitExperimentsCache(
+        experiments: any,
+        experimentGroups: any,
+    ): void {
+        if (experiments && experimentGroups) {
+            this.providerCache!.initExperiments(experiments, experimentGroups);
         }
     }
 
     async eval(
         queryData: Record<string, any>,
         filterPrefixes?: string[],
-        targetingKey?: string
+        targetingKey?: string,
     ): Promise<any>;
     async eval<T>(
         queryData: Record<string, any>,
         filterPrefixes?: string[],
-        targetingKey?: string
+        targetingKey?: string,
     ): Promise<T>;
     async eval(
         queryData: Record<string, any>,
         filterPrefixes?: string[],
-        targetingKey?: string
+        targetingKey?: string,
     ): Promise<any> {
         try {
-            const configData = this.currentConfigData || await this.fetchConfigData();
-
-            let experimentationArgs: ExperimentationArgs | undefined;
-
-            if (this.experimentationClient && targetingKey) {
-                const experiments =
-                    await this.experimentationClient.getExperiments();
-                const experiment_groups =
-                    await this.experimentationClient.getExperimentGroups();
-                experimentationArgs = {
-                    experiments,
-                    experiment_groups,
-                    targeting_key: targetingKey,
-                };
+            if (!this.currentConfigData) {
+                const configData = await this.fetchConfigData();
+                this.providerCache!.initConfig(
+                    configData.default_configs,
+                    configData.contexts,
+                    configData.overrides,
+                    configData.dimensions,
+                );
             }
 
-            const result = this.resolver.resolveConfig(
-                configData.default_configs || {},
-                configData.contexts || [],
-                configData.overrides || {},
-                configData.dimensions || {},
+            if (
+                this.experimentationClient &&
+                targetingKey &&
+                !this.experimentationClient.getCachedExperiments()
+            ) {
+                await this.experimentationClient.getExperiments();
+                await this.experimentationClient.getExperimentGroups();
+            }
+
+            return this.providerCache!.evalConfig(
                 queryData,
                 "merge",
                 filterPrefixes,
-                experimentationArgs
+                targetingKey,
             );
-            return result;
         } catch (error) {
             if (this.defaults) {
                 console.log("Falling back to defaults");
@@ -134,7 +180,7 @@ export class ConfigurationClient {
                     this.defaults.dimensions || {},
                     queryData,
                     "merge",
-                    filterPrefixes
+                    filterPrefixes,
                 );
             }
             throw error;
@@ -166,7 +212,7 @@ export class ConfigurationClient {
         } catch (error) {
             console.error(
                 "SuperpositionClient GetConfigCommand failed:",
-                error
+                error,
             );
             const errorMessage =
                 error instanceof Error ? error.message : String(error);
@@ -178,45 +224,34 @@ export class ConfigurationClient {
     async getAllConfigValue(
         defaultValue: Record<string, any>,
         context: Record<string, any>,
-        targetingKey?: string
+        targetingKey?: string,
     ): Promise<Record<string, any>> {
         try {
-            const configData = this.currentConfigData || await this.fetchConfigData();
-
-            // Prepare query data with experiment variants if applicable
-            let queryData = { ...context };
-
-            if (this.experimentationClient && targetingKey) {
-                const experiments =
-                    await this.experimentationClient.getExperiments();
-                const experiment_groups =
-                    await this.experimentationClient.getExperimentGroups();
-                const identifier =
-                    this.experimentationOptions?.defaultIdentifier ||
-                    (targetingKey ? targetingKey : "default");
-
-                const variantIds = await this.getApplicableVariants(
-                    experiments,
-                    experiment_groups,
-                    this.currentConfigData?.dimensions || {},
-                    queryData,
-                    identifier
+            if (!this.currentConfigData) {
+                const configData = await this.fetchConfigData();
+                this.providerCache!.initConfig(
+                    configData.default_configs,
+                    configData.contexts,
+                    configData.overrides,
+                    configData.dimensions,
                 );
-                if (variantIds.length > 0) {
-                    queryData.variantIds = variantIds;
-                }
             }
 
-            const result = this.resolver.resolveConfig(
-                configData.default_configs || {},
-                configData.contexts || [],
-                configData.overrides || {},
-                configData.dimensions || {},
-                queryData,
-                "merge"
-            );
+            if (
+                this.experimentationClient &&
+                targetingKey &&
+                !this.experimentationClient.getCachedExperiments()
+            ) {
+                await this.experimentationClient.getExperiments();
+                await this.experimentationClient.getExperimentGroups();
+            }
 
-            return result;
+            return this.providerCache!.evalConfig(
+                context,
+                "merge",
+                undefined,
+                targetingKey,
+            );
         } catch (error) {
             if (this.defaults) {
                 return this.resolver.resolveConfig(
@@ -225,7 +260,7 @@ export class ConfigurationClient {
                     this.defaults.overrides || {},
                     this.defaults.dimensions || {},
                     context,
-                    "merge"
+                    "merge",
                 );
             }
             throw error;
@@ -239,7 +274,7 @@ export class ConfigurationClient {
         dimensions: Record<string, Record<string, any>>,
         queryData: Record<string, any>,
         identifier: string,
-        filterPrefixes?: string[]
+        filterPrefixes?: string[],
     ): Promise<string[]> {
         // This would use the native resolver's getApplicableVariants method
         return this.resolver.getApplicableVariants(
@@ -248,14 +283,25 @@ export class ConfigurationClient {
             dimensions,
             queryData,
             identifier,
-            filterPrefixes || []
+            filterPrefixes || [],
         );
     }
 
     // Add method to close and cleanup
     async close(): Promise<void> {
+        _cacheRegistry.unregister(this);
+
+        if (this.refreshInterval) {
+            clearTimeout(this.refreshInterval);
+            this.refreshInterval = null;
+        }
+
         if (this.experimentationClient) {
             await this.experimentationClient.close();
+        }
+        if (this.providerCache) {
+            this.providerCache.free();
+            this.providerCache = null;
         }
     }
 }
