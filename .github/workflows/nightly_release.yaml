@@ -1,0 +1,166 @@
+name: Create a superposition nightly release
+
+on:
+    schedule:
+        # 11:30 UTC == 17:00 Asia/Kolkata
+        - cron: "30 11 * * *"
+    workflow_dispatch:
+
+concurrency:
+    group: nightly-release-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    prepare-nightly:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        if: github.ref == 'refs/heads/main'
+        outputs:
+            should_build: ${{ steps.detect.outputs.should_build }}
+            merged_pr_count: ${{ steps.detect.outputs.merged_pr_count }}
+            version: ${{ steps.version.outputs.version }}
+            python_version: ${{ steps.version.outputs.python_version }}
+            nightly_tag: ${{ steps.version.outputs.nightly_tag }}
+            marker_tag: ${{ steps.version.outputs.marker_tag }}
+            marker_date: ${{ steps.version.outputs.marker_date }}
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  token: ${{ secrets.SUPERPOSITION_TOKEN }}
+
+            - name: Compute nightly version and marker
+              id: version
+              shell: bash
+              run: |
+                  set -euo pipefail
+
+                  git fetch --tags --force
+
+                  latest_release_tag="$(git tag -l --sort=-creatordate | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+(-nightly-[0-9]+)?$' | head -n 1 || true)"
+                  latest_stable_tag="$(git tag -l --sort=-creatordate | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1 || true)"
+                  latest_nightly_tag="$(git tag -l --sort=-creatordate | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+-nightly-[0-9]+$' | head -n 1 || true)"
+
+                  if [[ -z "$latest_release_tag" ]]; then
+                      if [[ -n "$latest_stable_tag" ]]; then
+                          latest_release_tag="$latest_stable_tag"
+                      else
+                          latest_release_tag="v0.1.0"
+                      fi
+                  fi
+
+                  latest_release_version="${latest_release_tag#v}"
+
+                  if [[ "$latest_release_version" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)-nightly-[0-9]+$ ]]; then
+                      base_version="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.${BASH_REMATCH[3]}"
+                  elif [[ "$latest_release_version" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+                      next_patch=$((BASH_REMATCH[3] + 1))
+                      base_version="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.${next_patch}"
+                  else
+                      echo "Unexpected release tag format: $latest_release_tag"
+                      exit 1
+                  fi
+
+                  timestamp="$(date -u +%Y%m%d%H%M%S)"
+                  version="${base_version}-nightly-${timestamp}"
+                  python_version="${base_version}.dev${timestamp}"
+                  nightly_tag="v${version}"
+
+                  marker_tag="$latest_nightly_tag"
+                  if [[ -z "$marker_tag" ]]; then
+                      marker_tag="$latest_stable_tag"
+                  fi
+
+                  marker_date="1970-01-01T00:00:00Z"
+                  if [[ -n "$marker_tag" ]]; then
+                      marker_date="$(git log -1 --format=%cI "$marker_tag")"
+                  fi
+
+                  echo "version=$version" >> "$GITHUB_OUTPUT"
+                  echo "python_version=$python_version" >> "$GITHUB_OUTPUT"
+                  echo "nightly_tag=$nightly_tag" >> "$GITHUB_OUTPUT"
+                  echo "marker_tag=$marker_tag" >> "$GITHUB_OUTPUT"
+                  echo "marker_date=$marker_date" >> "$GITHUB_OUTPUT"
+
+            - name: Detect merges on main since marker
+              id: detect
+              shell: bash
+              run: |
+                  set -euo pipefail
+
+                  marker_tag="${{ steps.version.outputs.marker_tag }}"
+                  if [[ -n "$marker_tag" ]]; then
+                      range="$marker_tag..HEAD"
+                  else
+                      range="HEAD"
+                  fi
+
+                  merged_pr_count="$(git rev-list --count --first-parent "$range")"
+                  should_build="false"
+                  if [[ "$merged_pr_count" -gt 0 ]]; then
+                      should_build="true"
+                  fi
+
+                  echo "merged_pr_count=$merged_pr_count" >> "$GITHUB_OUTPUT"
+                  echo "should_build=$should_build" >> "$GITHUB_OUTPUT"
+
+            - name: Create and push nightly tag
+              if: steps.detect.outputs.should_build == 'true'
+              shell: bash
+              run: |
+                  set -euo pipefail
+
+                  git config user.email "super_bot@juspay.in"
+                  git config user.name "Superposition Bot"
+
+                  nightly_tag="${{ steps.version.outputs.nightly_tag }}"
+                  if git rev-parse -q --verify "refs/tags/$nightly_tag" >/dev/null; then
+                      echo "Tag $nightly_tag already exists"
+                      exit 1
+                  fi
+
+                  git tag "$nightly_tag"
+                  git push origin "$nightly_tag"
+
+            - name: Nightly summary
+              shell: bash
+              run: |
+                  echo "marker_tag=${{ steps.version.outputs.marker_tag }}"
+                  echo "marker_date=${{ steps.version.outputs.marker_date }}"
+                  echo "merged_pr_count=${{ steps.detect.outputs.merged_pr_count }}"
+                  echo "nightly_version=${{ steps.version.outputs.version }}"
+                  echo "nightly_python_version=${{ steps.version.outputs.python_version }}"
+                  echo "should_build=${{ steps.detect.outputs.should_build }}"
+
+    build-docker-images-nightly:
+        needs: prepare-nightly
+        if: needs.prepare-nightly.outputs.should_build == 'true'
+        uses: ./.github/workflows/docker_images_common.yaml
+        with:
+            version: ${{ needs.prepare-nightly.outputs.version }}
+            alias_tag: nightly
+        secrets: inherit
+
+    build-language-artifacts-nightly:
+        needs: prepare-nightly
+        if: needs.prepare-nightly.outputs.should_build == 'true'
+        uses: ./.github/workflows/language_artifacts_common.yaml
+        with:
+            version: ${{ needs.prepare-nightly.outputs.version }}
+            python_version: ${{ needs.prepare-nightly.outputs.python_version }}
+            ref: ${{ github.sha }}
+            release_tag: ${{ needs.prepare-nightly.outputs.nightly_tag }}
+            run_java: true
+            run_python: true
+            run_js: true
+            run_rust_crates: true
+            publish_java: true
+            publish_python: true
+            publish_js: true
+            publish_rust_crates: true
+            npm_dist_tag: nightly
+            create_github_release: true
+            release_draft: true
+        secrets: inherit
