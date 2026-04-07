@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <defs>
+    <linearGradient id="tomlGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#9c6b4e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7a4a2e;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- File shape -->
+  <path d="M4 2h9l6 6v14H4V2z" fill="url(#tomlGradient)" stroke="#5a3a1e" stroke-width="0.5"/>
+  <!-- Folded corner -->
+  <path d="M13 2l6 6h-6V2z" fill="#c4886a" stroke="#5a3a1e" stroke-width="0.5"/>
+  <!-- TOML text representation - brackets -->
+  <text x="12" y="16" font-family="Monaco, Consolas, monospace" font-size="7" font-weight="bold" fill="#ffffff" text-anchor="middle">[T]</text>
+</svg>

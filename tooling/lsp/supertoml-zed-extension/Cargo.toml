@@ -1,0 +1,17 @@
+[package]
+name = "supertoml-zed-extension"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "Zed extension for the SuperTOML Analyzer language server"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+zed_extension_api = "0.7.0"
+serde_json = "1.0.149"
+
+[profile.release]
+opt-level = "s"
+lto = true

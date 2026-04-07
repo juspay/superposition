@@ -1,0 +1,14 @@
+id = "supertoml-analyzer"
+name = "SuperTOML Analyzer"
+version = "0.1.0"
+schema_version = 1
+description = "Language server for SuperTOML configuration files"
+authors = ["Superposition Team"]
+
+[language_servers.supertoml-analyzer]
+name = "SuperTOML Analyzer"
+languages = ["superTOML"]
+
+[grammars.toml]
+repository = "https://github.com/tree-sitter/tree-sitter-toml"
+rev = "342d9be207c2dba869b9967124c679b5e6fd0ebe"
