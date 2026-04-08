@@ -83,6 +83,7 @@ export SMITHY_MAVEN_REPOS = https://repo1.maven.org/maven2|https://sandbox.asset
 	schema-file \
 	setup \
 	setup-clients \
+	skills-update \
 	smithy-api-docs \
 	smithy-build \
 	smithy-clean \
@@ -463,3 +464,40 @@ bindings-test: uniffi-bindings
 	@echo "========================================"
 	@echo "All TOML binding tests passed!"
 	@echo "========================================"
+
+# ── Skills Generation ──────────────────────────────────────────────────
+# Generates AI-ready skills from the full documentation.
+# Output:
+#   .agents/skills/superposition/     — committed skill files (agents discover these)
+#   scripts/skill_templates/packaged/ — zip/tar.gz uploads (local convenience, gitignored)
+SKILLS_SRC := docs/docs
+SKILLS_BUILD := /tmp/superposition-skill-build
+SKILLS_PACKAGES := scripts/skill_templates/packaged
+SKILLS_DEST := .agents/skills/superposition
+SKILLS_TARGETS := claude openai gemini markdown
+
+skills-update:
+	@command -v skill-seekers >/dev/null 2>&1 || \
+		{ echo "Installing skill-seekers via uv..."; uv tool install skill-seekers; }
+	@echo "Creating skill from docs..."
+	@rm -rf $(SKILLS_BUILD) $(SKILLS_DEST) $(SKILLS_PACKAGES)
+	@skill-seekers create $(SKILLS_SRC) --name superposition --output $(SKILLS_BUILD) --quiet
+	@echo "Installing to $(SKILLS_DEST)/..."
+	@mkdir -p $(SKILLS_DEST) $(SKILLS_PACKAGES)
+	@install -m644 $(SKILLS_BUILD)/SKILL.md $(SKILLS_DEST)/SKILL.md
+	@cp -r $(SKILLS_BUILD)/references $(SKILLS_DEST)/reference
+	@echo "Packaging for upload..."
+	@for target in $(SKILLS_TARGETS); do \
+		echo "  → $$target"; \
+		skill-seekers package $(SKILLS_BUILD) --target $$target --no-open --skip-quality-check; \
+	done
+	@for f in $(SKILLS_BUILD)*.zip $(SKILLS_BUILD)*.tar.gz; do \
+		[ -f "$$f" ] || continue; \
+		base=$${f##*/}; \
+		mv "$$f" "$(SKILLS_PACKAGES)/$${base/superposition-skill-build/superposition}"; \
+	done
+	@rm -rf $(SKILLS_BUILD)
+	@echo ""
+	@echo "Done."
+	@echo "  Skill:    $(SKILLS_DEST)/SKILL.md"
+	@echo "  Packages: $(SKILLS_PACKAGES)/"

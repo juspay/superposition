@@ -1,0 +1,88 @@
+name: Update AI Skills
+
+on:
+  workflow_run:
+    workflows: ["Generate Superposition Documentation"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate-skills:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Install skill-seekers
+        run: uv tool install skill-seekers
+
+      - name: Generate skills
+        run: |
+          SKILLS_SRC=docs/docs
+          SKILLS_OUT=scripts/skill_templates
+          SKILLS_BUILD=/tmp/superposition-skill-build
+
+          rm -rf "$SKILLS_BUILD"
+
+          echo "Creating skill from docs..."
+          skill-seekers create "$SKILLS_SRC" --name superposition --output "$SKILLS_BUILD" --quiet
+
+          # Clean and rebuild output directory
+          rm -rf "$SKILLS_OUT"
+          cp -r "$SKILLS_BUILD" "$SKILLS_OUT"
+
+          echo "Skills written to $SKILLS_OUT/"
+
+      - name: Package skills for download
+        run: |
+          SKILLS_BUILD=/tmp/superposition-skill-build
+          PACKAGES=/tmp/superposition-skill-packages
+          mkdir -p "$PACKAGES"
+
+          for target in claude openai gemini markdown; do
+            echo "→ Packaging $target..."
+            skill-seekers package "$SKILLS_BUILD" --target "$target" --no-open --skip-quality-check
+          done
+
+          # Collect with clean names
+          for f in ${SKILLS_BUILD}*.zip ${SKILLS_BUILD}*.tar.gz; do
+            [ -f "$f" ] || continue
+            base=$(basename "$f" | sed 's/superposition-skill-build/superposition/')
+            mv "$f" "$PACKAGES/$base"
+          done
+
+          rm -rf "$SKILLS_BUILD"
+          echo "Packages ready:"
+          ls -lh "$PACKAGES/"
+
+      - name: Upload skill packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: superposition-skills
+          path: /tmp/superposition-skill-packages/
+          retention-days: 90
+
+      - name: Install skill to .agents directory
+        run: |
+          rm -rf .agents/skills/superposition
+          mkdir -p .agents/skills/superposition
+          cp scripts/skill_templates/SKILL.md .agents/skills/superposition/SKILL.md
+          cp -r scripts/skill_templates/references .agents/skills/superposition/reference
+
+      - name: Commit updated skills
+        run: |
+          git config user.name "Superposition Bot"
+          git config user.email "super_bot@juspay.in"
+          git add .agents/skills/superposition/
+          if git diff --staged --quiet; then
+            echo "No skill changes detected"
+          else
+            git commit -m "docs: auto-update AI skills from provider docs"
+            git push
+          fi
