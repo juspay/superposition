@@ -95,6 +95,9 @@ jobs:
     build-docker-images:
         needs: tag-release
         if: github.ref == 'refs/heads/main'
+        permissions:
+            contents: read
+            packages: write
         uses: ./.github/workflows/docker_images_common.yaml
         with:
             version: ${{ needs.tag-release.outputs.version }}
@@ -104,6 +107,9 @@ jobs:
     build-language-artifacts:
         needs: tag-release
         if: github.ref == 'refs/heads/main'
+        permissions:
+            contents: write
+            id-token: write
         uses: ./.github/workflows/language_artifacts_common.yaml
         with:
             version: ${{ needs.tag-release.outputs.version }}

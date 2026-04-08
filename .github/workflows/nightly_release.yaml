@@ -137,6 +137,9 @@ jobs:
     build-docker-images-nightly:
         needs: prepare-nightly
         if: needs.prepare-nightly.outputs.should_build == 'true'
+        permissions:
+            contents: read
+            packages: write
         uses: ./.github/workflows/docker_images_common.yaml
         with:
             version: ${{ needs.prepare-nightly.outputs.version }}
@@ -146,6 +149,9 @@ jobs:
     build-language-artifacts-nightly:
         needs: prepare-nightly
         if: needs.prepare-nightly.outputs.should_build == 'true'
+        permissions:
+            contents: write
+            id-token: write
         uses: ./.github/workflows/language_artifacts_common.yaml
         with:
             version: ${{ needs.prepare-nightly.outputs.version }}

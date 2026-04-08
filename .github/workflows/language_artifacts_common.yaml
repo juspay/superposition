@@ -63,6 +63,8 @@ on:
 
 jobs:
     generate-rust-binary:
+        permissions:
+            contents: read
         strategy:
             max-parallel: 5
             matrix:
