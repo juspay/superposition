@@ -78,6 +78,7 @@
         "Type Templates",
         "Webhooks",
         "Workspace Management",
+        "Secrets",
         "Audit & Monitoring",
         "Variables"
       ],

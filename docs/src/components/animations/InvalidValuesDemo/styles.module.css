@@ -1,0 +1,402 @@
+.slide {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    padding: 1rem;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-display);
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0 0 0.25rem;
+    color: var(--text-primary);
+    flex-shrink: 0;
+}
+
+.subtitle {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin: 0 0 1.5rem;
+    flex-shrink: 0;
+}
+
+.validationDemo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    width: 100%;
+    max-width: min(600px, 100%);
+    margin: 0 auto;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.validator {
+    background: var(--bg-secondary);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 1.5rem;
+    width: 100%;
+    overflow: hidden;
+}
+
+.validatorHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.validatorLabel {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.typeBadge {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--success);
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.inputContainer {
+    margin-bottom: 1.5rem;
+}
+
+.inputLabel {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.urlInput {
+    background: var(--bg-primary);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    transition: border-color 0.3s;
+}
+
+.urlInput.invalid {
+    border-color: var(--danger);
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.urlText {
+    position: relative;
+    white-space: nowrap;
+}
+
+.urlValid,
+.urlInvalid {
+    display: inline-block;
+    transition:
+        opacity 0.5s,
+        transform 0.5s;
+}
+
+.urlValid {
+    color: var(--success);
+}
+
+.urlInvalid {
+    position: absolute;
+    left: 0;
+    color: var(--danger);
+    opacity: 0;
+    transform: translateY(-10px);
+}
+
+.urlText.changed .urlValid {
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.urlText.changed .urlInvalid {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.cursorBlink {
+    width: 2px;
+    height: 1.2em;
+    background: var(--accent);
+    margin-left: 2px;
+    animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
+}
+
+.validationChecks {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.checkItem {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    opacity: 0;
+    transform: translateX(-20px);
+}
+
+.checkItem.visible {
+    opacity: 1;
+    transform: translateX(0);
+    transition:
+        opacity 0.4s,
+        transform 0.4s;
+}
+
+.checkIcon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    flex-shrink: 0;
+    background: var(--success);
+    color: white;
+}
+
+.checkItem.fail .checkIcon {
+    background: var(--danger);
+    color: white;
+}
+
+.checkItem span:last-child {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+/* Consequence */
+.consequence {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    width: 100%;
+    opacity: 0;
+    transform: translateY(20px);
+    transition:
+        opacity 0.5s,
+        transform 0.5s;
+    flex-shrink: 0;
+}
+
+.consequence.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.consequenceIcon {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    color: var(--danger);
+}
+
+.consequenceIcon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.consequenceText {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.consequenceTitle {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--danger);
+}
+
+.consequenceDetail {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+/* Explanation */
+.explanation {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 100px;
+    padding: 1rem 2rem;
+    margin-top: 1rem;
+    flex-shrink: 0;
+    opacity: 0;
+    transform: translateY(20px);
+    max-width: min(600px, 100%);
+    width: 100%;
+    align-self: center;
+    box-sizing: border-box;
+}
+
+.explanationIcon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    color: var(--warning);
+}
+
+.explanationIcon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.explanation p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.explanation strong {
+    color: var(--warning);
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+    .validationDemo {
+        gap: 1.5rem;
+        max-width: 100%;
+    }
+
+    .validator {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 500px) {
+    .slide {
+        padding: 0.75rem;
+    }
+
+    .title {
+        font-size: 1.1rem;
+    }
+
+    .subtitle {
+        font-size: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .validator {
+        padding: 0.75rem;
+    }
+
+    .validatorHeader {
+        margin-bottom: 1rem;
+    }
+
+    .validatorLabel {
+        font-size: 0.8rem;
+    }
+
+    .typeBadge {
+        font-size: 0.65rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .inputContainer {
+        margin-bottom: 1rem;
+    }
+
+    .inputLabel {
+        font-size: 0.7rem;
+    }
+
+    .urlInput {
+        font-size: 0.75rem;
+        padding: 0.5rem 0.75rem;
+    }
+
+    .validationChecks {
+        gap: 0.5rem;
+    }
+
+    .checkItem {
+        font-size: 0.75rem;
+        gap: 0.5rem;
+    }
+
+    .checkIcon {
+        width: 18px;
+        height: 18px;
+        font-size: 0.6rem;
+    }
+
+    .consequence {
+        padding: 0.75rem 1rem;
+        gap: 0.75rem;
+    }
+
+    .consequenceIcon {
+        width: 32px;
+        height: 32px;
+    }
+
+    .consequenceTitle {
+        font-size: 0.85rem;
+    }
+
+    .consequenceDetail {
+        font-size: 0.7rem;
+    }
+
+    .explanation {
+        padding: 0.75rem 1.5rem;
+        gap: 0.75rem;
+        border-radius: 50px;
+    }
+
+    .explanation p {
+        font-size: 0.8rem;
+    }
+
+    .explanationIcon {
+        width: 20px;
+        height: 20px;
+    }
+}

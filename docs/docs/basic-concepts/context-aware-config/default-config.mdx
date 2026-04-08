@@ -1,0 +1,41 @@
+---
+sidebar_position: 1
+title: Default Configs
+description: The foundation of config keys in Superposition
+---
+import AnimationSlide from '@site/src/components/AnimationSlide';
+import { DefaultConfigs } from '@site/src/components/animations';
+
+
+Default Configs is the set of all possible configuration keys of your application along with their default values.  One may think of default configs as the best assumption we can make about our configs.
+
+Every default config is defined by two properties:
+
+- Schema - the type of the config value enforced by JSONSchema
+- Default value - the base value for the config key
+
+<AnimationSlide width={1000} height={600} mode="auto" loop={false}>
+  <DefaultConfigs />
+</AnimationSlide>
+
+Let us use a [simple cab ride-hailing application](https://github.com/juspay/superposition/tree/main/examples/superposition-demo-app) that operates in different cities and capture some attributes that we might need configurable at a per city level.
+
+1.  `per_distance_unit_rate`
+2.  `surge_factor`
+
+CAC supports configurations written using the [TOML format](https://toml.io/en/).  This section and the following sections will use the TOML format to illustrate each abstraction.
+
+```toml
+[default-configs]
+per_km_rate = { "value" = 20.0, "schema" = { "type" = "number" } }
+surge_factor = { "value" = 0.0, "schema" = { "type" = "number" } }
+```
+
+## Correctness with Functions
+
+Two functions that can be linked with default configs to ensure correctness:
+
+- Value Validation
+- Value Compute
+
+To learn more about these, check out [functions](./basic-concepts/safety/functions.mdx)

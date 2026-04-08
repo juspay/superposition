@@ -6146,7 +6146,7 @@ dependencies = [
 
 [[package]]
 name = "supertoml_lsp"
-version = "0.100.0"
+version = "0.104.0"
 dependencies = [
  "dashmap",
  "serde_json",

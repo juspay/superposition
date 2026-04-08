@@ -1,0 +1,94 @@
+---
+sidebar_position: 4
+title: How this All Works Together
+---
+import AnimationSlide from '@site/src/components/AnimationSlide';
+import { CSSAnalogy } from '@site/src/components/animations';
+
+This section shows a complete configuration and how 
+
+- Your application adds the Superposition Provider as a dependency
+- At runtime, your application will provide a context to the client for evaluation. Using our ride hailing example from earlier, the context provided by your application would look like:
+    ```json
+    {
+        "city": "Delhi", 
+        "vehicle_type": "cab", 
+        "hour_of_day": 19
+    }
+    ```
+- CAC will apply all contexts it has available, and return the final configuration for the application. If no rule applies for a configuration, it's default value will be returned. From our earlier examples (check Default Config and Overrides section) the configuration returned would be
+    ```json
+    {
+        "per_km_rate": 25.0,
+        "surge_factor": 5.0
+    }
+    ```
+
+### Analogy with CSS 
+
+For people familiar with how CSS works - the following table comparing CAC to CSS will help them grasp CAC's structure quickly
+
+<AnimationSlide width={800} height={600} mode="auto" loop={true} loopDelay={3000}>
+  <CSSAnalogy />
+</AnimationSlide>
+
+| CSS | Context Aware Configuration |
+|-----|---------------------------|
+| `body {`<br/>&nbsp;&nbsp;`color: black;`<br/>`}` | `default {`<br/>&nbsp;&nbsp;`color: black`<br/>`}` |
+| `#main {`<br/>&nbsp;&nbsp;`color: green;`<br/>`}` | `[id="main"] {`<br/>&nbsp;&nbsp;`color: green`<br/>`}` |
+| `.module {`<br/>&nbsp;&nbsp;`color: blue;`<br/>`}` | `[class="module"] {`<br/>&nbsp;&nbsp;`color: blue`<br/>`}` |
+| `#main .module {`<br/>&nbsp;&nbsp;`color: orange`<br/>`}` | `[id="main, class="module"] {`<br/>&nbsp;&nbsp;`color: orange`<br/>`}` |
+
+The following mapping of concepts between CAC and CSS will also be useful:
+
+| CSS | Context Aware Configuration |
+|-----|---------------------------|
+| default stylesheet | default config |
+| property | configuration key |
+| value | value (typed) |
+| selector | context<br/>(variables involved in contexts are called dimensions) |
+| set of property:values | override |
+| selector + set of property:value | contextual override |
+
+## Complete Superposition configuration file in TOML format
+The complete context-aware-configuration file for the above example is shown below:
+
+```toml
+[default-configs]
+per_km_rate = { "value" = 20, "schema" = { "type" = "integer" } }
+surge_factor = { "value" = 0.0, "schema" = { "type" = "number" } }
+ppppp = { schema = { type = "string" }, value = "22" }
+test = { schema = { type = "boolean" }, value = false }
+untest = { schema = { type = "string", enum = ["s", "a"] }, value = "s" }
+
+[dimensions]
+city = { position = 1, schema = { "type" = "string", "enum" = [
+  "Bangalore",
+  "Delhi",
+] } }
+vehicle_type = { position = 2, schema = { "type" = "string", "enum" = [
+  "auto",
+  "cab",
+  "bike",
+] } }
+hour_of_day = { position = 3, schema = { "type" = "integer", "minimum" = 0, "maximum" = 23 } }
+enable_stuff = { position = 4, schema = { "type" = "boolean" } }
+
+[[overrides]]
+_context_ = { vehicle_type = "bike", enable_stuff = true }
+untest = "s"
+
+[[overrides]]
+_context_ = { vehicle_type = "auto" }
+per_km_rate = 1
+
+[[overrides]]
+_context_ = { vehicle_type = "bike" }
+per_km_rate = 15.0
+
+[[overrides]]
+_context_ = { city = "Bangalore" }
+per_km_rate = 22.0
+```
+
+Interested in writing better config files? Check out [SuperTOML](./docs/superposition-config-file/intro.md)

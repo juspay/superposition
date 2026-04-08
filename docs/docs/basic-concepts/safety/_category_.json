@@ -1,0 +1,10 @@
+{
+  "label": "Safety",
+  "position": 3,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "description": "Superposition ensures safety, but how?"
+  }
+}

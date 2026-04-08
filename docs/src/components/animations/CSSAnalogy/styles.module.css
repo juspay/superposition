@@ -1,0 +1,164 @@
+.slide {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    padding: 2rem;
+    background: linear-gradient(
+        180deg,
+        var(--bg-secondary) 0%,
+        var(--bg-primary) 100%
+    );
+    color: var(--text-primary);
+    font-family: var(--font-display);
+    box-sizing: border-box;
+}
+
+.title {
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    font-weight: 700;
+    margin: 0 0 0.5rem;
+    color: var(--text-primary);
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.subtitle {
+    font-size: clamp(0.875rem, 2vw, 1.125rem);
+    color: var(--text-secondary);
+    margin: 0 0 2rem;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.analogyContainer {
+    display: flex;
+    align-items: stretch;
+    gap: 2rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 900px;
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+}
+
+.analogyPanel {
+    flex: 1;
+    min-width: min(280px, 45%);
+    max-width: 50%;
+    background: var(--bg-tertiary);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 1.5rem;
+    overflow: auto;
+}
+
+.analogyPanel h3 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.analogyPanel.analogyCss {
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.analogyPanel.analogyCac {
+    border-color: rgba(99, 102, 241, 0.3);
+}
+
+.codeBlock {
+    background: var(--bg-primary);
+    border-radius: 8px;
+    padding: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    line-height: 1.8;
+    overflow-x: auto;
+}
+
+.codeBlock code {
+    color: var(--text-primary);
+    white-space: pre;
+}
+
+.codeSelector {
+    color: #f59e0b;
+}
+
+.codeProp {
+    color: #60a5fa;
+}
+
+.codeValue {
+    color: #34d399;
+}
+
+.analogyNote {
+    margin: 1rem 0 0;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.connector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 50px;
+}
+
+.connector span {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .analogyContainer {
+        flex-direction: column;
+    }
+
+    .connector {
+        transform: rotate(90deg);
+        padding: 0.5rem 0;
+    }
+
+    .analogyPanel {
+        padding: 1.25rem;
+        min-width: unset;
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .codeBlock {
+        font-size: 0.75rem;
+        padding: 0.75rem;
+    }
+
+    .title {
+        font-size: 1.25rem;
+    }
+
+    .subtitle {
+        font-size: 0.875rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .slide {
+        padding: 1rem;
+    }
+
+    .analogyPanel {
+        padding: 1rem;
+    }
+
+    .codeBlock {
+        font-size: 0.7rem;
+    }
+}

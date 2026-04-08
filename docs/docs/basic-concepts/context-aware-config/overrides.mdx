@@ -1,0 +1,61 @@
+---
+sidebar_position: 3
+title: Context & Overrides
+---
+
+import AnimationSlide from '@site/src/components/AnimationSlide';
+import { ContextOverrides } from '@site/src/components/animations';
+
+A Context is a logical expression built using dimensions as variables.  In CAC configuration files, this expression is parsed using the [pest crate](https://crates.io/crates/pest).
+
+```pest
+expression = { SOI ~ whitespace* ~ logical ~ whitespace* ~ EOI }
+
+logical = _{ logical_or }
+logical_or = { logical_and ~ (whitespace* ~ "||" ~ whitespace* ~ logical_and)* }
+logical_and = { comparison ~ (whitespace* ~ "&&" ~ whitespace* ~ comparison)* }
+
+comparison = { term ~ whitespace* ~ comparison_operator ~ whitespace* ~ term }
+comparison_operator = { ">=" | "<=" | "<" | ">" | "==" | "!=" }
+term = { bool_literal | string_literal | float | integer | dimension }
+
+string_literal = @{ "'" ~ char+ ~ "'" }
+bool_literal = @{ "true" | "false" }
+integer = @{ ASCII_DIGIT+ }
+float = @{ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+ }
+char = { ASCII_ALPHANUMERIC | "." | "_" }
+dimension = @{ "$" ~ char+ }
+
+whitespace = _{ " " | "\t" | "\n" }
+```
+
+
+# Overrides
+
+Overrides are a subset of the configurations from Default Config typically with different values.  Overrides are always associated with contexts and are applied when a context evaluates to `true`. 
+
+<AnimationSlide width={1100} height={800} mode="auto" loop={true} loopDelay={3000}>
+  <ContextOverrides />
+</AnimationSlide>
+
+Example:
+
+Let us configure different overrides for configuration keys under different contexts in our example.
+
+```toml
+[[overrides]]
+_context_ = { vehicle_type = "bike", enable_stuff = true }
+untest = "s"
+
+[[overrides]]
+_context_ = { vehicle_type = "auto" }
+per_km_rate = 1
+
+# [[overrides]]
+# _context_ = { vehicle_type = "bike" }
+# per_km_rate = 15.0
+
+[[overrides]]
+_context_ = { city = "Bangalore" }
+per_km_rate = 22.0
+```

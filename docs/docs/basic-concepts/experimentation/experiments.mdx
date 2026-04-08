@@ -1,11 +1,14 @@
 ---
-sidebar_position: 4
-title: Experimentation
-description: Experimentation component of Superposition platform
+sidebar_position: 1
+title: Experiments
+description: Experiment with different config values in superposition
 ---
 
+import AnimationSlide from '@site/src/components/AnimationSlide';
+import { ExperimentationDemo } from '@site/src/components/animations';
 
-# Experimentation
+
+# Experiments
 
 ## Introduction
 
@@ -76,6 +79,10 @@ This defines the traffic size for each variant of the experiment, for instance
 if traffic percentage is `13%` and there are `4` variants in the experiment,
     this makes each variant of the experiment receive `13%` of the entire
     traffic and in entirety `13 * 4 = 52%` of the total traffic.
+
+<AnimationSlide width={800} height={700} mode="auto" loop={false} >
+  <ExperimentationDemo />
+</AnimationSlide>
 
 ### Webhooks
 

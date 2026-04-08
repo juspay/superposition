@@ -1,0 +1,10 @@
+{
+  "label": "Administration",
+  "position": 4,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "description": "Concepts to simplify Superposition management and workflows"
+  }
+}

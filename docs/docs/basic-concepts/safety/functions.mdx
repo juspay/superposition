@@ -1,0 +1,267 @@
+---
+sidebar_position: 1
+title: Functions
+---
+
+# Functions
+
+Functions in Superposition are JavaScript code snippets that provide custom validation and autocomplete functionality for configuration dimensions and default configs. They enable dynamic validation rules and intelligent form suggestions that go beyond basic JSON Schema validation.
+
+# Common Conventions
+
+Every function in Superposition shares the same top-level signature:
+
+```javascript
+async function execute(payload) {
+    // ...
+}
+```
+
+The `payload` object always contains:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `version` | `string` | The runtime version (currently always `"1.0"`) |
+| *type-specific key* | `object` | One of `value_validate`, `value_compute`, `context_validate`, or `change_reason_validate` depending on the function type |
+
+The function is executed inside a sandboxed Node.js `vm` context with a 10-second timeout. The `axios` HTTP client is available for making external API calls within the function body.
+
+Functions go through a **draft → published** lifecycle. Only published functions are executed during actual validation/computation. You can test both draft and published versions via the API or UI before publishing.
+
+---
+
+#### Function Types
+
+Superposition supports 4 types of functions:
+
+1. **Value Validation** — Custom validation logic for dimension values and default config keys
+2. **Value Compute** — Dynamic value resolution, used primarily for Remote Cohort dimensions
+3. **Change Reason Validation** — Enforce standards on change reasons (e.g. must contain a JIRA ID)
+4. **Context & Override Validation** — Validate the full context and override combination against external or hardcoded rules
+
+---
+
+### 1. Value Validation Functions
+
+Value Validation functions let you attach custom validation logic to individual **dimensions** or **default config keys**. Whenever a value is set or updated for that dimension or config key, the function runs and must return `true` for the operation to succeed.
+
+#### Signature
+
+```javascript
+async function execute(payload) {
+    const { value_validate } = payload;
+    const { key, value, type, environment } = value_validate;
+
+    // validation logic goes here
+
+    return true;
+}
+```
+
+#### Payload Structure
+
+```json
+{
+  "version": "1.0",
+  "value_validate": {
+    "key": "<string>",
+    "value": "<any>",
+    "type": "ConfigKey | Dimension",
+    "environment": {
+      "context": {},
+      "overrides": {}
+    }
+  }
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `key` | `string` | The name of the dimension or default config key being validated |
+| `value` | `any` | The value being set — its shape depends on the key's JSON Schema |
+| `type` | `"ConfigKey"` \| `"Dimension"` | Whether this is a default config key or a dimension value |
+| `environment.context` | `object` | The context (dimension conditions) associated with this operation. Empty when validating a default config key directly. |
+| `environment.overrides` | `object` | The override values associated with this operation. Empty when validating a default config key directly. |
+
+#### Expected Output
+
+| Return Value | Outcome |
+|-------------|---------|
+| `true` | Validation passes, the operation proceeds |
+| Any other value / `false` / throws | Validation fails, the operation is rejected with an error |
+
+#### Lifecycle
+
+- Created and managed by the user via the API or UI.
+- Attached to a dimension or default config key by setting its `value_validation_function_name`.
+- Multiple Value Validation functions can exist in a workspace — one per dimension or config key.
+
+---
+
+### 2. Value Compute Functions
+
+Value Compute functions dynamically resolve dimension values at runtime. They are primarily used for **Remote Cohort** dimensions, where the cohort membership value must be computed from external data or from the current context and overrides.
+
+#### Signature
+
+```javascript
+async function execute(payload) {
+    const { value_compute } = payload;
+    const { name, prefix, type, environment } = value_compute;
+
+    // computation logic goes here
+
+    return ["computed_value"];
+}
+```
+
+#### Payload Structure
+
+```json
+{
+  "version": "1.0",
+  "value_compute": {
+    "name": "<string>",
+    "prefix": "<string>",
+    "type": "ConfigKey | Dimension",
+    "environment": {
+      "context": {},
+      "overrides": {}
+    }
+  }
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | `string` | The name of the dimension or config key whose value is being computed |
+| `prefix` | `string` | A prefix string (reserved for future use) |
+| `type` | `"ConfigKey"` \| `"Dimension"` | Whether this is a default config key or a dimension |
+| `environment.context` | `object` | The current context (dimension conditions) at the point of evaluation |
+| `environment.overrides` | `object` | The current override values at the point of evaluation |
+
+#### Expected Output
+
+| Return Value | Outcome |
+|-------------|---------|
+| An **array with exactly one element** (e.g. `["value"]`) | The single element is used as the computed value |
+| Any other value / empty array / non-array | The computation is treated as failed and an error is raised |
+
+#### Lifecycle
+
+- Created and managed by the user via the API or UI.
+- Attached to a dimension by setting its `value_compute_function_name`.
+- Only valid for **Remote Cohort** dimensions. Local Cohort dimensions cannot have a Value Compute function.
+
+---
+
+### 3. Change Reason Validation Functions
+
+Change Reason Validation functions enforce rules on the `change_reason` string that users must provide when making modifications. For example, you can require that every change reason contains a valid JIRA ticket ID.
+
+#### Signature
+
+```javascript
+async function execute(payload) {
+    const { change_reason_validate } = payload;
+    const { change_reason } = change_reason_validate;
+
+    // validation logic goes here
+
+    return true;
+}
+```
+
+#### Payload Structure
+
+```json
+{
+  "version": "1.0",
+  "change_reason_validate": {
+    "change_reason": "<string>"
+  }
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `change_reason` | `string` | The change reason provided by the user for the current operation |
+
+#### Expected Output
+
+| Return Value | Outcome |
+|-------------|---------|
+| `true` | Validation passes, the operation proceeds |
+| Any other value / `false` / throws | Validation fails, the operation is rejected with an error |
+
+#### Lifecycle
+
+- **Singleton**: Exactly one Change Reason Validation function exists per workspace, always named `change_reason_validation`.
+- It is **pre-created** when the workspace is provisioned — it cannot be created or deleted manually.
+- You can **edit and publish** it via the API or UI to customise the validation logic.
+- Must be **enabled** at the workspace level by setting `enable_change_reason_validation` to `true` in the workspace settings. When disabled, the function is not executed even if published.
+
+---
+
+### 4. Context & Override Validation Functions
+
+Context & Override Validation functions validate the **entire context and override combination** whenever a context is created or updated (or when an experiment is created). This allows you to enforce cross-cutting rules — for example, ensuring certain dimension combinations are not allowed, or that overrides comply with constraints from an external system.
+
+#### Signature
+
+```javascript
+async function execute(payload) {
+    const { context_validate } = payload;
+    const { environment, trigger_reason } = context_validate;
+
+    // validation logic goes here
+
+    return true;
+}
+```
+
+#### Payload Structure
+
+```json
+{
+  "version": "1.0",
+  "context_validate": {
+    "environment": {
+      "context": {},
+      "overrides": {}
+    },
+    "trigger_reason": "context | experiment"
+  }
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `environment.context` | `object` | The full set of dimension conditions being applied |
+| `environment.overrides` | `object` | The full set of override key-value pairs being applied |
+| `trigger_reason` | `"context"` \| `"experiment"` | Indicates whether this validation was triggered by a direct context/override operation or by an experiment creation |
+
+#### Expected Output
+
+| Return Value | Outcome |
+|-------------|---------|
+| `true` | Validation passes, the operation proceeds |
+| Any other value / `false` / throws | Validation fails, the operation is rejected with an error |
+
+#### Lifecycle
+
+- **Singleton**: Exactly one Context Validation function exists per workspace, always named `context_validation`.
+- It is **pre-created** when the workspace is provisioned — it cannot be created or deleted manually.
+- You can **edit and publish** it via the API or UI to customise the validation logic.
+- Must be **enabled** at the workspace level by setting `enable_context_validation` to `true` in the workspace settings. When disabled, the function is not executed even if published.
+
+---
+
+#### Summary
+
+| Function Type | Payload Key | Created By | Cardinality | Output | Requires Workspace Toggle |
+|---|---|---|---|---|---|
+| Value Validation | `value_validate` | User | Many (one per dimension/config key) | `true` to pass | No |
+| Value Compute | `value_compute` | User | Many (one per dimension) | Array with single element | No |
+| Change Reason Validation | `change_reason_validate` | System (pre-created) | One per workspace | `true` to pass | Yes (`enable_change_reason_validation`) |
+| Context & Override Validation | `context_validate` | System (pre-created) | One per workspace | `true` to pass | Yes (`enable_context_validation`) |

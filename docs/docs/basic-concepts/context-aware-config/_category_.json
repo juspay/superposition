@@ -1,0 +1,10 @@
+{
+  "label": "Context Aware Config",
+  "position": 1,
+  "collapsible": true,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "description": "Learn about the core module of Superposition"
+  }
+}
