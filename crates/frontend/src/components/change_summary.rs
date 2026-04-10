@@ -59,7 +59,9 @@ impl DiffSide {
     fn highlight(&self) -> (ChangeTag, &'static str) {
         match self {
             DiffSide::Old => (ChangeTag::Delete, "bg-red-200 text-red-900 rounded-sm"),
-            DiffSide::New => (ChangeTag::Insert, "bg-green-200 text-green-900 rounded-sm"),
+            DiffSide::New => {
+                (ChangeTag::Insert, "bg-green-200 text-green-900 rounded-sm")
+            }
         }
     }
 }
@@ -87,9 +89,7 @@ fn render_inline_diff(old_text: &str, new_text: &str, side: DiffSide) -> View {
     view! { <span class=side.wrapper_class()>{spans}</span> }.into_view()
 }
 
-fn make_diff_formatter(
-    side: DiffSide,
-) -> impl Fn(&str, &Map<String, Value>) -> View {
+fn make_diff_formatter(side: DiffSide) -> impl Fn(&str, &Map<String, Value>) -> View {
     move |value: &str, row: &Map<String, Value>| {
         if let Some(v) = render_sentinel(value) {
             return v;
@@ -103,7 +103,7 @@ fn make_diff_formatter(
                 render_inline_diff(old, new, side)
             }
             None => view! { <span class=side.wrapper_class()>{value.to_string()}</span> }
-            .into_view(),
+                .into_view(),
         }
     }
 }

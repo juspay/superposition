@@ -167,13 +167,10 @@ pub fn MonacoDiffEditor(
     let editor_state = StoredValue::new(None::<(js_sys::Object, ITextModel, ITextModel)>);
 
     on_cleanup(move || {
-        if let Some((editor, original_model, modified_model)) = editor_state.get_value()
-        {
+        if let Some((editor, original_model, modified_model)) = editor_state.get_value() {
             original_model.dispose();
             modified_model.dispose();
-            if let Ok(editor) = editor
-                .dyn_into::<monaco::sys::editor::IEditor>()
-            {
+            if let Ok(editor) = editor.dyn_into::<monaco::sys::editor::IEditor>() {
                 editor.dispose();
             }
         }

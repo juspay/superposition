@@ -16,7 +16,7 @@ async fn main() {
     println!("Watching config file: {:?}", config_path);
     println!("Edit the file in another terminal to see changes.\n");
 
-    let file_source = FileDataSource::new(config_path);
+    let file_source = FileDataSource::new(config_path).unwrap();
 
     let provider = LocalResolutionProvider::new(
         Box::new(file_source),

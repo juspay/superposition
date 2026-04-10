@@ -101,13 +101,6 @@ impl SuperpositionAPIProvider {
 
 #[async_trait]
 impl AllFeatureProvider for SuperpositionAPIProvider {
-    async fn resolve_all_features(
-        &self,
-        context: EvaluationContext,
-    ) -> Result<Map<String, Value>> {
-        self.resolve_remote(context, None).await
-    }
-
     async fn resolve_all_features_with_filter(
         &self,
         context: EvaluationContext,

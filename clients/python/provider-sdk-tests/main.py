@@ -5,12 +5,9 @@ import traceback
 from openfeature import api
 from openfeature.evaluation_context import EvaluationContext
 from smithy_core.documents import Document
-from superposition_provider.provider import SuperpositionProvider
-from superposition_provider.types import (
-    ExperimentationOptions,
-    PollingStrategy,
-    SuperpositionProviderOptions,
-)
+
+from superposition_provider import LocalResolutionProvider, HttpDataSource, SuperpositionOptions, PollingStrategy, \
+    SuperpositionAPIProvider, FileDataSource
 from superposition_sdk.client import (
     Config,
     Superposition,
@@ -316,34 +313,37 @@ async def setup_with_sdk(client, org_id: str, workspace_id: str):
 
 
 async def run_demo(org_id: str, workspace_id: str):
-    provider_options = SuperpositionProviderOptions(
-        refresh_strategy=PollingStrategy(
-            interval=5,  # Poll every 5 seconds
-            timeout=3,
-        ),
-        experimentation_options=ExperimentationOptions(
-            refresh_strategy=PollingStrategy(
-                interval=5,  # Poll every 5 seconds
-                timeout=3,  # Timeout after 3 seconds
-            )
-        ),
-        fallback_config=None,
-        evaluation_cache_options=None,
+    refresh_strategy = PollingStrategy(
+        interval=5,
+        timeout=3,
+    )
+    http_options = SuperpositionOptions(
         endpoint="http://localhost:8080",
         token="12345678",
         org_id=org_id,
         workspace_id=workspace_id,
     )
+    wrong_http_options = SuperpositionOptions(
+        endpoint="http://localhost:8080",
+        token="12345678",
+        org_id=org_id,
+        workspace_id="workspace_id",
+    )
+    primary_source = HttpDataSource(http_options)
+    fallback_source = FileDataSource("config.toml")
+
 
     try:
         print("\n=== Starting OpenFeature tests ===\n")
         print(f"Running on CPU architecture: {platform.machine()}")
 
-        provider = SuperpositionProvider(provider_options)
+        print("Testing local provider with HTTP data source and polling refresh strategy")
+
+        provider = LocalResolutionProvider(primary_source=primary_source, refresh_strategy=refresh_strategy)
         print("Provider created successfully")
 
         # Initialize the provider
-        await provider.initialize()
+        await provider.initialize(EvaluationContext())
         api.set_provider(provider)
         print("Provider initialized successfully\n")
 
@@ -351,7 +351,7 @@ async def run_demo(org_id: str, workspace_id: str):
 
         # Test 1: Default values (no context)
         print("Test 1: Default values (no context)")
-        evaluation_context = EvaluationContext(attributes={})
+        evaluation_context = EvaluationContext()
         price = client.get_integer_value("price", 0, evaluation_context)
         currency = client.get_string_value("currency", "", evaluation_context)
         print(f"  - Retrieved price: {price}, currency: {currency}")
@@ -443,7 +443,7 @@ async def run_demo(org_id: str, workspace_id: str):
         assert price in [8000, 7000], "Price should be either 8000 (control) or 7000 (experimental) in Kolkata"
         assert currency == "Rupee", "Currency should be Rupee in Kolkata"
         print("  ✓ Experiment Test passed\n")
-
+        api.shutdown()
         print("\n=== All tests passed! ===\n")
     except Exception as error:
         print(f"\n❌ Error running tests: {error}")
@@ -451,6 +451,241 @@ async def run_demo(org_id: str, workspace_id: str):
     finally:
         print("OpenFeature closed successfully")
 
+
+    try:
+        print("\n=== Starting OpenFeature tests ===\n")
+        print(f"Running on CPU architecture: {platform.machine()}")
+
+        print("Testing SuperpositionAPIProvider")
+
+        provider = SuperpositionAPIProvider(http_options)
+        print("Provider created successfully")
+
+        api.set_provider(provider)
+        print("Provider initialized successfully\n")
+
+        client = api.get_client()
+
+        # Test 1: Default values (no context)
+        print("Test 1: Default values (no context)")
+        evaluation_context = EvaluationContext()
+        price = await client.get_integer_value_async("price", 0, evaluation_context)
+        currency = await client.get_string_value_async("currency", "", evaluation_context)
+        print(f"  - Retrieved price: {price}, currency: {currency}")
+        assert price == 10000, "Default price should be 10000"
+        assert currency == "Rupee", "Default currency should be Rupee"
+        print("  ✓ Test passed\n")
+
+        # Test 2: Platinum customer - Agush, no city
+        print("Test 2: Platinum customer - Agush (no city)")
+        evaluation_context = EvaluationContext(attributes={"name": "Agush"})
+        price = await client.get_integer_value_async("price", 0, evaluation_context)
+        currency = await client.get_string_value_async("currency", "", evaluation_context)
+        print(f"  - Retrieved price: {price}, currency: {currency}")
+        assert price == 5000, "Price should be default 5000 (platinum customer)"
+        assert currency == "Rupee", "Currency should be default Rupee"
+        print("  ✓ Test passed\n")
+
+        # Test 3: Platinum customer - Sauyav, no city
+        print("Test 3: Platinum customer - Sauyav (no city)")
+        evaluation_context = EvaluationContext(
+            attributes={"name": "Sauyav", "city": "Boston"}
+        )
+        price = await client.get_integer_value_async("price", 0, evaluation_context)
+        currency = await client.get_string_value_async("currency", "", evaluation_context)
+        print(f"  - Retrieved price: {price}, currency: {currency}")
+        assert price == 5000, "Price should be 5000"
+        assert currency == "Dollar", "Currency should be dollar"
+        print("  ✓ Test passed\n")
+
+        print("Test 4: Regular customer - John (no city)")
+        evaluation_context = EvaluationContext(attributes={"name": "John"})
+        price = await client.get_integer_value_async("price", 0, evaluation_context)
+        currency = await client.get_string_value_async("currency", "", evaluation_context)
+        print(f"  - Retrieved price: {price}, currency: {currency}")
+        assert price == 10000, "Price should be default 10000"
+        assert currency == "Rupee", "Currency should be default Rupee"
+        print("  ✓ Test passed\n")
+
+        print("Test 5: Platinum customer - Sauyav with city Berlin")
+        evaluation_context = EvaluationContext(
+            attributes={"name": "Sauyav", "city": "Berlin"}
+        )
+        price = await client.get_integer_value_async("price", 0, evaluation_context)
+        currency = await client.get_string_value_async("currency", "", evaluation_context)
+        print(f"  - Retrieved price: {price}, currency: {currency}")
+        assert price == 5000, "Price should be 5000"
+        assert currency == "Euro", "Currency should be Euro in Berlin"
+        print("  ✓ Test passed\n")
+
+        print("Test 6: Regular customer - John with city Boston")
+        evaluation_context = EvaluationContext(
+            attributes={"name": "John", "city": "Boston"}
+        )
+        price = await client.get_integer_value_async("price", 0, evaluation_context)
+        currency = await client.get_string_value_async("currency", "", evaluation_context)
+        print(f"  - Retrieved price: {price}, currency: {currency}")
+        assert price == 10000, "Price should be default 10000"
+        assert currency == "Dollar", "Currency should be Dollar in Boston"
+        print("  ✓ Test passed\n")
+
+        print("Test 7: Edge case customer - karbik (specific override)")
+        evaluation_context = EvaluationContext(attributes={"name": "karbik"})
+        price = await client.get_integer_value_async("price", 0, evaluation_context)
+        currency = await client.get_string_value_async("currency", "", evaluation_context)
+        print(f"  - Retrieved price: {price}, currency: {currency}")
+        assert price == 1, "Price should be 1 for karbik"
+        assert currency == "Rupee", "Currency should be default Rupee"
+        print("  ✓ Test passed\n")
+
+        print("Test 8: Edge case customer - karbik with city Boston")
+        evaluation_context = EvaluationContext(
+            attributes={"name": "karbik", "city": "Boston"}
+        )
+        price = await client.get_integer_value_async("price", 0, evaluation_context)
+        currency = await client.get_string_value_async("currency", "", evaluation_context)
+        print(f"  - Retrieved price: {price}, currency: {currency}")
+        assert price == 1, "Price should be 1 for karbik"
+        assert currency == "Dollar", "Currency should be Dollar in Boston"
+        print("  ✓ Test passed\n")
+
+        print("Test 9: Experiment case: Kolkata pricing")
+        evaluation_context = EvaluationContext(
+            targeting_key= "test",
+            attributes={"city": "Kolkata"}
+        )
+        price = await client.get_integer_value_async("price", 0, evaluation_context)
+        currency = await client.get_string_value_async("currency", "", evaluation_context)
+        print(f"  - Retrieved price: {price}, currency: {currency}")
+        assert price in [8000, 7000], "Price should be either 8000 (control) or 7000 (experimental) in Kolkata"
+        assert currency == "Rupee", "Currency should be Rupee in Kolkata"
+        print("  ✓ Experiment Test passed\n")
+        api.shutdown()
+        print("\n=== All tests passed! ===\n")
+    except Exception as error:
+        print(f"\n❌ Error running tests: {error}")
+        raise error
+    finally:
+        print("OpenFeature closed successfully")
+
+    try:
+        print("\n=== Starting OpenFeature tests ===\n")
+        print(f"Running on CPU architecture: {platform.machine()}")
+
+        print("Testing local provider with wrong HTTP data source and polling refresh strategy, with fallback to file data source")
+
+        provider = LocalResolutionProvider(primary_source=HttpDataSource(wrong_http_options), fallback_source=fallback_source, refresh_strategy=refresh_strategy)
+        print("Provider created successfully")
+
+        # Initialize the provider
+        await provider.initialize(EvaluationContext())
+        api.set_provider(provider)
+        print("Provider initialized successfully\n")
+
+        client = api.get_client()
+
+        # Test 1: Default values (no context)
+        print("Test 1: Default values (no context)")
+        evaluation_context = EvaluationContext()
+        price = client.get_integer_value("price", 0, evaluation_context)
+        currency = client.get_string_value("currency", "", evaluation_context)
+        print(f"  - Retrieved price: {price}, currency: {currency}")
+        assert price == 10000, "Default price should be 10000"
+        assert currency == "Rupee", "Default currency should be Rupee"
+        print("  ✓ Test passed\n")
+
+        # Test 2: Platinum customer - Agush, no city
+        print("Test 2: Platinum customer - Agush (no city)")
+        evaluation_context = EvaluationContext(attributes={"name": "Agush"})
+        price = client.get_integer_value("price", 0, evaluation_context)
+        currency = client.get_string_value("currency", "", evaluation_context)
+        print(f"  - Retrieved price: {price}, currency: {currency}")
+        assert price == 5000, "Price should be default 5000 (platinum customer)"
+        assert currency == "Rupee", "Currency should be default Rupee"
+        print("  ✓ Test passed\n")
+
+        # Test 3: Platinum customer - Sauyav, no city
+        print("Test 3: Platinum customer - Sauyav (no city)")
+        evaluation_context = EvaluationContext(
+            attributes={"name": "Sauyav", "city": "Boston"}
+        )
+        price = client.get_integer_value("price", 0, evaluation_context)
+        currency = client.get_string_value("currency", "", evaluation_context)
+        print(f"  - Retrieved price: {price}, currency: {currency}")
+        assert price == 5000, "Price should be 5000"
+        assert currency == "Dollar", "Currency should be dollar"
+        print("  ✓ Test passed\n")
+
+        print("Test 4: Regular customer - John (no city)")
+        evaluation_context = EvaluationContext(attributes={"name": "John"})
+        price = client.get_integer_value("price", 0, evaluation_context)
+        currency = client.get_string_value("currency", "", evaluation_context)
+        print(f"  - Retrieved price: {price}, currency: {currency}")
+        assert price == 10000, "Price should be default 10000"
+        assert currency == "Rupee", "Currency should be default Rupee"
+        print("  ✓ Test passed\n")
+
+        print("Test 5: Platinum customer - Sauyav with city Berlin")
+        evaluation_context = EvaluationContext(
+            attributes={"name": "Sauyav", "city": "Berlin"}
+        )
+        price = client.get_integer_value("price", 0, evaluation_context)
+        currency = client.get_string_value("currency", "", evaluation_context)
+        print(f"  - Retrieved price: {price}, currency: {currency}")
+        assert price == 5000, "Price should be 5000"
+        assert currency == "Euro", "Currency should be Euro in Berlin"
+        print("  ✓ Test passed\n")
+
+        print("Test 6: Regular customer - John with city Boston")
+        evaluation_context = EvaluationContext(
+            attributes={"name": "John", "city": "Boston"}
+        )
+        price = client.get_integer_value("price", 0, evaluation_context)
+        currency = client.get_string_value("currency", "", evaluation_context)
+        print(f"  - Retrieved price: {price}, currency: {currency}")
+        assert price == 10000, "Price should be default 10000"
+        assert currency == "Dollar", "Currency should be Dollar in Boston"
+        print("  ✓ Test passed\n")
+
+        print("Test 7: Edge case customer - karbik (specific override)")
+        evaluation_context = EvaluationContext(attributes={"name": "karbik"})
+        price = client.get_integer_value("price", 0, evaluation_context)
+        currency = client.get_string_value("currency", "", evaluation_context)
+        print(f"  - Retrieved price: {price}, currency: {currency}")
+        assert price == 1, "Price should be 1 for karbik"
+        assert currency == "Rupee", "Currency should be default Rupee"
+        print("  ✓ Test passed\n")
+
+        print("Test 8: Edge case customer - karbik with city Boston")
+        evaluation_context = EvaluationContext(
+            attributes={"name": "karbik", "city": "Boston"}
+        )
+        price = client.get_integer_value("price", 0, evaluation_context)
+        currency = client.get_string_value("currency", "", evaluation_context)
+        print(f"  - Retrieved price: {price}, currency: {currency}")
+        assert price == 1, "Price should be 1 for karbik"
+        assert currency == "Dollar", "Currency should be Dollar in Boston"
+        print("  ✓ Test passed\n")
+
+        print("Experiment not supported in file data source, skipping experiment test")
+        # print("Test 9: Experiment case: Kolkata pricing")
+        # evaluation_context = EvaluationContext(
+        #     targeting_key= "test",
+        #     attributes={"city": "Kolkata"}
+        # )
+        # price = client.get_integer_value("price", 0, evaluation_context)
+        # currency = client.get_string_value("currency", "", evaluation_context)
+        # print(f"  - Retrieved price: {price}, currency: {currency}")
+        # assert price in [8000, 7000], "Price should be either 8000 (control) or 7000 (experimental) in Kolkata"
+        # assert currency == "Rupee", "Currency should be Rupee in Kolkata"
+        # print("  ✓ Experiment Test passed\n")
+        api.shutdown()
+        print("\n=== All tests passed! ===\n")
+    except Exception as error:
+        print(f"\n❌ Error running tests: {error}")
+        raise error
+    finally:
+        print("OpenFeature closed successfully")
 
 async def main():
     print("Starting Superposition OpenFeature demo and tests (Python)...")

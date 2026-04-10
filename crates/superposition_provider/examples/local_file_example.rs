@@ -11,7 +11,8 @@ async fn main() {
     env_logger::init();
 
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let file_source = FileDataSource::new(manifest_dir.join("examples/config.toml"));
+    let file_source =
+        FileDataSource::new(manifest_dir.join("examples/config.toml")).unwrap();
 
     let provider = LocalResolutionProvider::new(
         Box::new(file_source),

@@ -55,7 +55,7 @@ impl<T: Display> Display for FetchResponse<T> {
 /// Holds a resolved configuration along with the time it was fetched.
 #[derive(Debug, Clone)]
 pub struct ConfigData {
-    pub config: Config,
+    pub data: Config,
     pub fetched_at: DateTime<Utc>,
 }
 
@@ -63,12 +63,12 @@ impl Display for ConfigData {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "ConfigData(fetched_at: {}, config.contexts: {}, config.overrides: {}, config.default_configs: {}, config.dimensions: {})",
+            "ConfigData(fetched_at: {}, data.contexts: {}, data.overrides: {}, data.default_configs: {}, data.dimensions: {})",
             self.fetched_at,
-            self.config.contexts.len(),
-            self.config.overrides.len(),
-            self.config.default_configs.len(),
-            self.config.dimensions.len()
+            self.data.contexts.len(),
+            self.data.overrides.len(),
+            self.data.default_configs.len(),
+            self.data.dimensions.len()
         )
     }
 }
