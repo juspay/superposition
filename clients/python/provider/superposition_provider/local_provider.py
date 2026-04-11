@@ -22,13 +22,14 @@ from openfeature.flag_evaluation import FlagResolutionDetails
 from superposition_bindings.superposition_client import ProviderCache
 from superposition_bindings.superposition_types import MergeStrategy
 
+from . import FetchResponse
 from .data_source import SuperpositionDataSource, ConfigData, ExperimentData
 from .interfaces import AllFeatureProvider, FeatureExperimentMeta
 from .types import RefreshStrategy, OnDemandStrategy, WatchStrategy, PollingStrategy, ManualStrategy, default_on_demand_strategy
 
 logger = logging.getLogger(__name__)
 
-class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExperimentMeta):
+class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExperimentMeta, SuperpositionDataSource):
     """Local in-process OpenFeature provider with caching and refresh strategies.
 
     Features:
@@ -531,3 +532,107 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
         """Update ffi exp config cache with new values."""
         exp = self.cached_experiments.data
         self.ffi_cache.init_experiments(exp.experiments, exp.experiment_groups)
+
+
+    async def fetch_filtered_config(
+        self,
+        context: Optional[Dict[str, Any]] = None,
+        prefix_filter: Optional[List[str]] = None,
+        if_modified_since: Optional[datetime] = None,
+    ) -> FetchResponse[ConfigData]:
+        """Fetch configuration, optionally filtered.
+
+        Note: File-based filtering is not efficient; consider using HttpDataSource
+        for production configurations that need filtering.
+
+        Args:
+            context: Optional context for filtering (ignored).
+            prefix_filter: Optional key prefixes to include.
+            if_modified_since: Timestamp for 304 Not Modified check.
+
+        Returns:
+            FetchResponse with ConfigData or NotModified status.
+        """
+        if not self.ffi_cache or not self.cached_config:
+            raise RuntimeError("Provider not properly initialized or no config available")
+
+        if if_modified_since is not None:
+            logger.debug("LocalResolutionProvider: ignoring if_modified_since, always reading fresh from file")
+
+        return FetchResponse.data(ConfigData(
+            data=self.ffi_cache.filter_config(context, prefix_filter),
+            fetched_at=self.cached_config.fetched_at,
+        ))
+
+    async def fetch_active_experiments(
+        self,
+        if_modified_since: Optional[datetime] = None,
+    ) -> FetchResponse[ExperimentData]:
+        """Fetch experiments from file.
+
+        Args:
+            if_modified_since: Timestamp for 304 Not Modified check.
+
+        Returns:
+            FetchResponse with ExperimentData or NotModified status.
+        """
+        if not self.supports_experiments():
+            raise NotImplementedError("Experiments not supported by this provider")
+
+        if not self.cached_experiments:
+            raise RuntimeError("Provider not properly initialized or no experiments available")
+
+        if if_modified_since is not None:
+            logger.debug("LocalResolutionProvider: ignoring if_modified_since for experiments, always returning cached data")
+
+        return FetchResponse.data(self.cached_experiments)
+
+    async def fetch_candidate_active_experiments(
+        self,
+        context: Optional[Dict[str, Any]] = None,
+        prefix_filter: Optional[List[str]] = None,
+        if_modified_since: Optional[datetime] = None,
+    ) -> FetchResponse[ExperimentData]:
+        """Fetch candidate active experiments."""
+        if not self.supports_experiments():
+            raise NotImplementedError("Experiments not supported by this provider")
+
+        if not self.ffi_cache or not self.cached_experiments:
+            raise RuntimeError("Provider not properly initialized or no experiments available")
+
+        if if_modified_since is not None:
+            logger.debug("LocalResolutionProvider: ignoring if_modified_since for experiments, always returning cached data")
+
+        return FetchResponse.data(ExperimentData(
+            data=self.ffi_cache.filter_experiment(context, prefix_filter, False),
+            fetched_at=self.cached_experiments.fetched_at,
+        ))
+
+    async def fetch_matching_active_experiments(
+        self,
+        context: Optional[Dict[str, Any]] = None,
+        prefix_filter: Optional[List[str]] = None,
+        if_modified_since: Optional[datetime] = None,
+    ) -> FetchResponse[ExperimentData]:
+        """Fetch matching active experiments."""
+        if not self.supports_experiments():
+            raise NotImplementedError("Experiments not supported by this provider")
+
+        if not self.ffi_cache or not self.cached_experiments:
+            raise RuntimeError("Provider not properly initialized or no experiments available")
+
+        if if_modified_since is not None:
+            logger.debug("LocalResolutionProvider: ignoring if_modified_since for experiments, always returning cached data")
+
+        return FetchResponse.data(ExperimentData(
+            data=self.ffi_cache.filter_experiment(context, prefix_filter, True),
+            fetched_at=self.cached_experiments.fetched_at,
+        ))
+
+    def supports_experiments(self) -> bool:
+        """File source supports experiments if path is configured."""
+        return self.primary_source.supports_experiments()
+
+    async def close(self) -> None:
+        """Stop watching and clean up resources."""
+        return await self.shutdown()

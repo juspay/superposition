@@ -511,7 +511,7 @@ def _uniffi_check_api_checksums(lib):
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_superposition_core_checksum_method_providercache_filter_config() != 21761:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    if lib.uniffi_superposition_core_checksum_method_providercache_filter_experiment() != 60575:
+    if lib.uniffi_superposition_core_checksum_method_providercache_filter_experiment() != 31120:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_superposition_core_checksum_method_providercache_get_applicable_variants() != 12269:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
@@ -661,6 +661,7 @@ _UniffiLib.uniffi_superposition_core_fn_method_providercache_filter_experiment.a
     ctypes.c_void_p,
     _UniffiRustBuffer,
     _UniffiRustBuffer,
+    ctypes.c_int8,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
 _UniffiLib.uniffi_superposition_core_fn_method_providercache_filter_experiment.restype = _UniffiRustBuffer
@@ -1066,6 +1067,27 @@ class _UniffiConverterUInt8(_UniffiConverterPrimitiveInt):
 
     @staticmethod
     def write(value, buf):
+        buf.write_u8(value)
+
+class _UniffiConverterBool:
+    @classmethod
+    def check_lower(cls, value):
+        return not not value
+
+    @classmethod
+    def lower(cls, value):
+        return 1 if value else 0
+
+    @staticmethod
+    def lift(value):
+        return value != 0
+
+    @classmethod
+    def read(cls, buf):
+        return cls.lift(buf.read_u8())
+
+    @classmethod
+    def write(cls, value, buf):
         buf.write_u8(value)
 
 class _UniffiConverterString:
@@ -1747,7 +1769,7 @@ class ProviderCacheProtocol(typing.Protocol):
         raise NotImplementedError
     def filter_config(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]"):
         raise NotImplementedError
-    def filter_experiment(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]"):
+    def filter_experiment(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]",partial_apply: "bool"):
         raise NotImplementedError
     def get_applicable_variants(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]",targeting_key: "str"):
         raise NotImplementedError
@@ -1816,15 +1838,18 @@ class ProviderCache():
 
 
 
-    def filter_experiment(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]") -> "ExperimentConfig":
+    def filter_experiment(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]",partial_apply: "bool") -> "ExperimentConfig":
         _UniffiConverterOptionalMapStringString.check_lower(dimension_data)
         
         _UniffiConverterOptionalSequenceString.check_lower(prefix)
         
+        _UniffiConverterBool.check_lower(partial_apply)
+        
         return _UniffiConverterTypeExperimentConfig.lift(
             _uniffi_rust_call_with_error(_UniffiConverterTypeOperationError,_UniffiLib.uniffi_superposition_core_fn_method_providercache_filter_experiment,self._uniffi_clone_pointer(),
         _UniffiConverterOptionalMapStringString.lower(dimension_data),
-        _UniffiConverterOptionalSequenceString.lower(prefix))
+        _UniffiConverterOptionalSequenceString.lower(prefix),
+        _UniffiConverterBool.lower(partial_apply))
         )
 
 

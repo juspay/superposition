@@ -607,39 +607,32 @@ impl FeatureProvider for LocalResolutionProvider {
 
 #[async_trait]
 impl SuperpositionDataSource for LocalResolutionProvider {
-    async fn fetch_config(
-        &self,
-        if_modified_since: Option<DateTime<Utc>>,
-    ) -> Result<FetchResponse<ConfigData>> {
-        if if_modified_since.is_some() {
-            log::debug!("LocalResolutionProvider: ignoring if_modified_since for config, always returning cached data");
-        }
-        let cached = self.cached_config.read().await;
-        match cached.as_ref() {
-            Some(data) => Ok(FetchResponse::Data(data.clone())),
-            None => Err(SuperpositionError::ConfigError(
-                "No cached config available".into(),
-            )),
-        }
-    }
-
     async fn fetch_filtered_config(
         &self,
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
         if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ConfigData>> {
-        let resp = self
-            .fetch_config(if_modified_since)
-            .await?
-            .map_data(|mut c| {
-                let prefix = prefix_filter.map(HashSet::from_iter);
-                c.data = c.data.filter(context.as_ref(), prefix.as_ref());
+        if if_modified_since.is_some() {
+            log::debug!("LocalResolutionProvider: ignoring if_modified_since for config, always returning cached data");
+        }
 
-                c
-            });
+        let mut config_data = {
+            let cached = self.cached_config.read().await;
+            match cached.as_ref() {
+                Some(data) => data.clone(),
+                None => {
+                    return Err(SuperpositionError::ConfigError(
+                        "No cached config available".into(),
+                    ))
+                }
+            }
+        };
 
-        Ok(resp)
+        let prefix = prefix_filter.map(HashSet::from_iter);
+        config_data.data = config_data.data.filter(context.as_ref(), prefix.as_ref());
+
+        Ok(FetchResponse::Data(config_data))
     }
 
     async fn fetch_active_experiments(

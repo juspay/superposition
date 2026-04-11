@@ -51,8 +51,10 @@ impl FileDataSource {
 
 #[async_trait]
 impl SuperpositionDataSource for FileDataSource {
-    async fn fetch_config(
+    async fn fetch_filtered_config(
         &self,
+        context: Option<Map<String, Value>>,
+        prefix_filter: Option<Vec<String>>,
         if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ConfigData>> {
         if if_modified_since.is_some() {
@@ -72,7 +74,7 @@ impl SuperpositionDataSource for FileDataSource {
             "json" => JsonFormat::parse_config,
             _ => TomlFormat::parse_config,
         };
-        let config = parser(&content).map_err(|e| {
+        let mut config = parser(&content).map_err(|e| {
             SuperpositionError::ConfigError(format!(
                 "Failed to parse {} config: {}",
                 self.file_format.to_uppercase(),
@@ -80,30 +82,15 @@ impl SuperpositionDataSource for FileDataSource {
             ))
         })?;
 
+        config = config.filter(
+            context.as_ref(),
+            prefix_filter.map(|p| p.into_iter().collect()).as_ref(),
+        );
+
         Ok(FetchResponse::Data(ConfigData {
             data: config,
             fetched_at: now,
         }))
-    }
-
-    async fn fetch_filtered_config(
-        &self,
-        context: Option<Map<String, Value>>,
-        prefix_filter: Option<Vec<String>>,
-        if_modified_since: Option<DateTime<Utc>>,
-    ) -> Result<FetchResponse<ConfigData>> {
-        let resp = self
-            .fetch_config(if_modified_since)
-            .await?
-            .map_data(|mut data| {
-                data.data = data.data.filter(
-                    context.as_ref(),
-                    prefix_filter.map(|p| p.into_iter().collect()).as_ref(),
-                );
-                data
-            });
-
-        Ok(resp)
     }
 
     async fn fetch_active_experiments(

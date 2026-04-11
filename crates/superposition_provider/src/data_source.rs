@@ -102,7 +102,10 @@ pub trait SuperpositionDataSource: Send + Sync {
     async fn fetch_config(
         &self,
         if_modified_since: Option<DateTime<Utc>>,
-    ) -> Result<FetchResponse<ConfigData>>;
+    ) -> Result<FetchResponse<ConfigData>> {
+        self.fetch_filtered_config(None, None, if_modified_since)
+            .await
+    }
 
     /// Fetch a resolved configuration filtered by the given context and key prefixes.
     async fn fetch_filtered_config(

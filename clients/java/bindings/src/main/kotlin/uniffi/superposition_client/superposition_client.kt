@@ -877,7 +877,7 @@ fun uniffi_superposition_core_fn_method_providercache_eval_config(`ptr`: Pointer
 ): RustBuffer.ByValue
 fun uniffi_superposition_core_fn_method_providercache_filter_config(`ptr`: Pointer,`dimensionData`: RustBuffer.ByValue,`prefix`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBufferConfig.ByValue
-fun uniffi_superposition_core_fn_method_providercache_filter_experiment(`ptr`: Pointer,`dimensionData`: RustBuffer.ByValue,`prefix`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+fun uniffi_superposition_core_fn_method_providercache_filter_experiment(`ptr`: Pointer,`dimensionData`: RustBuffer.ByValue,`prefix`: RustBuffer.ByValue,`partialApply`: Byte,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
 fun uniffi_superposition_core_fn_method_providercache_get_applicable_variants(`ptr`: Pointer,`dimensionData`: RustBuffer.ByValue,`prefix`: RustBuffer.ByValue,`targetingKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
@@ -1047,7 +1047,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if (lib.uniffi_superposition_core_checksum_method_providercache_filter_config() != 21761.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_superposition_core_checksum_method_providercache_filter_experiment() != 60575.toShort()) {
+    if (lib.uniffi_superposition_core_checksum_method_providercache_filter_experiment() != 31120.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_superposition_core_checksum_method_providercache_get_applicable_variants() != 12269.toShort()) {
@@ -1231,6 +1231,29 @@ public object FfiConverterUByte: FfiConverter<UByte, Byte> {
 /**
  * @suppress
  */
+public object FfiConverterBoolean: FfiConverter<Boolean, Byte> {
+    override fun lift(value: Byte): Boolean {
+        return value.toInt() != 0
+    }
+
+    override fun read(buf: ByteBuffer): Boolean {
+        return lift(buf.get())
+    }
+
+    override fun lower(value: Boolean): Byte {
+        return if (value) 1.toByte() else 0.toByte()
+    }
+
+    override fun allocationSize(value: Boolean) = 1UL
+
+    override fun write(value: Boolean, buf: ByteBuffer) {
+        buf.put(lower(value))
+    }
+}
+
+/**
+ * @suppress
+ */
 public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
     // Note: we don't inherit from FfiConverterRustBuffer, because we use a
     // special encoding when lowering/lifting.  We can use `RustBuffer.len` to
@@ -1390,7 +1413,7 @@ public interface ProviderCacheInterface {
     
     fun `filterConfig`(`dimensionData`: Map<kotlin.String, kotlin.String>?, `prefix`: List<kotlin.String>?): Config
     
-    fun `filterExperiment`(`dimensionData`: Map<kotlin.String, kotlin.String>?, `prefix`: List<kotlin.String>?): ExperimentConfig
+    fun `filterExperiment`(`dimensionData`: Map<kotlin.String, kotlin.String>?, `prefix`: List<kotlin.String>?, `partialApply`: kotlin.Boolean): ExperimentConfig
     
     fun `getApplicableVariants`(`dimensionData`: Map<kotlin.String, kotlin.String>?, `prefix`: List<kotlin.String>?, `targetingKey`: kotlin.String): List<kotlin.String>
     
@@ -1517,12 +1540,12 @@ open class ProviderCache: Disposable, AutoCloseable, ProviderCacheInterface
     
 
     
-    @Throws(OperationException::class)override fun `filterExperiment`(`dimensionData`: Map<kotlin.String, kotlin.String>?, `prefix`: List<kotlin.String>?): ExperimentConfig {
+    @Throws(OperationException::class)override fun `filterExperiment`(`dimensionData`: Map<kotlin.String, kotlin.String>?, `prefix`: List<kotlin.String>?, `partialApply`: kotlin.Boolean): ExperimentConfig {
             return FfiConverterTypeExperimentConfig.lift(
     callWithPointer {
     uniffiRustCallWithError(OperationException) { _status ->
     UniffiLib.INSTANCE.uniffi_superposition_core_fn_method_providercache_filter_experiment(
-        it, FfiConverterOptionalMapStringString.lower(`dimensionData`),FfiConverterOptionalSequenceString.lower(`prefix`),_status)
+        it, FfiConverterOptionalMapStringString.lower(`dimensionData`),FfiConverterOptionalSequenceString.lower(`prefix`),FfiConverterBoolean.lower(`partialApply`),_status)
 }
     }
     )
