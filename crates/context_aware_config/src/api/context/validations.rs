@@ -78,12 +78,12 @@ pub fn validate_context_jsonschema(
         let verrors = e.collect::<Vec<ValidationError>>();
         log::error!(
             "failed to validate dimension value {}: {:?}",
-            dimension_value.to_string(),
+            dimension_value,
             verrors
         );
         validation_error!(
             "failed to validate dimension value {}: {}",
-            dimension_value.to_string(),
+            dimension_value,
             validation_err_to_str(verrors)
                 .first()
                 .unwrap_or(&String::new())

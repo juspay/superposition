@@ -1,8 +1,10 @@
-use std::{process::Command, str};
+use std::time::Duration;
 
+use rustyscript::{Module, Runtime, RuntimeOptions, json_args};
 use serde::Serialize;
+use superposition_macros::{bad_argument, validation_error};
+
 use service_utils::service::types::{EncryptionKey, WorkspaceContext};
-use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
     DBConnection,
     api::functions::{FunctionExecutionRequest, FunctionExecutionResponse},
@@ -12,117 +14,6 @@ use superposition_types::{
 
 use crate::api::functions::helpers::inject_secrets_and_variables_into_code;
 
-static FUNCTION_ENV_VARIABLES: &str =
-    "HTTP_PROXY,HTTPS_PROXY,HTTP_PROXY_HOST,HTTP_PROXY_PORT,NO_PROXY";
-
-const CODE_TOKEN: &str = "{replaceme-with-code}";
-
-const FUNCTION_ENV_TOKEN: &str = "{function-envs}";
-
-const FUNCTION_NAME_TOKEN: &str = "{function-name}";
-
-const FUNCTION_NAME: &str = "execute";
-
-const FUNCTION_TYPE_CHECK_SNIPPET: &str = r#"const vm = require("node:vm")
-        const axios = require("./target/node_modules/axios/dist/node/axios.cjs")
-        const script = new vm.Script(\`
-
-        {replaceme-with-code}
-
-        if(typeof({function-name})!="function")
-        {
-            throw Error("{function-name} is not of function type")
-        }\`);
-
-        script.runInNewContext({axios,console}, { timeout: 1500 });
-        "#;
-
-const FUNCTION_EXECUTION_SNIPPET: &str = r#"
-        const vm = require("node:vm")
-        const axios = require("./target/node_modules/axios/dist/node/axios.cjs")
-        const { parentPort } = require("node:worker_threads")
-        const script = new vm.Script(\`
-
-        {replaceme-with-code}
-        Promise.resolve({function-invocation}).then((output) => {
-            if({condition}) {
-                throw new Error("The function did not return a value that was expected. Check the return type and logic of the function")
-            }
-            parentPort.postMessage({tag: "result", value: output});
-            return output;
-        }).catch((err)=> {
-            throw new Error(err)
-        });\`);
-
-        script.runInNewContext({ axios, console, parentPort }, { timeout: 1500 });
-        "#;
-
-const CODE_GENERATION_SNIPPET: &str = r#"
-    const { Worker, isMainThread, threadId } =  require("node:worker_threads");
-    if (isMainThread) {
-        let function_env_variables = "{function-envs}"
-        let variablesToKeep = []
-        variablesToKeep = function_env_variables.split(',').map(variable => variable.trim());
-        for (const key in process.env) {
-            if (!variablesToKeep.includes(key)) {
-                delete process.env[key];
-            }
-        }
-
-
-    // starting worker thread , making separated from the main thread
-    function runService() {
-        return new Promise((resolve, reject) => {
-        let result = null;
-        const worker = new Worker(
-            `{replaceme-with-code}`,{ eval:true }
-        );
-        worker.on("message", (msg) => {
-            if (typeof msg === 'object' && 'tag' in msg) {
-                result = msg;
-            } else {
-                console.log(msg);
-            }
-        });
-        worker.on("error", (err) => {
-            clearTimeout(tl);
-            console.error(err.message);
-            process.exit(1);
-        });
-        worker.on("exit", (code) => {
-            clearTimeout(tl);
-            if (code != 0) {
-                console.error(`Script stopped with exit code ${code}`);
-                worker.terminate();
-                throw new Error(code);
-            } else {
-                resolve(result);
-            }
-        });
-
-        function timelimit() {
-            worker.terminate();
-            throw new Error("time limit exceeded");
-        }
-
-        // terminate worker thread if execution time exceed 10 secs
-        var tl = setTimeout(timelimit, 10000);
-        return result;
-        });
-    }
-
-    runService()
-        .then((v) => console.log("|", v.value))
-        .catch((err) => console.error(err));
-    }
-    "#;
-
-fn type_check(code_str: &FunctionCode) -> String {
-    FUNCTION_TYPE_CHECK_SNIPPET
-        .replace(FUNCTION_NAME_TOKEN, FUNCTION_NAME)
-        .replace(CODE_TOKEN, code_str)
-}
-
 #[derive(Serialize)]
 struct FunctionPayload {
     version: FunctionRuntimeVersion,
@@ -130,48 +21,108 @@ struct FunctionPayload {
     payload: FunctionExecutionRequest,
 }
 
-fn generate_fn_code(
-    code_str: &FunctionCode,
-    function_args: &FunctionExecutionRequest,
-    runtime_version: FunctionRuntimeVersion,
-) -> String {
-    let payload = match runtime_version {
-        FunctionRuntimeVersion::V1 => FunctionPayload {
-            version: runtime_version,
-            payload: function_args.clone(),
-        },
-    };
+const FUNCTION_WRAPPER: &str = r#"
+let logBuffer = [];
+const originalConsole = console;
+const customConsole = {
+    log: (...args) => {
+        logBuffer.push("[log] " + args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '));
+    },
+    info: (...args) => {
+        logBuffer.push("[info] " + args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '));
+    },
+    warn: (...args) => {
+        logBuffer.push("[warn] " + args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '));
+    },
+    error: (...args) => {
+        logBuffer.push("[error] " + args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '));
+    },
+    debug: (...args) => {
+        logBuffer.push("[debug] " + args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '));
+    }
+};
 
-    let output_check = match function_args {
-        FunctionExecutionRequest::ValueValidationFunctionRequest { .. } => "output!=true",
-        FunctionExecutionRequest::ValueComputeFunctionRequest { .. } => {
-            "!(Array.isArray(output))"
-        }
-        FunctionExecutionRequest::ContextValidationFunctionRequest { .. } => {
-            "output!=true"
-        }
-        FunctionExecutionRequest::ChangeReasonValidationFunctionRequest { .. } => {
-            "output!=true"
-        }
-    };
+Object.defineProperty(globalThis, 'console', {
+    value: customConsole,
+    writable: false,
+    configurable: false
+});
 
-    FUNCTION_EXECUTION_SNIPPET
-        .replace("{condition}", output_check)
-        .replace(
-            "{function-invocation}",
-            &format!(
-                "{}({})",
-                FUNCTION_NAME,
-                serde_json::to_string(&payload).unwrap_or("Invalid Payload".to_string())
-            ),
-        )
-        .replace(CODE_TOKEN, code_str)
+function getLogBuffer() {
+    return logBuffer;
 }
 
-fn generate_wrapper_runtime(code_str: &str) -> String {
-    CODE_GENERATION_SNIPPET
-        .replace(FUNCTION_ENV_TOKEN, FUNCTION_ENV_VARIABLES)
-        .replace(CODE_TOKEN, code_str)
+function clearLogBuffer() {
+    logBuffer = [];
+}
+
+{replaceme-with-code}
+
+export { execute, getLogBuffer, clearLogBuffer };
+"#;
+
+fn generate_wrapped_code(code: &str) -> String {
+    FUNCTION_WRAPPER.replace("{replaceme-with-code}", code)
+}
+
+/// Runs JS function code in a rustyscript runtime. This function is `Send`-safe
+/// and does not require any DB connection, making it suitable for use with
+/// `spawn_blocking`.
+pub fn run_js_function(
+    code: FunctionCode,
+    args: FunctionExecutionRequest,
+    runtime_version: FunctionRuntimeVersion,
+) -> Result<FunctionExecutionResponse, (String, Option<String>)> {
+    let wrapped_code = generate_wrapped_code(&code.0);
+    let module = Module::new("function.js", &wrapped_code);
+
+    let runtime_options = RuntimeOptions {
+        timeout: Duration::from_millis(1500),
+        ..Default::default()
+    };
+
+    let mut runtime = Runtime::new(runtime_options).map_err(|e| {
+        let err_str = e.to_string();
+        (format!("Failed to create runtime: {}", err_str), None)
+    })?;
+
+    let payload = FunctionPayload {
+        version: runtime_version,
+        payload: args.clone(),
+    };
+    let module_handle = runtime
+        .load_module(&module)
+        .map_err(|err| (err.to_string(), None))?;
+
+    let tokio_runtime = runtime.tokio_runtime();
+
+    let fn_output = tokio_runtime
+        .block_on(async {
+            runtime
+                .call_function_async::<serde_json::Value>(
+                    Some(&module_handle),
+                    "execute",
+                    json_args!(payload),
+                )
+                .await
+        })
+        .map_err(|err| (err.to_string(), None))?;
+
+    let stdout = runtime
+        .call_function::<Vec<String>>(Some(&module_handle), "getLogBuffer", json_args!())
+        .map_err(|err| (err.to_string(), None))?
+        .join("\n");
+    runtime
+        .call_function::<()>(Some(&module_handle), "clearLogBuffer", json_args!())
+        .map_err(|err| (err.to_string(), None))?;
+    let function_type = FunctionType::from(&args);
+    log::trace!("Function output: {:?}", fn_output);
+    log::trace!("Function logs: {}", stdout);
+    Ok(FunctionExecutionResponse {
+        fn_output,
+        stdout,
+        function_type,
+    })
 }
 
 pub fn execute_fn(
@@ -189,87 +140,63 @@ pub fn execute_fn(
         master_encryption_key,
     )
     .map_err(|err| {
-        let err_msg = format!("Failed to inject variables/secrets: {:?}", err);
-        log::error!("{}", err_msg);
-        (err_msg, None)
+        log::error!("Failed to inject variables: {:?}", err);
+        (err.to_string(), None)
     })?;
-    let exec_code = generate_fn_code(&code, args, runtime_version);
-    log::trace!("{}", format!("Running function code: {:?}", exec_code));
-    let output = Command::new("node")
-        .arg("-e")
-        .arg(generate_wrapper_runtime(&exec_code))
-        .output();
-    log::trace!("{}", format!("Running function output : {:?}", output));
-    match output {
-        Ok(val) => {
-            let stdout = str::from_utf8(&val.stdout)
-                .unwrap_or("[Invalid UTF-8 in stdout]")
-                .to_owned();
-            if !(val.status.success()) {
-                let stderr = str::from_utf8(&val.stderr)
-                    .unwrap_or("[Invalid UTF-8 in stderr]")
-                    .to_owned();
-                log::error!(
-                    "{}",
-                    format!("validation function output error: {:?}", stderr)
-                );
-                Err((stderr, Some(stdout)))
-            } else {
-                let function_type = FunctionType::from(args);
-                let stdout_vec = stdout.trim().split('|').collect::<Vec<_>>();
-                let fn_output = stdout_vec
-                    .last()
-                    .map(|i| i.to_string())
-                    .unwrap_or_default()
-                    .replace('\'', "\"");
 
-                log::trace!("Function output in rust {:?}", fn_output);
-                let fn_output = serde_json::from_str::<serde_json::Value>(&fn_output)
-                    .unwrap_or_default();
-                Ok(FunctionExecutionResponse {
-                    fn_output,
-                    stdout: stdout_vec[0..stdout_vec.len() - 1].join("\n"),
-                    function_type,
-                })
-            }
-        }
-        Err(e) => {
-            log::error!("js_eval error: {}", e);
-            Err((format!("js_eval error: {}", e), None))
-        }
-    }
+    run_js_function(code, args.clone(), runtime_version)
 }
 
 pub fn compile_fn(code_str: &FunctionCode) -> superposition::Result<()> {
-    let type_check_code = type_check(code_str);
-    log::trace!(
-        "{}",
-        format!(
-            "validation function code : {:?}",
-            generate_wrapper_runtime(&type_check_code)
-        )
-    );
-    let output = Command::new("node")
-        .arg("-e")
-        .arg(generate_wrapper_runtime(&type_check_code))
-        .output();
+    let type_check_code = format!(
+        r#"
+        {}
 
-    log::trace!("{}", format!("validation function output : {:?}", output));
-    match output {
-        Ok(val) => {
-            if !(val.status.success()) {
-                let stderr = str::from_utf8(&val.stderr)
-                    .unwrap_or("[Invalid UTF-8 in stderr]")
-                    .to_owned();
-                log::error!("{}", format!("eslint check output error: {:?}", stderr));
-                Err(validation_error!(stderr))
-            } else {
-                Ok(())
-            }
-        }
-        Err(e) => {
-            log::error!("eslint check error: {}", e);
-            Err(unexpected_error!("js_eval error: {}", e))
-        }
-    }
+        export function typeCheck() {{
+            if (typeof execute === "undefined") {{
+                throw new Error("execute function is not defined");
+            }}
+        }}
+        "#,
+        code_str
+    );
+
+    rustyscript::validate(&type_check_code).map_err(|err| {
+        log::error!("Invalid function syntax: {:?}", err);
+        bad_argument!("Invalid function syntax: {}", err)
+    })?;
+
+    let module = Module::new("type_check.js", &type_check_code);
+    let runtime_options = RuntimeOptions {
+        timeout: Duration::from_millis(1500),
+        ..Default::default()
+    };
+
+    let mut runtime = Runtime::new(runtime_options).map_err(|e| {
+        let err_str = e.to_string();
+        validation_error!("Failed to create runtime: {}", err_str)
+    })?;
+
+    let module_handle = runtime.load_module(&module).map_err(|e| {
+        let err_str = e.to_string();
+        validation_error!("Failed to load module: {}", err_str)
+    })?;
+
+    let tokio_runtime = runtime.tokio_runtime();
+    tokio_runtime
+        .block_on(async {
+            runtime
+                .call_function_async::<()>(
+                    Some(&module_handle),
+                    "typeCheck",
+                    json_args!(),
+                )
+                .await
+        })
+        .map_err(|e| {
+            let err_str = e.to_string();
+            validation_error!("Function validation failed: {}", err_str)
+        })?;
+
+    Ok(())
 }

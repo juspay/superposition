@@ -1,4 +1,4 @@
-use std::ops::Deref;
+use std::{collections::HashMap, ops::Deref};
 
 use actix_web::web::Json;
 use chrono::Utc;
@@ -8,14 +8,14 @@ use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
     result::{DatabaseErrorKind::*, Error::DatabaseError},
 };
-use serde_json::{Map, Value};
-use service_utils::service::types::{EncryptionKey, SchemaName, WorkspaceContext};
+use serde_json::Value;
+use service_utils::service::types::{SchemaName, WorkspaceContext};
 use superposition_core::helpers::{calculate_context_weight, hash};
 use superposition_macros::{db_error, not_found, unexpected_error};
 use superposition_types::{
-    DBConnection, InternalUserContext, Overrides, User,
+    DBConnection, DimensionInfo, Overrides, User,
     api::{
-        context::{Identifier, MoveRequest, PutRequest, UpdateRequest},
+        context::{Identifier, MoveRequest, UpdateRequest},
         webhook::Action,
     },
     database::{
@@ -26,38 +26,24 @@ use superposition_types::{
 };
 
 use crate::api::context::helpers::{
-    create_ctx_from_put_req, replace_override_of_existing_ctx,
-    update_override_of_existing_ctx, validate_ctx,
+    replace_override_of_existing_ctx, update_override_of_existing_ctx,
 };
 
 use super::{
-    helpers::validate_override_with_functions, types::UpdateContextOverridesChangeset,
+    types::UpdateContextOverridesChangeset,
     validations::validate_override_with_default_configs,
 };
 
 #[allow(clippy::too_many_arguments)]
 pub fn upsert(
-    req: PutRequest,
-    description: Description,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     already_under_txn: bool,
     user: &User,
     workspace_context: &WorkspaceContext,
     replace: bool,
-    master_encryption_key: &Option<EncryptionKey>,
-    internal_user: &InternalUserContext,
+    new_ctx: Context,
 ) -> result::Result<Context> {
     use contexts::dsl::contexts;
-    let new_ctx = create_ctx_from_put_req(
-        req,
-        description,
-        conn,
-        user,
-        workspace_context,
-        master_encryption_key,
-        internal_user,
-    )?;
-
     if already_under_txn {
         diesel::sql_query("SAVEPOINT put_ctx_savepoint").execute(conn)?;
     }
@@ -130,22 +116,8 @@ pub fn update(
     req: UpdateRequest,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     user: &User,
-    master_encryption_key: &Option<EncryptionKey>,
+    context_id: String,
 ) -> result::Result<Context> {
-    let (context_id, context) = match req.context {
-        Identifier::Context(context) => {
-            let ctx_value: Map<String, Value> = context.into_inner().into();
-            (hash(&Value::Object(ctx_value.clone())), ctx_value)
-        }
-        Identifier::Id(id) => {
-            let ctx_value: Context = dsl::contexts
-                .filter(dsl::id.eq(id.clone()))
-                .schema_name(&workspace_context.schema_name)
-                .get_result::<Context>(conn)?;
-            (id.clone(), ctx_value.value.into())
-        }
-    };
-
     let r_override = req.override_.clone().into_inner();
     let ctx_override = Value::Object(r_override.clone().into());
 
@@ -153,13 +125,6 @@ pub fn update(
         conn,
         &r_override,
         &workspace_context.schema_name,
-    )?;
-    validate_override_with_functions(
-        workspace_context,
-        conn,
-        &r_override,
-        &context,
-        master_encryption_key,
     )?;
 
     let update_request = UpdateContextOverridesChangeset {
@@ -195,8 +160,7 @@ pub fn r#move(
     conn: &mut DBConnection,
     already_under_txn: bool,
     user: &User,
-    master_encryption_key: &Option<EncryptionKey>,
-    internal_user: &InternalUserContext,
+    dimension_data_map: &HashMap<String, DimensionInfo>,
 ) -> result::Result<MoveResult> {
     use contexts::dsl;
     let req = req.into_inner();
@@ -206,15 +170,7 @@ pub fn r#move(
 
     let new_ctx_id = hash(&ctx_condition_value);
 
-    let dimension_data_map = validate_ctx(
-        conn,
-        workspace_context,
-        ctx_condition.clone(),
-        Overrides::default(),
-        master_encryption_key,
-        internal_user,
-    )?;
-    let weight = calculate_context_weight(&ctx_condition, &dimension_data_map)
+    let weight = calculate_context_weight(&ctx_condition, dimension_data_map)
         .map_err(|_| unexpected_error!("Something Went Wrong"))?;
 
     if already_under_txn {

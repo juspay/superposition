@@ -4,10 +4,8 @@
   perSystem =
     {
       config,
-      self',
       pkgs,
       lib,
-      system,
       ...
     }:
     let
@@ -15,6 +13,33 @@
       globalCrateConfig = {
         crane.clippy.enable = false; # https://github.com/juspay/superposition/issues/19
       };
+      v8Target = if isDarwin then "aarch64-apple-darwin" else "x86_64-unknown-linux-gnu";
+      v8_lib = pkgs.fetchurl {
+        url = "https://github.com/denoland/rusty_v8/releases/download/v137.3.0/librusty_v8_release_${v8Target}.a.gz";
+        sha256 =
+          if isDarwin then
+            "0w70ykqip4a84z3cb5vibdqw91lywwahl9pc05mw8lp54ikksl30"
+          else
+            "0rv5nl4gcbvdpk3mdwbqvw180nfx2wk173q1cqrvv2h1agg1ys52";
+      };
+      v8_binding = pkgs.fetchurl {
+        url = "https://github.com/denoland/rusty_v8/releases/download/v137.3.0/src_binding_release_${v8Target}.rs";
+        sha256 =
+          if isDarwin then
+            "14mb5dly52wjnbzv5arv0mhkqm4162ah2wln5dzrz2w6diyryy26"
+          else
+            "1gjqymsz7zc4d61cb6h02l90z1hpff4haagc81ixlk9ipg7p73ng";
+      };
+      v8_mirror = pkgs.linkFarm "v8-mirror" [
+        {
+          name = "v137.3.0/librusty_v8_release_${v8Target}.a.gz";
+          path = v8_lib;
+        }
+        {
+          name = "v137.3.0/src_binding_release_${v8Target}.rs";
+          path = v8_binding;
+        }
+      ];
     in
     {
       rust-project = {
@@ -56,9 +81,9 @@
             crane = {
               args = {
                 buildInputs =
-                  lib.optionals isDarwin ([
+                  lib.optionals isDarwin [
                     pkgs.fixDarwinDylibNames
-                  ])
+                  ]
                   ++ [
                     pkgs.postgresql_15
                     pkgs.openssl
@@ -81,10 +106,12 @@
             ]; # Used by Haskell client
             crane = {
               args = {
+                RUSTY_V8_MIRROR = v8_mirror;
+                RUSTY_V8_SRC_BINDING_PATH = "${v8_mirror}/v137.3.0/src_binding_release_${v8Target}.rs";
                 buildInputs =
-                  lib.optionals isDarwin ([
+                  lib.optionals isDarwin [
                     pkgs.fixDarwinDylibNames
-                  ])
+                  ]
                   ++ [
                     pkgs.postgresql_15
                     pkgs.openssl
@@ -108,9 +135,9 @@
             crane = {
               args = {
                 buildInputs =
-                  lib.optionals isDarwin ([
+                  lib.optionals isDarwin [
                     pkgs.fixDarwinDylibNames
-                  ])
+                  ]
                   ++ [
                     pkgs.postgresql_15
                     pkgs.openssl
@@ -134,9 +161,9 @@
             crane = {
               args = {
                 buildInputs =
-                  lib.optionals isDarwin ([
+                  lib.optionals isDarwin [
                     pkgs.fixDarwinDylibNames
-                  ])
+                  ]
                   ++ [
                     pkgs.postgresql_15
                     pkgs.openssl
@@ -160,9 +187,9 @@
             crane = {
               args = {
                 buildInputs =
-                  lib.optionals isDarwin ([
+                  lib.optionals isDarwin [
                     pkgs.fixDarwinDylibNames
-                  ])
+                  ]
                   ++ [
                     pkgs.postgresql_15
                     pkgs.openssl
@@ -186,9 +213,9 @@
             crane = {
               args = {
                 buildInputs =
-                  lib.optionals isDarwin ([
+                  lib.optionals isDarwin [
                     pkgs.fixDarwinDylibNames
-                  ])
+                  ]
                   ++ [
                     pkgs.postgresql_15
                     pkgs.openssl
@@ -215,9 +242,9 @@
                   pkgs.pkg-config
                 ];
                 buildInputs =
-                  lib.optionals isDarwin ([
+                  lib.optionals isDarwin [
                     pkgs.fixDarwinDylibNames
-                  ])
+                  ]
                   ++ [
                     pkgs.postgresql_15
                     pkgs.openssl
@@ -243,9 +270,9 @@
             crane = {
               args = {
                 buildInputs =
-                  lib.optionals isDarwin ([
+                  lib.optionals isDarwin [
                     pkgs.fixDarwinDylibNames
-                  ])
+                  ]
                   ++ [
                     pkgs.postgresql_15
                     pkgs.openssl
@@ -268,9 +295,9 @@
             crane = {
               args = {
                 buildInputs =
-                  lib.optionals isDarwin ([
+                  lib.optionals isDarwin [
                     pkgs.fixDarwinDylibNames
-                  ])
+                  ]
                   ++ [
                     pkgs.postgresql_15
                     pkgs.openssl
@@ -287,10 +314,9 @@
           "experimentation_example" = {
             crane = {
               args = {
-                buildInputs =
-                  [
-                    pkgs.openssl
-                  ];
+                buildInputs = [
+                  pkgs.openssl
+                ];
               };
             };
           };
@@ -298,11 +324,10 @@
             imports = [ globalCrateConfig ];
             crane = {
               args = {
-                buildInputs =
-                  [
-                    pkgs.openssl
-                    pkgs.postgresql_15
-                  ];
+                buildInputs = [
+                  pkgs.openssl
+                  pkgs.postgresql_15
+                ];
               };
             };
           };
@@ -310,10 +335,12 @@
             imports = [ globalCrateConfig ];
             crane = {
               args = {
+                RUSTY_V8_MIRROR = v8_mirror;
+                RUSTY_V8_SRC_BINDING_PATH = "${v8_mirror}/v137.3.0/src_binding_release_${v8Target}.rs";
                 buildInputs =
-                  lib.optionals isDarwin ([
+                  lib.optionals isDarwin [
                     pkgs.fixDarwinDylibNames
-                  ])
+                  ]
                   ++ [
                     pkgs.libiconv
                     pkgs.openssl
@@ -334,11 +361,10 @@
           "superposition_config_file_examples" = {
             crane = {
               args = {
-                buildInputs =
-                  [
-                    pkgs.openssl
-                    pkgs.postgresql_15
-                  ];
+                buildInputs = [
+                  pkgs.openssl
+                  pkgs.postgresql_15
+                ];
               };
             };
           };

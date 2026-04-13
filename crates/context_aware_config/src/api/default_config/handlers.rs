@@ -93,8 +93,8 @@ async fn create_handler(
         &req.change_reason,
         &mut conn,
         &state.master_encryption_key,
-    )?;
-
+    )
+    .await?;
     let value = req.value;
 
     let default_config = DefaultConfig {
@@ -143,7 +143,8 @@ async fn create_handler(
         &default_config.key,
         &default_config.value,
         &state.master_encryption_key,
-    )?;
+    )
+    .await?;
 
     validate_fn_published(
         &default_config.value_compute_function_name,
@@ -259,7 +260,8 @@ async fn update_handler(
         &req.change_reason,
         &mut conn,
         &state.master_encryption_key,
-    )?;
+    )
+    .await?;
 
     let value = req.value.clone().unwrap_or_else(|| existing.value.clone());
 
@@ -292,7 +294,8 @@ async fn update_handler(
             &key_str,
             &value,
             &state.master_encryption_key,
-        )?
+        )
+        .await?
     }
 
     if let Some(ref value_compute_function_name) = req.value_compute_function_name {
@@ -374,7 +377,7 @@ fn validate_fn_published(
     check_fn_published(func_name, f_type, conn, schema_name)
 }
 
-fn validate_default_config_with_function(
+async fn validate_default_config_with_function(
     workspace_context: &WorkspaceContext,
     conn: &mut DBConnection,
     function_name: &Option<String>,
@@ -410,7 +413,8 @@ fn validate_default_config_with_function(
                 f_version,
                 conn,
                 master_encryption_key,
-            )?;
+            )
+            .await?;
         }
     };
     Ok(())
