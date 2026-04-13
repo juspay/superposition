@@ -8,6 +8,7 @@ support for primary + fallback data sources.
 import logging
 import asyncio
 import json
+import weakref
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Any, Tuple, Union, Sequence, Mapping
 
@@ -482,39 +483,101 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
 
     async def _start_refresh_strategy(self) -> None:
         """Start the configured refresh strategy."""
+        weak_self = weakref.ref(self)
+
+        async def _polling_loop() -> None:
+            """Polling refresh loop with weakref to avoid reference cycle."""
+            self_ref = weak_self()
+            if self_ref is None:
+                return
+            interval = self_ref.refresh_strategy.interval
+            del self_ref
+
+            logger.info(f"Starting polling with interval {interval}s")
+            try:
+                while True:
+                    await asyncio.sleep(interval)
+
+                    self_ref = weak_self()
+                    if self_ref is None:
+                        logger.info("LocalResolutionProvider has been garbage collected, stopping polling loop.")
+                        return
+
+                    await self_ref.refresh()
+                    del self_ref
+            except asyncio.CancelledError:
+                logger.info("Polling loop cancelled")
+
+        async def _watch_loop() -> None:
+            """File watching refresh loop with weakref to avoid reference cycle."""
+            self_ref = weak_self()
+            if self_ref is None:
+                return
+            debounce_interval = self_ref.refresh_strategy.debounce_ms / 1000
+            primary_source = self_ref.primary_source
+            del self_ref
+
+            logger.info("Starting watch-based refresh")
+            watch_iter = None
+            next_event = None
+            try:
+                watch_iter = primary_source.watch()
+                next_event = asyncio.ensure_future(anext(watch_iter))
+
+                while True:
+                    done, _ = await asyncio.wait([next_event], timeout=5.0)
+
+                    if not done:
+                        self_ref = weak_self()
+                        if self_ref is None:
+                            logger.info("LocalResolutionProvider has been garbage collected, stopping watch loop.")
+                            return
+                        del self_ref
+                        continue
+
+                    logger.debug("File change detected, starting debounce...")
+                    while True:
+                        try:
+                            next_event = asyncio.ensure_future(anext(watch_iter))
+                        except StopAsyncIteration:
+                            logger.info("Primary source watch stream ended, stopping watch loop.")
+                            return
+
+                        done, _ = await asyncio.wait([next_event], timeout=debounce_interval)
+                        if done:
+                            logger.debug("Another change during debounce window, resetting timer...")
+                            continue
+                        break
+
+                    self_ref = weak_self()
+                    if self_ref is None:
+                        logger.info("LocalResolutionProvider has been garbage collected, stopping watch loop.")
+                        return
+
+                    logger.debug("Debounce settled, refreshing...")
+                    await self_ref.refresh()
+                    del self_ref
+            except asyncio.CancelledError:
+                logger.info("Watch loop cancelled")
+            finally:
+                if next_event and not next_event.done():
+                    next_event.cancel()
+                    try:
+                        await next_event
+                    except (asyncio.CancelledError, StopAsyncIteration):
+                        pass
+                if watch_iter is not None:
+                    await watch_iter.aclose()
+
         match self.refresh_strategy:
             case WatchStrategy():
-                self._background_task = asyncio.create_task(self._watch_loop())
+                self._background_task = asyncio.create_task(_watch_loop())
             case PollingStrategy():
-                self._background_task = asyncio.create_task(self._polling_loop())
+                self._background_task = asyncio.create_task(_polling_loop())
             case ManualStrategy():
                 logger.debug("MANUAL strategy: caller must invoke refresh()")
             case OnDemandStrategy():
                 logger.debug("ON_DEMAND strategy: refresh on first stale access")
-
-    async def _polling_loop(self) -> None:
-        """Polling refresh loop."""
-        logger.info(f"Starting polling with interval {self.refresh_strategy.interval}s")
-        try:
-            while True:
-                await asyncio.sleep(self.refresh_strategy.interval)
-                await self.refresh()
-        except asyncio.CancelledError:
-            logger.info("Polling loop cancelled")
-
-    async def _watch_loop(self) -> None:
-        """File watching refresh loop."""
-        logger.info("Starting watch-based refresh")
-        try:
-            # use self.refresh_strategy.debounce for debounce interval
-            debounce_interval = self.refresh_strategy.debounce_ms / 1000
-            # watch() is an async generator, iterate directly with async for
-            async for _ in self.primary_source.watch():
-                logger.debug("File change detected, refreshing...")
-                await asyncio.sleep(debounce_interval)
-                await self.refresh()
-        except asyncio.CancelledError:
-            logger.info("Watch loop cancelled")
 
     def _merge_contexts(self, context: Optional[EvaluationContext]) -> Tuple[Optional[str], dict[str, str]]:
         """Merge global and evaluation contexts."""
