@@ -341,7 +341,7 @@ pub fn NavComponent(
             >
                 <div class="h-[84px] px-4 py-2 flex items-center justify-center gap-8">
                     <A
-                        href=format!("{base}/admin")
+                        href=format!("{base}/admin/organisations")
                         class="max-xl:hidden max-xl:group-hover:block xl:group-[.collapsed]:hidden text-sm font-semibold text-center text-slate-700 whitespace-nowrap"
                     >
                         Superposition Platform

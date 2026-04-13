@@ -168,6 +168,18 @@ pub struct BreadCrums {
     pub is_link: bool,
 }
 
+/// Breadcrumb segment for global navigation breadcrumbs.
+/// Represents a single item in the breadcrumb trail.
+#[derive(Debug, Clone)]
+pub struct BreadcrumbSegment {
+    /// Human-readable label for the breadcrumb
+    pub label: String,
+    /// URL to navigate to when clicked (empty for current page)
+    pub href: String,
+    /// Whether this is the current/active page (non-clickable)
+    pub is_current: bool,
+}
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct ErrorResponse {
     pub message: String,
