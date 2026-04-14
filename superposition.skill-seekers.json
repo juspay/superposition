@@ -1,0 +1,24 @@
+{
+  "name": "superposition",
+  "description": "Superposition — open-source platform for feature flags, context-aware configuration, and A/B experimentation. Use this skill to understand Superposition concepts, integrate OpenFeature providers (Rust, Python, JavaScript, Java), configure dimensions, overrides, and experiments.",
+  "sources": [
+    {
+      "type": "github",
+      "repo": "juspay/superposition",
+      "include": [
+        "docs/docs/**",
+        "crates/superposition_provider/**",
+        "clients/python/**",
+        "clients/javascript/**",
+        "clients/java/**"
+      ]
+    }
+  ],
+  "categories": {
+    "getting_started": ["intro", "setup", "quick_start"],
+    "providers": ["openfeature", "provider", "rust", "python", "javascript", "java"],
+    "configuration": ["dimensions", "context", "overrides", "config"],
+    "experimentation": ["experiment", "variant", "traffic"],
+    "api": ["api", "reference", "endpoint"]
+  }
+}
