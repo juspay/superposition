@@ -19,7 +19,7 @@ chrono = { workspace = true }
 derive_more = { workspace = true }
 diesel = { workspace = true }
 diesel-adapter = { version = "1.2.0" }
-fred = { workspace = true, features = ["metrics"] }
+fred = { workspace = true, features = ["metrics", "i-scripts"] }
 futures-util = { workspace = true }
 inventory = { workspace = true }
 log = { workspace = true }
@@ -44,6 +44,7 @@ superposition_types = { workspace = true, features = [
 ] }
 url = { workspace = true }
 urlencoding = "~2.1.2"
+uuid = {workspace = true}
 tracing-actix-web = { workspace = true }
 
 

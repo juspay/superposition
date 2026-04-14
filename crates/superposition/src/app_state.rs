@@ -33,6 +33,13 @@ pub async fn get(
         get_from_env_or_default::<String>("CAC_HOST", format!("http://localhost:{port}"))
             + base;
     let max_pool_size = get_from_env_or_default("MAX_DB_CONNECTION_POOL_SIZE", 2);
+    let redis_lock_ttl_ms = get_from_env_or_default("REDIS_LOCK_TTL_MS", 30_000_u64);
+    let redis_lock_heartbeat_enabled =
+        get_from_env_or_default("REDIS_LOCK_HEARTBEAT_ENABLED", true);
+    let workspace_lock_retry_interval_ms =
+        get_from_env_or_default("WORKSPACE_LOCK_RETRY_INTERVAL_MS", 100_u64);
+    let workspace_lock_retry_timeout_ms =
+        get_from_env_or_default("WORKSPACE_LOCK_RETRY_TIMEOUT_MS", 2_000_u64);
 
     let snowflake_generator = Arc::new(Mutex::new(SnowflakeIdGenerator::new(1, 1)));
 
@@ -108,6 +115,14 @@ pub async fn get(
         service_prefix,
         superposition_token: get_superposition_token(kms_client, &app_env).await,
         redis: redis_pool,
+        redis_lock_ttl: Duration::from_millis(redis_lock_ttl_ms),
+        redis_lock_heartbeat_enabled,
+        workspace_lock_retry_interval: Duration::from_millis(
+            workspace_lock_retry_interval_ms,
+        ),
+        workspace_lock_retry_timeout: Duration::from_millis(
+            workspace_lock_retry_timeout_ms,
+        ),
         http_client: reqwest::Client::new(),
         master_encryption_key,
     }
