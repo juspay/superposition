@@ -98,8 +98,11 @@ impl HttpDataSource {
 
         Ok(experiments_response)
     }
+}
 
-    async fn fetch_config_with_filters(
+#[async_trait]
+impl SuperpositionDataSource for HttpDataSource {
+    async fn fetch_filtered_config(
         &self,
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
@@ -155,27 +158,6 @@ impl HttpDataSource {
         };
 
         resp
-    }
-}
-
-#[async_trait]
-impl SuperpositionDataSource for HttpDataSource {
-    async fn fetch_config(
-        &self,
-        if_modified_since: Option<DateTime<Utc>>,
-    ) -> Result<FetchResponse<ConfigData>> {
-        self.fetch_config_with_filters(None, None, if_modified_since)
-            .await
-    }
-
-    async fn fetch_filtered_config(
-        &self,
-        context: Option<Map<String, Value>>,
-        prefix_filter: Option<Vec<String>>,
-        if_modified_since: Option<DateTime<Utc>>,
-    ) -> Result<FetchResponse<ConfigData>> {
-        self.fetch_config_with_filters(context, prefix_filter, if_modified_since)
-            .await
     }
 
     async fn fetch_active_experiments(

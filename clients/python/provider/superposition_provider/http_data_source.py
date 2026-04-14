@@ -62,12 +62,22 @@ class HttpDataSource(SuperpositionDataSource):
         # Create Superposition client
         return Superposition(config=sdk_config)
 
-    async def _fetch_config_with_filters(
+    async def fetch_filtered_config(
         self,
         context: Optional[Dict[str, Any]] = None,
         prefix_filter: Optional[List[str]] = None,
-        if_modified_since: Optional[datetime] = None
+        if_modified_since: Optional[datetime] = None,
     ) -> FetchResponse[ConfigData]:
+        """Fetch resolved configuration filtered by context and prefixes.
+
+        Args:
+            context: Optional context for filtering.
+            prefix_filter: Optional list of key prefixes to include.
+            if_modified_since: Optional timestamp for 304 Not Modified check.
+
+        Returns:
+            FetchResponse with ConfigData or NotModified status.
+        """
         try:
             context = {k: Document(v) for k, v in context.items()} if context else None
             response = await self.client.get_config(
@@ -88,38 +98,6 @@ class HttpDataSource(SuperpositionDataSource):
             return FetchResponse.not_modified()
         except Exception as e:
             raise e
-
-    async def fetch_config(
-        self,
-        if_modified_since: Optional[datetime] = None,
-    ) -> FetchResponse:
-        """Fetch full resolved configuration.
-
-        Args:
-            if_modified_since: Optional timestamp for 304 Not Modified check.
-
-        Returns:
-            FetchResponse with ConfigData or NotModified status.
-        """
-        return await self._fetch_config_with_filters(if_modified_since=if_modified_since)
-
-    async def fetch_filtered_config(
-        self,
-        context: Optional[Dict[str, Any]] = None,
-        prefix_filter: Optional[List[str]] = None,
-        if_modified_since: Optional[datetime] = None,
-    ) -> FetchResponse:
-        """Fetch resolved configuration filtered by context and prefixes.
-
-        Args:
-            context: Optional context for filtering.
-            prefix_filter: Optional list of key prefixes to include.
-            if_modified_since: Optional timestamp for 304 Not Modified check.
-
-        Returns:
-            FetchResponse with ConfigData or NotModified status.
-        """
-        return await self._fetch_config_with_filters(context, prefix_filter, if_modified_since)
 
     async def _fetch_filtered_experiment(
         self,
@@ -173,7 +151,7 @@ class HttpDataSource(SuperpositionDataSource):
         context: Optional[Dict[str, Any]] = None,
         prefix_filter: Optional[List[str]] = None,
         if_modified_since: Optional[datetime] = None,
-    ) -> FetchResponse:
+    ) -> FetchResponse[ExperimentData]:
         """Fetch active experiments with candidate conditions.
 
         Args:

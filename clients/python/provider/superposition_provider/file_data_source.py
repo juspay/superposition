@@ -100,51 +100,6 @@ class FileDataSource(SuperpositionDataSource):
         else:
             raise ValueError(f"Unsupported file format: {file_path}")
 
-    async def _fetch_config_with_filters(
-        self,
-        context: Optional[Dict[str, Any]] = None,
-        prefix_filter: Optional[List[str]] = None,
-        if_modified_since: Optional[datetime] = None,
-    ) -> FetchResponse[ConfigData]:
-        """Fetch configuration from file, applying filters and 304 Not Modified logic.
-        Args:
-            context: Optional context for filtering (ignored).
-            prefix_filter: Optional key prefixes to include.
-            if_modified_since: Timestamp for 304 Not Modified check.
-        """
-        if if_modified_since is not None:
-            logger.debug("FileDataSource: ignoring if_modified_since, always reading fresh from file")
-
-        try:
-            now = datetime.now(timezone.utc)
-            # Read and parse file
-            with open(self.file_path, 'r') as f:
-                content = f.read()
-
-            config = _parse_config_file(content, self.file_format, context, prefix_filter)
-
-            return FetchResponse.data(ConfigData(
-                data=config,
-                fetched_at=now,
-            ))
-        except Exception as e:
-            logger.error(f"Failed to fetch config from {self.file_path}: {e}")
-            raise
-
-    async def fetch_config(
-        self,
-        if_modified_since: Optional[datetime] = None,
-    ) -> FetchResponse[ConfigData]:
-        """Fetch configuration from file.
-
-        Args:
-            if_modified_since: Timestamp for 304 Not Modified check.
-
-        Returns:
-            FetchResponse with ConfigData or NotModified status.
-        """
-        return await self._fetch_config_with_filters(if_modified_since=if_modified_since)
-
     async def fetch_filtered_config(
         self,
         context: Optional[Dict[str, Any]] = None,
@@ -164,7 +119,24 @@ class FileDataSource(SuperpositionDataSource):
         Returns:
             FetchResponse with ConfigData or NotModified status.
         """
-        return await self._fetch_config_with_filters(context, prefix_filter, if_modified_since)
+        if if_modified_since is not None:
+            logger.debug("FileDataSource: ignoring if_modified_since, always reading fresh from file")
+
+        try:
+            now = datetime.now(timezone.utc)
+            # Read and parse file
+            with open(self.file_path, 'r') as f:
+                content = f.read()
+
+            config = _parse_config_file(content, self.file_format, context, prefix_filter)
+
+            return FetchResponse.data(ConfigData(
+                data=config,
+                fetched_at=now,
+            ))
+        except Exception as e:
+            logger.error(f"Failed to fetch config from {self.file_path}: {e}")
+            raise
 
     async def fetch_active_experiments(
         self,

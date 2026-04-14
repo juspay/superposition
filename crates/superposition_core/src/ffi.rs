@@ -6,7 +6,9 @@ use superposition_types::experimental::Experimental;
 use superposition_types::{Config, Context, DimensionInfo, Overrides};
 use thiserror::Error;
 
-use crate::experiment::{filter_experiments_by_context, ExperimentConfig};
+use crate::experiment::{
+    filter_experiments_by_context, get_satisfied_experiments, ExperimentConfig,
+};
 use crate::{
     eval_config, eval_config_with_reasoning, experiment::ExperimentationArgs,
     experiment::FfiExperimentGroup, get_applicable_variants, ConfigFormat, FfiExperiment,
@@ -389,6 +391,7 @@ impl ProviderCache {
         &self,
         dimension_data: Option<HashMap<String, String>>,
         prefix: Option<Vec<String>>,
+        partial_apply: bool,
     ) -> Result<ExperimentConfig, OperationError> {
         let dimension_data = dimension_data
             .map(json_from_map)
@@ -416,12 +419,21 @@ impl ProviderCache {
             )
         };
 
+        let exp_filter_fn = if partial_apply {
+            filter_experiments_by_context
+        } else {
+            get_satisfied_experiments
+        };
+
+        let exp_grp_filter_fn = if partial_apply {
+            FfiExperimentGroup::filter_by_eval
+        } else {
+            FfiExperimentGroup::get_satisfied
+        };
+
         Ok(ExperimentConfig {
-            experiments: filter_experiments_by_context(exps, &dimension_data, prefix),
-            experiment_groups: FfiExperimentGroup::filter_by_eval(
-                exp_grps,
-                &dimension_data,
-            ),
+            experiments: exp_filter_fn(exps, &dimension_data, prefix),
+            experiment_groups: exp_grp_filter_fn(exp_grps, &dimension_data),
         })
     }
 

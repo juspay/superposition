@@ -77,7 +77,6 @@ class SuperpositionDataSource(ABC):
     while consumers interact with this unified interface.
     """
 
-    @abstractmethod
     async def fetch_config(
         self,
         if_modified_since: Optional[datetime] = None,
@@ -90,7 +89,7 @@ class SuperpositionDataSource(ABC):
         Returns:
             FetchResponse with ConfigData or NotModified status.
         """
-        pass
+        return await self.fetch_filtered_config(if_modified_since=if_modified_since)
 
     @abstractmethod
     async def fetch_filtered_config(
