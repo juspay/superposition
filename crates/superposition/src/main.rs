@@ -174,7 +174,9 @@ async fn main() -> Result<()> {
                     .service(web::redirect("/", ui_redirect_path.to_string()))
                     .service(web::redirect("/admin", ui_redirect_path.to_string()))
                     .service(web::redirect("/admin/", ui_redirect_path.to_string()))
+                    .service(web::redirect("/admin/{org_id}", "workspaces"))
                     .service(web::redirect("/admin/{org_id}/", "workspaces"))
+                    .service(web::redirect("/admin/{org_id}/{tenant}", "default-config"))
                     .service(web::redirect("/admin/{org_id}/{tenant}/", "default-config"))
                     /***************************** UI Routes ******************************/
                     .route("/fxn/{tail:.*}", leptos_actix::handle_server_fns())
