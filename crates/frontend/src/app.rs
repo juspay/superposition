@@ -29,6 +29,7 @@ use crate::pages::{
     experiment::ExperimentPage,
     home::Home,
     organisations::Organisations,
+    override_page::{CreateOverride, EditOverride, OverridePage},
     type_template::TypePage,
     type_templates::TypesPage,
     webhook::Webhook,
@@ -207,6 +208,17 @@ pub fn App(app_envs: Envs) -> impl IntoView {
                         />
 
                         <Route ssr=SsrMode::Async path="overrides" view=ContextOverride />
+                        <Route
+                            ssr=SsrMode::Async
+                            path="overrides/action/create"
+                            view=CreateOverride
+                        />
+                        <Route
+                            ssr=SsrMode::Async
+                            path="overrides/:context_id/edit"
+                            view=EditOverride
+                        />
+                        <Route ssr=SsrMode::Async path="overrides/:context_id" view=OverridePage />
 
                         <Route ssr=SsrMode::Async path="resolve" view=Home />
 
