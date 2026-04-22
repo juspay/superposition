@@ -197,6 +197,13 @@ class HttpDataSource(SuperpositionDataSource):
         return True
 
     async def close(self) -> None:
-        """Close the HTTP client."""
+        """Close the HTTP client and its underlying aiohttp session."""
         if self.client:
+            try:
+                http_client = getattr(self.client._config, "http_client", None)
+                session = getattr(http_client, "_session", None)
+                if session and not session.closed:
+                    await session.close()
+            except Exception:
+                pass
             self.client = None

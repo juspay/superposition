@@ -15,7 +15,7 @@ use diesel::{
 use serde_json::{Map, Value};
 use service_utils::{
     helpers::{
-        WebhookData, execute_webhook_call, fetch_dimensions_info_map, parse_config_tags,
+        WebhookData, fetch_dimensions_info_map, notify_change, parse_config_tags,
     },
     middlewares::auth_z::{Action as AuthZAction, AuthZ},
     service::types::{
@@ -186,7 +186,7 @@ async fn create_handler(
     };
 
     let webhook_status =
-        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+        notify_change(data, &workspace_context, &state, &mut conn).await;
 
     let mut http_resp = if webhook_status {
         HttpResponse::Ok()
@@ -322,7 +322,7 @@ async fn update_handler(
     };
 
     let webhook_status =
-        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+        notify_change(data, &workspace_context, &state, &mut conn).await;
 
     let mut http_resp = if webhook_status {
         HttpResponse::Ok()
@@ -467,7 +467,7 @@ async fn move_handler(
     };
 
     let webhook_status =
-        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+        notify_change(data, &workspace_context, &state, &mut conn).await;
 
     let mut http_resp = if webhook_status {
         HttpResponse::Ok()
@@ -754,7 +754,7 @@ async fn delete_handler(
     };
 
     let webhook_status =
-        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+        notify_change(data, &workspace_context, &state, &mut conn).await;
 
     let mut http_resp = if webhook_status {
         HttpResponse::NoContent()
@@ -1129,7 +1129,7 @@ async fn bulk_operations_handler(
     };
 
     let webhook_status =
-        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+        notify_change(data, &workspace_context, &state, &mut conn).await;
 
     let mut resp_builder = if webhook_status {
         HttpResponse::Ok()
@@ -1245,7 +1245,7 @@ async fn weight_recompute_handler(
     };
 
     let webhook_status =
-        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+        notify_change(data, &workspace_context, &state, &mut conn).await;
 
     let mut http_resp = if webhook_status {
         HttpResponse::Ok()

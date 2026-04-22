@@ -1,5 +1,5 @@
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     sync::{Arc, Mutex},
     time::Duration,
 };
@@ -110,5 +110,6 @@ pub async fn get(
         redis: redis_pool,
         http_client: reqwest::Client::new(),
         master_encryption_key,
+        sse_broadcaster: Mutex::new(HashMap::new()),
     }
 }

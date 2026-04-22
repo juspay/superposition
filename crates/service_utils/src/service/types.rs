@@ -1,9 +1,11 @@
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     future::{Ready, ready},
     str::FromStr,
     sync::{Arc, Mutex},
 };
+
+use tokio::sync::watch;
 
 use actix_web::{Error, FromRequest, HttpMessage, HttpResponseBuilder, error, web::Data};
 use chrono::{DateTime, Utc};
@@ -97,6 +99,20 @@ pub struct AppState {
     pub redis: Option<fred::clients::RedisPool>,
     pub http_client: reqwest::Client,
     pub master_encryption_key: Option<EncryptionKey>,
+    pub sse_broadcaster: Mutex<HashMap<String, watch::Sender<()>>>,
+}
+
+impl AppState {
+    pub fn get_sse_sender(&self, schema_name: &str) -> watch::Sender<()> {
+        let mut map = self.sse_broadcaster.lock().expect("sse_broadcaster lock poisoned");
+        map.entry(schema_name.to_string())
+            .or_insert_with(|| watch::channel(()).0)
+            .clone()
+    }
+
+    pub fn subscribe_sse(&self, schema_name: &str) -> watch::Receiver<()> {
+        self.get_sse_sender(schema_name).subscribe()
+    }
 }
 
 impl FromStr for AppEnv {

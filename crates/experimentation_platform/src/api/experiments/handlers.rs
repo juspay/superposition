@@ -25,8 +25,8 @@ use serde_json::{Map, Value};
 use service_utils::{
     db::run_query,
     helpers::{
-        WebhookData, construct_request_headers, execute_webhook_call,
-        fetch_dimensions_info_map, generate_snowflake_id, is_not_modified, request,
+        WebhookData, construct_request_headers, fetch_dimensions_info_map,
+        generate_snowflake_id, is_not_modified, notify_change, request,
     },
     middlewares::auth_z::{Action as AuthZAction, AuthZ},
     redis::{
@@ -413,7 +413,7 @@ async fn create_handler(
     };
 
     let webhook_status =
-        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+        notify_change(data, &workspace_context, &state, &mut conn).await;
 
     let mut http_resp = if webhook_status {
         HttpResponse::Ok()
@@ -490,7 +490,7 @@ async fn conclude_handler(
     };
 
     let webhook_status =
-        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+        notify_change(data, &workspace_context, &state, &mut conn).await;
 
     let mut http_resp = if webhook_status {
         HttpResponse::Ok()
@@ -765,7 +765,7 @@ async fn discard_handler(
     };
 
     let webhook_status =
-        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+        notify_change(data, &workspace_context, &state, &mut conn).await;
 
     let mut http_resp = if webhook_status {
         HttpResponse::Ok()
@@ -1499,7 +1499,7 @@ async fn ramp_handler(
         action: Action::Update,
     };
     let webhook_status =
-        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+        notify_change(data, &workspace_context, &state, &mut conn).await;
 
     let mut http_resp = if webhook_status {
         HttpResponse::Ok()
@@ -1849,7 +1849,7 @@ async fn update_handler(
     };
 
     let webhook_status =
-        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+        notify_change(data, &workspace_context, &state, &mut conn).await;
 
     let mut http_resp = if webhook_status {
         HttpResponse::Ok()
@@ -1909,7 +1909,7 @@ async fn pause_handler(
     };
 
     let webhook_status =
-        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+        notify_change(data, &workspace_context, &state, &mut conn).await;
 
     let mut http_resp = if webhook_status {
         HttpResponse::Ok()
@@ -2005,7 +2005,7 @@ async fn resume_handler(
     };
 
     let webhook_status =
-        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+        notify_change(data, &workspace_context, &state, &mut conn).await;
 
     let mut http_resp = if webhook_status {
         HttpResponse::Ok()

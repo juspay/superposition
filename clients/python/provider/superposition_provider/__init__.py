@@ -4,7 +4,7 @@ Superposition OpenFeature Provider.
 Provides OpenFeature-compliant feature flag providers with support for:
 - Local resolution with caching (LocalResolutionProvider)
 - Remote evaluation without caching (SuperpositionAPIProvider)
-- Configurable refresh strategies (Polling, OnDemand, Watch, Manual)
+- Configurable refresh strategies (Polling, OnDemand, Watch, SSE, Manual)
 - File-based and HTTP-based data sources
 - Full FFI integration for performance
 """
@@ -29,6 +29,7 @@ from .types import (
     PollingStrategy,
     OnDemandStrategy,
     WatchStrategy,
+    SseStrategy,
     ManualStrategy,
     RefreshStrategy as RefreshStrategyType,
     ConfigurationOptions,
@@ -59,6 +60,7 @@ __all__ = [
     "PollingStrategy",
     "OnDemandStrategy",
     "WatchStrategy",
+    "SseStrategy",
     "ManualStrategy",
     "RefreshStrategyType",
     "ConfigurationOptions",

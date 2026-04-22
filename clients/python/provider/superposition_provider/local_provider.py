@@ -10,7 +10,7 @@ import asyncio
 import json
 import weakref
 from datetime import datetime, timezone
-from typing import Dict, List, Optional, Any, Tuple, Union, Sequence, Mapping
+from typing import Callable, Dict, List, Optional, Any, Tuple, Union, Sequence, Mapping
 
 from openfeature.provider import (
     AbstractProvider,
@@ -26,7 +26,7 @@ from superposition_bindings.superposition_types import MergeStrategy
 from . import FetchResponse
 from .data_source import SuperpositionDataSource, ConfigData, ExperimentData
 from .interfaces import AllFeatureProvider, FeatureExperimentMeta
-from .types import RefreshStrategy, OnDemandStrategy, WatchStrategy, PollingStrategy, ManualStrategy, default_on_demand_strategy
+from .types import RefreshStrategy, OnDemandStrategy, WatchStrategy, PollingStrategy, ManualStrategy, SseStrategy, default_on_demand_strategy
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +45,7 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
         primary_source: SuperpositionDataSource,
         fallback_source: Optional[SuperpositionDataSource] = None,
         refresh_strategy: RefreshStrategy = default_on_demand_strategy(),
+        on_config_change: Optional[Callable[[Dict[str, Any], Dict[str, Any]], None]] = None,
     ):
         """Initialize local resolution provider.
 
@@ -56,6 +57,7 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
         self.primary_source = primary_source
         self.fallback_source = fallback_source
         self.refresh_strategy = refresh_strategy
+        self.on_config_change = on_config_change
 
         self.metadata = Metadata(name="LocalResolutionProvider")
         self.status = ProviderStatus.NOT_READY
@@ -68,6 +70,8 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
 
         # Background task for refresh strategy
         self._background_task: Optional[asyncio.Task] = None
+        # Set once the SSE connection is established (SseStrategy only)
+        self._sse_connected_event: Optional[asyncio.Event] = None
 
     async def initialize(self, context: EvaluationContext):
         """Initialize the provider.
@@ -358,7 +362,21 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
 
         Useful for MANUAL refresh strategy.
         """
-        await asyncio.gather(self._fetch_and_cache_config(), self._fetch_and_cache_experiments())
+        before = self.resolve_all_features(EvaluationContext()) if self.on_config_change and self.ffi_cache else None
+
+        results = await asyncio.gather(
+            self._fetch_and_cache_config(),
+            self._fetch_and_cache_experiments(),
+            return_exceptions=True,
+        )
+        for result in results:
+            if isinstance(result, Exception):
+                logger.warning(f"Error during refresh: {result}")
+
+        if self.on_config_change and before is not None:
+            after = self.resolve_all_features(EvaluationContext())
+            if before != after:
+                self.on_config_change(before, after)
 
     # --- Private helpers ---
 
@@ -574,7 +592,75 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
             case WatchStrategy():
                 self._background_task = asyncio.create_task(_watch_loop())
             case PollingStrategy():
-                self._background_task = asyncio.create_task(_polling_loop())
+                self._background_task = asyncio.create_task(self._polling_loop())
+            case SseStrategy():
+                import weakref
+                strategy: SseStrategy = self.refresh_strategy
+                options = strategy.superposition_options
+                debounce_s = strategy.debounce_ms / 1000
+                reconnect_delay = max(strategy.reconnect_delay, 1)
+                sse_url = f"{options.endpoint.rstrip('/')}/{options.org_id}/{options.workspace_id}/stream"
+                sse_headers = {"Authorization": f"Bearer {options.token}"}
+                if options.org_id:
+                    sse_headers["x-org-id"] = options.org_id
+                weak_self = weakref.ref(self)
+                connected_event = asyncio.Event()
+                self._sse_connected_event = connected_event
+
+                async def _sse_loop():
+                    import aiohttp
+                    logger.info(f"Starting SSE refresh (url={sse_url})")
+                    try:
+                        async with aiohttp.ClientSession() as session:
+                            while True:
+                                if weak_self() is None:
+                                    logger.info("Provider garbage collected, stopping SSE loop.")
+                                    return
+                                try:
+                                    async with session.get(
+                                        sse_url,
+                                        headers=sse_headers,
+                                        timeout=aiohttp.ClientTimeout(total=None, sock_read=30),
+                                    ) as resp:
+                                        if resp.status != 200:
+                                            logger.warning(f"SSE endpoint returned {resp.status}, retrying in {reconnect_delay}s")
+                                            await asyncio.sleep(reconnect_delay)
+                                            continue
+                                        logger.info("SSE connection established")
+                                        connected_event.set()
+                                        self_ref = weak_self()
+                                        if self_ref is not None:
+                                            try:
+                                                await self_ref.refresh()
+                                            except Exception as e:
+                                                logger.warning(f"Reconnect refresh failed: {e}")
+                                        debounce_task = None
+                                        async for line_bytes in resp.content:
+                                            self_ref = weak_self()
+                                            if self_ref is None:
+                                                logger.info("Provider garbage collected, stopping SSE loop.")
+                                                return
+                                            line = line_bytes.decode("utf-8", errors="replace").strip()
+                                            logger.debug(f"SSE raw line: {line!r}")
+                                            if not line or line.startswith(":"):
+                                                continue
+                                            if line.startswith("event:") or line.startswith("data:"):
+                                                async def _do_refresh(ref=self_ref):
+                                                    await asyncio.sleep(debounce_s)
+                                                    try:
+                                                        await ref.refresh()
+                                                    except Exception as e:
+                                                        logger.warning(f"SSE-triggered refresh failed: {e}")
+                                                if debounce_task and not debounce_task.done():
+                                                    debounce_task.cancel()
+                                                debounce_task = asyncio.create_task(_do_refresh())
+                                except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+                                    logger.warning(f"SSE connection error: {e}, retrying in {reconnect_delay}s")
+                                    await asyncio.sleep(reconnect_delay)
+                    except asyncio.CancelledError:
+                        logger.info("SSE loop cancelled")
+
+                self._background_task = asyncio.create_task(_sse_loop())
             case ManualStrategy():
                 logger.debug("MANUAL strategy: caller must invoke refresh()")
             case OnDemandStrategy():

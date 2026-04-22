@@ -12,7 +12,7 @@ use diesel::{
 use jsonschema::ValidationError;
 use serde_json::Value;
 use service_utils::{
-    helpers::{WebhookData, execute_webhook_call, parse_config_tags},
+    helpers::{WebhookData, notify_change, parse_config_tags},
     service::types::{
         AppHeader, AppState, CustomHeaders, DbConnection, EncryptionKey, SchemaName,
         WorkspaceContext,
@@ -188,7 +188,7 @@ async fn create_handler(
     };
 
     let webhook_status =
-        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+        notify_change(data, &workspace_context, &state, &mut conn).await;
 
     let mut http_resp = if webhook_status {
         HttpResponse::Ok()
@@ -348,7 +348,7 @@ async fn update_handler(
     };
 
     let webhook_status =
-        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+        notify_change(data, &workspace_context, &state, &mut conn).await;
 
     let mut http_resp = if webhook_status {
         HttpResponse::Ok()
@@ -586,7 +586,7 @@ async fn delete_handler(
         };
 
         let webhook_status =
-            execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+            notify_change(data, &workspace_context, &state, &mut conn).await;
 
         let mut http_resp = if webhook_status {
             HttpResponse::Ok()

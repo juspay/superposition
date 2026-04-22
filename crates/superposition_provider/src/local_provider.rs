@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
+
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use derive_more::{Deref, DerefMut};
@@ -187,6 +188,12 @@ impl LocalResolutionProvider {
                     }
                 }
             }
+            RefreshStrategy::Sse(sse_strategy) => {
+                log::info!("LocalResolutionProvider: starting SSE strategy");
+                let task = self.start_sse(sse_strategy.clone()).await;
+                let mut background_task = self.background_task.write().await;
+                *background_task = Some(task);
+            }
             RefreshStrategy::Manual => {
                 log::info!("LocalResolutionProvider: using Manual refresh strategy");
             }
@@ -337,11 +344,14 @@ impl LocalResolutionProvider {
     }
 
     async fn start_polling(&self, interval: u64) -> JoinHandle<()> {
-        let provider = self.clone();
+        let weak = Arc::downgrade(&self.0);
         tokio::spawn(async move {
             loop {
                 sleep(Duration::from_secs(interval)).await;
-                let _ = provider.do_refresh().await;
+                match weak.upgrade() {
+                    Some(p) => { let _ = LocalResolutionProvider(p).do_refresh().await; }
+                    None => return,
+                }
             }
         })
     }
@@ -351,24 +361,143 @@ impl LocalResolutionProvider {
         mut watch_stream: crate::types::WatchStream,
         debounce_ms: u64,
     ) -> JoinHandle<()> {
-        let provider = self.clone();
+        let weak = Arc::downgrade(&self.0);
+        let debounce = Duration::from_millis(debounce_ms);
 
         tokio::spawn(async move {
+            let mut debounce_task: Option<JoinHandle<()>> = None;
+
             loop {
                 match watch_stream.receiver.recv().await {
                     Ok(()) => {
-                        // Debounce: wait, then drain any queued events
-                        sleep(Duration::from_millis(debounce_ms)).await;
-                        while watch_stream.receiver.try_recv().is_ok() {}
-                        let _ = provider.do_refresh().await;
+                        if let Some(prev) = debounce_task.take() {
+                            prev.abort();
+                        }
+                        let weak_clone = weak.clone();
+                        debounce_task = Some(tokio::spawn(async move {
+                            sleep(debounce).await;
+                            match weak_clone.upgrade() {
+                                Some(p) => { let _ = LocalResolutionProvider(p).do_refresh().await; }
+                                None => {}
+                            }
+                        }));
                     }
                     Err(e) => {
-                        log::error!(
-                            "LocalResolutionProvider: watch channel error: {}",
-                            e
-                        );
+                        log::error!("LocalResolutionProvider: watch channel error: {}", e);
+                        return;
                     }
                 }
+            }
+        })
+    }
+
+    async fn start_sse(&self, strategy: crate::types::SseStrategy) -> JoinHandle<()> {
+        let weak = Arc::downgrade(&self.0);
+        let opts = strategy.superposition_options;
+        let reconnect_delay = Duration::from_secs(strategy.reconnect_delay.unwrap_or(5));
+        let debounce = Duration::from_millis(strategy.debounce_ms.unwrap_or(500));
+        let sse_url = format!(
+            "{}/{}/{}/stream",
+            opts.endpoint.trim_end_matches('/'),
+            opts.org_id,
+            opts.workspace_id,
+        );
+
+        tokio::spawn(async move {
+            let client = reqwest::Client::new();
+            log::info!("LocalResolutionProvider: starting SSE loop (url={})", sse_url);
+
+            loop {
+                let provider = match weak.upgrade() {
+                    Some(p) => LocalResolutionProvider(p),
+                    None => {
+                        log::info!("LocalResolutionProvider: provider dropped, stopping SSE loop");
+                        return;
+                    }
+                };
+
+                let resp = client
+                    .get(&sse_url)
+                    .header("Authorization", format!("Bearer {}", opts.token))
+                    .header("x-org-id", &opts.org_id)
+                    .send()
+                    .await;
+
+                let resp = match resp {
+                    Ok(r) if r.status().is_success() => r,
+                    Ok(r) => {
+                        log::warn!("LocalResolutionProvider: SSE endpoint returned {}, retrying", r.status());
+                        sleep(reconnect_delay).await;
+                        continue;
+                    }
+                    Err(e) => {
+                        log::warn!("LocalResolutionProvider: SSE connect error: {}, retrying", e);
+                        sleep(reconnect_delay).await;
+                        continue;
+                    }
+                };
+
+                log::info!("LocalResolutionProvider: SSE connection established");
+                if let Err(e) = provider.do_refresh().await {
+                    log::warn!("LocalResolutionProvider: reconnect refresh failed: {}", e);
+                }
+
+                let mut resp = resp;
+                let mut debounce_task: Option<JoinHandle<()>> = None;
+
+                loop {
+                    // 30s read timeout — server sends keepalives every 15s so under
+                    // normal conditions this never fires. On a silent dead connection
+                    // (NAT drop, etc.) it detects the failure and triggers a reconnect.
+                    let chunk = tokio::time::timeout(
+                        std::time::Duration::from_secs(30),
+                        resp.chunk(),
+                    )
+                    .await;
+
+                    match chunk {
+                        Err(_) => {
+                            log::warn!("LocalResolutionProvider: SSE read timeout, reconnecting");
+                            break;
+                        }
+                        Ok(Err(e)) => {
+                            log::warn!("LocalResolutionProvider: SSE read error: {}, reconnecting", e);
+                            break;
+                        }
+                        Ok(Ok(None)) => {
+                            log::warn!("LocalResolutionProvider: SSE stream ended, reconnecting");
+                            break;
+                        }
+                        Ok(Ok(Some(bytes))) => {
+                            let text = String::from_utf8_lossy(&bytes);
+                            for line in text.lines() {
+                                let line = line.trim();
+                                log::debug!("LocalResolutionProvider: SSE raw line: {:?}", line);
+                                if line.is_empty() || line.starts_with(':') {
+                                    continue;
+                                }
+                                if line.starts_with("event:") || line.starts_with("data:") {
+                                    if let Some(prev) = debounce_task.take() {
+                                        prev.abort();
+                                    }
+                                    let p = provider.clone();
+                                    debounce_task = Some(tokio::spawn(async move {
+                                        sleep(debounce).await;
+                                        if let Err(e) = p.do_refresh().await {
+                                            log::warn!("LocalResolutionProvider: SSE-triggered refresh failed: {}", e);
+                                        }
+                                    }));
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if let Some(task) = debounce_task.take() {
+                    task.abort();
+                }
+
+                sleep(reconnect_delay).await;
             }
         })
     }

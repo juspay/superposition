@@ -98,6 +98,9 @@ impl CacConfig {
             RefreshStrategy::Watch(_) => {
                 info!("Using Watch refresh strategy");
             }
+            RefreshStrategy::Sse(_) => {
+                info!("Using SSE refresh strategy");
+            }
             RefreshStrategy::Manual => {
                 info!("Using Manual refresh strategy");
             }
@@ -359,6 +362,9 @@ impl ExperimentationConfig {
             }
             RefreshStrategy::Watch(_) => {
                 info!("Using Watch refresh strategy for experiments");
+            }
+            RefreshStrategy::Sse(_) => {
+                info!("Using SSE refresh strategy for experiments");
             }
             RefreshStrategy::Manual => {
                 info!("Using Manual refresh strategy for experiments");
