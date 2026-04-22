@@ -30,6 +30,8 @@ rs-snowflake = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 service_utils = { workspace = true }
+futures-util = { workspace = true }
+tokio = { workspace = true }
 superposition_derives = { workspace = true }
 superposition_macros = { workspace = true }
 superposition_types = { workspace = true, features = [

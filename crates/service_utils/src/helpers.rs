@@ -460,6 +460,24 @@ where
     }
 }
 
+/// Calls `execute_webhook_call` and also broadcasts an SSE "config changed"
+/// signal so that connected SDK clients refresh immediately.
+pub async fn notify_change<T>(
+    data: WebhookData<T>,
+    workspace_context: &WorkspaceContext,
+    state: &Data<AppState>,
+    conn: &mut DBConnection,
+) -> bool
+where
+    T: Serialize,
+{
+    // Broadcast SSE signal (fire-and-forget; ok if no subscribers).
+    let sender = state.get_sse_sender(&workspace_context.schema_name);
+    let _ = sender.send(());
+
+    execute_webhook_call(data, workspace_context, state, conn).await
+}
+
 pub fn fetch_dimensions_info_map(
     conn: &mut DBConnection,
     schema_name: &SchemaName,

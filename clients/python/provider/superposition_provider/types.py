@@ -72,6 +72,19 @@ def default_watch_strategy():
     return WatchStrategy(500)
 
 @dataclass
+class SseStrategy:
+    """SSE-based refresh strategy.
+
+    Connects to the server's SSE endpoint and refreshes when a change event
+    is received. Reconnects automatically on connection failure.
+
+    Requires SuperpositionOptions to build the SSE endpoint URL and authenticate.
+    """
+    superposition_options: SuperpositionOptions
+    reconnect_delay: int = 5  # seconds between reconnect attempts
+    debounce_ms: int = 500  # debounce rapid successive events
+
+@dataclass
 class ManualStrategy:
     """Manual refresh strategy.
 
@@ -81,7 +94,7 @@ class ManualStrategy:
 
 
 # Union type for all refresh strategies
-RefreshStrategy = Union[PollingStrategy, OnDemandStrategy, WatchStrategy, ManualStrategy]
+RefreshStrategy = Union[PollingStrategy, OnDemandStrategy, WatchStrategy, SseStrategy, ManualStrategy]
 
 
 # ============================================================================

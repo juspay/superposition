@@ -3,6 +3,7 @@ mod app_state;
 mod log_span;
 mod organisation;
 mod resolve;
+mod stream;
 mod webhooks;
 mod workspace;
 
@@ -297,6 +298,11 @@ impl ScopeExt for Scope {
             scope("/resolve")
                 .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                 .service(resolve::endpoints()),
+        )
+        .service(
+            scope("/stream")
+                .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                .service(stream::endpoints()),
         )
         .service(
             scope("/authz/workspace")

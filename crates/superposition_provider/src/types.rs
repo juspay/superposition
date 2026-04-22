@@ -120,6 +120,26 @@ impl Default for WatchStrategy {
     }
 }
 
+/// SSE-based refresh strategy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SseStrategy {
+    pub superposition_options: SuperpositionOptions,
+    /// Seconds to wait before reconnecting after a connection failure (default: 5).
+    pub reconnect_delay: Option<u64>,
+    /// Debounce rapid successive events in milliseconds (default: 500).
+    pub debounce_ms: Option<u64>,
+}
+
+impl SseStrategy {
+    pub fn new(superposition_options: SuperpositionOptions) -> Self {
+        Self {
+            superposition_options,
+            reconnect_delay: Some(5),
+            debounce_ms: Some(500),
+        }
+    }
+}
+
 /// A stream of change notifications from a data source.
 pub struct WatchStream {
     pub receiver: tokio::sync::broadcast::Receiver<()>,
@@ -130,6 +150,7 @@ pub enum RefreshStrategy {
     Polling(PollingStrategy),
     OnDemand(OnDemandStrategy),
     Watch(WatchStrategy),
+    Sse(SseStrategy),
     Manual,
 }
 
