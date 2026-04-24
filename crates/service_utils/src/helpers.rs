@@ -15,10 +15,7 @@ use diesel::{
 use log::warn;
 use once_cell::sync::Lazy;
 use regex::Regex;
-use reqwest::{
-    StatusCode,
-    header::{HeaderMap, HeaderName, HeaderValue},
-};
+use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use secrecy::ExposeSecret;
 use serde::Serialize;
 use superposition_macros::unexpected_error;
@@ -427,25 +424,32 @@ where
         HttpMethod::Head => state.http_client.head(&*webhook.url),
     };
 
-    let response = request_builder
-        .headers(headers)
-        .json(&WebhookResponse {
-            event_info: WebhookEventInfo {
-                webhook_event: event,
-                resource,
-                action,
-                time: Utc::now().to_string(),
-                workspace_id: workspace_context.workspace_id.to_string(),
-                organisation_id: workspace_context.organisation_id.to_string(),
-                config_version: config_version_opt,
-            },
-            payload,
-        })
-        .send()
-        .await;
+    let request_builder =
+        if webhook.method != HttpMethod::Get && webhook.method != HttpMethod::Head {
+            headers.insert(
+                reqwest::header::CONTENT_TYPE,
+                HeaderValue::from_static("application/json"),
+            );
+            request_builder.json(&WebhookResponse {
+                event_info: WebhookEventInfo {
+                    webhook_event: event,
+                    resource,
+                    action,
+                    time: Utc::now().to_string(),
+                    workspace_id: workspace_context.workspace_id.to_string(),
+                    organisation_id: workspace_context.organisation_id.to_string(),
+                    config_version: config_version_opt,
+                },
+                payload,
+            })
+        } else {
+            request_builder
+        };
+
+    let response = request_builder.headers(headers).send().await;
 
     match response {
-        Ok(res) if res.status() == StatusCode::OK => {
+        Ok(res) if res.status().is_success() => {
             log::info!("webhook call succeeded: {:?}", res.status());
             true
         }
