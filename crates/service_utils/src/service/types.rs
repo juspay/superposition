@@ -248,6 +248,7 @@ impl FromRequest for DbConnection {
 
 pub struct CustomHeaders {
     pub config_tags: Option<String>,
+    pub idempotency_key: Option<String>,
 }
 impl FromRequest for CustomHeaders {
     type Error = Error;
@@ -262,6 +263,9 @@ impl FromRequest for CustomHeaders {
             config_tags: header_val.get("x-config-tags").and_then(|header_val| {
                 header_val.to_str().map_or(None, |v| Some(v.to_string()))
             }),
+            idempotency_key: header_val
+                .get("Idempotency-Key")
+                .and_then(|v| v.to_str().ok().map(String::from)),
         };
         ready(Ok(val))
     }

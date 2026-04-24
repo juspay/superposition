@@ -997,3 +997,6 @@ DO $$ BEGIN
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
+
+ALTER TABLE {replaceme}.experiments ADD COLUMN IF NOT EXISTS idempotency_key TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS experiments_idempotency_key_idx ON {replaceme}.experiments(idempotency_key);
