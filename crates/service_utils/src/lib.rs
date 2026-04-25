@@ -8,3 +8,4 @@ pub mod middlewares;
 pub mod redis;
 pub mod registry;
 pub mod service;
+pub mod workspace_lock;

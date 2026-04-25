@@ -168,7 +168,7 @@ async fn create_handler(
             Ok((put_response, config_version))
         })?;
 
-    let DbConnection(mut conn) = db_conn;
+    let mut conn = db_conn;
     let _ = put_config_in_redis(
         &config_version,
         &state,
@@ -409,7 +409,7 @@ async fn move_handler(
     )
     .await?;
 
-    let DbConnection(mut conn) = db_conn;
+    let mut conn = db_conn;
 
     let ctx_condition = req.context.clone().into_inner();
 
@@ -737,7 +737,7 @@ async fn delete_handler(
             Ok((config_version, deleted_ctx))
         })?;
 
-    let DbConnection(mut conn) = db_conn;
+    let mut conn = db_conn;
     let _ = put_config_in_redis(
         &config_version,
         &state,
@@ -840,7 +840,7 @@ async fn bulk_operations_handler(
 ) -> superposition::Result<HttpResponse> {
     use contexts::dsl::contexts;
 
-    let DbConnection(mut conn) = db_conn;
+    let mut conn = db_conn;
     let is_v2 = matches!(req, Either::Right(_));
     let ops = match req {
         Either::Left(o) => o.into_inner(),
@@ -907,7 +907,7 @@ async fn bulk_operations_handler(
                         let ctx_value: Context = dsl::contexts
                             .filter(dsl::id.eq(i.clone()))
                             .schema_name(&workspace_context.schema_name)
-                            .get_result::<Context>(&mut conn)?;
+                            .get_result::<Context>(&mut *conn)?;
                         (i.clone(), ctx_value.value.into())
                     }
                 };
@@ -1165,11 +1165,11 @@ async fn weight_recompute_handler(
         contexts, last_modified_at, last_modified_by, weight,
     };
 
-    let DbConnection(mut conn) = db_conn;
+    let mut conn = db_conn;
 
     let result: Vec<Context> = contexts
         .schema_name(&workspace_context.schema_name)
-        .load(&mut conn)
+        .load(&mut *conn)
         .map_err(|err| {
             log::error!("failed to fetch contexts with error: {}", err);
             unexpected_error!("Something went wrong")

@@ -7685,6 +7685,7 @@ dependencies = [
  "tracing-actix-web",
  "url",
  "urlencoding",
+ "uuid",
 ]
 
 [[package]]
