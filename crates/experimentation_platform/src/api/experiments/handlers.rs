@@ -13,8 +13,8 @@ use actix_web::{
 };
 use chrono::{DateTime, Utc};
 use diesel::{
-    BoolExpressionMethods, Connection, ExpressionMethods, PgConnection, QueryDsl,
-    RunQueryDsl, SelectableHelper, TextExpressionMethods,
+    BoolExpressionMethods, Connection, ExpressionMethods, OptionalExtension,
+    PgConnection, QueryDsl, RunQueryDsl, SelectableHelper, TextExpressionMethods,
     r2d2::{ConnectionManager, PooledConnection},
 };
 use experimentation_client::{
@@ -156,12 +156,25 @@ async fn create_handler(
     db_conn: DbConnection,
     user: User,
 ) -> superposition::Result<HttpResponse> {
-    use superposition_types::database::schema::experiments::dsl::experiments;
+    use superposition_types::database::schema::experiments::dsl;
     let req = req.into_inner();
     create_authorized(_auth_z, &req.variants).await?;
 
-    let mut variants = req.variants;
     let DbConnection(mut conn) = db_conn;
+
+    if let Some(ref key) = custom_headers.idempotency_key {
+        let existing: Option<Experiment> = dsl::experiments
+            .filter(dsl::idempotency_key.eq(key))
+            .select(Experiment::as_select())
+            .schema_name(&workspace_context.schema_name)
+            .first(&mut conn)
+            .optional()?;
+        if let Some(exp) = existing {
+            return Ok(HttpResponse::Ok().json(ExperimentResponse::from(exp)));
+        }
+    }
+
+    let mut variants = req.variants;
     let description = req.description.clone();
     let change_reason = req.change_reason.clone();
 
@@ -371,11 +384,12 @@ async fn create_handler(
             .clone()
             .unwrap_or(workspace_context.settings.metrics.clone()),
         experiment_group_id: req.experiment_group_id,
+        idempotency_key: custom_headers.idempotency_key.clone(),
     };
 
     let inserted_experiment: Experiment =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-            let inserted_experiment = diesel::insert_into(experiments)
+            let inserted_experiment = diesel::insert_into(dsl::experiments)
                 .values(&new_experiment)
                 .returning(Experiment::as_returning())
                 .schema_name(&workspace_context.schema_name)

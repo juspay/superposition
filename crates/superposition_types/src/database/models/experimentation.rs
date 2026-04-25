@@ -312,6 +312,7 @@ pub struct Experiment {
     pub change_reason: ChangeReason,
     pub metrics: Metrics,
     pub experiment_group_id: Option<i64>,
+    pub idempotency_key: Option<String>,
 }
 
 impl Contextual for Experiment {
