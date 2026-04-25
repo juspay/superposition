@@ -33,7 +33,7 @@ use crate::{
     api::{default_configs, delete_context, dimensions, fetch_context, get_context},
     components::{
         alert::AlertType,
-        button::{Button, ButtonStyle},
+        button::{Button, ButtonAnchor, ButtonStyle},
         change_form::ChangeForm,
         change_summary::{ChangeLogPopup, ChangeSummary},
         context_card::ContextCard,
@@ -73,9 +73,6 @@ struct PageResource {
 
 #[derive(Debug, Clone)]
 enum FormMode {
-    Edit(String),
-    Clone(String),
-    Create,
     Experiment(ExperimentType, String),
     Delete(String),
 }
@@ -238,7 +235,7 @@ fn Form(
 }
 
 #[allow(clippy::type_complexity)]
-fn use_context_data(
+pub fn use_context_data(
     context_id: String,
 ) -> Resource<(String, String, String), Result<(Context, Conditions), String>> {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
@@ -441,25 +438,12 @@ pub fn ContextOverride() -> impl IntoView {
         },
     );
 
-    let on_create_context_click = Callback::new(move |_| {
-        set_form_mode.set(Some(FormMode::Create));
-        open_drawer("context_and_override_drawer");
-    });
-
-    let on_submit = move |edit: bool| {
-        close_drawer("context_and_override_drawer");
-        if !edit {
-            context_filters_rws.set(ContextListFilters::default());
-            dimension_params_rws.set(DimensionQuery::default());
-            pagination_params_rws.update(|f| f.reset_page());
-        }
-        set_form_mode.set(None);
-        page_resource.refetch();
-    };
-
     let on_context_edit = move |context_id| {
-        set_form_mode.set(Some(FormMode::Edit(context_id)));
-        open_drawer("context_and_override_drawer");
+        let navigate = use_navigate();
+        let workspace = workspace.get().0;
+        let org = org.get().0;
+        let url = format!("/admin/{}/{}/overrides/{}/edit", org, workspace, context_id);
+        navigate(&url, Default::default());
     };
 
     let handle_submit_experiment_form = move |experiment_id: String| {
@@ -491,8 +475,14 @@ pub fn ContextOverride() -> impl IntoView {
     };
 
     let on_context_clone = move |context_id| {
-        set_form_mode.set(Some(FormMode::Clone(context_id)));
-        open_drawer("context_and_override_drawer");
+        let navigate = use_navigate();
+        let workspace = workspace.get().0;
+        let org = org.get().0;
+        let url = format!(
+            "/admin/{}/{}/overrides/action/create?clone={}",
+            org, workspace, context_id
+        );
+        navigate(&url, Default::default());
     };
 
     let on_context_delete = move |context_id| {
@@ -616,10 +606,9 @@ pub fn ContextOverride() -> impl IntoView {
                                         text="Filters"
                                         icon_class="ri-filter-3-line"
                                     />
-                                    <DrawerBtn
+                                    <ButtonAnchor
                                         class="h-fit"
-                                        drawer_id="context_and_override_drawer"
-                                        on_click=on_create_context_click
+                                        href="action/create"
                                         text="Create Override"
                                         icon_class="ri-add-line"
                                     />
@@ -654,10 +643,12 @@ pub fn ContextOverride() -> impl IntoView {
                                                 .data
                                                 .into_iter()
                                                 .map(|context| {
+                                                    let detail_href = context.id.clone();
                                                     view! {
                                                         <ContextCard
                                                             context=context.clone()
                                                             overrides=context.override_.into()
+                                                            href=detail_href
                                                             handle_create_experiment=handle_create_experiment
                                                             handle_edit=on_context_edit
                                                             handle_clone=on_context_clone
@@ -708,15 +699,13 @@ pub fn ContextOverride() -> impl IntoView {
                         .into_view();
                 }
                 let drawer_header = match form_mode.get() {
-                    Some(FormMode::Edit(_)) => "Update Overrides",
-                    Some(FormMode::Create) | Some(FormMode::Clone(_)) => "Create Overrides",
                     Some(FormMode::Experiment(ExperimentType::Default, _)) => {
                         "Update Override via Experiment"
                     }
                     Some(FormMode::Experiment(ExperimentType::DeleteOverrides, _)) => {
                         "Delete Override via Experiment"
                     }
-                    Some(FormMode::Delete(_)) | None => "",
+                    _ => "",
                 };
                 view! {
                     <Drawer
@@ -730,41 +719,6 @@ pub fn ContextOverride() -> impl IntoView {
                     >
                         <EditorProvider>
                             {match form_mode.get_untracked() {
-                                Some(FormMode::Edit(context_id)) => {
-                                    view! {
-                                        <AutofillForm
-                                            context_id
-                                            dimensions=dimensions
-                                            default_config=default_config
-                                            handle_submit=on_submit
-                                            edit=true
-                                        />
-                                    }
-                                        .into_view()
-                                }
-                                Some(FormMode::Clone(context_id)) => {
-                                    view! {
-                                        <AutofillForm
-                                            context_id
-                                            dimensions
-                                            default_config
-                                            handle_submit=on_submit
-                                        />
-                                    }
-                                        .into_view()
-                                }
-                                Some(FormMode::Create) => {
-                                    view! {
-                                        <Form
-                                            context=Conditions(vec![])
-                                            overrides=vec![]
-                                            dimensions
-                                            default_config
-                                            handle_submit=on_submit
-                                        />
-                                    }
-                                        .into_view()
-                                }
                                 Some(FormMode::Experiment(experiment_type, context_id)) => {
                                     view! {
                                         <AutofillExperimentForm
@@ -777,7 +731,7 @@ pub fn ContextOverride() -> impl IntoView {
                                     }
                                         .into_view()
                                 }
-                                Some(FormMode::Delete(_)) | None => ().into_view(),
+                                _ => ().into_view(),
                             }}
                         </EditorProvider>
                     </Drawer>
@@ -798,13 +752,13 @@ pub fn ContextOverride() -> impl IntoView {
 }
 
 #[derive(Clone)]
-enum ChangeType {
+pub enum ChangeType {
     Delete,
     Update(UpdateRequest),
 }
 
 #[component]
-fn ChangeLogSummary(
+pub fn ChangeLogSummary(
     context_id: String,
     change_type: ChangeType,
     #[prop(into)] on_confirm: Callback<()>,
