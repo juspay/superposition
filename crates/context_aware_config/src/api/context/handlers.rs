@@ -281,8 +281,8 @@ async fn update_handler(
     )
     .await?;
 
-    let (override_resp, config_version) =
-        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+    let (override_resp, config_version) = conn
+        .transaction::<_, superposition::AppError, _>(|transaction_conn| {
             let override_resp = operations::update(
                 &workspace_context,
                 req.into_inner(),
@@ -423,8 +423,8 @@ async fn move_handler(
     )
     .await?;
 
-    let (move_response, config_version) =
-        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+    let (move_response, config_version) = conn
+        .transaction::<_, superposition::AppError, _>(|transaction_conn| {
             let move_response = operations::r#move(
                 &workspace_context,
                 ctx_id,
