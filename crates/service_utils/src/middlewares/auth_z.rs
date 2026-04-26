@@ -187,6 +187,19 @@ impl AuthZHandler {
         };
         Self(ap)
     }
+
+    pub async fn is_allowed(
+        &self,
+        domain: &AuthZDomain,
+        user: &User,
+        resource: &Resource,
+        action: &str,
+        attributes: Option<&[&String]>,
+    ) -> Result<bool, String> {
+        self.0
+            .is_allowed(domain, user, resource, action, attributes)
+            .await
+    }
 }
 
 impl FromRequest for AuthZHandler {

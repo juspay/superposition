@@ -1,6 +1,7 @@
 pub mod audit_log;
 pub mod config;
 pub mod context;
+pub mod copy_to;
 pub mod default_config;
 pub mod dimension;
 pub mod functions;

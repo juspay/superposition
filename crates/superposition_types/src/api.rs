@@ -2,6 +2,7 @@ pub mod audit_log;
 pub mod authz;
 pub mod config;
 pub mod context;
+pub mod copy_to;
 pub mod default_config;
 pub mod dimension;
 #[cfg(feature = "experimentation")]
