@@ -7,16 +7,14 @@ use diesel::{
     Connection, ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl,
     SelectableHelper,
 };
-use serde_json::Value;
 use service_utils::{
     helpers::{WebhookData, execute_webhook_call, parse_config_tags},
     service::types::{
         AppHeader, AppState, CustomHeaders, DbConnection, WorkspaceContext,
     },
 };
-use superposition_core::validations::validate_schema;
 use superposition_derives::{authorized, declare_resource};
-use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
+use superposition_macros::{bad_argument, not_found, unexpected_error};
 use superposition_types::{
     PaginatedResponse, Resource, User,
     api::{
@@ -29,7 +27,7 @@ use superposition_types::{
     database::{
         models::{
             Description,
-            cac::{DependencyGraph, Dimension, DimensionType},
+            cac::{Dimension, DimensionType},
             others::WebhookEvent,
         },
         schema::dimensions::{self, dsl::*},
@@ -37,20 +35,13 @@ use superposition_types::{
     result as superposition,
 };
 
-use crate::api::dimension::validations::allow_primitive_types;
 use crate::helpers::put_config_in_redis;
 use crate::{
     api::dimension::{
-        utils::{
-            create_connections_with_dependents, get_dimension_usage_context_ids,
-            remove_connections_with_dependents,
+        operations::{
+            create_dimension_entry, is_mandatory_dimension, update_dimension_entry,
         },
-        validations::{
-            does_dimension_exist_for_cohorting, validate_cohort_position,
-            validate_cohort_schema, validate_dimension_position,
-            validate_position_wrt_dependency, validate_validation_function,
-            validate_value_compute_function,
-        },
+        utils::{get_dimension_usage_context_ids, remove_connections_with_dependents},
     },
     helpers::{add_config_version, validate_change_reason},
 };
@@ -78,7 +69,7 @@ async fn create_handler(
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let create_req = req.into_inner();
-    let schema_value = Value::from(&create_req.schema);
+    let create_change_reason = create_req.change_reason.clone();
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
     validate_change_reason(
@@ -89,159 +80,25 @@ async fn create_handler(
     )
     .await?;
 
-    let num_rows = dimensions
-        .count()
-        .schema_name(&workspace_context.schema_name)
-        .get_result::<i64>(&mut conn)
-        .map_err(|err| {
-            log::error!("failed to fetch number of dimension with error: {}", err);
-            db_error!(err)
-        })?;
-
-    validate_dimension_position(
-        create_req.dimension.clone(),
-        create_req.position,
-        num_rows,
-    )?;
-
-    match create_req.dimension_type {
-        DimensionType::Regular {} => {
-            allow_primitive_types(&create_req.schema)?;
-            validate_schema(&schema_value).map_err(|e| {
-                superposition::AppError::ValidationError(format!(
-                    "JSON Schema's schema is broken - this is unexpected {}",
-                    e.join("")
-                ))
-            })?;
-        }
-        DimensionType::RemoteCohort(ref cohort_based_on) => {
-            allow_primitive_types(&create_req.schema)?;
-            validate_schema(&schema_value).map_err(|e| {
-                superposition::AppError::ValidationError(format!(
-                    "JSON Schema's schema is broken - this is unexpected {}",
-                    e.join("")
-                ))
-            })?;
-            let based_on_dimension = does_dimension_exist_for_cohorting(
-                cohort_based_on,
-                &workspace_context.schema_name,
-                &mut conn,
-            )?;
-            validate_cohort_position(&create_req.position, &based_on_dimension, true)?;
-        }
-        DimensionType::LocalCohort(ref cohort_based_on) => {
-            let based_on_dimension = validate_cohort_schema(
-                &schema_value,
-                cohort_based_on,
-                &workspace_context.schema_name,
-                &mut conn,
-            )?;
-            validate_cohort_position(&create_req.position, &based_on_dimension, true)?;
-        }
-    }
-
-    validate_validation_function(
-        &create_req.value_validation_function_name,
-        &mut conn,
-        &workspace_context.schema_name,
-    )?;
-
-    validate_value_compute_function(
-        &create_req.dimension_type,
-        &create_req.value_compute_function_name,
-        &mut conn,
-        &workspace_context.schema_name,
-    )?;
-
-    let dimension_data = Dimension {
-        dimension: create_req.dimension.into(),
-        position: create_req.position,
-        schema: create_req.schema,
-        created_by: user.get_email(),
-        created_at: Utc::now(),
-        value_validation_function_name: create_req.value_validation_function_name.clone(),
-        last_modified_at: Utc::now(),
-        last_modified_by: user.get_email(),
-        description: create_req.description,
-        change_reason: create_req.change_reason,
-        dependency_graph: DependencyGraph::default(),
-        value_compute_function_name: create_req.value_compute_function_name,
-        dimension_type: create_req.dimension_type,
-    };
-
     let (inserted_dimension, is_mandatory, config_version) =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
-            diesel::update(dimensions::table)
-                .filter(dimensions::position.ge(dimension_data.position))
-                .set((
-                    last_modified_at.eq(Utc::now()),
-                    last_modified_by.eq(user.get_email()),
-                    dimensions::position.eq(dimensions::position + 1),
-                ))
-                .returning(Dimension::as_returning())
-                .schema_name(&workspace_context.schema_name)
-                .execute(transaction_conn)?;
+            let inserted_dimension = create_dimension_entry(
+                transaction_conn,
+                &workspace_context,
+                &user,
+                create_req,
+            )?;
+            let is_mandatory =
+                is_mandatory_dimension(&workspace_context, &inserted_dimension.dimension);
 
-            match dimension_data.dimension_type {
-                DimensionType::LocalCohort(ref cohort_based_on)
-                | DimensionType::RemoteCohort(ref cohort_based_on) => {
-                    // Update dependency graphs of all dimensions that
-                    // depend on the cohort_based_on dimension as well as
-                    // the cohorted dimension itself
-                    create_connections_with_dependents(
-                        cohort_based_on,
-                        &dimension_data.dimension,
-                        &user.get_email(),
-                        &workspace_context.schema_name,
-                        transaction_conn,
-                    )?
-                }
-                DimensionType::Regular {} => (),
-            }
-
-            let insert_resp = diesel::insert_into(dimensions::table)
-                .values(&dimension_data)
-                .returning(Dimension::as_returning())
-                .schema_name(&workspace_context.schema_name)
-                .get_result(transaction_conn);
-
-            match insert_resp {
-                Ok(inserted_dimension) => {
-                    let is_mandatory = workspace_context
-                        .settings
-                        .mandatory_dimensions
-                        .clone()
-                        .unwrap_or_default()
-                        .contains(&inserted_dimension.dimension);
-
-                    let config_version = add_config_version(
-                        &state,
-                        tags,
-                        dimension_data.change_reason.into(),
-                        transaction_conn,
-                        &workspace_context.schema_name,
-                    )?;
-                    Ok((inserted_dimension, is_mandatory, config_version))
-                }
-                Err(diesel::result::Error::DatabaseError(
-                    diesel::result::DatabaseErrorKind::ForeignKeyViolation,
-                    e,
-                )) => {
-                    let fun_name = create_req.value_validation_function_name.clone();
-                    log::error!("{fun_name:?} function not found with error: {e:?}");
-                    Err(bad_argument!(
-                        "Function {} doesn't exists",
-                        Into::<Option<String>>::into(
-                            create_req.value_validation_function_name.clone()
-                        )
-                        .unwrap_or_default()
-                    ))
-                }
-                Err(e) => {
-                    log::error!("Dimension create failed with error: {e}");
-                    Err(db_error!(e))
-                }
-            }
+            let config_version = add_config_version(
+                &state,
+                tags,
+                create_change_reason.into(),
+                transaction_conn,
+                &workspace_context.schema_name,
+            )?;
+            Ok((inserted_dimension, is_mandatory, config_version))
         })?;
 
     let _ = put_config_in_redis(
@@ -316,7 +173,6 @@ async fn update_handler(
     db_conn: DbConnection,
 ) -> superposition::Result<HttpResponse> {
     let name: String = path.clone().into();
-    use dimensions::dsl;
     let DbConnection(mut conn) = db_conn;
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let update_req = req.into_inner();
@@ -329,147 +185,19 @@ async fn update_handler(
     )
     .await?;
 
-    let dimension_data: Dimension = dimensions::dsl::dimensions
-        .filter(dimensions::dimension.eq(name.clone()))
-        .schema_name(&workspace_context.schema_name)
-        .get_result::<Dimension>(&mut conn)?;
-
-    let num_rows = dimensions
-        .count()
-        .schema_name(&workspace_context.schema_name)
-        .get_result::<i64>(&mut conn)
-        .map_err(|err| {
-            log::error!("failed to fetch number of dimension with error: {}", err);
-            db_error!(err)
-        })?;
-
-    if let Some(ref new_schema) = update_req.schema {
-        let schema_value = Value::from(new_schema);
-        match dimension_data.dimension_type {
-            DimensionType::Regular {} | DimensionType::RemoteCohort(_) => {
-                allow_primitive_types(new_schema)?;
-                validate_schema(&schema_value).map_err(|e| {
-                    superposition::AppError::ValidationError(format!(
-                        "JSON Schema's schema is broken - this is unexpected {}",
-                        e.join("")
-                    ))
-                })?;
-            }
-            DimensionType::LocalCohort(ref cohort_based_on) => {
-                validate_cohort_schema(
-                    &schema_value,
-                    cohort_based_on,
-                    &workspace_context.schema_name,
-                    &mut conn,
-                )?;
-            }
-        }
-    }
-
-    if let Some(ref new_position) = update_req.position {
-        match dimension_data.dimension_type {
-            DimensionType::Regular {} => (),
-            DimensionType::RemoteCohort(ref cohort_based_on)
-            | DimensionType::LocalCohort(ref cohort_based_on) => {
-                let based_on_dimension = does_dimension_exist_for_cohorting(
-                    cohort_based_on,
-                    &workspace_context.schema_name,
-                    &mut conn,
-                )?;
-                validate_cohort_position(new_position, &based_on_dimension, false)?;
-            }
-        }
-    }
-
-    if let Some(ref fn_name) = update_req.value_validation_function_name {
-        validate_validation_function(fn_name, &mut conn, &workspace_context.schema_name)?;
-    }
-
-    if let Some(ref value_compute_function_name_) = update_req.value_compute_function_name
-    {
-        validate_value_compute_function(
-            &dimension_data.dimension_type,
-            value_compute_function_name_,
-            &mut conn,
-            &workspace_context.schema_name,
-        )?;
-    }
-
     let update_change_reason = update_req.change_reason.clone();
 
     let (result, is_mandatory, config_version) = conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
-            if let Some(position_val) = update_req.position {
-                let new_position = position_val;
-                validate_dimension_position(
-                    path.into_inner(),
-                    position_val,
-                    num_rows - 1,
-                )?;
-                validate_position_wrt_dependency(
-                    &name,
-                    &position_val,
-                    transaction_conn,
-                    &workspace_context.schema_name,
-                )?;
-                let previous_position = dimension_data.position;
+            let result = update_dimension_entry(
+                transaction_conn,
+                &workspace_context,
+                &user,
+                name.clone(),
+                update_req.clone(),
+            )?;
 
-                diesel::update(dimensions)
-                    .filter(dsl::dimension.eq(&name))
-                    .set((
-                        dsl::last_modified_at.eq(Utc::now()),
-                        dsl::last_modified_by.eq(user.get_email()),
-                        dimensions::position.eq((num_rows + 100) as i32),
-                    ))
-                    .returning(Dimension::as_returning())
-                    .schema_name(&workspace_context.schema_name)
-                    .get_result::<Dimension>(transaction_conn)?;
-
-                if previous_position < new_position {
-                    diesel::update(dsl::dimensions)
-                        .filter(dimensions::position.gt(previous_position))
-                        .filter(dimensions::position.le(&new_position))
-                        .set((
-                            dsl::last_modified_at.eq(Utc::now()),
-                            dsl::last_modified_by.eq(user.get_email()),
-                            dimensions::position.eq(dimensions::position - 1),
-                        ))
-                        .returning(Dimension::as_returning())
-                        .schema_name(&workspace_context.schema_name)
-                        .execute(transaction_conn)?
-                } else {
-                    diesel::update(dsl::dimensions)
-                        .filter(dimensions::position.lt(previous_position))
-                        .filter(dimensions::position.ge(&new_position))
-                        .set((
-                            dsl::last_modified_at.eq(Utc::now()),
-                            dsl::last_modified_by.eq(user.get_email()),
-                            dimensions::position.eq(dimensions::position + 1),
-                        ))
-                        .returning(Dimension::as_returning())
-                        .schema_name(&workspace_context.schema_name)
-                        .execute(transaction_conn)?
-                };
-            }
-
-            let result = diesel::update(dimensions)
-                .filter(dsl::dimension.eq(name))
-                .set((
-                    update_req,
-                    dimensions::last_modified_at.eq(Utc::now()),
-                    dimensions::last_modified_by.eq(user.get_email()),
-                ))
-                .returning(Dimension::as_returning())
-                .schema_name(&workspace_context.schema_name)
-                .get_result::<Dimension>(transaction_conn)
-                .map_err(|err| db_error!(err))?;
-
-            let is_mandatory = workspace_context
-                .settings
-                .mandatory_dimensions
-                .clone()
-                .unwrap_or_default()
-                .contains(&result.dimension);
+            let is_mandatory = is_mandatory_dimension(&workspace_context, &result.dimension);
 
             let config_version = add_config_version(
                 &state,
