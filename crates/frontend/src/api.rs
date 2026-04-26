@@ -446,6 +446,34 @@ pub mod dimensions {
     }
 }
 
+pub mod copy_to {
+    use superposition_types::api::copy_to::{CopyToRequest, CopyToResponse};
+
+    use super::*;
+
+    pub async fn copy(
+        payload: CopyToRequest,
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<CopyToResponse, String> {
+        let host = use_host_server();
+        let url = format!("{host}/copy-to");
+
+        let response = request(
+            url,
+            reqwest::Method::POST,
+            Some(payload),
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+}
+
 pub async fn delete_context(
     context_id: String,
     workspace: &str,

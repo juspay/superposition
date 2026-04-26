@@ -1,5 +1,6 @@
 pub mod audit_log;
 pub mod authz;
+pub mod copy_to;
 pub mod config;
 pub mod context;
 pub mod default_config;

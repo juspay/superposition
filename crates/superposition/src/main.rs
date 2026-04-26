@@ -257,6 +257,11 @@ impl ScopeExt for Scope {
                 .service(config::endpoints()),
         )
         .service(
+            scope("/copy-to")
+                .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                .service(copy_to::endpoints()),
+        )
+        .service(
             scope("/audit")
                 .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                 .service(audit_log::endpoints()),
