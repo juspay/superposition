@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use derive_more::{Deref, DerefMut};
 use leptos::{ReadSignal, WriteSignal};
 use serde::{Deserialize, Serialize};
@@ -295,4 +297,120 @@ impl DropdownOption for DimensionTypeOptions {
     fn label(&self) -> String {
         self.to_string()
     }
+}
+
+#[derive(
+    Copy,
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    strum_macros::Display,
+    strum_macros::EnumString,
+    strum_macros::EnumIter,
+)]
+pub enum RouteSegment {
+    #[strum(serialize = "types")]
+    Types,
+    #[strum(serialize = "audit-log")]
+    AuditLog,
+    #[strum(serialize = "default-config")]
+    DefaultConfig,
+    #[strum(serialize = "experiment-groups")]
+    ExperimentGroups,
+    #[strum(serialize = "compare")]
+    Compare,
+    #[strum(serialize = "config")]
+    Config,
+    #[strum(serialize = "dimensions")]
+    Dimensions,
+    #[strum(serialize = "experiments")]
+    Experiments,
+    #[strum(serialize = "function")]
+    Function,
+    #[strum(serialize = "resolve")]
+    Resolve,
+    #[strum(serialize = "secrets")]
+    Secrets,
+    #[strum(serialize = "variables")]
+    Variables,
+    #[strum(serialize = "versions")]
+    Versions,
+    #[strum(serialize = "webhooks")]
+    Webhooks,
+    #[strum(serialize = "workspaces")]
+    Workspaces,
+    #[strum(serialize = "overrides")]
+    Overrides,
+    #[strum(serialize = "create")]
+    Create,
+    #[strum(serialize = "edit")]
+    Edit,
+    #[strum(serialize = "admin")]
+    Admin,
+    #[strum(serialize = "settings")]
+    Settings,
+    #[strum(serialize = "authz")]
+    Authz,
+    #[strum(serialize = "organisations")]
+    Organisations,
+    #[strum(serialize = "action")]
+    Action,
+    #[strum(serialize = "org-authz")]
+    OrgAuthz,
+}
+
+impl RouteSegment {
+    pub fn try_from_str(value: &str) -> Result<Self, strum::ParseError> {
+        Self::from_str(value)
+    }
+}
+
+/// A route part can be either a static segment or a dynamic `:param`.
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+pub enum RoutePart {
+    Static(RouteSegment),
+    Dynamic(&'static str),
+}
+
+impl RoutePart {
+    pub fn to_path_part(&self) -> String {
+        match self {
+            Self::Static(seg) => seg.to_string(),
+            Self::Dynamic(name) => {
+                let trimmed = name.trim_start_matches(':');
+                format!(":{trimmed}")
+            }
+        }
+    }
+}
+
+impl From<RouteSegment> for RoutePart {
+    fn from(value: RouteSegment) -> Self {
+        Self::Static(value)
+    }
+}
+
+impl From<&'static str> for RoutePart {
+    fn from(value: &'static str) -> Self {
+        if let Ok(seg) = RouteSegment::from_str(value) {
+            Self::Static(seg)
+        } else {
+            Self::Dynamic(value.trim_start_matches(':'))
+        }
+    }
+}
+
+/// Join static and dynamic route parts with `/`.
+pub fn join_route_parts<I, T>(parts: I) -> String
+where
+    I: IntoIterator<Item = T>,
+    T: Into<RoutePart>,
+{
+    parts
+        .into_iter()
+        .map(|p| p.into().to_path_part())
+        .collect::<Vec<_>>()
+        .join("/")
 }

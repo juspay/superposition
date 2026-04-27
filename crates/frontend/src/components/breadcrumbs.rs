@@ -1,50 +1,39 @@
+use std::str::FromStr;
+
 use leptos::*;
 use leptos_router::{A, use_location};
 
-use crate::types::{BreadcrumbSegment, OrganisationId, Workspace};
+use crate::types::{BreadcrumbSegment, OrganisationId, RouteSegment, Workspace};
 use crate::utils::use_url_base;
 
-const SKIP_SEGMENTS: [&str; 4] = ["admin", "action", "authz", "org-authz"];
+const SKIP_SEGMENTS: [RouteSegment; 4] = [
+    RouteSegment::Admin,
+    RouteSegment::Action,
+    RouteSegment::Authz,
+    RouteSegment::OrgAuthz,
+];
 
 /// Maps a URL path segment to a human-readable label.
 /// Returns None for segments that should be skipped (like "action").
-fn segment_to_label(segment: &str) -> Option<String> {
-    let title_segments = [
-        "types",
-        "audit-log",
-        "default-config",
-        "experiment-groups",
-        "compare",
-        "config",
-        "dimensions",
-        "experiments",
-        "function",
-        "resolve",
-        "secrets",
-        "variables",
-        "versions",
-        "webhooks",
-        "workspaces",
-        "overrides",
-        "create",
-        "edit",
-    ];
-    match segment {
-        x if !title_segments.contains(&x) => Some(segment.to_string()),
-        x => Some(
-            x.split('-')
-                .map(|s| {
-                    let mut chars = s.chars();
-                    match chars.next() {
-                        Some(first) => {
-                            first.to_uppercase().collect::<String>() + chars.as_str()
-                        }
-                        None => String::new(),
+fn segment_to_label(segment: &str) -> String {
+    let is_known_segment = RouteSegment::from_str(segment).is_ok();
+
+    if !is_known_segment {
+        segment.to_string()
+    } else {
+        segment
+            .split('-')
+            .map(|s| {
+                let mut chars = s.chars();
+                match chars.next() {
+                    Some(first) => {
+                        first.to_uppercase().collect::<String>() + chars.as_str()
                     }
-                })
-                .collect::<Vec<String>>()
-                .join(" "),
-        ),
+                    None => String::new(),
+                }
+            })
+            .collect::<Vec<String>>()
+            .join(" ")
     }
 }
 
@@ -58,31 +47,78 @@ fn build_breadcrumbs(path: &str, base: &str) -> Vec<BreadcrumbSegment> {
     let mut breadcrumbs = Vec::new();
     for (i, segment) in segments.iter().enumerate() {
         let is_current = i == segments.len() - 1;
-        if !SKIP_SEGMENTS.contains(segment) {
-            if let Some(label) = segment_to_label(segment) {
+        let is_skipped = RouteSegment::try_from_str(segment)
+            .map(|seg| SKIP_SEGMENTS.contains(&seg))
+            .unwrap_or(false);
+
+        let is_config_versions_config =
+            *segment == "config" && segments.get(i + 1).copied() == Some("versions");
+        if is_config_versions_config {
+            previous_segments.push('/');
+            previous_segments.push_str(segment);
+            continue;
+        }
+
+        if !is_skipped {
+            let label = segment_to_label(segment);
+            let is_versions_in_config_flow = *segment == "versions"
+                && i > 0
+                && segments.get(i - 1).copied() == Some("config");
+
+            if previous_segments == "/admin" {
                 breadcrumbs.push(BreadcrumbSegment {
-                    label,
-                    href: if is_current {
-                        String::new()
-                    } else {
-                        let current = if previous_segments == "/admin" {
-                            "organisations"
-                        } else if previous_segments
-                            .split("/")
-                            .filter(|s| !s.is_empty())
-                            .collect::<Vec<&str>>()
-                            .len()
-                            == 2
-                        {
-                            "workspaces"
-                        } else {
-                            segment
-                        };
-                        format!("{}{}/{}", base, previous_segments, current)
-                    },
-                    is_current,
+                    label: "Organisations".to_string(),
+                    href: format!("{}{}/organisations", base, previous_segments),
+                    is_current: false,
                 });
             }
+            if previous_segments
+                .split("/")
+                .filter(|s| !s.is_empty())
+                .collect::<Vec<&str>>()
+                .len()
+                == 3
+            {
+                breadcrumbs.insert(
+                    2,
+                    BreadcrumbSegment {
+                        label: "Workspaces".to_string(),
+                        href: {
+                            let proper_url_length = previous_segments
+                                .rfind("/")
+                                .unwrap_or(previous_segments.len());
+                            format!(
+                                "{}{}/workspaces",
+                                base,
+                                &previous_segments[..proper_url_length]
+                            )
+                        },
+                        is_current: false,
+                    },
+                );
+            }
+
+            breadcrumbs.push(BreadcrumbSegment {
+                label: if is_versions_in_config_flow {
+                    "Versions".to_string()
+                } else {
+                    label
+                },
+                href: if is_current
+                    || previous_segments == "/admin"
+                    || previous_segments
+                        .split("/")
+                        .filter(|s| !s.is_empty())
+                        .collect::<Vec<&str>>()
+                        .len()
+                        == 2
+                {
+                    String::new()
+                } else {
+                    format!("{}{}/{}", base, previous_segments, segment)
+                },
+                is_current,
+            });
         }
         previous_segments.push('/');
         previous_segments.push_str(segment);
