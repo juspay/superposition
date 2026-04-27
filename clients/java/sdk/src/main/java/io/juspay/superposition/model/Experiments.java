@@ -32,6 +32,7 @@ public final class Experiments implements ApiResource {
         Map.entry("context", SharedSchemas.CONDITION),
         Map.entry("started_at", SharedSchemas.DATE_TIME),
         Map.entry("experiment_group_id", PreludeSchemas.STRING),
+        Map.entry("idempotency_key", PreludeSchemas.STRING),
         Map.entry("metrics", PreludeSchemas.DOCUMENT),
         Map.entry("last_modified", SharedSchemas.DATE_TIME),
         Map.entry("started_by", PreludeSchemas.STRING),

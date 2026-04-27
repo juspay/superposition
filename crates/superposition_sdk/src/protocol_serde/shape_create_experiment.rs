@@ -85,6 +85,30 @@ pub fn ser_create_experiment_headers(
                             })?;
                             builder = builder.header("x-org-id", header_value);
     }
+    if let ::std::option::Option::Some(inner_5) = &input.idempotency_key {
+        let formatted_6 = inner_5.as_str();
+        let header_value = formatted_6;
+                            let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
+                                ::aws_smithy_types::error::operation::BuildError::invalid_field("idempotency_key", format!(
+                                "`{}` cannot be used as a header value: {}",
+                                &header_value,
+                                err
+                            ))
+                            })?;
+                            builder = builder.header("idempotency-key", header_value);
+    }
+    if let ::std::option::Option::Some(inner_7) = &input.config_tags {
+        let formatted_8 = inner_7.as_str();
+        let header_value = formatted_8;
+                            let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
+                                ::aws_smithy_types::error::operation::BuildError::invalid_field("config_tags", format!(
+                                "`{}` cannot be used as a header value: {}",
+                                &header_value,
+                                err
+                            ))
+                            })?;
+                            builder = builder.header("x-config-tags", header_value);
+    }
     Ok(builder)
 }
 

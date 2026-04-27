@@ -74,10 +74,10 @@ index 002b1991..8be02229 100644
      private static final List<Schema>$COLLECTION_OPERATIONS = List.of(AddMembersToGroup.$SCHEMA,
          RemoveMembersFromGroup.$SCHEMA);
 diff --git a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Experiments.java b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Experiments.java
-index 5b0dd5e8..05445da7 100644
+index f94708a5..33b89f09 100644
 --- a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Experiments.java
 +++ b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Experiments.java
-@@ -16,25 +16,26 @@ public final class Experiments implements ApiResource {
+@@ -16,26 +16,27 @@ public final class Experiments implements ApiResource {
      private static final Map<String, Schema> $IDENTIFIERS = Map.of("workspace_id", PreludeSchemas.STRING,
          "org_id", PreludeSchemas.STRING,
          "id", PreludeSchemas.STRING);
@@ -96,6 +96,7 @@ index 5b0dd5e8..05445da7 100644
 -        "context", SharedSchemas.CONDITION,
 -        "started_at", SharedSchemas.DATE_TIME,
 -        "experiment_group_id", PreludeSchemas.STRING,
+-        "idempotency_key", PreludeSchemas.STRING,
 -        "metrics", PreludeSchemas.DOCUMENT,
 -        "last_modified", SharedSchemas.DATE_TIME,
 -        "started_by", PreludeSchemas.STRING,
@@ -116,6 +117,7 @@ index 5b0dd5e8..05445da7 100644
 +        Map.entry("context", SharedSchemas.CONDITION),
 +        Map.entry("started_at", SharedSchemas.DATE_TIME),
 +        Map.entry("experiment_group_id", PreludeSchemas.STRING),
++        Map.entry("idempotency_key", PreludeSchemas.STRING),
 +        Map.entry("metrics", PreludeSchemas.DOCUMENT),
 +        Map.entry("last_modified", SharedSchemas.DATE_TIME),
 +        Map.entry("started_by", PreludeSchemas.STRING),
@@ -123,6 +125,7 @@ index 5b0dd5e8..05445da7 100644
  
      private static final List<Schema>$COLLECTION_OPERATIONS = List.of(UpdateOverridesExperiment.$SCHEMA,
          ConcludeExperiment.$SCHEMA,
+
 diff --git a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Function.java b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Function.java
 index 813c9e17..d0a445a7 100644
 --- a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Function.java
