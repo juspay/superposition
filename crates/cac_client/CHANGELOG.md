@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cac_client-v0.26.0 - 2026-04-27
+#### Features
+- move from nodeJS to rustyscript (#840) - (a3ede33) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.102.0 [skip ci] - (9f610ad) - Superposition Bot
+
+- - -
+
 ## cac_client-v0.25.0 - 2026-03-25
 #### Features
 - add local/remote provider implementations following new structure (#930) - (ba5d518) - Ayush Jain

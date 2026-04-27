@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cac_toml-v0.6.0 - 2026-04-27
+#### Build system
+- setup msrv and edition consistently in all Cargo.toml (#706) - (8c6e51a) - Natarajan Kannan
+#### Features
+- add supertoml-lsp LSP server for the SuperTOML format (#917) - (0f3323b) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.83.0 [skip ci] - (2e2d48c) - Superposition Bot
+- Flake update (#775) - (4a2eaa2) - Datron
+
+- - -
+
 ## cac_toml-v0.5.0 - 2025-08-04
 #### Features
 - publish rust libraries through crates.io - (8b62d45) - datron
