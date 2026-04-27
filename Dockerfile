@@ -22,9 +22,6 @@ RUN curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 COPY . .
 RUN npm ci --loglevel=info
 
-RUN cd crates/context_aware_config/ && npm ci
-RUN mkdir -p target/node_modules
-RUN cp -a crates/context_aware_config/node_modules target/
 RUN cd crates/frontend \
     && wasm-pack build --target=web --release --no-default-features --features=hydrate
 
@@ -58,21 +55,11 @@ RUN apt-get update && \
     postgresql-common && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
-
-ENV NVM_DIR=/root/.nvm
-RUN . "$NVM_DIR/nvm.sh" && nvm install ${NODE_VERSION}
-RUN . "$NVM_DIR/nvm.sh" && nvm use v${NODE_VERSION}
-RUN . "$NVM_DIR/nvm.sh" && nvm alias default v${NODE_VERSION}
-ENV PATH="/root/.nvm/versions/node/v${NODE_VERSION}/bin/:${PATH}"
-RUN node --version
-
+    
 COPY --from=builder /build/target/release/superposition /app/superposition
 COPY --from=builder /build/Cargo.toml /app/Cargo.toml
 COPY --from=builder /build/target/site /app/target/site
-COPY --from=builder /build/target/node_modules /app/target/node_modules
 COPY --from=builder /build/workspace_template.sql /app/workspace_template.sql
-# COPY --from=builder /build/superposition/target/.env /app/.env
 ENV SUPERPOSITION_VERSION=$SUPERPOSITION_VERSION
 ENV SOURCE_COMMIT=$SOURCE_COMMIT
 CMD ["/app/superposition"]

@@ -218,8 +218,6 @@ frontend:
 backend: CARGO_FLAGS += --features='$(FEATURES)' --color always
 backend:
 	-rm -rf $(CARGO_TARGET_DIR)/node_modules
-	npm --prefix ./crates/context_aware_config/ ci
-	mv crates/context_aware_config/node_modules $(CARGO_TARGET_DIR)/
 	cargo build $(CARGO_FLAGS)
 
 build: frontend backend

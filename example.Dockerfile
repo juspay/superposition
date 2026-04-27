@@ -13,6 +13,7 @@ COPY examples/superposition-demo-app/pg_hba.conf /etc/postgresql/17/main/pg_hba.
 COPY docker-compose/postgres/db_init.sql /app/db_init.sql
 
 COPY .env.example /app/.env
+RUN sed -i '/REDIS_URL/d' /app/.env
 
 COPY examples/superposition-demo-app/superposition_demo.sh .
 RUN chmod 774 superposition_demo.sh
