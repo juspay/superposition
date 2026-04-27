@@ -2,6 +2,20 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_core-v0.14.0 - 2026-04-27
+#### Bug Fixes
+- **(python)** Add missing SuperpositionDataSource implementation for LocalResolutionProvider (#966) - (c705122) - Ayush Jain
+- New provider spec for python (#951) - (22078fc) - Ayush Jain
+#### Features
+- move from nodeJS to rustyscript (#840) - (a3ede33) - Datron
+- add supertoml-lsp LSP server for the SuperTOML format (#917) - (0f3323b) - Datron
+- JS provider performance enhancement (#948) - (c93e613) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(version)** v0.102.0 [skip ci] - (9f610ad) - Superposition Bot
+- expose filter functions on rust cache (#945) - (eb4e815) - Ayush Jain
+
+- - -
+
 ## superposition_core-v0.13.0 - 2026-03-25
 #### Bug Fixes
 - Spec for list exp and get config endpoints (#916) - (330279e) - Ayush Jain

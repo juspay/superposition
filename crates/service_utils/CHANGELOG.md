@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.40.1 - 2026-04-27
+#### Bug Fixes
+- minor changes to how webhooks send requests (#983) - (b9460c5) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.102.0 [skip ci] - (9f610ad) - Superposition Bot
+
+- - -
+
 ## service_utils-v0.40.0 - 2026-03-25
 #### Bug Fixes
 - Spec for list exp and get config endpoints (#916) - (330279e) - Ayush Jain

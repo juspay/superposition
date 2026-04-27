@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.52.0 - 2026-04-27
+#### Bug Fixes
+- New provider spec for python (#951) - (22078fc) - Ayush Jain
+#### Features
+- move from nodeJS to rustyscript (#840) - (a3ede33) - Datron
+- add diff highlighting to changelog confirmation popup (#954) - (80cff1e) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(version)** v0.102.0 [skip ci] - (9f610ad) - Superposition Bot
+
+- - -
+
 ## frontend-v0.51.1 - 2026-03-25
 #### Bug Fixes
 - Spec for list exp and get config endpoints (#916) - (330279e) - Ayush Jain

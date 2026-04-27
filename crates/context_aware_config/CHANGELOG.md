@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.73.0 - 2026-04-27
+#### Bug Fixes
+- minor changes to how webhooks send requests (#983) - (b9460c5) - Datron
+#### Features
+- move from nodeJS to rustyscript (#840) - (a3ede33) - Datron
+#### Miscellaneous Chores
+- **(deps)** bump axios in /crates/context_aware_config (#965) - (b4c4f60) - dependabot[bot]
+- **(deps)** bump brace-expansion in /crates/context_aware_config (#940) - (1ee352f) - dependabot[bot]
+- **(version)** v0.103.0 [skip ci] - (43c17f5) - Superposition Bot
+
+- - -
+
 ## context_aware_config-v0.72.0 - 2026-03-27
 #### Bug Fixes
 - added mandatory check in the delete handler (#900) - (5194bb5) - sauraww

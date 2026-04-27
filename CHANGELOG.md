@@ -2,6 +2,43 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.105.0 - 2026-04-27
+### Package updates
+- superposition_provider bumped to superposition_provider-v0.9.2
+- cac_client bumped to cac_client-v0.26.0
+- context_aware_config bumped to context_aware_config-v0.73.0
+- cac_toml bumped to cac_toml-v0.6.0
+- frontend bumped to frontend-v0.52.0
+- experimentation_client bumped to experimentation_client-v0.22.0
+- service_utils bumped to service_utils-v0.40.1
+- superposition_core bumped to superposition_core-v0.14.0
+### Global changes
+#### Bug Fixes
+- **(python)** Add missing SuperpositionDataSource implementation for LocalResolutionProvider (#966) - (c705122) - Ayush Jain
+- New provider spec for python (#951) - (22078fc) - Ayush Jain
+- weakref impl for local_provider (#968) - (7a21581) - Ankit Kumar Mahato
+#### Documentation
+- **(provider-haskell)** added haskell provider doc (#964) - (37c810e) - sauraww
+- **(providers)** restructured openfeature provider docs into language-specific pages (#953) - (d0197c1) - sauraww
+#### Features
+- JS provider performance enhancement (#948) - (c93e613) - Ankit Kumar Mahato
+- add supertoml-lsp LSP server for the SuperTOML format (#917) - (0f3323b) - Datron
+- add diff highlighting to changelog confirmation popup (#954) - (80cff1e) - Ankit Kumar Mahato
+- move from nodeJS to rustyscript (#840) - (a3ede33) - Datron
+- added superposition skills (#962) - (9dda806) - sauraww
+#### Miscellaneous Chores
+- **(deps)** bump path-to-regexp from 0.1.12 to 0.1.13 in /docs (#944) - (b754718) - dependabot[bot]
+- **(deps)** bump cryptography from 46.0.6 to 46.0.7 in /locust (#963) - (451e8bc) - dependabot[bot]
+- **(deps)** bump picomatch in /tooling/lsp/vscode-extension (#958) - (a3d0a6a) - dependabot[bot]
+- **(deps-dev)** bump vite in /examples/dynamic-payment-fields (#956) - (d95129c) - dependabot[bot]
+- **(deps-dev)** bump brace-expansion in /tooling/lsp/vscode-extension (#959) - (ab28974) - dependabot[bot]
+- **(deps-dev)** bump flatted in /tooling/lsp/vscode-extension (#960) - (0641cd5) - dependabot[bot]
+- **(version)** v0.104.0 [skip ci] - (857fe77) - Superposition Bot
+- expose filter functions on rust cache (#945) - (eb4e815) - Ayush Jain
+- update docs with new info and diagrams (#955) - (c64d7e4) - Datron
+
+- - -
+
 ## v0.104.0 - 2026-03-31
 ### Package updates
 - superposition_types bumped to superposition_types-v0.43.1
