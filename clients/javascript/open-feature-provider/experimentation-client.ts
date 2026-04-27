@@ -52,18 +52,12 @@ export class ExperimentationClient {
     private lastUpdated: Date | null = null;
     private evaluationCache: Map<string, any> = new Map();
     private pollingInterval?: ReturnType<typeof setTimeout>;
-    private onExperimentsChange: (
-        experiments: Experiment[],
-        experimentGroups: ExperimentGroup[],
-    ) => void;
+    private onExperimentsChange?: () => void;
 
     constructor(
         private superpositionOptions: SuperpositionOptions,
         experimentOptions: ExperimentationOptions,
-        onExperimentsChange: (
-            experiments: Experiment[],
-            experimentGroups: ExperimentGroup[],
-        ) => void,
+        onExperimentsChange?: () => void
     ) {
         this.options = experimentOptions;
         this.onExperimentsChange = onExperimentsChange;
@@ -81,7 +75,7 @@ export class ExperimentationClient {
         if (experiments && experimentgroups) {
             this.cachedExperiments = experiments;
             this.cachedExperimentGroups = experimentgroups;
-            this.onExperimentsChange(experiments, experimentgroups);
+            this.onExperimentsChange?.();
             this.lastUpdated = new Date();
             console.log(
                 "Experiments and Experiment Groups fetched successfully.",
@@ -101,7 +95,7 @@ export class ExperimentationClient {
     private startPolling(interval: number): void {
         const weakSelf = new WeakRef(this);
         const poll = async () => {
-            let self = weakSelf.deref();
+            const self = weakSelf.deref();
             if (!self) return;
             try {
                 const experiments = await self.fetchExperiments();
@@ -110,18 +104,13 @@ export class ExperimentationClient {
                     self.cachedExperiments = experiments;
                     self.cachedExperimentGroups = experimentGroups;
                     self.lastUpdated = new Date();
-                    console.log(
-                        "Experiments and Experiment Groups refreshed successfully.",
-                    );
-                    self.onExperimentsChange(experiments, experimentGroups);
+                    console.log("Experiments and Experiment Groups refreshed successfully.");
+                    self.onExperimentsChange?.();
                 }
             } catch (error) {
                 console.error("Polling error:", error);
             }
-            if (self) {
-                self.pollingInterval = setTimeout(poll, interval);
-            }
-            self = undefined;
+            self.pollingInterval = setTimeout(poll, interval);
         };
         this.pollingInterval = setTimeout(poll, interval);
     }
@@ -310,10 +299,7 @@ export class ExperimentationClient {
                     if (experiments) {
                         this.cachedExperiments = experiments;
                         this.lastUpdated = new Date();
-                        this.onExperimentsChange(
-                            experiments,
-                            this.cachedExperimentGroups || [],
-                        );
+                        this.onExperimentsChange?.();
                     }
                 } catch (error) {
                     console.warn("On-demand fetch failed:", error);
@@ -333,10 +319,7 @@ export class ExperimentationClient {
             const experiments = await this.fetchExperiments();
             if (experiments) {
                 this.cachedExperiments = experiments;
-                this.onExperimentsChange(
-                    experiments,
-                    this.cachedExperimentGroups || [],
-                );
+                this.onExperimentsChange?.();
                 this.lastUpdated = new Date();
             }
         }
@@ -365,10 +348,7 @@ export class ExperimentationClient {
                     if (experimentGroups) {
                         this.cachedExperimentGroups = experimentGroups;
                         this.lastUpdated = new Date();
-                        this.onExperimentsChange(
-                            this.cachedExperiments || [],
-                            experimentGroups,
-                        );
+                        this.onExperimentsChange?.();
                     }
                 } catch (error) {
                     console.warn("On-demand fetch failed:", error);
@@ -388,10 +368,7 @@ export class ExperimentationClient {
             const experimentGroups = await this.fetchExperimentGroups();
             if (experimentGroups) {
                 this.cachedExperimentGroups = experimentGroups;
-                this.onExperimentsChange(
-                    this.cachedExperiments || [],
-                    experimentGroups,
-                );
+                this.onExperimentsChange?.();
                 this.lastUpdated = new Date();
             }
         }
@@ -432,6 +409,7 @@ export class ExperimentationClient {
 
             this.clearEvalCache();
             this.cachedExperiments = null;
+            this.cachedExperimentGroups = null;
             this.lastUpdated = null;
 
             console.log("ExperimentationClient closed successfully");
