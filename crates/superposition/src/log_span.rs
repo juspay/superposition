@@ -25,12 +25,21 @@ impl RootSpanBuilder for CustomRootSpanBuilder {
                 .and_then(|v| HeaderValue::to_str(v).ok())
                 .map(santize_headers)
         };
-        let workspace = header_extractor(headers, "x-workspace")
-            .unwrap_or_else(|| "no-workspace-header".to_string());
-        let org = header_extractor(headers, "x-org-id")
-            .unwrap_or_else(|| "no-org-header".to_string());
-        let method = request.method().to_string();
+        let path_extractor = |path: &str, position: usize| {
+            path.split('/')
+                .filter(|p| !p.is_empty())
+                .nth(position)
+                .map(String::from)
+        };
         let path = request.path();
+
+        let workspace = header_extractor(headers, "x-workspace").unwrap_or_else(|| {
+            path_extractor(path, 1).unwrap_or_else(|| "no-workspace-header".to_string())
+        });
+        let org = header_extractor(headers, "x-org-id").unwrap_or_else(|| {
+            path_extractor(path, 0).unwrap_or_else(|| "no-org-header".to_string())
+        });
+        let method = request.method().to_string();
         tracing_actix_web::root_span!(request, workspace, org, method, path,)
     }
 
