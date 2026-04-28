@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SuperpositionAdmin } from "../../src/pages/SuperpositionAdmin";
 import { AlertProvider } from "../../src/providers/AlertProvider";
-import { SuperpositionProvider } from "../../src/providers/SuperpositionProvider";
+import { SuperpositionUIProvider } from "../../src/providers/SuperpositionUIProvider";
 
 describe("SuperpositionAdmin", () => {
   const mockFetch = vi.fn();
@@ -30,7 +30,7 @@ describe("SuperpositionAdmin", () => {
     const onNavigate = vi.fn();
 
     render(
-      <SuperpositionProvider
+      <SuperpositionUIProvider
         config={{
           apiBaseUrl: "/api",
           orgId: "org",
@@ -47,7 +47,7 @@ describe("SuperpositionAdmin", () => {
         <AlertProvider>
           <SuperpositionAdmin />
         </AlertProvider>
-      </SuperpositionProvider>,
+      </SuperpositionUIProvider>,
     );
 
     await waitFor(() => {
@@ -59,5 +59,52 @@ describe("SuperpositionAdmin", () => {
 
     fireEvent.click(overridesTab);
     expect(onNavigate).toHaveBeenCalledWith("overrides");
+  });
+
+  it("renders no feature surface when the host enables an empty feature list", () => {
+    render(
+      <SuperpositionUIProvider
+        config={{
+          apiBaseUrl: "/api",
+          orgId: "org",
+          workspace: "ws",
+          features: [],
+        }}
+      >
+        <AlertProvider>
+          <SuperpositionAdmin />
+        </AlertProvider>
+      </SuperpositionUIProvider>,
+    );
+
+    expect(
+      screen.getByText("No Superposition features are enabled for this embed."),
+    ).toBeDefined();
+    expect(screen.queryByText("Configs")).toBeNull();
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it("lets the host hide the boundary filter control", async () => {
+    render(
+      <SuperpositionUIProvider
+        config={{
+          apiBaseUrl: "/api",
+          orgId: "org",
+          workspace: "ws",
+          features: ["config"],
+          ui: { showBoundaryFilter: false },
+        }}
+      >
+        <AlertProvider>
+          <SuperpositionAdmin />
+        </AlertProvider>
+      </SuperpositionUIProvider>,
+    );
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalled();
+    });
+
+    expect(screen.queryByText("Filter")).toBeNull();
   });
 });

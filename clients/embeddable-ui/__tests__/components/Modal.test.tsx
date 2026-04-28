@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { Modal } from "../../src/components/Modal";
+import { SuperpositionUIProvider } from "../../src/providers/SuperpositionUIProvider";
 
 describe("Modal", () => {
   it("renders nothing when closed", () => {
@@ -81,5 +82,33 @@ describe("Modal", () => {
 
     fireEvent.click(screen.getByRole("dialog"));
     expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("uses the host modal renderer when provided", () => {
+    render(
+      <SuperpositionUIProvider
+        config={{
+          apiBaseUrl: "/api",
+          orgId: "org",
+          workspace: "ws",
+          ui: {
+            renderModal: ({ title, children }) => (
+              <section data-testid="host-modal">
+                <h1>{title}</h1>
+                {children}
+              </section>
+            ),
+          },
+        }}
+      >
+        <Modal open={true} onClose={() => {}} title="Host Modal">
+          Host content
+        </Modal>
+      </SuperpositionUIProvider>,
+    );
+
+    expect(screen.getByTestId("host-modal")).toBeDefined();
+    expect(screen.getByText("Host Modal")).toBeDefined();
+    expect(screen.getByText("Host content")).toBeDefined();
   });
 });

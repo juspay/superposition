@@ -1,12 +1,12 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+import type { ContextOverride } from "../../src/types";
 import {
-  contextMatchesScope,
-  filterOverridesByScope,
-  filterExperimentsByScope,
-  mergeScopedContext,
-  getLockedDimensions,
+    contextCanBeEditedInScope,
+    contextMatchesScope,
+    filterOverridesByScope,
+    getLockedDimensions,
+    mergeScopedContext,
 } from "../../src/utils/context-filter";
-import type { ContextOverride, Experiment } from "../../src/types";
 
 describe("contextMatchesScope", () => {
   it("matches when scoped context is empty", () => {
@@ -25,8 +25,8 @@ describe("contextMatchesScope", () => {
     );
   });
 
-  it("matches when condition does not have the scoped key (broader scope)", () => {
-    expect(contextMatchesScope({ env: "prod" }, { region: "us-east-1" })).toBe(true);
+  it("does not match when condition does not have the scoped key", () => {
+    expect(contextMatchesScope({ env: "prod" }, { region: "us-east-1" })).toBe(false);
   });
 
   it("matches when condition value is array containing scoped value", () => {
@@ -63,6 +63,39 @@ describe("contextMatchesScope", () => {
         { region: "us-east-1", env: "prod" },
       ),
     ).toBe(false);
+  });
+});
+
+describe("contextCanBeEditedInScope", () => {
+  it("matches when condition and scope have the same dimensions and values", () => {
+    expect(
+      contextCanBeEditedInScope(
+        { region: "us-east-1", env: "prod" },
+        { region: "us-east-1", env: "prod" },
+      ),
+    ).toBe(true);
+  });
+
+  it("matches when the condition is a subset of the active scope", () => {
+    expect(
+      contextCanBeEditedInScope(
+        { region: "us-east-1" },
+        { region: "us-east-1", merchant: "m_123", profile: "p_123" },
+      ),
+    ).toBe(true);
+  });
+
+  it("does not match when the condition has dimensions outside the active scope", () => {
+    expect(
+      contextCanBeEditedInScope(
+        { region: "us-east-1", env: "prod" },
+        { region: "us-east-1" },
+      ),
+    ).toBe(false);
+  });
+
+  it("does not match global conditions for scoped editing", () => {
+    expect(contextCanBeEditedInScope({}, { region: "us-east-1" })).toBe(false);
   });
 });
 
@@ -118,20 +151,8 @@ describe("filterOverridesByScope", () => {
     const result = filterOverridesByScope(overrides, { region: "us-east-1" });
     // Override 1: region matches → yes
     // Override 2: region is eu-west-1 ≠ us-east-1 → no
-    // Override 3: no region key → yes (broader scope)
-    expect(result.map((r) => r.id)).toEqual(["1", "3"]);
-  });
-});
-
-describe("filterExperimentsByScope", () => {
-  const experiments = [
-    { id: "1", context: { region: "us-east-1" } },
-    { id: "2", context: { region: "eu-west-1" } },
-  ] as unknown as Experiment[];
-
-  it("filters experiments by scope", () => {
-    const result = filterExperimentsByScope(experiments, { region: "us-east-1" });
-    expect(result.map((e) => e.id)).toEqual(["1"]);
+    // Override 3: no region key → no
+    expect(result.map((r) => r.id)).toEqual(["1"]);
   });
 });
 

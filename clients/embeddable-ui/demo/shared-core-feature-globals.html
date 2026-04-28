@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Superposition Embeddable UI - Shared Core Global Demo</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f8fafc;
+            color: #0f172a;
+        }
+
+        header {
+            padding: 18px 24px;
+            background: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        header a {
+            color: #93c5fd;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+            display: grid;
+            gap: 18px;
+        }
+
+        .panel {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 18px;
+            box-shadow: 0 14px 32px rgba(15, 23, 42, 0.06);
+        }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: end;
+        }
+
+        .toolbar label {
+            display: grid;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .toolbar input,
+        .toolbar select {
+            min-width: 140px;
+            padding: 8px 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 13px;
+            background: white;
+        }
+
+        .toolbar button {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 10px;
+            background: #0f766e;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        pre {
+            margin: 0;
+            padding: 14px;
+            overflow: auto;
+            border-radius: 12px;
+            background: #0f172a;
+            color: #e2e8f0;
+            font-size: 12px;
+        }
+
+        #status {
+            font-size: 13px;
+            padding: 12px 14px;
+            border-radius: 10px;
+        }
+
+        #status.info {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+        }
+
+        #status.success {
+            background: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        #status.error {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        #embed-root {
+            min-height: 680px;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div>
+            <strong>Shared Core + Feature Global Demo</strong>
+            <div style="font-size: 12px; opacity: 0.9; margin-top: 4px">
+                Copy-paste host page using vendored React assets, shared browser core, and a single feature global
+            </div>
+        </div>
+        <a href="./index.html">Open React host demo</a>
+    </header>
+
+    <main>
+        <section class="panel">
+            <div class="toolbar">
+                <label>
+                    Feature
+                    <select id="feature">
+                        <option value="config-manager">Config Manager</option>
+                        <option value="override-manager">Override Manager</option>
+                        <option value="dimension-manager">Dimension Manager</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </label>
+
+                <label>
+                    Host
+                    <input id="host" value="/api" />
+                </label>
+
+                <label>
+                    Org ID
+                    <input id="orgId" value="localorg" />
+                </label>
+
+                <label>
+                    Workspace
+                    <input id="workspace" value="dev" />
+                </label>
+
+                <button id="mount" type="button">Mount Feature</button>
+            </div>
+        </section>
+
+        <section class="panel">
+            <strong>Copy-paste script order</strong>
+            <pre id="snippet"></pre>
+        </section>
+
+        <section id="status" class="panel info">
+            Run <code>npm run build</code> before opening this demo so the dist browser assets exist.
+        </section>
+
+        <section class="panel">
+            <div id="embed-root"></div>
+        </section>
+    </main>
+
+    <script>
+        const featureInput = document.getElementById("feature");
+        const hostInput = document.getElementById("host");
+        const orgInput = document.getElementById("orgId");
+        const workspaceInput = document.getElementById("workspace");
+        const snippetNode = document.getElementById("snippet");
+        const statusNode = document.getElementById("status");
+        const mountButton = document.getElementById("mount");
+        const embedRoot = document.getElementById("embed-root");
+
+        const featureGlobals = {
+            admin: "SuperpositionAdminUI",
+            "config-manager": "SuperpositionConfigManagerUI",
+            "override-manager": "SuperpositionOverrideManagerUI",
+            "dimension-manager": "SuperpositionDimensionManagerUI",
+        };
+
+        const featureFiles = {
+            admin: "superposition-admin.global.external.js",
+            "config-manager": "superposition-config-manager.global.external.js",
+            "override-manager": "superposition-override-manager.global.external.js",
+            "dimension-manager": "superposition-dimension-manager.global.external.js",
+        };
+
+        function buildSnippet(feature) {
+            return [
+                '<script src="/dist/vendor/react.production.min.js"></script>',
+    '
+    <script src="/dist/vendor/react-dom.production.min.js"></script>',
+    '
+    <script src="/dist/superposition-browser-core.global.external.js"></script>',
+    `
+    <script src="/dist/${featureFiles[feature]}"></script>`,
+    '
+    <script>',
+                    `  window.${featureGlobals[feature]}.mount("#embed-root", {`,
+                '    config: { apiBaseUrl: "/api", orgId: "localorg", workspace: "dev" },',
+                "  });",
+                '<\/script>',
+            ].join("\n");
+        }
+
+        function setStatus(kind, message) {
+            statusNode.className = `panel ${kind}`;
+            statusNode.textContent = message;
+        }
+
+        async function loadScript(src) {
+            return new Promise((resolve, reject) => {
+                const existing = document.querySelector(`script[data-demo-src="${src}"]`);
+                if (existing) {
+                    resolve();
+                    return;
+                }
+
+                const script = document.createElement("script");
+                script.src = src;
+                script.dataset.demoSrc = src;
+                script.onload = () => resolve();
+                script.onerror = () => reject(new Error(`Failed to load ${src}`));
+                document.head.appendChild(script);
+            });
+        }
+
+        let currentMount = null;
+
+        async function mountSelectedFeature() {
+            const feature = featureInput.value;
+            const apiBaseUrl = hostInput.value.trim();
+            const orgId = orgInput.value.trim();
+            const workspace = workspaceInput.value.trim();
+
+            snippetNode.textContent = buildSnippet(feature);
+            setStatus("info", `Loading ${feature} assets...`);
+
+            try {
+                await loadScript("/dist/vendor/react.production.min.js");
+                await loadScript("/dist/vendor/react-dom.production.min.js");
+                await loadScript("/dist/superposition-browser-core.global.external.js");
+                await loadScript(`/dist/${featureFiles[feature]}`);
+
+                currentMount?.unmount?.();
+                embedRoot.replaceChildren();
+
+                const api = window[featureGlobals[feature]];
+                currentMount = api.mount("#embed-root", {
+                    config: { apiBaseUrl, orgId, workspace },
+                });
+
+                setStatus("success", `Mounted ${feature} from split browser globals.`);
+            } catch (error) {
+                setStatus("error", error instanceof Error ? error.message : String(error));
+            }
+        }
+
+        featureInput.addEventListener("change", () => {
+            snippetNode.textContent = buildSnippet(featureInput.value);
+        });
+
+        mountButton.addEventListener("click", () => {
+            void mountSelectedFeature();
+        });
+
+        snippetNode.textContent = buildSnippet(featureInput.value);
+        void mountSelectedFeature();
+    </script>
+</body>
+
+</html>

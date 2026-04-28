@@ -28,15 +28,16 @@ export function FormField({
     : children;
 
   return (
-    <div style={{ marginBottom: 16, opacity: disabled ? 0.6 : 1 }}>
+    <div style={{ marginBottom: "var(--sp-space-md)", opacity: disabled ? 0.6 : 1 }}>
       <label
         htmlFor={fieldId}
         style={{
           display: "block",
-          marginBottom: 4,
-          fontSize: 13,
-          fontWeight: 500,
-          color: "var(--sp-color-text)",
+          marginBottom: "var(--sp-space-xs)",
+          fontSize: "var(--sp-form-label-font-size)",
+          fontWeight: "var(--sp-form-label-font-weight)",
+          color: "var(--sp-form-label-color)",
+          lineHeight: 1.35,
         }}
       >
         {label}
@@ -67,47 +68,47 @@ export function FormField({
 
 export const inputStyle: React.CSSProperties = {
   width: "100%",
-  padding: "10px 12px",
+  padding: "var(--sp-space-sm) var(--sp-space-md)",
   border: "1px solid var(--sp-control-border)",
   background: "var(--sp-control-bg)",
   color: "var(--sp-control-text)",
   borderRadius: "var(--sp-control-radius)",
-  fontSize: 14,
+  fontSize: "1rem",
   outline: "none",
   boxSizing: "border-box",
   transition: "border-color 180ms ease, box-shadow 180ms ease, background 180ms ease",
 };
 
 export const buttonPrimary: React.CSSProperties = {
-  padding: "10px 16px",
+  padding: "var(--sp-button-padding)",
   background: "var(--sp-button-primary-bg)",
   color: "var(--sp-button-primary-text)",
   border: "1px solid var(--sp-button-primary-border)",
-  borderRadius: "var(--sp-control-radius)",
-  fontSize: 14,
+  borderRadius: "var(--sp-button-radius)",
+  fontSize: "var(--sp-button-font-size)",
   cursor: "pointer",
-  fontWeight: 700,
+  fontWeight: "var(--sp-button-font-weight)",
   boxShadow: "var(--sp-button-primary-shadow)",
 };
 
 export const buttonSecondary: React.CSSProperties = {
-  padding: "10px 16px",
+  padding: "var(--sp-button-padding)",
   background: "var(--sp-button-secondary-bg)",
   color: "var(--sp-button-secondary-text)",
   border: "1px solid var(--sp-button-secondary-border)",
-  borderRadius: "var(--sp-control-radius)",
-  fontSize: 14,
+  borderRadius: "var(--sp-button-radius)",
+  fontSize: "var(--sp-button-font-size)",
   cursor: "pointer",
-  fontWeight: 600,
+  fontWeight: "var(--sp-button-font-weight)",
 };
 
 export const buttonDanger: React.CSSProperties = {
-  padding: "8px 12px",
+  padding: "var(--sp-space-xs) var(--sp-space-sm)",
   background: "var(--sp-button-danger-bg)",
   color: "var(--sp-button-danger-text)",
   border: "1px solid var(--sp-button-danger-border)",
   borderRadius: "var(--sp-inline-radius)",
-  fontSize: 13,
+  fontSize: "0.93rem",
   cursor: "pointer",
   fontWeight: 700,
 };

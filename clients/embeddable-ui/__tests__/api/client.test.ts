@@ -46,6 +46,29 @@ describe("SuperpositionClient", () => {
     });
   });
 
+  it("adds the Bearer prefix when the token is raw", async () => {
+    const rawTokenClient = new SuperpositionClient({
+      apiBaseUrl: "https://superposition.test",
+      orgId: "test-org",
+      workspace: "test-ws",
+      auth: { mode: "bearer", token: "raw-token" },
+    });
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: new Headers({ "content-length": "2" }),
+      json: () => Promise.resolve({}),
+    });
+
+    await rawTokenClient.get("/test");
+
+    const [, init] = mockFetch.mock.calls[0];
+    expect(init.headers).toMatchObject({
+      Authorization: "Bearer raw-token",
+    });
+  });
+
   it("supports the embeddable API contract and request hooks", async () => {
     const interceptRequest = vi.fn((context) => ({
       ...context,

@@ -189,7 +189,7 @@
         id="featuresValue"
         name="features"
         type="hidden"
-        value="config,overrides,resolve"
+        value="config,dimensions,overrides"
       />
 
       <label for="scopeJson">Scoped Filter:</label>
@@ -201,8 +201,20 @@
         style="width: 220px"
       />
 
+      <label for="writeScopeJson">Write Scope:</label>
+      <input
+        id="writeScopeJson"
+        name="writeScopeJson"
+        type="text"
+        placeholder='{"merchant_id":"m_123","profile_id":"p_123"}'
+        style="width: 260px"
+      />
+
       <label for="scopeLocked">Lock Scope:</label>
       <input id="scopeLocked" name="scopeLocked" type="checkbox" checked />
+
+      <label for="strict">Strict:</label>
+      <input id="strict" name="strict" type="checkbox" />
 
       <label for="themeMode">Theme Mode:</label>
       <select id="themeMode" name="themeMode">
@@ -211,14 +223,35 @@
         <option value="dark">dark</option>
       </select>
 
-      <label for="colorPrimary">Primary:</label>
-      <input id="colorPrimary" name="colorPrimary" type="color" value="#0f766e" />
+      <label for="themePrimary">Primary:</label>
+      <input id="themePrimary" name="themePrimary" type="color" value="#0f766e" />
 
-      <label for="colorBg">Background:</label>
-      <input id="colorBg" name="colorBg" type="color" value="#ecfeff" />
+      <label for="themeBg">Background:</label>
+      <input id="themeBg" name="themeBg" type="color" value="#ecfeff" />
 
-      <label for="colorPanel">Panel:</label>
-      <input id="colorPanel" name="colorPanel" type="color" value="#ffffff" />
+      <label for="themePanel">Panel:</label>
+      <input id="themePanel" name="themePanel" type="color" value="#ffffff" />
+
+      <label for="buttonBg">Button:</label>
+      <input id="buttonBg" name="buttonBg" type="color" value="#0f766e" />
+      <input id="buttonText" name="buttonText" type="hidden" value="#ffffff" />
+
+      <label for="iconColor">Icons:</label>
+      <input id="iconColor" name="iconColor" type="color" value="#4b5563" />
+
+      <label for="searchBorder">Search Border:</label>
+      <input id="searchBorder" name="searchBorder" type="color" value="#a5f3fc" />
+
+      <label for="dropdownSelectedBg">Dropdown Selected:</label>
+      <input
+        id="dropdownSelectedBg"
+        name="dropdownSelectedBg"
+        type="color"
+        value="#ecfeff"
+      />
+
+      <label for="bannerBg">Banner:</label>
+      <input id="bannerBg" name="bannerBg" type="color" value="#fff7ed" />
 
       <button type="submit">Mount Element</button>
     </form>
@@ -231,8 +264,10 @@
         <code>config</code> payload as <code>scope.context</code>.
       </div>
       <div>
-        <strong>Theme:</strong> the colors here map to flat
-        <code>config.theme</code> values.
+        <strong>Theme:</strong> the colors here map to nested
+        <code>config.theme.colors</code>, <code>theme.button.primary</code>,
+        <code>theme.icon</code>, <code>theme.search</code>, <code>theme.dropdown</code>,
+        and <code>theme.banner</code> values.
       </div>
       <div>
         <strong>API:</strong> this host still uses the embeddable package’s REST client;

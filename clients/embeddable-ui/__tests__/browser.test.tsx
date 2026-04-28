@@ -1,6 +1,10 @@
 import { act, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { defineCustomElements } from "../src/browser";
+import {
+  defineCustomElements,
+  registerSuperpositionHostAdapters,
+  unregisterSuperpositionHostAdapters,
+} from "../src/browser";
 
 const mockConfigs = {
   total_pages: 1,
@@ -23,6 +27,7 @@ describe("browser wrappers", () => {
 
   afterEach(() => {
     document.body.innerHTML = "";
+    unregisterSuperpositionHostAdapters("test-adapters");
     vi.restoreAllMocks();
   });
 
@@ -38,7 +43,8 @@ describe("browser wrappers", () => {
     });
 
     await waitFor(() => {
-      expect(element.shadowRoot?.textContent).toContain("Create config");
+      expect(element.shadowRoot?.textContent).toContain("Configs");
+      expect(element.shadowRoot?.textContent).not.toContain("Create config");
     });
 
     expect(mockFetch).toHaveBeenCalled();
@@ -69,5 +75,42 @@ describe("browser wrappers", () => {
     await waitFor(() => {
       expect(element.shadowRoot?.textContent).toContain("Configs");
     });
+  });
+
+  it("uses registered host adapters for custom elements", async () => {
+    const notify = vi.fn();
+    registerSuperpositionHostAdapters("test-adapters", {
+      auth: { mode: "custom", headers: { "x-adapter": "yes" } },
+      ui: { notify },
+    });
+
+    const tags = defineCustomElements();
+    const element = document.createElement(tags["config-manager"]);
+
+    element.setAttribute("adapter-id", "test-adapters");
+    element.setAttribute(
+      "config",
+      JSON.stringify({
+        apiBaseUrl: "https://test.com",
+        orgId: "org",
+        workspace: "ws",
+      }),
+    );
+
+    act(() => {
+      document.body.appendChild(element);
+    });
+
+    await waitFor(() => {
+      expect(element.shadowRoot?.textContent).toContain("Configs");
+      expect(element.shadowRoot?.textContent).not.toContain("Create config");
+    });
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        headers: expect.objectContaining({ "x-adapter": "yes" }),
+      }),
+    );
   });
 });

@@ -5,6 +5,7 @@ export interface Column<T> {
   header: string;
   render?: (row: T) => React.ReactNode;
   width?: string;
+  align?: "left" | "center" | "right";
 }
 
 export interface TableProps<T> {
@@ -18,29 +19,48 @@ export interface TableProps<T> {
 
 const tableStyle: React.CSSProperties = {
   width: "100%",
+  minWidth: "var(--sp-table-min-width)",
   borderCollapse: "collapse",
-  fontSize: 14,
+  fontSize: "1rem",
   background: "var(--sp-color-panel)",
 };
 
 const thStyle: React.CSSProperties = {
   textAlign: "left",
-  padding: "14px 16px",
+  padding: "var(--sp-table-header-padding)",
   borderBottom: "1px solid var(--sp-color-border)",
-  fontWeight: 700,
-  color: "var(--sp-color-muted)",
-  background: "var(--sp-color-surface-muted)",
-  fontSize: 12,
-  letterSpacing: "0.04em",
-  textTransform: "uppercase",
+  fontWeight: "var(--sp-table-header-font-weight)",
+  color: "var(--sp-table-header-text)",
+  background: "var(--sp-table-header-bg)",
+  fontSize: "var(--sp-table-header-font-size)",
+  letterSpacing: 0,
+  textTransform: "var(--sp-table-header-text-transform)",
 };
 
 const tdStyle: React.CSSProperties = {
-  padding: "16px",
+  padding: "var(--sp-space-md)",
   borderBottom: "1px solid color-mix(in oklab, var(--sp-color-border) 75%, transparent)",
   color: "var(--sp-color-text)",
   verticalAlign: "top",
 };
+
+function toTitleCase(value: string) {
+  if (!value.trim()) return value;
+
+  const normalized = value
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return normalized
+    .split(" ")
+    .map((word) => {
+      const lower = word.toLowerCase();
+      return lower.charAt(0).toUpperCase() + lower.slice(1);
+    })
+    .join(" ");
+}
 
 export function Table<T>({
   columns,
@@ -54,7 +74,7 @@ export function Table<T>({
     return (
       <div
         style={{
-          padding: 48,
+          padding: "calc(var(--sp-space-lg) * 2)",
           textAlign: "center",
           color: "var(--sp-color-muted)",
           border: "1px solid var(--sp-color-border)",
@@ -80,8 +100,11 @@ export function Table<T>({
         <thead>
           <tr>
             {columns.map((col) => (
-              <th key={col.key} style={{ ...thStyle, width: col.width }}>
-                {col.header}
+              <th
+                key={col.key}
+                style={{ ...thStyle, width: col.width, textAlign: col.align ?? "left" }}
+              >
+                {toTitleCase(col.header)}
               </th>
             ))}
           </tr>
@@ -95,8 +118,8 @@ export function Table<T>({
                   ...tdStyle,
                   textAlign: "center",
                   color: "var(--sp-color-muted)",
-                  padding: "44px 20px",
-                  fontSize: 15,
+                  padding: "calc(var(--sp-space-lg) * 2) var(--sp-space-lg)",
+                  fontSize: "1rem",
                 }}
               >
                 {emptyMessage}
@@ -112,7 +135,10 @@ export function Table<T>({
                 }}
               >
                 {columns.map((col) => (
-                  <td key={col.key} style={tdStyle}>
+                  <td
+                    key={col.key}
+                    style={{ ...tdStyle, textAlign: col.align ?? "left" }}
+                  >
                     {col.render
                       ? col.render(row)
                       : String((row as Record<string, unknown>)[col.key] ?? "")}

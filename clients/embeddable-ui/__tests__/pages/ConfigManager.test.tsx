@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ConfigManager } from "../../src/pages/ConfigManager";
 import { AlertProvider } from "../../src/providers/AlertProvider";
-import { SuperpositionProvider } from "../../src/providers/SuperpositionProvider";
+import { SuperpositionUIProvider } from "../../src/providers/SuperpositionUIProvider";
 
 const testConfig = {
   apiBaseUrl: "https://test.com",
@@ -62,11 +62,11 @@ describe("ConfigManager", () => {
 
   it("renders config list", async () => {
     render(
-      <SuperpositionProvider config={testConfig}>
+      <SuperpositionUIProvider config={testConfig}>
         <AlertProvider>
           <ConfigManager />
         </AlertProvider>
-      </SuperpositionProvider>,
+      </SuperpositionUIProvider>,
     );
 
     await waitFor(() => {
@@ -77,11 +77,11 @@ describe("ConfigManager", () => {
 
   it("shows create button", async () => {
     render(
-      <SuperpositionProvider config={testConfig}>
+      <SuperpositionUIProvider config={testConfig}>
         <AlertProvider>
-          <ConfigManager />
+          <ConfigManager editable />
         </AlertProvider>
-      </SuperpositionProvider>,
+      </SuperpositionUIProvider>,
     );
 
     await waitFor(() => {
@@ -89,13 +89,74 @@ describe("ConfigManager", () => {
     });
   });
 
+  it("honors action-level capabilities", async () => {
+    render(
+      <SuperpositionUIProvider
+        config={{
+          ...testConfig,
+          capabilities: {
+            config: { create: false, delete: false },
+          },
+        }}
+      >
+        <AlertProvider>
+          <ConfigManager editable />
+        </AlertProvider>
+      </SuperpositionUIProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("app.title")).toBeDefined();
+    });
+
+    expect(screen.queryByText("Create config")).toBeNull();
+    expect(screen.queryAllByText("Delete")).toHaveLength(0);
+  });
+
+  it("refetches when host connection config changes", async () => {
+    const { rerender } = render(
+      <SuperpositionUIProvider config={testConfig}>
+        <AlertProvider>
+          <ConfigManager editable />
+        </AlertProvider>
+      </SuperpositionUIProvider>,
+    );
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith(
+        "https://test.com/default-config?page=1&count=20",
+        expect.objectContaining({ method: "GET" }),
+      );
+    });
+
+    rerender(
+      <SuperpositionUIProvider
+        config={{
+          ...testConfig,
+          apiBaseUrl: "https://changed.test",
+        }}
+      >
+        <AlertProvider>
+          <ConfigManager editable />
+        </AlertProvider>
+      </SuperpositionUIProvider>,
+    );
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith(
+        "https://changed.test/default-config?page=1&count=20",
+        expect.objectContaining({ method: "GET" }),
+      );
+    });
+  });
+
   it("shows heading", async () => {
     render(
-      <SuperpositionProvider config={testConfig}>
+      <SuperpositionUIProvider config={testConfig}>
         <AlertProvider>
-          <ConfigManager />
+          <ConfigManager editable />
         </AlertProvider>
-      </SuperpositionProvider>,
+      </SuperpositionUIProvider>,
     );
 
     await waitFor(() => {
@@ -106,11 +167,11 @@ describe("ConfigManager", () => {
 
   it("shows inline validation for invalid JSON before create", async () => {
     render(
-      <SuperpositionProvider config={testConfig}>
+      <SuperpositionUIProvider config={testConfig}>
         <AlertProvider>
-          <ConfigManager />
+          <ConfigManager editable />
         </AlertProvider>
-      </SuperpositionProvider>,
+      </SuperpositionUIProvider>,
     );
 
     fireEvent.click(await screen.findByText("Create config"));
@@ -161,11 +222,11 @@ describe("ConfigManager", () => {
     });
 
     render(
-      <SuperpositionProvider config={testConfig}>
+      <SuperpositionUIProvider config={testConfig}>
         <AlertProvider>
-          <ConfigManager />
+          <ConfigManager editable />
         </AlertProvider>
-      </SuperpositionProvider>,
+      </SuperpositionUIProvider>,
     );
 
     fireEvent.click(await screen.findByText("Create config"));
@@ -221,7 +282,7 @@ describe("ConfigManager", () => {
     });
 
     render(
-      <SuperpositionProvider
+      <SuperpositionUIProvider
         config={{
           ...testConfig,
           scope: { context: { region: "us-east-1" } },
@@ -231,7 +292,7 @@ describe("ConfigManager", () => {
         <AlertProvider>
           <ConfigManager />
         </AlertProvider>
-      </SuperpositionProvider>,
+      </SuperpositionUIProvider>,
     );
 
     await waitFor(() => {
@@ -248,5 +309,31 @@ describe("ConfigManager", () => {
       "https://test.com/config/resolve?dimension[region]=us-east-1",
       expect.objectContaining({ method: "GET" }),
     );
+  });
+
+  it("blocks creating configs outside the configured prefix", async () => {
+    render(
+      <SuperpositionUIProvider
+        config={{
+          ...testConfig,
+          filters: { defaultConfigPrefix: "app." },
+        }}
+      >
+        <AlertProvider>
+          <ConfigManager editable />
+        </AlertProvider>
+      </SuperpositionUIProvider>,
+    );
+
+    fireEvent.click(await screen.findByText("Create config"));
+    fireEvent.change(screen.getByLabelText("Key*"), {
+      target: { value: "other.title" },
+    });
+    fireEvent.change(screen.getByLabelText("Change Reason*"), {
+      target: { value: "test reason" },
+    });
+
+    expect(screen.getByText("Key must start with app.")).toBeDefined();
+    expect(screen.getByText("Create")).toBeDisabled();
   });
 });

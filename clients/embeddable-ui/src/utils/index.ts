@@ -1,9 +1,11 @@
 export {
-  contextMatchesScope,
-  filterOverridesByScope,
-  filterExperimentsByScope,
-  mergeScopedContext,
-  getLockedDimensions,
+    contextMatchesScope,
+    filterOverridesByScope, getLockedDimensions, mergeScopedContext
 } from "./context-filter";
-export { formatDateTime } from "./format";
-export { requestConfirmation } from "./ui-adapters";
+export {
+    filterRecordByPrefix,
+    matchesPrefix,
+    normalizeFilterValues
+} from "./filtering";
+export { paginateRows } from "./pagination";
+export { confirmAction } from "./ui-adapters";

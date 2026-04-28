@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
-import { useSuperposition } from "../providers/SuperpositionProvider";
+import { useSuperposition } from "../providers/SuperpositionUIProvider";
 import type { JsonValue } from "../types";
+import { normalizeFilterValues } from "../utils";
 import { ConditionBadges } from "./ConditionBadges";
 import { buttonPrimary, buttonSecondary, FormField, inputStyle } from "./FormField";
 import { Modal } from "./Modal";
@@ -12,15 +13,32 @@ function formatContext(context?: BoundaryContext) {
 }
 
 export function BoundaryFilterControl() {
-  const { scope } = useSuperposition();
+  const { config, scope } = useSuperposition();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(formatContext(scope.boundaryContext));
+  const allowedDimensions = useMemo(
+    () => normalizeFilterValues(config.filters?.dimensions),
+    [config.filters?.dimensions],
+  );
 
   const parsedBoundary = useMemo(() => {
     try {
       const value = JSON.parse(draft);
       if (!value || Array.isArray(value) || typeof value !== "object") {
         return { value: null, error: "Filter must be a JSON object." };
+      }
+
+      if (allowedDimensions) {
+        const unsupportedKeys = Object.keys(value).filter(
+          (key) => !allowedDimensions.includes(key),
+        );
+
+        if (unsupportedKeys.length > 0) {
+          return {
+            value: null,
+            error: `Filter can only use configured dimensions: ${allowedDimensions.join(", ")}.`,
+          };
+        }
       }
 
       return { value: value as BoundaryContext, error: null };
@@ -30,7 +48,7 @@ export function BoundaryFilterControl() {
         error: 'Enter valid filter JSON, for example {"country":"IN"}.',
       };
     }
-  }, [draft]);
+  }, [allowedDimensions, draft]);
 
   const handleOpen = () => {
     setDraft(formatContext(scope.boundaryContext));
@@ -158,7 +176,11 @@ export function BoundaryFilterControl() {
             style={{ ...inputStyle, fontFamily: "monospace", minHeight: 120 }}
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
-            placeholder='{"country":"IN"}'
+            placeholder={
+              allowedDimensions?.[0]
+                ? `{"${allowedDimensions[0]}":"value"}`
+                : '{"country":"IN"}'
+            }
           />
         </FormField>
       </Modal>

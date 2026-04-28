@@ -1,6 +1,10 @@
 import { defineCustomElements } from "../src/browser";
 import { SUPERPOSITION_FEATURE_LABELS, SUPERPOSITION_FEATURES } from "../src/types";
-import type { SuperpositionFeature, SuperpositionThemeMode } from "../src/types";
+import type {
+  SuperpositionFeature,
+  SuperpositionThemeConfig,
+  SuperpositionThemeMode,
+} from "../src/types";
 
 interface DemoDraftState {
   host: string;
@@ -8,11 +12,19 @@ interface DemoDraftState {
   workspace: string;
   features: string;
   scopeJson: string;
+  writeScopeJson: string;
   scopeLocked: boolean;
+  strict: boolean;
   themeMode: SuperpositionThemeMode;
-  colorPrimary: string;
-  colorBg: string;
-  colorPanel: string;
+  themePrimary: string;
+  themeBg: string;
+  themePanel: string;
+  buttonBg: string;
+  buttonText: string;
+  iconColor: string;
+  searchBorder: string;
+  dropdownSelectedBg: string;
+  bannerBg: string;
 }
 
 const STORAGE_KEY = "sp-embeddable-custom-elements-demo";
@@ -21,13 +33,21 @@ const DEFAULT_DRAFT: DemoDraftState = {
   host: "/api",
   orgId: "localorg",
   workspace: "dev",
-  features: "config,overrides,resolve",
+  features: "config,dimensions,overrides",
   scopeJson: '{"region":"us-east-1"}',
+  writeScopeJson: "",
   scopeLocked: true,
+  strict: false,
   themeMode: "system",
-  colorPrimary: "#0f766e",
-  colorBg: "#ecfeff",
-  colorPanel: "#ffffff",
+  themePrimary: "#0f766e",
+  themeBg: "#ecfeff",
+  themePanel: "#ffffff",
+  buttonBg: "#0f766e",
+  buttonText: "#ffffff",
+  iconColor: "#4b5563",
+  searchBorder: "#a5f3fc",
+  dropdownSelectedBg: "#ecfeff",
+  bannerBg: "#fff7ed",
 };
 
 function isSuperpositionFeature(value: string): value is SuperpositionFeature {
@@ -75,6 +95,40 @@ function persistState(state: DemoDraftState) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
+function buildTheme(state: DemoDraftState): SuperpositionThemeConfig {
+  return {
+    mode: state.themeMode,
+    colors: {
+      primary: state.themePrimary || undefined,
+      bg: state.themeBg || undefined,
+      panel: state.themePanel || undefined,
+    },
+    button: {
+      primary: {
+        bgColor: state.buttonBg || undefined,
+        textColor: state.buttonText || undefined,
+      },
+    },
+    icon: {
+      color: state.iconColor || undefined,
+    },
+    search: {
+      borderColor: state.searchBorder || undefined,
+      icon: {
+        color: state.iconColor || undefined,
+      },
+    },
+    dropdown: {
+      option: {
+        selectedBgColor: state.dropdownSelectedBg || undefined,
+      },
+    },
+    banner: {
+      bgColor: state.bannerBg || undefined,
+    },
+  };
+}
+
 function buildConfig(state: DemoDraftState) {
   const host = state.host.replace(/\/+$/, "");
   const features = parseFeatureList(state.features);
@@ -86,14 +140,11 @@ function buildConfig(state: DemoDraftState) {
     features,
     scope: {
       context: parseOptionalJsonObject(state.scopeJson),
+      writeContext: parseOptionalJsonObject(state.writeScopeJson),
       locked: state.scopeLocked,
     },
-    theme: {
-      mode: state.themeMode,
-      colorPrimary: state.colorPrimary || undefined,
-      colorBg: state.colorBg || undefined,
-      colorPanel: state.colorPanel || undefined,
-    },
+    strict: state.strict,
+    theme: buildTheme(state),
   };
 }
 
@@ -210,11 +261,19 @@ async function mount() {
     workspace: String(formData.get("workspace") ?? ""),
     features: String(formData.get("features") ?? ""),
     scopeJson: String(formData.get("scopeJson") ?? ""),
+    writeScopeJson: String(formData.get("writeScopeJson") ?? ""),
     scopeLocked: formData.get("scopeLocked") === "on",
+    strict: formData.get("strict") === "on",
     themeMode: String(formData.get("themeMode") ?? "system") as SuperpositionThemeMode,
-    colorPrimary: String(formData.get("colorPrimary") ?? ""),
-    colorBg: String(formData.get("colorBg") ?? ""),
-    colorPanel: String(formData.get("colorPanel") ?? ""),
+    themePrimary: String(formData.get("themePrimary") ?? ""),
+    themeBg: String(formData.get("themeBg") ?? ""),
+    themePanel: String(formData.get("themePanel") ?? ""),
+    buttonBg: String(formData.get("buttonBg") ?? ""),
+    buttonText: String(formData.get("buttonText") ?? ""),
+    iconColor: String(formData.get("iconColor") ?? ""),
+    searchBorder: String(formData.get("searchBorder") ?? ""),
+    dropdownSelectedBg: String(formData.get("dropdownSelectedBg") ?? ""),
+    bannerBg: String(formData.get("bannerBg") ?? ""),
   };
 
   persistState(state);

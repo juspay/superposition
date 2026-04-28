@@ -1,32 +1,89 @@
 {
   "name": "superposition-embeddable-ui",
-  "version": "0.1.0",
-  "description": "Embeddable React admin UI for Superposition configuration management",
+  "version": "0.1.1",
+  "description": "Embeddable React UI for Superposition",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/juspay/superposition.git",
+    "directory": "clients/embeddable-ui"
+  },
+  "keywords": [
+    "react",
+    "embeddable",
+    "ui",
+    "admin",
+    "configuration",
+    "superposition"
+  ],
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
-  "unpkg": "dist/superposition-embeddable-ui.global.js",
-  "jsdelivr": "dist/superposition-embeddable-ui.global.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": [
+    "**/*.css"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.js"
+    },
+    "./admin": {
+      "types": "./dist/admin.d.ts",
+      "import": "./dist/admin.js",
+      "require": "./dist/admin.cjs",
+      "default": "./dist/admin.js"
+    },
+    "./config-manager": {
+      "types": "./dist/config-manager.d.ts",
+      "import": "./dist/config-manager.js",
+      "require": "./dist/config-manager.cjs",
+      "default": "./dist/config-manager.js"
+    },
+    "./dimension-manager": {
+      "types": "./dist/dimension-manager.d.ts",
+      "import": "./dist/dimension-manager.js",
+      "require": "./dist/dimension-manager.cjs",
+      "default": "./dist/dimension-manager.js"
+    },
+    "./override-manager": {
+      "types": "./dist/override-manager.d.ts",
+      "import": "./dist/override-manager.js",
+      "require": "./dist/override-manager.cjs",
+      "default": "./dist/override-manager.js"
     },
     "./browser": {
       "types": "./dist/browser.d.ts",
       "import": "./dist/browser.js",
-      "require": "./dist/browser.cjs"
+      "require": "./dist/browser.cjs",
+      "default": "./dist/browser.js"
     },
+    "./package.json": "./package.json",
     "./styles.css": "./dist/styles.css"
   },
   "files": [
-    "dist"
+    "dist",
+    "CHANGELOG.md",
+    "LICENSE"
   ],
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && vite build --config vite.cdn.config.ts",
+    "clean": "node ./scripts/clean-dist.mjs",
+    "build:types": "tsc -p tsconfig.build.json --emitDeclarationOnly",
+    "build:package": "vite build",
+    "build:browser": "vite build --config vite.browser.config.ts",
+    "build:browser:local-react-assets": "node ./scripts/copy-react-assets.mjs",
+    "build:browser:shared-core": "vite build --config vite.cdn.core.external.config.ts",
+    "build:browser:all-in-one-global": "vite build --config vite.cdn.external.config.ts",
+    "build:browser:feature-globals": "node ./scripts/build-feature-globals.mjs",
+    "build": "npm run clean && npm run build:types && npm run build:package && npm run build:browser && npm run build:browser:local-react-assets && npm run build:browser:shared-core && npm run build:browser:all-in-one-global && npm run build:browser:feature-globals",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -34,7 +91,10 @@
     "format": "prettier --write 'src/**/*.{ts,tsx}' '__tests__/**/*.{ts,tsx}'",
     "format:check": "prettier --check 'src/**/*.{ts,tsx}' '__tests__/**/*.{ts,tsx}'",
     "typecheck": "tsc --noEmit",
-    "demo": "vite dev --config demo/vite.config.ts --open demo/index.html"
+    "validate:react-compat": "node ./scripts/validate-react-compat.mjs",
+    "demo": "vite dev --config demo/vite.config.ts --open demo/index.html",
+    "demo:shared-core": "npm run build && vite dev --config demo/vite.config.ts --open demo/shared-core-feature-globals.html",
+    "prepublishOnly": "npm run build && npm test"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
@@ -60,5 +120,8 @@
     "vite-plugin-dts": "^4.3.0",
     "vitest": "^2.1.8"
   },
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "dependencies": {
+    "superposition-sdk": "^0.104.0"
+  }
 }

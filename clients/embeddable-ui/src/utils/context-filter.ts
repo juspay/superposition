@@ -1,4 +1,4 @@
-import type { Condition, ContextOverride, Experiment, JsonValue } from "../types";
+import type { Condition, ContextOverride, JsonValue } from "../types";
 
 /**
  * Scoped context type: a map of dimension names to values.
@@ -16,7 +16,9 @@ export function contextMatchesScope(
 ): boolean {
   for (const [key, scopedValue] of Object.entries(scopedContext)) {
     const conditionValue = condition[key];
-    if (conditionValue === undefined) continue; // dimension not in this override = ok (broader scope)
+    if (conditionValue === undefined) {
+      return false;
+    }
 
     // Direct equality
     if (JSON.stringify(conditionValue) === JSON.stringify(scopedValue)) continue;
@@ -30,6 +32,29 @@ export function contextMatchesScope(
   return true;
 }
 
+function jsonValueEquals(left: JsonValue, right: JsonValue): boolean {
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
+export function contextCanBeEditedInScope(
+  condition: Condition,
+  scopedContext?: ScopedContext,
+): boolean {
+  if (!scopedContext || Object.keys(scopedContext).length === 0) {
+    return false;
+  }
+
+  const conditionEntries = Object.entries(condition);
+  if (conditionEntries.length === 0) {
+    return false;
+  }
+
+  return conditionEntries.every(([key, conditionValue]) => {
+    if (!(key in scopedContext)) return false;
+    return jsonValueEquals(conditionValue, scopedContext[key]);
+  });
+}
+
 /**
  * Filter overrides to only those matching the scoped context.
  */
@@ -41,19 +66,6 @@ export function filterOverridesByScope(
     return overrides;
   }
   return overrides.filter((o) => contextMatchesScope(o.value, scopedContext));
-}
-
-/**
- * Filter experiments to only those matching the scoped context.
- */
-export function filterExperimentsByScope(
-  experiments: Experiment[],
-  scopedContext?: ScopedContext,
-): Experiment[] {
-  if (!scopedContext || Object.keys(scopedContext).length === 0) {
-    return experiments;
-  }
-  return experiments.filter((e) => contextMatchesScope(e.context, scopedContext));
 }
 
 /**

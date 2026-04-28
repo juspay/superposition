@@ -8,14 +8,21 @@ import {
   JsonViewer,
   Modal,
   Pagination,
+  SearchField,
   Table,
 } from "../components";
 import type { Column } from "../components/Table";
 import { useApi, useMutation } from "../hooks/useApi";
 import { useAlerts } from "../providers/AlertProvider";
-import { useSuperposition } from "../providers/SuperpositionProvider";
+import { useSuperposition } from "../providers/SuperpositionUIProvider";
 import type { CreateDefaultConfigRequest, DefaultConfig, JsonValue } from "../types";
-import { requestConfirmation } from "../utils";
+import { matchesPrefix, normalizeFilterValues } from "../utils";
+import {
+  canUseFeatureAction,
+  FeatureUnavailable,
+  getMessage,
+  isFeatureEnabled,
+} from "./FeatureGate";
 
 export interface ConfigManagerProps {
   /** Items per page */
@@ -24,18 +31,8 @@ export interface ConfigManagerProps {
   prefix?: string | string[];
   /** Resolve and display values using the active host scope */
   showResolvedValues?: boolean;
-}
-
-function normalizePrefixes(prefix?: string | string[]): string[] | undefined {
-  if (!prefix) return undefined;
-  const prefixes = Array.isArray(prefix) ? prefix : [prefix];
-  const normalized = prefixes.map((item) => item.trim()).filter(Boolean);
-  return normalized.length > 0 ? normalized : undefined;
-}
-
-function keyMatchesPrefix(key: string, prefixes?: string[]): boolean {
-  if (!prefixes || prefixes.length === 0) return true;
-  return prefixes.some((prefix) => key.startsWith(prefix));
+  /** Allow create/delete controls for default configs. Defaults to view-only. */
+  editable?: boolean;
 }
 
 function applyResolvedValues(
@@ -51,19 +48,21 @@ function applyResolvedValues(
   );
 }
 
-export function ConfigManager({
+function ConfigManagerContent({
   pageSize = 20,
   prefix,
   showResolvedValues = true,
+  editable = false,
 }: ConfigManagerProps) {
   const { config, defaultConfigs, resolve, scope } = useSuperposition();
-  const { addAlert } = useAlerts();
+  const { addAlert, confirmAction } = useAlerts();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [showCreate, setShowCreate] = useState(false);
-  const readOnly = config.readOnly === true;
+  const canCreate = editable && canUseFeatureAction(config, "config", "create");
+  const canDelete = editable && canUseFeatureAction(config, "config", "delete");
   const prefixes = useMemo(
-    () => normalizePrefixes(prefix ?? config.filters?.defaultConfigPrefix),
+    () => normalizeFilterValues(prefix ?? config.filters?.defaultConfigPrefix),
     [config.filters?.defaultConfigPrefix, prefix],
   );
   const resolvedContext = scope.effectiveContext ?? {};
@@ -75,7 +74,7 @@ export function ConfigManager({
         { page, count: pageSize },
         { name: search || undefined, prefix: prefixes },
       ),
-    [page, pageSize, search, prefixes],
+    [defaultConfigs, page, pageSize, search, prefixes],
   );
 
   const { data: resolvedValues } = useApi(
@@ -143,11 +142,16 @@ export function ConfigManager({
   );
 
   const createDisabled =
-    readOnly ||
+    !canCreate ||
     createMutation.loading ||
     !newKey.trim() ||
     !newReason.trim() ||
+    (newKey.trim() ? !matchesPrefix(newKey.trim(), prefixes) : false) ||
     !!parsedSchema.error;
+  const keyPrefixError =
+    newKey.trim() && !matchesPrefix(newKey.trim(), prefixes)
+      ? `Key must start with ${prefixes?.join(" or ")}`
+      : undefined;
 
   const deleteMutation = useMutation(
     useCallback(
@@ -160,6 +164,11 @@ export function ConfigManager({
   );
 
   const handleCreate = async () => {
+    if (keyPrefixError) {
+      addAlert("error", keyPrefixError);
+      return;
+    }
+
     if (parsedValue.error) {
       addAlert("error", parsedValue.error);
       return;
@@ -196,11 +205,12 @@ export function ConfigManager({
   };
 
   const handleDelete = async (key: string) => {
-    const confirmed = await requestConfirmation(config.ui, {
+    const confirmed = await confirmAction({
       title: `Delete config "${key}"?`,
       description: "This removes the default config from the workspace.",
       confirmLabel: "Delete",
       cancelLabel: "Cancel",
+      variant: "destructive",
     });
     if (!confirmed) return;
 
@@ -232,7 +242,7 @@ export function ConfigManager({
       header: "",
       width: "10%",
       render: (row) =>
-        readOnly ? null : (
+        !canDelete ? null : (
           <button
             style={buttonDanger}
             onClick={(e) => {
@@ -247,7 +257,7 @@ export function ConfigManager({
   ];
 
   const rows = applyResolvedValues(
-    (data?.data ?? []).filter((row) => keyMatchesPrefix(row.key, prefixes)),
+    (data?.data ?? []).filter((row) => matchesPrefix(row.key, prefixes)),
     showResolvedValues ? (resolvedValues ?? undefined) : undefined,
   );
   const hasRows = rows.length > 0;
@@ -263,12 +273,20 @@ export function ConfigManager({
           flexWrap: "wrap",
         }}
       >
-        <h2 style={{ margin: 0, fontSize: 24, lineHeight: 1.08, fontWeight: 700 }}>
+        <h2
+          style={{
+            margin: "var(--sp-page-title-margin)",
+            fontSize: "var(--sp-page-title-font-size)",
+            lineHeight: 1.08,
+            fontWeight: "var(--sp-page-title-font-weight)",
+            color: "var(--sp-page-title-text)",
+          }}
+        >
           Configs
         </h2>
-        {!readOnly && (
+        {canCreate && (
           <button style={buttonPrimary} onClick={() => setShowCreate(true)}>
-            Create config
+            {getMessage(config, "config.create", "Create config")}
           </button>
         )}
       </div>
@@ -281,18 +299,14 @@ export function ConfigManager({
           flexWrap: "wrap",
         }}
       >
-        <input
-          style={{ ...inputStyle, maxWidth: 340 }}
-          placeholder="Search by key..."
+        <SearchField
+          placeholder="Search by key"
           value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
+          onChange={(nextSearch) => {
+            setSearch(nextSearch);
             setPage(1);
           }}
         />
-        <div style={{ fontSize: 13, color: "var(--sp-color-muted)" }}>
-          {data?.total_items ?? 0} keys
-        </div>
       </div>
 
       {error && (
@@ -311,55 +325,13 @@ export function ConfigManager({
         </div>
       )}
 
-      {loading ? (
-        <Table
-          columns={columns}
-          data={[]}
-          keyExtractor={(r) => r.key}
-          loading
-          emptyMessage="No configs found"
-        />
-      ) : hasRows ? (
-        <Table
-          columns={columns}
-          data={rows}
-          keyExtractor={(r) => r.key}
-          loading={false}
-          emptyMessage="No configs found"
-        />
-      ) : (
-        <div
-          style={{
-            border: "1px solid var(--sp-color-border)",
-            borderRadius: "var(--sp-card-radius)",
-            background: "var(--sp-color-surface-muted)",
-            padding: "40px 28px",
-            display: "grid",
-            gap: 12,
-            justifyItems: "start",
-          }}
-        >
-          <div
-            style={{
-              padding: "8px 12px",
-              borderRadius: "var(--sp-pill-radius)",
-              background: "var(--sp-feedback-info-bg)",
-              fontSize: 12,
-              fontWeight: 700,
-            }}
-          >
-            Empty registry
-          </div>
-          <div style={{ fontSize: 24, fontWeight: 700, maxWidth: 560, lineHeight: 1.12 }}>
-            No configs
-          </div>
-          {!readOnly && (
-            <button style={buttonPrimary} onClick={() => setShowCreate(true)}>
-              Create config
-            </button>
-          )}
-        </div>
-      )}
+      <Table
+        columns={columns}
+        data={loading ? [] : rows}
+        keyExtractor={(r) => r.key}
+        loading={loading}
+        emptyMessage="No configs found"
+      />
 
       {data && hasRows && (
         <Pagination
@@ -392,12 +364,14 @@ export function ConfigManager({
           </>
         }
       >
-        <FormField label="Key" required>
+        <FormField label="Key" required error={keyPrefixError}>
           <input
             style={inputStyle}
             value={newKey}
             onChange={(e) => setNewKey(e.target.value)}
-            placeholder="config.key.name"
+            placeholder={
+              prefixes?.[0] ? `${prefixes[0]}config.key.name` : "config.key.name"
+            }
           />
         </FormField>
         <FormField label="Value" required error={parsedValue.error ?? undefined}>
@@ -454,4 +428,24 @@ export function ConfigManager({
       </Modal>
     </div>
   );
+}
+
+export function ConfigManager(props: ConfigManagerProps) {
+  const { config } = useSuperposition();
+
+  if (!isFeatureEnabled(config.features, "config")) {
+    return (
+      <FeatureUnavailable
+        feature="Configs"
+        message={getMessage(
+          config,
+          "feature.disabled",
+          "{feature} is not enabled for this embed.",
+          { feature: "Configs" },
+        )}
+      />
+    );
+  }
+
+  return <ConfigManagerContent {...props} />;
 }

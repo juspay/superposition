@@ -67,7 +67,9 @@ export class SuperpositionClient {
       headers["Content-Type"] = "application/json";
     }
     if (this.config.auth?.mode === "bearer" && this.config.auth.token) {
-      headers["Authorization"] = this.config.auth.token;
+      headers["Authorization"] = this.config.auth.token.startsWith("Bearer ")
+        ? this.config.auth.token
+        : `Bearer ${this.config.auth.token}`;
     }
     return headers;
   }
@@ -166,7 +168,6 @@ export class SuperpositionClient {
           errorBody,
           requestContext.url,
         );
-        this.config.network?.onApiError?.(error);
         throw error;
       }
 

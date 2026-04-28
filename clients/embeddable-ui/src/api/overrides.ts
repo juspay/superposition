@@ -44,6 +44,8 @@ export function overridesApi(client: SuperpositionClient) {
           created_by: filters.created_by,
           last_modified_by: filters.last_modified_by,
           plaintext: filters.plaintext,
+          dimension: filters.dimension,
+          dimension_match_strategy: filters.dimension_match_strategy,
         })
         .then(normalizeContextOverrideList);
     },
@@ -57,6 +59,17 @@ export function overridesApi(client: SuperpositionClient) {
     },
 
     create(req: PutContextRequest): Promise<ContextOverride> {
+      return client
+        .put<ContextOverride & { override?: ContextOverride["override_"] }>("/context", {
+          context: req.context,
+          override: req.override,
+          description: req.description,
+          change_reason: req.change_reason,
+        })
+        .then(normalizeContextOverride);
+    },
+
+    update(req: PutContextRequest): Promise<ContextOverride> {
       return client
         .put<ContextOverride & { override?: ContextOverride["override_"] }>("/context", {
           context: req.context,

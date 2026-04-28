@@ -7,7 +7,7 @@ export interface PaginationProps {
 }
 
 const btnStyle: React.CSSProperties = {
-  padding: "8px 12px",
+  padding: "var(--sp-compact-control-padding)",
   border: "1px solid var(--sp-button-secondary-border)",
   background: "var(--sp-button-secondary-bg)",
   color: "var(--sp-button-secondary-text)",

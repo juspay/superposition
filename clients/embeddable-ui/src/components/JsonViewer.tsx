@@ -21,9 +21,9 @@ export function JsonViewer({ data, collapsed = true }: JsonViewerProps) {
           wordBreak: "break-all",
           display: "inline-block",
           padding: "4px 8px",
-          borderRadius: "var(--sp-pill-radius)",
-          background: "var(--sp-color-surface-subtle)",
-          border: "1px solid var(--sp-color-border)",
+          borderRadius: "var(--sp-json-value-radius)",
+          background: "var(--sp-json-value-bg)",
+          border: "1px solid var(--sp-json-value-border)",
         }}
       >
         {preview}
@@ -38,10 +38,10 @@ export function JsonViewer({ data, collapsed = true }: JsonViewerProps) {
           style={{
             fontSize: 12,
             fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
-            background: "var(--sp-color-surface-subtle)",
+            background: "var(--sp-json-value-bg)",
             padding: 10,
-            borderRadius: "var(--sp-inline-radius)",
-            border: "1px solid var(--sp-color-border)",
+            borderRadius: "var(--sp-json-value-radius)",
+            border: "1px solid var(--sp-json-value-border)",
             overflow: "auto",
             maxHeight: 300,
             margin: 0,
@@ -56,9 +56,9 @@ export function JsonViewer({ data, collapsed = true }: JsonViewerProps) {
             fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
             display: "inline-block",
             padding: "4px 8px",
-            borderRadius: "var(--sp-pill-radius)",
-            background: "var(--sp-color-surface-subtle)",
-            border: "1px solid var(--sp-color-border)",
+            borderRadius: "var(--sp-json-value-radius)",
+            background: "var(--sp-json-value-bg)",
+            border: "1px solid var(--sp-json-value-border)",
           }}
         >
           {preview.slice(0, 57) + "..."}

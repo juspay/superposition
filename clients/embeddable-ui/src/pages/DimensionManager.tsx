@@ -1,42 +1,78 @@
-import { useCallback, useState } from "react";
-import { useSuperposition } from "../providers/SuperpositionProvider";
-import { useAlerts } from "../providers/AlertProvider";
-import { useApi, useMutation } from "../hooks/useApi";
+import { useCallback, useMemo, useState } from "react";
 import {
-  Table,
-  Pagination,
-  Modal,
-  FormField,
-  inputStyle,
+  buttonDanger,
   buttonPrimary,
   buttonSecondary,
-  buttonDanger,
+  FormField,
+  inputStyle,
+  Modal,
+  Pagination,
+  Table,
 } from "../components";
 import type { Column } from "../components/Table";
-import type { Dimension, CreateDimensionRequest } from "../types";
-import { requestConfirmation } from "../utils";
+import { useApi, useMutation } from "../hooks/useApi";
+import { useAlerts } from "../providers/AlertProvider";
+import { useSuperposition } from "../providers/SuperpositionUIProvider";
+import type { CreateDimensionRequest, Dimension } from "../types";
+import { normalizeFilterValues, paginateRows } from "../utils";
+import {
+  canUseFeatureAction,
+  FeatureUnavailable,
+  getMessage,
+  isFeatureEnabled,
+} from "./FeatureGate";
 
 export interface DimensionManagerProps {
   pageSize?: number;
+  /** Allow create/delete controls for dimensions. Defaults to view-only. */
+  editable?: boolean;
+}
+
+function filterDimensions(rows: Dimension[], allowedDimensions?: string[]): Dimension[] {
+  if (!allowedDimensions || allowedDimensions.length === 0) return rows;
+  const allowed = new Set(allowedDimensions);
+  return rows.filter((row) => allowed.has(row.dimension));
 }
 
 function formatDimensionType(dt: Dimension["dimension_type"]): string {
-  if (typeof dt === "string") return dt;
-  if ("LOCAL_COHORT" in dt) return `Local Cohort (${dt.LOCAL_COHORT})`;
-  if ("REMOTE_COHORT" in dt) return `Remote Cohort (${dt.REMOTE_COHORT})`;
-  return String(dt);
+  if (typeof dt === "string") {
+    return dt;
+  }
+
+  if ("REGULAR" in dt) {
+    return "REGULAR";
+  }
+
+  if ("LOCAL_COHORT" in dt) {
+    return `LOCAL_COHORT:${dt.LOCAL_COHORT}`;
+  }
+
+  if ("REMOTE_COHORT" in dt) {
+    return `REMOTE_COHORT:${dt.REMOTE_COHORT}`;
+  }
+
+  return JSON.stringify(dt);
 }
 
-export function DimensionManager({ pageSize = 20 }: DimensionManagerProps) {
+function DimensionManagerContent({
+  pageSize = 20,
+  editable = false,
+}: DimensionManagerProps) {
   const { config, dimensions } = useSuperposition();
-  const { addAlert } = useAlerts();
+  const { addAlert, confirmAction } = useAlerts();
   const [page, setPage] = useState(1);
   const [showCreate, setShowCreate] = useState(false);
-  const readOnly = config.readOnly === true;
+  const allowedDimensions = useMemo(
+    () => normalizeFilterValues(config.filters?.dimensions),
+    [config.filters?.dimensions],
+  );
+  const shouldClientPage = Boolean(allowedDimensions && allowedDimensions.length > 0);
+  const canCreate = editable && canUseFeatureAction(config, "dimensions", "create");
+  const canDelete = editable && canUseFeatureAction(config, "dimensions", "delete");
 
   const { data, loading, refetch } = useApi(
-    () => dimensions.list({ page, count: pageSize }),
-    [page, pageSize],
+    () => dimensions.list(shouldClientPage ? { all: true } : { page, count: pageSize }),
+    [dimensions, page, pageSize, shouldClientPage],
   );
 
   const [newName, setNewName] = useState("");
@@ -88,11 +124,12 @@ export function DimensionManager({ pageSize = 20 }: DimensionManagerProps) {
   };
 
   const handleDelete = async (name: string) => {
-    const confirmed = await requestConfirmation(config.ui, {
+    const confirmed = await confirmAction({
       title: `Delete dimension "${name}"?`,
       description: "This removes the dimension definition from the workspace.",
       confirmLabel: "Delete",
       cancelLabel: "Cancel",
+      variant: "destructive",
     });
     if (!confirmed) return;
 
@@ -125,7 +162,7 @@ export function DimensionManager({ pageSize = 20 }: DimensionManagerProps) {
       header: "",
       width: "10%",
       render: (row) =>
-        readOnly ? null : (
+        !canDelete ? null : (
           <button
             style={buttonDanger}
             onClick={(e) => {
@@ -139,6 +176,14 @@ export function DimensionManager({ pageSize = 20 }: DimensionManagerProps) {
     },
   ];
 
+  const filteredRows = filterDimensions(data?.data ?? [], allowedDimensions);
+  const rows = shouldClientPage
+    ? paginateRows(filteredRows, page, pageSize)
+    : filteredRows;
+  const totalPages = shouldClientPage
+    ? Math.ceil(filteredRows.length / pageSize)
+    : (data?.total_pages ?? 0);
+
   return (
     <div>
       <div
@@ -149,28 +194,33 @@ export function DimensionManager({ pageSize = 20 }: DimensionManagerProps) {
           marginBottom: 16,
         }}
       >
-        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 600 }}>Dimensions</h2>
-        {!readOnly && (
+        <h2
+          style={{
+            margin: "var(--sp-page-title-margin)",
+            fontSize: "var(--sp-page-title-font-size)",
+            fontWeight: "var(--sp-page-title-font-weight)",
+            color: "var(--sp-page-title-text)",
+          }}
+        >
+          Dimensions
+        </h2>
+        {canCreate && (
           <button style={buttonPrimary} onClick={() => setShowCreate(true)}>
-            + Create Dimension
+            {getMessage(config, "dimensions.create", "+ Create Dimension")}
           </button>
         )}
       </div>
 
       <Table
         columns={columns}
-        data={data?.data ?? []}
+        data={rows}
         keyExtractor={(r) => r.dimension}
         loading={loading}
         emptyMessage="No dimensions found"
       />
 
-      {data && (
-        <Pagination
-          currentPage={page}
-          totalPages={data.total_pages}
-          onPageChange={setPage}
-        />
+      {data && totalPages > 1 && (
+        <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
       )}
 
       <Modal
@@ -185,7 +235,7 @@ export function DimensionManager({ pageSize = 20 }: DimensionManagerProps) {
             <button
               style={buttonPrimary}
               onClick={handleCreate}
-              disabled={readOnly || createMutation.loading || !newName}
+              disabled={!canCreate || createMutation.loading || !newName}
             >
               {createMutation.loading ? "Creating..." : "Create"}
             </button>
@@ -234,4 +284,24 @@ export function DimensionManager({ pageSize = 20 }: DimensionManagerProps) {
       </Modal>
     </div>
   );
+}
+
+export function DimensionManager(props: DimensionManagerProps) {
+  const { config } = useSuperposition();
+
+  if (!isFeatureEnabled(config.features, "dimensions")) {
+    return (
+      <FeatureUnavailable
+        feature="Dimensions"
+        message={getMessage(
+          config,
+          "feature.disabled",
+          "{feature} is not enabled for this embed.",
+          { feature: "Dimensions" },
+        )}
+      />
+    );
+  }
+
+  return <DimensionManagerContent {...props} />;
 }

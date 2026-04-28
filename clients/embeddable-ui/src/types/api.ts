@@ -1,230 +1,106 @@
+import type {
+  ContextFilterSortOn,
+  ContextPut,
+  ContextResponse,
+  CreateDefaultConfigInput,
+  CreateDimensionInput,
+  DefaultConfigResponse,
+  DimensionMatchStrategy,
+  DimensionResponse,
+  DimensionType,
+  GetResolvedConfigOutput,
+  ListContextsInput,
+  ListContextsOutput,
+  ListDefaultConfigsInput,
+  SortBy,
+  UpdateDefaultConfigInput,
+  UpdateDimensionInput,
+} from "superposition-sdk";
+
+type ServiceContextKeys = "workspace_id" | "org_id";
+
+type RequestBody<T, ExtraKeys extends keyof T = never> = Omit<
+  T,
+  Extract<ServiceContextKeys | ExtraKeys, keyof T>
+>;
+
+type Defined<T> = Exclude<T, undefined>;
+type ApiTimestamp = Date | string;
+type OptionalFunctionKeys =
+  | "value_validation_function_name"
+  | "value_compute_function_name";
+
+type RawResponse<
+  T,
+  OptionalKeys extends keyof T = never,
+> = {
+  [Key in Exclude<keyof T, OptionalKeys>]-?: Key extends
+    | "created_at"
+    | "last_modified_at"
+    ? ApiTimestamp
+    : Defined<T[Key]>;
+} & {
+  [Key in OptionalKeys]?: Defined<T[Key]> | null;
+};
+
 // ── Shared primitives ──────────────────────────────────────────────
 
-export type JsonValue =
-  | string
-  | number
-  | boolean
-  | null
-  | JsonValue[]
-  | { [key: string]: JsonValue };
+export type JsonValue = Defined<CreateDefaultConfigInput["value"]>;
+export type Condition = Defined<ContextPut["context"]>;
+export type Overrides = Defined<ContextPut["override"]>;
+export type DependencyGraph = Defined<DimensionResponse["dependency_graph"]>;
 
-export type Condition = Record<string, JsonValue>;
-export type Overrides = Record<string, JsonValue>;
-export type DependencyGraph = Record<string, string[]>;
-
-export type SortBy = "asc" | "desc";
+export type { SortBy };
 
 // ── Pagination ─────────────────────────────────────────────────────
 
-export interface PaginationParams {
-  page?: number;
-  count?: number;
-  all?: boolean;
-}
+export type PaginationParams = Pick<ListContextsInput, "page" | "count" | "all">;
 
 export interface PaginatedResponse<T> {
-  total_pages: number;
-  total_items: number;
+  total_pages: Defined<ListContextsOutput["total_pages"]>;
+  total_items: Defined<ListContextsOutput["total_items"]>;
   data: T[];
 }
 
 // ── Dimension ──────────────────────────────────────────────────────
 
-export type DimensionType =
-  | "REGULAR"
-  | { LOCAL_COHORT: string }
-  | { REMOTE_COHORT: string };
-
-export interface Dimension {
-  dimension: string;
-  position: number;
-  created_at: string;
-  created_by: string;
-  schema: Record<string, JsonValue>;
-  value_validation_function_name: string | null;
-  last_modified_at: string;
-  last_modified_by: string;
-  mandatory: boolean;
-  dependency_graph: DependencyGraph;
-  description: string;
-  change_reason: string;
-  value_compute_function_name: string | null;
-  dimension_type: DimensionType;
-}
-
-export interface CreateDimensionRequest {
-  dimension: string;
-  position: number;
-  schema: Record<string, JsonValue>;
-  function_name?: string;
-  autocomplete_function_name?: string;
-  description: string;
-  change_reason: string;
-  dimension_type?: DimensionType;
-}
-
-export interface UpdateDimensionRequest {
-  position?: number;
-  schema?: Record<string, JsonValue>;
-  function_name?: string | null;
-  autocomplete_function_name?: string | null;
-  description?: string;
-  change_reason: string;
-}
+export type { DimensionType };
+export type Dimension = RawResponse<
+  DimensionResponse,
+  Extract<OptionalFunctionKeys, keyof DimensionResponse>
+>;
+export type CreateDimensionRequest = RequestBody<CreateDimensionInput>;
+export type UpdateDimensionRequest = RequestBody<UpdateDimensionInput, "dimension">;
 
 // ── Default Config ─────────────────────────────────────────────────
 
-export interface DefaultConfig {
-  key: string;
-  value: JsonValue;
-  created_at: string;
-  created_by: string;
-  schema: Record<string, JsonValue>;
-  value_validation_function_name: string | null;
-  last_modified_at: string;
-  last_modified_by: string;
-  description: string;
-  change_reason: string;
-  value_compute_function_name: string | null;
-}
-
-export interface CreateDefaultConfigRequest {
-  key: string;
-  value: JsonValue;
-  schema: Record<string, JsonValue>;
-  function_name?: string;
-  autocomplete_function_name?: string;
-  description: string;
-  change_reason: string;
-}
-
-export interface UpdateDefaultConfigRequest {
-  value?: JsonValue;
-  schema?: Record<string, JsonValue>;
-  function_name?: string | null;
-  autocomplete_function_name?: string | null;
-  description?: string;
-  change_reason: string;
-}
-
-export interface DefaultConfigFilters {
-  name?: string;
+export type DefaultConfig = RawResponse<
+  DefaultConfigResponse,
+  Extract<OptionalFunctionKeys, keyof DefaultConfigResponse>
+>;
+export type CreateDefaultConfigRequest = RequestBody<CreateDefaultConfigInput>;
+export type UpdateDefaultConfigRequest = RequestBody<UpdateDefaultConfigInput, "key">;
+export type DefaultConfigFilters = Pick<ListDefaultConfigsInput, "name"> & {
   prefix?: string[];
-}
+};
 
 // ── Context / Override ─────────────────────────────────────────────
 
-export interface ContextOverride {
-  id: string;
-  value: Condition;
-  override_id: string;
-  created_at: string;
-  created_by: string;
+export type ContextOverride = Omit<RawResponse<ContextResponse>, "override"> & {
   override_: Overrides;
-  last_modified_at: string;
-  last_modified_by: string;
-  weight: string;
-  description: string;
-  change_reason: string;
-}
+  override?: ContextResponse["override"];
+};
 
-export interface PutContextRequest {
-  context: Condition;
-  override: Overrides;
-  description?: string;
-  change_reason: string;
-}
+export type PutContextRequest = ContextPut;
 
-export interface ContextListFilters {
-  prefix?: string[];
-  sort_on?: "weight" | "created_at" | "last_modified_at";
-  sort_by?: SortBy;
-  created_by?: string[];
-  last_modified_by?: string[];
-  plaintext?: string;
-}
-
-// ── Experiment ─────────────────────────────────────────────────────
-
-export type ExperimentStatus =
-  | "CREATED"
-  | "INPROGRESS"
-  | "PAUSED"
-  | "CONCLUDED"
-  | "DISCARDED";
-
-export type ExperimentType = "DEFAULT" | "DELETE_OVERRIDES";
-
-export type VariantType = "CONTROL" | "EXPERIMENTAL";
-
-export interface Variant {
-  id: string;
-  variant_type: VariantType;
-  context_id?: string;
-  override_id?: string;
-  overrides: Overrides;
-}
-
-export interface Experiment {
-  id: string;
-  created_at: string;
-  created_by: string;
-  last_modified: string;
-  name: string;
-  experiment_type: ExperimentType;
-  override_keys: string[];
-  status: ExperimentStatus;
-  traffic_percentage: number;
-  started_at: string | null;
-  started_by: string | null;
-  context: Condition;
-  variants: Variant[];
-  last_modified_by: string;
-  chosen_variant: string | null;
-  description: string;
-  change_reason: string;
-  metrics: Record<string, JsonValue>;
-  metrics_url?: string;
-  experiment_group_id: string | null;
-}
-
-export interface CreateExperimentRequest {
-  name: string;
-  context: Condition;
-  variants: Array<{
-    id: string;
-    variant_type: VariantType;
-    overrides: Overrides;
-  }>;
-  metrics?: Record<string, JsonValue>;
-  experiment_type?: ExperimentType;
-  description: string;
-  change_reason: string;
-  experiment_group_id?: string;
-}
-
-export interface RampExperimentRequest {
-  traffic_percentage: number;
-  change_reason: string;
-}
-
-export interface ConcludeExperimentRequest {
-  chosen_variant: string;
-  description?: string;
-  change_reason: string;
-}
-
-export interface ExperimentListFilters {
-  status?: ExperimentStatus[];
-  from_date?: string;
-  to_date?: string;
-  experiment_name?: string;
-  experiment_ids?: string[];
-  experiment_group_ids?: string[];
-  created_by?: string[];
-  sort_on?: "last_modified_at" | "created_at";
-  sort_by?: SortBy;
-}
+export type ContextListFilters = Pick<
+  ListContextsInput,
+  "prefix" | "sort_by" | "created_by" | "last_modified_by" | "plaintext"
+> & {
+  dimension?: Condition;
+  dimension_match_strategy?: DimensionMatchStrategy;
+  sort_on?: ContextFilterSortOn;
+};
 
 // ── Config Resolution ──────────────────────────────────────────────
 
@@ -234,26 +110,4 @@ export interface Config {
   default_configs: Record<string, DefaultConfig>;
 }
 
-// ── Audit Log ──────────────────────────────────────────────────────
-
-export type EventAction = "INSERT" | "UPDATE" | "DELETE";
-
-export interface AuditLogEntry {
-  id: string;
-  table_name: string;
-  user_name: string;
-  timestamp: string;
-  action: EventAction;
-  original_data: JsonValue | null;
-  new_data: JsonValue | null;
-  query: string;
-}
-
-export interface AuditLogFilters {
-  from_date?: string;
-  to_date?: string;
-  table?: string[];
-  action?: EventAction[];
-  username?: string;
-  sort_by?: SortBy;
-}
+export type ResolvedConfigResponse = GetResolvedConfigOutput;

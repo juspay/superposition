@@ -1,50 +1,70 @@
 .sp-ui,
 [data-sp-theme] {
-    color-scheme: light;
-    accent-color: var(--sp-color-primary);
+  color-scheme: light;
+  accent-color: var(--sp-color-primary);
 }
 
 [data-sp-theme="dark"] {
-    color-scheme: dark;
+  color-scheme: dark;
 }
 
 .sp-ui,
 .sp-ui *,
 [data-sp-theme],
 [data-sp-theme] * {
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 .sp-ui {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
-    color: var(--sp-color-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  color: var(--sp-color-text);
 }
 
 .sp-ui :where(button, input, textarea, select) {
-    font: inherit;
+  font: inherit;
 }
 
 .sp-ui :where(button) {
-    touch-action: manipulation;
+  touch-action: manipulation;
+}
+
+.sp-ui :where(button:disabled) {
+  cursor: not-allowed;
+  opacity: var(--sp-button-disabled-opacity);
+  box-shadow: none !important;
+}
+
+.sp-ui .sp-search-input::placeholder {
+  color: var(--sp-search-placeholder);
+  opacity: 1;
 }
 
 .sp-ui :where(a) {
-    color: inherit;
+  color: inherit;
 }
 
 .sp-ui :where(pre, code) {
-    font-family: "SFMono-Regular", "SF Mono", ui-monospace, Menlo, monospace;
+  font-family: "SFMono-Regular", "SF Mono", ui-monospace, Menlo, monospace;
 }
 
-.sp-ui :where(button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, a:focus-visible) {
-    outline: 2px solid color-mix(in oklab, var(--sp-color-primary) 60%, var(--sp-color-panel));
-    outline-offset: 2px;
+.sp-ui
+  :where(
+    button:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible,
+    select:focus-visible,
+    a:focus-visible
+  ) {
+  outline: 2px solid
+    color-mix(in oklab, var(--sp-color-primary) 60%, var(--sp-color-panel));
+  outline-offset: 2px;
 }
 
 .sp-ui :where(::selection) {
-    background: color-mix(in oklab, var(--sp-color-primary) 24%, transparent);
+  background: color-mix(in oklab, var(--sp-color-primary) 24%, transparent);
 }
 
 .sp-ui :where([data-sp-scroll]) {
-    scrollbar-color: color-mix(in oklab, var(--sp-color-primary) 40%, transparent) transparent;
+  scrollbar-color: color-mix(in oklab, var(--sp-color-primary) 40%, transparent)
+    transparent;
 }

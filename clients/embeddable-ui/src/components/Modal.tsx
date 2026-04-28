@@ -1,4 +1,6 @@
 import React, { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
+import { useOptionalSuperposition } from "../providers/SuperpositionUIProvider";
 
 export interface ModalProps {
   open: boolean;
@@ -15,8 +17,7 @@ const overlayStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  zIndex: 10000,
-  padding: 24,
+  padding: "var(--sp-space-lg)",
 };
 
 const dialogStyle: React.CSSProperties = {
@@ -24,10 +25,10 @@ const dialogStyle: React.CSSProperties = {
   borderRadius: "var(--sp-card-radius)",
   border: "1px solid var(--sp-color-border)",
   padding: 0,
-  minWidth: 400,
-  maxWidth: 600,
-  maxHeight: "80vh",
-  width: "min(620px, calc(100vw - 48px))",
+  minWidth: "var(--sp-modal-min-width)",
+  maxWidth: "var(--sp-modal-max-width)",
+  maxHeight: "var(--sp-modal-max-height)",
+  width: "var(--sp-modal-width)",
   display: "flex",
   flexDirection: "column",
   boxShadow: "var(--sp-shadow-md)",
@@ -35,6 +36,8 @@ const dialogStyle: React.CSSProperties = {
 
 export function Modal({ open, onClose, title, children, footer }: ModalProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const context = useOptionalSuperposition();
+  const ui = context?.config.ui;
 
   useEffect(() => {
     if (!open) return;
@@ -47,8 +50,22 @@ export function Modal({ open, onClose, title, children, footer }: ModalProps) {
 
   if (!open) return null;
 
-  return (
-    <div style={overlayStyle} onClick={onClose}>
+  if (ui?.renderModal) {
+    return (
+      <>
+        {ui.renderModal({
+          open,
+          onClose,
+          title,
+          children,
+          footer,
+        })}
+      </>
+    );
+  }
+
+  const overlay = (
+    <div style={{ ...overlayStyle, zIndex: ui?.modalZIndex ?? 10000 }} onClick={onClose}>
       <div
         ref={ref}
         style={dialogStyle}
@@ -59,7 +76,7 @@ export function Modal({ open, onClose, title, children, footer }: ModalProps) {
       >
         <div
           style={{
-            padding: "18px 22px",
+            padding: "var(--sp-space-md) var(--sp-space-lg)",
             borderBottom: "1px solid var(--sp-color-border)",
             display: "flex",
             justifyContent: "space-between",
@@ -69,7 +86,7 @@ export function Modal({ open, onClose, title, children, footer }: ModalProps) {
           <h3
             style={{
               margin: 0,
-              fontSize: 17,
+              fontSize: "1.15rem",
               fontWeight: 700,
               color: "var(--sp-color-text)",
             }}
@@ -82,25 +99,27 @@ export function Modal({ open, onClose, title, children, footer }: ModalProps) {
               background: "none",
               border: "none",
               cursor: "pointer",
-              fontSize: 20,
+              fontSize: "1.4rem",
               padding: 0,
               lineHeight: 1,
-              color: "var(--sp-color-muted)",
+              color: "var(--sp-icon-color)",
             }}
             aria-label="Close"
           >
             ×
           </button>
         </div>
-        <div style={{ padding: 22, overflowY: "auto", flex: 1 }}>{children}</div>
+        <div style={{ padding: "var(--sp-space-lg)", overflowY: "auto", flex: 1 }}>
+          {children}
+        </div>
         {footer && (
           <div
             style={{
-              padding: "14px 22px",
+              padding: "var(--sp-space-md) var(--sp-space-lg)",
               borderTop: "1px solid var(--sp-color-border)",
               display: "flex",
               justifyContent: "flex-end",
-              gap: 8,
+              gap: "var(--sp-space-sm)",
             }}
           >
             {footer}
@@ -109,4 +128,13 @@ export function Modal({ open, onClose, title, children, footer }: ModalProps) {
       </div>
     </div>
   );
+
+  const portalTarget =
+    typeof ui?.portalContainer === "function"
+      ? ui.portalContainer()
+      : typeof ui?.portalContainer === "string"
+        ? document.querySelector(ui.portalContainer)
+        : ui?.portalContainer;
+
+  return portalTarget ? createPortal(overlay, portalTarget) : overlay;
 }
