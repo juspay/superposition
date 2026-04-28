@@ -68,8 +68,14 @@ clients/generated/smithy/typescript/tsconfig.*
 
 .npmrc
 .zed
+.agents/
 
 # Dynamic libraries copied for testing
 *.dylib
 *.so
 *.dll
+skills-lock.json
+clients/readme/
+clients/embeddable-ui/node_modules
+clients/embeddable-ui/dist
+clients/embeddable-ui/*.tgz

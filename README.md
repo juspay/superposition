@@ -6,10 +6,10 @@
 
 ![GitHub License](https://img.shields.io/github/license/juspay/superposition)
 ![Dynamic TOML Badge](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fjuspay%2Fsuperposition%2Frefs%2Fheads%2Fmain%2FCargo.toml&query=workspace.package.version&label=version&color=green)
-[![GitHub Release Date](https://img.shields.io/github/release-date-pre/juspay/superposition)](https://github.com/juspay/superposition/releases) 
+[![GitHub Release Date](https://img.shields.io/github/release-date-pre/juspay/superposition)](https://github.com/juspay/superposition/releases)
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/juspay/superposition/release.yaml)
 ![X (formerly Twitter) Follow](https://img.shields.io/twitter/follow/superpositionJP)
-[![Discord badge](https://img.shields.io/discord/1280216553350107258?label=Discord&logo=Discord)](https://discord.gg/jNeUJR9Bwr) 
+[![Discord badge](https://img.shields.io/discord/1280216553350107258?label=Discord&logo=Discord)](https://discord.gg/jNeUJR9Bwr)
 
 
 Superposition is a configuration and experimentation management platform that allows software teams to manage their configurations safely and allows them to run multi-variate experiments on those configurations. Superposition places a strong emphasis on safety of configuration changes.  It does this by the following:
@@ -53,6 +53,10 @@ The following matrix contains the languages in which the above client libraries 
 | Java           | [![Maven Central Version](https://img.shields.io/maven-central/v/io.juspay.superposition/sdk?label=io.juspay.superposition.sdk&color=green)](https://central.sonatype.com/artifact/io.juspay.superposition/sdk) | [![Maven Central Version](https://img.shields.io/maven-central/v/io.juspay.superposition/openfeature-provider?label=io.juspay.superposition.openfeature-provider&color=green)](https://central.sonatype.com/artifact/io.juspay.superposition/openfeature-provider)|
 | Haskell        | WIP |    WIP   |
 | Go             | TBD |    TBD   |
+
+## Embeddable UI
+
+The React-based embeddable admin surface lives in [clients/embeddable-ui/README.md](clients/embeddable-ui/README.md). It includes short usage examples for React hosts, custom elements, and plain `<script>` tag embedding.
 
 ## Deeper dive into Superposition
 

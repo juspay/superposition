@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Superposition Embeddable UI — Custom Elements Demo</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: #f3f4f6;
+        color: #111827;
+      }
+
+      header {
+        background: #042f2e;
+        color: white;
+        padding: 16px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      header a {
+        color: #99f6e4;
+        text-decoration: none;
+        font-size: 13px;
+      }
+
+      .toolbar {
+        background: white;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 12px 24px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      .toolbar label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+      }
+
+      .toolbar .toolbar-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+      }
+
+      .toolbar input,
+      .toolbar select {
+        font-size: 13px;
+        padding: 6px 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        background: white;
+      }
+
+      .toolbar button {
+        font-size: 13px;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        background: #0f766e;
+        color: white;
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      .toolbar-chip {
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        background: #ecfeff;
+        border: 1px solid #a5f3fc;
+        color: #0f766e;
+        font-weight: 600;
+      }
+
+      .feature-picker {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      .feature-picker label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      #status {
+        font-size: 13px;
+        padding: 8px 16px;
+        border-radius: 6px;
+        margin: 12px 24px;
+        display: none;
+      }
+
+      #status.error {
+        display: block;
+        background: #fef2f2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+      }
+
+      #status.success {
+        display: block;
+        background: #f0fdf4;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+      }
+
+      #status.info {
+        display: block;
+        background: #eff6ff;
+        color: #1e40af;
+        border: 1px solid #bfdbfe;
+      }
+
+      .demo-notes {
+        margin: 0 24px 12px;
+        padding: 12px 16px;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        display: grid;
+        gap: 8px;
+        font-size: 13px;
+      }
+
+      .demo-notes code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        background: #f3f4f6;
+        padding: 2px 6px;
+        border-radius: 6px;
+      }
+
+      #embed-root {
+        max-width: 1200px;
+        margin: 24px auto;
+        min-height: 720px;
+        height: calc(100vh - 230px);
+        max-height: 960px;
+        overflow: auto;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <div>
+        <strong>Custom Element Host Demo</strong>
+        <div style="font-size: 12px; opacity: 0.9; margin-top: 4px">
+          A non-React host embedding <code>&lt;superposition-admin&gt;</code>
+        </div>
+      </div>
+      <a href="./index.html">Open React host demo</a>
+    </header>
+
+    <form id="demo-form" class="toolbar">
+      <label for="host">Host:</label>
+      <input id="host" name="host" type="text" value="/api" style="width: 220px" />
+
+      <span id="api-chip" class="toolbar-chip">API: host proxy</span>
+
+      <label for="orgId">Org ID:</label>
+      <input id="orgId" name="orgId" type="text" value="localorg" style="width: 120px" />
+
+      <label for="workspace">Workspace:</label>
+      <input
+        id="workspace"
+        name="workspace"
+        type="text"
+        value="dev"
+        style="width: 120px"
+      />
+
+      <span class="toolbar-label">Features:</span>
+      <div id="features" class="feature-picker" role="group" aria-label="Features"></div>
+      <input
+        id="featuresValue"
+        name="features"
+        type="hidden"
+        value="config,overrides,resolve"
+      />
+
+      <label for="scopeJson">Scoped Filter:</label>
+      <input
+        id="scopeJson"
+        name="scopeJson"
+        type="text"
+        value='{"region":"us-east-1"}'
+        style="width: 220px"
+      />
+
+      <label for="scopeLocked">Lock Scope:</label>
+      <input id="scopeLocked" name="scopeLocked" type="checkbox" checked />
+
+      <label for="themeMode">Theme Mode:</label>
+      <select id="themeMode" name="themeMode">
+        <option value="system">system</option>
+        <option value="light">light</option>
+        <option value="dark">dark</option>
+      </select>
+
+      <label for="colorPrimary">Primary:</label>
+      <input id="colorPrimary" name="colorPrimary" type="color" value="#0f766e" />
+
+      <label for="colorBg">Background:</label>
+      <input id="colorBg" name="colorBg" type="color" value="#ecfeff" />
+
+      <label for="colorPanel">Panel:</label>
+      <input id="colorPanel" name="colorPanel" type="color" value="#ffffff" />
+
+      <button type="submit">Mount Element</button>
+    </form>
+
+    <div id="status"></div>
+
+    <div class="demo-notes">
+      <div>
+        <strong>Optional filter:</strong> the scoped filter goes into the element
+        <code>config</code> payload as <code>scope.context</code>.
+      </div>
+      <div>
+        <strong>Theme:</strong> the colors here map to flat
+        <code>config.theme</code> values.
+      </div>
+      <div>
+        <strong>API:</strong> this host still uses the embeddable package’s REST client;
+        the element only needs a reachable API base URL.
+      </div>
+    </div>
+
+    <div id="embed-root">
+      <superposition-admin id="embedded-admin"></superposition-admin>
+    </div>
+
+    <script type="module" src="./custom-elements.ts"></script>
+  </body>
+</html>
