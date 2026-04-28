@@ -2,6 +2,30 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.106.0 - 2026-04-28
+### Package updates
+- context_aware_config bumped to context_aware_config-v0.73.1
+- haskell_client bumped to haskell_client-v0.16.0
+### Global changes
+#### Bug Fixes
+- remove axios as a dependency and other small build fixes (#971) - (8440987) - Datron
+- extract org and workspace for cache friendly paths (#987) - (b0b460d) - Datron
+#### Documentation
+- improve README structure and messaging (#981) - (47f5ac9) - sauraww
+#### Features
+- haskell provider perf (#952) - (117d1cf) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(deps)** bump thin-vec from 0.2.14 to 0.2.16 (#973) - (1673247) - dependabot[bot]
+- **(deps)** bump follow-redirects from 1.15.11 to 1.16.0 in /docs (#972) - (0c951fd) - dependabot[bot]
+- **(deps)** bump rand in /examples/k8s-staggered-releaser (#979) - (495a504) - dependabot[bot]
+- **(deps)** bump postcss from 8.5.6 to 8.5.12 (#986) - (9ad3584) - dependabot[bot]
+- **(deps)** bump openssl in /examples/k8s-staggered-releaser (#978) - (347129d) - dependabot[bot]
+- **(deps)** bump openssl from 0.10.72 to 0.10.78 (#977) - (5f06916) - dependabot[bot]
+- **(deps)** bump actix-http in /examples/k8s-staggered-releaser (#976) - (bf87798) - dependabot[bot]
+- **(version)** v0.105.0 [skip ci] - (972948b) - Superposition Bot
+
+- - -
+
 ## v0.105.0 - 2026-04-27
 ### Package updates
 - superposition_provider bumped to superposition_provider-v0.9.2

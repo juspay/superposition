@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.73.1 - 2026-04-28
+#### Bug Fixes
+- remove axios as a dependency and other small build fixes (#971) - (8440987) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.105.0 [skip ci] - (972948b) - Superposition Bot
+
+- - -
+
 ## context_aware_config-v0.73.0 - 2026-04-27
 #### Bug Fixes
 - minor changes to how webhooks send requests (#983) - (b9460c5) - Datron
