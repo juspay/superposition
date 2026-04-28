@@ -38,7 +38,7 @@
         "@smithy/hash-node": "^4.0.1",
         "@smithy/invalid-dependency": "^4.0.1",
         "@smithy/middleware-content-length": "^4.0.1",
-        "@smithy/middleware-retry": "^4.0.3",
+        "@smithy/middleware-retry": "^4.5.6",
         "@smithy/middleware-serde": "^4.0.1",
         "@smithy/middleware-stack": "^4.0.1",
         "@smithy/node-config-provider": "^4.0.1",
