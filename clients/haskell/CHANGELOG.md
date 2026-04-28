@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## haskell_client-v0.16.0 - 2026-04-28
+#### Features
+- haskell provider perf (#952) - (117d1cf) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(version)** v0.103.0 [skip ci] - (43c17f5) - Superposition Bot
+
+- - -
+
 ## haskell_client-v0.15.0 - 2026-03-27
 #### Bug Fixes
 - RemoteProvider cleanup (#932) - (6d09519) - Ayush Jain
