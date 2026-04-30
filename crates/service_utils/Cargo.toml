@@ -44,6 +44,7 @@ superposition_types = { workspace = true, features = [
 ] }
 url = { workspace = true }
 urlencoding = "~2.1.2"
+uuid = {workspace = true}
 tracing-actix-web = { workspace = true }
 
 

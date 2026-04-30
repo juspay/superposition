@@ -81,6 +81,12 @@ describe("Default Config API Integration Tests", () => {
                 return [];
             }
         `;
+        const slowValueValidationCode = `
+            async function execute(payload) {
+                await new Promise((resolve) => setTimeout(resolve, 3000));
+                return true;
+            }
+        `;
 
         console.log("Creating function false_validation");
         await superpositionClient.send(
@@ -129,6 +135,21 @@ describe("Default Config API Integration Tests", () => {
 
         createdFunctions.push("auto_fn");
 
+        await superpositionClient.send(
+            new CreateFunctionCommand({
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+                function_name: "slow_true_validation",
+                function: slowValueValidationCode,
+                description: "Slow value_validation function for lock testing",
+                change_reason: "Initial creation",
+                runtime_version: FunctionRuntimeVersion.V1,
+                function_type: FunctionTypes.VALUE_VALIDATION,
+            }),
+        );
+
+        createdFunctions.push("slow_true_validation");
+
         console.log("Publishing function false_validation");
         await superpositionClient.send(
             new PublishCommand({
@@ -154,6 +175,15 @@ describe("Default Config API Integration Tests", () => {
                 workspace_id: ENV.workspace_id,
                 org_id: ENV.org_id,
                 function_name: "auto_fn",
+                change_reason: "Publishing for testing",
+            }),
+        );
+
+        await superpositionClient.send(
+            new PublishCommand({
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+                function_name: "slow_true_validation",
                 change_reason: "Publishing for testing",
             }),
         );
@@ -186,6 +216,57 @@ describe("Default Config API Integration Tests", () => {
             await superpositionClient.send(cmd);
             // Track created config
             createdConfigs.push("test-key");
+        });
+
+        test("should reject a concurrent default config write while workspace is locked", async () => {
+            const firstKey = "concurrent-lock-test-1";
+            const secondKey = "concurrent-lock-test-2";
+            const baseInput = {
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+                schema: { type: "string" },
+                value: "locked",
+                description: "Concurrent lock test",
+                value_validation_function_name: "slow_true_validation",
+                change_reason: "Testing workspace write guard",
+            };
+
+            const results = await Promise.allSettled([
+                superpositionClient.send(
+                    new CreateDefaultConfigCommand({
+                        ...baseInput,
+                        key: firstKey,
+                    }),
+                ),
+                superpositionClient.send(
+                    new CreateDefaultConfigCommand({
+                        ...baseInput,
+                        key: secondKey,
+                    }),
+                ),
+            ]);
+
+            let fulfilledCount = 0;
+            let rejectedCount = 0;
+            let rejectedStatusCode: number | undefined;
+
+            for (const result of results) {
+                if (result.status === "fulfilled") {
+                    fulfilledCount += 1;
+                    if (result.value.key) {
+                        createdConfigs.push(result.value.key);
+                    }
+                } else {
+                    rejectedCount += 1;
+                    rejectedStatusCode =
+                        result.reason.$response?.statusCode ??
+                        result.reason.$metadata?.httpStatusCode;
+                }
+            }
+
+            expect(fulfilledCount).toBe(1);
+            expect(rejectedCount).toBe(1);
+            expect(rejectedStatusCode).toBe(409);
         });
 
         test("should fail when schema is invalid", async () => {

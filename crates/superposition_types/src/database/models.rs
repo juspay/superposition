@@ -9,8 +9,8 @@ use chrono::{DateTime, Utc};
 use derive_more::{Deref, DerefMut};
 #[cfg(feature = "diesel_derives")]
 use diesel::{
-    sql_types::{Json, Text},
     AsChangeset, AsExpression, FromSqlRow, Insertable, QueryId, Queryable, Selectable,
+    sql_types::{Json, Text},
 };
 use serde::{Deserialize, Deserializer, Serialize};
 #[cfg(all(
@@ -23,10 +23,10 @@ use superposition_derives::TextFromSqlNoValidation;
 #[cfg(feature = "diesel_derives")]
 use superposition_derives::{JsonFromSql, JsonToSql, TextToSql};
 
-#[cfg(feature = "diesel_derives")]
-use super::superposition_schema::superposition::*;
 #[cfg(feature = "disable_db_data_validation")]
 use super::DisableDBValidation;
+#[cfg(feature = "diesel_derives")]
+use super::superposition_schema::superposition::*;
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Deref, DerefMut)]
 #[serde(try_from = "String")]
@@ -281,6 +281,11 @@ pub struct Workspace {
     pub enable_change_reason_validation: bool,
     pub encryption_key: String,
     pub key_rotated_at: Option<DateTime<Utc>>,
+    pub workspace_lock_id: Option<uuid::Uuid>,
+    pub workspace_lock_operation: Option<String>,
+    pub workspace_locked_by: Option<String>,
+    pub workspace_lock_acquired_at: Option<DateTime<Utc>>,
+    pub workspace_lock_expires_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]

@@ -3,19 +3,26 @@ use std::{
     future::{Ready, ready},
     str::FromStr,
     sync::{Arc, Mutex},
+    time::Duration,
 };
 
 use actix_web::{Error, FromRequest, HttpMessage, HttpResponseBuilder, error, web::Data};
 use chrono::{DateTime, Utc};
 use derive_more::{Deref, DerefMut};
+use diesel::PgConnection;
 use diesel::r2d2::{ConnectionManager, PooledConnection};
-use diesel::{Connection, PgConnection};
 use reqwest::header::HeaderValue;
 use secrecy::SecretString;
 use snowflake::SnowflakeIdGenerator;
-use superposition_types::database::models::Workspace;
+use superposition_types::{User, database::models::Workspace};
 
-use crate::db::PgSchemaConnectionPool;
+use crate::{
+    db::{PgSchemaConnectionPool, checkout_connection},
+    workspace_lock::{
+        WorkspaceLockLease, WorkspaceLockRequest, acquire_workspace_lease,
+        release_workspace_lease,
+    },
+};
 
 pub struct ExperimentationFlags {
     pub allow_same_keys_overlapping_ctx: bool,
@@ -95,6 +102,8 @@ pub struct AppState {
     pub service_prefix: String,
     pub superposition_token: String,
     pub redis: Option<fred::clients::RedisPool>,
+    pub workspace_lock_default_ttl: Duration,
+    pub workspace_lock_batch_ttl: Duration,
     pub http_client: reqwest::Client,
     pub master_encryption_key: Option<EncryptionKey>,
 }
@@ -211,6 +220,7 @@ impl FromRequest for WorkspaceContext {
 
 #[derive(Deref, DerefMut)]
 pub struct DbConnection(pub PooledConnection<ConnectionManager<PgConnection>>);
+
 impl FromRequest for DbConnection {
     type Error = Error;
     type Future = Ready<Result<DbConnection, Self::Error>>;
@@ -229,18 +239,113 @@ impl FromRequest for DbConnection {
             }
         };
 
-        let result = match app_state.db_pool.get() {
-            Ok(mut conn) => {
-                conn.set_prepared_statement_cache_size(
-                    diesel::connection::CacheSize::Disabled,
-                );
-                Ok(DbConnection(conn))
-            }
-            Err(e) => {
-                log::info!("Unable to get db connection from pool, error: {e}");
-                Err(error::ErrorInternalServerError(""))
+        let result = checkout_connection(&app_state.db_pool)
+            .map(DbConnection)
+            .map_err(|e| {
+                log::info!("DbConnection-FromRequest: Unable to get db connection from pool, error: {e}");
+                error::ErrorInternalServerError("")
+            });
+
+        ready(result)
+    }
+}
+
+/// A permit that holds a workspace write lock and provides DB access.
+///
+/// Acquired via `FromRequest` for write operations (POST, PUT, PATCH, DELETE).
+/// The lock is released automatically when the permit is dropped.
+///
+/// Use `checkout()` to get a mutable reference to the underlying connection.
+pub struct WorkspaceWritePermit {
+    conn: superposition_types::DBConnection,
+    lease: Option<WorkspaceLockLease>,
+}
+
+impl WorkspaceWritePermit {
+    /// Returns a mutable reference to the database connection.
+    pub fn checkout(&mut self) -> &mut superposition_types::DBConnection {
+        &mut self.conn
+    }
+
+    fn release_lock(&mut self) {
+        let Some(lease) = self.lease.take() else {
+            return;
+        };
+        match release_workspace_lease(&mut self.conn, lease) {
+            Ok(()) => log::debug!("released workspace lock"),
+            Err(e) => log::error!("failed to release workspace lock: {}", e),
+        }
+    }
+}
+
+impl Drop for WorkspaceWritePermit {
+    fn drop(&mut self) {
+        self.release_lock();
+    }
+}
+
+impl FromRequest for WorkspaceWritePermit {
+    type Error = Error;
+    type Future = Ready<Result<Self, Self::Error>>;
+
+    fn from_request(
+        req: &actix_web::HttpRequest,
+        _: &mut actix_web::dev::Payload,
+    ) -> Self::Future {
+        let method = req.method().to_string();
+        let path = req.path().to_string();
+        let app_state = match req.app_data::<Data<AppState>>() {
+            Some(state) => state,
+            None => {
+                log::error!("WorkspaceWritePermit: Unable to get app_data from request");
+                return ready(Err(error::ErrorInternalServerError(
+                    "Internal server error",
+                )));
             }
         };
+        let organisation_id = match req.extensions().get::<OrganisationId>().cloned() {
+            Some(id) => id,
+            None => {
+                log::error!("WorkspaceWritePermit: Organisation Id not found");
+                return ready(Err(error::ErrorInternalServerError(
+                    "Organisation Id not found",
+                )));
+            }
+        };
+        let workspace_id = match req.extensions().get::<WorkspaceId>().cloned() {
+            Some(id) => id,
+            None => {
+                log::error!("WorkspaceWritePermit: Workspace Id not found");
+                return ready(Err(error::ErrorInternalServerError(
+                    "Workspace Id not found",
+                )));
+            }
+        };
+        let user = req.extensions().get::<User>().cloned().unwrap_or_default();
+
+        let lock_request = WorkspaceLockRequest {
+            operation: format!("{} {}", method, path),
+            locked_by: user.get_email(),
+            ttl: app_state.workspace_lock_default_ttl,
+        };
+
+        let result = (|| {
+            let mut conn = checkout_connection(&app_state.db_pool).map_err(|e| {
+                log::info!("WorkspaceWritePermit: Unable to get db connection from pool, error: {e}");
+                error::ErrorInternalServerError("")
+            })?;
+            let lease = acquire_workspace_lease(
+                &mut conn,
+                &organisation_id.0,
+                &workspace_id.0,
+                lock_request,
+            )?;
+
+            Ok(WorkspaceWritePermit {
+                conn,
+                lease: Some(lease),
+            })
+        })();
 
         ready(result)
     }

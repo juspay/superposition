@@ -30,10 +30,55 @@ pub struct WorkspaceResponse {
     pub auto_populate_control: bool,
     pub enable_context_validation: bool,
     pub enable_change_reason_validation: bool,
+    pub workspace_lock: Option<WorkspaceLock>,
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct WorkspaceLock {
+    pub lock_id: String,
+    pub operation: String,
+    pub locked_by: String,
+    pub acquired_at: DateTime<Utc>,
+    pub expires_at: DateTime<Utc>,
+}
+
+impl WorkspaceLock {
+    pub fn from_workspace(workspace: &Workspace) -> Option<Self> {
+        let (
+            Some(lock_id),
+            Some(operation),
+            Some(locked_by),
+            Some(acquired_at),
+            Some(expires_at),
+        ) = (
+            workspace.workspace_lock_id,
+            workspace.workspace_lock_operation.clone(),
+            workspace.workspace_locked_by.clone(),
+            workspace.workspace_lock_acquired_at,
+            workspace.workspace_lock_expires_at,
+        )
+        else {
+            return None;
+        };
+
+        if expires_at <= Utc::now() {
+            return None;
+        }
+
+        Some(Self {
+            lock_id: lock_id.to_string(),
+            operation,
+            locked_by,
+            acquired_at,
+            expires_at,
+        })
+    }
 }
 
 impl From<Workspace> for WorkspaceResponse {
     fn from(workspace: Workspace) -> Self {
+        let workspace_lock = WorkspaceLock::from_workspace(&workspace);
+
         Self {
             organisation_id: workspace.organisation_id,
             organisation_name: workspace.organisation_name,
@@ -52,6 +97,7 @@ impl From<Workspace> for WorkspaceResponse {
             auto_populate_control: workspace.auto_populate_control,
             enable_context_validation: workspace.enable_context_validation,
             enable_change_reason_validation: workspace.enable_change_reason_validation,
+            workspace_lock,
         }
     }
 }
@@ -72,7 +118,7 @@ pub struct CreateWorkspaceRequest {
     pub enable_change_reason_validation: bool,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[cfg_attr(feature = "diesel_derives", derive(AsChangeset))]
 #[cfg_attr(feature = "diesel_derives", diesel(table_name = workspaces))]
 pub struct UpdateWorkspaceRequest {
