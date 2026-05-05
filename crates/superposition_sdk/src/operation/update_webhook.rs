@@ -308,9 +308,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for UpdateWe
     }
 }
 
-pub use crate::operation::update_webhook::_update_webhook_output::UpdateWebhookOutput;
-
 pub use crate::operation::update_webhook::_update_webhook_input::UpdateWebhookInput;
+
+pub use crate::operation::update_webhook::_update_webhook_output::UpdateWebhookOutput;
 
 mod _update_webhook_input;
 

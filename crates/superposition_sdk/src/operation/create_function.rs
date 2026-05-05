@@ -286,9 +286,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for CreateFu
     }
 }
 
-pub use crate::operation::create_function::_create_function_output::CreateFunctionOutput;
-
 pub use crate::operation::create_function::_create_function_input::CreateFunctionInput;
+
+pub use crate::operation::create_function::_create_function_output::CreateFunctionOutput;
 
 mod _create_function_input;
 

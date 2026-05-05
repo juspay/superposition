@@ -307,9 +307,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for UpdateOr
     }
 }
 
-pub use crate::operation::update_organisation::_update_organisation_output::UpdateOrganisationOutput;
-
 pub use crate::operation::update_organisation::_update_organisation_input::UpdateOrganisationInput;
+
+pub use crate::operation::update_organisation::_update_organisation_output::UpdateOrganisationOutput;
 
 mod _update_organisation_input;
 

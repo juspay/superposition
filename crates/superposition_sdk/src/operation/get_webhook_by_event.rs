@@ -304,9 +304,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for GetWebho
     }
 }
 
-pub use crate::operation::get_webhook_by_event::_get_webhook_by_event_output::GetWebhookByEventOutput;
-
 pub use crate::operation::get_webhook_by_event::_get_webhook_by_event_input::GetWebhookByEventInput;
+
+pub use crate::operation::get_webhook_by_event::_get_webhook_by_event_output::GetWebhookByEventOutput;
 
 mod _get_webhook_by_event_input;
 

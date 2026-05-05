@@ -324,9 +324,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for MoveCont
     }
 }
 
-pub use crate::operation::move_context::_move_context_output::MoveContextOutput;
-
 pub use crate::operation::move_context::_move_context_input::MoveContextInput;
+
+pub use crate::operation::move_context::_move_context_output::MoveContextOutput;
 
 mod _move_context_input;
 

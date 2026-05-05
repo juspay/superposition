@@ -308,9 +308,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for PublishE
     }
 }
 
-pub use crate::operation::publish::_publish_output::PublishOutput;
-
 pub use crate::operation::publish::_publish_input::PublishInput;
+
+pub use crate::operation::publish::_publish_output::PublishOutput;
 
 mod _publish_input;
 

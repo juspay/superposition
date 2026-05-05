@@ -302,9 +302,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for CreateDi
     }
 }
 
-pub use crate::operation::create_dimension::_create_dimension_output::CreateDimensionOutput;
-
 pub use crate::operation::create_dimension::_create_dimension_input::CreateDimensionInput;
+
+pub use crate::operation::create_dimension::_create_dimension_output::CreateDimensionOutput;
 
 mod _create_dimension_input;
 

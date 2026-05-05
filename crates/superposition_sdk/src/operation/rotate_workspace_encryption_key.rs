@@ -288,9 +288,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for RotateWo
     }
 }
 
-pub use crate::operation::rotate_workspace_encryption_key::_rotate_workspace_encryption_key_output::RotateWorkspaceEncryptionKeyOutput;
-
 pub use crate::operation::rotate_workspace_encryption_key::_rotate_workspace_encryption_key_input::RotateWorkspaceEncryptionKeyInput;
+
+pub use crate::operation::rotate_workspace_encryption_key::_rotate_workspace_encryption_key_output::RotateWorkspaceEncryptionKeyOutput;
 
 mod _rotate_workspace_encryption_key_input;
 

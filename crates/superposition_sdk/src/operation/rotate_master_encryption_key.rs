@@ -281,9 +281,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for RotateMa
     }
 }
 
-pub use crate::operation::rotate_master_encryption_key::_rotate_master_encryption_key_output::RotateMasterEncryptionKeyOutput;
-
 pub use crate::operation::rotate_master_encryption_key::_rotate_master_encryption_key_input::RotateMasterEncryptionKeyInput;
+
+pub use crate::operation::rotate_master_encryption_key::_rotate_master_encryption_key_output::RotateMasterEncryptionKeyOutput;
 
 mod _rotate_master_encryption_key_input;
 

@@ -302,9 +302,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for GetTypeT
     }
 }
 
-pub use crate::operation::get_type_templates_list::_get_type_templates_list_output::GetTypeTemplatesListOutput;
-
 pub use crate::operation::get_type_templates_list::_get_type_templates_list_input::GetTypeTemplatesListInput;
+
+pub use crate::operation::get_type_templates_list::_get_type_templates_list_output::GetTypeTemplatesListOutput;
 
 mod _get_type_templates_list_input;
 

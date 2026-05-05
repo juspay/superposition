@@ -286,9 +286,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for CreateWo
     }
 }
 
-pub use crate::operation::create_workspace::_create_workspace_output::CreateWorkspaceOutput;
-
 pub use crate::operation::create_workspace::_create_workspace_input::CreateWorkspaceInput;
+
+pub use crate::operation::create_workspace::_create_workspace_output::CreateWorkspaceOutput;
 
 mod _create_workspace_input;
 

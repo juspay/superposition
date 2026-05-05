@@ -324,9 +324,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for UpdateDe
     }
 }
 
-pub use crate::operation::update_default_config::_update_default_config_output::UpdateDefaultConfigOutput;
-
 pub use crate::operation::update_default_config::_update_default_config_input::UpdateDefaultConfigInput;
+
+pub use crate::operation::update_default_config::_update_default_config_output::UpdateDefaultConfigOutput;
 
 mod _update_default_config_input;
 

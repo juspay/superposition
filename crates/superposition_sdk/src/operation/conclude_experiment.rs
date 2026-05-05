@@ -324,9 +324,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for Conclude
     }
 }
 
-pub use crate::operation::conclude_experiment::_conclude_experiment_output::ConcludeExperimentOutput;
-
 pub use crate::operation::conclude_experiment::_conclude_experiment_input::ConcludeExperimentInput;
+
+pub use crate::operation::conclude_experiment::_conclude_experiment_output::ConcludeExperimentOutput;
 
 mod _conclude_experiment_input;
 

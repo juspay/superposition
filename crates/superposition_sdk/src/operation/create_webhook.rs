@@ -286,9 +286,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for CreateWe
     }
 }
 
-pub use crate::operation::create_webhook::_create_webhook_output::CreateWebhookOutput;
-
 pub use crate::operation::create_webhook::_create_webhook_input::CreateWebhookInput;
+
+pub use crate::operation::create_webhook::_create_webhook_output::CreateWebhookOutput;
 
 mod _create_webhook_input;
 

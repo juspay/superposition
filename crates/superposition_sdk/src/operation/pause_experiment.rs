@@ -324,9 +324,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for PauseExp
     }
 }
 
-pub use crate::operation::pause_experiment::_pause_experiment_output::PauseExperimentOutput;
-
 pub use crate::operation::pause_experiment::_pause_experiment_input::PauseExperimentInput;
+
+pub use crate::operation::pause_experiment::_pause_experiment_output::PauseExperimentOutput;
 
 mod _pause_experiment_input;
 

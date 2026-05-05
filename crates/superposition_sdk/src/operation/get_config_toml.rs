@@ -282,9 +282,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for GetConfi
     }
 }
 
-pub use crate::operation::get_config_toml::_get_config_toml_output::GetConfigTomlOutput;
-
 pub use crate::operation::get_config_toml::_get_config_toml_input::GetConfigTomlInput;
+
+pub use crate::operation::get_config_toml::_get_config_toml_output::GetConfigTomlOutput;
 
 mod _get_config_toml_input;
 

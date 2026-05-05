@@ -304,9 +304,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for DeleteTy
     }
 }
 
-pub use crate::operation::delete_type_templates::_delete_type_templates_output::DeleteTypeTemplatesOutput;
-
 pub use crate::operation::delete_type_templates::_delete_type_templates_input::DeleteTypeTemplatesInput;
+
+pub use crate::operation::delete_type_templates::_delete_type_templates_output::DeleteTypeTemplatesOutput;
 
 mod _delete_type_templates_input;
 

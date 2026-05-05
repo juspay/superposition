@@ -333,9 +333,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for ListSecr
     }
 }
 
-pub use crate::operation::list_secrets::_list_secrets_output::ListSecretsOutput;
-
 pub use crate::operation::list_secrets::_list_secrets_input::ListSecretsInput;
+
+pub use crate::operation::list_secrets::_list_secrets_output::ListSecretsOutput;
 
 mod _list_secrets_input;
 

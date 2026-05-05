@@ -324,9 +324,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for RampExpe
     }
 }
 
-pub use crate::operation::ramp_experiment::_ramp_experiment_output::RampExperimentOutput;
-
 pub use crate::operation::ramp_experiment::_ramp_experiment_input::RampExperimentInput;
+
+pub use crate::operation::ramp_experiment::_ramp_experiment_output::RampExperimentOutput;
 
 mod _ramp_experiment_input;
 

@@ -285,9 +285,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for CreateOr
     }
 }
 
-pub use crate::operation::create_organisation::_create_organisation_output::CreateOrganisationOutput;
-
 pub use crate::operation::create_organisation::_create_organisation_input::CreateOrganisationInput;
+
+pub use crate::operation::create_organisation::_create_organisation_output::CreateOrganisationOutput;
 
 mod _create_organisation_input;
 

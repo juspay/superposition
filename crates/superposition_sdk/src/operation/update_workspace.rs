@@ -308,9 +308,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for UpdateWo
     }
 }
 
-pub use crate::operation::update_workspace::_update_workspace_output::UpdateWorkspaceOutput;
-
 pub use crate::operation::update_workspace::_update_workspace_input::UpdateWorkspaceInput;
+
+pub use crate::operation::update_workspace::_update_workspace_output::UpdateWorkspaceOutput;
 
 mod _update_workspace_input;
 

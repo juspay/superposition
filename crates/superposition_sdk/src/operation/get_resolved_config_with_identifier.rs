@@ -323,9 +323,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for GetResol
     }
 }
 
-pub use crate::operation::get_resolved_config_with_identifier::_get_resolved_config_with_identifier_output::GetResolvedConfigWithIdentifierOutput;
-
 pub use crate::operation::get_resolved_config_with_identifier::_get_resolved_config_with_identifier_input::GetResolvedConfigWithIdentifierInput;
+
+pub use crate::operation::get_resolved_config_with_identifier::_get_resolved_config_with_identifier_output::GetResolvedConfigWithIdentifierOutput;
 
 mod _get_resolved_config_with_identifier_input;
 

@@ -304,9 +304,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for MigrateW
     }
 }
 
-pub use crate::operation::migrate_workspace_schema::_migrate_workspace_schema_output::MigrateWorkspaceSchemaOutput;
-
 pub use crate::operation::migrate_workspace_schema::_migrate_workspace_schema_input::MigrateWorkspaceSchemaInput;
+
+pub use crate::operation::migrate_workspace_schema::_migrate_workspace_schema_output::MigrateWorkspaceSchemaOutput;
 
 mod _migrate_workspace_schema_input;
 

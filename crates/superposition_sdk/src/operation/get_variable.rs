@@ -304,9 +304,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for GetVaria
     }
 }
 
-pub use crate::operation::get_variable::_get_variable_output::GetVariableOutput;
-
 pub use crate::operation::get_variable::_get_variable_input::GetVariableInput;
+
+pub use crate::operation::get_variable::_get_variable_output::GetVariableOutput;
 
 mod _get_variable_input;
 

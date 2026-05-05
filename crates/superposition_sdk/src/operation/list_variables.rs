@@ -333,9 +333,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for ListVari
     }
 }
 
-pub use crate::operation::list_variables::_list_variables_output::ListVariablesOutput;
-
 pub use crate::operation::list_variables::_list_variables_input::ListVariablesInput;
+
+pub use crate::operation::list_variables::_list_variables_output::ListVariablesOutput;
 
 mod _list_variables_input;
 

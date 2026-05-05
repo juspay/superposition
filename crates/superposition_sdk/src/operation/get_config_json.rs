@@ -282,9 +282,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for GetConfi
     }
 }
 
-pub use crate::operation::get_config_json::_get_config_json_output::GetConfigJsonOutput;
-
 pub use crate::operation::get_config_json::_get_config_json_input::GetConfigJsonInput;
+
+pub use crate::operation::get_config_json::_get_config_json_output::GetConfigJsonOutput;
 
 mod _get_config_json_input;
 

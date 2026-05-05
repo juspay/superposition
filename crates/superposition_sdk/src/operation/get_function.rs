@@ -304,9 +304,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for GetFunct
     }
 }
 
-pub use crate::operation::get_function::_get_function_output::GetFunctionOutput;
-
 pub use crate::operation::get_function::_get_function_input::GetFunctionInput;
+
+pub use crate::operation::get_function::_get_function_output::GetFunctionOutput;
 
 mod _get_function_input;
 

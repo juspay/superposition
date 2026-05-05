@@ -304,9 +304,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for GetDimen
     }
 }
 
-pub use crate::operation::get_dimension::_get_dimension_output::GetDimensionOutput;
-
 pub use crate::operation::get_dimension::_get_dimension_input::GetDimensionInput;
+
+pub use crate::operation::get_dimension::_get_dimension_output::GetDimensionOutput;
 
 mod _get_dimension_input;
 

@@ -302,9 +302,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for ListDime
     }
 }
 
-pub use crate::operation::list_dimensions::_list_dimensions_output::ListDimensionsOutput;
-
 pub use crate::operation::list_dimensions::_list_dimensions_input::ListDimensionsInput;
+
+pub use crate::operation::list_dimensions::_list_dimensions_output::ListDimensionsOutput;
 
 mod _list_dimensions_input;
 

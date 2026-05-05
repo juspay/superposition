@@ -336,9 +336,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for ListAudi
     }
 }
 
-pub use crate::operation::list_audit_logs::_list_audit_logs_output::ListAuditLogsOutput;
-
 pub use crate::operation::list_audit_logs::_list_audit_logs_input::ListAuditLogsInput;
+
+pub use crate::operation::list_audit_logs::_list_audit_logs_output::ListAuditLogsOutput;
 
 mod _list_audit_logs_input;
 

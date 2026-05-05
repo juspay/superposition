@@ -318,9 +318,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for BulkOper
     }
 }
 
-pub use crate::operation::bulk_operation::_bulk_operation_output::BulkOperationOutput;
-
 pub use crate::operation::bulk_operation::_bulk_operation_input::BulkOperationInput;
+
+pub use crate::operation::bulk_operation::_bulk_operation_output::BulkOperationOutput;
 
 mod _bulk_operation_input;
 

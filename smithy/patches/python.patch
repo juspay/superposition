@@ -24,7 +24,7 @@ index 7c295b28..b7a7bd7e 100644
  reportPrivateUsage = false
 
 diff --git a/clients/python/sdk/superposition_sdk/models.py b/clients/python/sdk/superposition_sdk/models.py
-index b973e774..14eb3f95 100644
+index b973e774e..14eb3f950 100644
 --- a/clients/python/sdk/superposition_sdk/models.py
 +++ b/clients/python/sdk/superposition_sdk/models.py
 @@ -683,7 +683,7 @@ ADD_MEMBERS_TO_GROUP = APIOperation(

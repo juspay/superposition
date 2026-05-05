@@ -307,9 +307,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for ListDefa
     }
 }
 
-pub use crate::operation::list_default_configs::_list_default_configs_output::ListDefaultConfigsOutput;
-
 pub use crate::operation::list_default_configs::_list_default_configs_input::ListDefaultConfigsInput;
+
+pub use crate::operation::list_default_configs::_list_default_configs_output::ListDefaultConfigsOutput;
 
 mod _list_default_configs_input;
 

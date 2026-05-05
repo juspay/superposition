@@ -320,9 +320,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for DeleteCo
     }
 }
 
-pub use crate::operation::delete_context::_delete_context_output::DeleteContextOutput;
-
 pub use crate::operation::delete_context::_delete_context_input::DeleteContextInput;
+
+pub use crate::operation::delete_context::_delete_context_output::DeleteContextOutput;
 
 mod _delete_context_input;
 

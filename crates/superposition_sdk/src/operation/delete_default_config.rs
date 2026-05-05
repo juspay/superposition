@@ -320,9 +320,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for DeleteDe
     }
 }
 
-pub use crate::operation::delete_default_config::_delete_default_config_output::DeleteDefaultConfigOutput;
-
 pub use crate::operation::delete_default_config::_delete_default_config_input::DeleteDefaultConfigInput;
+
+pub use crate::operation::delete_default_config::_delete_default_config_output::DeleteDefaultConfigOutput;
 
 mod _delete_default_config_input;
 

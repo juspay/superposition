@@ -304,9 +304,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for GetSecre
     }
 }
 
-pub use crate::operation::get_secret::_get_secret_output::GetSecretOutput;
-
 pub use crate::operation::get_secret::_get_secret_input::GetSecretInput;
+
+pub use crate::operation::get_secret::_get_secret_output::GetSecretOutput;
 
 mod _get_secret_input;
 

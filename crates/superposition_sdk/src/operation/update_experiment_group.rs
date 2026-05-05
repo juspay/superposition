@@ -308,9 +308,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for UpdateEx
     }
 }
 
-pub use crate::operation::update_experiment_group::_update_experiment_group_output::UpdateExperimentGroupOutput;
-
 pub use crate::operation::update_experiment_group::_update_experiment_group_input::UpdateExperimentGroupInput;
+
+pub use crate::operation::update_experiment_group::_update_experiment_group_output::UpdateExperimentGroupOutput;
 
 mod _update_experiment_group_input;
 
