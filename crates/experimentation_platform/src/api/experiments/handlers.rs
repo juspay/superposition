@@ -84,7 +84,8 @@ use superposition_types::{
 use crate::api::{
     experiment_groups::helpers::{
         add_members, create_system_generated_experiment_group,
-        detach_experiment_from_group, update_experiment_group_buckets,
+        detach_experiment_from_group, put_experiment_groups_in_redis,
+        update_experiment_group_buckets,
     },
     experiments::{
         helpers::{
@@ -479,6 +480,13 @@ async fn conclude_handler(
         put_experiments_in_redis(&state.redis, &mut conn, &workspace_context.schema_name)
             .await;
 
+    let _ = put_experiment_groups_in_redis(
+        &state.redis,
+        &mut conn,
+        &workspace_context.schema_name,
+    )
+    .await;
+
     let experiment_response = ExperimentResponse::from(response);
 
     let data = WebhookData {
@@ -754,6 +762,12 @@ async fn discard_handler(
         put_experiments_in_redis(&state.redis, &mut conn, &workspace_context.schema_name)
             .await;
 
+    let _ = put_experiment_groups_in_redis(
+        &state.redis,
+        &mut conn,
+        &workspace_context.schema_name,
+    )
+    .await;
     let experiment_response = ExperimentResponse::from(response);
 
     let data = WebhookData {
@@ -1484,6 +1498,13 @@ async fn ramp_handler(
     let _ =
         put_experiments_in_redis(&state.redis, &mut conn, &workspace_context.schema_name)
             .await;
+
+    let _ = put_experiment_groups_in_redis(
+        &state.redis,
+        &mut conn,
+        &workspace_context.schema_name,
+    )
+    .await;
 
     let webhook_event = if matches!(experiment.status, ExperimentStatusType::CREATED) {
         WebhookEvent::ExperimentStarted
