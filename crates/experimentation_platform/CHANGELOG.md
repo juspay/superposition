@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.51.3 - 2026-05-05
+#### Bug Fixes
+- add experiment groups in redis when experiment allocation changes (#990) - (5814149) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.104.0 [skip ci] - (857fe77) - Superposition Bot
+
+- - -
+
 ## experimentation_platform-v0.51.2 - 2026-03-31
 #### Bug Fixes
 - make identifier query param optional (#946) - (8873c09) - Datron
