@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.106.1 - 2026-05-05
+### Package updates
+- experimentation_platform bumped to experimentation_platform-v0.51.3
+### Global changes
+#### Miscellaneous Chores
+- **(version)** v0.106.0 [skip ci] - (a9561f1) - Superposition Bot
+
+- - -
+
 ## v0.106.0 - 2026-04-28
 ### Package updates
 - context_aware_config bumped to context_aware_config-v0.73.1
