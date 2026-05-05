@@ -65,38 +65,23 @@ fn build_breadcrumbs(path: &str, base: &str) -> Vec<BreadcrumbSegment> {
                 && i > 0
                 && segments.get(i - 1).copied() == Some("config");
 
-            if previous_segments == "/admin" {
+            if i == 1 {
                 breadcrumbs.push(BreadcrumbSegment {
                     label: "Organisations".to_string(),
-                    href: format!("{}{}/organisations", base, previous_segments),
+                    href: format!("{}/admin/organisations", base),
                     is_current: false,
                 });
             }
-            if previous_segments
-                .split("/")
-                .filter(|s| !s.is_empty())
-                .collect::<Vec<&str>>()
-                .len()
-                == 3
-            {
-                breadcrumbs.insert(
-                    2,
-                    BreadcrumbSegment {
-                        label: "Workspaces".to_string(),
-                        href: {
-                            let proper_url_length = previous_segments
-                                .rfind("/")
-                                .unwrap_or(previous_segments.len());
-                            format!(
-                                "{}{}/workspaces",
-                                base,
-                                &previous_segments[..proper_url_length]
-                            )
-                        },
-                        is_current: false,
-                    },
-                );
-            }
+
+            let href = if is_current {
+                String::new()
+            } else if i == 1 {
+                format!("{}/admin/{}/workspaces", base, segment)
+            } else if i == 2 {
+                format!("{}{}/{}/default-config", base, previous_segments, segment)
+            } else {
+                format!("{}{}/{}", base, previous_segments, segment)
+            };
 
             breadcrumbs.push(BreadcrumbSegment {
                 label: if is_versions_in_config_flow {
@@ -104,19 +89,7 @@ fn build_breadcrumbs(path: &str, base: &str) -> Vec<BreadcrumbSegment> {
                 } else {
                     label
                 },
-                href: if is_current
-                    || previous_segments == "/admin"
-                    || previous_segments
-                        .split("/")
-                        .filter(|s| !s.is_empty())
-                        .collect::<Vec<&str>>()
-                        .len()
-                        == 2
-                {
-                    String::new()
-                } else {
-                    format!("{}{}/{}", base, previous_segments, segment)
-                },
+                href,
                 is_current,
             });
         }
