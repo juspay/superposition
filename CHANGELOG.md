@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.106.2 - 2026-05-08
+### Package updates
+- service_utils bumped to service_utils-v0.40.2
+### Global changes
+#### Bug Fixes
+- re-use x-request-id if sent in request (#992) - (4f57a97) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.106.1 [skip ci] - (5e25e4a) - Superposition Bot
+
+- - -
+
 ## v0.106.1 - 2026-05-05
 ### Package updates
 - experimentation_platform bumped to experimentation_platform-v0.51.3
