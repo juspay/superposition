@@ -39,8 +39,13 @@ impl RootSpanBuilder for CustomRootSpanBuilder {
         let org = header_extractor(headers, "x-org-id").unwrap_or_else(|| {
             path_extractor(path, 0).unwrap_or_else(|| "no-org-header".to_string())
         });
+        let request_id = header_extractor(headers, "x-request-id");
         let method = request.method().to_string();
-        tracing_actix_web::root_span!(request, workspace, org, method, path,)
+        if let Some(request_id) = request_id {
+            tracing_actix_web::root_span!(request, request_id = %request_id, workspace, org, method, path,)
+        } else {
+            tracing_actix_web::root_span!(request, workspace, org, method, path,)
+        }
     }
 
     fn on_request_end<B: MessageBody>(

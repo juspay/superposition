@@ -133,10 +133,14 @@ where
 
             let query_string = req.query_string().to_string();
 
-            let request_id = req
-                .extensions()
-                .get::<tracing_actix_web::RequestId>()
-                .map(|req_id| header::HeaderValue::from_str(&req_id.to_string()));
+            // Check for x-request-id header first, fallback to generated one from extensions
+            let request_id = req.headers().get("x-request-id").cloned().or_else(|| {
+                req.extensions()
+                    .get::<tracing_actix_web::RequestId>()
+                    .and_then(|req_id| {
+                        header::HeaderValue::from_str(&req_id.to_string()).ok()
+                    })
+            });
 
             let (http_req, mut payload) = req.into_parts();
             let mut body_bytes = Vec::new();
@@ -181,7 +185,7 @@ where
             let start_time = Instant::now();
             res = service.call(new_req).await?;
 
-            if let Some(Ok(request_id)) = request_id {
+            if let Some(request_id) = request_id {
                 res.headers_mut()
                     .insert(header::HeaderName::from_static("x-request-id"), request_id);
             }
