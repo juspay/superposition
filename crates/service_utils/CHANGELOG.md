@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.40.2 - 2026-05-08
+#### Bug Fixes
+- re-use x-request-id if sent in request (#992) - (4f57a97) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.105.0 [skip ci] - (972948b) - Superposition Bot
+
+- - -
+
 ## service_utils-v0.40.1 - 2026-04-27
 #### Bug Fixes
 - minor changes to how webhooks send requests (#983) - (b9460c5) - Datron
