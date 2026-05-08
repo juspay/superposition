@@ -760,10 +760,11 @@ pub async fn validate_control_overrides(
     Ok(())
 }
 
-pub async fn fetch_and_validate_change_reason_with_function(
+pub async fn validate_change_reason_with_function(
     workspace_context: &WorkspaceContext,
     change_reason: &ChangeReason,
     state: &Data<AppState>,
+    user: &User,
 ) -> superposition::Result<()> {
     if !workspace_context.settings.enable_change_reason_validation {
         return Ok(());
@@ -777,15 +778,27 @@ pub async fn fetch_and_validate_change_reason_with_function(
         Stage::Published
     );
 
+    let user_str = serde_json::to_string(user).map_err(|err| {
+        log::error!("Something went wrong, failed to stringify user data {err}");
+        unexpected_error!(
+            "Something went wrong, failed to stringify user data {}",
+            err
+        )
+    })?;
+
     let payload = FunctionExecutionRequest::ChangeReasonValidationFunctionRequest {
         change_reason: change_reason.clone(),
     };
 
-    let headers_map = construct_header_map(workspace_context, vec![])?;
+    let headers_map = construct_header_map(workspace_context, vec![("x-user", user_str)])?;
 
     let response = http_client
         .post(&url)
         .headers(headers_map.into())
+        .header(
+            header::AUTHORIZATION,
+            format!("Internal {}", state.superposition_token),
+        )
         .json(&payload)
         .send()
         .await;

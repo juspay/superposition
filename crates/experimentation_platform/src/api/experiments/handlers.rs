@@ -89,7 +89,7 @@ use crate::api::{
     },
     experiments::{
         helpers::{
-            fetch_and_validate_change_reason_with_function,
+            validate_change_reason_with_function,
             get_control_overrides_from_exp_id, put_experiments_in_redis,
             validate_control_overrides, validate_delete_experiment_variants,
         },
@@ -166,10 +166,11 @@ async fn create_handler(
     let description = req.description.clone();
     let change_reason = req.change_reason.clone();
 
-    fetch_and_validate_change_reason_with_function(
+    validate_change_reason_with_function(
         &workspace_context,
         &change_reason,
         &state,
+        &user
     )
     .await?;
 
@@ -457,10 +458,11 @@ async fn conclude_handler(
     action_authorized(_auth_z, &exp_id, &workspace_context.schema_name, &mut conn)
         .await?;
 
-    fetch_and_validate_change_reason_with_function(
+    validate_change_reason_with_function(
         &workspace_context,
         &req.change_reason,
         &state,
+        &user
     )
     .await?;
 
@@ -739,10 +741,11 @@ async fn discard_handler(
     action_authorized(_auth_z, &exp_id, &workspace_context.schema_name, &mut conn)
         .await?;
 
-    fetch_and_validate_change_reason_with_function(
+    validate_change_reason_with_function(
         &workspace_context,
         &req.change_reason,
         &state,
+        &user
     )
     .await?;
 
@@ -1352,10 +1355,11 @@ async fn ramp_handler(
 
     let change_reason = req.change_reason.clone();
 
-    fetch_and_validate_change_reason_with_function(
+    validate_change_reason_with_function(
         &workspace_context,
         &change_reason,
         &state,
+        &user
     )
     .await?;
 
@@ -1560,10 +1564,11 @@ async fn update_handler(
     let description = req.description.clone();
     let change_reason = req.change_reason.clone();
 
-    fetch_and_validate_change_reason_with_function(
+    validate_change_reason_with_function(
         &workspace_context,
         &change_reason,
         &state,
+        &user
     )
     .await?;
 
@@ -1898,10 +1903,11 @@ async fn pause_handler(
     action_authorized(_auth_z, &exp_id, &workspace_context.schema_name, &mut conn)
         .await?;
 
-    fetch_and_validate_change_reason_with_function(
+    validate_change_reason_with_function(
         &workspace_context,
         &req.change_reason,
         &state,
+        &user
     )
     .await?;
 
@@ -1994,10 +2000,11 @@ async fn resume_handler(
     action_authorized(_auth_z, &exp_id, &workspace_context.schema_name, &mut conn)
         .await?;
 
-    fetch_and_validate_change_reason_with_function(
+    validate_change_reason_with_function(
         &workspace_context,
         &req.change_reason,
         &state,
+        &user
     )
     .await?;
 
