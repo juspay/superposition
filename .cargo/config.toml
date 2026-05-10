@@ -1,0 +1,5 @@
+# Required by tokio-metrics for runtime instrumentation. Affects all
+# crates in the workspace; only the saturation::tokio_runtime module
+# consumes the additional APIs that this flag unlocks.
+[build]
+rustflags = ["--cfg", "tokio_unstable"]
