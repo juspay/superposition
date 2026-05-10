@@ -86,6 +86,7 @@ serde_json = { version = "1.0.140" }
 secrecy = "0.10"
 strum = "0.25"
 strum_macros = "0.25"
+thiserror = "1"
 tokio = { version = "1.29.1", features = ["full"] }
 tokio-metrics = { version = "0.3", default-features = false, features = ["rt"] }
 toml = { version = "0.8.8", features = ["preserve_order"] }

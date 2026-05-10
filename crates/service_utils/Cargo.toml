@@ -50,6 +50,7 @@ superposition_types = { workspace = true, features = [
     "api",
     "diesel_derives",
 ] }
+thiserror = { workspace = true }
 url = { workspace = true }
 urlencoding = "~2.1.2"
 uuid = {workspace = true}
