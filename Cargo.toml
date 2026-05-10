@@ -63,6 +63,7 @@ diesel = { version = "2.2.4", package = "juspay_diesel", features = [
 ] }
 fred = { version = "9.2.1" }
 futures-util = "0.3.28"
+humantime = "2.1"
 inventory = "0.3"
 itertools = { version = "0.10.5" }
 jsonlogic = { version = "0.5.5", package = "juspay_jsonlogic" }
@@ -70,6 +71,12 @@ jsonschema = "~0.17"
 leptos = { version = "0.6.11" }
 log = { version = "0.4.20", features = ["kv_unstable_serde"] }
 once_cell = { version = "1.18.0" }
+opentelemetry = { version = "0.27", default-features = false, features = ["metrics"] }
+opentelemetry_sdk = { version = "0.27", default-features = false, features = ["metrics", "rt-tokio"] }
+opentelemetry-prometheus = { version = "0.27", default-features = false }
+opentelemetry-otlp = { version = "0.27", default-features = false, features = ["metrics", "http-proto", "reqwest-client"] }
+opentelemetry-semantic-conventions = { version = "0.27" }
+prometheus = { version = "0.13", default-features = false }
 regex = "1.9.1"
 reqwest = { version = "0.11.18", features = ["json"] }
 rs-snowflake = "0.6.0"
@@ -80,6 +87,7 @@ secrecy = "0.10"
 strum = "0.25"
 strum_macros = "0.25"
 tokio = { version = "1.29.1", features = ["full"] }
+tokio-metrics = { version = "0.3", default-features = false, features = ["rt"] }
 toml = { version = "0.8.8", features = ["preserve_order"] }
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.22", features = [
