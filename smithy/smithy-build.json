@@ -18,7 +18,9 @@
       "software.amazon.smithy.java:client-core:0.0.1",
       "software.amazon.smithy.java.codegen:plugins:0.0.1",
       "in.juspay.smithy.haskell:client-codegen:0.0.8",
-      "software.amazon.smithy.java:aws-client-restjson:0.0.1"
+      "software.amazon.smithy.java:aws-client-restjson:0.0.1",
+      "in.juspay.smithy:smithy-mcp-codegen:0.1.0",
+      "in.juspay.smithy:smithy-mcp-traits:0.1.0"
     ]
   },
   "plugins": {
@@ -90,6 +92,13 @@
           "description": "API documentation for Superposition"
         }
       }
+    },
+    "mcp-rust": {
+      "service": "io.superposition#Superposition",
+      "package": "superposition_mcp",
+      "clientSdk": "smithy-rs",
+      "clientCrate": "superposition_sdk",
+      "runtimeVersion": "0.1.0"
     }
   }
 }
