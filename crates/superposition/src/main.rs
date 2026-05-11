@@ -6,7 +6,7 @@ mod resolve;
 mod webhooks;
 mod workspace;
 
-use std::{io::Result, time::Duration};
+use std::{io::Result, sync::Arc, time::Duration};
 
 use actix_files::Files;
 use actix_web::{
@@ -30,6 +30,10 @@ use service_utils::{
         auth_z::{AuthZHandler, AuthZManager, is_auth_z_enabled},
         request_response_logging::RequestResponseLogger,
         workspace_context::OrgWorkspaceMiddlewareFactory,
+    },
+    observability::{
+        FredPoolStats, MetricsMiddleware, Observability, ObservabilityConfig, RedisStats,
+        SaturationDeps, register_observers, spawn_metrics_server,
     },
     service::types::AppEnv,
 };
@@ -76,6 +80,16 @@ async fn main() -> Result<()> {
                 .with_target(false),
         )
         .init();
+
+    // --- Step 1: Observability init (early, before AppState build) ---
+    let obs_cfg = ObservabilityConfig::from_env()
+        .expect("invalid observability env config");
+    let obs_enabled = obs_cfg.enabled;
+    let observability = if obs_enabled {
+        Some(Observability::init(obs_cfg.clone()).expect("observability init failed"))
+    } else {
+        None
+    };
 
     let service_prefix: String =
         get_from_env_unsafe("SERVICE_PREFIX").expect("SERVICE_PREFIX is not set");
@@ -142,11 +156,52 @@ async fn main() -> Result<()> {
         .await,
     );
 
+    // --- Step 2: Register saturation observers ---
+    // app_state.db_pool is PgSchemaConnectionPool (= Pool<ConnectionManager<PgConnection>>),
+    // not Arc-wrapped, so we wrap it here.
+    // app_state.redis is Option<fred::clients::RedisPool>.
+    let redis_handle: Option<Arc<dyn RedisStats + Send + Sync>> =
+        app_state.redis.as_ref().map(|pool| {
+            Arc::new(FredPoolStats(pool.clone())) as Arc<dyn RedisStats + Send + Sync>
+        });
+
+    if let Some(obs) = observability.as_ref() {
+        let deps = SaturationDeps {
+            db_pool: Some(Arc::new(app_state.db_pool.clone())),
+            redis_client: redis_handle,
+            tokio_collect_interval: obs_cfg.collect_interval,
+        };
+        register_observers(&obs.meter(), deps)
+            .expect("saturation observer registration failed");
+    }
+
+    // --- Step 3: Spawn the metrics server ---
+    let metrics_server_handle = if let Some(obs) = observability.as_ref() {
+        let bind: std::net::SocketAddr = format!("{}:{}", obs_cfg.bind, obs_cfg.port)
+            .parse()
+            .expect("invalid metrics bind addr");
+        Some(spawn_metrics_server(obs.registry(), bind)?)
+    } else {
+        None
+    };
+
+    // --- Step 4: Capture meter + label_cfg for the closure ---
+    // When obs_enabled is true, observability is Some and meter() is valid.
+    // When obs_enabled is false, we still need a Meter instance to construct
+    // MetricsMiddleware inside the closure (Condition evaluates its argument
+    // regardless of the flag). We use the global noop meter in that case.
+    let metrics_meter = observability
+        .as_ref()
+        .map(|o| o.meter())
+        .unwrap_or_else(|| opentelemetry::global::meter("superposition-noop"));
+    let metrics_label_cfg = obs_cfg.label;
+
     let auth_n = AuthNHandler::init(&kms_client, &app_env, base.clone()).await;
     let auth_z = AuthZHandler::init(&kms_client, &app_env).await;
     let auth_z_manager = AuthZManager::init(&kms_client, &app_env).await;
 
-    HttpServer::new(move || {
+    // --- Step 5: Build and run both servers concurrently ---
+    let main_server = HttpServer::new(move || {
         let leptos_options = &conf.leptos_options;
         let site_root = &leptos_options.site_root;
         let leptos_envs = ui_envs.clone();
@@ -162,6 +217,8 @@ async fn main() -> Result<()> {
                     view! { <App app_envs=leptos_envs.clone() /> }
                 },
             )
+            // Mount /healthz /livez /readyz (auth bypass configured via T17)
+            .service(service_utils::observability::health_endpoints())
             .service(
                 scope(&base)
                     .route(
@@ -216,6 +273,13 @@ async fn main() -> Result<()> {
             ))
             // Conditionally add request/response logging middleware for development
             .wrap(RequestResponseLogger)
+            // MetricsMiddleware gated by SUPERPOSITION_METRICS_ENABLED (Approach B: Condition).
+            // metrics_meter is a real Meter when enabled, or a noop Meter when disabled.
+            .wrap(Condition::new(
+                obs_enabled,
+                MetricsMiddleware::new(&metrics_meter, metrics_label_cfg),
+            ))
+            // TracingLogger is outermost — last .wrap() runs first on requests.
             .wrap(TracingLogger::<CustomRootSpanBuilder>::new())
     })
     .bind(("0.0.0.0", cac_port))?
@@ -223,8 +287,18 @@ async fn main() -> Result<()> {
     .keep_alive(Duration::from_secs(
         get_from_env_unsafe("ACTIX_KEEP_ALIVE").unwrap_or(120),
     ))
-    .run()
-    .await
+    .run();
+
+    // --- Step 6: Run both servers concurrently ---
+    match metrics_server_handle {
+        Some(metrics) => {
+            futures_util::try_join!(main_server, metrics)?;
+        }
+        None => {
+            main_server.await?;
+        }
+    }
+    Ok(())
 }
 
 trait ScopeExt {

@@ -5851,6 +5851,7 @@ dependencies = [
  "bytes",
  "http 1.1.0",
  "opentelemetry",
+ "reqwest 0.12.8",
 ]
 
 [[package]]
@@ -5867,11 +5868,25 @@ dependencies = [
  "opentelemetry-proto",
  "opentelemetry_sdk",
  "prost",
+ "reqwest 0.12.8",
  "serde_json",
  "thiserror 1.0.58",
  "tokio",
  "tonic",
  "tracing",
+]
+
+[[package]]
+name = "opentelemetry-prometheus"
+version = "0.27.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1b834e966ea5e2d03dfe5f2253f03d22cce21403ee940265070eeee96cee0bcc"
+dependencies = [
+ "once_cell",
+ "opentelemetry",
+ "opentelemetry_sdk",
+ "prometheus",
+ "protobuf",
 ]
 
 [[package]]
@@ -6413,6 +6428,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "prometheus"
+version = "0.13.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3d33c28a30771f7f96db69893f78b857f7450d7e0237e9c8fc6427a81bae7ed1"
+dependencies = [
+ "cfg-if",
+ "fnv",
+ "lazy_static",
+ "memchr",
+ "parking_lot",
+ "protobuf",
+ "thiserror 1.0.58",
+]
+
+[[package]]
 name = "prost"
 version = "0.13.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6434,6 +6464,12 @@ dependencies = [
  "quote",
  "syn 2.0.117",
 ]
+
+[[package]]
+name = "protobuf"
+version = "2.28.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "106dd99e98437432fed6519dedecfade6a06a73bb7b2a1e019fdd2bee5778d94"
 
 [[package]]
 name = "psm"
@@ -6469,7 +6505,7 @@ dependencies = [
  "quinn-udp",
  "rustc-hash 2.1.1",
  "rustls 0.23.28",
- "socket2 0.5.10",
+ "socket2 0.6.3",
  "thiserror 2.0.18",
  "tokio",
  "tracing",
@@ -6508,7 +6544,7 @@ dependencies = [
  "cfg_aliases",
  "libc",
  "once_cell",
- "socket2 0.5.10",
+ "socket2 0.6.3",
  "tracing",
  "windows-sys 0.60.2",
 ]
@@ -7007,7 +7043,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys 0.4.15",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -7664,11 +7700,18 @@ dependencies = [
  "diesel-adapter",
  "fred",
  "futures-util",
+ "humantime",
  "inventory",
  "juspay_diesel",
  "log",
  "once_cell",
  "openidconnect",
+ "opentelemetry",
+ "opentelemetry-otlp",
+ "opentelemetry-prometheus",
+ "opentelemetry-semantic-conventions",
+ "opentelemetry_sdk",
+ "prometheus",
  "rand 0.8.5",
  "regex",
  "reqwest 0.11.27",
@@ -7680,7 +7723,9 @@ dependencies = [
  "superposition_derives",
  "superposition_macros",
  "superposition_types",
+ "thiserror 1.0.58",
  "tokio",
+ "tokio-metrics",
  "tracing",
  "tracing-actix-web",
  "url",
@@ -7925,7 +7970,6 @@ dependencies = [
  "cfg-if",
  "libc",
  "psm",
- "windows-sys 0.52.0",
  "windows-sys 0.59.0",
 ]
 
@@ -8026,6 +8070,7 @@ dependencies = [
  "experimentation_platform",
  "fred",
  "frontend",
+ "futures-util",
  "idgenerator",
  "inventory",
  "json-subscriber",
@@ -8033,6 +8078,7 @@ dependencies = [
  "leptos",
  "leptos_actix",
  "log",
+ "opentelemetry",
  "regex",
  "reqwest 0.11.27",
  "rs-snowflake",
@@ -8987,6 +9033,18 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.117",
+]
+
+[[package]]
+name = "tokio-metrics"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eace09241d62c98b7eeb1107d4c5c64ca3bd7da92e8c218c153ab3a78f9be112"
+dependencies = [
+ "futures-util",
+ "pin-project-lite",
+ "tokio",
+ "tokio-stream",
 ]
 
 [[package]]
