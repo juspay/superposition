@@ -15,7 +15,7 @@ use service_utils::{
     helpers::{WebhookData, execute_webhook_call, parse_config_tags},
     service::types::{
         AppHeader, AppState, CustomHeaders, DbConnection, EncryptionKey, SchemaName,
-        WorkspaceContext,
+        WorkspaceContext, WorkspaceWritePermit,
     },
 };
 use superposition_core::validations::{try_into_jsonschema, validation_err_to_str};
@@ -74,13 +74,13 @@ async fn create_handler(
     state: Data<AppState>,
     custom_headers: CustomHeaders,
     request: Json<DefaultConfigCreateRequest>,
-    db_conn: DbConnection,
+    mut write_permit: WorkspaceWritePermit,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let req = request.into_inner();
     _auth_z.authorized(&[req.key.deref()]).await?;
+    let conn = write_permit.checkout();
 
-    let DbConnection(mut conn) = db_conn;
     let key = req.key;
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
@@ -91,10 +91,11 @@ async fn create_handler(
     validate_change_reason(
         &workspace_context,
         &req.change_reason,
-        &mut conn,
+        conn,
         &state.master_encryption_key,
     )
     .await?;
+
     let value = req.value;
 
     let default_config = DefaultConfig {
@@ -138,7 +139,7 @@ async fn create_handler(
 
     validate_default_config_with_function(
         &workspace_context,
-        &mut conn,
+        conn,
         &default_config.value_validation_function_name,
         &default_config.key,
         &default_config.value,
@@ -149,7 +150,7 @@ async fn create_handler(
     validate_fn_published(
         &default_config.value_compute_function_name,
         FunctionType::ValueCompute,
-        &mut conn,
+        conn,
         &workspace_context.schema_name,
     )?;
 
@@ -175,7 +176,7 @@ async fn create_handler(
         &config_version,
         &state,
         &workspace_context.schema_name,
-        &mut conn,
+        conn,
     )
     .await;
 
@@ -188,7 +189,7 @@ async fn create_handler(
     };
 
     let webhook_status =
-        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+        execute_webhook_call(data, &workspace_context, &state, conn).await;
 
     let mut http_resp = if webhook_status {
         HttpResponse::Ok()
@@ -230,18 +231,19 @@ async fn update_handler(
     key: Path<DefaultConfigKey>,
     custom_headers: CustomHeaders,
     request: Json<DefaultConfigUpdateRequest>,
-    db_conn: DbConnection,
+    mut write_permit: WorkspaceWritePermit,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let key = key.into_inner();
     _auth_z.authorized(&[key.deref()]).await?;
 
-    let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
     let key_str = key.into();
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
-    let existing = fetch_default_key(&key_str, &mut conn, &workspace_context.schema_name)
+    let conn = write_permit.checkout();
+
+    let existing = fetch_default_key(&key_str, conn, &workspace_context.schema_name)
         .map_err(|e| match e {
             superposition::AppError::DbError(diesel::NotFound) => {
                 bad_argument!(
@@ -258,7 +260,7 @@ async fn update_handler(
     validate_change_reason(
         &workspace_context,
         &req.change_reason,
-        &mut conn,
+        conn,
         &state.master_encryption_key,
     )
     .await?;
@@ -289,7 +291,7 @@ async fn update_handler(
 
         validate_default_config_with_function(
             &workspace_context,
-            &mut conn,
+            conn,
             validation_function_name,
             &key_str,
             &value,
@@ -302,7 +304,7 @@ async fn update_handler(
         validate_fn_published(
             value_compute_function_name,
             FunctionType::ValueCompute,
-            &mut conn,
+            conn,
             &workspace_context.schema_name,
         )?;
     }
@@ -335,7 +337,7 @@ async fn update_handler(
         &config_version,
         &state,
         &workspace_context.schema_name,
-        &mut conn,
+        conn,
     )
     .await;
 
@@ -348,7 +350,7 @@ async fn update_handler(
     };
 
     let webhook_status =
-        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+        execute_webhook_call(data, &workspace_context, &state, conn).await;
 
     let mut http_resp = if webhook_status {
         HttpResponse::Ok()
@@ -512,19 +514,20 @@ async fn delete_handler(
     state: Data<AppState>,
     path: Path<DefaultConfigKey>,
     custom_headers: CustomHeaders,
-    db_conn: DbConnection,
+    mut write_permit: WorkspaceWritePermit,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let key = path.into_inner();
     _auth_z.authorized(&[key.deref()]).await?;
 
-    let DbConnection(mut conn) = db_conn;
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
     let key: String = key.into();
 
+    let conn = write_permit.checkout();
+
     let context_ids =
-        get_key_usage_context_ids(&key, &mut conn, &workspace_context.schema_name)
+        get_key_usage_context_ids(&key, conn, &workspace_context.schema_name)
             .map_err(|_| unexpected_error!("Something went wrong"))?;
     if context_ids.is_empty() {
         let (config_version, default_config) = conn
@@ -573,7 +576,7 @@ async fn delete_handler(
             &config_version,
             &state,
             &workspace_context.schema_name,
-            &mut conn,
+            conn,
         )
         .await;
 
@@ -586,7 +589,7 @@ async fn delete_handler(
         };
 
         let webhook_status =
-            execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+            execute_webhook_call(data, &workspace_context, &state, conn).await;
 
         let mut http_resp = if webhook_status {
             HttpResponse::Ok()

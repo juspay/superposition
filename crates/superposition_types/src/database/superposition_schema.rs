@@ -62,6 +62,11 @@ pub mod superposition {
             enable_change_reason_validation -> Bool,
             encryption_key -> Text,
             key_rotated_at -> Nullable<Timestamptz>,
+            workspace_lock_id -> Nullable<Uuid>,
+            workspace_lock_operation -> Nullable<Text>,
+            workspace_locked_by -> Nullable<Text>,
+            workspace_lock_acquired_at -> Nullable<Timestamptz>,
+            workspace_lock_expires_at -> Nullable<Timestamptz>,
         }
     }
 

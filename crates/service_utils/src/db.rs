@@ -8,9 +8,10 @@ pub mod utils;
 
 pub type PgSchemaConnectionPool = Pool<ConnectionManager<PgConnection>>;
 
-// this should not be made public, instead we should have helper functions that use
-// this internally to run queries/transactions with proper error handling and connection management
-fn get_connection(db_pool: &PgSchemaConnectionPool) -> result::Result<DBConnection> {
+/// Checks out a connection from the pool with statement caching disabled.
+pub(crate) fn checkout_connection(
+    db_pool: &PgSchemaConnectionPool,
+) -> result::Result<DBConnection> {
     let mut conn = db_pool.get().map_err(|e| {
         superposition_macros::unexpected_error!(
             "Unable to get db connection from pool, error: {}",
@@ -29,14 +30,14 @@ fn get_connection(db_pool: &PgSchemaConnectionPool) -> result::Result<DBConnecti
 /// Example usage:
 /// ```rust,ignore
 /// run_query(&db_pool, |conn| {
-///    // Your query logic here, using `conn` as the database connection    
+///    // Your query logic here, using `conn` as the database connection
 /// });
 /// ```
 pub fn run_query<T, F>(db_pool: &PgSchemaConnectionPool, query_fn: F) -> result::Result<T>
 where
     F: FnOnce(&mut DBConnection) -> Result<T, diesel::result::Error>,
 {
-    let mut conn = get_connection(db_pool)?;
+    let mut conn = checkout_connection(db_pool)?;
     query_fn(&mut conn).map_err(Into::into)
 }
 
@@ -59,7 +60,7 @@ pub fn run_transaction<T, F>(
 where
     F: FnOnce(&mut QueryContext) -> result::Result<T>,
 {
-    let mut conn = get_connection(db_pool)?;
+    let mut conn = checkout_connection(db_pool)?;
     diesel::Connection::transaction(&mut conn, |conn| {
         let mut query_context = QueryContext::Transaction(conn);
         query_fn(&mut query_context)

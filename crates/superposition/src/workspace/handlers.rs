@@ -157,6 +157,11 @@ async fn create_handler(
         enable_change_reason_validation: request.enable_change_reason_validation,
         encryption_key,
         key_rotated_at: None,
+        workspace_lock_id: None,
+        workspace_lock_operation: None,
+        workspace_locked_by: None,
+        workspace_lock_acquired_at: None,
+        workspace_lock_expires_at: None,
     };
 
     let created_workspace =

@@ -1430,17 +1430,17 @@ ADD COLUMN IF NOT EXISTS auto_populate_control BOOLEAN DEFAULT TRUE;
 
 UPDATE superposition.workspaces SET auto_populate_control = FALSE;
 
-ALTER TABLE localorg_dev.dimensions 
+ALTER TABLE localorg_dev.dimensions
 ADD COLUMN IF NOT EXISTS dimension_type TEXT NOT NULL DEFAULT 'REGULAR';
 
-ALTER TABLE localorg_dev.dimensions 
+ALTER TABLE localorg_dev.dimensions
     DROP COLUMN IF EXISTS dependencies,
     DROP COLUMN IF EXISTS dependents;
-    
-ALTER TABLE localorg_test.dimensions 
+
+ALTER TABLE localorg_test.dimensions
 ADD COLUMN IF NOT EXISTS dimension_type TEXT NOT NULL DEFAULT 'REGULAR';
 
-ALTER TABLE localorg_test.dimensions 
+ALTER TABLE localorg_test.dimensions
     DROP COLUMN IF EXISTS dependencies,
     DROP COLUMN IF EXISTS dependents;
 
@@ -1456,7 +1456,7 @@ CREATE TABLE IF NOT EXISTS localorg_dev.variables (
 );
 
 CREATE INDEX IF NOT EXISTS idx_variables_created_at ON localorg_dev.variables(created_at);
-CREATE INDEX IF NOT EXISTS idx_variables_last_modified_at ON localorg_dev.variables(last_modified_at); 
+CREATE INDEX IF NOT EXISTS idx_variables_last_modified_at ON localorg_dev.variables(last_modified_at);
 
 CREATE TRIGGER variables_audit AFTER INSERT OR DELETE OR UPDATE ON localorg_dev.variables FOR EACH ROW EXECUTE FUNCTION localorg_dev.event_logger();
 
@@ -1770,5 +1770,12 @@ CREATE TRIGGER secrets_audit AFTER INSERT OR DELETE OR UPDATE ON localorg_test.s
 ALTER TABLE superposition.workspaces
 ADD COLUMN IF NOT EXISTS encryption_key TEXT NOT NULL DEFAULT '',
 ADD COLUMN IF NOT EXISTS key_rotated_at TIMESTAMPTZ;
+
+ALTER TABLE superposition.workspaces
+ADD COLUMN IF NOT EXISTS workspace_lock_id UUID,
+ADD COLUMN IF NOT EXISTS workspace_lock_operation TEXT,
+ADD COLUMN IF NOT EXISTS workspace_locked_by TEXT,
+ADD COLUMN IF NOT EXISTS workspace_lock_acquired_at TIMESTAMPTZ,
+ADD COLUMN IF NOT EXISTS workspace_lock_expires_at TIMESTAMPTZ;
 
 COMMIT;
