@@ -82,14 +82,27 @@ async fn main() -> Result<()> {
         .init();
 
     // --- Step 1: Observability init (early, before AppState build) ---
+    // `from_env` errors are operator-config mistakes (bad port, bad IP, etc.) — fail loudly.
     let obs_cfg = ObservabilityConfig::from_env()
         .expect("invalid observability env config");
-    let obs_enabled = obs_cfg.enabled;
-    let observability = if obs_enabled {
-        Some(Observability::init(obs_cfg.clone()).expect("observability init failed"))
+    // `Observability::init` may fail transiently (e.g. OTLP endpoint unreachable at startup).
+    // Rather than killing the binary we log a warning and serve traffic without metrics.
+    let observability = if obs_cfg.enabled {
+        match Observability::init(obs_cfg.clone()) {
+            Ok(o) => Some(o),
+            Err(e) => {
+                tracing::warn!(
+                    error = %e,
+                    "observability init failed; metrics disabled for this instance"
+                );
+                None
+            }
+        }
     } else {
         None
     };
+    // Reflect actual init outcome: obs_enabled is true only when we have a live Observability.
+    let obs_enabled = observability.is_some();
 
     let service_prefix: String =
         get_from_env_unsafe("SERVICE_PREFIX").expect("SERVICE_PREFIX is not set");
