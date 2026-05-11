@@ -82,6 +82,19 @@ impl Observability {
             resource_attrs.push(KeyValue::new("deployment.environment", env.clone()));
         }
 
+        // §8.5 — merge OTEL_RESOURCE_ATTRIBUTES ("k1=v1,k2=v2,...") if set.
+        if let Ok(extra) = std::env::var("OTEL_RESOURCE_ATTRIBUTES") {
+            for pair in extra.split(',') {
+                if let Some((k, v)) = pair.split_once('=') {
+                    let k = k.trim().to_owned();
+                    let v = v.trim().to_owned();
+                    if !k.is_empty() {
+                        resource_attrs.push(KeyValue::new(k, v));
+                    }
+                }
+            }
+        }
+
         let mut builder = SdkMeterProvider::builder()
             .with_reader(exporter)
             .with_resource(Resource::new(resource_attrs));
@@ -107,6 +120,13 @@ fn with_otlp_reader(
     endpoint: &str,
     interval: std::time::Duration,
 ) -> Result<opentelemetry_sdk::metrics::MeterProviderBuilder, ObservabilityError> {
+    // Protocol: this binary is compiled with the `http-proto` feature only.
+    // `OTEL_EXPORTER_OTLP_PROTOCOL=grpc` is NOT supported in v1; use the
+    // default `http/protobuf` transport.
+    //
+    // Headers: the opentelemetry-otlp 0.27 HTTP exporter reads
+    // `OTEL_EXPORTER_OTLP_HEADERS` (and `OTEL_EXPORTER_OTLP_METRICS_HEADERS`)
+    // automatically during `build()` — no explicit wiring needed here.
     use opentelemetry_otlp::{MetricExporter, WithExportConfig};
     use opentelemetry_sdk::metrics::PeriodicReader;
     use opentelemetry_sdk::runtime;
