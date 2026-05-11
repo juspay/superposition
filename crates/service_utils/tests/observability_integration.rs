@@ -128,3 +128,38 @@ async fn metrics_appear_after_requests() {
         assert_eq!(v, 0.0, "active_requests not zero: {line}");
     }
 }
+
+#[actix_web::test]
+async fn cardinality_stays_within_budget() {
+    let obs = Observability::init(cfg()).unwrap();
+    let mw = MetricsMiddleware::new(&obs.meter(), LabelConfig::default());
+    let app = test::init_service(
+        App::new()
+            .wrap(mw)
+            .route("/a", web::get().to(|| async { HttpResponse::Ok() }))
+            .route("/b", web::get().to(|| async { HttpResponse::Ok() }))
+            .route("/c", web::post().to(|| async { HttpResponse::Created() })),
+    )
+    .await;
+
+    for _ in 0..10 {
+        for path in &["/a", "/b"] {
+            let req = test::TestRequest::get().uri(path).to_request();
+            let _ = test::call_service(&app, req).await;
+        }
+        let req = test::TestRequest::post().uri("/c").to_request();
+        let _ = test::call_service(&app, req).await;
+    }
+
+    let body = scrape(&obs);
+    let series = body
+        .lines()
+        .filter(|l| !l.is_empty() && !l.starts_with('#'))
+        .count();
+
+    // Budget for this scenario: 3 routes × 1 method each × 1 status × ~12
+    // (10 buckets + sum + count) = ~36 series for the histogram, plus 3 for
+    // busy_duration, plus 1 for active_requests, plus a few from `target_info`
+    // that the prometheus exporter emits. Headroom: 200.
+    assert!(series <= 200, "cardinality regression: {series} series\n{body}");
+}
