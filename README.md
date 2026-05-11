@@ -160,9 +160,6 @@ curl http://localhost:9091/metrics
 
 Health endpoints live on the main port: `GET /healthz`, `/livez`, `/readyz`.
 
-For full details (labels, cardinality, OTLP push), see
-[`docs/superpowers/specs/2026-05-10-otel-golden-signals-middleware-design.md`](docs/superpowers/specs/2026-05-10-otel-golden-signals-middleware-design.md).
-
 **Note on `tokio_unstable`.** The workspace's `.cargo/config.toml` enables
 `--cfg tokio_unstable` so `tokio-metrics` can collect runtime saturation. This
 flag only adds APIs; no behavioural change for existing code. Contributors who
