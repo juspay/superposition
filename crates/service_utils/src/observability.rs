@@ -100,7 +100,17 @@ impl Observability {
             .with_resource(Resource::new(resource_attrs));
 
         if let Some(endpoint) = &cfg.otlp_endpoint {
-            builder = with_otlp_reader(builder, endpoint, cfg.collect_interval)?;
+            match with_otlp_reader(builder, endpoint, cfg.collect_interval) {
+                Ok(b) => builder = b,
+                Err(e) => {
+                    tracing::warn!(
+                        error = %e,
+                        endpoint = %endpoint,
+                        "OTLP exporter init failed; metrics will be exposed via /metrics only",
+                    );
+                    // Keep going with Prom-only builder.
+                }
+            }
         }
 
         let provider = builder.build();
@@ -120,10 +130,19 @@ fn with_otlp_reader(
     endpoint: &str,
     interval: std::time::Duration,
 ) -> Result<opentelemetry_sdk::metrics::MeterProviderBuilder, ObservabilityError> {
-    // Protocol: this binary is compiled with the `http-proto` feature only.
-    // `OTEL_EXPORTER_OTLP_PROTOCOL=grpc` is NOT supported in v1; use the
-    // default `http/protobuf` transport.
-    //
+    // Warn if the operator requested a protocol we do not support (gRPC).
+    // This binary is compiled with `http-proto` only; `grpc` silently falls
+    // back to HTTP, which can mask misconfiguration.
+    if let Ok(protocol) = std::env::var("OTEL_EXPORTER_OTLP_PROTOCOL") {
+        if !protocol.is_empty() && protocol != "http/protobuf" {
+            tracing::warn!(
+                requested_protocol = %protocol,
+                "OTEL_EXPORTER_OTLP_PROTOCOL set to '{}'; only 'http/protobuf' is supported in v1, using HTTP",
+                protocol
+            );
+        }
+    }
+
     // Headers: the opentelemetry-otlp 0.27 HTTP exporter reads
     // `OTEL_EXPORTER_OTLP_HEADERS` (and `OTEL_EXPORTER_OTLP_METRICS_HEADERS`)
     // automatically during `build()` — no explicit wiring needed here.
