@@ -64,7 +64,7 @@ use crate::api::{
     experiments::{
         cac_api::validate_context,
         helpers::{
-            fetch_and_validate_change_reason_with_function, hash,
+            validate_change_reason_with_function, hash,
             validate_and_add_experiment_group_id,
             validate_and_remove_experiment_group_id,
         },
@@ -110,10 +110,11 @@ async fn create_handler(
         Vec::new()
     };
 
-    fetch_and_validate_change_reason_with_function(
+    validate_change_reason_with_function(
         &workspace_context,
         &req.change_reason,
         &state,
+        &user,
     )
     .await?;
 
@@ -194,10 +195,11 @@ async fn update_handler(
 
     let req = req.into_inner();
 
-    fetch_and_validate_change_reason_with_function(
+    validate_change_reason_with_function(
         &workspace_context,
         &req.change_reason,
         &state,
+        &user,
     )
     .await?;
 
@@ -233,10 +235,11 @@ async fn add_members_handler(
     let req = req.into_inner();
     let DbConnection(mut conn) = db_conn;
 
-    fetch_and_validate_change_reason_with_function(
+    validate_change_reason_with_function(
         &workspace_context,
         &req.change_reason,
         &state,
+        &user,
     )
     .await?;
 
@@ -289,10 +292,11 @@ async fn remove_members_handler(
     let DbConnection(mut conn) = db_conn;
     let id = exp_group_id.into_inner();
 
-    fetch_and_validate_change_reason_with_function(
+    validate_change_reason_with_function(
         &workspace_context,
         &req.change_reason,
         &state,
+        &user,
     )
     .await?;
 
