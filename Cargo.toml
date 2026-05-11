@@ -109,6 +109,9 @@ superposition_provider = { path = "crates/superposition_provider", version = "0.
 superposition_sdk = { path = "crates/superposition_sdk", version = "0.106.2" }
 service_utils = { path = "crates/service_utils", version = "0.106.2" }
 
+[workspace.lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(tokio_unstable)'] }
+
 [workspace.lints.clippy]
 mod_module_files = "warn"
 manual_range_contains = "allow"

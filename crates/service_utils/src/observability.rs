@@ -14,7 +14,9 @@ pub use health::{health_endpoint_paths, health_endpoints};
 pub use meters::HttpMeters;
 pub use metrics_server::spawn_metrics_server;
 pub use middleware::MetricsMiddleware;
-pub use saturation::{register_observers, SaturationDeps};
+pub use saturation::{
+    DbPoolHandle, FredPoolStats, RedisHandle, RedisStats, register_observers, SaturationDeps,
+};
 
 use std::sync::Arc;
 
