@@ -6,19 +6,19 @@
 //!
 //! ## fred 9.2.1 API notes
 //!
+//! * `ClientLike::is_connected()` returns true when the client's underlying
+//!   connection to Redis is active. Counting these across the pool gives a
+//!   useful "healthy connections" gauge.
 //! * `MetricsInterface` is implemented on `RedisClient`, **not** on
 //!   `RedisPool`. The pool exposes `.clients() -> &[RedisClient]` so we can
 //!   iterate over individual clients.
-//! * There is no idle/used connection concept in fred's non-blocking pool:
-//!   all connections are async and the pool just round-robins. No public API
-//!   exposes a connection-level in-flight counter.
 //! * `command_queue_len()` (via `MetricsInterface`) counts buffered commands
 //!   waiting to be written to the socket. Summing across pool clients gives a
 //!   useful "pending work" gauge.
 
 use std::sync::Arc;
 
-use fred::{interfaces::MetricsInterface, prelude::RedisPool};
+use fred::{interfaces::{ClientLike, MetricsInterface}, prelude::RedisPool};
 use opentelemetry::{KeyValue, metrics::Meter};
 
 /// Wraps whatever fred client/pool type the rest of `service_utils` uses.
@@ -32,45 +32,23 @@ pub type RedisHandle = Arc<dyn RedisStats + Send + Sync>;
 /// Returning `None` from any getter simply omits the corresponding metric.
 /// This is intentional so that not-yet-wired stats do not break the build.
 pub trait RedisStats {
-    fn idle_connections(&self) -> Option<u64>;
-    fn used_connections(&self) -> Option<u64>;
+    /// Number of clients in the pool with an active connection to Redis.
+    fn connected_connections(&self) -> Option<u64>;
     fn commands_in_flight(&self) -> Option<u64>;
 }
 
 /// Implements `RedisStats` for the project's fred `RedisPool`.
-#[allow(dead_code)]
-///
-/// ### Fields populated
-/// - `commands_in_flight`: sum of `command_queue_len()` across all clients in
-///   the pool (commands buffered in memory waiting to be sent).
-///
-/// ### Fields returning `None`
-/// - `idle_connections`: fred's non-blocking async pool has no concept of
-///   "idle" connections — all pool slots share the event loop and the pool
-///   does not expose per-connection state counters publicly.
-///   TODO(observability): expose idle connection count if fred adds a public
-///   API for per-connection state (e.g. `ClientState::Disconnected` count).
-/// - `used_connections`: same limitation as `idle_connections` above.
-///   TODO(observability): expose used/active connection count when fred adds
-///   a public API to read per-connection in-flight request counters (currently
-///   internal to `protocol::connection::Counters`).
 pub struct FredPoolStats(pub RedisPool);
 
 impl RedisStats for FredPoolStats {
-    fn idle_connections(&self) -> Option<u64> {
-        // TODO(observability): fred 9.2.1 does not expose idle-connection
-        // counts via any public API. The pool's `RedisPoolInner.clients` are
-        // all async and there is no `is_idle()` method on `RedisClient`.
-        // Return None until fred provides such an API.
-        None
-    }
-
-    fn used_connections(&self) -> Option<u64> {
-        // TODO(observability): fred 9.2.1 does not expose active/used
-        // connection counts. The internal `Counters.in_flight` field tracks
-        // per-connection in-flight commands, but it is private to
-        // `fred::protocol::connection`. Return None until exposed publicly.
-        None
+    fn connected_connections(&self) -> Option<u64> {
+        Some(
+            self.0
+                .clients()
+                .iter()
+                .filter(|c| c.is_connected())
+                .count() as u64,
+        )
     }
 
     fn commands_in_flight(&self) -> Option<u64> {
@@ -89,31 +67,24 @@ impl RedisStats for FredPoolStats {
 }
 
 pub fn register(meter: &Meter, client: RedisHandle, pool_name: &'static str) {
-    let usage_label = KeyValue::new("pool.name", pool_name);
+    let pool_label = KeyValue::new("pool.name", pool_name);
 
     let c = client.clone();
-    let label = usage_label.clone();
+    let label = pool_label.clone();
     meter
-        .u64_observable_gauge("redis.client.connections.usage")
-        .with_description("Number of Redis connections in idle/used state.")
+        .u64_observable_gauge("redis.client.connections.connected")
+        .with_description(
+            "Number of Redis client connections currently connected to the server.",
+        )
         .with_callback(move |observer| {
-            if let Some(idle) = c.idle_connections() {
-                observer.observe(
-                    idle,
-                    &[KeyValue::new("state", "idle"), label.clone()],
-                );
-            }
-            if let Some(used) = c.used_connections() {
-                observer.observe(
-                    used,
-                    &[KeyValue::new("state", "used"), label.clone()],
-                );
+            if let Some(n) = c.connected_connections() {
+                observer.observe(n, &[label.clone()]);
             }
         })
         .build();
 
     let c = client.clone();
-    let label = usage_label.clone();
+    let label = pool_label.clone();
     meter
         .u64_observable_gauge("redis.client.commands.in_flight")
         .with_description(
