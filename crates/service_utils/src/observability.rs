@@ -95,9 +95,11 @@ impl Observability {
             }
         }
 
+        let resource = Resource::new(resource_attrs);
+
         let mut builder = SdkMeterProvider::builder()
             .with_reader(exporter)
-            .with_resource(Resource::new(resource_attrs));
+            .with_resource(resource.clone());
 
         if let Some(endpoint) = &cfg.otlp_endpoint {
             match with_otlp_reader(builder, endpoint, cfg.collect_interval) {
@@ -108,7 +110,15 @@ impl Observability {
                         endpoint = %endpoint,
                         "OTLP exporter init failed; metrics will be exposed via /metrics only",
                     );
-                    // Keep going with Prom-only builder.
+                    // Rebuild Prom-only builder (base was consumed by with_otlp_reader).
+                    let prom_exporter = opentelemetry_prometheus::exporter()
+                        .with_registry((*registry).clone())
+                        .without_scope_info()
+                        .build()
+                        .map_err(|e| ObservabilityError::PrometheusInit(e.to_string()))?;
+                    builder = SdkMeterProvider::builder()
+                        .with_reader(prom_exporter)
+                        .with_resource(resource);
                 }
             }
         }

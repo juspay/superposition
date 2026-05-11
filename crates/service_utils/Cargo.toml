@@ -30,7 +30,6 @@ opentelemetry = { workspace = true }
 opentelemetry_sdk = { workspace = true }
 opentelemetry-otlp = { workspace = true }
 opentelemetry-prometheus = { workspace = true }
-opentelemetry-semantic-conventions = { workspace = true }
 prometheus = { workspace = true }
 rand = "0.8"
 tokio = { workspace = true }

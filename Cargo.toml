@@ -75,7 +75,6 @@ opentelemetry = { version = "0.27", default-features = false, features = ["metri
 opentelemetry_sdk = { version = "0.27", default-features = false, features = ["metrics", "rt-tokio"] }
 opentelemetry-prometheus = { version = "0.27", default-features = false }
 opentelemetry-otlp = { version = "0.27", default-features = false, features = ["metrics", "http-proto", "reqwest-client"] }
-opentelemetry-semantic-conventions = { version = "0.27" }
 prometheus = { version = "0.13", default-features = false }
 regex = "1.9.1"
 reqwest = { version = "0.11.18", features = ["json"] }
