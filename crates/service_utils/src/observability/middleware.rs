@@ -39,11 +39,48 @@ pub(crate) fn normalize_method(m: &actix_web::http::Method) -> &'static str {
 /// Sentinel for paths that did not match any registered route (would 404).
 pub(crate) const ROUTE_NOT_FOUND: &str = "__not_found__";
 
-/// Extracts the templated route pattern from a ServiceRequest. Falls back to
-/// a sentinel when no route matched, to keep `http.route` cardinality bounded.
+/// Sentinel for static-asset routes (pkg, assets, favicon).  Collapsing these
+/// prevents one cardinality series per unique path tail.
+pub(crate) const ROUTE_STATIC: &str = "__static__";
+
+/// Route-pattern prefixes that identify static-asset serving routes.
+/// Any `match_pattern()` that starts with one of these is collapsed to
+/// `ROUTE_STATIC` to keep `http.route` cardinality bounded.
+const STATIC_PATTERN_PREFIXES: &[&str] = &["/pkg", "/assets", "/favicon"];
+
+/// Returns `true` when `pattern` belongs to a static-asset route.
+pub(crate) fn is_static_pattern(pattern: &str) -> bool {
+    STATIC_PATTERN_PREFIXES
+        .iter()
+        .any(|prefix| pattern.starts_with(prefix))
+}
+
+/// Extracts the templated route pattern from a `ServiceRequest`.
+/// Falls back to `ROUTE_NOT_FOUND` when no route matched;
+/// collapses static patterns to `ROUTE_STATIC`.
+///
+/// This is the request-phase variant.  In production the middleware uses
+/// [`extract_route_from_response`] (response phase) because route matching is
+/// only complete after the inner service has run.  This function is available
+/// for callers that have a live `ServiceRequest` (e.g. future request-scoped
+/// middleware).
 #[allow(dead_code)]
 pub(crate) fn extract_route(req: &ServiceRequest) -> String {
-    req.match_pattern().unwrap_or_else(|| ROUTE_NOT_FOUND.to_owned())
+    match req.match_pattern() {
+        None => ROUTE_NOT_FOUND.to_owned(),
+        Some(p) if is_static_pattern(&p) => ROUTE_STATIC.to_owned(),
+        Some(p) => p,
+    }
+}
+
+/// Same logic as `extract_route` but operates on a completed `ServiceResponse`
+/// (available in the middleware's response phase).
+pub(crate) fn extract_route_from_response<B>(res: &ServiceResponse<B>) -> String {
+    match res.request().match_pattern() {
+        None => ROUTE_NOT_FOUND.to_owned(),
+        Some(p) if is_static_pattern(&p) => ROUTE_STATIC.to_owned(),
+        Some(p) => p,
+    }
 }
 
 /// Build the OTel attributes set for a single HTTP request. Reads org_id /
@@ -177,10 +214,7 @@ where
 
             match &result {
                 Ok(res) => {
-                    let route = res
-                        .request()
-                        .match_pattern()
-                        .unwrap_or_else(|| ROUTE_NOT_FOUND.to_owned());
+                    let route = extract_route_from_response(&res);
                     let status = res.status().as_u16();
                     let extensions = res.request().extensions();
                     let org = extensions
@@ -205,19 +239,26 @@ where
                         &[KeyValue::new("http.request.method", method_normalized)],
                     );
                 }
-                Err(_) => {
-                    // The error converts to a response upstream; record under
-                    // 500 with an unknown route since match_pattern is not
-                    // available here.
+                Err(err) => {
+                    // The request was consumed by `service.call`, so
+                    // `match_pattern` is no longer accessible.  Route stays
+                    // `ROUTE_NOT_FOUND`.  We do extract the real HTTP status
+                    // from the error's response rather than blindly using 500.
+                    let status = err.error_response().status().as_u16();
                     let attrs = build_attributes(
                         method_normalized,
                         ROUTE_NOT_FOUND,
-                        500,
+                        status,
                         None,
                         None,
                         &label_cfg,
                     );
                     meters.request_duration.record(elapsed, &attrs);
+                    // The request still consumed worker time; count it.
+                    meters.busy_duration.add(
+                        elapsed,
+                        &[KeyValue::new("http.request.method", method_normalized)],
+                    );
                 }
             }
 
@@ -258,6 +299,15 @@ mod tests {
     }
 
     use actix_web::{App, HttpResponse, http::StatusCode, test as actix_test, web};
+
+    #[test]
+    fn extract_route_helper_handles_static_paths() {
+        assert!(is_static_pattern("/pkg/{tail:.*}"));
+        assert!(is_static_pattern("/assets/{tail:.*}"));
+        assert!(is_static_pattern("/favicon.ico"));
+        assert!(!is_static_pattern("/contexts/{id}"));
+        assert!(!is_static_pattern("/health"));
+    }
 
     #[actix_web::test]
     async fn matched_route_returns_pattern() {
