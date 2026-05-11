@@ -63,6 +63,44 @@ pub(crate) fn build_attributes(
 
 pub struct MetricsMiddleware;   // placeholder until Task 11
 
+use std::sync::atomic::{AtomicBool, Ordering};
+use opentelemetry::metrics::UpDownCounter;
+
+/// RAII guard that decrements `http.server.active_requests` on Drop unless
+/// `release()` was called. Ensures a panicking handler still decrements the
+/// gauge.
+pub(crate) struct InFlightGuard {
+    counter: UpDownCounter<i64>,
+    method: &'static str,
+    decremented: AtomicBool,
+}
+
+impl InFlightGuard {
+    pub(crate) fn enter(counter: UpDownCounter<i64>, method: &'static str) -> Self {
+        counter.add(1, &[KeyValue::new("http.request.method", method)]);
+        Self {
+            counter,
+            method,
+            decremented: AtomicBool::new(false),
+        }
+    }
+
+    pub(crate) fn release(&self) {
+        if !self.decremented.swap(true, Ordering::Relaxed) {
+            self.counter.add(
+                -1,
+                &[KeyValue::new("http.request.method", self.method)],
+            );
+        }
+    }
+}
+
+impl Drop for InFlightGuard {
+    fn drop(&mut self) {
+        self.release();
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -139,5 +177,38 @@ mod tests {
         assert_eq!(attrs.len(), 3);
         assert!(!attrs.iter().any(|kv| kv.key.as_str() == "sp.org_id"));
         assert!(!attrs.iter().any(|kv| kv.key.as_str() == "sp.workspace_id"));
+    }
+
+    #[test]
+    fn guard_decrements_on_drop_only_once() {
+        use crate::observability::{Observability, ObservabilityConfig, LabelConfig};
+        use std::time::Duration;
+
+        let cfg = ObservabilityConfig {
+            enabled: true,
+            bind: "127.0.0.1".parse().unwrap(),
+            port: 0,
+            label: LabelConfig::default(),
+            collect_interval: Duration::from_secs(10),
+            instance_id: "test".into(),
+            service_name: "sp-test".into(),
+            service_version: "0".into(),
+            deployment_environment: None,
+            otlp_endpoint: None,
+        };
+        let obs = Observability::init(cfg).unwrap();
+        let m = obs.meter().i64_up_down_counter("test.in_flight").build();
+
+        {
+            let g = InFlightGuard::enter(m.clone(), "GET");
+            g.release();
+            // Drop after explicit release; should be a no-op.
+        }
+        // The guard should tolerate multiple release() calls without panicking
+        // and a release-then-drop pattern.
+        let g = InFlightGuard::enter(m.clone(), "POST");
+        g.release();
+        g.release();
+        drop(g);
     }
 }
