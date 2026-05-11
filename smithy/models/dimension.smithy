@@ -3,6 +3,8 @@ $version: "2.0"
 
 namespace io.superposition
 
+use software.amazon.smithy.mcp#mcpTool
+
 union DimensionType {
     REGULAR: Unit
     LOCAL_COHORT: String
@@ -90,6 +92,7 @@ list DimensionList {
     member: DimensionResponse
 }
 
+@mcpTool
 @documentation("Creates a new dimension with the specified json schema. Dimensions define categorical attributes used for context-based config management.")
 @http(method: "POST", uri: "/dimension")
 @tags(["Dimensions"])
@@ -120,6 +123,7 @@ operation CreateDimension with [WebhookOperation] {
     output: DimensionResponse
 }
 
+@mcpTool
 @documentation("Retrieves a paginated list of all dimensions in the workspace. Dimensions are returned with their details and metadata.")
 @readonly
 @http(method: "GET", uri: "/dimension")
@@ -133,6 +137,7 @@ operation ListDimensions {
     }
 }
 
+@mcpTool
 @documentation("Retrieves detailed information about a specific dimension, including its schema, cohort dependency graph, and configuration metadata.")
 @readonly
 @http(method: "GET", uri: "/dimension/{dimension}")
@@ -147,6 +152,7 @@ operation GetDimension with [GetOperation] {
     output: DimensionResponse
 }
 
+@mcpTool
 @documentation("Updates an existing dimension's configuration. Allows modification of schema, position, function mappings, and other properties while maintaining dependency relationships.")
 @idempotent
 @http(method: "PATCH", uri: "/dimension/{dimension}")
@@ -176,6 +182,7 @@ operation UpdateDimension with [GetOperation, WebhookOperation] {
     output: DimensionResponse
 }
 
+@mcpTool
 @documentation("Permanently removes a dimension from the workspace. This operation will fail if the dimension has active dependencies or is referenced by existing configurations.")
 @idempotent
 @http(method: "DELETE", uri: "/dimension/{dimension}", code: 204)

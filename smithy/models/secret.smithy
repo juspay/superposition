@@ -2,6 +2,8 @@ $version: "2.0"
 
 namespace io.superposition
 
+use software.amazon.smithy.mcp#mcpTool
+
 @documentation("Secrets are encrypted key-value pairs stored at the workspace level. Secret values are encrypted with workspace-specific encryption keys and support key rotation.")
 resource Secret {
     identifiers: {
@@ -61,6 +63,7 @@ enum SecretSortOn {
     LAST_MODIFIED_AT = "last_modified_at"
 }
 
+@mcpTool
 @documentation("Creates a new encrypted secret with the specified name and value. The secret is encrypted with the workspace's current encryption key. Secret values are never returned in responses for security.")
 @http(method: "POST", uri: "/secrets")
 @tags(["Secrets"])
@@ -83,6 +86,7 @@ operation CreateSecret {
     output: SecretResponse
 }
 
+@mcpTool
 @documentation("Updates an existing secret's value or description. The value is re-encrypted with the current workspace encryption key. Returns masked value.")
 @idempotent
 @http(method: "PATCH", uri: "/secrets/{name}")
@@ -105,6 +109,7 @@ operation UpdateSecret with [GetOperation] {
     output: SecretResponse
 }
 
+@mcpTool
 @documentation("Retrieves a paginated list of all secrets in the workspace with optional filtering and sorting. All secret values are masked.")
 @readonly
 @http(method: "GET", uri: "/secrets")
@@ -141,6 +146,7 @@ operation ListSecrets {
     }
 }
 
+@mcpTool
 @documentation("Retrieves detailed information about a specific secret by its name. The value is masked for security.")
 @readonly
 @http(method: "GET", uri: "/secrets/{name}")
@@ -155,6 +161,7 @@ operation GetSecret with [GetOperation] {
     output: SecretResponse
 }
 
+@mcpTool
 @documentation("Permanently deletes a secret from the workspace. The encrypted value is removed and cannot be recovered.")
 @idempotent
 @http(method: "DELETE", uri: "/secrets/{name}")
@@ -178,6 +185,7 @@ resource MasterKey {
     ]
 }
 
+@mcpTool
 @documentation("Rotates the master encryption key across all workspaces")
 @idempotent
 @http(method: "POST", uri: "/master-encryption-key/rotate")

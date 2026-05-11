@@ -3,6 +3,8 @@ $version: "2.0"
 
 namespace io.superposition
 
+use software.amazon.smithy.mcp#mcpTool
+
 resource TypeTemplates {
     identifiers: {
         type_name: String
@@ -85,6 +87,7 @@ list TypeTemplatesList {
     member: TypeTemplatesResponse
 }
 
+@mcpTool
 @documentation("Retrieves detailed information about a specific type template including its schema and metadata.")
 @readonly
 @http(method: "GET", uri: "/types/{type_name}")
@@ -100,6 +103,7 @@ operation GetTypeTemplate with [GetOperation] {
 }
 
 // Operations
+@mcpTool
 @documentation("Creates a new type template with specified schema definition, providing reusable type definitions for config validation.")
 @http(method: "POST", uri: "/types")
 @tags(["Type Templates"])
@@ -108,6 +112,7 @@ operation CreateTypeTemplates {
     output: TypeTemplatesResponse
 }
 
+@mcpTool
 @documentation("Retrieves a paginated list of all type templates in the workspace, including their schemas and metadata for type management.")
 @readonly
 @http(method: "GET", uri: "/types")
@@ -121,6 +126,7 @@ operation GetTypeTemplatesList {
     }
 }
 
+@mcpTool
 @documentation("Updates an existing type template's schema definition and metadata while preserving its identifier and usage history.")
 @idempotent
 @http(method: "PATCH", uri: "/types/{type_name}")
@@ -130,6 +136,7 @@ operation UpdateTypeTemplates with [GetOperation] {
     output: TypeTemplatesResponse
 }
 
+@mcpTool
 @documentation("Permanently removes a type template from the workspace. No checks performed while deleting")
 @idempotent
 @http(method: "DELETE", uri: "/types/{type_name}")

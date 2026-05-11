@@ -2,6 +2,8 @@ $version: "2.0"
 
 namespace io.superposition
 
+use software.amazon.smithy.mcp#mcpTool
+
 resource Webhook {
     identifiers: {
         workspace_id: String
@@ -103,6 +105,7 @@ list WebhookList {
 }
 
 // Operations
+@mcpTool
 @documentation("Creates a new webhook config to receive HTTP notifications when specified events occur in the system.")
 @http(method: "POST", uri: "/webhook")
 @tags(["Webhooks"])
@@ -137,6 +140,7 @@ operation CreateWebhook {
     output: WebhookResponse
 }
 
+@mcpTool
 @documentation("Updates an existing webhook config, allowing modification of URL, events, headers, and other webhook properties.")
 @idempotent
 @http(method: "PATCH", uri: "/webhook/{name}")
@@ -168,6 +172,7 @@ operation UpdateWebhook with [GetOperation] {
     output: WebhookResponse
 }
 
+@mcpTool
 @documentation("Retrieves a paginated list of all webhook configs in the workspace, including their status and config details.")
 @readonly
 @http(method: "GET", uri: "/webhook")
@@ -181,6 +186,7 @@ operation ListWebhook {
     }
 }
 
+@mcpTool
 @documentation("Retrieves detailed information about a specific webhook config, including its events, headers, and trigger history.")
 @readonly
 @http(method: "GET", uri: "/webhook/{name}")
@@ -195,6 +201,7 @@ operation GetWebhook with [GetOperation] {
     output: WebhookResponse
 }
 
+@mcpTool
 @documentation("Retrieves a webhook configuration based on a specific event type, allowing users to find which webhook is set to trigger for that event.")
 @http(method: "GET", uri: "/webhook/event/{event}")
 @tags(["Webhooks"])
@@ -209,6 +216,7 @@ operation GetWebhookByEvent with [GetOperation] {
     output: WebhookResponse
 }
 
+@mcpTool
 @documentation("Permanently removes a webhook config from the workspace, stopping all future event notifications to that endpoint.")
 @idempotent
 @http(method: "DELETE", uri: "/webhook/{name}", code: 204)

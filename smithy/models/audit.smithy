@@ -2,6 +2,8 @@ $version: "2.0"
 
 namespace io.superposition
 
+use software.amazon.smithy.mcp#mcpTool
+
 resource AuditLog {
     identifiers: {
         id: String
@@ -53,6 +55,7 @@ list AuditActionList {
     member: AuditAction
 }
 
+@mcpTool
 @documentation("Retrieves a paginated list of audit logs with support for filtering by date range, table names, actions, and usernames for compliance and monitoring purposes.")
 @readonly
 @http(method: "GET", uri: "/audit")
