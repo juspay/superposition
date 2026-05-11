@@ -5,10 +5,6 @@
 //! background task that samples every `interval` and stores derived values
 //! in atomics that observable-gauge callbacks read.
 
-#[cfg(not(tokio_unstable))]
-#[allow(dead_code)] // called from saturation.rs only under cfg(tokio_unstable)
-pub fn spawn(_meter: &opentelemetry::metrics::Meter, _interval: std::time::Duration) {}
-
 #[cfg(tokio_unstable)]
 mod inner {
     use std::sync::Arc;

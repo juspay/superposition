@@ -52,11 +52,3 @@ pub fn register(meter: &Meter, pool: DbPoolHandle, pool_name: &'static str) {
         })
         .build();
 }
-
-#[cfg(test)]
-mod tests {
-    // Constructing a real r2d2 pool requires a database. We assert the function
-    // signature compiles and that calling `register` does not panic with a
-    // synthetic in-memory pool; this is exercised via the integration test in
-    // Task 19 instead.
-}
