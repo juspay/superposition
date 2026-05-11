@@ -29,6 +29,38 @@ pub(crate) fn extract_route(req: &ServiceRequest) -> String {
     req.match_pattern().unwrap_or_else(|| ROUTE_NOT_FOUND.to_owned())
 }
 
+use opentelemetry::KeyValue;
+use crate::observability::config::LabelConfig;
+
+/// Build the OTel attributes set for a single HTTP request. Reads org_id /
+/// workspace_id from request extensions if `OrgWorkspaceMiddlewareFactory`
+/// has populated them; otherwise omits those attributes entirely (rather
+/// than emitting an empty string, which would create a distinct series).
+pub(crate) fn build_attributes(
+    method: &'static str,
+    route: &str,
+    status_code: u16,
+    org_id: Option<&str>,
+    workspace: Option<&str>,
+    label_cfg: &LabelConfig,
+) -> Vec<KeyValue> {
+    let mut attrs = Vec::with_capacity(5);
+    attrs.push(KeyValue::new("http.request.method", method));
+    attrs.push(KeyValue::new("http.route", route.to_owned()));
+    attrs.push(KeyValue::new("http.response.status_code", status_code as i64));
+    if label_cfg.with_org_label {
+        if let Some(o) = org_id {
+            attrs.push(KeyValue::new("sp.org_id", o.to_owned()));
+        }
+    }
+    if label_cfg.with_workspace_label {
+        if let Some(w) = workspace {
+            attrs.push(KeyValue::new("sp.workspace_id", w.to_owned()));
+        }
+    }
+    attrs
+}
+
 pub struct MetricsMiddleware;   // placeholder until Task 11
 
 #[cfg(test)]
@@ -78,5 +110,34 @@ mod tests {
         // Note: extract_route is exercised in the integration test in Task 19
         // because match_pattern() is only populated mid-pipeline. This unit-test
         // stub is kept for build-coverage of the call site.
+    }
+
+    use crate::observability::config::LabelConfig;
+
+    #[test]
+    fn build_attributes_with_all_labels() {
+        let cfg = LabelConfig { with_org_label: true, with_workspace_label: true };
+        let attrs = build_attributes("GET", "/contexts/{id}", 200, Some("org1"), Some("ws1"), &cfg);
+        assert_eq!(attrs.len(), 5);
+        assert!(attrs.iter().any(|kv| kv.key.as_str() == "sp.org_id"));
+        assert!(attrs.iter().any(|kv| kv.key.as_str() == "sp.workspace_id"));
+    }
+
+    #[test]
+    fn build_attributes_omits_missing_workspace() {
+        let cfg = LabelConfig { with_org_label: true, with_workspace_label: true };
+        let attrs = build_attributes("POST", "/orgs", 201, Some("org1"), None, &cfg);
+        assert_eq!(attrs.len(), 4);
+        assert!(attrs.iter().any(|kv| kv.key.as_str() == "sp.org_id"));
+        assert!(!attrs.iter().any(|kv| kv.key.as_str() == "sp.workspace_id"));
+    }
+
+    #[test]
+    fn build_attributes_respects_disable_flag() {
+        let cfg = LabelConfig { with_org_label: false, with_workspace_label: false };
+        let attrs = build_attributes("GET", "/x", 200, Some("org1"), Some("ws1"), &cfg);
+        assert_eq!(attrs.len(), 3);
+        assert!(!attrs.iter().any(|kv| kv.key.as_str() == "sp.org_id"));
+        assert!(!attrs.iter().any(|kv| kv.key.as_str() == "sp.workspace_id"));
     }
 }
