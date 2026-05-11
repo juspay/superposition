@@ -1,5 +1,23 @@
 //! Actix middleware that records OpenTelemetry HTTP server metrics.
 
+use std::future::{Ready, ready};
+use std::rc::Rc;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::time::Instant;
+
+use actix_web::{
+    Error, HttpMessage,
+    body::MessageBody,
+    dev::{Service, ServiceRequest, ServiceResponse, Transform, forward_ready},
+};
+use futures_util::future::LocalBoxFuture;
+use opentelemetry::KeyValue;
+use opentelemetry::metrics::{Meter, UpDownCounter};
+
+use crate::observability::config::LabelConfig;
+use crate::observability::meters::HttpMeters;
+use crate::service::types::{OrganisationId, WorkspaceId};
+
 /// Per OpenTelemetry HTTP semantic conventions, only known methods get their
 /// literal name; anything else collapses to `_OTHER`. Prevents weirdo clients
 /// from blowing up the cardinality of the `http.request.method` attribute.
@@ -18,19 +36,15 @@ pub(crate) fn normalize_method(m: &actix_web::http::Method) -> &'static str {
     }
 }
 
-use actix_web::dev::ServiceRequest;
-
 /// Sentinel for paths that did not match any registered route (would 404).
 pub(crate) const ROUTE_NOT_FOUND: &str = "__not_found__";
 
 /// Extracts the templated route pattern from a ServiceRequest. Falls back to
 /// a sentinel when no route matched, to keep `http.route` cardinality bounded.
+#[allow(dead_code)]
 pub(crate) fn extract_route(req: &ServiceRequest) -> String {
     req.match_pattern().unwrap_or_else(|| ROUTE_NOT_FOUND.to_owned())
 }
-
-use opentelemetry::KeyValue;
-use crate::observability::config::LabelConfig;
 
 /// Build the OTel attributes set for a single HTTP request. Reads org_id /
 /// workspace_id from request extensions if `OrgWorkspaceMiddlewareFactory`
@@ -61,14 +75,10 @@ pub(crate) fn build_attributes(
     attrs
 }
 
-pub struct MetricsMiddleware;   // placeholder until Task 11
-
-use std::sync::atomic::{AtomicBool, Ordering};
-use opentelemetry::metrics::UpDownCounter;
-
 /// RAII guard that decrements `http.server.active_requests` on Drop unless
 /// `release()` was called. Ensures a panicking handler still decrements the
 /// gauge.
+#[must_use = "dropping InFlightGuard immediately negates the in-flight window"]
 pub(crate) struct InFlightGuard {
     counter: UpDownCounter<i64>,
     method: &'static str,
@@ -98,6 +108,122 @@ impl InFlightGuard {
 impl Drop for InFlightGuard {
     fn drop(&mut self) {
         self.release();
+    }
+}
+
+#[derive(Clone)]
+pub struct MetricsMiddleware {
+    meters: HttpMeters,
+    label_cfg: LabelConfig,
+}
+
+impl MetricsMiddleware {
+    pub fn new(meter: &Meter, label_cfg: LabelConfig) -> Self {
+        Self { meters: HttpMeters::new(meter), label_cfg }
+    }
+}
+
+impl<S, B> Transform<S, ServiceRequest> for MetricsMiddleware
+where
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
+    S::Future: 'static,
+    B: MessageBody + 'static,
+{
+    type Response = ServiceResponse<B>;
+    type Error = Error;
+    type InitError = ();
+    type Transform = MetricsMiddlewareImpl<S>;
+    type Future = Ready<Result<Self::Transform, Self::InitError>>;
+
+    fn new_transform(&self, service: S) -> Self::Future {
+        ready(Ok(MetricsMiddlewareImpl {
+            service: Rc::new(service),
+            meters: self.meters.clone(),
+            label_cfg: self.label_cfg,
+        }))
+    }
+}
+
+pub struct MetricsMiddlewareImpl<S> {
+    service: Rc<S>,
+    meters: HttpMeters,
+    label_cfg: LabelConfig,
+}
+
+impl<S, B> Service<ServiceRequest> for MetricsMiddlewareImpl<S>
+where
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
+    S::Future: 'static,
+    B: MessageBody + 'static,
+{
+    type Response = ServiceResponse<B>;
+    type Error = Error;
+    type Future = LocalBoxFuture<'static, Result<Self::Response, Self::Error>>;
+
+    forward_ready!(service);
+
+    fn call(&self, req: ServiceRequest) -> Self::Future {
+        let service = self.service.clone();
+        let meters = self.meters.clone();
+        let label_cfg = self.label_cfg;
+
+        let method_normalized = normalize_method(req.method());
+        let start = Instant::now();
+        let guard = InFlightGuard::enter(meters.active_requests.clone(), method_normalized);
+
+        Box::pin(async move {
+            let result = service.call(req).await;
+            let elapsed = start.elapsed().as_secs_f64();
+
+            match &result {
+                Ok(res) => {
+                    let route = res
+                        .request()
+                        .match_pattern()
+                        .unwrap_or_else(|| ROUTE_NOT_FOUND.to_owned());
+                    let status = res.status().as_u16();
+                    let extensions = res.request().extensions();
+                    let org = extensions
+                        .get::<OrganisationId>()
+                        .map(|o| o.0.clone());
+                    let ws = extensions
+                        .get::<WorkspaceId>()
+                        .map(|w| w.0.clone());
+                    drop(extensions);
+
+                    let attrs = build_attributes(
+                        method_normalized,
+                        &route,
+                        status,
+                        org.as_deref(),
+                        ws.as_deref(),
+                        &label_cfg,
+                    );
+                    meters.request_duration.record(elapsed, &attrs);
+                    meters.busy_duration.add(
+                        elapsed,
+                        &[KeyValue::new("http.request.method", method_normalized)],
+                    );
+                }
+                Err(_) => {
+                    // The error converts to a response upstream; record under
+                    // 500 with an unknown route since match_pattern is not
+                    // available here.
+                    let attrs = build_attributes(
+                        method_normalized,
+                        ROUTE_NOT_FOUND,
+                        500,
+                        None,
+                        None,
+                        &label_cfg,
+                    );
+                    meters.request_duration.record(elapsed, &attrs);
+                }
+            }
+
+            guard.release();
+            result
+        })
     }
 }
 
@@ -210,5 +336,53 @@ mod tests {
         g.release();
         g.release();
         drop(g);
+    }
+
+    #[actix_web::test]
+    async fn middleware_records_request_duration() {
+        use crate::observability::{Observability, ObservabilityConfig};
+        use std::time::Duration;
+
+        let cfg = ObservabilityConfig {
+            enabled: true,
+            bind: "127.0.0.1".parse().unwrap(),
+            port: 0,
+            label: LabelConfig::default(),
+            collect_interval: Duration::from_secs(10),
+            instance_id: "test".into(),
+            service_name: "sp-test".into(),
+            service_version: "0".into(),
+            deployment_environment: None,
+            otlp_endpoint: None,
+        };
+        let obs = Observability::init(cfg).unwrap();
+        let mw = MetricsMiddleware::new(&obs.meter(), LabelConfig::default());
+
+        use actix_web::{App, HttpResponse, http::StatusCode, web};
+        let app = actix_test::init_service(
+            App::new().wrap(mw).route(
+                "/ping",
+                web::get().to(|| async { HttpResponse::Ok().body("pong") }),
+            ),
+        )
+        .await;
+
+        let req = actix_test::TestRequest::get().uri("/ping").to_request();
+        let resp = actix_test::call_service(&app, req).await;
+        assert_eq!(resp.status(), StatusCode::OK);
+
+        let mut buf = Vec::new();
+        let metric_families = obs.registry().gather();
+        prometheus::Encoder::encode(
+            &prometheus::TextEncoder::new(),
+            &metric_families,
+            &mut buf,
+        )
+        .unwrap();
+        let text = String::from_utf8(buf).unwrap();
+        assert!(text.contains("http_server_request_duration_seconds_count"), "{text}");
+        assert!(text.contains("http_server_busy_duration_seconds_total"), "{text}");
+        assert!(text.contains("http_server_active_requests"), "{text}");
+        assert!(text.contains("http_route=\"/ping\""), "{text}");
     }
 }
