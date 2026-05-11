@@ -1,4 +1,8 @@
 #![deny(unused_crate_dependencies)]
+// opentelemetry_otlp is only used in cfg(not(test)) code; suppress the lint
+// when compiling tests.
+#[cfg(test)]
+use opentelemetry_otlp as _;
 // tokio_metrics is only referenced inside cfg(tokio_unstable) code; suppress
 // the lint when building without that flag.
 #[cfg(not(tokio_unstable))]
