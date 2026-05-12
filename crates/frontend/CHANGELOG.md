@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.53.0 - 2026-05-12
+#### Features
+- add breadcrumbs and superposition platform links (#970) - (e937add) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.105.0 [skip ci] - (972948b) - Superposition Bot
+
+- - -
+
 ## frontend-v0.52.0 - 2026-04-27
 #### Bug Fixes
 - New provider spec for python (#951) - (22078fc) - Ayush Jain

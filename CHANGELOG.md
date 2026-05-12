@@ -2,6 +2,30 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.107.0 - 2026-05-12
+### Package updates
+- superposition_core bumped to superposition_core-v0.14.1
+- frontend bumped to frontend-v0.53.0
+- context_aware_config bumped to context_aware_config-v0.74.0
+- experimentation_platform bumped to experimentation_platform-v0.51.4
+- superposition_types bumped to superposition_types-v0.44.0
+- superposition_provider bumped to superposition_provider-v0.9.3
+- service_utils bumped to service_utils-v0.41.0
+### Global changes
+#### Features
+- Add workspace locking using lease metadata inside workspace to serialize write operations (#817) - (83dac07) - Natarajan Kannan
+- add breadcrumbs and superposition platform links (#970) - (e937add) - Datron
+#### Miscellaneous Chores
+- **(deps)** bump urllib3 from 2.6.3 to 2.7.0 in /locust (#999) - (ef843bc) - dependabot[bot]
+- **(deps)** bump @babel/plugin-transform-modules-systemjs in /docs (#997) - (6a0ecff) - dependabot[bot]
+- **(deps)** bump fast-uri from 3.1.0 to 3.1.2 in /docs (#995) - (d45aec3) - dependabot[bot]
+- **(deps)** bump openssl in /examples/k8s-staggered-releaser (#994) - (618d191) - dependabot[bot]
+- **(deps)** bump openssl from 0.10.78 to 0.10.79 (#991) - (630f750) - dependabot[bot]
+- **(deps-dev)** bump postcss in /examples/dynamic-payment-fields (#988) - (019cca4) - dependabot[bot]
+- **(version)** v0.106.2 [skip ci] - (4f4a877) - Superposition Bot
+
+- - -
+
 ## v0.106.2 - 2026-05-08
 ### Package updates
 - service_utils bumped to service_utils-v0.40.2

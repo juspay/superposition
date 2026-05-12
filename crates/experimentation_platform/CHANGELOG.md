@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.51.4 - 2026-05-12
+#### Bug Fixes
+- send auth and x-user when validating change reason (#993) - (3de6826) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.106.1 [skip ci] - (5e25e4a) - Superposition Bot
+
+- - -
+
 ## experimentation_platform-v0.51.3 - 2026-05-05
 #### Bug Fixes
 - add experiment groups in redis when experiment allocation changes (#990) - (5814149) - Datron

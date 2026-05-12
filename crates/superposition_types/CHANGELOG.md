@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.44.0 - 2026-05-12
+#### Bug Fixes
+- relax serde version for provider (#1000) - (72d7e2f) - Ayush Jain
+#### Features
+- Add workspace locking using lease metadata inside workspace to serialize write operations (#817) - (83dac07) - Natarajan Kannan
+#### Miscellaneous Chores
+- **(version)** v0.104.0 [skip ci] - (857fe77) - Superposition Bot
+
+- - -
+
 ## superposition_types-v0.43.1 - 2026-03-31
 #### Bug Fixes
 - make identifier query param optional (#946) - (8873c09) - Datron
