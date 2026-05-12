@@ -16,7 +16,7 @@ itertools = { workspace = true }
 jsonschema = { workspace = true }
 log = { workspace = true }
 num-bigint = "0.4"
-serde = { workspace = true }
+serde = { version = "1", features = ["derive"] }
 serde_json = { workspace = true }
 superposition_types = { workspace = true, features = [
     "experimentation",

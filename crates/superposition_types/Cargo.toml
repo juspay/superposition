@@ -26,7 +26,7 @@ diesel-derive-enum = { version = "2.0.1", features = [
 jsonlogic = { workspace = true }
 log = { workspace = true }
 regex = { workspace = true }
-serde = { workspace = true }
+serde = { version = "1", features = ["derive"] }
 serde_json = { workspace = true }
 serde_urlencoded = { version = "0.7.1" }
 strum = { workspace = true }
