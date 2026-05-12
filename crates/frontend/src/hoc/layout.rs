@@ -1,6 +1,7 @@
 use crate::{
     api::workspaces,
     components::{
+        breadcrumbs::Breadcrumbs,
         side_nav::{OrgSideNav, SideNav, SideNavCollapsedProvider},
         skeleton::{Skeleton, SkeletonVariant},
         toast::Toast,
@@ -37,6 +38,7 @@ pub fn use_org() -> Signal<OrganisationId> {
 pub fn CommonLayout(children: Children) -> impl IntoView {
     view! {
         <main class="relative h-full w-full p-8 overflow-x-hidden transition-all duration-200 ease-soft-in-out">
+            <Breadcrumbs />
             {children()}
         </main>
         {move || {

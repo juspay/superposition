@@ -35,7 +35,7 @@ use crate::pages::{
     webhooks::Webhooks,
     workspace::Workspace,
 };
-use crate::types::Envs;
+use crate::types::{Envs, RoutePart, RouteSegment, join_route_parts};
 
 #[component]
 pub fn App(app_envs: Envs) -> impl IntoView {
@@ -117,7 +117,10 @@ pub fn App(app_envs: Envs) -> impl IntoView {
                 <Routes base=service_prefix.to_string()>
                     <Route
                         ssr=SsrMode::InOrder
-                        path="/admin/organisations"
+                        path=format!(
+                            "/{}",
+                            join_route_parts([RouteSegment::Admin, RouteSegment::Organisations]),
+                        )
                         view=move || {
                             view! {
                                 <CommonLayout>
@@ -129,7 +132,14 @@ pub fn App(app_envs: Envs) -> impl IntoView {
 
                     <Route
                         ssr=SsrMode::Async
-                        path="/admin/settings/authz"
+                        path=format!(
+                            "/{}",
+                            join_route_parts([
+                                RouteSegment::Admin,
+                                RouteSegment::Settings,
+                                RouteSegment::Authz,
+                            ]),
+                        )
                         view=move || {
                             view! {
                                 <CommonLayout>
@@ -139,102 +149,258 @@ pub fn App(app_envs: Envs) -> impl IntoView {
                         }
                     />
 
-                    <Route ssr=SsrMode::Async path="/admin/:org_id" view=OrgLayout>
-                        <Route ssr=SsrMode::Async path="workspaces" view=Workspace />
-
-                        <Route ssr=SsrMode::Async path="org-authz" view=OrganisationAuthz />
-                    </Route>
-
-                    <Route ssr=SsrMode::Async path="/admin/:org_id/:workspace" view=Layout>
-                        <Route ssr=SsrMode::Async path="dimensions" view=Dimensions />
+                    <Route
+                        ssr=SsrMode::Async
+                        path=format!(
+                            "/{}",
+                            join_route_parts([
+                                RoutePart::from(RouteSegment::Admin),
+                                RoutePart::from("org_id"),
+                            ]),
+                        )
+                        view=OrgLayout
+                    >
                         <Route
                             ssr=SsrMode::Async
-                            path="dimensions/action/create"
+                            path=join_route_parts([RouteSegment::Workspaces])
+                            view=Workspace
+                        />
+
+                        <Route
+                            ssr=SsrMode::Async
+                            path=join_route_parts([RouteSegment::OrgAuthz])
+                            view=OrganisationAuthz
+                        />
+                    </Route>
+
+                    <Route
+                        ssr=SsrMode::Async
+                        path=format!(
+                            "/{}",
+                            join_route_parts([
+                                RoutePart::from(RouteSegment::Admin),
+                                RoutePart::from("org_id"),
+                                RoutePart::from("workspace"),
+                            ]),
+                        )
+                        view=Layout
+                    >
+                        <Route
+                            ssr=SsrMode::Async
+                            path=join_route_parts([RouteSegment::Dimensions])
+                            view=Dimensions
+                        />
+                        <Route
+                            ssr=SsrMode::Async
+                            path=join_route_parts([
+                                RouteSegment::Dimensions,
+                                RouteSegment::Action,
+                                RouteSegment::Create,
+                            ])
                             view=CreateDimension
                         />
                         <Route
                             ssr=SsrMode::Async
-                            path="dimensions/:dimension_name/edit"
+                            path=join_route_parts([
+                                RoutePart::from(RouteSegment::Dimensions),
+                                RoutePart::from("dimension_name"),
+                                RoutePart::from(RouteSegment::Edit),
+                            ])
                             view=EditDimension
                         />
                         <Route
                             ssr=SsrMode::Async
-                            path="dimensions/:dimension_name"
+                            path=join_route_parts([
+                                RoutePart::from(RouteSegment::Dimensions),
+                                RoutePart::from("dimension_name"),
+                            ])
                             view=DimensionPage
                         />
 
-                        <Route ssr=SsrMode::Async path="function" view=FunctionList />
                         <Route
                             ssr=SsrMode::Async
-                            path="function/action/create"
+                            path=join_route_parts([RouteSegment::Function])
+                            view=FunctionList
+                        />
+                        <Route
+                            ssr=SsrMode::Async
+                            path=join_route_parts([
+                                RouteSegment::Function,
+                                RouteSegment::Action,
+                                RouteSegment::Create,
+                            ])
                             view=CreateFunctionView
                         />
                         <Route
                             ssr=SsrMode::Async
-                            path="function/:function_name"
+                            path=join_route_parts([
+                                RoutePart::from(RouteSegment::Function),
+                                RoutePart::from("function_name"),
+                            ])
                             view=FunctionPage
                         />
 
-                        <Route ssr=SsrMode::Async path="experiments" view=ExperimentList />
-                        <Route ssr=SsrMode::Async path="experiments/:id" view=ExperimentPage />
+                        <Route
+                            ssr=SsrMode::Async
+                            path=join_route_parts([RouteSegment::Experiments])
+                            view=ExperimentList
+                        />
+                        <Route
+                            ssr=SsrMode::Async
+                            path=join_route_parts([
+                                RoutePart::from(RouteSegment::Experiments),
+                                RoutePart::from("id"),
+                            ])
+                            view=ExperimentPage
+                        />
 
                         <Route
                             ssr=SsrMode::Async
-                            path="experiment-groups"
+                            path=join_route_parts([RouteSegment::ExperimentGroups])
                             view=ExperimentGroupListing
                         />
                         <Route
                             ssr=SsrMode::Async
-                            path="experiment-groups/:id"
+                            path=join_route_parts([
+                                RoutePart::from(RouteSegment::ExperimentGroups),
+                                RoutePart::from("id"),
+                            ])
                             view=ExperimentGroups
                         />
 
-                        <Route ssr=SsrMode::Async path="default-config" view=DefaultConfigList />
                         <Route
                             ssr=SsrMode::Async
-                            path="default-config/action/create"
+                            path=join_route_parts([RouteSegment::DefaultConfig])
+                            view=DefaultConfigList
+                        />
+                        <Route
+                            ssr=SsrMode::Async
+                            path=join_route_parts([
+                                RouteSegment::DefaultConfig,
+                                RouteSegment::Action,
+                                RouteSegment::Create,
+                            ])
                             view=CreateDefaultConfig
                         />
                         <Route
                             ssr=SsrMode::Async
-                            path="default-config/:config_key/edit"
+                            path=join_route_parts([
+                                RoutePart::from(RouteSegment::DefaultConfig),
+                                RoutePart::from("config_key"),
+                                RoutePart::from(RouteSegment::Edit),
+                            ])
                             view=EditDefaultConfig
                         />
                         <Route
                             ssr=SsrMode::Async
-                            path="default-config/:config_key"
+                            path=join_route_parts([
+                                RoutePart::from(RouteSegment::DefaultConfig),
+                                RoutePart::from("config_key"),
+                            ])
                             view=DefaultConfig
                         />
 
-                        <Route ssr=SsrMode::Async path="overrides" view=ContextOverride />
-
-                        <Route ssr=SsrMode::Async path="resolve" view=Home />
-
-                        <Route ssr=SsrMode::Async path="types" view=TypesPage />
-                        <Route ssr=SsrMode::Async path="types/:type_name" view=TypePage />
-
-                        <Route ssr=SsrMode::Async path="config/versions" view=ConfigVersionList />
+                        <Route
+                            ssr=SsrMode::Async
+                            path=join_route_parts([RouteSegment::Overrides])
+                            view=ContextOverride
+                        />
 
                         <Route
                             ssr=SsrMode::Async
-                            path="config/versions/:version"
+                            path=join_route_parts([RouteSegment::Resolve])
+                            view=Home
+                        />
+
+                        <Route
+                            ssr=SsrMode::Async
+                            path=join_route_parts([RouteSegment::Types])
+                            view=TypesPage
+                        />
+                        <Route
+                            ssr=SsrMode::Async
+                            path=join_route_parts([
+                                RoutePart::from(RouteSegment::Types),
+                                RoutePart::from("type_name"),
+                            ])
+                            view=TypePage
+                        />
+
+                        <Route
+                            ssr=SsrMode::Async
+                            path=join_route_parts([RouteSegment::Config, RouteSegment::Versions])
+                            view=ConfigVersionList
+                        />
+
+                        <Route
+                            ssr=SsrMode::Async
+                            path=join_route_parts([
+                                RoutePart::from(RouteSegment::Config),
+                                RoutePart::from(RouteSegment::Versions),
+                                RoutePart::from("version"),
+                            ])
                             view=ConfigVersion
                         />
 
-                        <Route ssr=SsrMode::Async path="compare" view=CompareOverrides />
+                        <Route
+                            ssr=SsrMode::Async
+                            path=join_route_parts([RouteSegment::Compare])
+                            view=CompareOverrides
+                        />
 
-                        <Route ssr=SsrMode::Async path="webhooks" view=Webhooks />
-                        <Route ssr=SsrMode::Async path="webhooks/:webhook_name" view=Webhook />
+                        <Route
+                            ssr=SsrMode::Async
+                            path=join_route_parts([RouteSegment::Webhooks])
+                            view=Webhooks
+                        />
+                        <Route
+                            ssr=SsrMode::Async
+                            path=join_route_parts([
+                                RoutePart::from(RouteSegment::Webhooks),
+                                RoutePart::from("webhook_name"),
+                            ])
+                            view=Webhook
+                        />
 
-                        <Route ssr=SsrMode::Async path="audit-log" view=AuditLog />
+                        <Route
+                            ssr=SsrMode::Async
+                            path=join_route_parts([RouteSegment::AuditLog])
+                            view=AuditLog
+                        />
 
-                        <Route ssr=SsrMode::Async path="authz" view=WorkspaceAuthz />
+                        <Route
+                            ssr=SsrMode::Async
+                            path=join_route_parts([RouteSegment::Authz])
+                            view=WorkspaceAuthz
+                        />
 
-                        <Route ssr=SsrMode::Async path="variables" view=VariablesList />
-                        <Route ssr=SsrMode::Async path="variables/:variable_name" view=Variable />
+                        <Route
+                            ssr=SsrMode::Async
+                            path=join_route_parts([RouteSegment::Variables])
+                            view=VariablesList
+                        />
+                        <Route
+                            ssr=SsrMode::Async
+                            path=join_route_parts([
+                                RoutePart::from(RouteSegment::Variables),
+                                RoutePart::from("variable_name"),
+                            ])
+                            view=Variable
+                        />
 
-                        <Route ssr=SsrMode::Async path="secrets" view=SecretsList />
-                        <Route ssr=SsrMode::Async path="secrets/:secret_name" view=Secret />
+                        <Route
+                            ssr=SsrMode::Async
+                            path=join_route_parts([RouteSegment::Secrets])
+                            view=SecretsList
+                        />
+                        <Route
+                            ssr=SsrMode::Async
+                            path=join_route_parts([
+                                RoutePart::from(RouteSegment::Secrets),
+                                RoutePart::from("secret_name"),
+                            ])
+                            view=Secret
+                        />
                     </Route>
                 // <Route
                 // path="/*any"
