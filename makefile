@@ -299,6 +299,11 @@ smithy-clients: smithy-build
 	cp -r $(SMITHY_BUILD_SRC)/rust-client-codegen/*\
 				crates/superposition_sdk
 
+	rm -rf crates/superposition_mcp
+	mkdir -p crates/superposition_mcp
+	cp -r $(SMITHY_BUILD_SRC)/mcp-rust/*\
+				crates/superposition_mcp
+
 	@for d in $(SMITHY_BUILD_SRC)/*-client-codegen; do \
 		[ -d "$$d" ] || continue; \
 		[[ "$$d" =~ "java" || "$$d" =~ "haskell" || "$$d" =~ "python" || "$$d" =~ "typescript" || "$$d" =~ "rust" ]] && continue; \

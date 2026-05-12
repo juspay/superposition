@@ -1,0 +1,15 @@
+diff --git a/crates/superposition_mcp/Cargo.toml b/crates/superposition_mcp/Cargo.toml
+--- a/crates/superposition_mcp/Cargo.toml
++++ b/crates/superposition_mcp/Cargo.toml
+@@ -1,7 +1,10 @@
+ [package]
+ name = "superposition_mcp"
+-version = "0.1.0"
++version.workspace = true
+ edition = "2021"
++license = { workspace = true }
++homepage = { workspace = true }
++readme = "README.md"
+ 
+ [dependencies]
+ smithy-mcp-runtime = "0.1.0"
