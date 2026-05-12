@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_core-v0.14.1 - 2026-05-12
+#### Bug Fixes
+- relax serde version for provider (#1000) - (72d7e2f) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.105.0 [skip ci] - (972948b) - Superposition Bot
+
+- - -
+
 ## superposition_core-v0.14.0 - 2026-04-27
 #### Bug Fixes
 - **(python)** Add missing SuperpositionDataSource implementation for LocalResolutionProvider (#966) - (c705122) - Ayush Jain
