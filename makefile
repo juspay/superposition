@@ -6,7 +6,7 @@ SHELL := /usr/bin/env bash
 FEATURES ?= ssr
 FE_FEATURES ?= hydrate
 CARGO_FLAGS := --color always --no-default-features
-EXCLUDE_PACKAGES := experimentation_client_integration_example superposition_sdk
+EXCLUDE_PACKAGES := experimentation_client_integration_example superposition_sdk superposition_mcp
 FMT_EXCLUDE_PACKAGES_REGEX := $(shell echo "$(EXCLUDE_PACKAGES)" | sed "s/ /|/g")
 LINT_FLAGS := --workspace --all-targets --all-features $(addprefix --exclude ,$(EXCLUDE_PACKAGES)) --no-deps
 COMPONENT_NAME_FLAGS :=
@@ -301,6 +301,8 @@ smithy-clients: smithy-build
 
 	rm -rf crates/superposition_mcp
 	mkdir -p crates/superposition_mcp
+	git restore crates/superposition_mcp/README.md
+	git restore crates/superposition_mcp/CHANGELOG.md
 	cp -r $(SMITHY_BUILD_SRC)/mcp-rust/*\
 				crates/superposition_mcp
 
