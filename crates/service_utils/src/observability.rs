@@ -10,7 +10,7 @@ mod middleware;
 mod saturation;
 
 pub use config::{LabelConfig, ObservabilityConfig};
-pub use health::{health_endpoint_paths, health_endpoints};
+pub use health::{configure_health_endpoints, health_endpoint_paths};
 pub use meters::HttpMeters;
 pub use metrics_server::spawn_metrics_server;
 pub use middleware::MetricsMiddleware;

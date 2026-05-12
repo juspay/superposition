@@ -230,8 +230,11 @@ async fn main() -> Result<()> {
                     view! { <App app_envs=leptos_envs.clone() /> }
                 },
             )
-            // Mount /healthz /livez /readyz (auth bypass configured via T17)
-            .service(service_utils::observability::health_endpoints())
+            // Mount /healthz /livez /readyz (auth bypass configured via T17).
+            // Registered at App root via `.configure` so they do NOT live
+            // inside a `web::scope("")` — an empty-prefix scope matches every
+            // request and would shadow downstream services with a 404.
+            .configure(service_utils::observability::configure_health_endpoints)
             .service(
                 scope(&base)
                     .route(
