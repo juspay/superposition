@@ -37,10 +37,10 @@
           "name": "smithy-mcp-traits-0.1.0.jar",
           "url": "smithy-mcp-traits-0.1.0.jar",
           "size": 5004,
-          "sha512": "dd805e1d9435298aa68521edaa234428ae959b0ff79839c2b6f6955347e0a434c48154e4cad96306da4b3aa6b68730cf77cfe7297fc45d74afed90b1eb2ba52b",
-          "sha256": "db5d1b6bc94e288f73ca0080dacf112fc3c27a9b0cde198a86295b748b64524b",
-          "sha1": "0d444ab3e7acd46d75df7637c4e76da71e90f5bb",
-          "md5": "986ed199932ef276dd7415b0adef9e32"
+          "sha512": "10382045502386ffa0218a86da4fa55b56b25c54e5c9980b44725ccbf1c97c78f631c13ea392440fd60efc4fbe8f0a0d3aaba5aabb95ba630365407fc5fe4f2c",
+          "sha256": "884bdaedfd3fb498f3aea0536f2e402340ca8d71651ec1332a15b4650bdd9c8c",
+          "sha1": "de7dc2bbc2be60af357c543b45d69357b26b387b",
+          "md5": "7792079a22cd8a51140a92b2b5f5e0d0"
         }
       ]
     },
@@ -67,10 +67,10 @@
           "name": "smithy-mcp-traits-0.1.0.jar",
           "url": "smithy-mcp-traits-0.1.0.jar",
           "size": 5004,
-          "sha512": "dd805e1d9435298aa68521edaa234428ae959b0ff79839c2b6f6955347e0a434c48154e4cad96306da4b3aa6b68730cf77cfe7297fc45d74afed90b1eb2ba52b",
-          "sha256": "db5d1b6bc94e288f73ca0080dacf112fc3c27a9b0cde198a86295b748b64524b",
-          "sha1": "0d444ab3e7acd46d75df7637c4e76da71e90f5bb",
-          "md5": "986ed199932ef276dd7415b0adef9e32"
+          "sha512": "10382045502386ffa0218a86da4fa55b56b25c54e5c9980b44725ccbf1c97c78f631c13ea392440fd60efc4fbe8f0a0d3aaba5aabb95ba630365407fc5fe4f2c",
+          "sha256": "884bdaedfd3fb498f3aea0536f2e402340ca8d71651ec1332a15b4650bdd9c8c",
+          "sha1": "de7dc2bbc2be60af357c543b45d69357b26b387b",
+          "md5": "7792079a22cd8a51140a92b2b5f5e0d0"
         }
       ]
     }

@@ -27,11 +27,11 @@
         {
           "name": "smithy-mcp-codegen-0.1.0.jar",
           "url": "smithy-mcp-codegen-0.1.0.jar",
-          "size": 25241,
-          "sha512": "37558950ef0f2cc198a2c5ef52fe9c4836aeab87ef6a9867a46edd24a093bdcb47b90190a5a7fb45d10df4c228a9fd94d95dbe161476c9d084aab723d00e8779",
-          "sha256": "5010e006bfac8f49872a5e580eb194ff8cf2ba0d222e0a24b9c3259e0cab2f45",
-          "sha1": "70fea7476a53acbe5a729cb7895346e32308b05e",
-          "md5": "fad6173cff9828d31ff14a18f953b2b4"
+          "size": 33647,
+          "sha512": "424fa15f124165111aa7e52d61aa8c3483f55c32557cae8692f80e7036ee1cfd238d9f06c545614a8eb16deec5b82695294d42918ee73b798541fbb06c85ffe1",
+          "sha256": "d273d534a28fd79071c412bbeab7f9babc43797b423a0d513698c65613275ebb",
+          "sha1": "98575cbafb2c9d3ac6d0424efd836f05ebe27dd1",
+          "md5": "f9c75284d9c6c2deadd234a4b4c55707"
         }
       ]
     },
@@ -71,11 +71,11 @@
         {
           "name": "smithy-mcp-codegen-0.1.0.jar",
           "url": "smithy-mcp-codegen-0.1.0.jar",
-          "size": 25241,
-          "sha512": "37558950ef0f2cc198a2c5ef52fe9c4836aeab87ef6a9867a46edd24a093bdcb47b90190a5a7fb45d10df4c228a9fd94d95dbe161476c9d084aab723d00e8779",
-          "sha256": "5010e006bfac8f49872a5e580eb194ff8cf2ba0d222e0a24b9c3259e0cab2f45",
-          "sha1": "70fea7476a53acbe5a729cb7895346e32308b05e",
-          "md5": "fad6173cff9828d31ff14a18f953b2b4"
+          "size": 33647,
+          "sha512": "424fa15f124165111aa7e52d61aa8c3483f55c32557cae8692f80e7036ee1cfd238d9f06c545614a8eb16deec5b82695294d42918ee73b798541fbb06c85ffe1",
+          "sha256": "d273d534a28fd79071c412bbeab7f9babc43797b423a0d513698c65613275ebb",
+          "sha1": "98575cbafb2c9d3ac6d0424efd836f05ebe27dd1",
+          "md5": "f9c75284d9c6c2deadd234a4b4c55707"
         }
       ]
     }
