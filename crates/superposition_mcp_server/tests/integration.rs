@@ -57,28 +57,9 @@ async fn tools_list_matches_smithy_annotation_count() {
     );
 }
 
-/// Verifies that an SDK call dispatched via the router carries the Authorization
-/// header set by an outer `SUPERPOSITION_AUTH.scope` — i.e. the task-local credential
-/// flows into the SDK identity resolver, into the auth signer, and out onto the wire.
-///
-/// NOTE: this test uses Basic auth rather than Bearer auth. The smithy-generated
-/// SDK lists `HTTP_BASIC_AUTH_SCHEME_ID` first in the auth-options vector for every
-/// operation (see `crates/superposition_sdk/src/operation/*.rs`), so the orchestrator
-/// always tries the basic-auth identity resolver before bearer. With a `Bearer` in
-/// the task-local the basic resolver returns `Err`, the orchestrator surfaces that
-/// as a dispatch failure, and the request never reaches the wire — i.e. with the
-/// current resolver wiring, sending an `Authorization: Bearer …` header at the MCP
-/// boundary won't currently produce a successful upstream call. This is a real
-/// concern about the auth wiring that should be addressed separately (e.g. by
-/// configuring the auth-option order at request time, or by collapsing both
-/// resolvers behind a single scheme).
-#[tokio::test]
-async fn tool_call_forwards_authorization_header_in_passthrough_mode() {
-    let server = MockServer::start().await;
-
-    // GetOrganisation -> GET /superposition/organisations/{id}. Return a complete
-    // OrganisationResponse so the SDK deserialiser is satisfied; we only care that
-    // the wire request carried the Authorization header injected via the task-local.
+/// Stand up wiremock with a `GetOrganisation` stub that asserts an authorization
+/// header is present and returns a minimal valid `OrganisationResponse`.
+async fn stub_get_organisation(server: &MockServer) {
     Mock::given(method("GET"))
         .and(path("/superposition/organisations/test-id"))
         .and(header_exists("authorization"))
@@ -96,15 +77,16 @@ async fn tool_call_forwards_authorization_header_in_passthrough_mode() {
             "updated_at": "2026-05-11T12:00:00Z",
             "updated_by": "tester"
         })))
-        .mount(&server)
+        .mount(server)
         .await;
+}
 
-    let router = router_against(&server.uri()).await;
-
-    let auth = AuthValue::Basic {
-        user: "alice".to_string(),
-        pass: SecretString::new("s3cret".to_string().into()),
-    };
+async fn call_get_organisation(
+    server_uri: &str,
+    auth: AuthValue,
+) -> serde_json::Value {
+    let server_uri = server_uri.to_string();
+    let router = router_against(&server_uri).await;
     let result = SUPERPOSITION_AUTH
         .scope(auth, async {
             router
@@ -112,13 +94,23 @@ async fn tool_call_forwards_authorization_header_in_passthrough_mode() {
                 .await
         })
         .await;
+    result.expect("tool call succeeded")
+}
 
-    let value = result.expect("tool call succeeded");
+/// Verifies Basic-auth credentials in the task-local flow through to the wire.
+#[tokio::test]
+async fn passthrough_basic_auth_reaches_the_wire() {
+    let server = MockServer::start().await;
+    stub_get_organisation(&server).await;
+
+    let auth = AuthValue::Basic {
+        user: "alice".to_string(),
+        pass: SecretString::new("s3cret".to_string().into()),
+    };
+    let value = call_get_organisation(&server.uri(), auth).await;
     assert_eq!(value["id"], json!("test-id"));
-    assert_eq!(value["name"], json!("Test Org"));
 
     let received = server.received_requests().await.expect("received_requests");
-    assert!(!received.is_empty(), "wiremock should have recorded a request");
     let auth_header = received[0]
         .headers
         .get("authorization")
@@ -127,4 +119,32 @@ async fn tool_call_forwards_authorization_header_in_passthrough_mode() {
         .unwrap();
     // base64("alice:s3cret") == "YWxpY2U6czNjcmV0"
     assert_eq!(auth_header, "Basic YWxpY2U6czNjcmV0");
+}
+
+/// Verifies Bearer-token credentials in the task-local flow through to the wire.
+///
+/// Regression test: previously, the smithy-generated SDK listed
+/// `HTTP_BASIC_AUTH_SCHEME_ID` first in every operation's auth-options vector,
+/// and the orchestrator does not fall back to subsequent schemes when the first
+/// resolver returns `Err`. So a `Bearer` value in the task-local hit
+/// `BasicResolver` first, errored, and never reached the wire. Fixed by
+/// installing a `TaskLocalAuthSchemeResolver` that picks the scheme per request
+/// based on the credential variant in `SUPERPOSITION_AUTH`.
+#[tokio::test]
+async fn passthrough_bearer_auth_reaches_the_wire() {
+    let server = MockServer::start().await;
+    stub_get_organisation(&server).await;
+
+    let auth = AuthValue::Bearer(SecretString::new("tok-abc".to_string().into()));
+    let value = call_get_organisation(&server.uri(), auth).await;
+    assert_eq!(value["id"], json!("test-id"));
+
+    let received = server.received_requests().await.expect("received_requests");
+    let auth_header = received[0]
+        .headers
+        .get("authorization")
+        .expect("authorization header present")
+        .to_str()
+        .unwrap();
+    assert_eq!(auth_header, "Bearer tok-abc");
 }

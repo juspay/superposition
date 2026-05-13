@@ -10,15 +10,13 @@ pub fn inject_defaults(params: Value, defaults: &Defaults) -> Value {
     let Value::Object(mut obj) = params else {
         return params;
     };
-    if !obj.contains_key("workspace_id") {
-        if let Some(w) = defaults.workspace_id.as_ref() {
-            obj.insert("workspace_id".to_string(), Value::String(w.clone()));
-        }
+    if let Some(w) = defaults.workspace_id.as_ref() {
+        obj.entry("workspace_id".to_string())
+            .or_insert_with(|| Value::String(w.clone()));
     }
-    if !obj.contains_key("org_id") {
-        if let Some(o) = defaults.org_id.as_ref() {
-            obj.insert("org_id".to_string(), Value::String(o.clone()));
-        }
+    if let Some(o) = defaults.org_id.as_ref() {
+        obj.entry("org_id".to_string())
+            .or_insert_with(|| Value::String(o.clone()));
     }
     Value::Object(obj)
 }

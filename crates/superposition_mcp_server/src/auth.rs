@@ -150,6 +150,121 @@ pub fn shared_basic(fallback: Option<(String, SecretString)>) -> SharedIdentityR
     SharedIdentityResolver::new(BasicResolver { fallback })
 }
 
+// ---------- Auth scheme option resolver ----------
+//
+// The smithy-rs SDK lists `HTTP_BASIC_AUTH_SCHEME_ID` first in every operation's
+// auth-options vector (see `superposition_sdk::auth_plugin::DefaultAuthOptionsPlugin`).
+// The orchestrator picks the first scheme whose identity resolver succeeds and does
+// not fall back to a later option if the first one fails. That means a client sending
+// `Authorization: Bearer …` would hit `BasicResolver` first, get an error, and never
+// reach the bearer path.
+//
+// Fix: install a runtime plugin that overrides the default static resolver with one
+// that consults `SUPERPOSITION_AUTH` at request time and returns the single scheme
+// that matches the credential variant. The orchestrator then drives only the matching
+// identity resolver.
+
+use std::borrow::Cow;
+
+use aws_smithy_runtime_api::client::auth::{
+    http::{HTTP_BASIC_AUTH_SCHEME_ID, HTTP_BEARER_AUTH_SCHEME_ID},
+    AuthSchemeId, AuthSchemeOptionResolverParams, ResolveAuthSchemeOptions,
+};
+use aws_smithy_runtime_api::client::runtime_components::RuntimeComponentsBuilder;
+use aws_smithy_runtime_api::client::runtime_plugin::{Order, RuntimePlugin};
+
+/// Auth scheme picked when the per-request `SUPERPOSITION_AUTH` task-local is
+/// unset. Drawn from the static-credential variant configured at startup
+/// (stdio mode, or HTTP + `--allow-static-auth` with a fallback). When `None`,
+/// the resolver fails the request — appropriate for HTTP passthrough mode
+/// where the caller must supply credentials per request.
+#[derive(Debug, Clone, Copy)]
+pub enum FallbackScheme {
+    Bearer,
+    Basic,
+}
+
+impl FallbackScheme {
+    fn id(self) -> AuthSchemeId {
+        match self {
+            FallbackScheme::Bearer => HTTP_BEARER_AUTH_SCHEME_ID,
+            FallbackScheme::Basic => HTTP_BASIC_AUTH_SCHEME_ID,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct TaskLocalAuthSchemeResolver {
+    fallback: Option<FallbackScheme>,
+    cached_bearer: Vec<AuthSchemeId>,
+    cached_basic: Vec<AuthSchemeId>,
+}
+
+impl TaskLocalAuthSchemeResolver {
+    pub fn new(fallback: Option<FallbackScheme>) -> Self {
+        Self {
+            fallback,
+            cached_bearer: vec![HTTP_BEARER_AUTH_SCHEME_ID],
+            cached_basic: vec![HTTP_BASIC_AUTH_SCHEME_ID],
+        }
+    }
+
+    fn options_for(&self, scheme: AuthSchemeId) -> &[AuthSchemeId] {
+        if scheme == HTTP_BEARER_AUTH_SCHEME_ID {
+            &self.cached_bearer
+        } else {
+            &self.cached_basic
+        }
+    }
+}
+
+impl ResolveAuthSchemeOptions for TaskLocalAuthSchemeResolver {
+    fn resolve_auth_scheme_options(
+        &self,
+        _params: &AuthSchemeOptionResolverParams,
+    ) -> Result<Cow<'_, [AuthSchemeId]>, aws_smithy_runtime_api::box_error::BoxError> {
+        let scheme = SUPERPOSITION_AUTH
+            .try_with(|v| match v {
+                AuthValue::Bearer(_) => HTTP_BEARER_AUTH_SCHEME_ID,
+                AuthValue::Basic { .. } => HTTP_BASIC_AUTH_SCHEME_ID,
+            })
+            .ok()
+            .or_else(|| self.fallback.map(FallbackScheme::id))
+            .ok_or("no Authorization header and no static fallback configured")?;
+        Ok(Cow::Borrowed(self.options_for(scheme)))
+    }
+}
+
+/// A runtime plugin that overrides the SDK's default static auth-scheme-option
+/// resolver with one that picks the scheme per-request from `SUPERPOSITION_AUTH`.
+#[derive(Debug)]
+pub struct TaskLocalAuthSchemePlugin {
+    runtime_components: RuntimeComponentsBuilder,
+}
+
+impl TaskLocalAuthSchemePlugin {
+    pub fn new(fallback: Option<FallbackScheme>) -> Self {
+        Self {
+            runtime_components: RuntimeComponentsBuilder::new("task_local_auth_scheme")
+                .with_auth_scheme_option_resolver(Some(TaskLocalAuthSchemeResolver::new(fallback))),
+        }
+    }
+}
+
+impl RuntimePlugin for TaskLocalAuthSchemePlugin {
+    fn order(&self) -> Order {
+        // Override the default scheme resolver installed by the smithy-rs codegen.
+        Order::Overrides
+    }
+
+    fn runtime_components(
+        &self,
+        _current_components: &RuntimeComponentsBuilder,
+    ) -> Cow<'_, RuntimeComponentsBuilder> {
+        Cow::Borrowed(&self.runtime_components)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -18,7 +18,7 @@ path = "src/main.rs"
 [dependencies]
 superposition_mcp = { path = "../superposition_mcp" }
 superposition_sdk = { path = "../superposition_sdk" }
-smithy-mcp-runtime = { git = "https://github.com/juspay/smithy-mcp-generator.git", rev = "522aa2462447f66ef8434eb2b846d121aed014ad", features = ["stdio", "http"] }
+smithy-mcp-runtime = { git = "https://github.com/juspay/smithy-mcp-generator.git", rev = "6ec7445755c1410c052947f00eef1dd65011aadc", features = ["stdio", "http"] }
 
 aws-smithy-runtime-api = "1.7.4"
 aws-smithy-types = "1.3.0"

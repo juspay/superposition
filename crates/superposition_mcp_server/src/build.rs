@@ -4,7 +4,7 @@ use smithy_mcp_runtime::Router;
 use superposition_mcp::tools;
 use superposition_sdk::{config::Builder, Client};
 
-use crate::auth::{shared_basic, shared_bearer};
+use crate::auth::{shared_basic, shared_bearer, FallbackScheme, TaskLocalAuthSchemePlugin};
 use crate::config::{Config, Defaults, Mode, StaticCreds};
 use crate::dispatch;
 
@@ -34,6 +34,16 @@ where
         _ => None,
     };
 
+    // The fallback scheme is the auth scheme used when the per-request
+    // `SUPERPOSITION_AUTH` task-local is unset — i.e., stdio mode (where the
+    // task-local is set process-wide from env creds) and HTTP + `--allow-static-auth`
+    // when no `Authorization` header is supplied. The scheme is derived from
+    // which credential variant the operator configured.
+    let fallback_scheme = cfg.creds.as_ref().map(|c| match c {
+        StaticCreds::Bearer(_) => FallbackScheme::Bearer,
+        StaticCreds::Basic { .. } => FallbackScheme::Basic,
+    });
+
     let bearer = shared_bearer(bearer_fallback);
     let basic = shared_basic(basic_fallback);
 
@@ -41,7 +51,8 @@ where
         .behavior_version_latest()
         .endpoint_url(&cfg.endpoint)
         .bearer_token_resolver(bearer)
-        .basic_auth_login_resolver(basic);
+        .basic_auth_login_resolver(basic)
+        .runtime_plugin(TaskLocalAuthSchemePlugin::new(fallback_scheme));
 
     Client::from_conf(customise(builder).build())
 }
