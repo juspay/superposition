@@ -16,21 +16,17 @@ use log::warn;
 use once_cell::sync::Lazy;
 use regex::Regex;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
-use secrecy::ExposeSecret;
 use serde::Serialize;
-use superposition_macros::unexpected_error;
 use superposition_types::{
     DBConnection, DimensionInfo, Resource,
-    api::webhook::{Action, HeadersEnum, WebhookEventInfo, WebhookResponse},
+    api::webhook::{Action, WebhookEventInfo, WebhookResponse},
     database::{
         models::{
             Workspace,
-            others::{CustomHeaders, HttpMethod, Webhook, WebhookEvent},
+            others::{Webhook, WebhookEvent},
         },
         schema::{
             dimensions::{self, dimension},
-            secrets::dsl as secrets_dsl,
-            variables::dsl as variables_dsl,
             webhooks::{self, dsl::webhooks as webhook_dsl},
         },
         superposition_schema::superposition::workspaces,
@@ -39,16 +35,9 @@ use superposition_types::{
 };
 
 use crate::{
-    encryption::{EncryptionError, decrypt_secret, decrypt_workspace_key},
+    kronos_dispatch::submit_webhook_job,
     service::types::{AppState, SchemaName, WorkspaceContext},
 };
-
-// using named group to capture which type (secrets/variables) the regex was
-// because variables and secrets need to be handled differently inside webhook execution
-static CONFIG_REFERENCE_REGEX: Lazy<regex::Regex> = Lazy::new(|| {
-    regex::Regex::new(r"\{\{(?P<type>VARS|SECRETS)\.(?P<name>[A-Z0-9_]+)\}\}")
-        .expect("Invalid config pattern")
-});
 
 const CONFIG_TAG_REGEX: &str = "^[a-zA-Z0-9_-]{1,64}$";
 
@@ -215,106 +204,6 @@ pub fn get_workspace(
         .get_result::<Workspace>(db_conn)
 }
 
-fn has_pattern_in_headers(headers: &CustomHeaders) -> (bool, bool) {
-    let mut has_vars = false;
-    let mut has_secrets = false;
-    for value in headers.values() {
-        let ref_type = value
-            .as_str()
-            .and_then(|s| CONFIG_REFERENCE_REGEX.captures(s))
-            .and_then(|caps| caps.name("type"))
-            .map(|m| m.as_str());
-
-        match ref_type {
-            Some("VARS") => has_vars = true,
-            Some("SECRETS") => has_secrets = true,
-            _ => (),
-        }
-    }
-    (has_vars, has_secrets)
-}
-
-fn substitute_templates(
-    template: &str,
-    variables: &HashMap<String, String>,
-    secrets: &HashMap<String, String>,
-) -> String {
-    CONFIG_REFERENCE_REGEX
-        .replace(template, |caps: &regex::Captures| {
-            let ref_type = caps.name("type").map(|m| m.as_str());
-            let ref_name = caps.name("name").map(|m| m.as_str());
-
-            match (ref_type, ref_name) {
-                (Some("VARS"), Some(name)) => variables.get(name).cloned(),
-                (Some("SECRETS"), Some(name)) => secrets.get(name).cloned(),
-                _ => None,
-            }
-            .unwrap_or(template.to_string())
-        })
-        .into_owned()
-}
-
-fn fetch_variables(
-    workspace_context: &WorkspaceContext,
-    conn: &mut DBConnection,
-) -> result::Result<HashMap<String, String>> {
-    let variables_map = variables_dsl::variables
-        .select((variables_dsl::name, variables_dsl::value))
-        .schema_name(&workspace_context.schema_name)
-        .load(conn)?
-        .into_iter()
-        .collect();
-
-    Ok(variables_map)
-}
-
-fn fetch_secrets(
-    workspace_context: &WorkspaceContext,
-    state: &Data<AppState>,
-    conn: &mut DBConnection,
-) -> result::Result<HashMap<String, String>> {
-    let encryption_key = workspace_context.settings.encryption_key.as_str();
-
-    let master_encryption_key = match state.master_encryption_key {
-        Some(ref key) => key,
-        None => {
-            log::warn!("Master encryption key not configured, skipping secrets");
-            return Ok(HashMap::new());
-        }
-    };
-
-    let workspace_key = match decrypt_workspace_key(encryption_key, master_encryption_key)
-    {
-        Ok(key) => key,
-        Err(e) => {
-            log::error!("Failed to decrypt workspace key: {}", e);
-            return Err(unexpected_error!("Failed to decrypt workspace key"));
-        }
-    };
-
-    let db_secrets: Vec<(String, String)> = secrets_dsl::secrets
-        .schema_name(&workspace_context.schema_name)
-        .select((secrets_dsl::name, secrets_dsl::encrypted_value))
-        .load(conn)
-        .map_err(|e| {
-            log::error!("Failed to load secrets: {}", e);
-            unexpected_error!("Failed to load secrets")
-        })?;
-
-    let result: Result<HashMap<String, String>, EncryptionError> = db_secrets
-        .into_iter()
-        .map(|(name, encrypted_value)| {
-            decrypt_secret(&encrypted_value, &workspace_key)
-                .map(|decrypted| (name, decrypted.expose_secret().to_string()))
-        })
-        .collect();
-
-    result.map_err(|e| {
-        log::error!("Failed to decrypt secrets: {}", e);
-        unexpected_error!("Failed to decrypt secrets")
-    })
-}
-
 pub struct WebhookData<T> {
     pub payload: T,
     pub resource: Resource,
@@ -339,6 +228,7 @@ where
         config_version_opt,
         payload,
     } = data;
+
     let webhook = match webhook_dsl
         .filter(webhooks::events.contains(vec![event]))
         .schema_name(&workspace_context.schema_name)
@@ -355,110 +245,66 @@ where
             return false;
         }
     };
+
     if !webhook.enabled {
         log::info!("Webhook is disabled, skipping call");
         return true;
     }
 
-    let (has_vars, has_secrets) = has_pattern_in_headers(&webhook.custom_headers);
-
-    let variables = if has_vars {
-        match fetch_variables(workspace_context, conn) {
-            Ok(vars_map) => vars_map,
-            Err(e) => {
-                log::error!("Failed to fetch variables for webhook: {}", e);
-                return false;
-            }
-        }
-    } else {
-        HashMap::new()
+    let webhook_response = WebhookResponse {
+        event_info: WebhookEventInfo {
+            webhook_event: event,
+            resource,
+            action,
+            time: Utc::now().to_string(),
+            workspace_id: workspace_context.workspace_id.to_string(),
+            organisation_id: workspace_context.organisation_id.to_string(),
+            config_version: config_version_opt,
+        },
+        payload,
     };
 
-    let secrets = if has_secrets {
-        match fetch_secrets(workspace_context, state, conn) {
-            Ok(secrets_map) => secrets_map,
-            Err(e) => {
-                log::error!("Failed to fetch secrets for webhook: {}", e);
-                return false;
-            }
-        }
-    } else {
-        HashMap::new()
-    };
-
-    let mut headers = HeaderMap::new();
-
-    let insert_header = |headers: &mut HeaderMap, name: &str, value: &str| {
-        if let (Ok(k), Ok(v)) = (HeaderName::from_str(name), HeaderValue::from_str(value))
-        {
-            headers.insert(k, v);
-        }
-    };
-
-    insert_header(
-        &mut headers,
-        &HeadersEnum::ConfigVersion.to_string(),
-        &config_version_opt.clone().unwrap_or_default(),
+    // Idempotency key: SP schema + webhook_name + event type + millisecond timestamp.
+    // The schema prefix namespaces keys across SP workspaces, which all share one Kronos
+    // workspace in service mode. Ensures each trigger attempt gets a unique job while
+    // allowing dedup on retries.
+    let idempotency_key = format!(
+        "{}_{}_{}_{}",
+        *workspace_context.schema_name,
+        webhook.name,
+        event,
+        Utc::now().timestamp_millis()
     );
-    insert_header(
-        &mut headers,
-        &HeadersEnum::WorkspaceId.to_string(),
+
+    // Service mode: all SP schemas share one Kronos workspace. Library mode: target the SP
+    // schema directly.
+    let target_workspace = state
+        .kronos_workspace
+        .clone()
+        .unwrap_or_else(|| workspace_context.schema_name.to_string());
+
+    match submit_webhook_job(
+        state.kronos_client.as_ref(),
+        &target_workspace,
+        &workspace_context.organisation_id,
         &workspace_context.workspace_id,
-    );
-
-    for (key, value) in webhook.custom_headers.iter() {
-        let value_str = value
-            .as_str()
-            .map(String::from)
-            .unwrap_or_else(|| value.to_string());
-        let rendered = substitute_templates(&value_str, &variables, &secrets);
-        insert_header(&mut headers, key, &rendered);
-    }
-
-    let request_builder = match webhook.method {
-        HttpMethod::Post => state.http_client.post(&*webhook.url),
-        HttpMethod::Get => state.http_client.get(&*webhook.url),
-        HttpMethod::Put => state.http_client.put(&*webhook.url),
-        HttpMethod::Delete => state.http_client.delete(&*webhook.url),
-        HttpMethod::Patch => state.http_client.patch(&*webhook.url),
-        HttpMethod::Head => state.http_client.head(&*webhook.url),
-    };
-
-    let request_builder =
-        if webhook.method != HttpMethod::Get && webhook.method != HttpMethod::Head {
-            headers.insert(
-                reqwest::header::CONTENT_TYPE,
-                HeaderValue::from_static("application/json"),
+        &webhook.name,
+        &webhook_response,
+        &idempotency_key,
+        webhook.max_retries,
+    )
+    .await
+    {
+        Ok(execution_id) => {
+            log::info!(
+                "Webhook job submitted: webhook='{}' execution_id='{}'",
+                webhook.name,
+                execution_id
             );
-            request_builder.json(&WebhookResponse {
-                event_info: WebhookEventInfo {
-                    webhook_event: event,
-                    resource,
-                    action,
-                    time: Utc::now().to_string(),
-                    workspace_id: workspace_context.workspace_id.to_string(),
-                    organisation_id: workspace_context.organisation_id.to_string(),
-                    config_version: config_version_opt,
-                },
-                payload,
-            })
-        } else {
-            request_builder
-        };
-
-    let response = request_builder.headers(headers).send().await;
-
-    match response {
-        Ok(res) if res.status().is_success() => {
-            log::info!("webhook call succeeded: {:?}", res.status());
             true
         }
-        Ok(res) => {
-            log::error!("Webhook failed: {:?} - {:?}", res.status(), res.headers());
-            false
-        }
-        Err(err) => {
-            log::error!("Webhook call failed: {:?}", err);
+        Err(e) => {
+            log::error!("Failed to submit webhook job for '{}': {}", webhook.name, e);
             false
         }
     }

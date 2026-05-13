@@ -25,6 +25,7 @@ pub struct CreateWebhookRequest {
     pub payload_version: Option<PayloadVersion>,
     pub custom_headers: Option<CustomHeaders>,
     pub events: Vec<WebhookEvent>,
+    pub max_retries: Option<i32>,
     pub change_reason: ChangeReason,
 }
 
@@ -39,6 +40,7 @@ pub struct UpdateWebhookRequest {
     pub payload_version: Option<PayloadVersion>,
     pub custom_headers: Option<CustomHeaders>,
     pub events: Option<Vec<WebhookEvent>>,
+    pub max_retries: Option<i32>,
     pub change_reason: ChangeReason,
 }
 

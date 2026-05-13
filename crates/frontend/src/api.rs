@@ -839,6 +839,7 @@ pub async fn create_webhook(
     payload_version: PayloadVersion,
     custom_headers: CustomHeaders,
     events: Vec<WebhookEvent>,
+    max_retries: i32,
     change_reason: String,
     workspace: &str,
     org_id: &str,
@@ -852,6 +853,7 @@ pub async fn create_webhook(
         payload_version: Some(payload_version),
         custom_headers: Some(custom_headers),
         events,
+        max_retries: Some(max_retries),
         change_reason: ChangeReason::try_from(change_reason)?,
     };
     let host = use_host_server();

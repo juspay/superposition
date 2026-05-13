@@ -1,5 +1,6 @@
 #![deny(unused_crate_dependencies)]
 mod app_state;
+mod dispatch;
 mod log_span;
 mod organisation;
 mod resolve;
@@ -163,7 +164,7 @@ async fn main() -> Result<()> {
         _ => Some(kms::new_client().await),
     };
 
-    let app_state = Data::new(
+    let (app_state_inner, kronos_worker_handle, kronos_shutdown_timeout_sec) =
         app_state::get(
             app_env,
             cac_port,
@@ -171,8 +172,8 @@ async fn main() -> Result<()> {
             service_prefix_str.to_owned(),
             &base,
         )
-        .await,
-    );
+        .await;
+    let app_state = Data::new(app_state_inner);
 
     // --- Step 2: Register saturation observers ---
     // app_state.db_pool is PgSchemaConnectionPool (= Pool<ConnectionManager<PgConnection>>),
@@ -367,6 +368,16 @@ async fn main() -> Result<()> {
         });
     }
     main_server.await?;
+
+    if let Some(handle) = kronos_worker_handle {
+        handle.shutdown();
+        let _ = tokio::time::timeout(
+            Duration::from_secs(kronos_shutdown_timeout_sec + 5),
+            handle.join(),
+        )
+        .await;
+    }
+
     Ok(())
 }
 
@@ -451,6 +462,11 @@ impl ScopeExt for Scope {
             scope("/secrets")
                 .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                 .service(secrets::endpoints()),
+        )
+        .service(
+            scope("/dispatch")
+                .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                .service(dispatch::endpoints()),
         )
     }
 

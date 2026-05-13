@@ -219,6 +219,7 @@ pub fn Webhook() -> impl IntoView {
                                         custom_headers=webhook_st
                                             .with_value(|w| w.custom_headers.clone())
                                         events=webhook_st.with_value(|w| w.events.clone())
+                                        max_retries=webhook_st.with_value(|w| w.max_retries)
                                         handle_submit=move |_| {
                                             webhook_resource.refetch();
                                             action_rws.set(Action::None);
