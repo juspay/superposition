@@ -77,6 +77,79 @@ impl From<crate::config::StaticCreds> for AuthValue {
     }
 }
 
+use aws_smithy_runtime_api::client::identity::{
+    http::{Login, Token},
+    Identity, IdentityFuture, ResolveIdentity, SharedIdentityResolver,
+};
+use aws_smithy_runtime_api::client::runtime_components::RuntimeComponents;
+use aws_smithy_types::config_bag::ConfigBag;
+
+/// Resolves bearer-token identity from the task-local, falling back to a static value if provided.
+#[derive(Debug)]
+pub struct BearerResolver {
+    pub fallback: Option<SecretString>,
+}
+
+impl ResolveIdentity for BearerResolver {
+    fn resolve_identity<'a>(
+        &'a self,
+        _runtime_components: &'a RuntimeComponents,
+        _config_bag: &'a ConfigBag,
+    ) -> IdentityFuture<'a> {
+        IdentityFuture::ready({
+            let token = SUPERPOSITION_AUTH
+                .try_with(|v| v.bearer().map(|s| s.to_string()))
+                .ok()
+                .flatten()
+                .or_else(|| self.fallback.as_ref().map(|s| s.expose_secret().to_string()));
+
+            match token {
+                Some(t) => Ok(Identity::new(Token::new(t, None), None)),
+                None => Err("no bearer credential in task-local or fallback".into()),
+            }
+        })
+    }
+}
+
+/// Resolves basic-auth identity from the task-local, falling back to a static value if provided.
+#[derive(Debug)]
+pub struct BasicResolver {
+    pub fallback: Option<(String, SecretString)>,
+}
+
+impl ResolveIdentity for BasicResolver {
+    fn resolve_identity<'a>(
+        &'a self,
+        _runtime_components: &'a RuntimeComponents,
+        _config_bag: &'a ConfigBag,
+    ) -> IdentityFuture<'a> {
+        IdentityFuture::ready({
+            let login = SUPERPOSITION_AUTH
+                .try_with(|v| v.basic().map(|(u, p)| (u.to_string(), p.to_string())))
+                .ok()
+                .flatten()
+                .or_else(|| {
+                    self.fallback
+                        .as_ref()
+                        .map(|(u, p)| (u.clone(), p.expose_secret().to_string()))
+                });
+
+            match login {
+                Some((u, p)) => Ok(Identity::new(Login::new(u, p, None), None)),
+                None => Err("no basic credential in task-local or fallback".into()),
+            }
+        })
+    }
+}
+
+pub fn shared_bearer(fallback: Option<SecretString>) -> SharedIdentityResolver {
+    SharedIdentityResolver::new(BearerResolver { fallback })
+}
+
+pub fn shared_basic(fallback: Option<(String, SecretString)>) -> SharedIdentityResolver {
+    SharedIdentityResolver::new(BasicResolver { fallback })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
