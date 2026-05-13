@@ -7,6 +7,10 @@ homepage.workspace = true
 repository = "https://github.com/juspay/superposition"
 description = "MCP server binary exposing the superposition API as tools"
 
+[lib]
+name = "superposition_mcp_server"
+path = "src/lib.rs"
+
 [[bin]]
 name = "superposition-mcp"
 path = "src/main.rs"
@@ -37,3 +41,4 @@ base64 = { workspace = true }
 
 [dev-dependencies]
 wiremock = "0.6"
+aws-smithy-http-client = { version = "1", features = ["default-client"] }
