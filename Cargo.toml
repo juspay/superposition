@@ -21,6 +21,7 @@ members = [
     "crates/superposition_types",
     "crates/superposition_macros",
     "crates/superposition_mcp",
+    "crates/superposition_mcp_server",
     "crates/superposition_derives",
     "crates/superposition_core",
     "crates/superposition_provider",

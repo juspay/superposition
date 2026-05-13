@@ -1,0 +1,39 @@
+[package]
+name = "superposition_mcp_server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository = "https://github.com/juspay/superposition"
+description = "MCP server binary exposing the superposition API as tools"
+
+[[bin]]
+name = "superposition-mcp"
+path = "src/main.rs"
+
+[dependencies]
+superposition_mcp = { path = "../superposition_mcp" }
+superposition_sdk = { path = "../superposition_sdk" }
+smithy-mcp-runtime = { git = "https://github.com/juspay/smithy-mcp-generator.git", rev = "522aa2462447f66ef8434eb2b846d121aed014ad", features = ["stdio", "http"] }
+
+aws-smithy-runtime-api = "1.7.4"
+aws-smithy-types = "1.3.0"
+
+anyhow = { workspace = true }
+async-trait = "0.1"
+clap = { version = "4", features = ["derive", "env"] }
+rmcp = { version = "1.2", features = ["server", "transport-streamable-http-server"] }
+secrecy = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = "1.0.57"
+tokio = { version = "1", features = ["full"] }
+tower = "0.5"
+tracing = { workspace = true }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+axum = "0.7"
+http = "1"
+base64 = { workspace = true }
+
+[dev-dependencies]
+wiremock = "0.6"
