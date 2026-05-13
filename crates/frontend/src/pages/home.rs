@@ -276,7 +276,7 @@ pub fn Home() -> impl IntoView {
             .unwrap_or_default();
             logging::log!("resolved config {:#?}", config);
             // unstrike those that we want to show the user
-            // if metadata field is found, unstrike only that override
+            // if metadata field is found, unstrike only the applied overrides
             match config.remove("metadata") {
                 Some(Value::Array(metadata)) => {
                     if metadata.is_empty() {
@@ -298,9 +298,41 @@ pub fn Home() -> impl IntoView {
                             });
                     }
                 }
+                Some(Value::Object(metadata)) => {
+                    let mut override_ids: Vec<String> = Vec::new();
+                    for history in metadata.values() {
+                        let Some(entries) = history.as_array() else {
+                            continue;
+                        };
+
+                        for entry in entries {
+                            let Some(override_id) = entry
+                                .get("override_id")
+                                .and_then(Value::as_str)
+                                .map(ToOwned::to_owned)
+                            else {
+                                continue;
+                            };
+
+                            if !override_ids.contains(&override_id) {
+                                override_ids.push(override_id);
+                            }
+                        }
+                    }
+
+                    if override_ids.is_empty() {
+                        logging::log!("unstrike default config");
+                        unstrike(&String::new(), &config);
+                    }
+
+                    for override_id in override_ids {
+                        logging::log!("unstrike {:#?}", override_id);
+                        unstrike(&override_id, &config);
+                    }
+                }
                 _ => {
                     logging::log!(
-                        "no metadata recieved, default config is the config to be used"
+                        "no metadata received, default config is the config to be used"
                     );
                 }
             }
