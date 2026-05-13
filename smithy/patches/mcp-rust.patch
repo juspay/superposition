@@ -13,7 +13,7 @@ diff --git a/crates/superposition_mcp/Cargo.toml b/crates/superposition_mcp/Carg
 
  [dependencies]
 -smithy-mcp-runtime = "0.1.0"
-+smithy-mcp-runtime = { git = "https://github.com/juspay/smithy-mcp-generator.git", rev = "23080286d1a0ac0243085cba3bd22c55c74e0da3", features = ["stdio", "http"] }
++smithy-mcp-runtime = { git = "https://github.com/juspay/smithy-mcp-generator.git", rev = "522aa2462447f66ef8434eb2b846d121aed014ad", features = ["stdio", "http"] }
  superposition_sdk = { path = "../superposition_sdk" }
  serde = { version = "1", features = ["derive"] }
  serde_json = "1"
