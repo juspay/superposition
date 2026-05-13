@@ -1,6 +1,7 @@
 mod auth;
 mod config;
 mod dispatch;
+mod transport_http;
 
 use std::sync::Arc;
 
@@ -211,8 +212,13 @@ async fn main() -> anyhow::Result<()> {
 
     match (mode, cli.http.as_deref()) {
         (Mode::Stdio, _) => stdio_serve(cfg, router).await,
-        (Mode::HttpPassthrough, Some(_)) | (Mode::HttpWithStaticFallback, Some(_)) => {
-            unimplemented!("HTTP transport — see Task 12");
+        (Mode::HttpPassthrough, Some(addr)) | (Mode::HttpWithStaticFallback, Some(addr)) => {
+            let socket_addr: std::net::SocketAddr = addr
+                .parse()
+                .map_err(|e| anyhow::anyhow!("invalid --http address {}: {}", addr, e))?;
+            let static_fallback: Option<crate::auth::AuthValue> =
+                cfg.creds.clone().map(Into::into);
+            transport_http::serve(socket_addr, mode, static_fallback, router).await
         }
         _ => unreachable!(),
     }
