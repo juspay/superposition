@@ -12,9 +12,8 @@ use opentelemetry::{KeyValue, metrics::Meter};
 /// Using an explicit expansion here so the observability subsystem does not
 /// take a hard dep on `crate::db` — callers pass the handle in via
 /// `SaturationDeps`.
-pub type DbPoolHandle = Arc<
-    diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<diesel::PgConnection>>,
->;
+pub type DbPoolHandle =
+    Arc<diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<diesel::PgConnection>>>;
 
 pub fn register(meter: &Meter, pool: DbPoolHandle, pool_name: &'static str) {
     let pool_for_usage = pool.clone();
@@ -27,17 +26,11 @@ pub fn register(meter: &Meter, pool: DbPoolHandle, pool_name: &'static str) {
             let used = s.connections.saturating_sub(s.idle_connections);
             observer.observe(
                 s.idle_connections as u64,
-                &[
-                    KeyValue::new("state", "idle"),
-                    usage_pool_name.clone(),
-                ],
+                &[KeyValue::new("state", "idle"), usage_pool_name.clone()],
             );
             observer.observe(
                 used as u64,
-                &[
-                    KeyValue::new("state", "used"),
-                    usage_pool_name.clone(),
-                ],
+                &[KeyValue::new("state", "used"), usage_pool_name.clone()],
             );
         })
         .build();

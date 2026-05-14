@@ -98,7 +98,10 @@ pub(crate) fn build_attributes(
     let mut attrs = Vec::with_capacity(5);
     attrs.push(KeyValue::new("http.request.method", method));
     attrs.push(KeyValue::new("http.route", route.to_owned()));
-    attrs.push(KeyValue::new("http.response.status_code", status_code as i64));
+    attrs.push(KeyValue::new(
+        "http.response.status_code",
+        status_code as i64,
+    ));
     if label_cfg.with_org_label {
         if let Some(o) = org_id {
             attrs.push(KeyValue::new("sp.org_id", o.to_owned()));
@@ -134,10 +137,8 @@ impl InFlightGuard {
 
     pub(crate) fn release(&self) {
         if !self.decremented.swap(true, Ordering::Relaxed) {
-            self.counter.add(
-                -1,
-                &[KeyValue::new("http.request.method", self.method)],
-            );
+            self.counter
+                .add(-1, &[KeyValue::new("http.request.method", self.method)]);
         }
     }
 }
@@ -156,7 +157,10 @@ pub struct MetricsMiddleware {
 
 impl MetricsMiddleware {
     pub fn new(meter: &Meter, label_cfg: LabelConfig) -> Self {
-        Self { meters: HttpMeters::new(meter), label_cfg }
+        Self {
+            meters: HttpMeters::new(meter),
+            label_cfg,
+        }
     }
 }
 
@@ -206,7 +210,8 @@ where
 
         let method_normalized = normalize_method(req.method());
         let start = Instant::now();
-        let guard = InFlightGuard::enter(meters.active_requests.clone(), method_normalized);
+        let guard =
+            InFlightGuard::enter(meters.active_requests.clone(), method_normalized);
 
         Box::pin(async move {
             let result = service.call(req).await;
@@ -217,12 +222,8 @@ where
                     let route = extract_route_from_response(&res);
                     let status = res.status().as_u16();
                     let extensions = res.request().extensions();
-                    let org = extensions
-                        .get::<OrganisationId>()
-                        .map(|o| o.0.clone());
-                    let ws = extensions
-                        .get::<WorkspaceId>()
-                        .map(|w| w.0.clone());
+                    let org = extensions.get::<OrganisationId>().map(|o| o.0.clone());
+                    let ws = extensions.get::<WorkspaceId>().map(|w| w.0.clone());
                     drop(extensions);
 
                     let attrs = build_attributes(
@@ -311,14 +312,14 @@ mod tests {
 
     #[actix_web::test]
     async fn matched_route_returns_pattern() {
-        let app = actix_test::init_service(
-            App::new().route(
-                "/contexts/{id}",
-                web::get().to(|| async { HttpResponse::Ok() }),
-            ),
-        )
+        let app = actix_test::init_service(App::new().route(
+            "/contexts/{id}",
+            web::get().to(|| async { HttpResponse::Ok() }),
+        ))
         .await;
-        let req = actix_test::TestRequest::get().uri("/contexts/abc123").to_request();
+        let req = actix_test::TestRequest::get()
+            .uri("/contexts/abc123")
+            .to_request();
         let resp = actix_test::call_service(&app, req).await;
         assert_eq!(resp.status(), StatusCode::OK);
         // Note: extract_route is exercised in the integration test in Task 19
@@ -330,8 +331,18 @@ mod tests {
 
     #[test]
     fn build_attributes_with_all_labels() {
-        let cfg = LabelConfig { with_org_label: true, with_workspace_label: true };
-        let attrs = build_attributes("GET", "/contexts/{id}", 200, Some("org1"), Some("ws1"), &cfg);
+        let cfg = LabelConfig {
+            with_org_label: true,
+            with_workspace_label: true,
+        };
+        let attrs = build_attributes(
+            "GET",
+            "/contexts/{id}",
+            200,
+            Some("org1"),
+            Some("ws1"),
+            &cfg,
+        );
         assert_eq!(attrs.len(), 5);
         assert!(attrs.iter().any(|kv| kv.key.as_str() == "sp.org_id"));
         assert!(attrs.iter().any(|kv| kv.key.as_str() == "sp.workspace_id"));
@@ -339,7 +350,10 @@ mod tests {
 
     #[test]
     fn build_attributes_omits_missing_workspace() {
-        let cfg = LabelConfig { with_org_label: true, with_workspace_label: true };
+        let cfg = LabelConfig {
+            with_org_label: true,
+            with_workspace_label: true,
+        };
         let attrs = build_attributes("POST", "/orgs", 201, Some("org1"), None, &cfg);
         assert_eq!(attrs.len(), 4);
         assert!(attrs.iter().any(|kv| kv.key.as_str() == "sp.org_id"));
@@ -348,7 +362,10 @@ mod tests {
 
     #[test]
     fn build_attributes_respects_disable_flag() {
-        let cfg = LabelConfig { with_org_label: false, with_workspace_label: false };
+        let cfg = LabelConfig {
+            with_org_label: false,
+            with_workspace_label: false,
+        };
         let attrs = build_attributes("GET", "/x", 200, Some("org1"), Some("ws1"), &cfg);
         assert_eq!(attrs.len(), 3);
         assert!(!attrs.iter().any(|kv| kv.key.as_str() == "sp.org_id"));
@@ -357,7 +374,7 @@ mod tests {
 
     #[test]
     fn guard_decrements_on_drop_only_once() {
-        use crate::observability::{Observability, ObservabilityConfig, LabelConfig};
+        use crate::observability::{LabelConfig, Observability, ObservabilityConfig};
         use std::time::Duration;
 
         let cfg = ObservabilityConfig {
@@ -409,12 +426,10 @@ mod tests {
         let mw = MetricsMiddleware::new(&obs.meter(), LabelConfig::default());
 
         use actix_web::{App, HttpResponse, http::StatusCode, web};
-        let app = actix_test::init_service(
-            App::new().wrap(mw).route(
-                "/ping",
-                web::get().to(|| async { HttpResponse::Ok().body("pong") }),
-            ),
-        )
+        let app = actix_test::init_service(App::new().wrap(mw).route(
+            "/ping",
+            web::get().to(|| async { HttpResponse::Ok().body("pong") }),
+        ))
         .await;
 
         let req = actix_test::TestRequest::get().uri("/ping").to_request();
@@ -430,8 +445,14 @@ mod tests {
         )
         .unwrap();
         let text = String::from_utf8(buf).unwrap();
-        assert!(text.contains("http_server_request_duration_seconds_count"), "{text}");
-        assert!(text.contains("http_server_busy_duration_seconds_total"), "{text}");
+        assert!(
+            text.contains("http_server_request_duration_seconds_count"),
+            "{text}"
+        );
+        assert!(
+            text.contains("http_server_busy_duration_seconds_total"),
+            "{text}"
+        );
         assert!(text.contains("http_server_active_requests"), "{text}");
         assert!(text.contains("http_route=\"/ping\""), "{text}");
     }

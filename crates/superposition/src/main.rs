@@ -83,8 +83,8 @@ async fn main() -> Result<()> {
 
     // --- Step 1: Observability init (early, before AppState build) ---
     // `from_env` errors are operator-config mistakes (bad port, bad IP, etc.) — fail loudly.
-    let obs_cfg = ObservabilityConfig::from_env()
-        .expect("invalid observability env config");
+    let obs_cfg =
+        ObservabilityConfig::from_env().expect("invalid observability env config");
     // `Observability::init` may fail transiently (e.g. OTLP endpoint unreachable at startup).
     // Rather than killing the binary we log a warning and serve traffic without metrics.
     let observability = if obs_cfg.enabled {

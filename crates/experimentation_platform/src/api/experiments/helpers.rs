@@ -790,7 +790,8 @@ pub async fn validate_change_reason_with_function(
         change_reason: change_reason.clone(),
     };
 
-    let headers_map = construct_header_map(workspace_context, vec![("x-user", user_str)])?;
+    let headers_map =
+        construct_header_map(workspace_context, vec![("x-user", user_str)])?;
 
     let response = http_client
         .post(&url)

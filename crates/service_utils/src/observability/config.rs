@@ -24,7 +24,10 @@ pub struct LabelConfig {
 
 impl Default for LabelConfig {
     fn default() -> Self {
-        Self { with_org_label: true, with_workspace_label: true }
+        Self {
+            with_org_label: true,
+            with_workspace_label: true,
+        }
     }
 }
 
@@ -42,16 +45,24 @@ impl ObservabilityConfig {
     where
         F: Fn(&str) -> Option<String>,
     {
-        fn parse_bool(name: &str, raw: Option<String>, default: bool) -> Result<bool, String> {
+        fn parse_bool(
+            name: &str,
+            raw: Option<String>,
+            default: bool,
+        ) -> Result<bool, String> {
             match raw {
-                Some(v) => {
-                    v.parse::<bool>().map_err(|_| format!("{name} must be true or false"))
-                }
+                Some(v) => v
+                    .parse::<bool>()
+                    .map_err(|_| format!("{name} must be true or false")),
                 None => Ok(default),
             }
         }
 
-        fn get_str(get: &impl Fn(&str) -> Option<String>, key: &str, default: &str) -> String {
+        fn get_str(
+            get: &impl Fn(&str) -> Option<String>,
+            key: &str,
+            default: &str,
+        ) -> String {
             get(key).unwrap_or_else(|| default.to_owned())
         }
 
@@ -64,8 +75,9 @@ impl ObservabilityConfig {
             get("SUPERPOSITION_METRICS_ENABLED"),
             true,
         )?;
-        let bind = IpAddr::from_str(&get_str(&get, "SUPERPOSITION_METRICS_BIND", "0.0.0.0"))
-            .map_err(|e| format!("SUPERPOSITION_METRICS_BIND: {e}"))?;
+        let bind =
+            IpAddr::from_str(&get_str(&get, "SUPERPOSITION_METRICS_BIND", "0.0.0.0"))
+                .map_err(|e| format!("SUPERPOSITION_METRICS_BIND: {e}"))?;
         let port: u16 = get_str(&get, "SUPERPOSITION_METRICS_PORT", "9091")
             .parse()
             .map_err(|e| format!("SUPERPOSITION_METRICS_PORT: {e}"))?;
@@ -97,8 +109,8 @@ impl ObservabilityConfig {
         // service.version: always the build-time crate version.
         let service_version = env!("CARGO_PKG_VERSION").to_owned();
 
-        let deployment_environment = get_opt(&get, "APP_ENV")
-            .or_else(|| get_opt(&get, "DEPLOYMENT_ENV"));
+        let deployment_environment =
+            get_opt(&get, "APP_ENV").or_else(|| get_opt(&get, "DEPLOYMENT_ENV"));
 
         let otlp_endpoint = get_opt(&get, "OTEL_EXPORTER_OTLP_ENDPOINT");
 
@@ -106,7 +118,10 @@ impl ObservabilityConfig {
             enabled,
             bind,
             port,
-            label: LabelConfig { with_org_label, with_workspace_label },
+            label: LabelConfig {
+                with_org_label,
+                with_workspace_label,
+            },
             collect_interval,
             instance_id,
             service_name,
@@ -131,8 +146,10 @@ mod tests {
     use std::collections::HashMap;
 
     fn lookup(map: HashMap<&str, &str>) -> impl Fn(&str) -> Option<String> {
-        let owned: HashMap<String, String> =
-            map.into_iter().map(|(k, v)| (k.to_owned(), v.to_owned())).collect();
+        let owned: HashMap<String, String> = map
+            .into_iter()
+            .map(|(k, v)| (k.to_owned(), v.to_owned()))
+            .collect();
         move |k| owned.get(k).cloned()
     }
 

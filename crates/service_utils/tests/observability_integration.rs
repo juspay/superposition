@@ -116,7 +116,10 @@ async fn metrics_appear_after_requests() {
         .find(|l| l.starts_with("http_server_busy_duration_seconds_total{"))
         .unwrap_or_else(|| panic!("no busy_duration line in:\n{body}"));
     let busy_value: f64 = busy.rsplit_once(' ').unwrap().1.trim().parse().unwrap();
-    assert!(busy_value > 0.0, "expected busy_duration > 0, got {busy_value}");
+    assert!(
+        busy_value > 0.0,
+        "expected busy_duration > 0, got {busy_value}"
+    );
 
     // active_requests returns to 0 after all requests complete.
     let active_lines: Vec<_> = body
@@ -161,5 +164,8 @@ async fn cardinality_stays_within_budget() {
     // (10 buckets + sum + count) = ~36 series for the histogram, plus 3 for
     // busy_duration, plus 1 for active_requests, plus a few from `target_info`
     // that the prometheus exporter emits. Headroom: 200.
-    assert!(series <= 200, "cardinality regression: {series} series\n{body}");
+    assert!(
+        series <= 200,
+        "cardinality regression: {series} series\n{body}"
+    );
 }

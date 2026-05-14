@@ -28,8 +28,7 @@ async fn scrape(registry: web::Data<Arc<Registry>>) -> HttpResponse {
     let metric_families = registry.gather();
     let mut buf = Vec::new();
     if let Err(e) = encoder.encode(&metric_families, &mut buf) {
-        return HttpResponse::InternalServerError()
-            .body(format!("encode error: {e}"));
+        return HttpResponse::InternalServerError().body(format!("encode error: {e}"));
     }
     HttpResponse::Ok()
         .content_type(encoder.format_type())

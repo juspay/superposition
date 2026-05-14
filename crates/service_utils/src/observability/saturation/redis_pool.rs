@@ -18,7 +18,10 @@
 
 use std::sync::Arc;
 
-use fred::{interfaces::{ClientLike, MetricsInterface}, prelude::RedisPool};
+use fred::{
+    interfaces::{ClientLike, MetricsInterface},
+    prelude::RedisPool,
+};
 use opentelemetry::{KeyValue, metrics::Meter};
 
 /// Wraps whatever fred client/pool type the rest of `service_utils` uses.
@@ -42,13 +45,7 @@ pub struct FredPoolStats(pub RedisPool);
 
 impl RedisStats for FredPoolStats {
     fn connected_connections(&self) -> Option<u64> {
-        Some(
-            self.0
-                .clients()
-                .iter()
-                .filter(|c| c.is_connected())
-                .count() as u64,
-        )
+        Some(self.0.clients().iter().filter(|c| c.is_connected()).count() as u64)
     }
 
     fn commands_in_flight(&self) -> Option<u64> {
@@ -56,12 +53,7 @@ impl RedisStats for FredPoolStats {
         // `RedisClient`. It counts commands buffered in the client that have
         // not yet been written to the network socket. Summing across all
         // pool clients gives an approximate "pending work" measure.
-        let total: usize = self
-            .0
-            .clients()
-            .iter()
-            .map(|c| c.command_queue_len())
-            .sum();
+        let total: usize = self.0.clients().iter().map(|c| c.command_queue_len()).sum();
         Some(total as u64)
     }
 }

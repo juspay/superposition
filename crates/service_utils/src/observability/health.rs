@@ -31,16 +31,22 @@ pub fn health_endpoint_paths() -> &'static [&'static str] {
 }
 
 async fn healthz() -> HttpResponse {
-    HttpResponse::Ok().content_type("text/plain; charset=utf-8").body("ok")
+    HttpResponse::Ok()
+        .content_type("text/plain; charset=utf-8")
+        .body("ok")
 }
 
 async fn livez() -> HttpResponse {
-    HttpResponse::Ok().content_type("text/plain; charset=utf-8").body("ok")
+    HttpResponse::Ok()
+        .content_type("text/plain; charset=utf-8")
+        .body("ok")
 }
 
 async fn readyz() -> HttpResponse {
     // v1: same as livez. Future: check DB pool, Redis, dependencies.
-    HttpResponse::Ok().content_type("text/plain; charset=utf-8").body("ok")
+    HttpResponse::Ok()
+        .content_type("text/plain; charset=utf-8")
+        .body("ok")
 }
 
 #[cfg(test)]
@@ -70,12 +76,12 @@ mod tests {
     /// matched every path and returned 404 for non-health paths.
     #[actix_web::test]
     async fn does_not_shadow_other_routes() {
-        let app = test::init_service(
-            App::new()
-                .configure(configure_health_endpoints)
-                .route("/other", web::get().to(|| async { HttpResponse::Ok().body("other") })),
-        )
-        .await;
+        let app =
+            test::init_service(App::new().configure(configure_health_endpoints).route(
+                "/other",
+                web::get().to(|| async { HttpResponse::Ok().body("other") }),
+            ))
+            .await;
 
         let req = test::TestRequest::get().uri("/other").to_request();
         let resp = test::call_service(&app, req).await;

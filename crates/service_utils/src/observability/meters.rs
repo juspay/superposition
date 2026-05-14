@@ -17,9 +17,7 @@ impl HttpMeters {
             .f64_histogram("http.server.request.duration")
             .with_unit("s")
             .with_description("Duration of HTTP server requests, in seconds.")
-            .with_boundaries(vec![
-                0.005, 0.025, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0,
-            ])
+            .with_boundaries(vec![0.005, 0.025, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0])
             .build();
 
         let busy_duration = meter
@@ -36,6 +34,10 @@ impl HttpMeters {
             .with_description("Number of HTTP server requests currently in flight.")
             .build();
 
-        Self { request_duration, busy_duration, active_requests }
+        Self {
+            request_duration,
+            busy_duration,
+            active_requests,
+        }
     }
 }

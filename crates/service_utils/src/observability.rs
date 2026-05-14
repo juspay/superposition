@@ -15,7 +15,8 @@ pub use meters::HttpMeters;
 pub use metrics_server::spawn_metrics_server;
 pub use middleware::MetricsMiddleware;
 pub use saturation::{
-    DbPoolHandle, FredPoolStats, RedisHandle, RedisStats, register_observers, SaturationDeps,
+    DbPoolHandle, FredPoolStats, RedisHandle, RedisStats, SaturationDeps,
+    register_observers,
 };
 
 use std::sync::Arc;
@@ -130,7 +131,11 @@ impl Observability {
             provider.meter("superposition")
         };
 
-        Ok(Self { provider, registry, meter })
+        Ok(Self {
+            provider,
+            registry,
+            meter,
+        })
     }
 }
 
@@ -208,7 +213,11 @@ mod tests {
         let _meter = obs.meter();
         let registry = obs.registry();
         let families = registry.gather();
-        assert_eq!(families.len(), 1, "only target_info should be present before any instrument records");
+        assert_eq!(
+            families.len(),
+            1,
+            "only target_info should be present before any instrument records"
+        );
         assert_eq!(families[0].get_name(), "target_info");
     }
 
