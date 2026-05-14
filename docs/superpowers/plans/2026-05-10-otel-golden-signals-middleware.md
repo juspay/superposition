@@ -15,7 +15,7 @@
 - The OpenTelemetry Rust SDK has had API churn between minor versions. The exact import paths and builder method names below are written against `opentelemetry` 0.27. If you pin a different version in Task 1, expect to adjust 1–3 import paths or method names per call site. The plan uses the **stable** APIs only (no unstable/preview features).
 - After Task 1 (deps), run `cargo check -p service_utils` after every code-touching task to catch wiring issues early — even on tasks that don't add tests yet.
 - File commit boundary: each task ends with one commit. If a step within a task fails, fix and continue within the same task before committing.
-- All paths in this plan are absolute under the repo root: `/Users/natarajankannan/src/superposition/`.
+- All paths in this plan are relative to the repo root: `<repo-root>/`.
 
 ---
 

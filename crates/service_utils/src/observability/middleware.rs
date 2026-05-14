@@ -311,7 +311,7 @@ mod tests {
     }
 
     #[actix_web::test]
-    async fn matched_route_returns_pattern() {
+    async fn matched_route_setup_smoke() {
         let app = actix_test::init_service(App::new().route(
             "/contexts/{id}",
             web::get().to(|| async { HttpResponse::Ok().finish() }),

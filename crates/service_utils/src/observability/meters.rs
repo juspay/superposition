@@ -31,6 +31,7 @@ impl HttpMeters {
 
         let active_requests = meter
             .i64_up_down_counter("http.server.active_requests")
+            .with_unit("{request}")
             .with_description("Number of HTTP server requests currently in flight.")
             .build();
 

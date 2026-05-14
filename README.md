@@ -154,7 +154,7 @@ Want a broader systems view? Open the [DeepWiki architecture guide](https://deep
 
 The HTTP API exposes Prometheus metrics on `SUPERPOSITION_METRICS_PORT` (default `9091`):
 
-```
+```bash
 curl http://localhost:9091/metrics
 ```
 

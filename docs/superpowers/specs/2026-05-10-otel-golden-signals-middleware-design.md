@@ -66,7 +66,7 @@ The main server (port `8080`) gets one new `.wrap(MetricsMiddleware::new(meter.c
 
 ### 5.1 Data flow
 
-```
+```text
 [request on :8080]
    ├── tracing-actix-web ─→ span
    ├── (auth_n / auth_z) ─→ extensions: org_id, workspace_id
@@ -105,7 +105,7 @@ App::new()
 
 All new code under `crates/service_utils`:
 
-```
+```text
 crates/service_utils/src/
   observability.rs              -- pub use surface: init(), Observability, shutdown(), errors
   observability/
