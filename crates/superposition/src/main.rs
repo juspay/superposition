@@ -190,10 +190,18 @@ async fn main() -> Result<()> {
 
     // --- Step 3: Spawn the metrics server ---
     let metrics_server_handle = if let Some(obs) = observability.as_ref() {
-        let bind: std::net::SocketAddr = format!("{}:{}", obs_cfg.bind, obs_cfg.port)
-            .parse()
-            .expect("invalid metrics bind addr");
-        Some(spawn_metrics_server(obs.registry(), bind)?)
+        let bind = std::net::SocketAddr::new(obs_cfg.bind, obs_cfg.port);
+        match spawn_metrics_server(obs.registry(), bind) {
+            Ok(h) => Some(h),
+            Err(e) => {
+                tracing::warn!(
+                    error = %e,
+                    bind = %bind,
+                    "metrics server bind failed; /metrics endpoint disabled for this instance"
+                );
+                None
+            }
+        }
     } else {
         None
     };

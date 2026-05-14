@@ -45,10 +45,18 @@ mod inner {
                         .store(m.injection_queue_depth as u64, Ordering::Relaxed);
                     // Busy fraction = total worker-seconds busy / total
                     // worker-seconds available over the sample interval.
+                    // Use m.elapsed (actual time since last sample) rather than
+                    // the configured interval so the ratio stays accurate when
+                    // the sampler tick runs late under load.
+                    let workers_count = m.workers_count.max(1) as f64;
+                    let elapsed = m.elapsed.as_secs_f64();
                     let busy = m.total_busy_duration.as_secs_f64();
-                    let total =
-                        interval.as_secs_f64() * (m.workers_count as f64).max(1.0);
-                    let ratio = (busy / total).clamp(0.0, 1.0);
+                    let total = elapsed * workers_count;
+                    let ratio = if total > 0.0 {
+                        (busy / total).clamp(0.0, 1.0)
+                    } else {
+                        0.0
+                    };
                     snap_for_task
                         .busy_ratio_milli
                         .store((ratio * 1000.0) as u64, Ordering::Relaxed);

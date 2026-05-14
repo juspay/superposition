@@ -84,11 +84,16 @@ impl Observability {
         }
 
         // §8.5 — merge OTEL_RESOURCE_ATTRIBUTES ("k1=v1,k2=v2,...") if set.
+        // Keys and values are percent-encoded per W3C baggage / OTel spec; decode before use.
         if let Ok(extra) = std::env::var("OTEL_RESOURCE_ATTRIBUTES") {
             for pair in extra.split(',') {
                 if let Some((k, v)) = pair.split_once('=') {
-                    let k = k.trim().to_owned();
-                    let v = v.trim().to_owned();
+                    let k = urlencoding::decode(k.trim())
+                        .unwrap_or_else(|_| k.trim().into())
+                        .into_owned();
+                    let v = urlencoding::decode(v.trim())
+                        .unwrap_or_else(|_| v.trim().into())
+                        .into_owned();
                     if !k.is_empty() {
                         resource_attrs.push(KeyValue::new(k, v));
                     }
