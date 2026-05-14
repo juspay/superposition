@@ -70,7 +70,7 @@ pub fn register(meter: &Meter, client: RedisHandle, pool_name: &'static str) {
         )
         .with_callback(move |observer| {
             if let Some(n) = c.connected_connections() {
-                observer.observe(n, &[label.clone()]);
+                observer.observe(n, std::slice::from_ref(&label));
             }
         })
         .build();
@@ -84,7 +84,7 @@ pub fn register(meter: &Meter, client: RedisHandle, pool_name: &'static str) {
         )
         .with_callback(move |observer| {
             if let Some(n) = c.commands_in_flight() {
-                observer.observe(n, &[label.clone()]);
+                observer.observe(n, std::slice::from_ref(&label));
             }
         })
         .build();

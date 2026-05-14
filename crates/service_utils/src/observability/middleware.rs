@@ -219,7 +219,7 @@ where
 
             match &result {
                 Ok(res) => {
-                    let route = extract_route_from_response(&res);
+                    let route = extract_route_from_response(res);
                     let status = res.status().as_u16();
                     let extensions = res.request().extensions();
                     let org = extensions.get::<OrganisationId>().map(|o| o.0.clone());
@@ -314,7 +314,7 @@ mod tests {
     async fn matched_route_returns_pattern() {
         let app = actix_test::init_service(App::new().route(
             "/contexts/{id}",
-            web::get().to(|| async { HttpResponse::Ok() }),
+            web::get().to(|| async { HttpResponse::Ok().finish() }),
         ))
         .await;
         let req = actix_test::TestRequest::get()

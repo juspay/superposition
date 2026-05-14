@@ -41,7 +41,10 @@ pub fn register(meter: &Meter, pool: DbPoolHandle, pool_name: &'static str) {
         .u64_observable_gauge("db.client.connections.max")
         .with_description("Configured maximum size of the DB connection pool.")
         .with_callback(move |observer| {
-            observer.observe(pool_for_max.max_size() as u64, &[max_pool_name.clone()]);
+            observer.observe(
+                pool_for_max.max_size() as u64,
+                std::slice::from_ref(&max_pool_name),
+            );
         })
         .build();
 }
