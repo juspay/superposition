@@ -7709,7 +7709,6 @@ dependencies = [
  "opentelemetry",
  "opentelemetry-otlp",
  "opentelemetry-prometheus",
- "opentelemetry-semantic-conventions",
  "opentelemetry_sdk",
  "prometheus",
  "rand 0.8.5",
