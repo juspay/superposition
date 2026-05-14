@@ -39,7 +39,10 @@ async fn metrics_appear_after_requests() {
     let app = test::init_service(
         App::new()
             .wrap(mw)
-            .route("/ping", web::get().to(|| async { HttpResponse::Ok() }))
+            .route(
+                "/ping",
+                web::get().to(|| async { HttpResponse::Ok().finish() }),
+            )
             .route(
                 "/echo/{name}",
                 web::post().to(|p: web::Path<String>| async move {
@@ -48,7 +51,7 @@ async fn metrics_appear_after_requests() {
             )
             .route(
                 "/boom",
-                web::get().to(|| async { HttpResponse::InternalServerError() }),
+                web::get().to(|| async { HttpResponse::InternalServerError().finish() }),
             ),
     )
     .await;
@@ -139,9 +142,18 @@ async fn cardinality_stays_within_budget() {
     let app = test::init_service(
         App::new()
             .wrap(mw)
-            .route("/a", web::get().to(|| async { HttpResponse::Ok() }))
-            .route("/b", web::get().to(|| async { HttpResponse::Ok() }))
-            .route("/c", web::post().to(|| async { HttpResponse::Created() })),
+            .route(
+                "/a",
+                web::get().to(|| async { HttpResponse::Ok().finish() }),
+            )
+            .route(
+                "/b",
+                web::get().to(|| async { HttpResponse::Ok().finish() }),
+            )
+            .route(
+                "/c",
+                web::post().to(|| async { HttpResponse::Created().finish() }),
+            ),
     )
     .await;
 
