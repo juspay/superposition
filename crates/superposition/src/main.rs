@@ -313,15 +313,21 @@ async fn main() -> Result<()> {
     ))
     .run();
 
-    // --- Step 6: Run both servers concurrently ---
-    match metrics_server_handle {
-        Some(metrics) => {
-            futures_util::try_join!(main_server, metrics)?;
-        }
-        None => {
-            main_server.await?;
-        }
+    // --- Step 6: Run the main server; metrics server is a detached best-effort task ---
+    // Using try_join! would abort the main API server if the metrics task ever returned
+    // an error (port reclaimed, listener closed). That contradicts the "metrics are
+    // best-effort" stance applied throughout. Detach instead and log on error.
+    if let Some(metrics_handle) = metrics_server_handle {
+        tokio::spawn(async move {
+            if let Err(e) = metrics_handle.await {
+                tracing::warn!(
+                    error = %e,
+                    "metrics server exited with error; /metrics endpoint is now unavailable"
+                );
+            }
+        });
     }
+    main_server.await?;
     Ok(())
 }
 
