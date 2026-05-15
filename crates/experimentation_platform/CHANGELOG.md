@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.51.5 - 2026-05-15
+#### Bug Fixes
+- fixing formatting (#1004) - (2c079cf) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.107.0 [skip ci] - (f5121d8) - Superposition Bot
+
+- - -
+
 ## experimentation_platform-v0.51.4 - 2026-05-12
 #### Bug Fixes
 - send auth and x-user when validating change reason (#993) - (3de6826) - Datron

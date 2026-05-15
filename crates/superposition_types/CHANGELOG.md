@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.44.1 - 2026-05-15
+#### Bug Fixes
+- fixing formatting (#1004) - (2c079cf) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.107.0 [skip ci] - (f5121d8) - Superposition Bot
+
+- - -
+
 ## superposition_types-v0.44.0 - 2026-05-12
 #### Bug Fixes
 - relax serde version for provider (#1000) - (72d7e2f) - Ayush Jain
