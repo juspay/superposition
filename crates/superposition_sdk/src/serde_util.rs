@@ -65,6 +65,12 @@ if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default:
                 builder
             }
 
+pub(crate) fn workspace_lock_conflict_correct_errors(mut builder: crate::types::error::builders::WorkspaceLockConflictBuilder) -> crate::types::error::builders::WorkspaceLockConflictBuilder {
+                if builder.message.is_none() { builder.message = Some(Default::default()) }
+if builder.lock.is_none() { builder.lock = { let builder = crate::types::builders::WorkspaceLockBuilder::default(); crate::serde_util::workspace_lock_correct_errors(builder).build().ok() } }
+                builder
+            }
+
 pub(crate) fn create_default_config_output_output_correct_errors(mut builder: crate::operation::create_default_config::builders::CreateDefaultConfigOutputBuilder) -> crate::operation::create_default_config::builders::CreateDefaultConfigOutputBuilder {
                 if builder.key.is_none() { builder.key = Some(Default::default()) }
 if builder.value.is_none() { builder.value = Some(Default::default()) }
@@ -983,6 +989,15 @@ if builder.allow_experiment_self_approval.is_none() { builder.allow_experiment_s
 if builder.auto_populate_control.is_none() { builder.auto_populate_control = Some(Default::default()) }
 if builder.enable_context_validation.is_none() { builder.enable_context_validation = Some(Default::default()) }
 if builder.enable_change_reason_validation.is_none() { builder.enable_change_reason_validation = Some(Default::default()) }
+                builder
+            }
+
+pub(crate) fn workspace_lock_correct_errors(mut builder: crate::types::builders::WorkspaceLockBuilder) -> crate::types::builders::WorkspaceLockBuilder {
+                if builder.lock_id.is_none() { builder.lock_id = Some(Default::default()) }
+if builder.operation.is_none() { builder.operation = Some(Default::default()) }
+if builder.locked_by.is_none() { builder.locked_by = Some(Default::default()) }
+if builder.acquired_at.is_none() { builder.acquired_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.expires_at.is_none() { builder.expires_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
                 builder
             }
 

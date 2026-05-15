@@ -24,6 +24,7 @@ resource Workspace {
         auto_populate_control: Boolean
         enable_context_validation: Boolean
         enable_change_reason_validation: Boolean
+        workspace_lock: WorkspaceLock
     }
     list: ListWorkspace
     update: UpdateWorkspace
@@ -42,6 +43,29 @@ enum WorkspaceStatus {
 
 list ListMandatoryDimensions {
     member: String
+}
+
+@documentation("Metadata for an active workspace write lock. Present only while another write operation is holding the workspace lease.")
+structure WorkspaceLock {
+    @required
+    @documentation("Unique identifier for the active workspace lock.")
+    lock_id: String
+
+    @required
+    @documentation("Write operation that currently holds the workspace lock.")
+    operation: String
+
+    @required
+    @documentation("User that acquired the workspace lock.")
+    locked_by: String
+
+    @required
+    @documentation("Timestamp at which the workspace lock was acquired.")
+    acquired_at: DateTime
+
+    @required
+    @documentation("Timestamp at which the workspace lock expires if it is not released first.")
+    expires_at: DateTime
 }
 
 structure CreateWorkspaceRequest for Workspace with [OrganisationMixin] {
@@ -144,6 +168,8 @@ structure WorkspaceResponse for Workspace {
 
     @required
     $enable_change_reason_validation
+
+    $workspace_lock
 }
 
 list WorkspaceList {

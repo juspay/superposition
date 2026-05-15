@@ -1706,6 +1706,16 @@
                             }
                         }
                     },
+                    "409": {
+                        "description": "WorkspaceLockConflict 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkspaceLockConflictResponseContent"
+                                }
+                            }
+                        }
+                    },
                     "500": {
                         "description": "InternalServerError 500 response",
                         "content": {
@@ -1768,6 +1778,16 @@
                     },
                     "404": {
                         "description": "ResourceNotFound 404 response"
+                    },
+                    "409": {
+                        "description": "WorkspaceLockConflict 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkspaceLockConflictResponseContent"
+                                }
+                            }
+                        }
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -1904,6 +1924,16 @@
                     },
                     "404": {
                         "description": "ResourceNotFound 404 response"
+                    },
+                    "409": {
+                        "description": "WorkspaceLockConflict 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkspaceLockConflictResponseContent"
+                                }
+                            }
+                        }
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -8220,6 +8250,9 @@
                     },
                     "enable_change_reason_validation": {
                         "type": "boolean"
+                    },
+                    "workspace_lock": {
+                        "$ref": "#/components/schemas/WorkspaceLock"
                     }
                 },
                 "required": [
@@ -10042,6 +10075,9 @@
                     },
                     "enable_change_reason_validation": {
                         "type": "boolean"
+                    },
+                    "workspace_lock": {
+                        "$ref": "#/components/schemas/WorkspaceLock"
                     }
                 },
                 "required": [
@@ -10484,6 +10520,9 @@
                     },
                     "enable_change_reason_validation": {
                         "type": "boolean"
+                    },
+                    "workspace_lock": {
+                        "$ref": "#/components/schemas/WorkspaceLock"
                     }
                 },
                 "required": [
@@ -12274,6 +12313,9 @@
                     },
                     "enable_change_reason_validation": {
                         "type": "boolean"
+                    },
+                    "workspace_lock": {
+                        "$ref": "#/components/schemas/WorkspaceLock"
                     }
                 },
                 "required": [
@@ -12566,6 +12608,57 @@
                     }
                 }
             },
+            "WorkspaceLock": {
+                "type": "object",
+                "description": "Metadata for an active workspace write lock. Present only while another write operation is holding the workspace lease.",
+                "properties": {
+                    "lock_id": {
+                        "type": "string",
+                        "description": "Unique identifier for the active workspace lock."
+                    },
+                    "operation": {
+                        "type": "string",
+                        "description": "Write operation that currently holds the workspace lock."
+                    },
+                    "locked_by": {
+                        "type": "string",
+                        "description": "User that acquired the workspace lock."
+                    },
+                    "acquired_at": {
+                        "type": "string",
+                        "description": "Timestamp at which the workspace lock was acquired.",
+                        "format": "date-time"
+                    },
+                    "expires_at": {
+                        "type": "string",
+                        "description": "Timestamp at which the workspace lock expires if it is not released first.",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "acquired_at",
+                    "expires_at",
+                    "lock_id",
+                    "locked_by",
+                    "operation"
+                ]
+            },
+            "WorkspaceLockConflictResponseContent": {
+                "type": "object",
+                "description": "Returned when a workspace write operation cannot proceed because another write operation currently holds the workspace lock.",
+                "properties": {
+                    "message": {
+                        "type": "string"
+                    },
+                    "lock": {
+                        "$ref": "#/components/schemas/WorkspaceLock"
+                    }
+                },
+                "required": [
+                    "lock",
+                    "message"
+                ]
+            },
             "WorkspaceResponse": {
                 "type": "object",
                 "properties": {
@@ -12622,6 +12715,9 @@
                     },
                     "enable_change_reason_validation": {
                         "type": "boolean"
+                    },
+                    "workspace_lock": {
+                        "$ref": "#/components/schemas/WorkspaceLock"
                     }
                 },
                 "required": [

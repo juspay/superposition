@@ -35,6 +35,8 @@ pub use crate::types::_http_method::HttpMethod;
 
 pub use crate::types::_webhook_response::WebhookResponse;
 
+pub use crate::types::_workspace_lock::WorkspaceLock;
+
 pub use crate::types::_workspace_status::WorkspaceStatus;
 
 pub use crate::types::_workspace_response::WorkspaceResponse;
@@ -222,6 +224,8 @@ mod _version;
 mod _webhook_response;
 
 mod _weight_recompute_response;
+
+mod _workspace_lock;
 
 mod _workspace_response;
 

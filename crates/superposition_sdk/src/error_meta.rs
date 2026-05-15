@@ -9,6 +9,8 @@ pub enum Error {
     ResourceNotFound(crate::types::error::ResourceNotFound),
     /// Indicates that the operation succeeded but the webhook call failed. The response body contains the successful result, but the client should be aware that webhook notification did not complete.
     WebhookFailed(crate::types::error::WebhookFailed),
+    /// Returned when a workspace write operation cannot proceed because another write operation currently holds the workspace lock.
+    WorkspaceLockConflict(crate::types::error::WorkspaceLockConflict),
     /// An unexpected error occurred (e.g., invalid JSON returned by the service or an unknown error code).
     #[deprecated(note = "Matching `Unhandled` directly is not forwards compatible. Instead, match using a \
     variable wildcard pattern and check `.code()`:
@@ -24,6 +26,7 @@ impl ::std::fmt::Display for Error {
             Error::InternalServerError(inner) => inner.fmt(f),
             Error::ResourceNotFound(inner) => inner.fmt(f),
             Error::WebhookFailed(inner) => inner.fmt(f),
+            Error::WorkspaceLockConflict(inner) => inner.fmt(f),
             Error::Unhandled(_) => if let ::std::option::Option::Some(code) = ::aws_smithy_types::error::metadata::ProvideErrorMetadata::code(self) {
                                         write!(f, "unhandled error ({code})")
                                     } else {
@@ -43,6 +46,7 @@ impl ::aws_smithy_types::error::metadata::ProvideErrorMetadata for Error {
                         Self::InternalServerError(inner) => inner.meta(),
 Self::ResourceNotFound(inner) => inner.meta(),
 Self::WebhookFailed(inner) => inner.meta(),
+Self::WorkspaceLockConflict(inner) => inner.meta(),
                         Self::Unhandled(inner) => &inner.meta,
                     }
                 }
@@ -176,6 +180,7 @@ impl From<crate::operation::create_default_config::CreateDefaultConfigError> for
     fn from(err: crate::operation::create_default_config::CreateDefaultConfigError) -> Self {
         match err {
             crate::operation::create_default_config::CreateDefaultConfigError::WebhookFailed(inner) => Error::WebhookFailed(inner),
+            crate::operation::create_default_config::CreateDefaultConfigError::WorkspaceLockConflict(inner) => Error::WorkspaceLockConflict(inner),
             crate::operation::create_default_config::CreateDefaultConfigError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::create_default_config::CreateDefaultConfigError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -434,6 +439,7 @@ impl From<crate::operation::delete_default_config::DeleteDefaultConfigError> for
         match err {
             crate::operation::delete_default_config::DeleteDefaultConfigError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::delete_default_config::DeleteDefaultConfigError::WebhookFailed(inner) => Error::WebhookFailed(inner),
+            crate::operation::delete_default_config::DeleteDefaultConfigError::WorkspaceLockConflict(inner) => Error::WorkspaceLockConflict(inner),
             crate::operation::delete_default_config::DeleteDefaultConfigError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::delete_default_config::DeleteDefaultConfigError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1649,6 +1655,7 @@ impl From<crate::operation::update_default_config::UpdateDefaultConfigError> for
         match err {
             crate::operation::update_default_config::UpdateDefaultConfigError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::update_default_config::UpdateDefaultConfigError::WebhookFailed(inner) => Error::WebhookFailed(inner),
+            crate::operation::update_default_config::UpdateDefaultConfigError::WorkspaceLockConflict(inner) => Error::WorkspaceLockConflict(inner),
             crate::operation::update_default_config::UpdateDefaultConfigError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::update_default_config::UpdateDefaultConfigError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1948,6 +1955,7 @@ impl ::std::error::Error for Error {
             Error::InternalServerError(inner) => inner.source(),
             Error::ResourceNotFound(inner) => inner.source(),
             Error::WebhookFailed(inner) => inner.source(),
+            Error::WorkspaceLockConflict(inner) => inner.source(),
             Error::Unhandled(inner) => ::std::option::Option::Some(&*inner.source)
         }
     }

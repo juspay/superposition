@@ -13,6 +13,8 @@ pub use crate::types::_variant::VariantBuilder;
 
 pub use crate::types::_webhook_response::WebhookResponseBuilder;
 
+pub use crate::types::_workspace_lock::WorkspaceLockBuilder;
+
 pub use crate::types::_workspace_response::WorkspaceResponseBuilder;
 
 pub use crate::types::_type_templates_response::TypeTemplatesResponseBuilder;

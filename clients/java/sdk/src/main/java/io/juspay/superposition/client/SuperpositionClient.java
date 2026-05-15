@@ -178,6 +178,7 @@ import io.juspay.superposition.model.ValidateContextOutput;
 import io.juspay.superposition.model.WebhookFailed;
 import io.juspay.superposition.model.WeightRecomputeInput;
 import io.juspay.superposition.model.WeightRecomputeOutput;
+import io.juspay.superposition.model.WorkspaceLockConflict;
 import software.amazon.smithy.aws.traits.protocols.RestJson1Trait;
 import software.amazon.smithy.java.aws.client.restjson.RestJsonClientProtocol;
 import software.amazon.smithy.java.client.core.Client;
@@ -303,6 +304,7 @@ public interface SuperpositionClient {
      * serve as fallback values when no specific context matches.
      *
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CreateDefaultConfigOutput createDefaultConfig(CreateDefaultConfigInput input) {
@@ -314,6 +316,7 @@ public interface SuperpositionClient {
      * serve as fallback values when no specific context matches.
      *
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CreateDefaultConfigOutput createDefaultConfig(CreateDefaultConfigInput input, RequestOverrideConfig overrideConfig);
@@ -526,6 +529,7 @@ public interface SuperpositionClient {
      *
      * @throws ResourceNotFound
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default DeleteDefaultConfigOutput deleteDefaultConfig(DeleteDefaultConfigInput input) {
@@ -538,6 +542,7 @@ public interface SuperpositionClient {
      *
      * @throws ResourceNotFound
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     DeleteDefaultConfigOutput deleteDefaultConfig(DeleteDefaultConfigInput input, RequestOverrideConfig overrideConfig);
@@ -1586,6 +1591,7 @@ public interface SuperpositionClient {
      *
      * @throws ResourceNotFound
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default UpdateDefaultConfigOutput updateDefaultConfig(UpdateDefaultConfigInput input) {
@@ -1598,6 +1604,7 @@ public interface SuperpositionClient {
      *
      * @throws ResourceNotFound
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     UpdateDefaultConfigOutput updateDefaultConfig(UpdateDefaultConfigInput input, RequestOverrideConfig overrideConfig);
@@ -1893,11 +1900,11 @@ public interface SuperpositionClient {
             Node.objectNode()
         );
 
-        private static final HttpBearerAuthTrait httpBearerAuthScheme = new HttpBearerAuthTrait();
-        private static final AuthSchemeFactory<HttpBearerAuthTrait> httpBearerAuthSchemeFactory = new HttpBearerAuthScheme.Factory();
-
         private static final HttpBasicAuthTrait httpBasicAuthScheme = new HttpBasicAuthTrait();
         private static final AuthSchemeFactory<HttpBasicAuthTrait> httpBasicAuthSchemeFactory = new HttpBasicAuthAuthScheme.Factory();
+
+        private static final HttpBearerAuthTrait httpBearerAuthScheme = new HttpBearerAuthTrait();
+        private static final AuthSchemeFactory<HttpBearerAuthTrait> httpBearerAuthSchemeFactory = new HttpBearerAuthScheme.Factory();
 
         private Builder() {
             configBuilder().putSupportedAuthSchemes(httpBasicAuthSchemeFactory.createAuthScheme(httpBasicAuthScheme), httpBearerAuthSchemeFactory.createAuthScheme(httpBearerAuthScheme));

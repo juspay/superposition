@@ -132,6 +132,11 @@ pub(crate) fn de_workspace_response<'a, I>(tokens: &mut ::std::iter::Peekable<I>
                                     ::aws_smithy_json::deserialize::token::expect_bool_or_null(tokens.next())?
                                 );
                             }
+                            "workspace_lock" => {
+                                builder = builder.set_workspace_lock(
+                                    crate::protocol_serde::shape_workspace_lock::de_workspace_lock(tokens)?
+                                );
+                            }
                             _ => ::aws_smithy_json::deserialize::token::skip_value(tokens)?
                         }
                     }

@@ -79,6 +79,13 @@ export interface UpdateWorkspaceCommandOutput extends WorkspaceResponse, __Metad
  * //   auto_populate_control: true || false, // required
  * //   enable_context_validation: true || false, // required
  * //   enable_change_reason_validation: true || false, // required
+ * //   workspace_lock: { // WorkspaceLock
+ * //     lock_id: "STRING_VALUE", // required
+ * //     operation: "STRING_VALUE", // required
+ * //     locked_by: "STRING_VALUE", // required
+ * //     acquired_at: new Date("TIMESTAMP"), // required
+ * //     expires_at: new Date("TIMESTAMP"), // required
+ * //   },
  * // };
  *
  * ```

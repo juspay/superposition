@@ -32,6 +32,7 @@ impl super::Client {
     ///   - [`auto_populate_control(bool)`](crate::operation::update_workspace::UpdateWorkspaceOutput::auto_populate_control): (undocumented)
     ///   - [`enable_context_validation(bool)`](crate::operation::update_workspace::UpdateWorkspaceOutput::enable_context_validation): (undocumented)
     ///   - [`enable_change_reason_validation(bool)`](crate::operation::update_workspace::UpdateWorkspaceOutput::enable_change_reason_validation): (undocumented)
+    ///   - [`workspace_lock(Option<WorkspaceLock>)`](crate::operation::update_workspace::UpdateWorkspaceOutput::workspace_lock): Metadata for an active workspace write lock. Present only while another write operation is holding the workspace lease.
                             /// - On failure, responds with [`SdkError<UpdateWorkspaceError>`](crate::operation::update_workspace::UpdateWorkspaceError)
     pub fn update_workspace(&self) -> crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder {
                                 crate::operation::update_workspace::builders::UpdateWorkspaceFluentBuilder::new(self.handle.clone())

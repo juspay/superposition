@@ -5,3 +5,5 @@ pub use crate::types::error::_resource_not_found::ResourceNotFoundBuilder;
 
 pub use crate::types::error::_webhook_failed::WebhookFailedBuilder;
 
+pub use crate::types::error::_workspace_lock_conflict::WorkspaceLockConflictBuilder;
+

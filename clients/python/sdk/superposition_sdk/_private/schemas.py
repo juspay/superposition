@@ -5040,6 +5040,88 @@ CREATE_DEFAULT_CONFIG_OUTPUT = Schema.collection(
     }
 )
 
+WORKSPACE_LOCK = Schema.collection(
+    id=ShapeID("io.superposition#WorkspaceLock"),
+
+    members={
+        "lock_id": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "operation": {
+            "target": STRING,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "locked_by": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "acquired_at": {
+            "target": DATE_TIME,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "expires_at": {
+            "target": DATE_TIME,
+            "index": 4,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
+WORKSPACE_LOCK_CONFLICT = Schema.collection(
+    id=ShapeID("io.superposition#WorkspaceLockConflict"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#error"), value="client"),
+        Trait.new(id=ShapeID("smithy.api#httpError"), value=409),
+
+    ],
+    members={
+        "message": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "lock": {
+            "target": WORKSPACE_LOCK,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
 CREATE_DEFAULT_CONFIG = Schema(
     id=ShapeID("io.superposition#CreateDefaultConfig"),
     shape_type=ShapeType.OPERATION,
@@ -7423,6 +7505,11 @@ CREATE_WORKSPACE_OUTPUT = Schema.collection(
                 Trait.new(id=ShapeID("smithy.api#required")),
 
             ],
+        },
+
+        "workspace_lock": {
+            "target": WORKSPACE_LOCK,
+            "index": 17,
         },
 
     }
@@ -15196,6 +15283,11 @@ GET_WORKSPACE_OUTPUT = Schema.collection(
             ],
         },
 
+        "workspace_lock": {
+            "target": WORKSPACE_LOCK,
+            "index": 17,
+        },
+
     }
 )
 
@@ -16439,6 +16531,11 @@ WORKSPACE_RESPONSE = Schema.collection(
             ],
         },
 
+        "workspace_lock": {
+            "target": WORKSPACE_LOCK,
+            "index": 17,
+        },
+
     }
 )
 
@@ -16751,6 +16848,11 @@ MIGRATE_WORKSPACE_SCHEMA_OUTPUT = Schema.collection(
                 Trait.new(id=ShapeID("smithy.api#required")),
 
             ],
+        },
+
+        "workspace_lock": {
+            "target": WORKSPACE_LOCK,
+            "index": 17,
         },
 
     }
@@ -17965,6 +18067,11 @@ UPDATE_WORKSPACE_OUTPUT = Schema.collection(
                 Trait.new(id=ShapeID("smithy.api#required")),
 
             ],
+        },
+
+        "workspace_lock": {
+            "target": WORKSPACE_LOCK,
+            "index": 17,
         },
 
     }

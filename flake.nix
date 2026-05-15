@@ -80,7 +80,7 @@
                 defaultJava = jdk17;
               })
               jdk17
-              uv
+              #uv
               # go client
               # go
             ];

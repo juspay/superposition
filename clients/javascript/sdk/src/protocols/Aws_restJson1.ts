@@ -388,6 +388,8 @@ import {
   WebhookFailed,
   WebhookResponse,
   WeightRecomputeResponse,
+  WorkspaceLock,
+  WorkspaceLockConflict,
   WorkspaceResponse,
 } from "../models/models_0";
 import {
@@ -3210,6 +3212,7 @@ export const de_CreateWorkspaceCommand = async(
     'organisation_id': __expectString,
     'organisation_name': __expectString,
     'workspace_admin_email': __expectString,
+    'workspace_lock': _ => de_WorkspaceLock(_, context),
     'workspace_name': __expectString,
     'workspace_schema_name': __expectString,
     'workspace_status': __expectString,
@@ -4132,6 +4135,7 @@ export const de_GetWorkspaceCommand = async(
     'organisation_id': __expectString,
     'organisation_name': __expectString,
     'workspace_admin_email': __expectString,
+    'workspace_lock': _ => de_WorkspaceLock(_, context),
     'workspace_name': __expectString,
     'workspace_schema_name': __expectString,
     'workspace_status': __expectString,
@@ -4470,6 +4474,7 @@ export const de_MigrateWorkspaceSchemaCommand = async(
     'organisation_id': __expectString,
     'organisation_name': __expectString,
     'workspace_admin_email': __expectString,
+    'workspace_lock': _ => de_WorkspaceLock(_, context),
     'workspace_name': __expectString,
     'workspace_schema_name': __expectString,
     'workspace_status': __expectString,
@@ -5146,6 +5151,7 @@ export const de_UpdateWorkspaceCommand = async(
     'organisation_id': __expectString,
     'organisation_name': __expectString,
     'workspace_admin_email': __expectString,
+    'workspace_lock': _ => de_WorkspaceLock(_, context),
     'workspace_name': __expectString,
     'workspace_schema_name': __expectString,
     'workspace_status': __expectString,
@@ -5214,6 +5220,9 @@ const de_CommandError = async(
     case "WebhookFailed":
     case "io.superposition#WebhookFailed":
       throw await de_WebhookFailedRes(parsedOutput, context);
+    case "WorkspaceLockConflict":
+    case "io.superposition#WorkspaceLockConflict":
+      throw await de_WorkspaceLockConflictRes(parsedOutput, context);
     default:
       const parsedBody = parsedOutput.body;
       return throwDefaultError({
@@ -5281,6 +5290,28 @@ const de_CommandError = async(
     });
     Object.assign(contents, doc);
     const exception = new WebhookFailed({
+      $metadata: deserializeMetadata(parsedOutput),
+      ...contents
+    });
+    return __decorateServiceException(exception, parsedOutput.body);
+  };
+
+  /**
+   * deserializeAws_restJson1WorkspaceLockConflictRes
+   */
+  const de_WorkspaceLockConflictRes = async (
+    parsedOutput: any,
+    context: __SerdeContext
+  ): Promise<WorkspaceLockConflict> => {
+    const contents: any = map({
+    });
+    const data: any = parsedOutput.body;
+    const doc = take(data, {
+      'lock': _ => de_WorkspaceLock(_, context),
+      'message': __expectString,
+    });
+    Object.assign(contents, doc);
+    const exception = new WorkspaceLockConflict({
       $metadata: deserializeMetadata(parsedOutput),
       ...contents
     });
@@ -6368,6 +6399,22 @@ const de_CommandError = async(
   }
 
   /**
+   * deserializeAws_restJson1WorkspaceLock
+   */
+  const de_WorkspaceLock = (
+    output: any,
+    context: __SerdeContext
+  ): WorkspaceLock => {
+    return take(output, {
+      'acquired_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+      'expires_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+      'lock_id': __expectString,
+      'locked_by': __expectString,
+      'operation': __expectString,
+    }) as any;
+  }
+
+  /**
    * deserializeAws_restJson1WorkspaceResponse
    */
   const de_WorkspaceResponse = (
@@ -6389,6 +6436,7 @@ const de_CommandError = async(
       'organisation_id': __expectString,
       'organisation_name': __expectString,
       'workspace_admin_email': __expectString,
+      'workspace_lock': (_: any) => de_WorkspaceLock(_, context),
       'workspace_name': __expectString,
       'workspace_schema_name': __expectString,
       'workspace_status': __expectString,

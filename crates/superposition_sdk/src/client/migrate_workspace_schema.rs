@@ -23,6 +23,7 @@ impl super::Client {
     ///   - [`auto_populate_control(bool)`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaOutput::auto_populate_control): (undocumented)
     ///   - [`enable_context_validation(bool)`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaOutput::enable_context_validation): (undocumented)
     ///   - [`enable_change_reason_validation(bool)`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaOutput::enable_change_reason_validation): (undocumented)
+    ///   - [`workspace_lock(Option<WorkspaceLock>)`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaOutput::workspace_lock): Metadata for an active workspace write lock. Present only while another write operation is holding the workspace lease.
                             /// - On failure, responds with [`SdkError<MigrateWorkspaceSchemaError>`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaError)
     pub fn migrate_workspace_schema(&self) -> crate::operation::migrate_workspace_schema::builders::MigrateWorkspaceSchemaFluentBuilder {
                                 crate::operation::migrate_workspace_schema::builders::MigrateWorkspaceSchemaFluentBuilder::new(self.handle.clone())

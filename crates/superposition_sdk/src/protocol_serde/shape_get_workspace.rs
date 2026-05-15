@@ -179,6 +179,11 @@ pub(crate) fn de_get_workspace(value: &[u8], mut builder: crate::operation::get_
                             ).transpose()?
                         );
                     }
+                    "workspace_lock" => {
+                        builder = builder.set_workspace_lock(
+                            crate::protocol_serde::shape_workspace_lock::de_workspace_lock(tokens)?
+                        );
+                    }
                     "workspace_name" => {
                         builder = builder.set_workspace_name(
                             ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|

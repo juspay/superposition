@@ -11,11 +11,13 @@ import qualified Io.Superposition.Model.CreateDefaultConfigInput
 import qualified Io.Superposition.Model.CreateDefaultConfigOutput
 import qualified Io.Superposition.Model.InternalServerError
 import qualified Io.Superposition.Model.WebhookFailed
+import qualified Io.Superposition.Model.WorkspaceLockConflict
 import qualified Io.Superposition.SuperpositionClient
 import qualified Io.Superposition.Utility
 
 data CreateDefaultConfigError =
     WebhookFailed Io.Superposition.Model.WebhookFailed.WebhookFailed
+    | WorkspaceLockConflict Io.Superposition.Model.WorkspaceLockConflict.WorkspaceLockConflict
     | InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | DeSerializationError Io.Superposition.Utility.HttpMetadata Data.Text.Text
@@ -30,6 +32,7 @@ instance Io.Superposition.Utility.OperationError CreateDefaultConfigError where
 
     getErrorParser status
         | status == (Io.Superposition.Utility.expectedStatus @Io.Superposition.Model.WebhookFailed.WebhookFailed) = Just (fmap WebhookFailed (Io.Superposition.Utility.responseParser @Io.Superposition.Model.WebhookFailed.WebhookFailed))
+        | status == (Io.Superposition.Utility.expectedStatus @Io.Superposition.Model.WorkspaceLockConflict.WorkspaceLockConflict) = Just (fmap WorkspaceLockConflict (Io.Superposition.Utility.responseParser @Io.Superposition.Model.WorkspaceLockConflict.WorkspaceLockConflict))
         | status == (Io.Superposition.Utility.expectedStatus @Io.Superposition.Model.InternalServerError.InternalServerError) = Just (fmap InternalServerError (Io.Superposition.Utility.responseParser @Io.Superposition.Model.InternalServerError.InternalServerError))
         | otherwise = Nothing
 
