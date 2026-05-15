@@ -9,8 +9,8 @@ use chrono::{DateTime, Utc};
 use derive_more::{Deref, DerefMut};
 #[cfg(feature = "diesel_derives")]
 use diesel::{
-    AsChangeset, AsExpression, FromSqlRow, Insertable, QueryId, Queryable, Selectable,
     sql_types::{Json, Text},
+    AsChangeset, AsExpression, FromSqlRow, Insertable, QueryId, Queryable, Selectable,
 };
 use serde::{Deserialize, Deserializer, Serialize};
 #[cfg(all(
@@ -23,10 +23,10 @@ use superposition_derives::TextFromSqlNoValidation;
 #[cfg(feature = "diesel_derives")]
 use superposition_derives::{JsonFromSql, JsonToSql, TextToSql};
 
-#[cfg(feature = "disable_db_data_validation")]
-use super::DisableDBValidation;
 #[cfg(feature = "diesel_derives")]
 use super::superposition_schema::superposition::*;
+#[cfg(feature = "disable_db_data_validation")]
+use super::DisableDBValidation;
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Deref, DerefMut)]
 #[serde(try_from = "String")]
