@@ -45,17 +45,21 @@ impl ObservabilityConfig {
     where
         F: Fn(&str) -> Option<String>,
     {
-        fn parse_bool(
-            name: &str,
-            raw: Option<String>,
-            default: bool,
-        ) -> Result<bool, String> {
-            match raw {
-                Some(v) => v
-                    .parse::<bool>()
-                    .map_err(|_| format!("{name} must be true or false")),
-                None => Ok(default),
-            }
+        /// Parse `key` via `T: FromStr`, falling back to `default_str` when
+        /// the key is absent. Folds the lookup, the default, and the error
+        /// label into one place so each env key appears exactly once at the
+        /// call site.
+        fn parse_or_default<T>(
+            get: &impl Fn(&str) -> Option<String>,
+            key: &'static str,
+            default_str: &str,
+        ) -> Result<T, String>
+        where
+            T: FromStr,
+            T::Err: std::fmt::Display,
+        {
+            let raw = get(key).unwrap_or_else(|| default_str.to_owned());
+            T::from_str(&raw).map_err(|e| format!("{key}: {e}"))
         }
 
         fn get_str(
@@ -70,33 +74,21 @@ impl ObservabilityConfig {
             get(key).filter(|s| !s.is_empty())
         }
 
-        let enabled = parse_bool(
-            "SUPERPOSITION_METRICS_ENABLED",
-            get("SUPERPOSITION_METRICS_ENABLED"),
-            true,
-        )?;
-        let bind =
-            IpAddr::from_str(&get_str(&get, "SUPERPOSITION_METRICS_BIND", "0.0.0.0"))
-                .map_err(|e| format!("SUPERPOSITION_METRICS_BIND: {e}"))?;
-        let port: u16 = get_str(&get, "SUPERPOSITION_METRICS_PORT", "9091")
-            .parse()
-            .map_err(|e| format!("SUPERPOSITION_METRICS_PORT: {e}"))?;
-        let with_org_label = parse_bool(
-            "SUPERPOSITION_METRICS_LABEL_ORG",
-            get("SUPERPOSITION_METRICS_LABEL_ORG"),
-            true,
-        )?;
-        let with_workspace_label = parse_bool(
-            "SUPERPOSITION_METRICS_LABEL_WORKSPACE",
-            get("SUPERPOSITION_METRICS_LABEL_WORKSPACE"),
-            true,
-        )?;
-        let collect_interval = humantime::parse_duration(&get_str(
-            &get,
-            "SUPERPOSITION_METRICS_COLLECT_INTERVAL",
-            "10s",
-        ))
-        .map_err(|e| format!("SUPERPOSITION_METRICS_COLLECT_INTERVAL: {e}"))?;
+        let enabled: bool =
+            parse_or_default(&get, "SUPERPOSITION_METRICS_ENABLED", "true")?;
+        let bind: IpAddr =
+            parse_or_default(&get, "SUPERPOSITION_METRICS_BIND", "0.0.0.0")?;
+        let port: u16 = parse_or_default(&get, "SUPERPOSITION_METRICS_PORT", "9091")?;
+        let with_org_label: bool =
+            parse_or_default(&get, "SUPERPOSITION_METRICS_LABEL_ORG", "true")?;
+        let with_workspace_label: bool =
+            parse_or_default(&get, "SUPERPOSITION_METRICS_LABEL_WORKSPACE", "true")?;
+        // humantime::Duration is a newtype around std::time::Duration that
+        // implements FromStr ("10s", "1m30s", "500ms"); convert back to the
+        // struct's std::time::Duration field after parsing.
+        let collect_interval: humantime::Duration =
+            parse_or_default(&get, "SUPERPOSITION_METRICS_COLLECT_INTERVAL", "10s")?;
+        let collect_interval: Duration = collect_interval.into();
 
         // instance_id: env var takes precedence, then /etc/hostname, then "unknown".
         let instance_id = get_opt(&get, "SUPERPOSITION_INSTANCE_ID")
