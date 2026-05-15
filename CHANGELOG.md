@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.107.1 - 2026-05-15
+### Package updates
+- experimentation_platform bumped to experimentation_platform-v0.51.5
+- superposition_types bumped to superposition_types-v0.44.1
+### Global changes
+#### Miscellaneous Chores
+- **(version)** v0.107.0 [skip ci] - (f5121d8) - Superposition Bot
+
+- - -
+
 ## v0.107.0 - 2026-05-12
 ### Package updates
 - superposition_core bumped to superposition_core-v0.14.1
