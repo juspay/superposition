@@ -62,14 +62,6 @@ impl ObservabilityConfig {
             T::from_str(&raw).map_err(|e| format!("{key}: {e}"))
         }
 
-        fn get_str(
-            get: &impl Fn(&str) -> Option<String>,
-            key: &str,
-            default: &str,
-        ) -> String {
-            get(key).unwrap_or_else(|| default.to_owned())
-        }
-
         fn get_opt(get: &impl Fn(&str) -> Option<String>, key: &str) -> Option<String> {
             get(key).filter(|s| !s.is_empty())
         }
@@ -95,8 +87,11 @@ impl ObservabilityConfig {
             .or_else(hostname_or_none)
             .unwrap_or_else(|| "unknown".to_owned());
 
-        // service.name: OTEL standard env var.
-        let service_name = get_str(&get, "OTEL_SERVICE_NAME", "superposition");
+        // service.name: OTEL standard env var. String: FromStr<Err = Infallible>
+        // means the `?` is a noop, but the call shape stays consistent with the
+        // parsed fields above.
+        let service_name: String =
+            parse_or_default(&get, "OTEL_SERVICE_NAME", "superposition")?;
 
         // service.version: always the build-time crate version.
         let service_version = env!("CARGO_PKG_VERSION").to_owned();
