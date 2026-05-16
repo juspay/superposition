@@ -31,6 +31,16 @@ impl Default for LabelConfig {
     }
 }
 
+/// Source of env-var values: `(key) -> Some(value) | None`.
+///
+/// Marker trait with a blanket impl over every closure / fn-pointer that
+/// matches the underlying `Fn` signature. Lets `from_source` and its
+/// helpers share one named bound instead of repeating
+/// `Fn(&str) -> Option<String>` at every site. Crate-private — the
+/// public config-loading API is `from_env`.
+pub(crate) trait EnvSource: Fn(&str) -> Option<String> {}
+impl<F: Fn(&str) -> Option<String>> EnvSource for F {}
+
 impl ObservabilityConfig {
     /// Parse from the process environment via `std::env::var`.
     pub fn from_env() -> Result<Self, String> {
@@ -41,16 +51,13 @@ impl ObservabilityConfig {
     ///
     /// `get(key)` returns `Some(value)` when the key is set, `None` when absent.
     /// This keeps tests pure (no process-global env mutations) and parallel-safe.
-    pub fn from_source<F>(get: F) -> Result<Self, String>
-    where
-        F: Fn(&str) -> Option<String>,
-    {
+    pub(crate) fn from_source<F: EnvSource>(get: F) -> Result<Self, String> {
         /// Parse `key` via `T: FromStr`, falling back to `default_str` when
         /// the key is absent. Folds the lookup, the default, and the error
         /// label into one place so each env key appears exactly once at the
         /// call site.
         fn parse_or_default<T>(
-            get: &impl Fn(&str) -> Option<String>,
+            get: &impl EnvSource,
             key: &'static str,
             default_str: &str,
         ) -> Result<T, String>
@@ -62,7 +69,7 @@ impl ObservabilityConfig {
             T::from_str(&raw).map_err(|e| format!("{key}: {e}"))
         }
 
-        fn get_opt(get: &impl Fn(&str) -> Option<String>, key: &str) -> Option<String> {
+        fn get_opt(get: &impl EnvSource, key: &str) -> Option<String> {
             get(key).filter(|s| !s.is_empty())
         }
 
