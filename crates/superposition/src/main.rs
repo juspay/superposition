@@ -182,7 +182,6 @@ async fn main() -> Result<()> {
         let deps = SaturationDeps {
             db_pool: Some(Arc::new(app_state.db_pool.clone())),
             redis_client: redis_handle,
-            tokio_collect_interval: obs_cfg.collect_interval,
         };
         register_observers(&obs.meter(), deps)
             .expect("saturation observer registration failed");

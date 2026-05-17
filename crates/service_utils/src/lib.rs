@@ -3,10 +3,6 @@
 // when compiling tests.
 #[cfg(test)]
 use opentelemetry_otlp as _;
-// tokio_metrics is only referenced inside cfg(tokio_unstable) code; suppress
-// the lint when building without that flag.
-#[cfg(not(tokio_unstable))]
-use tokio_metrics as _;
 pub mod aws;
 pub mod db;
 pub mod encryption;

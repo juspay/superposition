@@ -33,7 +33,6 @@ opentelemetry-prometheus = { workspace = true }
 prometheus = { workspace = true }
 rand = "0.8"
 tokio = { workspace = true }
-tokio-metrics = { workspace = true }
 tracing = { workspace = true }
 regex = { workspace = true }
 reqwest = { workspace = true }

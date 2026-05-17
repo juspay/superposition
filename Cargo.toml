@@ -87,7 +87,6 @@ strum = "0.25"
 strum_macros = "0.25"
 thiserror = "1"
 tokio = { version = "1.29.1", features = ["full"] }
-tokio-metrics = { version = "0.3", default-features = false, features = ["rt"] }
 toml = { version = "0.8.8", features = ["preserve_order"] }
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.22", features = [
@@ -107,9 +106,6 @@ superposition_core = { path = "crates/superposition_core", version = "0.106.2" }
 superposition_provider = { path = "crates/superposition_provider", version = "0.106.2" }
 superposition_sdk = { path = "crates/superposition_sdk", version = "0.106.2" }
 service_utils = { path = "crates/service_utils", version = "0.106.2" }
-
-[workspace.lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = ['cfg(tokio_unstable)'] }
 
 [workspace.lints.clippy]
 mod_module_files = "warn"
