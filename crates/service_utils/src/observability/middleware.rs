@@ -22,18 +22,16 @@ use crate::service::types::{OrganisationId, WorkspaceId};
 /// literal name; anything else collapses to `_OTHER`. Prevents weirdo clients
 /// from blowing up the cardinality of the `http.request.method` attribute.
 pub(crate) fn normalize_method(m: &actix_web::http::Method) -> &'static str {
-    match m.as_str() {
-        "GET" => "GET",
-        "POST" => "POST",
-        "PUT" => "PUT",
-        "DELETE" => "DELETE",
-        "PATCH" => "PATCH",
-        "HEAD" => "HEAD",
-        "OPTIONS" => "OPTIONS",
-        "TRACE" => "TRACE",
-        "CONNECT" => "CONNECT",
-        _ => "_OTHER",
+    macro_rules! match_known {
+        ($val:expr, [$($name:literal),+ $(,)?], $other:literal) => {
+            match $val { $($name => $name,)+ _ => $other }
+        };
     }
+    match_known!(
+        m.as_str(),
+        ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "TRACE", "CONNECT"],
+        "_OTHER"
+    )
 }
 
 /// Sentinel for paths that did not match any registered route (would 404).
