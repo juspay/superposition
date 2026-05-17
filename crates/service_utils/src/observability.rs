@@ -3,14 +3,12 @@
 //! See `docs/superpowers/specs/2026-05-10-otel-golden-signals-middleware-design.md`.
 
 mod config;
-mod health;
 mod meters;
 mod metrics_server;
 mod middleware;
 mod saturation;
 
 pub use config::{LabelConfig, ObservabilityConfig};
-pub use health::{configure_health_endpoints, health_endpoint_paths};
 pub use meters::HttpMeters;
 pub use metrics_server::spawn_metrics_server;
 pub use middleware::MetricsMiddleware;

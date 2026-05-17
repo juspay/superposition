@@ -158,8 +158,6 @@ The HTTP API exposes Prometheus metrics on `SUPERPOSITION_METRICS_PORT` (default
 curl http://localhost:9091/metrics
 ```
 
-Health endpoints live on the main port: `GET /healthz`, `/livez`, `/readyz`.
-
 ## Contributing
 
 We welcome contributions across the platform, clients, docs, and examples.

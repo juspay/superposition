@@ -102,21 +102,12 @@ pub async fn get(
         },
         snowflake_generator,
         app_env,
-        tenant_middleware_exclusion_list: {
-            let mut set =
-                get_from_env_unsafe::<String>("TENANT_MIDDLEWARE_EXCLUSION_LIST")
-                    .expect("TENANT_MIDDLEWARE_EXCLUSION_LIST is not set")
-                    .split(',')
-                    .map(String::from)
-                    .collect::<HashSet<_>>();
-            // Always exclude observability health endpoints from auth checks.
-            set.extend(
-                service_utils::observability::health_endpoint_paths()
-                    .iter()
-                    .map(|s| s.to_string()),
-            );
-            set
-        },
+        tenant_middleware_exclusion_list:
+            get_from_env_unsafe::<String>("TENANT_MIDDLEWARE_EXCLUSION_LIST")
+                .expect("TENANT_MIDDLEWARE_EXCLUSION_LIST is not set")
+                .split(',')
+                .map(String::from)
+                .collect::<HashSet<_>>(),
         service_prefix,
         superposition_token: get_superposition_token(kms_client, &app_env).await,
         redis: redis_pool,
