@@ -1,10 +1,21 @@
 # OpenTelemetry Golden-Signals Middleware
 
 - **Date:** 2026-05-10
-- **Status:** Design — pending review
+- **Status:** Design — shipped with deviations (see §0)
 - **Owner:** Natarajan Kannan
 - **Target crate:** `service_utils`
 - **Reference TSDB:** VictoriaMetrics (single-node `vmsingle`); design is TSDB-agnostic
+
+## 0. Post-implementation deviations
+
+The PR shipped with the following changes versus the design captured below. The body of this document is preserved as the original design rationale.
+
+- **Health endpoints (`/healthz`, `/livez`, `/readyz`) dropped.** The pre-existing `GET /health` already serves the up-check role; the k8s-conventional liveness/readiness split can be added in a follow-up PR when an actual deployment consumes it. This makes §5.2 ("Auth bypass for health endpoints"), the `health_endpoints()` API in §6, and Task 12/17 of the plan obsolete.
+- **`tokio_unstable` flag, `tokio-metrics` dep, and `.cargo/config.toml` removed.** Tokio 1.50 exposes `Handle::metrics().num_workers()`, `.global_queue_depth()`, and `.worker_total_busy_duration(i)` as stable APIs (the last gated on `target_has_atomic = "64"`, like tokio itself does). `saturation::tokio_runtime` reads `Handle::metrics()` directly inside each observable callback — no background sampler, no `RuntimeMonitor`, no atomics snapshot.
+- **`runtime.tokio.workers.busy_ratio` replaced with `runtime.tokio.workers.busy.time`.** Exposes cumulative busy time in seconds as a monotonic OTel Counter (summed across workers); Prometheus computes saturation via `rate(...) / num_workers` at query time. Same semantic, Prom-idiomatic.
+- **`opentelemetry-semantic-conventions` dependency removed.** The handful of attribute names we use are inlined as string literals.
+- **`SaturationDeps::tokio_collect_interval` field removed.** No background sampler → no interval to configure. `SUPERPOSITION_METRICS_COLLECT_INTERVAL` still controls the OTLP periodic-reader cadence.
+- **`tenant_middleware_exclusion_list` reverted to env-only.** With health endpoints removed, there's no need to extend it programmatically.
 
 ## 1. Background
 

@@ -1,6 +1,20 @@
 # OpenTelemetry Golden-Signals Middleware Implementation Plan
 
+> **Status:** Plan executed; shipped with deviations. See "Post-implementation deviations" below before treating any specific task as ground truth. The plan body is preserved as historical record of original intent.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+## Post-implementation deviations
+
+The PR shipped with the following changes versus this plan. Affected tasks are flagged inline; the canonical summary is in §0 of the design spec.
+
+- **Tasks 2, 12, 16, 17 changed substantially or obsolete.**
+  - **Task 2 (`.cargo/config.toml` for `tokio_unstable`):** not needed. Tokio 1.50 exposes the runtime metrics APIs we use as stable. The file was not created (or removed if already present).
+  - **Task 12 (`/healthz` `/livez` `/readyz` handlers) + Task 17 (auth-bypass exclusion):** dropped. The pre-existing `GET /health` covers the up-check role; the k8s liveness/readiness split is deferred to a follow-up PR.
+  - **Task 16 (Tokio runtime saturation):** rewritten. No background sampler, no `RuntimeMonitor`, no atomics snapshot, no `tokio-metrics` dep. Each observable callback reads `Handle::metrics()` directly. `runtime.tokio.workers.busy_ratio` (Gauge) is replaced with `runtime.tokio.workers.busy.time` (monotonic Counter, seconds, summed across workers); Prometheus computes saturation at query time.
+- **Task 1 / 3:** `opentelemetry-semantic-conventions` dep is **not** in the final tree — attribute names are used as literals. `tokio-metrics` was added then removed when Task 16 was rewritten.
+- **Task 18 (`main.rs` wiring):** `SaturationDeps` no longer has `tokio_collect_interval`; the `.configure(configure_health_endpoints)` line is not present.
+- **Task 21 (README + makefile):** the `tokio_unstable` build-flag note is removed; no makefile flag changes are required.
 
 **Goal:** Add an Actix middleware and supporting subsystem to `crates/service_utils` that emits Google SRE golden signals (latency, traffic, errors, saturation) for every HTTP route on the main API, exposed via Prometheus scrape on a dedicated port and optional OTLP push, using OpenTelemetry.
 
