@@ -5,7 +5,8 @@
 use actix_web::{App, HttpResponse, http::StatusCode, test, web};
 use prometheus::Encoder;
 use service_utils::observability::{
-    LabelConfig, MetricsMiddleware, Observability, ObservabilityConfig,
+    LabelConfig, MetricsMiddleware, Observability, ObservabilityConfig, SaturationDeps,
+    register_observers,
 };
 
 fn cfg() -> ObservabilityConfig {
@@ -133,6 +134,35 @@ async fn metrics_appear_after_requests() {
         let v: f64 = line.rsplit_once(' ').unwrap().1.trim().parse().unwrap();
         assert_eq!(v, 0.0, "active_requests not zero: {line}");
     }
+}
+
+/// Sanity check that the saturation observers register and the tokio runtime
+/// gauges actually appear in the Prometheus scrape under a real tokio runtime.
+/// The values themselves come from `tokio::runtime::Handle::metrics()`; we
+/// just assert the wiring is intact (presence + plausible workers count).
+#[actix_web::test]
+async fn runtime_tokio_metrics_appear_after_register_observers() {
+    let obs = Observability::init(cfg()).unwrap();
+    register_observers(&obs.meter(), SaturationDeps::default()).unwrap();
+
+    let body = scrape(&obs);
+
+    let workers_line = body
+        .lines()
+        .find(|l| l.starts_with("runtime_tokio_workers "))
+        .unwrap_or_else(|| panic!("no runtime_tokio_workers in:\n{body}"));
+    let workers: f64 = workers_line.rsplit_once(' ').unwrap().1.trim().parse().unwrap();
+    assert!(workers >= 1.0, "expected >=1 worker, got {workers}");
+
+    assert!(
+        body.lines().any(|l| l.starts_with("runtime_tokio_global_queue_depth ")),
+        "no runtime_tokio_global_queue_depth in:\n{body}"
+    );
+    assert!(
+        body.lines()
+            .any(|l| l.starts_with("runtime_tokio_workers_busy_time_seconds_total ")),
+        "no runtime_tokio_workers_busy_time_seconds_total in:\n{body}"
+    );
 }
 
 #[actix_web::test]
