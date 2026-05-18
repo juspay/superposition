@@ -66,8 +66,11 @@ impl AppError {
                 String::from("Something went wrong")
             }
             AppError::DbError(diesel_error::DatabaseError(
-                diesel_error_kind::UniqueViolation
-                | diesel_error_kind::CheckViolation
+                diesel_error_kind::UniqueViolation,
+                _,
+            )) => "the data you are trying to create already exists".to_string(),
+            AppError::DbError(diesel_error::DatabaseError(
+                diesel_error_kind::CheckViolation
                 | diesel_error_kind::NotNullViolation
                 | diesel_error_kind::ForeignKeyViolation,
                 error,
@@ -112,10 +115,15 @@ impl error::ResponseError for AppError {
                 StatusCode::NOT_FOUND,
                 "No records found. Please refine or correct your search parameters",
             ),
-
             AppError::DbError(diesel_error::DatabaseError(
-                diesel_error_kind::UniqueViolation
-                | diesel_error_kind::CheckViolation
+                diesel_error_kind::UniqueViolation,
+                _,
+            )) => Self::generate_err_response(
+                StatusCode::CONFLICT,
+                "The data you are trying to create already exists",
+            ),
+            AppError::DbError(diesel_error::DatabaseError(
+                diesel_error_kind::CheckViolation
                 | diesel_error_kind::NotNullViolation
                 | diesel_error_kind::ForeignKeyViolation,
                 error,
