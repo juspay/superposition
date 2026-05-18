@@ -68,7 +68,7 @@ impl AppError {
             AppError::DbError(diesel_error::DatabaseError(
                 diesel_error_kind::UniqueViolation,
                 _,
-            )) => "the data you are trying to create already exists".to_string(),
+            )) => "The data you are trying to create already exists".to_string(),
             AppError::DbError(diesel_error::DatabaseError(
                 diesel_error_kind::CheckViolation
                 | diesel_error_kind::NotNullViolation
