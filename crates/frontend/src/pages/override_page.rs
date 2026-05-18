@@ -225,13 +225,7 @@ pub fn EditOverride() -> impl IntoView {
                 let FormPageResource { dimensions, default_config } = page_resource
                     .get()
                     .unwrap_or_default();
-                let redirect_url_cancel = format!(
-                    "/admin/{}/{}/overrides/{}",
-                    org.get().0,
-                    workspace.get().0,
-                    ctx_id,
-                );
-                let redirect_url_success = format!(
+                let redirect_url = format!(
                     "/admin/{}/{}/overrides/{}",
                     org.get().0,
                     workspace.get().0,
@@ -248,8 +242,8 @@ pub fn EditOverride() -> impl IntoView {
                         default_config=default_config
                         description=description
                         change_reason=change_reason
-                        redirect_url_cancel=redirect_url_cancel
-                        redirect_url_success=redirect_url_success
+                        redirect_url_cancel=redirect_url.clone()
+                        redirect_url_success=redirect_url
                     />
                 }
                     .into_view()
@@ -297,12 +291,7 @@ pub fn CreateOverride() -> impl IntoView {
         },
     );
 
-    let redirect_url_cancel = store_value(format!(
-        "/admin/{}/{}/overrides",
-        org.get().0,
-        workspace.get().0
-    ));
-    let redirect_url_success = store_value(format!(
+    let redirect_url = store_value(format!(
         "/admin/{}/{}/overrides",
         org.get().0,
         workspace.get().0
@@ -334,8 +323,8 @@ pub fn CreateOverride() -> impl IntoView {
                         overrides=overrides
                         dimensions=dimensions
                         default_config=default_config
-                        redirect_url_cancel=redirect_url_cancel.get_value()
-                        redirect_url_success=redirect_url_success.get_value()
+                        redirect_url_cancel=redirect_url.get_value()
+                        redirect_url_success=redirect_url.get_value()
                     />
                 }
                     .into_view()

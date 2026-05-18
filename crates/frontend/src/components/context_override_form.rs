@@ -35,7 +35,6 @@ use crate::{
         condition_collapse_provider::ConditionCollapseProvider,
         editor_provider::EditorProvider,
     },
-    schema::HtmlDisplay,
     types::{OrganisationId, Workspace},
 };
 
@@ -245,22 +244,13 @@ pub fn ContextOverrideForm(
                             <div class="flex flex-col gap-4">
                                 <h2 class="card-title">"Context"</h2>
                                 <div class="flex flex-row flex-wrap gap-2">
-                                    {context_rs
-                                        .get()
-                                        .0
-                                        .iter()
-                                        .map(|condition| {
-                                            let dimension = condition.variable.clone();
-                                            view! {
-                                                <div class="stat w-3/12">
-                                                    <div class="stat-title">{dimension}</div>
-                                                    <div class="stat-value text-base">
-                                                        {condition.value.html_display()}
-                                                    </div>
-                                                </div>
-                                            }
-                                        })
-                                        .collect_view()}
+                                    <ConditionCollapseProvider>
+                                        <Condition
+                                            conditions=context_rs.get_untracked()
+                                            id="override-form-context"
+                                            class="h-fit w-[300px]"
+                                        />
+                                    </ConditionCollapseProvider>
                                 </div>
                                 <div class="min-h-[400px] max-h-[60vh] overflow-y-auto">
                                     <OverrideForm
