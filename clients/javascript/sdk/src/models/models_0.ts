@@ -1063,6 +1063,10 @@ export interface GetContextFromConditionInput {
  */
 export const DimensionMatchStrategy = {
   /**
+   * Match overrides whose context has at least one supplied query dimension, with partial value matching and dependency-graph awareness
+   */
+  ANY_MATCH: "any_match",
+  /**
    * Match the overrides which have the exact context
    */
   EXACT: "exact",

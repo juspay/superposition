@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use actix_web::{
     HttpRequest, HttpResponse, Scope, routes,
@@ -8,7 +8,7 @@ use chrono::{DateTime, Utc};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use service_utils::{
     db::run_query,
-    helpers::is_not_modified,
+    helpers::{fetch_dimensions_info_map, is_not_modified},
     redis::{
         EXPERIMENT_CONFIG_LAST_MODIFIED_KEY_SUFFIX, EXPERIMENT_GROUPS_LIST_KEY_SUFFIX,
         EXPERIMENTS_LIST_KEY_SUFFIX, read_through_cache,
@@ -17,7 +17,7 @@ use service_utils::{
 };
 use superposition_derives::{authorized, declare_resource};
 use superposition_types::{
-    DBConnection, IsEmpty, PaginatedResponse,
+    Contextual, DBConnection, IsEmpty, PaginatedResponse,
     api::{
         DimensionMatchStrategy,
         experiment_config::{
@@ -34,6 +34,7 @@ use superposition_types::{
         },
     },
     experimental::{Experimental, ExperimentalVariants},
+    logic::evaluate_local_cohorts_skip_unresolved,
     result as superposition,
 };
 use tokio::join;
@@ -158,6 +159,14 @@ fn get_experiment_config_db(
 ) -> superposition::DieselResult<ExperimentConfig> {
     let filters = filters.into_inner();
     let dimension_match_strategy = filters.dimension_match_strategy.unwrap_or_default();
+    let dimensions_info = if dimension_params.is_empty() {
+        HashMap::new()
+    } else {
+        fetch_dimensions_info_map(conn, &workspace_context.schema_name)?
+    };
+    let query_keys = dimension_params.keys().cloned().collect::<HashSet<_>>();
+    let evaluated_dimension_params =
+        evaluate_local_cohorts_skip_unresolved(&dimensions_info, &dimension_params);
 
     let exp_list = {
         let mut experiment_list: Vec<Experiment> = experiments::experiments
@@ -174,11 +183,29 @@ fn get_experiment_config_db(
         }
 
         if !dimension_params.is_empty() {
-            let filter_fn = match dimension_match_strategy {
-                DimensionMatchStrategy::Exact => Experiment::get_satisfied,
-                DimensionMatchStrategy::Subset => Experiment::filter_by_eval,
+            experiment_list = match dimension_match_strategy {
+                DimensionMatchStrategy::Exact => Experiment::get_satisfied(
+                    experiment_list,
+                    &evaluated_dimension_params,
+                ),
+                DimensionMatchStrategy::Subset => {
+                    <Experiment as Experimental>::filter_by_eval(
+                        experiment_list,
+                        &evaluated_dimension_params,
+                    )
+                }
+                DimensionMatchStrategy::AnyMatch => {
+                    let experiment_list = <Experiment as Experimental>::filter_by_eval(
+                        experiment_list,
+                        &evaluated_dimension_params,
+                    );
+                    Experiment::filter_by_context_any_match(
+                        experiment_list,
+                        &query_keys,
+                        &dimensions_info,
+                    )
+                }
             };
-            experiment_list = filter_fn(experiment_list, &dimension_params);
         }
 
         experiment_list
@@ -194,11 +221,29 @@ fn get_experiment_config_db(
             .load::<ExperimentGroup>(conn)?;
 
         if !dimension_params.is_empty() {
-            let filter_fn = match dimension_match_strategy {
-                DimensionMatchStrategy::Exact => ExperimentGroup::get_satisfied,
-                DimensionMatchStrategy::Subset => ExperimentGroup::filter_by_eval,
+            group_list = match dimension_match_strategy {
+                DimensionMatchStrategy::Exact => ExperimentGroup::get_satisfied(
+                    group_list,
+                    &evaluated_dimension_params,
+                ),
+                DimensionMatchStrategy::Subset => {
+                    <ExperimentGroup as Experimental>::filter_by_eval(
+                        group_list,
+                        &evaluated_dimension_params,
+                    )
+                }
+                DimensionMatchStrategy::AnyMatch => {
+                    let group_list = <ExperimentGroup as Experimental>::filter_by_eval(
+                        group_list,
+                        &evaluated_dimension_params,
+                    );
+                    ExperimentGroup::filter_by_context_any_match(
+                        group_list,
+                        &query_keys,
+                        &dimensions_info,
+                    )
+                }
             };
-            group_list = filter_fn(group_list, &dimension_params);
         }
 
         group_list

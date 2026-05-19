@@ -8217,7 +8217,8 @@
                 "description": "Strategy to follow while filter items based on the context",
                 "enum": [
                     "exact",
-                    "subset"
+                    "subset",
+                    "any_match"
                 ]
             },
             "DimensionResponse": {

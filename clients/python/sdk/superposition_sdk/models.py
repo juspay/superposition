@@ -4184,6 +4184,12 @@ class DimensionMatchStrategy(StrEnum):
     Match the overrides which have the given context as subset
 
     """
+    ANY_MATCH = "any_match"
+    """
+    Match overrides whose context has at least one supplied query dimension, with
+    partial value matching and dependency-graph awareness
+
+    """
 
 class ContextFilterSortOn(StrEnum):
     LAST_MODIFIED_AT = "last_modified_at"

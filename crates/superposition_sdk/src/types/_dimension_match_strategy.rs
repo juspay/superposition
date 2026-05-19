@@ -12,6 +12,7 @@
 /// ```text
 /// # let dimensionmatchstrategy = unimplemented!();
 /// match dimensionmatchstrategy {
+///     DimensionMatchStrategy::AnyMatch => { /* ... */ },
 ///     DimensionMatchStrategy::Exact => { /* ... */ },
 ///     DimensionMatchStrategy::Subset => { /* ... */ },
 ///     other @ _ if other.as_str() == "NewFeature" => { /* handles a case for `NewFeature` */ },
@@ -40,6 +41,8 @@
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::Eq, ::std::cmp::Ord, ::std::cmp::PartialEq, ::std::cmp::PartialOrd, ::std::fmt::Debug, ::std::hash::Hash)]
 pub enum DimensionMatchStrategy {
+    /// Match overrides whose context has at least one supplied query dimension, with partial value matching and dependency-graph awareness
+    AnyMatch,
     /// Match the overrides which have the exact context
     Exact,
     /// Match the overrides which have the given context as subset
@@ -51,7 +54,8 @@ pub enum DimensionMatchStrategy {
 impl ::std::convert::From<&str> for DimensionMatchStrategy {
                     fn from(s: &str) -> Self {
                         match s {
-                            "exact" => DimensionMatchStrategy::Exact,
+                            "any_match" => DimensionMatchStrategy::AnyMatch,
+"exact" => DimensionMatchStrategy::Exact,
 "subset" => DimensionMatchStrategy::Subset,
 other => DimensionMatchStrategy::Unknown(crate::primitives::sealed_enum_unknown::UnknownVariantValue(other.to_owned()))
                         }
@@ -68,6 +72,7 @@ impl DimensionMatchStrategy {
                 /// Returns the `&str` value of the enum member.
                 pub fn as_str(&self) -> &str {
                     match self {
+    DimensionMatchStrategy::AnyMatch => "any_match",
     DimensionMatchStrategy::Exact => "exact",
     DimensionMatchStrategy::Subset => "subset",
     DimensionMatchStrategy::Unknown(value) => value.as_str()
@@ -75,7 +80,7 @@ impl DimensionMatchStrategy {
                 }
                 /// Returns all the `&str` representations of the enum members.
                 pub const fn values() -> &'static [&'static str] {
-                    &["exact", "subset"]
+                    &["any_match", "exact", "subset"]
                 }
             }
 impl ::std::convert::AsRef<str> for DimensionMatchStrategy {
@@ -98,7 +103,8 @@ impl DimensionMatchStrategy {
 impl ::std::fmt::Display for DimensionMatchStrategy {
                         fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                             match self {
-                                DimensionMatchStrategy::Exact => write!(f, "exact"),
+                                DimensionMatchStrategy::AnyMatch => write!(f, "any_match"),
+DimensionMatchStrategy::Exact => write!(f, "exact"),
 DimensionMatchStrategy::Subset => write!(f, "subset"),
 DimensionMatchStrategy::Unknown(value) => write!(f, "{}", value)
                             }
