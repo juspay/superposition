@@ -281,7 +281,7 @@ describe("Variable Operations", () => {
 
             await expect(
                 superpositionClient.send(duplicateCommand),
-            ).rejects.toThrow("duplicate key value violates unique constraint");
+            ).rejects.toThrow("The data you are trying to create already exists");
         } catch (error: any) {
             console.log("Error testing duplicate prevention:", error.message);
             throw error;
