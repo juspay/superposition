@@ -27,10 +27,15 @@ public final class DimensionMatchStrategy implements SerializableShape {
      * Match the overrides which have the given context as subset
      */
     public static final DimensionMatchStrategy SUBSET = new DimensionMatchStrategy(Type.SUBSET, "subset");
-    private static final List<DimensionMatchStrategy> $TYPES = List.of(EXACT, SUBSET);
+    /**
+     * Match overrides whose context has at least one supplied query dimension, with partial value matching
+     * and dependency-graph awareness
+     */
+    public static final DimensionMatchStrategy ANY_MATCH = new DimensionMatchStrategy(Type.ANY_MATCH, "any_match");
+    private static final List<DimensionMatchStrategy> $TYPES = List.of(EXACT, SUBSET, ANY_MATCH);
 
     public static final Schema $SCHEMA = Schema.createEnum($ID,
-        Set.of(EXACT.value, SUBSET.value)
+        Set.of(EXACT.value, SUBSET.value, ANY_MATCH.value)
     );
 
     private final String value;
@@ -47,7 +52,8 @@ public final class DimensionMatchStrategy implements SerializableShape {
     public enum Type {
         $UNKNOWN,
         EXACT,
-        SUBSET
+        SUBSET,
+        ANY_MATCH
     }
 
     /**
@@ -100,6 +106,7 @@ public final class DimensionMatchStrategy implements SerializableShape {
         return switch (value) {
             case "exact" -> EXACT;
             case "subset" -> SUBSET;
+            case "any_match" -> ANY_MATCH;
             default -> throw new IllegalArgumentException("Unknown value: " + value);
         };
     }
@@ -151,6 +158,7 @@ public final class DimensionMatchStrategy implements SerializableShape {
             return switch (value) {
                 case "exact" -> EXACT;
                 case "subset" -> SUBSET;
+                case "any_match" -> ANY_MATCH;
                 default -> new DimensionMatchStrategy(Type.$UNKNOWN, value);
             };
         }

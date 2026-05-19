@@ -42,12 +42,13 @@ pub fn default_true() -> bool {
     strum_macros::Display,
     Default,
 )]
-#[serde(rename_all = "lowercase")]
-#[strum(serialize_all = "lowercase")]
+#[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
 pub enum DimensionMatchStrategy {
     Exact,
     #[default]
     Subset,
+    AnyMatch,
 }
 
 #[derive(Debug, Clone)]
