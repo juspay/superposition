@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.52.0 - 2026-05-20
+#### Features
+- add AnyMatch filter to get contexts based on query permutations (#1008) - (3bdee15) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.107.1 [skip ci] - (ff59a77) - Superposition Bot
+
+- - -
+
 ## experimentation_platform-v0.51.5 - 2026-05-15
 #### Bug Fixes
 - fixing formatting (#1004) - (2c079cf) - sauraww

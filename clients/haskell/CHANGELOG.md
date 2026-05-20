@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## haskell_client-v0.17.0 - 2026-05-20
+#### Features
+- add AnyMatch filter to get contexts based on query permutations (#1008) - (3bdee15) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.106.0 [skip ci] - (a9561f1) - Superposition Bot
+
+- - -
+
 ## haskell_client-v0.16.0 - 2026-04-28
 #### Features
 - haskell provider perf (#952) - (117d1cf) - Ankit Kumar Mahato

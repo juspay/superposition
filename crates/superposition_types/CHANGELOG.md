@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.45.0 - 2026-05-20
+#### Bug Fixes
+- send a more user friendly message on unique constraint violation (#1007) - (5f98ada) - Datron
+#### Features
+- add AnyMatch filter to get contexts based on query permutations (#1008) - (3bdee15) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.107.1 [skip ci] - (ff59a77) - Superposition Bot
+
+- - -
+
 ## superposition_types-v0.44.1 - 2026-05-15
 #### Bug Fixes
 - fixing formatting (#1004) - (2c079cf) - sauraww

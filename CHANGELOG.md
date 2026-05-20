@@ -2,6 +2,23 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.108.0 - 2026-05-20
+### Package updates
+- experimentation_platform bumped to experimentation_platform-v0.52.0
+- context_aware_config bumped to context_aware_config-v0.75.0
+- superposition_sdk bumped to superposition_sdk-v0.16.0
+- superposition_types bumped to superposition_types-v0.45.0
+- haskell_client bumped to haskell_client-v0.17.0
+### Global changes
+#### Bug Fixes
+- send a more user friendly message on unique constraint violation (#1007) - (5f98ada) - Datron
+#### Features
+- add AnyMatch filter to get contexts based on query permutations (#1008) - (3bdee15) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.107.1 [skip ci] - (ff59a77) - Superposition Bot
+
+- - -
+
 ## v0.107.1 - 2026-05-15
 ### Package updates
 - experimentation_platform bumped to experimentation_platform-v0.51.5
