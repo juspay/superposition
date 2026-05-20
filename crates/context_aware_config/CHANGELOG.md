@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.75.0 - 2026-05-20
+#### Features
+- add AnyMatch filter to get contexts based on query permutations (#1008) - (3bdee15) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.107.0 [skip ci] - (f5121d8) - Superposition Bot
+
+- - -
+
 ## context_aware_config-v0.74.0 - 2026-05-12
 #### Features
 - Add workspace locking using lease metadata inside workspace to serialize write operations (#817) - (83dac07) - Natarajan Kannan
