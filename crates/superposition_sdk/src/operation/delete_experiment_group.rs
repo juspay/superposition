@@ -304,9 +304,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for DeleteEx
     }
 }
 
-pub use crate::operation::delete_experiment_group::_delete_experiment_group_output::DeleteExperimentGroupOutput;
-
 pub use crate::operation::delete_experiment_group::_delete_experiment_group_input::DeleteExperimentGroupInput;
+
+pub use crate::operation::delete_experiment_group::_delete_experiment_group_output::DeleteExperimentGroupOutput;
 
 mod _delete_experiment_group_input;
 

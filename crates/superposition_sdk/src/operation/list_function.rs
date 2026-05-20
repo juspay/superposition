@@ -309,9 +309,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for ListFunc
     }
 }
 
-pub use crate::operation::list_function::_list_function_output::ListFunctionOutput;
-
 pub use crate::operation::list_function::_list_function_input::ListFunctionInput;
+
+pub use crate::operation::list_function::_list_function_output::ListFunctionOutput;
 
 mod _list_function_input;
 

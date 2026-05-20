@@ -304,9 +304,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for Applicab
     }
 }
 
-pub use crate::operation::applicable_variants::_applicable_variants_output::ApplicableVariantsOutput;
-
 pub use crate::operation::applicable_variants::_applicable_variants_input::ApplicableVariantsInput;
+
+pub use crate::operation::applicable_variants::_applicable_variants_output::ApplicableVariantsOutput;
 
 mod _applicable_variants_input;
 

@@ -298,9 +298,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for WeightRe
     }
 }
 
-pub use crate::operation::weight_recompute::_weight_recompute_output::WeightRecomputeOutput;
-
 pub use crate::operation::weight_recompute::_weight_recompute_input::WeightRecomputeInput;
+
+pub use crate::operation::weight_recompute::_weight_recompute_output::WeightRecomputeOutput;
 
 mod _weight_recompute_input;
 

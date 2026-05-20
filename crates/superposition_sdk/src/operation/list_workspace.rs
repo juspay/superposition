@@ -302,9 +302,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for ListWork
     }
 }
 
-pub use crate::operation::list_workspace::_list_workspace_output::ListWorkspaceOutput;
-
 pub use crate::operation::list_workspace::_list_workspace_input::ListWorkspaceInput;
+
+pub use crate::operation::list_workspace::_list_workspace_output::ListWorkspaceOutput;
 
 mod _list_workspace_input;
 

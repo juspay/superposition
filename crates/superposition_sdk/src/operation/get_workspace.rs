@@ -304,9 +304,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for GetWorks
     }
 }
 
-pub use crate::operation::get_workspace::_get_workspace_output::GetWorkspaceOutput;
-
 pub use crate::operation::get_workspace::_get_workspace_input::GetWorkspaceInput;
+
+pub use crate::operation::get_workspace::_get_workspace_output::GetWorkspaceOutput;
 
 mod _get_workspace_input;
 

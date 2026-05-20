@@ -318,9 +318,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for UpdateOv
     }
 }
 
-pub use crate::operation::update_override::_update_override_output::UpdateOverrideOutput;
-
 pub use crate::operation::update_override::_update_override_input::UpdateOverrideInput;
+
+pub use crate::operation::update_override::_update_override_output::UpdateOverrideOutput;
 
 mod _update_override_input;
 

@@ -304,9 +304,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for DeleteWe
     }
 }
 
-pub use crate::operation::delete_webhook::_delete_webhook_output::DeleteWebhookOutput;
-
 pub use crate::operation::delete_webhook::_delete_webhook_input::DeleteWebhookInput;
+
+pub use crate::operation::delete_webhook::_delete_webhook_output::DeleteWebhookOutput;
 
 mod _delete_webhook_input;
 

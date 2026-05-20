@@ -343,9 +343,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for ListCont
     }
 }
 
-pub use crate::operation::list_contexts::_list_contexts_output::ListContextsOutput;
-
 pub use crate::operation::list_contexts::_list_contexts_input::ListContextsInput;
+
+pub use crate::operation::list_contexts::_list_contexts_output::ListContextsOutput;
 
 mod _list_contexts_input;
 

@@ -304,9 +304,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for DeleteSe
     }
 }
 
-pub use crate::operation::delete_secret::_delete_secret_output::DeleteSecretOutput;
-
 pub use crate::operation::delete_secret::_delete_secret_input::DeleteSecretInput;
+
+pub use crate::operation::delete_secret::_delete_secret_output::DeleteSecretOutput;
 
 mod _delete_secret_input;
 

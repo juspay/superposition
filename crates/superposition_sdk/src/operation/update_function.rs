@@ -308,9 +308,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for UpdateFu
     }
 }
 
-pub use crate::operation::update_function::_update_function_output::UpdateFunctionOutput;
-
 pub use crate::operation::update_function::_update_function_input::UpdateFunctionInput;
+
+pub use crate::operation::update_function::_update_function_output::UpdateFunctionOutput;
 
 mod _update_function_input;
 

@@ -232,9 +232,9 @@ public interface SuperpositionClient {
      * Executes multiple context operations (PUT, REPLACE, DELETE, MOVE) in a single atomic transaction for
      * efficient batch processing.
      *
-     * @throws InternalServerError
-     * @throws WebhookFailed
      * @throws ResourceNotFound
+     * @throws WebhookFailed
+     * @throws InternalServerError
      */
     default BulkOperationOutput bulkOperation(BulkOperationInput input) {
         return bulkOperation(input, null);
@@ -244,9 +244,9 @@ public interface SuperpositionClient {
      * Executes multiple context operations (PUT, REPLACE, DELETE, MOVE) in a single atomic transaction for
      * efficient batch processing.
      *
-     * @throws InternalServerError
-     * @throws WebhookFailed
      * @throws ResourceNotFound
+     * @throws WebhookFailed
+     * @throws InternalServerError
      */
     BulkOperationOutput bulkOperation(BulkOperationInput input, RequestOverrideConfig overrideConfig);
 
@@ -1810,8 +1810,8 @@ public interface SuperpositionClient {
      * Recalculates and updates the priority weights for all contexts in the workspace based on their
      * dimensions.
      *
-     * @throws InternalServerError
      * @throws WebhookFailed
+     * @throws InternalServerError
      */
     default WeightRecomputeOutput weightRecompute(WeightRecomputeInput input) {
         return weightRecompute(input, null);
@@ -1821,8 +1821,8 @@ public interface SuperpositionClient {
      * Recalculates and updates the priority weights for all contexts in the workspace based on their
      * dimensions.
      *
-     * @throws InternalServerError
      * @throws WebhookFailed
+     * @throws InternalServerError
      */
     WeightRecomputeOutput weightRecompute(WeightRecomputeInput input, RequestOverrideConfig overrideConfig);
 
@@ -1857,11 +1857,11 @@ public interface SuperpositionClient {
             Node.objectNode()
         );
 
-        private static final HttpBasicAuthTrait httpBasicAuthScheme = new HttpBasicAuthTrait();
-        private static final AuthSchemeFactory<HttpBasicAuthTrait> httpBasicAuthSchemeFactory = new HttpBasicAuthAuthScheme.Factory();
-
         private static final HttpBearerAuthTrait httpBearerAuthScheme = new HttpBearerAuthTrait();
         private static final AuthSchemeFactory<HttpBearerAuthTrait> httpBearerAuthSchemeFactory = new HttpBearerAuthScheme.Factory();
+
+        private static final HttpBasicAuthTrait httpBasicAuthScheme = new HttpBasicAuthTrait();
+        private static final AuthSchemeFactory<HttpBasicAuthTrait> httpBasicAuthSchemeFactory = new HttpBasicAuthAuthScheme.Factory();
 
         private Builder() {
             configBuilder().putSupportedAuthSchemes(httpBasicAuthSchemeFactory.createAuthScheme(httpBasicAuthScheme), httpBearerAuthSchemeFactory.createAuthScheme(httpBearerAuthScheme));

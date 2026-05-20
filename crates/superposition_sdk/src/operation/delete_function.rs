@@ -304,9 +304,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for DeleteFu
     }
 }
 
-pub use crate::operation::delete_function::_delete_function_output::DeleteFunctionOutput;
-
 pub use crate::operation::delete_function::_delete_function_input::DeleteFunctionInput;
+
+pub use crate::operation::delete_function::_delete_function_output::DeleteFunctionOutput;
 
 mod _delete_function_input;
 

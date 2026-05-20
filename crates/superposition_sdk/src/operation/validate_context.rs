@@ -286,9 +286,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for Validate
     }
 }
 
-pub use crate::operation::validate_context::_validate_context_output::ValidateContextOutput;
-
 pub use crate::operation::validate_context::_validate_context_input::ValidateContextInput;
+
+pub use crate::operation::validate_context::_validate_context_output::ValidateContextOutput;
 
 mod _validate_context_input;
 

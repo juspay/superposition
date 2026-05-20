@@ -47,6 +47,7 @@ export interface DiscardExperimentCommandOutput extends ExperimentResponse, __Me
  *   org_id: "STRING_VALUE", // required
  *   id: "STRING_VALUE", // required
  *   change_reason: "STRING_VALUE", // required
+ *   config_tags: "STRING_VALUE",
  * };
  * const command = new DiscardExperimentCommand(input);
  * const response = await client.send(command);

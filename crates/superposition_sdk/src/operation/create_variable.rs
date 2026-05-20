@@ -286,9 +286,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for CreateVa
     }
 }
 
-pub use crate::operation::create_variable::_create_variable_output::CreateVariableOutput;
-
 pub use crate::operation::create_variable::_create_variable_input::CreateVariableInput;
+
+pub use crate::operation::create_variable::_create_variable_output::CreateVariableOutput;
 
 mod _create_variable_input;
 

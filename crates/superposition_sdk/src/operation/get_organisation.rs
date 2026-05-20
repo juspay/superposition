@@ -303,9 +303,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for GetOrgan
     }
 }
 
-pub use crate::operation::get_organisation::_get_organisation_output::GetOrganisationOutput;
-
 pub use crate::operation::get_organisation::_get_organisation_input::GetOrganisationInput;
+
+pub use crate::operation::get_organisation::_get_organisation_output::GetOrganisationOutput;
 
 mod _get_organisation_input;
 

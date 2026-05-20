@@ -3,13 +3,15 @@ module Io.Superposition.Model.DiscardExperimentInput (
     setOrgId,
     setId',
     setChangeReason,
+    setConfigTags,
     build,
     DiscardExperimentInputBuilder,
     DiscardExperimentInput,
     workspace_id,
     org_id,
     id',
-    change_reason
+    change_reason,
+    config_tags
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad.State.Strict
@@ -28,7 +30,8 @@ data DiscardExperimentInput = DiscardExperimentInput {
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
     id' :: Data.Text.Text,
-    change_reason :: Data.Text.Text
+    change_reason :: Data.Text.Text,
+    config_tags :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -40,7 +43,8 @@ instance Data.Aeson.ToJSON DiscardExperimentInput where
         "workspace_id" Data.Aeson..= workspace_id a,
         "org_id" Data.Aeson..= org_id a,
         "id" Data.Aeson..= id' a,
-        "change_reason" Data.Aeson..= change_reason a
+        "change_reason" Data.Aeson..= change_reason a,
+        "config_tags" Data.Aeson..= config_tags a
         ]
     
 
@@ -52,6 +56,7 @@ instance Data.Aeson.FromJSON DiscardExperimentInput where
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
         Control.Applicative.<*> (v Data.Aeson..: "id")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
+        Control.Applicative.<*> (v Data.Aeson..:? "config_tags")
     
 
 
@@ -60,7 +65,8 @@ data DiscardExperimentInputBuilderState = DiscardExperimentInputBuilderState {
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     id'BuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text
+    change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    config_tagsBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Generics.Generic
   )
@@ -70,7 +76,8 @@ defaultBuilderState = DiscardExperimentInputBuilderState {
     workspace_idBuilderState = Data.Maybe.Nothing,
     org_idBuilderState = Data.Maybe.Nothing,
     id'BuilderState = Data.Maybe.Nothing,
-    change_reasonBuilderState = Data.Maybe.Nothing
+    change_reasonBuilderState = Data.Maybe.Nothing,
+    config_tagsBuilderState = Data.Maybe.Nothing
 }
 
 type DiscardExperimentInputBuilder = Control.Monad.State.Strict.State DiscardExperimentInputBuilderState
@@ -91,6 +98,10 @@ setChangeReason :: Data.Text.Text -> DiscardExperimentInputBuilder ()
 setChangeReason value =
    Control.Monad.State.Strict.modify (\s -> (s { change_reasonBuilderState = Data.Maybe.Just value }))
 
+setConfigTags :: Data.Maybe.Maybe Data.Text.Text -> DiscardExperimentInputBuilder ()
+setConfigTags value =
+   Control.Monad.State.Strict.modify (\s -> (s { config_tagsBuilderState = value }))
+
 build :: DiscardExperimentInputBuilder () -> Data.Either.Either Data.Text.Text DiscardExperimentInput
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
@@ -98,11 +109,13 @@ build builder = do
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DiscardExperimentInput.DiscardExperimentInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
     id'' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DiscardExperimentInput.DiscardExperimentInput.id' is a required property.") Data.Either.Right (id'BuilderState st)
     change_reason' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DiscardExperimentInput.DiscardExperimentInput.change_reason is a required property.") Data.Either.Right (change_reasonBuilderState st)
+    config_tags' <- Data.Either.Right (config_tagsBuilderState st)
     Data.Either.Right (DiscardExperimentInput { 
         workspace_id = workspace_id',
         org_id = org_id',
         id' = id'',
-        change_reason = change_reason'
+        change_reason = change_reason',
+        config_tags = config_tags'
     })
 
 
@@ -117,5 +130,6 @@ instance Io.Superposition.Utility.IntoRequestBuilder DiscardExperimentInput wher
         
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
+        Io.Superposition.Utility.serHeader "x-config-tags" (config_tags self)
         Io.Superposition.Utility.serField "change_reason" (change_reason self)
 

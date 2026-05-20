@@ -49,6 +49,7 @@ export interface ConcludeExperimentCommandOutput extends ExperimentResponse, __M
  *   chosen_variant: "STRING_VALUE", // required
  *   description: "STRING_VALUE",
  *   change_reason: "STRING_VALUE", // required
+ *   config_tags: "STRING_VALUE",
  * };
  * const command = new ConcludeExperimentCommand(input);
  * const response = await client.send(command);

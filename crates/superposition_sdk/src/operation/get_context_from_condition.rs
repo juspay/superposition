@@ -302,9 +302,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for GetConte
     }
 }
 
-pub use crate::operation::get_context_from_condition::_get_context_from_condition_output::GetContextFromConditionOutput;
-
 pub use crate::operation::get_context_from_condition::_get_context_from_condition_input::GetContextFromConditionInput;
+
+pub use crate::operation::get_context_from_condition::_get_context_from_condition_output::GetContextFromConditionOutput;
 
 mod _get_context_from_condition_input;
 

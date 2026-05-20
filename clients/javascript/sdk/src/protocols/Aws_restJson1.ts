@@ -509,6 +509,7 @@ export const se_ConcludeExperimentCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_xct]: input[_ct]!,
   });
   b.bp("/experiments/{id}/conclude");
   b.p('id', () => input.id!, '{id}', false)
@@ -626,6 +627,8 @@ export const se_CreateExperimentCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ik_]: input[_ik]!,
+    [_xct]: input[_ct]!,
   });
   b.bp("/experiments");
   let body: any;
@@ -1075,6 +1078,7 @@ export const se_DiscardExperimentCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_xct]: input[_ct]!,
   });
   b.bp("/experiments/{id}/discard");
   b.p('id', () => input.id!, '{id}', false)
@@ -2419,6 +2423,7 @@ export const se_UpdateOverridesExperimentCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_xct]: input[_ct]!,
   });
   b.bp("/experiments/{id}/overrides");
   b.p('id', () => input.id!, '{id}', false)
@@ -6263,6 +6268,8 @@ const de_CommandError = async(
   const _geo = "global_experiments_only";
   const _gt = "group_type";
   const _i = "identifier";
+  const _ik = "idempotency_key";
+  const _ik_ = "idempotency-key";
   const _ims = "if_modified_since";
   const _ims_ = "if-modified-since";
   const _lm = "last-modified";

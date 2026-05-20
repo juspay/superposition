@@ -304,9 +304,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for GetExper
     }
 }
 
-pub use crate::operation::get_experiment_group::_get_experiment_group_output::GetExperimentGroupOutput;
-
 pub use crate::operation::get_experiment_group::_get_experiment_group_input::GetExperimentGroupInput;
+
+pub use crate::operation::get_experiment_group::_get_experiment_group_output::GetExperimentGroupOutput;
 
 mod _get_experiment_group_input;
 

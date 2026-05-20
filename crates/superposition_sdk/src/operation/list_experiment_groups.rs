@@ -343,9 +343,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for ListExpe
     }
 }
 
-pub use crate::operation::list_experiment_groups::_list_experiment_groups_output::ListExperimentGroupsOutput;
-
 pub use crate::operation::list_experiment_groups::_list_experiment_groups_input::ListExperimentGroupsInput;
+
+pub use crate::operation::list_experiment_groups::_list_experiment_groups_output::ListExperimentGroupsOutput;
 
 mod _list_experiment_groups_input;
 

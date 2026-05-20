@@ -302,9 +302,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for CreateDe
     }
 }
 
-pub use crate::operation::create_default_config::_create_default_config_output::CreateDefaultConfigOutput;
-
 pub use crate::operation::create_default_config::_create_default_config_input::CreateDefaultConfigInput;
+
+pub use crate::operation::create_default_config::_create_default_config_output::CreateDefaultConfigOutput;
 
 mod _create_default_config_input;
 

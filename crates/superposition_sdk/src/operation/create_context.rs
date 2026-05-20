@@ -318,9 +318,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for CreateCo
     }
 }
 
-pub use crate::operation::create_context::_create_context_output::CreateContextOutput;
-
 pub use crate::operation::create_context::_create_context_input::CreateContextInput;
+
+pub use crate::operation::create_context::_create_context_output::CreateContextOutput;
 
 mod _create_context_input;
 

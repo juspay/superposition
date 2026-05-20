@@ -308,9 +308,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for AddMembe
     }
 }
 
-pub use crate::operation::add_members_to_group::_add_members_to_group_output::AddMembersToGroupOutput;
-
 pub use crate::operation::add_members_to_group::_add_members_to_group_input::AddMembersToGroupInput;
+
+pub use crate::operation::add_members_to_group::_add_members_to_group_output::AddMembersToGroupOutput;
 
 mod _add_members_to_group_input;
 

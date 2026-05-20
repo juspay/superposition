@@ -1407,6 +1407,16 @@ CONCLUDE_EXPERIMENT_INPUT = Schema.collection(
             ],
         },
 
+        "config_tags": {
+            "target": STRING,
+            "index": 6,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-config-tags"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
     }
 )
 
@@ -4918,6 +4928,26 @@ CREATE_EXPERIMENT_INPUT = Schema.collection(
         "experiment_group_id": {
             "target": STRING,
             "index": 9,
+        },
+
+        "idempotency_key": {
+            "target": STRING,
+            "index": 10,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="idempotency-key"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "config_tags": {
+            "target": STRING,
+            "index": 11,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-config-tags"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
         },
 
     }
@@ -9157,6 +9187,16 @@ DISCARD_EXPERIMENT_INPUT = Schema.collection(
             ],
         },
 
+        "config_tags": {
+            "target": STRING,
+            "index": 4,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-config-tags"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
     }
 )
 
@@ -12037,6 +12077,16 @@ UPDATE_OVERRIDES_EXPERIMENT_INPUT = Schema.collection(
         "experiment_group_id": {
             "target": STRING,
             "index": 7,
+        },
+
+        "config_tags": {
+            "target": STRING,
+            "index": 8,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-config-tags"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
         },
 
     }

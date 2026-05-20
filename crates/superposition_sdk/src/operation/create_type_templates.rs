@@ -286,9 +286,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for CreateTy
     }
 }
 
-pub use crate::operation::create_type_templates::_create_type_templates_output::CreateTypeTemplatesOutput;
-
 pub use crate::operation::create_type_templates::_create_type_templates_input::CreateTypeTemplatesInput;
+
+pub use crate::operation::create_type_templates::_create_type_templates_output::CreateTypeTemplatesOutput;
 
 mod _create_type_templates_input;
 

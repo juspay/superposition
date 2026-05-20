@@ -308,9 +308,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for UpdateTy
     }
 }
 
-pub use crate::operation::update_type_templates::_update_type_templates_output::UpdateTypeTemplatesOutput;
-
 pub use crate::operation::update_type_templates::_update_type_templates_input::UpdateTypeTemplatesInput;
+
+pub use crate::operation::update_type_templates::_update_type_templates_output::UpdateTypeTemplatesOutput;
 
 mod _update_type_templates_input;
 

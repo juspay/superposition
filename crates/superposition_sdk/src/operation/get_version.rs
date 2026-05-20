@@ -304,9 +304,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for GetVersi
     }
 }
 
-pub use crate::operation::get_version::_get_version_output::GetVersionOutput;
-
 pub use crate::operation::get_version::_get_version_input::GetVersionInput;
+
+pub use crate::operation::get_version::_get_version_output::GetVersionOutput;
 
 mod _get_version_input;
 

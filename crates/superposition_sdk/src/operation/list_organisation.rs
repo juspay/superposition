@@ -301,9 +301,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for ListOrga
     }
 }
 
-pub use crate::operation::list_organisation::_list_organisation_output::ListOrganisationOutput;
-
 pub use crate::operation::list_organisation::_list_organisation_input::ListOrganisationInput;
+
+pub use crate::operation::list_organisation::_list_organisation_output::ListOrganisationOutput;
 
 mod _list_organisation_input;
 

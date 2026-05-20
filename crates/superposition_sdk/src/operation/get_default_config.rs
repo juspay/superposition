@@ -304,9 +304,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for GetDefau
     }
 }
 
-pub use crate::operation::get_default_config::_get_default_config_output::GetDefaultConfigOutput;
-
 pub use crate::operation::get_default_config::_get_default_config_input::GetDefaultConfigInput;
+
+pub use crate::operation::get_default_config::_get_default_config_output::GetDefaultConfigOutput;
 
 mod _get_default_config_input;
 

@@ -308,9 +308,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for RemoveMe
     }
 }
 
-pub use crate::operation::remove_members_from_group::_remove_members_from_group_output::RemoveMembersFromGroupOutput;
-
 pub use crate::operation::remove_members_from_group::_remove_members_from_group_input::RemoveMembersFromGroupInput;
+
+pub use crate::operation::remove_members_from_group::_remove_members_from_group_output::RemoveMembersFromGroupOutput;
 
 mod _remove_members_from_group_input;
 

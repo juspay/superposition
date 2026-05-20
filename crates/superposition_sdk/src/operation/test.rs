@@ -314,9 +314,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for TestErro
     }
 }
 
-pub use crate::operation::test::_test_output::TestOutput;
-
 pub use crate::operation::test::_test_input::TestInput;
+
+pub use crate::operation::test::_test_output::TestOutput;
 
 mod _test_input;
 

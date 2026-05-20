@@ -304,9 +304,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for DeleteVa
     }
 }
 
-pub use crate::operation::delete_variable::_delete_variable_output::DeleteVariableOutput;
-
 pub use crate::operation::delete_variable::_delete_variable_input::DeleteVariableInput;
+
+pub use crate::operation::delete_variable::_delete_variable_output::DeleteVariableOutput;
 
 mod _delete_variable_input;
 

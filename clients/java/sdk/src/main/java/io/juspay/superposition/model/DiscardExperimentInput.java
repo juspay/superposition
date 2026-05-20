@@ -33,23 +33,28 @@ public final class DiscardExperimentInput implements SerializableStruct {
                 new RequiredTrait())
         .putMember("change_reason", PreludeSchemas.STRING,
                 new RequiredTrait())
+        .putMember("config_tags", PreludeSchemas.STRING,
+                new HttpHeaderTrait("x-config-tags"))
         .build();
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
     private static final Schema $SCHEMA_ID = $SCHEMA.member("id");
     private static final Schema $SCHEMA_CHANGE_REASON = $SCHEMA.member("change_reason");
+    private static final Schema $SCHEMA_CONFIG_TAGS = $SCHEMA.member("config_tags");
 
     private final transient String workspaceId;
     private final transient String orgId;
     private final transient String id;
     private final transient String changeReason;
+    private final transient String configTags;
 
     private DiscardExperimentInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
         this.id = builder.id;
         this.changeReason = builder.changeReason;
+        this.configTags = builder.configTags;
     }
 
     public String workspaceId() {
@@ -66,6 +71,10 @@ public final class DiscardExperimentInput implements SerializableStruct {
 
     public String changeReason() {
         return changeReason;
+    }
+
+    public String configTags() {
+        return configTags;
     }
 
     @Override
@@ -85,12 +94,13 @@ public final class DiscardExperimentInput implements SerializableStruct {
         return Objects.equals(this.workspaceId, that.workspaceId)
                && Objects.equals(this.orgId, that.orgId)
                && Objects.equals(this.id, that.id)
-               && Objects.equals(this.changeReason, that.changeReason);
+               && Objects.equals(this.changeReason, that.changeReason)
+               && Objects.equals(this.configTags, that.configTags);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, id, changeReason);
+        return Objects.hash(workspaceId, orgId, id, changeReason, configTags);
     }
 
     @Override
@@ -104,6 +114,9 @@ public final class DiscardExperimentInput implements SerializableStruct {
         serializer.writeString($SCHEMA_ORG_ID, orgId);
         serializer.writeString($SCHEMA_ID, id);
         serializer.writeString($SCHEMA_CHANGE_REASON, changeReason);
+        if (configTags != null) {
+            serializer.writeString($SCHEMA_CONFIG_TAGS, configTags);
+        }
     }
 
     @Override
@@ -114,6 +127,7 @@ public final class DiscardExperimentInput implements SerializableStruct {
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_ID, member, id);
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, changeReason);
+            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONFIG_TAGS, member, configTags);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -131,6 +145,7 @@ public final class DiscardExperimentInput implements SerializableStruct {
         builder.orgId(this.orgId);
         builder.id(this.id);
         builder.changeReason(this.changeReason);
+        builder.configTags(this.configTags);
         return builder;
     }
 
@@ -150,6 +165,7 @@ public final class DiscardExperimentInput implements SerializableStruct {
         private String orgId;
         private String id;
         private String changeReason;
+        private String configTags;
 
         private Builder() {}
 
@@ -198,6 +214,14 @@ public final class DiscardExperimentInput implements SerializableStruct {
             return this;
         }
 
+        /**
+         * @return this builder.
+         */
+        public Builder configTags(String configTags) {
+            this.configTags = configTags;
+            return this;
+        }
+
         @Override
         public DiscardExperimentInput build() {
             tracker.validate();
@@ -212,6 +236,7 @@ public final class DiscardExperimentInput implements SerializableStruct {
                 case 1 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 case 2 -> id((String) SchemaUtils.validateSameMember($SCHEMA_ID, member, value));
                 case 3 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
+                case 4 -> configTags((String) SchemaUtils.validateSameMember($SCHEMA_CONFIG_TAGS, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -258,6 +283,7 @@ public final class DiscardExperimentInput implements SerializableStruct {
                     case 1 -> builder.orgId(de.readString(member));
                     case 2 -> builder.id(de.readString(member));
                     case 3 -> builder.changeReason(de.readString(member));
+                    case 4 -> builder.configTags(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

@@ -297,9 +297,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for ListVers
     }
 }
 
-pub use crate::operation::list_versions::_list_versions_output::ListVersionsOutput;
-
 pub use crate::operation::list_versions::_list_versions_input::ListVersionsInput;
+
+pub use crate::operation::list_versions::_list_versions_output::ListVersionsOutput;
 
 mod _list_versions_input;
 

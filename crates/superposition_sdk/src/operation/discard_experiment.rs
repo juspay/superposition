@@ -324,9 +324,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for DiscardE
     }
 }
 
-pub use crate::operation::discard_experiment::_discard_experiment_output::DiscardExperimentOutput;
-
 pub use crate::operation::discard_experiment::_discard_experiment_input::DiscardExperimentInput;
+
+pub use crate::operation::discard_experiment::_discard_experiment_output::DiscardExperimentOutput;
 
 mod _discard_experiment_input;
 

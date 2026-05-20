@@ -286,9 +286,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for CreateEx
     }
 }
 
-pub use crate::operation::create_experiment_group::_create_experiment_group_output::CreateExperimentGroupOutput;
-
 pub use crate::operation::create_experiment_group::_create_experiment_group_input::CreateExperimentGroupInput;
+
+pub use crate::operation::create_experiment_group::_create_experiment_group_output::CreateExperimentGroupOutput;
 
 mod _create_experiment_group_input;
 

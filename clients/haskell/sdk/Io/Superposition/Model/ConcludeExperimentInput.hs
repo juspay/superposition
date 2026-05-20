@@ -5,6 +5,7 @@ module Io.Superposition.Model.ConcludeExperimentInput (
     setChosenVariant,
     setDescription,
     setChangeReason,
+    setConfigTags,
     build,
     ConcludeExperimentInputBuilder,
     ConcludeExperimentInput,
@@ -13,7 +14,8 @@ module Io.Superposition.Model.ConcludeExperimentInput (
     id',
     chosen_variant,
     description,
-    change_reason
+    change_reason,
+    config_tags
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad.State.Strict
@@ -34,7 +36,8 @@ data ConcludeExperimentInput = ConcludeExperimentInput {
     id' :: Data.Text.Text,
     chosen_variant :: Data.Text.Text,
     description :: Data.Maybe.Maybe Data.Text.Text,
-    change_reason :: Data.Text.Text
+    change_reason :: Data.Text.Text,
+    config_tags :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -48,7 +51,8 @@ instance Data.Aeson.ToJSON ConcludeExperimentInput where
         "id" Data.Aeson..= id' a,
         "chosen_variant" Data.Aeson..= chosen_variant a,
         "description" Data.Aeson..= description a,
-        "change_reason" Data.Aeson..= change_reason a
+        "change_reason" Data.Aeson..= change_reason a,
+        "config_tags" Data.Aeson..= config_tags a
         ]
     
 
@@ -62,6 +66,7 @@ instance Data.Aeson.FromJSON ConcludeExperimentInput where
         Control.Applicative.<*> (v Data.Aeson..: "chosen_variant")
         Control.Applicative.<*> (v Data.Aeson..:? "description")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
+        Control.Applicative.<*> (v Data.Aeson..:? "config_tags")
     
 
 
@@ -72,7 +77,8 @@ data ConcludeExperimentInputBuilderState = ConcludeExperimentInputBuilderState {
     id'BuilderState :: Data.Maybe.Maybe Data.Text.Text,
     chosen_variantBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     descriptionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text
+    change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    config_tagsBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Generics.Generic
   )
@@ -84,7 +90,8 @@ defaultBuilderState = ConcludeExperimentInputBuilderState {
     id'BuilderState = Data.Maybe.Nothing,
     chosen_variantBuilderState = Data.Maybe.Nothing,
     descriptionBuilderState = Data.Maybe.Nothing,
-    change_reasonBuilderState = Data.Maybe.Nothing
+    change_reasonBuilderState = Data.Maybe.Nothing,
+    config_tagsBuilderState = Data.Maybe.Nothing
 }
 
 type ConcludeExperimentInputBuilder = Control.Monad.State.Strict.State ConcludeExperimentInputBuilderState
@@ -113,6 +120,10 @@ setChangeReason :: Data.Text.Text -> ConcludeExperimentInputBuilder ()
 setChangeReason value =
    Control.Monad.State.Strict.modify (\s -> (s { change_reasonBuilderState = Data.Maybe.Just value }))
 
+setConfigTags :: Data.Maybe.Maybe Data.Text.Text -> ConcludeExperimentInputBuilder ()
+setConfigTags value =
+   Control.Monad.State.Strict.modify (\s -> (s { config_tagsBuilderState = value }))
+
 build :: ConcludeExperimentInputBuilder () -> Data.Either.Either Data.Text.Text ConcludeExperimentInput
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
@@ -122,13 +133,15 @@ build builder = do
     chosen_variant' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ConcludeExperimentInput.ConcludeExperimentInput.chosen_variant is a required property.") Data.Either.Right (chosen_variantBuilderState st)
     description' <- Data.Either.Right (descriptionBuilderState st)
     change_reason' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ConcludeExperimentInput.ConcludeExperimentInput.change_reason is a required property.") Data.Either.Right (change_reasonBuilderState st)
+    config_tags' <- Data.Either.Right (config_tagsBuilderState st)
     Data.Either.Right (ConcludeExperimentInput { 
         workspace_id = workspace_id',
         org_id = org_id',
         id' = id'',
         chosen_variant = chosen_variant',
         description = description',
-        change_reason = change_reason'
+        change_reason = change_reason',
+        config_tags = config_tags'
     })
 
 
@@ -143,6 +156,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder ConcludeExperimentInput whe
         
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
+        Io.Superposition.Utility.serHeader "x-config-tags" (config_tags self)
         Io.Superposition.Utility.serField "change_reason" (change_reason self)
         Io.Superposition.Utility.serField "chosen_variant" (chosen_variant self)
         Io.Superposition.Utility.serField "description" (description self)

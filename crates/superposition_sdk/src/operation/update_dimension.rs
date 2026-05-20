@@ -324,9 +324,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for UpdateDi
     }
 }
 
-pub use crate::operation::update_dimension::_update_dimension_output::UpdateDimensionOutput;
-
 pub use crate::operation::update_dimension::_update_dimension_input::UpdateDimensionInput;
+
+pub use crate::operation::update_dimension::_update_dimension_output::UpdateDimensionOutput;
 
 mod _update_dimension_input;
 

@@ -324,9 +324,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for ResumeEx
     }
 }
 
-pub use crate::operation::resume_experiment::_resume_experiment_output::ResumeExperimentOutput;
-
 pub use crate::operation::resume_experiment::_resume_experiment_input::ResumeExperimentInput;
+
+pub use crate::operation::resume_experiment::_resume_experiment_output::ResumeExperimentOutput;
 
 mod _resume_experiment_input;
 
