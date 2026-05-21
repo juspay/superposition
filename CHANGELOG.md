@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.109.0 - 2026-05-21
+### Package updates
+- haskell_client bumped to haskell_client-v0.18.0
+- superposition_sdk bumped to superposition_sdk-v0.17.0
+### Global changes
+#### Features
+- add first class support for dimension params in smithy for clients sdk (#1014) - (e9a4249) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.108.0 [skip ci] - (e9b1dba) - Superposition Bot
+
+- - -
+
 ## v0.108.0 - 2026-05-20
 ### Package updates
 - experimentation_platform bumped to experimentation_platform-v0.52.0
