@@ -1876,7 +1876,8 @@ async def _serialize_list_contexts(input: ListContextsInput, config: Config) -> 
         query_params.append(("plaintext", input.plaintext))
     if input.dimension_match_strategy is not None:
         query_params.append(("dimension_match_strategy", input.dimension_match_strategy))
-
+    if input.dimension_params is not None:
+        query_params.extend((k, v) for k, v in input.dimension_params.items())
     query = join_query_params(params=query_params, prefix=query)
 
     body: AsyncIterable[bytes] = AsyncBytesReader(b'')
@@ -2013,7 +2014,8 @@ async def _serialize_list_experiment(input: ListExperimentInput, config: Config)
         query_params.append(("dimension_match_strategy", input.dimension_match_strategy))
     if input.prefix is not None:
         query_params.extend(("prefix", e) for e in input.prefix)
-
+    if input.dimension_params is not None:
+        query_params.extend((k, v) for k, v in input.dimension_params.items())
     query = join_query_params(params=query_params, prefix=query)
 
     body: AsyncIterable[bytes] = AsyncBytesReader(b'')
@@ -2075,7 +2077,8 @@ async def _serialize_list_experiment_groups(input: ListExperimentGroupsInput, co
         query_params.extend(("group_type", e) for e in input.group_type)
     if input.dimension_match_strategy is not None:
         query_params.append(("dimension_match_strategy", input.dimension_match_strategy))
-
+    if input.dimension_params is not None:
+        query_params.extend((k, v) for k, v in input.dimension_params.items())
     query = join_query_params(params=query_params, prefix=query)
 
     body: AsyncIterable[bytes] = AsyncBytesReader(b'')

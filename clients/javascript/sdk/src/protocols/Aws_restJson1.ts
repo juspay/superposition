@@ -405,6 +405,7 @@ import {
   serializeDateTime as __serializeDateTime,
   _json,
   collectBody,
+  convertMap,
   isSerializableHeaderValue,
   map,
   take,
@@ -1649,6 +1650,7 @@ export const se_ListContextsCommand = async(
   });
   b.bp("/context");
   const query: any = map({
+    ...convertMap(input.dimension_params),
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
     [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
@@ -1737,6 +1739,7 @@ export const se_ListExperimentCommand = async(
   });
   b.bp("/experiments/list");
   const query: any = map({
+    ...convertMap(input.dimension_params),
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
     [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
@@ -1780,6 +1783,7 @@ export const se_ListExperimentGroupsCommand = async(
   });
   b.bp("/experiment-groups/list");
   const query: any = map({
+    ...convertMap(input.dimension_params),
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
     [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],

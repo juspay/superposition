@@ -355,6 +355,25 @@ impl ListExperimentFluentBuilder {
                     self.inner.get_dimension_match_strategy()
                 }
     /// 
+    /// Adds a key-value pair to `dimension_params`.
+    /// 
+    /// To override the contents of this collection use [`set_dimension_params`](Self::set_dimension_params).
+    /// 
+    /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
+    pub fn dimension_params(mut self, k: impl ::std::convert::Into<::std::string::String>, v: impl ::std::convert::Into<::std::string::String>) -> Self {
+                    self.inner = self.inner.dimension_params(k.into(), v.into());
+                    self
+                }
+    /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
+    pub fn set_dimension_params(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>>) -> Self {
+                    self.inner = self.inner.set_dimension_params(input);
+                    self
+                }
+    /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
+    pub fn get_dimension_params(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>> {
+                    self.inner.get_dimension_params()
+                }
+    /// 
     /// Appends an item to `prefix`.
     /// 
     /// To override the contents of this collection use [`set_prefix`](Self::set_prefix).

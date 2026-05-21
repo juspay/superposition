@@ -27,6 +27,8 @@ pub struct ListContextsInput  {
     pub plaintext: ::std::option::Option<::std::string::String>,
     /// Strategy to follow while filter items based on the context
     pub dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
+    /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
+    pub dimension_params: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>>,
 }
 impl  ListContextsInput  {
     /// Number of items to be returned in each page.
@@ -86,6 +88,10 @@ impl  ListContextsInput  {
     pub fn dimension_match_strategy(&self) -> ::std::option::Option<&crate::types::DimensionMatchStrategy> {
         self.dimension_match_strategy.as_ref()
     }
+    /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
+    pub fn dimension_params(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::std::string::String>> {
+        self.dimension_params.as_ref()
+    }
 }
 impl ListContextsInput {
     /// Creates a new builder-style object to manufacture [`ListContextsInput`](crate::operation::list_contexts::ListContextsInput).
@@ -110,6 +116,7 @@ pub struct ListContextsInputBuilder {
     pub(crate) last_modified_by: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     pub(crate) plaintext: ::std::option::Option<::std::string::String>,
     pub(crate) dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
+    pub(crate) dimension_params: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>>,
 }
 impl ListContextsInputBuilder {
     /// Number of items to be returned in each page.
@@ -285,6 +292,25 @@ impl ListContextsInputBuilder {
     pub fn get_dimension_match_strategy(&self) -> &::std::option::Option<crate::types::DimensionMatchStrategy> {
         &self.dimension_match_strategy
     }
+    /// Adds a key-value pair to `dimension_params`.
+    ///
+    /// To override the contents of this collection use [`set_dimension_params`](Self::set_dimension_params).
+    ///
+    /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
+    pub fn dimension_params(mut self, k: impl ::std::convert::Into<::std::string::String>, v: impl ::std::convert::Into<::std::string::String>) -> Self {
+        let mut hash_map = self.dimension_params.unwrap_or_default();
+                        hash_map.insert(k.into(), v.into());
+                        self.dimension_params = ::std::option::Option::Some(hash_map);
+                        self
+    }
+    /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
+    pub fn set_dimension_params(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>>) -> Self {
+        self.dimension_params = input; self
+    }
+    /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
+    pub fn get_dimension_params(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>> {
+        &self.dimension_params
+    }
     /// Consumes the builder and constructs a [`ListContextsInput`](crate::operation::list_contexts::ListContextsInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::list_contexts::ListContextsInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -312,6 +338,8 @@ impl ListContextsInputBuilder {
                 plaintext: self.plaintext
                 ,
                 dimension_match_strategy: self.dimension_match_strategy
+                ,
+                dimension_params: self.dimension_params
                 ,
             }
         )

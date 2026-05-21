@@ -231,6 +231,10 @@ operation ListContexts {
         @httpQuery("dimension_match_strategy")
         @notProperty
         dimension_match_strategy: DimensionMatchStrategy
+
+        @httpQueryParams
+        @notProperty
+        dimension_params: DimensionQueryParams
     }
 
     output := with [PaginatedResponse] {

@@ -11,6 +11,7 @@ module Io.Superposition.Model.ListContextsInput (
     setLastModifiedBy,
     setPlaintext,
     setDimensionMatchStrategy,
+    setDimensionParams,
     build,
     ListContextsInputBuilder,
     ListContextsInput,
@@ -25,7 +26,8 @@ module Io.Superposition.Model.ListContextsInput (
     created_by,
     last_modified_by,
     plaintext,
-    dimension_match_strategy
+    dimension_match_strategy,
+    dimension_params
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad.State.Strict
@@ -34,6 +36,7 @@ import qualified Data.Either
 import qualified Data.Eq
 import qualified Data.Functor
 import qualified Data.Int
+import qualified Data.Map
 import qualified Data.Maybe
 import qualified Data.Text
 import qualified GHC.Generics
@@ -56,7 +59,8 @@ data ListContextsInput = ListContextsInput {
     created_by :: Data.Maybe.Maybe ([] Data.Text.Text),
     last_modified_by :: Data.Maybe.Maybe ([] Data.Text.Text),
     plaintext :: Data.Maybe.Maybe Data.Text.Text,
-    dimension_match_strategy :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMatchStrategy.DimensionMatchStrategy
+    dimension_match_strategy :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMatchStrategy.DimensionMatchStrategy,
+    dimension_params :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text)
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -76,7 +80,8 @@ instance Data.Aeson.ToJSON ListContextsInput where
         "created_by" Data.Aeson..= created_by a,
         "last_modified_by" Data.Aeson..= last_modified_by a,
         "plaintext" Data.Aeson..= plaintext a,
-        "dimension_match_strategy" Data.Aeson..= dimension_match_strategy a
+        "dimension_match_strategy" Data.Aeson..= dimension_match_strategy a,
+        "dimension_params" Data.Aeson..= dimension_params a
         ]
     
 
@@ -96,6 +101,7 @@ instance Data.Aeson.FromJSON ListContextsInput where
         Control.Applicative.<*> (v Data.Aeson..:? "last_modified_by")
         Control.Applicative.<*> (v Data.Aeson..:? "plaintext")
         Control.Applicative.<*> (v Data.Aeson..:? "dimension_match_strategy")
+        Control.Applicative.<*> (v Data.Aeson..:? "dimension_params")
     
 
 
@@ -112,7 +118,8 @@ data ListContextsInputBuilderState = ListContextsInputBuilderState {
     created_byBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     last_modified_byBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     plaintextBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    dimension_match_strategyBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMatchStrategy.DimensionMatchStrategy
+    dimension_match_strategyBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMatchStrategy.DimensionMatchStrategy,
+    dimension_paramsBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text)
 } deriving (
   GHC.Generics.Generic
   )
@@ -130,7 +137,8 @@ defaultBuilderState = ListContextsInputBuilderState {
     created_byBuilderState = Data.Maybe.Nothing,
     last_modified_byBuilderState = Data.Maybe.Nothing,
     plaintextBuilderState = Data.Maybe.Nothing,
-    dimension_match_strategyBuilderState = Data.Maybe.Nothing
+    dimension_match_strategyBuilderState = Data.Maybe.Nothing,
+    dimension_paramsBuilderState = Data.Maybe.Nothing
 }
 
 type ListContextsInputBuilder = Control.Monad.State.Strict.State ListContextsInputBuilderState
@@ -183,6 +191,10 @@ setDimensionMatchStrategy :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMa
 setDimensionMatchStrategy value =
    Control.Monad.State.Strict.modify (\s -> (s { dimension_match_strategyBuilderState = value }))
 
+setDimensionParams :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text) -> ListContextsInputBuilder ()
+setDimensionParams value =
+   Control.Monad.State.Strict.modify (\s -> (s { dimension_paramsBuilderState = value }))
+
 build :: ListContextsInputBuilder () -> Data.Either.Either Data.Text.Text ListContextsInput
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
@@ -198,6 +210,7 @@ build builder = do
     last_modified_by' <- Data.Either.Right (last_modified_byBuilderState st)
     plaintext' <- Data.Either.Right (plaintextBuilderState st)
     dimension_match_strategy' <- Data.Either.Right (dimension_match_strategyBuilderState st)
+    dimension_params' <- Data.Either.Right (dimension_paramsBuilderState st)
     Data.Either.Right (ListContextsInput { 
         count = count',
         page = page',
@@ -210,7 +223,8 @@ build builder = do
         created_by = created_by',
         last_modified_by = last_modified_by',
         plaintext = plaintext',
-        dimension_match_strategy = dimension_match_strategy'
+        dimension_match_strategy = dimension_match_strategy',
+        dimension_params = dimension_params'
     })
 
 
@@ -220,16 +234,17 @@ instance Io.Superposition.Utility.IntoRequestBuilder ListContextsInput where
         Io.Superposition.Utility.setPath [
             "context"
             ]
+        Io.Superposition.Utility.serQueryMap (dimension_params self)
         Io.Superposition.Utility.serQuery "all" (all' self)
-        Io.Superposition.Utility.serQuery "dimension_match_strategy" (dimension_match_strategy self)
-        Io.Superposition.Utility.serQuery "sort_on" (sort_on self)
         Io.Superposition.Utility.serQuery "prefix" (prefix self)
         Io.Superposition.Utility.serQuery "count" (count self)
         Io.Superposition.Utility.serQuery "plaintext" (plaintext self)
-        Io.Superposition.Utility.serQuery "page" (page self)
         Io.Superposition.Utility.serQuery "sort_by" (sort_by self)
         Io.Superposition.Utility.serQuery "last_modified_by" (last_modified_by self)
         Io.Superposition.Utility.serQuery "created_by" (created_by self)
+        Io.Superposition.Utility.serQuery "dimension_match_strategy" (dimension_match_strategy self)
+        Io.Superposition.Utility.serQuery "sort_on" (sort_on self)
+        Io.Superposition.Utility.serQuery "page" (page self)
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         

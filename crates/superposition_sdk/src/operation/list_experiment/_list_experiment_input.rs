@@ -37,6 +37,8 @@ pub struct ListExperimentInput  {
     pub global_experiments_only: ::std::option::Option<bool>,
     /// Strategy to follow while filter items based on the context
     pub dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
+    /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
+    pub dimension_params: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>>,
     #[allow(missing_docs)] // documentation missing in model
     pub prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     /// Map representing the context. Keys correspond to the names of the dimensions.
@@ -123,6 +125,10 @@ impl  ListExperimentInput  {
     pub fn dimension_match_strategy(&self) -> ::std::option::Option<&crate::types::DimensionMatchStrategy> {
         self.dimension_match_strategy.as_ref()
     }
+    /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
+    pub fn dimension_params(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::std::string::String>> {
+        self.dimension_params.as_ref()
+    }
     #[allow(missing_docs)] // documentation missing in model
     /// 
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.prefix.is_none()`.
@@ -163,6 +169,7 @@ pub struct ListExperimentInputBuilder {
     pub(crate) sort_by: ::std::option::Option<crate::types::SortBy>,
     pub(crate) global_experiments_only: ::std::option::Option<bool>,
     pub(crate) dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
+    pub(crate) dimension_params: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>>,
     pub(crate) prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     pub(crate) context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
 }
@@ -410,6 +417,25 @@ impl ListExperimentInputBuilder {
     pub fn get_dimension_match_strategy(&self) -> &::std::option::Option<crate::types::DimensionMatchStrategy> {
         &self.dimension_match_strategy
     }
+    /// Adds a key-value pair to `dimension_params`.
+    ///
+    /// To override the contents of this collection use [`set_dimension_params`](Self::set_dimension_params).
+    ///
+    /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
+    pub fn dimension_params(mut self, k: impl ::std::convert::Into<::std::string::String>, v: impl ::std::convert::Into<::std::string::String>) -> Self {
+        let mut hash_map = self.dimension_params.unwrap_or_default();
+                        hash_map.insert(k.into(), v.into());
+                        self.dimension_params = ::std::option::Option::Some(hash_map);
+                        self
+    }
+    /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
+    pub fn set_dimension_params(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>>) -> Self {
+        self.dimension_params = input; self
+    }
+    /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
+    pub fn get_dimension_params(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>> {
+        &self.dimension_params
+    }
     /// Appends an item to `prefix`.
     ///
     /// To override the contents of this collection use [`set_prefix`](Self::set_prefix).
@@ -484,6 +510,8 @@ impl ListExperimentInputBuilder {
                 global_experiments_only: self.global_experiments_only
                 ,
                 dimension_match_strategy: self.dimension_match_strategy
+                ,
+                dimension_params: self.dimension_params
                 ,
                 prefix: self.prefix
                 ,

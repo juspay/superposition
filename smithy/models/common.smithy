@@ -31,6 +31,12 @@ list StringList {
     member: String
 }
 
+@documentation("Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension[country]`.")
+map DimensionQueryParams {
+    key: String
+    value: String
+}
+
 @documentation("Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.")
 string Weight
 

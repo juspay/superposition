@@ -136,60 +136,70 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for ListCon
 }
 fn uri_query(_input: &crate::operation::list_contexts::ListContextsInput, mut output: &mut ::std::string::String) -> ::std::result::Result<(), ::aws_smithy_types::error::operation::BuildError> {
     let mut query = ::aws_smithy_http::query::Writer::new(output);
-    if let ::std::option::Option::Some(inner_1) = &_input.count {
+    let protected_params = ["count", "page", "all", "prefix", "sort_on", "sort_by", "created_by", "last_modified_by", "plaintext", "dimension_match_strategy"];
+    if let ::std::option::Option::Some(inner_1) = &_input.dimension_params {
          {
-            query.push_kv("count", ::aws_smithy_types::primitive::Encoder::from(*inner_1).encode());
-        }
-    }
-    if let ::std::option::Option::Some(inner_2) = &_input.page {
-         {
-            query.push_kv("page", ::aws_smithy_types::primitive::Encoder::from(*inner_2).encode());
-        }
-    }
-    if let ::std::option::Option::Some(inner_3) = &_input.all {
-         {
-            query.push_kv("all", ::aws_smithy_types::primitive::Encoder::from(*inner_3).encode());
-        }
-    }
-    if let ::std::option::Option::Some(inner_4) = &_input.prefix {
-         {
-            for inner_5 in inner_4 {
-                query.push_kv("prefix", &::aws_smithy_http::query::fmt_string(inner_5));
+            for (k, v) in inner_1 {
+                if !protected_params.contains(&k.as_str()) {
+                    query.push_kv(&::aws_smithy_http::query::fmt_string(k), &::aws_smithy_http::query::fmt_string(v));
+                }
             }
         }
     }
-    if let ::std::option::Option::Some(inner_6) = &_input.sort_on {
+    if let ::std::option::Option::Some(inner_2) = &_input.count {
          {
-            query.push_kv("sort_on", &::aws_smithy_http::query::fmt_string(inner_6));
+            query.push_kv("count", ::aws_smithy_types::primitive::Encoder::from(*inner_2).encode());
         }
     }
-    if let ::std::option::Option::Some(inner_7) = &_input.sort_by {
+    if let ::std::option::Option::Some(inner_3) = &_input.page {
          {
-            query.push_kv("sort_by", &::aws_smithy_http::query::fmt_string(inner_7));
+            query.push_kv("page", ::aws_smithy_types::primitive::Encoder::from(*inner_3).encode());
         }
     }
-    if let ::std::option::Option::Some(inner_8) = &_input.created_by {
+    if let ::std::option::Option::Some(inner_4) = &_input.all {
          {
-            for inner_9 in inner_8 {
-                query.push_kv("created_by", &::aws_smithy_http::query::fmt_string(inner_9));
+            query.push_kv("all", ::aws_smithy_types::primitive::Encoder::from(*inner_4).encode());
+        }
+    }
+    if let ::std::option::Option::Some(inner_5) = &_input.prefix {
+         {
+            for inner_6 in inner_5 {
+                query.push_kv("prefix", &::aws_smithy_http::query::fmt_string(inner_6));
             }
         }
     }
-    if let ::std::option::Option::Some(inner_10) = &_input.last_modified_by {
+    if let ::std::option::Option::Some(inner_7) = &_input.sort_on {
          {
-            for inner_11 in inner_10 {
-                query.push_kv("last_modified_by", &::aws_smithy_http::query::fmt_string(inner_11));
+            query.push_kv("sort_on", &::aws_smithy_http::query::fmt_string(inner_7));
+        }
+    }
+    if let ::std::option::Option::Some(inner_8) = &_input.sort_by {
+         {
+            query.push_kv("sort_by", &::aws_smithy_http::query::fmt_string(inner_8));
+        }
+    }
+    if let ::std::option::Option::Some(inner_9) = &_input.created_by {
+         {
+            for inner_10 in inner_9 {
+                query.push_kv("created_by", &::aws_smithy_http::query::fmt_string(inner_10));
             }
         }
     }
-    if let ::std::option::Option::Some(inner_12) = &_input.plaintext {
+    if let ::std::option::Option::Some(inner_11) = &_input.last_modified_by {
          {
-            query.push_kv("plaintext", &::aws_smithy_http::query::fmt_string(inner_12));
+            for inner_12 in inner_11 {
+                query.push_kv("last_modified_by", &::aws_smithy_http::query::fmt_string(inner_12));
+            }
         }
     }
-    if let ::std::option::Option::Some(inner_13) = &_input.dimension_match_strategy {
+    if let ::std::option::Option::Some(inner_13) = &_input.plaintext {
          {
-            query.push_kv("dimension_match_strategy", &::aws_smithy_http::query::fmt_string(inner_13));
+            query.push_kv("plaintext", &::aws_smithy_http::query::fmt_string(inner_13));
+        }
+    }
+    if let ::std::option::Option::Some(inner_14) = &_input.dimension_match_strategy {
+         {
+            query.push_kv("dimension_match_strategy", &::aws_smithy_http::query::fmt_string(inner_14));
         }
     }
     ::std::result::Result::Ok(())

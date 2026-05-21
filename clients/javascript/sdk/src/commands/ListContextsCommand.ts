@@ -61,6 +61,9 @@ export interface ListContextsCommandOutput extends ListContextsOutput, __Metadat
  *   ],
  *   plaintext: "STRING_VALUE",
  *   dimension_match_strategy: "exact" || "subset" || "any_match",
+ *   dimension_params: { // DimensionQueryParams
+ *     "<keys>": "STRING_VALUE",
+ *   },
  * };
  * const command = new ListContextsCommand(input);
  * const response = await client.send(command);
