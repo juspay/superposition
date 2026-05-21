@@ -1,12 +1,12 @@
-//! End-to-end test: an Actix app wrapped with MetricsMiddleware serves several
-//! routes; we then issue requests and parse the Prometheus scrape output to
-//! assert on the metrics that should appear.
+//! End-to-end test: an Actix app wrapped with the `RequestMetrics` middleware
+//! serves several routes; we then issue requests and parse the Prometheus
+//! scrape output to assert on the metrics that should appear.
 
 use actix_web::{App, HttpResponse, http::StatusCode, test, web};
 use prometheus::Encoder;
 use service_utils::observability::{
-    LabelConfig, MetricsMiddleware, Observability, ObservabilityConfig, SaturationDeps,
-    register_observers,
+    LabelConfig, Observability, ObservabilityConfig, SaturationDeps,
+    build_request_metrics_middleware, register_observers,
 };
 
 fn cfg() -> ObservabilityConfig {
@@ -36,7 +36,7 @@ fn scrape(obs: &Observability) -> String {
 #[actix_web::test]
 async fn metrics_appear_after_requests() {
     let obs = Observability::init(cfg()).unwrap();
-    let mw = MetricsMiddleware::new(&obs.meter(), LabelConfig::default());
+    let mw = build_request_metrics_middleware(obs.meter_provider());
     let app = test::init_service(
         App::new()
             .wrap(mw)
@@ -114,15 +114,14 @@ async fn metrics_appear_after_requests() {
         "no __not_found__ series in:\n{body}"
     );
 
-    // busy_duration_total > 0
-    let busy = body
-        .lines()
-        .find(|l| l.starts_with("http_server_busy_duration_seconds_total{"))
-        .unwrap_or_else(|| panic!("no busy_duration line in:\n{body}"));
-    let busy_value: f64 = busy.rsplit_once(' ').unwrap().1.trim().parse().unwrap();
+    // Body-size histograms are suppressed via SDK View; they MUST NOT appear.
     assert!(
-        busy_value > 0.0,
-        "expected busy_duration > 0, got {busy_value}"
+        !body.contains("http_server_request_body_size"),
+        "body-size histograms should be dropped via View:\n{body}"
+    );
+    assert!(
+        !body.contains("http_server_response_body_size"),
+        "body-size histograms should be dropped via View:\n{body}"
     );
 
     // active_requests returns to 0 after all requests complete.
@@ -130,6 +129,10 @@ async fn metrics_appear_after_requests() {
         .lines()
         .filter(|l| l.starts_with("http_server_active_requests{"))
         .collect();
+    assert!(
+        !active_lines.is_empty(),
+        "expected at least one active_requests series:\n{body}"
+    );
     for line in &active_lines {
         let v: f64 = line.rsplit_once(' ').unwrap().1.trim().parse().unwrap();
         assert_eq!(v, 0.0, "active_requests not zero: {line}");
@@ -168,7 +171,7 @@ async fn runtime_tokio_metrics_appear_after_register_observers() {
 #[actix_web::test]
 async fn cardinality_stays_within_budget() {
     let obs = Observability::init(cfg()).unwrap();
-    let mw = MetricsMiddleware::new(&obs.meter(), LabelConfig::default());
+    let mw = build_request_metrics_middleware(obs.meter_provider());
     let app = test::init_service(
         App::new()
             .wrap(mw)
@@ -202,10 +205,10 @@ async fn cardinality_stays_within_budget() {
         .filter(|l| !l.is_empty() && !l.starts_with('#'))
         .count();
 
-    // Budget for this scenario: 3 routes × 1 method each × 1 status × ~12
-    // (10 buckets + sum + count) = ~36 series for the histogram, plus 3 for
-    // busy_duration, plus 1 for active_requests, plus a few from `target_info`
-    // that the prometheus exporter emits. Headroom: 200.
+    // Budget for this scenario: 3 routes × 1 method × 1 status × ~12
+    // (10 buckets + sum + count) = ~36 series for the duration histogram,
+    // plus ~3 for active_requests, plus a few from `target_info`. Body-size
+    // histograms are dropped via View so they don't count. Headroom: 200.
     assert!(
         series <= 200,
         "cardinality regression: {series} series\n{body}"

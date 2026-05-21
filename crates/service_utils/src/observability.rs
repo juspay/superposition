@@ -3,15 +3,15 @@
 //! See `docs/superpowers/specs/2026-05-10-otel-golden-signals-middleware-design.md`.
 
 mod config;
-mod meters;
+mod instrumentation;
 mod metrics_server;
-mod middleware;
 mod saturation;
 
 pub use config::{LabelConfig, ObservabilityConfig};
-pub use meters::HttpMeters;
+pub use instrumentation::{
+    ROUTE_NOT_FOUND, ROUTE_STATIC, build_request_metrics_middleware, set_label_config,
+};
 pub use metrics_server::spawn_metrics_server;
-pub use middleware::MetricsMiddleware;
 pub use saturation::{
     DbPoolHandle, FredPoolStats, RedisHandle, RedisStats, SaturationDeps,
     register_observers,
@@ -20,7 +20,7 @@ pub use saturation::{
 use std::sync::Arc;
 
 use opentelemetry::metrics::Meter;
-use opentelemetry_sdk::metrics::SdkMeterProvider;
+pub use opentelemetry_sdk::metrics::SdkMeterProvider;
 use prometheus::Registry;
 use thiserror::Error;
 
@@ -49,6 +49,10 @@ impl Observability {
         self.meter.clone()
     }
 
+    pub fn meter_provider(&self) -> &SdkMeterProvider {
+        &self.provider
+    }
+
     pub fn registry(&self) -> Arc<Registry> {
         self.registry.clone()
     }
@@ -62,7 +66,9 @@ impl Observability {
     pub fn init(cfg: ObservabilityConfig) -> Result<Self, ObservabilityError> {
         use opentelemetry::KeyValue;
         use opentelemetry_sdk::Resource;
-        use opentelemetry_sdk::metrics::SdkMeterProvider;
+        use opentelemetry_sdk::metrics::{
+            Aggregation, Instrument, SdkMeterProvider, Stream,
+        };
 
         let registry = Arc::new(prometheus::Registry::new());
 
@@ -71,6 +77,18 @@ impl Observability {
             .without_scope_info()
             .build()
             .map_err(|e| ObservabilityError::PrometheusInit(e.to_string()))?;
+
+        // Drop the body-size histograms emitted unconditionally by
+        // `opentelemetry-instrumentation-actix-web`'s `RequestMetrics`. We
+        // don't need request/response sizes for golden signals, and each
+        // histogram would otherwise contribute series equal to the duration
+        // histogram's cardinality.
+        let drop_body_size_view = |i: &Instrument| match i.name() {
+            "http.server.request.body.size" | "http.server.response.body.size" => {
+                Stream::builder().with_aggregation(Aggregation::Drop).build().ok()
+            }
+            _ => None,
+        };
 
         let mut resource_attrs = vec![
             KeyValue::new("service.name", cfg.service_name.clone()),
@@ -99,11 +117,12 @@ impl Observability {
             }
         }
 
-        let resource = Resource::new(resource_attrs);
+        let resource = Resource::builder().with_attributes(resource_attrs).build();
 
         let mut builder = SdkMeterProvider::builder()
             .with_reader(exporter)
-            .with_resource(resource.clone());
+            .with_resource(resource.clone())
+            .with_view(drop_body_size_view);
 
         if let Some(endpoint) = &cfg.otlp_endpoint {
             match with_otlp_reader(builder, endpoint, cfg.collect_interval) {
@@ -122,7 +141,8 @@ impl Observability {
                         .map_err(|e| ObservabilityError::PrometheusInit(e.to_string()))?;
                     builder = SdkMeterProvider::builder()
                         .with_reader(prom_exporter)
-                        .with_resource(resource);
+                        .with_resource(resource)
+                        .with_view(drop_body_size_view);
                 }
             }
         }
@@ -161,12 +181,11 @@ fn with_otlp_reader(
         }
     }
 
-    // Headers: the opentelemetry-otlp 0.27 HTTP exporter reads
+    // Headers: the opentelemetry-otlp HTTP exporter reads
     // `OTEL_EXPORTER_OTLP_HEADERS` (and `OTEL_EXPORTER_OTLP_METRICS_HEADERS`)
     // automatically during `build()` — no explicit wiring needed here.
     use opentelemetry_otlp::{MetricExporter, WithExportConfig};
     use opentelemetry_sdk::metrics::PeriodicReader;
-    use opentelemetry_sdk::runtime;
 
     let exporter = MetricExporter::builder()
         .with_http()
@@ -174,7 +193,7 @@ fn with_otlp_reader(
         .build()
         .map_err(|e| ObservabilityError::OtlpInit(e.to_string()))?;
 
-    let reader = PeriodicReader::builder(exporter, runtime::Tokio)
+    let reader = PeriodicReader::builder(exporter)
         .with_interval(interval)
         .build();
 
@@ -221,7 +240,7 @@ mod tests {
             1,
             "only target_info should be present before any instrument records"
         );
-        assert_eq!(families[0].get_name(), "target_info");
+        assert_eq!(families[0].name(), "target_info");
     }
 
     #[test]

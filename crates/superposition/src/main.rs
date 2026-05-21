@@ -32,7 +32,8 @@ use service_utils::{
         workspace_context::OrgWorkspaceMiddlewareFactory,
     },
     observability::{
-        FredPoolStats, MetricsMiddleware, Observability, ObservabilityConfig, RedisStats,
+        FredPoolStats, Observability, ObservabilityConfig, RedisStats, SdkMeterProvider,
+        build_request_metrics_middleware, set_label_config,
         SaturationDeps, register_observers, spawn_metrics_server,
     },
     service::types::AppEnv,
@@ -205,16 +206,21 @@ async fn main() -> Result<()> {
         None
     };
 
-    // --- Step 4: Capture meter + label_cfg for the closure ---
-    // When obs_enabled is true, observability is Some and meter() is valid.
-    // When obs_enabled is false, we still need a Meter instance to construct
-    // MetricsMiddleware inside the closure (Condition evaluates its argument
-    // regardless of the flag). We use the global noop meter in that case.
-    let metrics_meter = observability
+    // --- Step 4: Install the global label config + build the middleware ---
+    // The upstream crate's attribute hook is a `fn` pointer that can't capture
+    // state, so the env-toggled label config lives in a process-wide OnceLock.
+    // The middleware binds to an explicit `SdkMeterProvider` so it doesn't
+    // depend on the OTel global; when obs is disabled we hand it a fresh
+    // no-op provider, and `Condition::new(false, ...)` short-circuits the
+    // wrap per-request anyway.
+    if obs_enabled {
+        set_label_config(obs_cfg.label);
+    }
+    let metrics_provider = observability
         .as_ref()
-        .map(|o| o.meter())
-        .unwrap_or_else(|| opentelemetry::global::meter("superposition-noop"));
-    let metrics_label_cfg = obs_cfg.label;
+        .map(|o| o.meter_provider().clone())
+        .unwrap_or_else(|| SdkMeterProvider::builder().build());
+    let metrics_middleware = build_request_metrics_middleware(&metrics_provider);
 
     let auth_n = AuthNHandler::init(&kms_client, &app_env, base.clone()).await;
     let auth_z = AuthZHandler::init(&kms_client, &app_env).await;
@@ -291,12 +297,10 @@ async fn main() -> Result<()> {
             ))
             // Conditionally add request/response logging middleware for development
             .wrap(RequestResponseLogger)
-            // MetricsMiddleware gated by SUPERPOSITION_METRICS_ENABLED (Approach B: Condition).
-            // metrics_meter is a real Meter when enabled, or a noop Meter when disabled.
-            .wrap(Condition::new(
-                obs_enabled,
-                MetricsMiddleware::new(&metrics_meter, metrics_label_cfg),
-            ))
+            // RequestMetrics middleware gated by SUPERPOSITION_METRICS_ENABLED.
+            // When obs is disabled the underlying provider is a fresh no-op
+            // and Condition short-circuits per-request anyway.
+            .wrap(Condition::new(obs_enabled, metrics_middleware.clone()))
             // TracingLogger is outermost — last .wrap() runs first on requests.
             .wrap(TracingLogger::<CustomRootSpanBuilder>::new())
     })

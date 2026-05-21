@@ -71,11 +71,12 @@ jsonschema = "~0.17"
 leptos = { version = "0.6.11" }
 log = { version = "0.4.20", features = ["kv_unstable_serde"] }
 once_cell = { version = "1.18.0" }
-opentelemetry = { version = "0.27", default-features = false, features = ["metrics"] }
-opentelemetry_sdk = { version = "0.27", default-features = false, features = ["metrics", "rt-tokio"] }
-opentelemetry-prometheus = { version = "0.27", default-features = false }
-opentelemetry-otlp = { version = "0.27", default-features = false, features = ["metrics", "http-proto", "reqwest-client"] }
-prometheus = { version = "0.13", default-features = false }
+opentelemetry = { version = "0.32", default-features = false, features = ["metrics"] }
+opentelemetry_sdk = { version = "0.32", default-features = false, features = ["metrics", "rt-tokio"] }
+opentelemetry-prometheus = { version = "0.32", default-features = false }
+opentelemetry-otlp = { version = "0.32", default-features = false, features = ["metrics", "http-proto", "reqwest-client"] }
+opentelemetry-instrumentation-actix-web = { version = "0.24", default-features = false, features = ["metrics"] }
+prometheus = { version = "0.14", default-features = false }
 regex = "1.9.1"
 reqwest = { version = "0.11.18", features = ["json"] }
 rs-snowflake = "0.6.0"
