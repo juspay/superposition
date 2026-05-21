@@ -1,0 +1,330 @@
+# Hyperswitch development.toml expressed as SuperTOML.
+#
+# Source: https://github.com/juspay/hyperswitch/blob/main/config/development.toml
+#
+# The original file mixes static settings (db, redis, log) with context-keyed
+# settings: pm_filters.<connector>.<payment_method> = { country, currency },
+# bank_config.<payment_method>.<connector> = { banks }, mandates.<payment_method>
+# .<connector>, tokenization.<connector>, [connectors].<connector>.base_url, etc.
+#
+# Every one of those is really a function of (connector, payment_method,
+# country, currency). SuperTOML lets us declare them once as defaults and then
+# cascade overrides by context instead of repeating the same payment-method
+# entry across dozens of [pm_filters.<connector>] tables.
+#
+# Dimensions (positions = priority weight; higher wins):
+#   connector       (5)  most specific axis - connector-level rules dominate
+#   country         (4)  ISO 3166-1 alpha-2
+#   payment_method  (3)  card.credit, klarna, ideal, etc. (user-requested)
+#   currency        (2)  ISO 4217
+#   region          (1)  LOCAL_COHORT:country - groups countries (EU, NA, ...)
+
+#-------------------------------------------------------------------------------
+# Default configs
+#-------------------------------------------------------------------------------
+
+[default-configs]
+
+# pm_filters: is this payment method offered for this context?
+enabled = { value = false, schema = { type = "boolean" } }
+
+# [connectors] section: sandbox base URL for the connector.
+base_url = { value = "https://example.invalid/", schema = { type = "string", format = "uri" } }
+
+# [mandates.supported_payment_methods] and [zero_mandates.supported_payment_methods]
+mandate_supported = { value = false, schema = { type = "boolean" } }
+zero_mandate_supported = { value = false, schema = { type = "boolean" } }
+
+# [installments.supported_payment_methods] + [installment_config]
+installments_supported = { value = false, schema = { type = "boolean" } }
+
+# [tokenization]
+tokenization_enabled = { value = false, schema = { type = "boolean" } }
+tokenization_long_lived_token = { value = false, schema = { type = "boolean" } }
+
+# [bank_config.<payment_method>.<connector>] = { banks = "a,b,c" }
+# Stored as an array - SuperTOML schemas give us type-safety the CSV string lacks.
+supported_banks = { value = [], schema = { type = "array", items = { type = "string" }, uniqueItems = true } }
+
+#-------------------------------------------------------------------------------
+# Dimensions
+#-------------------------------------------------------------------------------
+
+[dimensions]
+
+# Subset of [connectors.supported] for readability; extend freely.
+connector = { position = 5, schema = { type = "string", enum = ["adyen", "airwallex", "authorizedotnet", "bankofamerica", "braintree", "checkout", "cybersource", "deutschebank", "elavon", "fiuu", "gocardless", "hipay", "klarna", "moneris", "multisafepay", "nexinets", "nmi", "novalnet", "nuvei", "paypal", "payload", "paysafe", "phonepe", "paytm", "razorpay", "santander", "stripe", "trustly", "truelayer", "volt", "worldpay", "xendit"] } }
+
+# ISO 3166-1 alpha-2. Pruned to countries referenced in pm_filters.
+country = { position = 4, schema = { type = "string", enum = ["AT", "AU", "BE", "BR", "CA", "CH", "CN", "CZ", "DE", "DK", "ES", "FI", "FR", "GB", "GR", "HK", "HU", "ID", "IE", "IN", "IT", "JP", "KR", "MX", "MY", "NL", "NO", "NZ", "PH", "PL", "PT", "RO", "SE", "SG", "SK", "TH", "TW", "US", "VN", "ZA"] } }
+
+# Card variants are namespaced (card.credit) in the source; flattened here
+# because SuperTOML dimensions are flat strings.
+payment_method = { position = 3, schema = { type = "string", enum = ["credit", "debit", "google_pay", "apple_pay", "samsung_pay", "paypal", "klarna", "affirm", "afterpay_clearpay", "ali_pay", "we_chat_pay", "ach", "bacs", "becs", "sepa", "ideal", "eps", "giropay", "sofort", "bancontact_card", "przelewy24", "blik", "trustly", "open_banking", "open_banking_uk", "open_banking_pis", "online_banking_fpx", "online_banking_thailand", "pix", "boleto", "upi_collect", "upi_intent", "mb_way", "swish", "multibanco", "revolut_pay", "amazon_pay", "cashapp", "atome"] } }
+
+# ISO 4217. Pruned to currencies referenced in pm_filters.
+currency = { position = 2, schema = { type = "string", enum = ["AED", "AUD", "BRL", "CAD", "CHF", "CNY", "CZK", "DKK", "EUR", "GBP", "HKD", "HUF", "IDR", "ILS", "INR", "JPY", "KRW", "MXN", "MYR", "NOK", "NZD", "PHP", "PLN", "SEK", "SGD", "THB", "TWD", "USD", "VND", "ZAR"] } }
+
+# Cohort: a "region" derived from country. Lets you write one override that
+# covers all SEPA countries instead of 27 individual country contexts.
+region = { position = 1, type = "LOCAL_COHORT:country", schema = { type = "string", enum = ["europe", "north_america", "apac", "latam", "mea", "otherwise"], definitions = { europe = { in = [{ var = "country" }, ["AT", "BE", "CH", "CZ", "DE", "DK", "ES", "FI", "FR", "GB", "GR", "HU", "IE", "IT", "NL", "NO", "PL", "PT", "RO", "SE", "SK"]] }, north_america = { in = [{ var = "country" }, ["US", "CA", "MX"]] }, apac = { in = [{ var = "country" }, ["AU", "CN", "HK", "ID", "IN", "JP", "KR", "MY", "NZ", "PH", "SG", "TH", "TW", "VN"]] }, latam = { in = [{ var = "country" }, ["BR"]] }, mea = { in = [{ var = "country" }, ["ZA"]] } } } }
+
+#-------------------------------------------------------------------------------
+# Overrides
+#-------------------------------------------------------------------------------
+
+# --- [connectors] base_url section -------------------------------------------
+# Original (one line per connector):
+#   adyen.base_url = "https://checkout-test.adyen.com/"
+#   stripe.base_url = "https://api.stripe.com/"
+#   ...
+
+[[overrides]]
+_context_ = { connector = "adyen" }
+base_url = "https://checkout-test.adyen.com/"
+
+[[overrides]]
+_context_ = { connector = "stripe" }
+base_url = "https://api.stripe.com/"
+
+[[overrides]]
+_context_ = { connector = "checkout" }
+base_url = "https://api.sandbox.checkout.com/"
+
+[[overrides]]
+_context_ = { connector = "paypal" }
+base_url = "https://www.sandbox.paypal.com/"
+
+[[overrides]]
+_context_ = { connector = "cybersource" }
+base_url = "https://apitest.cybersource.com/"
+
+# --- [pm_filters.default]: payment methods available globally -----------------
+# Original:
+#   affirm = { country = "US", currency = "USD" }
+
+[[overrides]]
+_context_ = { payment_method = "affirm", country = "US", currency = "USD" }
+enabled = true
+
+# Original: giropay = { country = "DE", currency = "EUR" }
+[[overrides]]
+_context_ = { payment_method = "giropay", country = "DE", currency = "EUR" }
+enabled = true
+
+# Original: eps = { country = "AT", currency = "EUR" }
+[[overrides]]
+_context_ = { payment_method = "eps", country = "AT", currency = "EUR" }
+enabled = true
+
+# Original: ideal = { country = "NL", currency = "EUR" }
+[[overrides]]
+_context_ = { payment_method = "ideal", country = "NL", currency = "EUR" }
+enabled = true
+
+# Original: pix (Itau/Santander), boleto (Brazil)
+[[overrides]]
+_context_ = { payment_method = "pix", country = "BR", currency = "BRL" }
+enabled = true
+
+[[overrides]]
+_context_ = { payment_method = "boleto", country = "BR", currency = "BRL" }
+enabled = true
+
+# UPI in India: razorpay/phonepe/paytm all enable it for IN/INR
+[[overrides]]
+_context_ = { payment_method = "upi_collect", country = "IN", currency = "INR" }
+enabled = true
+
+[[overrides]]
+_context_ = { payment_method = "upi_intent", country = "IN", currency = "INR" }
+enabled = true
+
+# Original: sepa is offered across the eurozone with EUR. One cohort override
+# replaces 21 country rows that the original config implies.
+[[overrides]]
+_context_ = { payment_method = "sepa", region = "europe", currency = "EUR" }
+enabled = true
+
+# Original: sofort country list = "AT,BE,DE,ES,CH,NL,..." currency = "EUR"
+[[overrides]]
+_context_ = { payment_method = "sofort", region = "europe", currency = "EUR" }
+enabled = true
+
+# Original: klarna country = "AT,BE,DK,FI,FR,DE,IE,IT,NL,NO,ES,SE,GB,US,CA"
+[[overrides]]
+_context_ = { payment_method = "klarna", region = "europe" }
+enabled = true
+
+[[overrides]]
+_context_ = { payment_method = "klarna", region = "north_america", currency = "USD" }
+enabled = true
+
+# --- Connector-specific pm_filters --------------------------------------------
+# [pm_filters.adyen] mobile_pay = { country = "DK,FI", currency = "DKK,SEK,NOK,EUR" }
+# When connector=adyen + country=DK + currency=DKK, adyen-specific row wins
+# (position 5 beats position 4) over [pm_filters.default].
+[[overrides]]
+_context_ = { connector = "adyen", payment_method = "mb_way", country = "PT", currency = "EUR" }
+enabled = true
+
+# [pm_filters.adyen] swish = { country = "SE", currency = "SEK" }
+[[overrides]]
+_context_ = { connector = "adyen", payment_method = "swish", country = "SE", currency = "SEK" }
+enabled = true
+
+# [pm_filters.adyen] online_banking_fpx = { country = "MY", currency = "MYR" }
+[[overrides]]
+_context_ = { connector = "adyen", payment_method = "online_banking_fpx", country = "MY", currency = "MYR" }
+enabled = true
+
+# [pm_filters.stripe] cashapp = { country = "US", currency = "USD" }
+[[overrides]]
+_context_ = { connector = "stripe", payment_method = "cashapp", country = "US", currency = "USD" }
+enabled = true
+
+# [pm_filters.stripe] ach = { country = "US", currency = "USD" }
+[[overrides]]
+_context_ = { connector = "stripe", payment_method = "ach", country = "US", currency = "USD" }
+enabled = true
+
+# [pm_filters.razorpay] upi_collect = { country = "IN", currency = "INR" }
+# (Redundant with the global UPI default, but recorded per-connector for parity.)
+[[overrides]]
+_context_ = { connector = "razorpay", payment_method = "upi_collect", country = "IN", currency = "INR" }
+enabled = true
+
+# [pm_filters.volt] open_banking_uk = { country = "GB", currency = "GBP" }
+[[overrides]]
+_context_ = { connector = "volt", payment_method = "open_banking_uk", country = "GB", currency = "GBP" }
+enabled = true
+
+# [pm_filters.truelayer] open_banking = { currency = "GBP,EUR" } - no country
+[[overrides]]
+_context_ = { connector = "truelayer", payment_method = "open_banking", currency = "GBP" }
+enabled = true
+
+[[overrides]]
+_context_ = { connector = "truelayer", payment_method = "open_banking", currency = "EUR" }
+enabled = true
+
+# --- [mandates.supported_payment_methods] -------------------------------------
+# card.credit.connector_list = "checkout,stripe,adyen,...,cybersource,..."
+
+[[overrides]]
+_context_ = { connector = "stripe", payment_method = "credit" }
+mandate_supported = true
+
+[[overrides]]
+_context_ = { connector = "stripe", payment_method = "debit" }
+mandate_supported = true
+
+[[overrides]]
+_context_ = { connector = "adyen", payment_method = "credit" }
+mandate_supported = true
+zero_mandate_supported = true
+
+[[overrides]]
+_context_ = { connector = "adyen", payment_method = "debit" }
+mandate_supported = true
+zero_mandate_supported = true
+
+[[overrides]]
+_context_ = { connector = "cybersource", payment_method = "credit" }
+mandate_supported = true
+
+# bank_debit.ach.connector_list = "gocardless,adyen,stripe,payload"
+[[overrides]]
+_context_ = { connector = "gocardless", payment_method = "ach" }
+mandate_supported = true
+zero_mandate_supported = true
+
+[[overrides]]
+_context_ = { connector = "gocardless", payment_method = "sepa" }
+mandate_supported = true
+zero_mandate_supported = true
+
+# --- [installments] + [installment_config] ------------------------------------
+# installments.supported_payment_methods: card.credit = "adyen"
+# installment_config: adyen = "BRL,MXN,JPY"
+
+[[overrides]]
+_context_ = { connector = "adyen", payment_method = "credit", currency = "BRL" }
+installments_supported = true
+
+[[overrides]]
+_context_ = { connector = "adyen", payment_method = "credit", currency = "MXN" }
+installments_supported = true
+
+[[overrides]]
+_context_ = { connector = "adyen", payment_method = "credit", currency = "JPY" }
+installments_supported = true
+
+# --- [tokenization] -----------------------------------------------------------
+# stripe = { long_lived_token = false, payment_method = "wallet", ... }
+# stax = { long_lived_token = true, payment_method = "card,bank_debit" }
+
+[[overrides]]
+_context_ = { connector = "stripe", payment_method = "google_pay" }
+tokenization_enabled = true
+tokenization_long_lived_token = false
+
+[[overrides]]
+_context_ = { connector = "stripe", payment_method = "apple_pay" }
+tokenization_enabled = true
+tokenization_long_lived_token = false
+
+[[overrides]]
+_context_ = { connector = "gocardless", payment_method = "ach" }
+tokenization_enabled = true
+tokenization_long_lived_token = true
+
+[[overrides]]
+_context_ = { connector = "braintree", payment_method = "credit" }
+tokenization_enabled = true
+tokenization_long_lived_token = false
+
+# --- [bank_config.*] ----------------------------------------------------------
+# [bank_config.ideal]
+# stripe = { banks = "abn_amro,asn_bank,bunq,handelsbanken,ing,knab,..." }
+# adyen  = { banks = "abn_amro,asn_bank,bunq,ing,knab,n26,..." }
+# Note the original schemas the banks as a comma-separated string; SuperTOML
+# lets us validate it as an array of strings instead.
+
+[[overrides]]
+_context_ = { connector = "stripe", payment_method = "ideal", country = "NL" }
+supported_banks = [
+    "abn_amro", "asn_bank", "bunq", "handelsbanken", "ing", "knab",
+    "moneyou", "rabobank", "regiobank", "revolut", "sns_bank",
+    "triodos_bank", "van_lanschot"
+]
+
+[[overrides]]
+_context_ = { connector = "adyen", payment_method = "ideal", country = "NL" }
+supported_banks = [
+    "abn_amro", "asn_bank", "bunq", "ing", "knab", "n26",
+    "nationale_nederlanden", "rabobank", "regiobank", "revolut",
+    "sns_bank", "triodos_bank", "van_lanschot", "yoursafe"
+]
+
+# [bank_config.eps] - stripe + adyen serve different bank lists in AT.
+[[overrides]]
+_context_ = { connector = "adyen", payment_method = "eps", country = "AT" }
+supported_banks = [
+    "bank_austria", "bawag_psk_ag", "dolomitenbank", "easybank_ag",
+    "erste_bank_und_sparkassen", "hypo_tirol_bank_ag",
+    "posojilnica_bank_e_gen", "raiffeisen_bankengruppe_osterreich",
+    "schoellerbank_ag", "sparda_bank_wien", "volksbank_gruppe",
+    "volkskreditbank_ag"
+]
+
+# [bank_config.online_banking_fpx]
+[[overrides]]
+_context_ = { connector = "adyen", payment_method = "online_banking_fpx", country = "MY" }
+supported_banks = [
+    "affin_bank", "agro_bank", "alliance_bank", "am_bank", "bank_islam",
+    "bank_muamalat", "bank_rakyat", "bank_simpanan_nasional", "cimb_bank",
+    "hong_leong_bank", "hsbc_bank", "kuwait_finance_house", "maybank",
+    "ocbc_bank", "public_bank", "rhb_bank", "standard_chartered_bank",
+    "uob_bank"
+]
