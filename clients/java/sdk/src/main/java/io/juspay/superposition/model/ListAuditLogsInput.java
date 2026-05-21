@@ -4,6 +4,7 @@ package io.juspay.superposition.model;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import software.amazon.smithy.java.core.schema.PreludeSchemas;
 import software.amazon.smithy.java.core.schema.PresenceTracker;
@@ -16,6 +17,7 @@ import software.amazon.smithy.java.core.serde.ShapeSerializer;
 import software.amazon.smithy.java.core.serde.ToStringSerializer;
 import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpHeaderTrait;
+import software.amazon.smithy.model.traits.HttpQueryParamsTrait;
 import software.amazon.smithy.model.traits.HttpQueryTrait;
 import software.amazon.smithy.model.traits.RequiredTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
@@ -47,6 +49,8 @@ public final class ListAuditLogsInput implements SerializableStruct {
                 new HttpQueryTrait("action"))
         .putMember("username", PreludeSchemas.STRING,
                 new HttpQueryTrait("username"))
+        .putMember("dimension_params", SharedSchemas.DIMENSION_QUERY_PARAMS,
+                new HttpQueryParamsTrait())
         .putMember("sort_by", SortBy.$SCHEMA,
                 new HttpQueryTrait("sort_by"))
         .build();
@@ -61,6 +65,7 @@ public final class ListAuditLogsInput implements SerializableStruct {
     private static final Schema $SCHEMA_TABLES = $SCHEMA.member("tables");
     private static final Schema $SCHEMA_ACTION = $SCHEMA.member("action");
     private static final Schema $SCHEMA_USERNAME = $SCHEMA.member("username");
+    private static final Schema $SCHEMA_DIMENSION_PARAMS = $SCHEMA.member("dimension_params");
     private static final Schema $SCHEMA_SORT_BY = $SCHEMA.member("sort_by");
 
     private final transient String workspaceId;
@@ -73,6 +78,7 @@ public final class ListAuditLogsInput implements SerializableStruct {
     private final transient List<String> tables;
     private final transient List<AuditAction> action;
     private final transient String username;
+    private final transient Map<String, String> dimensionParams;
     private final transient SortBy sortBy;
 
     private ListAuditLogsInput(Builder builder) {
@@ -86,6 +92,7 @@ public final class ListAuditLogsInput implements SerializableStruct {
         this.tables = builder.tables == null ? null : Collections.unmodifiableList(builder.tables);
         this.action = builder.action == null ? null : Collections.unmodifiableList(builder.action);
         this.username = builder.username;
+        this.dimensionParams = builder.dimensionParams == null ? null : Collections.unmodifiableMap(builder.dimensionParams);
         this.sortBy = builder.sortBy;
     }
 
@@ -152,6 +159,17 @@ public final class ListAuditLogsInput implements SerializableStruct {
         return username;
     }
 
+    public Map<String, String> dimensionParams() {
+        if (dimensionParams == null) {
+            return Collections.emptyMap();
+        }
+        return dimensionParams;
+    }
+
+    public boolean hasDimensionParams() {
+        return dimensionParams != null;
+    }
+
     public SortBy sortBy() {
         return sortBy;
     }
@@ -180,12 +198,13 @@ public final class ListAuditLogsInput implements SerializableStruct {
                && Objects.equals(this.tables, that.tables)
                && Objects.equals(this.action, that.action)
                && Objects.equals(this.username, that.username)
+               && Objects.equals(this.dimensionParams, that.dimensionParams)
                && Objects.equals(this.sortBy, that.sortBy);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, count, page, all, fromDate, toDate, tables, action, username, sortBy);
+        return Objects.hash(workspaceId, orgId, count, page, all, fromDate, toDate, tables, action, username, dimensionParams, sortBy);
     }
 
     @Override
@@ -221,6 +240,9 @@ public final class ListAuditLogsInput implements SerializableStruct {
         if (username != null) {
             serializer.writeString($SCHEMA_USERNAME, username);
         }
+        if (dimensionParams != null) {
+            serializer.writeMap($SCHEMA_DIMENSION_PARAMS, dimensionParams, dimensionParams.size(), SharedSerde.DimensionQueryParamsSerializer.INSTANCE);
+        }
         if (sortBy != null) {
             serializer.writeString($SCHEMA_SORT_BY, sortBy.value());
         }
@@ -240,7 +262,8 @@ public final class ListAuditLogsInput implements SerializableStruct {
             case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_TABLES, member, tables);
             case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_ACTION, member, action);
             case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_USERNAME, member, username);
-            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, sortBy);
+            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_PARAMS, member, dimensionParams);
+            case 11 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, sortBy);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -264,6 +287,7 @@ public final class ListAuditLogsInput implements SerializableStruct {
         builder.tables(this.tables);
         builder.action(this.action);
         builder.username(this.username);
+        builder.dimensionParams(this.dimensionParams);
         builder.sortBy(this.sortBy);
         return builder;
     }
@@ -290,6 +314,7 @@ public final class ListAuditLogsInput implements SerializableStruct {
         private List<String> tables;
         private List<AuditAction> action;
         private String username;
+        private Map<String, String> dimensionParams;
         private SortBy sortBy;
 
         private Builder() {}
@@ -392,6 +417,14 @@ public final class ListAuditLogsInput implements SerializableStruct {
         /**
          * @return this builder.
          */
+        public Builder dimensionParams(Map<String, String> dimensionParams) {
+            this.dimensionParams = dimensionParams;
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
         public Builder sortBy(SortBy sortBy) {
             this.sortBy = sortBy;
             return this;
@@ -417,7 +450,8 @@ public final class ListAuditLogsInput implements SerializableStruct {
                 case 7 -> tables((List<String>) SchemaUtils.validateSameMember($SCHEMA_TABLES, member, value));
                 case 8 -> action((List<AuditAction>) SchemaUtils.validateSameMember($SCHEMA_ACTION, member, value));
                 case 9 -> username((String) SchemaUtils.validateSameMember($SCHEMA_USERNAME, member, value));
-                case 10 -> sortBy((SortBy) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, value));
+                case 10 -> dimensionParams((Map<String, String>) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_PARAMS, member, value));
+                case 11 -> sortBy((SortBy) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -464,7 +498,8 @@ public final class ListAuditLogsInput implements SerializableStruct {
                     case 7 -> builder.tables(SharedSerde.deserializeStringList(member, de));
                     case 8 -> builder.action(SharedSerde.deserializeAuditActionList(member, de));
                     case 9 -> builder.username(de.readString(member));
-                    case 10 -> builder.sortBy(SortBy.builder().deserializeMember(de, member).build());
+                    case 10 -> builder.dimensionParams(SharedSerde.deserializeDimensionQueryParams(member, de));
+                    case 11 -> builder.sortBy(SortBy.builder().deserializeMember(de, member).build());
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

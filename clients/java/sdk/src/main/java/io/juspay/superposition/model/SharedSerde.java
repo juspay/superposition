@@ -607,51 +607,6 @@ final class SharedSerde {
         }
     }
 
-    static final class DimensionQueryParamsSerializer implements BiConsumer<Map<String, String>, MapSerializer> {
-        static final DimensionQueryParamsSerializer INSTANCE = new DimensionQueryParamsSerializer();
-
-        @Override
-        public void accept(Map<String, String> values, MapSerializer serializer) {
-            for (var valueEntry : values.entrySet()) {
-                serializer.writeEntry(
-                    SharedSchemas.DIMENSION_QUERY_PARAMS.mapKeyMember(),
-                    valueEntry.getKey(),
-                    valueEntry.getValue(),
-                    DimensionQueryParams$ValueSerializer.INSTANCE
-                );
-            }
-        }
-    }
-
-    private static final class DimensionQueryParams$ValueSerializer implements BiConsumer<String, ShapeSerializer> {
-        private static final DimensionQueryParams$ValueSerializer INSTANCE = new DimensionQueryParams$ValueSerializer();
-
-        @Override
-        public void accept(String values, ShapeSerializer serializer) {
-            serializer.writeString(SharedSchemas.DIMENSION_QUERY_PARAMS.mapValueMember(), values);
-        }
-    }
-
-    static Map<String, String> deserializeDimensionQueryParams(Schema schema, ShapeDeserializer deserializer) {
-        var size = deserializer.containerSize();
-        Map<String, String> result = size == -1 ? new LinkedHashMap<>() : new LinkedHashMap<>(size);
-        deserializer.readStringMap(schema, result, DimensionQueryParams$ValueDeserializer.INSTANCE);
-        return result;
-    }
-
-    private static final class DimensionQueryParams$ValueDeserializer implements ShapeDeserializer.MapMemberConsumer<String, Map<String, String>> {
-        static final DimensionQueryParams$ValueDeserializer INSTANCE = new DimensionQueryParams$ValueDeserializer();
-
-        @Override
-        public void accept(Map<String, String> state, String key, ShapeDeserializer deserializer) {
-            if (deserializer.isNull()) {
-                deserializer.readNull();
-                return;
-            }
-            state.put(key, deserializer.readString(SharedSchemas.DIMENSION_QUERY_PARAMS.mapValueMember()));
-        }
-    }
-
     static final class ListVersionsOutSerializer implements BiConsumer<List<ListVersionsMember>, ShapeSerializer> {
         static final ListVersionsOutSerializer INSTANCE = new ListVersionsOutSerializer();
 
@@ -1091,6 +1046,51 @@ final class SharedSerde {
                 return;
             }
             state.add(AuditLogFull.builder().deserializeMember(deserializer, SharedSchemas.AUDIT_LOG_LIST.listMember()).build());
+        }
+    }
+
+    static final class DimensionQueryParamsSerializer implements BiConsumer<Map<String, String>, MapSerializer> {
+        static final DimensionQueryParamsSerializer INSTANCE = new DimensionQueryParamsSerializer();
+
+        @Override
+        public void accept(Map<String, String> values, MapSerializer serializer) {
+            for (var valueEntry : values.entrySet()) {
+                serializer.writeEntry(
+                    SharedSchemas.DIMENSION_QUERY_PARAMS.mapKeyMember(),
+                    valueEntry.getKey(),
+                    valueEntry.getValue(),
+                    DimensionQueryParams$ValueSerializer.INSTANCE
+                );
+            }
+        }
+    }
+
+    private static final class DimensionQueryParams$ValueSerializer implements BiConsumer<String, ShapeSerializer> {
+        private static final DimensionQueryParams$ValueSerializer INSTANCE = new DimensionQueryParams$ValueSerializer();
+
+        @Override
+        public void accept(String values, ShapeSerializer serializer) {
+            serializer.writeString(SharedSchemas.DIMENSION_QUERY_PARAMS.mapValueMember(), values);
+        }
+    }
+
+    static Map<String, String> deserializeDimensionQueryParams(Schema schema, ShapeDeserializer deserializer) {
+        var size = deserializer.containerSize();
+        Map<String, String> result = size == -1 ? new LinkedHashMap<>() : new LinkedHashMap<>(size);
+        deserializer.readStringMap(schema, result, DimensionQueryParams$ValueDeserializer.INSTANCE);
+        return result;
+    }
+
+    private static final class DimensionQueryParams$ValueDeserializer implements ShapeDeserializer.MapMemberConsumer<String, Map<String, String>> {
+        static final DimensionQueryParams$ValueDeserializer INSTANCE = new DimensionQueryParams$ValueDeserializer();
+
+        @Override
+        public void accept(Map<String, String> state, String key, ShapeDeserializer deserializer) {
+            if (deserializer.isNull()) {
+                deserializer.readNull();
+                return;
+            }
+            state.put(key, deserializer.readString(SharedSchemas.DIMENSION_QUERY_PARAMS.mapValueMember()));
         }
     }
 

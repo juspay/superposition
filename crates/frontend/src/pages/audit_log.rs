@@ -1,15 +1,20 @@
 mod filter;
 
 use filter::{AuditLogFilterWidget, FilterSummary};
+use futures::join;
 use leptos::*;
+use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value, json};
 use superposition_types::{
+    PaginatedResponse,
     api::audit_log::AuditQueryFilters,
-    custom_query::{CustomQuery, PaginationParams, Query},
+    api::dimension::DimensionResponse,
+    custom_query::{CustomQuery, DimensionQuery, PaginationParams, Query, QueryMap},
+    database::models::cac::EventLog,
 };
 
 use crate::{
-    api::audit_log,
+    api::{audit_log, dimensions},
     components::{
         change_summary::{ChangeLogPopup, ChangeSummary},
         datetime::DatetimeStr,
@@ -26,6 +31,12 @@ use crate::{
     query_updater::use_signal_from_query,
     types::{OrganisationId, Workspace},
 };
+
+#[derive(Clone, Default, Serialize, Deserialize)]
+struct AuditLogPageResource {
+    audit_logs: PaginatedResponse<EventLog>,
+    dimensions: Vec<DimensionResponse>,
+}
 
 #[derive(Clone)]
 pub struct DiffData {
@@ -169,10 +180,11 @@ pub fn AuditLog() -> impl IntoView {
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let diff_data_rws = RwSignal::new(None as Option<DiffData>);
 
-    let (filters_rws, pagination_params_rws) =
+    let (filters_rws, dimension_params_rws, pagination_params_rws) =
         use_signal_from_query(move |query_string| {
             (
                 Query::<AuditQueryFilters>::extract_non_empty(query_string).into_inner(),
+                DimensionQuery::<QueryMap>::extract_non_empty(query_string),
                 Query::<PaginationParams>::extract_non_empty(query_string).into_inner(),
             )
         });
@@ -181,15 +193,29 @@ pub fn AuditLog() -> impl IntoView {
         move || {
             (
                 filters_rws.get(),
+                dimension_params_rws.get(),
                 pagination_params_rws.get(),
                 workspace.get().0,
                 org.get().0,
             )
         },
-        |(filters, pagination_params, workspace, org_id)| async move {
-            audit_log::list(&filters, &pagination_params, &workspace, &org_id)
-                .await
-                .unwrap_or_default()
+        |(filters, dimension_params, pagination_params, workspace, org_id)| async move {
+            let all_entries = PaginationParams::all_entries();
+            let (audit_logs_result, dimensions_result) = join!(
+                audit_log::list(
+                    &filters,
+                    &dimension_params,
+                    &pagination_params,
+                    &workspace,
+                    &org_id,
+                ),
+                dimensions::list(&all_entries, &workspace, &org_id),
+            );
+
+            AuditLogPageResource {
+                audit_logs: audit_logs_result.unwrap_or_default(),
+                dimensions: dimensions_result.unwrap_or_default().data,
+            }
         },
     );
 
@@ -204,6 +230,7 @@ pub fn AuditLog() -> impl IntoView {
             {move || {
                 let value = audit_log_resource.get().unwrap_or_default();
                 let table_rows = value
+                    .audit_logs
                     .data
                     .iter()
                     .map(|ele| json!(ele).as_object().unwrap().clone())
@@ -213,7 +240,7 @@ pub fn AuditLog() -> impl IntoView {
                     enabled: true,
                     count: pagination_params.count.unwrap_or_default(),
                     current_page: pagination_params.page.unwrap_or_default(),
-                    total_pages: value.total_pages,
+                    total_pages: value.audit_logs.total_pages,
                     on_page_change: handle_page_change,
                 };
                 view! {
@@ -222,13 +249,18 @@ pub fn AuditLog() -> impl IntoView {
                             <Stat
                                 heading="Audit Log Entries"
                                 icon="ri-file-list-3-line"
-                                number=value.total_items.to_string()
+                                number=value.audit_logs.total_items.to_string()
                             />
                             <div class="self-end">
-                                <AuditLogFilterWidget filters_rws pagination_params_rws />
+                                <AuditLogFilterWidget
+                                    filters_rws
+                                    dimension_params_rws
+                                    pagination_params_rws
+                                    dimensions=value.dimensions.clone()
+                                />
                             </div>
                         </div>
-                        <FilterSummary filters_rws />
+                        <FilterSummary filters_rws dimension_params_rws />
                         <div class="card w-full bg-base-100 rounded-xl overflow-hidden shadow">
                             <div class="card-body overflow-y-auto overflow-x-visible">
                                 <Table

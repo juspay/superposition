@@ -914,6 +914,24 @@ def _deserialize_audit_action_list(deserializer: ShapeDeserializer, schema: Sche
     deserializer.read_list(schema, _read_value)
     return result
 
+def _serialize_dimension_query_params(serializer: ShapeSerializer, schema: Schema, value: dict[str, str]) -> None:
+    with serializer.begin_map(schema, len(value)) as m:
+        value_schema = schema.members["value"]
+        for k, v in value.items():
+            m.entry(k, lambda vs: vs.write_string(value_schema, v))
+
+def _deserialize_dimension_query_params(deserializer: ShapeDeserializer, schema: Schema) -> dict[str, str]:
+    result: dict[str, str] = {}
+    value_schema = schema.members["value"]
+    def _read_value(k: str, d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result[k] = d.read_string(value_schema)
+    deserializer.read_map(schema, _read_value)
+    return result
+
 class SortBy(StrEnum):
     """
     Sort order enumeration for list operations.
@@ -944,6 +962,11 @@ class ListAuditLogsInput:
          If true, returns all requested items, ignoring pagination parameters page and
          count.
 
+    :param dimension_params:
+         Additional dimension filter query parameters. Keys must be full query parameter
+         names accepted by the API, for example
+    ``dimension[country]``.
+
     :param sort_by:
          Sort order enumeration for list operations.
 
@@ -959,6 +982,7 @@ class ListAuditLogsInput:
     tables: list[str] | None = None
     action: list[str] | None = None
     username: str | None = None
+    dimension_params: dict[str, str] | None = None
     sort_by: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -1008,6 +1032,9 @@ class ListAuditLogsInput:
                     kwargs["username"] = de.read_string(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["username"])
 
                 case 10:
+                    kwargs["dimension_params"] = _deserialize_dimension_query_params(de, _SCHEMA_LIST_AUDIT_LOGS_INPUT.members["dimension_params"])
+
+                case 11:
                     kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["sort_by"])
 
                 case _:
@@ -4190,24 +4217,6 @@ class DimensionMatchStrategy(StrEnum):
     partial value matching and dependency-graph awareness
 
     """
-
-def _serialize_dimension_query_params(serializer: ShapeSerializer, schema: Schema, value: dict[str, str]) -> None:
-    with serializer.begin_map(schema, len(value)) as m:
-        value_schema = schema.members["value"]
-        for k, v in value.items():
-            m.entry(k, lambda vs: vs.write_string(value_schema, v))
-
-def _deserialize_dimension_query_params(deserializer: ShapeDeserializer, schema: Schema) -> dict[str, str]:
-    result: dict[str, str] = {}
-    value_schema = schema.members["value"]
-    def _read_value(k: str, d: ShapeDeserializer):
-        if d.is_null():
-            d.read_null()
-
-        else:
-            result[k] = d.read_string(value_schema)
-    deserializer.read_map(schema, _read_value)
-    return result
 
 class ContextFilterSortOn(StrEnum):
     LAST_MODIFIED_AT = "last_modified_at"

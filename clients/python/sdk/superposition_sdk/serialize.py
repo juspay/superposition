@@ -1825,7 +1825,8 @@ async def _serialize_list_audit_logs(input: ListAuditLogsInput, config: Config) 
         query_params.append(("username", input.username))
     if input.sort_by is not None:
         query_params.append(("sort_by", input.sort_by))
-
+    if input.dimension_params is not None:
+        query_params.extend((k, v) for k, v in input.dimension_params.items())
     query = join_query_params(params=query_params, prefix=query)
 
     body: AsyncIterable[bytes] = AsyncBytesReader(b'')
