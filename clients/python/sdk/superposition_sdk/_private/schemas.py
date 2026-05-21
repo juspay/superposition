@@ -3584,6 +3584,23 @@ DIMENSION_MATCH_STRATEGY = Schema.collection(
     }
 )
 
+DIMENSION_QUERY_PARAMS = Schema.collection(
+    id=ShapeID("io.superposition#DimensionQueryParams"),
+    shape_type=ShapeType.MAP,
+    members={
+        "key": {
+            "target": STRING,
+            "index": 0,
+        },
+
+        "value": {
+            "target": STRING,
+            "index": 1,
+        },
+
+    }
+)
+
 CONTEXT_FILTER_SORT_ON = Schema.collection(
     id=ShapeID("io.superposition#ContextFilterSortOn"),
     shape_type=ShapeType.ENUM,
@@ -3739,6 +3756,16 @@ LIST_CONTEXTS_INPUT = Schema.collection(
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="dimension_match_strategy"),
+
+            ],
+        },
+
+        "dimension_params": {
+            "target": DIMENSION_QUERY_PARAMS,
+            "index": 12,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQueryParams")),
 
             ],
         },
@@ -10171,9 +10198,19 @@ LIST_EXPERIMENT_GROUPS_INPUT = Schema.collection(
             ],
         },
 
+        "dimension_params": {
+            "target": DIMENSION_QUERY_PARAMS,
+            "index": 13,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQueryParams")),
+
+            ],
+        },
+
         "context": {
             "target": CONTEXT_MAP,
-            "index": 13,
+            "index": 14,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
@@ -11129,9 +11166,19 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
             ],
         },
 
+        "dimension_params": {
+            "target": DIMENSION_QUERY_PARAMS,
+            "index": 17,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQueryParams")),
+
+            ],
+        },
+
         "prefix": {
             "target": STRING_LIST,
-            "index": 17,
+            "index": 18,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="prefix"),
@@ -11141,7 +11188,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
 
         "context": {
             "target": CONTEXT_MAP,
-            "index": 18,
+            "index": 19,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 

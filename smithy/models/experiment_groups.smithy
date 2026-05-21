@@ -278,6 +278,10 @@ operation ListExperimentGroups {
         @notProperty
         dimension_match_strategy: DimensionMatchStrategy
 
+        @httpQueryParams
+        @notProperty
+        dimension_params: DimensionQueryParams
+
         @notProperty
         context: ContextMap
     }

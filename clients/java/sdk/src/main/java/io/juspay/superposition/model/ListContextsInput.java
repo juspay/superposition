@@ -3,6 +3,7 @@ package io.juspay.superposition.model;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import software.amazon.smithy.java.core.schema.PreludeSchemas;
 import software.amazon.smithy.java.core.schema.PresenceTracker;
@@ -15,6 +16,7 @@ import software.amazon.smithy.java.core.serde.ShapeSerializer;
 import software.amazon.smithy.java.core.serde.ToStringSerializer;
 import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.HttpHeaderTrait;
+import software.amazon.smithy.model.traits.HttpQueryParamsTrait;
 import software.amazon.smithy.model.traits.HttpQueryTrait;
 import software.amazon.smithy.model.traits.RequiredTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
@@ -50,6 +52,8 @@ public final class ListContextsInput implements SerializableStruct {
                 new HttpQueryTrait("plaintext"))
         .putMember("dimension_match_strategy", DimensionMatchStrategy.$SCHEMA,
                 new HttpQueryTrait("dimension_match_strategy"))
+        .putMember("dimension_params", SharedSchemas.DIMENSION_QUERY_PARAMS,
+                new HttpQueryParamsTrait())
         .build();
 
     private static final Schema $SCHEMA_COUNT = $SCHEMA.member("count");
@@ -64,6 +68,7 @@ public final class ListContextsInput implements SerializableStruct {
     private static final Schema $SCHEMA_LAST_MODIFIED_BY = $SCHEMA.member("last_modified_by");
     private static final Schema $SCHEMA_PLAINTEXT = $SCHEMA.member("plaintext");
     private static final Schema $SCHEMA_DIMENSION_MATCH_STRATEGY = $SCHEMA.member("dimension_match_strategy");
+    private static final Schema $SCHEMA_DIMENSION_PARAMS = $SCHEMA.member("dimension_params");
 
     private final transient Integer count;
     private final transient Integer page;
@@ -77,6 +82,7 @@ public final class ListContextsInput implements SerializableStruct {
     private final transient List<String> lastModifiedBy;
     private final transient String plaintext;
     private final transient DimensionMatchStrategy dimensionMatchStrategy;
+    private final transient Map<String, String> dimensionParams;
 
     private ListContextsInput(Builder builder) {
         this.count = builder.count;
@@ -91,6 +97,7 @@ public final class ListContextsInput implements SerializableStruct {
         this.lastModifiedBy = builder.lastModifiedBy == null ? null : Collections.unmodifiableList(builder.lastModifiedBy);
         this.plaintext = builder.plaintext;
         this.dimensionMatchStrategy = builder.dimensionMatchStrategy;
+        this.dimensionParams = builder.dimensionParams == null ? null : Collections.unmodifiableMap(builder.dimensionParams);
     }
 
     /**
@@ -171,6 +178,17 @@ public final class ListContextsInput implements SerializableStruct {
         return dimensionMatchStrategy;
     }
 
+    public Map<String, String> dimensionParams() {
+        if (dimensionParams == null) {
+            return Collections.emptyMap();
+        }
+        return dimensionParams;
+    }
+
+    public boolean hasDimensionParams() {
+        return dimensionParams != null;
+    }
+
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -196,12 +214,13 @@ public final class ListContextsInput implements SerializableStruct {
                && Objects.equals(this.createdBy, that.createdBy)
                && Objects.equals(this.lastModifiedBy, that.lastModifiedBy)
                && Objects.equals(this.plaintext, that.plaintext)
-               && Objects.equals(this.dimensionMatchStrategy, that.dimensionMatchStrategy);
+               && Objects.equals(this.dimensionMatchStrategy, that.dimensionMatchStrategy)
+               && Objects.equals(this.dimensionParams, that.dimensionParams);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(count, page, all, workspaceId, orgId, prefix, sortOn, sortBy, createdBy, lastModifiedBy, plaintext, dimensionMatchStrategy);
+        return Objects.hash(count, page, all, workspaceId, orgId, prefix, sortOn, sortBy, createdBy, lastModifiedBy, plaintext, dimensionMatchStrategy, dimensionParams);
     }
 
     @Override
@@ -243,6 +262,9 @@ public final class ListContextsInput implements SerializableStruct {
         if (dimensionMatchStrategy != null) {
             serializer.writeString($SCHEMA_DIMENSION_MATCH_STRATEGY, dimensionMatchStrategy.value());
         }
+        if (dimensionParams != null) {
+            serializer.writeMap($SCHEMA_DIMENSION_PARAMS, dimensionParams, dimensionParams.size(), SharedSerde.DimensionQueryParamsSerializer.INSTANCE);
+        }
     }
 
     @Override
@@ -261,6 +283,7 @@ public final class ListContextsInput implements SerializableStruct {
             case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, lastModifiedBy);
             case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_PLAINTEXT, member, plaintext);
             case 11 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, dimensionMatchStrategy);
+            case 12 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_PARAMS, member, dimensionParams);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -286,6 +309,7 @@ public final class ListContextsInput implements SerializableStruct {
         builder.lastModifiedBy(this.lastModifiedBy);
         builder.plaintext(this.plaintext);
         builder.dimensionMatchStrategy(this.dimensionMatchStrategy);
+        builder.dimensionParams(this.dimensionParams);
         return builder;
     }
 
@@ -313,6 +337,7 @@ public final class ListContextsInput implements SerializableStruct {
         private List<String> lastModifiedBy;
         private String plaintext;
         private DimensionMatchStrategy dimensionMatchStrategy;
+        private Map<String, String> dimensionParams;
 
         private Builder() {}
 
@@ -427,6 +452,14 @@ public final class ListContextsInput implements SerializableStruct {
             return this;
         }
 
+        /**
+         * @return this builder.
+         */
+        public Builder dimensionParams(Map<String, String> dimensionParams) {
+            this.dimensionParams = dimensionParams;
+            return this;
+        }
+
         @Override
         public ListContextsInput build() {
             tracker.validate();
@@ -449,6 +482,7 @@ public final class ListContextsInput implements SerializableStruct {
                 case 9 -> lastModifiedBy((List<String>) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, value));
                 case 10 -> plaintext((String) SchemaUtils.validateSameMember($SCHEMA_PLAINTEXT, member, value));
                 case 11 -> dimensionMatchStrategy((DimensionMatchStrategy) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, value));
+                case 12 -> dimensionParams((Map<String, String>) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_PARAMS, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -497,6 +531,7 @@ public final class ListContextsInput implements SerializableStruct {
                     case 9 -> builder.lastModifiedBy(SharedSerde.deserializeStringList(member, de));
                     case 10 -> builder.plaintext(de.readString(member));
                     case 11 -> builder.dimensionMatchStrategy(DimensionMatchStrategy.builder().deserializeMember(de, member).build());
+                    case 12 -> builder.dimensionParams(SharedSerde.deserializeDimensionQueryParams(member, de));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

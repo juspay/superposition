@@ -658,6 +658,15 @@
                         }
                     },
                     {
+                        "name": "dimension_params",
+                        "in": "query",
+                        "description": "Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension[country]`.",
+                        "style": "form",
+                        "schema": {
+                            "$ref": "#/components/schemas/DimensionQueryParams"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -2272,6 +2281,15 @@
                         }
                     },
                     {
+                        "name": "dimension_params",
+                        "in": "query",
+                        "description": "Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension[country]`.",
+                        "style": "form",
+                        "schema": {
+                            "$ref": "#/components/schemas/DimensionQueryParams"
+                        }
+                    },
+                    {
                         "name": "if-modified-since",
                         "in": "header",
                         "description": "While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.",
@@ -2959,6 +2977,15 @@
                             }
                         },
                         "explode": true
+                    },
+                    {
+                        "name": "dimension_params",
+                        "in": "query",
+                        "description": "Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension[country]`.",
+                        "style": "form",
+                        "schema": {
+                            "$ref": "#/components/schemas/DimensionQueryParams"
+                        }
                     },
                     {
                         "name": "if-modified-since",
@@ -8220,6 +8247,13 @@
                     "subset",
                     "any_match"
                 ]
+            },
+            "DimensionQueryParams": {
+                "type": "object",
+                "additionalProperties": {
+                    "type": "string"
+                },
+                "description": "Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension[country]`."
             },
             "DimensionResponse": {
                 "type": "object",

@@ -29,6 +29,8 @@ pub struct ListExperimentGroupsInput  {
     pub group_type: ::std::option::Option<::std::vec::Vec::<crate::types::GroupType>>,
     /// Strategy to follow while filter items based on the context
     pub dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
+    /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
+    pub dimension_params: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>>,
     /// Map representing the context. Keys correspond to the names of the dimensions.
     pub context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
 }
@@ -88,6 +90,10 @@ impl  ListExperimentGroupsInput  {
     pub fn dimension_match_strategy(&self) -> ::std::option::Option<&crate::types::DimensionMatchStrategy> {
         self.dimension_match_strategy.as_ref()
     }
+    /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
+    pub fn dimension_params(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::std::string::String>> {
+        self.dimension_params.as_ref()
+    }
     /// Map representing the context. Keys correspond to the names of the dimensions.
     pub fn context(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
         self.context.as_ref()
@@ -117,6 +123,7 @@ pub struct ListExperimentGroupsInputBuilder {
     pub(crate) sort_by: ::std::option::Option<crate::types::SortBy>,
     pub(crate) group_type: ::std::option::Option<::std::vec::Vec::<crate::types::GroupType>>,
     pub(crate) dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
+    pub(crate) dimension_params: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>>,
     pub(crate) context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
 }
 impl ListExperimentGroupsInputBuilder {
@@ -297,6 +304,25 @@ impl ListExperimentGroupsInputBuilder {
     pub fn get_dimension_match_strategy(&self) -> &::std::option::Option<crate::types::DimensionMatchStrategy> {
         &self.dimension_match_strategy
     }
+    /// Adds a key-value pair to `dimension_params`.
+    ///
+    /// To override the contents of this collection use [`set_dimension_params`](Self::set_dimension_params).
+    ///
+    /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
+    pub fn dimension_params(mut self, k: impl ::std::convert::Into<::std::string::String>, v: impl ::std::convert::Into<::std::string::String>) -> Self {
+        let mut hash_map = self.dimension_params.unwrap_or_default();
+                        hash_map.insert(k.into(), v.into());
+                        self.dimension_params = ::std::option::Option::Some(hash_map);
+                        self
+    }
+    /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
+    pub fn set_dimension_params(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>>) -> Self {
+        self.dimension_params = input; self
+    }
+    /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
+    pub fn get_dimension_params(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>> {
+        &self.dimension_params
+    }
     /// Adds a key-value pair to `context`.
     ///
     /// To override the contents of this collection use [`set_context`](Self::set_context).
@@ -345,6 +371,8 @@ impl ListExperimentGroupsInputBuilder {
                 group_type: self.group_type
                 ,
                 dimension_match_strategy: self.dimension_match_strategy
+                ,
+                dimension_params: self.dimension_params
                 ,
                 context: self.context
                 ,

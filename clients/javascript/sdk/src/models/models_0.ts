@@ -1134,6 +1134,12 @@ export interface ListContextsInput {
    * @public
    */
   dimension_match_strategy?: DimensionMatchStrategy | undefined;
+
+  /**
+   * Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension[country]`.
+   * @public
+   */
+  dimension_params?: Record<string, string> | undefined;
 }
 
 /**
@@ -2063,6 +2069,12 @@ export interface ListExperimentGroupsInput {
   dimension_match_strategy?: DimensionMatchStrategy | undefined;
 
   /**
+   * Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension[country]`.
+   * @public
+   */
+  dimension_params?: Record<string, string> | undefined;
+
+  /**
    * Map representing the context.
    * Keys correspond to the names of the dimensions.
    * @public
@@ -2184,6 +2196,12 @@ export interface ListExperimentInput {
    * @public
    */
   dimension_match_strategy?: DimensionMatchStrategy | undefined;
+
+  /**
+   * Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension[country]`.
+   * @public
+   */
+  dimension_params?: Record<string, string> | undefined;
 
   prefix?: (string)[] | undefined;
   /**

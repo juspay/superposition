@@ -12,6 +12,7 @@ module Io.Superposition.Model.ListExperimentGroupsInput (
     setSortBy,
     setGroupType,
     setDimensionMatchStrategy,
+    setDimensionParams,
     setContext,
     build,
     ListExperimentGroupsInputBuilder,
@@ -29,6 +30,7 @@ module Io.Superposition.Model.ListExperimentGroupsInput (
     sort_by,
     group_type,
     dimension_match_strategy,
+    dimension_params,
     context
 ) where
 import qualified Control.Applicative
@@ -65,6 +67,7 @@ data ListExperimentGroupsInput = ListExperimentGroupsInput {
     sort_by :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy,
     group_type :: Data.Maybe.Maybe ([] Io.Superposition.Model.GroupType.GroupType),
     dimension_match_strategy :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMatchStrategy.DimensionMatchStrategy,
+    dimension_params :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text),
     context :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value)
 } deriving (
   GHC.Show.Show,
@@ -87,6 +90,7 @@ instance Data.Aeson.ToJSON ListExperimentGroupsInput where
         "sort_by" Data.Aeson..= sort_by a,
         "group_type" Data.Aeson..= group_type a,
         "dimension_match_strategy" Data.Aeson..= dimension_match_strategy a,
+        "dimension_params" Data.Aeson..= dimension_params a,
         "context" Data.Aeson..= context a
         ]
     
@@ -108,6 +112,7 @@ instance Data.Aeson.FromJSON ListExperimentGroupsInput where
         Control.Applicative.<*> (v Data.Aeson..:? "sort_by")
         Control.Applicative.<*> (v Data.Aeson..:? "group_type")
         Control.Applicative.<*> (v Data.Aeson..:? "dimension_match_strategy")
+        Control.Applicative.<*> (v Data.Aeson..:? "dimension_params")
         Control.Applicative.<*> (v Data.Aeson..:? "context")
     
 
@@ -127,6 +132,7 @@ data ListExperimentGroupsInputBuilderState = ListExperimentGroupsInputBuilderSta
     sort_byBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy,
     group_typeBuilderState :: Data.Maybe.Maybe ([] Io.Superposition.Model.GroupType.GroupType),
     dimension_match_strategyBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMatchStrategy.DimensionMatchStrategy,
+    dimension_paramsBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text),
     contextBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value)
 } deriving (
   GHC.Generics.Generic
@@ -147,6 +153,7 @@ defaultBuilderState = ListExperimentGroupsInputBuilderState {
     sort_byBuilderState = Data.Maybe.Nothing,
     group_typeBuilderState = Data.Maybe.Nothing,
     dimension_match_strategyBuilderState = Data.Maybe.Nothing,
+    dimension_paramsBuilderState = Data.Maybe.Nothing,
     contextBuilderState = Data.Maybe.Nothing
 }
 
@@ -204,6 +211,10 @@ setDimensionMatchStrategy :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMa
 setDimensionMatchStrategy value =
    Control.Monad.State.Strict.modify (\s -> (s { dimension_match_strategyBuilderState = value }))
 
+setDimensionParams :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text) -> ListExperimentGroupsInputBuilder ()
+setDimensionParams value =
+   Control.Monad.State.Strict.modify (\s -> (s { dimension_paramsBuilderState = value }))
+
 setContext :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value) -> ListExperimentGroupsInputBuilder ()
 setContext value =
    Control.Monad.State.Strict.modify (\s -> (s { contextBuilderState = value }))
@@ -224,6 +235,7 @@ build builder = do
     sort_by' <- Data.Either.Right (sort_byBuilderState st)
     group_type' <- Data.Either.Right (group_typeBuilderState st)
     dimension_match_strategy' <- Data.Either.Right (dimension_match_strategyBuilderState st)
+    dimension_params' <- Data.Either.Right (dimension_paramsBuilderState st)
     context' <- Data.Either.Right (contextBuilderState st)
     Data.Either.Right (ListExperimentGroupsInput { 
         count = count',
@@ -239,6 +251,7 @@ build builder = do
         sort_by = sort_by',
         group_type = group_type',
         dimension_match_strategy = dimension_match_strategy',
+        dimension_params = dimension_params',
         context = context'
     })
 
@@ -250,6 +263,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder ListExperimentGroupsInput w
             "experiment-groups",
             "list"
             ]
+        Io.Superposition.Utility.serQueryMap (dimension_params self)
         Io.Superposition.Utility.serQuery "all" (all' self)
         Io.Superposition.Utility.serQuery "count" (count self)
         Io.Superposition.Utility.serQuery "last_modified_by" (last_modified_by self)

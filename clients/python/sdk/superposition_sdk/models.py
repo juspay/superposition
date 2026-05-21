@@ -4191,6 +4191,24 @@ class DimensionMatchStrategy(StrEnum):
 
     """
 
+def _serialize_dimension_query_params(serializer: ShapeSerializer, schema: Schema, value: dict[str, str]) -> None:
+    with serializer.begin_map(schema, len(value)) as m:
+        value_schema = schema.members["value"]
+        for k, v in value.items():
+            m.entry(k, lambda vs: vs.write_string(value_schema, v))
+
+def _deserialize_dimension_query_params(deserializer: ShapeDeserializer, schema: Schema) -> dict[str, str]:
+    result: dict[str, str] = {}
+    value_schema = schema.members["value"]
+    def _read_value(k: str, d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result[k] = d.read_string(value_schema)
+    deserializer.read_map(schema, _read_value)
+    return result
+
 class ContextFilterSortOn(StrEnum):
     LAST_MODIFIED_AT = "last_modified_at"
     CREATED_AT = "created_at"
@@ -4216,6 +4234,11 @@ class ListContextsInput:
     :param dimension_match_strategy:
          Strategy to follow while filter items based on the context
 
+    :param dimension_params:
+         Additional dimension filter query parameters. Keys must be full query parameter
+         names accepted by the API, for example
+    ``dimension[country]``.
+
     """
 
     count: int | None = None
@@ -4230,6 +4253,7 @@ class ListContextsInput:
     last_modified_by: list[str] | None = None
     plaintext: str | None = None
     dimension_match_strategy: str | None = None
+    dimension_params: dict[str, str] | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_CONTEXTS_INPUT, self)
@@ -4282,6 +4306,9 @@ class ListContextsInput:
 
                 case 11:
                     kwargs["dimension_match_strategy"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["dimension_match_strategy"])
+
+                case 12:
+                    kwargs["dimension_params"] = _deserialize_dimension_query_params(de, _SCHEMA_LIST_CONTEXTS_INPUT.members["dimension_params"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -10296,6 +10323,11 @@ class ListExperimentGroupsInput:
     :param dimension_match_strategy:
          Strategy to follow while filter items based on the context
 
+    :param dimension_params:
+         Additional dimension filter query parameters. Keys must be full query parameter
+         names accepted by the API, for example
+    ``dimension[country]``.
+
     :param context:
          Map representing the context. Keys correspond to the names of the dimensions.
 
@@ -10314,6 +10346,7 @@ class ListExperimentGroupsInput:
     sort_by: str | None = None
     group_type: list[str] | None = None
     dimension_match_strategy: str | None = None
+    dimension_params: dict[str, str] | None = None
     context: dict[str, Document] | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -10373,6 +10406,9 @@ class ListExperimentGroupsInput:
                     kwargs["dimension_match_strategy"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["dimension_match_strategy"])
 
                 case 13:
+                    kwargs["dimension_params"] = _deserialize_dimension_query_params(de, _SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["dimension_params"])
+
+                case 14:
                     kwargs["context"] = _deserialize_context_map(de, _SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["context"])
 
                 case _:
@@ -11102,6 +11138,11 @@ class ListExperimentInput:
     :param dimension_match_strategy:
          Strategy to follow while filter items based on the context
 
+    :param dimension_params:
+         Additional dimension filter query parameters. Keys must be full query parameter
+         names accepted by the API, for example
+    ``dimension[country]``.
+
     :param context:
          Map representing the context. Keys correspond to the names of the dimensions.
 
@@ -11124,6 +11165,7 @@ class ListExperimentInput:
     sort_by: str | None = None
     global_experiments_only: bool | None = None
     dimension_match_strategy: str | None = None
+    dimension_params: dict[str, str] | None = None
     prefix: list[str] | None = None
     context: dict[str, Document] | None = None
 
@@ -11196,9 +11238,12 @@ class ListExperimentInput:
                     kwargs["dimension_match_strategy"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["dimension_match_strategy"])
 
                 case 17:
-                    kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["prefix"])
+                    kwargs["dimension_params"] = _deserialize_dimension_query_params(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["dimension_params"])
 
                 case 18:
+                    kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["prefix"])
+
+                case 19:
                     kwargs["context"] = _deserialize_context_map(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["context"])
 
                 case _:
