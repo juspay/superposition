@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_sdk-v0.17.0 - 2026-05-21
+#### Features
+- add first class support for dimension params in smithy for clients sdk (#1014) - (e9a4249) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.108.0 [skip ci] - (e9b1dba) - Superposition Bot
+
+- - -
+
 ## superposition_sdk-v0.16.0 - 2026-05-20
 #### Features
 - add AnyMatch filter to get contexts based on query permutations (#1008) - (3bdee15) - sauraww
