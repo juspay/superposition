@@ -9,6 +9,7 @@ module Io.Superposition.Model.ListAuditLogsInput (
     setTables,
     setAction,
     setUsername,
+    setDimensionParams,
     setSortBy,
     build,
     ListAuditLogsInputBuilder,
@@ -23,6 +24,7 @@ module Io.Superposition.Model.ListAuditLogsInput (
     tables,
     action,
     username,
+    dimension_params,
     sort_by
 ) where
 import qualified Control.Applicative
@@ -32,6 +34,7 @@ import qualified Data.Either
 import qualified Data.Eq
 import qualified Data.Functor
 import qualified Data.Int
+import qualified Data.Map
 import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Time
@@ -53,6 +56,7 @@ data ListAuditLogsInput = ListAuditLogsInput {
     tables :: Data.Maybe.Maybe ([] Data.Text.Text),
     action :: Data.Maybe.Maybe ([] Io.Superposition.Model.AuditAction.AuditAction),
     username :: Data.Maybe.Maybe Data.Text.Text,
+    dimension_params :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text),
     sort_by :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy
 } deriving (
   GHC.Show.Show,
@@ -72,6 +76,7 @@ instance Data.Aeson.ToJSON ListAuditLogsInput where
         "tables" Data.Aeson..= tables a,
         "action" Data.Aeson..= action a,
         "username" Data.Aeson..= username a,
+        "dimension_params" Data.Aeson..= dimension_params a,
         "sort_by" Data.Aeson..= sort_by a
         ]
     
@@ -90,6 +95,7 @@ instance Data.Aeson.FromJSON ListAuditLogsInput where
         Control.Applicative.<*> (v Data.Aeson..:? "tables")
         Control.Applicative.<*> (v Data.Aeson..:? "action")
         Control.Applicative.<*> (v Data.Aeson..:? "username")
+        Control.Applicative.<*> (v Data.Aeson..:? "dimension_params")
         Control.Applicative.<*> (v Data.Aeson..:? "sort_by")
     
 
@@ -106,6 +112,7 @@ data ListAuditLogsInputBuilderState = ListAuditLogsInputBuilderState {
     tablesBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     actionBuilderState :: Data.Maybe.Maybe ([] Io.Superposition.Model.AuditAction.AuditAction),
     usernameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    dimension_paramsBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text),
     sort_byBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy
 } deriving (
   GHC.Generics.Generic
@@ -123,6 +130,7 @@ defaultBuilderState = ListAuditLogsInputBuilderState {
     tablesBuilderState = Data.Maybe.Nothing,
     actionBuilderState = Data.Maybe.Nothing,
     usernameBuilderState = Data.Maybe.Nothing,
+    dimension_paramsBuilderState = Data.Maybe.Nothing,
     sort_byBuilderState = Data.Maybe.Nothing
 }
 
@@ -168,6 +176,10 @@ setUsername :: Data.Maybe.Maybe Data.Text.Text -> ListAuditLogsInputBuilder ()
 setUsername value =
    Control.Monad.State.Strict.modify (\s -> (s { usernameBuilderState = value }))
 
+setDimensionParams :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text) -> ListAuditLogsInputBuilder ()
+setDimensionParams value =
+   Control.Monad.State.Strict.modify (\s -> (s { dimension_paramsBuilderState = value }))
+
 setSortBy :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy -> ListAuditLogsInputBuilder ()
 setSortBy value =
    Control.Monad.State.Strict.modify (\s -> (s { sort_byBuilderState = value }))
@@ -185,6 +197,7 @@ build builder = do
     tables' <- Data.Either.Right (tablesBuilderState st)
     action' <- Data.Either.Right (actionBuilderState st)
     username' <- Data.Either.Right (usernameBuilderState st)
+    dimension_params' <- Data.Either.Right (dimension_paramsBuilderState st)
     sort_by' <- Data.Either.Right (sort_byBuilderState st)
     Data.Either.Right (ListAuditLogsInput { 
         workspace_id = workspace_id',
@@ -197,6 +210,7 @@ build builder = do
         tables = tables',
         action = action',
         username = username',
+        dimension_params = dimension_params',
         sort_by = sort_by'
     })
 
@@ -207,6 +221,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder ListAuditLogsInput where
         Io.Superposition.Utility.setPath [
             "audit"
             ]
+        Io.Superposition.Utility.serQueryMap (dimension_params self)
         Io.Superposition.Utility.serQuery "all" (all' self)
         Io.Superposition.Utility.serQuery "table" (tables self)
         Io.Superposition.Utility.serQuery "from_date" (from_date self)

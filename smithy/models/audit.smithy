@@ -79,6 +79,10 @@ operation ListAuditLogs {
         @notProperty
         username: String
 
+        @httpQueryParams
+        @notProperty
+        dimension_params: DimensionQueryParams
+
         @httpQuery("sort_by")
         @notProperty
         sort_by: SortBy

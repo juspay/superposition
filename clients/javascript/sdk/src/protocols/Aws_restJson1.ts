@@ -1618,6 +1618,7 @@ export const se_ListAuditLogsCommand = async(
   });
   b.bp("/audit");
   const query: any = map({
+    ...convertMap(input.dimension_params),
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
     [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],

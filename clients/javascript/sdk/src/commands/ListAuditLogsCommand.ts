@@ -57,6 +57,9 @@ export interface ListAuditLogsCommandOutput extends ListAuditLogsOutput, __Metad
  *     "INSERT" || "UPDATE" || "DELETE",
  *   ],
  *   username: "STRING_VALUE",
+ *   dimension_params: { // DimensionQueryParams
+ *     "<keys>": "STRING_VALUE",
+ *   },
  *   sort_by: "desc" || "asc",
  * };
  * const command = new ListAuditLogsCommand(input);

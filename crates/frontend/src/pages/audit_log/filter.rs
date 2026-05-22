@@ -2,22 +2,31 @@ use std::{fmt::Display, str::FromStr};
 
 use chrono::{DateTime, Days, Duration, TimeZone, Utc};
 use leptos::*;
+use serde_json::{Map, Value};
 use superposition_types::{
     api::audit_log::AuditQueryFilters,
-    custom_query::{CommaSeparatedQParams, PaginationParams},
+    api::{dimension::DimensionResponse, functions::FunctionEnvironment},
+    custom_query::{
+        CommaSeparatedQParams, CustomQuery, DimensionQuery, PaginationParams, QueryMap,
+    },
 };
 
 use crate::components::{
     badge::{GlassyPills, GrayPill, ListPills},
     button::{Button, ButtonStyle},
+    context_form::ContextForm,
     datetime::{Datetime, DatetimeFormat},
     drawer::{Drawer, DrawerBtn, close_drawer},
     form::label::Label,
     input::DateInput,
 };
+use crate::logic::Conditions;
 
 #[component]
-pub fn FilterSummary(filters_rws: RwSignal<AuditQueryFilters>) -> impl IntoView {
+pub fn FilterSummary(
+    filters_rws: RwSignal<AuditQueryFilters>,
+    dimension_params_rws: RwSignal<DimensionQuery<QueryMap>>,
+) -> impl IntoView {
     let force_open_rws = RwSignal::new(true);
 
     fn filter_index<T: Display + FromStr + Clone>(
@@ -37,7 +46,8 @@ pub fn FilterSummary(filters_rws: RwSignal<AuditQueryFilters>) -> impl IntoView 
                     f.username.is_none() && f.from_date.is_none() && f.to_date.is_none()
                         && f.action.is_none() && f.table.is_none()
                 });
-            !filters_empty
+            let dimension_params_empty = dimension_params_rws.with(|f| f.is_empty());
+            !filters_empty || !dimension_params_empty
         }>
             <div class="flex gap-2">
                 <div
@@ -71,6 +81,43 @@ pub fn FilterSummary(filters_rws: RwSignal<AuditQueryFilters>) -> impl IntoView 
                         if force_open_rws.get() { "max-h-[1000px]" } else { "max-h-0" },
                     )
                 }>
+                    {move || {
+                        let items = dimension_params_rws
+                            .get()
+                            .into_inner()
+                            .into_iter()
+                            .map(|(key, value)| {
+                                let value = match value {
+                                    Value::String(value) => value,
+                                    Value::Null => "null".to_string(),
+                                    value => value.to_string(),
+                                };
+                                format!("{key} == {value}")
+                            })
+                            .collect::<Vec<_>>();
+
+                        view! {
+                            <ListPills
+                                label="Context"
+                                items=items
+                                on_delete=move |idx| {
+                                    dimension_params_rws
+                                        .update(|params| {
+                                            let dimension_params: Map<String, Value> = params
+                                                .clone()
+                                                .into_inner()
+                                                .into_iter()
+                                                .enumerate()
+                                                .filter_map(|(dimension_idx, dimension_param)| {
+                                                    (dimension_idx != idx).then_some(dimension_param)
+                                                })
+                                                .collect();
+                                            *params = DimensionQuery::from(dimension_params);
+                                        })
+                                }
+                            />
+                        }
+                    }}
                     {move || {
                         filters_rws
                             .with(|f| f.from_date)
@@ -171,9 +218,20 @@ pub fn FilterSummary(filters_rws: RwSignal<AuditQueryFilters>) -> impl IntoView 
 #[component]
 pub fn AuditLogFilterWidget(
     filters_rws: RwSignal<AuditQueryFilters>,
+    dimension_params_rws: RwSignal<DimensionQuery<QueryMap>>,
     pagination_params_rws: RwSignal<PaginationParams>,
+    dimensions: Vec<DimensionResponse>,
 ) -> impl IntoView {
     let filters_buffer_rws = RwSignal::new(filters_rws.get_untracked());
+    let dimension_buffer_rws = RwSignal::new(dimension_params_rws.get_untracked());
+    let context_rws = RwSignal::new(Conditions::from_iter(
+        dimension_params_rws.get_untracked().into_inner(),
+    ));
+
+    let fn_environment = Memo::new(move |_| FunctionEnvironment {
+        context: context_rws.get().into(),
+        overrides: Map::new(),
+    });
 
     view! {
         <DrawerBtn
@@ -190,6 +248,17 @@ pub fn AuditLogFilterWidget(
             handle_close=move || close_drawer("audit_log_filter_drawer")
         >
             <div class="flex flex-col gap-5">
+                <ContextForm
+                    dimensions
+                    context=context_rws.get_untracked()
+                    fn_environment
+                    resolve_mode=true
+                    on_context_change=move |context: Conditions| {
+                        context_rws.set(context.clone());
+                        dimension_buffer_rws.set(DimensionQuery::from(Map::from(context)));
+                    }
+                    heading_sub_text="Search By Context"
+                />
                 <div class="w-full flex flex-row justify-start items-end gap-10">
                     <div class="form-control">
                         <Label title="From Date" />
@@ -298,9 +367,11 @@ pub fn AuditLogFilterWidget(
                         on_click=move |event: web_sys::MouseEvent| {
                             event.prevent_default();
                             let filters = filters_buffer_rws.get();
+                            let dimension_params = dimension_buffer_rws.get();
                             close_drawer("audit_log_filter_drawer");
                             batch(|| {
                                 filters_rws.set(filters);
+                                dimension_params_rws.set(dimension_params);
                                 pagination_params_rws.update(|f| f.reset_page());
                             });
                         }
@@ -316,9 +387,10 @@ pub fn AuditLogFilterWidget(
                                 let default_filters = AuditQueryFilters::default();
                                 filters_rws.set(default_filters.clone());
                                 filters_buffer_rws.set(default_filters);
+                                dimension_params_rws.set(DimensionQuery::default());
                                 pagination_params_rws.update(|f| f.reset_page());
                             });
-                            close_drawer("experiment_filter_drawer")
+                            close_drawer("audit_log_filter_drawer")
                         }
                     />
                 </div>

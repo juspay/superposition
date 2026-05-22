@@ -136,53 +136,63 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for ListAud
 }
 fn uri_query(_input: &crate::operation::list_audit_logs::ListAuditLogsInput, mut output: &mut ::std::string::String) -> ::std::result::Result<(), ::aws_smithy_types::error::operation::BuildError> {
     let mut query = ::aws_smithy_http::query::Writer::new(output);
-    if let ::std::option::Option::Some(inner_1) = &_input.count {
+    let protected_params = ["count", "page", "all", "from_date", "to_date", "table", "action", "username", "sort_by"];
+    if let ::std::option::Option::Some(inner_1) = &_input.dimension_params {
          {
-            query.push_kv("count", ::aws_smithy_types::primitive::Encoder::from(*inner_1).encode());
-        }
-    }
-    if let ::std::option::Option::Some(inner_2) = &_input.page {
-         {
-            query.push_kv("page", ::aws_smithy_types::primitive::Encoder::from(*inner_2).encode());
-        }
-    }
-    if let ::std::option::Option::Some(inner_3) = &_input.all {
-         {
-            query.push_kv("all", ::aws_smithy_types::primitive::Encoder::from(*inner_3).encode());
-        }
-    }
-    if let ::std::option::Option::Some(inner_4) = &_input.from_date {
-         {
-            query.push_kv("from_date", &::aws_smithy_http::query::fmt_timestamp(inner_4, ::aws_smithy_types::date_time::Format::DateTime)?);
-        }
-    }
-    if let ::std::option::Option::Some(inner_5) = &_input.to_date {
-         {
-            query.push_kv("to_date", &::aws_smithy_http::query::fmt_timestamp(inner_5, ::aws_smithy_types::date_time::Format::DateTime)?);
-        }
-    }
-    if let ::std::option::Option::Some(inner_6) = &_input.tables {
-         {
-            for inner_7 in inner_6 {
-                query.push_kv("table", &::aws_smithy_http::query::fmt_string(inner_7));
+            for (k, v) in inner_1 {
+                if !protected_params.contains(&k.as_str()) {
+                    query.push_kv(&::aws_smithy_http::query::fmt_string(k), &::aws_smithy_http::query::fmt_string(v));
+                }
             }
         }
     }
-    if let ::std::option::Option::Some(inner_8) = &_input.action {
+    if let ::std::option::Option::Some(inner_2) = &_input.count {
          {
-            for inner_9 in inner_8 {
-                query.push_kv("action", &::aws_smithy_http::query::fmt_string(inner_9));
+            query.push_kv("count", ::aws_smithy_types::primitive::Encoder::from(*inner_2).encode());
+        }
+    }
+    if let ::std::option::Option::Some(inner_3) = &_input.page {
+         {
+            query.push_kv("page", ::aws_smithy_types::primitive::Encoder::from(*inner_3).encode());
+        }
+    }
+    if let ::std::option::Option::Some(inner_4) = &_input.all {
+         {
+            query.push_kv("all", ::aws_smithy_types::primitive::Encoder::from(*inner_4).encode());
+        }
+    }
+    if let ::std::option::Option::Some(inner_5) = &_input.from_date {
+         {
+            query.push_kv("from_date", &::aws_smithy_http::query::fmt_timestamp(inner_5, ::aws_smithy_types::date_time::Format::DateTime)?);
+        }
+    }
+    if let ::std::option::Option::Some(inner_6) = &_input.to_date {
+         {
+            query.push_kv("to_date", &::aws_smithy_http::query::fmt_timestamp(inner_6, ::aws_smithy_types::date_time::Format::DateTime)?);
+        }
+    }
+    if let ::std::option::Option::Some(inner_7) = &_input.tables {
+         {
+            for inner_8 in inner_7 {
+                query.push_kv("table", &::aws_smithy_http::query::fmt_string(inner_8));
             }
         }
     }
-    if let ::std::option::Option::Some(inner_10) = &_input.username {
+    if let ::std::option::Option::Some(inner_9) = &_input.action {
          {
-            query.push_kv("username", &::aws_smithy_http::query::fmt_string(inner_10));
+            for inner_10 in inner_9 {
+                query.push_kv("action", &::aws_smithy_http::query::fmt_string(inner_10));
+            }
         }
     }
-    if let ::std::option::Option::Some(inner_11) = &_input.sort_by {
+    if let ::std::option::Option::Some(inner_11) = &_input.username {
          {
-            query.push_kv("sort_by", &::aws_smithy_http::query::fmt_string(inner_11));
+            query.push_kv("username", &::aws_smithy_http::query::fmt_string(inner_11));
+        }
+    }
+    if let ::std::option::Option::Some(inner_12) = &_input.sort_by {
+         {
+            query.push_kv("sort_by", &::aws_smithy_http::query::fmt_string(inner_12));
         }
     }
     ::std::result::Result::Ok(())

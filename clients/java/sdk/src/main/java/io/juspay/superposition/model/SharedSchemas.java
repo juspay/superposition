@@ -43,6 +43,11 @@ final class SharedSchemas {
         .putMember("member", AuditAction.$SCHEMA)
         .build();
 
+    static final Schema DIMENSION_QUERY_PARAMS = Schema.mapBuilder(ShapeId.from("io.superposition#DimensionQueryParams"))
+        .putMember("key", PreludeSchemas.STRING)
+        .putMember("value", PreludeSchemas.STRING)
+        .build();
+
     static final Schema AUDIT_LOG_LIST = Schema.listBuilder(ShapeId.from("io.superposition#AuditLogList"))
         .putMember("member", AuditLogFull.$SCHEMA)
         .build();
@@ -97,11 +102,6 @@ final class SharedSchemas {
 
     static final Schema LIST_VERSIONS_OUT = Schema.listBuilder(ShapeId.from("io.superposition#ListVersionsOut"))
         .putMember("member", ListVersionsMember.$SCHEMA)
-        .build();
-
-    static final Schema DIMENSION_QUERY_PARAMS = Schema.mapBuilder(ShapeId.from("io.superposition#DimensionQueryParams"))
-        .putMember("key", PreludeSchemas.STRING)
-        .putMember("value", PreludeSchemas.STRING)
         .build();
 
     static final Schema LIST_CONTEXT_OUT = Schema.listBuilder(ShapeId.from("io.superposition#ListContextOut"))

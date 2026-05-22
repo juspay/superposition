@@ -601,6 +601,23 @@ AUDIT_ACTION_LIST = Schema.collection(
     }
 )
 
+DIMENSION_QUERY_PARAMS = Schema.collection(
+    id=ShapeID("io.superposition#DimensionQueryParams"),
+    shape_type=ShapeType.MAP,
+    members={
+        "key": {
+            "target": STRING,
+            "index": 0,
+        },
+
+        "value": {
+            "target": STRING,
+            "index": 1,
+        },
+
+    }
+)
+
 SORT_BY = Schema.collection(
     id=ShapeID("io.superposition#SortBy"),
     shape_type=ShapeType.ENUM,
@@ -731,9 +748,19 @@ LIST_AUDIT_LOGS_INPUT = Schema.collection(
             ],
         },
 
+        "dimension_params": {
+            "target": DIMENSION_QUERY_PARAMS,
+            "index": 10,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQueryParams")),
+
+            ],
+        },
+
         "sort_by": {
             "target": SORT_BY,
-            "index": 10,
+            "index": 11,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="sort_by"),
@@ -3579,23 +3606,6 @@ DIMENSION_MATCH_STRATEGY = Schema.collection(
                 Trait.new(id=ShapeID("smithy.api#enumValue"), value="any_match"),
 
             ],
-        },
-
-    }
-)
-
-DIMENSION_QUERY_PARAMS = Schema.collection(
-    id=ShapeID("io.superposition#DimensionQueryParams"),
-    shape_type=ShapeType.MAP,
-    members={
-        "key": {
-            "target": STRING,
-            "index": 0,
-        },
-
-        "value": {
-            "target": STRING,
-            "index": 1,
         },
 
     }

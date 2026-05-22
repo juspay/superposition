@@ -223,6 +223,12 @@ export interface ListAuditLogsInput {
   action?: (AuditAction)[] | undefined;
   username?: string | undefined;
   /**
+   * Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension[country]`.
+   * @public
+   */
+  dimension_params?: Record<string, string> | undefined;
+
+  /**
    * Sort order enumeration for list operations.
    * @public
    */

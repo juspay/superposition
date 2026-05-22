@@ -23,6 +23,8 @@ pub struct ListAuditLogsInput  {
     pub action: ::std::option::Option<::std::vec::Vec::<crate::types::AuditAction>>,
     #[allow(missing_docs)] // documentation missing in model
     pub username: ::std::option::Option<::std::string::String>,
+    /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
+    pub dimension_params: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>>,
     /// Sort order enumeration for list operations.
     pub sort_by: ::std::option::Option<crate::types::SortBy>,
 }
@@ -73,6 +75,10 @@ impl  ListAuditLogsInput  {
     pub fn username(&self) -> ::std::option::Option<&str> {
         self.username.as_deref()
     }
+    /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
+    pub fn dimension_params(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::std::string::String>> {
+        self.dimension_params.as_ref()
+    }
     /// Sort order enumeration for list operations.
     pub fn sort_by(&self) -> ::std::option::Option<&crate::types::SortBy> {
         self.sort_by.as_ref()
@@ -99,6 +105,7 @@ pub struct ListAuditLogsInputBuilder {
     pub(crate) tables: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     pub(crate) action: ::std::option::Option<::std::vec::Vec::<crate::types::AuditAction>>,
     pub(crate) username: ::std::option::Option<::std::string::String>,
+    pub(crate) dimension_params: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>>,
     pub(crate) sort_by: ::std::option::Option<crate::types::SortBy>,
 }
 impl ListAuditLogsInputBuilder {
@@ -244,6 +251,25 @@ impl ListAuditLogsInputBuilder {
     pub fn get_username(&self) -> &::std::option::Option<::std::string::String> {
         &self.username
     }
+    /// Adds a key-value pair to `dimension_params`.
+    ///
+    /// To override the contents of this collection use [`set_dimension_params`](Self::set_dimension_params).
+    ///
+    /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
+    pub fn dimension_params(mut self, k: impl ::std::convert::Into<::std::string::String>, v: impl ::std::convert::Into<::std::string::String>) -> Self {
+        let mut hash_map = self.dimension_params.unwrap_or_default();
+                        hash_map.insert(k.into(), v.into());
+                        self.dimension_params = ::std::option::Option::Some(hash_map);
+                        self
+    }
+    /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
+    pub fn set_dimension_params(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>>) -> Self {
+        self.dimension_params = input; self
+    }
+    /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
+    pub fn get_dimension_params(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>> {
+        &self.dimension_params
+    }
     /// Sort order enumeration for list operations.
     pub fn sort_by(mut self, input: crate::types::SortBy) -> Self {
         self.sort_by = ::std::option::Option::Some(input);
@@ -280,6 +306,8 @@ impl ListAuditLogsInputBuilder {
                 action: self.action
                 ,
                 username: self.username
+                ,
+                dimension_params: self.dimension_params
                 ,
                 sort_by: self.sort_by
                 ,

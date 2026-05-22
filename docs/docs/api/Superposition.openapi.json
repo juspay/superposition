@@ -93,6 +93,15 @@
                         }
                     },
                     {
+                        "name": "dimension_params",
+                        "in": "query",
+                        "description": "Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension[country]`.",
+                        "style": "form",
+                        "schema": {
+                            "$ref": "#/components/schemas/DimensionQueryParams"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
