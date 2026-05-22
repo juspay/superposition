@@ -1,0 +1,100 @@
+name: Create a test release
+
+on: workflow_dispatch
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    tag-release:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+            id-token: write
+        if: github.ref != 'refs/heads/main'
+        outputs:
+            version: ${{ steps.calver.outputs.version }}
+        steps:
+            - name: Fail if running on main branch # CHANGED: new guard step
+              if: github.ref == 'refs/heads/main'
+              run: |
+                echo "::error::Test releases cannot be triggered on the main branch."
+                  exit 1
+
+            - name: Set calendar version with branch name
+              id: calver
+              shell: bash
+              run: |
+                  branch_name=$(echo "${GITHUB_REF#refs/heads/}" | tr '/' '-')
+                  calver=$(date +'%Y.%m.%d')
+                  version="${branch_name}-${calver}"
+                  echo "version=$version" >> $GITHUB_OUTPUT
+
+    docker-build:
+        needs: tag-release
+        permissions:
+            contents: read
+            packages: write
+        if: github.ref != 'refs/heads/main'
+        strategy:
+            max-parallel: 5
+            matrix:
+                include:
+                    - platform: linux/amd64
+                      tag: linux-amd64
+                      os: ubuntu-latest
+                    - platform: linux/arm64
+                      tag: linux-arm64
+                      os: ubuntu-24.04-arm
+        runs-on: ${{ matrix.os }}
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  token: ${{ secrets.SUPERPOSITION_TOKEN }}
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Log in to GitHub Container Registry
+              uses: docker/login-action@v3
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Build and push production image
+              uses: docker/build-push-action@v6
+              with:
+                  push: true
+                  context: .
+                  tags: ghcr.io/${{ github.repository }}:${{ needs.tag-release.outputs.version }}-${{ matrix.tag }}
+
+    create-manifest:
+        needs: [tag-release, docker-build]
+        permissions:
+            contents: read
+            packages: write
+        if: github.ref != 'refs/heads/main'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  token: ${{ secrets.SUPERPOSITION_TOKEN }}
+
+            - name: Log in to GitHub Container Registry
+              uses: docker/login-action@v3
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Create manifest for multi-arch image
+              run: |
+                  docker buildx imagetools create --tag ghcr.io/${{ github.repository }}:${{ needs.tag-release.outputs.version }} \
+                      ghcr.io/${{ github.repository }}:${{ needs.tag-release.outputs.version }}-linux-amd64 \
+                      ghcr.io/${{ github.repository }}:${{ needs.tag-release.outputs.version }}-linux-arm64
