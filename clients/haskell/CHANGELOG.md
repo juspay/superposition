@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## haskell_client-v0.19.0 - 2026-05-24
+#### Features
+- support json query filters for audit tables (#1013) - (dddd1c6) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.109.0 [skip ci] - (9279506) - Superposition Bot
+
+- - -
+
 ## haskell_client-v0.18.0 - 2026-05-21
 #### Features
 - add first class support for dimension params in smithy for clients sdk (#1014) - (e9a4249) - sauraww
