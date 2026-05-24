@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.54.0 - 2026-05-24
+#### Features
+- support json query filters for audit tables (#1013) - (dddd1c6) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.107.0 [skip ci] - (f5121d8) - Superposition Bot
+
+- - -
+
 ## frontend-v0.53.0 - 2026-05-12
 #### Features
 - add breadcrumbs and superposition platform links (#970) - (e937add) - Datron

@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.76.0 - 2026-05-24
+#### Features
+- support json query filters for audit tables (#1013) - (dddd1c6) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.108.0 [skip ci] - (e9b1dba) - Superposition Bot
+
+- - -
+
 ## context_aware_config-v0.75.0 - 2026-05-20
 #### Features
 - add AnyMatch filter to get contexts based on query permutations (#1008) - (3bdee15) - sauraww

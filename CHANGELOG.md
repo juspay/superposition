@@ -2,6 +2,20 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.110.0 - 2026-05-24
+### Package updates
+- superposition_sdk bumped to superposition_sdk-v0.18.0
+- context_aware_config bumped to context_aware_config-v0.76.0
+- haskell_client bumped to haskell_client-v0.19.0
+- frontend bumped to frontend-v0.54.0
+### Global changes
+#### Features
+- support json query filters for audit tables (#1013) - (dddd1c6) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.109.0 [skip ci] - (9279506) - Superposition Bot
+
+- - -
+
 ## v0.109.0 - 2026-05-21
 ### Package updates
 - haskell_client bumped to haskell_client-v0.18.0
