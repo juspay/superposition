@@ -9,26 +9,21 @@ concurrency:
 jobs:
     tag-release:
         runs-on: ubuntu-latest
-        permissions:
-            contents: write
-            id-token: write
         if: github.ref != 'refs/heads/main'
         outputs:
             version: ${{ steps.calver.outputs.version }}
         steps:
-            - name: Fail if running on main branch # CHANGED: new guard step
-              if: github.ref == 'refs/heads/main'
-              run: |
-                echo "::error::Test releases cannot be triggered on the main branch."
-                  exit 1
-
             - name: Set calendar version with branch name
               id: calver
               shell: bash
               run: |
-                  branch_name=$(echo "${GITHUB_REF#refs/heads/}" | tr '/' '-')
+                  raw_branch_name="${GITHUB_REF#refs/heads/}"
+                  branch_name=$(printf '%s' "$raw_branch_name" \
+                      | sed -E 's/[^A-Za-z0-9_.-]+/-/g; s/^[^A-Za-z0-9_]+/_/; s/-+/-/g')
+                  branch_name="${branch_name:-branch}"
+                  branch_name="${branch_name:0:105}"
                   calver=$(date +'%Y.%m.%d')
-                  version="${branch_name}-${calver}"
+                  version="${branch_name}-${calver}-${GITHUB_RUN_NUMBER}"
                   echo "version=$version" >> $GITHUB_OUTPUT
 
     docker-build:
