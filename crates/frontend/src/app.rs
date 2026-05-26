@@ -29,6 +29,7 @@ use crate::pages::{
     experiment::ExperimentPage,
     home::Home,
     organisations::Organisations,
+    override_page::{CreateOverride, EditOverride, OverridePage},
     type_template::TypePage,
     type_templates::TypesPage,
     webhook::Webhook,
@@ -304,6 +305,35 @@ pub fn App(app_envs: Envs) -> impl IntoView {
                             ssr=SsrMode::Async
                             path=join_route_parts([RouteSegment::Overrides])
                             view=ContextOverride
+                        />
+
+                        <Route
+                            ssr=SsrMode::Async
+                            path=join_route_parts([
+                                RouteSegment::Overrides,
+                                RouteSegment::Action,
+                                RouteSegment::Create,
+                            ])
+                            view=CreateOverride
+                        />
+
+                        <Route
+                            ssr=SsrMode::Async
+                            path=join_route_parts([
+                                RoutePart::from(RouteSegment::Overrides),
+                                RoutePart::from("context_id"),
+                                RoutePart::from(RouteSegment::Edit),
+                            ])
+                            view=EditOverride
+                        />
+
+                        <Route
+                            ssr=SsrMode::Async
+                            path=join_route_parts([
+                                RoutePart::from(RouteSegment::Overrides),
+                                RoutePart::from("context_id"),
+                            ])
+                            view=OverridePage
                         />
 
                         <Route

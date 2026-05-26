@@ -17,6 +17,7 @@ pub fn Button(
     #[prop(into, default = String::new())] id: String,
     #[prop(into, default = String::from("ri-edit-2-line"))] icon_class: String,
     #[prop(default = false)] loading: bool,
+    #[prop(default = false)] disabled: bool,
     #[prop(default = ButtonStyle::Fill)] style: ButtonStyle,
     #[prop(into, optional)] force_style: Option<String>,
 ) -> impl IntoView {
@@ -33,7 +34,8 @@ pub fn Button(
 
     move || {
         let loading = loading || !*client_side_ready.get();
-        let loading_class = if loading {
+        let is_disabled = loading || disabled;
+        let disabled_class = if is_disabled {
             "hover:cursor-not-allowed"
         } else {
             ""
@@ -41,10 +43,10 @@ pub fn Button(
 
         view! {
             <button
-                class=format!("{common_style} {style} {class} {loading_class}")
+                class=format!("{common_style} {style} {class} {disabled_class}")
                 id=id.clone()
                 on:click=move |e| on_click.call(e)
-                disabled=loading
+                disabled=is_disabled
             >
                 {if loading {
                     view! { <span class="loading loading-dots loading-sm" /> }.into_view()

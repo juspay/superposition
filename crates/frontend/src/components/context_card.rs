@@ -1,16 +1,12 @@
-use std::ops::Deref;
-
 use leptos::*;
+use leptos_router::A;
 use serde_json::{Map, Value};
 use superposition_types::database::models::cac::Context;
 
 use crate::{
     components::{
         condition_pills::Condition as ConditionComponent,
-        datetime::Datetime,
-        description::InfoDescription,
         table::{Table, types::Column},
-        tooltip::Tooltip,
     },
     logic::Conditions,
 };
@@ -42,7 +38,11 @@ fn ContextOptions(
 ) -> impl IntoView {
     view! {
         <div class="w-fit dropdown dropdown-left">
-            <label tabindex="0" class="btn btn-sm text-xs m-1 w-full">
+            <label
+                tabindex="0"
+                class="btn btn-sm text-xs m-1 w-full"
+                on:click=|ev: web_sys::MouseEvent| ev.stop_propagation()
+            >
                 <i class="ri-more-2-fill" />
             </label>
             <ul
@@ -86,6 +86,7 @@ pub fn ContextCard(
     context: Context,
     overrides: Map<String, Value>,
     #[prop(default = true)] show_actions: bool,
+    #[prop(into)] href: String,
     #[prop(into)] handle_create_experiment: Callback<String, ()>,
     #[prop(into)] handle_delete_experiment: Callback<String, ()>,
     #[prop(into)] handle_edit: Callback<String, ()>,
@@ -93,8 +94,6 @@ pub fn ContextCard(
     #[prop(into)] handle_delete: Callback<String, ()>,
 ) -> impl IntoView {
     let conditions = Conditions::from_iter(context.value.clone().into_inner());
-    let description = context.description.clone();
-    let change_reason = context.change_reason.clone();
 
     let override_table_rows = overrides
         .clone()
@@ -108,6 +107,7 @@ pub fn ContextCard(
         .collect::<Vec<Map<String, Value>>>();
 
     let context = store_value(context);
+    let href = store_value(href);
 
     let table_columns = vec![
         Column::default_no_collapse("KEY".to_string()),
@@ -118,47 +118,18 @@ pub fn ContextCard(
         show_actions && !conditions.0.iter().any(|c| c.variable == "variantIds");
 
     view! {
-        <div class="rounded-lg shadow bg-base-100 p-6 flex flex-col gap-4">
+        <div class="block rounded-lg shadow bg-base-100 p-6 flex flex-col gap-4">
             <div class="flex justify-between">
                 <div class="flex gap-4 items-center">
                     <h3 class="card-title text-base timeline-box text-gray-800 bg-base-100 shadow-md m-0 w-max">
                         "Condition"
                     </h3>
-                    <InfoDescription
-                        description=description.deref().to_string()
-                        change_reason=change_reason.deref().to_string()
-                    />
-                    <Tooltip icon_class="ri-information-line ri-lg">
-                        <div class="flex flex-col gap-4">
-                            <div class="flex flex-col gap-1">
-                                <div class="font-bold">"Created"</div>
-                                <div class="flex gap-1 items-center">
-                                    <i class="ri-user-line text-gray-950" />
-                                    <span>{context.with_value(|c| c.created_by.clone())}</span>
-                                </div>
-                                <div class="flex gap-1 items-center">
-                                    <i class="ri-time-line text-gray-950" />
-                                    <Datetime datetime=context.with_value(|c| c.created_at) />
-                                </div>
-                            </div>
-                            <div class="flex flex-col gap-1">
-                                <div class="font-bold">"Last Modified"</div>
-                                <div class="flex gap-1 items-center">
-                                    <i class="ri-user-line text-gray-950" />
-                                    <span>
-                                        {context.with_value(|c| c.last_modified_by.clone())}
-                                    </span>
-                                </div>
-                                <div class="flex gap-1 items-center">
-                                    <i class="ri-time-line text-gray-950" />
-                                    <Datetime datetime=context.with_value(|c| c.last_modified_at) />
-                                </div>
-                            </div>
-                        </div>
-                    </Tooltip>
                 </div>
                 <Show when=move || actions_supported>
-                    <div class="h-fit flex gap-4 text-right">
+                    <div class="h-fit flex gap-2 items-center text-right">
+                        <A href=href.with_value(|h| h.clone()) class="btn btn-sm btn-ghost">
+                            {"See More"}
+                        </A>
                         <ContextOptions
                             handle_create_experiment=move |_| {
                                 handle_create_experiment.call(context.with_value(|c| c.id.clone()))
