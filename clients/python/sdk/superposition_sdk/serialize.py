@@ -256,6 +256,8 @@ async def _serialize_conclude_experiment(input: ConcludeExperimentInput, config:
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.config_tags:
+        headers.extend(Fields([Field(name="x-config-tags", values=[input.config_tags])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -406,6 +408,10 @@ async def _serialize_create_experiment(input: CreateExperimentInput, config: Con
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.idempotency_key:
+        headers.extend(Fields([Field(name="idempotency-key", values=[input.idempotency_key])]))
+    if input.config_tags:
+        headers.extend(Fields([Field(name="x-config-tags", values=[input.config_tags])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -1019,6 +1025,8 @@ async def _serialize_discard_experiment(input: DiscardExperimentInput, config: C
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.config_tags:
+        headers.extend(Fields([Field(name="x-config-tags", values=[input.config_tags])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -3039,6 +3047,8 @@ async def _serialize_update_overrides_experiment(input: UpdateOverridesExperimen
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.config_tags:
+        headers.extend(Fields([Field(name="x-config-tags", values=[input.config_tags])]))
     return _HTTPRequest(
         destination=_URI(
             host="",

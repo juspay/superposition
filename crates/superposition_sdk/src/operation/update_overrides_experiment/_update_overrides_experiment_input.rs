@@ -19,6 +19,8 @@ pub struct UpdateOverridesExperimentInput  {
     pub metrics: ::std::option::Option<::aws_smithy_types::Document>,
     /// To unset experiment group, pass "null" string.
     pub experiment_group_id: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub config_tags: ::std::option::Option<::std::string::String>,
 }
 impl  UpdateOverridesExperimentInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -56,6 +58,10 @@ impl  UpdateOverridesExperimentInput  {
     pub fn experiment_group_id(&self) -> ::std::option::Option<&str> {
         self.experiment_group_id.as_deref()
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn config_tags(&self) -> ::std::option::Option<&str> {
+        self.config_tags.as_deref()
+    }
 }
 impl UpdateOverridesExperimentInput {
     /// Creates a new builder-style object to manufacture [`UpdateOverridesExperimentInput`](crate::operation::update_overrides_experiment::UpdateOverridesExperimentInput).
@@ -76,6 +82,7 @@ pub struct UpdateOverridesExperimentInputBuilder {
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
     pub(crate) metrics: ::std::option::Option<::aws_smithy_types::Document>,
     pub(crate) experiment_group_id: ::std::option::Option<::std::string::String>,
+    pub(crate) config_tags: ::std::option::Option<::std::string::String>,
 }
 impl UpdateOverridesExperimentInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -191,6 +198,19 @@ impl UpdateOverridesExperimentInputBuilder {
     pub fn get_experiment_group_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.experiment_group_id
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn config_tags(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.config_tags = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_config_tags(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.config_tags = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_config_tags(&self) -> &::std::option::Option<::std::string::String> {
+        &self.config_tags
+    }
     /// Consumes the builder and constructs a [`UpdateOverridesExperimentInput`](crate::operation::update_overrides_experiment::UpdateOverridesExperimentInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::update_overrides_experiment::UpdateOverridesExperimentInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -210,6 +230,8 @@ impl UpdateOverridesExperimentInputBuilder {
                 metrics: self.metrics
                 ,
                 experiment_group_id: self.experiment_group_id
+                ,
+                config_tags: self.config_tags
                 ,
             }
         )

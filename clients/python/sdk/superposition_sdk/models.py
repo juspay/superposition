@@ -1991,9 +1991,9 @@ BULK_OPERATION = APIOperation(
         input_schema = _SCHEMA_BULK_OPERATION_INPUT,
         output_schema = _SCHEMA_BULK_OPERATION_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
-ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
            ShapeID("smithy.api#httpBasicAuth"),
@@ -2040,6 +2040,7 @@ class ConcludeExperimentInput:
     chosen_variant: str | None = None
     description: str | None = None
     change_reason: str | None = None
+    config_tags: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CONCLUDE_EXPERIMENT_INPUT, self)
@@ -2081,6 +2082,9 @@ class ConcludeExperimentInput:
 
                 case 5:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_CONCLUDE_EXPERIMENT_INPUT.members["change_reason"])
+
+                case 6:
+                    kwargs["config_tags"] = de.read_string(_SCHEMA_CONCLUDE_EXPERIMENT_INPUT.members["config_tags"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -4972,8 +4976,8 @@ WEIGHT_RECOMPUTE = APIOperation(
         input_schema = _SCHEMA_WEIGHT_RECOMPUTE_INPUT,
         output_schema = _SCHEMA_WEIGHT_RECOMPUTE_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
-ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
+            ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
            ShapeID("smithy.api#httpBasicAuth"),
@@ -5464,6 +5468,8 @@ class CreateExperimentInput:
     change_reason: str | None = None
     metrics: Document | None = None
     experiment_group_id: str | None = None
+    idempotency_key: str | None = None
+    config_tags: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_EXPERIMENT_INPUT, self)
@@ -5532,6 +5538,12 @@ class CreateExperimentInput:
 
                 case 9:
                     kwargs["experiment_group_id"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["experiment_group_id"])
+
+                case 10:
+                    kwargs["idempotency_key"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["idempotency_key"])
+
+                case 11:
+                    kwargs["config_tags"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["config_tags"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -9440,6 +9452,7 @@ class DiscardExperimentInput:
     org_id: str | None = None
     id: str | None = None
     change_reason: str | None = None
+    config_tags: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_DISCARD_EXPERIMENT_INPUT, self)
@@ -9469,6 +9482,9 @@ class DiscardExperimentInput:
 
                 case 3:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_DISCARD_EXPERIMENT_INPUT.members["change_reason"])
+
+                case 4:
+                    kwargs["config_tags"] = de.read_string(_SCHEMA_DISCARD_EXPERIMENT_INPUT.members["config_tags"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -12059,6 +12075,7 @@ class UpdateOverridesExperimentInput:
     change_reason: str | None = None
     metrics: Document | None = None
     experiment_group_id: str | None = None
+    config_tags: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_INPUT, self)
@@ -12112,6 +12129,9 @@ class UpdateOverridesExperimentInput:
 
                 case 7:
                     kwargs["experiment_group_id"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_INPUT.members["experiment_group_id"])
+
+                case 8:
+                    kwargs["config_tags"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_INPUT.members["config_tags"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)

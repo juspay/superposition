@@ -2701,6 +2701,20 @@
                 },
                 "parameters": [
                     {
+                        "name": "idempotency-key",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "x-config-tags",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -3141,6 +3155,13 @@
                         "required": true
                     },
                     {
+                        "name": "x-config-tags",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -3221,6 +3242,13 @@
                         "required": true
                     },
                     {
+                        "name": "x-config-tags",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -3299,6 +3327,13 @@
                             "type": "string"
                         },
                         "required": true
+                    },
+                    {
+                        "name": "x-config-tags",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     {
                         "name": "x-org-id",
