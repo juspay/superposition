@@ -129,6 +129,23 @@ internal class EvaluationArgs {
         }
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is EvaluationArgs) return false
+        return defaultConfig == other.defaultConfig &&
+               contexts == other.contexts &&
+               overrides == other.overrides &&
+               dimensions == other.dimensions
+    }
+
+    override fun hashCode(): Int {
+        var result = defaultConfig.hashCode()
+        result = 31 * result + contexts.hashCode()
+        result = 31 * result + overrides.hashCode()
+        result = 31 * result + dimensions.hashCode()
+        return result
+    }
+
     companion object {
         private val gson = Gson()
 
@@ -142,6 +159,11 @@ internal class EvaluationArgs {
                 return HashMap()
             }
             return m.mapValues { valueToJsonString(it.value) }
+        }
+
+        @JvmStatic
+        fun buildQueryData(eContext: EvaluationContext): Map<String, String> {
+            return toQueryData(eContext)
         }
 
         private fun serializeDocument(d: Document): String {
