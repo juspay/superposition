@@ -55,9 +55,13 @@ pub fn format_toml_value(value: &TomlValue) -> String {
             format!("[{}]", items.join(", "))
         }
         TomlValue::Table(table) => {
-            let entries: Vec<String> = table
-                .iter()
-                .map(|(k, v)| format!("{} = {}", format_key(k), format_toml_value(v)))
+            let mut keys: Vec<&String> = table.keys().collect();
+            keys.sort();
+            let entries: Vec<String> = keys
+                .into_iter()
+                .map(|k| {
+                    format!("{} = {}", format_key(k), format_toml_value(&table[k]))
+                })
                 .collect();
             format!("{{ {} }}", entries.join(", "))
         }

@@ -71,6 +71,47 @@ _context_ = { os = "linux" }
 }
 
 #[test]
+fn test_toml_serialize_sorts_keys() {
+    // Keys are intentionally declared out of alphabetical order, including a
+    // nested object value, to verify the serializer emits them sorted.
+    let toml = r#"
+[default-configs]
+zebra = { value = 1, schema = { type = "integer" } }
+alpha = { value = 2, schema = { type = "integer" } }
+nested = { value = { zoo = 1, ant = 2 }, schema = { type = "object" } }
+
+[dimensions]
+os = { position = 1, schema = { type = "string" } }
+
+[[overrides]]
+_context_ = { os = "linux" }
+zebra = 10
+alpha = 20
+nested = { zoo = 100, ant = 200 }
+"#;
+
+    let config = TomlFormat::parse_config(toml).unwrap();
+    let serialized = TomlFormat::serialize(config_to_detailed(&config)).unwrap();
+
+    let overrides_section = serialized.split("[[overrides]]").nth(1).unwrap();
+    let alpha = overrides_section.find("\nalpha = ").unwrap();
+    let zebra = overrides_section.find("\nzebra = ").unwrap();
+    assert!(
+        alpha < zebra,
+        "override keys not sorted:\n{overrides_section}"
+    );
+
+    // Nested object keys within an override value should also be sorted.
+    let nested = overrides_section.find("nested = {").unwrap();
+    let ant = overrides_section[nested..].find("ant").unwrap();
+    let zoo = overrides_section[nested..].find("zoo").unwrap();
+    assert!(
+        ant < zoo,
+        "nested object keys not sorted:\n{overrides_section}"
+    );
+}
+
+#[test]
 fn test_dimension_type_local_cohort() {
     let toml = r#"
 [default-configs]
