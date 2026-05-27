@@ -237,6 +237,25 @@ timeout = 60
 }
 
 #[test]
+fn test_missing_overrides_section() {
+    let toml = r#"
+[default-configs]
+timeout = { value = 30, schema = { type = "integer" } }
+
+[dimensions]
+os = { position = 1, schema = { type = "string" } }
+"#;
+
+    let result = TomlFormat::parse_config(toml);
+    assert!(result.is_ok());
+    let parsed = result.unwrap();
+    assert_eq!(parsed.default_configs.len(), 1);
+    assert_eq!(parsed.dimensions.len(), 1);
+    assert!(parsed.contexts.is_empty());
+    assert!(parsed.overrides.is_empty());
+}
+
+#[test]
 fn test_dimension_type_regular() {
     let toml = r#"
 [default-configs]

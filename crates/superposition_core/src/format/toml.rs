@@ -105,6 +105,7 @@ struct DetailedConfigToml {
     #[serde(rename = "default-configs")]
     default_configs: DefaultConfigsWithSchema,
     dimensions: BTreeMap<String, DimensionInfoToml>,
+    #[serde(default)]
     overrides: Vec<ContextToml>,
 }
 
