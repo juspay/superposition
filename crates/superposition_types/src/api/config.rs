@@ -32,6 +32,8 @@ pub struct ResolveConfigQuery {
     pub version: Option<String>,
     pub show_reasoning: Option<bool>,
     pub resolve_remote: Option<bool>,
+    /// if provided, Resolves upto the context ID provided in the sorted resolution step
+    // TODO: change this to exclude_context_id with an alias for backwards compatibility
     #[query_param(skip_if_empty)]
     pub context_id: Option<String>,
     #[query_param(skip_if_empty, iterable)]

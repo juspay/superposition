@@ -59,9 +59,7 @@ pub fn format_toml_value(value: &TomlValue) -> String {
             keys.sort();
             let entries: Vec<String> = keys
                 .into_iter()
-                .map(|k| {
-                    format!("{} = {}", format_key(k), format_toml_value(&table[k]))
-                })
+                .map(|k| format!("{} = {}", format_key(k), format_toml_value(&table[k])))
                 .collect();
             format!("{{ {} }}", entries.join(", "))
         }
