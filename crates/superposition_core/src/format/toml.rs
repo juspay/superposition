@@ -159,7 +159,9 @@ impl DetailedConfigToml {
         let context_str = format_toml_value(&TomlValue::Table(ctx.context));
         out.push_str(&format!("_context_ = {}\n", context_str));
 
-        for (k, v) in ctx.overrides {
+        let mut overrides: Vec<(String, TomlValue)> = ctx.overrides.into_iter().collect();
+        overrides.sort_by(|(a, _), (b, _)| a.cmp(b));
+        for (k, v) in overrides {
             let v_str = format_toml_value(&v);
             out.push_str(&format!("{} = {}\n", format_key(&k), v_str));
         }
