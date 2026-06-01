@@ -309,6 +309,7 @@ smithy-clients: smithy-build
 	git restore clients/python/sdk/README.md
 	git restore LICENSE
 	git apply --ignore-whitespace smithy/patches/*.patch
+	perl -pi -e 's/^            ShapeID\("smithy\.api#httpBasicAuth"\)$$/           ShapeID("smithy.api#httpBasicAuth"),/' clients/python/sdk/superposition_sdk/models.py
 
 # API Documentation targets
 smithy-api-docs: smithy-build
