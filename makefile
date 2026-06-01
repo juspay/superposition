@@ -308,7 +308,7 @@ smithy-clients: smithy-build
 	done
 	git restore clients/python/sdk/README.md
 	git restore LICENSE
-	git apply smithy/patches/*.patch
+	git apply --ignore-whitespace smithy/patches/*.patch
 
 # API Documentation targets
 smithy-api-docs: smithy-build
