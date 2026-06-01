@@ -77,7 +77,9 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
     private Optional<EvaluationContext> defaultCtx;
     private final Optional<EvaluationArgs> fallbackArgs;
     private final CompletableFuture<Void> cacheReady = new CompletableFuture<>();
+    private volatile CompletableFuture<Void> experimentsReady = new CompletableFuture<>();
     private final int configTimeout;
+    private final int experimentationTimeout;
 
     public SuperpositionOpenFeatureProvider(@NonNull SuperpositionProviderOptions options) {
         if (options.fallbackConfig != null) {
@@ -107,6 +109,8 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
         );
 
         if (options.experimentationOptions != null) {
+            this.experimentationTimeout =
+                options.experimentationOptions.refreshStrategy.getTimeout();
             var listExpInput = ListExperimentInput.builder()
                 .orgId(options.orgId)
                 .workspaceId(options.workspaceId)
@@ -145,6 +149,9 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
         } else {
             this.expRefresh = Optional.empty();
             this.expGroupRefresh = Optional.empty();
+            this.experimentationTimeout = 0;
+            // No experimentation configured: unblock the evaluation path immediately.
+            this.experimentsReady.complete(null);
         }
     }
 
@@ -311,6 +318,16 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
                 throw new Exception("Config cache not initialized within timeout (" + configTimeout + "ms).");
             }
         }
+        // When experimentation is configured, also block until cache.initExperiments has
+        // been called, otherwise evalConfig may apply an empty experiment set and silently
+        // fall back to the default config for users that should be bucketed into a variant.
+        if (!experimentsReady.isDone()) {
+            try {
+                experimentsReady.get(experimentationTimeout, TimeUnit.MILLISECONDS);
+            } catch (TimeoutException e) {
+                throw new Exception("Experiments cache not initialized within timeout (" + experimentationTimeout + "ms).");
+            }
+        }
         var ctx_ = defaultCtx.isPresent() ? ctx.merge(defaultCtx.get()) : ctx;
         var queryData = EvaluationArgs.Companion.buildQueryData(ctx_);
         String targetingKey = ctx_.getTargetingKey();
@@ -368,9 +385,11 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
             if (exps.isPresent() && groups.isPresent()) {
                 try {
                     cache.initExperiments(exps.get(), groups.get());
+                    experimentsReady.complete(null);
                     log.debug("Experiments cache re-initialized");
                 } catch (Exception e) {
                     log.error("Failed to reinitialize experiments cache: {}", e.getMessage());
+                    experimentsReady = new CompletableFuture<>();
                 }
             }
         }
