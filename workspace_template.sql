@@ -999,4 +999,4 @@ EXCEPTION
 END $$;
 
 ALTER TABLE {replaceme}.experiments ADD COLUMN IF NOT EXISTS idempotency_key TEXT;
-CREATE UNIQUE INDEX IF NOT EXISTS experiments_idempotency_key_idx ON {replaceme}.experiments(idempotency_key);
+CREATE UNIQUE INDEX IF NOT EXISTS experiments_idempotency_key_idx ON {replaceme}.experiments(idempotency_key) WHERE idempotency_key IS NOT NULL;

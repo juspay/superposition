@@ -1780,7 +1780,7 @@ ADD COLUMN IF NOT EXISTS workspace_lock_expires_at TIMESTAMPTZ;
 
 ALTER TABLE localorg_dev.experiments ADD COLUMN IF NOT EXISTS idempotency_key TEXT;
 ALTER TABLE localorg_test.experiments ADD COLUMN IF NOT EXISTS idempotency_key TEXT;
-CREATE UNIQUE INDEX IF NOT EXISTS experiments_idempotency_key_idx ON localorg_dev.experiments(idempotency_key);
-CREATE UNIQUE INDEX IF NOT EXISTS experiments_idempotency_key_idx ON localorg_test.experiments(idempotency_key);
+CREATE UNIQUE INDEX IF NOT EXISTS experiments_idempotency_key_idx ON localorg_dev.experiments(idempotency_key) WHERE idempotency_key IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS experiments_idempotency_key_idx ON localorg_test.experiments(idempotency_key) WHERE idempotency_key IS NOT NULL;
 
 COMMIT;
