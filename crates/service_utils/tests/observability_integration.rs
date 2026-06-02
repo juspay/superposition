@@ -154,11 +154,18 @@ async fn runtime_tokio_metrics_appear_after_register_observers() {
         .lines()
         .find(|l| l.starts_with("runtime_tokio_workers "))
         .unwrap_or_else(|| panic!("no runtime_tokio_workers in:\n{body}"));
-    let workers: f64 = workers_line.rsplit_once(' ').unwrap().1.trim().parse().unwrap();
+    let workers: f64 = workers_line
+        .rsplit_once(' ')
+        .unwrap()
+        .1
+        .trim()
+        .parse()
+        .unwrap();
     assert!(workers >= 1.0, "expected >=1 worker, got {workers}");
 
     assert!(
-        body.lines().any(|l| l.starts_with("runtime_tokio_global_queue_depth ")),
+        body.lines()
+            .any(|l| l.starts_with("runtime_tokio_global_queue_depth ")),
         "no runtime_tokio_global_queue_depth in:\n{body}"
     );
     assert!(
