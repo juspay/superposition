@@ -4788,9 +4788,9 @@ dependencies = [
 
 [[package]]
 name = "juspay_diesel"
-version = "2.2.4"
+version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "094e23f903983e5756cfe5ccf1546ba44b930b57b4d7031b3fc6eb9e909b38ac"
+checksum = "cfaf941005c71f729ca0540a23e1d0d4e0e7e19cdffba7170e4036065031b091"
 dependencies = [
  "bigdecimal",
  "bitflags 2.9.1",
@@ -6468,7 +6468,7 @@ dependencies = [
  "quinn-udp",
  "rustc-hash 2.1.1",
  "rustls 0.23.28",
- "socket2 0.5.10",
+ "socket2 0.6.3",
  "thiserror 2.0.18",
  "tokio",
  "tracing",
@@ -6507,7 +6507,7 @@ dependencies = [
  "cfg_aliases",
  "libc",
  "once_cell",
- "socket2 0.5.10",
+ "socket2 0.6.3",
  "tracing",
  "windows-sys 0.60.2",
 ]
@@ -7006,7 +7006,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys 0.4.15",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -7924,7 +7924,6 @@ dependencies = [
  "cfg-if",
  "libc",
  "psm",
- "windows-sys 0.52.0",
  "windows-sys 0.59.0",
 ]
 
