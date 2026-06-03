@@ -12,7 +12,7 @@ use actix_files::Files;
 use actix_web::{
     App, HttpRequest, HttpResponse, HttpServer, Scope,
     middleware::{Compress, Condition},
-    web::{self, Data, PathConfig, QueryConfig, get, scope},
+    web::{self, Data, PathConfig, PayloadConfig, QueryConfig, get, scope},
 };
 use context_aware_config::api::*;
 use experimentation_platform::api::*;
@@ -235,6 +235,9 @@ async fn main() -> Result<()> {
             .app_data(app_state.clone())
             .app_data(PathConfig::default().error_handler(|err, _| bad_argument!(err).into()))
             .app_data(QueryConfig::default().error_handler(|err, _| bad_argument!(err).into()))
+            // Raise the raw-body limit (default 256KB) so config imports posted
+            // to /config/toml and /config/json can carry large workspaces.
+            .app_data(PayloadConfig::new(10 * 1024 * 1024))
             .leptos_routes(
                 leptos_options.to_owned(),
                 routes.to_owned(),

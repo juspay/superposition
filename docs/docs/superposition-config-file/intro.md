@@ -154,5 +154,6 @@ This makes editing SuperTOML files as comfortable as working with code in an IDE
 - [Type Safety](./type-safety) - Deep dive into JSON Schema validation
 - [Cascading Model](./cascading-model) - How overrides cascade
 - [Deterministic Resolution](./deterministic-resolution) - Priority and conflict resolution
+- [Import & Export](./import-export) - Round-trip a whole workspace as a file
 - [Examples](./examples) - Complete working examples
 - [Config File Compatibility](./config-file-compatibility) - Common Linux/macOS configs as SuperTOML

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use actix_web::{
     HttpRequest, HttpResponse, Scope, get, put, routes,
-    web::{Data, Header, Json, Path, Query},
+    web::{Bytes, Data, Header, Json, Path, Query},
 };
 use chrono::{DateTime, Utc};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
@@ -11,7 +11,9 @@ use serde_json::{Map, Value, json};
 use service_utils::{
     helpers::{fetch_dimensions_info_map, is_not_modified},
     redis::{CONFIG_KEY_SUFFIX, LAST_MODIFIED_KEY_SUFFIX, read_through_cache},
-    service::types::{AppHeader, AppState, DbConnection, WorkspaceContext},
+    service::types::{
+        AppHeader, AppState, CustomHeaders, DbConnection, WorkspaceContext,
+    },
 };
 use superposition_core::{
     ConfigFormat, JsonFormat, TomlFormat,
@@ -573,12 +575,30 @@ async fn get_handler(
 #[post("/toml")]
 async fn get_toml_handler(
     req: HttpRequest,
+    body: Bytes,
+    user: User,
+    custom_headers: CustomHeaders,
     db_conn: DbConnection,
     workspace_context: WorkspaceContext,
     state: Data<AppState>,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let is_smithy = matches!(req.method(), &actix_web::http::Method::POST);
+
+    // A non-empty body on POST means "import this config"; the export path
+    // (GET, or POST with an empty body) is left unchanged.
+    if is_smithy && !body.is_empty() {
+        return super::import::handle_import::<TomlFormat>(
+            &body,
+            &req,
+            custom_headers,
+            &user,
+            &workspace_context,
+            &state,
+            &mut conn,
+        )
+        .await;
+    }
 
     let max_created_at = read_through_cache::<DateTime<Utc>>(
         format!(
@@ -620,12 +640,30 @@ async fn get_toml_handler(
 #[post("/json")]
 async fn get_json_handler(
     req: HttpRequest,
+    body: Bytes,
+    user: User,
+    custom_headers: CustomHeaders,
     db_conn: DbConnection,
     workspace_context: WorkspaceContext,
     state: Data<AppState>,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let is_smithy = matches!(req.method(), &actix_web::http::Method::POST);
+
+    // A non-empty body on POST means "import this config"; the export path
+    // (GET, or POST with an empty body) is left unchanged.
+    if is_smithy && !body.is_empty() {
+        return super::import::handle_import::<JsonFormat>(
+            &body,
+            &req,
+            custom_headers,
+            &user,
+            &workspace_context,
+            &state,
+            &mut conn,
+        )
+        .await;
+    }
 
     let max_created_at = read_through_cache::<DateTime<Utc>>(
         format!(
