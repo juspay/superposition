@@ -67,7 +67,7 @@ country = { position = 4, schema = { type = "string", enum = ["AT", "AU", "BE", 
 
 # Card variants are namespaced (card.credit) in the source; flattened here
 # because SuperTOML dimensions are flat strings.
-payment_method = { position = 3, schema = { type = "string", enum = ["credit", "debit", "google_pay", "apple_pay", "samsung_pay", "paypal", "klarna", "affirm", "afterpay_clearpay", "ali_pay", "we_chat_pay", "ach", "bacs", "becs", "sepa", "ideal", "eps", "giropay", "sofort", "bancontact_card", "przelewy24", "blik", "trustly", "open_banking", "open_banking_uk", "open_banking_pis", "online_banking_fpx", "online_banking_thailand", "pix", "boleto", "upi_collect", "upi_intent", "mb_way", "swish", "multibanco", "revolut_pay", "amazon_pay", "cashapp", "atome"] } }
+payment_method = { position = 3, schema = { type = "string", enum = ["credit", "debit", "google_pay", "apple_pay", "samsung_pay", "paypal", "klarna", "affirm", "afterpay_clearpay", "ali_pay", "we_chat_pay", "ach", "bacs", "becs", "sepa", "ideal", "eps", "giropay", "sofort", "bancontact_card", "przelewy24", "blik", "trustly", "open_banking", "open_banking_uk", "open_banking_pis", "online_banking_fpx", "online_banking_thailand", "pix", "boleto", "upi_collect", "upi_intent", "mb_way", "swish", "multibanco", "revolut_pay", "amazon_pay", "cashapp", "atome", "bizum", "go_pay", "kakao_pay", "momo", "gcash", "touch_n_go", "mobile_pay", "pay_bright", "walley"] } }
 
 # ISO 4217. Pruned to currencies referenced in pm_filters.
 currency = { position = 2, schema = { type = "string", enum = ["AED", "AUD", "BRL", "CAD", "CHF", "CNY", "CZK", "DKK", "EUR", "GBP", "HKD", "HUF", "IDR", "ILS", "INR", "JPY", "KRW", "MXN", "MYR", "NOK", "NZD", "PHP", "PLN", "SEK", "SGD", "THB", "TWD", "USD", "VND", "ZAR"] } }
@@ -378,3 +378,217 @@ enabled = false
 [[overrides]]
 _context_ = { connector = "trustpay", payment_method = "debit", capture_method = "manual" }
 enabled = false
+
+# --- Sweep: additional enabled cases from pm_filters.default -----------------
+# The source's [pm_filters.default] enables several wallets across very long
+# country/currency lists. Modelled here as a single "globally enabled"
+# override per method; tighten by adding currency/country contexts as needed.
+
+# [pm_filters.default] google_pay = { country = "AL,DZ,AS,...,VN" } (~75 countries)
+[[overrides]]
+_context_ = { payment_method = "google_pay" }
+enabled = true
+
+# [pm_filters.default] apple_pay = { country = "AU,CN,HK,...", currency = "AED,AUD,CHF,CAD,EUR,GBP,HKD,SGD,USD" }
+[[overrides]]
+_context_ = { payment_method = "apple_pay" }
+enabled = true
+
+# [pm_filters.default] paypal = { currency = "AUD,BRL,CAD,...,USD" } (no country filter)
+[[overrides]]
+_context_ = { payment_method = "paypal" }
+enabled = true
+
+# [pm_filters.default] afterpay_clearpay = { country = "US,CA,GB,AU,NZ", currency = "GBP,AUD,NZD,CAD,USD" }
+[[overrides]]
+_context_ = { payment_method = "afterpay_clearpay", country = "US", currency = "USD" }
+enabled = true
+[[overrides]]
+_context_ = { payment_method = "afterpay_clearpay", country = "CA", currency = "CAD" }
+enabled = true
+[[overrides]]
+_context_ = { payment_method = "afterpay_clearpay", country = "GB", currency = "GBP" }
+enabled = true
+[[overrides]]
+_context_ = { payment_method = "afterpay_clearpay", country = "AU", currency = "AUD" }
+enabled = true
+[[overrides]]
+_context_ = { payment_method = "afterpay_clearpay", country = "NZ", currency = "NZD" }
+enabled = true
+
+# --- Sweep: card credit/debit ------------------------------------------------
+# Every major card connector enables credit/debit across essentially the full
+# country/currency matrix (lines 499-500 etc. in source list ~200 countries).
+# Enable per-connector at the connector level; refine with country/currency
+# overrides if specific markets need to be excluded.
+
+[[overrides]]
+_context_ = { connector = "stripe", payment_method = "credit" }
+enabled = true
+[[overrides]]
+_context_ = { connector = "stripe", payment_method = "debit" }
+enabled = true
+
+[[overrides]]
+_context_ = { connector = "adyen", payment_method = "credit" }
+enabled = true
+[[overrides]]
+_context_ = { connector = "adyen", payment_method = "debit" }
+enabled = true
+
+[[overrides]]
+_context_ = { connector = "checkout", payment_method = "credit" }
+enabled = true
+[[overrides]]
+_context_ = { connector = "checkout", payment_method = "debit" }
+enabled = true
+
+[[overrides]]
+_context_ = { connector = "cybersource", payment_method = "credit" }
+enabled = true
+[[overrides]]
+_context_ = { connector = "cybersource", payment_method = "debit" }
+enabled = true
+
+[[overrides]]
+_context_ = { connector = "worldpay", payment_method = "credit" }
+enabled = true
+[[overrides]]
+_context_ = { connector = "worldpay", payment_method = "debit" }
+enabled = true
+
+[[overrides]]
+_context_ = { connector = "nuvei", payment_method = "credit" }
+enabled = true
+[[overrides]]
+_context_ = { connector = "nuvei", payment_method = "debit" }
+enabled = true
+
+# --- Sweep: local payment methods (mostly from pm_filters.stripe/default) ----
+
+# bacs = { country = "GB", currency = "GBP" }
+[[overrides]]
+_context_ = { payment_method = "bacs", country = "GB", currency = "GBP" }
+enabled = true
+
+# becs = { country = "AU", currency = "AUD" }
+[[overrides]]
+_context_ = { payment_method = "becs", country = "AU", currency = "AUD" }
+enabled = true
+
+# blik = { country = "PL", currency = "PLN" }
+[[overrides]]
+_context_ = { payment_method = "blik", country = "PL", currency = "PLN" }
+enabled = true
+
+# bancontact_card = { country = "BE", currency = "EUR" }
+[[overrides]]
+_context_ = { payment_method = "bancontact_card", country = "BE", currency = "EUR" }
+enabled = true
+
+# przelewy24 = { country = "PL", currency = "EUR,PLN" }
+[[overrides]]
+_context_ = { payment_method = "przelewy24", country = "PL", currency = "PLN" }
+enabled = true
+[[overrides]]
+_context_ = { payment_method = "przelewy24", country = "PL", currency = "EUR" }
+enabled = true
+
+# multibanco = { country = "AT,BE,...,GB", currency = "EUR" } - EU-wide, EUR only
+[[overrides]]
+_context_ = { payment_method = "multibanco", region = "europe", currency = "EUR" }
+enabled = true
+
+# revolut_pay = { currency = "EUR,GBP" } (no country filter in source)
+[[overrides]]
+_context_ = { payment_method = "revolut_pay", currency = "EUR" }
+enabled = true
+[[overrides]]
+_context_ = { payment_method = "revolut_pay", currency = "GBP" }
+enabled = true
+
+# trustly = { country = "ES,GB,SE,NO,AT,NL,DE,DK,FI,EE,LT,LV", currency = "..." }
+[[overrides]]
+_context_ = { payment_method = "trustly", region = "europe", currency = "EUR" }
+enabled = true
+[[overrides]]
+_context_ = { payment_method = "trustly", region = "europe", currency = "GBP" }
+enabled = true
+[[overrides]]
+_context_ = { payment_method = "trustly", region = "europe", currency = "SEK" }
+enabled = true
+
+# --- Sweep: APAC / regional wallets (mostly from pm_filters.adyen) -----------
+
+# ali_pay (CN) and we_chat_pay (CN) - source enables CN with broad currencies
+[[overrides]]
+_context_ = { payment_method = "ali_pay", country = "CN" }
+enabled = true
+[[overrides]]
+_context_ = { payment_method = "we_chat_pay", country = "CN" }
+enabled = true
+
+# bizum (Adyen)
+[[overrides]]
+_context_ = { payment_method = "bizum", country = "ES", currency = "EUR" }
+enabled = true
+
+# Indonesia
+[[overrides]]
+_context_ = { payment_method = "go_pay", country = "ID", currency = "IDR" }
+enabled = true
+
+# Korea
+[[overrides]]
+_context_ = { payment_method = "kakao_pay", country = "KR", currency = "KRW" }
+enabled = true
+
+# Vietnam
+[[overrides]]
+_context_ = { payment_method = "momo", country = "VN", currency = "VND" }
+enabled = true
+
+# Philippines
+[[overrides]]
+_context_ = { payment_method = "gcash", country = "PH", currency = "PHP" }
+enabled = true
+
+# Thailand
+[[overrides]]
+_context_ = { payment_method = "online_banking_thailand", country = "TH", currency = "THB" }
+enabled = true
+
+# Malaysia / Singapore
+[[overrides]]
+_context_ = { payment_method = "touch_n_go", country = "MY", currency = "MYR" }
+enabled = true
+[[overrides]]
+_context_ = { payment_method = "atome", country = "MY", currency = "MYR" }
+enabled = true
+[[overrides]]
+_context_ = { payment_method = "atome", country = "SG", currency = "SGD" }
+enabled = true
+
+# amazon_pay - source spans ~200 countries with 12 currencies; pragmatic enable.
+[[overrides]]
+_context_ = { payment_method = "amazon_pay" }
+enabled = true
+
+# Nordics (Adyen: mobile_pay, walley)
+[[overrides]]
+_context_ = { payment_method = "mobile_pay", country = "DK", currency = "DKK" }
+enabled = true
+[[overrides]]
+_context_ = { payment_method = "mobile_pay", country = "FI", currency = "EUR" }
+enabled = true
+[[overrides]]
+_context_ = { payment_method = "walley", country = "SE", currency = "SEK" }
+enabled = true
+[[overrides]]
+_context_ = { payment_method = "walley", country = "NO", currency = "NOK" }
+enabled = true
+
+# Canada
+[[overrides]]
+_context_ = { payment_method = "pay_bright", country = "CA", currency = "CAD" }
+enabled = true
