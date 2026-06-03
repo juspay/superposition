@@ -516,8 +516,8 @@ def emit_supertoml(acc: Accumulator) -> str:
         lines.append(f"{key} = {toml_value(acc.extra_configs[key])}")
     lines.append("")
 
-    # dimensions - emitted in descending position order so the file reads
-    # most-specific axis first, matching the override sort below.
+    # dimensions - emitted in ascending position order (broadest axis first,
+    # most-specific last), matching the ascending override sort below.
     lines.append("[dimensions]")
     dim_specs: "dict[str, dict]" = {
         "connector": {"position": POSITIONS["connector"], "schema": {"type": "string", "enum": sorted(acc.connectors)}},
@@ -536,21 +536,23 @@ def emit_supertoml(acc: Accumulator) -> str:
             },
         },
     }
-    for name, spec in sorted(dim_specs.items(), key=lambda kv: -kv[1]["position"]):
+    for name, spec in sorted(dim_specs.items(), key=lambda kv: kv[1]["position"]):
         lines.append(f"{name} = {toml_value(spec)}")
     lines.append("")
 
-    # overrides - sorted by descending priority (weight = sum of 2^position
-    # across the keys in _context_). Among same-priority overrides, secondary
-    # sort is on dimension values in priority order, which groups related
-    # rules together (e.g. all payment_type="mandate" overrides land next to
-    # each other).
+    # overrides - sorted by ascending priority (weight = sum of 2^position
+    # across the keys in _context_). Broad rules first, specific overrides
+    # cascade on top - matches the CSS-inspired cascading model where reading
+    # top-to-bottom mirrors application order. Among same-priority overrides,
+    # secondary sort is on dimension values in priority order, which groups
+    # related rules together (e.g. all payment_type="mandate" overrides land
+    # next to each other).
     def override_sort_key(ov: dict) -> tuple:
         ctx = ov["_context_"]
         priority = sum(2 ** POSITIONS.get(k, 0) for k in ctx)
         keys_in_priority_order = sorted(ctx, key=lambda k: -POSITIONS.get(k, 0))
         context_tuple = tuple(str(ctx[k]) for k in keys_in_priority_order)
-        return (-priority, context_tuple,
+        return (priority, context_tuple,
                 json.dumps({k: v for k, v in ov.items() if k != "_context_"}, sort_keys=True))
 
     for ov in sorted(acc.overrides, key=override_sort_key):
