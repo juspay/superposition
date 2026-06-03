@@ -23,11 +23,16 @@ Usage:
     python3 generate_hyperswitch_supertoml.py --validate-only
 
 Validation runs after every generate:
-  1. Output re-parses cleanly as TOML.
+  1. Output re-parses cleanly as TOML, and (when superposition_bindings is
+     installed) also as SuperTOML via ffi_parse_toml_config - the same Rust
+     code superposition_core uses in production. Surfaces JSON Schema
+     violations that pure-Python TOML can't see.
   2. Every override's dimensions are declared and values are in their enums.
-  3. A built-in parity matrix (~25 cases) resolves to the values the source
-     specifies. Covers normal payments, mandates, zero-dollar mandates,
-     payouts, the capture_method gate, and the per-connector flag bundle.
+  3. A built-in parity matrix (~28 cases) resolves to the values the source
+     specifies. When bindings are available, resolution routes through
+     ffi_eval_config; otherwise falls back to a pure-Python cohort-aware
+     resolver that mirrors the same priority sum logic. Use --no-bindings to
+     force the fallback for testing.
 
 Adding a new section: register it under `@section("name")` and update the
 DEFAULT_SECTIONS list. Validation will catch any references it produces to
@@ -44,6 +49,48 @@ from collections import OrderedDict
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable
+
+# Optional: use the official Rust-backed Python bindings if available. Falls
+# back to a built-in TOML parser + Python cohort-aware resolver so the script
+# is still useful on machines that don't have the native lib installed.
+#
+# The published `superposition_bindings` wheel on PyPI currently only ships
+# metadata - the Python module and platform-tagged .so live in the source
+# tree at clients/python/bindings/. If we're running from inside this repo,
+# add that directory to sys.path so import works without requiring the user
+# to set PYTHONPATH manually. Building the .so:
+#   cargo build --release -p superposition_core
+#   cp target/release/libsuperposition_core.so \\
+#      clients/python/bindings/superposition_bindings/\\
+#      libsuperposition_core-x86_64-unknown-linux-gnu.so
+
+def _locate_bindings_in_tree() -> "Path | None":
+    here = Path(__file__).resolve()
+    for parent in [here, *here.parents]:
+        candidate = parent / "clients" / "python" / "bindings"
+        if (candidate / "superposition_bindings" / "superposition_client.py").is_file():
+            return candidate
+    return None
+
+
+_bindings_dir = _locate_bindings_in_tree()
+if _bindings_dir and str(_bindings_dir) not in sys.path:
+    sys.path.insert(0, str(_bindings_dir))
+
+try:
+    from superposition_bindings.superposition_client import (
+        ffi_parse_toml_config as _ffi_parse_toml_config,
+        ffi_eval_config as _ffi_eval_config,
+        MergeStrategy as _BindingsMergeStrategy,
+    )
+    BINDINGS_AVAILABLE = True
+    BINDINGS_LOAD_ERROR = None
+except Exception as _e:  # ImportError, FileNotFoundError, RuntimeError, ...
+    _ffi_parse_toml_config = None
+    _ffi_eval_config = None
+    _BindingsMergeStrategy = None
+    BINDINGS_AVAILABLE = False
+    BINDINGS_LOAD_ERROR = repr(_e)
 
 # ---------------------------------------------------------------------------
 # Constants - position weights, region cohort definitions.
@@ -525,6 +572,9 @@ class ResolverConfig:
     default_configs: dict
     dimensions: dict
     overrides: "list[dict]"
+    # Populated only when bindings are in use; opaque Config struct from the
+    # native lib, kept so we can call ffi_eval_config without re-parsing.
+    bindings_config: Any = None
 
 
 def _augment_with_cohorts(query: dict) -> dict:
@@ -537,7 +587,9 @@ def _augment_with_cohorts(query: dict) -> dict:
     return q
 
 
-def resolve(cfg: ResolverConfig, query: dict) -> dict:
+def _resolve_fallback(cfg: ResolverConfig, query: dict) -> dict:
+    """Python-only resolver: stand-in for ffi_eval_config when the native lib
+    isn't installed. Implements the same priority sum + cohort derivation."""
     query = _augment_with_cohorts(query)
     result = {k: spec["value"] for k, spec in cfg.default_configs.items()}
     matching: "list[tuple[int, dict]]" = []
@@ -555,12 +607,47 @@ def resolve(cfg: ResolverConfig, query: dict) -> dict:
     return result
 
 
+def _resolve_bindings(cfg: ResolverConfig, query: dict) -> dict:
+    """Authoritative resolver: routes through ffi_eval_config which is the
+    same Rust code superposition_core uses in production."""
+    # Native lib expects dict[str, JSON-encoded value] for both query and
+    # result. Wrap on entry, unwrap on exit.
+    encoded_query = {k: json.dumps(v) for k, v in query.items()}
+    raw = _ffi_eval_config(
+        cfg.bindings_config.default_configs,
+        cfg.bindings_config.contexts,
+        cfg.bindings_config.overrides,
+        cfg.bindings_config.dimensions,
+        encoded_query,
+        _BindingsMergeStrategy.MERGE,
+        None,
+        None,
+    )
+    return {k: json.loads(v) for k, v in raw.items()}
+
+
+def resolve(cfg: ResolverConfig, query: dict) -> dict:
+    if cfg.bindings_config is not None:
+        return _resolve_bindings(cfg, query)
+    return _resolve_fallback(cfg, query)
+
+
 def parse_supertoml(text: str) -> ResolverConfig:
+    """Parse for validation. Always runs the Python TOML parse (for schema
+    checks against the in-Python override shape), and additionally invokes
+    ffi_parse_toml_config when bindings are available so the JSON Schema
+    validation and other Rust-side checks run."""
     parsed = tomllib.loads(text)
+    bindings_cfg = None
+    if BINDINGS_AVAILABLE:
+        # This call enforces JSON Schema validation on default_configs and
+        # raises if the file isn't a valid SuperTOML (not merely valid TOML).
+        bindings_cfg = _ffi_parse_toml_config(text)
     return ResolverConfig(
         default_configs=parsed.get("default-configs", {}),
         dimensions=parsed.get("dimensions", {}),
         overrides=parsed.get("overrides", []),
+        bindings_config=bindings_cfg,
     )
 
 
@@ -677,7 +764,14 @@ def main() -> int:
                         f"Available: {', '.join(SECTIONS.keys())}")
     p.add_argument("--validate-only", action="store_true",
                    help="don't rewrite output; just validate it")
+    p.add_argument("--no-bindings", action="store_true",
+                   help="force the pure-Python fallback resolver even if "
+                        "superposition_bindings is installed (for testing)")
     args = p.parse_args()
+
+    global BINDINGS_AVAILABLE
+    if args.no_bindings and BINDINGS_AVAILABLE:
+        BINDINGS_AVAILABLE = False
 
     requested = [s.strip() for s in args.sections.split(",") if s.strip()]
     unknown = [s for s in requested if s not in SECTIONS]
@@ -732,6 +826,13 @@ def main() -> int:
         return 1
 
     print("\nValidation:")
+    if BINDINGS_AVAILABLE:
+        print(f"  Resolver: superposition_bindings (Rust-backed, authoritative)")
+    else:
+        msg = "fallback (--no-bindings)" if args.no_bindings else (
+            f"fallback - bindings unavailable: {BINDINGS_LOAD_ERROR}"
+        )
+        print(f"  Resolver: pure-Python {msg}")
     print(f"  Parsed OK ({len(cfg.default_configs)} configs, "
           f"{len(cfg.dimensions)} dimensions, {len(cfg.overrides)} overrides)")
 

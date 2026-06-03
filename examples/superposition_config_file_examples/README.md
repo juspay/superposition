@@ -49,3 +49,24 @@ Both files contain identical ride-sharing pricing configurations to demonstrate 
   an existing file. Writes to `hyperswitch-development.generated.toml` by
   default so it doesn't clobber the curated version. See the script
   docstring for usage.
+
+  When `superposition_bindings` is importable (the Rust-backed Python
+  bindings in `clients/python/bindings/`), the script routes parsing
+  through `ffi_parse_toml_config` and resolution through `ffi_eval_config`
+  — the same code paths `superposition_core` uses in production, so JSON
+  Schema violations and resolution edge cases are caught authoritatively.
+  Otherwise the script falls back to a pure-Python TOML parser and a
+  cohort-aware resolver that mirrors the priority-sum logic. Use
+  `--no-bindings` to force the fallback for testing.
+
+  To enable the bindings inside this repo, build the cdylib once:
+
+  ```bash
+  cargo build --release -p superposition_core
+  cp target/release/libsuperposition_core.so \
+     clients/python/bindings/superposition_bindings/libsuperposition_core-x86_64-unknown-linux-gnu.so
+  ```
+
+  (substitute the platform-tagged filename for macOS/Windows). The script
+  auto-discovers `clients/python/bindings/` when run from anywhere inside
+  the repo.
