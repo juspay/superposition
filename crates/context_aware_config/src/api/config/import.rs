@@ -20,32 +20,31 @@
 
 use std::collections::HashSet;
 
-use actix_web::{web::Data, HttpRequest, HttpResponse};
+use actix_web::{HttpRequest, HttpResponse, web::Data};
 use chrono::Utc;
-use diesel::{
-    Connection, ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl,
-};
+use diesel::{Connection, ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl};
 use serde::Serialize;
 use serde_json::{Map, Value};
 use service_utils::{
-    helpers::{execute_webhook_call, parse_config_tags, WebhookData},
+    helpers::{WebhookData, execute_webhook_call, parse_config_tags},
     service::types::{AppState, CustomHeaders, SchemaName, WorkspaceContext},
 };
-use superposition_core::{helpers::calculate_context_weight, ConfigFormat};
+use superposition_core::{ConfigFormat, helpers::calculate_context_weight};
 use superposition_macros::{bad_argument, db_error};
 use superposition_types::{
+    Context as ConfigContext, DBConnection, DefaultConfigInfo, DimensionInfo,
+    ExtendedMap, Overrides, Resource, User,
     api::webhook::Action,
     database::models::{
+        ChangeReason, Description,
         cac::{Context as DbContext, DefaultConfig, Dimension, Position},
         others::WebhookEvent,
-        ChangeReason, Description,
     },
     database::schema::{
         contexts::dsl as ctx_dsl, default_configs::dsl as dc_dsl,
         dimensions::dsl as dim_dsl,
     },
-    result as superposition, Context as ConfigContext, DBConnection, DefaultConfigInfo,
-    DimensionInfo, ExtendedMap, Overrides, Resource, User,
+    result as superposition,
 };
 
 use crate::{
@@ -101,7 +100,7 @@ impl ImportOptions {
                 return Err(bad_argument!(
                     "Invalid x-import-mode '{}', expected 'merge' or 'replace'",
                     s
-                ))
+                ));
             }
         };
         let on_error = match req
@@ -116,7 +115,7 @@ impl ImportOptions {
                 return Err(bad_argument!(
                     "Invalid x-import-on-error '{}', expected 'abort' or 'continue'",
                     s
-                ))
+                ));
             }
         };
         Ok(Self {
@@ -201,7 +200,7 @@ enum Outcome {
 /// returned to the caller.
 enum TxError {
     App(superposition::AppError),
-    DryRun(ImportSummary),
+    DryRun(Box<ImportSummary>),
 }
 
 impl From<superposition::AppError> for TxError {
@@ -325,9 +324,8 @@ fn dimension_position(
     name: &str,
     info: &DimensionInfo,
 ) -> superposition::Result<Position> {
-    Position::try_from(info.position).map_err(|e| {
-        bad_argument!("Invalid position for dimension '{}': {}", name, e)
-    })
+    Position::try_from(info.position)
+        .map_err(|e| bad_argument!("Invalid position for dimension '{}': {}", name, e))
 }
 
 fn build_dimension_row(
@@ -354,9 +352,8 @@ fn build_dimension_row(
 }
 
 fn build_schema(key: &str, schema: &Value) -> superposition::Result<ExtendedMap> {
-    ExtendedMap::try_from(schema.clone()).map_err(|e| {
-        bad_argument!("Invalid schema for default config '{}': {}", key, e)
-    })
+    ExtendedMap::try_from(schema.clone())
+        .map_err(|e| bad_argument!("Invalid schema for default config '{}': {}", key, e))
 }
 
 fn build_default_config_row(
@@ -618,12 +615,10 @@ pub async fn import_config<F: ConfigFormat>(
                     continue;
                 }
                 let res = with_savepoint(conn, "cac_import_del_dc", |c| {
-                    diesel::delete(
-                        dc_dsl::default_configs.filter(dc_dsl::key.eq(&key)),
-                    )
-                    .schema_name(schema_name)
-                    .execute(c)
-                    .map_err(|e| db_error!(e))?;
+                    diesel::delete(dc_dsl::default_configs.filter(dc_dsl::key.eq(&key)))
+                        .schema_name(schema_name)
+                        .execute(c)
+                        .map_err(|e| db_error!(e))?;
                     Ok(Outcome::Deleted)
                 });
                 apply_outcome(&mut summary.default_configs, opts.on_error, &key, res)?;
@@ -652,7 +647,7 @@ pub async fn import_config<F: ConfigFormat>(
 
         if opts.dry_run {
             // Roll back everything; the summary travels out via the error.
-            return Err(TxError::DryRun(summary));
+            return Err(TxError::DryRun(Box::new(summary)));
         }
 
         let config_version =
@@ -664,8 +659,7 @@ pub async fn import_config<F: ConfigFormat>(
         Ok((mut summary, config_version)) => {
             summary.config_version = Some(config_version.id.to_string());
 
-            let _ =
-                put_config_in_redis(&config_version, state, schema_name, conn).await;
+            let _ = put_config_in_redis(&config_version, state, schema_name, conn).await;
 
             let data = WebhookData {
                 payload: &summary,
@@ -678,7 +672,7 @@ pub async fn import_config<F: ConfigFormat>(
 
             Ok(summary)
         }
-        Err(TxError::DryRun(summary)) => Ok(summary),
+        Err(TxError::DryRun(summary)) => Ok(*summary),
         Err(TxError::App(e)) => Err(e),
     }
 }
@@ -842,7 +836,10 @@ mod tests {
 
         assert_eq!(row.dimension, "city");
         assert_eq!(i32::from(row.position), 3);
-        assert_eq!(row.value_compute_function_name.as_deref(), Some("compute_fn"));
+        assert_eq!(
+            row.value_compute_function_name.as_deref(),
+            Some("compute_fn")
+        );
         // validation-fn bindings are not carried by the file
         assert!(row.value_validation_function_name.is_none());
         assert_eq!(row.created_by, "tester@example.com");

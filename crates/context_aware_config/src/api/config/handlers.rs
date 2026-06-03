@@ -569,6 +569,7 @@ async fn get_handler(
 
 /// Handler that returns config in TOML format with schema information.
 /// This uses generate_detailed_cac to fetch schemas from the database.
+#[allow(clippy::too_many_arguments)]
 #[authorized]
 #[routes]
 #[get("/toml")]
@@ -634,6 +635,7 @@ async fn get_toml_handler(
 
 /// Handler that returns config in JSON format with schema information.
 /// This uses generate_detailed_cac to fetch schemas from the database.
+#[allow(clippy::too_many_arguments)]
 #[authorized]
 #[routes]
 #[get("/json")]
