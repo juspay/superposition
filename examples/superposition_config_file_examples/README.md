@@ -37,3 +37,15 @@ The application demonstrates five different scenarios for each format:
 - `example.json` — JSON format configuration
 
 Both files contain identical ride-sharing pricing configurations to demonstrate format equivalence. Refer to the actual files for the full format syntax.
+
+## Hyperswitch Conversion (Phased Migration)
+
+- `hyperswitch-development.toml` — hand-curated SuperTOML modelled on
+  [Hyperswitch's `config/development.toml`](https://github.com/juspay/hyperswitch/blob/main/config/development.toml).
+- `generate_hyperswitch_supertoml.py` — Python program that regenerates the
+  SuperTOML from the upstream source deterministically and runs structural
+  and parity validations. Supports `--sections` for phased rollout
+  (e.g. `--sections pm_filters,mandates`) and `--validate-only` to re-check
+  an existing file. Writes to `hyperswitch-development.generated.toml` by
+  default so it doesn't clobber the curated version. See the script
+  docstring for usage.
