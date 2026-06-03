@@ -53,7 +53,14 @@ supported_banks = { value = [], schema = { type = "array", items = { type = "str
 [dimensions]
 
 # Subset of [connectors.supported] for readability; extend freely.
-connector = { position = 5, schema = { type = "string", enum = ["adyen", "airwallex", "authorizedotnet", "bankofamerica", "braintree", "checkout", "cybersource", "deutschebank", "elavon", "fiuu", "gocardless", "hipay", "klarna", "moneris", "multisafepay", "nexinets", "nmi", "novalnet", "nuvei", "paypal", "payload", "paysafe", "phonepe", "paytm", "razorpay", "santander", "stripe", "trustly", "truelayer", "volt", "worldpay", "xendit"] } }
+connector = { position = 5, schema = { type = "string", enum = ["adyen", "airwallex", "authorizedotnet", "bankofamerica", "braintree", "checkout", "cybersource", "deutschebank", "elavon", "fiuu", "gocardless", "hipay", "klarna", "moneris", "multisafepay", "nexinets", "nmi", "novalnet", "nuvei", "paypal", "payload", "paysafe", "phonepe", "paytm", "razorpay", "santander", "stripe", "trustly", "truelayer", "trustpay", "volt", "worldpay", "xendit"] } }
+
+# Request-level capture flag. Source uses `not_available_flows = { capture_method
+# = "manual" }` on pm_filters rows to mean "supported, except not for manual
+# capture". Placing it at the highest position lets a single override flip
+# `enabled = false` only when the request asks for manual capture, leaving the
+# broader connector/country/payment-method rules to enable the automatic case.
+capture_method = { position = 6, schema = { type = "string", enum = ["automatic", "manual"] } }
 
 # ISO 3166-1 alpha-2. Pruned to countries referenced in pm_filters.
 country = { position = 4, schema = { type = "string", enum = ["AT", "AU", "BE", "BR", "CA", "CH", "CN", "CZ", "DE", "DK", "ES", "FI", "FR", "GB", "GR", "HK", "HU", "ID", "IE", "IN", "IT", "JP", "KR", "MX", "MY", "NL", "NO", "NZ", "PH", "PL", "PT", "RO", "SE", "SG", "SK", "TH", "TW", "US", "VN", "ZA"] } }
@@ -328,3 +335,46 @@ supported_banks = [
     "ocbc_bank", "public_bank", "rhb_bank", "standard_chartered_bank",
     "uob_bank"
 ]
+
+# --- capture_method gating ----------------------------------------------------
+# Source uses `not_available_flows = { capture_method = "manual" }` to exclude
+# manual capture for specific (connector, payment_method) pairs. The default
+# overrides above leave `enabled = true` for the relevant context; the highest-
+# position dimension flips it off only when capture_method = "manual" matches.
+
+# [pm_filters.adyen] sofort = { not_available_flows = { capture_method = "manual" }, country = "AT,BE,DE,ES,CH,NL", currency = "CHF,EUR" }
+[[overrides]]
+_context_ = { connector = "adyen", payment_method = "sofort", capture_method = "manual" }
+enabled = false
+
+# [pm_filters.adyen] ideal = { not_available_flows = { capture_method = "manual" }, country = "NL", currency = "EUR" }
+[[overrides]]
+_context_ = { connector = "adyen", payment_method = "ideal", capture_method = "manual" }
+enabled = false
+
+# [pm_filters.klarna] credit/debit = { not_available_flows = { capture_method = "manual" } }
+[[overrides]]
+_context_ = { connector = "klarna", payment_method = "credit", capture_method = "manual" }
+enabled = false
+
+[[overrides]]
+_context_ = { connector = "klarna", payment_method = "debit", capture_method = "manual" }
+enabled = false
+
+# [pm_filters.multisafepay] credit/debit = { ..., not_available_flows = { capture_method = "manual" } }
+[[overrides]]
+_context_ = { connector = "multisafepay", payment_method = "credit", capture_method = "manual" }
+enabled = false
+
+[[overrides]]
+_context_ = { connector = "multisafepay", payment_method = "debit", capture_method = "manual" }
+enabled = false
+
+# [pm_filters.trustpay] credit/debit = { not_available_flows = { capture_method = "manual" } }
+[[overrides]]
+_context_ = { connector = "trustpay", payment_method = "credit", capture_method = "manual" }
+enabled = false
+
+[[overrides]]
+_context_ = { connector = "trustpay", payment_method = "debit", capture_method = "manual" }
+enabled = false
