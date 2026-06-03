@@ -25,15 +25,15 @@
 
 [default-configs]
 
-# pm_filters: is this payment method offered for this context?
+# Unified availability flag, queried with `payment_type` to mean any of:
+#   - is this payment method offered?         (payment_type = "normal")
+#   - is mandate creation supported?          (payment_type = "mandate")
+#   - is a zero-dollar mandate supported?     (payment_type = "zero_dollar_mandate")
+# Replaces the prior trio: enabled / mandate_supported / zero_mandate_supported.
 enabled = { value = false, schema = { type = "boolean" } }
 
 # [connectors] section: sandbox base URL for the connector.
 base_url = { value = "https://example.invalid/", schema = { type = "string", format = "uri" } }
-
-# [mandates.supported_payment_methods] and [zero_mandates.supported_payment_methods]
-mandate_supported = { value = false, schema = { type = "boolean" } }
-zero_mandate_supported = { value = false, schema = { type = "boolean" } }
 
 # [installments.supported_payment_methods] + [installment_config]
 installments_supported = { value = false, schema = { type = "boolean" } }
@@ -57,10 +57,20 @@ connector = { position = 5, schema = { type = "string", enum = ["adyen", "airwal
 
 # Request-level capture flag. Source uses `not_available_flows = { capture_method
 # = "manual" }` on pm_filters rows to mean "supported, except not for manual
-# capture". Placing it at the highest position lets a single override flip
+# capture". Placing it at a high position lets a single override flip
 # `enabled = false` only when the request asks for manual capture, leaving the
 # broader connector/country/payment-method rules to enable the automatic case.
 capture_method = { position = 6, schema = { type = "string", enum = ["automatic", "manual"] } }
+
+# What kind of payment is being asked about. Lets the unified `enabled` flag
+# answer all three questions the source previously had separate sections for:
+#   pm_filters.* + [pm_filters.default]       -> payment_type = "normal"
+#   [mandates.supported_payment_methods]      -> payment_type = "mandate"
+#   [zero_mandates.supported_payment_methods] -> payment_type = "zero_dollar_mandate"
+# Placed at the highest position so a "denial floor" override on payment_type
+# alone disables mandate / zero_dollar_mandate by default, and connector-and-
+# payment-method-specific overrides re-enable just the supported pairs.
+payment_type = { position = 7, schema = { type = "string", enum = ["normal", "mandate", "zero_dollar_mandate"] } }
 
 # ISO 3166-1 alpha-2. Pruned to countries referenced in pm_filters.
 country = { position = 4, schema = { type = "string", enum = ["AT", "AU", "BE", "BR", "CA", "CH", "CN", "CZ", "DE", "DK", "ES", "FI", "FR", "GB", "GR", "HK", "HU", "ID", "IE", "IN", "IT", "JP", "KR", "MX", "MY", "NL", "NO", "NZ", "PH", "PL", "PT", "RO", "SE", "SG", "SK", "TH", "TW", "US", "VN", "ZA"] } }
@@ -215,41 +225,72 @@ enabled = true
 _context_ = { connector = "truelayer", payment_method = "open_banking", currency = "EUR" }
 enabled = true
 
-# --- [mandates.supported_payment_methods] -------------------------------------
-# card.credit.connector_list = "checkout,stripe,adyen,...,cybersource,..."
+# --- [mandates] and [zero_mandates] via payment_type --------------------------
+# Source had two sections:
+#   [mandates.supported_payment_methods]      card.credit.connector_list = "..."
+#   [zero_mandates.supported_payment_methods] card.credit.connector_list = "..."
+# Modelled here with payment_type dimension. Two "denial floor" overrides
+# disable everything for payment_type = mandate / zero_dollar_mandate; per-
+# (connector, payment_method) overrides re-enable just the supported pairs.
+# payment_type is at the highest position (7), so the floor (weight 128) beats
+# any broader connector+pm "enabled" rule (weight 40), and the specific re-
+# enables (weight 128+40 = 168) beat the floor.
+
+# Denial floors.
+[[overrides]]
+_context_ = { payment_type = "mandate" }
+enabled = false
 
 [[overrides]]
-_context_ = { connector = "stripe", payment_method = "credit" }
-mandate_supported = true
+_context_ = { payment_type = "zero_dollar_mandate" }
+enabled = false
+
+# Mandates: card.credit / card.debit connector_list = "...stripe,adyen,cybersource..."
+[[overrides]]
+_context_ = { connector = "stripe", payment_method = "credit", payment_type = "mandate" }
+enabled = true
 
 [[overrides]]
-_context_ = { connector = "stripe", payment_method = "debit" }
-mandate_supported = true
+_context_ = { connector = "stripe", payment_method = "debit", payment_type = "mandate" }
+enabled = true
 
 [[overrides]]
-_context_ = { connector = "adyen", payment_method = "credit" }
-mandate_supported = true
-zero_mandate_supported = true
+_context_ = { connector = "adyen", payment_method = "credit", payment_type = "mandate" }
+enabled = true
 
 [[overrides]]
-_context_ = { connector = "adyen", payment_method = "debit" }
-mandate_supported = true
-zero_mandate_supported = true
+_context_ = { connector = "adyen", payment_method = "debit", payment_type = "mandate" }
+enabled = true
 
 [[overrides]]
-_context_ = { connector = "cybersource", payment_method = "credit" }
-mandate_supported = true
+_context_ = { connector = "cybersource", payment_method = "credit", payment_type = "mandate" }
+enabled = true
 
-# bank_debit.ach.connector_list = "gocardless,adyen,stripe,payload"
+# Zero-dollar mandates: only adyen on cards in source.
 [[overrides]]
-_context_ = { connector = "gocardless", payment_method = "ach" }
-mandate_supported = true
-zero_mandate_supported = true
+_context_ = { connector = "adyen", payment_method = "credit", payment_type = "zero_dollar_mandate" }
+enabled = true
 
 [[overrides]]
-_context_ = { connector = "gocardless", payment_method = "sepa" }
-mandate_supported = true
-zero_mandate_supported = true
+_context_ = { connector = "adyen", payment_method = "debit", payment_type = "zero_dollar_mandate" }
+enabled = true
+
+# bank_debit.ach: gocardless supports both mandate and zero-dollar.
+[[overrides]]
+_context_ = { connector = "gocardless", payment_method = "ach", payment_type = "mandate" }
+enabled = true
+
+[[overrides]]
+_context_ = { connector = "gocardless", payment_method = "ach", payment_type = "zero_dollar_mandate" }
+enabled = true
+
+[[overrides]]
+_context_ = { connector = "gocardless", payment_method = "sepa", payment_type = "mandate" }
+enabled = true
+
+[[overrides]]
+_context_ = { connector = "gocardless", payment_method = "sepa", payment_type = "zero_dollar_mandate" }
+enabled = true
 
 # --- [installments] + [installment_config] ------------------------------------
 # installments.supported_payment_methods: card.credit = "adyen"
