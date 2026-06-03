@@ -516,39 +516,41 @@ def emit_supertoml(acc: Accumulator) -> str:
         lines.append(f"{key} = {toml_value(acc.extra_configs[key])}")
     lines.append("")
 
-    # dimensions
+    # dimensions - emitted in descending position order so the file reads
+    # most-specific axis first, matching the override sort below.
     lines.append("[dimensions]")
-    lines.append(
-        f"connector = {toml_value({'position': POSITIONS['connector'], 'schema': {'type': 'string', 'enum': sorted(acc.connectors)}})}"
-    )
-    lines.append(
-        f"country = {toml_value({'position': POSITIONS['country'], 'schema': {'type': 'string', 'enum': sorted(acc.countries)}})}"
-    )
-    lines.append(
-        f"payment_method = {toml_value({'position': POSITIONS['payment_method'], 'schema': {'type': 'string', 'enum': sorted(acc.payment_methods)}})}"
-    )
-    lines.append(
-        f"currency = {toml_value({'position': POSITIONS['currency'], 'schema': {'type': 'string', 'enum': sorted(acc.currencies)}})}"
-    )
-    lines.append(
-        f"capture_method = {toml_value({'position': POSITIONS['capture_method'], 'schema': {'type': 'string', 'enum': ['automatic', 'manual']}})}"
-    )
-    lines.append(
-        f"payment_type = {toml_value({'position': POSITIONS['payment_type'], 'schema': {'type': 'string', 'enum': ['normal', 'mandate', 'zero_dollar_mandate', 'payout']}})}"
-    )
-    # region cohort
-    region_enum = list(REGIONS.keys()) + ["otherwise"]
-    region_defs = {r: {"in": [{"var": "country"}, cs]} for r, cs in REGIONS.items()}
-    lines.append(
-        f"region = {toml_value({'position': POSITIONS['region'], 'type': 'LOCAL_COHORT:country', 'schema': {'type': 'string', 'enum': region_enum, 'definitions': region_defs}})}"
-    )
+    dim_specs: "dict[str, dict]" = {
+        "connector": {"position": POSITIONS["connector"], "schema": {"type": "string", "enum": sorted(acc.connectors)}},
+        "country": {"position": POSITIONS["country"], "schema": {"type": "string", "enum": sorted(acc.countries)}},
+        "payment_method": {"position": POSITIONS["payment_method"], "schema": {"type": "string", "enum": sorted(acc.payment_methods)}},
+        "currency": {"position": POSITIONS["currency"], "schema": {"type": "string", "enum": sorted(acc.currencies)}},
+        "capture_method": {"position": POSITIONS["capture_method"], "schema": {"type": "string", "enum": ["automatic", "manual"]}},
+        "payment_type": {"position": POSITIONS["payment_type"], "schema": {"type": "string", "enum": ["normal", "mandate", "zero_dollar_mandate", "payout"]}},
+        "region": {
+            "position": POSITIONS["region"],
+            "type": "LOCAL_COHORT:country",
+            "schema": {
+                "type": "string",
+                "enum": list(REGIONS.keys()) + ["otherwise"],
+                "definitions": {r: {"in": [{"var": "country"}, cs]} for r, cs in REGIONS.items()},
+            },
+        },
+    }
+    for name, spec in sorted(dim_specs.items(), key=lambda kv: -kv[1]["position"]):
+        lines.append(f"{name} = {toml_value(spec)}")
     lines.append("")
 
-    # overrides - sorted for determinism. Order by (priority desc, context json).
+    # overrides - sorted by descending priority (weight = sum of 2^position
+    # across the keys in _context_). Among same-priority overrides, secondary
+    # sort is on dimension values in priority order, which groups related
+    # rules together (e.g. all payment_type="mandate" overrides land next to
+    # each other).
     def override_sort_key(ov: dict) -> tuple:
         ctx = ov["_context_"]
         priority = sum(2 ** POSITIONS.get(k, 0) for k in ctx)
-        return (-priority, json.dumps(ctx, sort_keys=True),
+        keys_in_priority_order = sorted(ctx, key=lambda k: -POSITIONS.get(k, 0))
+        context_tuple = tuple(str(ctx[k]) for k in keys_in_priority_order)
+        return (-priority, context_tuple,
                 json.dumps({k: v for k, v in ov.items() if k != "_context_"}, sort_keys=True))
 
     for ov in sorted(acc.overrides, key=override_sort_key):
