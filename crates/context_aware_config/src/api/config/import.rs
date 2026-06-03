@@ -300,6 +300,87 @@ fn deep_merge(base: &Value, overlay: &Value) -> Value {
 }
 
 // ---------------------------------------------------------------------------
+// Pure builders / decisions (no database access — unit tested below)
+// ---------------------------------------------------------------------------
+
+/// Whether an entity that already exists should be left untouched.
+fn should_skip(exists: bool, overwrite: bool) -> bool {
+    exists && !overwrite
+}
+
+/// The value to persist for a default config, honouring the `value_merge`
+/// option (deep-merge with the existing value when both are objects).
+fn resolve_default_value(
+    existing: Option<&Value>,
+    incoming: &Value,
+    value_merge: bool,
+) -> Value {
+    match (value_merge, existing) {
+        (true, Some(existing)) => deep_merge(existing, incoming),
+        _ => incoming.clone(),
+    }
+}
+
+fn dimension_position(
+    name: &str,
+    info: &DimensionInfo,
+) -> superposition::Result<Position> {
+    Position::try_from(info.position).map_err(|e| {
+        bad_argument!("Invalid position for dimension '{}': {}", name, e)
+    })
+}
+
+fn build_dimension_row(
+    name: &str,
+    info: &DimensionInfo,
+    email: &str,
+) -> superposition::Result<Dimension> {
+    Ok(Dimension {
+        dimension: name.to_string(),
+        schema: info.schema.clone(),
+        position: dimension_position(name, info)?,
+        dimension_type: info.dimension_type.clone(),
+        dependency_graph: info.dependency_graph.clone(),
+        value_compute_function_name: info.value_compute_function_name.clone(),
+        // Function bindings are not carried by the import file.
+        value_validation_function_name: None,
+        created_at: Utc::now(),
+        created_by: email.to_string(),
+        last_modified_at: Utc::now(),
+        last_modified_by: email.to_string(),
+        description: import_description(),
+        change_reason: import_change_reason(),
+    })
+}
+
+fn build_schema(key: &str, schema: &Value) -> superposition::Result<ExtendedMap> {
+    ExtendedMap::try_from(schema.clone()).map_err(|e| {
+        bad_argument!("Invalid schema for default config '{}': {}", key, e)
+    })
+}
+
+fn build_default_config_row(
+    key: &str,
+    value: Value,
+    schema: ExtendedMap,
+    email: &str,
+) -> DefaultConfig {
+    DefaultConfig {
+        key: key.to_string(),
+        value,
+        schema,
+        value_validation_function_name: None,
+        value_compute_function_name: None,
+        created_at: Utc::now(),
+        created_by: email.to_string(),
+        last_modified_at: Utc::now(),
+        last_modified_by: email.to_string(),
+        description: import_description(),
+        change_reason: import_change_reason(),
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Per-entity writers
 // ---------------------------------------------------------------------------
 
@@ -318,15 +399,12 @@ fn write_dimension(
         .get_result::<i64>(conn)?
         > 0;
 
-    if exists && !opts.overwrite {
+    if should_skip(exists, opts.overwrite) {
         return Ok(Outcome::Skipped);
     }
 
-    let position = Position::try_from(info.position).map_err(|e| {
-        bad_argument!("Invalid position for dimension '{}': {}", name, e)
-    })?;
-
     if exists {
+        let position = dimension_position(name, info)?;
         diesel::update(dim_dsl::dimensions.filter(dim_dsl::dimension.eq(name)))
             .set((
                 dim_dsl::schema.eq(info.schema.clone()),
@@ -343,21 +421,7 @@ fn write_dimension(
             .execute(conn)?;
         Ok(Outcome::Updated)
     } else {
-        let dimension = Dimension {
-            dimension: name.to_string(),
-            schema: info.schema.clone(),
-            position,
-            dimension_type: info.dimension_type.clone(),
-            dependency_graph: info.dependency_graph.clone(),
-            value_compute_function_name: info.value_compute_function_name.clone(),
-            value_validation_function_name: None,
-            created_at: Utc::now(),
-            created_by: email.to_string(),
-            last_modified_at: Utc::now(),
-            last_modified_by: email.to_string(),
-            description: import_description(),
-            change_reason: import_change_reason(),
-        };
+        let dimension = build_dimension_row(name, info, email)?;
         diesel::insert_into(dim_dsl::dimensions)
             .values(&dimension)
             .schema_name(schema_name)
@@ -382,18 +446,12 @@ fn write_default_config(
         .optional()?;
     let exists = existing.is_some();
 
-    if exists && !opts.overwrite {
+    if should_skip(exists, opts.overwrite) {
         return Ok(Outcome::Skipped);
     }
 
-    let value = match (opts.value_merge, &existing) {
-        (true, Some(existing_value)) => deep_merge(existing_value, &info.value),
-        _ => info.value.clone(),
-    };
-
-    let schema = ExtendedMap::try_from(info.schema.clone()).map_err(|e| {
-        bad_argument!("Invalid schema for default config '{}': {}", key, e)
-    })?;
+    let value = resolve_default_value(existing.as_ref(), &info.value, opts.value_merge);
+    let schema = build_schema(key, &info.schema)?;
 
     if exists {
         diesel::update(dc_dsl::default_configs.filter(dc_dsl::key.eq(key)))
@@ -408,19 +466,7 @@ fn write_default_config(
             .execute(conn)?;
         Ok(Outcome::Updated)
     } else {
-        let default_config = DefaultConfig {
-            key: key.to_string(),
-            value,
-            schema,
-            value_validation_function_name: None,
-            value_compute_function_name: None,
-            created_at: Utc::now(),
-            created_by: email.to_string(),
-            last_modified_at: Utc::now(),
-            last_modified_by: email.to_string(),
-            description: import_description(),
-            change_reason: import_change_reason(),
-        };
+        let default_config = build_default_config_row(key, value, schema, email);
         diesel::insert_into(dc_dsl::default_configs)
             .values(&default_config)
             .schema_name(schema_name)
@@ -457,7 +503,7 @@ fn write_context(
         .get_result::<i64>(conn)?
         > 0;
 
-    if exists && !opts.overwrite {
+    if should_skip(exists, opts.overwrite) {
         return Ok(Outcome::Skipped);
     }
 
@@ -665,8 +711,19 @@ pub async fn handle_import<F: ConfigFormat>(
 mod tests {
     use actix_web::test::TestRequest;
     use serde_json::json;
+    use superposition_types::database::models::cac::{DependencyGraph, DimensionType};
 
     use super::*;
+
+    fn dim_info(position: i32) -> DimensionInfo {
+        DimensionInfo {
+            schema: ExtendedMap::try_from(json!({ "type": "string" })).unwrap(),
+            position,
+            dimension_type: DimensionType::Regular {},
+            dependency_graph: DependencyGraph::default(),
+            value_compute_function_name: None,
+        }
+    }
 
     #[test]
     fn deep_merge_combines_nested_objects() {
@@ -720,5 +777,135 @@ mod tests {
             .insert_header(("x-import-mode", "bogus"))
             .to_http_request();
         assert!(ImportOptions::from_request(&req).is_err());
+    }
+
+    #[test]
+    fn invalid_on_error_is_rejected() {
+        let req = TestRequest::default()
+            .insert_header(("x-import-on-error", "maybe"))
+            .to_http_request();
+        assert!(ImportOptions::from_request(&req).is_err());
+    }
+
+    #[test]
+    fn should_skip_only_existing_without_overwrite() {
+        // skip only when the entity exists AND overwrite is disabled
+        assert!(should_skip(true, false));
+        assert!(!should_skip(true, true)); // exists, but overwrite -> update
+        assert!(!should_skip(false, false)); // new -> always created
+        assert!(!should_skip(false, true));
+    }
+
+    #[test]
+    fn resolve_default_value_without_merge_replaces() {
+        let existing = json!({ "a": 1 });
+        let incoming = json!({ "b": 2 });
+        // value_merge disabled -> incoming wins wholesale
+        assert_eq!(
+            resolve_default_value(Some(&existing), &incoming, false),
+            json!({ "b": 2 })
+        );
+    }
+
+    #[test]
+    fn resolve_default_value_with_merge_deep_merges_existing() {
+        let existing = json!({ "a": 1, "nested": { "x": 1 } });
+        let incoming = json!({ "b": 2, "nested": { "y": 2 } });
+        assert_eq!(
+            resolve_default_value(Some(&existing), &incoming, true),
+            json!({ "a": 1, "b": 2, "nested": { "x": 1, "y": 2 } })
+        );
+    }
+
+    #[test]
+    fn resolve_default_value_with_merge_but_no_existing_uses_incoming() {
+        let incoming = json!({ "b": 2 });
+        assert_eq!(
+            resolve_default_value(None, &incoming, true),
+            json!({ "b": 2 })
+        );
+    }
+
+    #[test]
+    fn dimension_position_rejects_negative() {
+        assert!(dimension_position("city", &dim_info(-1)).is_err());
+        assert!(dimension_position("city", &dim_info(0)).is_ok());
+        assert!(dimension_position("city", &dim_info(7)).is_ok());
+    }
+
+    #[test]
+    fn build_dimension_row_maps_fields_and_clears_validation_fn() {
+        let mut info = dim_info(3);
+        info.value_compute_function_name = Some("compute_fn".to_string());
+
+        let row = build_dimension_row("city", &info, "tester@example.com").unwrap();
+
+        assert_eq!(row.dimension, "city");
+        assert_eq!(i32::from(row.position), 3);
+        assert_eq!(row.value_compute_function_name.as_deref(), Some("compute_fn"));
+        // validation-fn bindings are not carried by the file
+        assert!(row.value_validation_function_name.is_none());
+        assert_eq!(row.created_by, "tester@example.com");
+        assert!(matches!(row.dimension_type, DimensionType::Regular {}));
+    }
+
+    #[test]
+    fn build_schema_requires_an_object() {
+        assert!(build_schema("k", &json!({ "type": "number" })).is_ok());
+        // a non-object schema is rejected
+        assert!(build_schema("k", &json!("not-an-object")).is_err());
+    }
+
+    #[test]
+    fn build_default_config_row_carries_value_and_schema() {
+        let schema = build_schema("per_km_rate", &json!({ "type": "number" })).unwrap();
+        let row = build_default_config_row(
+            "per_km_rate",
+            json!(20.0),
+            schema,
+            "tester@example.com",
+        );
+
+        assert_eq!(row.key, "per_km_rate");
+        assert_eq!(row.value, json!(20.0));
+        assert!(row.value_validation_function_name.is_none());
+        assert!(row.value_compute_function_name.is_none());
+        assert_eq!(row.created_by, "tester@example.com");
+    }
+
+    #[test]
+    fn summary_serialises_with_mode_and_hides_empty_errors() {
+        let opts = ImportOptions {
+            mode: ImportMode::Replace,
+            overwrite: true,
+            on_error: OnError::Abort,
+            dry_run: true,
+            value_merge: false,
+        };
+        let summary = ImportSummary::new(&opts);
+        let value = serde_json::to_value(&summary).unwrap();
+
+        assert_eq!(value["mode"], json!("replace"));
+        assert_eq!(value["dry_run"], json!(true));
+        // config_version omitted until the import commits
+        assert!(value.get("config_version").is_none());
+        // no errors array when empty
+        assert!(value["dimensions"].get("errors").is_none());
+        assert_eq!(value["dimensions"]["created"], json!(0));
+    }
+
+    #[test]
+    fn entity_report_records_outcomes() {
+        let mut report = EntityReport::default();
+        report.record(Outcome::Created);
+        report.record(Outcome::Created);
+        report.record(Outcome::Updated);
+        report.record(Outcome::Skipped);
+        report.record(Outcome::Deleted);
+
+        assert_eq!(report.created, 2);
+        assert_eq!(report.updated, 1);
+        assert_eq!(report.skipped, 1);
+        assert_eq!(report.deleted, 1);
     }
 }
