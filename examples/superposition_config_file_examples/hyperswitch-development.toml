@@ -46,6 +46,28 @@ tokenization_long_lived_token = { value = false, schema = { type = "boolean" } }
 # Stored as an array - SuperTOML schemas give us type-safety the CSV string lacks.
 supported_banks = { value = [], schema = { type = "array", items = { type = "string" }, uniqueItems = true } }
 
+# Per-connector boolean flag bundle. Source uses CSV "connector_list" strings;
+# here each is a flat boolean keyed on `connector` via a single override per
+# connector in the source list.
+# [network_transaction_id_supported_connectors] connector_list = "adyen,..."
+network_transaction_id_supported = { value = false, schema = { type = "boolean" } }
+# [card_only_mit_supported_connectors] connector_list = "peachpayments"
+card_only_mit_supported = { value = false, schema = { type = "boolean" } }
+# [notify_iframe_exit_and_redirect] connector_list = "worldpayxml"
+notify_iframe_exit_and_redirect = { value = false, schema = { type = "boolean" } }
+# [delayed_session_response] connectors_with_delayed_session_response = "trustpay,payme"
+delayed_session_response = { value = false, schema = { type = "boolean" } }
+# [webhook_source_verification_call] connectors_with_webhook_source_verification_call = "paypal,truelayer"
+webhook_source_verification_required = { value = false, schema = { type = "boolean" } }
+# [billing_connectors_payment_sync] billing_connectors_which_require_payment_sync = "stripebilling,recurly"
+billing_payment_sync_required = { value = false, schema = { type = "boolean" } }
+# [billing_connectors_invoice_sync] billing_connectors_which_requires_invoice_sync_call = "recurly"
+billing_invoice_sync_required = { value = false, schema = { type = "boolean" } }
+# [connector_customer] payout_connector_list = "nomupay,stripe,wise,trustly"
+payout_customer_connector_supported = { value = false, schema = { type = "boolean" } }
+# [temp_locker_enable_config] <connector> = { payment_method = "card" | "bank_debit" | ... }
+temp_locker_enabled = { value = false, schema = { type = "boolean" } }
+
 #-------------------------------------------------------------------------------
 # Dimensions
 #-------------------------------------------------------------------------------
@@ -53,7 +75,7 @@ supported_banks = { value = [], schema = { type = "array", items = { type = "str
 [dimensions]
 
 # Subset of [connectors.supported] for readability; extend freely.
-connector = { position = 5, schema = { type = "string", enum = ["adyen", "airwallex", "authorizedotnet", "bankofamerica", "braintree", "checkout", "cybersource", "deutschebank", "elavon", "fiuu", "gocardless", "hipay", "klarna", "moneris", "multisafepay", "nexinets", "nmi", "novalnet", "nuvei", "paypal", "payload", "paysafe", "phonepe", "paytm", "razorpay", "santander", "stripe", "trustly", "truelayer", "trustpay", "volt", "worldpay", "xendit"] } }
+connector = { position = 5, schema = { type = "string", enum = ["adyen", "adyenplatform", "airwallex", "archipel", "authorizedotnet", "bankofamerica", "barclaycard", "bluesnap", "braintree", "checkout", "cybersource", "deutschebank", "elavon", "envoy", "fiuu", "gigadat", "gocardless", "hipay", "klarna", "loonio", "moneris", "multisafepay", "nexinets", "nexixpay", "nmi", "nomupay", "novalnet", "nuvei", "paybox", "payload", "payme", "paypal", "paysafe", "peachpayments", "phonepe", "paytm", "razorpay", "recurly", "redsys", "revolv3", "santander", "shift4", "stripe", "stripebilling", "trustly", "truelayer", "trustpay", "volt", "wise", "worldpay", "worldpayvantiv", "worldpayxml", "xendit"] } }
 
 # Request-level capture flag. Source uses `not_available_flows = { capture_method
 # = "manual" }` on pm_filters rows to mean "supported, except not for manual
@@ -67,17 +89,18 @@ capture_method = { position = 6, schema = { type = "string", enum = ["automatic"
 #   pm_filters.* + [pm_filters.default]       -> payment_type = "normal"
 #   [mandates.supported_payment_methods]      -> payment_type = "mandate"
 #   [zero_mandates.supported_payment_methods] -> payment_type = "zero_dollar_mandate"
+#   [payout_method_filters.*]                 -> payment_type = "payout"
 # Placed at the highest position so a "denial floor" override on payment_type
-# alone disables mandate / zero_dollar_mandate by default, and connector-and-
-# payment-method-specific overrides re-enable just the supported pairs.
-payment_type = { position = 7, schema = { type = "string", enum = ["normal", "mandate", "zero_dollar_mandate"] } }
+# alone disables mandate / zero_dollar_mandate / payout by default, and
+# connector+payment-method-specific overrides re-enable just the supported pairs.
+payment_type = { position = 7, schema = { type = "string", enum = ["normal", "mandate", "zero_dollar_mandate", "payout"] } }
 
 # ISO 3166-1 alpha-2. Pruned to countries referenced in pm_filters.
 country = { position = 4, schema = { type = "string", enum = ["AT", "AU", "BE", "BR", "CA", "CH", "CN", "CZ", "DE", "DK", "ES", "FI", "FR", "GB", "GR", "HK", "HU", "ID", "IE", "IN", "IT", "JP", "KR", "MX", "MY", "NL", "NO", "NZ", "PH", "PL", "PT", "RO", "SE", "SG", "SK", "TH", "TW", "US", "VN", "ZA"] } }
 
 # Card variants are namespaced (card.credit) in the source; flattened here
 # because SuperTOML dimensions are flat strings.
-payment_method = { position = 3, schema = { type = "string", enum = ["credit", "debit", "google_pay", "apple_pay", "samsung_pay", "paypal", "klarna", "affirm", "afterpay_clearpay", "ali_pay", "we_chat_pay", "ach", "bacs", "becs", "sepa", "ideal", "eps", "giropay", "sofort", "bancontact_card", "przelewy24", "blik", "trustly", "open_banking", "open_banking_uk", "open_banking_pis", "online_banking_fpx", "online_banking_thailand", "pix", "boleto", "upi_collect", "upi_intent", "mb_way", "swish", "multibanco", "revolut_pay", "amazon_pay", "cashapp", "atome", "bizum", "go_pay", "kakao_pay", "momo", "gcash", "touch_n_go", "mobile_pay", "pay_bright", "walley"] } }
+payment_method = { position = 3, schema = { type = "string", enum = ["credit", "debit", "google_pay", "apple_pay", "samsung_pay", "paypal", "klarna", "affirm", "afterpay_clearpay", "ali_pay", "we_chat_pay", "ach", "bacs", "becs", "sepa", "ideal", "eps", "giropay", "sofort", "bancontact_card", "przelewy24", "blik", "trustly", "open_banking", "open_banking_uk", "open_banking_pis", "online_banking_fpx", "online_banking_thailand", "pix", "boleto", "upi_collect", "upi_intent", "mb_way", "swish", "multibanco", "revolut_pay", "amazon_pay", "cashapp", "atome", "bizum", "go_pay", "kakao_pay", "momo", "gcash", "touch_n_go", "mobile_pay", "pay_bright", "walley", "bank_transfer", "interac"] } }
 
 # ISO 4217. Pruned to currencies referenced in pm_filters.
 currency = { position = 2, schema = { type = "string", enum = ["AED", "AUD", "BRL", "CAD", "CHF", "CNY", "CZK", "DKK", "EUR", "GBP", "HKD", "HUF", "IDR", "ILS", "INR", "JPY", "KRW", "MXN", "MYR", "NOK", "NZD", "PHP", "PLN", "SEK", "SGD", "THB", "TWD", "USD", "VND", "ZAR"] } }
@@ -633,3 +656,245 @@ enabled = true
 [[overrides]]
 _context_ = { payment_method = "pay_bright", country = "CA", currency = "CAD" }
 enabled = true
+
+# --- [payout_method_filters.*] via payment_type = "payout" -------------------
+# Same denial-floor pattern as mandate / zero_dollar_mandate. The source has
+# per-connector payout filters keyed on (connector, payment_method, country,
+# currency); each enables only the supported tuples.
+
+[[overrides]]
+_context_ = { payment_type = "payout" }
+enabled = false
+
+# [payout_method_filters.stripe] ach = { country = "US", currency = "USD" }
+[[overrides]]
+_context_ = { connector = "stripe", payment_method = "ach", country = "US", currency = "USD", payment_type = "payout" }
+enabled = true
+
+# [payout_method_filters.truelayer] open_banking = { currency = "GBP,EUR,PLN" }
+[[overrides]]
+_context_ = { connector = "truelayer", payment_method = "open_banking", currency = "GBP", payment_type = "payout" }
+enabled = true
+[[overrides]]
+_context_ = { connector = "truelayer", payment_method = "open_banking", currency = "EUR", payment_type = "payout" }
+enabled = true
+[[overrides]]
+_context_ = { connector = "truelayer", payment_method = "open_banking", currency = "PLN", payment_type = "payout" }
+enabled = true
+
+# [payout_method_filters.trustly] trustly = { currency = "BGN,GBP,EUR,..." }
+[[overrides]]
+_context_ = { connector = "trustly", payment_method = "trustly", region = "europe", currency = "EUR", payment_type = "payout" }
+enabled = true
+[[overrides]]
+_context_ = { connector = "trustly", payment_method = "trustly", region = "europe", currency = "GBP", payment_type = "payout" }
+enabled = true
+
+# [payout_method_filters.adyenplatform] sepa = { country = "AT,BE,CH,..." }
+[[overrides]]
+_context_ = { connector = "adyenplatform", payment_method = "sepa", region = "europe", currency = "EUR", payment_type = "payout" }
+enabled = true
+[[overrides]]
+_context_ = { connector = "adyenplatform", payment_method = "credit", region = "europe", currency = "EUR", payment_type = "payout" }
+enabled = true
+[[overrides]]
+_context_ = { connector = "adyenplatform", payment_method = "debit", region = "europe", currency = "EUR", payment_type = "payout" }
+enabled = true
+
+# [payout_method_filters.envoy] sepa/ach/bacs across EU+GB with EUR/GBP/...
+[[overrides]]
+_context_ = { connector = "envoy", payment_method = "sepa", region = "europe", currency = "EUR", payment_type = "payout" }
+enabled = true
+[[overrides]]
+_context_ = { connector = "envoy", payment_method = "ach", region = "europe", currency = "EUR", payment_type = "payout" }
+enabled = true
+[[overrides]]
+_context_ = { connector = "envoy", payment_method = "bacs", country = "GB", currency = "GBP", payment_type = "payout" }
+enabled = true
+
+# [payout_method_filters.loonio] interac = { currency = "CAD" }
+[[overrides]]
+_context_ = { connector = "loonio", payment_method = "interac", currency = "CAD", payment_type = "payout" }
+enabled = true
+
+# [payout_method_filters.gigadat] interac = { currency = "CAD" }
+[[overrides]]
+_context_ = { connector = "gigadat", payment_method = "interac", currency = "CAD", payment_type = "payout" }
+enabled = true
+
+# --- Per-connector boolean flag bundle --------------------------------------
+# Each CSV "connector_list" from the source expands into one override per
+# connector, flipping the corresponding flat config to true.
+
+# [network_transaction_id_supported_connectors]
+# connector_list = "adyen,archipel,checkout,cybersource,novalnet,nuvei,stripe,worldpay,worldpayvantiv,revolv3"
+[[overrides]]
+_context_ = { connector = "adyen" }
+network_transaction_id_supported = true
+[[overrides]]
+_context_ = { connector = "archipel" }
+network_transaction_id_supported = true
+[[overrides]]
+_context_ = { connector = "checkout" }
+network_transaction_id_supported = true
+[[overrides]]
+_context_ = { connector = "cybersource" }
+network_transaction_id_supported = true
+[[overrides]]
+_context_ = { connector = "novalnet" }
+network_transaction_id_supported = true
+[[overrides]]
+_context_ = { connector = "nuvei" }
+network_transaction_id_supported = true
+[[overrides]]
+_context_ = { connector = "stripe" }
+network_transaction_id_supported = true
+[[overrides]]
+_context_ = { connector = "worldpay" }
+network_transaction_id_supported = true
+[[overrides]]
+_context_ = { connector = "worldpayvantiv" }
+network_transaction_id_supported = true
+[[overrides]]
+_context_ = { connector = "revolv3" }
+network_transaction_id_supported = true
+
+# [card_only_mit_supported_connectors] connector_list = "peachpayments"
+[[overrides]]
+_context_ = { connector = "peachpayments" }
+card_only_mit_supported = true
+
+# [notify_iframe_exit_and_redirect] connector_list = "worldpayxml"
+[[overrides]]
+_context_ = { connector = "worldpayxml" }
+notify_iframe_exit_and_redirect = true
+
+# [delayed_session_response] connectors_with_delayed_session_response = "trustpay,payme"
+[[overrides]]
+_context_ = { connector = "trustpay" }
+delayed_session_response = true
+[[overrides]]
+_context_ = { connector = "payme" }
+delayed_session_response = true
+
+# [webhook_source_verification_call] connectors_with_webhook_source_verification_call = "paypal,truelayer"
+[[overrides]]
+_context_ = { connector = "paypal" }
+webhook_source_verification_required = true
+[[overrides]]
+_context_ = { connector = "truelayer" }
+webhook_source_verification_required = true
+
+# [billing_connectors_payment_sync] billing_connectors_which_require_payment_sync = "stripebilling,recurly"
+[[overrides]]
+_context_ = { connector = "stripebilling" }
+billing_payment_sync_required = true
+[[overrides]]
+_context_ = { connector = "recurly" }
+billing_payment_sync_required = true
+
+# [billing_connectors_invoice_sync] billing_connectors_which_requires_invoice_sync_call = "recurly"
+[[overrides]]
+_context_ = { connector = "recurly" }
+billing_invoice_sync_required = true
+
+# [connector_customer] payout_connector_list = "nomupay,stripe,wise,trustly"
+[[overrides]]
+_context_ = { connector = "nomupay" }
+payout_customer_connector_supported = true
+[[overrides]]
+_context_ = { connector = "stripe" }
+payout_customer_connector_supported = true
+[[overrides]]
+_context_ = { connector = "wise" }
+payout_customer_connector_supported = true
+[[overrides]]
+_context_ = { connector = "trustly" }
+payout_customer_connector_supported = true
+
+# [temp_locker_enable_config] keyed on (connector, payment_method).
+# Source uses "card" as an umbrella - expands to credit + debit here.
+# stripe = { payment_method = "bank_transfer" }
+[[overrides]]
+_context_ = { connector = "stripe", payment_method = "bank_transfer" }
+temp_locker_enabled = true
+# nuvei/shift4/bluesnap/bankofamerica/cybersource/barclaycard/nmi/payme/paybox/nexixpay/redsys/worldpayxml = card
+[[overrides]]
+_context_ = { connector = "nuvei", payment_method = "credit" }
+temp_locker_enabled = true
+[[overrides]]
+_context_ = { connector = "nuvei", payment_method = "debit" }
+temp_locker_enabled = true
+[[overrides]]
+_context_ = { connector = "shift4", payment_method = "credit" }
+temp_locker_enabled = true
+[[overrides]]
+_context_ = { connector = "shift4", payment_method = "debit" }
+temp_locker_enabled = true
+[[overrides]]
+_context_ = { connector = "bluesnap", payment_method = "credit" }
+temp_locker_enabled = true
+[[overrides]]
+_context_ = { connector = "bluesnap", payment_method = "debit" }
+temp_locker_enabled = true
+[[overrides]]
+_context_ = { connector = "bankofamerica", payment_method = "credit" }
+temp_locker_enabled = true
+[[overrides]]
+_context_ = { connector = "bankofamerica", payment_method = "debit" }
+temp_locker_enabled = true
+[[overrides]]
+_context_ = { connector = "cybersource", payment_method = "credit" }
+temp_locker_enabled = true
+[[overrides]]
+_context_ = { connector = "cybersource", payment_method = "debit" }
+temp_locker_enabled = true
+[[overrides]]
+_context_ = { connector = "barclaycard", payment_method = "credit" }
+temp_locker_enabled = true
+[[overrides]]
+_context_ = { connector = "barclaycard", payment_method = "debit" }
+temp_locker_enabled = true
+[[overrides]]
+_context_ = { connector = "nmi", payment_method = "credit" }
+temp_locker_enabled = true
+[[overrides]]
+_context_ = { connector = "nmi", payment_method = "debit" }
+temp_locker_enabled = true
+[[overrides]]
+_context_ = { connector = "payme", payment_method = "credit" }
+temp_locker_enabled = true
+[[overrides]]
+_context_ = { connector = "payme", payment_method = "debit" }
+temp_locker_enabled = true
+[[overrides]]
+_context_ = { connector = "paybox", payment_method = "credit" }
+temp_locker_enabled = true
+[[overrides]]
+_context_ = { connector = "paybox", payment_method = "debit" }
+temp_locker_enabled = true
+[[overrides]]
+_context_ = { connector = "nexixpay", payment_method = "credit" }
+temp_locker_enabled = true
+[[overrides]]
+_context_ = { connector = "nexixpay", payment_method = "debit" }
+temp_locker_enabled = true
+[[overrides]]
+_context_ = { connector = "redsys", payment_method = "credit" }
+temp_locker_enabled = true
+[[overrides]]
+_context_ = { connector = "redsys", payment_method = "debit" }
+temp_locker_enabled = true
+[[overrides]]
+_context_ = { connector = "worldpayxml", payment_method = "credit" }
+temp_locker_enabled = true
+[[overrides]]
+_context_ = { connector = "worldpayxml", payment_method = "debit" }
+temp_locker_enabled = true
+# deutschebank = bank_debit
+[[overrides]]
+_context_ = { connector = "deutschebank", payment_method = "ach" }
+temp_locker_enabled = true
+[[overrides]]
+_context_ = { connector = "deutschebank", payment_method = "sepa" }
+temp_locker_enabled = true
