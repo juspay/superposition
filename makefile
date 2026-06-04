@@ -318,7 +318,7 @@ smithy-api-docs: smithy-build
 	cp $(SMITHY_BUILD_SRC)/openapi/Superposition.openapi.json docs/docs/api/
 	cd docs && npm ci && npm run openapi-docs
 
-smithy-updates: smithy-clients smithy-api-docs
+smithy-updates: smithy-clean smithy-clients smithy-api-docs
 
 leptosfmt:
 	leptosfmt $(LEPTOS_FMT_FLAGS) $(LEPTOS_PACKAGES)
