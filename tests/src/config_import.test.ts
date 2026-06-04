@@ -10,10 +10,13 @@ import {
 import { superpositionClient, ENV } from "../env.ts";
 import { describe, test, expect, beforeAll } from "bun:test";
 
-// Import is exposed by POSTing a body to the same endpoints used for export
-// (`/config/toml`, `/config/json`). The generated SDK only models the
-// (read-only) export side, so the import calls here go through `fetch` while the
-// SDK is used for setup and for verifying the resulting workspace state.
+// Import lives at dedicated endpoints: POST /config/{toml,json}/import. These
+// are modelled in Smithy as ImportConfigToml / ImportConfigJson, but until the
+// SDK is regenerated (`make smithy-updates`) the commands aren't available, so
+// the import calls here go through `fetch`. The SDK is used for setup and for
+// verifying the resulting workspace state. Once the SDK is regenerated, the
+// `importConfig` helper can be replaced with ImportConfigTomlCommand /
+// ImportConfigJsonCommand.
 //
 // Import in `replace` mode mirrors the *entire* workspace, so these tests run in
 // their own dedicated workspace to avoid clobbering data created by other suites.
@@ -49,7 +52,7 @@ async function importConfig(
     body: string,
     extraHeaders: Record<string, string> = {},
 ): Promise<{ status: number; summary?: ImportSummary; raw: string }> {
-    const res = await fetch(`${ENV.baseUrl}/config/${format}`, {
+    const res = await fetch(`${ENV.baseUrl}/config/${format}/import`, {
         method: "POST",
         headers: {
             Authorization: "Bearer some-token",

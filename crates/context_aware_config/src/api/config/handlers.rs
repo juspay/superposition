@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use actix_web::{
-    HttpRequest, HttpResponse, Scope, get, put, routes,
+    HttpRequest, HttpResponse, Scope, get, post, put, routes,
     web::{Bytes, Data, Header, Json, Path, Query},
 };
 use chrono::{DateTime, Utc};
@@ -71,6 +71,8 @@ pub fn endpoints() -> Scope {
         .service(get_toml_handler)
         .service(get_json_handler)
         .service(detailed_resolve_handler)
+        .service(import_toml_handler)
+        .service(import_json_handler)
         .service(resolve_handler)
         .service(explain_resolve_handler)
         .service(reduce_handler)
@@ -569,37 +571,18 @@ async fn get_handler(
 
 /// Handler that returns config in TOML format with schema information.
 /// This uses generate_detailed_cac to fetch schemas from the database.
-#[allow(clippy::too_many_arguments)]
 #[authorized]
 #[routes]
 #[get("/toml")]
 #[post("/toml")]
 async fn get_toml_handler(
     req: HttpRequest,
-    body: Bytes,
-    user: User,
-    custom_headers: CustomHeaders,
     db_conn: DbConnection,
     workspace_context: WorkspaceContext,
     state: Data<AppState>,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let is_smithy = matches!(req.method(), &actix_web::http::Method::POST);
-
-    // A non-empty body on POST means "import this config"; the export path
-    // (GET, or POST with an empty body) is left unchanged.
-    if is_smithy && !body.is_empty() {
-        return super::import::handle_import::<TomlFormat>(
-            &body,
-            &req,
-            custom_headers,
-            &user,
-            &workspace_context,
-            &state,
-            &mut conn,
-        )
-        .await;
-    }
 
     let max_created_at = read_through_cache::<DateTime<Utc>>(
         format!(
@@ -635,37 +618,18 @@ async fn get_toml_handler(
 
 /// Handler that returns config in JSON format with schema information.
 /// This uses generate_detailed_cac to fetch schemas from the database.
-#[allow(clippy::too_many_arguments)]
 #[authorized]
 #[routes]
 #[get("/json")]
 #[post("/json")]
 async fn get_json_handler(
     req: HttpRequest,
-    body: Bytes,
-    user: User,
-    custom_headers: CustomHeaders,
     db_conn: DbConnection,
     workspace_context: WorkspaceContext,
     state: Data<AppState>,
 ) -> superposition::Result<HttpResponse> {
     let DbConnection(mut conn) = db_conn;
     let is_smithy = matches!(req.method(), &actix_web::http::Method::POST);
-
-    // A non-empty body on POST means "import this config"; the export path
-    // (GET, or POST with an empty body) is left unchanged.
-    if is_smithy && !body.is_empty() {
-        return super::import::handle_import::<JsonFormat>(
-            &body,
-            &req,
-            custom_headers,
-            &user,
-            &workspace_context,
-            &state,
-            &mut conn,
-        )
-        .await;
-    }
 
     let max_created_at = read_through_cache::<DateTime<Utc>>(
         format!(
@@ -697,6 +661,58 @@ async fn get_json_handler(
     response.insert_header(("Content-Type", "application/json"));
 
     Ok(response.body(json_str))
+}
+
+/// Imports a full config supplied as a TOML document in the request body.
+/// See [`crate::api::config::import`] for the supported `x-import-*` options.
+#[authorized]
+#[post("/toml/import")]
+async fn import_toml_handler(
+    req: HttpRequest,
+    body: Bytes,
+    user: User,
+    custom_headers: CustomHeaders,
+    db_conn: DbConnection,
+    workspace_context: WorkspaceContext,
+    state: Data<AppState>,
+) -> superposition::Result<HttpResponse> {
+    let DbConnection(mut conn) = db_conn;
+    super::import::handle_import::<TomlFormat>(
+        &body,
+        &req,
+        custom_headers,
+        &user,
+        &workspace_context,
+        &state,
+        &mut conn,
+    )
+    .await
+}
+
+/// Imports a full config supplied as a JSON document in the request body.
+/// See [`crate::api::config::import`] for the supported `x-import-*` options.
+#[authorized]
+#[post("/json/import")]
+async fn import_json_handler(
+    req: HttpRequest,
+    body: Bytes,
+    user: User,
+    custom_headers: CustomHeaders,
+    db_conn: DbConnection,
+    workspace_context: WorkspaceContext,
+    state: Data<AppState>,
+) -> superposition::Result<HttpResponse> {
+    let DbConnection(mut conn) = db_conn;
+    super::import::handle_import::<JsonFormat>(
+        &body,
+        &req,
+        custom_headers,
+        &user,
+        &workspace_context,
+        &state,
+        &mut conn,
+    )
+    .await
 }
 
 #[allow(clippy::too_many_arguments)]

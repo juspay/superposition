@@ -183,6 +183,165 @@ operation GetConfigJson {
     }
 }
 
+@documentation("How an import treats workspace entities that are not present in the imported file.")
+enum ImportMode {
+    @documentation("Upsert the entities in the file and leave everything else untouched.")
+    MERGE = "merge"
+
+    @documentation("Mirror the file: additionally delete dimensions, default-configs and contexts that are absent from it.")
+    REPLACE = "replace"
+}
+
+@documentation("How an import reacts when an individual entity fails to apply.")
+enum ImportOnError {
+    @documentation("Roll the whole import back on the first error.")
+    ABORT = "abort"
+
+    @documentation("Apply everything that is valid and report per-entity errors.")
+    CONTINUE = "continue"
+}
+
+@documentation("Per-entity outcome counts for an import.")
+structure ImportEntityReport {
+    @required
+    created: Integer
+
+    @required
+    updated: Integer
+
+    @required
+    skipped: Integer
+
+    @required
+    deleted: Integer
+
+    errors: ImportErrorList
+}
+
+list ImportErrorList {
+    member: ImportErrorItem
+}
+
+structure ImportErrorItem {
+    @required
+    id: String
+
+    @required
+    error: String
+}
+
+@documentation("Summary of what an import created, updated, skipped or deleted.")
+structure ImportConfigOutput {
+    @required
+    @notProperty
+    mode: String
+
+    @required
+    @notProperty
+    dry_run: Boolean
+
+    @notProperty
+    config_version: String
+
+    @required
+    @notProperty
+    dimensions: ImportEntityReport
+
+    @required
+    @notProperty
+    default_configs: ImportEntityReport
+
+    @required
+    @notProperty
+    contexts: ImportEntityReport
+}
+
+@documentation("Imports a full config from a TOML document, persisting dimensions, default-configs and contexts in a single transaction after validating the document.")
+@http(method: "POST", uri: "/config/toml/import")
+@tags(["Configuration Management"])
+operation ImportConfigToml {
+    input := with [WorkspaceMixin] {
+        @documentation("Whether to merge (default) or replace existing workspace config.")
+        @httpHeader("x-import-mode")
+        @notProperty
+        mode: ImportMode
+
+        @documentation("When false, entities that already exist are skipped instead of updated. Defaults to true.")
+        @httpHeader("x-import-overwrite")
+        @notProperty
+        overwrite: Boolean
+
+        @documentation("Whether to abort (default) or continue on per-entity errors.")
+        @httpHeader("x-import-on-error")
+        @notProperty
+        on_error: ImportOnError
+
+        @documentation("When true, validates and summarises the import without persisting anything. Defaults to false.")
+        @httpHeader("x-import-dry-run")
+        @notProperty
+        dry_run: Boolean
+
+        @documentation("When true, deep-merges object-valued default-configs with the existing value. Defaults to false.")
+        @httpHeader("x-import-value-merge")
+        @notProperty
+        value_merge: Boolean
+
+        @httpHeader("x-config-tags")
+        @notProperty
+        config_tags: String
+
+        @httpPayload
+        @required
+        @notProperty
+        toml_config: String
+    }
+
+    output: ImportConfigOutput
+}
+
+@documentation("Imports a full config from a JSON document, persisting dimensions, default-configs and contexts in a single transaction after validating the document.")
+@http(method: "POST", uri: "/config/json/import")
+@tags(["Configuration Management"])
+operation ImportConfigJson {
+    input := with [WorkspaceMixin] {
+        @documentation("Whether to merge (default) or replace existing workspace config.")
+        @httpHeader("x-import-mode")
+        @notProperty
+        mode: ImportMode
+
+        @documentation("When false, entities that already exist are skipped instead of updated. Defaults to true.")
+        @httpHeader("x-import-overwrite")
+        @notProperty
+        overwrite: Boolean
+
+        @documentation("Whether to abort (default) or continue on per-entity errors.")
+        @httpHeader("x-import-on-error")
+        @notProperty
+        on_error: ImportOnError
+
+        @documentation("When true, validates and summarises the import without persisting anything. Defaults to false.")
+        @httpHeader("x-import-dry-run")
+        @notProperty
+        dry_run: Boolean
+
+        @documentation("When true, deep-merges object-valued default-configs with the existing value. Defaults to false.")
+        @httpHeader("x-import-value-merge")
+        @notProperty
+        value_merge: Boolean
+
+        @httpHeader("x-config-tags")
+        @notProperty
+        config_tags: String
+
+        @httpPayload
+        @required
+        @notProperty
+        json_config: String
+    }
+
+    output: ImportConfigOutput
+}
+
 enum MergeStrategy {
     MERGE
     REPLACE
