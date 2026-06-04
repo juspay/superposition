@@ -665,6 +665,7 @@ async fn get_json_handler(
 
 /// Imports a full config supplied as a TOML document in the request body.
 /// See [`crate::api::config::import`] for the supported `x-import-*` options.
+#[allow(clippy::too_many_arguments)]
 #[authorized]
 #[post("/toml/import")]
 async fn import_toml_handler(
@@ -691,6 +692,7 @@ async fn import_toml_handler(
 
 /// Imports a full config supplied as a JSON document in the request body.
 /// See [`crate::api::config::import`] for the supported `x-import-*` options.
+#[allow(clippy::too_many_arguments)]
 #[authorized]
 #[post("/json/import")]
 async fn import_json_handler(
