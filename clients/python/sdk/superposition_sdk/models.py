@@ -17068,7 +17068,7 @@ ROTATE_MASTER_ENCRYPTION_KEY = APIOperation(
             ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
-            ShapeID("smithy.api#httpBasicAuth")
+           ShapeID("smithy.api#httpBasicAuth"),
 ShapeID("smithy.api#httpBearerAuth")
         ]
 )
@@ -17532,7 +17532,7 @@ ROTATE_WORKSPACE_ENCRYPTION_KEY = APIOperation(
             ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
-            ShapeID("smithy.api#httpBasicAuth")
+           ShapeID("smithy.api#httpBasicAuth"),
 ShapeID("smithy.api#httpBearerAuth")
         ]
 )
