@@ -20,8 +20,8 @@ pub(crate) fn de_import_error_item<'a, I>(tokens: &mut ::std::iter::Peekable<I>)
                                     ).transpose()?
                                 );
                             }
-                            "error" => {
-                                builder = builder.set_error(
+                            "message" => {
+                                builder = builder.set_message(
                                     ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
                                         s.to_unescaped().map(|u|
                                             u.into_owned()

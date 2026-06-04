@@ -67,7 +67,7 @@ export interface ImportConfigJsonCommandOutput extends ImportConfigOutput, __Met
  * //     errors: [ // ImportErrorList
  * //       { // ImportErrorItem
  * //         id: "STRING_VALUE", // required
- * //         error: "STRING_VALUE", // required
+ * //         message: "STRING_VALUE", // required
  * //       },
  * //     ],
  * //   },
@@ -79,7 +79,7 @@ export interface ImportConfigJsonCommandOutput extends ImportConfigOutput, __Met
  * //     errors: [
  * //       {
  * //         id: "STRING_VALUE", // required
- * //         error: "STRING_VALUE", // required
+ * //         message: "STRING_VALUE", // required
  * //       },
  * //     ],
  * //   },
@@ -91,7 +91,7 @@ export interface ImportConfigJsonCommandOutput extends ImportConfigOutput, __Met
  * //     errors: [
  * //       {
  * //         id: "STRING_VALUE", // required
- * //         error: "STRING_VALUE", // required
+ * //         message: "STRING_VALUE", // required
  * //       },
  * //     ],
  * //   },

@@ -1285,6 +1285,6 @@ if builder.value_after.is_none() { builder.value_after = Some(Default::default()
 
 pub(crate) fn import_error_item_correct_errors(mut builder: crate::types::builders::ImportErrorItemBuilder) -> crate::types::builders::ImportErrorItemBuilder {
                 if builder.id.is_none() { builder.id = Some(Default::default()) }
-if builder.error.is_none() { builder.error = Some(Default::default()) }
+if builder.message.is_none() { builder.message = Some(Default::default()) }
                 builder
             }

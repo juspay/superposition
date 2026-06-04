@@ -2834,7 +2834,7 @@ export interface ImportConfigJsonInput {
  */
 export interface ImportErrorItem {
   id: string | undefined;
-  error: string | undefined;
+  message: string | undefined;
 }
 
 /**

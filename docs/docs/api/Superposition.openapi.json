@@ -10438,13 +10438,13 @@
                     "id": {
                         "type": "string"
                     },
-                    "error": {
+                    "message": {
                         "type": "string"
                     }
                 },
                 "required": [
-                    "error",
-                    "id"
+                    "id",
+                    "message"
                 ]
             },
             "ImportMode": {

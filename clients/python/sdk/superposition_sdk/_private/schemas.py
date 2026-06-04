@@ -15473,7 +15473,7 @@ IMPORT_ERROR_ITEM = Schema.collection(
             ],
         },
 
-        "error": {
+        "message": {
             "target": STRING,
             "index": 1,
             "traits": [

@@ -6,7 +6,7 @@ pub struct ImportErrorItem  {
     #[allow(missing_docs)] // documentation missing in model
     pub id: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
-    pub error: ::std::string::String,
+    pub message: ::std::string::String,
 }
 impl  ImportErrorItem  {
     #[allow(missing_docs)] // documentation missing in model
@@ -14,8 +14,8 @@ impl  ImportErrorItem  {
         use std::ops::Deref; self.id.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn error(&self) -> &str {
-        use std::ops::Deref; self.error.deref()
+    pub fn message(&self) -> &str {
+        use std::ops::Deref; self.message.deref()
     }
 }
 impl ImportErrorItem {
@@ -30,7 +30,7 @@ impl ImportErrorItem {
 #[non_exhaustive]
 pub struct ImportErrorItemBuilder {
     pub(crate) id: ::std::option::Option<::std::string::String>,
-    pub(crate) error: ::std::option::Option<::std::string::String>,
+    pub(crate) message: ::std::option::Option<::std::string::String>,
 }
 impl ImportErrorItemBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -49,22 +49,22 @@ impl ImportErrorItemBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn error(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.error = ::std::option::Option::Some(input.into());
+    pub fn message(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.message = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_error(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.error = input; self
+    pub fn set_message(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.message = input; self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_error(&self) -> &::std::option::Option<::std::string::String> {
-        &self.error
+    pub fn get_message(&self) -> &::std::option::Option<::std::string::String> {
+        &self.message
     }
     /// Consumes the builder and constructs a [`ImportErrorItem`](crate::types::ImportErrorItem).
     /// This method will fail if any of the following fields are not set:
     /// - [`id`](crate::types::builders::ImportErrorItemBuilder::id)
-    /// - [`error`](crate::types::builders::ImportErrorItemBuilder::error)
+    /// - [`message`](crate::types::builders::ImportErrorItemBuilder::message)
     pub fn build(self) -> ::std::result::Result<crate::types::ImportErrorItem, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
             crate::types::ImportErrorItem {
@@ -73,9 +73,9 @@ impl ImportErrorItemBuilder {
                         ::aws_smithy_types::error::operation::BuildError::missing_field("id", "id was not specified but it is required when building ImportErrorItem")
                     )?
                 ,
-                error: self.error
+                message: self.message
                     .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("error", "error was not specified but it is required when building ImportErrorItem")
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("message", "message was not specified but it is required when building ImportErrorItem")
                     )?
                 ,
             }

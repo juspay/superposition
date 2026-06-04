@@ -135,7 +135,7 @@ impl ImportOptions {
 #[derive(Serialize)]
 pub struct ImportError {
     pub id: String,
-    pub error: String,
+    pub message: String,
 }
 
 #[derive(Default, Serialize)]
@@ -260,7 +260,7 @@ fn apply_outcome(
             OnError::Continue => {
                 report.errors.push(ImportError {
                     id: id.to_string(),
-                    error: e.message(),
+                    message: e.message(),
                 });
                 Ok(())
             }

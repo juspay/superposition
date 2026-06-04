@@ -15382,14 +15382,14 @@ class ImportErrorItem:
 
     id: str
 
-    error: str
+    message: str
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_IMPORT_ERROR_ITEM, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
         serializer.write_string(_SCHEMA_IMPORT_ERROR_ITEM.members["id"], self.id)
-        serializer.write_string(_SCHEMA_IMPORT_ERROR_ITEM.members["error"], self.error)
+        serializer.write_string(_SCHEMA_IMPORT_ERROR_ITEM.members["message"], self.message)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -15405,7 +15405,7 @@ class ImportErrorItem:
                     kwargs["id"] = de.read_string(_SCHEMA_IMPORT_ERROR_ITEM.members["id"])
 
                 case 1:
-                    kwargs["error"] = de.read_string(_SCHEMA_IMPORT_ERROR_ITEM.members["error"])
+                    kwargs["message"] = de.read_string(_SCHEMA_IMPORT_ERROR_ITEM.members["message"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)

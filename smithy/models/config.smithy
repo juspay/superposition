@@ -227,7 +227,7 @@ structure ImportErrorItem {
     id: String
 
     @required
-    error: String
+    message: String
 }
 
 @documentation("Summary of what an import created, updated, skipped or deleted.")
