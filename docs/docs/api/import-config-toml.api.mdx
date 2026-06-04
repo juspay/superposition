@@ -1,0 +1,69 @@
+---
+id: import-config-toml
+title: "ImportConfigToml"
+description: "Imports a full config from a TOML document, persisting dimensions, default-configs and contexts in a single transaction after validating the document."
+sidebar_label: "ImportConfigToml"
+hide_title: true
+hide_table_of_contents: true
+api: eJztWEtPIzkQ/itWn2akNEGz4sJtHist0iIQZLUHhJDTriQeuu0e201oofz3rbLdj6SbIQuT1Wo0F0jb5Xp89ZXL9lMiwGZGlk5qlZwmZ0WpjbOMs0WV5yzTaiGXbGF0gUOzi/M/mdBZVYByE1aCsdI6qZZMSByyqMJOmIAFr3KXhrWoSgnS4+AR9UqFeiwuyYE5w5XlGVlmfOHAsAeeS8G9RreC1tRRMkk0WuMkeiZaNz97CzNd5Chg4FsF1n3Sok5OnxJvUTn6SZanZc6loi+braDgfrwuAXVZZ9AganDS5TCi/EyVlbvkda65SDabTbAlDaAnzlSAAyU3vAAMwSanN0+Jwg9U9BgxSB1fWjRADiQr4AIMfj3nCBroaZDemVSYOjWVGijZzt7fK1CMXJo0UELA31ZFwY20+EnABqVsLd1KV66fSK5qt8IfR+xLSCMu0GzBcwtHYz7Ptc6Bq//ak1GMCi3gZYDQqiFNBZglsHeRre+ZNswAsiQDBo/Rh7U297akoZDIUQha/myb+kOvMYYmQGeAYwSdQuSmdNKjwB3jBpjSGL8BizNUJh06INhC5h5/UFWBDEu885703uPkdpe954TFKEpapWCMNvsjxecUwRZSVF1SVcCwdDFnqY+mZl6xfT1KCFJGKBF5aFQJ+SBFxXMWDSy4zD0PeFnmdR8R7yR+N54NIblQv/u4x1F5ALM20u1BIBVIONlNYY7eizqQxyfU3suyxORJZR1OMb1gVUmVILY5TWXy74vrIE6MYoMFXEHaUG7P/UcAlGGNZXr+FbKoRwz6A9W+Z3tbdl7wB+5Ah/FlGyttlqkU+2/ywybSU9ZuE2/Qd0sjtsSWDJbkPxwf07+xdt+1OoZSrFkWqyl2Uao4mfkWPP1q9XgvDegOcnHtN/2ayLf2NG0rPqN9EcSkIeWkJSzuMgJyIKKivtLQAYCITtb8Tj+GAbbJO2qTQ3psfDAY5t0D9Ritxte355iXg7rs9j1sXZkuqEtUCjmyQN/bEIfex5h7FnAPm2N60YEIw+hcRGZ0LkI1Ohd25d4UN4bXRC0HxWig2/5KMYpV6CJjx5ceFW+SttmI4ZbsN+Qz9GL3WHXTgtSF1gHQwTTU6BNyBfQ74OLr9i4W+K+s/hRZba4Tv9L5E6RzV2eT22Hxbu3P3WY/Cf1gYKZra1exo32O7WzjIzkZ7YgoYRTPr8Fgo/Cxs5Mf1BR3mhhYy5djfWzTi2TozlgwtILumIhfiLoKl2V2zhXaoEs04YNX1JWm+3OprXeIuxV+TQPAU4dQTUNBUCIhq/BEXPsbrS3wZFQf8VIerZwrP3Ers48Vrb65paPL7jzg2dO0AredtmtCJwDwvM4WERof3hlms0vmpRlHcSrvkILmfOT7Ps37gnzes33MePHv2fECPmdSLbRXGnN3XWG2EWkZ17QHDzyLfThJj39Lj0/IQ0pGwT134gkw8JeFVLL4wLHlXe+B4//7ZhPR7b2/0OZpcnI/UO8mHspIOEQZ6YeMWRFHUeLpCXMJf5l8s6HhbxUY4iT+fOBG8jlhTSRsDslEVyEtTSDVwzXpefCec/Me6pEXHH8boFXE+f2NHPxd5rshDJ6QXh/FWx9P9vEzPuO83cnXvFvs42DvBeUtfDjQK8JeEfReO95O6UNd9feJZPtt4pWxvLuK54/37CWz7TX/8Kb6jwBb1oJAbP/pjHR0Elu6GtmPWQal60kNzi2b/ung8uJ6hsLz+JQebtuJ4Wt6ccS/5Mdm8w8edXyV
+sidebar_class_name: "post api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+import Translate from "@docusaurus/Translate";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"ImportConfigToml"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/config/toml/import"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Imports a full config from a TOML document, persisting dimensions, default-configs and contexts in a single transaction after validating the document.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+>
+  <Translate id="theme.openapi.request.title">Request</Translate>
+</Heading>
+
+<ParamsDetails
+  {...require("./import-config-toml.ParamsDetails.json")}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  {...require("./import-config-toml.RequestSchema.json")}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  {...require("./import-config-toml.StatusCodes.json")}
+>
+  
+</StatusCodes>
+
+
+      

@@ -231,6 +231,10 @@ mod get_webhook_by_event;
 
 mod get_workspace;
 
+mod import_config_json;
+
+mod import_config_toml;
+
 mod list_audit_logs;
 
 mod list_contexts;

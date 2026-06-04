@@ -206,6 +206,14 @@ import {
   GetWorkspaceCommandOutput,
 } from "./commands/GetWorkspaceCommand";
 import {
+  ImportConfigJsonCommandInput,
+  ImportConfigJsonCommandOutput,
+} from "./commands/ImportConfigJsonCommand";
+import {
+  ImportConfigTomlCommandInput,
+  ImportConfigTomlCommandOutput,
+} from "./commands/ImportConfigTomlCommand";
+import {
   ListAuditLogsCommandInput,
   ListAuditLogsCommandOutput,
 } from "./commands/ListAuditLogsCommand";
@@ -469,6 +477,8 @@ export type ServiceInputTypes =
   | GetWebhookByEventCommandInput
   | GetWebhookCommandInput
   | GetWorkspaceCommandInput
+  | ImportConfigJsonCommandInput
+  | ImportConfigTomlCommandInput
   | ListAuditLogsCommandInput
   | ListContextsCommandInput
   | ListDefaultConfigsCommandInput
@@ -561,6 +571,8 @@ export type ServiceOutputTypes =
   | GetWebhookByEventCommandOutput
   | GetWebhookCommandOutput
   | GetWorkspaceCommandOutput
+  | ImportConfigJsonCommandOutput
+  | ImportConfigTomlCommandOutput
   | ListAuditLogsCommandOutput
   | ListContextsCommandOutput
   | ListDefaultConfigsCommandOutput

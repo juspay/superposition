@@ -151,6 +151,12 @@ import io.juspay.superposition.model.GetWebhookOutput;
 import io.juspay.superposition.model.GetWorkspace;
 import io.juspay.superposition.model.GetWorkspaceInput;
 import io.juspay.superposition.model.GetWorkspaceOutput;
+import io.juspay.superposition.model.ImportConfigJson;
+import io.juspay.superposition.model.ImportConfigJsonInput;
+import io.juspay.superposition.model.ImportConfigJsonOutput;
+import io.juspay.superposition.model.ImportConfigToml;
+import io.juspay.superposition.model.ImportConfigTomlInput;
+import io.juspay.superposition.model.ImportConfigTomlOutput;
 import io.juspay.superposition.model.ListAuditLogs;
 import io.juspay.superposition.model.ListAuditLogsInput;
 import io.juspay.superposition.model.ListAuditLogsOutput;
@@ -742,6 +748,24 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
     }
 
     @Override
+    public ImportConfigJsonOutput importConfigJson(ImportConfigJsonInput input, RequestOverrideConfig overrideConfig) {
+        try {
+            return call(input, ImportConfigJson.instance(), overrideConfig).join();
+        } catch (CompletionException e) {
+            throw unwrapAndThrow(e);
+        }
+    }
+
+    @Override
+    public ImportConfigTomlOutput importConfigToml(ImportConfigTomlInput input, RequestOverrideConfig overrideConfig) {
+        try {
+            return call(input, ImportConfigToml.instance(), overrideConfig).join();
+        } catch (CompletionException e) {
+            throw unwrapAndThrow(e);
+        }
+    }
+
+    @Override
     public ListAuditLogsOutput listAuditLogs(ListAuditLogsInput input, RequestOverrideConfig overrideConfig) {
         try {
             return call(input, ListAuditLogs.instance(), overrideConfig).join();
@@ -1079,4 +1103,3 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
         return TYPE_REGISTRY;
     }
 }
-

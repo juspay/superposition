@@ -49,6 +49,8 @@ export * from "./GetVersionCommand";
 export * from "./GetWebhookCommand";
 export * from "./GetWebhookByEventCommand";
 export * from "./GetWorkspaceCommand";
+export * from "./ImportConfigJsonCommand";
+export * from "./ImportConfigTomlCommand";
 export * from "./ListAuditLogsCommand";
 export * from "./ListContextsCommand";
 export * from "./ListDefaultConfigsCommand";

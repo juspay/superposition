@@ -1,0 +1,69 @@
+---
+id: import-config-json
+title: "ImportConfigJson"
+description: "Imports a full config from a JSON document, persisting dimensions, default-configs and contexts in a single transaction after validating the document."
+sidebar_label: "ImportConfigJson"
+hide_title: true
+hide_table_of_contents: true
+api: eJztWEtv2zgQ/iuETi1gJUEXueTWxwJNgW6COIs9BEFAiyObiUSqJBVHCPzfd4akJdlSGm9SF4uil8TiYx7ffMMh5zERYDMjKye1Sk6S07LSxlnGWV4XBcu0yuWc5UaXOPRlevYXEzqrS1BuwiowVlon1ZwJiUMWRdgJE5DzunBp2IuilCA5Dh5QrlQox+KWApgzXFmekWbGcweG3fNCCu4lugW0qg6SSaJRG6elp6I186PX8MWi5ZPEwLcarPugRZOcPCZeo3L0kzQfVgWXir5stoCS+/GmApRlnUGFKMFJV8CI8FNV1e6cN4XmIlmtVkGXNICWOFMDDlTc8BLQBZucXD0mCj9Q0EPEIHV8blEBGZAsgAsw+PWUIaigJ0F6Y1JhmtTUaiBkM3r/LEAxMmmyhhIC/rYuS26kxU8CNghlS+kWunb9QHLVuAX+OGCfQhhxg2Y5LywcjNk807oArn62JaMYlVrA8wChVkOSSjBzYG8iW98ybZgBZEkGDB6iDUtt7mxFQyGQoxC0/NlU9Vkv0Ye1g84ARw86gchN6aRHgTvGDTCl0X8DFmcoTTp0QLBcFh5/UHWJDEu88Z703uLkepu9XwmLUZS0SsEYbXZHis/Igw2kKLukqoFh6mLMUu9Nw7xg+3KUEKSMUCLy0KgS8l6KmhcsKsi5LDwPeFUVTR8RbyR+ry0bQnKm/vR+j6NyD2ZppNuBQCqQcLIdwgKtF00gjw+ovZNVhcGTyjqcYjpndUWZIDY5TWny35NrL0aMYoMJXEO6ptyO548AqMIey/TsFrIoRwzqA+W+Z3ubdn7hDzyB9mPLJlbazFMpdj/kh0WkJ6w9Jl4h75pGbIUlGSytf3d0RP/Gyn1X6hiuYuttMZtiFaWMk5kvwYe3VHLHamlAdxCLqT/0GyLf0tO0zfiMzkUQkzUpJy1h8ZQRUAARFeVVhi4ARHTS5k/6MQywTN5QmRzSY+WdQTdv7qnGaDW+v73HPO/UeXfuYenKdElVolbIkRxtb10cWh997mnAM2yG4UUDIgyjcxGZ0bkI1ehcOJV7U9wY3hC1HJSjjm7aK8UoVqGKjF1felS8StpiI4ZHsj+QT9GK7WvVVQtS51oHQAfTUKIPyAXQ74CLz9ubmOC/o/pLRHX9nPgdzl8gnNsy17EdJu/G+dwd9pNQDwZqurJ2ESvax1jOVt6T49GKiCuM4sUUDBYK7zs7/kFFcauIgbV8PlbHVj1PhuaMOUM76I2J+AWv6/BYZl+5Qh30iCZ88Im60PR+rrT1BnG3wK/DALD34DAkBAUSshpvxI1/0doSb0bNAa/kwcK56gO3Mntf0+6ra7q6bM8D3j1Nu+C6kzYldAIAT8tsEaHx4Zvh8vKc+dWM43JK7xCC9f3I132a9wn5tGW7qPHLv6fHL/AxkyrXXmiM3bTGaCPSMu5pLx54F3t3nB79kR4dk4UUjJJ77sQbYOAvC6FkscGxYV2vwfH/7dlEdHv9Fzo8TUHmB+pdxUsZLr4NXkb6IWMWxFFc8fiIsYS/TbFa0fC3GgxxEn/ecyP5jLAmEq4vyURXIS1NINXDM+lp8J4y8w6akQ6Ofw3QLuL87kr23pf5rguDFtLLvXht82QXO2Mb5/VGvqRvsYuBvQ7Ka/iwpy7CTh70uh2vp/S+nvq7eLLZm3ihL28u4v3jLXtObfvM37+qfhNgQ1tYEMt/ekkyuhUbstZr32cZVK63anBvWfVvB+dn00tcPIut9PDaTgxfUscR/5Idq9W/J/R8gw==
+sidebar_class_name: "post api-method"
+info_path: docs/api/superposition
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+import Translate from "@docusaurus/Translate";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"ImportConfigJson"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/config/json/import"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Imports a full config from a JSON document, persisting dimensions, default-configs and contexts in a single transaction after validating the document.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+>
+  <Translate id="theme.openapi.request.title">Request</Translate>
+</Heading>
+
+<ParamsDetails
+  {...require("./import-config-json.ParamsDetails.json")}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  {...require("./import-config-json.RequestSchema.json")}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  {...require("./import-config-json.StatusCodes.json")}
+>
+  
+</StatusCodes>
+
+
+      

@@ -65,6 +65,8 @@ from .models import (
     GetWebhookByEventInput,
     GetWebhookInput,
     GetWorkspaceInput,
+    ImportConfigJsonInput,
+    ImportConfigTomlInput,
     ListAuditLogsInput,
     ListContextsInput,
     ListDefaultConfigsInput,
@@ -1913,6 +1915,98 @@ async def _serialize_get_workspace(input: GetWorkspaceInput, config: Config) -> 
             query=query,
         ),
         method="GET",
+        fields=headers,
+        body=body,
+    )
+
+async def _serialize_import_config_json(input: ImportConfigJsonInput, config: Config) -> HTTPRequest:
+    path = "/config/json/import"
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    content_length: int = 0
+    if input.json_config is not None:
+        content = input.json_config.encode('utf-8')
+        content_length = len(content)
+        body = SeekableAsyncBytesReader(content)
+    headers = Fields(
+        [
+            Field(name="Content-Type", values=["text/plain"]),
+            Field(name="Content-Length", values=[str(content_length)]),
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.mode:
+        headers.extend(Fields([Field(name="x-import-mode", values=[input.mode])]))
+    if input.overwrite is not None:
+        headers.extend(Fields([Field(name="x-import-overwrite", values=[('true' if input.overwrite else 'false')])]))
+    if input.on_error:
+        headers.extend(Fields([Field(name="x-import-on-error", values=[input.on_error])]))
+    if input.dry_run is not None:
+        headers.extend(Fields([Field(name="x-import-dry-run", values=[('true' if input.dry_run else 'false')])]))
+    if input.value_merge is not None:
+        headers.extend(Fields([Field(name="x-import-value-merge", values=[('true' if input.value_merge else 'false')])]))
+    if input.config_tags:
+        headers.extend(Fields([Field(name="x-config-tags", values=[input.config_tags])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="POST",
+        fields=headers,
+        body=body,
+    )
+
+async def _serialize_import_config_toml(input: ImportConfigTomlInput, config: Config) -> HTTPRequest:
+    path = "/config/toml/import"
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    content_length: int = 0
+    if input.toml_config is not None:
+        content = input.toml_config.encode('utf-8')
+        content_length = len(content)
+        body = SeekableAsyncBytesReader(content)
+    headers = Fields(
+        [
+            Field(name="Content-Type", values=["text/plain"]),
+            Field(name="Content-Length", values=[str(content_length)]),
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.mode:
+        headers.extend(Fields([Field(name="x-import-mode", values=[input.mode])]))
+    if input.overwrite is not None:
+        headers.extend(Fields([Field(name="x-import-overwrite", values=[('true' if input.overwrite else 'false')])]))
+    if input.on_error:
+        headers.extend(Fields([Field(name="x-import-on-error", values=[input.on_error])]))
+    if input.dry_run is not None:
+        headers.extend(Fields([Field(name="x-import-dry-run", values=[('true' if input.dry_run else 'false')])]))
+    if input.value_merge is not None:
+        headers.extend(Fields([Field(name="x-import-value-merge", values=[('true' if input.value_merge else 'false')])]))
+    if input.config_tags:
+        headers.extend(Fields([Field(name="x-config-tags", values=[input.config_tags])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="POST",
         fields=headers,
         body=body,
     )

@@ -151,6 +151,12 @@ import io.juspay.superposition.model.GetWebhookOutput;
 import io.juspay.superposition.model.GetWorkspace;
 import io.juspay.superposition.model.GetWorkspaceInput;
 import io.juspay.superposition.model.GetWorkspaceOutput;
+import io.juspay.superposition.model.ImportConfigJson;
+import io.juspay.superposition.model.ImportConfigJsonInput;
+import io.juspay.superposition.model.ImportConfigJsonOutput;
+import io.juspay.superposition.model.ImportConfigToml;
+import io.juspay.superposition.model.ImportConfigTomlInput;
+import io.juspay.superposition.model.ImportConfigTomlOutput;
 import io.juspay.superposition.model.ListAuditLogs;
 import io.juspay.superposition.model.ListAuditLogsInput;
 import io.juspay.superposition.model.ListAuditLogsOutput;
@@ -492,6 +498,14 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
     }
 
     @Override
+    public CompletableFuture<ImportConfigJsonOutput> importConfigJson(ImportConfigJsonInput input, RequestOverrideConfig overrideConfig) {return call(input, ImportConfigJson.instance(), overrideConfig);
+    }
+
+    @Override
+    public CompletableFuture<ImportConfigTomlOutput> importConfigToml(ImportConfigTomlInput input, RequestOverrideConfig overrideConfig) {return call(input, ImportConfigToml.instance(), overrideConfig);
+    }
+
+    @Override
     public CompletableFuture<ListAuditLogsOutput> listAuditLogs(ListAuditLogsInput input, RequestOverrideConfig overrideConfig) {return call(input, ListAuditLogs.instance(), overrideConfig);
     }
 
@@ -644,4 +658,3 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
         return TYPE_REGISTRY;
     }
 }
-

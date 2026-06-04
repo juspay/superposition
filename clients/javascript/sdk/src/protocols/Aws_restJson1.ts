@@ -200,6 +200,14 @@ import {
   GetWorkspaceCommandOutput,
 } from "../commands/GetWorkspaceCommand";
 import {
+  ImportConfigJsonCommandInput,
+  ImportConfigJsonCommandOutput,
+} from "../commands/ImportConfigJsonCommand";
+import {
+  ImportConfigTomlCommandInput,
+  ImportConfigTomlCommandOutput,
+} from "../commands/ImportConfigTomlCommand";
+import {
   ListAuditLogsCommandInput,
   ListAuditLogsCommandOutput,
 } from "../commands/ListAuditLogsCommand";
@@ -1680,6 +1688,66 @@ export const se_GetWorkspaceCommand = async(
   b.p('workspace_name', () => input.workspace_name!, '{workspace_name}', false)
   let body: any;
   b.m("GET")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
+ * serializeAws_restJson1ImportConfigJsonCommand
+ */
+export const se_ImportConfigJsonCommand = async(
+  input: ImportConfigJsonCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    'content-type': 'text/plain',
+    [_xw]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+    [_xim]: input[_m]!,
+    [_xio]: [() => isSerializableHeaderValue(input[_o]), () => input[_o]!.toString()],
+    [_xioe]: input[_oe]!,
+    [_xidr]: [() => isSerializableHeaderValue(input[_dr]), () => input[_dr]!.toString()],
+    [_xivm]: [() => isSerializableHeaderValue(input[_vm]), () => input[_vm]!.toString()],
+    [_xct]: input[_ct]!,
+  });
+  b.bp("/config/json/import");
+  let body: any;
+  if (input.json_config !== undefined) {
+    body = input.json_config;
+  }
+  b.m("POST")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
+ * serializeAws_restJson1ImportConfigTomlCommand
+ */
+export const se_ImportConfigTomlCommand = async(
+  input: ImportConfigTomlCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    'content-type': 'text/plain',
+    [_xw]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+    [_xim]: input[_m]!,
+    [_xio]: [() => isSerializableHeaderValue(input[_o]), () => input[_o]!.toString()],
+    [_xioe]: input[_oe]!,
+    [_xidr]: [() => isSerializableHeaderValue(input[_dr]), () => input[_dr]!.toString()],
+    [_xivm]: [() => isSerializableHeaderValue(input[_vm]), () => input[_vm]!.toString()],
+    [_xct]: input[_ct]!,
+  });
+  b.bp("/config/toml/import");
+  let body: any;
+  if (input.toml_config !== undefined) {
+    body = input.toml_config;
+  }
+  b.m("POST")
   .h(headers)
   .b(body);
   return b.build();
@@ -4145,6 +4213,58 @@ export const de_GetWorkspaceCommand = async(
 }
 
 /**
+ * deserializeAws_restJson1ImportConfigJsonCommand
+ */
+export const de_ImportConfigJsonCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<ImportConfigJsonCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'config_version': __expectString,
+    'contexts': _json,
+    'default_configs': _json,
+    'dimensions': _json,
+    'dry_run': __expectBoolean,
+    'mode': __expectString,
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
+ * deserializeAws_restJson1ImportConfigTomlCommand
+ */
+export const de_ImportConfigTomlCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<ImportConfigTomlCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'config_version': __expectString,
+    'contexts': _json,
+    'default_configs': _json,
+    'dimensions': _json,
+    'dry_run': __expectBoolean,
+    'mode': __expectString,
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
  * deserializeAws_restJson1ListAuditLogsCommand
  */
 export const de_ListAuditLogsCommand = async(
@@ -6005,6 +6125,12 @@ const de_CommandError = async(
     }) as any;
   }
 
+  // de_ImportEntityReport omitted.
+
+  // de_ImportErrorItem omitted.
+
+  // de_ImportErrorList omitted.
+
   /**
    * deserializeAws_restJson1ListContextOut
    */
@@ -6473,6 +6599,7 @@ const de_CommandError = async(
   const _ci = "context_id";
   const _ct = "config_tags";
   const _dms = "dimension_match_strategy";
+  const _dr = "dry_run";
   const _egi = "experiment_group_ids";
   const _ei = "experiment_ids";
   const _en = "experiment_name";
@@ -6488,8 +6615,11 @@ const de_CommandError = async(
   const _lm = "last-modified";
   const _lm_ = "last_modified";
   const _lmb = "last_modified_by";
+  const _m = "mode";
   const _ms = "merge_strategy";
   const _n = "name";
+  const _o = "overwrite";
+  const _oe = "on_error";
   const _oi = "org_id";
   const _p = "prefix";
   const _pa = "page";
@@ -6504,10 +6634,16 @@ const de_CommandError = async(
   const _td = "to_date";
   const _u = "username";
   const _v = "version";
+  const _vm = "value_merge";
   const _wi = "workspace_id";
   const _xai = "x-audit-id";
   const _xct = "x-config-tags";
   const _xcv = "x-config-version";
+  const _xidr = "x-import-dry-run";
+  const _xim = "x-import-mode";
+  const _xio = "x-import-overwrite";
+  const _xioe = "x-import-on-error";
+  const _xivm = "x-import-value-merge";
   const _xms = "x-merge-strategy";
   const _xoi = "x-org-id";
   const _xw = "x-workspace";

@@ -310,6 +310,115 @@
                 ]
             }
         },
+        "/config/json/import": {
+            "post": {
+                "description": "Imports a full config from a JSON document, persisting dimensions, default-configs and contexts in a single transaction after validating the document.",
+                "operationId": "ImportConfigJson",
+                "requestBody": {
+                    "content": {
+                        "text/plain": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ImportConfigJsonInputPayload"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "parameters": [
+                    {
+                        "name": "x-config-tags",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "x-import-dry-run",
+                        "in": "header",
+                        "description": "When true, validates and summarises the import without persisting anything. Defaults to false.",
+                        "schema": {
+                            "type": "boolean",
+                            "description": "When true, validates and summarises the import without persisting anything. Defaults to false."
+                        }
+                    },
+                    {
+                        "name": "x-import-mode",
+                        "in": "header",
+                        "description": "Whether to merge (default) or replace existing workspace config.",
+                        "schema": {
+                            "$ref": "#/components/schemas/ImportMode"
+                        }
+                    },
+                    {
+                        "name": "x-import-on-error",
+                        "in": "header",
+                        "description": "Whether to abort (default) or continue on per-entity errors.",
+                        "schema": {
+                            "$ref": "#/components/schemas/ImportOnError"
+                        }
+                    },
+                    {
+                        "name": "x-import-overwrite",
+                        "in": "header",
+                        "description": "When false, entities that already exist are skipped instead of updated. Defaults to true.",
+                        "schema": {
+                            "type": "boolean",
+                            "description": "When false, entities that already exist are skipped instead of updated. Defaults to true."
+                        }
+                    },
+                    {
+                        "name": "x-import-value-merge",
+                        "in": "header",
+                        "description": "When true, deep-merges object-valued default-configs with the existing value. Defaults to false.",
+                        "schema": {
+                            "type": "boolean",
+                            "description": "When true, deep-merges object-valued default-configs with the existing value. Defaults to false."
+                        }
+                    },
+                    {
+                        "name": "x-org-id",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-workspace",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ImportConfigJson 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ImportConfigJsonResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Configuration Management"
+                ]
+            }
+        },
         "/config/resolve": {
             "post": {
                 "description": "Resolves and merges config values based on context conditions, applying overrides and merge strategies to produce the final configuration.",
@@ -722,6 +831,115 @@
                             "text/plain": {
                                 "schema": {
                                     "$ref": "#/components/schemas/GetConfigTomlOutputPayload"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Configuration Management"
+                ]
+            }
+        },
+        "/config/toml/import": {
+            "post": {
+                "description": "Imports a full config from a TOML document, persisting dimensions, default-configs and contexts in a single transaction after validating the document.",
+                "operationId": "ImportConfigToml",
+                "requestBody": {
+                    "content": {
+                        "text/plain": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ImportConfigTomlInputPayload"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "parameters": [
+                    {
+                        "name": "x-config-tags",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "x-import-dry-run",
+                        "in": "header",
+                        "description": "When true, validates and summarises the import without persisting anything. Defaults to false.",
+                        "schema": {
+                            "type": "boolean",
+                            "description": "When true, validates and summarises the import without persisting anything. Defaults to false."
+                        }
+                    },
+                    {
+                        "name": "x-import-mode",
+                        "in": "header",
+                        "description": "Whether to merge (default) or replace existing workspace config.",
+                        "schema": {
+                            "$ref": "#/components/schemas/ImportMode"
+                        }
+                    },
+                    {
+                        "name": "x-import-on-error",
+                        "in": "header",
+                        "description": "Whether to abort (default) or continue on per-entity errors.",
+                        "schema": {
+                            "$ref": "#/components/schemas/ImportOnError"
+                        }
+                    },
+                    {
+                        "name": "x-import-overwrite",
+                        "in": "header",
+                        "description": "When false, entities that already exist are skipped instead of updated. Defaults to true.",
+                        "schema": {
+                            "type": "boolean",
+                            "description": "When false, entities that already exist are skipped instead of updated. Defaults to true."
+                        }
+                    },
+                    {
+                        "name": "x-import-value-merge",
+                        "in": "header",
+                        "description": "When true, deep-merges object-valued default-configs with the existing value. Defaults to false.",
+                        "schema": {
+                            "type": "boolean",
+                            "description": "When true, deep-merges object-valued default-configs with the existing value. Defaults to false."
+                        }
+                    },
+                    {
+                        "name": "x-org-id",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-workspace",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ImportConfigToml 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ImportConfigTomlResponseContent"
                                 }
                             }
                         }
@@ -10114,6 +10332,135 @@
                     "PATCH",
                     "DELETE",
                     "HEAD"
+                ]
+            },
+            "ImportConfigJsonInputPayload": {
+                "type": "string"
+            },
+            "ImportConfigJsonResponseContent": {
+                "type": "object",
+                "description": "Summary of what an import created, updated, skipped or deleted.",
+                "properties": {
+                    "mode": {
+                        "type": "string"
+                    },
+                    "dry_run": {
+                        "type": "boolean"
+                    },
+                    "config_version": {
+                        "type": "string"
+                    },
+                    "dimensions": {
+                        "$ref": "#/components/schemas/ImportEntityReport"
+                    },
+                    "default_configs": {
+                        "$ref": "#/components/schemas/ImportEntityReport"
+                    },
+                    "contexts": {
+                        "$ref": "#/components/schemas/ImportEntityReport"
+                    }
+                },
+                "required": [
+                    "contexts",
+                    "default_configs",
+                    "dimensions",
+                    "dry_run",
+                    "mode"
+                ]
+            },
+            "ImportConfigTomlInputPayload": {
+                "type": "string"
+            },
+            "ImportConfigTomlResponseContent": {
+                "type": "object",
+                "description": "Summary of what an import created, updated, skipped or deleted.",
+                "properties": {
+                    "mode": {
+                        "type": "string"
+                    },
+                    "dry_run": {
+                        "type": "boolean"
+                    },
+                    "config_version": {
+                        "type": "string"
+                    },
+                    "dimensions": {
+                        "$ref": "#/components/schemas/ImportEntityReport"
+                    },
+                    "default_configs": {
+                        "$ref": "#/components/schemas/ImportEntityReport"
+                    },
+                    "contexts": {
+                        "$ref": "#/components/schemas/ImportEntityReport"
+                    }
+                },
+                "required": [
+                    "contexts",
+                    "default_configs",
+                    "dimensions",
+                    "dry_run",
+                    "mode"
+                ]
+            },
+            "ImportEntityReport": {
+                "type": "object",
+                "description": "Per-entity outcome counts for an import.",
+                "properties": {
+                    "created": {
+                        "type": "number"
+                    },
+                    "updated": {
+                        "type": "number"
+                    },
+                    "skipped": {
+                        "type": "number"
+                    },
+                    "deleted": {
+                        "type": "number"
+                    },
+                    "errors": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ImportErrorItem"
+                        }
+                    }
+                },
+                "required": [
+                    "created",
+                    "deleted",
+                    "skipped",
+                    "updated"
+                ]
+            },
+            "ImportErrorItem": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "error": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "error",
+                    "id"
+                ]
+            },
+            "ImportMode": {
+                "type": "string",
+                "description": "How an import treats workspace entities that are not present in the imported file.",
+                "enum": [
+                    "merge",
+                    "replace"
+                ]
+            },
+            "ImportOnError": {
+                "type": "string",
+                "description": "How an import reacts when an individual entity fails to apply.",
+                "enum": [
+                    "abort",
+                    "continue"
                 ]
             },
             "InternalServerErrorResponseContent": {

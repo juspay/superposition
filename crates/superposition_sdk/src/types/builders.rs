@@ -65,3 +65,7 @@ pub use crate::types::_dimension_response::DimensionResponseBuilder;
 
 pub use crate::types::_default_config_response::DefaultConfigResponseBuilder;
 
+pub use crate::types::_import_entity_report::ImportEntityReportBuilder;
+
+pub use crate::types::_import_error_item::ImportErrorItemBuilder;
+

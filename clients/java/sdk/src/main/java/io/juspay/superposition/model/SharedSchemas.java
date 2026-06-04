@@ -164,6 +164,10 @@ final class SharedSchemas {
         .putMember("member", TypeTemplatesResponse.$SCHEMA)
         .build();
 
+    static final Schema IMPORT_ERROR_LIST = Schema.listBuilder(ShapeId.from("io.superposition#ImportErrorList"))
+        .putMember("member", ImportErrorItem.$SCHEMA)
+        .build();
+
     static final Schema ORGANISATION_LIST = Schema.listBuilder(ShapeId.from("io.superposition#OrganisationList"))
         .putMember("member", OrganisationResponse.$SCHEMA)
         .build();
