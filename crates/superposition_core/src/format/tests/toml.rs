@@ -34,6 +34,7 @@ fn config_to_detailed(config: &Config) -> DetailedConfig {
                 DefaultConfigInfo {
                     value: value.clone(),
                     schema,
+                    description: key.clone(),
                 },
             )
         })
@@ -68,6 +69,69 @@ _context_ = { os = "linux" }
     assert_eq!(config.default_configs, reparsed.default_configs);
     assert_eq!(config.dimensions.len(), reparsed.dimensions.len());
     assert_eq!(config.contexts.len(), reparsed.contexts.len());
+}
+
+#[test]
+fn test_toml_description_exported_and_round_trips() {
+    let toml = r#"
+[default-configs]
+timeout = { value = 30, schema = { type = "integer" }, description = "request timeout" }
+
+[dimensions]
+os = { position = 1, schema = { type = "string" }, description = "operating system" }
+
+[[overrides]]
+_context_ = { os = "linux" }
+timeout = 60
+"#;
+
+    let detailed = TomlFormat::parse_into_detailed(toml).unwrap();
+    assert_eq!(detailed.dimensions.get("os").unwrap().description, "operating system");
+    assert_eq!(
+        detailed.default_configs.get("timeout").unwrap().description,
+        "request timeout"
+    );
+
+    let serialized = TomlFormat::serialize(detailed).unwrap();
+    assert!(serialized.contains(r#"description = "operating system""#));
+    assert!(serialized.contains(r#"description = "request timeout""#));
+
+    // Description survives a full round-trip.
+    let reparsed = TomlFormat::parse_into_detailed(&serialized).unwrap();
+    assert_eq!(reparsed.dimensions.get("os").unwrap().description, "operating system");
+    assert_eq!(
+        reparsed.default_configs.get("timeout").unwrap().description,
+        "request timeout"
+    );
+}
+
+#[test]
+fn test_toml_description_falls_back_to_name_when_missing() {
+    // Neither the dimension nor the default config declare a description.
+    let toml = r#"
+[default-configs]
+timeout = { value = 30, schema = { type = "integer" } }
+
+[dimensions]
+os = { position = 1, schema = { type = "string" } }
+
+[[overrides]]
+_context_ = { os = "linux" }
+timeout = 60
+"#;
+
+    let detailed = TomlFormat::parse_into_detailed(toml).unwrap();
+    // Missing description falls back to the key / dimension name.
+    assert_eq!(detailed.dimensions.get("os").unwrap().description, "os");
+    assert_eq!(
+        detailed.default_configs.get("timeout").unwrap().description,
+        "timeout"
+    );
+
+    // Export is mandatory: the fallback value is emitted in the file.
+    let serialized = TomlFormat::serialize(detailed).unwrap();
+    assert!(serialized.contains(r#"description = "os""#));
+    assert!(serialized.contains(r#"description = "timeout""#));
 }
 
 #[test]

@@ -167,11 +167,16 @@ pub fn generate_detailed_cac(
 ) -> superposition::Result<DetailedConfig> {
     let (contexts, overrides) = get_context_data(conn, schema_name)?;
 
-    // Fetch default_configs with both value and schema
+    // Fetch default_configs with value, schema and description
     let default_config_vec = def_conf::default_configs
-        .select((def_conf::key, def_conf::value, def_conf::schema))
+        .select((
+            def_conf::key,
+            def_conf::value,
+            def_conf::schema,
+            def_conf::description,
+        ))
         .schema_name(schema_name)
-        .load::<(String, Value, Value)>(conn)
+        .load::<(String, Value, Value, String)>(conn)
         .map_err(|err| {
             log::error!("failed to fetch default_configs with error: {}", err);
             db_error!(err)
@@ -179,8 +184,15 @@ pub fn generate_detailed_cac(
 
     let default_configs = default_config_vec.into_iter().fold(
         std::collections::BTreeMap::new(),
-        |mut acc, (key, value, schema)| {
-            acc.insert(key, DefaultConfigInfo { value, schema });
+        |mut acc, (key, value, schema, description)| {
+            acc.insert(
+                key,
+                DefaultConfigInfo {
+                    value,
+                    schema,
+                    description,
+                },
+            );
             acc
         },
     );

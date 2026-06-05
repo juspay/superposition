@@ -388,6 +388,12 @@ pub struct DimensionInfo {
     pub dependency_graph: DependencyGraph,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub value_compute_function_name: Option<String>,
+    /// Human-readable description of the dimension. Carried through the
+    /// detailed (import/export) flow; intentionally not part of the config
+    /// resolution response, so it is skipped during serialization and
+    /// defaults to empty when absent.
+    #[serde(default, skip_serializing)]
+    pub description: String,
 }
 
 /// Information about a default config key including its value and schema
@@ -396,6 +402,11 @@ pub struct DimensionInfo {
 pub struct DefaultConfigInfo {
     pub value: Value,
     pub schema: Value,
+    /// Human-readable description of the default config key. Optional on
+    /// parse (falls back to the key name when missing) and always emitted
+    /// on export.
+    #[serde(default)]
+    pub description: String,
 }
 
 /// A map of config keys to their values and schemas
