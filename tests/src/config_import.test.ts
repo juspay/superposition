@@ -6,18 +6,15 @@ import {
     ListDefaultConfigsCommand,
     ListContextsCommand,
     GetConfigJsonCommand,
+    ImportConfigJsonCommand,
+    ImportConfigTomlCommand,
+    type ImportConfigOutput,
+    ImportMode,
+    type ImportOnError,
 } from "@juspay/superposition-sdk";
 import { superpositionClient, ENV } from "../env.ts";
 import { describe, test, expect, beforeAll } from "bun:test";
 
-// Import lives at dedicated endpoints: POST /config/{toml,json}/import. These
-// are modelled in Smithy as ImportConfigToml / ImportConfigJson, but until the
-// SDK is regenerated (`make smithy-updates`) the commands aren't available, so
-// the import calls here go through `fetch`. The SDK is used for setup and for
-// verifying the resulting workspace state. Once the SDK is regenerated, the
-// `importConfig` helper can be replaced with ImportConfigTomlCommand /
-// ImportConfigJsonCommand.
-//
 // Import in `replace` mode mirrors the *entire* workspace, so these tests run in
 // their own dedicated workspace to avoid clobbering data created by other suites.
 
@@ -31,47 +28,43 @@ const FLAG = `imp_flag_${suffix}`;
 const DRYRUN_KEY = `imp_dryrun_${suffix}`;
 const TOML_KEY = `imp_toml_${suffix}`;
 
-type ImportSummary = {
-    mode: string;
-    dry_run: boolean;
-    config_version?: string;
-    dimensions: EntityReport;
-    default_configs: EntityReport;
-    contexts: EntityReport;
-};
-type EntityReport = {
-    created: number;
-    updated: number;
-    skipped: number;
-    deleted: number;
-    errors?: { id: string; error: string }[];
+type ImportOpts = {
+    mode?: ImportMode;
+    overwrite?: boolean;
+    on_error?: ImportOnError;
+    dry_run?: boolean;
+    value_merge?: boolean;
 };
 
 async function importConfig(
     format: "toml" | "json",
     body: string,
-    extraHeaders: Record<string, string> = {},
-): Promise<{ status: number; summary?: ImportSummary; raw: string }> {
-    const res = await fetch(`${ENV.baseUrl}/config/${format}/import`, {
-        method: "POST",
-        headers: {
-            Authorization: "Bearer some-token",
-            "x-org-id": ENV.org_id,
-            "x-workspace": IMPORT_WORKSPACE,
-            "Content-Type":
-                format === "toml" ? "application/toml" : "application/json",
-            ...extraHeaders,
-        },
-        body,
-    });
-    const raw = await res.text();
-    let summary: ImportSummary | undefined;
+    opts: ImportOpts = {},
+): Promise<{ status: number; summary?: ImportConfigOutput; error?: unknown }> {
+    const base = {
+        workspace_id: IMPORT_WORKSPACE,
+        org_id: ENV.org_id,
+        ...opts,
+    };
+    const cmd =
+        format === "json"
+            ? new ImportConfigJsonCommand({ ...base, json_config: body })
+            : new ImportConfigTomlCommand({ ...base, toml_config: body });
     try {
-        summary = JSON.parse(raw);
-    } catch {
-        summary = undefined;
+        const summary = await superpositionClient.send(cmd);
+        return {
+            status: summary.$metadata.httpStatusCode ?? 200,
+            summary,
+        };
+    } catch (e: any) {
+        return {
+            status:
+                e?.$metadata?.httpStatusCode ??
+                e?.$response?.statusCode ??
+                500,
+            error: e,
+        };
     }
-    return { status: res.status, summary, raw };
 }
 
 // A self-consistent JSON config: contexts only reference dimensions/keys defined
@@ -222,7 +215,7 @@ describe("Config import - JSON", () => {
         const { status, summary } = await importConfig(
             "json",
             buildJsonConfig({ includeFlag: true }),
-            { "x-import-overwrite": "false" },
+            { overwrite: false },
         );
 
         expect(status).toBe(200);
@@ -245,7 +238,7 @@ describe("Config import - JSON", () => {
         });
 
         const { status, summary } = await importConfig("json", body, {
-            "x-import-value-merge": "true",
+            value_merge: true,
         });
 
         expect(status).toBe(200);
@@ -270,7 +263,7 @@ describe("Config import - JSON", () => {
         });
 
         const { status, summary } = await importConfig("json", body, {
-            "x-import-dry-run": "true",
+            dry_run: true,
         });
 
         expect(status).toBe(200);
@@ -288,7 +281,7 @@ describe("Config import - JSON", () => {
         const { status, summary } = await importConfig(
             "json",
             buildJsonConfig({ includeFlag: false }),
-            { "x-import-mode": "replace" },
+            { mode: ImportMode.REPLACE },
         );
 
         expect(status).toBe(200);
