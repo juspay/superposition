@@ -60,7 +60,7 @@ export interface ListContextsCommandOutput extends ListContextsOutput, __Metadat
  *     "STRING_VALUE",
  *   ],
  *   plaintext: "STRING_VALUE",
- *   dimension_match_strategy: "exact" || "subset" || "any_match",
+ *   dimension_match_strategy: "exact" || "subset" || "non_conflicting",
  *   dimension_params: { // DimensionQueryParams
  *     "<keys>": "STRING_VALUE",
  *   },

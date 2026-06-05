@@ -1,4 +1,7 @@
-use std::{cmp::min, collections::HashMap, collections::HashSet};
+use std::{
+    cmp::min,
+    collections::{HashMap, HashSet},
+};
 
 use actix_web::{
     Either, HttpResponse, Scope, delete, get, post, put, routes,
@@ -624,7 +627,6 @@ async fn list_handler(
                 fetch_dimensions_info_map(&mut conn, &workspace_context.schema_name)?;
 
             let original_req_keys = dimension_params.keys().collect::<Vec<_>>();
-            let query_keys = dimension_params.keys().cloned().collect::<HashSet<_>>();
             let evaluated_params = evaluate_local_cohorts_skip_unresolved(
                 &dimensions_info,
                 &dimension_params,
@@ -636,17 +638,14 @@ async fn list_handler(
                 DimensionMatchStrategy::Exact => {
                     Context::filter_exact_match(all_contexts, &evaluated_params)
                 }
-                DimensionMatchStrategy::Subset | DimensionMatchStrategy::AnyMatch => {
+                DimensionMatchStrategy::Subset
+                | DimensionMatchStrategy::NonConflicting => {
                     Context::filter_by_eval(all_contexts, &evaluated_params)
                 }
             };
 
             match strategy {
-                DimensionMatchStrategy::AnyMatch => Context::filter_by_context_any_match(
-                    eval_filtered,
-                    &query_keys,
-                    &dimensions_info,
-                ),
+                DimensionMatchStrategy::NonConflicting => eval_filtered,
                 _ => Context::filter_by_dimension(
                     eval_filtered,
                     &original_req_keys,

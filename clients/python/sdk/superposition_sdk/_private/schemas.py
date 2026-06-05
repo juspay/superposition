@@ -3609,11 +3609,11 @@ DIMENSION_MATCH_STRATEGY = Schema.collection(
             ],
         },
 
-        "ANY_MATCH": {
+        "NON_CONFLICTING": {
             "target": UNIT,
             "index": 2,
             "traits": [
-                Trait.new(id=ShapeID("smithy.api#enumValue"), value="any_match"),
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="non_conflicting"),
 
             ],
         },

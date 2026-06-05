@@ -48,7 +48,7 @@ pub enum DimensionMatchStrategy {
     Exact,
     #[default]
     Subset,
-    AnyMatch,
+    NonConflicting,
 }
 
 #[derive(Debug, Clone)]

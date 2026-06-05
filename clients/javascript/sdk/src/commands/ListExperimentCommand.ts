@@ -67,7 +67,7 @@ export interface ListExperimentCommandOutput extends ListExperimentOutput, __Met
  *   sort_on: "last_modified_at" || "created_at",
  *   sort_by: "desc" || "asc",
  *   global_experiments_only: true || false,
- *   dimension_match_strategy: "exact" || "subset" || "any_match",
+ *   dimension_match_strategy: "exact" || "subset" || "non_conflicting",
  *   dimension_params: { // DimensionQueryParams
  *     "<keys>": "STRING_VALUE",
  *   },

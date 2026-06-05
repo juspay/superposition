@@ -233,9 +233,9 @@ public interface SuperpositionAsyncClient {
      * Executes multiple context operations (PUT, REPLACE, DELETE, MOVE) in a single atomic transaction for
      * efficient batch processing.
      *
-     * @throws ResourceNotFound
-     * @throws WebhookFailed
      * @throws InternalServerError
+     * @throws WebhookFailed
+     * @throws ResourceNotFound
      */
     default CompletableFuture<BulkOperationOutput> bulkOperation(BulkOperationInput input) {
         return bulkOperation(input, null);
@@ -245,9 +245,9 @@ public interface SuperpositionAsyncClient {
      * Executes multiple context operations (PUT, REPLACE, DELETE, MOVE) in a single atomic transaction for
      * efficient batch processing.
      *
-     * @throws ResourceNotFound
-     * @throws WebhookFailed
      * @throws InternalServerError
+     * @throws WebhookFailed
+     * @throws ResourceNotFound
      */
     CompletableFuture<BulkOperationOutput> bulkOperation(BulkOperationInput input, RequestOverrideConfig overrideConfig);
 
@@ -1811,8 +1811,8 @@ public interface SuperpositionAsyncClient {
      * Recalculates and updates the priority weights for all contexts in the workspace based on their
      * dimensions.
      *
-     * @throws WebhookFailed
      * @throws InternalServerError
+     * @throws WebhookFailed
      */
     default CompletableFuture<WeightRecomputeOutput> weightRecompute(WeightRecomputeInput input) {
         return weightRecompute(input, null);
@@ -1822,8 +1822,8 @@ public interface SuperpositionAsyncClient {
      * Recalculates and updates the priority weights for all contexts in the workspace based on their
      * dimensions.
      *
-     * @throws WebhookFailed
      * @throws InternalServerError
+     * @throws WebhookFailed
      */
     CompletableFuture<WeightRecomputeOutput> weightRecompute(WeightRecomputeInput input, RequestOverrideConfig overrideConfig);
 

@@ -28,14 +28,14 @@ public final class DimensionMatchStrategy implements SerializableShape {
      */
     public static final DimensionMatchStrategy SUBSET = new DimensionMatchStrategy(Type.SUBSET, "subset");
     /**
-     * Match overrides whose context has at least one supplied query dimension, with partial value matching
-     * and dependency-graph awareness
+     * Match overrides whose context does not conflict with any supplied query dimension. This is useful
+     * for fetching candidates for later local evaluation.
      */
-    public static final DimensionMatchStrategy ANY_MATCH = new DimensionMatchStrategy(Type.ANY_MATCH, "any_match");
-    private static final List<DimensionMatchStrategy> $TYPES = List.of(EXACT, SUBSET, ANY_MATCH);
+    public static final DimensionMatchStrategy NON_CONFLICTING = new DimensionMatchStrategy(Type.NON_CONFLICTING, "non_conflicting");
+    private static final List<DimensionMatchStrategy> $TYPES = List.of(EXACT, SUBSET, NON_CONFLICTING);
 
     public static final Schema $SCHEMA = Schema.createEnum($ID,
-        Set.of(EXACT.value, SUBSET.value, ANY_MATCH.value)
+        Set.of(EXACT.value, SUBSET.value, NON_CONFLICTING.value)
     );
 
     private final String value;
@@ -53,7 +53,7 @@ public final class DimensionMatchStrategy implements SerializableShape {
         $UNKNOWN,
         EXACT,
         SUBSET,
-        ANY_MATCH
+        NON_CONFLICTING
     }
 
     /**
@@ -106,7 +106,7 @@ public final class DimensionMatchStrategy implements SerializableShape {
         return switch (value) {
             case "exact" -> EXACT;
             case "subset" -> SUBSET;
-            case "any_match" -> ANY_MATCH;
+            case "non_conflicting" -> NON_CONFLICTING;
             default -> throw new IllegalArgumentException("Unknown value: " + value);
         };
     }
@@ -158,7 +158,7 @@ public final class DimensionMatchStrategy implements SerializableShape {
             return switch (value) {
                 case "exact" -> EXACT;
                 case "subset" -> SUBSET;
-                case "any_match" -> ANY_MATCH;
+                case "non_conflicting" -> NON_CONFLICTING;
                 default -> new DimensionMatchStrategy(Type.$UNKNOWN, value);
             };
         }
