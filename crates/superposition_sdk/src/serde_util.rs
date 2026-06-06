@@ -361,6 +361,13 @@ if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default:
                 builder
             }
 
+pub(crate) fn get_detailed_resolved_config_output_output_correct_errors(mut builder: crate::operation::get_detailed_resolved_config::builders::GetDetailedResolvedConfigOutputBuilder) -> crate::operation::get_detailed_resolved_config::builders::GetDetailedResolvedConfigOutputBuilder {
+                if builder.config.is_none() { builder.config = Some(Default::default()) }
+if builder.version.is_none() { builder.version = Some(Default::default()) }
+if builder.last_modified.is_none() { builder.last_modified = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+                builder
+            }
+
 pub(crate) fn get_dimension_output_output_correct_errors(mut builder: crate::operation::get_dimension::builders::GetDimensionOutputBuilder) -> crate::operation::get_dimension::builders::GetDimensionOutputBuilder {
                 if builder.dimension.is_none() { builder.dimension = Some(Default::default()) }
 if builder.position.is_none() { builder.position = Some(Default::default()) }
@@ -448,6 +455,13 @@ if builder.updated_by.is_none() { builder.updated_by = Some(Default::default()) 
 
 pub(crate) fn get_resolved_config_output_output_correct_errors(mut builder: crate::operation::get_resolved_config::builders::GetResolvedConfigOutputBuilder) -> crate::operation::get_resolved_config::builders::GetResolvedConfigOutputBuilder {
                 if builder.config.is_none() { builder.config = Some(Default::default()) }
+if builder.version.is_none() { builder.version = Some(Default::default()) }
+if builder.last_modified.is_none() { builder.last_modified = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+                builder
+            }
+
+pub(crate) fn get_resolved_config_explanation_output_output_correct_errors(mut builder: crate::operation::get_resolved_config_explanation::builders::GetResolvedConfigExplanationOutputBuilder) -> crate::operation::get_resolved_config_explanation::builders::GetResolvedConfigExplanationOutputBuilder {
+                if builder.explanation.is_none() { builder.explanation = { let builder = crate::types::builders::ResolveExplanationBuilder::default(); crate::serde_util::resolve_explanation_correct_errors(builder).build().ok() } }
 if builder.version.is_none() { builder.version = Some(Default::default()) }
 if builder.last_modified.is_none() { builder.last_modified = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
                 builder
@@ -972,6 +986,12 @@ if builder.enable_change_reason_validation.is_none() { builder.enable_change_rea
                 builder
             }
 
+pub(crate) fn resolve_explanation_correct_errors(mut builder: crate::types::builders::ResolveExplanationBuilder) -> crate::types::builders::ResolveExplanationBuilder {
+                if builder.key.is_none() { builder.key = Some(Default::default()) }
+if builder.timeline.is_none() { builder.timeline = Some(Default::default()) }
+                builder
+            }
+
 pub(crate) fn config_data_correct_errors(mut builder: crate::types::builders::ConfigDataBuilder) -> crate::types::builders::ConfigDataBuilder {
                 if builder.contexts.is_none() { builder.contexts = Some(Default::default()) }
 if builder.overrides.is_none() { builder.overrides = Some(Default::default()) }
@@ -1210,6 +1230,15 @@ if builder.allow_experiment_self_approval.is_none() { builder.allow_experiment_s
 if builder.auto_populate_control.is_none() { builder.auto_populate_control = Some(Default::default()) }
 if builder.enable_context_validation.is_none() { builder.enable_context_validation = Some(Default::default()) }
 if builder.enable_change_reason_validation.is_none() { builder.enable_change_reason_validation = Some(Default::default()) }
+                builder
+            }
+
+pub(crate) fn resolve_explanation_timeline_item_correct_errors(mut builder: crate::types::builders::ResolveExplanationTimelineItemBuilder) -> crate::types::builders::ResolveExplanationTimelineItemBuilder {
+                if builder.context_id.is_none() { builder.context_id = Some(Default::default()) }
+if builder.condition.is_none() { builder.condition = Some(Default::default()) }
+if builder.override_id.is_none() { builder.override_id = Some(Default::default()) }
+if builder.value_before.is_none() { builder.value_before = Some(Default::default()) }
+if builder.value_after.is_none() { builder.value_after = Some(Default::default()) }
                 builder
             }
 

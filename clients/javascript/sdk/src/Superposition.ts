@@ -164,6 +164,11 @@ import {
   GetDefaultConfigCommandOutput,
 } from "./commands/GetDefaultConfigCommand";
 import {
+  GetDetailedResolvedConfigCommand,
+  GetDetailedResolvedConfigCommandInput,
+  GetDetailedResolvedConfigCommandOutput,
+} from "./commands/GetDetailedResolvedConfigCommand";
+import {
   GetDimensionCommand,
   GetDimensionCommandInput,
   GetDimensionCommandOutput,
@@ -198,6 +203,11 @@ import {
   GetResolvedConfigCommandInput,
   GetResolvedConfigCommandOutput,
 } from "./commands/GetResolvedConfigCommand";
+import {
+  GetResolvedConfigExplanationCommand,
+  GetResolvedConfigExplanationCommandInput,
+  GetResolvedConfigExplanationCommandOutput,
+} from "./commands/GetResolvedConfigExplanationCommand";
 import {
   GetResolvedConfigWithIdentifierCommand,
   GetResolvedConfigWithIdentifierCommandInput,
@@ -464,6 +474,7 @@ const commands = {
   GetContextCommand,
   GetContextFromConditionCommand,
   GetDefaultConfigCommand,
+  GetDetailedResolvedConfigCommand,
   GetDimensionCommand,
   GetExperimentCommand,
   GetExperimentConfigCommand,
@@ -471,6 +482,7 @@ const commands = {
   GetFunctionCommand,
   GetOrganisationCommand,
   GetResolvedConfigCommand,
+  GetResolvedConfigExplanationCommand,
   GetResolvedConfigWithIdentifierCommand,
   GetSecretCommand,
   GetTypeTemplateCommand,
@@ -1065,6 +1077,23 @@ export interface Superposition {
   ): void;
 
   /**
+   * @see {@link GetDetailedResolvedConfigCommand}
+   */
+  getDetailedResolvedConfig(
+    args: GetDetailedResolvedConfigCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<GetDetailedResolvedConfigCommandOutput>;
+  getDetailedResolvedConfig(
+    args: GetDetailedResolvedConfigCommandInput,
+    cb: (err: any, data?: GetDetailedResolvedConfigCommandOutput) => void
+  ): void;
+  getDetailedResolvedConfig(
+    args: GetDetailedResolvedConfigCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: GetDetailedResolvedConfigCommandOutput) => void
+  ): void;
+
+  /**
    * @see {@link GetDimensionCommand}
    */
   getDimension(
@@ -1181,6 +1210,23 @@ export interface Superposition {
     args: GetResolvedConfigCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: GetResolvedConfigCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link GetResolvedConfigExplanationCommand}
+   */
+  getResolvedConfigExplanation(
+    args: GetResolvedConfigExplanationCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<GetResolvedConfigExplanationCommandOutput>;
+  getResolvedConfigExplanation(
+    args: GetResolvedConfigExplanationCommandInput,
+    cb: (err: any, data?: GetResolvedConfigExplanationCommandOutput) => void
+  ): void;
+  getResolvedConfigExplanation(
+    args: GetResolvedConfigExplanationCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: GetResolvedConfigExplanationCommandOutput) => void
   ): void;
 
   /**

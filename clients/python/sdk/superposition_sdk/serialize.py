@@ -47,12 +47,14 @@ from .models import (
     GetContextFromConditionInput,
     GetContextInput,
     GetDefaultConfigInput,
+    GetDetailedResolvedConfigInput,
     GetDimensionInput,
     GetExperimentConfigInput,
     GetExperimentGroupInput,
     GetExperimentInput,
     GetFunctionInput,
     GetOrganisationInput,
+    GetResolvedConfigExplanationInput,
     GetResolvedConfigInput,
     GetResolvedConfigWithIdentifierInput,
     GetSecretInput,
@@ -1243,6 +1245,58 @@ async def _serialize_get_default_config(input: GetDefaultConfigInput, config: Co
         body=body,
     )
 
+async def _serialize_get_detailed_resolved_config(input: GetDetailedResolvedConfigInput, config: Config) -> HTTPRequest:
+    path = "/config/resolve/detailed"
+    query: str = f''
+
+    query_params: list[tuple[str, str | None]] = []
+    if input.prefix is not None:
+        query_params.extend(("prefix", e) for e in input.prefix)
+    if input.version is not None:
+        query_params.append(("version", input.version))
+    if input.show_reasoning is not None:
+        query_params.append(("show_reasoning", ('true' if input.show_reasoning else 'false')))
+    if input.context_id is not None:
+        query_params.append(("context_id", input.context_id))
+    if input.resolve_remote is not None:
+        query_params.append(("resolve_remote", ('true' if input.resolve_remote else 'false')))
+
+    query = join_query_params(params=query_params, prefix=query)
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+    content = codec.serialize(input)
+    if not content:
+        content = b"{}"
+    content_length = len(content)
+    body = SeekableAsyncBytesReader(content)
+
+    headers = Fields(
+        [
+            Field(name="Content-Type", values=["application/json"]),
+            Field(name="Content-Length", values=[str(content_length)]),
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.merge_strategy:
+        headers.extend(Fields([Field(name="x-merge-strategy", values=[input.merge_strategy])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="POST",
+        fields=headers,
+        body=body,
+    )
+
 async def _serialize_get_dimension(input: GetDimensionInput, config: Config) -> HTTPRequest:
     if not input.dimension:
         raise ServiceError("dimension must not be empty.")
@@ -1456,6 +1510,59 @@ async def _serialize_get_resolved_config(input: GetResolvedConfigInput, config: 
         query_params.append(("version", input.version))
     if input.show_reasoning is not None:
         query_params.append(("show_reasoning", ('true' if input.show_reasoning else 'false')))
+    if input.context_id is not None:
+        query_params.append(("context_id", input.context_id))
+    if input.resolve_remote is not None:
+        query_params.append(("resolve_remote", ('true' if input.resolve_remote else 'false')))
+
+    query = join_query_params(params=query_params, prefix=query)
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+    content = codec.serialize(input)
+    if not content:
+        content = b"{}"
+    content_length = len(content)
+    body = SeekableAsyncBytesReader(content)
+
+    headers = Fields(
+        [
+            Field(name="Content-Type", values=["application/json"]),
+            Field(name="Content-Length", values=[str(content_length)]),
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.merge_strategy:
+        headers.extend(Fields([Field(name="x-merge-strategy", values=[input.merge_strategy])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="POST",
+        fields=headers,
+        body=body,
+    )
+
+async def _serialize_get_resolved_config_explanation(input: GetResolvedConfigExplanationInput, config: Config) -> HTTPRequest:
+    if not input.key:
+        raise ServiceError("key must not be empty.")
+
+    path = "/config/resolve/explain/{key}".format(
+        key=urlquote(input.key, safe=''),
+    )
+    query: str = f''
+
+    query_params: list[tuple[str, str | None]] = []
+    if input.version is not None:
+        query_params.append(("version", input.version))
     if input.context_id is not None:
         query_params.append(("context_id", input.context_id))
     if input.resolve_remote is not None:

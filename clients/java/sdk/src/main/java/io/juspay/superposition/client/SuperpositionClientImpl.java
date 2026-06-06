@@ -97,6 +97,9 @@ import io.juspay.superposition.model.GetContextOutput;
 import io.juspay.superposition.model.GetDefaultConfig;
 import io.juspay.superposition.model.GetDefaultConfigInput;
 import io.juspay.superposition.model.GetDefaultConfigOutput;
+import io.juspay.superposition.model.GetDetailedResolvedConfig;
+import io.juspay.superposition.model.GetDetailedResolvedConfigInput;
+import io.juspay.superposition.model.GetDetailedResolvedConfigOutput;
 import io.juspay.superposition.model.GetDimension;
 import io.juspay.superposition.model.GetDimensionInput;
 import io.juspay.superposition.model.GetDimensionOutput;
@@ -116,6 +119,9 @@ import io.juspay.superposition.model.GetOrganisation;
 import io.juspay.superposition.model.GetOrganisationInput;
 import io.juspay.superposition.model.GetOrganisationOutput;
 import io.juspay.superposition.model.GetResolvedConfig;
+import io.juspay.superposition.model.GetResolvedConfigExplanation;
+import io.juspay.superposition.model.GetResolvedConfigExplanationInput;
+import io.juspay.superposition.model.GetResolvedConfigExplanationOutput;
 import io.juspay.superposition.model.GetResolvedConfigInput;
 import io.juspay.superposition.model.GetResolvedConfigOutput;
 import io.juspay.superposition.model.GetResolvedConfigWithIdentifier;
@@ -272,9 +278,9 @@ import software.amazon.smithy.utils.SmithyGenerated;
 @SmithyGenerated
 final class SuperpositionClientImpl extends Client implements SuperpositionClient {
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
+        .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
         .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
         .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
-        .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
         .putType(InternalFailureException.$ID, InternalFailureException.class, InternalFailureException::builder)
         .putType(UnknownOperationException.$ID, UnknownOperationException.class, UnknownOperationException::builder)
         .putType(MalformedRequestException.$ID, MalformedRequestException.class, MalformedRequestException::builder)
@@ -574,6 +580,15 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
     }
 
     @Override
+    public GetDetailedResolvedConfigOutput getDetailedResolvedConfig(GetDetailedResolvedConfigInput input, RequestOverrideConfig overrideConfig) {
+        try {
+            return call(input, GetDetailedResolvedConfig.instance(), overrideConfig).join();
+        } catch (CompletionException e) {
+            throw unwrapAndThrow(e);
+        }
+    }
+
+    @Override
     public GetDimensionOutput getDimension(GetDimensionInput input, RequestOverrideConfig overrideConfig) {
         try {
             return call(input, GetDimension.instance(), overrideConfig).join();
@@ -631,6 +646,15 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
     public GetResolvedConfigOutput getResolvedConfig(GetResolvedConfigInput input, RequestOverrideConfig overrideConfig) {
         try {
             return call(input, GetResolvedConfig.instance(), overrideConfig).join();
+        } catch (CompletionException e) {
+            throw unwrapAndThrow(e);
+        }
+    }
+
+    @Override
+    public GetResolvedConfigExplanationOutput getResolvedConfigExplanation(GetResolvedConfigExplanationInput input, RequestOverrideConfig overrideConfig) {
+        try {
+            return call(input, GetResolvedConfigExplanation.instance(), overrideConfig).join();
         } catch (CompletionException e) {
             throw unwrapAndThrow(e);
         }

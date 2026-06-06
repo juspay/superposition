@@ -18,6 +18,8 @@ resource Config {
     operations: [
         GetConfig
         GetResolvedConfig
+        GetDetailedResolvedConfig
+        GetResolvedConfigExplanation
         GetResolvedConfigWithIdentifier
         GetConfigToml
         GetConfigJson
@@ -186,6 +188,50 @@ enum MergeStrategy {
     REPLACE
 }
 
+map DetailedResolvedConfig {
+    key: String
+    value: DetailedResolvedConfigValue
+}
+
+structure DetailedResolvedConfigValue {
+    @required
+    description: String
+
+    type: Document
+
+    @required
+    value: Document
+}
+
+structure ResolveExplanationTimelineItem {
+    @required
+    context_id: String
+
+    @required
+    condition: Condition
+
+    @required
+    override_id: String
+
+    @required
+    value_before: Document
+
+    @required
+    value_after: Document
+}
+
+list ResolveExplanationTimeline {
+    member: ResolveExplanationTimelineItem
+}
+
+structure ResolveExplanation {
+    @required
+    key: String
+
+    @required
+    timeline: ResolveExplanationTimeline
+}
+
 @documentation("Resolves and merges config values based on context conditions, applying overrides and merge strategies to produce the final configuration.")
 @http(method: "POST", uri: "/config/resolve")
 @tags(["Configuration Management"])
@@ -225,6 +271,111 @@ operation GetResolvedConfig {
         @notProperty
         @required
         config: Document
+
+        @httpHeader("x-config-version")
+        @required
+        $version
+
+        @httpHeader("last-modified")
+        @required
+        $last_modified
+
+        @httpHeader("x-audit-id")
+        @notProperty
+        audit_id: String
+    }
+}
+
+@documentation("Resolves config values and returns each key with default-config metadata.")
+@http(method: "POST", uri: "/config/resolve/detailed")
+@tags(["Configuration Management"])
+operation GetDetailedResolvedConfig {
+    input := with [WorkspaceMixin] {
+        @httpQuery("prefix")
+        @notProperty
+        prefix: StringList
+
+        @httpQuery("version")
+        @notProperty
+        version: String
+
+        @httpQuery("show_reasoning")
+        @notProperty
+        show_reasoning: Boolean
+
+        @httpHeader("x-merge-strategy")
+        @notProperty
+        merge_strategy: MergeStrategy
+
+        @httpQuery("context_id")
+        @notProperty
+        context_id: String
+
+        @httpQuery("resolve_remote")
+        @notProperty
+        @documentation("Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.")
+        resolve_remote: Boolean
+
+        @notProperty
+        context: ContextMap
+    }
+
+    output := for Config {
+        @httpPayload
+        @required
+        @notProperty
+        config: Document
+
+        @httpHeader("x-config-version")
+        @required
+        $version
+
+        @httpHeader("last-modified")
+        @required
+        $last_modified
+
+        @httpHeader("x-audit-id")
+        @notProperty
+        audit_id: String
+    }
+}
+
+@documentation("Explains how matching contexts affect a single resolved config key.")
+@http(method: "POST", uri: "/config/resolve/explain/{key}")
+@tags(["Configuration Management"])
+operation GetResolvedConfigExplanation {
+    input := with [WorkspaceMixin] {
+        @httpLabel
+        @notProperty
+        @required
+        key: String
+
+        @httpQuery("version")
+        @notProperty
+        version: String
+
+        @httpHeader("x-merge-strategy")
+        @notProperty
+        merge_strategy: MergeStrategy
+
+        @httpQuery("context_id")
+        @notProperty
+        context_id: String
+
+        @httpQuery("resolve_remote")
+        @notProperty
+        @documentation("Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.")
+        resolve_remote: Boolean
+
+        @notProperty
+        context: ContextMap
+    }
+
+    output := for Config {
+        @httpPayload
+        @required
+        @notProperty
+        explanation: ResolveExplanation
 
         @httpHeader("x-config-version")
         @required

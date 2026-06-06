@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use actix_web::{
     HttpRequest,
     web::{Data, Header, Json},
@@ -7,19 +9,39 @@ use chrono::{DateTime, Utc};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, dsl::max};
 use serde_json::{Map, Value};
 use service_utils::{
-    redis::{CONFIG_VERSION_KEY_SUFFIX, read_through_cache},
+    helpers::is_not_modified,
+    redis::{
+        CONFIG_KEY_SUFFIX, CONFIG_VERSION_KEY_SUFFIX, LAST_MODIFIED_KEY_SUFFIX,
+        read_through_cache,
+    },
     service::types::{AppState, EncryptionKey, SchemaName, WorkspaceContext},
 };
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
     Config, DBConnection,
-    api::config::{ContextPayload, MergeStrategy, ResolveConfigQuery},
+    api::config::{
+        ContextPayload, DetailedResolvedConfigValue, DetailedResolvedConfiguration,
+        ExplainKeyQuery, ExplainResolveQuery, Explanation, ExplanationTimelineItem,
+        MergeStrategy, ResolveConfigQuery,
+    },
     custom_query::{CommaSeparatedStringQParams, CustomQuery, DimensionQuery, QueryMap},
-    database::schema::config_versions::dsl as config_versions,
+    database::{
+        models::Description,
+        schema::{
+            config_versions::dsl as config_versions,
+            default_configs::dsl as default_configs,
+        },
+    },
+    logic::evaluate_local_cohorts,
     result as superposition,
 };
 
 use crate::helpers::{evaluate_remote_cohorts, generate_cac};
+
+struct DefaultConfigMetadata {
+    description: String,
+    schema: Value,
+}
 
 pub fn apply_prefix_filter_to_config(
     prefix: &Option<CommaSeparatedStringQParams>,
@@ -137,22 +159,84 @@ pub fn setup_query_data(
     Ok((is_smithy, query_data))
 }
 
-pub fn resolve(
-    config: &mut Config,
-    mut query_data: QueryMap,
-    merge_strategy: Header<MergeStrategy>,
-    conn: &mut DBConnection,
-    query_filters: &ResolveConfigQuery,
-    workspace_context: &WorkspaceContext,
-    master_encryption_key: &Option<EncryptionKey>,
-) -> superposition::Result<Map<String, Value>> {
-    *config = apply_prefix_filter_to_config(&query_filters.prefix, config.clone())?;
+pub struct ResolveRequestData {
+    pub config: Config,
+    pub config_version: i64,
+    pub max_created_at: Option<DateTime<Utc>>,
+    pub is_smithy: bool,
+    pub query_data: QueryMap,
+}
 
-    if let Some(context_id) = &query_filters.context_id {
-        config.contexts = if let Some(index) = config
-            .contexts
-            .iter()
-            .position(|ctx| ctx.id == context_id.clone())
+impl ResolveRequestData {
+    pub async fn prepare(
+        req: &HttpRequest,
+        body: Option<Json<ContextPayload>>,
+        dimension_params: DimensionQuery<QueryMap>,
+        version: &Option<String>,
+        workspace_context: &WorkspaceContext,
+        state: &Data<AppState>,
+    ) -> superposition::Result<Option<Self>> {
+        let schema_name = &workspace_context.schema_name;
+
+        let max_created_at = read_through_cache::<DateTime<Utc>>(
+            format!("{}{LAST_MODIFIED_KEY_SUFFIX}", **schema_name),
+            schema_name,
+            &state.redis,
+            &state.db_pool,
+            |conn| get_max_created_at(conn, schema_name),
+        )
+        .await
+        .ok();
+
+        if is_not_modified(max_created_at, req) {
+            return Ok(None);
+        }
+
+        let config_version =
+            get_config_version(version, workspace_context, state).await?;
+
+        let config = read_through_cache::<Config>(
+            format!("{}::{}{CONFIG_KEY_SUFFIX}", **schema_name, config_version,),
+            schema_name,
+            &state.redis,
+            &state.db_pool,
+            |conn| {
+                generate_config_from_version(
+                    &mut Some(config_version),
+                    conn,
+                    &workspace_context.schema_name,
+                )
+                .map_err(|err| {
+                    log::error!(
+                        "failed to generate config from version with error: {}",
+                        err
+                    );
+                    diesel::result::Error::NotFound
+                })
+            },
+        )
+        .await
+        .map_err(|e| unexpected_error!("failed to generate config: {}", e))?;
+
+        let (is_smithy, query_data) = setup_query_data(req, body, dimension_params)?;
+
+        Ok(Some(Self {
+            config,
+            config_version,
+            max_created_at,
+            is_smithy,
+            query_data,
+        }))
+    }
+}
+
+fn apply_context_id_filter(
+    config: &mut Config,
+    context_id: &Option<String>,
+) -> superposition::Result<()> {
+    if let Some(context_id) = context_id {
+        config.contexts = if let Some(index) =
+            config.contexts.iter().position(|ctx| ctx.id == *context_id)
         {
             config.contexts[..index].to_vec()
         } else {
@@ -163,29 +247,253 @@ pub fn resolve(
         };
     }
 
-    if query_filters.resolve_remote.unwrap_or_default() {
-        query_data = QueryMap::from(evaluate_remote_cohorts(
+    Ok(())
+}
+
+fn apply_resolution_filters(
+    config: &mut Config,
+    query_filters: &ResolveConfigQuery,
+) -> superposition::Result<()> {
+    *config = apply_prefix_filter_to_config(&query_filters.prefix, config.clone())?;
+    apply_context_id_filter(config, &query_filters.context_id)
+}
+
+fn prepare_remote_query_data(
+    config: &Config,
+    query_data: QueryMap,
+    conn: &mut DBConnection,
+    resolve_remote: Option<bool>,
+    workspace_context: &WorkspaceContext,
+    master_encryption_key: &Option<EncryptionKey>,
+) -> superposition::Result<QueryMap> {
+    if resolve_remote.unwrap_or_default() {
+        Ok(QueryMap::from(evaluate_remote_cohorts(
             &config.dimensions,
             &query_data,
             conn,
             workspace_context,
             master_encryption_key,
-        )?);
+        )?))
+    } else {
+        Ok(query_data)
     }
+}
 
-    let merge_strategy = merge_strategy.into_inner();
-    let show_reason = query_filters.show_reasoning.unwrap_or_default();
-    let response = if show_reason {
-        eval_cac_with_reasoning(config, &query_data, merge_strategy).map_err(|err| {
+fn evaluate_resolved_config(
+    config: &Config,
+    query_data: &QueryMap,
+    merge_strategy: MergeStrategy,
+    show_reason: bool,
+) -> superposition::Result<Map<String, Value>> {
+    if show_reason {
+        eval_cac_with_reasoning(config, query_data, merge_strategy).map_err(|err| {
             log::error!("failed to eval cac with err: {}", err);
             unexpected_error!("cac eval failed")
         })
     } else {
-        eval_cac(config, &query_data, merge_strategy).map_err(|err| {
+        eval_cac(config, query_data, merge_strategy).map_err(|err| {
             log::error!("failed to eval cac with err: {}", err);
             unexpected_error!("cac eval failed")
         })
-    }?;
+    }
+}
 
-    Ok(response)
+fn fetch_default_config_metadata(
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+    keys: &[String],
+) -> superposition::Result<HashMap<String, DefaultConfigMetadata>> {
+    if keys.is_empty() {
+        return Ok(HashMap::new());
+    }
+
+    let rows = default_configs::default_configs
+        .filter(default_configs::key.eq_any(keys))
+        .select((
+            default_configs::key,
+            default_configs::schema,
+            default_configs::description,
+        ))
+        .schema_name(schema_name)
+        .load::<(String, Value, Description)>(conn)
+        .map_err(|err| {
+            log::error!(
+                "failed to fetch default config metadata with error: {}",
+                err
+            );
+            db_error!(err)
+        })?;
+
+    Ok(rows
+        .into_iter()
+        .map(|(key, schema, description)| {
+            (
+                key,
+                DefaultConfigMetadata {
+                    description: String::from(&description),
+                    schema,
+                },
+            )
+        })
+        .collect())
+}
+
+fn build_resolved_config(
+    resolved_config: Map<String, Value>,
+    metadata: &HashMap<String, DefaultConfigMetadata>,
+) -> DetailedResolvedConfiguration {
+    resolved_config
+        .into_iter()
+        .map(|(key, value)| {
+            let (description, schema) = metadata
+                .get(&key)
+                .map(|metadata| (metadata.description.clone(), Some(&metadata.schema)))
+                .unwrap_or_else(|| (String::new(), None));
+
+            (
+                key,
+                DetailedResolvedConfigValue {
+                    description,
+                    schema: schema.cloned(),
+                    value,
+                },
+            )
+        })
+        .collect()
+}
+
+pub fn resolve(
+    config: &mut Config,
+    query_data: QueryMap,
+    merge_strategy: Header<MergeStrategy>,
+    conn: &mut DBConnection,
+    query_filters: &ResolveConfigQuery,
+    workspace_context: &WorkspaceContext,
+    master_encryption_key: &Option<EncryptionKey>,
+) -> superposition::Result<Map<String, Value>> {
+    apply_resolution_filters(config, query_filters)?;
+    let query_data = prepare_remote_query_data(
+        config,
+        query_data,
+        conn,
+        query_filters.resolve_remote,
+        workspace_context,
+        master_encryption_key,
+    )?;
+    let merge_strategy = merge_strategy.into_inner();
+    let show_reason = query_filters.show_reasoning.unwrap_or_default();
+
+    evaluate_resolved_config(config, &query_data, merge_strategy, show_reason)
+}
+
+pub fn resolve_detailed(
+    config: &Config,
+    context_data: QueryMap,
+    merge_strategy: Header<MergeStrategy>,
+    conn: &mut DBConnection,
+    resolve_options: &ResolveConfigQuery,
+    workspace_context: &WorkspaceContext,
+    master_encryption_key: &Option<EncryptionKey>,
+) -> superposition::Result<DetailedResolvedConfiguration> {
+    let mut resolution_config = config.clone();
+    apply_resolution_filters(&mut resolution_config, resolve_options)?;
+
+    let context_data = prepare_remote_query_data(
+        &resolution_config,
+        context_data,
+        conn,
+        resolve_options.resolve_remote,
+        workspace_context,
+        master_encryption_key,
+    )?;
+    let merge_strategy = merge_strategy.into_inner();
+    let show_reason = resolve_options.show_reasoning.unwrap_or_default();
+
+    let resolved_config = evaluate_resolved_config(
+        &resolution_config,
+        &context_data,
+        merge_strategy.clone(),
+        show_reason,
+    )?;
+    let keys = resolved_config.keys().cloned().collect::<Vec<_>>();
+    let metadata =
+        fetch_default_config_metadata(conn, &workspace_context.schema_name, &keys)?;
+    let detailed_config = build_resolved_config(resolved_config, &metadata);
+    Ok(detailed_config)
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn explain_resolved_config(
+    config: &Config,
+    context_data: QueryMap,
+    merge_strategy: Header<MergeStrategy>,
+    conn: &mut DBConnection,
+    resolve_options: &ExplainResolveQuery,
+    explain_key: &ExplainKeyQuery,
+    workspace_context: &WorkspaceContext,
+    master_encryption_key: &Option<EncryptionKey>,
+) -> superposition::Result<Explanation> {
+    let mut explanation_config = config.clone();
+    apply_context_id_filter(&mut explanation_config, &resolve_options.context_id)?;
+
+    let context_data = prepare_remote_query_data(
+        &explanation_config,
+        context_data,
+        conn,
+        resolve_options.resolve_remote,
+        workspace_context,
+        master_encryption_key,
+    )?;
+    let merge_strategy = merge_strategy.into_inner();
+
+    let mut current_value = explanation_config
+        .default_configs
+        .get(&explain_key.key)
+        .cloned()
+        .ok_or_else(|| {
+            bad_argument!("default config key {} not found", explain_key.key)
+        })?;
+    let context_data =
+        evaluate_local_cohorts(&explanation_config.dimensions, &context_data);
+    let mut timeline = Vec::new();
+
+    for context in &explanation_config.contexts {
+        if !superposition_types::apply(&context.condition, &context_data) {
+            continue;
+        }
+
+        let override_id = context.override_with_keys.get_key().clone();
+        let value_before = current_value.clone();
+
+        if let Some(override_value) = explanation_config
+            .overrides
+            .get(&override_id)
+            .and_then(|overrides| overrides.get(&explain_key.key))
+        {
+            match &merge_strategy {
+                MergeStrategy::REPLACE => current_value = override_value.clone(),
+                MergeStrategy::MERGE => {
+                    superposition_core::merge(&mut current_value, override_value)
+                }
+            }
+        }
+
+        let condition = serde_json::to_value(&context.condition).map_err(|err| {
+            log::error!("failed to encode context condition with error: {}", err);
+            unexpected_error!("failed to encode context condition")
+        })?;
+
+        timeline.push(ExplanationTimelineItem {
+            context_id: context.id.clone(),
+            condition,
+            override_id,
+            value_before,
+            value_after: current_value.clone(),
+        });
+    }
+
+    Ok(Explanation {
+        key: explain_key.key.clone(),
+        timeline,
+    })
 }

@@ -23,7 +23,10 @@ use superposition_types::{
     Cac, Condition, Config, Context, DBConnection, DimensionInfo, InternalUserContext,
     OverrideWithKeys, Overrides, PaginatedResponse, User,
     api::{
-        config::{ConfigQuery, ContextPayload, MergeStrategy, ResolveConfigQuery},
+        config::{
+            ConfigQuery, ContextPayload, ExplainKeyQuery, ExplainResolveQuery,
+            MergeStrategy, ResolveConfigQuery,
+        },
         context::PutRequest,
     },
     custom_query::{
@@ -53,7 +56,10 @@ use crate::{
     helpers::{generate_cac, generate_detailed_cac},
 };
 
-use super::helpers::{apply_prefix_filter_to_config, resolve, setup_query_data};
+use super::helpers::{
+    ResolveRequestData, apply_prefix_filter_to_config, explain_resolved_config, resolve,
+    resolve_detailed,
+};
 
 declare_resource!(Config);
 
@@ -62,7 +68,9 @@ pub fn endpoints() -> Scope {
         .service(get_handler)
         .service(get_toml_handler)
         .service(get_json_handler)
+        .service(detailed_resolve_handler)
         .service(resolve_handler)
+        .service(explain_resolve_handler)
         .service(reduce_handler)
         .service(list_version_handler)
         .service(get_version_handler)
@@ -654,6 +662,122 @@ async fn get_json_handler(
 #[allow(clippy::too_many_arguments)]
 #[authorized]
 #[routes]
+#[get("/resolve/detailed")]
+#[post("/resolve/detailed")]
+async fn detailed_resolve_handler(
+    req: HttpRequest,
+    body: Option<Json<ContextPayload>>,
+    merge_strategy: Header<MergeStrategy>,
+    dimension_params: DimensionQuery<QueryMap>,
+    query_filters: superposition_query::Query<ResolveConfigQuery>,
+    workspace_context: WorkspaceContext,
+    state: Data<AppState>,
+) -> superposition::Result<HttpResponse> {
+    let query_filters = query_filters.into_inner();
+    let Some(ResolveRequestData {
+        config,
+        config_version,
+        max_created_at,
+        is_smithy,
+        query_data,
+    }) = ResolveRequestData::prepare(
+        &req,
+        body,
+        dimension_params,
+        &query_filters.version,
+        &workspace_context,
+        &state,
+    )
+    .await?
+    else {
+        return Ok(HttpResponse::NotModified().finish());
+    };
+
+    let resolved_config = {
+        let mut conn = state.db_pool.get().map_err(|e| {
+            log::error!("Unable to get db connection from pool, error: {e}");
+            unexpected_error!("Unable to get db connection from pool, error: {}", e)
+        })?;
+        resolve_detailed(
+            &config,
+            query_data,
+            merge_strategy,
+            &mut conn,
+            &query_filters,
+            &workspace_context,
+            &state.master_encryption_key,
+        )?
+    };
+
+    let mut resp = HttpResponse::Ok();
+    AppHeader::add_last_modified(max_created_at, is_smithy, &mut resp);
+    AppHeader::add_config_version(&Some(config_version), &mut resp);
+    Ok(resp.json(resolved_config))
+}
+
+#[allow(clippy::too_many_arguments)]
+#[authorized]
+#[routes]
+#[get("/resolve/explain/{key}")]
+#[post("/resolve/explain/{key}")]
+async fn explain_resolve_handler(
+    req: HttpRequest,
+    body: Option<Json<ContextPayload>>,
+    merge_strategy: Header<MergeStrategy>,
+    dimension_params: DimensionQuery<QueryMap>,
+    query_filters: superposition_query::Query<ExplainResolveQuery>,
+    explain_key: Path<ExplainKeyQuery>,
+    workspace_context: WorkspaceContext,
+    state: Data<AppState>,
+) -> superposition::Result<HttpResponse> {
+    let explain_query = query_filters.into_inner();
+    let explain_key = explain_key.into_inner();
+    let Some(ResolveRequestData {
+        config,
+        config_version,
+        max_created_at,
+        is_smithy,
+        query_data,
+    }) = ResolveRequestData::prepare(
+        &req,
+        body,
+        dimension_params,
+        &explain_query.version,
+        &workspace_context,
+        &state,
+    )
+    .await?
+    else {
+        return Ok(HttpResponse::NotModified().finish());
+    };
+
+    let explanation = {
+        let mut conn = state.db_pool.get().map_err(|e| {
+            log::error!("Unable to get db connection from pool, error: {e}");
+            unexpected_error!("Unable to get db connection from pool, error: {}", e)
+        })?;
+
+        explain_resolved_config(
+            &config,
+            query_data,
+            merge_strategy,
+            &mut conn,
+            &explain_query,
+            &explain_key,
+            &workspace_context,
+            &state.master_encryption_key,
+        )?
+    };
+
+    let mut resp = HttpResponse::Ok();
+    AppHeader::add_last_modified(max_created_at, is_smithy, &mut resp);
+    AppHeader::add_config_version(&Some(config_version), &mut resp);
+    Ok(resp.json(explanation))
+}
+
+#[allow(clippy::too_many_arguments)]
+#[authorized]
+#[routes]
 #[get("/resolve")]
 #[post("/resolve")]
 async fn resolve_handler(
@@ -666,50 +790,26 @@ async fn resolve_handler(
     state: Data<AppState>,
 ) -> superposition::Result<HttpResponse> {
     let query_filters = query_filters.into_inner();
-    let schema_name = &workspace_context.schema_name;
-
-    let max_created_at = read_through_cache::<DateTime<Utc>>(
-        format!("{}{LAST_MODIFIED_KEY_SUFFIX}", **schema_name),
-        schema_name,
-        &state.redis,
-        &state.db_pool,
-        |conn| get_max_created_at(conn, schema_name),
+    let Some(ResolveRequestData {
+        config,
+        config_version,
+        max_created_at,
+        is_smithy,
+        query_data,
+    }) = ResolveRequestData::prepare(
+        &req,
+        body,
+        dimension_params,
+        &query_filters.version,
+        &workspace_context,
+        &state,
     )
-    .await
-    .ok();
-
-    if is_not_modified(max_created_at, &req) {
+    .await?
+    else {
         return Ok(HttpResponse::NotModified().finish());
-    }
+    };
 
-    let config_version =
-        get_config_version(&query_filters.version, &workspace_context, &state).await?;
-
-    let mut config = read_through_cache::<Config>(
-        format!("{}::{}{CONFIG_KEY_SUFFIX}", **schema_name, config_version,),
-        schema_name,
-        &state.redis,
-        &state.db_pool,
-        |conn| {
-            generate_config_from_version(
-                &mut Some(config_version),
-                conn,
-                &workspace_context.schema_name,
-            )
-            .map_err(|err| {
-                log::error!("failed to generate config from version with error: {}", err);
-                // can't throw the AppError from here because fetch_from_redis_else_writeback
-                // expects a DieselResult error type, so we log the actual error and return NotFound
-                // which will trigger generate_cac in the fallback and if
-                // that also fails then it will return the actual error
-                diesel::result::Error::NotFound
-            })
-        },
-    )
-    .await
-    .map_err(|e| unexpected_error!("failed to generate config: {}", e))?;
-
-    let (is_smithy, query_data) = setup_query_data(&req, body, dimension_params)?;
+    let mut config = config;
 
     let resolved_config = {
         let mut conn = state.db_pool.get().map_err(|e| {

@@ -48,6 +48,20 @@ const sidebar: SidebarsConfig = {
         },
         {
           type: "doc",
+          id: "api/get-detailed-resolved-config",
+          label: "GetDetailedResolvedConfig",
+          customProps: {},
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "api/get-resolved-config-explanation",
+          label: "GetResolvedConfigExplanation",
+          customProps: {},
+          className: "api-method post",
+        },
+        {
+          type: "doc",
           id: "api/get-config-toml",
           label: "GetConfigToml",
           customProps: {},

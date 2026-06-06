@@ -638,6 +638,37 @@ final class SharedSerde {
         }
     }
 
+    static final class ResolveExplanationTimelineSerializer implements BiConsumer<List<ResolveExplanationTimelineItem>, ShapeSerializer> {
+        static final ResolveExplanationTimelineSerializer INSTANCE = new ResolveExplanationTimelineSerializer();
+
+        @Override
+        public void accept(List<ResolveExplanationTimelineItem> values, ShapeSerializer serializer) {
+            for (var value : values) {
+                serializer.writeStruct(SharedSchemas.RESOLVE_EXPLANATION_TIMELINE.listMember(), value);
+            }
+        }
+    }
+
+    static List<ResolveExplanationTimelineItem> deserializeResolveExplanationTimeline(Schema schema, ShapeDeserializer deserializer) {
+        var size = deserializer.containerSize();
+        List<ResolveExplanationTimelineItem> result = size == -1 ? new ArrayList<>() : new ArrayList<>(size);
+        deserializer.readList(schema, result, ResolveExplanationTimeline$MemberDeserializer.INSTANCE);
+        return result;
+    }
+
+    private static final class ResolveExplanationTimeline$MemberDeserializer implements ShapeDeserializer.ListMemberConsumer<List<ResolveExplanationTimelineItem>> {
+        static final ResolveExplanationTimeline$MemberDeserializer INSTANCE = new ResolveExplanationTimeline$MemberDeserializer();
+
+        @Override
+        public void accept(List<ResolveExplanationTimelineItem> state, ShapeDeserializer deserializer) {
+            if (deserializer.isNull()) {
+
+                return;
+            }
+            state.add(ResolveExplanationTimelineItem.builder().deserializeMember(deserializer, SharedSchemas.RESOLVE_EXPLANATION_TIMELINE.listMember()).build());
+        }
+    }
+
     static final class OverridesMapSerializer implements BiConsumer<Map<String, Map<String, Document>>, MapSerializer> {
         static final OverridesMapSerializer INSTANCE = new OverridesMapSerializer();
 

@@ -91,6 +91,8 @@ pub(crate) mod shape_get_context_from_condition_input;
 
 pub(crate) mod shape_get_default_config;
 
+pub(crate) mod shape_get_detailed_resolved_config;
+
 pub(crate) mod shape_get_dimension;
 
 pub(crate) mod shape_get_experiment;
@@ -104,6 +106,8 @@ pub(crate) mod shape_get_function;
 pub(crate) mod shape_get_organisation;
 
 pub(crate) mod shape_get_resolved_config;
+
+pub(crate) mod shape_get_resolved_config_explanation;
 
 pub(crate) mod shape_get_resolved_config_with_identifier;
 
@@ -253,9 +257,17 @@ pub(crate) mod shape_get_config_output;
 
 pub(crate) mod shape_get_config_toml_output;
 
+pub(crate) mod shape_get_detailed_resolved_config_input;
+
+pub(crate) mod shape_get_detailed_resolved_config_output;
+
 pub(crate) mod shape_get_experiment_config_input;
 
 pub(crate) mod shape_get_experiment_config_output;
+
+pub(crate) mod shape_get_resolved_config_explanation_input;
+
+pub(crate) mod shape_get_resolved_config_explanation_output;
 
 pub(crate) mod shape_get_resolved_config_input;
 
@@ -371,6 +383,8 @@ pub(crate) mod shape_overrides;
 
 pub(crate) mod shape_overrides_map;
 
+pub(crate) mod shape_resolve_explanation;
+
 pub(crate) mod shape_secret_list;
 
 pub(crate) mod shape_string_list;
@@ -442,4 +456,8 @@ pub(crate) mod shape_weight_recompute_response;
 pub(crate) mod shape_workspace_response;
 
 pub(crate) mod shape_override_with_keys;
+
+pub(crate) mod shape_resolve_explanation_timeline;
+
+pub(crate) mod shape_resolve_explanation_timeline_item;
 

@@ -132,6 +132,9 @@ from ._private.schemas import (
     GET_DEFAULT_CONFIG as _SCHEMA_GET_DEFAULT_CONFIG,
     GET_DEFAULT_CONFIG_INPUT as _SCHEMA_GET_DEFAULT_CONFIG_INPUT,
     GET_DEFAULT_CONFIG_OUTPUT as _SCHEMA_GET_DEFAULT_CONFIG_OUTPUT,
+    GET_DETAILED_RESOLVED_CONFIG as _SCHEMA_GET_DETAILED_RESOLVED_CONFIG,
+    GET_DETAILED_RESOLVED_CONFIG_INPUT as _SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT,
+    GET_DETAILED_RESOLVED_CONFIG_OUTPUT as _SCHEMA_GET_DETAILED_RESOLVED_CONFIG_OUTPUT,
     GET_DIMENSION as _SCHEMA_GET_DIMENSION,
     GET_DIMENSION_INPUT as _SCHEMA_GET_DIMENSION_INPUT,
     GET_DIMENSION_OUTPUT as _SCHEMA_GET_DIMENSION_OUTPUT,
@@ -151,6 +154,9 @@ from ._private.schemas import (
     GET_ORGANISATION_INPUT as _SCHEMA_GET_ORGANISATION_INPUT,
     GET_ORGANISATION_OUTPUT as _SCHEMA_GET_ORGANISATION_OUTPUT,
     GET_RESOLVED_CONFIG as _SCHEMA_GET_RESOLVED_CONFIG,
+    GET_RESOLVED_CONFIG_EXPLANATION as _SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION,
+    GET_RESOLVED_CONFIG_EXPLANATION_INPUT as _SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_INPUT,
+    GET_RESOLVED_CONFIG_EXPLANATION_OUTPUT as _SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_OUTPUT,
     GET_RESOLVED_CONFIG_INPUT as _SCHEMA_GET_RESOLVED_CONFIG_INPUT,
     GET_RESOLVED_CONFIG_OUTPUT as _SCHEMA_GET_RESOLVED_CONFIG_OUTPUT,
     GET_RESOLVED_CONFIG_WITH_IDENTIFIER as _SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER,
@@ -240,6 +246,8 @@ from ._private.schemas import (
     REMOVE_MEMBERS_FROM_GROUP as _SCHEMA_REMOVE_MEMBERS_FROM_GROUP,
     REMOVE_MEMBERS_FROM_GROUP_INPUT as _SCHEMA_REMOVE_MEMBERS_FROM_GROUP_INPUT,
     REMOVE_MEMBERS_FROM_GROUP_OUTPUT as _SCHEMA_REMOVE_MEMBERS_FROM_GROUP_OUTPUT,
+    RESOLVE_EXPLANATION as _SCHEMA_RESOLVE_EXPLANATION,
+    RESOLVE_EXPLANATION_TIMELINE_ITEM as _SCHEMA_RESOLVE_EXPLANATION_TIMELINE_ITEM,
     RESOURCE_NOT_FOUND as _SCHEMA_RESOURCE_NOT_FOUND,
     RESUME_EXPERIMENT as _SCHEMA_RESUME_EXPERIMENT,
     RESUME_EXPERIMENT_INPUT as _SCHEMA_RESUME_EXPERIMENT_INPUT,
@@ -3011,6 +3019,139 @@ class MergeStrategy(StrEnum):
     REPLACE = "REPLACE"
 
 @dataclass(kw_only=True)
+class GetDetailedResolvedConfigInput:
+    """
+
+    :param resolve_remote:
+         Intended for control resolution. If true, evaluates and includes remote
+         cohort-based contexts during config resolution.
+
+    :param context:
+         Map representing the context. Keys correspond to the names of the dimensions.
+
+    """
+
+    workspace_id: str | None = None
+    org_id: str | None = None
+    prefix: list[str] | None = None
+    version: str | None = None
+    show_reasoning: bool | None = None
+    merge_strategy: str | None = None
+    context_id: str | None = None
+    resolve_remote: bool | None = None
+    context: dict[str, Document] | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.context is not None:
+            _serialize_context_map(serializer, _SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["context"], self.context)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["workspace_id"])
+
+                case 1:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["org_id"])
+
+                case 2:
+                    kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["prefix"])
+
+                case 3:
+                    kwargs["version"] = de.read_string(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["version"])
+
+                case 4:
+                    kwargs["show_reasoning"] = de.read_boolean(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["show_reasoning"])
+
+                case 5:
+                    kwargs["merge_strategy"] = de.read_string(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["merge_strategy"])
+
+                case 6:
+                    kwargs["context_id"] = de.read_string(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["context_id"])
+
+                case 7:
+                    kwargs["resolve_remote"] = de.read_boolean(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["resolve_remote"])
+
+                case 8:
+                    kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["context"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class GetDetailedResolvedConfigOutput:
+
+    config: Document
+
+    version: str
+
+    last_modified: datetime
+
+    audit_id: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["config"] = de.read_document(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_OUTPUT.members["config"])
+
+                case 1:
+                    kwargs["version"] = de.read_string(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_OUTPUT.members["version"])
+
+                case 2:
+                    kwargs["last_modified"] = de.read_timestamp(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_OUTPUT.members["last_modified"])
+
+                case 3:
+                    kwargs["audit_id"] = de.read_string(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_OUTPUT.members["audit_id"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_OUTPUT, consumer=_consumer)
+        return kwargs
+
+GET_DETAILED_RESOLVED_CONFIG = APIOperation(
+        input = GetDetailedResolvedConfigInput,
+        output = GetDetailedResolvedConfigOutput,
+        schema = _SCHEMA_GET_DETAILED_RESOLVED_CONFIG,
+        input_schema = _SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT,
+        output_schema = _SCHEMA_GET_DETAILED_RESOLVED_CONFIG_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+           ShapeID("smithy.api#httpBasicAuth"),
+ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
+@dataclass(kw_only=True)
 class GetResolvedConfigInput:
     """
 
@@ -3134,6 +3275,249 @@ GET_RESOLVED_CONFIG = APIOperation(
         schema = _SCHEMA_GET_RESOLVED_CONFIG,
         input_schema = _SCHEMA_GET_RESOLVED_CONFIG_INPUT,
         output_schema = _SCHEMA_GET_RESOLVED_CONFIG_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+           ShapeID("smithy.api#httpBasicAuth"),
+ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
+@dataclass(kw_only=True)
+class GetResolvedConfigExplanationInput:
+    """
+
+    :param resolve_remote:
+         Intended for control resolution. If true, evaluates and includes remote
+         cohort-based contexts during config resolution.
+
+    :param context:
+         Map representing the context. Keys correspond to the names of the dimensions.
+
+    """
+
+    workspace_id: str | None = None
+    org_id: str | None = None
+    key: str | None = None
+    version: str | None = None
+    merge_strategy: str | None = None
+    context_id: str | None = None
+    resolve_remote: bool | None = None
+    context: dict[str, Document] | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.context is not None:
+            _serialize_context_map(serializer, _SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_INPUT.members["context"], self.context)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_INPUT.members["workspace_id"])
+
+                case 1:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_INPUT.members["org_id"])
+
+                case 2:
+                    kwargs["key"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_INPUT.members["key"])
+
+                case 3:
+                    kwargs["version"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_INPUT.members["version"])
+
+                case 4:
+                    kwargs["merge_strategy"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_INPUT.members["merge_strategy"])
+
+                case 5:
+                    kwargs["context_id"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_INPUT.members["context_id"])
+
+                case 6:
+                    kwargs["resolve_remote"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_INPUT.members["resolve_remote"])
+
+                case 7:
+                    kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_INPUT.members["context"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class ResolveExplanationTimelineItem:
+    """
+
+    :param condition:
+        **[Required]** - Represents conditional criteria used for context matching. Keys
+        define dimension names and values specify the criteria that must be met.
+
+    """
+
+    context_id: str
+
+    condition: dict[str, Document]
+
+    override_id: str
+
+    value_before: Document
+
+    value_after: Document
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_RESOLVE_EXPLANATION_TIMELINE_ITEM, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_RESOLVE_EXPLANATION_TIMELINE_ITEM.members["context_id"], self.context_id)
+        _serialize_condition(serializer, _SCHEMA_RESOLVE_EXPLANATION_TIMELINE_ITEM.members["condition"], self.condition)
+        serializer.write_string(_SCHEMA_RESOLVE_EXPLANATION_TIMELINE_ITEM.members["override_id"], self.override_id)
+        serializer.write_document(_SCHEMA_RESOLVE_EXPLANATION_TIMELINE_ITEM.members["value_before"], self.value_before)
+        serializer.write_document(_SCHEMA_RESOLVE_EXPLANATION_TIMELINE_ITEM.members["value_after"], self.value_after)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["context_id"] = de.read_string(_SCHEMA_RESOLVE_EXPLANATION_TIMELINE_ITEM.members["context_id"])
+
+                case 1:
+                    kwargs["condition"] = _deserialize_condition(de, _SCHEMA_RESOLVE_EXPLANATION_TIMELINE_ITEM.members["condition"])
+
+                case 2:
+                    kwargs["override_id"] = de.read_string(_SCHEMA_RESOLVE_EXPLANATION_TIMELINE_ITEM.members["override_id"])
+
+                case 3:
+                    kwargs["value_before"] = de.read_document(_SCHEMA_RESOLVE_EXPLANATION_TIMELINE_ITEM.members["value_before"])
+
+                case 4:
+                    kwargs["value_after"] = de.read_document(_SCHEMA_RESOLVE_EXPLANATION_TIMELINE_ITEM.members["value_after"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_RESOLVE_EXPLANATION_TIMELINE_ITEM, consumer=_consumer)
+        return kwargs
+
+def _serialize_resolve_explanation_timeline(serializer: ShapeSerializer, schema: Schema, value: list[ResolveExplanationTimelineItem]) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_struct(member_schema, e)
+
+def _deserialize_resolve_explanation_timeline(deserializer: ShapeDeserializer, schema: Schema) -> list[ResolveExplanationTimelineItem]:
+    result: list[ResolveExplanationTimelineItem] = []
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(ResolveExplanationTimelineItem.deserialize(d))
+    deserializer.read_list(schema, _read_value)
+    return result
+
+@dataclass(kw_only=True)
+class ResolveExplanation:
+
+    key: str
+
+    timeline: list[ResolveExplanationTimelineItem]
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_RESOLVE_EXPLANATION, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_RESOLVE_EXPLANATION.members["key"], self.key)
+        _serialize_resolve_explanation_timeline(serializer, _SCHEMA_RESOLVE_EXPLANATION.members["timeline"], self.timeline)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["key"] = de.read_string(_SCHEMA_RESOLVE_EXPLANATION.members["key"])
+
+                case 1:
+                    kwargs["timeline"] = _deserialize_resolve_explanation_timeline(de, _SCHEMA_RESOLVE_EXPLANATION.members["timeline"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_RESOLVE_EXPLANATION, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class GetResolvedConfigExplanationOutput:
+
+    explanation: ResolveExplanation
+
+    version: str
+
+    last_modified: datetime
+
+    audit_id: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["explanation"] = ResolveExplanation.deserialize(de)
+
+                case 1:
+                    kwargs["version"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_OUTPUT.members["version"])
+
+                case 2:
+                    kwargs["last_modified"] = de.read_timestamp(_SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_OUTPUT.members["last_modified"])
+
+                case 3:
+                    kwargs["audit_id"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_OUTPUT.members["audit_id"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_OUTPUT, consumer=_consumer)
+        return kwargs
+
+GET_RESOLVED_CONFIG_EXPLANATION = APIOperation(
+        input = GetResolvedConfigExplanationInput,
+        output = GetResolvedConfigExplanationOutput,
+        schema = _SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION,
+        input_schema = _SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_INPUT,
+        output_schema = _SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),

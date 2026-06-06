@@ -128,6 +128,10 @@ import {
   GetDefaultConfigCommandOutput,
 } from "../commands/GetDefaultConfigCommand";
 import {
+  GetDetailedResolvedConfigCommandInput,
+  GetDetailedResolvedConfigCommandOutput,
+} from "../commands/GetDetailedResolvedConfigCommand";
+import {
   GetDimensionCommandInput,
   GetDimensionCommandOutput,
 } from "../commands/GetDimensionCommand";
@@ -155,6 +159,10 @@ import {
   GetResolvedConfigCommandInput,
   GetResolvedConfigCommandOutput,
 } from "../commands/GetResolvedConfigCommand";
+import {
+  GetResolvedConfigExplanationCommandInput,
+  GetResolvedConfigExplanationCommandOutput,
+} from "../commands/GetResolvedConfigExplanationCommand";
 import {
   GetResolvedConfigWithIdentifierCommandInput,
   GetResolvedConfigWithIdentifierCommandOutput,
@@ -365,6 +373,8 @@ import {
   InternalServerError,
   ListVersionsMember,
   OrganisationResponse,
+  ResolveExplanation,
+  ResolveExplanationTimelineItem,
   ResourceNotFound,
   SecretResponse,
   TypeTemplatesResponse,
@@ -1237,6 +1247,39 @@ export const se_GetDefaultConfigCommand = async(
 }
 
 /**
+ * serializeAws_restJson1GetDetailedResolvedConfigCommand
+ */
+export const se_GetDetailedResolvedConfigCommand = async(
+  input: GetDetailedResolvedConfigCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    'content-type': 'application/json',
+    [_xw]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+    [_xms]: input[_ms]!,
+  });
+  b.bp("/config/resolve/detailed");
+  const query: any = map({
+    [_p]: [() => input.prefix !== void 0, () => ((input[_p]! || []))],
+    [_v]: [,input[_v]!],
+    [_sr]: [() => input.show_reasoning !== void 0, () => (input[_sr]!.toString())],
+    [_ci]: [,input[_ci]!],
+    [_rr]: [() => input.resolve_remote !== void 0, () => (input[_rr]!.toString())],
+  });
+  let body: any;
+  body = JSON.stringify(take(input, {
+    'context': _ => se_ContextMap(_, context),
+  }));
+  b.m("POST")
+  .h(headers)
+  .q(query)
+  .b(body);
+  return b.build();
+}
+
+/**
  * serializeAws_restJson1GetDimensionCommand
  */
 export const se_GetDimensionCommand = async(
@@ -1388,6 +1431,38 @@ export const se_GetResolvedConfigCommand = async(
     [_p]: [() => input.prefix !== void 0, () => ((input[_p]! || []))],
     [_v]: [,input[_v]!],
     [_sr]: [() => input.show_reasoning !== void 0, () => (input[_sr]!.toString())],
+    [_ci]: [,input[_ci]!],
+    [_rr]: [() => input.resolve_remote !== void 0, () => (input[_rr]!.toString())],
+  });
+  let body: any;
+  body = JSON.stringify(take(input, {
+    'context': _ => se_ContextMap(_, context),
+  }));
+  b.m("POST")
+  .h(headers)
+  .q(query)
+  .b(body);
+  return b.build();
+}
+
+/**
+ * serializeAws_restJson1GetResolvedConfigExplanationCommand
+ */
+export const se_GetResolvedConfigExplanationCommand = async(
+  input: GetResolvedConfigExplanationCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    'content-type': 'application/json',
+    [_xw]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+    [_xms]: input[_ms]!,
+  });
+  b.bp("/config/resolve/explain/{key}");
+  b.p('key', () => input.key!, '{key}', false)
+  const query: any = map({
+    [_v]: [,input[_v]!],
     [_ci]: [,input[_ci]!],
     [_rr]: [() => input.resolve_remote !== void 0, () => (input[_rr]!.toString())],
   });
@@ -3543,6 +3618,28 @@ export const de_GetDefaultConfigCommand = async(
 }
 
 /**
+ * deserializeAws_restJson1GetDetailedResolvedConfigCommand
+ */
+export const de_GetDetailedResolvedConfigCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<GetDetailedResolvedConfigCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+    [_v]: [, output.headers[_xcv]],
+    [_lm_]: [() => void 0 !== output.headers[_lm], () => __expectNonNull(__parseRfc3339DateTimeWithOffset(output.headers[_lm]))],
+    [_ai]: [, output.headers[_xai]],
+  });
+  const data: any = await collectBodyString(output.body, context);
+  contents.config = data;
+  contents.config = JSON.parse(data);
+  return contents;
+}
+
+/**
  * deserializeAws_restJson1GetDimensionCommand
  */
 export const de_GetDimensionCommand = async(
@@ -3758,6 +3855,27 @@ export const de_GetResolvedConfigCommand = async(
   const data: any = await collectBodyString(output.body, context);
   contents.config = data;
   contents.config = JSON.parse(data);
+  return contents;
+}
+
+/**
+ * deserializeAws_restJson1GetResolvedConfigExplanationCommand
+ */
+export const de_GetResolvedConfigExplanationCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<GetResolvedConfigExplanationCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+    [_v]: [, output.headers[_xcv]],
+    [_lm_]: [() => void 0 !== output.headers[_lm], () => __expectNonNull(__parseRfc3339DateTimeWithOffset(output.headers[_lm]))],
+    [_ai]: [, output.headers[_xai]],
+  });
+  const data: Record<string, any> | undefined = __expectObject(await parseBody(output.body, context));
+  contents.explanation = de_ResolveExplanation(data, context);
   return contents;
 }
 
@@ -6013,6 +6131,48 @@ const de_CommandError = async(
     }, {} as Record<string, Record<string, __DocumentType>>);}
 
   // de_OverrideWithKeys omitted.
+
+  /**
+   * deserializeAws_restJson1ResolveExplanation
+   */
+  const de_ResolveExplanation = (
+    output: any,
+    context: __SerdeContext
+  ): ResolveExplanation => {
+    return take(output, {
+      'key': __expectString,
+      'timeline': (_: any) => de_ResolveExplanationTimeline(_, context),
+    }) as any;
+  }
+
+  /**
+   * deserializeAws_restJson1ResolveExplanationTimeline
+   */
+  const de_ResolveExplanationTimeline = (
+    output: any,
+    context: __SerdeContext
+  ): (ResolveExplanationTimelineItem)[] => {
+    const retVal = (output || []).filter((e: any) => e != null).map((entry: any) => {
+      return de_ResolveExplanationTimelineItem(entry, context);
+    });
+    return retVal;
+  }
+
+  /**
+   * deserializeAws_restJson1ResolveExplanationTimelineItem
+   */
+  const de_ResolveExplanationTimelineItem = (
+    output: any,
+    context: __SerdeContext
+  ): ResolveExplanationTimelineItem => {
+    return take(output, {
+      'condition': (_: any) => de_Condition(_, context),
+      'context_id': __expectString,
+      'override_id': __expectString,
+      'value_after': (_: any) => de_Document(_, context),
+      'value_before': (_: any) => de_Document(_, context),
+    }) as any;
+  }
 
   /**
    * deserializeAws_restJson1SecretList

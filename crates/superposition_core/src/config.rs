@@ -54,8 +54,6 @@ pub fn eval_config_with_reasoning(
     merge_strategy: MergeStrategy,
     filter_prefixes: Option<Vec<String>>, // Optional prefix filtering
 ) -> Result<Map<String, Value>, String> {
-    let mut reasoning: Vec<Value> = vec![];
-
     let mut config = Config {
         default_configs: default_config.into(),
         contexts: contexts.to_vec(),
@@ -67,13 +65,6 @@ pub fn eval_config_with_reasoning(
         config = config.filter_by_prefix(&HashSet::from_iter(prefixes.iter().cloned()));
     }
 
-    let mut reasoning_collector = |context: Context| {
-        reasoning.push(json!({
-            "context": context.condition,
-            "override": context.override_with_keys
-        }));
-    };
-
     let modified_query_data = evaluate_local_cohorts(&config.dimensions, query_data);
 
     let overrides_map = get_overrides(
@@ -81,14 +72,11 @@ pub fn eval_config_with_reasoning(
         &config.contexts,
         &config.overrides,
         &merge_strategy,
-        Some(&mut reasoning_collector),
+        None,
     )?;
 
     let mut result_config = config.default_configs;
     merge_overrides_on_default_config(&mut result_config, overrides_map, &merge_strategy);
-
-    // Add reasoning metadata
-    result_config.insert("metadata".into(), json!(reasoning));
 
     Ok(result_config.into_inner())
 }
@@ -192,4 +180,64 @@ fn merge_overrides_on_default_config(
             log::error!("Config: found non-default_config key: {key} in overrides");
         }
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::HashMap;
+
+    use serde_json::{json, Map, Value};
+    use superposition_types::{Cac, Condition, Context, OverrideWithKeys, Overrides};
+
+    use super::*;
+
+    fn value_map(values: Vec<(&str, Value)>) -> Map<String, Value> {
+        values
+            .into_iter()
+            .map(|(key, value)| (key.to_string(), value))
+            .collect()
+    }
+
+    fn condition(values: Vec<(&str, Value)>) -> Condition {
+        Cac::<Condition>::try_from(value_map(values))
+            .unwrap()
+            .into_inner()
+    }
+
+    fn overrides(values: Vec<(&str, Value)>) -> Overrides {
+        Cac::<Overrides>::try_from(value_map(values))
+            .unwrap()
+            .into_inner()
+    }
+
+    #[test]
+    fn eval_config_with_reasoning_does_not_add_metadata_key() {
+        let default_config = value_map(vec![("checkout.enabled", json!(false))]);
+        let context = Context {
+            id: "c0".to_string(),
+            condition: condition(vec![("country", json!("IN"))]),
+            priority: 0,
+            weight: 0,
+            override_with_keys: OverrideWithKeys::new("o0".to_string()),
+        };
+        let overrides = HashMap::from([(
+            "o0".to_string(),
+            overrides(vec![("checkout.enabled", json!(true))]),
+        )]);
+        let query_data = value_map(vec![("country", json!("IN"))]);
+
+        let resolved = eval_config_with_reasoning(
+            default_config,
+            &[context],
+            &overrides,
+            &HashMap::new(),
+            &query_data,
+            MergeStrategy::MERGE,
+            None,
+        )
+        .unwrap();
+
+        assert_eq!(resolved.get("checkout.enabled"), Some(&json!(true)));
+        assert!(!resolved.contains_key("metadata"));
+    }
 }
