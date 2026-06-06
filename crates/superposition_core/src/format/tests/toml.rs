@@ -86,7 +86,10 @@ timeout = 60
 "#;
 
     let detailed = TomlFormat::parse_into_detailed(toml).unwrap();
-    assert_eq!(detailed.dimensions.get("os").unwrap().description, "operating system");
+    assert_eq!(
+        detailed.dimensions.get("os").unwrap().description,
+        "operating system"
+    );
     assert_eq!(
         detailed.default_configs.get("timeout").unwrap().description,
         "request timeout"
@@ -98,7 +101,10 @@ timeout = 60
 
     // Description survives a full round-trip.
     let reparsed = TomlFormat::parse_into_detailed(&serialized).unwrap();
-    assert_eq!(reparsed.dimensions.get("os").unwrap().description, "operating system");
+    assert_eq!(
+        reparsed.dimensions.get("os").unwrap().description,
+        "operating system"
+    );
     assert_eq!(
         reparsed.default_configs.get("timeout").unwrap().description,
         "request timeout"

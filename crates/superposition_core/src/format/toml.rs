@@ -211,11 +211,7 @@ impl TryFrom<DetailedConfig> for DetailedConfigToml {
                     DimensionInfoToml::try_from(v).map(|mut dim| {
                         // Description is mandatory in the exported file; fall
                         // back to the dimension name when it is missing.
-                        if dim
-                            .description
-                            .as_ref()
-                            .map_or(true, |d| d.trim().is_empty())
-                        {
+                        if dim.description.as_ref().is_none_or(|d| d.trim().is_empty()) {
                             dim.description = Some(k.clone());
                         }
                         (k, dim)

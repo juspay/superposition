@@ -105,9 +105,15 @@ fn test_json_description_exported_and_falls_back_to_name() {
     }"#;
 
     let detailed = JsonFormat::parse_into_detailed(json_str).unwrap();
-    assert_eq!(detailed.dimensions.get("os").unwrap().description, "operating system");
+    assert_eq!(
+        detailed.dimensions.get("os").unwrap().description,
+        "operating system"
+    );
     // Missing descriptions fall back to the name.
-    assert_eq!(detailed.dimensions.get("region").unwrap().description, "region");
+    assert_eq!(
+        detailed.dimensions.get("region").unwrap().description,
+        "region"
+    );
     assert_eq!(
         detailed.default_configs.get("timeout").unwrap().description,
         "request timeout"

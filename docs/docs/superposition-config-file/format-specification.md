@@ -63,16 +63,16 @@ The `[default-configs]` section defines all possible configuration keys for your
 
 ```toml
 [default-configs]
-<key> = { value = <default_value>, schema = <json_schema>, description = <string> }
+<key> = { value = <default_value>, schema = <json_schema> [, description = <string>] }
 ```
 
 ### Parameters
 
-| Parameter     | Type        | Required | Description                                                            |
-| ------------- | ----------- | -------- | --------------------------------------------------------------------- |
-| `value`       | Any         | Yes      | The default value for this configuration key                          |
-| `schema`      | JSON Schema | Yes      | JSON Schema that validates the value                                  |
-| `description` | String      | Yes      | Human-readable description. If omitted on import, the key name is used |
+| Parameter     | Type        | Required        | Description                                                                          |
+| ------------- | ----------- | --------------- | ----------------------------------------------------------------------------------- |
+| `value`       | Any         | Yes             | The default value for this configuration key                                        |
+| `schema`      | JSON Schema | Yes             | JSON Schema that validates the value                                                |
+| `description` | String      | No (on import)  | Human-readable description. Optional on import (falls back to the key name when omitted); always emitted on export |
 
 ### Examples
 
@@ -145,17 +145,17 @@ The `[dimensions]` section defines the attributes that segment your configuratio
 
 ```toml
 [dimensions]
-<dimension_name> = { position = <number>, schema = <json_schema>, description = <string> [, type = <dimension_type>] }
+<dimension_name> = { position = <number>, schema = <json_schema> [, description = <string>] [, type = <dimension_type>] }
 ```
 
 ### Parameters
 
-| Parameter     | Type        | Required | Description                                                                                |
-| ------------- | ----------- | -------- | ----------------------------------------------------------------------------------------- |
-| `position`    | Integer     | Yes      | Position for priority calculation (higher = more specific)                                |
-| `schema`      | JSON Schema | Yes      | Schema validating dimension values                                                        |
-| `description` | String      | Yes      | Human-readable description. If omitted on import, the dimension name is used               |
-| `type`        | String      | No       | Dimension type: `"REGULAR"` (default), `"LOCAL_COHORT:<dim>"`, or `"REMOTE_COHORT:<dim>"` |
+| Parameter     | Type        | Required        | Description                                                                                |
+| ------------- | ----------- | --------------- | ----------------------------------------------------------------------------------------- |
+| `position`    | Integer     | Yes             | Position for priority calculation (higher = more specific)                                |
+| `schema`      | JSON Schema | Yes             | Schema validating dimension values                                                        |
+| `description` | String      | No (on import)  | Human-readable description. Optional on import (falls back to the dimension name when omitted); always emitted on export |
+| `type`        | String      | No              | Dimension type: `"REGULAR"` (default), `"LOCAL_COHORT:<dim>"`, or `"REMOTE_COHORT:<dim>"` |
 
 ### Position and Priority
 
