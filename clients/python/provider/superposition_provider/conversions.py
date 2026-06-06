@@ -61,6 +61,7 @@ def config_response_to_ffi_config(response: GetConfigOutput) -> Config:
             dimension_type=to_dimension_type(dim_info.dimension_type),
             dependency_graph=dim_info.dependency_graph,
             value_compute_function_name=dim_info.value_compute_function_name,
+            description="",
         )
         dimensions[key] = dimension
 

@@ -66,6 +66,7 @@ def convert_fallback_config(fallback_config: Optional[Dict[str, Any]]) -> Option
                 dimension_type=dimension['dimension_type'],
                 dependency_graph=dimension['dependency_graph'],
                 value_compute_function_name=dimension.get('value_compute_function_name'),
+                description=dimension.get('description', key),
             )
             for key, dimension in fallback_config['dimensions'].items()
         }
@@ -227,6 +228,7 @@ class CacConfig:
                         dimension_type=to_dimension_type(dim_info.dimension_type),
                         dependency_graph=dim_info.dependency_graph,
                         value_compute_function_name=dim_info.value_compute_function_name,
+                        description="",
                     )
                     dimensions[key] = dimension
                 config_data['dimensions'] = dimensions
