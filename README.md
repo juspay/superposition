@@ -11,6 +11,7 @@
 <a href="https://context7.com/juspay/superposition"><img src="https://img.shields.io/badge/Context7-LLM%20Docs-7c3aed" alt="Context7" height="22"/></a>
 <a href="https://deepwiki.com/juspay/superposition"><img src="https://img.shields.io/badge/DeepWiki-Architecture%20Wiki-0ea5e9" alt="DeepWiki" height="22"/></a>
 <a href="https://discord.gg/jNeUJR9Bwr"><img src="https://img.shields.io/discord/1280216553350107258?label=Discord&logo=discord" alt="Discord" height="22"/></a>
+<a href="https://superpositionjp.slack.com"><img src="https://img.shields.io/badge/Slack-Join%20chat-4A154B?logo=slack&logoColor=white" alt="Slack" height="22"/></a>
 </p>
 
 <p align="center">
