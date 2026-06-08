@@ -240,6 +240,13 @@ def build_overrides(
     context appears exactly once carrying the union of its source flags."""
     accum: "dict[tuple, set[str]]" = {}
 
+    # Track which (connector, pm) pairs have manual capture explicitly
+    # blocked in pm_filters via `not_available_flows`. The Option A implication
+    # (mandate -> payments) must respect this block to avoid contradicting
+    # the source - otherwise adyen.ideal manual would incorrectly show
+    # payments_enabled=true because adyen.ideal is in [mandates].
+    manual_blocked_pairs: "set[tuple[str, str]]" = set()
+
     # ----- payments_enabled from pm_filters ---------------------------------
     for connector in sorted(pm_filters.keys()):
         if connector == "default":
@@ -260,6 +267,8 @@ def build_overrides(
                 isinstance(not_avail, dict)
                 and not_avail.get("capture_method") == "manual"
             )
+            if manual_blocked:
+                manual_blocked_pairs.add((connector, pm))
             capture_methods = ["automatic"] if manual_blocked else ["automatic", "manual"]
             _set_flag(
                 accum, "payments_enabled",
@@ -274,23 +283,51 @@ def build_overrides(
     # Mandate sections don't carry country/currency/capture - the source
     # semantics are "this connector supports this kind of mandate for this
     # payment_method, period". Expand to every observed dimension value.
+    #
+    # Implied-flag rule: a (connector, pm) entry in either mandate list also
+    # implies payments_enabled. The source's pm_filters is selective - many
+    # combinations (notably cards) have no pm_filters row at all because
+    # they're enabled by default in Hyperswitch's code, not in config. Without
+    # this rule, mandate-supporting pairs that aren't also in pm_filters
+    # would show payments_enabled=false, which is misleading. Mandate setup
+    # requires the underlying payment method to be supported, so any source
+    # row in [mandates] / [zero_mandates] is treated as proof that
+    # payments_enabled is true for that (connector, pm) too.
     mandate_jobs = [
-        ("payments_mandates_enabled", mandates_section),
-        ("payments_zero_dollar_mandates_enabled", zero_mandates_section),
+        # (source_flag, implied_flags, section)
+        ("payments_mandates_enabled", ("payments_enabled",), mandates_section),
+        ("payments_zero_dollar_mandates_enabled", ("payments_enabled",),
+         zero_mandates_section),
     ]
-    for flag, section in mandate_jobs:
+    for source_flag, implied_flags, section in mandate_jobs:
         for pm, conns in walk_mandate_section(section):
             for connector in sorted(conns):
                 if connector_filter and connector not in connector_filter:
                     continue
+                # The source flag itself fires for both capture methods (the
+                # mandate section doesn't constrain capture).
                 _set_flag(
-                    accum, flag,
+                    accum, source_flag,
                     connector=connector,
                     payment_method=pm,
                     countries=all_countries,
                     currencies=all_currencies,
                     capture_methods=["automatic", "manual"],
                 )
+                # Implied payments_enabled respects pm_filters' manual block.
+                implied_captures = (
+                    ["automatic"] if (connector, pm) in manual_blocked_pairs
+                    else ["automatic", "manual"]
+                )
+                for flag in implied_flags:
+                    _set_flag(
+                        accum, flag,
+                        connector=connector,
+                        payment_method=pm,
+                        countries=all_countries,
+                        currencies=all_currencies,
+                        capture_methods=implied_captures,
+                    )
 
     # Materialise into the override list shape the emitter expects. Sort the
     # contexts deterministically (capture_method desc, then connector, ...).
@@ -404,10 +441,16 @@ PARITY_TESTS: "list[tuple[str, dict, dict[str, bool]]]" = [
      {"connector": "adyen", "payment_method": "ideal", "country": "NL",
       "currency": "EUR", "capture_method": "automatic"},
      {"payments_enabled": True}),
-    ("adyen ideal NL/EUR manual (blocked by not_available_flows)",
+    # adyen.ideal blocks manual capture in pm_filters but IS in both mandate
+    # lists ([mandates].bank_redirect.ideal includes adyen). The mandate
+    # flags fire across both captures; the Option A implication for
+    # payments_enabled respects pm_filters' manual block and stays false.
+    ("adyen ideal NL/EUR manual: mandate flags yes, payments NO",
      {"connector": "adyen", "payment_method": "ideal", "country": "NL",
       "currency": "EUR", "capture_method": "manual"},
-     {"payments_enabled": False}),
+     {"payments_enabled": False,
+      "payments_mandates_enabled": True,
+      "payments_zero_dollar_mandates_enabled": True}),
     ("razorpay upi_collect IN/INR auto",
      {"connector": "razorpay", "payment_method": "upi_collect", "country": "IN",
       "currency": "INR", "capture_method": "automatic"},
@@ -422,61 +465,75 @@ PARITY_TESTS: "list[tuple[str, dict, dict[str, bool]]]" = [
       "currency": "GBP", "capture_method": "automatic"},
      {"payments_enabled": True}),
 
-    # ---- mandate cases (drive payments_mandates_enabled). -----------------
-    # stripe + card.credit IS in [mandates].
-    ("stripe credit JP/JPY manual: mandate yes, zero yes (stripe in both)",
+    # ---- mandate cases. Mandate-true implies payments_enabled-true too
+    # (Option A: mandate eligibility proves the payment method is supported).
+    # stripe + card.credit IS in [mandates] and [zero_mandates].
+    ("stripe credit JP/JPY manual: all three flags",
      {"connector": "stripe", "payment_method": "credit", "country": "JP",
       "currency": "JPY", "capture_method": "manual"},
-     {"payments_mandates_enabled": True,
+     {"payments_enabled": True,
+      "payments_mandates_enabled": True,
       "payments_zero_dollar_mandates_enabled": True}),
-    # hipay credit is in NEITHER mandate list.
-    ("hipay credit US/USD auto: no mandate flags",
+    # hipay credit is in NEITHER mandate list but IS in pm_filters.hipay.credit
+    # (line 656 covers US/USD), so payments_enabled fires from the pm_filters
+    # source, not from the Option A implication.
+    ("hipay credit US/USD auto: payments yes (pm_filters), no mandates",
      {"connector": "hipay", "payment_method": "credit", "country": "US",
       "currency": "USD", "capture_method": "automatic"},
-     {"payments_mandates_enabled": False,
+     {"payments_enabled": True,
+      "payments_mandates_enabled": False,
       "payments_zero_dollar_mandates_enabled": False}),
     # gocardless + bank_debit.ach is in BOTH lists.
-    ("gocardless ach DE/EUR: mandate yes, zero yes",
+    ("gocardless ach DE/EUR: all three flags",
      {"connector": "gocardless", "payment_method": "ach", "country": "DE",
       "currency": "EUR", "capture_method": "automatic"},
-     {"payments_mandates_enabled": True,
+     {"payments_enabled": True,
+      "payments_mandates_enabled": True,
       "payments_zero_dollar_mandates_enabled": True}),
-    # adyen + card.credit is in BOTH lists.
-    ("adyen credit FR/EUR: mandate yes, zero yes",
+    # adyen + card.credit is in BOTH lists. adyen has no [pm_filters.adyen.credit]
+    # row, so payments_enabled comes only from the mandate-implies-payments rule.
+    ("adyen credit FR/EUR: all three flags via Option A",
      {"connector": "adyen", "payment_method": "credit", "country": "FR",
       "currency": "EUR", "capture_method": "automatic"},
-     {"payments_mandates_enabled": True,
+     {"payments_enabled": True,
+      "payments_mandates_enabled": True,
       "payments_zero_dollar_mandates_enabled": True}),
     # gocardless + bank_debit.sepa is in BOTH.
-    ("gocardless sepa DE/EUR manual: mandate yes, zero yes",
+    ("gocardless sepa DE/EUR manual: all three flags",
      {"connector": "gocardless", "payment_method": "sepa", "country": "DE",
       "currency": "EUR", "capture_method": "manual"},
-     {"payments_mandates_enabled": True,
+     {"payments_enabled": True,
+      "payments_mandates_enabled": True,
       "payments_zero_dollar_mandates_enabled": True}),
     # gocardless + bank_debit.bacs: mandates AND zero_mandates both include
-    # gocardless (line 1174). So both flags fire.
-    ("gocardless bacs GB/GBP: mandate yes, zero yes",
+    # gocardless (line 1174).
+    ("gocardless bacs GB/GBP: all three flags",
      {"connector": "gocardless", "payment_method": "bacs", "country": "GB",
       "currency": "GBP", "capture_method": "automatic"},
-     {"payments_mandates_enabled": True,
+     {"payments_enabled": True,
+      "payments_mandates_enabled": True,
       "payments_zero_dollar_mandates_enabled": True}),
     # stripe + bank_debit.bacs is in [mandates] ONLY (not in [zero_mandates]).
-    # This is the case the new model recovers vs the flow_kind collapse.
-    ("stripe bacs GB/GBP: mandate YES, zero NO (the regained distinction)",
+    # The regular vs zero-dollar distinction is preserved.
+    ("stripe bacs GB/GBP: payments + mandate yes, zero NO",
      {"connector": "stripe", "payment_method": "bacs", "country": "GB",
       "currency": "GBP", "capture_method": "automatic"},
-     {"payments_mandates_enabled": True,
+     {"payments_enabled": True,
+      "payments_mandates_enabled": True,
       "payments_zero_dollar_mandates_enabled": False}),
-    # adyen + bank_debit.bacs is in NEITHER list.
-    ("adyen bacs GB/GBP: no mandate flags",
+    # adyen + bank_debit.bacs is in NEITHER mandate list, but adyen.bacs IS
+    # in [pm_filters.adyen] (line 581: country = "GB", currency = "GBP").
+    # So payments_enabled fires from pm_filters; both mandate flags stay false.
+    ("adyen bacs GB/GBP: payments yes (pm_filters), no mandates",
      {"connector": "adyen", "payment_method": "bacs", "country": "GB",
       "currency": "GBP", "capture_method": "automatic"},
-     {"payments_mandates_enabled": False,
+     {"payments_enabled": True,
+      "payments_mandates_enabled": False,
       "payments_zero_dollar_mandates_enabled": False}),
 
     # ---- mixed cases. -----------------------------------------------------
-    # stripe + affirm: pm_filters yes (US/USD), mandates no (affirm not listed
-    # as a mandate-supported pm). So only payments_enabled fires.
+    # stripe + affirm: pm_filters yes (US/USD), mandates no (affirm isn't
+    # listed as a mandate-supported pm). Only payments_enabled fires.
     ("stripe affirm US/USD auto: payments yes, mandates no",
      {"connector": "stripe", "payment_method": "affirm", "country": "US",
       "currency": "USD", "capture_method": "automatic"},
