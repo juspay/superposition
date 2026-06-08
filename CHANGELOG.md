@@ -2,6 +2,38 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.111.0 - 2026-06-08
+### Package updates
+- frontend bumped to frontend-v0.55.0
+- superposition_core bumped to superposition_core-v0.14.2
+- superposition_types bumped to superposition_types-v0.46.0
+- service_utils bumped to service_utils-v0.42.0
+- experimentation_platform bumped to experimentation_platform-v0.53.0
+- haskell_client bumped to haskell_client-v0.20.0
+- superposition_sdk bumped to superposition_sdk-v0.19.0
+### Global changes
+#### Bug Fixes
+- **(openfeature)** block evaluation until experiments cache is ready (#1032) - (925a289) - Natarajan Kannan
+- avoid pinning connections when using PG proxies (#1026) - (cd10d94) - Datron
+- publish python bindings correctly (#1039) - (5a4cc5a) - Datron
+#### Documentation
+- add Slack community link to README (#1038) - (f6fce3d) - Natarajan Kannan
+#### Features
+- experiment idempotency (#982) - (800f36a) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(deps)** bump openssl from 0.10.79 to 0.10.80 (#1011) - (6fbad79) - dependabot[bot]
+- **(deps)** bump idna from 3.10 to 3.15 in /locust (#1009) - (fb0c923) - dependabot[bot]
+- **(deps)** bump qs and express in /docs (#1019) - (ce16e4b) - dependabot[bot]
+- **(deps)** bump uuid and @azure/identity (#1018) - (5059675) - dependabot[bot]
+- **(deps)** bump openssl in /examples/k8s-staggered-releaser (#1010) - (70679b5) - dependabot[bot]
+- **(deps-dev)** bump qs in /tooling/lsp/vscode-extension (#1020) - (39beb00) - dependabot[bot]
+- **(deps-dev)** bump tmp in /tooling/lsp/vscode-extension (#1025) - (fc6d373) - dependabot[bot]
+- **(version)** v0.110.0 [skip ci] - (2d7f9a5) - Superposition Bot
+- **(version)** v0.102.0 [skip ci] (#928) - (7c550c8) - Ankit Kumar Mahato
+- add test-releases.yaml for testing branch code in environments (#1017) - (afa37ab) - Datron
+
+- - -
+
 ## v0.110.0 - 2026-05-24
 ### Package updates
 - superposition_sdk bumped to superposition_sdk-v0.18.0

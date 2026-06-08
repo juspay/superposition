@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.55.0 - 2026-06-08
+#### Features
+- Move create, edit, clone and view overrides into a new page (#974) - (a7f074d) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.110.0 [skip ci] - (2d7f9a5) - Superposition Bot
+
+- - -
+
 ## frontend-v0.54.0 - 2026-05-24
 #### Features
 - support json query filters for audit tables (#1013) - (dddd1c6) - sauraww

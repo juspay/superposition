@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.46.0 - 2026-06-08
+#### Features
+- experiment idempotency (#982) - (800f36a) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(version)** v0.108.0 [skip ci] - (e9b1dba) - Superposition Bot
+
+- - -
+
 ## superposition_types-v0.45.0 - 2026-05-20
 #### Bug Fixes
 - send a more user friendly message on unique constraint violation (#1007) - (5f98ada) - Datron
