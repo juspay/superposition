@@ -423,7 +423,12 @@ jobs:
                     ':(exclude)clients/java/sdk/src/main/java/io/juspay/superposition/client/SuperpositionAsyncClientImpl.java' \
                     ':(exclude)clients/java/sdk/src/main/java/io/juspay/superposition/client/SuperpositionAsyncClient.java' \
                     ':(exclude)clients/java/sdk/src/main/java/io/juspay/superposition/client/SuperpositionClient.java' \
-                    ':(exclude)clients/java/sdk/src/main/java/io/juspay/superposition/client/SuperpositionClientImpl.java'
+                    ':(exclude)clients/java/sdk/src/main/java/io/juspay/superposition/client/SuperpositionClientImpl.java' \
+                    ':(exclude)clients/java/sdk/src/main/java/io/juspay/superposition/model/BulkOperation.java' \
+                    ':(exclude)clients/haskell/sdk/Io/Superposition/Command/BulkOperation.hs' \
+                    ':(exclude)clients/haskell/sdk/Io/Superposition/Command/WeightRecompute.hs' \
+                    ':(exclude)clients/python/sdk/superposition_sdk/deserialize.py' \
+                    ':(exclude)clients/python/sdk/superposition_sdk/models.py'
                   git diff --staged -I '^api:' --exit-code -- '**/*.api.mdx'
 
             - name: Show git diff on failure

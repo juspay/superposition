@@ -353,6 +353,7 @@ impl FromRequest for WorkspaceWritePermit {
 
 pub struct CustomHeaders {
     pub config_tags: Option<String>,
+    pub idempotency_key: Option<String>,
 }
 impl FromRequest for CustomHeaders {
     type Error = Error;
@@ -367,6 +368,11 @@ impl FromRequest for CustomHeaders {
             config_tags: header_val.get("x-config-tags").and_then(|header_val| {
                 header_val.to_str().map_or(None, |v| Some(v.to_string()))
             }),
+            idempotency_key: header_val
+                .get("idempotency-key")
+                .and_then(|v| v.to_str().ok())
+                .map(|v| v.trim().to_string())
+                .filter(|v| !v.is_empty()),
         };
         ready(Ok(val))
     }

@@ -9,6 +9,8 @@ module Io.Superposition.Model.CreateExperimentInput (
     setChangeReason,
     setMetrics,
     setExperimentGroupId,
+    setIdempotencyKey,
+    setConfigTags,
     build,
     CreateExperimentInputBuilder,
     CreateExperimentInput,
@@ -21,7 +23,9 @@ module Io.Superposition.Model.CreateExperimentInput (
     description,
     change_reason,
     metrics,
-    experiment_group_id
+    experiment_group_id,
+    idempotency_key,
+    config_tags
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad.State.Strict
@@ -49,7 +53,9 @@ data CreateExperimentInput = CreateExperimentInput {
     description :: Data.Text.Text,
     change_reason :: Data.Text.Text,
     metrics :: Data.Maybe.Maybe Data.Aeson.Value,
-    experiment_group_id :: Data.Maybe.Maybe Data.Text.Text
+    experiment_group_id :: Data.Maybe.Maybe Data.Text.Text,
+    idempotency_key :: Data.Maybe.Maybe Data.Text.Text,
+    config_tags :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -67,7 +73,9 @@ instance Data.Aeson.ToJSON CreateExperimentInput where
         "description" Data.Aeson..= description a,
         "change_reason" Data.Aeson..= change_reason a,
         "metrics" Data.Aeson..= metrics a,
-        "experiment_group_id" Data.Aeson..= experiment_group_id a
+        "experiment_group_id" Data.Aeson..= experiment_group_id a,
+        "idempotency_key" Data.Aeson..= idempotency_key a,
+        "config_tags" Data.Aeson..= config_tags a
         ]
     
 
@@ -85,6 +93,8 @@ instance Data.Aeson.FromJSON CreateExperimentInput where
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
         Control.Applicative.<*> (v Data.Aeson..:? "metrics")
         Control.Applicative.<*> (v Data.Aeson..:? "experiment_group_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "idempotency_key")
+        Control.Applicative.<*> (v Data.Aeson..:? "config_tags")
     
 
 
@@ -99,7 +109,9 @@ data CreateExperimentInputBuilderState = CreateExperimentInputBuilderState {
     descriptionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     metricsBuilderState :: Data.Maybe.Maybe Data.Aeson.Value,
-    experiment_group_idBuilderState :: Data.Maybe.Maybe Data.Text.Text
+    experiment_group_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    idempotency_keyBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    config_tagsBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Generics.Generic
   )
@@ -115,7 +127,9 @@ defaultBuilderState = CreateExperimentInputBuilderState {
     descriptionBuilderState = Data.Maybe.Nothing,
     change_reasonBuilderState = Data.Maybe.Nothing,
     metricsBuilderState = Data.Maybe.Nothing,
-    experiment_group_idBuilderState = Data.Maybe.Nothing
+    experiment_group_idBuilderState = Data.Maybe.Nothing,
+    idempotency_keyBuilderState = Data.Maybe.Nothing,
+    config_tagsBuilderState = Data.Maybe.Nothing
 }
 
 type CreateExperimentInputBuilder = Control.Monad.State.Strict.State CreateExperimentInputBuilderState
@@ -160,6 +174,14 @@ setExperimentGroupId :: Data.Maybe.Maybe Data.Text.Text -> CreateExperimentInput
 setExperimentGroupId value =
    Control.Monad.State.Strict.modify (\s -> (s { experiment_group_idBuilderState = value }))
 
+setIdempotencyKey :: Data.Maybe.Maybe Data.Text.Text -> CreateExperimentInputBuilder ()
+setIdempotencyKey value =
+   Control.Monad.State.Strict.modify (\s -> (s { idempotency_keyBuilderState = value }))
+
+setConfigTags :: Data.Maybe.Maybe Data.Text.Text -> CreateExperimentInputBuilder ()
+setConfigTags value =
+   Control.Monad.State.Strict.modify (\s -> (s { config_tagsBuilderState = value }))
+
 build :: CreateExperimentInputBuilder () -> Data.Either.Either Data.Text.Text CreateExperimentInput
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
@@ -173,6 +195,8 @@ build builder = do
     change_reason' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateExperimentInput.CreateExperimentInput.change_reason is a required property.") Data.Either.Right (change_reasonBuilderState st)
     metrics' <- Data.Either.Right (metricsBuilderState st)
     experiment_group_id' <- Data.Either.Right (experiment_group_idBuilderState st)
+    idempotency_key' <- Data.Either.Right (idempotency_keyBuilderState st)
+    config_tags' <- Data.Either.Right (config_tagsBuilderState st)
     Data.Either.Right (CreateExperimentInput { 
         workspace_id = workspace_id',
         org_id = org_id',
@@ -183,7 +207,9 @@ build builder = do
         description = description',
         change_reason = change_reason',
         metrics = metrics',
-        experiment_group_id = experiment_group_id'
+        experiment_group_id = experiment_group_id',
+        idempotency_key = idempotency_key',
+        config_tags = config_tags'
     })
 
 
@@ -196,6 +222,8 @@ instance Io.Superposition.Utility.IntoRequestBuilder CreateExperimentInput where
         
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
+        Io.Superposition.Utility.serHeader "idempotency-key" (idempotency_key self)
+        Io.Superposition.Utility.serHeader "x-config-tags" (config_tags self)
         Io.Superposition.Utility.serField "change_reason" (change_reason self)
         Io.Superposition.Utility.serField "name" (name self)
         Io.Superposition.Utility.serField "context" (context self)

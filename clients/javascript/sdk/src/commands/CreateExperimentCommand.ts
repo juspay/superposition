@@ -65,6 +65,8 @@ export interface CreateExperimentCommandOutput extends ExperimentResponse, __Met
  *   change_reason: "STRING_VALUE", // required
  *   metrics: "DOCUMENT_VALUE",
  *   experiment_group_id: "STRING_VALUE",
+ *   idempotency_key: "STRING_VALUE",
+ *   config_tags: "STRING_VALUE",
  * };
  * const command = new CreateExperimentCommand(input);
  * const response = await client.send(command);

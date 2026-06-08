@@ -178,6 +178,14 @@ structure CreateExperimentRequest for Experiments with [WorkspaceMixin] {
     $metrics
 
     $experiment_group_id
+
+    @httpHeader("idempotency-key")
+    @notProperty
+    idempotency_key: String
+
+    @httpHeader("x-config-tags")
+    @notProperty
+    config_tags: String
 }
 
 structure VariantUpdateRequest {
@@ -211,6 +219,10 @@ structure UpdateOverrideRequest for Experiments with [WorkspaceMixin] {
 
     @documentation("To unset experiment group, pass \"null\" string.")
     $experiment_group_id
+
+    @httpHeader("x-config-tags")
+    @notProperty
+    config_tags: String
 }
 
 list ExperimentList {
@@ -266,6 +278,10 @@ operation ConcludeExperiment with [GetOperation, WebhookOperation] {
 
         @required
         $change_reason
+
+        @httpHeader("x-config-tags")
+        @notProperty
+        config_tags: String
     }
 
     output: ExperimentResponse
@@ -283,6 +299,10 @@ operation DiscardExperiment with [GetOperation, WebhookOperation] {
 
         @required
         $change_reason
+
+        @httpHeader("x-config-tags")
+        @notProperty
+        config_tags: String
     }
 
     output: ExperimentResponse

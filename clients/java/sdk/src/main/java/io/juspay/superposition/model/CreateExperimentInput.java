@@ -44,6 +44,10 @@ public final class CreateExperimentInput implements SerializableStruct {
                 new RequiredTrait())
         .putMember("metrics", PreludeSchemas.DOCUMENT)
         .putMember("experiment_group_id", PreludeSchemas.STRING)
+        .putMember("idempotency_key", PreludeSchemas.STRING,
+                new HttpHeaderTrait("idempotency-key"))
+        .putMember("config_tags", PreludeSchemas.STRING,
+                new HttpHeaderTrait("x-config-tags"))
         .build();
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
@@ -56,6 +60,8 @@ public final class CreateExperimentInput implements SerializableStruct {
     private static final Schema $SCHEMA_CHANGE_REASON = $SCHEMA.member("change_reason");
     private static final Schema $SCHEMA_METRICS = $SCHEMA.member("metrics");
     private static final Schema $SCHEMA_EXPERIMENT_GROUP_ID = $SCHEMA.member("experiment_group_id");
+    private static final Schema $SCHEMA_IDEMPOTENCY_KEY = $SCHEMA.member("idempotency_key");
+    private static final Schema $SCHEMA_CONFIG_TAGS = $SCHEMA.member("config_tags");
 
     private final transient String workspaceId;
     private final transient String orgId;
@@ -67,6 +73,8 @@ public final class CreateExperimentInput implements SerializableStruct {
     private final transient String changeReason;
     private final transient Document metrics;
     private final transient String experimentGroupId;
+    private final transient String idempotencyKey;
+    private final transient String configTags;
 
     private CreateExperimentInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
@@ -79,6 +87,8 @@ public final class CreateExperimentInput implements SerializableStruct {
         this.changeReason = builder.changeReason;
         this.metrics = builder.metrics;
         this.experimentGroupId = builder.experimentGroupId;
+        this.idempotencyKey = builder.idempotencyKey;
+        this.configTags = builder.configTags;
     }
 
     public String workspaceId() {
@@ -129,6 +139,14 @@ public final class CreateExperimentInput implements SerializableStruct {
         return experimentGroupId;
     }
 
+    public String idempotencyKey() {
+        return idempotencyKey;
+    }
+
+    public String configTags() {
+        return configTags;
+    }
+
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -152,12 +170,14 @@ public final class CreateExperimentInput implements SerializableStruct {
                && Objects.equals(this.description, that.description)
                && Objects.equals(this.changeReason, that.changeReason)
                && Objects.equals(this.metrics, that.metrics)
-               && Objects.equals(this.experimentGroupId, that.experimentGroupId);
+               && Objects.equals(this.experimentGroupId, that.experimentGroupId)
+               && Objects.equals(this.idempotencyKey, that.idempotencyKey)
+               && Objects.equals(this.configTags, that.configTags);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, name, experimentType, context, variants, description, changeReason, metrics, experimentGroupId);
+        return Objects.hash(workspaceId, orgId, name, experimentType, context, variants, description, changeReason, metrics, experimentGroupId, idempotencyKey, configTags);
     }
 
     @Override
@@ -183,6 +203,12 @@ public final class CreateExperimentInput implements SerializableStruct {
         if (experimentGroupId != null) {
             serializer.writeString($SCHEMA_EXPERIMENT_GROUP_ID, experimentGroupId);
         }
+        if (idempotencyKey != null) {
+            serializer.writeString($SCHEMA_IDEMPOTENCY_KEY, idempotencyKey);
+        }
+        if (configTags != null) {
+            serializer.writeString($SCHEMA_CONFIG_TAGS, configTags);
+        }
     }
 
     @Override
@@ -199,6 +225,8 @@ public final class CreateExperimentInput implements SerializableStruct {
             case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_TYPE, member, experimentType);
             case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, metrics);
             case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_GROUP_ID, member, experimentGroupId);
+            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_IDEMPOTENCY_KEY, member, idempotencyKey);
+            case 11 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONFIG_TAGS, member, configTags);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -222,6 +250,8 @@ public final class CreateExperimentInput implements SerializableStruct {
         builder.changeReason(this.changeReason);
         builder.metrics(this.metrics);
         builder.experimentGroupId(this.experimentGroupId);
+        builder.idempotencyKey(this.idempotencyKey);
+        builder.configTags(this.configTags);
         return builder;
     }
 
@@ -247,6 +277,8 @@ public final class CreateExperimentInput implements SerializableStruct {
         private String changeReason;
         private Document metrics;
         private String experimentGroupId;
+        private String idempotencyKey;
+        private String configTags;
 
         private Builder() {}
 
@@ -349,6 +381,22 @@ public final class CreateExperimentInput implements SerializableStruct {
             return this;
         }
 
+        /**
+         * @return this builder.
+         */
+        public Builder idempotencyKey(String idempotencyKey) {
+            this.idempotencyKey = idempotencyKey;
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
+        public Builder configTags(String configTags) {
+            this.configTags = configTags;
+            return this;
+        }
+
         @Override
         public CreateExperimentInput build() {
             tracker.validate();
@@ -369,6 +417,8 @@ public final class CreateExperimentInput implements SerializableStruct {
                 case 7 -> experimentType((ExperimentType) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_TYPE, member, value));
                 case 8 -> metrics((Document) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, value));
                 case 9 -> experimentGroupId((String) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_GROUP_ID, member, value));
+                case 10 -> idempotencyKey((String) SchemaUtils.validateSameMember($SCHEMA_IDEMPOTENCY_KEY, member, value));
+                case 11 -> configTags((String) SchemaUtils.validateSameMember($SCHEMA_CONFIG_TAGS, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -430,6 +480,8 @@ public final class CreateExperimentInput implements SerializableStruct {
                     case 7 -> builder.experimentType(ExperimentType.builder().deserializeMember(de, member).build());
                     case 8 -> builder.metrics(de.readDocument());
                     case 9 -> builder.experimentGroupId(de.readString(member));
+                    case 10 -> builder.idempotencyKey(de.readString(member));
+                    case 11 -> builder.configTags(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

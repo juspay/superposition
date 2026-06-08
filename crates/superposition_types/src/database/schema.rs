@@ -657,6 +657,7 @@ diesel::table! {
         change_reason -> Text,
         metrics -> Json,
         experiment_group_id -> Nullable<Int8>,
+        idempotency_key -> Nullable<Text>,
     }
 }
 

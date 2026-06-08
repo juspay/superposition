@@ -64,6 +64,7 @@ fn experiment_gen(
         change_reason: ChangeReason::try_from(String::from("test")).unwrap(),
         metrics: Metrics::default(),
         experiment_group_id: None,
+        idempotency_key: None,
     }
 }
 

@@ -23,6 +23,10 @@ pub struct CreateExperimentInput  {
     pub metrics: ::std::option::Option<::aws_smithy_types::Document>,
     #[allow(missing_docs)] // documentation missing in model
     pub experiment_group_id: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub idempotency_key: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub config_tags: ::std::option::Option<::std::string::String>,
 }
 impl  CreateExperimentInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -68,6 +72,14 @@ impl  CreateExperimentInput  {
     pub fn experiment_group_id(&self) -> ::std::option::Option<&str> {
         self.experiment_group_id.as_deref()
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn idempotency_key(&self) -> ::std::option::Option<&str> {
+        self.idempotency_key.as_deref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn config_tags(&self) -> ::std::option::Option<&str> {
+        self.config_tags.as_deref()
+    }
 }
 impl CreateExperimentInput {
     /// Creates a new builder-style object to manufacture [`CreateExperimentInput`](crate::operation::create_experiment::CreateExperimentInput).
@@ -90,6 +102,8 @@ pub struct CreateExperimentInputBuilder {
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
     pub(crate) metrics: ::std::option::Option<::aws_smithy_types::Document>,
     pub(crate) experiment_group_id: ::std::option::Option<::std::string::String>,
+    pub(crate) idempotency_key: ::std::option::Option<::std::string::String>,
+    pub(crate) config_tags: ::std::option::Option<::std::string::String>,
 }
 impl CreateExperimentInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -238,6 +252,32 @@ impl CreateExperimentInputBuilder {
     pub fn get_experiment_group_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.experiment_group_id
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn idempotency_key(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.idempotency_key = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_idempotency_key(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.idempotency_key = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_idempotency_key(&self) -> &::std::option::Option<::std::string::String> {
+        &self.idempotency_key
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn config_tags(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.config_tags = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_config_tags(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.config_tags = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_config_tags(&self) -> &::std::option::Option<::std::string::String> {
+        &self.config_tags
+    }
     /// Consumes the builder and constructs a [`CreateExperimentInput`](crate::operation::create_experiment::CreateExperimentInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::create_experiment::CreateExperimentInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -261,6 +301,10 @@ impl CreateExperimentInputBuilder {
                 metrics: self.metrics
                 ,
                 experiment_group_id: self.experiment_group_id
+                ,
+                idempotency_key: self.idempotency_key
+                ,
+                config_tags: self.config_tags
                 ,
             }
         )

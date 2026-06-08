@@ -308,7 +308,8 @@ smithy-clients: smithy-build
 	done
 	git restore clients/python/sdk/README.md
 	git restore LICENSE
-	git apply smithy/patches/*.patch
+	git apply --ignore-whitespace smithy/patches/*.patch
+	python3 smithy/patches/fix_models.py clients/python/sdk/superposition_sdk/models.py
 
 # API Documentation targets
 smithy-api-docs: smithy-build

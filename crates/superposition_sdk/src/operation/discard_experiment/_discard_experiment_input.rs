@@ -11,6 +11,8 @@ pub struct DiscardExperimentInput  {
     pub id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub change_reason: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub config_tags: ::std::option::Option<::std::string::String>,
 }
 impl  DiscardExperimentInput  {
     #[allow(missing_docs)] // documentation missing in model
@@ -29,6 +31,10 @@ impl  DiscardExperimentInput  {
     pub fn change_reason(&self) -> ::std::option::Option<&str> {
         self.change_reason.as_deref()
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn config_tags(&self) -> ::std::option::Option<&str> {
+        self.config_tags.as_deref()
+    }
 }
 impl DiscardExperimentInput {
     /// Creates a new builder-style object to manufacture [`DiscardExperimentInput`](crate::operation::discard_experiment::DiscardExperimentInput).
@@ -45,6 +51,7 @@ pub struct DiscardExperimentInputBuilder {
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
     pub(crate) id: ::std::option::Option<::std::string::String>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
+    pub(crate) config_tags: ::std::option::Option<::std::string::String>,
 }
 impl DiscardExperimentInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -103,6 +110,19 @@ impl DiscardExperimentInputBuilder {
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
         &self.change_reason
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn config_tags(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.config_tags = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_config_tags(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.config_tags = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_config_tags(&self) -> &::std::option::Option<::std::string::String> {
+        &self.config_tags
+    }
     /// Consumes the builder and constructs a [`DiscardExperimentInput`](crate::operation::discard_experiment::DiscardExperimentInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::discard_experiment::DiscardExperimentInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -114,6 +134,8 @@ impl DiscardExperimentInputBuilder {
                 id: self.id
                 ,
                 change_reason: self.change_reason
+                ,
+                config_tags: self.config_tags
                 ,
             }
         )

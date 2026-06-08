@@ -41,6 +41,8 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
                 new RequiredTrait())
         .putMember("metrics", PreludeSchemas.DOCUMENT)
         .putMember("experiment_group_id", PreludeSchemas.STRING)
+        .putMember("config_tags", PreludeSchemas.STRING,
+                new HttpHeaderTrait("x-config-tags"))
         .build();
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
@@ -51,6 +53,7 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
     private static final Schema $SCHEMA_CHANGE_REASON = $SCHEMA.member("change_reason");
     private static final Schema $SCHEMA_METRICS = $SCHEMA.member("metrics");
     private static final Schema $SCHEMA_EXPERIMENT_GROUP_ID = $SCHEMA.member("experiment_group_id");
+    private static final Schema $SCHEMA_CONFIG_TAGS = $SCHEMA.member("config_tags");
 
     private final transient String workspaceId;
     private final transient String orgId;
@@ -60,6 +63,7 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
     private final transient String changeReason;
     private final transient Document metrics;
     private final transient String experimentGroupId;
+    private final transient String configTags;
 
     private UpdateOverridesExperimentInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
@@ -70,6 +74,7 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
         this.changeReason = builder.changeReason;
         this.metrics = builder.metrics;
         this.experimentGroupId = builder.experimentGroupId;
+        this.configTags = builder.configTags;
     }
 
     public String workspaceId() {
@@ -111,6 +116,10 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
         return experimentGroupId;
     }
 
+    public String configTags() {
+        return configTags;
+    }
+
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -132,12 +141,13 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
                && Objects.equals(this.description, that.description)
                && Objects.equals(this.changeReason, that.changeReason)
                && Objects.equals(this.metrics, that.metrics)
-               && Objects.equals(this.experimentGroupId, that.experimentGroupId);
+               && Objects.equals(this.experimentGroupId, that.experimentGroupId)
+               && Objects.equals(this.configTags, that.configTags);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, id, variantList, description, changeReason, metrics, experimentGroupId);
+        return Objects.hash(workspaceId, orgId, id, variantList, description, changeReason, metrics, experimentGroupId, configTags);
     }
 
     @Override
@@ -161,6 +171,9 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
         if (experimentGroupId != null) {
             serializer.writeString($SCHEMA_EXPERIMENT_GROUP_ID, experimentGroupId);
         }
+        if (configTags != null) {
+            serializer.writeString($SCHEMA_CONFIG_TAGS, configTags);
+        }
     }
 
     @Override
@@ -175,6 +188,7 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
             case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, description);
             case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, metrics);
             case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_GROUP_ID, member, experimentGroupId);
+            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONFIG_TAGS, member, configTags);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -196,6 +210,7 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
         builder.changeReason(this.changeReason);
         builder.metrics(this.metrics);
         builder.experimentGroupId(this.experimentGroupId);
+        builder.configTags(this.configTags);
         return builder;
     }
 
@@ -219,6 +234,7 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
         private String changeReason;
         private Document metrics;
         private String experimentGroupId;
+        private String configTags;
 
         private Builder() {}
 
@@ -303,6 +319,14 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
             return this;
         }
 
+        /**
+         * @return this builder.
+         */
+        public Builder configTags(String configTags) {
+            this.configTags = configTags;
+            return this;
+        }
+
         @Override
         public UpdateOverridesExperimentInput build() {
             tracker.validate();
@@ -321,6 +345,7 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
                 case 5 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
                 case 6 -> metrics((Document) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, value));
                 case 7 -> experimentGroupId((String) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_GROUP_ID, member, value));
+                case 8 -> configTags((String) SchemaUtils.validateSameMember($SCHEMA_CONFIG_TAGS, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -374,6 +399,7 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
                     case 5 -> builder.description(de.readString(member));
                     case 6 -> builder.metrics(de.readDocument());
                     case 7 -> builder.experimentGroupId(de.readString(member));
+                    case 8 -> builder.configTags(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

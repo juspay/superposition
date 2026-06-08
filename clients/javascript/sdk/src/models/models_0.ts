@@ -620,6 +620,7 @@ export interface ConcludeExperimentInput {
   chosen_variant: string | undefined;
   description?: string | undefined;
   change_reason: string | undefined;
+  config_tags?: string | undefined;
 }
 
 /**
@@ -1344,6 +1345,8 @@ export interface CreateExperimentRequest {
   change_reason: string | undefined;
   metrics?: __DocumentType | undefined;
   experiment_group_id?: string | undefined;
+  idempotency_key?: string | undefined;
+  config_tags?: string | undefined;
 }
 
 /**
@@ -1928,6 +1931,7 @@ export interface DiscardExperimentInput {
   org_id: string | undefined;
   id: string | undefined;
   change_reason: string | undefined;
+  config_tags?: string | undefined;
 }
 
 /**
@@ -2287,6 +2291,8 @@ export interface UpdateOverrideRequest {
    * @public
    */
   experiment_group_id?: string | undefined;
+
+  config_tags?: string | undefined;
 }
 
 /**

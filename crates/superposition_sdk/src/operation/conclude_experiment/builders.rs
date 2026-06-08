@@ -180,5 +180,19 @@ impl ConcludeExperimentFluentBuilder {
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_change_reason()
                 }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn config_tags(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+                    self.inner = self.inner.config_tags(input.into());
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_config_tags(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+                    self.inner = self.inner.set_config_tags(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_config_tags(&self) -> &::std::option::Option<::std::string::String> {
+                    self.inner.get_config_tags()
+                }
 }
 
