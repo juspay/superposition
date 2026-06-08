@@ -72,6 +72,12 @@ POSITIONS = {
     "country": 4,
     "payment_method": 3,
     "currency": 2,
+    # Cohort dimension: LOCAL_COHORT:country at position 1 (must be <= the
+    # base dim's position). A single value "all" fires for every country in
+    # the discovered enum. Mandate sources and pm_filters rows whose country
+    # list spans every discovered value emit with country_group="all", which
+    # replaces 249 per-country overrides with one.
+    "country_group": 1,
 }
 
 # The three orthogonal feature flags, in the order they're declared in
@@ -81,6 +87,9 @@ FLAGS = (
     "payments_mandates_enabled",
     "payments_zero_dollar_mandates_enabled",
 )
+
+# Sentinel value used in country_group when a row covers every country.
+COUNTRY_GROUP_ALL = "all"
 
 # Auto-discover the native Python bindings inside this repo. Mirrors the
 # logic in generate_hyperswitch_supertoml.py.
@@ -206,22 +215,36 @@ def _set_flag(
     *,
     connector: str,
     payment_method: str,
-    countries: "list[str]",
     currencies: "list[str]",
     capture_methods: "list[str]",
+    countries: "list[str] | None" = None,
+    country_group: "str | None" = None,
 ) -> None:
-    """Mark `flag` true for every (connector, pm, country, currency, capture)
-    in the cross-product. accum is keyed by a frozen context tuple."""
+    """Mark `flag` true for every (connector, pm, country|country_group,
+    currency, capture) in the cross-product. accum is keyed by a frozen
+    context tuple. Exactly one of `countries` or `country_group` must be
+    supplied: pm_filters rows with a specific country list pass `countries`;
+    mandate sources and pm_filters rows that span every country pass
+    `country_group=COUNTRY_GROUP_ALL` to collapse 249 per-country overrides
+    into one."""
+    if (countries is None) == (country_group is None):
+        raise ValueError("pass exactly one of `countries` or `country_group`")
+
+    if country_group is not None:
+        country_pairs = [("country_group", country_group)]
+    else:
+        country_pairs = [("country", c) for c in countries]
+
     for capture in capture_methods:
-        for country in countries:
+        for country_kv in country_pairs:
             for currency in currencies:
-                ctx_key = (
+                ctx_key = tuple(sorted([
                     ("capture_method", capture),
                     ("connector", connector),
-                    ("country", country),
+                    country_kv,
                     ("currency", currency),
                     ("payment_method", payment_method),
-                )
+                ]))
                 if ctx_key not in accum:
                     accum[ctx_key] = set()
                 accum[ctx_key].add(flag)
@@ -246,6 +269,16 @@ def build_overrides(
     # the source - otherwise adyen.ideal manual would incorrectly show
     # payments_enabled=true because adyen.ideal is in [mandates].
     manual_blocked_pairs: "set[tuple[str, str]]" = set()
+    all_countries_set = set(all_countries)
+
+    def _emit_country_axis(**kwargs) -> None:
+        """Pick the country axis representation - per-country if the row has
+        a specific list, cohort if it spans every observed country."""
+        row_countries = kwargs.pop("countries")
+        if set(row_countries) == all_countries_set:
+            _set_flag(accum, country_group=COUNTRY_GROUP_ALL, **kwargs)
+        else:
+            _set_flag(accum, countries=row_countries, **kwargs)
 
     # ----- payments_enabled from pm_filters ---------------------------------
     for connector in sorted(pm_filters.keys()):
@@ -270,8 +303,8 @@ def build_overrides(
             if manual_blocked:
                 manual_blocked_pairs.add((connector, pm))
             capture_methods = ["automatic"] if manual_blocked else ["automatic", "manual"]
-            _set_flag(
-                accum, "payments_enabled",
+            _emit_country_axis(
+                flag="payments_enabled",
                 connector=connector,
                 payment_method=pm,
                 countries=countries,
@@ -304,13 +337,16 @@ def build_overrides(
             for connector in sorted(conns):
                 if connector_filter and connector not in connector_filter:
                     continue
-                # The source flag itself fires for both capture methods (the
-                # mandate section doesn't constrain capture).
+                # Mandate sources always span every country, so use the
+                # country_group="all" cohort - one override per (capture,
+                # currency) tuple instead of one per (capture, country,
+                # currency). Currency stays per-value (no currency cohort
+                # in this generator).
                 _set_flag(
                     accum, source_flag,
                     connector=connector,
                     payment_method=pm,
-                    countries=all_countries,
+                    country_group=COUNTRY_GROUP_ALL,
                     currencies=all_currencies,
                     capture_methods=["automatic", "manual"],
                 )
@@ -324,7 +360,7 @@ def build_overrides(
                         accum, flag,
                         connector=connector,
                         payment_method=pm,
-                        countries=all_countries,
+                        country_group=COUNTRY_GROUP_ALL,
                         currencies=all_currencies,
                         capture_methods=implied_captures,
                     )
@@ -374,13 +410,42 @@ def emit_supertoml(
     overrides.sort(key=sort_key)
 
     # Ascending position for dimensions (broadest axis first), matching the
-    # convention used by the other generator.
+    # convention used by the other generator. country_group is the LOCAL_COHORT
+    # cohort derived from country - the "all" value matches every country in
+    # the country enum.
+    country_group_spec = {
+        "position": POSITIONS["country_group"],
+        "type": f"LOCAL_COHORT:country",
+        "schema": {
+            "type": "string",
+            "enum": [COUNTRY_GROUP_ALL, "otherwise"],
+            "definitions": {
+                COUNTRY_GROUP_ALL: {"in": [{"var": "country"}, countries]},
+            },
+        },
+    }
     dim_specs = [
-        ("currency", POSITIONS["currency"], currencies),
-        ("payment_method", POSITIONS["payment_method"], payment_methods),
-        ("country", POSITIONS["country"], countries),
-        ("connector", POSITIONS["connector"], connectors),
-        ("capture_method", POSITIONS["capture_method"], ["automatic", "manual"]),
+        ("country_group", POSITIONS["country_group"], country_group_spec),
+        ("currency", POSITIONS["currency"], {
+            "position": POSITIONS["currency"],
+            "schema": {"type": "string", "enum": currencies},
+        }),
+        ("payment_method", POSITIONS["payment_method"], {
+            "position": POSITIONS["payment_method"],
+            "schema": {"type": "string", "enum": payment_methods},
+        }),
+        ("country", POSITIONS["country"], {
+            "position": POSITIONS["country"],
+            "schema": {"type": "string", "enum": countries},
+        }),
+        ("connector", POSITIONS["connector"], {
+            "position": POSITIONS["connector"],
+            "schema": {"type": "string", "enum": connectors},
+        }),
+        ("capture_method", POSITIONS["capture_method"], {
+            "position": POSITIONS["capture_method"],
+            "schema": {"type": "string", "enum": ["automatic", "manual"]},
+        }),
     ]
 
     with out_path.open("w") as fh:
@@ -405,8 +470,7 @@ def emit_supertoml(
         fh.write("\n")
 
         fh.write("[dimensions]\n")
-        for name, pos, enum in dim_specs:
-            spec = {"position": pos, "schema": {"type": "string", "enum": enum}}
+        for name, _pos, spec in dim_specs:
             fh.write(f"{name} = {toml_value(spec)}\n")
         fh.write("\n")
 
@@ -543,12 +607,37 @@ PARITY_TESTS: "list[tuple[str, dict, dict[str, bool]]]" = [
 ]
 
 
-def resolve(overrides_index: "dict[tuple, dict]", query: dict) -> "dict[str, bool]":
+def resolve(
+    overrides_index: "dict[tuple, dict]",
+    query: dict,
+    all_countries_set: "set[str]",
+) -> "dict[str, bool]":
     """Returns a {flag: bool} dict for the query context. Missing flags
-    default to False (default-configs)."""
-    key = tuple(sorted(query.items()))
-    found = overrides_index.get(key, {})
-    return {flag: found.get(flag, False) for flag in FLAGS}
+    default to False (default-configs).
+
+    Overrides come in two shapes since the country_group cohort exists:
+      - base shape: (capture, connector, country=X, currency, payment_method)
+      - cohort shape: (capture, connector, country_group=all, currency, payment_method)
+    We derive country_group from the query's country (per SuperTOML cohort
+    semantics) and probe both shapes; flags from any matching override are
+    OR-ed together."""
+    augmented = dict(query)
+    if "country" in augmented and augmented["country"] in all_countries_set:
+        augmented["country_group"] = COUNTRY_GROUP_ALL
+
+    result = {flag: False for flag in FLAGS}
+    shapes = [
+        ("capture_method", "connector", "country", "currency", "payment_method"),
+        ("capture_method", "connector", "country_group", "currency", "payment_method"),
+    ]
+    for shape in shapes:
+        if not all(k in augmented for k in shape):
+            continue
+        key = tuple(sorted((k, augmented[k]) for k in shape))
+        for flag, val in overrides_index.get(key, {}).items():
+            if val:
+                result[flag] = True
+    return result
 
 
 # Above this on-disk size, skip re-parsing the file for syntax / schema
@@ -563,6 +652,7 @@ REPARSE_MAX_BYTES = 100 * 1024 * 1024  # 100 MB
 def validate(
     out_path: Path,
     overrides: "list[dict]",
+    all_countries: "list[str]",
     connector_filter: "set[str]",
 ) -> "tuple[int, int, int, list[str], str]":
     """Returns (ran, skipped, failed, failure_lines, notes)."""
@@ -591,6 +681,8 @@ def validate(
         flags = {flag: True for flag in FLAGS if ov.get(flag)}
         index[key] = flags
 
+    all_countries_set = set(all_countries)
+
     ran = 0
     skipped = 0
     for name, query, expected in PARITY_TESTS:
@@ -599,7 +691,7 @@ def validate(
             skipped += 1
             continue
         ran += 1
-        got = resolve(index, query)
+        got = resolve(index, query, all_countries_set)
         # Only check the flags the test asserts on.
         diffs = [(k, expected[k], got.get(k, False)) for k in expected
                  if got.get(k, False) != expected[k]]
@@ -706,7 +798,7 @@ def main() -> int:
         print(f"  Resolver: pure-Python tomllib (bindings unavailable: {BINDINGS_LOAD_ERROR})")
     try:
         ran, skipped, n_fail, failures, notes = validate(
-            out_path, overrides, connector_filter,
+            out_path, overrides, countries, connector_filter,
         )
     except Exception as e:
         print(f"  PARSE ERROR: {e}", file=sys.stderr)
