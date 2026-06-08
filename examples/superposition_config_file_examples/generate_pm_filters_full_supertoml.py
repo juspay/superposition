@@ -1,12 +1,26 @@
 #!/usr/bin/env python3
 """
-Generate a SuperTOML containing pm_filters, mandates, and zero_mandates,
-with every override carrying all six dimensions explicitly.
+Generate a SuperTOML containing pm_filters and mandate-setup rules, with
+every override carrying all six dimensions explicitly.
 
-Sources, each producing one payment_type variant:
-  [pm_filters.<connector>.<payment_method>]         -> payment_type = "normal"
-  [mandates.supported_payment_methods]              -> payment_type = "mandate"
-  [zero_mandates.supported_payment_methods]         -> payment_type = "zero_dollar_mandate"
+Sources, each producing one flow_kind variant:
+  [pm_filters.<connector>.<payment_method>]         -> flow_kind = "normal"
+  [mandates.supported_payment_methods]      \\
+  [zero_mandates.supported_payment_methods] /        -> flow_kind = "mandate_setup"
+
+The 6th dimension is `flow_kind` (not `payment_type`). Its enum is just
+two values, `normal` and `mandate_setup`. Regular mandates and zero-dollar
+mandates collapse into a single "mandate_setup" bucket because the source
+has zero_mandates as nearly a strict subset of mandates - emitting them
+separately would near-double the output without giving callers a
+distinction they can practically act on at query time.
+
+Trade-off worth knowing: callers can no longer ask "regular mandate vs
+zero-dollar mandate" separately. They get one yes/no on "any mandate
+setup supported for this (connector, pm)". If that distinction matters
+downstream, revert to a `payment_type = {normal, mandate, zero_dollar_mandate}`
+enum and re-emit per type (the previous behavior, ~5.2M overrides on a
+6-connector subset vs ~3M with this collapsed model).
 
 Each row becomes the full cross-product over (country, currency,
 capture_method), all setting `enabled = true`:
@@ -17,7 +31,8 @@ capture_method), all setting `enabled = true`:
     = "manual" }` emit only automatic.
   - For mandates / zero_mandates: country, currency, and capture_method
     are never specified in the source, so all three expand to the full
-    observed enum.
+    observed enum. The two sections are unioned into one set of (connector,
+    payment_method) pairs to avoid duplicate overrides.
 
 Skips [pm_filters.default] - those rows have no connector dimension, and
 the requirement is that every override carry all six dims. Expanding
@@ -29,7 +44,7 @@ Usage:
         --source /tmp/hyperswitch-dev.toml \\
         --output hyperswitch-pm-filters-full.generated.toml
 
-    # Subset for spot-checking - applies to all three payment_type sources.
+    # Subset for spot-checking - applies to both flow_kind sources.
     python3 generate_pm_filters_full_supertoml.py --connectors adyen,stripe
 
 Output is deterministic. Validation re-parses with tomllib and, when the
@@ -50,7 +65,7 @@ from typing import Any
 # Match the position assignments used by the broader generator so the two
 # files cascade together if both are loaded by a downstream consumer.
 POSITIONS = {
-    "payment_type": 7,
+    "flow_kind": 7,
     "capture_method": 6,
     "connector": 5,
     "country": 4,
@@ -179,7 +194,7 @@ def discover_enums(
 def _emit_cross_product(
     overrides: "list[dict]",
     *,
-    payment_type: str,
+    flow_kind: str,
     connector: str,
     payment_method: str,
     countries: "list[str]",
@@ -191,7 +206,7 @@ def _emit_cross_product(
             for currency in currencies:
                 overrides.append({
                     "_context_": sorted_context({
-                        "payment_type": payment_type,
+                        "flow_kind": flow_kind,
                         "capture_method": capture,
                         "connector": connector,
                         "country": country,
@@ -212,7 +227,7 @@ def build_overrides(
 ) -> "list[dict]":
     overrides: "list[dict]" = []
 
-    # ----- payment_type = "normal" from pm_filters --------------------------
+    # ----- flow_kind = "normal" from pm_filters -----------------------------
     for connector in sorted(pm_filters.keys()):
         if connector == "default":
             continue
@@ -235,7 +250,7 @@ def build_overrides(
             capture_methods = ["automatic"] if manual_blocked else ["automatic", "manual"]
             _emit_cross_product(
                 overrides,
-                payment_type="normal",
+                flow_kind="normal",
                 connector=connector,
                 payment_method=pm,
                 countries=countries,
@@ -243,29 +258,29 @@ def build_overrides(
                 capture_methods=capture_methods,
             )
 
-    # ----- payment_type = "mandate" / "zero_dollar_mandate" -----------------
-    # Mandate sections don't carry country/currency/capture_method at all -
-    # the source semantics are "this connector supports this kind of mandate
-    # for this payment_method, period". Expand to every observed dimension
-    # value so each emitted override carries all six dims.
-    mandate_sources = [
-        ("mandate", mandates_section),
-        ("zero_dollar_mandate", zero_mandates_section),
-    ]
-    for payment_type, section in mandate_sources:
-        for pm, connector_list in walk_mandate_section(section):
-            for connector in sorted(connector_list):
+    # ----- flow_kind = "mandate_setup" --------------------------------------
+    # Union the (connector, pm) pairs from [mandates] and [zero_mandates]
+    # so each pair gets a single override. This is the file-size win - on
+    # the full source, zero_mandates is mostly a subset of mandates, so the
+    # union shrinks the mandate bucket by ~40%.
+    mandate_pairs: "set[tuple[str, str]]" = set()
+    for section in (mandates_section, zero_mandates_section):
+        for pm, conns in walk_mandate_section(section):
+            for connector in conns:
                 if connector_filter and connector not in connector_filter:
                     continue
-                _emit_cross_product(
-                    overrides,
-                    payment_type=payment_type,
-                    connector=connector,
-                    payment_method=pm,
-                    countries=all_countries,
-                    currencies=all_currencies,
-                    capture_methods=["automatic", "manual"],
-                )
+                mandate_pairs.add((connector, pm))
+
+    for connector, pm in sorted(mandate_pairs):
+        _emit_cross_product(
+            overrides,
+            flow_kind="mandate_setup",
+            connector=connector,
+            payment_method=pm,
+            countries=all_countries,
+            currencies=all_currencies,
+            capture_methods=["automatic", "manual"],
+        )
 
     return overrides
 
@@ -303,7 +318,7 @@ def emit_supertoml(
         ("country", POSITIONS["country"], countries),
         ("connector", POSITIONS["connector"], connectors),
         ("capture_method", POSITIONS["capture_method"], ["automatic", "manual"]),
-        ("payment_type", POSITIONS["payment_type"], ["normal", "mandate", "zero_dollar_mandate"]),
+        ("flow_kind", POSITIONS["flow_kind"], ["normal", "mandate_setup"]),
     ]
 
     with out_path.open("w") as fh:
@@ -342,80 +357,77 @@ def emit_supertoml(
 # Lean parity matrix: a handful of representative rows from the source whose
 # expected enable state is unambiguous given the "every dim explicit" model.
 PARITY_TESTS: "list[tuple[str, dict, bool]]" = [
+    # ---- flow_kind = "normal" (pm_filters source). ------------------------
     # adyen.swish = { country = "SE", currency = "SEK" } - both capture methods.
     ("adyen swish SE/SEK auto",
      {"connector": "adyen", "payment_method": "swish", "country": "SE",
-      "currency": "SEK", "capture_method": "automatic", "payment_type": "normal"},
+      "currency": "SEK", "capture_method": "automatic", "flow_kind": "normal"},
      True),
     ("adyen swish SE/SEK manual",
      {"connector": "adyen", "payment_method": "swish", "country": "SE",
-      "currency": "SEK", "capture_method": "manual", "payment_type": "normal"},
+      "currency": "SEK", "capture_method": "manual", "flow_kind": "normal"},
      True),
     # adyen.ideal has not_available_flows.capture_method = "manual".
     ("adyen ideal NL/EUR auto",
      {"connector": "adyen", "payment_method": "ideal", "country": "NL",
-      "currency": "EUR", "capture_method": "automatic", "payment_type": "normal"},
+      "currency": "EUR", "capture_method": "automatic", "flow_kind": "normal"},
      True),
     ("adyen ideal NL/EUR manual (blocked by not_available_flows)",
      {"connector": "adyen", "payment_method": "ideal", "country": "NL",
-      "currency": "EUR", "capture_method": "manual", "payment_type": "normal"},
+      "currency": "EUR", "capture_method": "manual", "flow_kind": "normal"},
      False),
-    # razorpay.upi_collect IN/INR
     ("razorpay upi_collect IN/INR auto",
      {"connector": "razorpay", "payment_method": "upi_collect", "country": "IN",
-      "currency": "INR", "capture_method": "automatic", "payment_type": "normal"},
+      "currency": "INR", "capture_method": "automatic", "flow_kind": "normal"},
      True),
-    # stripe.affirm US/USD
     ("stripe affirm US/USD auto",
      {"connector": "stripe", "payment_method": "affirm", "country": "US",
-      "currency": "USD", "capture_method": "automatic", "payment_type": "normal"},
+      "currency": "USD", "capture_method": "automatic", "flow_kind": "normal"},
      True),
-    # Negative: a context the source never enables.
     ("adyen swish DE/EUR (not in source)",
      {"connector": "adyen", "payment_method": "swish", "country": "DE",
-      "currency": "EUR", "capture_method": "automatic", "payment_type": "normal"},
+      "currency": "EUR", "capture_method": "automatic", "flow_kind": "normal"},
      False),
     # truelayer.open_banking has currency only - country expanded.
     ("truelayer open_banking US/GBP auto (country expanded)",
      {"connector": "truelayer", "payment_method": "open_banking", "country": "US",
-      "currency": "GBP", "capture_method": "automatic", "payment_type": "normal"},
+      "currency": "GBP", "capture_method": "automatic", "flow_kind": "normal"},
      True),
-    # ---- Mandate cases. country/currency/capture_method are always expanded.
-    # stripe + card.credit IS in [mandates.supported_payment_methods].
-    ("stripe credit JP/JPY manual mandate",
+    # ---- flow_kind = "mandate_setup" (union of mandates + zero_mandates). -
+    # stripe + card.credit IS in [mandates] - so mandate_setup is true.
+    ("stripe credit JP/JPY manual mandate_setup",
      {"connector": "stripe", "payment_method": "credit", "country": "JP",
-      "currency": "JPY", "capture_method": "manual", "payment_type": "mandate"},
+      "currency": "JPY", "capture_method": "manual", "flow_kind": "mandate_setup"},
      True),
-    # hipay credit is NOT in [mandates.supported_payment_methods].
-    ("hipay credit US/USD auto mandate (not in source)",
+    # hipay credit is in NEITHER [mandates] nor [zero_mandates].
+    ("hipay credit US/USD auto mandate_setup (not in source)",
      {"connector": "hipay", "payment_method": "credit", "country": "US",
-      "currency": "USD", "capture_method": "automatic", "payment_type": "mandate"},
+      "currency": "USD", "capture_method": "automatic", "flow_kind": "mandate_setup"},
      False),
-    # gocardless + bank_debit.ach IS in [mandates.supported_payment_methods].
-    ("gocardless ach DE/EUR mandate",
+    # gocardless + bank_debit.ach is in BOTH [mandates] and [zero_mandates].
+    ("gocardless ach DE/EUR mandate_setup",
      {"connector": "gocardless", "payment_method": "ach", "country": "DE",
-      "currency": "EUR", "capture_method": "automatic", "payment_type": "mandate"},
+      "currency": "EUR", "capture_method": "automatic", "flow_kind": "mandate_setup"},
      True),
-    # ---- zero_dollar_mandate cases.
-    # adyen + card.credit IS in [zero_mandates.supported_payment_methods].
-    ("adyen credit FR/EUR zero_dollar_mandate",
+    # adyen + card.credit is in [zero_mandates] (and [mandates]).
+    ("adyen credit FR/EUR mandate_setup",
      {"connector": "adyen", "payment_method": "credit", "country": "FR",
-      "currency": "EUR", "capture_method": "automatic", "payment_type": "zero_dollar_mandate"},
+      "currency": "EUR", "capture_method": "automatic", "flow_kind": "mandate_setup"},
      True),
-    # gocardless + bank_debit.sepa IS in [zero_mandates.supported_payment_methods].
-    ("gocardless sepa DE/EUR zero_dollar_mandate",
+    # gocardless + bank_debit.sepa is in BOTH.
+    ("gocardless sepa DE/EUR mandate_setup",
      {"connector": "gocardless", "payment_method": "sepa", "country": "DE",
-      "currency": "EUR", "capture_method": "manual", "payment_type": "zero_dollar_mandate"},
+      "currency": "EUR", "capture_method": "manual", "flow_kind": "mandate_setup"},
      True),
-    # gocardless + bank_debit.bacs IS in BOTH [mandates] and [zero_mandates].
-    ("gocardless bacs zero_dollar_mandate",
+    # gocardless + bank_debit.bacs is in BOTH.
+    ("gocardless bacs GB/GBP mandate_setup",
      {"connector": "gocardless", "payment_method": "bacs", "country": "GB",
-      "currency": "GBP", "capture_method": "automatic", "payment_type": "zero_dollar_mandate"},
+      "currency": "GBP", "capture_method": "automatic", "flow_kind": "mandate_setup"},
      True),
-    # adyen + bank_debit.bacs is NOT in [zero_mandates] (only gocardless is).
-    ("adyen bacs zero_dollar_mandate (not in source)",
+    # adyen + bank_debit.bacs is in NEITHER mandate list.
+    ("adyen bacs GB/GBP mandate_setup (not in source)",
      {"connector": "adyen", "payment_method": "bacs", "country": "GB",
-      "currency": "GBP", "capture_method": "automatic", "payment_type": "zero_dollar_mandate"},
+      "currency": "GBP", "capture_method": "automatic", "flow_kind": "mandate_setup"},
      False),
 ]
 
@@ -547,15 +559,15 @@ def main() -> int:
         pm_filters, mandates_section, zero_mandates_section,
         countries, currencies, connector_filter,
     )
-    by_type: "dict[str, int]" = {}
+    by_kind: "dict[str, int]" = {}
     for ov in overrides:
-        pt = ov["_context_"]["payment_type"]
-        by_type[pt] = by_type.get(pt, 0) + 1
+        fk = ov["_context_"]["flow_kind"]
+        by_kind[fk] = by_kind.get(fk, 0) + 1
     print(f"\nGenerated {len(overrides):,} overrides "
           f"(each one carries all 6 dimensions)")
-    for pt in ("normal", "mandate", "zero_dollar_mandate"):
-        if by_type.get(pt):
-            print(f"  payment_type = {pt!r}: {by_type[pt]:,}")
+    for fk in ("normal", "mandate_setup"):
+        if by_kind.get(fk):
+            print(f"  flow_kind = {fk!r}: {by_kind[fk]:,}")
 
     emit_supertoml(connectors, payment_methods, countries, currencies,
                    overrides, skipped_default, out_path)
