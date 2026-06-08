@@ -1,0 +1,3 @@
+# Output of generate_pm_filters_full_supertoml.py - ~3.1M overrides, ~544 MB.
+# Above GitHub's 100 MB single-file limit. Regenerate locally with the script.
+hyperswitch-pm-filters-full.generated.toml

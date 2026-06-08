@@ -70,3 +70,14 @@ Both files contain identical ride-sharing pricing configurations to demonstrate 
   (substitute the platform-tagged filename for macOS/Windows). The script
   auto-discovers `clients/python/bindings/` when run from anywhere inside
   the repo.
+
+- `generate_pm_filters_full_supertoml.py` — narrower generator that converts
+  ONLY the `[pm_filters.<connector>]` section, emitting one override per
+  full (currency, country, payment_type, connector, payment_method,
+  capture_method) tuple. Rows that omit country or currency in the source
+  are expanded over every value observed across pm_filters; rows with
+  `not_available_flows = { capture_method = "manual" }` emit only the
+  automatic slice. Skips `[pm_filters.default]` (no connector dimension).
+  Run unfiltered, it produces ~3.1M overrides (~544 MB) — the output file
+  is gitignored. Use `--connectors stripe,adyen` to spot-check on a
+  manageable subset.
