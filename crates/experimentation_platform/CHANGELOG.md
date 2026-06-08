@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.53.0 - 2026-06-08
+#### Features
+- experiment idempotency (#982) - (800f36a) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(version)** v0.108.0 [skip ci] - (e9b1dba) - Superposition Bot
+
+- - -
+
 ## experimentation_platform-v0.52.0 - 2026-05-20
 #### Features
 - add AnyMatch filter to get contexts based on query permutations (#1008) - (3bdee15) - sauraww

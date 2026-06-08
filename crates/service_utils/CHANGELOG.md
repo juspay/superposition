@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.42.0 - 2026-06-08
+#### Features
+- experiment idempotency (#982) - (800f36a) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(version)** v0.107.0 [skip ci] - (f5121d8) - Superposition Bot
+
+- - -
+
 ## service_utils-v0.41.0 - 2026-05-12
 #### Features
 - Add workspace locking using lease metadata inside workspace to serialize write operations (#817) - (83dac07) - Natarajan Kannan

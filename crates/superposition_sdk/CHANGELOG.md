@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_sdk-v0.19.0 - 2026-06-08
+#### Features
+- experiment idempotency (#982) - (800f36a) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(version)** v0.110.0 [skip ci] - (2d7f9a5) - Superposition Bot
+
+- - -
+
 ## superposition_sdk-v0.18.0 - 2026-05-24
 #### Features
 - support json query filters for audit tables (#1013) - (dddd1c6) - sauraww
