@@ -1,4 +1,4 @@
-use std::{cmp::min, collections::HashSet};
+use std::cmp::min;
 
 use actix_web::{
     HttpRequest, HttpResponse, Scope, delete, get, patch, post, routes,
@@ -470,7 +470,6 @@ fn list_experiment_groups_db(
         let dimensions_info =
             fetch_dimensions_info_map(conn, &workspace_context.schema_name)?;
         let original_req_keys = dimension_params.keys().collect::<Vec<_>>();
-        let query_keys = dimension_params.keys().cloned().collect::<HashSet<_>>();
         let dimension_params =
             evaluate_local_cohorts_skip_unresolved(&dimensions_info, &dimension_params);
 
@@ -480,19 +479,13 @@ fn list_experiment_groups_db(
             DimensionMatchStrategy::Exact => {
                 ExperimentGroup::filter_exact_match(all_experiments, &dimension_params)
             }
-            DimensionMatchStrategy::Subset | DimensionMatchStrategy::AnyMatch => {
+            DimensionMatchStrategy::Subset | DimensionMatchStrategy::NonConflicting => {
                 ExperimentGroup::filter_by_eval(all_experiments, &dimension_params)
             }
         };
 
         let filtered_experiments = match strategy {
-            DimensionMatchStrategy::AnyMatch => {
-                ExperimentGroup::filter_by_context_any_match(
-                    dimension_filtered_experiments,
-                    &query_keys,
-                    &dimensions_info,
-                )
-            }
+            DimensionMatchStrategy::NonConflicting => dimension_filtered_experiments,
             _ => ExperimentGroup::filter_by_dimension(
                 dimension_filtered_experiments,
                 &original_req_keys,

@@ -182,11 +182,11 @@ async def _deserialize_error_bulk_operation(http_response: HTTPResponse, config:
         case "internalservererror":
             return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
 
-        case "resourcenotfound":
-            return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
-
         case "webhookfailed":
             return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
+
+        case "resourcenotfound":
+            return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
 
         case _:
             return UnknownApiError(f"{code}: {message}")

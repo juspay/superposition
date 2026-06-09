@@ -57,6 +57,6 @@ enum DimensionMatchStrategy {
     @documentation("Match the overrides which have the given context as subset")
     SUBSET = "subset"
 
-    @documentation("Match overrides whose context has at least one supplied query dimension, with partial value matching and dependency-graph awareness")
-    ANY_MATCH = "any_match"
+    @documentation("Match overrides whose context does not conflict with any supplied query dimension. This is useful for fetching candidates for later local evaluation.")
+    NON_CONFLICTING = "non_conflicting"
 }

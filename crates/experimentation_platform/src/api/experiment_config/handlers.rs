@@ -17,7 +17,7 @@ use service_utils::{
 };
 use superposition_derives::{authorized, declare_resource};
 use superposition_types::{
-    Contextual, DBConnection, IsEmpty, PaginatedResponse,
+    DBConnection, IsEmpty, PaginatedResponse,
     api::{
         DimensionMatchStrategy,
         experiment_config::{
@@ -164,7 +164,6 @@ fn get_experiment_config_db(
     } else {
         fetch_dimensions_info_map(conn, &workspace_context.schema_name)?
     };
-    let query_keys = dimension_params.keys().cloned().collect::<HashSet<_>>();
     let evaluated_dimension_params =
         evaluate_local_cohorts_skip_unresolved(&dimensions_info, &dimension_params);
 
@@ -194,17 +193,10 @@ fn get_experiment_config_db(
                         &evaluated_dimension_params,
                     )
                 }
-                DimensionMatchStrategy::AnyMatch => {
-                    let experiment_list = <Experiment as Experimental>::filter_by_eval(
-                        experiment_list,
-                        &evaluated_dimension_params,
-                    );
-                    Experiment::filter_by_context_any_match(
-                        experiment_list,
-                        &query_keys,
-                        &dimensions_info,
-                    )
-                }
+                DimensionMatchStrategy::NonConflicting => Experiment::filter_by_eval(
+                    experiment_list,
+                    &evaluated_dimension_params,
+                ),
             };
         }
 
@@ -232,15 +224,10 @@ fn get_experiment_config_db(
                         &evaluated_dimension_params,
                     )
                 }
-                DimensionMatchStrategy::AnyMatch => {
-                    let group_list = <ExperimentGroup as Experimental>::filter_by_eval(
+                DimensionMatchStrategy::NonConflicting => {
+                    ExperimentGroup::filter_by_eval(
                         group_list,
                         &evaluated_dimension_params,
-                    );
-                    ExperimentGroup::filter_by_context_any_match(
-                        group_list,
-                        &query_keys,
-                        &dimensions_info,
                     )
                 }
             };

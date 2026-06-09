@@ -52,7 +52,7 @@ export interface GetExperimentConfigCommandOutput extends GetExperimentConfigOut
  *   context: { // ContextMap
  *     "<keys>": "DOCUMENT_VALUE",
  *   },
- *   dimension_match_strategy: "exact" || "subset" || "any_match",
+ *   dimension_match_strategy: "exact" || "subset" || "non_conflicting",
  * };
  * const command = new GetExperimentConfigCommand(input);
  * const response = await client.send(command);

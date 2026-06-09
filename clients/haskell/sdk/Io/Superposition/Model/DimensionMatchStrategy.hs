@@ -13,7 +13,7 @@ import qualified Io.Superposition.Utility
 data DimensionMatchStrategy =
     EXACT
     | SUBSET
-    | ANY_MATCH
+    | NON_CONFLICTING
     deriving (
         GHC.Generics.Generic,
         Data.Eq.Eq,
@@ -23,14 +23,14 @@ data DimensionMatchStrategy =
 instance Data.Aeson.ToJSON DimensionMatchStrategy where
     toJSON EXACT = Data.Aeson.String $ Data.Text.pack "exact"
     toJSON SUBSET = Data.Aeson.String $ Data.Text.pack "subset"
-    toJSON ANY_MATCH = Data.Aeson.String $ Data.Text.pack "any_match"
+    toJSON NON_CONFLICTING = Data.Aeson.String $ Data.Text.pack "non_conflicting"
 
 instance Data.Aeson.FromJSON DimensionMatchStrategy where
     parseJSON = Data.Aeson.withText "DimensionMatchStrategy" $ \v ->
         case v of
             "exact" -> pure EXACT
             "subset" -> pure SUBSET
-            "any_match" -> pure ANY_MATCH
+            "non_conflicting" -> pure NON_CONFLICTING
             _ -> fail $ "Unknown value for DimensionMatchStrategy: " <> Data.Text.unpack v
         
     
@@ -38,11 +38,11 @@ instance Data.Aeson.FromJSON DimensionMatchStrategy where
 instance Io.Superposition.Utility.SerDe DimensionMatchStrategy where
     serializeElement EXACT = Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "exact"
     serializeElement SUBSET = Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "subset"
-    serializeElement ANY_MATCH = Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "any_match"
+    serializeElement NON_CONFLICTING = Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "non_conflicting"
     deSerializeElement bs = case Data.Text.Encoding.decodeUtf8 bs of
         "exact" -> Right EXACT
         "subset" -> Right SUBSET
-        "any_match" -> Right ANY_MATCH
+        "non_conflicting" -> Right NON_CONFLICTING
         e -> Left ("Failed to de-serialize DimensionMatchStrategy, encountered unknown variant: " ++ (show bs))
     
 

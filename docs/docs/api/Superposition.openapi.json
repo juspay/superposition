@@ -8289,7 +8289,7 @@
                 "enum": [
                     "exact",
                     "subset",
-                    "any_match"
+                    "non_conflicting"
                 ]
             },
             "DimensionQueryParams": {

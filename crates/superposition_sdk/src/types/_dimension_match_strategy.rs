@@ -12,8 +12,8 @@
 /// ```text
 /// # let dimensionmatchstrategy = unimplemented!();
 /// match dimensionmatchstrategy {
-///     DimensionMatchStrategy::AnyMatch => { /* ... */ },
 ///     DimensionMatchStrategy::Exact => { /* ... */ },
+///     DimensionMatchStrategy::NonConflicting => { /* ... */ },
 ///     DimensionMatchStrategy::Subset => { /* ... */ },
 ///     other @ _ if other.as_str() == "NewFeature" => { /* handles a case for `NewFeature` */ },
 ///     _ => { /* ... */ },
@@ -41,10 +41,10 @@
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::Eq, ::std::cmp::Ord, ::std::cmp::PartialEq, ::std::cmp::PartialOrd, ::std::fmt::Debug, ::std::hash::Hash)]
 pub enum DimensionMatchStrategy {
-    /// Match overrides whose context has at least one supplied query dimension, with partial value matching and dependency-graph awareness
-    AnyMatch,
     /// Match the overrides which have the exact context
     Exact,
+    /// Match overrides whose context does not conflict with any supplied query dimension. This is useful for fetching candidates for later local evaluation.
+    NonConflicting,
     /// Match the overrides which have the given context as subset
     Subset,
     /// `Unknown` contains new variants that have been added since this code was generated.
@@ -54,8 +54,8 @@ pub enum DimensionMatchStrategy {
 impl ::std::convert::From<&str> for DimensionMatchStrategy {
                     fn from(s: &str) -> Self {
                         match s {
-                            "any_match" => DimensionMatchStrategy::AnyMatch,
-"exact" => DimensionMatchStrategy::Exact,
+                            "exact" => DimensionMatchStrategy::Exact,
+"non_conflicting" => DimensionMatchStrategy::NonConflicting,
 "subset" => DimensionMatchStrategy::Subset,
 other => DimensionMatchStrategy::Unknown(crate::primitives::sealed_enum_unknown::UnknownVariantValue(other.to_owned()))
                         }
@@ -72,15 +72,15 @@ impl DimensionMatchStrategy {
                 /// Returns the `&str` value of the enum member.
                 pub fn as_str(&self) -> &str {
                     match self {
-    DimensionMatchStrategy::AnyMatch => "any_match",
     DimensionMatchStrategy::Exact => "exact",
+    DimensionMatchStrategy::NonConflicting => "non_conflicting",
     DimensionMatchStrategy::Subset => "subset",
     DimensionMatchStrategy::Unknown(value) => value.as_str()
 }
                 }
                 /// Returns all the `&str` representations of the enum members.
                 pub const fn values() -> &'static [&'static str] {
-                    &["any_match", "exact", "subset"]
+                    &["exact", "non_conflicting", "subset"]
                 }
             }
 impl ::std::convert::AsRef<str> for DimensionMatchStrategy {
@@ -103,8 +103,8 @@ impl DimensionMatchStrategy {
 impl ::std::fmt::Display for DimensionMatchStrategy {
                         fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                             match self {
-                                DimensionMatchStrategy::AnyMatch => write!(f, "any_match"),
-DimensionMatchStrategy::Exact => write!(f, "exact"),
+                                DimensionMatchStrategy::Exact => write!(f, "exact"),
+DimensionMatchStrategy::NonConflicting => write!(f, "non_conflicting"),
 DimensionMatchStrategy::Subset => write!(f, "subset"),
 DimensionMatchStrategy::Unknown(value) => write!(f, "{}", value)
                             }

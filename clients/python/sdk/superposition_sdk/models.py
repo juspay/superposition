@@ -1991,9 +1991,9 @@ BULK_OPERATION = APIOperation(
         input_schema = _SCHEMA_BULK_OPERATION_INPUT,
         output_schema = _SCHEMA_BULK_OPERATION_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
 ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
-ShapeID("io.superposition#InternalServerError"): InternalServerError,
+ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
         }),
         effective_auth_schemes = [
            ShapeID("smithy.api#httpBasicAuth"),
@@ -4215,10 +4215,10 @@ class DimensionMatchStrategy(StrEnum):
     Match the overrides which have the given context as subset
 
     """
-    ANY_MATCH = "any_match"
+    NON_CONFLICTING = "non_conflicting"
     """
-    Match overrides whose context has at least one supplied query dimension, with
-    partial value matching and dependency-graph awareness
+    Match overrides whose context does not conflict with any supplied query
+    dimension. This is useful for fetching candidates for later local evaluation.
 
     """
 
@@ -4976,8 +4976,8 @@ WEIGHT_RECOMPUTE = APIOperation(
         input_schema = _SCHEMA_WEIGHT_RECOMPUTE_INPUT,
         output_schema = _SCHEMA_WEIGHT_RECOMPUTE_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
-ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
         }),
         effective_auth_schemes = [
            ShapeID("smithy.api#httpBasicAuth"),
