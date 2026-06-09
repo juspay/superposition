@@ -1002,11 +1002,13 @@ ALTER TABLE {replaceme}.experiments ADD COLUMN IF NOT EXISTS idempotency_key TEX
 CREATE UNIQUE INDEX IF NOT EXISTS experiments_idempotency_key_idx ON {replaceme}.experiments(idempotency_key) WHERE idempotency_key IS NOT NULL;
 
 INSERT INTO {replaceme}.config_versions (id, config, config_hash, tags, created_at, description)
-VALUES (
+SELECT
     1,
     '{"contexts":[],"default_configs":{},"dimensions":{"variantIds":{"dependency_graph":{},"dimension_type":{"REGULAR":{}},"position":0,"schema":{"pattern":".*","type":"string"}}},"overrides":{}}'::json,
     'a14ee4ec5b2bf8067148fdf04e701863223c16b2e061a4839c0e4cdb5607b923',
     ARRAY['dimension', 'variantIds'],
     CURRENT_TIMESTAMP,
     'base config version recording the addition of variantIds dimension'
-) ON CONFLICT DO NOTHING;
+WHERE NOT EXISTS (
+    SELECT 1 FROM {replaceme}.config_versions
+);
