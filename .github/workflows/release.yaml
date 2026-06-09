@@ -79,6 +79,7 @@ jobs:
 
             - name: Update Helm chart appVersion
               run: |
+                  yq eval ".version = \"${{ steps.git_tag.outputs.version }}\"" -i helm/Chart.yaml
                   yq eval ".appVersion = \"${{ steps.git_tag.outputs.version }}\"" -i helm/Chart.yaml
                   git add helm/Chart.yaml
                   git commit --amend --no-edit
@@ -166,7 +167,7 @@ jobs:
 
             - name: Package and push Helm chart to OCI registry
               run: |
-                  helm package helm/ --version ${{ needs.tag-release.outputs.version }} --app-version ${{ needs.tag-release.outputs.version }}
+                  helm package helm
                   helm push "superposition-${{ needs.tag-release.outputs.version }}.tgz" "oci://ghcr.io/${{ github.repository_owner }}/helm-charts"
 
     docker-demo-build:
