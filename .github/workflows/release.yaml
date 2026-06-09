@@ -167,7 +167,7 @@ jobs:
             - name: Package and push Helm chart to OCI registry
               run: |
                   helm package helm/ --version ${{ needs.tag-release.outputs.version }} --app-version ${{ needs.tag-release.outputs.version }}
-                  helm push superposition-${{ needs.tag-release.outputs.version }}.tgz oci://ghcr.io/${{ github.repository_owner }}
+                  helm push "superposition-${{ needs.tag-release.outputs.version }}.tgz" "oci://ghcr.io/${{ github.repository_owner }}/helm-charts"
 
     docker-demo-build:
         needs: [tag-release, create-manifest]
