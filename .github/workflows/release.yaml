@@ -656,3 +656,4 @@ jobs:
                       artifacts_dir/superposition_core-x86_64-apple-darwin.zip/superposition_core-x86_64-apple-darwin.zip
                       artifacts_dir/superposition_core-aarch64-apple-darwin.zip/superposition_core-aarch64-apple-darwin.zip
                       artifacts_dir/superposition_core-x86_64-pc-windows-msvc.zip/superposition_core-x86_64-pc-windows-msvc.zip
+
