@@ -79,6 +79,7 @@ jobs:
 
             - name: Update Helm chart appVersion
               run: |
+                  yq eval ".version = \"${{ steps.git_tag.outputs.version }}\"" -i helm/Chart.yaml
                   yq eval ".appVersion = \"${{ steps.git_tag.outputs.version }}\"" -i helm/Chart.yaml
                   git add helm/Chart.yaml
                   git commit --amend --no-edit
@@ -146,6 +147,7 @@ jobs:
               with:
                   fetch-depth: 0
                   token: ${{ secrets.SUPERPOSITION_TOKEN }}
+                  ref: ${{ needs.tag-release.outputs.updated_ref }}
 
             - name: Log in to GitHub Container Registry
               uses: docker/login-action@v3
@@ -163,6 +165,11 @@ jobs:
                   docker buildx imagetools create --tag ghcr.io/${{ github.repository }}:latest \
                       ghcr.io/${{ github.repository }}:${{ needs.tag-release.outputs.version }}-linux-amd64 \
                       ghcr.io/${{ github.repository }}:${{ needs.tag-release.outputs.version }}-linux-arm64
+
+            - name: Package and push Helm chart to OCI registry
+              run: |
+                  helm package helm
+                  helm push "superposition-${{ needs.tag-release.outputs.version }}.tgz" "oci://ghcr.io/${{ github.repository_owner }}/helm-charts"
 
     docker-demo-build:
         needs: [tag-release, create-manifest]
@@ -650,3 +657,4 @@ jobs:
                       artifacts_dir/superposition_core-x86_64-apple-darwin.zip/superposition_core-x86_64-apple-darwin.zip
                       artifacts_dir/superposition_core-aarch64-apple-darwin.zip/superposition_core-aarch64-apple-darwin.zip
                       artifacts_dir/superposition_core-x86_64-pc-windows-msvc.zip/superposition_core-x86_64-pc-windows-msvc.zip
+
