@@ -2,6 +2,25 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.112.0 - 2026-06-11
+### Package updates
+- haskell_client bumped to haskell_client-v0.21.0
+- superposition_sdk bumped to superposition_sdk-v0.20.0
+- superposition_core bumped to superposition_core-v0.15.0
+- superposition_types bumped to superposition_types-v0.47.0
+- context_aware_config bumped to context_aware_config-v0.77.0
+- experimentation_platform bumped to experimentation_platform-v0.54.0
+### Global changes
+#### Bug Fixes
+- add a base config version entry for variantIds (#1041) - (313e262) - Datron
+#### Features
+- add filter to get global overrides with non conflicting overrides (#1044) - (fb4146d) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.111.0 [skip ci] - (d78c5d3) - Superposition Bot
+- publish Helm chart to GHCR OCI registry on release (#1043) - (b5b015e) - Pradesh-S
+
+- - -
+
 ## v0.111.0 - 2026-06-08
 ### Package updates
 - frontend bumped to frontend-v0.55.0

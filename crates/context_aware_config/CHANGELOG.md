@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.77.0 - 2026-06-11
+#### Features
+- add filter to get global overrides with non conflicting overrides (#1044) - (fb4146d) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.110.0 [skip ci] - (2d7f9a5) - Superposition Bot
+
+- - -
+
 ## context_aware_config-v0.76.0 - 2026-05-24
 #### Features
 - support json query filters for audit tables (#1013) - (dddd1c6) - sauraww
