@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.47.0 - 2026-06-11
+#### Features
+- add filter to get global overrides with non conflicting overrides (#1044) - (fb4146d) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.111.0 [skip ci] - (d78c5d3) - Superposition Bot
+
+- - -
+
 ## superposition_types-v0.46.0 - 2026-06-08
 #### Features
 - experiment idempotency (#982) - (800f36a) - Ankit Kumar Mahato
