@@ -3,6 +3,8 @@ $version: "2.0"
 
 namespace io.superposition
 
+use software.amazon.smithy.mcp#mcpTool
+
 resource DefaultConfig {
     identifiers: {
         key: String
@@ -71,6 +73,7 @@ list ListDefaultConfigOut {
     member: DefaultConfigResponse
 }
 
+@mcpTool
 @documentation("Retrieves a specific default config entry by its key, including its value, schema, function mappings, and metadata.")
 @readonly
 @http(method: "GET", uri: "/default-config/{key}")
@@ -86,6 +89,7 @@ operation GetDefaultConfig with [GetOperation] {
 }
 
 // Operations
+@mcpTool
 @documentation("Creates a new default config entry with specified key, value, schema, and metadata. Default configs serve as fallback values when no specific context matches.")
 @http(method: "POST", uri: "/default-config")
 @tags(["Default Configuration"])
@@ -94,6 +98,7 @@ operation CreateDefaultConfig with [WebhookOperation] {
     output: DefaultConfigResponse
 }
 
+@mcpTool
 @documentation("Retrieves a paginated list of all default config entries in the workspace, including their values, schemas, and metadata.")
 @readonly
 @http(method: "GET", uri: "/default-config")
@@ -111,6 +116,7 @@ operation ListDefaultConfigs {
     }
 }
 
+@mcpTool
 @documentation("Updates an existing default config entry. Allows modification of value, schema, function mappings, and description while preserving the key identifier.")
 @idempotent
 @http(method: "PATCH", uri: "/default-config/{key}")
@@ -140,6 +146,7 @@ operation UpdateDefaultConfig with [GetOperation, WebhookOperation] {
     output: DefaultConfigResponse
 }
 
+@mcpTool
 @documentation("Permanently removes a default config entry from the workspace. This operation cannot be performed if it affects config resolution for contexts that rely on this fallback value.")
 @idempotent
 @http(method: "DELETE", uri: "/default-config/{key}", code: 204)

@@ -6,7 +6,7 @@ SHELL := /usr/bin/env bash
 FEATURES ?= ssr
 FE_FEATURES ?= hydrate
 CARGO_FLAGS := --color always --no-default-features
-EXCLUDE_PACKAGES := experimentation_client_integration_example superposition_sdk
+EXCLUDE_PACKAGES := experimentation_client_integration_example superposition_sdk superposition_mcp
 FMT_EXCLUDE_PACKAGES_REGEX := $(shell echo "$(EXCLUDE_PACKAGES)" | sed "s/ /|/g")
 LINT_FLAGS := --workspace --all-targets --all-features $(addprefix --exclude ,$(EXCLUDE_PACKAGES)) --no-deps
 COMPONENT_NAME_FLAGS :=
@@ -49,7 +49,7 @@ DB_CONTAINER_NAME = $(shell $(call read-container-name,postgres))
 DB_UP = $(shell $(call check-container,$(DB_CONTAINER_NAME)))
 LSTACK_CONTAINER_NAME = $(shell $(call read-container-name,localstack))
 LSTACK_UP = $(shell $(call check-container,$(LSTACK_CONTAINER_NAME)))
-export SMITHY_MAVEN_REPOS = https://repo1.maven.org/maven2|https://sandbox.assets.juspay.in/smithy/m2
+export SMITHY_MAVEN_REPOS = https://repo1.maven.org/maven2|https://sandbox.assets.juspay.in/smithy/m2|file://$(CURDIR)/smithy/maven-local
 
 .PHONY: amend \
 	amend-no-edit \
@@ -298,6 +298,13 @@ smithy-clients: smithy-build
 	git restore crates/superposition_sdk/CHANGELOG.md
 	cp -r $(SMITHY_BUILD_SRC)/rust-client-codegen/*\
 				crates/superposition_sdk
+
+	rm -rf crates/superposition_mcp
+	mkdir -p crates/superposition_mcp
+	git restore crates/superposition_mcp/README.md
+	git restore crates/superposition_mcp/CHANGELOG.md
+	cp -r $(SMITHY_BUILD_SRC)/mcp-rust/*\
+				crates/superposition_mcp
 
 	@for d in $(SMITHY_BUILD_SRC)/*-client-codegen; do \
 		[ -d "$$d" ] || continue; \

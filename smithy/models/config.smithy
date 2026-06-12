@@ -2,6 +2,8 @@ $version: "2.0"
 
 namespace io.superposition
 
+use software.amazon.smithy.mcp#mcpTool
+
 resource Config {
     identifiers: {
         workspace_id: String
@@ -90,6 +92,7 @@ structure ConfigData {
     dimensions: DimensionData
 }
 
+@mcpTool
 @documentation("Retrieves config data with context evaluation, including applicable contexts, overrides, and default values based on provided conditions.")
 @http(method: "POST", uri: "/config")
 @tags(["Configuration Management"])
@@ -135,6 +138,7 @@ operation GetConfig {
     }
 }
 
+@mcpTool
 @documentation("Retrieves the full config in TOML format, including default configs with schemas, dimensions, and overrides. This endpoint is optimized for clients that prefer TOML format for configuration management.")
 @readonly
 @http(method: "POST", uri: "/config/toml")
@@ -158,6 +162,7 @@ operation GetConfigToml {
     }
 }
 
+@mcpTool
 @documentation("Retrieves the full config in JSON format, including default configs with schemas, dimensions, and overrides. This endpoint is optimized for clients that prefer JSON format for configuration management.")
 @readonly
 @http(method: "POST", uri: "/config/json")
@@ -186,6 +191,7 @@ enum MergeStrategy {
     REPLACE
 }
 
+@mcpTool
 @documentation("Resolves and merges config values based on context conditions, applying overrides and merge strategies to produce the final configuration.")
 @http(method: "POST", uri: "/config/resolve")
 @tags(["Configuration Management"])
@@ -258,6 +264,7 @@ resource ConfigVersion {
     operations: []
 }
 
+@mcpTool
 @documentation("Retrieves a specific config version along with its metadata for audit and rollback purposes.")
 @readonly
 @http(method: "GET", uri: "/version/{id}")
@@ -311,6 +318,7 @@ list ListVersionsOut {
     member: ListVersionsMember
 }
 
+@mcpTool
 @documentation("Retrieves a paginated list of config versions with their metadata, hash values, and creation timestamps for audit and rollback purposes.")
 @readonly
 @http(method: "GET", uri: "/config/versions")
@@ -334,6 +342,7 @@ operation ListVersions {
     }
 }
 
+@mcpTool
 @documentation("Resolves and merges config values based on context conditions and identifier, applying overrides and merge strategies to produce the final configuration.")
 @http(method: "POST", uri: "/resolve")
 @tags(["Configuration Management"])

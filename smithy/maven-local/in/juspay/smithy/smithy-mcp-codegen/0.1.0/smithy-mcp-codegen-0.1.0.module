@@ -1,0 +1,83 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "in.juspay.smithy",
+    "module": "smithy-mcp-codegen",
+    "version": "0.1.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.5"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 11,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "smithy-mcp-codegen-0.1.0.jar",
+          "url": "smithy-mcp-codegen-0.1.0.jar",
+          "size": 33647,
+          "sha512": "424fa15f124165111aa7e52d61aa8c3483f55c32557cae8692f80e7036ee1cfd238d9f06c545614a8eb16deec5b82695294d42918ee73b798541fbb06c85ffe1",
+          "sha256": "d273d534a28fd79071c412bbeab7f9babc43797b423a0d513698c65613275ebb",
+          "sha1": "98575cbafb2c9d3ac6d0424efd836f05ebe27dd1",
+          "md5": "f9c75284d9c6c2deadd234a4b4c55707"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 11,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "in.juspay.smithy",
+          "module": "smithy-mcp-traits",
+          "version": {
+            "requires": "0.1.0"
+          }
+        },
+        {
+          "group": "software.amazon.smithy",
+          "module": "smithy-model",
+          "version": {
+            "requires": "1.55.0"
+          }
+        },
+        {
+          "group": "software.amazon.smithy",
+          "module": "smithy-build",
+          "version": {
+            "requires": "1.55.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "smithy-mcp-codegen-0.1.0.jar",
+          "url": "smithy-mcp-codegen-0.1.0.jar",
+          "size": 33647,
+          "sha512": "424fa15f124165111aa7e52d61aa8c3483f55c32557cae8692f80e7036ee1cfd238d9f06c545614a8eb16deec5b82695294d42918ee73b798541fbb06c85ffe1",
+          "sha256": "d273d534a28fd79071c412bbeab7f9babc43797b423a0d513698c65613275ebb",
+          "sha1": "98575cbafb2c9d3ac6d0424efd836f05ebe27dd1",
+          "md5": "f9c75284d9c6c2deadd234a4b4c55707"
+        }
+      ]
+    }
+  ]
+}

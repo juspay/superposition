@@ -3,6 +3,8 @@ $version: "2.0"
 
 namespace io.superposition
 
+use software.amazon.smithy.mcp#mcpTool
+
 resource Function {
     identifiers: {
         function_name: String
@@ -198,6 +200,7 @@ list FunctionListResponse {
 }
 
 // Operations
+@mcpTool
 @documentation("Creates a new custom function for value_validation, value_compute, context_validation or change_reason_validation with specified code, runtime version, and function type.")
 @http(method: "POST", uri: "/function")
 @tags(["Functions"])
@@ -206,6 +209,7 @@ operation CreateFunction {
     output: FunctionResponse
 }
 
+@mcpTool
 @documentation("Retrieves detailed information about a specific function including its published and draft versions, code, and metadata.")
 @readonly
 @http(method: "GET", uri: "/function/{function_name}")
@@ -220,6 +224,7 @@ operation GetFunction with [GetOperation] {
     output: FunctionResponse
 }
 
+@mcpTool
 @documentation("Retrieves a paginated list of all functions in the workspace with their basic information and current status.")
 @readonly
 @http(method: "GET", uri: "/function")
@@ -236,6 +241,7 @@ operation ListFunction {
     }
 }
 
+@mcpTool
 @documentation("Updates the draft version of an existing function with new code, runtime version, or description while preserving the published version.")
 @idempotent
 @http(method: "PATCH", uri: "/function/{function_name}")
@@ -245,6 +251,7 @@ operation UpdateFunction with [GetOperation] {
     output: FunctionResponse
 }
 
+@mcpTool
 @documentation("Permanently removes a function from the workspace, deleting both draft and published versions along with all associated code. It fails if already in use")
 @idempotent
 @http(method: "DELETE", uri: "/function/{function_name}", code: 204)
@@ -257,6 +264,7 @@ operation DeleteFunction with [GetOperation] {
     }
 }
 
+@mcpTool
 @documentation("Executes a function in test mode with provided input parameters to validate its behavior before publishing or deployment.")
 @idempotent
 @http(method: "POST", uri: "/function/{function_name}/{stage}/test")
@@ -281,6 +289,7 @@ operation Test with [GetOperation] {
     output: FunctionExecutionResponse
 }
 
+@mcpTool
 @documentation("Publishes the draft version of a function, making it the active version used for value_validation, value_compute, context_validation or change_reason_validation in the system.")
 @idempotent
 @http(method: "PATCH", uri: "/function/{function_name}/publish")

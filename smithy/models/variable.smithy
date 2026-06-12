@@ -2,6 +2,8 @@ $version: "2.0"
 
 namespace io.superposition
 
+use software.amazon.smithy.mcp#mcpTool
+
 @documentation("Variables are key-value pairs used to store configuration values that can be referenced in contexts, webhooks, and other parts of the system.")
 resource Variable {
     identifiers: {
@@ -63,6 +65,7 @@ enum VariableSortOn {
     LAST_MODIFIED_AT = "last_modified_at"
 }
 
+@mcpTool
 @documentation("Creates a new variable with the specified name and value.")
 @http(method: "POST", uri: "/variables")
 @tags(["Variables"])
@@ -84,6 +87,7 @@ operation CreateVariable {
     output: VariableResponse
 }
 
+@mcpTool
 @documentation("Updates an existing variable's value, description, or tags.")
 @idempotent
 @http(method: "PATCH", uri: "/variables/{name}")
@@ -105,6 +109,7 @@ operation UpdateVariable with [GetOperation] {
     output: VariableResponse
 }
 
+@mcpTool
 @documentation("Retrieves a paginated list of all variables in the workspace with optional filtering and sorting.")
 @readonly
 @http(method: "GET", uri: "/variables")
@@ -141,6 +146,7 @@ operation ListVariables {
     }
 }
 
+@mcpTool
 @documentation("Retrieves detailed information about a specific variable by its name.")
 @readonly
 @http(method: "GET", uri: "/variables/{name}")
@@ -155,6 +161,7 @@ operation GetVariable with [GetOperation] {
     output: VariableResponse
 }
 
+@mcpTool
 @documentation("Permanently deletes a variable from the workspace.")
 @idempotent
 @http(method: "DELETE", uri: "/variables/{name}")

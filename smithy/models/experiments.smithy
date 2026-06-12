@@ -2,6 +2,8 @@ $version: "2.0"
 
 namespace io.superposition
 
+use software.amazon.smithy.mcp#mcpTool
+
 resource Experiments {
     identifiers: {
         workspace_id: String
@@ -244,6 +246,7 @@ structure ApplicableVariantsInput for Experiments with [WorkspaceMixin] {
 }
 
 // Operations
+@mcpTool
 @documentation("Creates a new experiment with variants, context and conditions. You can optionally specify metrics and experiment group for tracking and analysis.")
 @http(method: "POST", uri: "/experiments")
 @tags(["Experimentation"])
@@ -253,6 +256,7 @@ operation CreateExperiment with [WebhookOperation] {
 }
 
 // Operations
+@mcpTool
 @documentation("Updates the overrides for specific variants within an experiment, allowing modification of experiment behavior Updates the overrides for specific variants within an experiment, allowing modification of experiment behavior while it is in the created state.")
 @http(method: "PATCH", uri: "/experiments/{id}/overrides")
 @tags(["Experimentation"])
@@ -261,6 +265,7 @@ operation UpdateOverridesExperiment with [GetOperation, WebhookOperation] {
     output: ExperimentResponse
 }
 
+@mcpTool
 @documentation("Concludes an inprogress experiment by selecting a winning variant and transitioning the experiment to a concluded state.")
 @idempotent
 @http(method: "PATCH", uri: "/experiments/{id}/conclude")
@@ -287,6 +292,7 @@ operation ConcludeExperiment with [GetOperation, WebhookOperation] {
     output: ExperimentResponse
 }
 
+@mcpTool
 @documentation("Discards an experiment without selecting a winner, effectively canceling the experiment and removing its effects.")
 @idempotent
 @http(method: "PATCH", uri: "/experiments/{id}/discard")
@@ -308,6 +314,7 @@ operation DiscardExperiment with [GetOperation, WebhookOperation] {
     output: ExperimentResponse
 }
 
+@mcpTool
 @documentation("Adjusts the traffic percentage allocation for an in-progress experiment, allowing gradual rollout or rollback of experimental features.")
 @idempotent
 @http(method: "PATCH", uri: "/experiments/{id}/ramp")
@@ -328,6 +335,7 @@ operation RampExperiment with [GetOperation, WebhookOperation] {
     output: ExperimentResponse
 }
 
+@mcpTool
 @documentation("Retrieves detailed information about a specific experiment, including its config, variants, status, and metrics.")
 @readonly
 @http(method: "GET", uri: "/experiments/{id}")
@@ -342,6 +350,7 @@ operation GetExperiment with [GetOperation] {
     output: ExperimentResponse
 }
 
+@mcpTool
 @documentation("Retrieves a paginated list of experiments with support for filtering by status, date range, name, creator, and experiment group.")
 @http(method: "POST", uri: "/experiments/list")
 @tags(["Experimentation"])
@@ -417,6 +426,7 @@ operation ListExperiment {
     }
 }
 
+@mcpTool
 @documentation("Determines which experiment variants are applicable to a given context, used for experiment evaluation and variant selection.")
 @http(method: "POST", uri: "/experiments/applicable-variants")
 @tags(["Experimentation"])
@@ -425,6 +435,7 @@ operation ApplicableVariants {
     output: ApplicableVariantsOutput
 }
 
+@mcpTool
 @documentation("Temporarily pauses an inprogress experiment, suspending its effects while preserving the experiment config for later resumption.")
 @idempotent
 @http(method: "PATCH", uri: "/experiments/{id}/pause")
@@ -442,6 +453,7 @@ operation PauseExperiment with [GetOperation, WebhookOperation] {
     output: ExperimentResponse
 }
 
+@mcpTool
 @documentation("Resumes a previously paused experiment, restoring its in-progress state and re-enabling variant evaluation.")
 @idempotent
 @http(method: "PATCH", uri: "/experiments/{id}/resume")

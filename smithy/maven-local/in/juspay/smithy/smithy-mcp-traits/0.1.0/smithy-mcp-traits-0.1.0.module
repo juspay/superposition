@@ -1,0 +1,78 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "in.juspay.smithy",
+    "module": "smithy-mcp-traits",
+    "version": "0.1.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.5"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 11,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "software.amazon.smithy",
+          "module": "smithy-model",
+          "version": {
+            "requires": "1.55.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "smithy-mcp-traits-0.1.0.jar",
+          "url": "smithy-mcp-traits-0.1.0.jar",
+          "size": 5004,
+          "sha512": "10382045502386ffa0218a86da4fa55b56b25c54e5c9980b44725ccbf1c97c78f631c13ea392440fd60efc4fbe8f0a0d3aaba5aabb95ba630365407fc5fe4f2c",
+          "sha256": "884bdaedfd3fb498f3aea0536f2e402340ca8d71651ec1332a15b4650bdd9c8c",
+          "sha1": "de7dc2bbc2be60af357c543b45d69357b26b387b",
+          "md5": "7792079a22cd8a51140a92b2b5f5e0d0"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 11,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "software.amazon.smithy",
+          "module": "smithy-model",
+          "version": {
+            "requires": "1.55.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "smithy-mcp-traits-0.1.0.jar",
+          "url": "smithy-mcp-traits-0.1.0.jar",
+          "size": 5004,
+          "sha512": "10382045502386ffa0218a86da4fa55b56b25c54e5c9980b44725ccbf1c97c78f631c13ea392440fd60efc4fbe8f0a0d3aaba5aabb95ba630365407fc5fe4f2c",
+          "sha256": "884bdaedfd3fb498f3aea0536f2e402340ca8d71651ec1332a15b4650bdd9c8c",
+          "sha1": "de7dc2bbc2be60af357c543b45d69357b26b387b",
+          "md5": "7792079a22cd8a51140a92b2b5f5e0d0"
+        }
+      ]
+    }
+  ]
+}

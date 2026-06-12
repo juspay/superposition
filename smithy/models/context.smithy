@@ -2,6 +2,8 @@ $version: "2.0"
 
 namespace io.superposition
 
+use software.amazon.smithy.mcp#mcpTool
+
 list OverrideWithKeys {
     member: String
 }
@@ -75,6 +77,7 @@ structure ContextResponse for Context {
     $last_modified_by
 }
 
+@mcpTool
 @documentation("Creates a new context with specified conditions and overrides. Contexts define conditional rules for config management.")
 @idempotent
 @http(method: "PUT", uri: "/context")
@@ -94,6 +97,7 @@ operation CreateContext with [GetOperation, WebhookOperation] {
     output: ContextResponse
 }
 
+@mcpTool
 @documentation("Validates if a given context condition is well-formed")
 @idempotent
 @http(method: "PUT", uri: "/context/validate")
@@ -106,6 +110,7 @@ operation ValidateContext {
     }
 }
 
+@mcpTool
 @documentation("Retrieves detailed information about a specific context by its unique identifier, including conditions, overrides, and metadata.")
 @readonly
 @http(method: "GET", uri: "/context/{id}")
@@ -120,6 +125,7 @@ operation GetContext with [GetOperation] {
     output: ContextResponse
 }
 
+@mcpTool
 @documentation("Updates the condition of the mentioned context, if a context with the new condition already exists, it merges the override and effectively deleting the old context")
 @http(method: "PUT", uri: "/context/move/{id}")
 @tags(["Context Management"])
@@ -156,6 +162,7 @@ structure UpdateContextOverrideRequest for Context {
     $change_reason
 }
 
+@mcpTool
 @documentation("Updates the overrides for an existing context. Allows modification of override values while maintaining the context's conditions.")
 @http(method: "PATCH", uri: "/context/overrides")
 @tags(["Context Management"])
@@ -175,6 +182,7 @@ operation UpdateOverride with [GetOperation, WebhookOperation] {
     output: ContextResponse
 }
 
+@mcpTool
 @documentation("Retrieves context information by matching against provided conditions. Used to find contexts that would apply to specific scenarios.")
 @http(method: "POST", uri: "/context/get")
 @tags(["Context Management"])
@@ -198,6 +206,7 @@ list ListContextOut {
     member: ContextResponse
 }
 
+@mcpTool
 @documentation("Retrieves a paginated list of contexts with support for filtering by creation date, modification date, weight, and other criteria.")
 @readonly
 @http(method: "GET", uri: "/context")
@@ -243,6 +252,7 @@ operation ListContexts {
     }
 }
 
+@mcpTool
 @documentation("Permanently removes a context from the workspace. This operation cannot be undone and will affect config resolution.")
 @idempotent
 @http(method: "DELETE", uri: "/context/{id}", code: 204)
@@ -277,6 +287,7 @@ list WeightRecomputeResponses {
     member: WeightRecomputeResponse
 }
 
+@mcpTool
 @documentation("Recalculates and updates the priority weights for all contexts in the workspace based on their dimensions.")
 @http(method: "PUT", uri: "/context/weight/recompute")
 @tags(["Context Management"])
@@ -346,6 +357,7 @@ list BulkOperationOutList {
     member: ContextActionOut
 }
 
+@mcpTool
 @documentation("Executes multiple context operations (PUT, REPLACE, DELETE, MOVE) in a single atomic transaction for efficient batch processing.")
 @http(method: "PUT", uri: "/context/bulk-operations")
 @tags(["Context Management"])

@@ -2,6 +2,8 @@ $version: "2.0"
 
 namespace io.superposition
 
+use software.amazon.smithy.mcp#mcpTool
+
 resource Organisation {
     identifiers: {
         id: String
@@ -95,6 +97,7 @@ list OrganisationList {
 }
 
 // Operations
+@mcpTool
 @documentation("Creates a new organisation with specified name and administrator email. This is the top-level entity that contains workspaces and manages organizational-level settings.")
 @http(method: "POST", uri: "/superposition/organisations")
 @tags(["Organisation Management"])
@@ -103,6 +106,7 @@ operation CreateOrganisation {
     output: OrganisationResponse
 }
 
+@mcpTool
 @documentation("Retrieves detailed information about a specific organisation including its status, contact details, and administrative metadata.")
 @readonly
 @http(method: "GET", uri: "/superposition/organisations/{id}")
@@ -117,6 +121,7 @@ operation GetOrganisation with [GetOperation] {
     output: OrganisationResponse
 }
 
+@mcpTool
 @documentation("Updates an existing organisation's information including contact details, status, and administrative properties.")
 @idempotent
 @http(method: "PATCH", uri: "/superposition/organisations/{id}")
@@ -126,6 +131,7 @@ operation UpdateOrganisation with [GetOperation] {
     output: OrganisationResponse
 }
 
+@mcpTool
 @documentation("Retrieves a paginated list of all organisations with their basic information, creation details, and current status.")
 @readonly
 @http(method: "GET", uri: "/superposition/organisations")

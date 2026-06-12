@@ -2,6 +2,8 @@ $version: "2.0"
 
 namespace io.superposition
 
+use software.amazon.smithy.mcp#mcpTool
+
 @documentation("Represents a configuration of experiments that can be managed together.")
 resource ExperimentConfig {
     identifiers: {
@@ -18,6 +20,7 @@ resource ExperimentConfig {
     ]
 }
 
+@mcpTool
 @documentation("Retrieves the experiment configuration for a given workspace and organization. The response includes details of all experiment groups and experiments that match the specified filters.")
 @http(method: "POST", uri: "/experiment-config")
 @tags(["Experiment Config"])

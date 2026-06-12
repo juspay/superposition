@@ -2,6 +2,8 @@ $version: "2.0"
 
 namespace io.superposition
 
+use software.amazon.smithy.mcp#mcpTool
+
 resource Workspace {
     identifiers: {
         workspace_name: String
@@ -150,6 +152,7 @@ list WorkspaceList {
     member: WorkspaceResponse
 }
 
+@mcpTool
 @documentation("Retrieves detailed information about a specific workspace including its configuration and metadata.")
 @readonly
 @http(method: "GET", uri: "/workspaces/{workspace_name}")
@@ -165,6 +168,7 @@ operation GetWorkspace with [GetOperation] {
 }
 
 // Operations
+@mcpTool
 @documentation("Creates a new workspace within an organisation, including database schema setup and isolated environment for config management with specified admin and settings.")
 @http(method: "POST", uri: "/workspaces")
 @tags(["Workspace Management"])
@@ -173,6 +177,7 @@ operation CreateWorkspace {
     output: WorkspaceResponse
 }
 
+@mcpTool
 @documentation("Updates an existing workspace configuration, allowing modification of admin settings, mandatory dimensions, and workspace properties. Validates config version existence if provided.")
 @idempotent
 @http(method: "PATCH", uri: "/workspaces/{workspace_name}")
@@ -182,6 +187,7 @@ operation UpdateWorkspace with [GetOperation] {
     output: WorkspaceResponse
 }
 
+@mcpTool
 @documentation("Retrieves a paginated list of all workspaces with optional filtering by workspace name, including their status, config details, and administrative information.")
 @readonly
 @http(method: "GET", uri: "/workspaces")
@@ -195,6 +201,7 @@ operation ListWorkspace {
     }
 }
 
+@mcpTool
 @documentation("Migrates the workspace database schema to the new version of the template")
 @idempotent
 @http(method: "POST", uri: "/workspaces/{workspace_name}/db/migrate")
@@ -204,6 +211,7 @@ operation MigrateWorkspaceSchema with [GetOperation] {
     output: WorkspaceResponse
 }
 
+@mcpTool
 @documentation("Rotates the workspace encryption key. Generates a new encryption key and re-encrypts all secrets with the new key. This is a critical operation that should be done during low-traffic periods.")
 @http(method: "POST", uri: "/workspaces/{workspace_name}/rotate-encryption-key")
 @idempotent

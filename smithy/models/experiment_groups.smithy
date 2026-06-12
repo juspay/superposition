@@ -2,6 +2,8 @@ $version: "2.0"
 
 namespace io.superposition
 
+use software.amazon.smithy.mcp#mcpTool
+
 enum ExperimentGroupSortOn {
     @documentation("Sort by name.")
     NAME = "name"
@@ -154,6 +156,7 @@ structure ModifyMembersToGroupRequest for ExperimentGroup with [WorkspaceMixin] 
     $member_experiment_ids
 }
 
+@mcpTool
 @documentation("Adds members to an existing experiment group.")
 @http(method: "PATCH", uri: "/experiment-groups/{id}/add-members")
 @tags(["Experiment Groups"])
@@ -162,6 +165,7 @@ operation AddMembersToGroup with [GetOperation] {
     output: ExperimentGroupResponse
 }
 
+@mcpTool
 @documentation("Removes members from an existing experiment group.")
 @http(method: "PATCH", uri: "/experiment-groups/{id}/remove-members")
 @tags(["Experiment Groups"])
@@ -170,6 +174,7 @@ operation RemoveMembersFromGroup with [GetOperation] {
     output: ExperimentGroupResponse
 }
 
+@mcpTool
 @documentation("Creates a new experiment group.")
 @http(method: "POST", uri: "/experiment-groups")
 @tags(["Experiment Groups"])
@@ -178,6 +183,7 @@ operation CreateExperimentGroup {
     output: ExperimentGroupResponse
 }
 
+@mcpTool
 @documentation("Retrieves an existing experiment group by its ID.")
 @readonly
 @http(method: "GET", uri: "/experiment-groups/{id}")
@@ -210,6 +216,7 @@ structure UpdateExperimentGroupRequest for ExperimentGroup with [WorkspaceMixin]
     $traffic_percentage
 }
 
+@mcpTool
 @documentation("Updates an existing experiment group. Allows partial updates to specified fields.")
 @idempotent
 @http(method: "PATCH", uri: "/experiment-groups/{id}")
@@ -219,6 +226,7 @@ operation UpdateExperimentGroup with [GetOperation] {
     output: ExperimentGroupResponse
 }
 
+@mcpTool
 @documentation("Deletes an experiment group.")
 @idempotent
 @http(method: "DELETE", uri: "/experiment-groups/{id}")
@@ -238,6 +246,7 @@ list ExperimentGroupList {
     member: ExperimentGroupResponse
 }
 
+@mcpTool
 @documentation("Lists experiment groups, with support for filtering and pagination.")
 @http(method: "POST", uri: "/experiment-groups/list")
 @tags(["Experiment Groups"])
