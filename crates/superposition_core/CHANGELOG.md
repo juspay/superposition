@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_core-v0.16.0 - 2026-06-12
+#### Features
+- add detailed config resolution endpoint and removing unnecessary metadata field from config/resolve (#1040) - (e3a9880) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.112.0 [skip ci] - (83d4693) - Superposition Bot
+
+- - -
+
 ## superposition_core-v0.15.0 - 2026-06-11
 #### Features
 - add filter to get global overrides with non conflicting overrides (#1044) - (fb4146d) - sauraww
