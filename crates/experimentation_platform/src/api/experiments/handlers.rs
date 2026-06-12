@@ -89,9 +89,9 @@ use crate::api::{
     },
     experiments::{
         helpers::{
+            validate_change_reason_with_function,
             get_control_overrides_from_exp_id, put_experiments_in_redis,
-            validate_change_reason_with_function, validate_control_overrides,
-            validate_delete_experiment_variants,
+            validate_control_overrides, validate_delete_experiment_variants,
         },
         types::StartedByChangeSet,
     },
@@ -170,7 +170,7 @@ async fn create_handler(
         &workspace_context,
         &change_reason,
         &state,
-        &user,
+        &user
     )
     .await?;
 
@@ -462,7 +462,7 @@ async fn conclude_handler(
         &workspace_context,
         &req.change_reason,
         &state,
-        &user,
+        &user
     )
     .await?;
 
@@ -745,7 +745,7 @@ async fn discard_handler(
         &workspace_context,
         &req.change_reason,
         &state,
-        &user,
+        &user
     )
     .await?;
 
@@ -1359,7 +1359,7 @@ async fn ramp_handler(
         &workspace_context,
         &change_reason,
         &state,
-        &user,
+        &user
     )
     .await?;
 
@@ -1568,7 +1568,7 @@ async fn update_handler(
         &workspace_context,
         &change_reason,
         &state,
-        &user,
+        &user
     )
     .await?;
 
@@ -1907,7 +1907,7 @@ async fn pause_handler(
         &workspace_context,
         &req.change_reason,
         &state,
-        &user,
+        &user
     )
     .await?;
 
@@ -2004,7 +2004,7 @@ async fn resume_handler(
         &workspace_context,
         &req.change_reason,
         &state,
-        &user,
+        &user
     )
     .await?;
 
