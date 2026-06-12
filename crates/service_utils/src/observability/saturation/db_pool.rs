@@ -1,8 +1,6 @@
 //! ObservableGauge callbacks for the r2d2 connection pool. Purely passive —
 //! no instrumentation at `pool.get()` call sites.
 
-use std::sync::Arc;
-
 use opentelemetry::{KeyValue, metrics::Meter};
 
 /// Concrete pool type used across the codebase.
@@ -11,9 +9,10 @@ use opentelemetry::{KeyValue, metrics::Meter};
 /// `diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<diesel::PgConnection>>`).
 /// Using an explicit expansion here so the observability subsystem does not
 /// take a hard dep on `crate::db` — callers pass the handle in via
-/// `SaturationDeps`.
+/// `SaturationDeps`. r2d2's `Pool` is already internally `Arc`-cloneable,
+/// so no outer `Arc` wrapping is needed.
 pub type DbPoolHandle =
-    Arc<diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<diesel::PgConnection>>>;
+    diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<diesel::PgConnection>>;
 
 pub fn register(meter: &Meter, pool: DbPoolHandle, pool_name: &'static str) {
     let pool_for_usage = pool.clone();
@@ -35,14 +34,13 @@ pub fn register(meter: &Meter, pool: DbPoolHandle, pool_name: &'static str) {
         })
         .build();
 
-    let pool_for_max = pool.clone();
     let max_pool_name = KeyValue::new("pool.name", pool_name);
     meter
         .u64_observable_gauge("db.client.connections.max")
         .with_description("Configured maximum size of the DB connection pool.")
         .with_callback(move |observer| {
             observer.observe(
-                pool_for_max.max_size() as u64,
+                pool.max_size() as u64,
                 std::slice::from_ref(&max_pool_name),
             );
         })

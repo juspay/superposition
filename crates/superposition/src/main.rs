@@ -181,7 +181,7 @@ async fn main() -> Result<()> {
 
     if let Some(obs) = observability.as_ref() {
         let deps = SaturationDeps {
-            db_pool: Some(Arc::new(app_state.db_pool.clone())),
+            db_pool: Some(app_state.db_pool.clone()),
             redis_client: redis_handle,
         };
         register_observers(&obs.meter(), deps)
