@@ -1,22 +1,22 @@
 # OpenTelemetry Golden-Signals Middleware
 
-- **Date:** 2026-05-10
-- **Status:** Design — shipped with deviations (see §0)
+- **Date:** 2026-05-10 (original), updated post-implementation to match shipped code
+- **Status:** Shipped (PR #998); this document reflects the as-built design
 - **Owner:** Natarajan Kannan
 - **Target crate:** `service_utils`
 - **Reference TSDB:** VictoriaMetrics (single-node `vmsingle`); design is TSDB-agnostic
 
-## 0. Post-implementation deviations
+## 0. Changes from initial design
 
-The PR shipped with the following changes versus the design captured below. The body of this document is preserved as the original design rationale.
+The original 2026-05-10 design was edited inline after the PR shipped so the body reads as truth. The original prose is recoverable from git history (`git log -p` this file). Headlines:
 
-- **Health endpoints (`/healthz`, `/livez`, `/readyz`) dropped.** The pre-existing `GET /health` already serves the up-check role; the k8s-conventional liveness/readiness split can be added in a follow-up PR when an actual deployment consumes it. This makes §5.2 ("Auth bypass for health endpoints"), the `health_endpoints()` API in §6, and Task 12/17 of the plan obsolete.
-- **`tokio_unstable` flag, `tokio-metrics` dep, and `.cargo/config.toml` removed.** Tokio 1.50 exposes `Handle::metrics().num_workers()`, `.global_queue_depth()`, and `.worker_total_busy_duration(i)` as stable APIs (the last gated on `target_has_atomic = "64"`, like tokio itself does). `saturation::tokio_runtime` reads `Handle::metrics()` directly inside each observable callback — no background sampler, no `RuntimeMonitor`, no atomics snapshot.
-- **`runtime.tokio.workers.busy_ratio` replaced with `runtime.tokio.workers.busy.time`.** Exposes cumulative busy time in seconds as a monotonic OTel Counter (summed across workers); Prometheus computes saturation via `rate(...) / num_workers` at query time. Same semantic, Prom-idiomatic.
-- **`opentelemetry-semantic-conventions` dependency removed.** The handful of attribute names we use are inlined as string literals.
-- **`SaturationDeps::tokio_collect_interval` field removed.** No background sampler → no interval to configure. `SUPERPOSITION_METRICS_COLLECT_INTERVAL` still controls the OTLP periodic-reader cadence.
-- **`tenant_middleware_exclusion_list` reverted to env-only.** With health endpoints removed, there's no need to extend it programmatically.
-- **HTTP middleware swapped to `opentelemetry-instrumentation-actix-web`.** The PR originally shipped a hand-written `MetricsMiddleware` + `HttpMeters` (~470 lines of custom code emitting `http.server.request.duration`, `http.server.busy.duration`, and `http.server.active_requests`). It has been replaced with the upstream OTel-contrib crate's `RequestMetrics` middleware, configured with a custom `RouteFormatter` (preserves the `__not_found__` / `__static__` cardinality sentinels) and a custom `metric_attrs_from_req` (normalizes HTTP method to `_OTHER` for unknown verbs; adds optional `sp.org_id` / `sp.workspace_id` per a process-wide `LabelConfig`). Required bumping the OTel family to `0.32` workspace-wide and `prometheus` to `0.14`. The body-size histograms the crate emits unconditionally are suppressed via an SDK View (`Aggregation::Drop`). The `http.server.busy.duration` Counter is gone — equivalent saturation information is recoverable from `rate(http_server_request_duration_seconds_sum[...])` since both increment by `elapsed` at the same point.
+| Area | Change |
+|---|---|
+| HTTP middleware | Hand-written `MetricsMiddleware` replaced with `opentelemetry-instrumentation-actix-web 0.24` (`RequestMetrics`); we plug in a custom `RouteFormatter` + `metric_attrs_from_req` to preserve our cardinality story. |
+| HTTP saturation | `http.server.busy.duration` Counter dropped; equivalent signal is `rate(http_server_request_duration_seconds_sum[...])`. |
+| Tokio runtime | `tokio_unstable` flag, `tokio-metrics` dep, and `.cargo/config.toml` removed; tokio 1.50 stable APIs (`Handle::metrics()`) suffice. `busy_ratio` Gauge replaced with `runtime.tokio.workers.busy.time` Counter. |
+| Health endpoints | `/healthz`, `/livez`, `/readyz` dropped — existing `GET /health` covers the up-check role; k8s-conventional split deferred. |
+| Deps | OTel family bumped to `0.32`, `prometheus` to `0.14`; `opentelemetry-semantic-conventions` and `tokio-metrics` removed. |
 
 ## 1. Background
 
@@ -48,33 +48,37 @@ This design adds first-class metrics exposition for the four [Google SRE golden 
 | Decision | Choice | Rationale |
 |---|---|---|
 | Client library | OpenTelemetry SDK + Prometheus exporter | TSDB-agnostic; future-proof for OSS users; future-proofs unified traces+metrics. |
+| HTTP middleware | `opentelemetry-instrumentation-actix-web 0.24` (`RequestMetrics`) with custom `RouteFormatter` + `metric_attrs_from_req` | Upstream OTel-contrib crate; gets us semconv-compliant `http.server.request.duration` for free. Cardinality controls (route sentinels, method normalization, optional org/workspace labels) plug in via the crate's hooks. |
 | TSDB (reference) | VictoriaMetrics (`vmsingle`) | Cheap to operate; Prom-compatible; cluster path exists if needed. |
 | Exposition transport | Prometheus scrape on dedicated port + optional OTLP push | Pull-by-default for self-hosted users; OTLP path unlocks every OTel-native backend. |
-| Labels on HTTP metrics | `route × method × status × org × workspace` | Tenant-level slicing in metrics; workspace label is env-disable-able for users with very high workspace counts. |
-| Saturation signals | HTTP active requests + HTTP busy duration + Tokio runtime + DB pool + Redis pool | Multiple independent signals avoid single-metric blind spots. Host-level (CPU/mem/FD) stays with `node-exporter`. |
+| Labels on HTTP metrics | `route × method × status × org × workspace` | Tenant-level slicing in metrics; org / workspace labels are independently env-disable-able for users with very high workspace counts. |
+| Saturation signals | HTTP active requests + Tokio runtime busy time + DB pool + Redis pool | Multiple independent signals avoid single-metric blind spots. Time-averaged HTTP concurrency is derivable from `rate(http_server_request_duration_seconds_sum[...])` — no separate Counter needed. Host-level (CPU/mem/FD) stays with `node-exporter`. |
 | Where `/metrics` lives | Separate listener on `SUPERPOSITION_METRICS_PORT` (default `9091`) | Network-policy isolation; scrape requests don't pollute the app's own metrics; no auth interaction. |
-| Where `/healthz` lives | Main app port `8080`, paths added to `auth_n`'s exception set | Probes exercise the real user-facing port. |
 | Module location | `crates/service_utils/src/observability.rs` (+ `observability/` for submodules, no `mod.rs`) | Matches existing convention for cross-cutting concerns; modern Rust 2018+ module layout. |
-| Build config | `.cargo/config.toml` adds `--cfg tokio_unstable` workspace-wide | Required by `tokio-metrics` runtime instrumentation. |
+| Body-size histograms | Suppressed via SDK View (`Aggregation::Drop`) | The upstream crate emits `http.server.request.body.size` and `http.server.response.body.size` unconditionally; we have no operator demand for them and they add cardinality. The View suppresses them at the SDK layer without forking the crate. |
 
 ## 5. Architecture
 
 A new module **`service_utils::observability`** owns three pieces:
 
-1. **`init()`** — called once from `main.rs` early in startup. Builds the OTel `MeterProvider` with two readers: a `PrometheusExporter` (renders to `/metrics`) and (if `OTEL_EXPORTER_OTLP_ENDPOINT` is set) a periodic OTLP push exporter. Returns an `Observability` handle owning the registry, a cloned `Meter`, and shutdown hooks.
+1. **`Observability::init()`** — called once from `main.rs` early in startup. Builds the OTel `SdkMeterProvider` with two readers: a `PrometheusExporter` (renders to `/metrics`) and (if `OTEL_EXPORTER_OTLP_ENDPOINT` is set) a `PeriodicReader` driving an `opentelemetry-otlp` HTTP exporter. The provider has an SDK View attached that drops the body-size histograms the upstream HTTP-instrumentation crate emits. Returns an `Observability` handle owning the registry, a cloned `SdkMeterProvider`, a `Meter`, and shutdown hooks.
 
-2. **`MetricsMiddleware`** — Actix `Transform`/`Service` pair wrapping every request on the main server. Records:
-   - `http.server.request.duration` (histogram, seconds)
-   - `http.server.busy.duration` (counter, seconds)
+2. **HTTP instrumentation** — the upstream `opentelemetry-instrumentation-actix-web` crate's `RequestMetrics` middleware, built via `build_request_metrics_middleware(provider)`. It's wired with:
+   - a custom `RouteFormatter` (`CardinalityBoundedFormatter`) that collapses `"default"` to `__not_found__` and `/pkg|/assets|/favicon*` to `__static__`,
+   - a custom `metric_attrs_from_req` fn pointer that normalizes the HTTP method (unknown verbs → `_OTHER`) and conditionally attaches `sp.org_id` / `sp.workspace_id` from request extensions per a process-wide `LabelConfig` (installed via `set_label_config()` on a `OnceLock`).
+
+   The crate emits, per OTel HTTP semconv:
+   - `http.server.request.duration` (Histogram, seconds) — drives latency, traffic, and error metrics
    - `http.server.active_requests` (UpDownCounter)
+   - `http.server.request.body.size` and `http.server.response.body.size` (Histograms) — **dropped via SDK View**
 
-3. **`saturation::*`** — observable-gauge callbacks (no background tasks for r2d2 / fred) plus one `tokio::spawn` for `tokio-metrics` runtime polling. All emit OTel-namespaced metrics.
+3. **`saturation::*`** — observable-gauge callbacks for r2d2 (DB pool) and fred (Redis pool), plus three observable instruments reading `tokio::runtime::Handle::metrics()` directly. **No background tasks.** All emit OTel-namespaced metrics.
 
 A second component, **`metrics_server`**, is a separate `actix_web::HttpServer` on `SUPERPOSITION_METRICS_PORT` that exposes:
 
 - `GET /metrics` — Prometheus exposition rendered from the OTel registry
 
-The main server (port `8080`) gets one new `.wrap(MetricsMiddleware::new(meter.clone()))` line and three new route registrations for `/healthz`, `/livez`, `/readyz`.
+The main server (port `8080`) gets one new `.wrap(Condition::new(obs_enabled, metrics_middleware.clone()))` line. No new route registrations.
 
 ### 5.1 Data flow
 
@@ -82,36 +86,39 @@ The main server (port `8080`) gets one new `.wrap(MetricsMiddleware::new(meter.c
 [request on :8080]
    ├── tracing-actix-web ─→ span
    ├── (auth_n / auth_z) ─→ extensions: org_id, workspace_id
-   ├── MetricsMiddleware ─→ start timer, inc active_requests (RAII guard)
+   ├── RequestMetrics middleware ─→ start timer, inc active_requests, capture method
    │     └── handler runs
-   └── MetricsMiddleware ─→ record histogram, add busy_duration, dec active_requests, emit attributes
+   └── RequestMetrics middleware ─→ record duration histogram, dec active_requests;
+                                    attributes built via metric_attrs_from_req:
+                                    method, http.route, status, sp.org_id?, sp.workspace_id?
 
-[scrape on :9091/metrics] ←── PrometheusExporter ←── MeterProvider ←── (HTTP middleware + saturation collectors)
-                                                                  └─→ (optional) OTLP HTTP/gRPC push to OTEL_EXPORTER_OTLP_ENDPOINT
+[scrape on :9091/metrics] ←── PrometheusExporter ←── SdkMeterProvider ←── (HTTP instrumentation + saturation collectors)
+                                                                       └─→ (optional) OTLP HTTP push to OTEL_EXPORTER_OTLP_ENDPOINT
 
 [saturation, callback-driven]
-   ObservableGauge.with_callback(|obs| obs.observe(pool.state(), …))   // r2d2, fred
-   ObservableGauge reads from AtomicU64 written by a 10s tokio::spawn  // tokio-metrics
+   ObservableGauge.with_callback(|obs| obs.observe(pool.state(), …))     // r2d2 DB pool
+   ObservableGauge.with_callback(|obs| obs.observe(client.metrics(), …)) // fred Redis pool
+   ObservableGauge.with_callback(|obs| obs.observe(handle.metrics(), …)) // tokio runtime
+   ObservableCounter.with_callback(|obs| obs.observe(sum_busy_time, …))  // tokio busy time
 ```
 
 ### 5.2 Middleware ordering (critical)
 
-`MetricsMiddleware` must run *outside* `auth_n` / `auth_z` / `OrgWorkspaceMiddlewareFactory` so that, when emitting metrics in the response phase, it can read `org_id` / `workspace_id` from request extensions. In Actix, the last `.wrap()` runs first on requests, so the registration chain in `main.rs` should look like (matching the existing convention noted at lines 204–219 of `main.rs`):
+The `RequestMetrics` middleware must run *outside* `auth_n` / `auth_z` / `OrgWorkspaceMiddlewareFactory` so that, in the response phase, the `metric_attrs_from_req` hook can read `org_id` / `workspace_id` from request extensions. In Actix, the last `.wrap()` runs first on requests, so the registration chain in `main.rs` looks like:
 
 ```rust
 App::new()
     .service(/* main api scopes */)
-    .service(health_endpoints())                  // /healthz /livez /readyz
     // Auth innermost so outer middlewares still run on auth failures.
     .wrap(auth_z.clone())
     .wrap(auth_n.clone())
     .wrap(/* DefaultHeaders, Compress as today */)
     .wrap(RequestResponseLogger)
-    .wrap(MetricsMiddleware::new(meter.clone(), label_cfg))   // observability — outermost wrap
-    .wrap(TracingLogger::<CustomRootSpanBuilder>::new())      // outermost: span covers everything
+    .wrap(Condition::new(obs_enabled, metrics_middleware.clone()))  // observability — outermost wrap
+    .wrap(TracingLogger::<CustomRootSpanBuilder>::new())            // outermost: span covers everything
 ```
 
-**Auth bypass for health endpoints.** `auth_n` (`crates/service_utils/src/middlewares/auth_n.rs:44–60`) returns `Login::None` when the matched path is in its exception set. The existing `/health` route uses this mechanism. The new `/healthz`, `/livez`, `/readyz` paths are added to the same exception set construction site (the call site that builds the `HashSet<String>` passed into `auth_n`). With the exception in place, requests to health endpoints traverse all the middlewares above (so `MetricsMiddleware` does observe them — desirable) but `auth_n` short-circuits authentication and `auth_z` follows suit.
+`Condition::new` makes the wrap a no-op when `SUPERPOSITION_METRICS_ENABLED=false`, so disabling observability genuinely removes the middleware from the request path rather than gating inside it.
 
 ## 6. Module structure
 
@@ -119,74 +126,95 @@ All new code under `crates/service_utils`:
 
 ```text
 crates/service_utils/src/
-  observability.rs              -- pub use surface: init(), Observability, shutdown(), errors
+  observability.rs              -- pub use surface: Observability handle, errors, re-exports
   observability/
-    config.rs                   -- ObservabilityConfig parsed from env
-    meters.rs                   -- typed handles: HttpMeters, DbMeters, RedisMeters, RuntimeMeters
-    middleware.rs               -- MetricsMiddleware (Transform + Service + InFlightGuard)
+    config.rs                   -- ObservabilityConfig + LabelConfig parsed from env
+    instrumentation.rs          -- CardinalityBoundedFormatter, metric_attrs_from_req,
+                                   build_request_metrics_middleware, set_label_config,
+                                   ROUTE_NOT_FOUND / ROUTE_STATIC sentinels
     metrics_server.rs           -- HttpServer on SUPERPOSITION_METRICS_PORT exposing /metrics
-    health.rs                   -- /healthz /livez /readyz handlers
-    saturation.rs               -- spawn entry: register_saturation_observers(...)
+    saturation.rs               -- SaturationDeps, register_observers
     saturation/
       db_pool.rs                -- r2d2 ObservableGauge callbacks
-      redis_pool.rs             -- fred ObservableGauge callbacks (cfg-gated on Redis configured)
-      tokio_runtime.rs          -- cfg(tokio_unstable); 10s poll task + AtomicU64 → ObservableGauge
+      redis_pool.rs             -- fred ObservableGauge callbacks (no-op if Redis not configured)
+      tokio_runtime.rs          -- ObservableGauge / ObservableCounter reading Handle::metrics() directly
+  tests/observability_integration.rs  -- end-to-end pipeline tests
 ```
 
-Files use the modern Rust 2018+ module layout (no `mod.rs`). `crates/service_utils/src/middlewares/` is left untouched and continues to use whatever pattern it currently uses.
+Files use the modern Rust 2018+ module layout (no `mod.rs`). `crates/service_utils/src/middlewares/` is left untouched.
 
 ### 6.1 Public API sketch
 
 ```rust
-// observability.rs
-pub struct Observability { /* meter_provider, registry, otlp_pipeline, shutdown_handles */ }
+// observability.rs (re-exports)
+pub use config::{LabelConfig, ObservabilityConfig};
+pub use instrumentation::{
+    ROUTE_NOT_FOUND, ROUTE_STATIC,
+    build_request_metrics_middleware, set_label_config,
+};
+pub use metrics_server::spawn_metrics_server;
+pub use opentelemetry_sdk::metrics::SdkMeterProvider;  // re-exported so callers don't need a direct dep
+pub use saturation::{
+    DbPoolHandle, FredPoolStats, RedisHandle, RedisStats, SaturationDeps, register_observers,
+};
+
+pub struct Observability { /* provider, registry, meter, otlp_handle, ... */ }
 
 impl Observability {
     pub fn init(cfg: ObservabilityConfig) -> Result<Self, ObservabilityError>;
     pub fn meter(&self) -> opentelemetry::metrics::Meter;
+    pub fn meter_provider(&self) -> &SdkMeterProvider;
     pub fn registry(&self) -> std::sync::Arc<prometheus::Registry>;
     pub fn shutdown(self) -> Result<(), ObservabilityError>;
 }
 
-pub fn metrics_middleware(meter: Meter, cfg: LabelConfig) -> middleware::MetricsMiddleware;
+// instrumentation.rs
+pub fn build_request_metrics_middleware(
+    provider: &SdkMeterProvider,
+) -> opentelemetry_instrumentation_actix_web::RequestMetrics;
 
-pub fn spawn_metrics_server(
-    registry: std::sync::Arc<prometheus::Registry>,
-    bind: std::net::SocketAddr,
-) -> std::io::Result<actix_web::dev::Server>;
+/// Install the process-wide LabelConfig used by `metric_attrs_from_req`. Must be
+/// called before the first request flows through the middleware. Idempotent —
+/// later calls are ignored (it's a `OnceLock`). Trade-off: changing labels at
+/// runtime requires a redeploy; this is acceptable for an env-driven config
+/// surface.
+pub fn set_label_config(cfg: LabelConfig);
 
-pub fn health_endpoints() -> actix_web::Scope;
-pub fn health_endpoint_paths() -> &'static [&'static str];  // for auth_n exception set
-
-pub mod saturation {
-    pub fn register_observers(
-        meter: &Meter,
-        deps: SaturationDeps,
-    ) -> Result<(), ObservabilityError>;
-}
-
+// saturation.rs
 pub struct SaturationDeps {
     pub db_pool: Option<DbPoolHandle>,
-    pub redis_client: Option<FredClientHandle>,
-    pub tokio_collect_interval: std::time::Duration,
+    pub redis_client: Option<RedisHandle>,
 }
+
+pub fn register_observers(
+    meter: &Meter,
+    deps: SaturationDeps,
+) -> Result<(), ObservabilityError>;
 ```
+
+`DbPoolHandle` is the bare `diesel::r2d2::Pool<ConnectionManager<PgConnection>>` (r2d2's `Pool` is internally `Arc`-cloneable, so no outer `Arc` wrapping). `RedisHandle = Arc<dyn RedisStats + Send + Sync>` because the trait-object indirection is necessary for the fred decoupling.
 
 ## 7. Dependencies
 
-Added to root `Cargo.toml` `[workspace.dependencies]` and enabled in `crates/service_utils/Cargo.toml`. Versions pinned to whatever is current and compatible at implementation time; the table below is the intent.
+Added to root `Cargo.toml` `[workspace.dependencies]` and enabled in `crates/service_utils/Cargo.toml`.
 
-| Crate | Approx version | Purpose |
+| Crate | Version | Purpose |
 |---|---|---|
-| `opentelemetry` | 0.27 | API surface: `Meter`, `Counter`, `Histogram`, `UpDownCounter`, `ObservableGauge` |
-| `opentelemetry_sdk` | 0.27 | SDK: `MeterProvider`, periodic readers, resource detection |
-| `opentelemetry-prometheus` | 0.27 | Bridge OTel → `prometheus::Registry` for scrape exposition |
-| `opentelemetry-otlp` | 0.27 | Optional OTLP HTTP/gRPC push exporter |
-| `opentelemetry-semantic-conventions` | 0.27 | String constants for attributes (`HTTP_ROUTE`, etc.) |
-| `prometheus` | 0.13 | Required by `opentelemetry-prometheus` for `Registry` and `TextEncoder` |
-| `tokio-metrics` | 0.3 | Runtime metrics; gated by `cfg(tokio_unstable)` |
+| `opentelemetry` | 0.32 | API surface: `Meter`, `Histogram`, `UpDownCounter`, `ObservableGauge`, `ObservableCounter` |
+| `opentelemetry_sdk` | 0.32 | SDK: `SdkMeterProvider`, `PeriodicReader`, `Resource`, SDK Views, `rt-tokio` runtime feature |
+| `opentelemetry-prometheus` | 0.32 | Bridge OTel → `prometheus::Registry` for scrape exposition |
+| `opentelemetry-otlp` | 0.32 | OTLP HTTP push exporter (used when `OTEL_EXPORTER_OTLP_ENDPOINT` is set) |
+| `opentelemetry-instrumentation-actix-web` | 0.24 | Upstream OTel-contrib `RequestMetrics` middleware (with the `metrics` feature) |
+| `prometheus` | 0.14 | Required by `opentelemetry-prometheus` for `Registry` and `TextEncoder` |
+| `humantime` | 2.1 | Parses `SUPERPOSITION_METRICS_COLLECT_INTERVAL` (`"10s"`, `"1m30s"`, …) |
 
-`fred` already has its `metrics` feature available; we will enable it in `service_utils/Cargo.toml` at implementation time.
+`fred` already has its `metrics` feature enabled; `tokio` is at ≥1.50 (stable `Handle::metrics()`).
+
+Notable crates **not** depended on:
+
+- `opentelemetry-semantic-conventions` — the four attribute names we set (`http.request.method`, `http.route`, `http.response.status_code`, `error.type`) are inlined as string literals.
+- `tokio-metrics` — stable tokio APIs cover what we need.
+- `opentelemetry` is **not** a direct dep of `crates/superposition`; `service_utils::observability` re-exports `SdkMeterProvider` so the binary crate doesn't need its own OTel dep.
 
 ## 8. Metric definitions
 
@@ -228,24 +256,29 @@ histogram_quantile(0.99,
 
 #### Saturation — HTTP
 
-Two metrics, each capturing a different aspect:
-
-| Field | Value |
-|---|---|
-| Name | `http.server.busy.duration` |
-| Type | Counter (f64, seconds) |
-| Unit | `s` |
-| Attributes | `http.request.method` |
-| Semantics | On each completed request, add elapsed seconds. `rate(...)` over a window gives **time-averaged request concurrency** (Little's Law). Insensitive to scrape aliasing. |
+One metric emitted directly; the smooth saturation signal is derived from the duration histogram.
 
 | Field | Value |
 |---|---|
 | Name | `http.server.active_requests` |
 | Type | UpDownCounter |
 | Attributes | `http.request.method` |
-| Semantics | OTel semconv standard. Instantaneous value at scrape time. **Note:** for sub-100ms services this metric aliases badly; not the primary saturation signal. Kept for semconv compliance and dashboards that expect it. |
+| Semantics | OTel semconv standard. Instantaneous value at scrape time. For sub-100ms services this metric aliases badly; not the primary saturation signal. Kept for semconv compliance and dashboards that expect it. |
 
-`http.server.busy.duration` is the smooth, alert-safe saturation signal. `rate(http_server_busy_duration_seconds_total[1m])` is the average request concurrency over the last minute and can exceed worker count for I/O-bound work — that is expected, not a bug, because Tokio workers are not 1:1 with requests.
+**Time-averaged concurrency** (the smooth, alert-safe signal) is computed at query time:
+
+```promql
+# Average request concurrency over the last minute, per route — equivalent to
+# what a dedicated `http.server.busy.duration` Counter would have given via
+# `rate(...)`. The histogram _sum is monotonically increasing by `elapsed` on
+# each completed request, so its rate over a window is Σ elapsed / window —
+# which is exactly time-averaged concurrency by Little's Law.
+sum(rate(http_server_request_duration_seconds_sum[1m])) by (http_route)
+```
+
+Why no separate `http.server.busy.duration` Counter: it would increment by `elapsed` on each completed request, but so does the histogram's implicit `_sum`. Same numerator, same denominator under `rate(...)`, no new information. Dropping the Counter saves an emit per request and one Prometheus series per `(route, method)` pair.
+
+This value can exceed worker count for I/O-bound work — expected, not a bug, since Tokio workers are not 1:1 with requests.
 
 ### 8.2 DB pool saturation (`saturation::db_pool`)
 
@@ -279,16 +312,23 @@ Exact mapping from `fred` stats to these metrics is finalized at implementation 
 
 ### 8.4 Tokio runtime saturation (`saturation::tokio_runtime`)
 
-`#[cfg(tokio_unstable)]`-gated. Backed by `tokio_metrics::RuntimeMonitor`, polled every `SUPERPOSITION_METRICS_COLLECT_INTERVAL` (default 10 s) into `AtomicU64`s read by observable-gauge callbacks.
+Reads `tokio::runtime::Handle::metrics()` directly from each observable callback — no background sampler, no atomics snapshot, no `RuntimeMonitor`, no `tokio-metrics` dep. The APIs used are stable in tokio ≥1.50; the third metric is gated the same way tokio itself gates `worker_total_busy_duration`.
 
 | Name | Type | Attributes | Source |
 |---|---|---|---|
-| `runtime.tokio.workers` | Gauge (observable) | — | `num_workers` |
-| `runtime.tokio.workers.busy_ratio` | Gauge (observable, f64) | — | `total_busy_duration / total_polls / interval` |
-| `runtime.tokio.global_queue.depth` | Gauge (observable) | — | `global_queue_depth` |
-| `runtime.tokio.tasks.alive` | Gauge (observable) | — | `live_tasks_count` if available; otherwise dropped |
+| `runtime.tokio.workers` | Gauge (observable, u64) | — | `Handle::metrics().num_workers()` |
+| `runtime.tokio.global_queue.depth` | Gauge (observable, u64) | — | `Handle::metrics().global_queue_depth()` |
+| `runtime.tokio.workers.busy.time` | Counter (observable, f64, seconds), `cfg(target_has_atomic = "64")` | — | `Σ Handle::metrics().worker_total_busy_duration(i).as_secs_f64()` across workers |
 
-If a contributor builds without `--cfg tokio_unstable`, the module compiles to a no-op stub; everything else still works.
+Saturation is computed at query time:
+
+```promql
+# Average per-worker busy fraction over 1 minute
+sum(rate(runtime_tokio_workers_busy_time_seconds_total[1m]))
+  / on() runtime_tokio_workers
+```
+
+When not running on a Tokio runtime (e.g., a sync test harness), `register()` early-returns and no instruments are created.
 
 ### 8.5 Resource attributes
 
@@ -304,89 +344,64 @@ Set once at `MeterProvider` init, applied to every metric.
 
 ## 9. Middleware mechanics
 
-### 9.1 Route template extraction
+The middleware itself is upstream (`opentelemetry-instrumentation-actix-web 0.24`); this section describes the project-specific hooks we plug into it.
 
-Actix exposes `req.match_pattern() -> Option<String>` returning the registered template (e.g., `/contexts/{context_id}`), not the raw URI. Three cases for `http.route`:
+### 9.1 Route template extraction (`CardinalityBoundedFormatter`)
+
+The crate's `RouteFormatter` trait is invoked once per request to produce the `http.route` attribute. By default it would emit the matched pattern (or `"default"` for unmatched paths) verbatim. We wrap that with three cases:
 
 | Match outcome | `http.route` value |
 |---|---|
 | Pattern matched | the pattern string |
-| No route matched (404 from no match) | `__not_found__` |
-| Static asset / Leptos frontend route | `__static__` |
+| `"default"` (unmatched, served by the Leptos catch-all) | `__not_found__` (`ROUTE_NOT_FOUND`) |
+| Path starts with `/pkg`, `/assets`, or `/favicon` | `__static__` (`ROUTE_STATIC`) |
 
-Sentinels are constants — finite set, bounded cardinality.
+Sentinels are constants — finite set, bounded cardinality. `STATIC_PATTERN_PREFIXES` lives in `instrumentation.rs` alongside the formatter.
 
-`match_pattern()` is only populated after routing resolves. The middleware reads it in the response phase. The active-requests increment on entry uses `http.request.method` only, which is available immediately, so no ordering issue.
+### 9.2 Label extraction (`metric_attrs_from_req`)
 
-### 9.2 Label extraction
+The crate exposes a `with_metric_attrs_from_req(fn(&ServiceRequest, &str) -> Vec<KeyValue>)` hook called per request to produce the final attribute set. Our implementation:
 
-Read from request extensions during the response phase, set upstream by `OrgWorkspaceMiddlewareFactory`:
+1. Always emits `http.request.method` (normalized — see §9.3) and `http.route` (the formatter's output).
+2. Conditionally emits `sp.org_id` and `sp.workspace_id` from request extensions, gated on the process-wide `LabelConfig`.
 
-```rust
-let org_id = req.extensions().get::<OrgId>().map(|o| o.as_str().to_owned());
-let workspace = req.extensions().get::<WorkspaceName>().map(|w| w.as_str().to_owned());
-```
-
-For each:
+Because the hook is a function pointer, it can't capture state. The `LabelConfig` lives in a `OnceLock<LabelConfig>` (`GLOBAL_LABEL_CONFIG`) installed once at startup via `set_label_config()`; the hook reads it via a `label_config()` accessor that returns `LabelConfig::default()` if unset.
 
 | Case | Action |
 |---|---|
-| Present | Emit attribute with the value. |
-| Absent because route does not have one (e.g., org-management routes) | Omit the attribute. Series simply lacks that label — distinct from a value of `""`. |
-| Absent because middleware short-circuited before setting it (401, 403) | Omit the attribute. |
-| `LabelConfig` has the label disabled | Never emit, regardless of presence. |
+| Extension present | Emit attribute with the value. |
+| Extension absent because route does not have one (org-management routes) | Omit the attribute. Series simply lacks that label — distinct from a value of `""`. |
+| Extension absent because middleware short-circuited (401, 403) | Omit the attribute. |
+| `LabelConfig` has the label disabled | Never read the extension; never emit. |
 
 ### 9.3 HTTP method normalization
 
-Per OTel HTTP semconv: known methods (`GET`, `POST`, `PUT`, `DELETE`, `PATCH`, `HEAD`, `OPTIONS`, `TRACE`, `CONNECT`) keep their literal value; anything else collapses to `_OTHER`. Implemented as a small match — no library dependency. Prevents weird clients (`XPROPFIND`, `INVALID-㊙️`) from blowing up cardinality.
+Per OTel HTTP semconv: known methods (`GET`, `POST`, `PUT`, `DELETE`, `PATCH`, `HEAD`, `OPTIONS`, `TRACE`, `CONNECT`) keep their literal value; anything else collapses to `_OTHER`. A small `match` macro lives in `instrumentation.rs`. Prevents weird clients (`XPROPFIND`, `INVALID-㊙️`) from blowing up cardinality.
 
 ### 9.4 Status code source
 
-| Outcome | Status used |
-|---|---|
-| Normal response | `res.status().as_u16()` |
-| Handler error converted by Actix | the converted response's status |
-| Panic (caught by Actix's panic handler → 500) | `500`, with `error.type="panic"` set on the histogram observation only |
+The upstream crate reads `res.status().as_u16()` after the response is produced and emits it as `http.response.status_code`. Actix's error conversion runs before the middleware's response phase, so error responses get their converted status. Panics that bubble through the Actix panic handler surface as 500s. We don't add an `error.type` attribute — the histogram's `status_code=~"5.."` slice serves the same purpose without extra cardinality.
 
-### 9.5 Active-requests guard (panic-safe)
+### 9.5 Active-requests guard
 
-```rust
-struct InFlightGuard {
-    counter: UpDownCounter<i64>,
-    method_attr: KeyValue,
-    decremented: AtomicBool,
-}
-
-impl Drop for InFlightGuard {
-    fn drop(&mut self) {
-        if !self.decremented.swap(true, Ordering::Relaxed) {
-            self.counter.add(-1, &[self.method_attr.clone()]);
-        }
-    }
-}
-```
-
-On entry: increment, build guard, store in the request future. On normal completion: explicitly decrement (sets the flag). On client disconnect / future drop / panic upstream: `Drop` decrements as a fallback. The histogram is recorded only on normal completion — a half-finished request's latency is not meaningful.
+Handled by the upstream crate. It uses the same RAII-on-`Drop` pattern (so panics and client disconnects still decrement), so we get panic-safety without owning the guard.
 
 ### 9.6 Endpoints excluded from instrumentation
 
-Hard-coded in v1 (configurable later):
-
 - `/metrics` — physically isolated on the metrics port; cannot reach the middleware.
 - Static asset routes — emit `__static__` for `http.route` instead of being skipped, so a flood is still visible.
-- `/healthz` `/livez` `/readyz` — instrumented (we want to observe them); auth bypass via `auth_n`'s existing path exception set. Their own latency contributes to `http.server.request.duration` under their own routes.
 
 ### 9.7 Per-request overhead
 
-Expected:
+Per-request work in the upstream middleware path:
 
-- ~3 hashmap lookups on `req.extensions()`
-- 2 system clock reads (`Instant::now()` on entry/exit)
-- 1 atomic increment + 1 atomic decrement on the active-requests gauge
-- 1 histogram `record()` call (lock-free in OTel SDK 0.27+)
-- 1 counter `add()` call for `http.server.busy.duration`
+- 1 `Instant::now()` capture on entry; one duration calc on exit.
+- 1 `UpDownCounter::add(+1)` on entry; 1 `UpDownCounter::add(-1)` on drop.
+- 1 `Histogram::record()` call (lock-free in OTel SDK 0.32).
+- 1 invocation of `metric_attrs_from_req` (3 hashmap lookups on `req.extensions()` worst case, 1 `OnceLock::get()`).
+- The crate's body-size histogram instruments still exist but are dropped at the SDK layer via the `Aggregation::Drop` View — they're cheap allocations that go nowhere, not free, but well under a microsecond.
 
-**Hot-path allocations:** attribute *keys* are interned via `opentelemetry::Key::from_static_str`; attribute *values* (route, org, workspace) require `String` allocations because they are dynamic. This is unavoidable given Q3's label choices and is intrinsic to OTel attribute construction.
+**Hot-path allocations:** attribute *keys* are `&'static str` literals; attribute *values* (route, org, workspace, status as a string) require `String` allocations because they're dynamic. Unavoidable given the label choices.
 
 Total expected overhead: **single-digit microseconds per request**, well below the millisecond scale of any handler.
 
@@ -412,22 +427,13 @@ meter
     .init();
 ```
 
-### 10.2 Tokio-metrics polling exception
+### 10.2 No background sampler
 
-`tokio_metrics::RuntimeMonitor::intervals()` is a delta iterator — it returns stats since the last call, not absolute values. This requires one `tokio::spawn` polling at `SUPERPOSITION_METRICS_COLLECT_INTERVAL` (default 10 s). The task writes derived values into `AtomicU64`s; observable-gauge callbacks read those atomics. Single background task in the whole observability subsystem.
+The original design carved out a polling exception for `tokio_metrics::RuntimeMonitor`. That's gone: tokio's stable `Handle::metrics()` API returns absolute values that are cheap to read synchronously, so `saturation::tokio_runtime` uses the same callback pattern as the pool collectors. Zero background tasks in the entire observability subsystem.
 
-### 10.3 Build configuration
+### 10.3 No build-flag requirement
 
-Workspace `.cargo/config.toml`:
-
-```toml
-[build]
-rustflags = ["--cfg", "tokio_unstable"]
-```
-
-Without the flag, the `saturation::tokio_runtime` module compiles to a no-op stub; everything else still works. `README.md` and `makefile` get a one-line callout. `tokio_unstable` only enables additional Tokio APIs — no behavioural change for existing code.
-
-CI runs `cargo check` both with and without the flag to keep the no-op stub honest.
+No `--cfg tokio_unstable`, no `.cargo/config.toml` entry, no `README` / `makefile` callout. Tokio 1.50's stable surface covers everything. The one stable-but-gated API (`worker_total_busy_duration`) is `cfg(target_has_atomic = "64")`-conditional, mirroring tokio's own gating; on targets without 64-bit atomics the `runtime.tokio.workers.busy.time` Counter is simply not registered.
 
 ## 11. Configuration surface
 
@@ -440,7 +446,7 @@ All env-driven; no config file. Applies to the main `superposition` binary.
 | `SUPERPOSITION_METRICS_BIND` | `0.0.0.0` | Bind address for the metrics listener. Set to `127.0.0.1` for loopback-only. |
 | `SUPERPOSITION_METRICS_LABEL_ORG` | `true` | Include `sp.org_id` attribute on HTTP metrics. |
 | `SUPERPOSITION_METRICS_LABEL_WORKSPACE` | `true` | Include `sp.workspace_id` attribute on HTTP metrics. |
-| `SUPERPOSITION_METRICS_COLLECT_INTERVAL` | `10s` | Tokio runtime metrics poll interval (only used if `tokio_unstable`). Parsed by `humantime`. |
+| `SUPERPOSITION_METRICS_COLLECT_INTERVAL` | `10s` | OTLP push exporter cadence (`PeriodicReader` interval). Has no effect when OTLP is not configured — the Prometheus exporter is pull-driven. Parsed by `humantime`. |
 | `SUPERPOSITION_INSTANCE_ID` | hostname | `service.instance.id` resource attribute. |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | unset | Standard OTel env var. If set, enables OTLP push exporter. |
 | `OTEL_EXPORTER_OTLP_PROTOCOL` | `http/protobuf` | Standard OTel env var. |
@@ -456,7 +462,7 @@ For the HTTP request-duration histogram, per active workspace × org pair in ste
 
 - ~30 routes × ~3 methods used × ~5 status codes seen × 12 series-per-bucket-set = **~5,400 series ceiling**, with realized usage typically 10–20 % → **~540–1,080 actual series per workspace**.
 
-Other metrics (active_requests, busy_duration, saturation gauges) are method-only or unlabeled → ~30 series total, independent of tenant count.
+Other metrics (`http.server.active_requests`, saturation gauges) are method-only or unlabeled → ~30 series total, independent of tenant count.
 
 So adding a workspace ≈ 600–1,100 new series. At 1,000 active workspaces ≈ **600 k – 1.1 M series** for the HTTP histogram. Comfortably within `vmsingle` on 16 GB.
 
@@ -468,29 +474,32 @@ If workspace count grows beyond ~5,000 active, set `SUPERPOSITION_METRICS_LABEL_
 
 | Test module | What it asserts |
 |---|---|
-| `middleware::tests::label_extraction` | Table-driven: request fixtures with various extension states → expected `Vec<KeyValue>` produced. |
-| `middleware::tests::method_normalization` | `XPROPFIND` → `_OTHER`; known methods pass through. |
-| `middleware::tests::route_template_sentinels` | Unmatched path → `__not_found__`; static path → `__static__`. |
-| `middleware::tests::active_requests_panic_safety` | Handler that panics still decrements the gauge via `Drop`. |
-| `middleware::tests::label_config_disabled` | With `with_workspace_label=false`, attribute is not emitted even when present in extensions. |
-| `config::tests::env_parsing` | Env-var combinations produce expected `ObservabilityConfig`. |
+| `config::tests::defaults_when_unset` | All defaults parse correctly when no env vars are set. |
+| `config::tests::explicit_overrides` | Each env var, individually and in combination, lands in the expected `ObservabilityConfig` field. |
+| `config::tests::malformed_port_errors` | Bad port string surfaces a key-prefixed error. |
+| `instrumentation::tests::formatter_passes_through_matched_templates` | `RouteFormatter` returns matched patterns unchanged. |
+| `instrumentation::tests::formatter_maps_unmatched_to_not_found_sentinel` | `"default"` → `__not_found__`. |
+| `instrumentation::tests::formatter_collapses_static_asset_prefixes` | `/pkg/*`, `/assets/*`, `/favicon*` → `__static__`. |
+| `instrumentation::tests::normalize_method_passes_known_through` | Known HTTP verbs pass through. |
+| `instrumentation::tests::normalize_method_collapses_unknown` | Anything else → `_OTHER`. |
+| `metrics_server::tests::scrape_endpoint_returns_text_plain` | `/metrics` returns 200 with `text/plain; …` content type. |
+| `observability::tests::init_builds_meter_and_registry` | `Observability::init` returns a usable `Meter` and `Registry`. |
+| `observability::tests::meter_can_record_a_histogram_and_register_it_in_registry` | End-to-end: record on a `Meter`-built histogram → series shows up in the `Registry` exposition. |
 
-### 12.2 Integration test (`crates/service_utils/tests/observability_integration.rs`)
+### 12.2 Integration tests (`crates/service_utils/tests/observability_integration.rs`)
 
-1. Boot a test app: `MetricsMiddleware` + a small `/test` scope with several routes + the metrics server on a random port.
-2. Issue requests of varying methods, paths, status codes (including 404 to a non-route).
-3. Scrape the metrics port; parse the Prometheus exposition with the `prometheus-parse` crate (or equivalent).
-4. Assert:
-   - All expected metric names exist.
-   - `http_server_request_duration_seconds_count` per `(route, method, status)` matches the issued count.
-   - `__not_found__` route appears for the 404.
-   - `http_server_active_requests` returns to 0 after all requests complete.
-   - `http_server_busy_duration_seconds_total` is approximately `Σ request_duration` (within 10 %).
-5. Smoke-test the OTLP pipeline against a mock OTLP receiver if cheap; otherwise gate behind `#[ignore]` and document.
+Three tests, each constructing an explicit `SdkMeterProvider` via `Observability::init` so they don't share OTel global state:
 
-### 12.3 Cardinality regression test
+1. **`metrics_appear_after_requests`** — Boot a test app with the `RequestMetrics` middleware and a small `/test` scope. Issue requests of varying methods, paths, and status codes (including 404). Scrape the metrics port; parse the Prometheus exposition. Assert:
+   - `http_server_request_duration_seconds_*` series exist for each `(route, method, status)`.
+   - The `__not_found__` route appears for the 404.
+   - Body-size histograms (`http_server_request_body_size`, `http_server_response_body_size`) are **absent** — proves the SDK View suppression works.
 
-After §12.2 scenarios run, count distinct series in the exposition. Fail the test if total exceeds a budget (initial: 200 series for the test scenario). Catches accidental high-cardinality labels in code review.
+2. **`cardinality_stays_within_budget`** — Same setup, issue ~50 requests across a deliberately diverse set of routes/methods/statuses. Count distinct series in the exposition; assert under a budget (~200 series for the test scenario). Catches accidental high-cardinality labels in code review.
+
+3. **`runtime_tokio_metrics_appear_after_register_observers`** — Boot a test app under `#[tokio::test]`, call `register_observers`, force a collection cycle, and assert that `runtime_tokio_workers`, `runtime_tokio_global_queue_depth`, and `runtime_tokio_workers_busy_time_seconds_total` all appear in the exposition.
+
+The OTLP push path is exercised by `Observability::init` paths in unit tests; a full mock-OTLP receiver integration test is not in v1 (the periodic-reader plumbing is mostly upstream code).
 
 ## 13. Rollout
 
@@ -509,7 +518,7 @@ Existing `info!(latency, "GoldenSignal")` log line at `crates/service_utils/src/
 - **Per-tenant separate histogram** (option D from Q3 brainstorm). If the global histogram's cardinality budget proves tight, add a second `http_server_request_duration_by_workspace_seconds` with fewer buckets, retaining tenant slicing without paying the cost on the global histogram.
 - **OTLP traces export.** The `Observability::init` shape is structured to host trace export later.
 - **Grafana dashboards.** JSON dashboards under `grafana/dashboards/` covering the four golden-signal panels. Separate PR.
-- **Alert rules.** VM/Prometheus alert rule YAML covering: error rate > X %, p99 latency > X ms, DB pool wait p99 > X ms, Tokio busy-ratio sustained > 0.8. Separate PR.
+- **Alert rules.** VM/Prometheus alert rule YAML covering: error rate > X %, p99 latency > X ms, DB pool usage near max, Tokio per-worker busy fraction (`rate(runtime_tokio_workers_busy_time_seconds_total) / runtime_tokio_workers`) sustained > 0.8. Separate PR.
 - **Per-route overhead controls.** A route-level allowlist/denylist in `LabelConfig` so noisy or high-volume internal routes can be sampled or excluded at runtime without redeploying.
 - **DB pool wait visibility.** `db.client.connection.wait.duration` (histogram) and `db.client.connections.pending_requests` (gauge), unlocked by a typed pool wrapper that is the only way to obtain a connection. One-time codebase migration, then both metrics fall out for free.
 - **Removing the existing `GoldenSignal` log line.** Once dashboards are migrated, the log line in `request_response_logging.rs:84` becomes redundant.
@@ -518,10 +527,10 @@ Existing `info!(latency, "GoldenSignal")` log line at `crates/service_utils/src/
 
 | Risk | Mitigation |
 |---|---|
-| OTel Rust SDK 0.27 has historically had churn between minor versions; metrics API was stabilized but exporter integrations may shift. | Pin to a single minor version; central import via `service_utils::observability`; bump in a single PR with the integration test as the gate. |
-| `tokio_unstable` workspace flag affects all crates and may interact with future Tokio releases. | CI matrix runs `cargo check` with and without the flag. The `saturation::tokio_runtime` module is the only consumer; everything else compiles either way. |
+| OTel Rust SDK 0.32 has historically had churn between minor versions; metrics API is stable but exporter and Resource APIs shifted between 0.27 and 0.32. | Pin the entire OTel family (api, sdk, prometheus, otlp, instrumentation-actix-web) to compatible versions in `[workspace.dependencies]`; bump in a single PR with the integration test as the gate. |
+| `opentelemetry-instrumentation-actix-web 0.24` is a third-party OTel-contrib crate that may evolve independently of upstream OTel. | The crate exposes stable hooks (`RouteFormatter`, `with_metric_attrs_from_req`, `with_meter_provider`) for everything we customize. If it falls behind on an OTel bump, we can either pin OTel until it catches up, or fork the ~300 lines of middleware code. The body-size histograms are suppressed via SDK View, so changes there don't affect us. |
 | Workspace label cardinality grows unexpectedly (workspace creation rate, churn from short-lived workspaces). | `SUPERPOSITION_METRICS_LABEL_WORKSPACE=false` is a runtime opt-out; rollout Phase 3 lands with it off. |
-| OTel attribute construction allocates `String` on the hot path. | Confirmed unavoidable for dynamic attribute values; benchmarked overhead expected single-digit microseconds. If profiling shows a problem, switch to `Cow<'static, str>` for attribute *values* where possible (e.g., method, status code) and keep allocations only for `route`/`org`/`workspace`. |
+| OTel attribute construction allocates `String` on the hot path. | Confirmed unavoidable for dynamic attribute values; expected overhead single-digit microseconds. If profiling shows a problem, switch to `Cow<'static, str>` for attribute *values* where possible (e.g., method, status code) and keep allocations only for `route`/`org`/`workspace`. |
 | `r2d2`'s waiter count and wait duration require call-site instrumentation; v1 has only `connections.usage` ratios. | Acceptable for v1: a usage ratio near `connections.max` signals saturation, and the request-duration histogram tail will spike under DB starvation. A typed pool wrapper in a follow-up unlocks both `wait.duration` and `pending_requests` cheaply. |
-| `fred` metrics surface may not map 1:1 to OTel `db.client.*` style attributes. | Mapping is finalized at implementation time; any unavailable field is dropped from v1 with a TODO and noted in the PR description. |
-| Health-check probes on the main port get instrumented and add noise to `http_server_request_duration_seconds`. | Acceptable: probe cardinality is fixed (3 routes × 1 method × 1 status), and observing probe latency is desirable. |
+| `fred` metrics surface may not map 1:1 to OTel `db.client.*` style attributes. | Mapping resolved at implementation time via a `RedisStats` trait — any unavailable field returns `None` and is silently omitted from emission. |
+| `LabelConfig` lives in a `OnceLock` because the upstream crate's `metric_attrs_from_req` is a fn pointer with no closure state. Changing label config requires a redeploy. | Acceptable: label config is env-driven and operationally rare to change. If runtime-mutable labels become a requirement, switch to `with_metric_attrs_from_req_and_state(F)` if/when upstream exposes it, or fork the middleware. |
