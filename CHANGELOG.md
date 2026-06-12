@@ -2,6 +2,21 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.113.0 - 2026-06-12
+### Package updates
+- superposition_types bumped to superposition_types-v0.48.0
+- haskell_client bumped to haskell_client-v0.22.0
+- superposition_core bumped to superposition_core-v0.16.0
+- context_aware_config bumped to context_aware_config-v0.78.0
+- superposition_sdk bumped to superposition_sdk-v0.21.0
+### Global changes
+#### Features
+- add detailed config resolution endpoint and removing unnecessary metadata field from config/resolve (#1040) - (e3a9880) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.112.0 [skip ci] - (83d4693) - Superposition Bot
+
+- - -
+
 ## v0.112.0 - 2026-06-11
 ### Package updates
 - haskell_client bumped to haskell_client-v0.21.0
