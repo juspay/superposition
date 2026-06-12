@@ -24,6 +24,8 @@ public final class Config implements ApiResource {
 
     private static final List<Schema> $OPERATIONS = List.of(GetConfig.$SCHEMA,
         GetResolvedConfig.$SCHEMA,
+        GetDetailedResolvedConfig.$SCHEMA,
+        GetResolvedConfigExplanation.$SCHEMA,
         GetResolvedConfigWithIdentifier.$SCHEMA,
         GetConfigToml.$SCHEMA,
         GetConfigJson.$SCHEMA);

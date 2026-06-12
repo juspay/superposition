@@ -100,6 +100,10 @@ final class SharedSchemas {
         .putMember("value", SharedSchemas.OVERRIDES)
         .build();
 
+    static final Schema RESOLVE_EXPLANATION_TIMELINE = Schema.listBuilder(ShapeId.from("io.superposition#ResolveExplanationTimeline"))
+        .putMember("member", ResolveExplanationTimelineItem.$SCHEMA)
+        .build();
+
     static final Schema LIST_VERSIONS_OUT = Schema.listBuilder(ShapeId.from("io.superposition#ListVersionsOut"))
         .putMember("member", ListVersionsMember.$SCHEMA)
         .build();

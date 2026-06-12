@@ -85,6 +85,10 @@ pub use crate::types::_list_versions_member::ListVersionsMember;
 
 pub use crate::types::_merge_strategy::MergeStrategy;
 
+pub use crate::types::_resolve_explanation::ResolveExplanation;
+
+pub use crate::types::_resolve_explanation_timeline_item::ResolveExplanationTimelineItem;
+
 pub use crate::types::_context_action_out::ContextActionOut;
 
 pub use crate::types::_context_response::ContextResponse;
@@ -180,6 +184,10 @@ mod _merge_strategy;
 mod _org_status;
 
 mod _organisation_response;
+
+mod _resolve_explanation;
+
+mod _resolve_explanation_timeline_item;
 
 mod _secret_response;
 

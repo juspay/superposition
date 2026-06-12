@@ -195,6 +195,8 @@ mod get_context_from_condition;
 
 mod get_default_config;
 
+mod get_detailed_resolved_config;
+
 mod get_dimension;
 
 mod get_experiment;
@@ -208,6 +210,8 @@ mod get_function;
 mod get_organisation;
 
 mod get_resolved_config;
+
+mod get_resolved_config_explanation;
 
 mod get_resolved_config_with_identifier;
 

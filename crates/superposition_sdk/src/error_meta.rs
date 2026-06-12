@@ -746,6 +746,27 @@ impl From<crate::operation::get_default_config::GetDefaultConfigError> for Error
         }
     }
 }
+impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_detailed_resolved_config::GetDetailedResolvedConfigError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
+    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_detailed_resolved_config::GetDetailedResolvedConfigError, R>) -> Self {
+        match err {
+            ::aws_smithy_runtime_api::client::result::SdkError::ServiceError(context) => Self::from(context.into_err()),
+            _ => Error::Unhandled(
+                                        crate::error::sealed_unhandled::Unhandled {
+                                            meta: ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(&err).clone(),
+                                            source: err.into(),
+                                        }
+                                    ),
+        }
+    }
+}
+impl From<crate::operation::get_detailed_resolved_config::GetDetailedResolvedConfigError> for Error {
+    fn from(err: crate::operation::get_detailed_resolved_config::GetDetailedResolvedConfigError) -> Self {
+        match err {
+            crate::operation::get_detailed_resolved_config::GetDetailedResolvedConfigError::InternalServerError(inner) => Error::InternalServerError(inner),
+            crate::operation::get_detailed_resolved_config::GetDetailedResolvedConfigError::Unhandled(inner) => Error::Unhandled(inner),
+        }
+    }
+}
 impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_dimension::GetDimensionError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
     fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_dimension::GetDimensionError, R>) -> Self {
         match err {
@@ -895,6 +916,27 @@ impl From<crate::operation::get_resolved_config::GetResolvedConfigError> for Err
         match err {
             crate::operation::get_resolved_config::GetResolvedConfigError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::get_resolved_config::GetResolvedConfigError::Unhandled(inner) => Error::Unhandled(inner),
+        }
+    }
+}
+impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_resolved_config_explanation::GetResolvedConfigExplanationError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
+    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_resolved_config_explanation::GetResolvedConfigExplanationError, R>) -> Self {
+        match err {
+            ::aws_smithy_runtime_api::client::result::SdkError::ServiceError(context) => Self::from(context.into_err()),
+            _ => Error::Unhandled(
+                                        crate::error::sealed_unhandled::Unhandled {
+                                            meta: ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(&err).clone(),
+                                            source: err.into(),
+                                        }
+                                    ),
+        }
+    }
+}
+impl From<crate::operation::get_resolved_config_explanation::GetResolvedConfigExplanationError> for Error {
+    fn from(err: crate::operation::get_resolved_config_explanation::GetResolvedConfigExplanationError) -> Self {
+        match err {
+            crate::operation::get_resolved_config_explanation::GetResolvedConfigExplanationError::InternalServerError(inner) => Error::InternalServerError(inner),
+            crate::operation::get_resolved_config_explanation::GetResolvedConfigExplanationError::Unhandled(inner) => Error::Unhandled(inner),
         }
     }
 }

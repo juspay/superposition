@@ -134,6 +134,10 @@ import {
   GetDefaultConfigCommandOutput,
 } from "./commands/GetDefaultConfigCommand";
 import {
+  GetDetailedResolvedConfigCommandInput,
+  GetDetailedResolvedConfigCommandOutput,
+} from "./commands/GetDetailedResolvedConfigCommand";
+import {
   GetDimensionCommandInput,
   GetDimensionCommandOutput,
 } from "./commands/GetDimensionCommand";
@@ -161,6 +165,10 @@ import {
   GetResolvedConfigCommandInput,
   GetResolvedConfigCommandOutput,
 } from "./commands/GetResolvedConfigCommand";
+import {
+  GetResolvedConfigExplanationCommandInput,
+  GetResolvedConfigExplanationCommandOutput,
+} from "./commands/GetResolvedConfigExplanationCommand";
 import {
   GetResolvedConfigWithIdentifierCommandInput,
   GetResolvedConfigWithIdentifierCommandOutput,
@@ -443,6 +451,7 @@ export type ServiceInputTypes =
   | GetContextCommandInput
   | GetContextFromConditionCommandInput
   | GetDefaultConfigCommandInput
+  | GetDetailedResolvedConfigCommandInput
   | GetDimensionCommandInput
   | GetExperimentCommandInput
   | GetExperimentConfigCommandInput
@@ -450,6 +459,7 @@ export type ServiceInputTypes =
   | GetFunctionCommandInput
   | GetOrganisationCommandInput
   | GetResolvedConfigCommandInput
+  | GetResolvedConfigExplanationCommandInput
   | GetResolvedConfigWithIdentifierCommandInput
   | GetSecretCommandInput
   | GetTypeTemplateCommandInput
@@ -533,6 +543,7 @@ export type ServiceOutputTypes =
   | GetContextCommandOutput
   | GetContextFromConditionCommandOutput
   | GetDefaultConfigCommandOutput
+  | GetDetailedResolvedConfigCommandOutput
   | GetDimensionCommandOutput
   | GetExperimentCommandOutput
   | GetExperimentConfigCommandOutput
@@ -540,6 +551,7 @@ export type ServiceOutputTypes =
   | GetFunctionCommandOutput
   | GetOrganisationCommandOutput
   | GetResolvedConfigCommandOutput
+  | GetResolvedConfigExplanationCommandOutput
   | GetResolvedConfigWithIdentifierCommandOutput
   | GetSecretCommandOutput
   | GetTypeTemplateCommandOutput

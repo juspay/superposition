@@ -96,6 +96,9 @@ pub mod get_context_from_condition;
 /// Types for the `GetDefaultConfig` operation.
 pub mod get_default_config;
 
+/// Types for the `GetDetailedResolvedConfig` operation.
+pub mod get_detailed_resolved_config;
+
 /// Types for the `GetDimension` operation.
 pub mod get_dimension;
 
@@ -116,6 +119,9 @@ pub mod get_organisation;
 
 /// Types for the `GetResolvedConfig` operation.
 pub mod get_resolved_config;
+
+/// Types for the `GetResolvedConfigExplanation` operation.
+pub mod get_resolved_config_explanation;
 
 /// Types for the `GetResolvedConfigWithIdentifier` operation.
 pub mod get_resolved_config_with_identifier;

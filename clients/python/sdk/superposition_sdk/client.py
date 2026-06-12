@@ -66,6 +66,7 @@ from .deserialize import (
     _deserialize_get_context,
     _deserialize_get_context_from_condition,
     _deserialize_get_default_config,
+    _deserialize_get_detailed_resolved_config,
     _deserialize_get_dimension,
     _deserialize_get_experiment,
     _deserialize_get_experiment_config,
@@ -73,6 +74,7 @@ from .deserialize import (
     _deserialize_get_function,
     _deserialize_get_organisation,
     _deserialize_get_resolved_config,
+    _deserialize_get_resolved_config_explanation,
     _deserialize_get_resolved_config_with_identifier,
     _deserialize_get_secret,
     _deserialize_get_type_template,
@@ -205,6 +207,7 @@ from .models import (
     GET_CONTEXT,
     GET_CONTEXT_FROM_CONDITION,
     GET_DEFAULT_CONFIG,
+    GET_DETAILED_RESOLVED_CONFIG,
     GET_DIMENSION,
     GET_EXPERIMENT,
     GET_EXPERIMENT_CONFIG,
@@ -212,6 +215,7 @@ from .models import (
     GET_FUNCTION,
     GET_ORGANISATION,
     GET_RESOLVED_CONFIG,
+    GET_RESOLVED_CONFIG_EXPLANATION,
     GET_RESOLVED_CONFIG_WITH_IDENTIFIER,
     GET_SECRET,
     GET_TYPE_TEMPLATE,
@@ -233,6 +237,8 @@ from .models import (
     GetContextOutput,
     GetDefaultConfigInput,
     GetDefaultConfigOutput,
+    GetDetailedResolvedConfigInput,
+    GetDetailedResolvedConfigOutput,
     GetDimensionInput,
     GetDimensionOutput,
     GetExperimentConfigInput,
@@ -245,6 +251,8 @@ from .models import (
     GetFunctionOutput,
     GetOrganisationInput,
     GetOrganisationOutput,
+    GetResolvedConfigExplanationInput,
+    GetResolvedConfigExplanationOutput,
     GetResolvedConfigInput,
     GetResolvedConfigOutput,
     GetResolvedConfigWithIdentifierInput,
@@ -411,6 +419,7 @@ from .serialize import (
     _serialize_get_context,
     _serialize_get_context_from_condition,
     _serialize_get_default_config,
+    _serialize_get_detailed_resolved_config,
     _serialize_get_dimension,
     _serialize_get_experiment,
     _serialize_get_experiment_config,
@@ -418,6 +427,7 @@ from .serialize import (
     _serialize_get_function,
     _serialize_get_organisation,
     _serialize_get_resolved_config,
+    _serialize_get_resolved_config_explanation,
     _serialize_get_resolved_config_with_identifier,
     _serialize_get_secret,
     _serialize_get_type_template,
@@ -1360,6 +1370,32 @@ class Superposition:
             operation=GET_DEFAULT_CONFIG,
         )
 
+    async def get_detailed_resolved_config(self, input: GetDetailedResolvedConfigInput, plugins: list[Plugin] | None = None) -> GetDetailedResolvedConfigOutput:
+        """
+        Resolves config values and returns each key with default-config metadata.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_get_detailed_resolved_config,
+            deserialize=_deserialize_get_detailed_resolved_config,
+            config=self._config,
+            operation=GET_DETAILED_RESOLVED_CONFIG,
+        )
+
     async def get_dimension(self, input: GetDimensionInput, plugins: list[Plugin] | None = None) -> GetDimensionOutput:
         """
         Retrieves detailed information about a specific dimension, including its schema,
@@ -1547,6 +1583,32 @@ class Superposition:
             deserialize=_deserialize_get_resolved_config,
             config=self._config,
             operation=GET_RESOLVED_CONFIG,
+        )
+
+    async def get_resolved_config_explanation(self, input: GetResolvedConfigExplanationInput, plugins: list[Plugin] | None = None) -> GetResolvedConfigExplanationOutput:
+        """
+        Explains how matching contexts affect a single resolved config key.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_get_resolved_config_explanation,
+            deserialize=_deserialize_get_resolved_config_explanation,
+            config=self._config,
+            operation=GET_RESOLVED_CONFIG_EXPLANATION,
         )
 
     async def get_resolved_config_with_identifier(self, input: GetResolvedConfigWithIdentifierInput, plugins: list[Plugin] | None = None) -> GetResolvedConfigWithIdentifierOutput:

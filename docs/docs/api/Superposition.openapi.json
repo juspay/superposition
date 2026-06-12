@@ -436,6 +436,247 @@
                 ]
             }
         },
+        "/config/resolve/detailed": {
+            "post": {
+                "description": "Resolves config values and returns each key with default-config metadata.",
+                "operationId": "GetDetailedResolvedConfig",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GetDetailedResolvedConfigRequestContent"
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "prefix",
+                        "in": "query",
+                        "style": "form",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "explode": true
+                    },
+                    {
+                        "name": "version",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "show_reasoning",
+                        "in": "query",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "context_id",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "resolve_remote",
+                        "in": "query",
+                        "description": "Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.",
+                        "schema": {
+                            "type": "boolean",
+                            "description": "Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution."
+                        }
+                    },
+                    {
+                        "name": "x-merge-strategy",
+                        "in": "header",
+                        "schema": {
+                            "$ref": "#/components/schemas/MergeStrategy"
+                        }
+                    },
+                    {
+                        "name": "x-org-id",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-workspace",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "GetDetailedResolvedConfig 200 response",
+                        "headers": {
+                            "last-modified": {
+                                "schema": {
+                                    "type": "string"
+                                },
+                                "required": true
+                            },
+                            "x-audit-id": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "x-config-version": {
+                                "schema": {
+                                    "type": "string"
+                                },
+                                "required": true
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetDetailedResolvedConfigOutputPayload"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Configuration Management"
+                ]
+            }
+        },
+        "/config/resolve/explain/{key}": {
+            "post": {
+                "description": "Explains how matching contexts affect a single resolved config key.",
+                "operationId": "GetResolvedConfigExplanation",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GetResolvedConfigExplanationRequestContent"
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "key",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "version",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "context_id",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "resolve_remote",
+                        "in": "query",
+                        "description": "Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.",
+                        "schema": {
+                            "type": "boolean",
+                            "description": "Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution."
+                        }
+                    },
+                    {
+                        "name": "x-merge-strategy",
+                        "in": "header",
+                        "schema": {
+                            "$ref": "#/components/schemas/MergeStrategy"
+                        }
+                    },
+                    {
+                        "name": "x-org-id",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "x-workspace",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "GetResolvedConfigExplanation 200 response",
+                        "headers": {
+                            "last-modified": {
+                                "schema": {
+                                    "type": "string"
+                                },
+                                "required": true
+                            },
+                            "x-audit-id": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "x-config-version": {
+                                "schema": {
+                                    "type": "string"
+                                },
+                                "required": true
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResolveExplanation"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Configuration Management"
+                ]
+            }
+        },
         "/config/toml": {
             "post": {
                 "description": "Retrieves the full config in TOML format, including default configs with schemas, dimensions, and overrides. This endpoint is optimized for clients that prefer TOML format for configuration management.",
@@ -9022,6 +9263,15 @@
                     "value"
                 ]
             },
+            "GetDetailedResolvedConfigOutputPayload": {},
+            "GetDetailedResolvedConfigRequestContent": {
+                "type": "object",
+                "properties": {
+                    "context": {
+                        "$ref": "#/components/schemas/ContextMap"
+                    }
+                }
+            },
             "GetDimensionResponseContent": {
                 "type": "object",
                 "properties": {
@@ -9391,6 +9641,14 @@
                     "updated_at",
                     "updated_by"
                 ]
+            },
+            "GetResolvedConfigExplanationRequestContent": {
+                "type": "object",
+                "properties": {
+                    "context": {
+                        "$ref": "#/components/schemas/ContextMap"
+                    }
+                }
             },
             "GetResolvedConfigOutputPayload": {},
             "GetResolvedConfigRequestContent": {
@@ -10745,6 +11003,47 @@
                     "member_experiment_ids",
                     "name",
                     "traffic_percentage"
+                ]
+            },
+            "ResolveExplanation": {
+                "type": "object",
+                "properties": {
+                    "key": {
+                        "type": "string"
+                    },
+                    "timeline": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ResolveExplanationTimelineItem"
+                        }
+                    }
+                },
+                "required": [
+                    "key",
+                    "timeline"
+                ]
+            },
+            "ResolveExplanationTimelineItem": {
+                "type": "object",
+                "properties": {
+                    "context_id": {
+                        "type": "string"
+                    },
+                    "condition": {
+                        "$ref": "#/components/schemas/Condition"
+                    },
+                    "override_id": {
+                        "type": "string"
+                    },
+                    "value_before": {},
+                    "value_after": {}
+                },
+                "required": [
+                    "condition",
+                    "context_id",
+                    "override_id",
+                    "value_after",
+                    "value_before"
                 ]
             },
             "ResumeExperimentRequestContent": {

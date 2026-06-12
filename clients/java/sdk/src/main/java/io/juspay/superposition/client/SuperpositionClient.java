@@ -65,6 +65,8 @@ import io.juspay.superposition.model.GetContextInput;
 import io.juspay.superposition.model.GetContextOutput;
 import io.juspay.superposition.model.GetDefaultConfigInput;
 import io.juspay.superposition.model.GetDefaultConfigOutput;
+import io.juspay.superposition.model.GetDetailedResolvedConfigInput;
+import io.juspay.superposition.model.GetDetailedResolvedConfigOutput;
 import io.juspay.superposition.model.GetDimensionInput;
 import io.juspay.superposition.model.GetDimensionOutput;
 import io.juspay.superposition.model.GetExperimentConfigInput;
@@ -77,6 +79,8 @@ import io.juspay.superposition.model.GetFunctionInput;
 import io.juspay.superposition.model.GetFunctionOutput;
 import io.juspay.superposition.model.GetOrganisationInput;
 import io.juspay.superposition.model.GetOrganisationOutput;
+import io.juspay.superposition.model.GetResolvedConfigExplanationInput;
+import io.juspay.superposition.model.GetResolvedConfigExplanationOutput;
 import io.juspay.superposition.model.GetResolvedConfigInput;
 import io.juspay.superposition.model.GetResolvedConfigOutput;
 import io.juspay.superposition.model.GetResolvedConfigWithIdentifierInput;
@@ -815,6 +819,22 @@ public interface SuperpositionClient {
     GetDefaultConfigOutput getDefaultConfig(GetDefaultConfigInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Resolves config values and returns each key with default-config metadata.
+     *
+     * @throws InternalServerError
+     */
+    default GetDetailedResolvedConfigOutput getDetailedResolvedConfig(GetDetailedResolvedConfigInput input) {
+        return getDetailedResolvedConfig(input, null);
+    }
+
+    /**
+     * Resolves config values and returns each key with default-config metadata.
+     *
+     * @throws InternalServerError
+     */
+    GetDetailedResolvedConfigOutput getDetailedResolvedConfig(GetDetailedResolvedConfigInput input, RequestOverrideConfig overrideConfig);
+
+    /**
      * Retrieves detailed information about a specific dimension, including its schema, cohort dependency
      * graph, and configuration metadata.
      *
@@ -947,6 +967,22 @@ public interface SuperpositionClient {
      * @throws InternalServerError
      */
     GetResolvedConfigOutput getResolvedConfig(GetResolvedConfigInput input, RequestOverrideConfig overrideConfig);
+
+    /**
+     * Explains how matching contexts affect a single resolved config key.
+     *
+     * @throws InternalServerError
+     */
+    default GetResolvedConfigExplanationOutput getResolvedConfigExplanation(GetResolvedConfigExplanationInput input) {
+        return getResolvedConfigExplanation(input, null);
+    }
+
+    /**
+     * Explains how matching contexts affect a single resolved config key.
+     *
+     * @throws InternalServerError
+     */
+    GetResolvedConfigExplanationOutput getResolvedConfigExplanation(GetResolvedConfigExplanationInput input, RequestOverrideConfig overrideConfig);
 
     /**
      * Resolves and merges config values based on context conditions and identifier, applying overrides and

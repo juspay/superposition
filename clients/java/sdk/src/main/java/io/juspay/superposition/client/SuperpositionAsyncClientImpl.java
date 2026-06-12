@@ -97,6 +97,9 @@ import io.juspay.superposition.model.GetContextOutput;
 import io.juspay.superposition.model.GetDefaultConfig;
 import io.juspay.superposition.model.GetDefaultConfigInput;
 import io.juspay.superposition.model.GetDefaultConfigOutput;
+import io.juspay.superposition.model.GetDetailedResolvedConfig;
+import io.juspay.superposition.model.GetDetailedResolvedConfigInput;
+import io.juspay.superposition.model.GetDetailedResolvedConfigOutput;
 import io.juspay.superposition.model.GetDimension;
 import io.juspay.superposition.model.GetDimensionInput;
 import io.juspay.superposition.model.GetDimensionOutput;
@@ -116,6 +119,9 @@ import io.juspay.superposition.model.GetOrganisation;
 import io.juspay.superposition.model.GetOrganisationInput;
 import io.juspay.superposition.model.GetOrganisationOutput;
 import io.juspay.superposition.model.GetResolvedConfig;
+import io.juspay.superposition.model.GetResolvedConfigExplanation;
+import io.juspay.superposition.model.GetResolvedConfigExplanationInput;
+import io.juspay.superposition.model.GetResolvedConfigExplanationOutput;
 import io.juspay.superposition.model.GetResolvedConfigInput;
 import io.juspay.superposition.model.GetResolvedConfigOutput;
 import io.juspay.superposition.model.GetResolvedConfigWithIdentifier;
@@ -272,9 +278,9 @@ import software.amazon.smithy.utils.SmithyGenerated;
 @SmithyGenerated
 final class SuperpositionAsyncClientImpl extends Client implements SuperpositionAsyncClient {
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
+        .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
         .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
         .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
-        .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
         .putType(InternalFailureException.$ID, InternalFailureException.class, InternalFailureException::builder)
         .putType(UnknownOperationException.$ID, UnknownOperationException.class, UnknownOperationException::builder)
         .putType(MalformedRequestException.$ID, MalformedRequestException.class, MalformedRequestException::builder)
@@ -414,6 +420,10 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
     }
 
     @Override
+    public CompletableFuture<GetDetailedResolvedConfigOutput> getDetailedResolvedConfig(GetDetailedResolvedConfigInput input, RequestOverrideConfig overrideConfig) {return call(input, GetDetailedResolvedConfig.instance(), overrideConfig);
+    }
+
+    @Override
     public CompletableFuture<GetDimensionOutput> getDimension(GetDimensionInput input, RequestOverrideConfig overrideConfig) {return call(input, GetDimension.instance(), overrideConfig);
     }
 
@@ -439,6 +449,10 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
 
     @Override
     public CompletableFuture<GetResolvedConfigOutput> getResolvedConfig(GetResolvedConfigInput input, RequestOverrideConfig overrideConfig) {return call(input, GetResolvedConfig.instance(), overrideConfig);
+    }
+
+    @Override
+    public CompletableFuture<GetResolvedConfigExplanationOutput> getResolvedConfigExplanation(GetResolvedConfigExplanationInput input, RequestOverrideConfig overrideConfig) {return call(input, GetResolvedConfigExplanation.instance(), overrideConfig);
     }
 
     @Override

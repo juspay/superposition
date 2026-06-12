@@ -882,6 +882,41 @@ export type MergeStrategy = typeof MergeStrategy[keyof typeof MergeStrategy]
 /**
  * @public
  */
+export interface GetDetailedResolvedConfigInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  prefix?: (string)[] | undefined;
+  version?: string | undefined;
+  show_reasoning?: boolean | undefined;
+  merge_strategy?: MergeStrategy | undefined;
+  context_id?: string | undefined;
+  /**
+   * Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.
+   * @public
+   */
+  resolve_remote?: boolean | undefined;
+
+  /**
+   * Map representing the context.
+   * Keys correspond to the names of the dimensions.
+   * @public
+   */
+  context?: Record<string, __DocumentType> | undefined;
+}
+
+/**
+ * @public
+ */
+export interface GetDetailedResolvedConfigOutput {
+  config: __DocumentType | undefined;
+  version: string | undefined;
+  last_modified: Date | undefined;
+  audit_id?: string | undefined;
+}
+
+/**
+ * @public
+ */
 export interface GetResolvedConfigInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
@@ -909,6 +944,64 @@ export interface GetResolvedConfigInput {
  */
 export interface GetResolvedConfigOutput {
   config: __DocumentType | undefined;
+  version: string | undefined;
+  last_modified: Date | undefined;
+  audit_id?: string | undefined;
+}
+
+/**
+ * @public
+ */
+export interface GetResolvedConfigExplanationInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  key: string | undefined;
+  version?: string | undefined;
+  merge_strategy?: MergeStrategy | undefined;
+  context_id?: string | undefined;
+  /**
+   * Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.
+   * @public
+   */
+  resolve_remote?: boolean | undefined;
+
+  /**
+   * Map representing the context.
+   * Keys correspond to the names of the dimensions.
+   * @public
+   */
+  context?: Record<string, __DocumentType> | undefined;
+}
+
+/**
+ * @public
+ */
+export interface ResolveExplanationTimelineItem {
+  context_id: string | undefined;
+  /**
+   * Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
+   * @public
+   */
+  condition: Record<string, __DocumentType> | undefined;
+
+  override_id: string | undefined;
+  value_before: __DocumentType | undefined;
+  value_after: __DocumentType | undefined;
+}
+
+/**
+ * @public
+ */
+export interface ResolveExplanation {
+  key: string | undefined;
+  timeline: (ResolveExplanationTimelineItem)[] | undefined;
+}
+
+/**
+ * @public
+ */
+export interface GetResolvedConfigExplanationOutput {
+  explanation: ResolveExplanation | undefined;
   version: string | undefined;
   last_modified: Date | undefined;
   audit_id?: string | undefined;

@@ -43,6 +43,10 @@ pub use crate::types::_context_partial::ContextPartialBuilder;
 
 pub use crate::types::_list_versions_member::ListVersionsMemberBuilder;
 
+pub use crate::types::_resolve_explanation::ResolveExplanationBuilder;
+
+pub use crate::types::_resolve_explanation_timeline_item::ResolveExplanationTimelineItemBuilder;
+
 pub use crate::types::_context_response::ContextResponseBuilder;
 
 pub use crate::types::_context_move_bulk_request::ContextMoveBulkRequestBuilder;

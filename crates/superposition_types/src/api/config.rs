@@ -1,16 +1,16 @@
-use std::str::FromStr;
+use std::{collections::BTreeMap, str::FromStr};
 
 #[cfg(feature = "server")]
 use actix_web::http::header::{
     Header, HeaderName, HeaderValue, InvalidHeaderValue, TryIntoHeaderValue,
 };
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use superposition_derives::{IsEmpty, QueryParam};
 
 use crate::{
-    custom_query::{CommaSeparatedStringQParams, QueryParam},
     IsEmpty,
+    custom_query::{CommaSeparatedStringQParams, QueryParam},
 };
 
 #[derive(Deserialize)]
@@ -26,6 +26,20 @@ pub struct ConfigQuery {
     pub prefix: Option<CommaSeparatedStringQParams>,
 }
 
+#[derive(Deserialize)]
+pub struct ExplainKeyQuery {
+    pub key: String,
+}
+
+#[derive(Deserialize, IsEmpty, QueryParam, Default)]
+pub struct ExplainResolveQuery {
+    #[query_param(skip_if_empty)]
+    pub version: Option<String>,
+    pub resolve_remote: Option<bool>,
+    #[query_param(skip_if_empty)]
+    pub context_id: Option<String>,
+}
+
 #[derive(Deserialize, IsEmpty, QueryParam, Default)]
 pub struct ResolveConfigQuery {
     #[query_param(skip_if_empty)]
@@ -36,6 +50,30 @@ pub struct ResolveConfigQuery {
     pub context_id: Option<String>,
     #[query_param(skip_if_empty, iterable)]
     pub prefix: Option<CommaSeparatedStringQParams>,
+}
+
+#[derive(Serialize)]
+pub struct DetailedResolvedConfigValue {
+    pub description: String,
+    pub schema: Option<Value>,
+    pub value: Value,
+}
+
+pub type DetailedResolvedConfiguration = BTreeMap<String, DetailedResolvedConfigValue>;
+
+#[derive(Serialize)]
+pub struct ExplanationTimelineItem {
+    pub context_id: String,
+    pub condition: Value,
+    pub override_id: String,
+    pub value_before: Value,
+    pub value_after: Value,
+}
+
+#[derive(Serialize)]
+pub struct Explanation {
+    pub key: String,
+    pub timeline: Vec<ExplanationTimelineItem>,
 }
 
 #[derive(
