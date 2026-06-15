@@ -74,7 +74,13 @@ const config: Config = {
                     // editUrl:
                     //   'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
                 },
-                blog: false,
+                blog: {
+                    path: "blog",
+                    routeBasePath: "blog",
+                    blogTitle: "Superposition Blog",
+                    blogDescription: "Updates, guides, and technical notes from the Superposition team",
+                    showReadingTime: true,
+                },
                 theme: {
                     customCss: "./src/css/custom.css",
                 },
@@ -105,7 +111,7 @@ const config: Config = {
                 //     position: "left",
                 //     label: "Tutorial",
                 // },
-                // {to: '/blog', label: 'Blog', position: 'left'},
+                { to: "/blog", label: "Blog", position: "left" },
                 {
                     href: "https://github.com/juspay/superposition",
                     label: "GitHub",
