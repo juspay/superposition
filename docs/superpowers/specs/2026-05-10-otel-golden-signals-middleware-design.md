@@ -12,7 +12,7 @@ The original 2026-05-10 design was edited inline after the PR shipped so the bod
 
 | Area | Change |
 |---|---|
-| HTTP middleware | Hand-written `MetricsMiddleware` replaced with `opentelemetry-instrumentation-actix-web 0.24` (`RequestMetrics`); we plug in a custom `RouteFormatter` + `metric_attrs_from_req` to preserve our cardinality story. |
+| HTTP middleware | Hand-written `MetricsMiddleware` replaced with `opentelemetry-instrumentation-actix-web 0.24` (`RequestMetrics`); we plug in a custom `RouteFormatter` + `metrics_attrs_from_req` to preserve our cardinality story. |
 | HTTP saturation | `http.server.busy.duration` Counter dropped; equivalent signal is `rate(http_server_request_duration_seconds_sum[...])`. |
 | Tokio runtime | `tokio_unstable` flag, `tokio-metrics` dep, and `.cargo/config.toml` removed; tokio 1.50 stable APIs (`Handle::metrics()`) suffice. `busy_ratio` Gauge replaced with `runtime.tokio.workers.busy.time` Counter. |
 | Health endpoints | `/healthz`, `/livez`, `/readyz` dropped — existing `GET /health` covers the up-check role; k8s-conventional split deferred. |
@@ -48,7 +48,7 @@ This design adds first-class metrics exposition for the four [Google SRE golden 
 | Decision | Choice | Rationale |
 |---|---|---|
 | Client library | OpenTelemetry SDK + Prometheus exporter | TSDB-agnostic; future-proof for OSS users; future-proofs unified traces+metrics. |
-| HTTP middleware | `opentelemetry-instrumentation-actix-web 0.24` (`RequestMetrics`) with custom `RouteFormatter` + `metric_attrs_from_req` | Upstream OTel-contrib crate; gets us semconv-compliant `http.server.request.duration` for free. Cardinality controls (route sentinels, method normalization, optional org/workspace labels) plug in via the crate's hooks. |
+| HTTP middleware | `opentelemetry-instrumentation-actix-web 0.24` (`RequestMetrics`) with custom `RouteFormatter` + `metrics_attrs_from_req` | Upstream OTel-contrib crate; gets us semconv-compliant `http.server.request.duration` for free. Cardinality controls (route sentinels, method normalization, optional org/workspace labels) plug in via the crate's hooks. |
 | TSDB (reference) | VictoriaMetrics (`vmsingle`) | Cheap to operate; Prom-compatible; cluster path exists if needed. |
 | Exposition transport | Prometheus scrape on dedicated port + optional OTLP push | Pull-by-default for self-hosted users; OTLP path unlocks every OTel-native backend. |
 | Labels on HTTP metrics | `route × method × status × org × workspace` | Tenant-level slicing in metrics; org / workspace labels are independently env-disable-able for users with very high workspace counts. |
@@ -65,7 +65,7 @@ A new module **`service_utils::observability`** owns three pieces:
 
 2. **HTTP instrumentation** — the upstream `opentelemetry-instrumentation-actix-web` crate's `RequestMetrics` middleware, built via `build_request_metrics_middleware(provider)`. It's wired with:
    - a custom `RouteFormatter` (`CardinalityBoundedFormatter`) that collapses `"default"` to `__not_found__` and `/pkg|/assets|/favicon*` to `__static__`,
-   - a custom `metric_attrs_from_req` fn pointer that normalizes the HTTP method (unknown verbs → `_OTHER`) and conditionally attaches `sp.org_id` / `sp.workspace_id` from request extensions per a process-wide `LabelConfig` (installed via `set_label_config()` on a `OnceLock`).
+   - a custom `metrics_attrs_from_req` fn pointer that normalizes the HTTP method (unknown verbs → `_OTHER`) and conditionally attaches `sp.org_id` / `sp.workspace_id` from request extensions per a process-wide `LabelConfig` (installed via `set_label_config()` on a `OnceLock`).
 
    The crate emits, per OTel HTTP semconv:
    - `http.server.request.duration` (Histogram, seconds) — drives latency, traffic, and error metrics
@@ -89,7 +89,7 @@ The main server (port `8080`) gets one new `.wrap(Condition::new(obs_enabled, me
    ├── RequestMetrics middleware ─→ start timer, inc active_requests, capture method
    │     └── handler runs
    └── RequestMetrics middleware ─→ record duration histogram, dec active_requests;
-                                    attributes built via metric_attrs_from_req:
+                                    attributes built via metrics_attrs_from_req:
                                     method, http.route, status, sp.org_id?, sp.workspace_id?
 
 [scrape on :9091/metrics] ←── PrometheusExporter ←── SdkMeterProvider ←── (HTTP instrumentation + saturation collectors)
@@ -104,7 +104,7 @@ The main server (port `8080`) gets one new `.wrap(Condition::new(obs_enabled, me
 
 ### 5.2 Middleware ordering (critical)
 
-The `RequestMetrics` middleware must run *outside* `auth_n` / `auth_z` / `OrgWorkspaceMiddlewareFactory` so that, in the response phase, the `metric_attrs_from_req` hook can read `org_id` / `workspace_id` from request extensions. In Actix, the last `.wrap()` runs first on requests, so the registration chain in `main.rs` looks like:
+The `RequestMetrics` middleware must run *outside* `auth_n` / `auth_z` / `OrgWorkspaceMiddlewareFactory` so that, in the response phase, the `metrics_attrs_from_req` hook can read `org_id` / `workspace_id` from request extensions. In Actix, the last `.wrap()` runs first on requests, so the registration chain in `main.rs` looks like:
 
 ```rust
 App::new()
@@ -129,7 +129,7 @@ crates/service_utils/src/
   observability.rs              -- pub use surface: Observability handle, errors, re-exports
   observability/
     config.rs                   -- ObservabilityConfig + LabelConfig parsed from env
-    instrumentation.rs          -- CardinalityBoundedFormatter, metric_attrs_from_req,
+    instrumentation.rs          -- CardinalityBoundedFormatter, metrics_attrs_from_req,
                                    build_request_metrics_middleware, set_label_config,
                                    ROUTE_NOT_FOUND / ROUTE_STATIC sentinels
     metrics_server.rs           -- HttpServer on SUPERPOSITION_METRICS_PORT exposing /metrics
@@ -173,7 +173,7 @@ pub fn build_request_metrics_middleware(
     provider: &SdkMeterProvider,
 ) -> opentelemetry_instrumentation_actix_web::RequestMetrics;
 
-/// Install the process-wide LabelConfig used by `metric_attrs_from_req`. Must be
+/// Install the process-wide LabelConfig used by `metrics_attrs_from_req`. Must be
 /// called before the first request flows through the middleware. Idempotent —
 /// later calls are ignored (it's a `OnceLock`). Trade-off: changing labels at
 /// runtime requires a redeploy; this is acceptable for an env-driven config
@@ -212,7 +212,7 @@ Added to root `Cargo.toml` `[workspace.dependencies]` and enabled in `crates/ser
 
 Notable crates **not** depended on:
 
-- `opentelemetry-semantic-conventions` — the four attribute names we set (`http.request.method`, `http.route`, `http.response.status_code`, `error.type`) are inlined as string literals.
+- `opentelemetry-semantic-conventions` — the attribute names we set (`http.request.method`, `http.route`, plus the `sp.org_id` / `sp.workspace_id` extensions) are inlined as string literals. `http.response.status_code` and `error.type` come from the upstream `RequestMetrics` middleware.
 - `tokio-metrics` — stable tokio APIs cover what we need.
 - `opentelemetry` is **not** a direct dep of `crates/superposition`; `service_utils::observability` re-exports `SdkMeterProvider` so the binary crate doesn't need its own OTel dep.
 
@@ -232,7 +232,7 @@ One histogram covers all three. Traffic is `rate(_count)`; errors are `rate(_cou
 | Type | Histogram (f64, seconds) |
 | Unit | `s` |
 | Buckets (explicit) | `[0.005, 0.025, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]` (9 + `+Inf` = 10 buckets) |
-| Attributes | `http.request.method`, `http.response.status_code`, `http.route`, `sp.org_id`*, `sp.workspace_id`* |
+| Attributes | `http.request.method`, `http.response.status_code`, `http.route`, `error.type` (4xx/5xx only), `sp.org_id`*, `sp.workspace_id`* |
 
 \* env-controlled, default on. Disable: `SUPERPOSITION_METRICS_LABEL_ORG=false`, `SUPERPOSITION_METRICS_LABEL_WORKSPACE=false`.
 
@@ -358,9 +358,9 @@ The crate's `RouteFormatter` trait is invoked once per request to produce the `h
 
 Sentinels are constants — finite set, bounded cardinality. `STATIC_PATTERN_PREFIXES` lives in `instrumentation.rs` alongside the formatter.
 
-### 9.2 Label extraction (`metric_attrs_from_req`)
+### 9.2 Label extraction (`metrics_attrs_from_req`)
 
-The crate exposes a `with_metric_attrs_from_req(fn(&ServiceRequest, &str) -> Vec<KeyValue>)` hook called per request to produce the final attribute set. Our implementation:
+The crate exposes a `with_metrics_attrs_from_req(fn(&ServiceRequest, &str) -> Vec<KeyValue>)` hook called per request to produce the final attribute set. Our implementation:
 
 1. Always emits `http.request.method` (normalized — see §9.3) and `http.route` (the formatter's output).
 2. Conditionally emits `sp.org_id` and `sp.workspace_id` from request extensions, gated on the process-wide `LabelConfig`.
@@ -380,7 +380,7 @@ Per OTel HTTP semconv: known methods (`GET`, `POST`, `PUT`, `DELETE`, `PATCH`, `
 
 ### 9.4 Status code source
 
-The upstream crate reads `res.status().as_u16()` after the response is produced and emits it as `http.response.status_code`. Actix's error conversion runs before the middleware's response phase, so error responses get their converted status. Panics that bubble through the Actix panic handler surface as 500s. We don't add an `error.type` attribute — the histogram's `status_code=~"5.."` slice serves the same purpose without extra cardinality.
+The upstream crate reads `res.status().as_u16()` after the response is produced and emits it as `http.response.status_code` (appended *after* our `metrics_attrs_from_req` runs, so our hook doesn't see or set it). It also emits `error.type` per OTel semconv when the status is 4xx/5xx. Actix's error conversion runs before the middleware's response phase, so error responses get their converted status. Panics that bubble through the Actix panic handler surface as 500s.
 
 ### 9.5 Active-requests guard
 
@@ -398,7 +398,7 @@ Per-request work in the upstream middleware path:
 - 1 `Instant::now()` capture on entry; one duration calc on exit.
 - 1 `UpDownCounter::add(+1)` on entry; 1 `UpDownCounter::add(-1)` on drop.
 - 1 `Histogram::record()` call (lock-free in OTel SDK 0.32).
-- 1 invocation of `metric_attrs_from_req` (3 hashmap lookups on `req.extensions()` worst case, 1 `OnceLock::get()`).
+- 1 invocation of `metrics_attrs_from_req` (3 hashmap lookups on `req.extensions()` worst case, 1 `OnceLock::get()`).
 - The crate's body-size histogram instruments still exist but are dropped at the SDK layer via the `Aggregation::Drop` View — they're cheap allocations that go nowhere, not free, but well under a microsecond.
 
 **Hot-path allocations:** attribute *keys* are `&'static str` literals; attribute *values* (route, org, workspace, status as a string) require `String` allocations because they're dynamic. Unavoidable given the label choices.
@@ -528,9 +528,9 @@ Existing `info!(latency, "GoldenSignal")` log line at `crates/service_utils/src/
 | Risk | Mitigation |
 |---|---|
 | OTel Rust SDK 0.32 has historically had churn between minor versions; metrics API is stable but exporter and Resource APIs shifted between 0.27 and 0.32. | Pin the entire OTel family (api, sdk, prometheus, otlp, instrumentation-actix-web) to compatible versions in `[workspace.dependencies]`; bump in a single PR with the integration test as the gate. |
-| `opentelemetry-instrumentation-actix-web 0.24` is a third-party OTel-contrib crate that may evolve independently of upstream OTel. | The crate exposes stable hooks (`RouteFormatter`, `with_metric_attrs_from_req`, `with_meter_provider`) for everything we customize. If it falls behind on an OTel bump, we can either pin OTel until it catches up, or fork the ~300 lines of middleware code. The body-size histograms are suppressed via SDK View, so changes there don't affect us. |
+| `opentelemetry-instrumentation-actix-web 0.24` is a third-party OTel-contrib crate that may evolve independently of upstream OTel. | The crate exposes stable hooks (`RouteFormatter`, `with_metrics_attrs_from_req`, `with_meter_provider`) for everything we customize. If it falls behind on an OTel bump, we can either pin OTel until it catches up, or fork the ~300 lines of middleware code. The body-size histograms are suppressed via SDK View, so changes there don't affect us. |
 | Workspace label cardinality grows unexpectedly (workspace creation rate, churn from short-lived workspaces). | `SUPERPOSITION_METRICS_LABEL_WORKSPACE=false` is a runtime opt-out; rollout Phase 3 lands with it off. |
 | OTel attribute construction allocates `String` on the hot path. | Confirmed unavoidable for dynamic attribute values; expected overhead single-digit microseconds. If profiling shows a problem, switch to `Cow<'static, str>` for attribute *values* where possible (e.g., method, status code) and keep allocations only for `route`/`org`/`workspace`. |
 | `r2d2`'s waiter count and wait duration require call-site instrumentation; v1 has only `connections.usage` ratios. | Acceptable for v1: a usage ratio near `connections.max` signals saturation, and the request-duration histogram tail will spike under DB starvation. A typed pool wrapper in a follow-up unlocks both `wait.duration` and `pending_requests` cheaply. |
 | `fred` metrics surface may not map 1:1 to OTel `db.client.*` style attributes. | Mapping resolved at implementation time via a `RedisStats` trait — any unavailable field returns `None` and is silently omitted from emission. |
-| `LabelConfig` lives in a `OnceLock` because the upstream crate's `metric_attrs_from_req` is a fn pointer with no closure state. Changing label config requires a redeploy. | Acceptable: label config is env-driven and operationally rare to change. If runtime-mutable labels become a requirement, switch to `with_metric_attrs_from_req_and_state(F)` if/when upstream exposes it, or fork the middleware. |
+| `LabelConfig` lives in a `OnceLock` because the upstream crate's `metrics_attrs_from_req` is a fn pointer with no closure state. Changing label config requires a redeploy. | Acceptable: label config is env-driven and operationally rare to change. If runtime-mutable labels become a requirement, switch to `with_metrics_attrs_from_req_and_state(F)` if/when upstream exposes it, or fork the middleware. |
