@@ -209,6 +209,10 @@ impl LocalResolutionProvider {
         self.do_refresh().await
     }
 
+    pub async fn refresh_if_changed(&self) -> Result<()> {
+        self.do_refresh_if_changed().await
+    }
+
     pub async fn close_provider(&self) -> Result<()> {
         // Abort background task
         {
@@ -333,6 +337,38 @@ impl LocalResolutionProvider {
             exp_resp
         } else {
             config_resp
+        }
+    }
+
+    async fn do_refresh_if_changed(&self) -> Result<()> {
+        let last_fetched_at = {
+            self.cached_config
+                .read()
+                .await
+                .as_ref()
+                .map(|data| data.fetched_at)
+        };
+
+        match self.primary.fetch_config_if_modified(last_fetched_at).await {
+            Ok(FetchResponse::Data(data)) => {
+                let mut cached = self.cached_config.write().await;
+                *cached = Some(data);
+                log::debug!(
+                    "LocalResolutionProvider: config refreshed from primary after change check"
+                );
+                Ok(())
+            }
+            Ok(FetchResponse::NotModified) => {
+                log::debug!("LocalResolutionProvider: config not modified");
+                Ok(())
+            }
+            Err(e) => {
+                log::warn!(
+                    "LocalResolutionProvider: config refresh-if-changed failed, keeping last known good: {}",
+                    e
+                );
+                Err(e)
+            }
         }
     }
 
@@ -726,5 +762,119 @@ impl SuperpositionDataSource for LocalResolutionProvider {
 
     async fn close(&self) -> Result<()> {
         self.close_provider().await
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::{Path, PathBuf};
+
+    use open_feature::EvaluationContext;
+    use serde_json::Value;
+    use tokio::time::{sleep, Duration};
+
+    use super::*;
+    use crate::data_source::file::FileDataSource;
+    use crate::traits::AllFeatureProvider;
+
+    fn config_content(timeout: i64) -> String {
+        format!(
+            r#"[default-configs]
+timeout = {{ value = {timeout}, schema = {{ type = "integer" }} }}
+
+[dimensions]
+os = {{ position = 1, schema = {{ type = "string" }} }}
+
+[[overrides]]
+_context_ = {{ os = "linux" }}
+timeout = 45
+"#
+        )
+    }
+
+    fn temp_config_path() -> PathBuf {
+        std::env::temp_dir().join(format!(
+            "superposition-provider-manual-refresh-{}.toml",
+            uuid::Uuid::new_v4()
+        ))
+    }
+
+    async fn write_config(path: &Path, timeout: i64) {
+        tokio::fs::write(path, config_content(timeout))
+            .await
+            .unwrap();
+    }
+
+    async fn rewrite_config_after(
+        path: &Path,
+        timeout: i64,
+        previous_modified_at: DateTime<Utc>,
+    ) {
+        for _ in 0..100 {
+            sleep(Duration::from_millis(20)).await;
+            write_config(path, timeout).await;
+
+            let modified_at = DateTime::<Utc>::from(
+                tokio::fs::metadata(path).await.unwrap().modified().unwrap(),
+            );
+            if modified_at > previous_modified_at {
+                return;
+            }
+        }
+
+        panic!("config file modified time did not advance");
+    }
+
+    async fn cached_config_fetched_at(
+        provider: &LocalResolutionProvider,
+    ) -> DateTime<Utc> {
+        provider
+            .cached_config
+            .read()
+            .await
+            .as_ref()
+            .map(|data| data.fetched_at)
+            .unwrap()
+    }
+
+    async fn resolved_timeout(provider: &LocalResolutionProvider) -> Value {
+        provider
+            .resolve_all_features(EvaluationContext::default())
+            .await
+            .unwrap()
+            .remove("timeout")
+            .unwrap()
+    }
+
+    #[tokio::test]
+    async fn refresh_if_changed_updates_file_provider_only_when_file_changes() {
+        let path = temp_config_path();
+        write_config(&path, 30).await;
+
+        let provider = LocalResolutionProvider::new(
+            Box::new(FileDataSource::new(path.clone()).unwrap()),
+            None,
+            RefreshStrategy::Manual,
+        );
+        provider.init(EvaluationContext::default()).await.unwrap();
+
+        assert_eq!(resolved_timeout(&provider).await, Value::from(30));
+        let initial_fetched_at = cached_config_fetched_at(&provider).await;
+
+        rewrite_config_after(&path, 60, initial_fetched_at).await;
+        provider.refresh_if_changed().await.unwrap();
+
+        assert_eq!(resolved_timeout(&provider).await, Value::from(60));
+        let changed_fetched_at = cached_config_fetched_at(&provider).await;
+        assert!(changed_fetched_at > initial_fetched_at);
+
+        provider.refresh_if_changed().await.unwrap();
+        assert_eq!(
+            cached_config_fetched_at(&provider).await,
+            changed_fetched_at
+        );
+        assert_eq!(resolved_timeout(&provider).await, Value::from(60));
+
+        let _ = tokio::fs::remove_file(path).await;
     }
 }
