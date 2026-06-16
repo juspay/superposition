@@ -75,16 +75,14 @@ pub fn register(meter: &Meter, client: RedisHandle, pool_name: &'static str) {
         })
         .build();
 
-    let c = client.clone();
-    let label = pool_label.clone();
     meter
         .u64_observable_gauge("redis.client.commands.in_flight")
         .with_description(
             "Number of Redis commands currently buffered (waiting to be sent to the server).",
         )
         .with_callback(move |observer| {
-            if let Some(n) = c.commands_in_flight() {
-                observer.observe(n, std::slice::from_ref(&label));
+            if let Some(n) = client.commands_in_flight() {
+                observer.observe(n, std::slice::from_ref(&pool_label));
             }
         })
         .build();

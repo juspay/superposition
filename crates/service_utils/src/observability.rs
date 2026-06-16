@@ -148,7 +148,6 @@ impl Observability {
         }
 
         let provider = builder.build();
-        opentelemetry::global::set_meter_provider(provider.clone());
         let meter = {
             use opentelemetry::metrics::MeterProvider as _;
             provider.meter("superposition")
