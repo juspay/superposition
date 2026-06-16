@@ -6,7 +6,7 @@ mod resolve;
 mod webhooks;
 mod workspace;
 
-use std::{io::Result, time::Duration};
+use std::{io::Result, sync::Arc, time::Duration};
 
 use actix_files::Files;
 use actix_web::{
@@ -30,6 +30,11 @@ use service_utils::{
         auth_z::{AuthZHandler, AuthZManager, is_auth_z_enabled},
         request_response_logging::RequestResponseLogger,
         workspace_context::OrgWorkspaceMiddlewareFactory,
+    },
+    observability::{
+        FredPoolStats, Observability, ObservabilityConfig, RedisStats, SdkMeterProvider,
+        build_request_metrics_middleware, set_label_config,
+        SaturationDeps, register_observers, spawn_metrics_server,
     },
     service::types::AppEnv,
 };
@@ -76,6 +81,29 @@ async fn main() -> Result<()> {
                 .with_target(false),
         )
         .init();
+
+    // --- Step 1: Observability init (early, before AppState build) ---
+    // `from_env` errors are operator-config mistakes (bad port, bad IP, etc.) — fail loudly.
+    let obs_cfg =
+        ObservabilityConfig::from_env().expect("invalid observability env config");
+    // `Observability::init` may fail transiently (e.g. OTLP endpoint unreachable at startup).
+    // Rather than killing the binary we log a warning and serve traffic without metrics.
+    let observability = if obs_cfg.enabled {
+        match Observability::init(obs_cfg.clone()) {
+            Ok(o) => Some(o),
+            Err(e) => {
+                tracing::warn!(
+                    error = %e,
+                    "observability init failed; metrics disabled for this instance"
+                );
+                None
+            }
+        }
+    } else {
+        None
+    };
+    // Reflect actual init outcome: obs_enabled is true only when we have a live Observability.
+    let obs_enabled = observability.is_some();
 
     let service_prefix: String =
         get_from_env_unsafe("SERVICE_PREFIX").expect("SERVICE_PREFIX is not set");
@@ -142,11 +170,64 @@ async fn main() -> Result<()> {
         .await,
     );
 
+    // --- Step 2: Register saturation observers ---
+    // app_state.db_pool is PgSchemaConnectionPool (= Pool<ConnectionManager<PgConnection>>),
+    // not Arc-wrapped, so we wrap it here.
+    // app_state.redis is Option<fred::clients::RedisPool>.
+    let redis_handle: Option<Arc<dyn RedisStats + Send + Sync>> =
+        app_state.redis.as_ref().map(|pool| {
+            Arc::new(FredPoolStats(pool.clone())) as Arc<dyn RedisStats + Send + Sync>
+        });
+
+    if let Some(obs) = observability.as_ref() {
+        let deps = SaturationDeps {
+            db_pool: Some(app_state.db_pool.clone()),
+            redis_client: redis_handle,
+        };
+        register_observers(&obs.meter(), deps)
+            .expect("saturation observer registration failed");
+    }
+
+    // --- Step 3: Spawn the metrics server ---
+    let metrics_server_handle = if let Some(obs) = observability.as_ref() {
+        let bind = std::net::SocketAddr::new(obs_cfg.bind, obs_cfg.port);
+        match spawn_metrics_server(obs.registry(), bind) {
+            Ok(h) => Some(h),
+            Err(e) => {
+                tracing::warn!(
+                    error = %e,
+                    bind = %bind,
+                    "metrics server bind failed; /metrics endpoint disabled for this instance"
+                );
+                None
+            }
+        }
+    } else {
+        None
+    };
+
+    // --- Step 4: Install the global label config + build the middleware ---
+    // The upstream crate's attribute hook is a `fn` pointer that can't capture
+    // state, so the env-toggled label config lives in a process-wide OnceLock.
+    // The middleware binds to an explicit `SdkMeterProvider` so it doesn't
+    // depend on the OTel global; when obs is disabled we hand it a fresh
+    // no-op provider, and `Condition::new(false, ...)` short-circuits the
+    // wrap per-request anyway.
+    if obs_enabled {
+        set_label_config(obs_cfg.label);
+    }
+    let metrics_provider = observability
+        .as_ref()
+        .map(|o| o.meter_provider().clone())
+        .unwrap_or_else(|| SdkMeterProvider::builder().build());
+    let metrics_middleware = build_request_metrics_middleware(&metrics_provider);
+
     let auth_n = AuthNHandler::init(&kms_client, &app_env, base.clone()).await;
     let auth_z = AuthZHandler::init(&kms_client, &app_env).await;
     let auth_z_manager = AuthZManager::init(&kms_client, &app_env).await;
 
-    HttpServer::new(move || {
+    // --- Step 5: Build and run both servers concurrently ---
+    let main_server = HttpServer::new(move || {
         let leptos_options = &conf.leptos_options;
         let site_root = &leptos_options.site_root;
         let leptos_envs = ui_envs.clone();
@@ -218,6 +299,11 @@ async fn main() -> Result<()> {
             ))
             // Conditionally add request/response logging middleware for development
             .wrap(RequestResponseLogger)
+            // RequestMetrics middleware gated by SUPERPOSITION_METRICS_ENABLED.
+            // When obs is disabled the underlying provider is a fresh no-op
+            // and Condition short-circuits per-request anyway.
+            .wrap(Condition::new(obs_enabled, metrics_middleware.clone()))
+            // TracingLogger is outermost — last .wrap() runs first on requests.
             .wrap(TracingLogger::<CustomRootSpanBuilder>::new())
     })
     .bind(("0.0.0.0", cac_port))?
@@ -225,8 +311,24 @@ async fn main() -> Result<()> {
     .keep_alive(Duration::from_secs(
         get_from_env_unsafe("ACTIX_KEEP_ALIVE").unwrap_or(120),
     ))
-    .run()
-    .await
+    .run();
+
+    // --- Step 6: Run the main server; metrics server is a detached best-effort task ---
+    // Using try_join! would abort the main API server if the metrics task ever returned
+    // an error (port reclaimed, listener closed). That contradicts the "metrics are
+    // best-effort" stance applied throughout. Detach instead and log on error.
+    if let Some(metrics_handle) = metrics_server_handle {
+        tokio::spawn(async move {
+            if let Err(e) = metrics_handle.await {
+                tracing::warn!(
+                    error = %e,
+                    "metrics server exited with error; /metrics endpoint is now unavailable"
+                );
+            }
+        });
+    }
+    main_server.await?;
+    Ok(())
 }
 
 trait ScopeExt {

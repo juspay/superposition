@@ -21,10 +21,17 @@ diesel = { workspace = true }
 diesel-adapter = { version = "1.2.0" }
 fred = { workspace = true, features = ["metrics"] }
 futures-util = { workspace = true }
+humantime = { workspace = true }
 inventory = { workspace = true }
 log = { workspace = true }
 once_cell = { workspace = true }
 openidconnect = "3.5.0"
+opentelemetry = { workspace = true }
+opentelemetry_sdk = { workspace = true }
+opentelemetry-otlp = { workspace = true }
+opentelemetry-prometheus = { workspace = true }
+opentelemetry-instrumentation-actix-web = { workspace = true }
+prometheus = { workspace = true }
 rand = "0.8"
 tokio = { workspace = true }
 tracing = { workspace = true }
@@ -42,6 +49,7 @@ superposition_types = { workspace = true, features = [
     "api",
     "diesel_derives",
 ] }
+thiserror = { workspace = true }
 url = { workspace = true }
 urlencoding = "~2.1.2"
 uuid = {workspace = true}

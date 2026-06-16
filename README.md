@@ -151,6 +151,14 @@ Want a broader systems view? Open the [DeepWiki architecture guide](https://deep
 - [Context7 LLM-friendly docs](https://context7.com/juspay/superposition)
 - [DeepWiki repository guide](https://deepwiki.com/juspay/superposition)
 
+## Metrics & observability
+
+The HTTP API exposes Prometheus metrics on `SUPERPOSITION_METRICS_PORT` (default `9091`):
+
+```bash
+curl http://localhost:9091/metrics
+```
+
 ## Contributing
 
 We welcome contributions across the platform, clients, docs, and examples.
