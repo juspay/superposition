@@ -5,11 +5,15 @@ pub use crate::types::error::_resource_not_found::ResourceNotFound;
 
 pub use crate::types::error::_webhook_failed::WebhookFailed;
 
+pub use crate::types::error::_workspace_lock_conflict::WorkspaceLockConflict;
+
 mod _internal_server_error;
 
 mod _resource_not_found;
 
 mod _webhook_failed;
+
+mod _workspace_lock_conflict;
 
 /// Builders
 pub mod builders;

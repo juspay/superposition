@@ -314,6 +314,8 @@ from ._private.schemas import (
     WEIGHT_RECOMPUTE_INPUT as _SCHEMA_WEIGHT_RECOMPUTE_INPUT,
     WEIGHT_RECOMPUTE_OUTPUT as _SCHEMA_WEIGHT_RECOMPUTE_OUTPUT,
     WEIGHT_RECOMPUTE_RESPONSE as _SCHEMA_WEIGHT_RECOMPUTE_RESPONSE,
+    WORKSPACE_LOCK as _SCHEMA_WORKSPACE_LOCK,
+    WORKSPACE_LOCK_CONFLICT as _SCHEMA_WORKSPACE_LOCK_CONFLICT,
     WORKSPACE_RESPONSE as _SCHEMA_WORKSPACE_RESPONSE,
 )
 
@@ -5587,6 +5589,130 @@ class CreateDefaultConfigOutput:
         deserializer.read_struct(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT, consumer=_consumer)
         return kwargs
 
+@dataclass(kw_only=True)
+class WorkspaceLock:
+    """
+    Metadata for an active workspace write lock. Present only while another write
+    operation is holding the workspace lease.
+
+    :param lock_id:
+        **[Required]** - Unique identifier for the active workspace lock.
+
+    :param operation:
+        **[Required]** - Write operation that currently holds the workspace lock.
+
+    :param locked_by:
+        **[Required]** - User that acquired the workspace lock.
+
+    :param acquired_at:
+        **[Required]** - Timestamp at which the workspace lock was acquired.
+
+    :param expires_at:
+        **[Required]** - Timestamp at which the workspace lock expires if it is not
+        released first.
+
+    """
+
+    lock_id: str
+
+    operation: str
+
+    locked_by: str
+
+    acquired_at: datetime
+
+    expires_at: datetime
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_WORKSPACE_LOCK, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_WORKSPACE_LOCK.members["lock_id"], self.lock_id)
+        serializer.write_string(_SCHEMA_WORKSPACE_LOCK.members["operation"], self.operation)
+        serializer.write_string(_SCHEMA_WORKSPACE_LOCK.members["locked_by"], self.locked_by)
+        serializer.write_timestamp(_SCHEMA_WORKSPACE_LOCK.members["acquired_at"], self.acquired_at)
+        serializer.write_timestamp(_SCHEMA_WORKSPACE_LOCK.members["expires_at"], self.expires_at)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["lock_id"] = de.read_string(_SCHEMA_WORKSPACE_LOCK.members["lock_id"])
+
+                case 1:
+                    kwargs["operation"] = de.read_string(_SCHEMA_WORKSPACE_LOCK.members["operation"])
+
+                case 2:
+                    kwargs["locked_by"] = de.read_string(_SCHEMA_WORKSPACE_LOCK.members["locked_by"])
+
+                case 3:
+                    kwargs["acquired_at"] = de.read_timestamp(_SCHEMA_WORKSPACE_LOCK.members["acquired_at"])
+
+                case 4:
+                    kwargs["expires_at"] = de.read_timestamp(_SCHEMA_WORKSPACE_LOCK.members["expires_at"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_WORKSPACE_LOCK, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class WorkspaceLockConflict(ApiError):
+    """
+    Returned when a workspace write operation cannot proceed because another write
+    operation currently holds the workspace lock.
+
+    :param message: A message associated with the specific error.
+
+    :param lock:
+        **[Required]** - Metadata for an active workspace write lock. Present only while
+        another write operation is holding the workspace lease.
+
+    """
+
+    code: ClassVar[str] = "WorkspaceLockConflict"
+    fault: ClassVar[Literal["client", "server"]] = "client"
+
+    message: str
+    lock: WorkspaceLock
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_WORKSPACE_LOCK_CONFLICT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_WORKSPACE_LOCK_CONFLICT.members["message"], self.message)
+        serializer.write_struct(_SCHEMA_WORKSPACE_LOCK_CONFLICT.members["lock"], self.lock)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["message"] = de.read_string(_SCHEMA_WORKSPACE_LOCK_CONFLICT.members["message"])
+
+                case 1:
+                    kwargs["lock"] = WorkspaceLock.deserialize(de)
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_WORKSPACE_LOCK_CONFLICT, consumer=_consumer)
+        return kwargs
+
 CREATE_DEFAULT_CONFIG = APIOperation(
         input = CreateDefaultConfigInput,
         output = CreateDefaultConfigOutput,
@@ -5595,6 +5721,7 @@ CREATE_DEFAULT_CONFIG = APIOperation(
         output_schema = _SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
+ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -7563,6 +7690,13 @@ def _deserialize_list_mandatory_dimensions(deserializer: ShapeDeserializer, sche
 
 @dataclass(kw_only=True)
 class CreateWorkspaceOutput:
+    """
+
+    :param workspace_lock:
+         Metadata for an active workspace write lock. Present only while another write
+         operation is holding the workspace lease.
+
+    """
 
     workspace_name: str
 
@@ -7596,6 +7730,7 @@ class CreateWorkspaceOutput:
 
     config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
+    workspace_lock: WorkspaceLock | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_WORKSPACE_OUTPUT, self)
@@ -7622,6 +7757,8 @@ class CreateWorkspaceOutput:
         serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["auto_populate_control"], self.auto_populate_control)
         serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["enable_context_validation"], self.enable_context_validation)
         serializer.write_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["enable_change_reason_validation"], self.enable_change_reason_validation)
+        if self.workspace_lock is not None:
+            serializer.write_struct(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["workspace_lock"], self.workspace_lock)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -7683,6 +7820,9 @@ class CreateWorkspaceOutput:
 
                 case 16:
                     kwargs["enable_change_reason_validation"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_OUTPUT.members["enable_change_reason_validation"])
+
+                case 17:
+                    kwargs["workspace_lock"] = WorkspaceLock.deserialize(de)
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -7778,6 +7918,7 @@ DELETE_DEFAULT_CONFIG = APIOperation(
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
+ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -8377,6 +8518,7 @@ UPDATE_DEFAULT_CONFIG = APIOperation(
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
+ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -14954,6 +15096,13 @@ class GetWorkspaceInput:
 
 @dataclass(kw_only=True)
 class GetWorkspaceOutput:
+    """
+
+    :param workspace_lock:
+         Metadata for an active workspace write lock. Present only while another write
+         operation is holding the workspace lease.
+
+    """
 
     workspace_name: str
 
@@ -14987,6 +15136,7 @@ class GetWorkspaceOutput:
 
     config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
+    workspace_lock: WorkspaceLock | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_WORKSPACE_OUTPUT, self)
@@ -15013,6 +15163,8 @@ class GetWorkspaceOutput:
         serializer.write_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["auto_populate_control"], self.auto_populate_control)
         serializer.write_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["enable_context_validation"], self.enable_context_validation)
         serializer.write_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["enable_change_reason_validation"], self.enable_change_reason_validation)
+        if self.workspace_lock is not None:
+            serializer.write_struct(_SCHEMA_GET_WORKSPACE_OUTPUT.members["workspace_lock"], self.workspace_lock)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -15074,6 +15226,9 @@ class GetWorkspaceOutput:
 
                 case 16:
                     kwargs["enable_change_reason_validation"] = de.read_boolean(_SCHEMA_GET_WORKSPACE_OUTPUT.members["enable_change_reason_validation"])
+
+                case 17:
+                    kwargs["workspace_lock"] = WorkspaceLock.deserialize(de)
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -16127,6 +16282,13 @@ class ListWorkspaceInput:
 
 @dataclass(kw_only=True)
 class WorkspaceResponse:
+    """
+
+    :param workspace_lock:
+         Metadata for an active workspace write lock. Present only while another write
+         operation is holding the workspace lease.
+
+    """
 
     workspace_name: str
 
@@ -16160,6 +16322,7 @@ class WorkspaceResponse:
 
     config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
+    workspace_lock: WorkspaceLock | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_WORKSPACE_RESPONSE, self)
@@ -16186,6 +16349,8 @@ class WorkspaceResponse:
         serializer.write_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["auto_populate_control"], self.auto_populate_control)
         serializer.write_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["enable_context_validation"], self.enable_context_validation)
         serializer.write_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["enable_change_reason_validation"], self.enable_change_reason_validation)
+        if self.workspace_lock is not None:
+            serializer.write_struct(_SCHEMA_WORKSPACE_RESPONSE.members["workspace_lock"], self.workspace_lock)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -16247,6 +16412,9 @@ class WorkspaceResponse:
 
                 case 16:
                     kwargs["enable_change_reason_validation"] = de.read_boolean(_SCHEMA_WORKSPACE_RESPONSE.members["enable_change_reason_validation"])
+
+                case 17:
+                    kwargs["workspace_lock"] = WorkspaceLock.deserialize(de)
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -16441,6 +16609,13 @@ class MigrateWorkspaceSchemaInput:
 
 @dataclass(kw_only=True)
 class MigrateWorkspaceSchemaOutput:
+    """
+
+    :param workspace_lock:
+         Metadata for an active workspace write lock. Present only while another write
+         operation is holding the workspace lease.
+
+    """
 
     workspace_name: str
 
@@ -16474,6 +16649,7 @@ class MigrateWorkspaceSchemaOutput:
 
     config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
+    workspace_lock: WorkspaceLock | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT, self)
@@ -16500,6 +16676,8 @@ class MigrateWorkspaceSchemaOutput:
         serializer.write_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["auto_populate_control"], self.auto_populate_control)
         serializer.write_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["enable_context_validation"], self.enable_context_validation)
         serializer.write_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["enable_change_reason_validation"], self.enable_change_reason_validation)
+        if self.workspace_lock is not None:
+            serializer.write_struct(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["workspace_lock"], self.workspace_lock)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -16561,6 +16739,9 @@ class MigrateWorkspaceSchemaOutput:
 
                 case 16:
                     kwargs["enable_change_reason_validation"] = de.read_boolean(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_OUTPUT.members["enable_change_reason_validation"])
+
+                case 17:
+                    kwargs["workspace_lock"] = WorkspaceLock.deserialize(de)
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -17653,6 +17834,13 @@ class UpdateWorkspaceInput:
 
 @dataclass(kw_only=True)
 class UpdateWorkspaceOutput:
+    """
+
+    :param workspace_lock:
+         Metadata for an active workspace write lock. Present only while another write
+         operation is holding the workspace lease.
+
+    """
 
     workspace_name: str
 
@@ -17686,6 +17874,7 @@ class UpdateWorkspaceOutput:
 
     config_version: str | None = None
     mandatory_dimensions: list[str] | None = None
+    workspace_lock: WorkspaceLock | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_WORKSPACE_OUTPUT, self)
@@ -17712,6 +17901,8 @@ class UpdateWorkspaceOutput:
         serializer.write_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["auto_populate_control"], self.auto_populate_control)
         serializer.write_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["enable_context_validation"], self.enable_context_validation)
         serializer.write_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["enable_change_reason_validation"], self.enable_change_reason_validation)
+        if self.workspace_lock is not None:
+            serializer.write_struct(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["workspace_lock"], self.workspace_lock)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -17773,6 +17964,9 @@ class UpdateWorkspaceOutput:
 
                 case 16:
                     kwargs["enable_change_reason_validation"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_OUTPUT.members["enable_change_reason_validation"])
+
+                case 17:
+                    kwargs["workspace_lock"] = WorkspaceLock.deserialize(de)
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)

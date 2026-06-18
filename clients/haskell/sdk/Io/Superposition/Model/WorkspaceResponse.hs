@@ -16,6 +16,7 @@ module Io.Superposition.Model.WorkspaceResponse (
     setAutoPopulateControl,
     setEnableContextValidation,
     setEnableChangeReasonValidation,
+    setWorkspaceLock,
     build,
     WorkspaceResponseBuilder,
     WorkspaceResponse,
@@ -35,7 +36,8 @@ module Io.Superposition.Model.WorkspaceResponse (
     allow_experiment_self_approval,
     auto_populate_control,
     enable_context_validation,
-    enable_change_reason_validation
+    enable_change_reason_validation,
+    workspace_lock
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad.State.Strict
@@ -48,6 +50,7 @@ import qualified Data.Text
 import qualified Data.Time
 import qualified GHC.Generics
 import qualified GHC.Show
+import qualified Io.Superposition.Model.WorkspaceLock
 import qualified Io.Superposition.Model.WorkspaceStatus
 import qualified Io.Superposition.Utility
 
@@ -68,7 +71,8 @@ data WorkspaceResponse = WorkspaceResponse {
     allow_experiment_self_approval :: Bool,
     auto_populate_control :: Bool,
     enable_context_validation :: Bool,
-    enable_change_reason_validation :: Bool
+    enable_change_reason_validation :: Bool,
+    workspace_lock :: Data.Maybe.Maybe Io.Superposition.Model.WorkspaceLock.WorkspaceLock
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -93,7 +97,8 @@ instance Data.Aeson.ToJSON WorkspaceResponse where
         "allow_experiment_self_approval" Data.Aeson..= allow_experiment_self_approval a,
         "auto_populate_control" Data.Aeson..= auto_populate_control a,
         "enable_context_validation" Data.Aeson..= enable_context_validation a,
-        "enable_change_reason_validation" Data.Aeson..= enable_change_reason_validation a
+        "enable_change_reason_validation" Data.Aeson..= enable_change_reason_validation a,
+        "workspace_lock" Data.Aeson..= workspace_lock a
         ]
     
 
@@ -118,6 +123,7 @@ instance Data.Aeson.FromJSON WorkspaceResponse where
         Control.Applicative.<*> (v Data.Aeson..: "auto_populate_control")
         Control.Applicative.<*> (v Data.Aeson..: "enable_context_validation")
         Control.Applicative.<*> (v Data.Aeson..: "enable_change_reason_validation")
+        Control.Applicative.<*> (v Data.Aeson..:? "workspace_lock")
     
 
 
@@ -139,7 +145,8 @@ data WorkspaceResponseBuilderState = WorkspaceResponseBuilderState {
     allow_experiment_self_approvalBuilderState :: Data.Maybe.Maybe Bool,
     auto_populate_controlBuilderState :: Data.Maybe.Maybe Bool,
     enable_context_validationBuilderState :: Data.Maybe.Maybe Bool,
-    enable_change_reason_validationBuilderState :: Data.Maybe.Maybe Bool
+    enable_change_reason_validationBuilderState :: Data.Maybe.Maybe Bool,
+    workspace_lockBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.WorkspaceLock.WorkspaceLock
 } deriving (
   GHC.Generics.Generic
   )
@@ -162,7 +169,8 @@ defaultBuilderState = WorkspaceResponseBuilderState {
     allow_experiment_self_approvalBuilderState = Data.Maybe.Nothing,
     auto_populate_controlBuilderState = Data.Maybe.Nothing,
     enable_context_validationBuilderState = Data.Maybe.Nothing,
-    enable_change_reason_validationBuilderState = Data.Maybe.Nothing
+    enable_change_reason_validationBuilderState = Data.Maybe.Nothing,
+    workspace_lockBuilderState = Data.Maybe.Nothing
 }
 
 type WorkspaceResponseBuilder = Control.Monad.State.Strict.State WorkspaceResponseBuilderState
@@ -235,6 +243,10 @@ setEnableChangeReasonValidation :: Bool -> WorkspaceResponseBuilder ()
 setEnableChangeReasonValidation value =
    Control.Monad.State.Strict.modify (\s -> (s { enable_change_reason_validationBuilderState = Data.Maybe.Just value }))
 
+setWorkspaceLock :: Data.Maybe.Maybe Io.Superposition.Model.WorkspaceLock.WorkspaceLock -> WorkspaceResponseBuilder ()
+setWorkspaceLock value =
+   Control.Monad.State.Strict.modify (\s -> (s { workspace_lockBuilderState = value }))
+
 build :: WorkspaceResponseBuilder () -> Data.Either.Either Data.Text.Text WorkspaceResponse
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
@@ -255,6 +267,7 @@ build builder = do
     auto_populate_control' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.WorkspaceResponse.WorkspaceResponse.auto_populate_control is a required property.") Data.Either.Right (auto_populate_controlBuilderState st)
     enable_context_validation' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.WorkspaceResponse.WorkspaceResponse.enable_context_validation is a required property.") Data.Either.Right (enable_context_validationBuilderState st)
     enable_change_reason_validation' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.WorkspaceResponse.WorkspaceResponse.enable_change_reason_validation is a required property.") Data.Either.Right (enable_change_reason_validationBuilderState st)
+    workspace_lock' <- Data.Either.Right (workspace_lockBuilderState st)
     Data.Either.Right (WorkspaceResponse { 
         workspace_name = workspace_name',
         organisation_id = organisation_id',
@@ -272,7 +285,8 @@ build builder = do
         allow_experiment_self_approval = allow_experiment_self_approval',
         auto_populate_control = auto_populate_control',
         enable_context_validation = enable_context_validation',
-        enable_change_reason_validation = enable_change_reason_validation'
+        enable_change_reason_validation = enable_change_reason_validation',
+        workspace_lock = workspace_lock'
     })
 
 

@@ -107,6 +107,7 @@ from .models import (
     ValidateContextOutput,
     WebhookFailed,
     WeightRecomputeOutput,
+    WorkspaceLockConflict,
 )
 
 
@@ -280,6 +281,9 @@ async def _deserialize_error_create_default_config(http_response: HTTPResponse, 
 
         case "webhookfailed":
             return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
+
+        case "workspacelockconflict":
+            return await _deserialize_error_workspace_lock_conflict(http_response, config, parsed_body, message)
 
         case _:
             return UnknownApiError(f"{code}: {message}")
@@ -584,6 +588,9 @@ async def _deserialize_error_delete_default_config(http_response: HTTPResponse, 
 
         case "webhookfailed":
             return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
+
+        case "workspacelockconflict":
+            return await _deserialize_error_workspace_lock_conflict(http_response, config, parsed_body, message)
 
         case _:
             return UnknownApiError(f"{code}: {message}")
@@ -2197,6 +2204,9 @@ async def _deserialize_error_update_default_config(http_response: HTTPResponse, 
         case "webhookfailed":
             return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
 
+        case "workspacelockconflict":
+            return await _deserialize_error_workspace_lock_conflict(http_response, config, parsed_body, message)
+
         case _:
             return UnknownApiError(f"{code}: {message}")
 
@@ -2614,3 +2624,24 @@ async def _deserialize_error_webhook_failed(
         kwargs.update(body_kwargs)
 
     return WebhookFailed(**kwargs)
+
+async def _deserialize_error_workspace_lock_conflict(
+    http_response: HTTPResponse,
+    config: Config,
+    parsed_body: dict[str, DocumentValue] | None,
+    default_message: str,
+) -> WorkspaceLockConflict:
+    kwargs: dict[str, Any] = {"message": default_message}
+
+    if parsed_body is None:
+        body = await http_response.consume_body_async()
+    else:
+        body = json.dumps(parsed_body).encode('utf-8')
+
+    if body:
+        codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+        deserializer = codec.create_deserializer(body)
+        body_kwargs = WorkspaceLockConflict.deserialize_kwargs(deserializer)
+        kwargs.update(body_kwargs)
+
+    return WorkspaceLockConflict(**kwargs)

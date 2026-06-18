@@ -195,6 +195,8 @@ builder
 pub enum CreateDefaultConfigError {
     /// Indicates that the operation succeeded but the webhook call failed. The response body contains the successful result, but the client should be aware that webhook notification did not complete.
     WebhookFailed(crate::types::error::WebhookFailed),
+    /// Returned when a workspace write operation cannot proceed because another write operation currently holds the workspace lock.
+    WorkspaceLockConflict(crate::types::error::WorkspaceLockConflict),
     #[allow(missing_docs)] // documentation missing in model
     InternalServerError(crate::types::error::InternalServerError),
     /// An unexpected error occurred (e.g., invalid JSON returned by the service or an unknown error code).
@@ -223,6 +225,7 @@ impl CreateDefaultConfigError {
     pub fn meta(&self) -> &::aws_smithy_types::error::ErrorMetadata {
         match self {
             Self::WebhookFailed(e) => ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(e),
+            Self::WorkspaceLockConflict(e) => ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(e),
             Self::InternalServerError(e) => ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(e),
             Self::Unhandled(e) => &e.meta,
         }
@@ -230,6 +233,10 @@ impl CreateDefaultConfigError {
     /// Returns `true` if the error kind is `CreateDefaultConfigError::WebhookFailed`.
     pub fn is_webhook_failed(&self) -> bool {
         matches!(self, Self::WebhookFailed(_))
+    }
+    /// Returns `true` if the error kind is `CreateDefaultConfigError::WorkspaceLockConflict`.
+    pub fn is_workspace_lock_conflict(&self) -> bool {
+        matches!(self, Self::WorkspaceLockConflict(_))
     }
     /// Returns `true` if the error kind is `CreateDefaultConfigError::InternalServerError`.
     pub fn is_internal_server_error(&self) -> bool {
@@ -240,6 +247,9 @@ impl ::std::error::Error for CreateDefaultConfigError {
     fn source(&self) -> ::std::option::Option<&(dyn ::std::error::Error + 'static)> {
         match self {
             Self::WebhookFailed(_inner) =>
+            ::std::option::Option::Some(_inner)
+            ,
+            Self::WorkspaceLockConflict(_inner) =>
             ::std::option::Option::Some(_inner)
             ,
             Self::InternalServerError(_inner) =>
@@ -255,6 +265,9 @@ impl ::std::fmt::Display for CreateDefaultConfigError {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
         match self {
             Self::WebhookFailed(_inner) =>
+            _inner.fmt(f)
+            ,
+            Self::WorkspaceLockConflict(_inner) =>
             _inner.fmt(f)
             ,
             Self::InternalServerError(_inner) =>
@@ -282,6 +295,9 @@ impl ::aws_smithy_types::error::metadata::ProvideErrorMetadata for CreateDefault
     fn meta(&self) -> &::aws_smithy_types::error::ErrorMetadata {
         match self {
             Self::WebhookFailed(_inner) =>
+            ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(_inner)
+            ,
+            Self::WorkspaceLockConflict(_inner) =>
             ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(_inner)
             ,
             Self::InternalServerError(_inner) =>

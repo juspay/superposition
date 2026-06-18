@@ -16,6 +16,7 @@ module Io.Superposition.Model.CreateWorkspaceOutput (
     setAutoPopulateControl,
     setEnableContextValidation,
     setEnableChangeReasonValidation,
+    setWorkspaceLock,
     build,
     CreateWorkspaceOutputBuilder,
     CreateWorkspaceOutput,
@@ -35,7 +36,8 @@ module Io.Superposition.Model.CreateWorkspaceOutput (
     allow_experiment_self_approval,
     auto_populate_control,
     enable_context_validation,
-    enable_change_reason_validation
+    enable_change_reason_validation,
+    workspace_lock
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad.State.Strict
@@ -48,6 +50,7 @@ import qualified Data.Text
 import qualified Data.Time
 import qualified GHC.Generics
 import qualified GHC.Show
+import qualified Io.Superposition.Model.WorkspaceLock
 import qualified Io.Superposition.Model.WorkspaceStatus
 import qualified Io.Superposition.Utility
 import qualified Network.HTTP.Types
@@ -69,7 +72,8 @@ data CreateWorkspaceOutput = CreateWorkspaceOutput {
     allow_experiment_self_approval :: Bool,
     auto_populate_control :: Bool,
     enable_context_validation :: Bool,
-    enable_change_reason_validation :: Bool
+    enable_change_reason_validation :: Bool,
+    workspace_lock :: Data.Maybe.Maybe Io.Superposition.Model.WorkspaceLock.WorkspaceLock
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -94,7 +98,8 @@ instance Data.Aeson.ToJSON CreateWorkspaceOutput where
         "allow_experiment_self_approval" Data.Aeson..= allow_experiment_self_approval a,
         "auto_populate_control" Data.Aeson..= auto_populate_control a,
         "enable_context_validation" Data.Aeson..= enable_context_validation a,
-        "enable_change_reason_validation" Data.Aeson..= enable_change_reason_validation a
+        "enable_change_reason_validation" Data.Aeson..= enable_change_reason_validation a,
+        "workspace_lock" Data.Aeson..= workspace_lock a
         ]
     
 
@@ -119,6 +124,7 @@ instance Data.Aeson.FromJSON CreateWorkspaceOutput where
         Control.Applicative.<*> (v Data.Aeson..: "auto_populate_control")
         Control.Applicative.<*> (v Data.Aeson..: "enable_context_validation")
         Control.Applicative.<*> (v Data.Aeson..: "enable_change_reason_validation")
+        Control.Applicative.<*> (v Data.Aeson..:? "workspace_lock")
     
 
 
@@ -140,7 +146,8 @@ data CreateWorkspaceOutputBuilderState = CreateWorkspaceOutputBuilderState {
     allow_experiment_self_approvalBuilderState :: Data.Maybe.Maybe Bool,
     auto_populate_controlBuilderState :: Data.Maybe.Maybe Bool,
     enable_context_validationBuilderState :: Data.Maybe.Maybe Bool,
-    enable_change_reason_validationBuilderState :: Data.Maybe.Maybe Bool
+    enable_change_reason_validationBuilderState :: Data.Maybe.Maybe Bool,
+    workspace_lockBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.WorkspaceLock.WorkspaceLock
 } deriving (
   GHC.Generics.Generic
   )
@@ -163,7 +170,8 @@ defaultBuilderState = CreateWorkspaceOutputBuilderState {
     allow_experiment_self_approvalBuilderState = Data.Maybe.Nothing,
     auto_populate_controlBuilderState = Data.Maybe.Nothing,
     enable_context_validationBuilderState = Data.Maybe.Nothing,
-    enable_change_reason_validationBuilderState = Data.Maybe.Nothing
+    enable_change_reason_validationBuilderState = Data.Maybe.Nothing,
+    workspace_lockBuilderState = Data.Maybe.Nothing
 }
 
 type CreateWorkspaceOutputBuilder = Control.Monad.State.Strict.State CreateWorkspaceOutputBuilderState
@@ -236,6 +244,10 @@ setEnableChangeReasonValidation :: Bool -> CreateWorkspaceOutputBuilder ()
 setEnableChangeReasonValidation value =
    Control.Monad.State.Strict.modify (\s -> (s { enable_change_reason_validationBuilderState = Data.Maybe.Just value }))
 
+setWorkspaceLock :: Data.Maybe.Maybe Io.Superposition.Model.WorkspaceLock.WorkspaceLock -> CreateWorkspaceOutputBuilder ()
+setWorkspaceLock value =
+   Control.Monad.State.Strict.modify (\s -> (s { workspace_lockBuilderState = value }))
+
 build :: CreateWorkspaceOutputBuilder () -> Data.Either.Either Data.Text.Text CreateWorkspaceOutput
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
@@ -256,6 +268,7 @@ build builder = do
     auto_populate_control' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateWorkspaceOutput.CreateWorkspaceOutput.auto_populate_control is a required property.") Data.Either.Right (auto_populate_controlBuilderState st)
     enable_context_validation' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateWorkspaceOutput.CreateWorkspaceOutput.enable_context_validation is a required property.") Data.Either.Right (enable_context_validationBuilderState st)
     enable_change_reason_validation' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateWorkspaceOutput.CreateWorkspaceOutput.enable_change_reason_validation is a required property.") Data.Either.Right (enable_change_reason_validationBuilderState st)
+    workspace_lock' <- Data.Either.Right (workspace_lockBuilderState st)
     Data.Either.Right (CreateWorkspaceOutput { 
         workspace_name = workspace_name',
         organisation_id = organisation_id',
@@ -273,7 +286,8 @@ build builder = do
         allow_experiment_self_approval = allow_experiment_self_approval',
         auto_populate_control = auto_populate_control',
         enable_context_validation = enable_context_validation',
-        enable_change_reason_validation = enable_change_reason_validation'
+        enable_change_reason_validation = enable_change_reason_validation',
+        workspace_lock = workspace_lock'
     })
 
 
@@ -298,6 +312,7 @@ instance Io.Superposition.Utility.FromResponseParser CreateWorkspaceOutput where
         var14 <- Io.Superposition.Utility.deSerField "workspace_schema_name"
         var15 <- Io.Superposition.Utility.deSerField "metrics"
         var16 <- Io.Superposition.Utility.deSerField "workspace_name"
+        var17 <- Io.Superposition.Utility.deSerField "workspace_lock"
         pure $ CreateWorkspaceOutput {
             workspace_name = var16,
             organisation_id = var12,
@@ -315,6 +330,7 @@ instance Io.Superposition.Utility.FromResponseParser CreateWorkspaceOutput where
             allow_experiment_self_approval = var13,
             auto_populate_control = var1,
             enable_context_validation = var2,
-            enable_change_reason_validation = var9
+            enable_change_reason_validation = var9,
+            workspace_lock = var17
         }
 

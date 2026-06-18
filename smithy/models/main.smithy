@@ -97,6 +97,17 @@ structure WebhookFailed {
     data: Document
 }
 
+@documentation("Returned when a workspace write operation cannot proceed because another write operation currently holds the workspace lock.")
+@httpError(409)
+@error("client")
+structure WorkspaceLockConflict {
+    @required
+    message: String
+
+    @required
+    lock: WorkspaceLock
+}
+
 @mixin
 operation GetOperation {
     errors: [
@@ -108,6 +119,13 @@ operation GetOperation {
 operation WebhookOperation {
     errors: [
         WebhookFailed
+    ]
+}
+
+@mixin
+operation WorkspaceWriteOperation {
+    errors: [
+        WorkspaceLockConflict
     ]
 }
 

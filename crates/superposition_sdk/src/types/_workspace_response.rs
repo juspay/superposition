@@ -37,6 +37,8 @@ pub struct WorkspaceResponse  {
     pub enable_context_validation: bool,
     #[allow(missing_docs)] // documentation missing in model
     pub enable_change_reason_validation: bool,
+    /// Metadata for an active workspace write lock. Present only while another write operation is holding the workspace lease.
+    pub workspace_lock: ::std::option::Option<crate::types::WorkspaceLock>,
 }
 impl  WorkspaceResponse  {
     #[allow(missing_docs)] // documentation missing in model
@@ -110,6 +112,10 @@ impl  WorkspaceResponse  {
     pub fn enable_change_reason_validation(&self) -> bool {
         self.enable_change_reason_validation
     }
+    /// Metadata for an active workspace write lock. Present only while another write operation is holding the workspace lease.
+    pub fn workspace_lock(&self) -> ::std::option::Option<&crate::types::WorkspaceLock> {
+        self.workspace_lock.as_ref()
+    }
 }
 impl WorkspaceResponse {
     /// Creates a new builder-style object to manufacture [`WorkspaceResponse`](crate::types::WorkspaceResponse).
@@ -139,6 +145,7 @@ pub struct WorkspaceResponseBuilder {
     pub(crate) auto_populate_control: ::std::option::Option<bool>,
     pub(crate) enable_context_validation: ::std::option::Option<bool>,
     pub(crate) enable_change_reason_validation: ::std::option::Option<bool>,
+    pub(crate) workspace_lock: ::std::option::Option<crate::types::WorkspaceLock>,
 }
 impl WorkspaceResponseBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -382,6 +389,19 @@ impl WorkspaceResponseBuilder {
     pub fn get_enable_change_reason_validation(&self) -> &::std::option::Option<bool> {
         &self.enable_change_reason_validation
     }
+    /// Metadata for an active workspace write lock. Present only while another write operation is holding the workspace lease.
+    pub fn workspace_lock(mut self, input: crate::types::WorkspaceLock) -> Self {
+        self.workspace_lock = ::std::option::Option::Some(input);
+        self
+    }
+    /// Metadata for an active workspace write lock. Present only while another write operation is holding the workspace lease.
+    pub fn set_workspace_lock(mut self, input: ::std::option::Option<crate::types::WorkspaceLock>) -> Self {
+        self.workspace_lock = input; self
+    }
+    /// Metadata for an active workspace write lock. Present only while another write operation is holding the workspace lease.
+    pub fn get_workspace_lock(&self) -> &::std::option::Option<crate::types::WorkspaceLock> {
+        &self.workspace_lock
+    }
     /// Consumes the builder and constructs a [`WorkspaceResponse`](crate::types::WorkspaceResponse).
     /// This method will fail if any of the following fields are not set:
     /// - [`workspace_name`](crate::types::builders::WorkspaceResponseBuilder::workspace_name)
@@ -480,6 +500,8 @@ impl WorkspaceResponseBuilder {
                     .ok_or_else(||
                         ::aws_smithy_types::error::operation::BuildError::missing_field("enable_change_reason_validation", "enable_change_reason_validation was not specified but it is required when building WorkspaceResponse")
                     )?
+                ,
+                workspace_lock: self.workspace_lock
                 ,
             }
         )
