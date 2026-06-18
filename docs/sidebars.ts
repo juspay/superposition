@@ -29,6 +29,29 @@ const sidebars: SidebarsConfig = {
         },
         {
             type: "category",
+            label: "Self-Hosting",
+            items: [
+                {
+                    type: "doc",
+                    id: "deployment",
+                    label: "Overview",
+                },
+                {
+                    type: "doc",
+                    id: "self-hosting/environment-variables",
+                },
+                {
+                    type: "doc",
+                    id: "self-hosting/production",
+                },
+                {
+                    type: "doc",
+                    id: "self-hosting/kubernetes",
+                },
+            ],
+        },
+        {
+            type: "category",
             label: "Basic Concepts",
             items: [
                 {
