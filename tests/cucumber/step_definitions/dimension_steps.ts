@@ -96,7 +96,7 @@ When(
 
 When(
   "I get dimension {string}",
-  async function (this: SuperpositionWorld, name: string) {
+  async function (this: SuperpositionWorld, _name: string) {
     try {
       this.lastResponse = await this.client.send(
         new GetDimensionCommand({
@@ -131,7 +131,7 @@ When("I list all dimensions", async function (this: SuperpositionWorld) {
 
 When(
   "I update dimension {string} description to {string}",
-  async function (this: SuperpositionWorld, name: string, description: string) {
+  async function (this: SuperpositionWorld, _name: string, description: string) {
     try {
       this.lastResponse = await this.client.send(
         new UpdateDimensionCommand({
@@ -152,7 +152,7 @@ When(
 
 When(
   "I delete dimension {string}",
-  async function (this: SuperpositionWorld, name: string) {
+  async function (this: SuperpositionWorld, _name: string) {
     try {
       this.lastResponse = await this.client.send(
         new DeleteDimensionCommand({
@@ -177,7 +177,7 @@ When(
 
 Then(
   "the response should have dimension name {string}",
-  function (this: SuperpositionWorld, name: string) {
+  function (this: SuperpositionWorld, _name: string) {
     assert.ok(this.lastResponse, "No response");
     assert.strictEqual(this.lastResponse.dimension, this.dimensionName);
   }
@@ -185,7 +185,7 @@ Then(
 
 Then(
   "the list should contain dimension {string}",
-  function (this: SuperpositionWorld, name: string) {
+  function (this: SuperpositionWorld, _name: string) {
     const data = this.lastResponse?.data;
     assert.ok(Array.isArray(data), "No list data");
     const found = data.find((d: any) => d.dimension === this.dimensionName);

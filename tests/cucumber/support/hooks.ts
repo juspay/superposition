@@ -1,4 +1,5 @@
 import { Before, After, BeforeAll, AfterAll } from "@cucumber/cucumber";
+import * as fs from "node:fs";
 import {
   CreateOrganisationCommand,
   ListOrganisationCommand,
@@ -26,6 +27,8 @@ let sharedOrgId: string = "";
 let sharedWorkspaceId: string = "";
 
 BeforeAll(async function () {
+  fs.mkdirSync("reports", { recursive: true });
+
   // Create a temporary client for setup
   const { SuperpositionClient } = await import("@juspay/superposition-sdk");
   const client = new SuperpositionClient({

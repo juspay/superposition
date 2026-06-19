@@ -18,12 +18,6 @@ import {
 import { SuperpositionWorld } from "../support/world.ts";
 import * as assert from "node:assert";
 
-// Track group-specific experiment IDs
-let validExpId: string;
-let validExp2Id: string;
-let inProgressExpId: string;
-let conflictingContextExpId: string;
-
 const groupContext = { os: "ios", clientId: "groupClient" };
 
 // ── Given ───────────────────────────────────────────────────────────
@@ -106,8 +100,8 @@ Given(
         change_reason: "Cucumber setup",
       })
     );
-    validExpId = exp1.id!;
-    this.createdExperimentIds.push(validExpId);
+    this.groupExpIds.valid = exp1.id!;
+    this.createdExperimentIds.push(this.groupExpIds.valid);
 
     // Valid experiment 2 (superset context)
     const exp2 = await this.client.send(
@@ -121,8 +115,8 @@ Given(
         change_reason: "Cucumber setup",
       })
     );
-    validExp2Id = exp2.id!;
-    this.createdExperimentIds.push(validExp2Id);
+    this.groupExpIds.valid2 = exp2.id!;
+    this.createdExperimentIds.push(this.groupExpIds.valid2);
 
     // In-progress experiment
     const exp3 = await this.client.send(
@@ -136,13 +130,13 @@ Given(
         change_reason: "Cucumber setup",
       })
     );
-    inProgressExpId = exp3.id!;
-    this.createdExperimentIds.push(inProgressExpId);
+    this.groupExpIds.inProgress = exp3.id!;
+    this.createdExperimentIds.push(this.groupExpIds.inProgress);
     await this.client.send(
       new RampExperimentCommand({
         workspace_id: this.workspaceId,
         org_id: this.orgId,
-        id: inProgressExpId,
+        id: this.groupExpIds.inProgress,
         traffic_percentage: 50,
         change_reason: "Ramp for test",
       })
@@ -160,8 +154,8 @@ Given(
         change_reason: "Cucumber setup",
       })
     );
-    conflictingContextExpId = exp4.id!;
-    this.createdExperimentIds.push(conflictingContextExpId);
+    this.groupExpIds.conflicting = exp4.id!;
+    this.createdExperimentIds.push(this.groupExpIds.conflicting);
   }
 );
 
@@ -217,7 +211,7 @@ Given(
         change_reason: "Cucumber setup",
         context: groupContext,
         traffic_percentage: 100,
-        member_experiment_ids: [validExpId],
+        member_experiment_ids: [this.groupExpIds.valid],
       })
     );
     this.experimentGroupId = response.id!;
@@ -239,7 +233,7 @@ When(
           change_reason: "Cucumber test",
           context: groupContext,
           traffic_percentage: 100,
-          member_experiment_ids: [validExp2Id],
+          member_experiment_ids: [this.groupExpIds.valid2],
         })
       );
       this.experimentGroupId = this.lastResponse.id!;
@@ -289,7 +283,7 @@ When(
           change_reason: "Test",
           context: groupContext,
           traffic_percentage: 100,
-          member_experiment_ids: [validExpId, inProgressExpId],
+          member_experiment_ids: [this.groupExpIds.valid, this.groupExpIds.inProgress],
         })
       );
       this.lastError = undefined;
@@ -313,7 +307,7 @@ When(
           change_reason: "Test",
           context: groupContext,
           traffic_percentage: 100,
-          member_experiment_ids: [validExpId, conflictingContextExpId],
+          member_experiment_ids: [this.groupExpIds.valid, this.groupExpIds.conflicting],
         })
       );
       this.lastError = undefined;
@@ -458,7 +452,7 @@ When(
           workspace_id: this.workspaceId,
           org_id: this.orgId,
           id: this.experimentGroupId,
-          member_experiment_ids: [validExp2Id],
+          member_experiment_ids: [this.groupExpIds.valid2],
           change_reason: "Cucumber add member",
         })
       );
@@ -479,7 +473,7 @@ When(
           workspace_id: this.workspaceId,
           org_id: this.orgId,
           id: this.experimentGroupId,
-          member_experiment_ids: [validExpId],
+          member_experiment_ids: [this.groupExpIds.valid],
           change_reason: "Cucumber remove member",
         })
       );
@@ -500,7 +494,7 @@ When(
           workspace_id: this.workspaceId,
           org_id: this.orgId,
           id: this.experimentGroupId,
-          member_experiment_ids: [inProgressExpId],
+          member_experiment_ids: [this.groupExpIds.inProgress],
           change_reason: "Cucumber add invalid",
         })
       );
@@ -631,7 +625,7 @@ Then(
   function (this: SuperpositionWorld) {
     assert.ok(this.lastResponse, "No response");
     assert.ok(
-      this.lastResponse.member_experiment_ids?.includes(validExp2Id),
+      this.lastResponse.member_experiment_ids?.includes(this.groupExpIds.valid2),
       "Added experiment not found in member list"
     );
   }
@@ -642,7 +636,7 @@ Then(
   function (this: SuperpositionWorld) {
     assert.ok(this.lastResponse, "No response");
     assert.ok(
-      !this.lastResponse.member_experiment_ids?.includes(validExpId),
+      !this.lastResponse.member_experiment_ids?.includes(this.groupExpIds.valid),
       "Removed experiment still in member list"
     );
   }

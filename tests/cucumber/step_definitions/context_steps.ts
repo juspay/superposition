@@ -329,7 +329,7 @@ Then(
 
 Then(
   "the response should include the override for {string}",
-  function (this: SuperpositionWorld, configKey: string) {
+  function (this: SuperpositionWorld, _configKey: string) {
     assert.ok(this.lastResponse, "No response");
     const override = this.lastResponse.override ?? this.lastResponse.r_override;
     assert.ok(override, "No override in response");
