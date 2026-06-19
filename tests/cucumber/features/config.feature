@@ -28,3 +28,17 @@ Feature: Configuration Retrieval and Versioning
   Scenario: List configuration versions
     When I list config versions with count 10 and page 1
     Then the operation should succeed
+
+  # ── GetConfigJson ──────────────────────────────────────────────────
+
+  Scenario: Get configuration in JSON format
+    When I get the config in JSON format
+    Then the operation should succeed
+    And the response should have a "json_config" property
+
+  # ── GetConfigToml ──────────────────────────────────────────────────
+
+  Scenario: Get configuration in TOML format
+    When I get the config in TOML format
+    Then the operation should succeed
+    And the response should have a "toml_config" property
