@@ -6,6 +6,8 @@ import {
   RampExperimentCommand,
   ConcludeExperimentCommand,
   DiscardExperimentCommand,
+  PauseExperimentCommand,
+  ResumeExperimentCommand,
   UpdateOverridesExperimentCommand,
   CreateDimensionCommand,
   CreateDefaultConfigCommand,
@@ -113,6 +115,46 @@ Given(
         id: this.experimentId,
         traffic_percentage: traffic,
         change_reason: "Cucumber ramp",
+      })
+    );
+  }
+);
+
+Given(
+  "an experiment exists and is ramped",
+  async function (this: SuperpositionWorld) {
+    await createExperiment(this, "exp-ramped", "os", "android");
+    await this.client.send(
+      new RampExperimentCommand({
+        workspace_id: this.workspaceId,
+        org_id: this.orgId,
+        id: this.experimentId,
+        traffic_percentage: 50,
+        change_reason: "Cucumber ramp for pause test",
+      })
+    );
+  }
+);
+
+Given(
+  "an experiment exists and is paused",
+  async function (this: SuperpositionWorld) {
+    await createExperiment(this, "exp-paused", "os", "android");
+    await this.client.send(
+      new RampExperimentCommand({
+        workspace_id: this.workspaceId,
+        org_id: this.orgId,
+        id: this.experimentId,
+        traffic_percentage: 50,
+        change_reason: "Cucumber ramp for pause test",
+      })
+    );
+    await this.client.send(
+      new PauseExperimentCommand({
+        workspace_id: this.workspaceId,
+        org_id: this.orgId,
+        id: this.experimentId,
+        change_reason: "Cucumber pause setup",
       })
     );
   }
@@ -284,6 +326,40 @@ When(
     }
   }
 );
+
+When("I pause the experiment", async function (this: SuperpositionWorld) {
+  try {
+    this.lastResponse = await this.client.send(
+      new PauseExperimentCommand({
+        workspace_id: this.workspaceId,
+        org_id: this.orgId,
+        id: this.experimentId,
+        change_reason: "Cucumber pause test",
+      })
+    );
+    this.lastError = undefined;
+  } catch (e: any) {
+    this.lastError = e;
+    this.lastResponse = undefined;
+  }
+});
+
+When("I resume the experiment", async function (this: SuperpositionWorld) {
+  try {
+    this.lastResponse = await this.client.send(
+      new ResumeExperimentCommand({
+        workspace_id: this.workspaceId,
+        org_id: this.orgId,
+        id: this.experimentId,
+        change_reason: "Cucumber resume test",
+      })
+    );
+    this.lastError = undefined;
+  } catch (e: any) {
+    this.lastError = e;
+    this.lastResponse = undefined;
+  }
+});
 
 When("I discard the experiment", async function (this: SuperpositionWorld) {
   try {

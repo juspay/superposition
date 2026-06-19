@@ -67,3 +67,15 @@ Feature: Experiment Management
     Given an experiment "exp-discard-prog" exists and is ramped to 50 percent
     When I discard the experiment
     Then the experiment status should be "DISCARDED"
+
+  # ── Pause / Resume ────────────────────────────────────────────────
+
+  Scenario: Pause an active experiment
+    Given an experiment exists and is ramped
+    When I pause the experiment
+    Then the operation should succeed
+
+  Scenario: Resume a paused experiment
+    Given an experiment exists and is paused
+    When I resume the experiment
+    Then the operation should succeed

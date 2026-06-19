@@ -1,5 +1,5 @@
 import { World, setWorldConstructor, setDefaultTimeout } from "@cucumber/cucumber";
-import { Browser, BrowserContext, Page } from "playwright";
+import type { Browser, BrowserContext, Page } from "playwright";
 import { SuperpositionClient } from "@juspay/superposition-sdk";
 
 // UI tests need more time for page loads, animations, etc.
@@ -71,6 +71,10 @@ export class PlaywrightWorld extends World {
   // ── Secret state ──────────────────────────────────────────────────
   public secretName: string = "";
   public createdSecrets: string[] = [];
+
+  // ── Webhook state ──────────────────────────────────────────────────
+  public webhookName: string = "";
+  public createdWebhooks: string[] = [];
 
   // ── Type template state ───────────────────────────────────────────
   public typeTemplateName: string = "";
