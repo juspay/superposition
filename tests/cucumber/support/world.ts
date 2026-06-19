@@ -64,6 +64,10 @@ export class SuperpositionWorld extends World {
   public secretName: string = "";
   public createdSecrets: string[] = [];
 
+  // Webhook state
+  public webhookName: string = "";
+  public createdWebhooks: string[] = [];
+
   // Type template state
   public typeTemplateName: string = "";
   public createdTypeTemplates: string[] = [];
