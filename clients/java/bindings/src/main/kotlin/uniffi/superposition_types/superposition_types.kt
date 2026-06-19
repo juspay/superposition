@@ -1179,7 +1179,14 @@ data class DimensionInfo (
     var `position`: kotlin.Int, 
     var `dimensionType`: DimensionType, 
     var `dependencyGraph`: DependencyGraph, 
-    var `valueComputeFunctionName`: kotlin.String?
+    var `valueComputeFunctionName`: kotlin.String?, 
+    /**
+     * Human-readable description of the dimension. Carried through the
+     * detailed (import/export) flow; intentionally not part of the config
+     * resolution response, so it is skipped during serialization and
+     * defaults to empty when absent.
+     */
+    var `description`: kotlin.String
 ) {
     
     companion object
@@ -1196,6 +1203,7 @@ public object FfiConverterTypeDimensionInfo: FfiConverterRustBuffer<DimensionInf
             FfiConverterTypeDimensionType.read(buf),
             FfiConverterTypeDependencyGraph.read(buf),
             FfiConverterOptionalString.read(buf),
+            FfiConverterString.read(buf),
         )
     }
 
@@ -1204,7 +1212,8 @@ public object FfiConverterTypeDimensionInfo: FfiConverterRustBuffer<DimensionInf
             FfiConverterInt.allocationSize(value.`position`) +
             FfiConverterTypeDimensionType.allocationSize(value.`dimensionType`) +
             FfiConverterTypeDependencyGraph.allocationSize(value.`dependencyGraph`) +
-            FfiConverterOptionalString.allocationSize(value.`valueComputeFunctionName`)
+            FfiConverterOptionalString.allocationSize(value.`valueComputeFunctionName`) +
+            FfiConverterString.allocationSize(value.`description`)
     )
 
     override fun write(value: DimensionInfo, buf: ByteBuffer) {
@@ -1213,6 +1222,7 @@ public object FfiConverterTypeDimensionInfo: FfiConverterRustBuffer<DimensionInf
             FfiConverterTypeDimensionType.write(value.`dimensionType`, buf)
             FfiConverterTypeDependencyGraph.write(value.`dependencyGraph`, buf)
             FfiConverterOptionalString.write(value.`valueComputeFunctionName`, buf)
+            FfiConverterString.write(value.`description`, buf)
     }
 }
 

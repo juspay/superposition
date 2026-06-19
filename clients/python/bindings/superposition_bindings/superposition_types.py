@@ -1039,15 +1039,24 @@ class DimensionInfo:
     dimension_type: "DimensionType"
     dependency_graph: "DependencyGraph"
     value_compute_function_name: "typing.Optional[str]"
-    def __init__(self, *, schema: "ExtendedMap", position: "int", dimension_type: "DimensionType", dependency_graph: "DependencyGraph", value_compute_function_name: "typing.Optional[str]"):
+    description: "str"
+    """
+    Human-readable description of the dimension. Carried through the
+    detailed (import/export) flow; intentionally not part of the config
+    resolution response, so it is skipped during serialization and
+    defaults to empty when absent.
+    """
+
+    def __init__(self, *, schema: "ExtendedMap", position: "int", dimension_type: "DimensionType", dependency_graph: "DependencyGraph", value_compute_function_name: "typing.Optional[str]", description: "str"):
         self.schema = schema
         self.position = position
         self.dimension_type = dimension_type
         self.dependency_graph = dependency_graph
         self.value_compute_function_name = value_compute_function_name
+        self.description = description
 
     def __str__(self):
-        return "DimensionInfo(schema={}, position={}, dimension_type={}, dependency_graph={}, value_compute_function_name={})".format(self.schema, self.position, self.dimension_type, self.dependency_graph, self.value_compute_function_name)
+        return "DimensionInfo(schema={}, position={}, dimension_type={}, dependency_graph={}, value_compute_function_name={}, description={})".format(self.schema, self.position, self.dimension_type, self.dependency_graph, self.value_compute_function_name, self.description)
 
     def __eq__(self, other):
         if self.schema != other.schema:
@@ -1060,6 +1069,8 @@ class DimensionInfo:
             return False
         if self.value_compute_function_name != other.value_compute_function_name:
             return False
+        if self.description != other.description:
+            return False
         return True
 
 class _UniffiConverterTypeDimensionInfo(_UniffiConverterRustBuffer):
@@ -1071,6 +1082,7 @@ class _UniffiConverterTypeDimensionInfo(_UniffiConverterRustBuffer):
             dimension_type=_UniffiConverterTypeDimensionType.read(buf),
             dependency_graph=_UniffiConverterTypeDependencyGraph.read(buf),
             value_compute_function_name=_UniffiConverterOptionalString.read(buf),
+            description=_UniffiConverterString.read(buf),
         )
 
     @staticmethod
@@ -1080,6 +1092,7 @@ class _UniffiConverterTypeDimensionInfo(_UniffiConverterRustBuffer):
         _UniffiConverterTypeDimensionType.check_lower(value.dimension_type)
         _UniffiConverterTypeDependencyGraph.check_lower(value.dependency_graph)
         _UniffiConverterOptionalString.check_lower(value.value_compute_function_name)
+        _UniffiConverterString.check_lower(value.description)
 
     @staticmethod
     def write(value, buf):
@@ -1088,6 +1101,7 @@ class _UniffiConverterTypeDimensionInfo(_UniffiConverterRustBuffer):
         _UniffiConverterTypeDimensionType.write(value.dimension_type, buf)
         _UniffiConverterTypeDependencyGraph.write(value.dependency_graph, buf)
         _UniffiConverterOptionalString.write(value.value_compute_function_name, buf)
+        _UniffiConverterString.write(value.description, buf)
 
 
 class Variant:

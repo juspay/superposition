@@ -93,6 +93,9 @@ impl ConversionUtils {
                     dependency_graph: DependencyGraph(dimension_info.dependency_graph),
                     value_compute_function_name: dimension_info
                         .value_compute_function_name,
+                    // Description is not part of the config resolution
+                    // response; runtime evaluation does not use it.
+                    description: String::new(),
                 };
                 Ok((key, dim_info))
             })

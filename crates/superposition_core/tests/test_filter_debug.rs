@@ -30,6 +30,7 @@ fn config_to_detailed(config: &Config) -> DetailedConfig {
                 DefaultConfigInfo {
                     value: value.clone(),
                     schema,
+                    description: key.clone(),
                 },
             )
         })

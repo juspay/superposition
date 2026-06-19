@@ -22,6 +22,10 @@ struct DimensionInfoJson {
     schema: Value,
     #[serde(rename = "type", default = "dim_type_default")]
     dimension_type: String,
+    /// Optional on parse (the dimension name is used as a fallback when
+    /// missing) and always present on export.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    description: Option<String>,
 }
 
 impl TryFrom<DimensionInfo> for DimensionInfoJson {
@@ -31,6 +35,7 @@ impl TryFrom<DimensionInfo> for DimensionInfoJson {
             position: d.position,
             schema: Value::from(&d.schema),
             dimension_type: d.dimension_type.to_string(),
+            description: Some(d.description),
         })
     }
 }
@@ -51,6 +56,7 @@ impl TryFrom<DimensionInfoJson> for DimensionInfo {
                 .map_err(JsonFormat::conversion_error)?,
             dependency_graph: DependencyGraph(HashMap::new()),
             value_compute_function_name: None,
+            description: d.description.unwrap_or_default(),
         })
     }
 }
@@ -85,11 +91,27 @@ impl TryFrom<JsonConfig> for DetailedConfig {
         let dimensions: HashMap<String, DimensionInfo> = json_config
             .dimensions
             .into_iter()
-            .map(|(k, v)| Ok((k, DimensionInfo::try_from(v)?)))
+            .map(|(k, v)| {
+                let mut dim_info = DimensionInfo::try_from(v)?;
+                // Fall back to the dimension name when the description is
+                // absent in the imported file.
+                if dim_info.description.trim().is_empty() {
+                    dim_info.description = k.clone();
+                }
+                Ok((k, dim_info))
+            })
             .collect::<Result<_, FormatError>>()?;
 
+        let mut default_configs = json_config.default_configs;
+        for (k, info) in default_configs.iter_mut() {
+            // Fall back to the key name when the description is absent.
+            if info.description.trim().is_empty() {
+                info.description = k.clone();
+            }
+        }
+
         JsonFormat::try_into_detailed(
-            json_config.default_configs,
+            default_configs,
             dimensions,
             json_config.overrides,
             |ctx| {
@@ -118,7 +140,15 @@ impl TryFrom<DetailedConfig> for JsonConfig {
         let dimensions: HashMap<String, DimensionInfoJson> = detailed_config
             .dimensions
             .iter()
-            .map(|(k, v)| Ok((k.clone(), DimensionInfoJson::try_from(v.clone())?)))
+            .map(|(k, v)| {
+                let mut dim = DimensionInfoJson::try_from(v.clone())?;
+                // Description is mandatory in the exported file; fall back to
+                // the dimension name when it is missing.
+                if dim.description.as_ref().is_none_or(|d| d.trim().is_empty()) {
+                    dim.description = Some(k.clone());
+                }
+                Ok((k.clone(), dim))
+            })
             .collect::<Result<_, FormatError>>()?;
 
         let overrides = detailed_config
@@ -146,8 +176,17 @@ impl TryFrom<DetailedConfig> for JsonConfig {
             })
             .collect();
 
+        let mut default_configs = detailed_config.default_configs;
+        for (k, info) in default_configs.iter_mut() {
+            // Description is mandatory in the exported file; fall back to the
+            // key name when it is missing.
+            if info.description.trim().is_empty() {
+                info.description = k.clone();
+            }
+        }
+
         Ok(Self {
-            default_configs: detailed_config.default_configs,
+            default_configs,
             dimensions,
             overrides,
         })

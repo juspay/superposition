@@ -34,6 +34,7 @@ fn config_to_detailed(config: &Config) -> DetailedConfig {
                 DefaultConfigInfo {
                     value: value.clone(),
                     schema,
+                    description: key.clone(),
                 },
             )
         })
@@ -84,6 +85,49 @@ fn test_json_round_trip() {
     assert_eq!(config.default_configs, reparsed.default_configs);
     assert_eq!(config.dimensions.len(), reparsed.dimensions.len());
     assert_eq!(config.contexts.len(), reparsed.contexts.len());
+}
+
+#[test]
+fn test_json_description_exported_and_falls_back_to_name() {
+    // `os` and `timeout` declare descriptions; `region` and `retries` don't.
+    let json_str = r#"{
+        "default-configs": {
+            "timeout": { "value": 30, "schema": { "type": "integer" }, "description": "request timeout" },
+            "retries": { "value": 3, "schema": { "type": "integer" } }
+        },
+        "dimensions": {
+            "os": { "position": 1, "schema": { "type": "string" }, "description": "operating system" },
+            "region": { "position": 2, "schema": { "type": "string" } }
+        },
+        "overrides": [
+            { "_context_": { "os": "linux" }, "timeout": 60 }
+        ]
+    }"#;
+
+    let detailed = JsonFormat::parse_into_detailed(json_str).unwrap();
+    assert_eq!(
+        detailed.dimensions.get("os").unwrap().description,
+        "operating system"
+    );
+    // Missing descriptions fall back to the name.
+    assert_eq!(
+        detailed.dimensions.get("region").unwrap().description,
+        "region"
+    );
+    assert_eq!(
+        detailed.default_configs.get("timeout").unwrap().description,
+        "request timeout"
+    );
+    assert_eq!(
+        detailed.default_configs.get("retries").unwrap().description,
+        "retries"
+    );
+
+    let serialized = JsonFormat::serialize(detailed).unwrap();
+    assert!(serialized.contains(r#""description": "operating system""#));
+    assert!(serialized.contains(r#""description": "region""#));
+    assert!(serialized.contains(r#""description": "request timeout""#));
+    assert!(serialized.contains(r#""description": "retries""#));
 }
 
 #[test]

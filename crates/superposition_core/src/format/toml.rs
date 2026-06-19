@@ -29,6 +29,10 @@ struct DimensionInfoToml {
     schema: toml::Table,
     #[serde(rename = "type", default = "dim_type_default")]
     dimension_type: String,
+    /// Optional on parse (the dimension name is used as a fallback when
+    /// missing) and always present on export.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    description: Option<String>,
 }
 
 fn dim_type_default() -> String {
@@ -48,6 +52,7 @@ impl TryFrom<DimensionInfo> for DimensionInfoToml {
             position: d.position,
             schema,
             dimension_type: d.dimension_type.to_string(),
+            description: Some(d.description),
         })
     }
 }
@@ -69,6 +74,7 @@ impl TryFrom<DimensionInfoToml> for DimensionInfo {
                 .map_err(TomlFormat::conversion_error)?,
             dependency_graph: DependencyGraph(HashMap::new()),
             value_compute_function_name: None,
+            description: d.description.unwrap_or_default(),
         })
     }
 }
@@ -115,7 +121,12 @@ impl DetailedConfigToml {
         let mut out = String::new();
         out.push_str("[default-configs]\n");
 
-        for (k, v) in default_configs.into_inner() {
+        for (k, mut v) in default_configs.into_inner() {
+            // Description is mandatory in the exported file; fall back to the
+            // key name when it is missing so importing remains lossless.
+            if v.description.trim().is_empty() {
+                v.description = k.clone();
+            }
             let v_toml = TomlValue::try_from(v).map_err(|e| {
                 TomlFormat::serialization_error(format!(
                     "Failed to serialize '{}': {}",
@@ -196,7 +207,16 @@ impl TryFrom<DetailedConfig> for DetailedConfigToml {
             dimensions: d
                 .dimensions
                 .into_iter()
-                .map(|(k, v)| DimensionInfoToml::try_from(v).map(|dim| (k, dim)))
+                .map(|(k, v)| {
+                    DimensionInfoToml::try_from(v).map(|mut dim| {
+                        // Description is mandatory in the exported file; fall
+                        // back to the dimension name when it is missing.
+                        if dim.description.as_ref().is_none_or(|d| d.trim().is_empty()) {
+                            dim.description = Some(k.clone());
+                        }
+                        (k, dim)
+                    })
+                })
                 .collect::<Result<BTreeMap<_, _>, _>>()?,
             overrides: d
                 .contexts
@@ -213,10 +233,27 @@ impl TryFrom<DetailedConfigToml> for DetailedConfig {
         let dimensions = d
             .dimensions
             .into_iter()
-            .map(|(k, v)| v.try_into().map(|dim_info| (k, dim_info)))
+            .map(|(k, v)| {
+                DimensionInfo::try_from(v).map(|mut dim_info| {
+                    // Fall back to the dimension name when the description is
+                    // absent in the imported file.
+                    if dim_info.description.trim().is_empty() {
+                        dim_info.description = k.clone();
+                    }
+                    (k, dim_info)
+                })
+            })
             .collect::<Result<HashMap<_, DimensionInfo>, FormatError>>()?;
 
-        TomlFormat::try_into_detailed(d.default_configs, dimensions, d.overrides, |ctx| {
+        let mut default_configs = d.default_configs;
+        for (k, info) in default_configs.iter_mut() {
+            // Fall back to the key name when the description is absent.
+            if info.description.trim().is_empty() {
+                info.description = k.clone();
+            }
+        }
+
+        TomlFormat::try_into_detailed(default_configs, dimensions, d.overrides, |ctx| {
             let condition = try_condition_from_toml(ctx.context)?;
             let override_vals = try_overrides_from_toml(ctx.overrides)?;
             Ok((condition, override_vals))
