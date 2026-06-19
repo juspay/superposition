@@ -109,7 +109,8 @@ When(
 
 When(
   "I list workspaces filtered by status {string}",
-  async function (this: SuperpositionWorld, status: string) {
+  async function (this: SuperpositionWorld, _status: string) {
+    // ListWorkspaceCommand does not yet support status filtering in the SDK
     try {
       this.lastResponse = await this.client.send(
         new ListWorkspaceCommand({

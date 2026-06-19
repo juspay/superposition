@@ -1,4 +1,5 @@
 import { Before, After, BeforeAll, AfterAll, Status } from "@cucumber/cucumber";
+import * as fs from "node:fs";
 import playwright from "playwright";
 import type { Browser } from "playwright";
 const { chromium } = playwright;
@@ -31,6 +32,8 @@ let sharedOrgId: string = "";
 let sharedWorkspaceId: string = "";
 
 BeforeAll(async function () {
+  fs.mkdirSync("reports/screenshots", { recursive: true });
+
   // ── Launch browser ──────────────────────────────────────────────
   const headless = process.env.HEADLESS !== "false";
   browser = await chromium.launch({
@@ -168,6 +171,7 @@ After(async function (this: PlaywrightWorld, scenario) {
   // Take screenshot on failure for debugging
   if (scenario.result?.status === Status.FAILED) {
     const name = scenario.pickle.name.replace(/\s+/g, "-").toLowerCase();
+    fs.mkdirSync("reports/screenshots", { recursive: true });
     await this.page.screenshot({
       path: `reports/screenshots/${name}.png`,
       fullPage: true,

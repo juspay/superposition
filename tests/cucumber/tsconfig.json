@@ -12,5 +12,5 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true
   },
-  "include": ["step_definitions/**/*.ts", "support/**/*.ts"]
+  "include": ["step_definitions/**/*.ts", "support/**/*.ts", "step_definitions_ui/**/*.ts", "support_ui/**/*.ts"]
 }
