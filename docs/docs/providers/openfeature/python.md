@@ -3,12 +3,15 @@ sidebar_position: 3
 title: Python
 ---
 
-# Python — Superposition OpenFeature Provider
+# Python - Superposition OpenFeature Provider
 
-The Python provider is an OpenFeature-compatible provider for Superposition. It offers two provider variants:
+The Python package currently exposes two OpenFeature-compatible providers:
 
-- **`LocalResolutionProvider`** — Fetches config from a data source (HTTP server), caches it locally, and evaluates flags in-process. Supports polling and on-demand refresh strategies. This is the **recommended provider** for most use cases.
-- **`SuperpositionAPIProvider`** — A stateless remote provider that makes an HTTP API call to the Superposition server on every evaluation. No local caching — useful for serverless or low-traffic scenarios.
+- **`LocalResolutionProvider`** - Fetches config through a data source, caches it locally, and evaluates flags in-process through native bindings.
+- **`SuperpositionAPIProvider`** - Calls the Superposition API directly for remote evaluation and does not keep a local config cache.
+
+The local provider supports HTTP and file data sources, optional fallback data
+sources, polling, on-demand, watch, and manual refresh strategies.
 
 **PyPI:** [`superposition-provider`](https://pypi.org/project/superposition-provider/)
 
@@ -24,67 +27,49 @@ You need a running Superposition server. See [Quick Start](../../quick_start) fo
 
 ## Quick Start
 
-This is the most common usage — the provider connects to a Superposition server via HTTP, polls for config updates, and evaluates flags locally.
-
 ```python
 import asyncio
+
 from openfeature import api
 from openfeature.evaluation_context import EvaluationContext
-from superposition_provider import (
-    LocalResolutionProvider,
-    HttpDataSource,
-    SuperpositionOptions,
-    PollingStrategy,
-    RefreshStrategy,
-)
+from superposition_provider import LocalResolutionProvider, HttpDataSource
+from superposition_provider.types import SuperpositionOptions, PollingStrategy
 
 
 async def main():
-    # 1. Create an HTTP data source pointing to your Superposition server
-    http_source = HttpDataSource(SuperpositionOptions(
+    options = SuperpositionOptions(
         endpoint="http://localhost:8080",
         token="your-api-token",
         org_id="localorg",
         workspace_id="test",
-    ))
-
-    # 2. Create the provider with a polling refresh strategy
-    provider = LocalResolutionProvider(
-        data_source=http_source,
-        fallback_source=None,  # no fallback data source
-        refresh_strategy=RefreshStrategy.Polling(PollingStrategy(
-            interval=60,   # seconds between polls
-            timeout=30,    # HTTP request timeout in seconds
-        )),
     )
 
-    # 3. Set up evaluation context (dimensions + targeting key)
-    ctx = EvaluationContext(
+    provider = LocalResolutionProvider(
+        primary_source=HttpDataSource(options),
+        refresh_strategy=PollingStrategy(interval=60, timeout=30),
+    )
+
+    context = EvaluationContext(
         targeting_key="user-42",
         attributes={"city": "Berlin", "os": "android"},
     )
 
-    # 4. Initialize the provider (async — starts polling, fetches initial config)
-    await provider.initialize(context=ctx)
-
-    # 5. Register with OpenFeature
+    await provider.initialize(context)
     api.set_provider(provider)
     client = api.get_client()
 
-    # 6. Evaluate feature flags
-    string_val = client.get_string_details("currency", "USD", ctx)
-    print(f"currency = {string_val.value}")
+    currency = client.get_string_details("currency", "USD", context)
+    print(f"currency = {currency.value}")
 
-    int_val = client.get_integer_details("price", 0, ctx)
-    print(f"price = {int_val.value}")
+    price = client.get_integer_details("price", 0, context)
+    print(f"price = {price.value}")
 
-    bool_val = client.get_boolean_details("dark_mode", False, ctx)
-    print(f"dark_mode = {bool_val.value}")
+    dark_mode = client.get_boolean_details("dark_mode", False, context)
+    print(f"dark_mode = {dark_mode.value}")
 
-    float_val = client.get_float_details("discount_rate", 0.0, ctx)
-    print(f"discount_rate = {float_val.value}")
+    all_config = provider.resolve_all_features(context)
+    print(f"All config = {all_config}")
 
-    # 7. Cleanup — stops polling, releases resources
     await provider.shutdown()
 
 
@@ -92,18 +77,17 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-## Configuration Options
+## Connection Options
 
-### `SuperpositionOptions`
+`SuperpositionOptions` is used by `HttpDataSource` and
+`SuperpositionAPIProvider`.
 
-Connection options shared by `HttpDataSource` and `SuperpositionAPIProvider`:
-
-| Field          | Type  | Required | Description                   |
-| -------------- | ----- | -------- | ----------------------------- |
-| `endpoint`     | `str` | Yes      | Superposition server URL      |
-| `token`        | `str` | Yes      | Authentication token (bearer) |
-| `org_id`       | `str` | Yes      | Organisation ID               |
-| `workspace_id` | `str` | Yes      | Workspace ID                  |
+| Field | Type | Required | Description |
+| ----- | ---- | -------- | ----------- |
+| `endpoint` | `str` | Yes | Superposition server URL |
+| `token` | `str` | Yes | Authentication token |
+| `org_id` | `str` | Yes | Organisation ID |
+| `workspace_id` | `str` | Yes | Workspace ID |
 
 ```python
 options = SuperpositionOptions(
@@ -114,109 +98,145 @@ options = SuperpositionOptions(
 )
 ```
 
-### Refresh Strategies
+## Refresh Strategies
+
+The current Python API uses dataclass strategy objects directly:
 
 ```python
-# Polling — periodically fetches updates from the server
-RefreshStrategy.Polling(PollingStrategy(
-    interval=60,   # seconds between polls (default: 60)
-    timeout=30,    # HTTP request timeout in seconds (default: 30)
-))
-
-# On-Demand — fetches on first access, then caches with a TTL
-RefreshStrategy.OnDemand(OnDemandStrategy(
-    ttl=300,                 # cache TTL in seconds (default: 300)
-    use_stale_on_error=True, # serve stale data on fetch error (default: True)
-    timeout=30,              # HTTP timeout in seconds (default: 30)
-))
-```
-
-### `ExperimentationOptions`
-
-| Field              | Type                               | Required | Description                        |
-| ------------------ | ---------------------------------- | -------- | ---------------------------------- |
-| `refresh_strategy` | `RefreshStrategy`                  | Yes      | How experiment data is refreshed   |
-| `evaluation_cache` | `Optional[EvaluationCacheOptions]` | No       | Cache for experiment evaluations   |
-| `default_toss`     | `Optional[int]`                    | No       | Default toss value for experiments |
-
-```python
-exp_options = ExperimentationOptions(
-    refresh_strategy=RefreshStrategy.Polling(PollingStrategy(
-        interval=5,
-        timeout=3,
-    )),
-    evaluation_cache=EvaluationCacheOptions(ttl=300, size=1000),
-    default_toss=50,
-)
-```
-
-### `EvaluationCacheOptions`
-
-| Field  | Type            | Default | Description                     |
-| ------ | --------------- | ------- | ------------------------------- |
-| `ttl`  | `Optional[int]` | `60`    | Cache time-to-live in seconds   |
-| `size` | `Optional[int]` | `500`   | Maximum number of cache entries |
-
-## Provider Variants
-
-### 1. `LocalResolutionProvider` (Recommended)
-
-Fetches config from a pluggable data source (HTTP), caches locally, and evaluates flags in-process. Accepts an optional fallback data source.
-
-```python
-from superposition_provider import (
-    LocalResolutionProvider,
-    HttpDataSource,
-    SuperpositionOptions,
+from superposition_provider.types import (
     PollingStrategy,
-    RefreshStrategy,
-    ExperimentationOptions,
-    EvaluationCacheOptions,
+    OnDemandStrategy,
+    WatchStrategy,
+    ManualStrategy,
 )
-from openfeature.evaluation_context import EvaluationContext
 
-http_source = HttpDataSource(SuperpositionOptions(
-    endpoint="http://localhost:8080",
-    token="token",
-    org_id="localorg",
-    workspace_id="dev",
-))
+# Poll every 60 seconds.
+PollingStrategy(interval=60, timeout=30)
+
+# Refresh when cached data is older than the TTL.
+OnDemandStrategy(ttl=300, use_stale_on_error=True, timeout=30)
+
+# Watch a file-backed data source.
+WatchStrategy(debounce_ms=500)
+
+# No automatic refresh; call refresh() yourself.
+ManualStrategy()
+```
+
+There is a `RefreshStrategy` type alias, but there are no
+`RefreshStrategy.Polling(...)` or `RefreshStrategy.OnDemand(...)` constructors.
+
+## Local Provider
+
+`LocalResolutionProvider` takes a primary data source, an optional fallback data
+source, and a refresh strategy.
+
+```python
+from openfeature.evaluation_context import EvaluationContext
+from superposition_provider import LocalResolutionProvider, HttpDataSource
+from superposition_provider.types import SuperpositionOptions, PollingStrategy
 
 provider = LocalResolutionProvider(
-    data_source=http_source,
-    fallback_source=None,
-    refresh_strategy=RefreshStrategy.Polling(PollingStrategy(interval=30, timeout=10)),
-    experimentation_options=ExperimentationOptions(
-        refresh_strategy=RefreshStrategy.Polling(PollingStrategy(interval=5, timeout=3)),
-        evaluation_cache=EvaluationCacheOptions(ttl=300, size=1000),
-        default_toss=50,
-    ),
+    primary_source=HttpDataSource(SuperpositionOptions(
+        endpoint="http://localhost:8080",
+        token="token",
+        org_id="localorg",
+        workspace_id="dev",
+    )),
+    refresh_strategy=PollingStrategy(interval=30, timeout=10),
 )
 
-# Initialize the provider (fetches initial config)
-await provider.initialize(context=EvaluationContext())
+await provider.initialize(EvaluationContext())
 
-# Resolve all config values at once
-ctx = EvaluationContext(
+context = EvaluationContext(
     targeting_key="user-1234",
-    attributes={"city": "Berlin", "os": "android"},
+    attributes={"dimension": "d2"},
 )
-all_config = provider.resolve_all_config_details({}, ctx)
-print(f"All config: {all_config}")
 
-# Cleanup
+all_config = provider.resolve_all_features(context)
+variants = await provider.get_applicable_variants(context)
+
 await provider.shutdown()
 ```
 
 **Key capabilities:**
 
-- **Pluggable data sources** — use `HttpDataSource` for server-backed resolution
-- **Optional fallback** — provide a secondary data source that is used when the primary source fails
-- **Async lifecycle** — `initialize()` and `shutdown()` are async, supporting non-blocking I/O
+- **HTTP data source** - `HttpDataSource(SuperpositionOptions(...))`
+- **File data source** - `FileDataSource("config.toml")`
+- **Optional fallback** - pass `fallback_source=...`
+- **Manual refresh** - call `await provider.refresh()`
+- **Async lifecycle** - `initialize()` and `shutdown()` are async
 
-### 2. `SuperpositionAPIProvider` (Remote / Stateless)
+## Local File Resolution
 
-A stateless provider that calls the Superposition server on every evaluation. No local caching — each flag evaluation makes an HTTP request. Best for serverless, low-traffic, or scenarios where you always want the latest config.
+Resolve config from a local TOML or JSON file without a server:
+
+```python
+from openfeature.evaluation_context import EvaluationContext
+from superposition_provider import FileDataSource, LocalResolutionProvider
+from superposition_provider.types import OnDemandStrategy
+
+provider = LocalResolutionProvider(
+    primary_source=FileDataSource("config.toml"),
+    refresh_strategy=OnDemandStrategy(ttl=60),
+)
+
+await provider.initialize(EvaluationContext())
+
+context = EvaluationContext(
+    attributes={"os": "linux", "city": "Boston"},
+)
+
+config = provider.resolve_all_features(context)
+timeout = provider.resolve_integer_details("timeout", 0, context)
+
+await provider.shutdown()
+```
+
+:::note
+`FileDataSource` does not support experiments. Use an HTTP-backed source when
+experiment metadata is required.
+:::
+
+## HTTP with File Fallback
+
+Use a Superposition server as the primary source and a local file as fallback:
+
+```python
+from openfeature.evaluation_context import EvaluationContext
+from superposition_provider import FileDataSource, HttpDataSource, LocalResolutionProvider
+from superposition_provider.types import SuperpositionOptions, PollingStrategy
+
+options = SuperpositionOptions(
+    endpoint="http://localhost:8080",
+    token="token",
+    org_id="localorg",
+    workspace_id="dev",
+)
+
+provider = LocalResolutionProvider(
+    primary_source=HttpDataSource(options),
+    fallback_source=FileDataSource("config.toml"),
+    refresh_strategy=PollingStrategy(interval=10, timeout=10),
+)
+
+await provider.initialize(EvaluationContext())
+
+context = EvaluationContext(
+    targeting_key="user-456",
+    attributes={"os": "linux", "city": "Berlin"},
+)
+
+config = provider.resolve_all_features(context)
+currency = provider.resolve_string_details("currency", "No value", context)
+
+await provider.shutdown()
+```
+
+## Remote Provider
+
+`SuperpositionAPIProvider` performs remote API evaluation and keeps no local
+config cache. Its current lifecycle methods are synchronous.
 
 ```python
 from openfeature import api
@@ -230,51 +250,24 @@ provider = SuperpositionAPIProvider(SuperpositionOptions(
     workspace_id="dev",
 ))
 
-# Initialize and register with OpenFeature
-await provider.initialize(context=EvaluationContext())
-api.set_provider(provider)
-client = api.get_client()
-
-ctx = EvaluationContext(
+context = EvaluationContext(
     targeting_key="user-42",
     attributes={"city": "Berlin"},
 )
 
-currency = client.get_string_details("currency", "USD", ctx)
-print(f"currency = {currency.value}")
-```
-
-## Provider Lifecycle
-
-```python
-# Create
-provider = LocalResolutionProvider(
-    data_source=http_source,
-    fallback_source=None,
-    refresh_strategy=RefreshStrategy.Polling(PollingStrategy(interval=60, timeout=30)),
-)
-
-# Initialize (async — starts polling, fetches initial config)
-await provider.initialize(context=ctx)
-
-# Register with OpenFeature
+provider.initialize(context)
 api.set_provider(provider)
 client = api.get_client()
 
-# ... evaluate flags ...
+currency = client.get_string_details("currency", "USD", context)
+print(f"currency = {currency.value}")
 
-# Shutdown (stops polling, releases resources)
-await provider.shutdown()
+provider.shutdown()
 ```
 
-### Provider Status
-
-| Status       | Meaning                                    |
-| ------------ | ------------------------------------------ |
-| `NOT_READY`  | Provider created but not yet initialized   |
-| `READY`      | Provider initialized and ready for use     |
-| `ERROR`      | Initialization failed                      |
-| `FATAL`      | Unrecoverable error during shutdown        |
+Use the async provider-specific methods such as
+`resolve_all_features_with_filter_async` when you want direct access to remote
+all-config resolution.
 
 ## Evaluation Context
 
@@ -283,8 +276,8 @@ Pass dimensions and a targeting key for experiment bucketing:
 ```python
 from openfeature.evaluation_context import EvaluationContext
 
-ctx = EvaluationContext(
-    targeting_key="user-42",          # Used for experiment variant selection
+context = EvaluationContext(
+    targeting_key="user-42",
     attributes={
         "city": "Berlin",
         "os": "ios",
@@ -293,55 +286,34 @@ ctx = EvaluationContext(
 )
 ```
 
-- **`targeting_key`** — Maps to the toss value for experiment bucketing. Typically a user ID or session ID.
-- **`attributes`** — Key-value pairs matching your Superposition dimensions.
+- **`targeting_key`** - Used for experiment variant selection.
+- **`attributes`** - Key-value pairs matching your Superposition dimensions.
 
 ## Supported Value Types
 
-| Method                       | Return Type                    | Description             |
-| ---------------------------- | ------------------------------ | ----------------------- |
-| `get_boolean_details`        | `FlagResolutionDetails[bool]`  | Boolean flag evaluation |
-| `get_string_details`         | `FlagResolutionDetails[str]`   | String flag evaluation  |
-| `get_integer_details`        | `FlagResolutionDetails[int]`   | Integer flag evaluation |
-| `get_float_details`          | `FlagResolutionDetails[float]` | Float flag evaluation   |
-| `resolve_object_details`     | `FlagResolutionDetails[Any]`   | Object/JSON evaluation  |
+| Method | Return Type |
+| ------ | ----------- |
+| `resolve_boolean_details` / `get_boolean_details` | `FlagResolutionDetails[bool]` |
+| `resolve_string_details` / `get_string_details` | `FlagResolutionDetails[str]` |
+| `resolve_integer_details` / `get_integer_details` | `FlagResolutionDetails[int]` |
+| `resolve_float_details` / `get_float_details` | `FlagResolutionDetails[float]` |
+| `resolve_object_details` | `FlagResolutionDetails[Any]` |
 
-The `LocalResolutionProvider` also supports resolving all features:
-
-```python
-# Resolve all config values at once
-all_config = provider.resolve_all_config_details({}, ctx)
-```
-
-:::tip
-Use `provider.resolve_all_config_details({}, ctx)` to get the entire resolved configuration in one call. This bypasses the OpenFeature client and calls the provider directly.
-:::
-
-## Error Handling
-
-The provider handles errors gracefully:
-
-- If the server is unreachable during initialization, the provider status is set to `ERROR`
-- If a fallback data source is provided, it will be used when the primary source fails
-- Flag evaluation returns the `default_value` when a flag is not found
+The provider-specific full-config API is:
 
 ```python
-try:
-    await provider.initialize(context=ctx)
-except Exception as e:
-    print(f"Failed to initialize: {e}")
-    # Provider status will be ERROR
-    # If fallback_source was provided, it will be used
+all_config = provider.resolve_all_features(context)
+filtered = provider.resolve_all_features_with_filter(context, ["payment."])
 ```
 
-## Dependencies
+Async variants are also available:
 
-The Python provider depends on:
+```python
+all_config = await provider.resolve_all_features_async(context)
+```
 
-- [`openfeature-sdk`](https://pypi.org/project/openfeature-sdk/) — OpenFeature Python SDK
-- `superposition_py_sdk` — Smithy-generated client for Superposition API
-- `superposition_py_cac_client` — Native FFI bindings (via Rust) for local config resolution
+## Current Limitations
 
-## Full Example
-
-See the integration test: [`clients/python/provider-sdk-tests/main.py`](https://github.com/juspay/superposition/blob/main/clients/python/provider-sdk-tests/main.py)
+- `LocalResolutionProvider` does not take an `experimentation_options` argument today.
+- `ExperimentationOptions` is available in `types.py` for compatibility paths, but it is not wired into the `LocalResolutionProvider` constructor.
+- File-backed sources do not support experiments.
