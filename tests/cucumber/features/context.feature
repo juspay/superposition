@@ -63,3 +63,13 @@ Feature: Context Management
     Given contexts exist for weight recompute
     When I trigger weight recomputation
     Then the operation should succeed
+
+  # ── Validate Context ──────────────────────────────────────────────
+
+  Scenario: Validate a context with valid dimensions
+    When I validate a context with "os" equals "android"
+    Then the operation should succeed
+
+  Scenario: Validate a context with invalid dimension
+    When I validate a context with "nonexistent" equals "value"
+    Then the operation should fail

@@ -7,6 +7,7 @@ import {
   MoveContextCommand,
   BulkOperationCommand,
   WeightRecomputeCommand,
+  ValidateContextCommand,
   CreateDimensionCommand,
   CreateDefaultConfigCommand,
 } from "@juspay/superposition-sdk";
@@ -376,6 +377,25 @@ When(
         new WeightRecomputeCommand({
           workspace_id: this.workspaceId,
           org_id: this.orgId,
+        })
+      );
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
+When(
+  "I validate a context with {string} equals {string}",
+  async function (this: PlaywrightWorld, dim: string, value: string) {
+    try {
+      this.lastResponse = await this.client.send(
+        new ValidateContextCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          context: { [dim]: value },
         })
       );
       this.lastError = undefined;
