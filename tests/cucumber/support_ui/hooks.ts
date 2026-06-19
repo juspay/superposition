@@ -1,5 +1,7 @@
 import { Before, After, BeforeAll, AfterAll, Status } from "@cucumber/cucumber";
-import { chromium, Browser } from "playwright";
+import playwright from "playwright";
+import type { Browser } from "playwright";
+const { chromium } = playwright;
 import {
   CreateOrganisationCommand,
   ListOrganisationCommand,
