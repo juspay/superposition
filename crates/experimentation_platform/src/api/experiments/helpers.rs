@@ -187,35 +187,9 @@ fn validate_keys_from_source(
     variant_override: &Overrides,
     source: &Map<String, Value>,
 ) -> bool {
-    for (override_key, value) in variant_override.iter() {
-        if let Some(val) = source.get(override_key) {
-            if val != value {
-                return false;
-            }
-        } else {
-            return false;
-        }
-    }
-    true
-}
-
-fn validate_variants_delete_override_value(
-    delete_variant_overrides: &Vec<Overrides>,
-    resolved_config: &Map<String, Value>,
-) -> bool {
-    for override_ in delete_variant_overrides {
-        if !validate_keys_from_source(override_, resolved_config) {
-            return false;
-        }
-    }
-    true
-}
-
-fn validate_variants_control_override_value(
-    control_variant_overrides: &Overrides,
-    current_context_overrides: &Map<String, Value>,
-) -> bool {
-    validate_keys_from_source(control_variant_overrides, current_context_overrides)
+    variant_override.iter().all(|(override_key, value)| {
+        source.get(override_key).is_some_and(|val| val == value)
+    })
 }
 
 pub async fn validate_delete_experiment_variants(
@@ -270,27 +244,26 @@ pub async fn validate_delete_experiment_variants(
         ));
     }
 
-    if !(validate_variants_delete_override_value(
-        &other_variants_overrides,
-        &partial_resolved_config,
-    )) {
+    if !(other_variants_overrides
+        .iter()
+        .all(|override_| validate_keys_from_source(override_, &partial_resolved_config)))
+    {
         log::error!(
             "validate_delete_experiment: Inconsistent value for variant's overrides delete keys"
         );
         return Err(bad_argument!(
-            "Inconsistent value for variant's overrides delete keys"
+            "Incorrect value for experimental variant - it should be the same as the current resolved config with this override removed"
         ));
     }
 
-    if !(validate_variants_control_override_value(
-        &control_variant_override,
-        &current_context.override_,
-    )) {
+    // validate the variants control override values
+    if !(validate_keys_from_source(&control_variant_override, &current_context.override_))
+    {
         log::error!(
             "validate_delete_experiment: Inconsistent value for variant's overrides keys"
         );
         return Err(bad_argument!(
-            "Inconsistent value for variant's overrides keys"
+            "Incorrect value for control variant - it should be the same as the current override's key values"
         ));
     }
     Ok(())
