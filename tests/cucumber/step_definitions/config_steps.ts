@@ -1,6 +1,8 @@
 import { Given, When, Then } from "@cucumber/cucumber";
 import {
   GetConfigCommand,
+  GetConfigJsonCommand,
+  GetConfigTomlCommand,
   ListVersionsCommand,
   UpdateWorkspaceCommand,
   CreateDefaultConfigCommand,
@@ -135,6 +137,42 @@ When(
           org_id: this.orgId,
           count,
           page,
+        })
+      );
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
+When(
+  "I get the config in JSON format",
+  async function (this: SuperpositionWorld) {
+    try {
+      this.lastResponse = await this.client.send(
+        new GetConfigJsonCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+        })
+      );
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
+When(
+  "I get the config in TOML format",
+  async function (this: SuperpositionWorld) {
+    try {
+      this.lastResponse = await this.client.send(
+        new GetConfigTomlCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
         })
       );
       this.lastError = undefined;
