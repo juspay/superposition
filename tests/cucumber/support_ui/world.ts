@@ -59,6 +59,9 @@ export class PlaywrightWorld extends World {
 
   // ── Experiment group state ────────────────────────────────────────
   public experimentGroupId: string = "";
+  public groupExpIds: { valid: string; valid2: string; inProgress: string; conflicting: string } = {
+    valid: "", valid2: "", inProgress: "", conflicting: "",
+  };
 
   // ── Function state ────────────────────────────────────────────────
   public functionName: string = "";

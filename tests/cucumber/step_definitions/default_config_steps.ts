@@ -310,7 +310,7 @@ When(
 
 When(
   "I update the default config {string} with value {string} age {int}",
-  async function (this: SuperpositionWorld, key: string, name: string, age: number) {
+  async function (this: SuperpositionWorld, _key: string, name: string, age: number) {
     try {
       this.lastResponse = await this.client.send(
         new UpdateDefaultConfigCommand({
@@ -354,7 +354,7 @@ When(
 
 When(
   "I update default config {string} schema to add email field and set value with email {string}",
-  async function (this: SuperpositionWorld, key: string, email: string) {
+  async function (this: SuperpositionWorld, _key: string, email: string) {
     try {
       this.lastResponse = await this.client.send(
         new UpdateDefaultConfigCommand({
@@ -384,7 +384,7 @@ When(
 
 When(
   "I update default config {string} schema to an invalid type",
-  async function (this: SuperpositionWorld, key: string) {
+  async function (this: SuperpositionWorld, _key: string) {
     try {
       this.lastResponse = await this.client.send(
         new UpdateDefaultConfigCommand({
@@ -405,7 +405,7 @@ When(
 
 When(
   "I update default config {string} value without the required email field",
-  async function (this: SuperpositionWorld, key: string) {
+  async function (this: SuperpositionWorld, _key: string) {
     try {
       this.lastResponse = await this.client.send(
         new UpdateDefaultConfigCommand({
@@ -435,7 +435,7 @@ When(
 
 When(
   "I update default config {string} validation function to {string}",
-  async function (this: SuperpositionWorld, key: string, funcName: string) {
+  async function (this: SuperpositionWorld, _key: string, funcName: string) {
     try {
       this.lastResponse = await this.client.send(
         new UpdateDefaultConfigCommand({
