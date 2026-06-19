@@ -174,7 +174,7 @@ When(
 
 When(
   "I get function {string}",
-  async function (this: SuperpositionWorld, name: string) {
+  async function (this: SuperpositionWorld, _name: string) {
     try {
       this.lastResponse = await this.client.send(
         new GetFunctionCommand({
@@ -213,7 +213,7 @@ When(
 
 When(
   "I update function {string} with new validation code",
-  async function (this: SuperpositionWorld, name: string) {
+  async function (this: SuperpositionWorld, _name: string) {
     const code = `
       async function execute(payload) {
         let value = payload.value_validate.value;
@@ -275,7 +275,7 @@ Then(
 
 Then(
   "the response should have function name {string}",
-  function (this: SuperpositionWorld, name: string) {
+  function (this: SuperpositionWorld, _name: string) {
     assert.ok(this.lastResponse, "No response");
     assert.strictEqual(this.lastResponse.function_name, this.functionName);
   }

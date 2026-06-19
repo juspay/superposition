@@ -102,7 +102,7 @@ When(
 
 When(
   "I update type template {string} with minimum {int} and maximum {int}",
-  async function (this: SuperpositionWorld, name: string, min: number, max: number) {
+  async function (this: SuperpositionWorld, _name: string, min: number, max: number) {
     try {
       this.lastResponse = await this.client.send(
         new UpdateTypeTemplatesCommand({
@@ -124,7 +124,7 @@ When(
 
 When(
   "I delete type template {string}",
-  async function (this: SuperpositionWorld, name: string) {
+  async function (this: SuperpositionWorld, _name: string) {
     try {
       this.lastResponse = await this.client.send(
         new DeleteTypeTemplatesCommand({
@@ -157,7 +157,7 @@ Then(
 
 Then(
   "the response should have type name {string}",
-  function (this: SuperpositionWorld, name: string) {
+  function (this: SuperpositionWorld, _name: string) {
     assert.ok(this.lastResponse, "No response");
     assert.strictEqual(this.lastResponse.type_name, this.typeTemplateName);
   }
@@ -202,7 +202,7 @@ Then(
 
 Then(
   "listing type templates should not include {string}",
-  async function (this: SuperpositionWorld, name: string) {
+  async function (this: SuperpositionWorld, _name: string) {
     const list = await this.client.send(
       new GetTypeTemplatesListCommand({
         workspace_id: this.workspaceId,
