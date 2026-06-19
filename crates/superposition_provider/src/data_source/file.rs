@@ -47,20 +47,36 @@ impl FileDataSource {
             watcher: Mutex::new(None),
         })
     }
-}
 
-#[async_trait]
-impl SuperpositionDataSource for FileDataSource {
-    async fn fetch_filtered_config(
+    async fn last_modified_at(&self) -> Result<DateTime<Utc>> {
+        let metadata = tokio::fs::metadata(&self.file_path).await.map_err(|e| {
+            SuperpositionError::ConfigError(format!(
+                "Failed to read metadata for config file {:?}: {}",
+                self.file_path, e
+            ))
+        })?;
+
+        metadata.modified().map(DateTime::<Utc>::from).map_err(|e| {
+            SuperpositionError::ConfigError(format!(
+                "Failed to read modified time for config file {:?}: {}",
+                self.file_path, e
+            ))
+        })
+    }
+
+    fn is_not_modified(
+        last_modified_at: DateTime<Utc>,
+        if_modified_since: Option<DateTime<Utc>>,
+    ) -> bool {
+        if_modified_since.is_some_and(|modified_since| last_modified_at <= modified_since)
+    }
+
+    async fn read_config(
         &self,
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
-        if_modified_since: Option<DateTime<Utc>>,
+        fetched_at: DateTime<Utc>,
     ) -> Result<FetchResponse<ConfigData>> {
-        if if_modified_since.is_some() {
-            log::debug!("FileDataSource: ignoring if_modified_since, always reading fresh from file");
-        }
-        let now = Utc::now();
         let content = tokio::fs::read_to_string(&self.file_path)
             .await
             .map_err(|e| {
@@ -89,8 +105,37 @@ impl SuperpositionDataSource for FileDataSource {
 
         Ok(FetchResponse::Data(ConfigData {
             data: config,
-            fetched_at: now,
+            fetched_at,
         }))
+    }
+}
+
+#[async_trait]
+impl SuperpositionDataSource for FileDataSource {
+    async fn fetch_filtered_config(
+        &self,
+        context: Option<Map<String, Value>>,
+        prefix_filter: Option<Vec<String>>,
+        if_modified_since: Option<DateTime<Utc>>,
+    ) -> Result<FetchResponse<ConfigData>> {
+        if if_modified_since.is_some() {
+            log::debug!("FileDataSource: ignoring if_modified_since, always reading fresh from file");
+        }
+
+        self.read_config(context, prefix_filter, Utc::now()).await
+    }
+
+    async fn fetch_config_if_modified(
+        &self,
+        if_modified_since: Option<DateTime<Utc>>,
+    ) -> Result<FetchResponse<ConfigData>> {
+        let last_modified_at = self.last_modified_at().await?;
+        if Self::is_not_modified(last_modified_at, if_modified_since) {
+            log::debug!("FileDataSource: config file not modified");
+            return Ok(FetchResponse::NotModified);
+        }
+
+        self.read_config(None, None, last_modified_at).await
     }
 
     async fn fetch_active_experiments(
@@ -195,5 +240,138 @@ impl SuperpositionDataSource for FileDataSource {
         *guard = None;
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::{Path, PathBuf};
+
+    use tokio::time::{sleep, Duration};
+
+    use super::*;
+
+    fn config_content(timeout: i64) -> String {
+        format!(
+            r#"[default-configs]
+timeout = {{ value = {timeout}, schema = {{ type = "integer" }} }}
+
+[dimensions]
+os = {{ position = 1, schema = {{ type = "string" }} }}
+
+[[overrides]]
+_context_ = {{ os = "linux" }}
+timeout = 45
+"#
+        )
+    }
+
+    fn temp_config_path() -> PathBuf {
+        std::env::temp_dir().join(format!(
+            "superposition-provider-file-source-{}.toml",
+            uuid::Uuid::new_v4()
+        ))
+    }
+
+    async fn write_config(path: &Path, timeout: i64) {
+        tokio::fs::write(path, config_content(timeout))
+            .await
+            .unwrap();
+    }
+
+    async fn rewrite_config_after(
+        source: &FileDataSource,
+        path: &Path,
+        timeout: i64,
+        previous_modified_at: DateTime<Utc>,
+    ) {
+        for _ in 0..100 {
+            sleep(Duration::from_millis(20)).await;
+            write_config(path, timeout).await;
+
+            if source.last_modified_at().await.unwrap() > previous_modified_at {
+                return;
+            }
+        }
+
+        panic!("config file modified time did not advance");
+    }
+
+    #[tokio::test]
+    async fn fetch_config_keeps_reading_fresh_when_if_modified_since_is_present() {
+        let path = temp_config_path();
+        write_config(&path, 30).await;
+
+        let source = FileDataSource::new(path.clone()).unwrap();
+        let first_fetch = source.fetch_config(None).await.unwrap();
+        let fetched_at = match first_fetch {
+            FetchResponse::Data(data) => {
+                assert_eq!(data.data.default_configs.get("timeout"), Some(&30.into()));
+                data.fetched_at
+            }
+            FetchResponse::NotModified => panic!("initial fetch should return data"),
+        };
+
+        let second_fetch = source.fetch_config(Some(fetched_at)).await.unwrap();
+        match second_fetch {
+            FetchResponse::Data(data) => {
+                assert_eq!(data.data.default_configs.get("timeout"), Some(&30.into()));
+            }
+            FetchResponse::NotModified => {
+                panic!("normal fetch should keep reading fresh")
+            }
+        }
+
+        let _ = tokio::fs::remove_file(path).await;
+    }
+
+    #[tokio::test]
+    async fn fetch_config_if_modified_returns_not_modified_when_file_has_not_changed() {
+        let path = temp_config_path();
+        write_config(&path, 30).await;
+
+        let source = FileDataSource::new(path.clone()).unwrap();
+        let first_fetch = source.fetch_config(None).await.unwrap();
+        let fetched_at = match first_fetch {
+            FetchResponse::Data(data) => data.fetched_at,
+            FetchResponse::NotModified => panic!("initial fetch should return data"),
+        };
+
+        let second_fetch = source
+            .fetch_config_if_modified(Some(fetched_at))
+            .await
+            .unwrap();
+        assert!(second_fetch.is_not_modified());
+
+        let _ = tokio::fs::remove_file(path).await;
+    }
+
+    #[tokio::test]
+    async fn fetch_config_if_modified_returns_data_after_file_changes() {
+        let path = temp_config_path();
+        write_config(&path, 30).await;
+
+        let source = FileDataSource::new(path.clone()).unwrap();
+        let first_fetch = source.fetch_config(None).await.unwrap();
+        let fetched_at = match first_fetch {
+            FetchResponse::Data(data) => data.fetched_at,
+            FetchResponse::NotModified => panic!("initial fetch should return data"),
+        };
+
+        rewrite_config_after(&source, &path, 60, fetched_at).await;
+
+        let changed_fetch = source
+            .fetch_config_if_modified(Some(fetched_at))
+            .await
+            .unwrap();
+        match changed_fetch {
+            FetchResponse::Data(data) => {
+                assert_eq!(data.data.default_configs.get("timeout"), Some(&60.into()));
+                assert!(data.fetched_at > fetched_at);
+            }
+            FetchResponse::NotModified => panic!("changed file should return data"),
+        }
+
+        let _ = tokio::fs::remove_file(path).await;
     }
 }
