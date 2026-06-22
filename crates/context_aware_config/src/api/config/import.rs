@@ -716,6 +716,7 @@ mod tests {
             dimension_type: DimensionType::Regular {},
             dependency_graph: DependencyGraph::default(),
             value_compute_function_name: None,
+            description: String::new(),
         }
     }
 
