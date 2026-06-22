@@ -5,6 +5,43 @@ import type * as OpenApiPlugin from "docusaurus-plugin-openapi-docs";
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
+const DEPLOY_TARGET = (
+    process.env.DOCS_DEPLOY_TARGET ?? "github"
+).toLowerCase();
+
+type TargetConfig = {
+    url: string;
+    baseUrl: string;
+    /** GitHub Pages only. */
+    organizationName?: string;
+    /** GitHub Pages only. */
+    projectName?: string;
+    /** Set to `true` for S3 static website hosting (directory-style URLs). */
+    trailingSlash?: boolean;
+};
+
+const DEPLOY_TARGETS: Record<string, TargetConfig> = {
+    github: {
+        url: "https://juspay.io/",
+        // For GitHub pages deployment, baseUrl is "/<projectName>/".
+        baseUrl: "/superposition/",
+        organizationName: "juspay",
+        projectName: "superposition",
+    },
+    superposition: {
+        url: "https://superposition.juspay.io/",
+        // Served from the bucket root.
+        baseUrl: "/",
+        // S3 static website hosting serves `dir/index.html` for `/dir/`
+        // requests, so directory-style URLs (trailing slash) display the docs
+        // and blog out of the box
+        trailingSlash: true,
+    },
+};
+
+const targetConfig: TargetConfig =
+    DEPLOY_TARGETS[DEPLOY_TARGET] ?? DEPLOY_TARGETS.github;
+
 const config: Config = {
     title: "Superposition",
     tagline:
@@ -16,15 +53,11 @@ const config: Config = {
         v4: true, // Improve compatibility with the upcoming Docusaurus v4
     },
 
-    // Set the production url of your site here
-    url: "https://juspay.io/",
-    // Set the /<baseUrl>/ pathname under which your site is served
-    // For GitHub pages deployment, it is often '/<projectName>/'
-    baseUrl: "/superposition/",
-
-    // GitHub pages deployment config.
-    organizationName: "juspay",
-    projectName: "superposition",
+    url: targetConfig.url,
+    baseUrl: targetConfig.baseUrl,
+    organizationName: targetConfig.organizationName,
+    projectName: targetConfig.projectName,
+    trailingSlash: targetConfig.trailingSlash,
 
     onBrokenLinks: "warn",
     onBrokenMarkdownLinks: "warn",
@@ -36,7 +69,7 @@ const config: Config = {
 
     plugins: [
         [
-            'docusaurus-plugin-openapi-docs',
+            "docusaurus-plugin-openapi-docs",
             {
                 id: "superposition-api",
                 docsPluginId: "classic",
@@ -51,7 +84,7 @@ const config: Config = {
                             sidebarCollapsed: false,
                             customProps: {
                                 // Add custom CSS classes for styling
-                            }
+                            },
                         },
                         // Removed template configuration that was causing the error
                         hideSendButton: false,
@@ -66,7 +99,7 @@ const config: Config = {
             "classic",
             {
                 docs: {
-                    routeBasePath: '/docs',
+                    routeBasePath: "/docs",
                     sidebarPath: "./sidebars.ts",
                     docItemComponent: "@theme/ApiItem", // Derived from docusaurus-theme-openapi
                     // Please change this to your repo.
@@ -78,7 +111,8 @@ const config: Config = {
                     path: "blog",
                     routeBasePath: "blog",
                     blogTitle: "Superposition Blog",
-                    blogDescription: "Updates, guides, and technical notes from the Superposition team",
+                    blogDescription:
+                        "Updates, guides, and technical notes from the Superposition team",
                     showReadingTime: true,
                 },
                 theme: {
@@ -93,10 +127,10 @@ const config: Config = {
     themeConfig: {
         image: "img/logo.jpg",
         algolia: {
-            appId: 'ZK6EG087JC',
+            appId: "ZK6EG087JC",
             // Public API key: it is safe to commit it
-            apiKey: '2d61980440a8ce3d5832392666e51c65',
-            indexName: 'superposition-docusaurus-1',
+            apiKey: "2d61980440a8ce3d5832392666e51c65",
+            indexName: "superposition-docusaurus-1",
         },
         navbar: {
             title: "Superposition Docs",
