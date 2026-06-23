@@ -32,9 +32,9 @@ use service_utils::{
         workspace_context::OrgWorkspaceMiddlewareFactory,
     },
     observability::{
-        FredPoolStats, Observability, ObservabilityConfig, RedisStats, SdkMeterProvider,
-        build_request_metrics_middleware, set_label_config,
-        SaturationDeps, register_observers, spawn_metrics_server,
+        FredPoolStats, Observability, ObservabilityConfig, RedisStats, SaturationDeps,
+        SdkMeterProvider, build_request_metrics_middleware, register_observers,
+        set_label_config, spawn_metrics_server,
     },
     service::types::AppEnv,
 };

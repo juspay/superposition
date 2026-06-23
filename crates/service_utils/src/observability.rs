@@ -85,7 +85,10 @@ impl Observability {
         // histogram's cardinality.
         let drop_body_size_view = |i: &Instrument| match i.name() {
             "http.server.request.body.size" | "http.server.response.body.size" => {
-                Stream::builder().with_aggregation(Aggregation::Drop).build().ok()
+                Stream::builder()
+                    .with_aggregation(Aggregation::Drop)
+                    .build()
+                    .ok()
             }
             _ => None,
         };

@@ -32,6 +32,9 @@ instance Data.Aeson.FromJSON ImportStrategy where
             "upsert" -> pure UPSERT
             "replace" -> pure REPLACE
             _ -> fail $ "Unknown value for ImportStrategy: " <> Data.Text.unpack v
+        
+    
+
 instance Io.Superposition.Utility.SerDe ImportStrategy where
     serializeElement CREATE_ONLY = Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "create_only"
     serializeElement UPSERT = Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "upsert"
@@ -41,3 +44,6 @@ instance Io.Superposition.Utility.SerDe ImportStrategy where
         "upsert" -> Right UPSERT
         "replace" -> Right REPLACE
         e -> Left ("Failed to de-serialize ImportStrategy, encountered unknown variant: " ++ (show bs))
+    
+
+
