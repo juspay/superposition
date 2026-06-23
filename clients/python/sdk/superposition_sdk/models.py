@@ -15260,24 +15260,6 @@ ShapeID("smithy.api#httpBearerAuth")
         ]
 )
 
-class ImportMode(StrEnum):
-    """
-    How an import treats workspace entities that are not present in the imported
-    file.
-
-    """
-    MERGE = "merge"
-    """
-    Upsert the entities in the file and leave everything else untouched.
-
-    """
-    REPLACE = "replace"
-    """
-    Mirror the file: additionally delete dimensions, default-configs and contexts
-    that are absent from it.
-
-    """
-
 class ImportOnError(StrEnum):
     """
     How an import reacts when an individual entity fails to apply.
@@ -15294,16 +15276,36 @@ class ImportOnError(StrEnum):
 
     """
 
+class ImportStrategy(StrEnum):
+    """
+    How an import applies file entities to the workspace.
+
+    """
+    CREATE_ONLY = "create_only"
+    """
+    Create entities that are present in the file but missing from the workspace.
+    Existing entities are skipped. Nothing is deleted.
+
+    """
+    UPSERT = "upsert"
+    """
+    Create missing entities and update existing entities from the file. Entities
+    absent from the file are left untouched.
+
+    """
+    REPLACE = "replace"
+    """
+    Mirror the file: create missing entities, update existing entities, and delete
+    dimensions, default-configs and contexts that are absent from it.
+
+    """
+
 @dataclass(kw_only=True)
 class ImportConfigJsonInput:
     """
 
-    :param mode:
-         Whether to merge (default) or replace existing workspace config.
-
-    :param overwrite:
-         When false, entities that already exist are skipped instead of updated. Defaults
-         to true.
+    :param strategy:
+         How the import applies file entities to the workspace. Defaults to upsert.
 
     :param on_error:
          Whether to abort (default) or continue on per-entity errors.
@@ -15312,19 +15314,13 @@ class ImportConfigJsonInput:
          When true, validates and summarises the import without persisting anything.
          Defaults to false.
 
-    :param value_merge:
-         When true, deep-merges object-valued default-configs with the existing value.
-         Defaults to false.
-
     """
 
     workspace_id: str | None = None
     org_id: str | None = None
-    mode: str | None = None
-    overwrite: bool | None = None
+    strategy: str | None = None
     on_error: str | None = None
     dry_run: bool | None = None
-    value_merge: bool | None = None
     config_tags: str | None = None
     json_config: str | None = None
 
@@ -15351,24 +15347,18 @@ class ImportConfigJsonInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_IMPORT_CONFIG_JSON_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["mode"] = de.read_string(_SCHEMA_IMPORT_CONFIG_JSON_INPUT.members["mode"])
+                    kwargs["strategy"] = de.read_string(_SCHEMA_IMPORT_CONFIG_JSON_INPUT.members["strategy"])
 
                 case 3:
-                    kwargs["overwrite"] = de.read_boolean(_SCHEMA_IMPORT_CONFIG_JSON_INPUT.members["overwrite"])
-
-                case 4:
                     kwargs["on_error"] = de.read_string(_SCHEMA_IMPORT_CONFIG_JSON_INPUT.members["on_error"])
 
-                case 5:
+                case 4:
                     kwargs["dry_run"] = de.read_boolean(_SCHEMA_IMPORT_CONFIG_JSON_INPUT.members["dry_run"])
 
-                case 6:
-                    kwargs["value_merge"] = de.read_boolean(_SCHEMA_IMPORT_CONFIG_JSON_INPUT.members["value_merge"])
-
-                case 7:
+                case 5:
                     kwargs["config_tags"] = de.read_string(_SCHEMA_IMPORT_CONFIG_JSON_INPUT.members["config_tags"])
 
-                case 8:
+                case 6:
                     kwargs["json_config"] = de.read_string(_SCHEMA_IMPORT_CONFIG_JSON_INPUT.members["json_config"])
 
                 case _:
@@ -15505,7 +15495,7 @@ class ImportConfigJsonOutput:
 
     """
 
-    mode: str
+    strategy: str
 
     dry_run: bool
 
@@ -15521,7 +15511,7 @@ class ImportConfigJsonOutput:
         serializer.write_struct(_SCHEMA_IMPORT_CONFIG_JSON_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_IMPORT_CONFIG_JSON_OUTPUT.members["mode"], self.mode)
+        serializer.write_string(_SCHEMA_IMPORT_CONFIG_JSON_OUTPUT.members["strategy"], self.strategy)
         serializer.write_boolean(_SCHEMA_IMPORT_CONFIG_JSON_OUTPUT.members["dry_run"], self.dry_run)
         if self.config_version is not None:
             serializer.write_string(_SCHEMA_IMPORT_CONFIG_JSON_OUTPUT.members["config_version"], self.config_version)
@@ -15541,7 +15531,7 @@ class ImportConfigJsonOutput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["mode"] = de.read_string(_SCHEMA_IMPORT_CONFIG_JSON_OUTPUT.members["mode"])
+                    kwargs["strategy"] = de.read_string(_SCHEMA_IMPORT_CONFIG_JSON_OUTPUT.members["strategy"])
 
                 case 1:
                     kwargs["dry_run"] = de.read_boolean(_SCHEMA_IMPORT_CONFIG_JSON_OUTPUT.members["dry_run"])
@@ -15583,12 +15573,8 @@ ShapeID("smithy.api#httpBearerAuth")
 class ImportConfigTomlInput:
     """
 
-    :param mode:
-         Whether to merge (default) or replace existing workspace config.
-
-    :param overwrite:
-         When false, entities that already exist are skipped instead of updated. Defaults
-         to true.
+    :param strategy:
+         How the import applies file entities to the workspace. Defaults to upsert.
 
     :param on_error:
          Whether to abort (default) or continue on per-entity errors.
@@ -15597,19 +15583,13 @@ class ImportConfigTomlInput:
          When true, validates and summarises the import without persisting anything.
          Defaults to false.
 
-    :param value_merge:
-         When true, deep-merges object-valued default-configs with the existing value.
-         Defaults to false.
-
     """
 
     workspace_id: str | None = None
     org_id: str | None = None
-    mode: str | None = None
-    overwrite: bool | None = None
+    strategy: str | None = None
     on_error: str | None = None
     dry_run: bool | None = None
-    value_merge: bool | None = None
     config_tags: str | None = None
     toml_config: str | None = None
 
@@ -15636,24 +15616,18 @@ class ImportConfigTomlInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_IMPORT_CONFIG_TOML_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["mode"] = de.read_string(_SCHEMA_IMPORT_CONFIG_TOML_INPUT.members["mode"])
+                    kwargs["strategy"] = de.read_string(_SCHEMA_IMPORT_CONFIG_TOML_INPUT.members["strategy"])
 
                 case 3:
-                    kwargs["overwrite"] = de.read_boolean(_SCHEMA_IMPORT_CONFIG_TOML_INPUT.members["overwrite"])
-
-                case 4:
                     kwargs["on_error"] = de.read_string(_SCHEMA_IMPORT_CONFIG_TOML_INPUT.members["on_error"])
 
-                case 5:
+                case 4:
                     kwargs["dry_run"] = de.read_boolean(_SCHEMA_IMPORT_CONFIG_TOML_INPUT.members["dry_run"])
 
-                case 6:
-                    kwargs["value_merge"] = de.read_boolean(_SCHEMA_IMPORT_CONFIG_TOML_INPUT.members["value_merge"])
-
-                case 7:
+                case 5:
                     kwargs["config_tags"] = de.read_string(_SCHEMA_IMPORT_CONFIG_TOML_INPUT.members["config_tags"])
 
-                case 8:
+                case 6:
                     kwargs["toml_config"] = de.read_string(_SCHEMA_IMPORT_CONFIG_TOML_INPUT.members["toml_config"])
 
                 case _:
@@ -15678,7 +15652,7 @@ class ImportConfigTomlOutput:
 
     """
 
-    mode: str
+    strategy: str
 
     dry_run: bool
 
@@ -15694,7 +15668,7 @@ class ImportConfigTomlOutput:
         serializer.write_struct(_SCHEMA_IMPORT_CONFIG_TOML_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_IMPORT_CONFIG_TOML_OUTPUT.members["mode"], self.mode)
+        serializer.write_string(_SCHEMA_IMPORT_CONFIG_TOML_OUTPUT.members["strategy"], self.strategy)
         serializer.write_boolean(_SCHEMA_IMPORT_CONFIG_TOML_OUTPUT.members["dry_run"], self.dry_run)
         if self.config_version is not None:
             serializer.write_string(_SCHEMA_IMPORT_CONFIG_TOML_OUTPUT.members["config_version"], self.config_version)
@@ -15714,7 +15688,7 @@ class ImportConfigTomlOutput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["mode"] = de.read_string(_SCHEMA_IMPORT_CONFIG_TOML_OUTPUT.members["mode"])
+                    kwargs["strategy"] = de.read_string(_SCHEMA_IMPORT_CONFIG_TOML_OUTPUT.members["strategy"])
 
                 case 1:
                     kwargs["dry_run"] = de.read_boolean(_SCHEMA_IMPORT_CONFIG_TOML_OUTPUT.members["dry_run"])

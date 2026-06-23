@@ -69,34 +69,21 @@ pub fn ser_import_config_json_headers(
                             })?;
                             builder = builder.header("x-org-id", header_value);
     }
-    if let ::std::option::Option::Some(inner_5) = &input.mode {
+    if let ::std::option::Option::Some(inner_5) = &input.strategy {
         let formatted_6 = inner_5.as_str();
         let header_value = formatted_6;
                             let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
-                                ::aws_smithy_types::error::operation::BuildError::invalid_field("mode", format!(
+                                ::aws_smithy_types::error::operation::BuildError::invalid_field("strategy", format!(
                                 "`{}` cannot be used as a header value: {}",
                                 &header_value,
                                 err
                             ))
                             })?;
-                            builder = builder.header("x-import-mode", header_value);
+                            builder = builder.header("x-import-strategy", header_value);
     }
-    if let ::std::option::Option::Some(inner_7) = &input.overwrite {
-        let mut encoder = ::aws_smithy_types::primitive::Encoder::from(*inner_7);
-        let formatted_8 = encoder.encode();
+    if let ::std::option::Option::Some(inner_7) = &input.on_error {
+        let formatted_8 = inner_7.as_str();
         let header_value = formatted_8;
-                            let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
-                                ::aws_smithy_types::error::operation::BuildError::invalid_field("overwrite", format!(
-                                "`{}` cannot be used as a header value: {}",
-                                &header_value,
-                                err
-                            ))
-                            })?;
-                            builder = builder.header("x-import-overwrite", header_value);
-    }
-    if let ::std::option::Option::Some(inner_9) = &input.on_error {
-        let formatted_10 = inner_9.as_str();
-        let header_value = formatted_10;
                             let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
                                 ::aws_smithy_types::error::operation::BuildError::invalid_field("on_error", format!(
                                 "`{}` cannot be used as a header value: {}",
@@ -106,10 +93,10 @@ pub fn ser_import_config_json_headers(
                             })?;
                             builder = builder.header("x-import-on-error", header_value);
     }
-    if let ::std::option::Option::Some(inner_11) = &input.dry_run {
-        let mut encoder = ::aws_smithy_types::primitive::Encoder::from(*inner_11);
-        let formatted_12 = encoder.encode();
-        let header_value = formatted_12;
+    if let ::std::option::Option::Some(inner_9) = &input.dry_run {
+        let mut encoder = ::aws_smithy_types::primitive::Encoder::from(*inner_9);
+        let formatted_10 = encoder.encode();
+        let header_value = formatted_10;
                             let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
                                 ::aws_smithy_types::error::operation::BuildError::invalid_field("dry_run", format!(
                                 "`{}` cannot be used as a header value: {}",
@@ -119,22 +106,9 @@ pub fn ser_import_config_json_headers(
                             })?;
                             builder = builder.header("x-import-dry-run", header_value);
     }
-    if let ::std::option::Option::Some(inner_13) = &input.value_merge {
-        let mut encoder = ::aws_smithy_types::primitive::Encoder::from(*inner_13);
-        let formatted_14 = encoder.encode();
-        let header_value = formatted_14;
-                            let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
-                                ::aws_smithy_types::error::operation::BuildError::invalid_field("value_merge", format!(
-                                "`{}` cannot be used as a header value: {}",
-                                &header_value,
-                                err
-                            ))
-                            })?;
-                            builder = builder.header("x-import-value-merge", header_value);
-    }
-    if let ::std::option::Option::Some(inner_15) = &input.config_tags {
-        let formatted_16 = inner_15.as_str();
-        let header_value = formatted_16;
+    if let ::std::option::Option::Some(inner_11) = &input.config_tags {
+        let formatted_12 = inner_11.as_str();
+        let header_value = formatted_12;
                             let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
                                 ::aws_smithy_types::error::operation::BuildError::invalid_field("config_tags", format!(
                                 "`{}` cannot be used as a header value: {}",
@@ -185,8 +159,8 @@ pub(crate) fn de_import_config_json(value: &[u8], mut builder: crate::operation:
                             ::aws_smithy_json::deserialize::token::expect_bool_or_null(tokens.next())?
                         );
                     }
-                    "mode" => {
-                        builder = builder.set_mode(
+                    "strategy" => {
+                        builder = builder.set_strategy(
                             ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
                                 s.to_unescaped().map(|u|
                                     u.into_owned()

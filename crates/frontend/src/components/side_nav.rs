@@ -82,6 +82,12 @@ fn create_routes(org: &str, workspace: &str) -> Vec<AppRoute> {
             label: "Overrides".to_string(),
         },
         AppRoute {
+            key: format!("{base}/admin/{org}/{workspace}/import"),
+            path: format!("{base}/admin/{org}/{workspace}/import"),
+            icon: "ri-file-upload-line".to_string(),
+            label: "Import".to_string(),
+        },
+        AppRoute {
             key: format!("{base}/admin/{org}/{workspace}/compare"),
             path: format!("{base}/admin/{org}/{workspace}/compare"),
             icon: "ri-arrow-left-right-line".to_string(),

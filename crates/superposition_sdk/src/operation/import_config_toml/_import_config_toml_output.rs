@@ -5,7 +5,7 @@
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
 pub struct ImportConfigTomlOutput  {
     #[allow(missing_docs)] // documentation missing in model
-    pub mode: ::std::string::String,
+    pub strategy: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
     pub dry_run: bool,
     #[allow(missing_docs)] // documentation missing in model
@@ -19,8 +19,8 @@ pub struct ImportConfigTomlOutput  {
 }
 impl  ImportConfigTomlOutput  {
     #[allow(missing_docs)] // documentation missing in model
-    pub fn mode(&self) -> &str {
-        use std::ops::Deref; self.mode.deref()
+    pub fn strategy(&self) -> &str {
+        use std::ops::Deref; self.strategy.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn dry_run(&self) -> bool {
@@ -54,7 +54,7 @@ impl ImportConfigTomlOutput {
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
 #[non_exhaustive]
 pub struct ImportConfigTomlOutputBuilder {
-    pub(crate) mode: ::std::option::Option<::std::string::String>,
+    pub(crate) strategy: ::std::option::Option<::std::string::String>,
     pub(crate) dry_run: ::std::option::Option<bool>,
     pub(crate) config_version: ::std::option::Option<::std::string::String>,
     pub(crate) dimensions: ::std::option::Option<crate::types::ImportEntityReport>,
@@ -64,17 +64,17 @@ pub struct ImportConfigTomlOutputBuilder {
 impl ImportConfigTomlOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn mode(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-        self.mode = ::std::option::Option::Some(input.into());
+    pub fn strategy(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.strategy = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_mode(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.mode = input; self
+    pub fn set_strategy(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.strategy = input; self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_mode(&self) -> &::std::option::Option<::std::string::String> {
-        &self.mode
+    pub fn get_strategy(&self) -> &::std::option::Option<::std::string::String> {
+        &self.strategy
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
@@ -147,7 +147,7 @@ impl ImportConfigTomlOutputBuilder {
     }
     /// Consumes the builder and constructs a [`ImportConfigTomlOutput`](crate::operation::import_config_toml::ImportConfigTomlOutput).
     /// This method will fail if any of the following fields are not set:
-    /// - [`mode`](crate::operation::import_config_toml::builders::ImportConfigTomlOutputBuilder::mode)
+    /// - [`strategy`](crate::operation::import_config_toml::builders::ImportConfigTomlOutputBuilder::strategy)
     /// - [`dry_run`](crate::operation::import_config_toml::builders::ImportConfigTomlOutputBuilder::dry_run)
     /// - [`dimensions`](crate::operation::import_config_toml::builders::ImportConfigTomlOutputBuilder::dimensions)
     /// - [`default_configs`](crate::operation::import_config_toml::builders::ImportConfigTomlOutputBuilder::default_configs)
@@ -155,9 +155,9 @@ impl ImportConfigTomlOutputBuilder {
     pub fn build(self) -> ::std::result::Result<crate::operation::import_config_toml::ImportConfigTomlOutput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
             crate::operation::import_config_toml::ImportConfigTomlOutput {
-                mode: self.mode
+                strategy: self.strategy
                     .ok_or_else(||
-                        ::aws_smithy_types::error::operation::BuildError::missing_field("mode", "mode was not specified but it is required when building ImportConfigTomlOutput")
+                        ::aws_smithy_types::error::operation::BuildError::missing_field("strategy", "strategy was not specified but it is required when building ImportConfigTomlOutput")
                     )?
                 ,
                 dry_run: self.dry_run

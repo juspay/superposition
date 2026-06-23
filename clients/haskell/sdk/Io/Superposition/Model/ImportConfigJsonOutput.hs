@@ -1,5 +1,5 @@
 module Io.Superposition.Model.ImportConfigJsonOutput (
-    setMode,
+    setStrategy,
     setDryRun,
     setConfigVersion,
     setDimensions,
@@ -8,7 +8,7 @@ module Io.Superposition.Model.ImportConfigJsonOutput (
     build,
     ImportConfigJsonOutputBuilder,
     ImportConfigJsonOutput,
-    mode,
+    strategy,
     dry_run,
     config_version,
     dimensions,
@@ -30,7 +30,7 @@ import qualified Io.Superposition.Utility
 import qualified Network.HTTP.Types
 
 data ImportConfigJsonOutput = ImportConfigJsonOutput {
-    mode :: Data.Text.Text,
+    strategy :: Data.Text.Text,
     dry_run :: Bool,
     config_version :: Data.Maybe.Maybe Data.Text.Text,
     dimensions :: Io.Superposition.Model.ImportEntityReport.ImportEntityReport,
@@ -44,7 +44,7 @@ data ImportConfigJsonOutput = ImportConfigJsonOutput {
 
 instance Data.Aeson.ToJSON ImportConfigJsonOutput where
     toJSON a = Data.Aeson.object [
-        "mode" Data.Aeson..= mode a,
+        "strategy" Data.Aeson..= strategy a,
         "dry_run" Data.Aeson..= dry_run a,
         "config_version" Data.Aeson..= config_version a,
         "dimensions" Data.Aeson..= dimensions a,
@@ -57,7 +57,7 @@ instance Io.Superposition.Utility.SerializeBody ImportConfigJsonOutput
 
 instance Data.Aeson.FromJSON ImportConfigJsonOutput where
     parseJSON = Data.Aeson.withObject "ImportConfigJsonOutput" $ \v -> ImportConfigJsonOutput
-        Data.Functor.<$> (v Data.Aeson..: "mode")
+        Data.Functor.<$> (v Data.Aeson..: "strategy")
         Control.Applicative.<*> (v Data.Aeson..: "dry_run")
         Control.Applicative.<*> (v Data.Aeson..:? "config_version")
         Control.Applicative.<*> (v Data.Aeson..: "dimensions")
@@ -68,7 +68,7 @@ instance Data.Aeson.FromJSON ImportConfigJsonOutput where
 
 
 data ImportConfigJsonOutputBuilderState = ImportConfigJsonOutputBuilderState {
-    modeBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    strategyBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     dry_runBuilderState :: Data.Maybe.Maybe Bool,
     config_versionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     dimensionsBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.ImportEntityReport.ImportEntityReport,
@@ -80,7 +80,7 @@ data ImportConfigJsonOutputBuilderState = ImportConfigJsonOutputBuilderState {
 
 defaultBuilderState :: ImportConfigJsonOutputBuilderState
 defaultBuilderState = ImportConfigJsonOutputBuilderState {
-    modeBuilderState = Data.Maybe.Nothing,
+    strategyBuilderState = Data.Maybe.Nothing,
     dry_runBuilderState = Data.Maybe.Nothing,
     config_versionBuilderState = Data.Maybe.Nothing,
     dimensionsBuilderState = Data.Maybe.Nothing,
@@ -90,9 +90,9 @@ defaultBuilderState = ImportConfigJsonOutputBuilderState {
 
 type ImportConfigJsonOutputBuilder = Control.Monad.State.Strict.State ImportConfigJsonOutputBuilderState
 
-setMode :: Data.Text.Text -> ImportConfigJsonOutputBuilder ()
-setMode value =
-   Control.Monad.State.Strict.modify (\s -> (s { modeBuilderState = Data.Maybe.Just value }))
+setStrategy :: Data.Text.Text -> ImportConfigJsonOutputBuilder ()
+setStrategy value =
+   Control.Monad.State.Strict.modify (\s -> (s { strategyBuilderState = Data.Maybe.Just value }))
 
 setDryRun :: Bool -> ImportConfigJsonOutputBuilder ()
 setDryRun value =
@@ -117,14 +117,14 @@ setContexts value =
 build :: ImportConfigJsonOutputBuilder () -> Data.Either.Either Data.Text.Text ImportConfigJsonOutput
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
-    mode' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ImportConfigJsonOutput.ImportConfigJsonOutput.mode is a required property.") Data.Either.Right (modeBuilderState st)
+    strategy' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ImportConfigJsonOutput.ImportConfigJsonOutput.strategy is a required property.") Data.Either.Right (strategyBuilderState st)
     dry_run' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ImportConfigJsonOutput.ImportConfigJsonOutput.dry_run is a required property.") Data.Either.Right (dry_runBuilderState st)
     config_version' <- Data.Either.Right (config_versionBuilderState st)
     dimensions' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ImportConfigJsonOutput.ImportConfigJsonOutput.dimensions is a required property.") Data.Either.Right (dimensionsBuilderState st)
     default_configs' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ImportConfigJsonOutput.ImportConfigJsonOutput.default_configs is a required property.") Data.Either.Right (default_configsBuilderState st)
     contexts' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ImportConfigJsonOutput.ImportConfigJsonOutput.contexts is a required property.") Data.Either.Right (contextsBuilderState st)
     Data.Either.Right (ImportConfigJsonOutput { 
-        mode = mode',
+        strategy = strategy',
         dry_run = dry_run',
         config_version = config_version',
         dimensions = dimensions',
@@ -137,18 +137,18 @@ instance Io.Superposition.Utility.FromResponseParser ImportConfigJsonOutput wher
     expectedStatus = (Network.HTTP.Types.mkStatus 200 "")
     responseParser = do
         
-        var0 <- Io.Superposition.Utility.deSerField "mode"
-        var1 <- Io.Superposition.Utility.deSerField "dry_run"
-        var2 <- Io.Superposition.Utility.deSerField "contexts"
+        var0 <- Io.Superposition.Utility.deSerField "dry_run"
+        var1 <- Io.Superposition.Utility.deSerField "contexts"
+        var2 <- Io.Superposition.Utility.deSerField "strategy"
         var3 <- Io.Superposition.Utility.deSerField "default_configs"
         var4 <- Io.Superposition.Utility.deSerField "config_version"
         var5 <- Io.Superposition.Utility.deSerField "dimensions"
         pure $ ImportConfigJsonOutput {
-            mode = var0,
-            dry_run = var1,
+            strategy = var2,
+            dry_run = var0,
             config_version = var4,
             dimensions = var5,
             default_configs = var3,
-            contexts = var2
+            contexts = var1
         }
 

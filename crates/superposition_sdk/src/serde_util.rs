@@ -585,7 +585,7 @@ if builder.enable_change_reason_validation.is_none() { builder.enable_change_rea
             }
 
 pub(crate) fn import_config_json_output_output_correct_errors(mut builder: crate::operation::import_config_json::builders::ImportConfigJsonOutputBuilder) -> crate::operation::import_config_json::builders::ImportConfigJsonOutputBuilder {
-                if builder.mode.is_none() { builder.mode = Some(Default::default()) }
+                if builder.strategy.is_none() { builder.strategy = Some(Default::default()) }
 if builder.dry_run.is_none() { builder.dry_run = Some(Default::default()) }
 if builder.dimensions.is_none() { builder.dimensions = { let builder = crate::types::builders::ImportEntityReportBuilder::default(); crate::serde_util::import_entity_report_correct_errors(builder).build().ok() } }
 if builder.default_configs.is_none() { builder.default_configs = { let builder = crate::types::builders::ImportEntityReportBuilder::default(); crate::serde_util::import_entity_report_correct_errors(builder).build().ok() } }
@@ -594,7 +594,7 @@ if builder.contexts.is_none() { builder.contexts = { let builder = crate::types:
             }
 
 pub(crate) fn import_config_toml_output_output_correct_errors(mut builder: crate::operation::import_config_toml::builders::ImportConfigTomlOutputBuilder) -> crate::operation::import_config_toml::builders::ImportConfigTomlOutputBuilder {
-                if builder.mode.is_none() { builder.mode = Some(Default::default()) }
+                if builder.strategy.is_none() { builder.strategy = Some(Default::default()) }
 if builder.dry_run.is_none() { builder.dry_run = Some(Default::default()) }
 if builder.dimensions.is_none() { builder.dimensions = { let builder = crate::types::builders::ImportEntityReportBuilder::default(); crate::serde_util::import_entity_report_correct_errors(builder).build().ok() } }
 if builder.default_configs.is_none() { builder.default_configs = { let builder = crate::types::builders::ImportEntityReportBuilder::default(); crate::serde_util::import_entity_report_correct_errors(builder).build().ok() } }
@@ -1274,17 +1274,17 @@ if builder.enable_change_reason_validation.is_none() { builder.enable_change_rea
                 builder
             }
 
+pub(crate) fn import_error_item_correct_errors(mut builder: crate::types::builders::ImportErrorItemBuilder) -> crate::types::builders::ImportErrorItemBuilder {
+                if builder.id.is_none() { builder.id = Some(Default::default()) }
+if builder.message.is_none() { builder.message = Some(Default::default()) }
+                builder
+            }
+
 pub(crate) fn resolve_explanation_timeline_item_correct_errors(mut builder: crate::types::builders::ResolveExplanationTimelineItemBuilder) -> crate::types::builders::ResolveExplanationTimelineItemBuilder {
                 if builder.context_id.is_none() { builder.context_id = Some(Default::default()) }
 if builder.condition.is_none() { builder.condition = Some(Default::default()) }
 if builder.override_id.is_none() { builder.override_id = Some(Default::default()) }
 if builder.value_before.is_none() { builder.value_before = Some(Default::default()) }
 if builder.value_after.is_none() { builder.value_after = Some(Default::default()) }
-                builder
-            }
-
-pub(crate) fn import_error_item_correct_errors(mut builder: crate::types::builders::ImportErrorItemBuilder) -> crate::types::builders::ImportErrorItemBuilder {
-                if builder.id.is_none() { builder.id = Some(Default::default()) }
-if builder.message.is_none() { builder.message = Some(Default::default()) }
                 builder
             }

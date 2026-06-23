@@ -7,16 +7,12 @@ pub struct ImportConfigTomlInput  {
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub org_id: ::std::option::Option<::std::string::String>,
-    /// Whether to merge (default) or replace existing workspace config.
-    pub mode: ::std::option::Option<crate::types::ImportMode>,
-    /// When false, entities that already exist are skipped instead of updated. Defaults to true.
-    pub overwrite: ::std::option::Option<bool>,
+    /// How the import applies file entities to the workspace. Defaults to upsert.
+    pub strategy: ::std::option::Option<crate::types::ImportStrategy>,
     /// Whether to abort (default) or continue on per-entity errors.
     pub on_error: ::std::option::Option<crate::types::ImportOnError>,
     /// When true, validates and summarises the import without persisting anything. Defaults to false.
     pub dry_run: ::std::option::Option<bool>,
-    /// When true, deep-merges object-valued default-configs with the existing value. Defaults to false.
-    pub value_merge: ::std::option::Option<bool>,
     #[allow(missing_docs)] // documentation missing in model
     pub config_tags: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -31,13 +27,9 @@ impl  ImportConfigTomlInput  {
     pub fn org_id(&self) -> ::std::option::Option<&str> {
         self.org_id.as_deref()
     }
-    /// Whether to merge (default) or replace existing workspace config.
-    pub fn mode(&self) -> ::std::option::Option<&crate::types::ImportMode> {
-        self.mode.as_ref()
-    }
-    /// When false, entities that already exist are skipped instead of updated. Defaults to true.
-    pub fn overwrite(&self) -> ::std::option::Option<bool> {
-        self.overwrite
+    /// How the import applies file entities to the workspace. Defaults to upsert.
+    pub fn strategy(&self) -> ::std::option::Option<&crate::types::ImportStrategy> {
+        self.strategy.as_ref()
     }
     /// Whether to abort (default) or continue on per-entity errors.
     pub fn on_error(&self) -> ::std::option::Option<&crate::types::ImportOnError> {
@@ -46,10 +38,6 @@ impl  ImportConfigTomlInput  {
     /// When true, validates and summarises the import without persisting anything. Defaults to false.
     pub fn dry_run(&self) -> ::std::option::Option<bool> {
         self.dry_run
-    }
-    /// When true, deep-merges object-valued default-configs with the existing value. Defaults to false.
-    pub fn value_merge(&self) -> ::std::option::Option<bool> {
-        self.value_merge
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn config_tags(&self) -> ::std::option::Option<&str> {
@@ -73,11 +61,9 @@ impl ImportConfigTomlInput {
 pub struct ImportConfigTomlInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
-    pub(crate) mode: ::std::option::Option<crate::types::ImportMode>,
-    pub(crate) overwrite: ::std::option::Option<bool>,
+    pub(crate) strategy: ::std::option::Option<crate::types::ImportStrategy>,
     pub(crate) on_error: ::std::option::Option<crate::types::ImportOnError>,
     pub(crate) dry_run: ::std::option::Option<bool>,
-    pub(crate) value_merge: ::std::option::Option<bool>,
     pub(crate) config_tags: ::std::option::Option<::std::string::String>,
     pub(crate) toml_config: ::std::option::Option<::std::string::String>,
 }
@@ -110,31 +96,18 @@ impl ImportConfigTomlInputBuilder {
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.org_id
     }
-    /// Whether to merge (default) or replace existing workspace config.
-    pub fn mode(mut self, input: crate::types::ImportMode) -> Self {
-        self.mode = ::std::option::Option::Some(input);
+    /// How the import applies file entities to the workspace. Defaults to upsert.
+    pub fn strategy(mut self, input: crate::types::ImportStrategy) -> Self {
+        self.strategy = ::std::option::Option::Some(input);
         self
     }
-    /// Whether to merge (default) or replace existing workspace config.
-    pub fn set_mode(mut self, input: ::std::option::Option<crate::types::ImportMode>) -> Self {
-        self.mode = input; self
+    /// How the import applies file entities to the workspace. Defaults to upsert.
+    pub fn set_strategy(mut self, input: ::std::option::Option<crate::types::ImportStrategy>) -> Self {
+        self.strategy = input; self
     }
-    /// Whether to merge (default) or replace existing workspace config.
-    pub fn get_mode(&self) -> &::std::option::Option<crate::types::ImportMode> {
-        &self.mode
-    }
-    /// When false, entities that already exist are skipped instead of updated. Defaults to true.
-    pub fn overwrite(mut self, input: bool) -> Self {
-        self.overwrite = ::std::option::Option::Some(input);
-        self
-    }
-    /// When false, entities that already exist are skipped instead of updated. Defaults to true.
-    pub fn set_overwrite(mut self, input: ::std::option::Option<bool>) -> Self {
-        self.overwrite = input; self
-    }
-    /// When false, entities that already exist are skipped instead of updated. Defaults to true.
-    pub fn get_overwrite(&self) -> &::std::option::Option<bool> {
-        &self.overwrite
+    /// How the import applies file entities to the workspace. Defaults to upsert.
+    pub fn get_strategy(&self) -> &::std::option::Option<crate::types::ImportStrategy> {
+        &self.strategy
     }
     /// Whether to abort (default) or continue on per-entity errors.
     pub fn on_error(mut self, input: crate::types::ImportOnError) -> Self {
@@ -161,19 +134,6 @@ impl ImportConfigTomlInputBuilder {
     /// When true, validates and summarises the import without persisting anything. Defaults to false.
     pub fn get_dry_run(&self) -> &::std::option::Option<bool> {
         &self.dry_run
-    }
-    /// When true, deep-merges object-valued default-configs with the existing value. Defaults to false.
-    pub fn value_merge(mut self, input: bool) -> Self {
-        self.value_merge = ::std::option::Option::Some(input);
-        self
-    }
-    /// When true, deep-merges object-valued default-configs with the existing value. Defaults to false.
-    pub fn set_value_merge(mut self, input: ::std::option::Option<bool>) -> Self {
-        self.value_merge = input; self
-    }
-    /// When true, deep-merges object-valued default-configs with the existing value. Defaults to false.
-    pub fn get_value_merge(&self) -> &::std::option::Option<bool> {
-        &self.value_merge
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn config_tags(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
@@ -210,15 +170,11 @@ impl ImportConfigTomlInputBuilder {
                 ,
                 org_id: self.org_id
                 ,
-                mode: self.mode
-                ,
-                overwrite: self.overwrite
+                strategy: self.strategy
                 ,
                 on_error: self.on_error
                 ,
                 dry_run: self.dry_run
-                ,
-                value_merge: self.value_merge
                 ,
                 config_tags: self.config_tags
                 ,

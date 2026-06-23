@@ -15308,31 +15308,6 @@ GET_WORKSPACE = Schema(
 
 )
 
-IMPORT_MODE = Schema.collection(
-    id=ShapeID("io.superposition#ImportMode"),
-    shape_type=ShapeType.ENUM,
-    members={
-        "MERGE": {
-            "target": UNIT,
-            "index": 0,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#enumValue"), value="merge"),
-
-            ],
-        },
-
-        "REPLACE": {
-            "target": UNIT,
-            "index": 1,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#enumValue"), value="replace"),
-
-            ],
-        },
-
-    }
-)
-
 IMPORT_ON_ERROR = Schema.collection(
     id=ShapeID("io.superposition#ImportOnError"),
     shape_type=ShapeType.ENUM,
@@ -15351,6 +15326,40 @@ IMPORT_ON_ERROR = Schema.collection(
             "index": 1,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#enumValue"), value="continue"),
+
+            ],
+        },
+
+    }
+)
+
+IMPORT_STRATEGY = Schema.collection(
+    id=ShapeID("io.superposition#ImportStrategy"),
+    shape_type=ShapeType.ENUM,
+    members={
+        "CREATE_ONLY": {
+            "target": UNIT,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="create_only"),
+
+            ],
+        },
+
+        "UPSERT": {
+            "target": UNIT,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="upsert"),
+
+            ],
+        },
+
+        "REPLACE": {
+            "target": UNIT,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="replace"),
 
             ],
         },
@@ -15386,21 +15395,11 @@ IMPORT_CONFIG_JSON_INPUT = Schema.collection(
             ],
         },
 
-        "mode": {
-            "target": IMPORT_MODE,
+        "strategy": {
+            "target": IMPORT_STRATEGY,
             "index": 2,
             "traits": [
-                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-import-mode"),
-                Trait.new(id=ShapeID("smithy.api#notProperty")),
-
-            ],
-        },
-
-        "overwrite": {
-            "target": BOOLEAN,
-            "index": 3,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-import-overwrite"),
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-import-strategy"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
             ],
@@ -15408,7 +15407,7 @@ IMPORT_CONFIG_JSON_INPUT = Schema.collection(
 
         "on_error": {
             "target": IMPORT_ON_ERROR,
-            "index": 4,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-import-on-error"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -15418,7 +15417,7 @@ IMPORT_CONFIG_JSON_INPUT = Schema.collection(
 
         "dry_run": {
             "target": BOOLEAN,
-            "index": 5,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-import-dry-run"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -15426,19 +15425,9 @@ IMPORT_CONFIG_JSON_INPUT = Schema.collection(
             ],
         },
 
-        "value_merge": {
-            "target": BOOLEAN,
-            "index": 6,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-import-value-merge"),
-                Trait.new(id=ShapeID("smithy.api#notProperty")),
-
-            ],
-        },
-
         "config_tags": {
             "target": STRING,
-            "index": 7,
+            "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-config-tags"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -15448,7 +15437,7 @@ IMPORT_CONFIG_JSON_INPUT = Schema.collection(
 
         "json_config": {
             "target": STRING,
-            "index": 8,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -15554,7 +15543,7 @@ IMPORT_CONFIG_JSON_OUTPUT = Schema.collection(
 
     ],
     members={
-        "mode": {
+        "strategy": {
             "target": STRING,
             "index": 0,
             "traits": [
@@ -15660,21 +15649,11 @@ IMPORT_CONFIG_TOML_INPUT = Schema.collection(
             ],
         },
 
-        "mode": {
-            "target": IMPORT_MODE,
+        "strategy": {
+            "target": IMPORT_STRATEGY,
             "index": 2,
             "traits": [
-                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-import-mode"),
-                Trait.new(id=ShapeID("smithy.api#notProperty")),
-
-            ],
-        },
-
-        "overwrite": {
-            "target": BOOLEAN,
-            "index": 3,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-import-overwrite"),
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-import-strategy"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
             ],
@@ -15682,7 +15661,7 @@ IMPORT_CONFIG_TOML_INPUT = Schema.collection(
 
         "on_error": {
             "target": IMPORT_ON_ERROR,
-            "index": 4,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-import-on-error"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -15692,7 +15671,7 @@ IMPORT_CONFIG_TOML_INPUT = Schema.collection(
 
         "dry_run": {
             "target": BOOLEAN,
-            "index": 5,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-import-dry-run"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -15700,19 +15679,9 @@ IMPORT_CONFIG_TOML_INPUT = Schema.collection(
             ],
         },
 
-        "value_merge": {
-            "target": BOOLEAN,
-            "index": 6,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-import-value-merge"),
-                Trait.new(id=ShapeID("smithy.api#notProperty")),
-
-            ],
-        },
-
         "config_tags": {
             "target": STRING,
-            "index": 7,
+            "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-config-tags"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -15722,7 +15691,7 @@ IMPORT_CONFIG_TOML_INPUT = Schema.collection(
 
         "toml_config": {
             "target": STRING,
-            "index": 8,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -15743,7 +15712,7 @@ IMPORT_CONFIG_TOML_OUTPUT = Schema.collection(
 
     ],
     members={
-        "mode": {
+        "strategy": {
             "target": STRING,
             "index": 0,
             "traits": [

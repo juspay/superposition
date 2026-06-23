@@ -1941,16 +1941,12 @@ async def _serialize_import_config_json(input: ImportConfigJsonInput, config: Co
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
-    if input.mode:
-        headers.extend(Fields([Field(name="x-import-mode", values=[input.mode])]))
-    if input.overwrite is not None:
-        headers.extend(Fields([Field(name="x-import-overwrite", values=[('true' if input.overwrite else 'false')])]))
+    if input.strategy:
+        headers.extend(Fields([Field(name="x-import-strategy", values=[input.strategy])]))
     if input.on_error:
         headers.extend(Fields([Field(name="x-import-on-error", values=[input.on_error])]))
     if input.dry_run is not None:
         headers.extend(Fields([Field(name="x-import-dry-run", values=[('true' if input.dry_run else 'false')])]))
-    if input.value_merge is not None:
-        headers.extend(Fields([Field(name="x-import-value-merge", values=[('true' if input.value_merge else 'false')])]))
     if input.config_tags:
         headers.extend(Fields([Field(name="x-config-tags", values=[input.config_tags])]))
     return _HTTPRequest(
@@ -1987,16 +1983,12 @@ async def _serialize_import_config_toml(input: ImportConfigTomlInput, config: Co
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
-    if input.mode:
-        headers.extend(Fields([Field(name="x-import-mode", values=[input.mode])]))
-    if input.overwrite is not None:
-        headers.extend(Fields([Field(name="x-import-overwrite", values=[('true' if input.overwrite else 'false')])]))
+    if input.strategy:
+        headers.extend(Fields([Field(name="x-import-strategy", values=[input.strategy])]))
     if input.on_error:
         headers.extend(Fields([Field(name="x-import-on-error", values=[input.on_error])]))
     if input.dry_run is not None:
         headers.extend(Fields([Field(name="x-import-dry-run", values=[('true' if input.dry_run else 'false')])]))
-    if input.value_merge is not None:
-        headers.extend(Fields([Field(name="x-import-value-merge", values=[('true' if input.value_merge else 'false')])]))
     if input.config_tags:
         headers.extend(Fields([Field(name="x-config-tags", values=[input.config_tags])]))
     return _HTTPRequest(

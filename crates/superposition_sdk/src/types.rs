@@ -121,7 +121,7 @@ pub use crate::types::_import_error_item::ImportErrorItem;
 
 pub use crate::types::_import_on_error::ImportOnError;
 
-pub use crate::types::_import_mode::ImportMode;
+pub use crate::types::_import_strategy::ImportStrategy;
 
 mod _audit_action;
 
@@ -191,9 +191,9 @@ mod _import_entity_report;
 
 mod _import_error_item;
 
-mod _import_mode;
-
 mod _import_on_error;
+
+mod _import_strategy;
 
 mod _list_versions_member;
 

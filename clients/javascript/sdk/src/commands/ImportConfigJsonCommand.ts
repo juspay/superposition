@@ -45,18 +45,16 @@ export interface ImportConfigJsonCommandOutput extends ImportConfigOutput, __Met
  * const input = { // ImportConfigJsonInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
- *   mode: "merge" || "replace",
- *   overwrite: true || false,
+ *   strategy: "create_only" || "upsert" || "replace",
  *   on_error: "abort" || "continue",
  *   dry_run: true || false,
- *   value_merge: true || false,
  *   config_tags: "STRING_VALUE",
  *   json_config: "STRING_VALUE", // required
  * };
  * const command = new ImportConfigJsonCommand(input);
  * const response = await client.send(command);
  * // { // ImportConfigOutput
- * //   mode: "STRING_VALUE", // required
+ * //   strategy: "STRING_VALUE", // required
  * //   dry_run: true || false, // required
  * //   config_version: "STRING_VALUE",
  * //   dimensions: { // ImportEntityReport

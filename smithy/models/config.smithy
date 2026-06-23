@@ -183,12 +183,15 @@ operation GetConfigJson {
     }
 }
 
-@documentation("How an import treats workspace entities that are not present in the imported file.")
-enum ImportMode {
-    @documentation("Upsert the entities in the file and leave everything else untouched.")
-    MERGE = "merge"
+@documentation("How an import applies file entities to the workspace.")
+enum ImportStrategy {
+    @documentation("Create entities that are present in the file but missing from the workspace. Existing entities are skipped. Nothing is deleted.")
+    CREATE_ONLY = "create_only"
 
-    @documentation("Mirror the file: additionally delete dimensions, default-configs and contexts that are absent from it.")
+    @documentation("Create missing entities and update existing entities from the file. Entities absent from the file are left untouched.")
+    UPSERT = "upsert"
+
+    @documentation("Mirror the file: create missing entities, update existing entities, and delete dimensions, default-configs and contexts that are absent from it.")
     REPLACE = "replace"
 }
 
@@ -234,7 +237,7 @@ structure ImportErrorItem {
 structure ImportConfigOutput {
     @required
     @notProperty
-    mode: String
+    strategy: String
 
     @required
     @notProperty
@@ -261,15 +264,10 @@ structure ImportConfigOutput {
 @tags(["Configuration Management"])
 operation ImportConfigToml {
     input := with [WorkspaceMixin] {
-        @documentation("Whether to merge (default) or replace existing workspace config.")
-        @httpHeader("x-import-mode")
+        @documentation("How the import applies file entities to the workspace. Defaults to upsert.")
+        @httpHeader("x-import-strategy")
         @notProperty
-        mode: ImportMode
-
-        @documentation("When false, entities that already exist are skipped instead of updated. Defaults to true.")
-        @httpHeader("x-import-overwrite")
-        @notProperty
-        overwrite: Boolean
+        strategy: ImportStrategy
 
         @documentation("Whether to abort (default) or continue on per-entity errors.")
         @httpHeader("x-import-on-error")
@@ -280,11 +278,6 @@ operation ImportConfigToml {
         @httpHeader("x-import-dry-run")
         @notProperty
         dry_run: Boolean
-
-        @documentation("When true, deep-merges object-valued default-configs with the existing value. Defaults to false.")
-        @httpHeader("x-import-value-merge")
-        @notProperty
-        value_merge: Boolean
 
         @httpHeader("x-config-tags")
         @notProperty
@@ -304,15 +297,10 @@ operation ImportConfigToml {
 @tags(["Configuration Management"])
 operation ImportConfigJson {
     input := with [WorkspaceMixin] {
-        @documentation("Whether to merge (default) or replace existing workspace config.")
-        @httpHeader("x-import-mode")
+        @documentation("How the import applies file entities to the workspace. Defaults to upsert.")
+        @httpHeader("x-import-strategy")
         @notProperty
-        mode: ImportMode
-
-        @documentation("When false, entities that already exist are skipped instead of updated. Defaults to true.")
-        @httpHeader("x-import-overwrite")
-        @notProperty
-        overwrite: Boolean
+        strategy: ImportStrategy
 
         @documentation("Whether to abort (default) or continue on per-entity errors.")
         @httpHeader("x-import-on-error")
@@ -323,11 +311,6 @@ operation ImportConfigJson {
         @httpHeader("x-import-dry-run")
         @notProperty
         dry_run: Boolean
-
-        @documentation("When true, deep-merges object-valued default-configs with the existing value. Defaults to false.")
-        @httpHeader("x-import-value-merge")
-        @notProperty
-        value_merge: Boolean
 
         @httpHeader("x-config-tags")
         @notProperty

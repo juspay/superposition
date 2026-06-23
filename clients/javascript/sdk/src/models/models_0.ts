@@ -2755,25 +2755,6 @@ export interface GetWorkspaceInput {
  * @public
  * @enum
  */
-export const ImportMode = {
-  /**
-   * Upsert the entities in the file and leave everything else untouched.
-   */
-  MERGE: "merge",
-  /**
-   * Mirror the file: additionally delete dimensions, default-configs and contexts that are absent from it.
-   */
-  REPLACE: "replace",
-} as const
-/**
- * @public
- */
-export type ImportMode = typeof ImportMode[keyof typeof ImportMode]
-
-/**
- * @public
- * @enum
- */
 export const ImportOnError = {
   /**
    * Roll the whole import back on the first error.
@@ -2791,21 +2772,38 @@ export type ImportOnError = typeof ImportOnError[keyof typeof ImportOnError]
 
 /**
  * @public
+ * @enum
+ */
+export const ImportStrategy = {
+  /**
+   * Create entities that are present in the file but missing from the workspace. Existing entities are skipped. Nothing is deleted.
+   */
+  CREATE_ONLY: "create_only",
+  /**
+   * Mirror the file: create missing entities, update existing entities, and delete dimensions, default-configs and contexts that are absent from it.
+   */
+  REPLACE: "replace",
+  /**
+   * Create missing entities and update existing entities from the file. Entities absent from the file are left untouched.
+   */
+  UPSERT: "upsert",
+} as const
+/**
+ * @public
+ */
+export type ImportStrategy = typeof ImportStrategy[keyof typeof ImportStrategy]
+
+/**
+ * @public
  */
 export interface ImportConfigJsonInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
   /**
-   * Whether to merge (default) or replace existing workspace config.
+   * How the import applies file entities to the workspace. Defaults to upsert.
    * @public
    */
-  mode?: ImportMode | undefined;
-
-  /**
-   * When false, entities that already exist are skipped instead of updated. Defaults to true.
-   * @public
-   */
-  overwrite?: boolean | undefined;
+  strategy?: ImportStrategy | undefined;
 
   /**
    * Whether to abort (default) or continue on per-entity errors.
@@ -2818,12 +2816,6 @@ export interface ImportConfigJsonInput {
    * @public
    */
   dry_run?: boolean | undefined;
-
-  /**
-   * When true, deep-merges object-valued default-configs with the existing value. Defaults to false.
-   * @public
-   */
-  value_merge?: boolean | undefined;
 
   config_tags?: string | undefined;
   json_config: string | undefined;
@@ -2854,7 +2846,7 @@ export interface ImportEntityReport {
  * @public
  */
 export interface ImportConfigOutput {
-  mode: string | undefined;
+  strategy: string | undefined;
   dry_run: boolean | undefined;
   config_version?: string | undefined;
   /**
@@ -2883,16 +2875,10 @@ export interface ImportConfigTomlInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
   /**
-   * Whether to merge (default) or replace existing workspace config.
+   * How the import applies file entities to the workspace. Defaults to upsert.
    * @public
    */
-  mode?: ImportMode | undefined;
-
-  /**
-   * When false, entities that already exist are skipped instead of updated. Defaults to true.
-   * @public
-   */
-  overwrite?: boolean | undefined;
+  strategy?: ImportStrategy | undefined;
 
   /**
    * Whether to abort (default) or continue on per-entity errors.
@@ -2905,12 +2891,6 @@ export interface ImportConfigTomlInput {
    * @public
    */
   dry_run?: boolean | undefined;
-
-  /**
-   * When true, deep-merges object-valued default-configs with the existing value. Defaults to false.
-   * @public
-   */
-  value_merge?: boolean | undefined;
 
   config_tags?: string | undefined;
   toml_config: string | undefined;

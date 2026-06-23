@@ -28,16 +28,12 @@ public final class ImportConfigJsonInput implements SerializableStruct {
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
-        .putMember("mode", ImportMode.$SCHEMA,
-                new HttpHeaderTrait("x-import-mode"))
-        .putMember("overwrite", PreludeSchemas.BOOLEAN,
-                new HttpHeaderTrait("x-import-overwrite"))
+        .putMember("strategy", ImportStrategy.$SCHEMA,
+                new HttpHeaderTrait("x-import-strategy"))
         .putMember("on_error", ImportOnError.$SCHEMA,
                 new HttpHeaderTrait("x-import-on-error"))
         .putMember("dry_run", PreludeSchemas.BOOLEAN,
                 new HttpHeaderTrait("x-import-dry-run"))
-        .putMember("value_merge", PreludeSchemas.BOOLEAN,
-                new HttpHeaderTrait("x-import-value-merge"))
         .putMember("config_tags", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-config-tags"))
         .putMember("json_config", PreludeSchemas.STRING,
@@ -47,32 +43,26 @@ public final class ImportConfigJsonInput implements SerializableStruct {
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
-    private static final Schema $SCHEMA_MODE = $SCHEMA.member("mode");
-    private static final Schema $SCHEMA_OVERWRITE = $SCHEMA.member("overwrite");
+    private static final Schema $SCHEMA_STRATEGY = $SCHEMA.member("strategy");
     private static final Schema $SCHEMA_ON_ERROR = $SCHEMA.member("on_error");
     private static final Schema $SCHEMA_DRY_RUN = $SCHEMA.member("dry_run");
-    private static final Schema $SCHEMA_VALUE_MERGE = $SCHEMA.member("value_merge");
     private static final Schema $SCHEMA_CONFIG_TAGS = $SCHEMA.member("config_tags");
     private static final Schema $SCHEMA_JSON_CONFIG = $SCHEMA.member("json_config");
 
     private final transient String workspaceId;
     private final transient String orgId;
-    private final transient ImportMode mode;
-    private final transient Boolean overwrite;
+    private final transient ImportStrategy strategy;
     private final transient ImportOnError onError;
     private final transient Boolean dryRun;
-    private final transient Boolean valueMerge;
     private final transient String configTags;
     private final transient String jsonConfig;
 
     private ImportConfigJsonInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
-        this.mode = builder.mode;
-        this.overwrite = builder.overwrite;
+        this.strategy = builder.strategy;
         this.onError = builder.onError;
         this.dryRun = builder.dryRun;
-        this.valueMerge = builder.valueMerge;
         this.configTags = builder.configTags;
         this.jsonConfig = builder.jsonConfig;
     }
@@ -86,17 +76,10 @@ public final class ImportConfigJsonInput implements SerializableStruct {
     }
 
     /**
-     * Whether to merge (default) or replace existing workspace config.
+     * How the import applies file entities to the workspace. Defaults to upsert.
      */
-    public ImportMode mode() {
-        return mode;
-    }
-
-    /**
-     * When false, entities that already exist are skipped instead of updated. Defaults to true.
-     */
-    public Boolean overwrite() {
-        return overwrite;
+    public ImportStrategy strategy() {
+        return strategy;
     }
 
     /**
@@ -111,13 +94,6 @@ public final class ImportConfigJsonInput implements SerializableStruct {
      */
     public Boolean dryRun() {
         return dryRun;
-    }
-
-    /**
-     * When true, deep-merges object-valued default-configs with the existing value. Defaults to false.
-     */
-    public Boolean valueMerge() {
-        return valueMerge;
     }
 
     public String configTags() {
@@ -144,18 +120,16 @@ public final class ImportConfigJsonInput implements SerializableStruct {
         ImportConfigJsonInput that = (ImportConfigJsonInput) other;
         return Objects.equals(this.workspaceId, that.workspaceId)
                && Objects.equals(this.orgId, that.orgId)
-               && Objects.equals(this.mode, that.mode)
-               && Objects.equals(this.overwrite, that.overwrite)
+               && Objects.equals(this.strategy, that.strategy)
                && Objects.equals(this.onError, that.onError)
                && Objects.equals(this.dryRun, that.dryRun)
-               && Objects.equals(this.valueMerge, that.valueMerge)
                && Objects.equals(this.configTags, that.configTags)
                && Objects.equals(this.jsonConfig, that.jsonConfig);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, mode, overwrite, onError, dryRun, valueMerge, configTags, jsonConfig);
+        return Objects.hash(workspaceId, orgId, strategy, onError, dryRun, configTags, jsonConfig);
     }
 
     @Override
@@ -167,20 +141,14 @@ public final class ImportConfigJsonInput implements SerializableStruct {
     public void serializeMembers(ShapeSerializer serializer) {
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
-        if (mode != null) {
-            serializer.writeString($SCHEMA_MODE, mode.value());
-        }
-        if (overwrite != null) {
-            serializer.writeBoolean($SCHEMA_OVERWRITE, overwrite);
+        if (strategy != null) {
+            serializer.writeString($SCHEMA_STRATEGY, strategy.value());
         }
         if (onError != null) {
             serializer.writeString($SCHEMA_ON_ERROR, onError.value());
         }
         if (dryRun != null) {
             serializer.writeBoolean($SCHEMA_DRY_RUN, dryRun);
-        }
-        if (valueMerge != null) {
-            serializer.writeBoolean($SCHEMA_VALUE_MERGE, valueMerge);
         }
         if (configTags != null) {
             serializer.writeString($SCHEMA_CONFIG_TAGS, configTags);
@@ -195,12 +163,10 @@ public final class ImportConfigJsonInput implements SerializableStruct {
             case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, workspaceId);
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_JSON_CONFIG, member, jsonConfig);
-            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_MODE, member, mode);
-            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_OVERWRITE, member, overwrite);
-            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_ON_ERROR, member, onError);
-            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_DRY_RUN, member, dryRun);
-            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_VALUE_MERGE, member, valueMerge);
-            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONFIG_TAGS, member, configTags);
+            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_STRATEGY, member, strategy);
+            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_ON_ERROR, member, onError);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_DRY_RUN, member, dryRun);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONFIG_TAGS, member, configTags);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -216,11 +182,9 @@ public final class ImportConfigJsonInput implements SerializableStruct {
         var builder = new Builder();
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
-        builder.mode(this.mode);
-        builder.overwrite(this.overwrite);
+        builder.strategy(this.strategy);
         builder.onError(this.onError);
         builder.dryRun(this.dryRun);
-        builder.valueMerge(this.valueMerge);
         builder.configTags(this.configTags);
         builder.jsonConfig(this.jsonConfig);
         return builder;
@@ -240,11 +204,9 @@ public final class ImportConfigJsonInput implements SerializableStruct {
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String workspaceId;
         private String orgId;
-        private ImportMode mode;
-        private Boolean overwrite;
+        private ImportStrategy strategy;
         private ImportOnError onError;
         private Boolean dryRun;
-        private Boolean valueMerge;
         private String configTags;
         private String jsonConfig;
 
@@ -276,22 +238,12 @@ public final class ImportConfigJsonInput implements SerializableStruct {
         }
 
         /**
-         * Whether to merge (default) or replace existing workspace config.
+         * How the import applies file entities to the workspace. Defaults to upsert.
          *
          * @return this builder.
          */
-        public Builder mode(ImportMode mode) {
-            this.mode = mode;
-            return this;
-        }
-
-        /**
-         * When false, entities that already exist are skipped instead of updated. Defaults to true.
-         *
-         * @return this builder.
-         */
-        public Builder overwrite(boolean overwrite) {
-            this.overwrite = overwrite;
+        public Builder strategy(ImportStrategy strategy) {
+            this.strategy = strategy;
             return this;
         }
 
@@ -312,16 +264,6 @@ public final class ImportConfigJsonInput implements SerializableStruct {
          */
         public Builder dryRun(boolean dryRun) {
             this.dryRun = dryRun;
-            return this;
-        }
-
-        /**
-         * When true, deep-merges object-valued default-configs with the existing value. Defaults to false.
-         *
-         * @return this builder.
-         */
-        public Builder valueMerge(boolean valueMerge) {
-            this.valueMerge = valueMerge;
             return this;
         }
 
@@ -356,12 +298,10 @@ public final class ImportConfigJsonInput implements SerializableStruct {
                 case 0 -> workspaceId((String) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, value));
                 case 1 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 case 2 -> jsonConfig((String) SchemaUtils.validateSameMember($SCHEMA_JSON_CONFIG, member, value));
-                case 3 -> mode((ImportMode) SchemaUtils.validateSameMember($SCHEMA_MODE, member, value));
-                case 4 -> overwrite((boolean) SchemaUtils.validateSameMember($SCHEMA_OVERWRITE, member, value));
-                case 5 -> onError((ImportOnError) SchemaUtils.validateSameMember($SCHEMA_ON_ERROR, member, value));
-                case 6 -> dryRun((boolean) SchemaUtils.validateSameMember($SCHEMA_DRY_RUN, member, value));
-                case 7 -> valueMerge((boolean) SchemaUtils.validateSameMember($SCHEMA_VALUE_MERGE, member, value));
-                case 8 -> configTags((String) SchemaUtils.validateSameMember($SCHEMA_CONFIG_TAGS, member, value));
+                case 3 -> strategy((ImportStrategy) SchemaUtils.validateSameMember($SCHEMA_STRATEGY, member, value));
+                case 4 -> onError((ImportOnError) SchemaUtils.validateSameMember($SCHEMA_ON_ERROR, member, value));
+                case 5 -> dryRun((boolean) SchemaUtils.validateSameMember($SCHEMA_DRY_RUN, member, value));
+                case 6 -> configTags((String) SchemaUtils.validateSameMember($SCHEMA_CONFIG_TAGS, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -404,12 +344,10 @@ public final class ImportConfigJsonInput implements SerializableStruct {
                     case 0 -> builder.workspaceId(de.readString(member));
                     case 1 -> builder.orgId(de.readString(member));
                     case 2 -> builder.jsonConfig(de.readString(member));
-                    case 3 -> builder.mode(ImportMode.builder().deserializeMember(de, member).build());
-                    case 4 -> builder.overwrite(de.readBoolean(member));
-                    case 5 -> builder.onError(ImportOnError.builder().deserializeMember(de, member).build());
-                    case 6 -> builder.dryRun(de.readBoolean(member));
-                    case 7 -> builder.valueMerge(de.readBoolean(member));
-                    case 8 -> builder.configTags(de.readString(member));
+                    case 3 -> builder.strategy(ImportStrategy.builder().deserializeMember(de, member).build());
+                    case 4 -> builder.onError(ImportOnError.builder().deserializeMember(de, member).build());
+                    case 5 -> builder.dryRun(de.readBoolean(member));
+                    case 6 -> builder.configTags(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

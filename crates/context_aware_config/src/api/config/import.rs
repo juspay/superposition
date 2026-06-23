@@ -6,25 +6,22 @@
 //! [`ConfigFormat::parse_into_detailed`] and then persisted to the workspace.
 //!
 //! The behaviour is controlled through request headers:
-//! - `x-import-mode`: `merge` (default) upserts the entities in the file and
-//!   leaves everything else untouched; `replace` additionally deletes any
-//!   dimension/default-config/context that is absent from the file (mirror).
-//! - `x-import-overwrite`: `true` (default) updates entities that already
-//!   exist; `false` skips them (only new entities are created).
+//! - `x-import-strategy`: `upsert` (default) creates missing entities and
+//!   updates existing entities; `create_only` only creates missing entities and
+//!   skips existing entities; `replace` mirrors the file by also deleting any
+//!   dimension/default-config/context that is absent from it.
 //! - `x-import-on-error`: `abort` (default) fails the whole import on the
 //!   first error; `continue` records per-entity errors and applies the rest.
 //! - `x-import-dry-run`: `true` parses, validates and computes the summary
 //!   without persisting anything (the transaction is rolled back).
-//! - `x-import-value-merge`: `true` deep-merges object-valued default configs
-//!   with their existing value instead of replacing them wholesale.
 
 use std::collections::HashSet;
 
 use actix_web::{HttpRequest, HttpResponse, web::Data};
 use chrono::Utc;
-use diesel::{Connection, ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl};
+use diesel::{Connection, ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde::Serialize;
-use serde_json::{Map, Value};
+use serde_json::Value;
 use service_utils::{
     helpers::{WebhookData, execute_webhook_call, parse_config_tags},
     service::types::{AppState, CustomHeaders, SchemaName, WorkspaceContext},
@@ -58,8 +55,9 @@ use crate::{
 
 #[derive(Clone, Copy, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
-pub enum ImportMode {
-    Merge,
+pub enum ImportStrategy {
+    CreateOnly,
+    Upsert,
     Replace,
 }
 
@@ -71,11 +69,9 @@ pub enum OnError {
 
 #[derive(Clone, Copy)]
 pub struct ImportOptions {
-    pub mode: ImportMode,
-    pub overwrite: bool,
+    pub strategy: ImportStrategy,
     pub on_error: OnError,
     pub dry_run: bool,
-    pub value_merge: bool,
 }
 
 fn header_bool(req: &HttpRequest, name: &str, default: bool) -> bool {
@@ -88,17 +84,33 @@ fn header_bool(req: &HttpRequest, name: &str, default: bool) -> bool {
 
 impl ImportOptions {
     pub fn from_request(req: &HttpRequest) -> superposition::Result<Self> {
-        let mode = match req
+        for header in [
+            "x-import-mode",
+            "x-import-overwrite",
+            "x-import-value-merge",
+        ] {
+            if req.headers().contains_key(header) {
+                return Err(bad_argument!(
+                    "Header '{}' is no longer supported; use x-import-strategy",
+                    header
+                ));
+            }
+        }
+
+        let strategy = match req
             .headers()
-            .get("x-import-mode")
+            .get("x-import-strategy")
             .and_then(|v| v.to_str().ok())
         {
-            None => ImportMode::Merge,
-            Some(s) if s.eq_ignore_ascii_case("merge") => ImportMode::Merge,
-            Some(s) if s.eq_ignore_ascii_case("replace") => ImportMode::Replace,
+            None => ImportStrategy::Upsert,
+            Some(s) if s.eq_ignore_ascii_case("create_only") => {
+                ImportStrategy::CreateOnly
+            }
+            Some(s) if s.eq_ignore_ascii_case("upsert") => ImportStrategy::Upsert,
+            Some(s) if s.eq_ignore_ascii_case("replace") => ImportStrategy::Replace,
             Some(s) => {
                 return Err(bad_argument!(
-                    "Invalid x-import-mode '{}', expected 'merge' or 'replace'",
+                    "Invalid x-import-strategy '{}', expected 'create_only', 'upsert' or 'replace'",
                     s
                 ));
             }
@@ -119,11 +131,9 @@ impl ImportOptions {
             }
         };
         Ok(Self {
-            mode,
-            overwrite: header_bool(req, "x-import-overwrite", true),
+            strategy,
             on_error,
             dry_run: header_bool(req, "x-import-dry-run", false),
-            value_merge: header_bool(req, "x-import-value-merge", false),
         })
     }
 }
@@ -161,7 +171,7 @@ impl EntityReport {
 
 #[derive(Serialize)]
 pub struct ImportSummary {
-    pub mode: ImportMode,
+    pub strategy: ImportStrategy,
     pub dry_run: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub config_version: Option<String>,
@@ -173,7 +183,7 @@ pub struct ImportSummary {
 impl ImportSummary {
     fn new(opts: &ImportOptions) -> Self {
         Self {
-            mode: opts.mode,
+            strategy: opts.strategy,
             dry_run: opts.dry_run,
             config_version: None,
             dimensions: EntityReport::default(),
@@ -279,45 +289,13 @@ fn import_description() -> Description {
         .unwrap_or_default()
 }
 
-/// Deep-merge two JSON values, with `overlay` winning at the leaves. Objects
-/// are merged key-by-key recursively; any other shape is replaced wholesale.
-fn deep_merge(base: &Value, overlay: &Value) -> Value {
-    match (base, overlay) {
-        (Value::Object(base_map), Value::Object(overlay_map)) => {
-            let mut merged: Map<String, Value> = base_map.clone();
-            for (k, v) in overlay_map {
-                let next = match merged.get(k) {
-                    Some(existing) => deep_merge(existing, v),
-                    None => v.clone(),
-                };
-                merged.insert(k.clone(), next);
-            }
-            Value::Object(merged)
-        }
-        _ => overlay.clone(),
-    }
-}
-
 // ---------------------------------------------------------------------------
 // Pure builders / decisions (no database access — unit tested below)
 // ---------------------------------------------------------------------------
 
 /// Whether an entity that already exists should be left untouched.
-fn should_skip(exists: bool, overwrite: bool) -> bool {
-    exists && !overwrite
-}
-
-/// The value to persist for a default config, honouring the `value_merge`
-/// option (deep-merge with the existing value when both are objects).
-fn resolve_default_value(
-    existing: Option<&Value>,
-    incoming: &Value,
-    value_merge: bool,
-) -> Value {
-    match (value_merge, existing) {
-        (true, Some(existing)) => deep_merge(existing, incoming),
-        _ => incoming.clone(),
-    }
+fn should_skip(exists: bool, strategy: ImportStrategy) -> bool {
+    exists && strategy == ImportStrategy::CreateOnly
 }
 
 fn dimension_position(
@@ -396,7 +374,7 @@ fn write_dimension(
         .get_result::<i64>(conn)?
         > 0;
 
-    if should_skip(exists, opts.overwrite) {
+    if should_skip(exists, opts.strategy) {
         return Ok(Outcome::Skipped);
     }
 
@@ -435,19 +413,18 @@ fn write_default_config(
     opts: &ImportOptions,
     email: &str,
 ) -> superposition::Result<Outcome> {
-    let existing: Option<Value> = dc_dsl::default_configs
+    let exists = dc_dsl::default_configs
         .filter(dc_dsl::key.eq(key))
-        .select(dc_dsl::value)
+        .count()
         .schema_name(schema_name)
-        .first::<Value>(conn)
-        .optional()?;
-    let exists = existing.is_some();
+        .get_result::<i64>(conn)?
+        > 0;
 
-    if should_skip(exists, opts.overwrite) {
+    if should_skip(exists, opts.strategy) {
         return Ok(Outcome::Skipped);
     }
 
-    let value = resolve_default_value(existing.as_ref(), &info.value, opts.value_merge);
+    let value = info.value.clone();
     let schema = build_schema(key, &info.schema)?;
 
     if exists {
@@ -500,7 +477,7 @@ fn write_context(
         .get_result::<i64>(conn)?
         > 0;
 
-    if should_skip(exists, opts.overwrite) {
+    if should_skip(exists, opts.strategy) {
         return Ok(Outcome::Skipped);
     }
 
@@ -582,10 +559,10 @@ pub async fn import_config<F: ConfigFormat>(
             apply_outcome(&mut summary.contexts, opts.on_error, &ctx.id, res)?;
         }
 
-        // Replace (mirror) mode: delete anything in the workspace that is not
+        // Replace strategy: delete anything in the workspace that is not
         // present in the imported file. Contexts first, then the entities they
         // can reference.
-        if opts.mode == ImportMode::Replace {
+        if opts.strategy == ImportStrategy::Replace {
             let file_ctx_ids: HashSet<&String> =
                 parsed.contexts.iter().map(|c| &c.id).collect();
             let db_ctx_ids: Vec<String> = ctx_dsl::contexts
@@ -721,57 +698,47 @@ mod tests {
     }
 
     #[test]
-    fn deep_merge_combines_nested_objects() {
-        let base = json!({ "a": 1, "nested": { "x": 1, "y": 2 } });
-        let overlay = json!({ "b": 2, "nested": { "y": 20, "z": 30 } });
-        assert_eq!(
-            deep_merge(&base, &overlay),
-            json!({ "a": 1, "b": 2, "nested": { "x": 1, "y": 20, "z": 30 } })
-        );
-    }
-
-    #[test]
-    fn deep_merge_overlay_wins_for_scalars_and_arrays() {
-        assert_eq!(deep_merge(&json!(1), &json!(2)), json!(2));
-        assert_eq!(deep_merge(&json!([1, 2]), &json!([3])), json!([3]));
-        // a non-object overlay fully replaces an object base
-        assert_eq!(deep_merge(&json!({ "a": 1 }), &json!("x")), json!("x"));
-    }
-
-    #[test]
-    fn options_default_to_safe_merge() {
+    fn options_default_to_upsert() {
         let req = TestRequest::default().to_http_request();
         let opts = ImportOptions::from_request(&req).unwrap();
-        assert!(opts.mode == ImportMode::Merge);
-        assert!(opts.overwrite);
+        assert!(opts.strategy == ImportStrategy::Upsert);
         assert!(opts.on_error == OnError::Abort);
         assert!(!opts.dry_run);
-        assert!(!opts.value_merge);
     }
 
     #[test]
     fn options_parsed_from_headers() {
         let req = TestRequest::default()
-            .insert_header(("x-import-mode", "replace"))
-            .insert_header(("x-import-overwrite", "false"))
+            .insert_header(("x-import-strategy", "replace"))
             .insert_header(("x-import-on-error", "continue"))
             .insert_header(("x-import-dry-run", "true"))
-            .insert_header(("x-import-value-merge", "true"))
             .to_http_request();
         let opts = ImportOptions::from_request(&req).unwrap();
-        assert!(opts.mode == ImportMode::Replace);
-        assert!(!opts.overwrite);
+        assert!(opts.strategy == ImportStrategy::Replace);
         assert!(opts.on_error == OnError::Continue);
         assert!(opts.dry_run);
-        assert!(opts.value_merge);
     }
 
     #[test]
-    fn invalid_mode_is_rejected() {
+    fn invalid_strategy_is_rejected() {
         let req = TestRequest::default()
-            .insert_header(("x-import-mode", "bogus"))
+            .insert_header(("x-import-strategy", "bogus"))
             .to_http_request();
         assert!(ImportOptions::from_request(&req).is_err());
+    }
+
+    #[test]
+    fn removed_import_headers_are_rejected() {
+        for header in [
+            "x-import-mode",
+            "x-import-overwrite",
+            "x-import-value-merge",
+        ] {
+            let req = TestRequest::default()
+                .insert_header((header, "true"))
+                .to_http_request();
+            assert!(ImportOptions::from_request(&req).is_err());
+        }
     }
 
     #[test]
@@ -783,42 +750,11 @@ mod tests {
     }
 
     #[test]
-    fn should_skip_only_existing_without_overwrite() {
-        // skip only when the entity exists AND overwrite is disabled
-        assert!(should_skip(true, false));
-        assert!(!should_skip(true, true)); // exists, but overwrite -> update
-        assert!(!should_skip(false, false)); // new -> always created
-        assert!(!should_skip(false, true));
-    }
-
-    #[test]
-    fn resolve_default_value_without_merge_replaces() {
-        let existing = json!({ "a": 1 });
-        let incoming = json!({ "b": 2 });
-        // value_merge disabled -> incoming wins wholesale
-        assert_eq!(
-            resolve_default_value(Some(&existing), &incoming, false),
-            json!({ "b": 2 })
-        );
-    }
-
-    #[test]
-    fn resolve_default_value_with_merge_deep_merges_existing() {
-        let existing = json!({ "a": 1, "nested": { "x": 1 } });
-        let incoming = json!({ "b": 2, "nested": { "y": 2 } });
-        assert_eq!(
-            resolve_default_value(Some(&existing), &incoming, true),
-            json!({ "a": 1, "b": 2, "nested": { "x": 1, "y": 2 } })
-        );
-    }
-
-    #[test]
-    fn resolve_default_value_with_merge_but_no_existing_uses_incoming() {
-        let incoming = json!({ "b": 2 });
-        assert_eq!(
-            resolve_default_value(None, &incoming, true),
-            json!({ "b": 2 })
-        );
+    fn should_skip_only_existing_create_only_entities() {
+        assert!(should_skip(true, ImportStrategy::CreateOnly));
+        assert!(!should_skip(false, ImportStrategy::CreateOnly));
+        assert!(!should_skip(true, ImportStrategy::Upsert));
+        assert!(!should_skip(true, ImportStrategy::Replace));
     }
 
     #[test]
@@ -872,18 +808,16 @@ mod tests {
     }
 
     #[test]
-    fn summary_serialises_with_mode_and_hides_empty_errors() {
+    fn summary_serialises_with_strategy_and_hides_empty_errors() {
         let opts = ImportOptions {
-            mode: ImportMode::Replace,
-            overwrite: true,
+            strategy: ImportStrategy::Replace,
             on_error: OnError::Abort,
             dry_run: true,
-            value_merge: false,
         };
         let summary = ImportSummary::new(&opts);
         let value = serde_json::to_value(&summary).unwrap();
 
-        assert_eq!(value["mode"], json!("replace"));
+        assert_eq!(value["strategy"], json!("replace"));
         assert_eq!(value["dry_run"], json!(true));
         // config_version omitted until the import commits
         assert!(value.get("config_version").is_none());

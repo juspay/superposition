@@ -14,40 +14,47 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.utils.SmithyGenerated;
 
 /**
- * How an import treats workspace entities that are not present in the imported file.
+ * How an import applies file entities to the workspace.
  */
 @SmithyGenerated
-public final class ImportMode implements SerializableShape {
-    public static final ShapeId $ID = ShapeId.from("io.superposition#ImportMode");
+public final class ImportStrategy implements SerializableShape {
+    public static final ShapeId $ID = ShapeId.from("io.superposition#ImportStrategy");
     /**
-     * Upsert the entities in the file and leave everything else untouched.
+     * Create entities that are present in the file but missing from the workspace. Existing entities are
+     * skipped. Nothing is deleted.
      */
-    public static final ImportMode MERGE = new ImportMode(Type.MERGE, "merge");
+    public static final ImportStrategy CREATE_ONLY = new ImportStrategy(Type.CREATE_ONLY, "create_only");
     /**
-     * Mirror the file: additionally delete dimensions, default-configs and contexts that are absent from
-     * it.
+     * Create missing entities and update existing entities from the file. Entities absent from the file
+     * are left untouched.
      */
-    public static final ImportMode REPLACE = new ImportMode(Type.REPLACE, "replace");
-    private static final List<ImportMode> $TYPES = List.of(MERGE, REPLACE);
+    public static final ImportStrategy UPSERT = new ImportStrategy(Type.UPSERT, "upsert");
+    /**
+     * Mirror the file: create missing entities, update existing entities, and delete dimensions,
+     * default-configs and contexts that are absent from it.
+     */
+    public static final ImportStrategy REPLACE = new ImportStrategy(Type.REPLACE, "replace");
+    private static final List<ImportStrategy> $TYPES = List.of(CREATE_ONLY, UPSERT, REPLACE);
 
     public static final Schema $SCHEMA = Schema.createEnum($ID,
-        Set.of(MERGE.value, REPLACE.value)
+        Set.of(CREATE_ONLY.value, UPSERT.value, REPLACE.value)
     );
 
     private final String value;
     private final Type type;
 
-    private ImportMode(Type type, String value) {
+    private ImportStrategy(Type type, String value) {
         this.type = Objects.requireNonNull(type, "type cannot be null");
         this.value = Objects.requireNonNull(value, "value cannot be null");
     }
 
     /**
-     * Enum representing the possible variants of {@link ImportMode}.
+     * Enum representing the possible variants of {@link ImportStrategy}.
      */
     public enum Type {
         $UNKNOWN,
-        MERGE,
+        CREATE_ONLY,
+        UPSERT,
         REPLACE
     }
 
@@ -70,14 +77,14 @@ public final class ImportMode implements SerializableShape {
      *
      * @param value value contained by unknown Enum.
      */
-    public static ImportMode unknown(String value) {
-        return new ImportMode(Type.$UNKNOWN, value);
+    public static ImportStrategy unknown(String value) {
+        return new ImportStrategy(Type.$UNKNOWN, value);
     }
 
     /**
      * Returns an unmodifiable list containing the constants of this enum type, in the order declared.
      */
-    public static List<ImportMode> values() {
+    public static List<ImportStrategy> values() {
         return $TYPES;
     }
 
@@ -92,14 +99,15 @@ public final class ImportMode implements SerializableShape {
     }
 
     /**
-     * Returns a {@link ImportMode} constant with the specified value.
+     * Returns a {@link ImportStrategy} constant with the specified value.
      *
-     * @param value value to create {@code ImportMode} from.
+     * @param value value to create {@code ImportStrategy} from.
      * @throws IllegalArgumentException if value does not match a known value.
      */
-    public static ImportMode from(String value) {
+    public static ImportStrategy from(String value) {
         return switch (value) {
-            case "merge" -> MERGE;
+            case "create_only" -> CREATE_ONLY;
+            case "upsert" -> UPSERT;
             case "replace" -> REPLACE;
             default -> throw new IllegalArgumentException("Unknown value: " + value);
         };
@@ -113,7 +121,7 @@ public final class ImportMode implements SerializableShape {
         if (other == null || getClass() != other.getClass()) {
             return false;
         }
-        ImportMode that = (ImportMode) other;
+        ImportStrategy that = (ImportStrategy) other;
         return this.value.equals(that.value);
     }
 
@@ -130,9 +138,9 @@ public final class ImportMode implements SerializableShape {
     }
 
     /**
-     * Builder for {@link ImportMode}.
+     * Builder for {@link ImportStrategy}.
      */
-    public static final class Builder implements ShapeBuilder<ImportMode> {
+    public static final class Builder implements ShapeBuilder<ImportStrategy> {
         private String value;
 
         private Builder() {}
@@ -148,11 +156,12 @@ public final class ImportMode implements SerializableShape {
         }
 
         @Override
-        public ImportMode build() {
+        public ImportStrategy build() {
             return switch (value) {
-                case "merge" -> MERGE;
+                case "create_only" -> CREATE_ONLY;
+                case "upsert" -> UPSERT;
                 case "replace" -> REPLACE;
-                default -> new ImportMode(Type.$UNKNOWN, value);
+                default -> new ImportStrategy(Type.$UNKNOWN, value);
             };
         }
 

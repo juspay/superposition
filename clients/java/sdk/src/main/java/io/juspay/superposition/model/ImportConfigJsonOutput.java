@@ -23,7 +23,7 @@ public final class ImportConfigJsonOutput implements SerializableStruct {
     public static final ShapeId $ID = ShapeId.from("io.superposition#ImportConfigOutput");
 
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
-        .putMember("mode", PreludeSchemas.STRING,
+        .putMember("strategy", PreludeSchemas.STRING,
                 new RequiredTrait())
         .putMember("dry_run", PreludeSchemas.BOOLEAN,
                 new RequiredTrait())
@@ -36,14 +36,14 @@ public final class ImportConfigJsonOutput implements SerializableStruct {
                 new RequiredTrait())
         .build();
 
-    private static final Schema $SCHEMA_MODE = $SCHEMA.member("mode");
+    private static final Schema $SCHEMA_STRATEGY = $SCHEMA.member("strategy");
     private static final Schema $SCHEMA_DRY_RUN = $SCHEMA.member("dry_run");
     private static final Schema $SCHEMA_CONFIG_VERSION = $SCHEMA.member("config_version");
     private static final Schema $SCHEMA_DIMENSIONS = $SCHEMA.member("dimensions");
     private static final Schema $SCHEMA_DEFAULT_CONFIGS = $SCHEMA.member("default_configs");
     private static final Schema $SCHEMA_CONTEXTS = $SCHEMA.member("contexts");
 
-    private final transient String mode;
+    private final transient String strategy;
     private final transient boolean dryRun;
     private final transient String configVersion;
     private final transient ImportEntityReport dimensions;
@@ -51,7 +51,7 @@ public final class ImportConfigJsonOutput implements SerializableStruct {
     private final transient ImportEntityReport contexts;
 
     private ImportConfigJsonOutput(Builder builder) {
-        this.mode = builder.mode;
+        this.strategy = builder.strategy;
         this.dryRun = builder.dryRun;
         this.configVersion = builder.configVersion;
         this.dimensions = builder.dimensions;
@@ -59,8 +59,8 @@ public final class ImportConfigJsonOutput implements SerializableStruct {
         this.contexts = builder.contexts;
     }
 
-    public String mode() {
-        return mode;
+    public String strategy() {
+        return strategy;
     }
 
     public boolean dryRun() {
@@ -97,7 +97,7 @@ public final class ImportConfigJsonOutput implements SerializableStruct {
             return false;
         }
         ImportConfigJsonOutput that = (ImportConfigJsonOutput) other;
-        return Objects.equals(this.mode, that.mode)
+        return Objects.equals(this.strategy, that.strategy)
                && this.dryRun == that.dryRun
                && Objects.equals(this.configVersion, that.configVersion)
                && Objects.equals(this.dimensions, that.dimensions)
@@ -107,7 +107,7 @@ public final class ImportConfigJsonOutput implements SerializableStruct {
 
     @Override
     public int hashCode() {
-        return Objects.hash(mode, dryRun, configVersion, dimensions, defaultConfigs, contexts);
+        return Objects.hash(strategy, dryRun, configVersion, dimensions, defaultConfigs, contexts);
     }
 
     @Override
@@ -117,7 +117,7 @@ public final class ImportConfigJsonOutput implements SerializableStruct {
 
     @Override
     public void serializeMembers(ShapeSerializer serializer) {
-        serializer.writeString($SCHEMA_MODE, mode);
+        serializer.writeString($SCHEMA_STRATEGY, strategy);
         serializer.writeBoolean($SCHEMA_DRY_RUN, dryRun);
         if (configVersion != null) {
             serializer.writeString($SCHEMA_CONFIG_VERSION, configVersion);
@@ -137,7 +137,7 @@ public final class ImportConfigJsonOutput implements SerializableStruct {
     @SuppressWarnings("unchecked")
     public <T> T getMemberValue(Schema member) {
         return switch (member.memberIndex()) {
-            case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_MODE, member, mode);
+            case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_STRATEGY, member, strategy);
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_DRY_RUN, member, dryRun);
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSIONS, member, dimensions);
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_DEFAULT_CONFIGS, member, defaultConfigs);
@@ -156,7 +156,7 @@ public final class ImportConfigJsonOutput implements SerializableStruct {
      */
     public Builder toBuilder() {
         var builder = new Builder();
-        builder.mode(this.mode);
+        builder.strategy(this.strategy);
         builder.dryRun(this.dryRun);
         builder.configVersion(this.configVersion);
         builder.dimensions(this.dimensions);
@@ -177,7 +177,7 @@ public final class ImportConfigJsonOutput implements SerializableStruct {
      */
     public static final class Builder implements ShapeBuilder<ImportConfigJsonOutput> {
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
-        private String mode;
+        private String strategy;
         private boolean dryRun;
         private String configVersion;
         private ImportEntityReport dimensions;
@@ -195,9 +195,9 @@ public final class ImportConfigJsonOutput implements SerializableStruct {
          * <p><strong>Required</strong>
          * @return this builder.
          */
-        public Builder mode(String mode) {
-            this.mode = Objects.requireNonNull(mode, "mode cannot be null");
-            tracker.setMember($SCHEMA_MODE);
+        public Builder strategy(String strategy) {
+            this.strategy = Objects.requireNonNull(strategy, "strategy cannot be null");
+            tracker.setMember($SCHEMA_STRATEGY);
             return this;
         }
 
@@ -259,7 +259,7 @@ public final class ImportConfigJsonOutput implements SerializableStruct {
         @SuppressWarnings("unchecked")
         public void setMemberValue(Schema member, Object value) {
             switch (member.memberIndex()) {
-                case 0 -> mode((String) SchemaUtils.validateSameMember($SCHEMA_MODE, member, value));
+                case 0 -> strategy((String) SchemaUtils.validateSameMember($SCHEMA_STRATEGY, member, value));
                 case 1 -> dryRun((boolean) SchemaUtils.validateSameMember($SCHEMA_DRY_RUN, member, value));
                 case 2 -> dimensions((ImportEntityReport) SchemaUtils.validateSameMember($SCHEMA_DIMENSIONS, member, value));
                 case 3 -> defaultConfigs((ImportEntityReport) SchemaUtils.validateSameMember($SCHEMA_DEFAULT_CONFIGS, member, value));
@@ -274,8 +274,8 @@ public final class ImportConfigJsonOutput implements SerializableStruct {
             if (tracker.allSet()) {
                 return this;
             }
-            if (!tracker.checkMember($SCHEMA_MODE)) {
-                mode("");
+            if (!tracker.checkMember($SCHEMA_STRATEGY)) {
+                strategy("");
             }
             if (!tracker.checkMember($SCHEMA_DRY_RUN)) {
                 tracker.setMember($SCHEMA_DRY_RUN);
@@ -310,7 +310,7 @@ public final class ImportConfigJsonOutput implements SerializableStruct {
             @Override
             public void accept(Builder builder, Schema member, ShapeDeserializer de) {
                 switch (member.memberIndex()) {
-                    case 0 -> builder.mode(de.readString(member));
+                    case 0 -> builder.strategy(de.readString(member));
                     case 1 -> builder.dryRun(de.readBoolean(member));
                     case 2 -> builder.dimensions(ImportEntityReport.builder().deserializeMember(de, member).build());
                     case 3 -> builder.defaultConfigs(ImportEntityReport.builder().deserializeMember(de, member).build());

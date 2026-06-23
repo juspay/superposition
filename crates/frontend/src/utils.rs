@@ -304,6 +304,59 @@ where
     request_with_skip_error(url, method, body, headers, &[]).await
 }
 
+pub async fn request_raw_body(
+    url: String,
+    method: reqwest::Method,
+    body: String,
+    headers: HeaderMap,
+) -> Result<reqwest::Response, String> {
+    let ssr_headers = use_context::<Option<SsrSharedHttpRequestHeaders>>().flatten();
+    let cookie = ssr_headers.and_then(|h| h.cookie.clone());
+
+    let mut request_builder =
+        HTTP_CLIENT.request(method, url).headers(headers).body(body);
+
+    if let Some(cookie_value) = cookie {
+        request_builder = request_builder.header(reqwest::header::COOKIE, cookie_value);
+    }
+
+    let response = request_builder
+        .send()
+        .await
+        .map_err(|err| err.to_string())?;
+
+    let status = response.status();
+
+    if status.is_client_error() {
+        let error_msg = response
+            .json::<ErrorResponse>()
+            .await
+            .map_or(String::from("Something went wrong"), |error| error.message);
+        logging::error!("{}", error_msg);
+        enqueue_alert(error_msg.clone(), AlertType::Error, 5000);
+        return Err(error_msg);
+    }
+    if status.is_server_error() {
+        if status == 512 {
+            enqueue_alert(
+                "Webhook Call Failed, Please Check the Logs.".to_owned(),
+                AlertType::Error,
+                5000,
+            );
+        } else {
+            let error_msg = response
+                .json::<ErrorResponse>()
+                .await
+                .map_or(String::from("Something went wrong"), |error| error.message);
+            logging::error!("{}", error_msg);
+            enqueue_alert(error_msg.clone(), AlertType::Error, 5000);
+            return Err(error_msg);
+        }
+    }
+
+    Ok(response)
+}
+
 pub fn unwrap_option_or_default_with_error<T>(option: Option<T>, default: T) -> T {
     option.unwrap_or_else(|| {
         enqueue_alert(

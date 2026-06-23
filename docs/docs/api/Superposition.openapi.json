@@ -342,14 +342,6 @@
                         }
                     },
                     {
-                        "name": "x-import-mode",
-                        "in": "header",
-                        "description": "Whether to merge (default) or replace existing workspace config.",
-                        "schema": {
-                            "$ref": "#/components/schemas/ImportMode"
-                        }
-                    },
-                    {
                         "name": "x-import-on-error",
                         "in": "header",
                         "description": "Whether to abort (default) or continue on per-entity errors.",
@@ -358,21 +350,11 @@
                         }
                     },
                     {
-                        "name": "x-import-overwrite",
+                        "name": "x-import-strategy",
                         "in": "header",
-                        "description": "When false, entities that already exist are skipped instead of updated. Defaults to true.",
+                        "description": "How the import applies file entities to the workspace. Defaults to upsert.",
                         "schema": {
-                            "type": "boolean",
-                            "description": "When false, entities that already exist are skipped instead of updated. Defaults to true."
-                        }
-                    },
-                    {
-                        "name": "x-import-value-merge",
-                        "in": "header",
-                        "description": "When true, deep-merges object-valued default-configs with the existing value. Defaults to false.",
-                        "schema": {
-                            "type": "boolean",
-                            "description": "When true, deep-merges object-valued default-configs with the existing value. Defaults to false."
+                            "$ref": "#/components/schemas/ImportStrategy"
                         }
                     },
                     {
@@ -883,14 +865,6 @@
                         }
                     },
                     {
-                        "name": "x-import-mode",
-                        "in": "header",
-                        "description": "Whether to merge (default) or replace existing workspace config.",
-                        "schema": {
-                            "$ref": "#/components/schemas/ImportMode"
-                        }
-                    },
-                    {
                         "name": "x-import-on-error",
                         "in": "header",
                         "description": "Whether to abort (default) or continue on per-entity errors.",
@@ -899,21 +873,11 @@
                         }
                     },
                     {
-                        "name": "x-import-overwrite",
+                        "name": "x-import-strategy",
                         "in": "header",
-                        "description": "When false, entities that already exist are skipped instead of updated. Defaults to true.",
+                        "description": "How the import applies file entities to the workspace. Defaults to upsert.",
                         "schema": {
-                            "type": "boolean",
-                            "description": "When false, entities that already exist are skipped instead of updated. Defaults to true."
-                        }
-                    },
-                    {
-                        "name": "x-import-value-merge",
-                        "in": "header",
-                        "description": "When true, deep-merges object-valued default-configs with the existing value. Defaults to false.",
-                        "schema": {
-                            "type": "boolean",
-                            "description": "When true, deep-merges object-valued default-configs with the existing value. Defaults to false."
+                            "$ref": "#/components/schemas/ImportStrategy"
                         }
                     },
                     {
@@ -10341,7 +10305,7 @@
                 "type": "object",
                 "description": "Summary of what an import created, updated, skipped or deleted.",
                 "properties": {
-                    "mode": {
+                    "strategy": {
                         "type": "string"
                     },
                     "dry_run": {
@@ -10365,7 +10329,7 @@
                     "default_configs",
                     "dimensions",
                     "dry_run",
-                    "mode"
+                    "strategy"
                 ]
             },
             "ImportConfigTomlInputPayload": {
@@ -10375,7 +10339,7 @@
                 "type": "object",
                 "description": "Summary of what an import created, updated, skipped or deleted.",
                 "properties": {
-                    "mode": {
+                    "strategy": {
                         "type": "string"
                     },
                     "dry_run": {
@@ -10399,7 +10363,7 @@
                     "default_configs",
                     "dimensions",
                     "dry_run",
-                    "mode"
+                    "strategy"
                 ]
             },
             "ImportEntityReport": {
@@ -10447,20 +10411,21 @@
                     "message"
                 ]
             },
-            "ImportMode": {
-                "type": "string",
-                "description": "How an import treats workspace entities that are not present in the imported file.",
-                "enum": [
-                    "merge",
-                    "replace"
-                ]
-            },
             "ImportOnError": {
                 "type": "string",
                 "description": "How an import reacts when an individual entity fails to apply.",
                 "enum": [
                     "abort",
                     "continue"
+                ]
+            },
+            "ImportStrategy": {
+                "type": "string",
+                "description": "How an import applies file entities to the workspace.",
+                "enum": [
+                    "create_only",
+                    "upsert",
+                    "replace"
                 ]
             },
             "InternalServerErrorResponseContent": {

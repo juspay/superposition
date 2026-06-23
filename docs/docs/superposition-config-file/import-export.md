@@ -55,7 +55,7 @@ On success you get a JSON summary of what changed:
 
 ```json
 {
-  "mode": "merge",
+  "strategy": "upsert",
   "dry_run": false,
   "config_version": "7231...",
   "dimensions":      { "created": 2, "updated": 1, "skipped": 0, "deleted": 0 },
@@ -68,13 +68,11 @@ On success you get a JSON summary of what changed:
 
 Behaviour is controlled with request headers:
 
-| Header                 | Values                  | Default | Effect                                                                                                   |
-| ---------------------- | ----------------------- | ------- | -------------------------------------------------------------------------------------------------------- |
-| `x-import-mode`        | `merge` \| `replace`    | `merge` | `merge` upserts what's in the file and leaves everything else alone. `replace` additionally **deletes** any dimension/default-config/context that is _not_ in the file (mirror the file exactly). |
-| `x-import-overwrite`   | `true` \| `false`       | `true`  | When `false`, entities that already exist are **skipped** (only new ones are created).                   |
-| `x-import-on-error`    | `abort` \| `continue`   | `abort` | `abort` rolls the whole import back on the first error. `continue` applies everything that's valid and returns the per-entity errors in the summary. |
-| `x-import-dry-run`     | `true` \| `false`       | `false` | Parse, validate and compute the summary **without writing anything**. Great for previewing an import.    |
-| `x-import-value-merge` | `true` \| `false`       | `false` | For object-valued default configs, deep-merge with the existing value instead of replacing it wholesale. |
+| Header              | Values                              | Default  | Effect                                                                                                   |
+| ------------------- | ----------------------------------- | -------- | -------------------------------------------------------------------------------------------------------- |
+| `x-import-strategy` | `create_only` \| `upsert` \| `replace` | `upsert` | `create_only` creates missing entities and skips existing ones. `upsert` creates missing entities and updates existing ones. `replace` mirrors the file and **deletes** any dimension/default-config/context that is _not_ in the file. |
+| `x-import-on-error` | `abort` \| `continue`               | `abort`  | `abort` rolls the whole import back on the first error. `continue` applies everything that's valid and returns the per-entity errors in the summary. |
+| `x-import-dry-run`  | `true` \| `false`                   | `false`  | Parse, validate and compute the summary **without writing anything**. Great for previewing an import.    |
 
 When `x-import-on-error: continue` is used, failed entities appear under an
 `errors` array in the relevant section of the summary:
@@ -89,11 +87,11 @@ When `x-import-on-error: continue` is used, failed entities appear under an
 ### Tips
 
 - Use `x-import-dry-run: true` first to see exactly what an import would do.
-- Use `x-import-mode: replace` to make a workspace _exactly_ match a file
-  (e.g. restoring from a backup). Use the default `merge` to layer a file on top
+- Use `x-import-strategy: replace` to make a workspace _exactly_ match a file
+  (e.g. restoring from a backup). Use the default `upsert` to layer a file on top
   of existing config without removing anything.
-- Use `x-import-overwrite: false` to seed only the keys/dimensions/contexts that
-  don't exist yet, without touching anything already configured.
+- Use `x-import-strategy: create_only` to seed only the keys/dimensions/contexts
+  that don't exist yet, without touching anything already configured.
 - `x-config-tags` is honoured and recorded against the config version the import
   creates, just like other write endpoints.
 - The endpoints are available in the generated SDKs as the `ImportConfigToml`
@@ -108,8 +106,8 @@ default-configs through their dedicated APIs after importing if needed.
 :::caution
 The imported file is validated as a self-contained config (every context only
 references dimensions/keys defined in the same file), and dimension **positions**
-are taken verbatim from the file. In `merge` mode this means the file's positions
+are taken verbatim from the file. In `upsert` strategy this means the file's positions
 should be consistent with the dimensions already in the workspace. To avoid
 position clashes entirely, export the workspace, edit, and import back — or use
-`replace` mode, which makes the workspace match the file exactly.
+`replace` strategy, which makes the workspace match the file exactly.
 :::

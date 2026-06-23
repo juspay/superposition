@@ -9,13 +9,13 @@ import {
     ImportConfigJsonCommand,
     ImportConfigTomlCommand,
     type ImportConfigOutput,
-    ImportMode,
+    ImportStrategy,
     type ImportOnError,
 } from "@juspay/superposition-sdk";
 import { superpositionClient, ENV } from "../env.ts";
 import { describe, test, expect, beforeAll } from "bun:test";
 
-// Import in `replace` mode mirrors the *entire* workspace, so these tests run in
+// Import with the `replace` strategy mirrors the *entire* workspace, so these tests run in
 // their own dedicated workspace to avoid clobbering data created by other suites.
 
 const IMPORT_WORKSPACE = "importtestws";
@@ -29,11 +29,9 @@ const DRYRUN_KEY = `imp_dryrun_${suffix}`;
 const TOML_KEY = `imp_toml_${suffix}`;
 
 type ImportOpts = {
-    mode?: ImportMode;
-    overwrite?: boolean;
+    strategy?: ImportStrategy;
     on_error?: ImportOnError;
     dry_run?: boolean;
-    value_merge?: boolean;
 };
 
 async function importConfig(
@@ -144,7 +142,7 @@ async function countContexts(): Promise<number> {
 }
 
 beforeAll(async () => {
-    // Dedicated workspace so `replace`-mode imports can't affect other suites.
+    // Dedicated workspace so `replace` strategy imports can't affect other suites.
     try {
         await superpositionClient.send(
             new CreateWorkspaceCommand({
@@ -173,7 +171,7 @@ beforeAll(async () => {
 });
 
 describe("Config import - JSON", () => {
-    test("merge import creates dimensions, default-configs and contexts", async () => {
+    test("upsert import creates dimensions, default-configs and contexts", async () => {
         const { status, summary } = await importConfig(
             "json",
             buildJsonConfig({ includeFlag: true }),
@@ -181,7 +179,7 @@ describe("Config import - JSON", () => {
 
         expect(status).toBe(200);
         expect(summary).toBeDefined();
-        expect(summary!.mode).toBe("merge");
+        expect(summary!.strategy).toBe("upsert");
         expect(summary!.dry_run).toBe(false);
         expect(summary!.config_version).toBeDefined();
         expect(summary!.dimensions.created).toBeGreaterThanOrEqual(2);
@@ -211,11 +209,11 @@ describe("Config import - JSON", () => {
         expect(summary!.dimensions.updated).toBeGreaterThanOrEqual(2);
     });
 
-    test("overwrite=false skips entities that already exist", async () => {
+    test("create_only skips entities that already exist", async () => {
         const { status, summary } = await importConfig(
             "json",
             buildJsonConfig({ includeFlag: true }),
-            { overwrite: false },
+            { strategy: ImportStrategy.CREATE_ONLY },
         );
 
         expect(status).toBe(200);
@@ -225,7 +223,7 @@ describe("Config import - JSON", () => {
         expect(summary!.dimensions.skipped).toBeGreaterThanOrEqual(2);
     });
 
-    test("value-merge deep-merges object default-config values", async () => {
+    test("upsert replaces object default-config values wholesale", async () => {
         const body = JSON.stringify({
             "default-configs": {
                 [FLAG]: {
@@ -237,19 +235,15 @@ describe("Config import - JSON", () => {
             overrides: [],
         });
 
-        const { status, summary } = await importConfig("json", body, {
-            value_merge: true,
-        });
+        const { status, summary } = await importConfig("json", body);
 
         expect(status).toBe(200);
         expect(summary!.default_configs.updated).toBeGreaterThanOrEqual(1);
 
         const value = await getDefaultConfigValue(FLAG);
-        // existing { enabled, mode:"a", nested:{x:1} } deep-merged with the import
         expect(value).toEqual({
-            enabled: true,
             mode: "b",
-            nested: { x: 1, y: 2 },
+            nested: { y: 2 },
         });
     });
 
@@ -276,16 +270,16 @@ describe("Config import - JSON", () => {
         expect(keys).not.toContain(DRYRUN_KEY);
     });
 
-    test("replace mode deletes entities absent from the file", async () => {
-        // Drop FLAG from the document; replace mode should remove it.
+    test("replace strategy deletes entities absent from the file", async () => {
+        // Drop FLAG from the document; replace strategy should remove it.
         const { status, summary } = await importConfig(
             "json",
             buildJsonConfig({ includeFlag: false }),
-            { mode: ImportMode.REPLACE },
+            { strategy: ImportStrategy.REPLACE },
         );
 
         expect(status).toBe(200);
-        expect(summary!.mode).toBe("replace");
+        expect(summary!.strategy).toBe("replace");
         expect(summary!.default_configs.deleted).toBeGreaterThanOrEqual(1);
 
         const keys = await listDefaultConfigKeys();
@@ -333,7 +327,7 @@ describe("Config import - JSON", () => {
 });
 
 describe("Config import - TOML", () => {
-    test("merge import via the TOML endpoint", async () => {
+    test("upsert import via the TOML endpoint", async () => {
         const toml = [
             "[default-configs]",
             `${TOML_KEY} = { value = 5, schema = { type = "number" } }`,

@@ -124,33 +124,19 @@ impl ImportConfigJsonFluentBuilder {
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_org_id()
                 }
-    /// Whether to merge (default) or replace existing workspace config.
-    pub fn mode(mut self, input: crate::types::ImportMode) -> Self {
-                    self.inner = self.inner.mode(input);
+    /// How the import applies file entities to the workspace. Defaults to upsert.
+    pub fn strategy(mut self, input: crate::types::ImportStrategy) -> Self {
+                    self.inner = self.inner.strategy(input);
                     self
                 }
-    /// Whether to merge (default) or replace existing workspace config.
-    pub fn set_mode(mut self, input: ::std::option::Option<crate::types::ImportMode>) -> Self {
-                    self.inner = self.inner.set_mode(input);
+    /// How the import applies file entities to the workspace. Defaults to upsert.
+    pub fn set_strategy(mut self, input: ::std::option::Option<crate::types::ImportStrategy>) -> Self {
+                    self.inner = self.inner.set_strategy(input);
                     self
                 }
-    /// Whether to merge (default) or replace existing workspace config.
-    pub fn get_mode(&self) -> &::std::option::Option<crate::types::ImportMode> {
-                    self.inner.get_mode()
-                }
-    /// When false, entities that already exist are skipped instead of updated. Defaults to true.
-    pub fn overwrite(mut self, input: bool) -> Self {
-                    self.inner = self.inner.overwrite(input);
-                    self
-                }
-    /// When false, entities that already exist are skipped instead of updated. Defaults to true.
-    pub fn set_overwrite(mut self, input: ::std::option::Option<bool>) -> Self {
-                    self.inner = self.inner.set_overwrite(input);
-                    self
-                }
-    /// When false, entities that already exist are skipped instead of updated. Defaults to true.
-    pub fn get_overwrite(&self) -> &::std::option::Option<bool> {
-                    self.inner.get_overwrite()
+    /// How the import applies file entities to the workspace. Defaults to upsert.
+    pub fn get_strategy(&self) -> &::std::option::Option<crate::types::ImportStrategy> {
+                    self.inner.get_strategy()
                 }
     /// Whether to abort (default) or continue on per-entity errors.
     pub fn on_error(mut self, input: crate::types::ImportOnError) -> Self {
@@ -179,20 +165,6 @@ impl ImportConfigJsonFluentBuilder {
     /// When true, validates and summarises the import without persisting anything. Defaults to false.
     pub fn get_dry_run(&self) -> &::std::option::Option<bool> {
                     self.inner.get_dry_run()
-                }
-    /// When true, deep-merges object-valued default-configs with the existing value. Defaults to false.
-    pub fn value_merge(mut self, input: bool) -> Self {
-                    self.inner = self.inner.value_merge(input);
-                    self
-                }
-    /// When true, deep-merges object-valued default-configs with the existing value. Defaults to false.
-    pub fn set_value_merge(mut self, input: ::std::option::Option<bool>) -> Self {
-                    self.inner = self.inner.set_value_merge(input);
-                    self
-                }
-    /// When true, deep-merges object-valued default-configs with the existing value. Defaults to false.
-    pub fn get_value_merge(&self) -> &::std::option::Option<bool> {
-                    self.inner.get_value_merge()
                 }
     #[allow(missing_docs)] // documentation missing in model
     pub fn config_tags(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {

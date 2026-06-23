@@ -1705,11 +1705,9 @@ export const se_ImportConfigJsonCommand = async(
     'content-type': 'text/plain',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
-    [_xim]: input[_m]!,
-    [_xio]: [() => isSerializableHeaderValue(input[_o]), () => input[_o]!.toString()],
+    [_xis]: input[_s]!,
     [_xioe]: input[_oe]!,
     [_xidr]: [() => isSerializableHeaderValue(input[_dr]), () => input[_dr]!.toString()],
-    [_xivm]: [() => isSerializableHeaderValue(input[_vm]), () => input[_vm]!.toString()],
     [_xct]: input[_ct]!,
   });
   b.bp("/config/json/import");
@@ -1735,11 +1733,9 @@ export const se_ImportConfigTomlCommand = async(
     'content-type': 'text/plain',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
-    [_xim]: input[_m]!,
-    [_xio]: [() => isSerializableHeaderValue(input[_o]), () => input[_o]!.toString()],
+    [_xis]: input[_s]!,
     [_xioe]: input[_oe]!,
     [_xidr]: [() => isSerializableHeaderValue(input[_dr]), () => input[_dr]!.toString()],
-    [_xivm]: [() => isSerializableHeaderValue(input[_vm]), () => input[_vm]!.toString()],
     [_xct]: input[_ct]!,
   });
   b.bp("/config/toml/import");
@@ -1893,7 +1889,7 @@ export const se_ListExperimentCommand = async(
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
     [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
-    [_s]: [() => input.status !== void 0, () => ((input[_s]! || []))],
+    [_st]: [() => input.status !== void 0, () => ((input[_st]! || []))],
     [_fd]: [() => input.from_date !== void 0, () => (__serializeDateTime(input[_fd]!).toString())],
     [_td]: [() => input.to_date !== void 0, () => (__serializeDateTime(input[_td]!).toString())],
     [_en]: [,input[_en]!],
@@ -4232,7 +4228,7 @@ export const de_ImportConfigJsonCommand = async(
     'default_configs': _json,
     'dimensions': _json,
     'dry_run': __expectBoolean,
-    'mode': __expectString,
+    'strategy': __expectString,
   });
   Object.assign(contents, doc);
   return contents;
@@ -4258,7 +4254,7 @@ export const de_ImportConfigTomlCommand = async(
     'default_configs': _json,
     'dimensions': _json,
     'dry_run': __expectBoolean,
-    'mode': __expectString,
+    'strategy': __expectString,
   });
   Object.assign(contents, doc);
   return contents;
@@ -6615,35 +6611,31 @@ const de_CommandError = async(
   const _lm = "last-modified";
   const _lm_ = "last_modified";
   const _lmb = "last_modified_by";
-  const _m = "mode";
   const _ms = "merge_strategy";
   const _n = "name";
-  const _o = "overwrite";
   const _oe = "on_error";
   const _oi = "org_id";
   const _p = "prefix";
   const _pa = "page";
   const _pl = "plaintext";
   const _rr = "resolve_remote";
-  const _s = "status";
+  const _s = "strategy";
   const _sb = "sort_by";
   const _so = "sort_on";
   const _sr = "show_reasoning";
+  const _st = "status";
   const _t = "tables";
   const _ta = "table";
   const _td = "to_date";
   const _u = "username";
   const _v = "version";
-  const _vm = "value_merge";
   const _wi = "workspace_id";
   const _xai = "x-audit-id";
   const _xct = "x-config-tags";
   const _xcv = "x-config-version";
   const _xidr = "x-import-dry-run";
-  const _xim = "x-import-mode";
-  const _xio = "x-import-overwrite";
   const _xioe = "x-import-on-error";
-  const _xivm = "x-import-value-merge";
+  const _xis = "x-import-strategy";
   const _xms = "x-merge-strategy";
   const _xoi = "x-org-id";
   const _xw = "x-workspace";

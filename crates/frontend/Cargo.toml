@@ -34,6 +34,7 @@ superposition_types = { workspace = true, features = [
     "experimentation",
     "api",
 ] }
+toml = { workspace = true }
 url = { workspace = true }
 wasm-bindgen = "0.2.100"
 wasm-bindgen-futures = "0.4.50"
@@ -41,9 +42,13 @@ web-sys = { version = "0.3.64", features = [
     "Event",
     "Worker",
     "Blob",
+    "File",
+    "FileList",
+    "FileReader",
     "Window",
     "Element",
     "DomRect",
+    "HtmlInputElement",
     "HtmlElement",
     "UiEvent",
     "MouseEvent",
