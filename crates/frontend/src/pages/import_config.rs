@@ -490,10 +490,7 @@ fn ImportSummaryPanel(
                     </div>
                 </div>
                 <Show when=move || config_version.is_some()>
-                    <A
-                        class="btn btn-sm btn-purple-outline w-fit"
-                        href=version_href.clone()
-                    >
+                    <A class="btn btn-sm btn-purple-outline w-fit" href=version_href.clone()>
                         "Open Config Version"
                         <i class="ri-arrow-right-up-line" />
                     </A>
@@ -541,9 +538,7 @@ fn ActionBadge(action: ReviewAction) -> impl IntoView {
         <span class=format!(
             "inline-flex rounded-full border px-2 py-0.5 text-xs font-semibold {}",
             action.class(),
-        )>
-            {action.label()}
-        </span>
+        )>{action.label()}</span>
     }
 }
 
@@ -574,18 +569,21 @@ fn ReviewTableSection(
                             <th class="w-[32%] px-4 py-2">"Name"</th>
                             <th class="w-[18%] px-4 py-2">"Action"</th>
                             {match kind {
-                                ReviewTableKind::Dimensions => view! {
-                                    <th class="px-4 py-2">"Description"</th>
-                                }.into_view(),
-                                ReviewTableKind::DefaultConfig => view! {
-                                    <th class="px-4 py-2">"Value"</th>
-                                }.into_view(),
-                                ReviewTableKind::Overrides => view! {
-                                    <>
-                                        <th class="w-[24%] px-4 py-2">"Scope"</th>
-                                        <th class="px-4 py-2">"Value"</th>
-                                    </>
-                                }.into_view(),
+                                ReviewTableKind::Dimensions => {
+                                    view! { <th class="px-4 py-2">"Description"</th> }.into_view()
+                                }
+                                ReviewTableKind::DefaultConfig => {
+                                    view! { <th class="px-4 py-2">"Value"</th> }.into_view()
+                                }
+                                ReviewTableKind::Overrides => {
+                                    view! {
+                                        <>
+                                            <th class="w-[24%] px-4 py-2">"Scope"</th>
+                                            <th class="px-4 py-2">"Value"</th>
+                                        </>
+                                    }
+                                        .into_view()
+                                }
                             }}
                         </tr>
                     </thead>
@@ -623,28 +621,53 @@ fn ReviewTableSection(
                                 }
                                 children=move |row| {
                                     match kind {
-                                        ReviewTableKind::Dimensions => view! {
-                                            <tr class="border-t border-gray-100">
-                                                <td class="px-4 py-2 font-medium text-gray-800">{row.name}</td>
-                                                <td class="px-4 py-2"><ActionBadge action=row.action /></td>
-                                                <td class="px-4 py-2 text-gray-600">{row.description}</td>
-                                            </tr>
-                                        }.into_view(),
-                                        ReviewTableKind::DefaultConfig => view! {
-                                            <tr class="border-t border-gray-100">
-                                                <td class="px-4 py-2 font-medium text-gray-800">{row.name}</td>
-                                                <td class="px-4 py-2"><ActionBadge action=row.action /></td>
-                                                <td class="px-4 py-2 font-mono text-xs text-gray-700">{row.value}</td>
-                                            </tr>
-                                        }.into_view(),
-                                        ReviewTableKind::Overrides => view! {
-                                            <tr class="border-t border-gray-100">
-                                                <td class="px-4 py-2 font-medium text-gray-800">{row.name}</td>
-                                                <td class="px-4 py-2"><ActionBadge action=row.action /></td>
-                                                <td class="px-4 py-2 text-gray-600">{row.scope}</td>
-                                                <td class="px-4 py-2 font-mono text-xs text-gray-700">{row.value}</td>
-                                            </tr>
-                                        }.into_view(),
+                                        ReviewTableKind::Dimensions => {
+                                            view! {
+                                                <tr class="border-t border-gray-100">
+                                                    <td class="px-4 py-2 font-medium text-gray-800">
+                                                        {row.name}
+                                                    </td>
+                                                    <td class="px-4 py-2">
+                                                        <ActionBadge action=row.action />
+                                                    </td>
+                                                    <td class="px-4 py-2 text-gray-600">{row.description}</td>
+                                                </tr>
+                                            }
+                                                .into_view()
+                                        }
+                                        ReviewTableKind::DefaultConfig => {
+                                            view! {
+                                                <tr class="border-t border-gray-100">
+                                                    <td class="px-4 py-2 font-medium text-gray-800">
+                                                        {row.name}
+                                                    </td>
+                                                    <td class="px-4 py-2">
+                                                        <ActionBadge action=row.action />
+                                                    </td>
+                                                    <td class="px-4 py-2 font-mono text-xs text-gray-700">
+                                                        {row.value}
+                                                    </td>
+                                                </tr>
+                                            }
+                                                .into_view()
+                                        }
+                                        ReviewTableKind::Overrides => {
+                                            view! {
+                                                <tr class="border-t border-gray-100">
+                                                    <td class="px-4 py-2 font-medium text-gray-800">
+                                                        {row.name}
+                                                    </td>
+                                                    <td class="px-4 py-2">
+                                                        <ActionBadge action=row.action />
+                                                    </td>
+                                                    <td class="px-4 py-2 text-gray-600">{row.scope}</td>
+                                                    <td class="px-4 py-2 font-mono text-xs text-gray-700">
+                                                        {row.value}
+                                                    </td>
+                                                </tr>
+                                            }
+                                                .into_view()
+                                        }
                                     }
                                 }
                             />
@@ -932,8 +955,8 @@ pub fn ImportConfig() -> impl IntoView {
                                         <div class="mt-1 flex h-5 flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
                                             <Show
                                                 when=move || !file_name_rws.with(String::is_empty)
-                                                fallback=move || view! {
-                                                    <span>"Choose a Superposition config file."</span>
+                                                fallback=move || {
+                                                    view! { <span>"Choose a Superposition config file."</span> }
                                                 }
                                             >
                                                 <span>
@@ -976,14 +999,18 @@ pub fn ImportConfig() -> impl IntoView {
                             <div class="grid gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1 md:grid-cols-3">
                                 <button
                                     type="button"
-                                    class=move || strategy_choice_class(strategy_rws.get() == ImportStrategy::CreateOnly)
+                                    class=move || strategy_choice_class(
+                                        strategy_rws.get() == ImportStrategy::CreateOnly,
+                                    )
                                     on:click=move |_| {
                                         strategy_rws.set(ImportStrategy::CreateOnly);
                                         clear_results();
                                     }
                                 >
                                     <div class="flex items-start gap-3">
-                                        <span class=move || strategy_icon_class(strategy_rws.get() == ImportStrategy::CreateOnly)>
+                                        <span class=move || strategy_icon_class(
+                                            strategy_rws.get() == ImportStrategy::CreateOnly,
+                                        )>
                                             <i class="ri-add-line" />
                                         </span>
                                         <span class="min-w-0">
@@ -998,14 +1025,18 @@ pub fn ImportConfig() -> impl IntoView {
                                 </button>
                                 <button
                                     type="button"
-                                    class=move || strategy_choice_class(strategy_rws.get() == ImportStrategy::Upsert)
+                                    class=move || strategy_choice_class(
+                                        strategy_rws.get() == ImportStrategy::Upsert,
+                                    )
                                     on:click=move |_| {
                                         strategy_rws.set(ImportStrategy::Upsert);
                                         clear_results();
                                     }
                                 >
                                     <div class="flex items-start gap-3">
-                                        <span class=move || strategy_icon_class(strategy_rws.get() == ImportStrategy::Upsert)>
+                                        <span class=move || strategy_icon_class(
+                                            strategy_rws.get() == ImportStrategy::Upsert,
+                                        )>
                                             <i class="ri-loop-left-line" />
                                         </span>
                                         <span class="min-w-0">
@@ -1020,14 +1051,18 @@ pub fn ImportConfig() -> impl IntoView {
                                 </button>
                                 <button
                                     type="button"
-                                    class=move || strategy_choice_class(strategy_rws.get() == ImportStrategy::Replace)
+                                    class=move || strategy_choice_class(
+                                        strategy_rws.get() == ImportStrategy::Replace,
+                                    )
                                     on:click=move |_| {
                                         strategy_rws.set(ImportStrategy::Replace);
                                         clear_results();
                                     }
                                 >
                                     <div class="flex items-start gap-3">
-                                        <span class=move || strategy_icon_class(strategy_rws.get() == ImportStrategy::Replace)>
+                                        <span class=move || strategy_icon_class(
+                                            strategy_rws.get() == ImportStrategy::Replace,
+                                        )>
                                             <i class="ri-restart-line" />
                                         </span>
                                         <span class="min-w-0">
@@ -1092,18 +1127,16 @@ pub fn ImportConfig() -> impl IntoView {
                                 class="btn-purple flex h-11 min-w-[11rem] items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium"
                                 disabled=move || {
                                     file_text_rws.with(|text| text.trim().is_empty())
-                                        || preview_loading_rws.get()
-                                        || apply_loading_rws.get()
+                                        || preview_loading_rws.get() || apply_loading_rws.get()
                                 }
                                 on:click=move |_| submit_import.call(true)
                             >
                                 <Show
                                     when=move || preview_loading_rws.get()
-                                    fallback=move || view! {
-                                        <>
-                                            "Preview Changes"
-                                            <i class="ri-search-eye-line" />
-                                        </>
+                                    fallback=move || {
+                                        view! {
+                                            <>"Preview Changes" <i class="ri-search-eye-line" /></>
+                                        }
                                     }
                                 >
                                     <span class="loading loading-dots loading-sm" />
@@ -1114,18 +1147,16 @@ pub fn ImportConfig() -> impl IntoView {
                                 class="btn btn-purple-outline flex h-11 min-w-[11rem] items-center justify-center gap-2 text-sm font-medium"
                                 disabled=move || {
                                     !preview_rws.with(|summary| summary.is_some())
-                                        || preview_loading_rws.get()
-                                        || apply_loading_rws.get()
+                                        || preview_loading_rws.get() || apply_loading_rws.get()
                                 }
                                 on:click=apply_preview
                             >
                                 <Show
                                     when=move || apply_loading_rws.get()
-                                    fallback=move || view! {
-                                        <>
-                                            "Apply Import"
-                                            <i class="ri-upload-cloud-2-line" />
-                                        </>
+                                    fallback=move || {
+                                        view! {
+                                            <>"Apply Import" <i class="ri-upload-cloud-2-line" /></>
+                                        }
                                     }
                                 >
                                     <span class="loading loading-dots loading-sm" />
@@ -1135,7 +1166,9 @@ pub fn ImportConfig() -> impl IntoView {
                     </div>
                 </section>
 
-                <Show when=move || preview_rws.with(|summary| summary.is_some())>
+                <Show when=move || {
+                    preview_rws.with(|summary| summary.is_some())
+                }>
                     {move || {
                         preview_rws
                             .get()
@@ -1155,14 +1188,14 @@ pub fn ImportConfig() -> impl IntoView {
                                                     </Show>
                                                 </div>
                                             </div>
-                                            <Show when=move || review_tables_rws.with(|tables| tables.is_some())>
+                                            <Show when=move || {
+                                                review_tables_rws.with(|tables| tables.is_some())
+                                            }>
                                                 {move || {
                                                     review_tables_rws
                                                         .get()
                                                         .map(|tables| {
-                                                            view! {
-                                                                <ReviewTablesPanel tables=tables />
-                                                            }
+                                                            view! { <ReviewTablesPanel tables=tables /> }
                                                         })
                                                 }}
                                             </Show>
@@ -1173,20 +1206,25 @@ pub fn ImportConfig() -> impl IntoView {
                     }}
                 </Show>
 
-                <Show when=move || applied_rws.with(|summary| summary.is_some())>
+                <Show when=move || {
+                    applied_rws.with(|summary| summary.is_some())
+                }>
                     {move || {
                         applied_rws
                             .get()
                             .map(|summary| {
-                                let href = summary.config_version.as_ref().map(|version| {
-                                    format!(
-                                        "{}/admin/{}/{}/config/versions/{}",
-                                        base.get_value(),
-                                        org.get_untracked().0,
-                                        workspace.get_untracked().0,
-                                        version,
-                                    )
-                                });
+                                let href = summary
+                                    .config_version
+                                    .as_ref()
+                                    .map(|version| {
+                                        format!(
+                                            "{}/admin/{}/{}/config/versions/{}",
+                                            base.get_value(),
+                                            org.get_untracked().0,
+                                            workspace.get_untracked().0,
+                                            version,
+                                        )
+                                    });
                                 view! {
                                     <section class="card bg-base-100 shadow">
                                         <div class="card-body">
