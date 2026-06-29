@@ -22,8 +22,9 @@ pub(super) fn try_user_from<A: AdditionalClaims, B: GenderClaim>(
         .to_string();
     let username = claims
         .preferred_username()
-        .ok_or(String::from("Username not found"))?
-        .to_string();
+        .map(|u| u.to_string())
+        .or_else(|| claims.email().map(|e| e.to_string()))
+        .ok_or(String::from("Username not found"))?;
 
     Ok(User::new(email, username))
 }
