@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_core-v0.16.1 - 2026-06-29
+#### Bug Fixes
+- allow TOML and JSON config without overrides section (#1028) - (6727fee) - Natarajan Kannan
+- add description field to SuperTOML/JSON dimension and default-config export (#1037) - (f255be9) - Natarajan Kannan
+#### Miscellaneous Chores
+- **(version)** v0.113.0 [skip ci] - (c11202e) - Superposition Bot
+
+- - -
+
 ## superposition_core-v0.16.0 - 2026-06-12
 #### Features
 - add detailed config resolution endpoint and removing unnecessary metadata field from config/resolve (#1040) - (e3a9880) - sauraww

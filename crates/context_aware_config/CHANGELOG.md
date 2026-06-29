@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.78.1 - 2026-06-29
+#### Bug Fixes
+- add description field to SuperTOML/JSON dimension and default-config export (#1037) - (f255be9) - Natarajan Kannan
+#### Miscellaneous Chores
+- **(version)** v0.113.0 [skip ci] - (c11202e) - Superposition Bot
+
+- - -
+
 ## context_aware_config-v0.78.0 - 2026-06-12
 #### Features
 - add detailed config resolution endpoint and removing unnecessary metadata field from config/resolve (#1040) - (e3a9880) - sauraww
