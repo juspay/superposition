@@ -70,6 +70,7 @@ struct JsonConfig {
     #[serde(rename = "default-configs")]
     default_configs: DefaultConfigsWithSchema,
     dimensions: HashMap<String, DimensionInfoJson>,
+    #[serde(default)]
     overrides: Vec<JsonContext>,
 }
 

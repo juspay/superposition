@@ -592,6 +592,26 @@ fn test_json_valid_parsing() {
 }
 
 #[test]
+fn test_json_missing_overrides_section() {
+    let json_str = r#"{
+        "default-configs": {
+            "timeout": { "value": 30, "schema": { "type": "integer" } }
+        },
+        "dimensions": {
+            "os": { "position": 1, "schema": { "type": "string" } }
+        }
+    }"#;
+
+    let result = JsonFormat::parse_config(json_str);
+    assert!(result.is_ok());
+    let parsed = result.unwrap();
+    assert_eq!(parsed.default_configs.len(), 1);
+    assert_eq!(parsed.dimensions.len(), 1);
+    assert!(parsed.contexts.is_empty());
+    assert!(parsed.overrides.is_empty());
+}
+
+#[test]
 fn test_json_missing_section_error() {
     let json_str = r#"{
         "default-configs": {
