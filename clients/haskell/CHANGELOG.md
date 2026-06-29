@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## haskell_client-v0.23.0 - 2026-06-29
+#### Features
+- added smithy for workspace lock (#1006) - (10cbd84) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.113.0 [skip ci] - (c11202e) - Superposition Bot
+
+- - -
+
 ## haskell_client-v0.22.0 - 2026-06-12
 #### Features
 - add detailed config resolution endpoint and removing unnecessary metadata field from config/resolve (#1040) - (e3a9880) - sauraww

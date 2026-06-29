@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.43.0 - 2026-06-29
+#### Bug Fixes
+- **(oidc)** fall back to email when preferred_username is missing (#1067) - (a2a7acd) - sauraww
+#### Features
+- **(observability)** OpenTelemetry golden-signals middleware (#998) - (bbce801) - Natarajan Kannan
+#### Miscellaneous Chores
+- **(version)** v0.111.0 [skip ci] - (d78c5d3) - Superposition Bot
+
+- - -
+
 ## service_utils-v0.42.0 - 2026-06-08
 #### Features
 - experiment idempotency (#982) - (800f36a) - Ankit Kumar Mahato

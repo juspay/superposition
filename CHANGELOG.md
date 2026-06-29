@@ -2,6 +2,38 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.114.0 - 2026-06-29
+### Package updates
+- superposition_provider bumped to superposition_provider-v0.9.4
+- service_utils bumped to service_utils-v0.43.0
+- superposition_types bumped to superposition_types-v0.48.1
+- superposition_sdk bumped to superposition_sdk-v0.22.0
+- superposition_core bumped to superposition_core-v0.16.1
+- haskell_client bumped to haskell_client-v0.23.0
+- context_aware_config bumped to context_aware_config-v0.78.1
+### Global changes
+#### Bug Fixes
+- add description field to SuperTOML/JSON dimension and default-config export (#1037) - (f255be9) - Natarajan Kannan
+#### Features
+- **(docs)** enable Docusaurus blog (#1047) - (c353ea3) - sauraww
+- **(docs)** add deployment docs (#1048) - (bedfee1) - sauraww
+- **(observability)** OpenTelemetry golden-signals middleware (#998) - (bbce801) - Natarajan Kannan
+- added smithy for workspace lock (#1006) - (10cbd84) - sauraww
+#### Miscellaneous Chores
+- **(deps)** bump markdown-it and @vscode/vsce (#1052) - (f63082e) - dependabot[bot]
+- **(deps)** bump esbuild and vite in /examples/dynamic-payment-fields (#1049) - (de97a21) - dependabot[bot]
+- **(deps)** bump cryptography from 46.0.7 to 48.0.1 in /locust (#1053) - (dd70711) - dependabot[bot]
+- **(deps)** bump ws in /docs (#1056) - (2f967b0) - dependabot[bot]
+- **(deps)** bump launch-editor from 2.11.1 to 2.14.1 in /docs (#1057) - (87a0e85) - dependabot[bot]
+- **(deps)** bump msgpack from 1.1.0 to 1.2.1 in /locust (#1065) - (fbdee0f) - dependabot[bot]
+- **(deps-dev)** bump tmp in /tooling/lsp/vscode-extension (#1051) - (f87f4c5) - dependabot[bot]
+- **(deps-dev)** bump js-yaml in /tooling/lsp/vscode-extension (#1055) - (b87ed95) - dependabot[bot]
+- **(deps-dev)** bump form-data in /tooling/lsp/vscode-extension (#1054) - (a1fdbea) - dependabot[bot]
+- **(deps-dev)** bump undici in /tooling/lsp/vscode-extension (#1061) - (5455985) - dependabot[bot]
+- **(version)** v0.113.0 [skip ci] - (c11202e) - Superposition Bot
+
+- - -
+
 ## v0.113.0 - 2026-06-12
 ### Package updates
 - superposition_types bumped to superposition_types-v0.48.0
