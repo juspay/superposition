@@ -1,17 +1,31 @@
-name: Generate Superposition Documentation
+name: Generate and Publish Superposition Documentation
 
 on:
     workflow_dispatch:
+        inputs:
+            deploy-target:
+                description: "Where to deploy the docs"
+                required: false
+                default: "both"
+                type: choice
+                options:
+                    - github
+                    - superposition
+                    - both
     push:
         paths:
-          - 'docs/**'
+            - "docs/**"
         branches:
             - main
 
 jobs:
     build:
-        name: Build Docusaurus
+        name: Build Docusaurus (${{ matrix.deploy-target }})
         runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                deploy-target: [github, superposition]
         steps:
             - uses: actions/checkout@v4
               with:
@@ -21,21 +35,27 @@ jobs:
 
             - name: Install dependencies
               run: |
-                cd docs
-                bun install --frozen-lockfile
+                  cd docs
+                  bun install --frozen-lockfile
+
             - name: Build website
+              env:
+                  DOCS_DEPLOY_TARGET: ${{ matrix.deploy-target }}
               run: |
-                cd docs
-                bun run build-all
+                  cd docs
+                  bun run build-all
 
-            - name: Upload Build Artifact
-              uses: actions/upload-pages-artifact@v3
+            - name: Upload build artifact
+              uses: actions/upload-artifact@v4
               with:
+                  name: docs-build-${{ matrix.deploy-target }}
                   path: docs/build
+                  retention-days: 1
 
-    deploy:
+    deploy-github:
         name: Deploy to GitHub Pages
         needs: build
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.deploy-target == 'github' || inputs.deploy-target == 'both' }}
 
         permissions:
             pages: write
@@ -48,6 +68,40 @@ jobs:
 
         runs-on: ubuntu-latest
         steps:
+            - name: Download GitHub build
+              uses: actions/download-artifact@v4
+              with:
+                  name: docs-build-github
+                  path: docs/build
+            - name: Upload Pages artifact
+              uses: actions/upload-pages-artifact@v3
+              with:
+                  path: docs/build
             - name: Deploy to GitHub Pages
               id: deployment
               uses: actions/deploy-pages@v4
+
+    deploy-s3:
+        name: Deploy to S3 (Superposition)
+        needs: build
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.deploy-target == 'superposition' || inputs.deploy-target == 'both' }}
+        permissions:
+            id-token: write
+            contents: read
+        runs-on: ubuntu-latest
+        steps:
+            - name: Download Superposition build
+              uses: actions/download-artifact@v4
+              with:
+                  name: docs-build-superposition
+                  path: docs/build
+
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                  role-to-assume: ${{ secrets.DOCS_AWS_ROLE_ARN }}
+                  aws-region: ${{ vars.DOCS_AWS_REGION }}
+
+            - name: Sync to S3
+              run: |
+                  aws s3 sync docs/build s3://${{ vars.DOCS_S3_BUCKET }}/ --delete
