@@ -8346,6 +8346,7 @@ dependencies = [
  "tracing",
  "tracing-actix-web",
  "tracing-subscriber",
+ "urlencoding",
 ]
 
 [[package]]

@@ -32,15 +32,17 @@ use service_utils::{
         workspace_context::OrgWorkspaceMiddlewareFactory,
     },
     observability::{
-        FredPoolStats, Observability, ObservabilityConfig, RedisStats, SdkMeterProvider,
-        build_request_metrics_middleware, set_label_config,
-        SaturationDeps, register_observers, spawn_metrics_server,
+        FredPoolStats, Observability, ObservabilityConfig, RedisStats, SaturationDeps,
+        SdkMeterProvider, build_request_metrics_middleware, register_observers,
+        set_label_config, spawn_metrics_server,
     },
-    service::types::AppEnv,
+    service::types::{AppEnv, AppState},
 };
 use superposition_macros::bad_argument;
 use tracing_actix_web::TracingLogger;
-use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
+use tracing_subscriber::{
+    EnvFilter, layer::SubscriberExt, reload, util::SubscriberInitExt,
+};
 
 use crate::log_span::CustomRootSpanBuilder;
 
@@ -69,9 +71,11 @@ async fn favicon(
 #[actix_web::main]
 async fn main() -> Result<()> {
     dotenv::dotenv().ok();
-    // Initialize tracing subscriber with custom JSON formatter
+    // Initialize tracing subscriber with custom JSON formatter and reloadable env filter
+    let env_filter = EnvFilter::from_default_env();
+    let (reload_layer, reload_handle) = reload::Layer::new(env_filter);
     tracing_subscriber::registry()
-        .with(EnvFilter::from_default_env())
+        .with(reload_layer)
         .with(
             fmt::layer()
                 .with_current_span(true)
@@ -233,6 +237,7 @@ async fn main() -> Result<()> {
         let leptos_envs = ui_envs.clone();
         App::new()
             .app_data(app_state.clone())
+            .app_data(Data::new(reload_handle.clone()))
             .app_data(PathConfig::default().error_handler(|err, _| bad_argument!(err).into()))
             .app_data(QueryConfig::default().error_handler(|err, _| bad_argument!(err).into()))
             .leptos_routes(
@@ -248,6 +253,40 @@ async fn main() -> Result<()> {
                     .route(
                         "/health",
                         get().to(|| async { HttpResponse::Ok().body("Health is good :D") }),
+                    )
+                    .route(
+                        "/log-level/change",
+                        web::post().to(|state: Data<AppState>, handle: Data<reload::Handle<EnvFilter, tracing_subscriber::Registry>>, body: web::Json<serde_json::Value>, req: HttpRequest| async move {
+                            let internal_ops_api_key = match state.app_env {
+                                AppEnv::TEST | AppEnv::DEV => {
+                                    let Ok(internal_ops_api_key) = get_from_env_unsafe::<String>("INTERNAL_OPS_API_KEY") else {
+                                        tracing::error!("INTERNAL_OPS_API_KEY env not set");
+                                        return HttpResponse::InternalServerError().finish();
+                                    };
+                                    internal_ops_api_key
+                                },
+                                _ => {
+                                    let client = kms::new_client().await;
+                                    let api_key = kms::decrypt(client, "INTERNAL_OPS_API_KEY").await;
+                                    urlencoding::encode(api_key.as_str()).to_string()
+                                }
+                            };
+                            let Some(header_api_key) = req.headers().get("x-internal-ops-key").and_then(|header| header.to_str().ok()) else {
+                                return HttpResponse::BadRequest().json(serde_json::json!({"error": "Missing internal ops API key"}));
+                            };
+                            if header_api_key != internal_ops_api_key {
+                                return HttpResponse::Forbidden().finish()
+                            }
+                            match body.get("level")
+                                .and_then(|v| v.as_str())
+                                .ok_or("Could not convert log level to string, is this `level` field missing?".to_string())
+                                .and_then(|level| EnvFilter::try_new(level).map_err(|e| e.to_string()))
+                                .and_then(|level| handle.modify(|filter| *filter = level).map_err(|e| e.to_string()))
+                            {
+                                    Ok(()) => HttpResponse::Ok().body("Log level updated successfully"),
+                                    Err(e) => HttpResponse::BadRequest().json(serde_json::json!({"error": format!("Failed to update log level: {}", e)})),
+                            }
+                        }),
                     )
                     .service(auth_n.routes())
                     .service(auth_n.org_routes())
