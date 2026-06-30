@@ -4,6 +4,7 @@ pub mod utils;
 use filter::{ExperimentTableFilterWidget, FilterSummary};
 use futures::join;
 use leptos::*;
+use leptos_router::use_navigate;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value, json};
 use superposition_types::{
@@ -20,9 +21,9 @@ use superposition_types::{
 use utils::experiment_table_columns;
 
 use crate::{
-    api::{default_configs, dimensions, fetch_experiments},
+    api::{default_configs, dimensions, fetch_experiments, fetch_experiment},
     components::{
-        drawer::{Drawer, DrawerBtn, close_drawer},
+        drawer::{Drawer, DrawerBtn, close_drawer, open_drawer},
         experiment_form::ExperimentForm,
         skeleton::Skeleton,
         stat::Stat,
@@ -100,6 +101,25 @@ pub fn ExperimentList() -> impl IntoView {
         },
     );
 
+    let query = leptos_router::use_query_map();
+    let clone_id = Memo::new(move |_| query.with(|q| q.get("clone").cloned()));
+
+    let clone_experiment = create_blocking_resource(
+        move || clone_id.get(),
+        move |id| async move {
+            let id = id?;
+            fetch_experiment(id, &workspace.get().0, &org.get().0)
+                .await
+                .ok()
+        },
+    );
+
+    create_effect(move |_| {
+        if clone_id.get().is_some() {
+            open_drawer("create_exp_drawer");
+        }
+    });
+
     let handle_submit_experiment_form = move |_| {
         filters_rws.set(ExperimentListFilters::default());
         pagination_params_rws.update(|f| f.reset_page());
@@ -108,6 +128,11 @@ pub fn ExperimentList() -> impl IntoView {
             *val += 1;
         });
         close_drawer("create_exp_drawer");
+        let navigate = use_navigate();
+        let workspace = workspace.get().0;
+        let org = org.get().0;
+        let redirect_url = format!("/admin/{}/{}/experiments", org, workspace);
+        navigate(&redirect_url, Default::default());
     };
 
     let handle_page_change = Callback::new(move |page: i64| {
@@ -197,6 +222,27 @@ pub fn ExperimentList() -> impl IntoView {
                     experiments: _,
                 } = combined_resource.get().unwrap_or_default();
                 let _ = reset_exp_form.get();
+
+                let cloned_experiment = clone_experiment.get().flatten();
+                let (name, context, variants, description, metrics, experiment_group_id) = match cloned_experiment {
+                    Some(exp) => (
+                        format!("{} (Copy)", exp.name),
+                        Conditions::from_iter(exp.context.clone().into_inner()),
+                        VariantFormTs::from_iter(exp.variants.clone()),
+                        exp.description.to_string(),
+                        exp.metrics.clone(),
+                        exp.experiment_group_id.clone(),
+                    ),
+                    None => (
+                        String::new(),
+                        Conditions::default(),
+                        VariantFormTs::default(),
+                        String::new(),
+                        workspace_settings.with_value(|w| w.metrics.clone()),
+                        None,
+                    ),
+                };
+
                 view! {
                     <Drawer
                         id="create_exp_drawer"
@@ -205,17 +251,25 @@ pub fn ExperimentList() -> impl IntoView {
                         handle_close=move || {
                             close_drawer("create_exp_drawer");
                             set_exp_form.update(|i| *i += 1);
+                            let navigate = use_navigate();
+                            let workspace = workspace.get().0;
+                            let org = org.get().0;
+                            let redirect_url = format!("/admin/{}/{}/experiments", org, workspace);
+                            navigate(&redirect_url, Default::default());
                         }
                     >
 
                         <EditorProvider>
                             <ExperimentForm
-                                context=Conditions::default()
-                                variants=VariantFormTs::default()
+                                name=name
+                                context=context
+                                variants=variants
                                 dimensions=dim.clone()
                                 default_config=def_conf.clone()
                                 handle_submit=handle_submit_experiment_form
-                                metrics=workspace_settings.with_value(|w| w.metrics.clone())
+                                description=description
+                                metrics=metrics
+                                experiment_group_id=experiment_group_id
                             />
                         </EditorProvider>
                     </Drawer>

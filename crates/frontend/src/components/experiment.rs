@@ -289,7 +289,7 @@ pub fn gen_variant_table(variants: &[Variant]) -> (Vec<Map<String, Value>>, Vec<
 }
 
 #[component]
-pub fn Experiment<HS, HR, HC, HE, HD, HP, HRS>(
+pub fn Experiment<HS, HR, HC, HE, HD, HP, HRS, HCL>(
     experiment: ExperimentResponse,
     handle_start: HS,
     handle_ramp: HR,
@@ -298,6 +298,7 @@ pub fn Experiment<HS, HR, HC, HE, HD, HP, HRS>(
     handle_discard: HD,
     handle_pause: HP,
     handle_resume: HRS,
+    handle_clone: HCL,
 ) -> impl IntoView
 where
     HS: Fn() + 'static + Clone,
@@ -307,6 +308,7 @@ where
     HD: Fn() + 'static + Clone,
     HP: Fn() + 'static + Clone,
     HRS: Fn() + 'static + Clone,
+    HCL: Fn() + 'static + Clone,
 {
     let experiment = store_value(experiment);
     let metrics_load_err = RwSignal::new(false);
@@ -326,6 +328,12 @@ where
                 <span class=badge_class>{experiment.with_value(|v| v.status.to_string())}</span>
             </h1>
             <div class="-mt-5 flex flex-row justify-end join">
+                <Button
+                    force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg rounded-lg"
+                    on_click=move |_| handle_clone()
+                    icon_class="ri-file-copy-line"
+                    text="Clone"
+                />
 
                 {move || {
                     let handle_start = handle_start.clone();

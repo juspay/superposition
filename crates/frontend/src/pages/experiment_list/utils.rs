@@ -76,16 +76,20 @@ pub fn experiment_table_columns(
                         Err(_) => logging::log!("unable to copy to clipboard"),
                     }
                 };
+                let experiment_id_link = experiment_id.clone();
                 view! {
                         <div>
                             <A href=experiment_id.to_string() class="text-blue-500 underline underline-offset-2">
                                 {experiment_name}
                             </A>
-                            <div class="text-gray-500">
+                            <div class="text-gray-500 flex items-center">
                                 <span class="text-xs">
                                     {experiment_id}
                                 </span>
                                 <i class="ri-file-copy-line ml-2 cursor-pointer" on:click:undelegated=handle_copy></i>
+                                <A href=format!("?clone={}", experiment_id_link) class="text-gray-500 hover:text-blue-500 ml-2">
+                                    <i class="ri-file-copy-2-line" title="Clone Experiment"></i>
+                                </A>
                                 <Show when=move || copied.get()>
                                     <div class="w-fit ml-2 px-2 flex justify-center items-center bg-gray-600 rounded-xl">
                                         <span class="text-white text-xs font-semibold">

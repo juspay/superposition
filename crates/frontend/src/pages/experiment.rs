@@ -1,6 +1,6 @@
 use futures::join;
 use leptos::*;
-use leptos_router::use_params_map;
+use leptos_router::{use_params_map, use_navigate};
 use serde::{Deserialize, Serialize};
 use superposition_types::{
     api::{
@@ -93,6 +93,15 @@ pub fn ExperimentPage() -> impl IntoView {
     let handle_discard = move || set_show_popup.set(PopupType::ExperimentDiscard);
     let handle_pause = move || set_show_popup.set(PopupType::ExperimentPause);
     let handle_resume = move || set_show_popup.set(PopupType::ExperimentResume);
+    let handle_clone = move || {
+        let navigate = use_navigate();
+        let workspace = workspace.get().0;
+        let org = org.get().0;
+        let exp_id =
+            exp_params.with(|params| params.get("id").cloned().unwrap_or("1".into()));
+        let redirect_url = format!("/admin/{}/{}/experiments?clone={}", org, workspace, exp_id);
+        navigate(&redirect_url, Default::default());
+    };
 
     view! {
         <Suspense fallback=move || {
@@ -120,6 +129,7 @@ pub fn ExperimentPage() -> impl IntoView {
                                 handle_discard
                                 handle_pause
                                 handle_resume
+                                handle_clone
                             />
                             <Modal
                                 id="ramp_form_modal".to_string()
