@@ -102,12 +102,13 @@ pub async fn get(
         },
         snowflake_generator,
         app_env,
-        tenant_middleware_exclusion_list:
-            get_from_env_unsafe::<String>("TENANT_MIDDLEWARE_EXCLUSION_LIST")
-                .expect("TENANT_MIDDLEWARE_EXCLUSION_LIST is not set")
-                .split(',')
-                .map(String::from)
-                .collect::<HashSet<_>>(),
+        tenant_middleware_exclusion_list: get_from_env_unsafe::<String>(
+            "TENANT_MIDDLEWARE_EXCLUSION_LIST",
+        )
+        .expect("TENANT_MIDDLEWARE_EXCLUSION_LIST is not set")
+        .split(',')
+        .map(String::from)
+        .collect::<HashSet<_>>(),
         service_prefix,
         superposition_token: get_superposition_token(kms_client, &app_env).await,
         redis: redis_pool,

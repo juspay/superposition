@@ -9,8 +9,8 @@ use serde_json::{Map, Value};
 use superposition_derives::{IsEmpty, QueryParam};
 
 use crate::{
-    IsEmpty,
     custom_query::{CommaSeparatedStringQParams, QueryParam},
+    IsEmpty,
 };
 
 #[derive(Deserialize)]

@@ -27,6 +27,7 @@ public final class CreateTypeTemplates implements ApiOperation<CreateTypeTemplat
 
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
         .putType(InternalServerError.$ID, InternalServerError.class, InternalServerError::builder)
+        .putType(WorkspaceLockConflict.$ID, WorkspaceLockConflict.class, WorkspaceLockConflict::builder)
         .build();
 
     private static final List<ShapeId> SCHEMES = List.of(ShapeId.from("smithy.api#httpBasicAuth"), ShapeId.from("smithy.api#httpBearerAuth"));

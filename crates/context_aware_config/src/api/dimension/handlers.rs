@@ -12,6 +12,7 @@ use service_utils::{
     helpers::{WebhookData, execute_webhook_call, parse_config_tags},
     service::types::{
         AppHeader, AppState, CustomHeaders, DbConnection, WorkspaceContext,
+        WorkspaceWritePermit,
     },
 };
 use superposition_core::validations::validate_schema;
@@ -74,9 +75,9 @@ async fn create_handler(
     req: web::Json<CreateRequest>,
     user: User,
     custom_headers: CustomHeaders,
-    db_conn: DbConnection,
+    mut write_permit: WorkspaceWritePermit,
 ) -> superposition::Result<HttpResponse> {
-    let DbConnection(mut conn) = db_conn;
+    let conn = write_permit.checkout();
     let create_req = req.into_inner();
     let schema_value = Value::from(&create_req.schema);
     let tags = parse_config_tags(custom_headers.config_tags)?;
@@ -84,7 +85,7 @@ async fn create_handler(
     validate_change_reason(
         &workspace_context,
         &create_req.change_reason,
-        &mut conn,
+        conn,
         &state.master_encryption_key,
     )
     .await?;
@@ -92,7 +93,7 @@ async fn create_handler(
     let num_rows = dimensions
         .count()
         .schema_name(&workspace_context.schema_name)
-        .get_result::<i64>(&mut conn)
+        .get_result::<i64>(conn)
         .map_err(|err| {
             log::error!("failed to fetch number of dimension with error: {}", err);
             db_error!(err)
@@ -125,7 +126,7 @@ async fn create_handler(
             let based_on_dimension = does_dimension_exist_for_cohorting(
                 cohort_based_on,
                 &workspace_context.schema_name,
-                &mut conn,
+                conn,
             )?;
             validate_cohort_position(&create_req.position, &based_on_dimension, true)?;
         }
@@ -134,7 +135,7 @@ async fn create_handler(
                 &schema_value,
                 cohort_based_on,
                 &workspace_context.schema_name,
-                &mut conn,
+                conn,
             )?;
             validate_cohort_position(&create_req.position, &based_on_dimension, true)?;
         }
@@ -142,14 +143,14 @@ async fn create_handler(
 
     validate_validation_function(
         &create_req.value_validation_function_name,
-        &mut conn,
+        conn,
         &workspace_context.schema_name,
     )?;
 
     validate_value_compute_function(
         &create_req.dimension_type,
         &create_req.value_compute_function_name,
-        &mut conn,
+        conn,
         &workspace_context.schema_name,
     )?;
 
@@ -248,7 +249,7 @@ async fn create_handler(
         &config_version,
         &state,
         &workspace_context.schema_name,
-        &mut conn,
+        conn,
     )
     .await;
 
@@ -261,7 +262,7 @@ async fn create_handler(
     };
 
     let webhook_status =
-        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+        execute_webhook_call(data, &workspace_context, &state, conn).await;
 
     let mut http_resp = if webhook_status {
         HttpResponse::Created()
@@ -313,18 +314,18 @@ async fn update_handler(
     req: web::Json<UpdateRequest>,
     user: User,
     custom_headers: CustomHeaders,
-    db_conn: DbConnection,
+    mut write_permit: WorkspaceWritePermit,
 ) -> superposition::Result<HttpResponse> {
     let name: String = path.clone().into();
     use dimensions::dsl;
-    let DbConnection(mut conn) = db_conn;
+    let conn = write_permit.checkout();
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let update_req = req.into_inner();
 
     validate_change_reason(
         &workspace_context,
         &update_req.change_reason,
-        &mut conn,
+        conn,
         &state.master_encryption_key,
     )
     .await?;
@@ -332,12 +333,12 @@ async fn update_handler(
     let dimension_data: Dimension = dimensions::dsl::dimensions
         .filter(dimensions::dimension.eq(name.clone()))
         .schema_name(&workspace_context.schema_name)
-        .get_result::<Dimension>(&mut conn)?;
+        .get_result::<Dimension>(conn)?;
 
     let num_rows = dimensions
         .count()
         .schema_name(&workspace_context.schema_name)
-        .get_result::<i64>(&mut conn)
+        .get_result::<i64>(conn)
         .map_err(|err| {
             log::error!("failed to fetch number of dimension with error: {}", err);
             db_error!(err)
@@ -360,7 +361,7 @@ async fn update_handler(
                     &schema_value,
                     cohort_based_on,
                     &workspace_context.schema_name,
-                    &mut conn,
+                    conn,
                 )?;
             }
         }
@@ -374,7 +375,7 @@ async fn update_handler(
                 let based_on_dimension = does_dimension_exist_for_cohorting(
                     cohort_based_on,
                     &workspace_context.schema_name,
-                    &mut conn,
+                    conn,
                 )?;
                 validate_cohort_position(new_position, &based_on_dimension, false)?;
             }
@@ -382,7 +383,7 @@ async fn update_handler(
     }
 
     if let Some(ref fn_name) = update_req.value_validation_function_name {
-        validate_validation_function(fn_name, &mut conn, &workspace_context.schema_name)?;
+        validate_validation_function(fn_name, conn, &workspace_context.schema_name)?;
     }
 
     if let Some(ref value_compute_function_name_) = update_req.value_compute_function_name
@@ -390,7 +391,7 @@ async fn update_handler(
         validate_value_compute_function(
             &dimension_data.dimension_type,
             value_compute_function_name_,
-            &mut conn,
+            conn,
             &workspace_context.schema_name,
         )?;
     }
@@ -486,7 +487,7 @@ async fn update_handler(
         &config_version,
         &state,
         &workspace_context.schema_name,
-        &mut conn,
+        conn,
     )
     .await;
 
@@ -499,7 +500,7 @@ async fn update_handler(
     };
 
     let webhook_status =
-        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+        execute_webhook_call(data, &workspace_context, &state, conn).await;
 
     let mut http_resp = if webhook_status {
         HttpResponse::Ok()
@@ -581,17 +582,17 @@ async fn delete_handler(
     path: Path<DeleteRequest>,
     user: User,
     custom_headers: CustomHeaders,
-    db_conn: DbConnection,
+    mut write_permit: WorkspaceWritePermit,
 ) -> superposition::Result<HttpResponse> {
     let name: String = path.into_inner().into();
-    let DbConnection(mut conn) = db_conn;
+    let conn = write_permit.checkout();
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
     let dimension_data: Dimension = dimensions::dsl::dimensions
         .filter(dimensions::dimension.eq(&name))
         .select(Dimension::as_select())
         .schema_name(&workspace_context.schema_name)
-        .get_result(&mut conn)?;
+        .get_result(conn)?;
 
     let is_mandatory = workspace_context
         .settings
@@ -606,11 +607,8 @@ async fn delete_handler(
         ));
     }
 
-    let context_ids = get_dimension_usage_context_ids(
-        &name,
-        &mut conn,
-        &workspace_context.schema_name,
-    )?;
+    let context_ids =
+        get_dimension_usage_context_ids(&name, conn, &workspace_context.schema_name)?;
 
     if context_ids.is_empty() {
         let (config_version, dimension_data) = conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -686,7 +684,7 @@ async fn delete_handler(
             &config_version,
             &state,
             &workspace_context.schema_name,
-            &mut conn,
+            conn,
         )
         .await;
         let data = WebhookData {
@@ -698,7 +696,7 @@ async fn delete_handler(
         };
 
         let webhook_status =
-            execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+            execute_webhook_call(data, &workspace_context, &state, conn).await;
 
         let mut http_resp = if webhook_status {
             HttpResponse::Ok()

@@ -192,6 +192,9 @@ async def _deserialize_error_bulk_operation(http_response: HTTPResponse, config:
         case "resourcenotfound":
             return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
 
+        case "workspacelockconflict":
+            return await _deserialize_error_workspace_lock_conflict(http_response, config, parsed_body, message)
+
         case _:
             return UnknownApiError(f"{code}: {message}")
 
@@ -254,6 +257,9 @@ async def _deserialize_error_create_context(http_response: HTTPResponse, config:
         case "webhookfailed":
             return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
 
+        case "workspacelockconflict":
+            return await _deserialize_error_workspace_lock_conflict(http_response, config, parsed_body, message)
+
         case _:
             return UnknownApiError(f"{code}: {message}")
 
@@ -312,6 +318,9 @@ async def _deserialize_error_create_dimension(http_response: HTTPResponse, confi
 
         case "webhookfailed":
             return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
+
+        case "workspacelockconflict":
+            return await _deserialize_error_workspace_lock_conflict(http_response, config, parsed_body, message)
 
         case _:
             return UnknownApiError(f"{code}: {message}")
@@ -391,6 +400,9 @@ async def _deserialize_error_create_function(http_response: HTTPResponse, config
         case "internalservererror":
             return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
 
+        case "workspacelockconflict":
+            return await _deserialize_error_workspace_lock_conflict(http_response, config, parsed_body, message)
+
         case _:
             return UnknownApiError(f"{code}: {message}")
 
@@ -441,6 +453,9 @@ async def _deserialize_error_create_secret(http_response: HTTPResponse, config: 
         case "internalservererror":
             return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
 
+        case "workspacelockconflict":
+            return await _deserialize_error_workspace_lock_conflict(http_response, config, parsed_body, message)
+
         case _:
             return UnknownApiError(f"{code}: {message}")
 
@@ -465,6 +480,9 @@ async def _deserialize_error_create_type_templates(http_response: HTTPResponse, 
     match code.lower():
         case "internalservererror":
             return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
+
+        case "workspacelockconflict":
+            return await _deserialize_error_workspace_lock_conflict(http_response, config, parsed_body, message)
 
         case _:
             return UnknownApiError(f"{code}: {message}")
@@ -491,6 +509,9 @@ async def _deserialize_error_create_variable(http_response: HTTPResponse, config
         case "internalservererror":
             return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
 
+        case "workspacelockconflict":
+            return await _deserialize_error_workspace_lock_conflict(http_response, config, parsed_body, message)
+
         case _:
             return UnknownApiError(f"{code}: {message}")
 
@@ -515,6 +536,9 @@ async def _deserialize_error_create_webhook(http_response: HTTPResponse, config:
     match code.lower():
         case "internalservererror":
             return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
+
+        case "workspacelockconflict":
+            return await _deserialize_error_workspace_lock_conflict(http_response, config, parsed_body, message)
 
         case _:
             return UnknownApiError(f"{code}: {message}")
@@ -564,6 +588,9 @@ async def _deserialize_error_delete_context(http_response: HTTPResponse, config:
 
         case "webhookfailed":
             return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
+
+        case "workspacelockconflict":
+            return await _deserialize_error_workspace_lock_conflict(http_response, config, parsed_body, message)
 
         case _:
             return UnknownApiError(f"{code}: {message}")
@@ -616,6 +643,9 @@ async def _deserialize_error_delete_dimension(http_response: HTTPResponse, confi
         case "webhookfailed":
             return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
 
+        case "workspacelockconflict":
+            return await _deserialize_error_workspace_lock_conflict(http_response, config, parsed_body, message)
+
         case _:
             return UnknownApiError(f"{code}: {message}")
 
@@ -665,6 +695,9 @@ async def _deserialize_error_delete_function(http_response: HTTPResponse, config
         case "resourcenotfound":
             return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
 
+        case "workspacelockconflict":
+            return await _deserialize_error_workspace_lock_conflict(http_response, config, parsed_body, message)
+
         case _:
             return UnknownApiError(f"{code}: {message}")
 
@@ -692,6 +725,9 @@ async def _deserialize_error_delete_secret(http_response: HTTPResponse, config: 
 
         case "resourcenotfound":
             return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
+
+        case "workspacelockconflict":
+            return await _deserialize_error_workspace_lock_conflict(http_response, config, parsed_body, message)
 
         case _:
             return UnknownApiError(f"{code}: {message}")
@@ -721,6 +757,9 @@ async def _deserialize_error_delete_type_templates(http_response: HTTPResponse, 
         case "resourcenotfound":
             return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
 
+        case "workspacelockconflict":
+            return await _deserialize_error_workspace_lock_conflict(http_response, config, parsed_body, message)
+
         case _:
             return UnknownApiError(f"{code}: {message}")
 
@@ -749,6 +788,9 @@ async def _deserialize_error_delete_variable(http_response: HTTPResponse, config
         case "resourcenotfound":
             return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
 
+        case "workspacelockconflict":
+            return await _deserialize_error_workspace_lock_conflict(http_response, config, parsed_body, message)
+
         case _:
             return UnknownApiError(f"{code}: {message}")
 
@@ -769,6 +811,9 @@ async def _deserialize_error_delete_webhook(http_response: HTTPResponse, config:
 
         case "resourcenotfound":
             return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
+
+        case "workspacelockconflict":
+            return await _deserialize_error_workspace_lock_conflict(http_response, config, parsed_body, message)
 
         case _:
             return UnknownApiError(f"{code}: {message}")
@@ -1946,6 +1991,9 @@ async def _deserialize_error_move_context(http_response: HTTPResponse, config: C
         case "webhookfailed":
             return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
 
+        case "workspacelockconflict":
+            return await _deserialize_error_workspace_lock_conflict(http_response, config, parsed_body, message)
+
         case _:
             return UnknownApiError(f"{code}: {message}")
 
@@ -2004,6 +2052,9 @@ async def _deserialize_error_publish(http_response: HTTPResponse, config: Config
 
         case "resourcenotfound":
             return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
+
+        case "workspacelockconflict":
+            return await _deserialize_error_workspace_lock_conflict(http_response, config, parsed_body, message)
 
         case _:
             return UnknownApiError(f"{code}: {message}")
@@ -2238,6 +2289,9 @@ async def _deserialize_error_update_dimension(http_response: HTTPResponse, confi
         case "webhookfailed":
             return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
 
+        case "workspacelockconflict":
+            return await _deserialize_error_workspace_lock_conflict(http_response, config, parsed_body, message)
+
         case _:
             return UnknownApiError(f"{code}: {message}")
 
@@ -2293,6 +2347,9 @@ async def _deserialize_error_update_function(http_response: HTTPResponse, config
 
         case "resourcenotfound":
             return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
+
+        case "workspacelockconflict":
+            return await _deserialize_error_workspace_lock_conflict(http_response, config, parsed_body, message)
 
         case _:
             return UnknownApiError(f"{code}: {message}")
@@ -2353,6 +2410,9 @@ async def _deserialize_error_update_override(http_response: HTTPResponse, config
         case "webhookfailed":
             return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
 
+        case "workspacelockconflict":
+            return await _deserialize_error_workspace_lock_conflict(http_response, config, parsed_body, message)
+
         case _:
             return UnknownApiError(f"{code}: {message}")
 
@@ -2412,6 +2472,9 @@ async def _deserialize_error_update_secret(http_response: HTTPResponse, config: 
         case "resourcenotfound":
             return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
 
+        case "workspacelockconflict":
+            return await _deserialize_error_workspace_lock_conflict(http_response, config, parsed_body, message)
+
         case _:
             return UnknownApiError(f"{code}: {message}")
 
@@ -2439,6 +2502,9 @@ async def _deserialize_error_update_type_templates(http_response: HTTPResponse, 
 
         case "resourcenotfound":
             return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
+
+        case "workspacelockconflict":
+            return await _deserialize_error_workspace_lock_conflict(http_response, config, parsed_body, message)
 
         case _:
             return UnknownApiError(f"{code}: {message}")
@@ -2468,6 +2534,9 @@ async def _deserialize_error_update_variable(http_response: HTTPResponse, config
         case "resourcenotfound":
             return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
 
+        case "workspacelockconflict":
+            return await _deserialize_error_workspace_lock_conflict(http_response, config, parsed_body, message)
+
         case _:
             return UnknownApiError(f"{code}: {message}")
 
@@ -2495,6 +2564,9 @@ async def _deserialize_error_update_webhook(http_response: HTTPResponse, config:
 
         case "resourcenotfound":
             return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
+
+        case "workspacelockconflict":
+            return await _deserialize_error_workspace_lock_conflict(http_response, config, parsed_body, message)
 
         case _:
             return UnknownApiError(f"{code}: {message}")
@@ -2569,6 +2641,9 @@ async def _deserialize_error_weight_recompute(http_response: HTTPResponse, confi
 
         case "webhookfailed":
             return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
+
+        case "workspacelockconflict":
+            return await _deserialize_error_workspace_lock_conflict(http_response, config, parsed_body, message)
 
         case _:
             return UnknownApiError(f"{code}: {message}")

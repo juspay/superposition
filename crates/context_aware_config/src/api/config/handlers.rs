@@ -11,7 +11,9 @@ use serde_json::{Map, Value, json};
 use service_utils::{
     helpers::{fetch_dimensions_info_map, is_not_modified},
     redis::{CONFIG_KEY_SUFFIX, LAST_MODIFIED_KEY_SUFFIX, read_through_cache},
-    service::types::{AppHeader, AppState, DbConnection, WorkspaceContext},
+    service::types::{
+        AppHeader, AppState, DbConnection, WorkspaceContext, WorkspaceWritePermit,
+    },
 };
 use superposition_core::{
     ConfigFormat, JsonFormat, TomlFormat,
@@ -448,10 +450,10 @@ async fn reduce_handler(
     workspace_context: WorkspaceContext,
     req: HttpRequest,
     user: User,
-    db_conn: DbConnection,
+    mut write_permit: WorkspaceWritePermit,
     state: Data<AppState>,
 ) -> superposition::Result<HttpResponse> {
-    let DbConnection(mut conn) = db_conn;
+    let conn = write_permit.checkout();
     let is_approve = req
         .headers()
         .get("x-approve")
@@ -459,8 +461,8 @@ async fn reduce_handler(
         .unwrap_or(false);
 
     let dimensions_info_map =
-        fetch_dimensions_info_map(&mut conn, &workspace_context.schema_name)?;
-    let mut config = generate_cac(&mut conn, &workspace_context.schema_name)?;
+        fetch_dimensions_info_map(conn, &workspace_context.schema_name)?;
+    let mut config = generate_cac(conn, &workspace_context.schema_name)?;
     let default_config = (*config.default_configs).clone();
     for (key, _) in default_config {
         let contexts = config.contexts;
@@ -468,7 +470,7 @@ async fn reduce_handler(
         let default_config = config.default_configs.into_inner();
         config = reduce_config_key(
             &user,
-            &mut conn,
+            conn,
             contexts.clone(),
             overrides.clone(),
             key.as_str(),
@@ -480,7 +482,7 @@ async fn reduce_handler(
         )
         .await?;
         if is_approve {
-            config = generate_cac(&mut conn, &workspace_context.schema_name)?;
+            config = generate_cac(conn, &workspace_context.schema_name)?;
         }
     }
 

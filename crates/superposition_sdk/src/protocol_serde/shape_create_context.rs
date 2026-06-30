@@ -43,6 +43,19 @@ pub fn de_create_context_http_error(_response_status: u16, _response_headers: &:
                                                         }
             tmp
         }),
+        "WorkspaceLockConflict" => crate::operation::create_context::CreateContextError::WorkspaceLockConflict({
+            #[allow(unused_mut)]
+            let mut tmp =
+                 {
+                    #[allow(unused_mut)]
+                    let mut output = crate::types::error::builders::WorkspaceLockConflictBuilder::default();
+                    output = crate::protocol_serde::shape_workspace_lock_conflict::de_workspace_lock_conflict_json_err(_response_body, output).map_err(crate::operation::create_context::CreateContextError::unhandled)?;
+                    let output = output.meta(generic);
+                    crate::serde_util::workspace_lock_conflict_correct_errors(output).build().map_err(crate::operation::create_context::CreateContextError::unhandled)?
+                }
+            ;
+            tmp
+        }),
         "InternalServerError" => crate::operation::create_context::CreateContextError::InternalServerError({
             #[allow(unused_mut)]
             let mut tmp =

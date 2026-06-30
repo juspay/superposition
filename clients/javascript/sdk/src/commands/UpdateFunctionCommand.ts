@@ -80,6 +80,9 @@ export interface UpdateFunctionCommandOutput extends FunctionResponse, __Metadat
  *
  * @throws {@link ResourceNotFound} (client fault)
  *
+ * @throws {@link WorkspaceLockConflict} (client fault)
+ *  Returned when a workspace write operation cannot proceed because another write operation currently holds the workspace lock.
+ *
  * @throws {@link InternalServerError} (server fault)
  *
  * @throws {@link SuperpositionServiceException}

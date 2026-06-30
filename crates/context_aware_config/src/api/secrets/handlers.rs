@@ -10,7 +10,7 @@ use service_utils::{
     },
     service::types::{
         AppState, DbConnection, EncryptionKey, OrganisationId, SchemaName,
-        WorkspaceContext, WorkspaceId,
+        WorkspaceContext, WorkspaceId, WorkspaceWritePermit,
     },
 };
 use superposition_derives::{authorized, declare_resource};
@@ -150,13 +150,13 @@ async fn list_handler(
 async fn create_handler(
     req: web::Json<CreateSecretRequest>,
     user: User,
-    db_conn: DbConnection,
+    mut write_permit: WorkspaceWritePermit,
     workspace_context: WorkspaceContext,
     state: Data<AppState>,
 ) -> superposition::Result<Json<SecretResponse>> {
     let req = req.into_inner();
 
-    let DbConnection(mut conn) = db_conn;
+    let conn = write_permit.checkout();
 
     let encryption_key =
         get_workspace_encryption_key(&workspace_context, &state.master_encryption_key)?;
@@ -181,7 +181,7 @@ async fn create_handler(
         .values(&new_secret)
         .returning(Secret::as_returning())
         .schema_name(&workspace_context.schema_name)
-        .get_result(&mut conn)?;
+        .get_result(conn)?;
 
     Ok(Json(SecretResponse::from(created_secret)))
 }
@@ -211,11 +211,11 @@ async fn update_handler(
     path: web::Path<String>,
     req: web::Json<UpdateSecretRequest>,
     user: User,
-    db_conn: DbConnection,
+    mut write_permit: WorkspaceWritePermit,
     workspace_context: WorkspaceContext,
     state: Data<AppState>,
 ) -> superposition::Result<Json<SecretResponse>> {
-    let DbConnection(mut conn) = db_conn;
+    let conn = write_permit.checkout();
     let secret_name = path.into_inner();
     let req_inner = req.into_inner();
 
@@ -246,7 +246,7 @@ async fn update_handler(
             secrets::last_modified_by.eq(user.get_email()),
         ))
         .schema_name(&workspace_context.schema_name)
-        .get_result::<Secret>(&mut conn)?;
+        .get_result::<Secret>(conn)?;
 
     Ok(Json(SecretResponse::from(updated_secret)))
 }
@@ -256,10 +256,10 @@ async fn update_handler(
 async fn delete_handler(
     path: web::Path<String>,
     user: User,
-    db_conn: DbConnection,
+    mut write_permit: WorkspaceWritePermit,
     workspace_context: WorkspaceContext,
 ) -> superposition::Result<Json<SecretResponse>> {
-    let DbConnection(mut conn) = db_conn;
+    let conn = write_permit.checkout();
     let secret_name = path.into_inner();
 
     diesel::update(secrets::table)
@@ -269,12 +269,12 @@ async fn delete_handler(
             secrets::last_modified_by.eq(user.get_email()),
         ))
         .schema_name(&workspace_context.schema_name)
-        .execute(&mut conn)?;
+        .execute(conn)?;
 
     let deleted_secret = diesel::delete(secrets::table)
         .filter(secrets::name.eq(&secret_name))
         .schema_name(&workspace_context.schema_name)
-        .get_result::<Secret>(&mut conn)?;
+        .get_result::<Secret>(conn)?;
 
     Ok(Json(SecretResponse::from(deleted_secret)))
 }

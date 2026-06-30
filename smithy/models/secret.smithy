@@ -64,7 +64,7 @@ enum SecretSortOn {
 @documentation("Creates a new encrypted secret with the specified name and value. The secret is encrypted with the workspace's current encryption key. Secret values are never returned in responses for security.")
 @http(method: "POST", uri: "/secrets")
 @tags(["Secrets"])
-operation CreateSecret {
+operation CreateSecret with [WorkspaceWriteOperation] {
     input := for Secret with [WorkspaceMixin] {
         @required
         name: String
@@ -87,7 +87,7 @@ operation CreateSecret {
 @idempotent
 @http(method: "PATCH", uri: "/secrets/{name}")
 @tags(["Secrets"])
-operation UpdateSecret with [GetOperation] {
+operation UpdateSecret with [GetOperation, WorkspaceWriteOperation] {
     input := for Secret with [WorkspaceMixin] {
         @httpLabel
         @required
@@ -159,7 +159,7 @@ operation GetSecret with [GetOperation] {
 @idempotent
 @http(method: "DELETE", uri: "/secrets/{name}")
 @tags(["Secrets"])
-operation DeleteSecret with [GetOperation] {
+operation DeleteSecret with [GetOperation, WorkspaceWriteOperation] {
     input := for Secret with [WorkspaceMixin] {
         @httpLabel
         @required

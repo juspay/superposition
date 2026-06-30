@@ -103,7 +103,7 @@ operation GetTypeTemplate with [GetOperation] {
 @documentation("Creates a new type template with specified schema definition, providing reusable type definitions for config validation.")
 @http(method: "POST", uri: "/types")
 @tags(["Type Templates"])
-operation CreateTypeTemplates {
+operation CreateTypeTemplates with [WorkspaceWriteOperation] {
     input: CreateTypeTemplatesRequest
     output: TypeTemplatesResponse
 }
@@ -125,7 +125,7 @@ operation GetTypeTemplatesList {
 @idempotent
 @http(method: "PATCH", uri: "/types/{type_name}")
 @tags(["Type Templates"])
-operation UpdateTypeTemplates with [GetOperation] {
+operation UpdateTypeTemplates with [GetOperation, WorkspaceWriteOperation] {
     input: UpdateTypeTemplatesRequest
     output: TypeTemplatesResponse
 }
@@ -134,7 +134,7 @@ operation UpdateTypeTemplates with [GetOperation] {
 @idempotent
 @http(method: "DELETE", uri: "/types/{type_name}")
 @tags(["Type Templates"])
-operation DeleteTypeTemplates with [GetOperation] {
+operation DeleteTypeTemplates with [GetOperation, WorkspaceWriteOperation] {
     input := for TypeTemplates with [WorkspaceMixin] {
         @httpLabel
         @required

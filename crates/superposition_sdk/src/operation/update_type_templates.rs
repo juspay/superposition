@@ -201,6 +201,8 @@ builder
 pub enum UpdateTypeTemplatesError {
     #[allow(missing_docs)] // documentation missing in model
     ResourceNotFound(crate::types::error::ResourceNotFound),
+    /// Returned when a workspace write operation cannot proceed because another write operation currently holds the workspace lock.
+    WorkspaceLockConflict(crate::types::error::WorkspaceLockConflict),
     #[allow(missing_docs)] // documentation missing in model
     InternalServerError(crate::types::error::InternalServerError),
     /// An unexpected error occurred (e.g., invalid JSON returned by the service or an unknown error code).
@@ -229,6 +231,7 @@ impl UpdateTypeTemplatesError {
     pub fn meta(&self) -> &::aws_smithy_types::error::ErrorMetadata {
         match self {
             Self::ResourceNotFound(e) => ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(e),
+            Self::WorkspaceLockConflict(e) => ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(e),
             Self::InternalServerError(e) => ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(e),
             Self::Unhandled(e) => &e.meta,
         }
@@ -236,6 +239,10 @@ impl UpdateTypeTemplatesError {
     /// Returns `true` if the error kind is `UpdateTypeTemplatesError::ResourceNotFound`.
     pub fn is_resource_not_found(&self) -> bool {
         matches!(self, Self::ResourceNotFound(_))
+    }
+    /// Returns `true` if the error kind is `UpdateTypeTemplatesError::WorkspaceLockConflict`.
+    pub fn is_workspace_lock_conflict(&self) -> bool {
+        matches!(self, Self::WorkspaceLockConflict(_))
     }
     /// Returns `true` if the error kind is `UpdateTypeTemplatesError::InternalServerError`.
     pub fn is_internal_server_error(&self) -> bool {
@@ -246,6 +253,9 @@ impl ::std::error::Error for UpdateTypeTemplatesError {
     fn source(&self) -> ::std::option::Option<&(dyn ::std::error::Error + 'static)> {
         match self {
             Self::ResourceNotFound(_inner) =>
+            ::std::option::Option::Some(_inner)
+            ,
+            Self::WorkspaceLockConflict(_inner) =>
             ::std::option::Option::Some(_inner)
             ,
             Self::InternalServerError(_inner) =>
@@ -261,6 +271,9 @@ impl ::std::fmt::Display for UpdateTypeTemplatesError {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
         match self {
             Self::ResourceNotFound(_inner) =>
+            _inner.fmt(f)
+            ,
+            Self::WorkspaceLockConflict(_inner) =>
             _inner.fmt(f)
             ,
             Self::InternalServerError(_inner) =>
@@ -288,6 +301,9 @@ impl ::aws_smithy_types::error::metadata::ProvideErrorMetadata for UpdateTypeTem
     fn meta(&self) -> &::aws_smithy_types::error::ErrorMetadata {
         match self {
             Self::ResourceNotFound(_inner) =>
+            ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(_inner)
+            ,
+            Self::WorkspaceLockConflict(_inner) =>
             ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(_inner)
             ,
             Self::InternalServerError(_inner) =>

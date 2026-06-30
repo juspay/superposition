@@ -97,6 +97,9 @@ export interface UpdateDimensionCommandOutput extends DimensionResponse, __Metad
  * @throws {@link WebhookFailed} (server fault)
  *  Indicates that the operation succeeded but the webhook call failed. The response body contains the successful result, but the client should be aware that webhook notification did not complete.
  *
+ * @throws {@link WorkspaceLockConflict} (client fault)
+ *  Returned when a workspace write operation cannot proceed because another write operation currently holds the workspace lock.
+ *
  * @throws {@link InternalServerError} (server fault)
  *
  * @throws {@link SuperpositionServiceException}
