@@ -19,6 +19,8 @@ use superposition_types::{
 };
 use uuid::Uuid;
 
+const MIN_WORKSPACE_LOCK_TTL: Duration = Duration::from_secs(60);
+
 #[derive(Clone, Debug)]
 pub(crate) struct WorkspaceLockRequest {
     pub(crate) operation: String,
@@ -28,9 +30,46 @@ pub(crate) struct WorkspaceLockRequest {
 
 impl WorkspaceLockRequest {
     pub(crate) fn expires_at(&self, now: DateTime<Utc>) -> DateTime<Utc> {
-        chrono::Duration::from_std(self.ttl)
+        chrono::Duration::from_std(self.ttl.max(MIN_WORKSPACE_LOCK_TTL))
             .map(|ttl| now + ttl)
             .unwrap_or_else(|_| now + chrono::Duration::minutes(1))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn request_with_ttl(ttl: Duration) -> WorkspaceLockRequest {
+        WorkspaceLockRequest {
+            operation: "test".to_string(),
+            locked_by: "test@example.com".to_string(),
+            ttl,
+        }
+    }
+
+    #[test]
+    fn enforces_minimum_workspace_lock_ttl() {
+        let now = Utc::now();
+
+        assert_eq!(
+            request_with_ttl(Duration::from_secs(30)).expires_at(now),
+            now + chrono::Duration::seconds(60)
+        );
+    }
+
+    #[test]
+    fn preserves_workspace_lock_ttl_at_or_above_minimum() {
+        let now = Utc::now();
+
+        assert_eq!(
+            request_with_ttl(Duration::from_secs(60)).expires_at(now),
+            now + chrono::Duration::seconds(60)
+        );
+        assert_eq!(
+            request_with_ttl(Duration::from_secs(120)).expires_at(now),
+            now + chrono::Duration::seconds(120)
+        );
     }
 }
 

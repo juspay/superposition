@@ -66,7 +66,7 @@ enum VariableSortOn {
 @documentation("Creates a new variable with the specified name and value.")
 @http(method: "POST", uri: "/variables")
 @tags(["Variables"])
-operation CreateVariable {
+operation CreateVariable with [WorkspaceWriteOperation] {
     input := for Variable with [WorkspaceMixin] {
         @required
         name: String
@@ -88,7 +88,7 @@ operation CreateVariable {
 @idempotent
 @http(method: "PATCH", uri: "/variables/{name}")
 @tags(["Variables"])
-operation UpdateVariable with [GetOperation] {
+operation UpdateVariable with [GetOperation, WorkspaceWriteOperation] {
     input := for Variable with [WorkspaceMixin] {
         @httpLabel
         @required
@@ -159,7 +159,7 @@ operation GetVariable with [GetOperation] {
 @idempotent
 @http(method: "DELETE", uri: "/variables/{name}")
 @tags(["Variables"])
-operation DeleteVariable with [GetOperation] {
+operation DeleteVariable with [GetOperation, WorkspaceWriteOperation] {
     input := for Variable with [WorkspaceMixin] {
         @httpLabel
         @required

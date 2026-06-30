@@ -112,6 +112,7 @@ impl From<crate::operation::bulk_operation::BulkOperationError> for Error {
         match err {
             crate::operation::bulk_operation::BulkOperationError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::bulk_operation::BulkOperationError::WebhookFailed(inner) => Error::WebhookFailed(inner),
+            crate::operation::bulk_operation::BulkOperationError::WorkspaceLockConflict(inner) => Error::WorkspaceLockConflict(inner),
             crate::operation::bulk_operation::BulkOperationError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::bulk_operation::BulkOperationError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -158,6 +159,7 @@ impl From<crate::operation::create_context::CreateContextError> for Error {
         match err {
             crate::operation::create_context::CreateContextError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::create_context::CreateContextError::WebhookFailed(inner) => Error::WebhookFailed(inner),
+            crate::operation::create_context::CreateContextError::WorkspaceLockConflict(inner) => Error::WorkspaceLockConflict(inner),
             crate::operation::create_context::CreateContextError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::create_context::CreateContextError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -203,6 +205,7 @@ impl From<crate::operation::create_dimension::CreateDimensionError> for Error {
     fn from(err: crate::operation::create_dimension::CreateDimensionError) -> Self {
         match err {
             crate::operation::create_dimension::CreateDimensionError::WebhookFailed(inner) => Error::WebhookFailed(inner),
+            crate::operation::create_dimension::CreateDimensionError::WorkspaceLockConflict(inner) => Error::WorkspaceLockConflict(inner),
             crate::operation::create_dimension::CreateDimensionError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::create_dimension::CreateDimensionError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -267,6 +270,7 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::create_function::CreateFunctionError> for Error {
     fn from(err: crate::operation::create_function::CreateFunctionError) -> Self {
         match err {
+            crate::operation::create_function::CreateFunctionError::WorkspaceLockConflict(inner) => Error::WorkspaceLockConflict(inner),
             crate::operation::create_function::CreateFunctionError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::create_function::CreateFunctionError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -309,6 +313,7 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::create_secret::CreateSecretError> for Error {
     fn from(err: crate::operation::create_secret::CreateSecretError) -> Self {
         match err {
+            crate::operation::create_secret::CreateSecretError::WorkspaceLockConflict(inner) => Error::WorkspaceLockConflict(inner),
             crate::operation::create_secret::CreateSecretError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::create_secret::CreateSecretError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -330,6 +335,7 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::create_type_templates::CreateTypeTemplatesError> for Error {
     fn from(err: crate::operation::create_type_templates::CreateTypeTemplatesError) -> Self {
         match err {
+            crate::operation::create_type_templates::CreateTypeTemplatesError::WorkspaceLockConflict(inner) => Error::WorkspaceLockConflict(inner),
             crate::operation::create_type_templates::CreateTypeTemplatesError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::create_type_templates::CreateTypeTemplatesError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -351,6 +357,7 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::create_variable::CreateVariableError> for Error {
     fn from(err: crate::operation::create_variable::CreateVariableError) -> Self {
         match err {
+            crate::operation::create_variable::CreateVariableError::WorkspaceLockConflict(inner) => Error::WorkspaceLockConflict(inner),
             crate::operation::create_variable::CreateVariableError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::create_variable::CreateVariableError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -372,6 +379,7 @@ impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation
 impl From<crate::operation::create_webhook::CreateWebhookError> for Error {
     fn from(err: crate::operation::create_webhook::CreateWebhookError) -> Self {
         match err {
+            crate::operation::create_webhook::CreateWebhookError::WorkspaceLockConflict(inner) => Error::WorkspaceLockConflict(inner),
             crate::operation::create_webhook::CreateWebhookError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::create_webhook::CreateWebhookError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -416,6 +424,7 @@ impl From<crate::operation::delete_context::DeleteContextError> for Error {
         match err {
             crate::operation::delete_context::DeleteContextError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::delete_context::DeleteContextError::WebhookFailed(inner) => Error::WebhookFailed(inner),
+            crate::operation::delete_context::DeleteContextError::WorkspaceLockConflict(inner) => Error::WorkspaceLockConflict(inner),
             crate::operation::delete_context::DeleteContextError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::delete_context::DeleteContextError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -463,6 +472,7 @@ impl From<crate::operation::delete_dimension::DeleteDimensionError> for Error {
         match err {
             crate::operation::delete_dimension::DeleteDimensionError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::delete_dimension::DeleteDimensionError::WebhookFailed(inner) => Error::WebhookFailed(inner),
+            crate::operation::delete_dimension::DeleteDimensionError::WorkspaceLockConflict(inner) => Error::WorkspaceLockConflict(inner),
             crate::operation::delete_dimension::DeleteDimensionError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::delete_dimension::DeleteDimensionError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -507,6 +517,7 @@ impl From<crate::operation::delete_function::DeleteFunctionError> for Error {
     fn from(err: crate::operation::delete_function::DeleteFunctionError) -> Self {
         match err {
             crate::operation::delete_function::DeleteFunctionError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::delete_function::DeleteFunctionError::WorkspaceLockConflict(inner) => Error::WorkspaceLockConflict(inner),
             crate::operation::delete_function::DeleteFunctionError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::delete_function::DeleteFunctionError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -529,6 +540,7 @@ impl From<crate::operation::delete_secret::DeleteSecretError> for Error {
     fn from(err: crate::operation::delete_secret::DeleteSecretError) -> Self {
         match err {
             crate::operation::delete_secret::DeleteSecretError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::delete_secret::DeleteSecretError::WorkspaceLockConflict(inner) => Error::WorkspaceLockConflict(inner),
             crate::operation::delete_secret::DeleteSecretError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::delete_secret::DeleteSecretError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -551,6 +563,7 @@ impl From<crate::operation::delete_type_templates::DeleteTypeTemplatesError> for
     fn from(err: crate::operation::delete_type_templates::DeleteTypeTemplatesError) -> Self {
         match err {
             crate::operation::delete_type_templates::DeleteTypeTemplatesError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::delete_type_templates::DeleteTypeTemplatesError::WorkspaceLockConflict(inner) => Error::WorkspaceLockConflict(inner),
             crate::operation::delete_type_templates::DeleteTypeTemplatesError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::delete_type_templates::DeleteTypeTemplatesError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -573,6 +586,7 @@ impl From<crate::operation::delete_variable::DeleteVariableError> for Error {
     fn from(err: crate::operation::delete_variable::DeleteVariableError) -> Self {
         match err {
             crate::operation::delete_variable::DeleteVariableError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::delete_variable::DeleteVariableError::WorkspaceLockConflict(inner) => Error::WorkspaceLockConflict(inner),
             crate::operation::delete_variable::DeleteVariableError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::delete_variable::DeleteVariableError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -595,6 +609,7 @@ impl From<crate::operation::delete_webhook::DeleteWebhookError> for Error {
     fn from(err: crate::operation::delete_webhook::DeleteWebhookError) -> Self {
         match err {
             crate::operation::delete_webhook::DeleteWebhookError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::delete_webhook::DeleteWebhookError::WorkspaceLockConflict(inner) => Error::WorkspaceLockConflict(inner),
             crate::operation::delete_webhook::DeleteWebhookError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::delete_webhook::DeleteWebhookError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1455,6 +1470,7 @@ impl From<crate::operation::move_context::MoveContextError> for Error {
         match err {
             crate::operation::move_context::MoveContextError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::move_context::MoveContextError::WebhookFailed(inner) => Error::WebhookFailed(inner),
+            crate::operation::move_context::MoveContextError::WorkspaceLockConflict(inner) => Error::WorkspaceLockConflict(inner),
             crate::operation::move_context::MoveContextError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::move_context::MoveContextError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1500,6 +1516,7 @@ impl From<crate::operation::publish::PublishError> for Error {
     fn from(err: crate::operation::publish::PublishError) -> Self {
         match err {
             crate::operation::publish::PublishError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::publish::PublishError::WorkspaceLockConflict(inner) => Error::WorkspaceLockConflict(inner),
             crate::operation::publish::PublishError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::publish::PublishError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1679,6 +1696,7 @@ impl From<crate::operation::update_dimension::UpdateDimensionError> for Error {
         match err {
             crate::operation::update_dimension::UpdateDimensionError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::update_dimension::UpdateDimensionError::WebhookFailed(inner) => Error::WebhookFailed(inner),
+            crate::operation::update_dimension::UpdateDimensionError::WorkspaceLockConflict(inner) => Error::WorkspaceLockConflict(inner),
             crate::operation::update_dimension::UpdateDimensionError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::update_dimension::UpdateDimensionError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1723,6 +1741,7 @@ impl From<crate::operation::update_function::UpdateFunctionError> for Error {
     fn from(err: crate::operation::update_function::UpdateFunctionError) -> Self {
         match err {
             crate::operation::update_function::UpdateFunctionError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::update_function::UpdateFunctionError::WorkspaceLockConflict(inner) => Error::WorkspaceLockConflict(inner),
             crate::operation::update_function::UpdateFunctionError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::update_function::UpdateFunctionError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1768,6 +1787,7 @@ impl From<crate::operation::update_override::UpdateOverrideError> for Error {
         match err {
             crate::operation::update_override::UpdateOverrideError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
             crate::operation::update_override::UpdateOverrideError::WebhookFailed(inner) => Error::WebhookFailed(inner),
+            crate::operation::update_override::UpdateOverrideError::WorkspaceLockConflict(inner) => Error::WorkspaceLockConflict(inner),
             crate::operation::update_override::UpdateOverrideError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::update_override::UpdateOverrideError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1813,6 +1833,7 @@ impl From<crate::operation::update_secret::UpdateSecretError> for Error {
     fn from(err: crate::operation::update_secret::UpdateSecretError) -> Self {
         match err {
             crate::operation::update_secret::UpdateSecretError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::update_secret::UpdateSecretError::WorkspaceLockConflict(inner) => Error::WorkspaceLockConflict(inner),
             crate::operation::update_secret::UpdateSecretError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::update_secret::UpdateSecretError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1835,6 +1856,7 @@ impl From<crate::operation::update_type_templates::UpdateTypeTemplatesError> for
     fn from(err: crate::operation::update_type_templates::UpdateTypeTemplatesError) -> Self {
         match err {
             crate::operation::update_type_templates::UpdateTypeTemplatesError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::update_type_templates::UpdateTypeTemplatesError::WorkspaceLockConflict(inner) => Error::WorkspaceLockConflict(inner),
             crate::operation::update_type_templates::UpdateTypeTemplatesError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::update_type_templates::UpdateTypeTemplatesError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1857,6 +1879,7 @@ impl From<crate::operation::update_variable::UpdateVariableError> for Error {
     fn from(err: crate::operation::update_variable::UpdateVariableError) -> Self {
         match err {
             crate::operation::update_variable::UpdateVariableError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::update_variable::UpdateVariableError::WorkspaceLockConflict(inner) => Error::WorkspaceLockConflict(inner),
             crate::operation::update_variable::UpdateVariableError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::update_variable::UpdateVariableError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1879,6 +1902,7 @@ impl From<crate::operation::update_webhook::UpdateWebhookError> for Error {
     fn from(err: crate::operation::update_webhook::UpdateWebhookError) -> Self {
         match err {
             crate::operation::update_webhook::UpdateWebhookError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::update_webhook::UpdateWebhookError::WorkspaceLockConflict(inner) => Error::WorkspaceLockConflict(inner),
             crate::operation::update_webhook::UpdateWebhookError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::update_webhook::UpdateWebhookError::Unhandled(inner) => Error::Unhandled(inner),
         }
@@ -1944,6 +1968,7 @@ impl From<crate::operation::weight_recompute::WeightRecomputeError> for Error {
     fn from(err: crate::operation::weight_recompute::WeightRecomputeError) -> Self {
         match err {
             crate::operation::weight_recompute::WeightRecomputeError::WebhookFailed(inner) => Error::WebhookFailed(inner),
+            crate::operation::weight_recompute::WeightRecomputeError::WorkspaceLockConflict(inner) => Error::WorkspaceLockConflict(inner),
             crate::operation::weight_recompute::WeightRecomputeError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::weight_recompute::WeightRecomputeError::Unhandled(inner) => Error::Unhandled(inner),
         }

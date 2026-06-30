@@ -27,6 +27,19 @@ pub fn de_update_type_templates_http_error(_response_status: u16, _response_head
                                                         }
             tmp
         }),
+        "WorkspaceLockConflict" => crate::operation::update_type_templates::UpdateTypeTemplatesError::WorkspaceLockConflict({
+            #[allow(unused_mut)]
+            let mut tmp =
+                 {
+                    #[allow(unused_mut)]
+                    let mut output = crate::types::error::builders::WorkspaceLockConflictBuilder::default();
+                    output = crate::protocol_serde::shape_workspace_lock_conflict::de_workspace_lock_conflict_json_err(_response_body, output).map_err(crate::operation::update_type_templates::UpdateTypeTemplatesError::unhandled)?;
+                    let output = output.meta(generic);
+                    crate::serde_util::workspace_lock_conflict_correct_errors(output).build().map_err(crate::operation::update_type_templates::UpdateTypeTemplatesError::unhandled)?
+                }
+            ;
+            tmp
+        }),
         "InternalServerError" => crate::operation::update_type_templates::UpdateTypeTemplatesError::InternalServerError({
             #[allow(unused_mut)]
             let mut tmp =

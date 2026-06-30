@@ -106,7 +106,7 @@ list WebhookList {
 @documentation("Creates a new webhook config to receive HTTP notifications when specified events occur in the system.")
 @http(method: "POST", uri: "/webhook")
 @tags(["Webhooks"])
-operation CreateWebhook {
+operation CreateWebhook with [WorkspaceWriteOperation] {
     input := for Webhook with [WorkspaceMixin] {
         @required
         name: String
@@ -141,7 +141,7 @@ operation CreateWebhook {
 @idempotent
 @http(method: "PATCH", uri: "/webhook/{name}")
 @tags(["Webhooks"])
-operation UpdateWebhook with [GetOperation] {
+operation UpdateWebhook with [GetOperation, WorkspaceWriteOperation] {
     input := for Webhook with [WorkspaceMixin] {
         @httpLabel
         @required
@@ -213,7 +213,7 @@ operation GetWebhookByEvent with [GetOperation] {
 @idempotent
 @http(method: "DELETE", uri: "/webhook/{name}", code: 204)
 @tags(["Webhooks"])
-operation DeleteWebhook with [GetOperation] {
+operation DeleteWebhook with [GetOperation, WorkspaceWriteOperation] {
     input := for Webhook with [WorkspaceMixin] {
         @httpLabel
         @required

@@ -260,12 +260,28 @@ impl FromRequest for DbConnection {
     }
 }
 
+#[derive(Clone, Copy, Debug, Default)]
+pub enum WorkspaceLockTtlPolicy {
+    #[default]
+    Default,
+    Batch,
+}
+
+impl WorkspaceLockTtlPolicy {
+    fn ttl(self, state: &AppState) -> Duration {
+        match self {
+            Self::Default => state.workspace_lock_default_ttl,
+            Self::Batch => state.workspace_lock_batch_ttl,
+        }
+    }
+}
+
 /// A permit that holds a workspace write lock and provides DB access.
 ///
 /// Acquired via `FromRequest` for write operations (POST, PUT, PATCH, DELETE).
 /// The lock is released automatically when the permit is dropped.
 ///
-/// Use `checkout()` to get a mutable reference to the underlying connection.
+/// Use `connection()` to get a mutable reference to the underlying connection.
 pub struct WorkspaceWritePermit {
     conn: superposition_types::DBConnection,
     lease: Option<WorkspaceLockLease>,
@@ -273,8 +289,63 @@ pub struct WorkspaceWritePermit {
 
 impl WorkspaceWritePermit {
     /// Returns a mutable reference to the database connection.
-    pub fn checkout(&mut self) -> &mut superposition_types::DBConnection {
+    pub fn connection(&mut self) -> &mut superposition_types::DBConnection {
         &mut self.conn
+    }
+
+    fn acquire(req: &actix_web::HttpRequest) -> Result<Self, Error> {
+        let method = req.method().to_string();
+        let path = req.path().to_string();
+        let app_state = req.app_data::<Data<AppState>>().ok_or_else(|| {
+            log::error!("WorkspaceWritePermit: Unable to get app_data from request");
+            error::ErrorInternalServerError("Internal server error")
+        })?;
+        let organisation_id = req
+            .extensions()
+            .get::<OrganisationId>()
+            .cloned()
+            .ok_or_else(|| {
+                log::error!("WorkspaceWritePermit: Organisation Id not found");
+                error::ErrorInternalServerError("Organisation Id not found")
+            })?;
+        let workspace_id =
+            req.extensions()
+                .get::<WorkspaceId>()
+                .cloned()
+                .ok_or_else(|| {
+                    log::error!("WorkspaceWritePermit: Workspace Id not found");
+                    error::ErrorInternalServerError("Workspace Id not found")
+                })?;
+        let user = req.extensions().get::<User>().cloned().unwrap_or_default();
+        let ttl = req
+            .app_data::<WorkspaceLockTtlPolicy>()
+            .copied()
+            .unwrap_or_default()
+            .ttl(app_state.get_ref());
+
+        let lock_request = WorkspaceLockRequest {
+            operation: format!("{} {}", method, path),
+            locked_by: user.get_email(),
+            ttl,
+        };
+
+        let mut conn = checkout_connection(&app_state.db_pool).map_err(|e| {
+            log::info!(
+                "WorkspaceWritePermit: Unable to get db connection from pool, error: {e}"
+            );
+            error::ErrorInternalServerError("")
+        })?;
+        let lease = acquire_workspace_lease(
+            &mut conn,
+            &organisation_id.0,
+            &workspace_id.0,
+            lock_request,
+        )?;
+
+        Ok(Self {
+            conn,
+            lease: Some(lease),
+        })
     }
 
     fn release_lock(&mut self) {
@@ -302,62 +373,7 @@ impl FromRequest for WorkspaceWritePermit {
         req: &actix_web::HttpRequest,
         _: &mut actix_web::dev::Payload,
     ) -> Self::Future {
-        let method = req.method().to_string();
-        let path = req.path().to_string();
-        let app_state = match req.app_data::<Data<AppState>>() {
-            Some(state) => state,
-            None => {
-                log::error!("WorkspaceWritePermit: Unable to get app_data from request");
-                return ready(Err(error::ErrorInternalServerError(
-                    "Internal server error",
-                )));
-            }
-        };
-        let organisation_id = match req.extensions().get::<OrganisationId>().cloned() {
-            Some(id) => id,
-            None => {
-                log::error!("WorkspaceWritePermit: Organisation Id not found");
-                return ready(Err(error::ErrorInternalServerError(
-                    "Organisation Id not found",
-                )));
-            }
-        };
-        let workspace_id = match req.extensions().get::<WorkspaceId>().cloned() {
-            Some(id) => id,
-            None => {
-                log::error!("WorkspaceWritePermit: Workspace Id not found");
-                return ready(Err(error::ErrorInternalServerError(
-                    "Workspace Id not found",
-                )));
-            }
-        };
-        let user = req.extensions().get::<User>().cloned().unwrap_or_default();
-
-        let lock_request = WorkspaceLockRequest {
-            operation: format!("{} {}", method, path),
-            locked_by: user.get_email(),
-            ttl: app_state.workspace_lock_default_ttl,
-        };
-
-        let result = (|| {
-            let mut conn = checkout_connection(&app_state.db_pool).map_err(|e| {
-                log::info!("WorkspaceWritePermit: Unable to get db connection from pool, error: {e}");
-                error::ErrorInternalServerError("")
-            })?;
-            let lease = acquire_workspace_lease(
-                &mut conn,
-                &organisation_id.0,
-                &workspace_id.0,
-                lock_request,
-            )?;
-
-            Ok(WorkspaceWritePermit {
-                conn,
-                lease: Some(lease),
-            })
-        })();
-
-        ready(result)
+        ready(Self::acquire(req))
     }
 }
 

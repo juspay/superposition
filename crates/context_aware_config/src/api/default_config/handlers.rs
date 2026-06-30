@@ -79,7 +79,7 @@ async fn create_handler(
 ) -> superposition::Result<HttpResponse> {
     let req = request.into_inner();
     _auth_z.authorized(&[req.key.deref()]).await?;
-    let conn = write_permit.checkout();
+    let conn = write_permit.connection();
 
     let key = req.key;
     let tags = parse_config_tags(custom_headers.config_tags)?;
@@ -241,7 +241,7 @@ async fn update_handler(
     let key_str = key.into();
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
-    let conn = write_permit.checkout();
+    let conn = write_permit.connection();
 
     let existing = fetch_default_key(&key_str, conn, &workspace_context.schema_name)
         .map_err(|e| match e {
@@ -524,7 +524,7 @@ async fn delete_handler(
 
     let key: String = key.into();
 
-    let conn = write_permit.checkout();
+    let conn = write_permit.connection();
 
     let context_ids =
         get_key_usage_context_ids(&key, conn, &workspace_context.schema_name)

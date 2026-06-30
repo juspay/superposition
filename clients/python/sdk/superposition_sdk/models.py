@@ -1998,6 +1998,130 @@ class WebhookFailed(ApiError):
         deserializer.read_struct(_SCHEMA_WEBHOOK_FAILED, consumer=_consumer)
         return kwargs
 
+@dataclass(kw_only=True)
+class WorkspaceLock:
+    """
+    Metadata for an active workspace write lock. Present only while another write
+    operation is holding the workspace lease.
+
+    :param lock_id:
+        **[Required]** - Unique identifier for the active workspace lock.
+
+    :param operation:
+        **[Required]** - Write operation that currently holds the workspace lock.
+
+    :param locked_by:
+        **[Required]** - User that acquired the workspace lock.
+
+    :param acquired_at:
+        **[Required]** - Timestamp at which the workspace lock was acquired.
+
+    :param expires_at:
+        **[Required]** - Timestamp at which the workspace lock expires if it is not
+        released first.
+
+    """
+
+    lock_id: str
+
+    operation: str
+
+    locked_by: str
+
+    acquired_at: datetime
+
+    expires_at: datetime
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_WORKSPACE_LOCK, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_WORKSPACE_LOCK.members["lock_id"], self.lock_id)
+        serializer.write_string(_SCHEMA_WORKSPACE_LOCK.members["operation"], self.operation)
+        serializer.write_string(_SCHEMA_WORKSPACE_LOCK.members["locked_by"], self.locked_by)
+        serializer.write_timestamp(_SCHEMA_WORKSPACE_LOCK.members["acquired_at"], self.acquired_at)
+        serializer.write_timestamp(_SCHEMA_WORKSPACE_LOCK.members["expires_at"], self.expires_at)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["lock_id"] = de.read_string(_SCHEMA_WORKSPACE_LOCK.members["lock_id"])
+
+                case 1:
+                    kwargs["operation"] = de.read_string(_SCHEMA_WORKSPACE_LOCK.members["operation"])
+
+                case 2:
+                    kwargs["locked_by"] = de.read_string(_SCHEMA_WORKSPACE_LOCK.members["locked_by"])
+
+                case 3:
+                    kwargs["acquired_at"] = de.read_timestamp(_SCHEMA_WORKSPACE_LOCK.members["acquired_at"])
+
+                case 4:
+                    kwargs["expires_at"] = de.read_timestamp(_SCHEMA_WORKSPACE_LOCK.members["expires_at"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_WORKSPACE_LOCK, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class WorkspaceLockConflict(ApiError):
+    """
+    Returned when a workspace write operation cannot proceed because another write
+    operation currently holds the workspace lock.
+
+    :param message: A message associated with the specific error.
+
+    :param lock:
+        **[Required]** - Metadata for an active workspace write lock. Present only while
+        another write operation is holding the workspace lease.
+
+    """
+
+    code: ClassVar[str] = "WorkspaceLockConflict"
+    fault: ClassVar[Literal["client", "server"]] = "client"
+
+    message: str
+    lock: WorkspaceLock
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_WORKSPACE_LOCK_CONFLICT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_WORKSPACE_LOCK_CONFLICT.members["message"], self.message)
+        serializer.write_struct(_SCHEMA_WORKSPACE_LOCK_CONFLICT.members["lock"], self.lock)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["message"] = de.read_string(_SCHEMA_WORKSPACE_LOCK_CONFLICT.members["message"])
+
+                case 1:
+                    kwargs["lock"] = WorkspaceLock.deserialize(de)
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_WORKSPACE_LOCK_CONFLICT, consumer=_consumer)
+        return kwargs
+
 BULK_OPERATION = APIOperation(
         input = BulkOperationInput,
         output = BulkOperationOutput,
@@ -2008,6 +2132,7 @@ BULK_OPERATION = APIOperation(
             ShapeID("io.superposition#InternalServerError"): InternalServerError,
 ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
 ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
         }),
         effective_auth_schemes = [
            ShapeID("smithy.api#httpBasicAuth"),
@@ -4201,6 +4326,7 @@ CREATE_CONTEXT = APIOperation(
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
+ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -4286,6 +4412,7 @@ DELETE_CONTEXT = APIOperation(
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
+ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -4978,6 +5105,7 @@ MOVE_CONTEXT = APIOperation(
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
+ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -5143,6 +5271,7 @@ UPDATE_OVERRIDE = APIOperation(
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
+ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -5396,6 +5525,7 @@ WEIGHT_RECOMPUTE = APIOperation(
         error_registry = TypeRegistry({
             ShapeID("io.superposition#InternalServerError"): InternalServerError,
 ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
+ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
         }),
         effective_auth_schemes = [
            ShapeID("smithy.api#httpBasicAuth"),
@@ -5619,130 +5749,6 @@ class CreateDefaultConfigOutput:
                     logger.debug("Unexpected member schema: %s", schema)
 
         deserializer.read_struct(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT, consumer=_consumer)
-        return kwargs
-
-@dataclass(kw_only=True)
-class WorkspaceLock:
-    """
-    Metadata for an active workspace write lock. Present only while another write
-    operation is holding the workspace lease.
-
-    :param lock_id:
-        **[Required]** - Unique identifier for the active workspace lock.
-
-    :param operation:
-        **[Required]** - Write operation that currently holds the workspace lock.
-
-    :param locked_by:
-        **[Required]** - User that acquired the workspace lock.
-
-    :param acquired_at:
-        **[Required]** - Timestamp at which the workspace lock was acquired.
-
-    :param expires_at:
-        **[Required]** - Timestamp at which the workspace lock expires if it is not
-        released first.
-
-    """
-
-    lock_id: str
-
-    operation: str
-
-    locked_by: str
-
-    acquired_at: datetime
-
-    expires_at: datetime
-
-    def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_WORKSPACE_LOCK, self)
-
-    def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_WORKSPACE_LOCK.members["lock_id"], self.lock_id)
-        serializer.write_string(_SCHEMA_WORKSPACE_LOCK.members["operation"], self.operation)
-        serializer.write_string(_SCHEMA_WORKSPACE_LOCK.members["locked_by"], self.locked_by)
-        serializer.write_timestamp(_SCHEMA_WORKSPACE_LOCK.members["acquired_at"], self.acquired_at)
-        serializer.write_timestamp(_SCHEMA_WORKSPACE_LOCK.members["expires_at"], self.expires_at)
-
-    @classmethod
-    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(**cls.deserialize_kwargs(deserializer))
-
-    @classmethod
-    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
-        kwargs: dict[str, Any] = {}
-
-        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
-            match schema.expect_member_index():
-                case 0:
-                    kwargs["lock_id"] = de.read_string(_SCHEMA_WORKSPACE_LOCK.members["lock_id"])
-
-                case 1:
-                    kwargs["operation"] = de.read_string(_SCHEMA_WORKSPACE_LOCK.members["operation"])
-
-                case 2:
-                    kwargs["locked_by"] = de.read_string(_SCHEMA_WORKSPACE_LOCK.members["locked_by"])
-
-                case 3:
-                    kwargs["acquired_at"] = de.read_timestamp(_SCHEMA_WORKSPACE_LOCK.members["acquired_at"])
-
-                case 4:
-                    kwargs["expires_at"] = de.read_timestamp(_SCHEMA_WORKSPACE_LOCK.members["expires_at"])
-
-                case _:
-                    logger.debug("Unexpected member schema: %s", schema)
-
-        deserializer.read_struct(_SCHEMA_WORKSPACE_LOCK, consumer=_consumer)
-        return kwargs
-
-@dataclass(kw_only=True)
-class WorkspaceLockConflict(ApiError):
-    """
-    Returned when a workspace write operation cannot proceed because another write
-    operation currently holds the workspace lock.
-
-    :param message: A message associated with the specific error.
-
-    :param lock:
-        **[Required]** - Metadata for an active workspace write lock. Present only while
-        another write operation is holding the workspace lease.
-
-    """
-
-    code: ClassVar[str] = "WorkspaceLockConflict"
-    fault: ClassVar[Literal["client", "server"]] = "client"
-
-    message: str
-    lock: WorkspaceLock
-
-    def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_WORKSPACE_LOCK_CONFLICT, self)
-
-    def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_WORKSPACE_LOCK_CONFLICT.members["message"], self.message)
-        serializer.write_struct(_SCHEMA_WORKSPACE_LOCK_CONFLICT.members["lock"], self.lock)
-
-    @classmethod
-    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(**cls.deserialize_kwargs(deserializer))
-
-    @classmethod
-    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
-        kwargs: dict[str, Any] = {}
-
-        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
-            match schema.expect_member_index():
-                case 0:
-                    kwargs["message"] = de.read_string(_SCHEMA_WORKSPACE_LOCK_CONFLICT.members["message"])
-
-                case 1:
-                    kwargs["lock"] = WorkspaceLock.deserialize(de)
-
-                case _:
-                    logger.debug("Unexpected member schema: %s", schema)
-
-        deserializer.read_struct(_SCHEMA_WORKSPACE_LOCK_CONFLICT, consumer=_consumer)
         return kwargs
 
 CREATE_DEFAULT_CONFIG = APIOperation(
@@ -5983,6 +5989,7 @@ CREATE_DIMENSION = APIOperation(
         output_schema = _SCHEMA_CREATE_DIMENSION_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
+ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -6689,7 +6696,8 @@ CREATE_FUNCTION = APIOperation(
         input_schema = _SCHEMA_CREATE_FUNCTION_INPUT,
         output_schema = _SCHEMA_CREATE_FUNCTION_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
            ShapeID("smithy.api#httpBasicAuth"),
@@ -7028,7 +7036,8 @@ CREATE_SECRET = APIOperation(
         input_schema = _SCHEMA_CREATE_SECRET_INPUT,
         output_schema = _SCHEMA_CREATE_SECRET_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
            ShapeID("smithy.api#httpBasicAuth"),
@@ -7189,7 +7198,8 @@ CREATE_TYPE_TEMPLATES = APIOperation(
         input_schema = _SCHEMA_CREATE_TYPE_TEMPLATES_INPUT,
         output_schema = _SCHEMA_CREATE_TYPE_TEMPLATES_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
            ShapeID("smithy.api#httpBasicAuth"),
@@ -7336,7 +7346,8 @@ CREATE_VARIABLE = APIOperation(
         input_schema = _SCHEMA_CREATE_VARIABLE_INPUT,
         output_schema = _SCHEMA_CREATE_VARIABLE_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
            ShapeID("smithy.api#httpBasicAuth"),
@@ -7606,7 +7617,8 @@ CREATE_WEBHOOK = APIOperation(
         input_schema = _SCHEMA_CREATE_WEBHOOK_INPUT,
         output_schema = _SCHEMA_CREATE_WEBHOOK_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
            ShapeID("smithy.api#httpBasicAuth"),
@@ -8632,6 +8644,7 @@ DELETE_DIMENSION = APIOperation(
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
+ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -8882,6 +8895,7 @@ DELETE_FUNCTION = APIOperation(
         output_schema = _SCHEMA_DELETE_FUNCTION_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -9007,6 +9021,7 @@ DELETE_SECRET = APIOperation(
         output_schema = _SCHEMA_DELETE_SECRET_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -9140,6 +9155,7 @@ DELETE_TYPE_TEMPLATES = APIOperation(
         output_schema = _SCHEMA_DELETE_TYPE_TEMPLATES_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -9266,6 +9282,7 @@ DELETE_VARIABLE = APIOperation(
         output_schema = _SCHEMA_DELETE_VARIABLE_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -9346,6 +9363,7 @@ DELETE_WEBHOOK = APIOperation(
         output_schema = _SCHEMA_DELETE_WEBHOOK_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -9995,6 +10013,7 @@ UPDATE_DIMENSION = APIOperation(
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
+ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -13478,6 +13497,7 @@ PUBLISH = APIOperation(
         output_schema = _SCHEMA_PUBLISH_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -13993,6 +14013,7 @@ UPDATE_FUNCTION = APIOperation(
         output_schema = _SCHEMA_UPDATE_FUNCTION_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -17220,6 +17241,7 @@ UPDATE_SECRET = APIOperation(
         output_schema = _SCHEMA_UPDATE_SECRET_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -17379,6 +17401,7 @@ UPDATE_TYPE_TEMPLATES = APIOperation(
         output_schema = _SCHEMA_UPDATE_TYPE_TEMPLATES_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -17524,6 +17547,7 @@ UPDATE_VARIABLE = APIOperation(
         output_schema = _SCHEMA_UPDATE_VARIABLE_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
@@ -17763,6 +17787,7 @@ UPDATE_WEBHOOK = APIOperation(
         output_schema = _SCHEMA_UPDATE_WEBHOOK_OUTPUT,
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [

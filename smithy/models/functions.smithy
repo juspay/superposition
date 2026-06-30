@@ -201,7 +201,7 @@ list FunctionListResponse {
 @documentation("Creates a new custom function for value_validation, value_compute, context_validation or change_reason_validation with specified code, runtime version, and function type.")
 @http(method: "POST", uri: "/function")
 @tags(["Functions"])
-operation CreateFunction {
+operation CreateFunction with [WorkspaceWriteOperation] {
     input: CreateFunctionRequest
     output: FunctionResponse
 }
@@ -240,7 +240,7 @@ operation ListFunction {
 @idempotent
 @http(method: "PATCH", uri: "/function/{function_name}")
 @tags(["Functions"])
-operation UpdateFunction with [GetOperation] {
+operation UpdateFunction with [GetOperation, WorkspaceWriteOperation] {
     input: UpdateFunctionRequest
     output: FunctionResponse
 }
@@ -249,7 +249,7 @@ operation UpdateFunction with [GetOperation] {
 @idempotent
 @http(method: "DELETE", uri: "/function/{function_name}", code: 204)
 @tags(["Functions"])
-operation DeleteFunction with [GetOperation] {
+operation DeleteFunction with [GetOperation, WorkspaceWriteOperation] {
     input := for Function with [WorkspaceMixin] {
         @httpLabel
         @required
@@ -285,7 +285,7 @@ operation Test with [GetOperation] {
 @idempotent
 @http(method: "PATCH", uri: "/function/{function_name}/publish")
 @tags(["Functions"])
-operation Publish with [GetOperation] {
+operation Publish with [GetOperation, WorkspaceWriteOperation] {
     input := for Function with [WorkspaceMixin] {
         @httpLabel
         @required

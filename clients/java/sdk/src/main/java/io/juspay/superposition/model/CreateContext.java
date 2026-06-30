@@ -29,6 +29,7 @@ public final class CreateContext implements ApiOperation<CreateContextInput, Cre
         .putType(InternalServerError.$ID, InternalServerError.class, InternalServerError::builder)
         .putType(ResourceNotFound.$ID, ResourceNotFound.class, ResourceNotFound::builder)
         .putType(WebhookFailed.$ID, WebhookFailed.class, WebhookFailed::builder)
+        .putType(WorkspaceLockConflict.$ID, WorkspaceLockConflict.class, WorkspaceLockConflict::builder)
         .build();
 
     private static final List<ShapeId> SCHEMES = List.of(ShapeId.from("smithy.api#httpBasicAuth"), ShapeId.from("smithy.api#httpBearerAuth"));
