@@ -92,7 +92,10 @@ fn normalize_method(m: &actix_web::http::Method) -> &'static str {
     }
     match_known!(
         m.as_str(),
-        ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "TRACE", "CONNECT"],
+        [
+            "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "TRACE",
+            "CONNECT"
+        ],
         "_OTHER"
     )
 }
@@ -142,7 +145,10 @@ mod tests {
 
     #[test]
     fn formatter_maps_unmatched_to_not_found_sentinel() {
-        assert_eq!(CardinalityBoundedFormatter.format("default"), ROUTE_NOT_FOUND);
+        assert_eq!(
+            CardinalityBoundedFormatter.format("default"),
+            ROUTE_NOT_FOUND
+        );
     }
 
     #[test]
