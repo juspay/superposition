@@ -95,7 +95,7 @@ const config: Config = {
         algolia: {
             appId: 'ZK6EG087JC',
             // Public API key: it is safe to commit it
-            apiKey: '2d61980440a8ce3d5832392666e51c65',
+            apiKey: 'a9402301014892a68b227519cfab738a',
             indexName: 'superposition-docusaurus-1',
         },
         navbar: {
