@@ -71,6 +71,9 @@ export interface CreateVariableCommandOutput extends VariableResponse, __Metadat
  * @see {@link CreateVariableCommandOutput} for command's `response` shape.
  * @see {@link SuperpositionClientResolvedConfig | config} for SuperpositionClient's `config` shape.
  *
+ * @throws {@link WorkspaceLockConflict} (client fault)
+ *  Returned when a workspace write operation cannot proceed because another write operation currently holds the workspace lock.
+ *
  * @throws {@link InternalServerError} (server fault)
  *
  * @throws {@link SuperpositionServiceException}

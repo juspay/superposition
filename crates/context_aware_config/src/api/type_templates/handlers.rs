@@ -5,7 +5,9 @@ use actix_web::{
 use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use serde_json::Value;
-use service_utils::service::types::{AppState, DbConnection, WorkspaceContext};
+use service_utils::service::types::{
+    AppState, DbConnection, WorkspaceContext, WorkspaceWritePermit,
+};
 use superposition_core::validations::try_into_jsonschema;
 use superposition_derives::{authorized, declare_resource};
 use superposition_macros::bad_argument;
@@ -40,11 +42,11 @@ pub fn endpoints() -> Scope {
 async fn create_handler(
     workspace_context: WorkspaceContext,
     request: Json<TypeTemplateCreateRequest>,
-    db_conn: DbConnection,
+    mut write_permit: WorkspaceWritePermit,
     user: User,
     state: Data<AppState>,
 ) -> superposition::Result<Json<TypeTemplate>> {
-    let DbConnection(mut conn) = db_conn;
+    let conn = write_permit.checkout();
     try_into_jsonschema(&Value::from(&request.type_schema)).map_err(|err| {
         log::error!(
             "Invalid jsonschema sent in the request, schema: {:?} error: {}",
@@ -60,7 +62,7 @@ async fn create_handler(
     validate_change_reason(
         &workspace_context,
         &request.change_reason,
-        &mut conn,
+        conn,
         &state.master_encryption_key,
     )
     .await?;
@@ -81,7 +83,7 @@ async fn create_handler(
         .values(&type_template)
         .returning(TypeTemplate::as_returning())
         .schema_name(&workspace_context.schema_name)
-        .get_result::<TypeTemplate>(&mut conn)?;
+        .get_result::<TypeTemplate>(conn)?;
     Ok(Json(type_template))
 }
 
@@ -110,11 +112,11 @@ async fn update_handler(
     workspace_context: WorkspaceContext,
     request: Json<TypeTemplateUpdateRequest>,
     path: Path<TypeTemplateName>,
-    db_conn: DbConnection,
+    mut write_permit: WorkspaceWritePermit,
     user: User,
     state: Data<AppState>,
 ) -> superposition::Result<Json<TypeTemplate>> {
-    let DbConnection(mut conn) = db_conn;
+    let conn = write_permit.checkout();
     let request = request.into_inner();
     try_into_jsonschema(&Value::from(&request.type_schema)).map_err(|err| {
         log::error!(
@@ -131,7 +133,7 @@ async fn update_handler(
     validate_change_reason(
         &workspace_context,
         &request.change_reason,
-        &mut conn,
+        conn,
         &state.master_encryption_key,
     )
     .await?;
@@ -148,7 +150,7 @@ async fn update_handler(
         ))
         .returning(TypeTemplate::as_returning())
         .schema_name(&workspace_context.schema_name)
-        .get_result::<TypeTemplate>(&mut conn)?;
+        .get_result::<TypeTemplate>(conn)?;
     Ok(Json(updated_type))
 }
 
@@ -157,10 +159,10 @@ async fn update_handler(
 async fn delete_handler(
     workspace_context: WorkspaceContext,
     path: Path<TypeTemplateName>,
-    db_conn: DbConnection,
+    mut write_permit: WorkspaceWritePermit,
     user: User,
 ) -> superposition::Result<Json<TypeTemplate>> {
-    let DbConnection(mut conn) = db_conn;
+    let conn = write_permit.checkout();
     let type_name: String = path.into_inner().into();
     diesel::update(dsl::type_templates)
         .filter(dsl::type_name.eq(type_name.clone()))
@@ -170,11 +172,11 @@ async fn delete_handler(
         ))
         .returning(TypeTemplate::as_returning())
         .schema_name(&workspace_context.schema_name)
-        .execute(&mut conn)?;
+        .execute(conn)?;
     let deleted_type =
         diesel::delete(dsl::type_templates.filter(dsl::type_name.eq(type_name)))
             .schema_name(&workspace_context.schema_name)
-            .get_result::<TypeTemplate>(&mut conn)?;
+            .get_result::<TypeTemplate>(conn)?;
     Ok(Json(deleted_type))
 }
 

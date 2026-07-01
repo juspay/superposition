@@ -11,11 +11,13 @@ import qualified Io.Superposition.Model.InternalServerError
 import qualified Io.Superposition.Model.ResourceNotFound
 import qualified Io.Superposition.Model.UpdateVariableInput
 import qualified Io.Superposition.Model.UpdateVariableOutput
+import qualified Io.Superposition.Model.WorkspaceLockConflict
 import qualified Io.Superposition.SuperpositionClient
 import qualified Io.Superposition.Utility
 
 data UpdateVariableError =
     ResourceNotFound Io.Superposition.Model.ResourceNotFound.ResourceNotFound
+    | WorkspaceLockConflict Io.Superposition.Model.WorkspaceLockConflict.WorkspaceLockConflict
     | InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | DeSerializationError Io.Superposition.Utility.HttpMetadata Data.Text.Text
@@ -30,6 +32,7 @@ instance Io.Superposition.Utility.OperationError UpdateVariableError where
 
     getErrorParser status
         | status == (Io.Superposition.Utility.expectedStatus @Io.Superposition.Model.ResourceNotFound.ResourceNotFound) = Just (fmap ResourceNotFound (Io.Superposition.Utility.responseParser @Io.Superposition.Model.ResourceNotFound.ResourceNotFound))
+        | status == (Io.Superposition.Utility.expectedStatus @Io.Superposition.Model.WorkspaceLockConflict.WorkspaceLockConflict) = Just (fmap WorkspaceLockConflict (Io.Superposition.Utility.responseParser @Io.Superposition.Model.WorkspaceLockConflict.WorkspaceLockConflict))
         | status == (Io.Superposition.Utility.expectedStatus @Io.Superposition.Model.InternalServerError.InternalServerError) = Just (fmap InternalServerError (Io.Superposition.Utility.responseParser @Io.Superposition.Model.InternalServerError.InternalServerError))
         | otherwise = Nothing
 

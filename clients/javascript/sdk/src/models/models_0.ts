@@ -604,6 +604,69 @@ export class WebhookFailed extends __BaseException {
 }
 
 /**
+ * Metadata for an active workspace write lock. Present only while another write operation is holding the workspace lease.
+ * @public
+ */
+export interface WorkspaceLock {
+  /**
+   * Unique identifier for the active workspace lock.
+   * @public
+   */
+  lock_id: string | undefined;
+
+  /**
+   * Write operation that currently holds the workspace lock.
+   * @public
+   */
+  operation: string | undefined;
+
+  /**
+   * User that acquired the workspace lock.
+   * @public
+   */
+  locked_by: string | undefined;
+
+  /**
+   * Timestamp at which the workspace lock was acquired.
+   * @public
+   */
+  acquired_at: Date | undefined;
+
+  /**
+   * Timestamp at which the workspace lock expires if it is not released first.
+   * @public
+   */
+  expires_at: Date | undefined;
+}
+
+/**
+ * Returned when a workspace write operation cannot proceed because another write operation currently holds the workspace lock.
+ * @public
+ */
+export class WorkspaceLockConflict extends __BaseException {
+  readonly name: "WorkspaceLockConflict" = "WorkspaceLockConflict";
+  readonly $fault: "client" = "client";
+  /**
+   * Metadata for an active workspace write lock. Present only while another write operation is holding the workspace lease.
+   * @public
+   */
+  lock: WorkspaceLock | undefined;
+
+  /**
+   * @internal
+   */
+  constructor(opts: __ExceptionOptionType<WorkspaceLockConflict, __BaseException>) {
+    super({
+      name: "WorkspaceLockConflict",
+      $fault: "client",
+      ...opts
+    });
+    Object.setPrototypeOf(this, WorkspaceLockConflict.prototype);
+    this.lock = opts.lock;
+  }
+}
+
+/**
  * @public
  */
 export interface ChangeReasonValidationFunctionRequest {
@@ -1371,69 +1434,6 @@ export interface DefaultConfigResponse {
   created_by: string | undefined;
   last_modified_at: Date | undefined;
   last_modified_by: string | undefined;
-}
-
-/**
- * Metadata for an active workspace write lock. Present only while another write operation is holding the workspace lease.
- * @public
- */
-export interface WorkspaceLock {
-  /**
-   * Unique identifier for the active workspace lock.
-   * @public
-   */
-  lock_id: string | undefined;
-
-  /**
-   * Write operation that currently holds the workspace lock.
-   * @public
-   */
-  operation: string | undefined;
-
-  /**
-   * User that acquired the workspace lock.
-   * @public
-   */
-  locked_by: string | undefined;
-
-  /**
-   * Timestamp at which the workspace lock was acquired.
-   * @public
-   */
-  acquired_at: Date | undefined;
-
-  /**
-   * Timestamp at which the workspace lock expires if it is not released first.
-   * @public
-   */
-  expires_at: Date | undefined;
-}
-
-/**
- * Returned when a workspace write operation cannot proceed because another write operation currently holds the workspace lock.
- * @public
- */
-export class WorkspaceLockConflict extends __BaseException {
-  readonly name: "WorkspaceLockConflict" = "WorkspaceLockConflict";
-  readonly $fault: "client" = "client";
-  /**
-   * Metadata for an active workspace write lock. Present only while another write operation is holding the workspace lease.
-   * @public
-   */
-  lock: WorkspaceLock | undefined;
-
-  /**
-   * @internal
-   */
-  constructor(opts: __ExceptionOptionType<WorkspaceLockConflict, __BaseException>) {
-    super({
-      name: "WorkspaceLockConflict",
-      $fault: "client",
-      ...opts
-    });
-    Object.setPrototypeOf(this, WorkspaceLockConflict.prototype);
-    this.lock = opts.lock;
-  }
 }
 
 /**

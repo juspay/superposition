@@ -29,6 +29,7 @@ public final class BulkOperation implements ApiOperation<BulkOperationInput, Bul
         .putType(InternalServerError.$ID, InternalServerError.class, InternalServerError::builder)
         .putType(WebhookFailed.$ID, WebhookFailed.class, WebhookFailed::builder)
         .putType(ResourceNotFound.$ID, ResourceNotFound.class, ResourceNotFound::builder)
+        .putType(WorkspaceLockConflict.$ID, WorkspaceLockConflict.class, WorkspaceLockConflict::builder)
         .build();
 
     private static final List<ShapeId> SCHEMES = List.of(ShapeId.from("smithy.api#httpBasicAuth"), ShapeId.from("smithy.api#httpBearerAuth"));

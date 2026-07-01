@@ -4,7 +4,9 @@ use actix_web::{
 };
 use chrono::Utc;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
-use service_utils::service::types::{AppState, DbConnection, WorkspaceContext};
+use service_utils::service::types::{
+    AppState, DbConnection, WorkspaceContext, WorkspaceWritePermit,
+};
 use superposition_derives::{authorized, declare_resource};
 use superposition_macros::{bad_argument, not_found, unexpected_error};
 use superposition_types::{
@@ -47,11 +49,11 @@ pub fn endpoints() -> Scope {
 async fn create_handler(
     workspace_context: WorkspaceContext,
     request: Json<CreateFunctionRequest>,
-    db_conn: DbConnection,
+    mut write_permit: WorkspaceWritePermit,
     user: User,
     state: Data<AppState>,
 ) -> superposition::Result<Json<Function>> {
-    let DbConnection(mut conn) = db_conn;
+    let conn = write_permit.checkout();
     let req = request.into_inner();
 
     if req.function_type == FunctionType::ContextValidation
@@ -70,7 +72,7 @@ async fn create_handler(
     validate_change_reason(
         &workspace_context,
         &req.change_reason,
-        &mut conn,
+        conn,
         &state.master_encryption_key,
     )
     .await?;
@@ -109,7 +111,7 @@ async fn create_handler(
             .values(&function)
             .returning(Function::as_returning())
             .schema_name(&workspace_context.schema_name)
-            .get_result(&mut conn);
+            .get_result(conn);
 
     match insert {
         Ok(res) => Ok(Json(res)),
@@ -141,11 +143,11 @@ async fn update_handler(
     workspace_context: WorkspaceContext,
     params: Path<FunctionName>,
     request: Json<UpdateFunctionRequest>,
-    db_conn: DbConnection,
+    mut write_permit: WorkspaceWritePermit,
     user: User,
     state: Data<AppState>,
 ) -> superposition::Result<Json<Function>> {
-    let DbConnection(mut conn) = db_conn;
+    let conn = write_permit.checkout();
     let req = request.into_inner();
     let f_name: String = params.into_inner().into();
 
@@ -162,7 +164,7 @@ async fn update_handler(
     validate_change_reason(
         &workspace_context,
         &req.change_reason,
-        &mut conn,
+        conn,
         &state.master_encryption_key,
     )
     .await?;
@@ -178,7 +180,7 @@ async fn update_handler(
         ))
         .returning(Function::as_returning())
         .schema_name(&workspace_context.schema_name)
-        .get_result::<Function>(&mut conn)?;
+        .get_result::<Function>(conn)?;
 
     Ok(Json(updated_function))
 }
@@ -240,13 +242,13 @@ async fn list_handler(
 async fn delete_handler(
     workspace_context: WorkspaceContext,
     params: Path<FunctionName>,
-    db_conn: DbConnection,
+    mut write_permit: WorkspaceWritePermit,
     user: User,
 ) -> superposition::Result<HttpResponse> {
-    let DbConnection(mut conn) = db_conn;
+    let conn = write_permit.checkout();
     let f_name: String = params.into_inner().into();
 
-    let function = fetch_function(&f_name, &mut conn, &workspace_context.schema_name)?;
+    let function = fetch_function(&f_name, conn, &workspace_context.schema_name)?;
     match function.function_type {
         FunctionType::ContextValidation | FunctionType::ChangeReasonValidation => {
             return Err(bad_argument!(
@@ -265,11 +267,11 @@ async fn delete_handler(
         ))
         .returning(Function::as_returning())
         .schema_name(&workspace_context.schema_name)
-        .execute(&mut conn)?;
+        .execute(conn)?;
     let deleted_row =
         diesel::delete(functions::functions.filter(functions::function_name.eq(&f_name)))
             .schema_name(&workspace_context.schema_name)
-            .execute(&mut conn)?;
+            .execute(conn)?;
     match deleted_row {
         0 => Err(not_found!("Function {} doesn't exists", f_name)),
         _ => {
@@ -337,19 +339,19 @@ async fn publish_handler(
     workspace_context: WorkspaceContext,
     params: Path<FunctionName>,
     request: Json<FunctionStateChangeRequest>,
-    db_conn: DbConnection,
+    mut write_permit: WorkspaceWritePermit,
     user: User,
     state: Data<AppState>,
 ) -> superposition::Result<Json<Function>> {
-    let DbConnection(mut conn) = db_conn;
+    let conn = write_permit.checkout();
     let fun_name: String = params.into_inner().into();
-    let function = fetch_function(&fun_name, &mut conn, &workspace_context.schema_name)?;
+    let function = fetch_function(&fun_name, conn, &workspace_context.schema_name)?;
     let req = request.into_inner();
 
     validate_change_reason(
         &workspace_context,
         &req.change_reason,
-        &mut conn,
+        conn,
         &state.master_encryption_key,
     )
     .await?;
@@ -367,7 +369,7 @@ async fn publish_handler(
         ))
         .returning(Function::as_returning())
         .schema_name(&workspace_context.schema_name)
-        .get_result::<Function>(&mut conn)?;
+        .get_result::<Function>(conn)?;
 
     Ok(Json(updated_function))
 }

@@ -4,7 +4,9 @@ use actix_web::{
 };
 use diesel::prelude::*;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
-use service_utils::service::types::{AppState, DbConnection, WorkspaceContext};
+use service_utils::service::types::{
+    AppState, DbConnection, WorkspaceContext, WorkspaceWritePermit,
+};
 use superposition_derives::{authorized, declare_resource};
 use superposition_types::{
     PaginatedResponse, SortBy, User,
@@ -103,16 +105,16 @@ async fn create_handler(
     workspace_context: WorkspaceContext,
     req: web::Json<CreateVariableRequest>,
     user: User,
-    db_conn: DbConnection,
+    mut write_permit: WorkspaceWritePermit,
     state: Data<AppState>,
 ) -> superposition::Result<Json<Variable>> {
-    let DbConnection(mut conn) = db_conn;
+    let conn = write_permit.checkout();
     let req = req.into_inner();
 
     validate_change_reason(
         &workspace_context,
         &req.change_reason,
-        &mut conn,
+        conn,
         &state.master_encryption_key,
     )
     .await?;
@@ -134,7 +136,7 @@ async fn create_handler(
         .values(&new_var)
         .returning(Variable::as_returning())
         .schema_name(&workspace_context.schema_name)
-        .get_result(&mut conn)?;
+        .get_result(conn)?;
 
     Ok(Json(created_var))
 }
@@ -165,16 +167,16 @@ async fn update_handler(
     path: web::Path<String>,
     req: web::Json<UpdateVariableRequest>,
     user: User,
-    db_conn: DbConnection,
+    mut write_permit: WorkspaceWritePermit,
     state: Data<AppState>,
 ) -> superposition::Result<Json<Variable>> {
-    let DbConnection(mut conn) = db_conn;
+    let conn = write_permit.checkout();
     let var_name = path.into_inner();
 
     validate_change_reason(
         &workspace_context,
         &req.change_reason,
-        &mut conn,
+        conn,
         &state.master_encryption_key,
     )
     .await?;
@@ -187,7 +189,7 @@ async fn update_handler(
             last_modified_by.eq(user.get_email()),
         ))
         .schema_name(&workspace_context.schema_name)
-        .get_result::<Variable>(&mut conn)?;
+        .get_result::<Variable>(conn)?;
     Ok(Json(updated_var))
 }
 
@@ -197,9 +199,9 @@ async fn delete_handler(
     workspace_context: WorkspaceContext,
     path: web::Path<String>,
     user: User,
-    db_conn: DbConnection,
+    mut write_permit: WorkspaceWritePermit,
 ) -> superposition::Result<Json<Variable>> {
-    let DbConnection(mut conn) = db_conn;
+    let conn = write_permit.checkout();
     let var_name = path.into_inner();
 
     diesel::update(variables)
@@ -209,12 +211,12 @@ async fn delete_handler(
             last_modified_by.eq(user.get_email()),
         ))
         .schema_name(&workspace_context.schema_name)
-        .execute(&mut conn)?;
+        .execute(conn)?;
 
     let deleted_variable = diesel::delete(variables)
         .filter(name.eq(&var_name))
         .schema_name(&workspace_context.schema_name)
-        .get_result::<Variable>(&mut conn)?;
+        .get_result::<Variable>(conn)?;
 
     Ok(Json(deleted_variable))
 }

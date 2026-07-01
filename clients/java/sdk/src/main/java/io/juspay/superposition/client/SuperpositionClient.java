@@ -240,6 +240,7 @@ public interface SuperpositionClient {
      * @throws InternalServerError
      * @throws WebhookFailed
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      */
     default BulkOperationOutput bulkOperation(BulkOperationInput input) {
         return bulkOperation(input, null);
@@ -252,6 +253,7 @@ public interface SuperpositionClient {
      * @throws InternalServerError
      * @throws WebhookFailed
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      */
     BulkOperationOutput bulkOperation(BulkOperationInput input, RequestOverrideConfig overrideConfig);
 
@@ -283,6 +285,7 @@ public interface SuperpositionClient {
      *
      * @throws ResourceNotFound
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CreateContextOutput createContext(CreateContextInput input) {
@@ -295,6 +298,7 @@ public interface SuperpositionClient {
      *
      * @throws ResourceNotFound
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CreateContextOutput createContext(CreateContextInput input, RequestOverrideConfig overrideConfig);
@@ -326,6 +330,7 @@ public interface SuperpositionClient {
      * used for context-based config management.
      *
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CreateDimensionOutput createDimension(CreateDimensionInput input) {
@@ -337,6 +342,7 @@ public interface SuperpositionClient {
      * used for context-based config management.
      *
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CreateDimensionOutput createDimension(CreateDimensionInput input, RequestOverrideConfig overrideConfig);
@@ -381,6 +387,7 @@ public interface SuperpositionClient {
      * Creates a new custom function for value_validation, value_compute, context_validation or
      * change_reason_validation with specified code, runtime version, and function type.
      *
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CreateFunctionOutput createFunction(CreateFunctionInput input) {
@@ -391,6 +398,7 @@ public interface SuperpositionClient {
      * Creates a new custom function for value_validation, value_compute, context_validation or
      * change_reason_validation with specified code, runtime version, and function type.
      *
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CreateFunctionOutput createFunction(CreateFunctionInput input, RequestOverrideConfig overrideConfig);
@@ -417,6 +425,7 @@ public interface SuperpositionClient {
      * Creates a new encrypted secret with the specified name and value. The secret is encrypted with the
      * workspace's current encryption key. Secret values are never returned in responses for security.
      *
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CreateSecretOutput createSecret(CreateSecretInput input) {
@@ -427,6 +436,7 @@ public interface SuperpositionClient {
      * Creates a new encrypted secret with the specified name and value. The secret is encrypted with the
      * workspace's current encryption key. Secret values are never returned in responses for security.
      *
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CreateSecretOutput createSecret(CreateSecretInput input, RequestOverrideConfig overrideConfig);
@@ -435,6 +445,7 @@ public interface SuperpositionClient {
      * Creates a new type template with specified schema definition, providing reusable type definitions
      * for config validation.
      *
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CreateTypeTemplatesOutput createTypeTemplates(CreateTypeTemplatesInput input) {
@@ -445,6 +456,7 @@ public interface SuperpositionClient {
      * Creates a new type template with specified schema definition, providing reusable type definitions
      * for config validation.
      *
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CreateTypeTemplatesOutput createTypeTemplates(CreateTypeTemplatesInput input, RequestOverrideConfig overrideConfig);
@@ -452,6 +464,7 @@ public interface SuperpositionClient {
     /**
      * Creates a new variable with the specified name and value.
      *
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CreateVariableOutput createVariable(CreateVariableInput input) {
@@ -461,6 +474,7 @@ public interface SuperpositionClient {
     /**
      * Creates a new variable with the specified name and value.
      *
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CreateVariableOutput createVariable(CreateVariableInput input, RequestOverrideConfig overrideConfig);
@@ -469,6 +483,7 @@ public interface SuperpositionClient {
      * Creates a new webhook config to receive HTTP notifications when specified events occur in the
      * system.
      *
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CreateWebhookOutput createWebhook(CreateWebhookInput input) {
@@ -479,6 +494,7 @@ public interface SuperpositionClient {
      * Creates a new webhook config to receive HTTP notifications when specified events occur in the
      * system.
      *
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CreateWebhookOutput createWebhook(CreateWebhookInput input, RequestOverrideConfig overrideConfig);
@@ -507,6 +523,7 @@ public interface SuperpositionClient {
      *
      * @throws ResourceNotFound
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default DeleteContextOutput deleteContext(DeleteContextInput input) {
@@ -519,6 +536,7 @@ public interface SuperpositionClient {
      *
      * @throws ResourceNotFound
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     DeleteContextOutput deleteContext(DeleteContextInput input, RequestOverrideConfig overrideConfig);
@@ -553,6 +571,7 @@ public interface SuperpositionClient {
      *
      * @throws ResourceNotFound
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default DeleteDimensionOutput deleteDimension(DeleteDimensionInput input) {
@@ -565,6 +584,7 @@ public interface SuperpositionClient {
      *
      * @throws ResourceNotFound
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     DeleteDimensionOutput deleteDimension(DeleteDimensionInput input, RequestOverrideConfig overrideConfig);
@@ -592,6 +612,7 @@ public interface SuperpositionClient {
      * with all associated code. It fails if already in use
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default DeleteFunctionOutput deleteFunction(DeleteFunctionInput input) {
@@ -603,6 +624,7 @@ public interface SuperpositionClient {
      * with all associated code. It fails if already in use
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     DeleteFunctionOutput deleteFunction(DeleteFunctionInput input, RequestOverrideConfig overrideConfig);
@@ -612,6 +634,7 @@ public interface SuperpositionClient {
      * recovered.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default DeleteSecretOutput deleteSecret(DeleteSecretInput input) {
@@ -623,6 +646,7 @@ public interface SuperpositionClient {
      * recovered.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     DeleteSecretOutput deleteSecret(DeleteSecretInput input, RequestOverrideConfig overrideConfig);
@@ -631,6 +655,7 @@ public interface SuperpositionClient {
      * Permanently removes a type template from the workspace. No checks performed while deleting
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default DeleteTypeTemplatesOutput deleteTypeTemplates(DeleteTypeTemplatesInput input) {
@@ -641,6 +666,7 @@ public interface SuperpositionClient {
      * Permanently removes a type template from the workspace. No checks performed while deleting
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     DeleteTypeTemplatesOutput deleteTypeTemplates(DeleteTypeTemplatesInput input, RequestOverrideConfig overrideConfig);
@@ -649,6 +675,7 @@ public interface SuperpositionClient {
      * Permanently deletes a variable from the workspace.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default DeleteVariableOutput deleteVariable(DeleteVariableInput input) {
@@ -659,6 +686,7 @@ public interface SuperpositionClient {
      * Permanently deletes a variable from the workspace.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     DeleteVariableOutput deleteVariable(DeleteVariableInput input, RequestOverrideConfig overrideConfig);
@@ -668,6 +696,7 @@ public interface SuperpositionClient {
      * that endpoint.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default DeleteWebhookOutput deleteWebhook(DeleteWebhookInput input) {
@@ -679,6 +708,7 @@ public interface SuperpositionClient {
      * that endpoint.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     DeleteWebhookOutput deleteWebhook(DeleteWebhookInput input, RequestOverrideConfig overrideConfig);
@@ -1411,6 +1441,7 @@ public interface SuperpositionClient {
      *
      * @throws ResourceNotFound
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default MoveContextOutput moveContext(MoveContextInput input) {
@@ -1423,6 +1454,7 @@ public interface SuperpositionClient {
      *
      * @throws ResourceNotFound
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     MoveContextOutput moveContext(MoveContextInput input, RequestOverrideConfig overrideConfig);
@@ -1454,6 +1486,7 @@ public interface SuperpositionClient {
      * value_compute, context_validation or change_reason_validation in the system.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default PublishOutput publish(PublishInput input) {
@@ -1465,6 +1498,7 @@ public interface SuperpositionClient {
      * value_compute, context_validation or change_reason_validation in the system.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     PublishOutput publish(PublishInput input, RequestOverrideConfig overrideConfig);
@@ -1615,6 +1649,7 @@ public interface SuperpositionClient {
      *
      * @throws ResourceNotFound
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default UpdateDimensionOutput updateDimension(UpdateDimensionInput input) {
@@ -1627,6 +1662,7 @@ public interface SuperpositionClient {
      *
      * @throws ResourceNotFound
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     UpdateDimensionOutput updateDimension(UpdateDimensionInput input, RequestOverrideConfig overrideConfig);
@@ -1654,6 +1690,7 @@ public interface SuperpositionClient {
      * while preserving the published version.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default UpdateFunctionOutput updateFunction(UpdateFunctionInput input) {
@@ -1665,6 +1702,7 @@ public interface SuperpositionClient {
      * while preserving the published version.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     UpdateFunctionOutput updateFunction(UpdateFunctionInput input, RequestOverrideConfig overrideConfig);
@@ -1695,6 +1733,7 @@ public interface SuperpositionClient {
      *
      * @throws ResourceNotFound
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default UpdateOverrideOutput updateOverride(UpdateOverrideInput input) {
@@ -1707,6 +1746,7 @@ public interface SuperpositionClient {
      *
      * @throws ResourceNotFound
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     UpdateOverrideOutput updateOverride(UpdateOverrideInput input, RequestOverrideConfig overrideConfig);
@@ -1740,6 +1780,7 @@ public interface SuperpositionClient {
      * workspace encryption key. Returns masked value.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default UpdateSecretOutput updateSecret(UpdateSecretInput input) {
@@ -1751,6 +1792,7 @@ public interface SuperpositionClient {
      * workspace encryption key. Returns masked value.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     UpdateSecretOutput updateSecret(UpdateSecretInput input, RequestOverrideConfig overrideConfig);
@@ -1760,6 +1802,7 @@ public interface SuperpositionClient {
      * and usage history.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default UpdateTypeTemplatesOutput updateTypeTemplates(UpdateTypeTemplatesInput input) {
@@ -1771,6 +1814,7 @@ public interface SuperpositionClient {
      * and usage history.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     UpdateTypeTemplatesOutput updateTypeTemplates(UpdateTypeTemplatesInput input, RequestOverrideConfig overrideConfig);
@@ -1779,6 +1823,7 @@ public interface SuperpositionClient {
      * Updates an existing variable's value, description, or tags.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default UpdateVariableOutput updateVariable(UpdateVariableInput input) {
@@ -1789,6 +1834,7 @@ public interface SuperpositionClient {
      * Updates an existing variable's value, description, or tags.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     UpdateVariableOutput updateVariable(UpdateVariableInput input, RequestOverrideConfig overrideConfig);
@@ -1798,6 +1844,7 @@ public interface SuperpositionClient {
      * properties.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default UpdateWebhookOutput updateWebhook(UpdateWebhookInput input) {
@@ -1809,6 +1856,7 @@ public interface SuperpositionClient {
      * properties.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     UpdateWebhookOutput updateWebhook(UpdateWebhookInput input, RequestOverrideConfig overrideConfig);
@@ -1855,6 +1903,7 @@ public interface SuperpositionClient {
      *
      * @throws InternalServerError
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      */
     default WeightRecomputeOutput weightRecompute(WeightRecomputeInput input) {
         return weightRecompute(input, null);
@@ -1866,6 +1915,7 @@ public interface SuperpositionClient {
      *
      * @throws InternalServerError
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      */
     WeightRecomputeOutput weightRecompute(WeightRecomputeInput input, RequestOverrideConfig overrideConfig);
 
@@ -1900,11 +1950,11 @@ public interface SuperpositionClient {
             Node.objectNode()
         );
 
-        private static final HttpBasicAuthTrait httpBasicAuthScheme = new HttpBasicAuthTrait();
-        private static final AuthSchemeFactory<HttpBasicAuthTrait> httpBasicAuthSchemeFactory = new HttpBasicAuthAuthScheme.Factory();
-
         private static final HttpBearerAuthTrait httpBearerAuthScheme = new HttpBearerAuthTrait();
         private static final AuthSchemeFactory<HttpBearerAuthTrait> httpBearerAuthSchemeFactory = new HttpBearerAuthScheme.Factory();
+
+        private static final HttpBasicAuthTrait httpBasicAuthScheme = new HttpBasicAuthTrait();
+        private static final AuthSchemeFactory<HttpBasicAuthTrait> httpBasicAuthSchemeFactory = new HttpBasicAuthAuthScheme.Factory();
 
         private Builder() {
             configBuilder().putSupportedAuthSchemes(httpBasicAuthSchemeFactory.createAuthScheme(httpBasicAuthScheme), httpBearerAuthSchemeFactory.createAuthScheme(httpBearerAuthScheme));
