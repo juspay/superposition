@@ -77,7 +77,7 @@ async fn create_handler(
     let handle = rustyscript::tokio::runtime::Handle::current();
     let function = req.function.clone();
     handle
-        .spawn_blocking(move || compile_fn(&function))
+        .spawn_blocking(move || compile_fn(&function, &req.function_type))
         .await
         .map_err(|e| {
             log::error!("Function compilation task failed: {:?}", e);
@@ -148,13 +148,14 @@ async fn update_handler(
     let DbConnection(mut conn) = db_conn;
     let req = request.into_inner();
     let f_name: String = params.into_inner().into();
+    let function = fetch_function(&f_name, &mut conn, &workspace_context.schema_name)?;
 
     // Function Linter Check
     if let Some(fc) = &req.draft_code {
         let handle = rustyscript::tokio::runtime::Handle::current();
-        let function = fc.clone();
+        let function_code = fc.clone();
         handle
-            .spawn_blocking(move || compile_fn(&function))
+            .spawn_blocking(move || compile_fn(&function_code, &function.function_type))
             .await
             .map_err(|err| bad_argument!("Invalid function code: {}", err))??;
     }

@@ -7,8 +7,14 @@ use superposition_macros::{bad_argument, validation_error};
 use service_utils::service::types::{EncryptionKey, WorkspaceContext};
 use superposition_types::{
     DBConnection,
-    api::functions::{FunctionExecutionRequest, FunctionExecutionResponse},
-    database::models::cac::{FunctionCode, FunctionRuntimeVersion, FunctionType},
+    api::functions::{
+        ContextValidationTrigger, FunctionEnvironment, FunctionExecutionRequest,
+        FunctionExecutionResponse, KeyType,
+    },
+    database::models::{
+        ChangeReason,
+        cac::{FunctionCode, FunctionRuntimeVersion, FunctionType},
+    },
     result as superposition,
 };
 
@@ -73,11 +79,12 @@ pub fn run_js_function(
     args: FunctionExecutionRequest,
     runtime_version: FunctionRuntimeVersion,
 ) -> Result<FunctionExecutionResponse, (String, Option<String>)> {
-    let wrapped_code = generate_wrapped_code(&code.0);
+    let wrapped_code = generate_wrapped_code(&code);
     let module = Module::new("function.js", &wrapped_code);
 
     let runtime_options = RuntimeOptions {
         timeout: Duration::from_millis(1500),
+        // import_provider: Some(Box::new(DenyFileImportProvider::default())),
         ..Default::default()
     };
 
@@ -147,19 +154,11 @@ pub fn execute_fn(
     run_js_function(code, args.clone(), runtime_version)
 }
 
-pub fn compile_fn(code_str: &FunctionCode) -> superposition::Result<()> {
-    let type_check_code = format!(
-        r#"
-        {}
-
-        export function typeCheck() {{
-            if (typeof execute === "undefined") {{
-                throw new Error("execute function is not defined");
-            }}
-        }}
-        "#,
-        code_str
-    );
+pub fn compile_fn(
+    code_str: &FunctionCode,
+    fn_type: &FunctionType,
+) -> superposition::Result<()> {
+    let type_check_code = generate_wrapped_code(code_str);
 
     rustyscript::validate(&type_check_code).map_err(|err| {
         log::error!("Invalid function syntax: {:?}", err);
@@ -185,13 +184,62 @@ pub fn compile_fn(code_str: &FunctionCode) -> superposition::Result<()> {
     let tokio_runtime = runtime.tokio_runtime();
     tokio_runtime
         .block_on(async {
-            runtime
-                .call_function_async::<()>(
-                    Some(&module_handle),
-                    "typeCheck",
-                    json_args!(),
-                )
-                .await
+            let environment = FunctionEnvironment {
+                context: serde_json::Map::new(),
+                overrides: serde_json::Map::new(),
+            };
+            match fn_type {
+                FunctionType::ValueCompute => {
+                    let payload = FunctionExecutionRequest::ValueComputeFunctionRequest {
+                        name: String::new(),
+                        prefix: String::new(),
+                        r#type: superposition_types::api::functions::KeyType::ConfigKey,
+                        environment,
+                    };
+                    let serde_json::Value::Array(_) = runtime
+                        .call_function_async::<serde_json::Value>(
+                            Some(&module_handle),
+                            "execute",
+                            json_args!(payload),
+                        )
+                        .await? else {
+                            return Err(rustyscript::Error::Runtime("The value compute function did not return an array".to_string()));
+                        };
+                    Ok(())
+                }
+                other => {
+                    let payload = match other {
+                        FunctionType::ValueValidation => FunctionExecutionRequest::ValueValidationFunctionRequest {
+                            key: String::new(),
+                            value: serde_json::Value::String(String::new()),
+                            r#type:
+                                KeyType::ConfigKey,
+                            environment,
+                        },
+                        FunctionType::ContextValidation => FunctionExecutionRequest::ContextValidationFunctionRequest {
+                            environment,
+                            trigger_reason: ContextValidationTrigger::Context,
+                        },
+                        FunctionType::ChangeReasonValidation => FunctionExecutionRequest::ChangeReasonValidationFunctionRequest {
+                            change_reason: ChangeReason::default(),
+                        },
+                        _ => {
+                            return Err(rustyscript::Error::Runtime("An invalid situation occurred in the runtime".to_string()))
+                        }
+                    };
+                    let serde_json::Value::Bool(_) = runtime
+                        .call_function_async::<serde_json::Value>(
+                            Some(&module_handle),
+                            "execute",
+                            json_args!(payload),
+                        )
+                        .await? else {
+                            return Err(rustyscript::Error::Runtime("The function did not return a boolean".to_string()))
+                        };
+                    Ok(())
+                }
+
+            }
         })
         .map_err(|e| {
             let err_str = e.to_string();
