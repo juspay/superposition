@@ -61,16 +61,17 @@ Create a client in the factory. You can chose to use the result to check for err
 ##### Function definition
 ```
 pub async fn create_client(
+        &self,
         tenant: String,
-        polling_interval: Duration,
+        poll_frequency: u64,
         hostname: String,
     ) -> Result<Arc<Client>, String>
 ```
 ##### Params
 | Param              | type     | description                                                                                                          | Example value                     |
 | ------------------ | -------- | -------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
-| `tenant`           | String   | specifies the tenants configs and contexts that will be loaded into the client at `polling_interval` from `hostname` | mjos                              |
-| `polling_interval` | Duration | specifies the time cac client waits before checking with the server for updates                                      | Duration::from_secs(5)            |
+| `tenant`           | String   | specifies the tenant whose experiments will be loaded into the client from `hostname`                                | mjos                              |
+| `poll_frequency`   | u64      | specifies the time experimentation client waits, in seconds, before checking with the server for updates             | 5                                 |
 | `hostname`         | String   | The URL of the superposition server                                                                                  | https://superposition.example.com |
 
 #### Get Client
@@ -93,26 +94,23 @@ pub async fn get_client(
 Below is the rust implementation to instantiate Experimentation client .
 
 ```rust
-use superpostion_client as sp;
+use experimentation_client as exp;
 
-let tenants: Vec<String> = ["dev", "test"];
-//You can create a clientFactory
+let tenants = ["dev", "test"];
 for tenant in tenants {
-        rt::spawn(
-            sp::CLIENT_FACTORY
-                .create_client(tenant.to_string(),
-                                poll_frequency,//How frequently you want to update config in secs
-                                hostname.to_string()// superposition hostname
-                            )
-                .await
-                .expect(format!("{}: Failed to acquire experimentation_client", tenant).as_str())
-                .clone()
-                .run_polling_updates(),
-        );
+    let client = exp::CLIENT_FACTORY
+        .create_client(
+            tenant.to_string(),
+            10,
+            hostname.to_string(),
+        )
+        .await
+        .expect(format!("{}: Failed to acquire experimentation_client", tenant).as_str());
+    tokio::spawn(client.clone().run_polling_updates());
 };
-//You can extract an individual tenant's client from clientFactory
+
 let tenant = "dev".to_owned();
-let sp_client = sp::CLIENT_FACTORY
+let sp_client = exp::CLIENT_FACTORY
         .get_client(tenant.clone())
         .await
         .map_err(|e| {
@@ -127,7 +125,7 @@ let sp_client = sp::CLIENT_FACTORY
 
 #### Run polling for updates from Superposition Service
 
-the Experimentation client polls for updates from the superposition service and loads any changes done on the server. This means that experiments changed in superposition are reflected on the client in the duration of `polling_interval`. `run_polling_updates()` should be run in a separate thread, as it does not terminate.
+the Experimentation client polls for updates from the superposition service and loads any changes done on the server. This means that experiments changed in superposition are reflected on the client within the configured `poll_frequency`. `run_polling_updates()` should be run in a separate thread, as it does not terminate.
 
 ##### Function definition
 
@@ -137,20 +135,28 @@ the Experimentation client polls for updates from the superposition service and 
 
 #### Get an applicable variant
 
-When experiments are running, you can get different variants of the experiment based on the `toss` value you provide. Superposition decides which bucket your request falls into based on this value, and returns an ID called the `variantId`. You can then include this in your CAC client request.
+When experiments are running, you can get different variants of the experiment based on an identifier. The client hashes the identifier with each experiment group id to select a bucket, and returns the matching variant IDs. You can then include these in your CAC client request.
 
-The toss can be a random number between -1 to 100. You can log the variantId so that your metrics can help you decide on a variant
+The dimensions map is used to evaluate local cohorts before matching experiment contexts. The optional prefix filters config keys on satisfied experiments before variant selection.
 
 ##### Function Definition
 ```
-pub async fn get_applicable_variant(context: &Value, toss: i8) -> Vec<String>
+pub async fn get_applicable_variant(
+        &self,
+        dimensions_info: &HashMap<String, DimensionInfo>,
+        context: &Map<String, Value>,
+        identifier: &str,
+        prefix: Option<Vec<String>>,
+    ) -> Result<Vec<String>, String>
 ```
 ##### Params
 
-| Param     | type  | description                                         | Example value                             |
-| --------- | ----- | --------------------------------------------------- | ----------------------------------------- |
-| `context` | Value | The context under which you want to resolve configs | `{"os": "android", "merchant": "juspay"}` |
-| `toss`    | i8    | an integer  that  assigns your request to a variant | `4`                                       |
+| Param             | type                              | description                                         | Example value                             |
+| ---------         | -----                             | --------------------------------------------------- | ----------------------------------------- |
+| `dimensions_info` | `HashMap<String, DimensionInfo>`  | Dimension metadata used for local cohort evaluation | `HashMap::new()`                          |
+| `context`         | `Map<String, Value>`              | The context under which you want to resolve variants | `{"os": "android", "merchant": "juspay"}` |
+| `identifier`      | `&str`                            | Stable identifier used for bucketing                | `"user-123"`                              |
+| `prefix`          | `Option<Vec<String>>`             | Optional config-key prefix filter                   | `Some(vec!["payment".into()])`            |
 
 #### Get satisfied experiments
 
@@ -158,13 +164,31 @@ Rather than just getting the variant ID, you can get the whole experiment(s) tha
 
 ##### Function Definition
 ```
-pub async fn get_satisfied_experiments(context: &Value) -> Experiments
+pub async fn get_satisfied_experiments(
+        &self,
+        context: &Map<String, Value>,
+        prefix: Option<Vec<String>>,
+    ) -> Result<Experiments, String>
 ```
 ##### Params
 
-| Param     | type  | description                                         | Example value                             |
-| --------- | ----- | --------------------------------------------------- | ----------------------------------------- |
-| `context` | Value | The context under which you want to resolve configs | `{"os": "android", "merchant": "juspay"}` |
+| Param     | type                  | description                                         | Example value                             |
+| --------- | -----                 | --------------------------------------------------- | ----------------------------------------- |
+| `context` | `Map<String, Value>`  | The context under which you want to resolve experiments | `{"os": "android", "merchant": "juspay"}` |
+| `prefix`  | `Option<Vec<String>>` | Optional config-key prefix filter                   | `None`                                    |
+
+#### Get filtered satisfied experiments
+
+Evaluate experiments with unresolved local cohorts skipped, then return experiments that satisfy the context.
+
+##### Function Definition
+```
+pub async fn get_filtered_satisfied_experiments(
+        &self,
+        context: &Map<String, Value>,
+        prefix: Option<Vec<String>>,
+    ) -> Result<Experiments, String>
+```
 
 #### Get all running experiments
 
@@ -172,7 +196,7 @@ Get all running experiments, why would you want to do this? We don't know. But y
 
 ##### Function Definition
 ```
-pub async fn get_running_experiments() -> Experiments
+pub async fn get_running_experiments(&self) -> Result<Experiments, String>
 ```
 
 ## Haskell
@@ -190,8 +214,8 @@ createExpClient:: Tenant -> Integer -> String -> IO (Either Error ())
 ##### Params
 | Param              | type     | description                                                                                                          | Example value                     |
 | ------------------ | -------- | -------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
-| `Tenant`           | String   | specifies the tenants configs and contexts that will be loaded into the client at `polling_interval` from `hostname` | mjos                              |
-| `Interval` | Integer | specifies the time cac client waits before checking with the server for updates                                      | Duration::from_secs(5)            |
+| `Tenant`           | String   | specifies the tenant whose experiments will be loaded into the client from `hostname`                                | mjos                              |
+| `Interval` | Integer | specifies the time experimentation client waits, in seconds, before checking with the server for updates             | 5                                 |
 | `Hostname`         | String   | The URL of the superposition server                                                                                  | https://superposition.example.com |
 
 #### Get Client
@@ -219,20 +243,22 @@ the Experimentation client polls for updates from the superposition service and 
 
 #### Get an applicable variant
 
-When experiments are running, you can get different variants of the experiment based on the `toss` value you provide. Superposition decides which bucket your request falls into based on this value, and returns an ID called the `variantId`. You can then include this in your CAC client request.
+When experiments are running, you can get different variants of the experiment based on a stable identifier. The dimensions JSON is used for local cohort evaluation, the context JSON is matched against experiments, and the optional prefix filters config keys.
 
-The toss can be a random number between -1 to 100. You can log the variantId so that your metrics can help you decide on a variant
+The function returns a JSON string containing the matching variant IDs.
 
 ##### Function Definition
 ```
-getApplicableVariants :: ForeignPtr ExpClient -> String -> Integer -> IO (Either Error String)
+getApplicableVariants :: ForeignPtr ExpClient -> String -> String -> String -> Maybe String -> IO (Either Error String)
 ```
 ##### Params
 
-| Param     | type  | description                                         | Example value                             |
-| --------- | ----- | --------------------------------------------------- | ----------------------------------------- |
-| `context` | String | The context under which you want to resolve configs | `{"os": "android", "merchant": "juspay"}` |
-| `toss`    | Integer    | an integer  that  assigns your request to a variant | `4`                                       |
+| Param        | type           | description                                         | Example value                             |
+| ---------    | -----          | --------------------------------------------------- | ----------------------------------------- |
+| `dimensions` | String         | JSON object containing dimension metadata           | `{}`                                      |
+| `context`    | String         | JSON object containing request context              | `{"os": "android", "merchant": "juspay"}` |
+| `identifier` | String         | Stable identifier used for bucketing                | `"user-123"`                              |
+| `prefix`     | Maybe String   | Optional comma-separated config-key prefix filter   | `Just "payment,network"`                  |
 
 #### Get satisfied experiments
 
@@ -240,13 +266,22 @@ Rather than just getting the variant ID, you can get the whole experiment(s) tha
 
 ##### Function Definition
 ```
-getSatisfiedExperiments :: ForeignPtr ExpClient -> String -> IO (Either Error Value)
+getSatisfiedExperiments :: ForeignPtr ExpClient -> String -> String -> Maybe String -> IO (Either Error Value)
 ```
 ##### Params
 
-| Param     | type  | description                                         | Example value                             |
-| --------- | ----- | --------------------------------------------------- | ----------------------------------------- |
-| `context` | Value | The context under which you want to resolve configs | `{"os": "android", "merchant": "juspay"}` |
+| Param        | type         | description                                         | Example value                             |
+| ---------    | -----        | --------------------------------------------------- | ----------------------------------------- |
+| `dimensions` | String       | JSON object containing dimension metadata           | `{}`                                      |
+| `context`    | String       | JSON object containing request context              | `{"os": "android", "merchant": "juspay"}` |
+| `prefix`     | Maybe String | Optional comma-separated config-key prefix filter   | `Nothing`                                 |
+
+#### Get filtered satisfied experiments
+
+##### Function Definition
+```
+getFilteredSatisfiedExperiments :: ForeignPtr ExpClient -> String -> Maybe String -> Maybe String -> IO (Either Error Value)
+```
 
 #### Get all running experiments
 
@@ -284,8 +319,8 @@ main = do
     where
         loop client = do
             runningExperiments   <- getRunningExperiments client
-            satisfiedExperiments <- getSatisfiedExperiments client "{\"os\": \"android\", \"client\": \"1mg\"}"
-            variants             <- getApplicableVariants client "{\"os\": \"android\", \"client\": \"1mg\"}" 9
+            satisfiedExperiments <- getSatisfiedExperiments client "{}" "{\"os\": \"android\", \"client\": \"1mg\"}" Nothing
+            variants             <- getApplicableVariants client "{}" "{\"os\": \"android\", \"client\": \"1mg\"}" "1mg-android" Nothing
             print "Running experiments"
             print runningExperiments
             print "experiments that satisfy context"
