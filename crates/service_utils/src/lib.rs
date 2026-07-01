@@ -8,6 +8,7 @@ pub mod db;
 pub mod encryption;
 pub mod extensions;
 pub mod helpers;
+pub mod kronos_dispatch;
 pub mod middlewares;
 pub mod observability;
 pub mod redis;

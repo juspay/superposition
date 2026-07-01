@@ -43,6 +43,7 @@ fn try_update_payload(
     payload_version: PayloadVersion,
     custom_headers: CustomHeaders,
     events: Vec<WebhookEvent>,
+    max_retries: i32,
     description: String,
     change_reason: String,
 ) -> Result<UpdateWebhookRequest, String> {
@@ -53,6 +54,7 @@ fn try_update_payload(
         payload_version: Some(payload_version),
         custom_headers: Some(custom_headers),
         events: Some(events),
+        max_retries: Some(max_retries),
         description: Some(Description::try_from(description)?),
         change_reason: ChangeReason::try_from(change_reason)?,
     })
@@ -69,6 +71,7 @@ pub fn WebhookForm(
     #[prop(default = PayloadVersion::default())] payload_version: PayloadVersion,
     #[prop(default = CustomHeaders::default())] custom_headers: CustomHeaders,
     #[prop(default = Vec::new())] events: Vec<WebhookEvent>,
+    #[prop(default = 3)] max_retries: i32,
     #[prop(into)] handle_submit: Callback<()>,
 ) -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
@@ -83,6 +86,7 @@ pub fn WebhookForm(
     let (custom_headers_rs, custom_headers_ws) = create_signal(custom_headers);
     let (change_reason_rs, change_reason_ws) = create_signal(String::new());
     let (events_rs, events_ws) = create_signal(events);
+    let (max_retries_rs, max_retries_ws) = create_signal(max_retries);
     let (req_inprogess_rs, req_inprogress_ws) = create_signal(false);
     let update_request_rws = RwSignal::new(None);
 
@@ -108,6 +112,7 @@ pub fn WebhookForm(
         let custom_headers = custom_headers_rs.get_untracked();
         let change_reason = change_reason_rs.get_untracked();
         let events = events_rs.get_untracked();
+        let max_retries = max_retries_rs.get_untracked();
         let workspace = workspace.get_untracked().0;
         let org_id = org.get_untracked().0;
 
@@ -132,6 +137,7 @@ pub fn WebhookForm(
                             payload_version,
                             custom_headers,
                             events,
+                            max_retries,
                             description,
                             change_reason,
                         );
@@ -152,6 +158,7 @@ pub fn WebhookForm(
                         payload_version,
                         custom_headers,
                         events,
+                        max_retries,
                         change_reason,
                         &workspace,
                         &org_id,
@@ -292,6 +299,22 @@ pub fn WebhookForm(
                     multi_select=true
                     on_select=handle_select_webhook_event_dropdown_option
                     on_remove=handle_remove_webhook_event_dropdown_option
+                />
+            </div>
+
+            <div class="form-control">
+                <Label title="Max Retries" description="Number of retry attempts on failure." />
+                <Input
+                    placeholder="Max Retries"
+                    class="input input-bordered w-full max-w-md"
+                    value=Value::Number(serde_json::Number::from(max_retries_rs.get_untracked()))
+                    schema_type=Single(JsonSchemaType::Integer)
+                    r#type=InputType::Integer
+                    on_change=Callback::new(move |value: Value| {
+                        if let Some(n) = value.as_i64().and_then(|n| i32::try_from(n).ok()) {
+                            max_retries_ws.set(n);
+                        }
+                    })
                 />
             </div>
 

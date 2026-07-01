@@ -9,10 +9,16 @@ use fred::{
     interfaces::ClientLike,
     types::{ConnectionConfig, PerformanceConfig, ReconnectPolicy, RedisConfig},
 };
+use kronos_worker::{
+    KronosClient, KronosHttpClient, KronosLibraryClient, WorkerConfig, WorkerHandle,
+};
 use service_utils::{
-    db::utils::{get_superposition_token, init_pool_manager},
+    db::utils::{
+        get_database_url, get_kronos_api_key, get_superposition_token, init_pool_manager,
+    },
     encryption::get_master_encryption_keys,
     helpers::{get_from_env_or_default, get_from_env_unsafe},
+    kronos_dispatch::{SuperpositionSchemaProvider, setup_dispatcher},
     service::types::{AppEnv, AppState, ExperimentationFlags},
 };
 use snowflake::SnowflakeIdGenerator;
@@ -23,7 +29,7 @@ pub async fn get(
     kms_client: &Option<aws_sdk_kms::Client>,
     service_prefix: String,
     base: &str,
-) -> AppState {
+) -> (AppState, Option<WorkerHandle>, u64) {
     let master_encryption_key = get_master_encryption_keys(kms_client, &app_env)
         .await
         .unwrap_or_else(|e| {
@@ -32,6 +38,9 @@ pub async fn get(
     let cac_host =
         get_from_env_or_default::<String>("CAC_HOST", format!("http://localhost:{port}"))
             + base;
+    let superposition_host = std::env::var("SUPERPOSITION_HOST")
+        .map(|host| host + base)
+        .unwrap_or_else(|_| cac_host.clone());
     let max_pool_size = get_from_env_or_default("MAX_DB_CONNECTION_POOL_SIZE", 2);
     let workspace_lock_default_ttl_ms =
         get_from_env_or_default("WORKSPACE_LOCK_DEFAULT_TTL_MS", 60_000_u64);
@@ -81,7 +90,62 @@ pub async fn get(
         }
     };
 
-    AppState {
+    let superposition_token = get_superposition_token(kms_client, &app_env).await;
+
+    let kronos_url = std::env::var("KRONOS_URL").ok();
+    let (kronos_client, worker_handle, kronos_shutdown_timeout_sec, kronos_workspace): (
+        Arc<dyn KronosClient>,
+        Option<WorkerHandle>,
+        u64,
+        Option<String>,
+    ) = if let Some(kronos_url) = kronos_url {
+        let api_key = get_kronos_api_key(kms_client, &app_env).await;
+        let org_id =
+            get_from_env_or_default("KRONOS_ORG_ID", "superposition".to_string());
+        // Single shared Kronos workspace for all SP schemas. Slug must be Kronos-valid
+        // (lowercase/digits/hyphens, <=25 chars).
+        let workspace =
+            get_from_env_or_default("KRONOS_WORKSPACE", "superposition".to_string());
+        log::info!(
+            "Kronos service mode: {kronos_url} (org={org_id}, workspace={workspace})"
+        );
+        let client: Arc<dyn KronosClient> =
+            Arc::new(KronosHttpClient::new(kronos_url, api_key, org_id));
+
+        setup_dispatcher(
+            client.as_ref(),
+            &workspace,
+            &superposition_host,
+            &superposition_token,
+        )
+        .await;
+
+        (client, None, 0, Some(workspace))
+    } else {
+        let database_url = get_database_url(kms_client, &app_env, None).await;
+        let pool_size = get_from_env_or_default("KRONOS_DB_POOL_SIZE", 1);
+        let kronos_encryption_key =
+            get_from_env_or_default("KRONOS_ENCRYPTION_KEY", "0".repeat(64));
+        let table_prefix =
+            get_from_env_or_default("KRONOS_TABLE_PREFIX", "kronos_".to_string());
+        let client = KronosLibraryClient::from_database_url(
+            &database_url,
+            pool_size,
+            &table_prefix,
+            &kronos_encryption_key,
+            None,
+        )
+        .await
+        .expect("Failed to create KronosLibraryClient");
+        let schema_provider = SuperpositionSchemaProvider::new(client.pool().clone());
+        let worker_config = WorkerConfig::default();
+        let shutdown_timeout_sec = worker_config.shutdown_timeout_sec;
+        let handle = client.start_worker(schema_provider, worker_config);
+        log::info!("Kronos library mode: embedded worker started");
+        (Arc::new(client), Some(handle), shutdown_timeout_sec, None)
+    };
+
+    let state = AppState {
         db_pool: init_pool_manager(kms_client, &app_env, max_pool_size).await,
         cac_host,
         cac_version: get_from_env_unsafe("SUPERPOSITION_VERSION")
@@ -110,11 +174,16 @@ pub async fn get(
         .map(String::from)
         .collect::<HashSet<_>>(),
         service_prefix,
-        superposition_token: get_superposition_token(kms_client, &app_env).await,
+        superposition_token,
         redis: redis_pool,
         workspace_lock_default_ttl: Duration::from_millis(workspace_lock_default_ttl_ms),
         workspace_lock_batch_ttl: Duration::from_millis(workspace_lock_batch_ttl_ms),
         http_client: reqwest::Client::new(),
         master_encryption_key,
-    }
+        kronos_client,
+        kronos_workspace,
+        superposition_host,
+    };
+
+    (state, worker_handle, kronos_shutdown_timeout_sec)
 }

@@ -19,6 +19,7 @@ use service_utils::{
         rotate_workspace_encryption_key_helper,
     },
     helpers::get_workspace,
+    kronos_dispatch::setup_dispatcher,
     middlewares::auth_z::AuthZHandler,
     service::types::{
         AppState, DbConnection, OrganisationId, SchemaName, WorkspaceContext, WorkspaceId,
@@ -171,13 +172,22 @@ async fn create_handler(
                     .values(workspace)
                     .get_results(transaction_conn)?;
 
-            setup_workspace_schema(transaction_conn, &workspace_schema_name)?;
+            setup_workspace_schema(transaction_conn, &workspace_schema_name.0)?;
             Ok(inserted_workspace.remove(0))
         })?;
 
-    put_workspace_in_redis(&created_workspace, &state, &workspace_schema_name).await;
+    put_workspace_in_redis(&created_workspace, &state, &workspace_schema_name.0).await;
 
-    // Notify the AuthZHandler about the new workspace creation
+    if state.kronos_workspace.is_none() {
+        setup_dispatcher(
+            state.kronos_client.as_ref(),
+            &workspace_schema_name.0,
+            &state.superposition_host,
+            &state.superposition_token,
+        )
+        .await;
+    }
+
     let _ = authz_handler
         .on_workspace_creation(
             workspace_schema_name,
@@ -277,7 +287,6 @@ async fn update_handler(
     put_workspace_in_redis(&workspace, &app_state, &schema_name.0).await;
 
     if let Some(old_email) = old_email {
-        // Notify the AuthZHandler about the new workspace creation
         let _ = authz_handler
             .on_workspace_admin_update(
                 schema_name,
@@ -463,7 +472,16 @@ async fn migrate_schema_handler(
         Ok(())
     })?;
 
-    // Refetch workspace after transaction to get updated data
+    if state.kronos_workspace.is_none() {
+        setup_dispatcher(
+            state.kronos_client.as_ref(),
+            &schema_name.0,
+            &state.superposition_host,
+            &state.superposition_token,
+        )
+        .await;
+    }
+
     let workspace = get_workspace(&schema_name, &mut conn)?;
     put_workspace_in_redis(&workspace, &state, &schema_name.0).await;
 
@@ -508,7 +526,6 @@ pub async fn rotate_encryption_key_handler(
             )
         })?;
 
-    // Refetch workspace after transaction to get updated data
     let workspace = get_workspace(&schema_name, &mut conn)?;
     put_workspace_in_redis(&workspace, &state, &schema_name.0).await;
 

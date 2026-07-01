@@ -6,6 +6,8 @@ use std::{
     time::Duration,
 };
 
+use kronos_worker::KronosClient;
+
 use actix_web::{Error, FromRequest, HttpMessage, HttpResponseBuilder, error, web::Data};
 use chrono::{DateTime, Utc};
 use derive_more::{Deref, DerefMut};
@@ -93,6 +95,7 @@ pub struct EncryptionKey {
 
 pub struct AppState {
     pub cac_host: String,
+    pub superposition_host: String,
     pub app_env: AppEnv,
     pub cac_version: String,
     pub db_pool: PgSchemaConnectionPool,
@@ -106,6 +109,12 @@ pub struct AppState {
     pub workspace_lock_batch_ttl: Duration,
     pub http_client: reqwest::Client,
     pub master_encryption_key: Option<EncryptionKey>,
+    pub kronos_client: Arc<dyn KronosClient>,
+    /// Service mode: `Some(<shared workspace slug>)` — all SP schemas share one Kronos
+    /// workspace, and webhook routing rides in the job input (templated headers).
+    /// Library mode: `None` — Kronos tables live per SP schema, so we target the SP
+    /// schema directly and provision per workspace.
+    pub kronos_workspace: Option<String>,
 }
 
 impl FromStr for AppEnv {

@@ -6,7 +6,10 @@ use actix_web::{
 use chrono::Utc;
 use context_aware_config::helpers::validate_change_reason;
 use diesel::{ExpressionMethods, PgArrayExpressionMethods, QueryDsl, RunQueryDsl};
-use service_utils::service::types::{AppState, DbConnection, WorkspaceContext};
+use service_utils::{
+    helpers::get_from_env_or_default,
+    service::types::{AppState, DbConnection, WorkspaceContext},
+};
 use superposition_derives::{authorized, declare_resource};
 use superposition_types::{
     PaginatedResponse, User,
@@ -20,6 +23,10 @@ use superposition_types::{
 };
 
 declare_resource!(Webhook);
+
+fn max_webhook_retries() -> i32 {
+    get_from_env_or_default("MAX_WEBHOOK_RETRIES", 3)
+}
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -52,6 +59,13 @@ async fn create_handler(
     .await?;
 
     validate_events(&req.events, None, &workspace_context.schema_name, &mut conn)?;
+    let cap = max_webhook_retries();
+    let retries = req.max_retries.unwrap_or(cap);
+    if retries > cap {
+        return Err(superposition::AppError::BadArgument(format!(
+            "max_retries must not exceed {cap}"
+        )));
+    }
     let now = Utc::now();
     let webhook_data = Webhook {
         name: req.name.to_string(),
@@ -62,7 +76,7 @@ async fn create_handler(
         payload_version: req.payload_version.unwrap_or_default(),
         custom_headers: req.custom_headers.unwrap_or_default(),
         events: req.events,
-        max_retries: 0,
+        max_retries: retries,
         last_triggered_at: None,
         change_reason: req.change_reason,
         created_by: user.get_email(),
@@ -108,6 +122,15 @@ async fn update_handler(
             &workspace_context.schema_name,
             &mut conn,
         )?;
+    }
+
+    if let Some(retries) = req.max_retries {
+        let cap = max_webhook_retries();
+        if retries > cap {
+            return Err(superposition::AppError::BadArgument(format!(
+                "max_retries must not exceed {cap}"
+            )));
+        }
     }
 
     let update = diesel::update(webhooks::table)
@@ -201,6 +224,7 @@ async fn delete_handler(
     diesel::delete(webhooks.filter(webhooks::name.eq(&w_name)))
         .schema_name(&workspace_context.schema_name)
         .execute(&mut conn)?;
+
     Ok(HttpResponse::NoContent().finish())
 }
 
