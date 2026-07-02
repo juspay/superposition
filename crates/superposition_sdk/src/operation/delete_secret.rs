@@ -23,7 +23,7 @@ impl DeleteSecret {
                         let output = context.finalize().map_err(map_err)?;
                         ::std::result::Result::Ok(output.downcast::<crate::operation::delete_secret::DeleteSecretOutput>().expect("correct output type"))
                     }
-    
+
                     pub(crate) async fn orchestrate_with_stop_point(
                         runtime_plugins: &::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugins,
                         input: crate::operation::delete_secret::DeleteSecretInput,
@@ -45,20 +45,18 @@ impl DeleteSecret {
                                 "rpc.service" = "Superposition",
                                 "rpc.method" = "DeleteSecret",
                                 "sdk_invocation_id" = ::fastrand::u32(1_000_000..10_000_000),
-                                
+
                             ))
                         .await
                     }
-    
+
                     pub(crate) fn operation_runtime_plugins(
                         client_runtime_plugins: ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugins,
                         client_config: &crate::config::Config,
                         config_override: ::std::option::Option<crate::config::Builder>,
                     ) -> ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugins {
                         let mut runtime_plugins = client_runtime_plugins.with_operation_plugin(Self::new());
-                        runtime_plugins = runtime_plugins
-                                        .with_client_plugin(crate::auth_plugin::DefaultAuthOptionsPlugin::new(vec![::aws_smithy_runtime_api::client::auth::http::HTTP_BASIC_AUTH_SCHEME_ID
-    , ::aws_smithy_runtime_api::client::auth::http::HTTP_BEARER_AUTH_SCHEME_ID]));
+
                         if let ::std::option::Option::Some(config_override) = config_override {
                             for plugin in config_override.runtime_plugins.iter().cloned() {
                                 runtime_plugins = runtime_plugins.with_operation_plugin(plugin);
@@ -77,8 +75,12 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for DeleteS
                     cfg.store_put(::aws_smithy_runtime_api::client::ser_de::SharedRequestSerializer::new(DeleteSecretRequestSerializer));
                     cfg.store_put(::aws_smithy_runtime_api::client::ser_de::SharedResponseDeserializer::new(DeleteSecretResponseDeserializer));
 
-                    
-                    cfg.store_put(::aws_smithy_runtime_api::client::auth::AuthSchemeOptionResolverParams::new(::aws_smithy_runtime_api::client::auth::static_resolver::StaticAuthSchemeOptionResolverParams::new()));
+                    cfg.store_put(::aws_smithy_runtime_api::client::auth::AuthSchemeOptionResolverParams::new(
+                        crate::config::auth::Params::builder()
+                            .operation_name("DeleteSecret")
+                            .build()
+                            .expect("required fields set")
+                    ));
 
                     cfg.store_put(::aws_smithy_runtime_api::client::orchestrator::Metadata::new(
                             "DeleteSecret",
@@ -91,8 +93,8 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for DeleteS
                 fn runtime_components(&self, _: &::aws_smithy_runtime_api::client::runtime_components::RuntimeComponentsBuilder) -> ::std::borrow::Cow<'_, ::aws_smithy_runtime_api::client::runtime_components::RuntimeComponentsBuilder> {
                     #[allow(unused_mut)]
                     let mut rcb = ::aws_smithy_runtime_api::client::runtime_components::RuntimeComponentsBuilder::new("DeleteSecret")
-                            .with_interceptor(::aws_smithy_runtime::client::stalled_stream_protection::StalledStreamProtectionInterceptor::default())
-.with_interceptor(DeleteSecretEndpointParamsInterceptor)
+                            .with_interceptor(::aws_smithy_runtime_api::client::interceptors::SharedInterceptor::permanent(::aws_smithy_runtime::client::stalled_stream_protection::StalledStreamProtectionInterceptor::default()))
+.with_interceptor(::aws_smithy_runtime_api::client::interceptors::SharedInterceptor::permanent(DeleteSecretEndpointParamsInterceptor))
                             .with_retry_classifier(::aws_smithy_runtime::client::retries::classifiers::TransientErrorClassifier::<crate::operation::delete_secret::DeleteSecretError>::new())
 .with_retry_classifier(::aws_smithy_runtime::client::retries::classifiers::ModeledAsRetryableClassifier::<crate::operation::delete_secret::DeleteSecretError>::new());
 
@@ -100,19 +102,19 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for DeleteS
                 }
             }
 
-            
+
 #[derive(Debug)]
             struct DeleteSecretResponseDeserializer;
             impl ::aws_smithy_runtime_api::client::ser_de::DeserializeResponse for DeleteSecretResponseDeserializer {
-                
 
-                fn deserialize_nonstreaming(&self, response: &::aws_smithy_runtime_api::client::orchestrator::HttpResponse) -> ::aws_smithy_runtime_api::client::interceptors::context::OutputOrError {
+
+                fn deserialize_nonstreaming_with_config(&self, response: &::aws_smithy_runtime_api::client::orchestrator::HttpResponse, _cfg: &::aws_smithy_types::config_bag::ConfigBag) -> ::aws_smithy_runtime_api::client::interceptors::context::OutputOrError {
                     let (success, status) = (response.status().is_success(), response.status().as_u16());
             let headers = response.headers();
             let body = response.body().bytes().expect("body loaded");
             #[allow(unused_mut)]
             let mut force_error = false;
-            
+
             let parse_result = if !success && status != 200 || force_error {
                 crate::protocol_serde::shape_delete_secret::de_delete_secret_http_error(status, headers, body)
             } else {
@@ -129,7 +131,8 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for DeleteS
                     let input = input.downcast::<crate::operation::delete_secret::DeleteSecretInput>().expect("correct type");
                     let _header_serialization_settings = _cfg.load::<crate::serialization_settings::HeaderSerializationSettings>().cloned().unwrap_or_default();
                     let mut request_builder = {
-                        fn uri_base(_input: &crate::operation::delete_secret::DeleteSecretInput, output: &mut ::std::string::String) -> ::std::result::Result<(), ::aws_smithy_types::error::operation::BuildError> {
+                        #[allow(clippy::uninlined_format_args)]
+fn uri_base(_input: &crate::operation::delete_secret::DeleteSecretInput, output: &mut ::std::string::String) -> ::std::result::Result<(), ::aws_smithy_types::error::operation::BuildError> {
     use ::std::fmt::Write as _;
     let input_1 = &_input.name;
     let input_1 = input_1.as_ref().ok_or_else(|| ::aws_smithy_types::error::operation::BuildError::missing_field("name", "cannot be empty or unset"))?;
@@ -143,24 +146,25 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for DeleteS
 #[allow(clippy::unnecessary_wraps)]
 fn update_http_builder(
                 input: &crate::operation::delete_secret::DeleteSecretInput,
-                builder: ::http::request::Builder
-            ) -> ::std::result::Result<::http::request::Builder, ::aws_smithy_types::error::operation::BuildError> {
+                builder: ::http_1x::request::Builder
+            ) -> ::std::result::Result<::http_1x::request::Builder, ::aws_smithy_types::error::operation::BuildError> {
     let mut uri = ::std::string::String::new();
     uri_base(input, &mut uri)?;
     let builder = crate::protocol_serde::shape_delete_secret::ser_delete_secret_headers(input, builder)?;
     ::std::result::Result::Ok(builder.method("DELETE").uri(uri))
 }
-let mut builder = update_http_builder(&input, ::http::request::Builder::new())?;
+let mut builder = update_http_builder(&input, ::http_1x::request::Builder::new())?;
 builder
                     };
                     let body = ::aws_smithy_types::body::SdkBody::from("");
-                    
+
                     ::std::result::Result::Ok(request_builder.body(body).expect("valid request").try_into().unwrap())
                 }
             }
 #[derive(Debug)]
             struct DeleteSecretEndpointParamsInterceptor;
 
+            #[::aws_smithy_runtime_api::client::interceptors::dyn_dispatch_hint]
             impl ::aws_smithy_runtime_api::client::interceptors::Intercept for DeleteSecretEndpointParamsInterceptor {
                 fn name(&self) -> &'static str {
                     "DeleteSecretEndpointParamsInterceptor"
@@ -175,10 +179,10 @@ builder
                         .downcast_ref::<DeleteSecretInput>()
                         .ok_or("failed to downcast to DeleteSecretInput")?;
 
-                    
+
 
                     let params = crate::config::endpoint::Params::builder()
-                        
+
                         .build()
                         .map_err(|err| ::aws_smithy_runtime_api::client::interceptors::error::ContextAttachedError::new("endpoint params could not be built", err))?;
                     cfg.interceptor_state().store_put(::aws_smithy_runtime_api::client::endpoint::EndpointResolverParams::new(params));
@@ -189,7 +193,7 @@ builder
             // The get_* functions below are generated from JMESPath expressions in the
             // operationContextParams trait. They target the operation's input shape.
 
-            
+
 
 /// Error type for the `DeleteSecretError` operation.
 #[non_exhaustive]
@@ -213,15 +217,15 @@ impl DeleteSecretError {
                     pub fn unhandled(err: impl ::std::convert::Into<::std::boxed::Box<dyn ::std::error::Error + ::std::marker::Send + ::std::marker::Sync + 'static>>) -> Self {
                         Self::Unhandled(crate::error::sealed_unhandled::Unhandled { source: err.into(), meta: ::std::default::Default::default() })
                     }
-    
+
                     /// Creates the `DeleteSecretError::Unhandled` variant from an [`ErrorMetadata`](::aws_smithy_types::error::ErrorMetadata).
                     pub fn generic(err: ::aws_smithy_types::error::ErrorMetadata) -> Self {
                         Self::Unhandled(crate::error::sealed_unhandled::Unhandled { source: err.clone().into(), meta: err })
                     }
-    /// 
+    ///
     /// Returns error metadata, which includes the error code, message,
     /// request ID, and potentially additional information.
-    /// 
+    ///
     pub fn meta(&self) -> &::aws_smithy_types::error::ErrorMetadata {
         match self {
             Self::ResourceNotFound(e) => ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(e),
@@ -304,9 +308,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for DeleteSe
     }
 }
 
-pub use crate::operation::delete_secret::_delete_secret_output::DeleteSecretOutput;
-
 pub use crate::operation::delete_secret::_delete_secret_input::DeleteSecretInput;
+
+pub use crate::operation::delete_secret::_delete_secret_output::DeleteSecretOutput;
 
 mod _delete_secret_input;
 

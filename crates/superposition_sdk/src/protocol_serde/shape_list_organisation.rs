@@ -8,7 +8,7 @@ pub fn de_list_organisation_http_error(_response_status: u16, _response_headers:
                                 Some(code) => code,
                                 None => return Err(crate::operation::list_organisation::ListOrganisationError::unhandled(generic))
                             };
-    
+
                             let _error_message = generic.message().map(|msg|msg.to_owned());
     Err(match error_code {
         "InternalServerError" => crate::operation::list_organisation::ListOrganisationError::InternalServerError({
@@ -41,9 +41,11 @@ pub fn de_list_organisation_http_response(_response_status: u16, _response_heade
     })
 }
 
-pub(crate) fn de_list_organisation(value: &[u8], mut builder: crate::operation::list_organisation::builders::ListOrganisationOutputBuilder) -> ::std::result::Result<crate::operation::list_organisation::builders::ListOrganisationOutputBuilder, ::aws_smithy_json::deserialize::error::DeserializeError> {
-    let mut tokens_owned = ::aws_smithy_json::deserialize::json_token_iter(crate::protocol_serde::or_empty_doc(value)).peekable();
+pub(crate) fn de_list_organisation(_value: &[u8], mut builder: crate::operation::list_organisation::builders::ListOrganisationOutputBuilder) -> ::std::result::Result<crate::operation::list_organisation::builders::ListOrganisationOutputBuilder, ::aws_smithy_json::deserialize::error::DeserializeError> {
+    let mut tokens_owned = ::aws_smithy_json::deserialize::json_token_iter(crate::protocol_serde::or_empty_doc(_value)).peekable();
                         let tokens = &mut tokens_owned;
+                        #[allow(unused_variables)]
+                        let depth = 0u32;
                         ::aws_smithy_json::deserialize::token::expect_start_object(tokens.next())?;
     loop {
         match tokens.next().transpose()? {
@@ -52,7 +54,7 @@ pub(crate) fn de_list_organisation(value: &[u8], mut builder: crate::operation::
                 match key.to_unescaped()?.as_ref() {
                     "data" => {
                         builder = builder.set_data(
-                            crate::protocol_serde::shape_organisation_list::de_organisation_list(tokens)?
+                            crate::protocol_serde::shape_organisation_list::de_organisation_list(tokens, _value, depth + 1)?
                         );
                     }
                     "total_items" => {
@@ -72,7 +74,7 @@ pub(crate) fn de_list_organisation(value: &[u8], mut builder: crate::operation::
                     _ => ::aws_smithy_json::deserialize::token::skip_value(tokens)?
                 }
             }
-            other => return Err(::aws_smithy_json::deserialize::error::DeserializeError::custom(format!("expected object key or end object, found: {:?}", other)))
+            other => return Err(::aws_smithy_json::deserialize::error::DeserializeError::custom(format!("expected object key or end object, found: {other:?}")))
         }
     }
     if tokens.next().is_some() {

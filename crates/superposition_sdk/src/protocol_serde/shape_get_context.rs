@@ -8,7 +8,7 @@ pub fn de_get_context_http_error(_response_status: u16, _response_headers: &::aw
                                 Some(code) => code,
                                 None => return Err(crate::operation::get_context::GetContextError::unhandled(generic))
                             };
-    
+
                             let _error_message = generic.message().map(|msg|msg.to_owned());
     Err(match error_code {
         "ResourceNotFound" => crate::operation::get_context::GetContextError::ResourceNotFound({
@@ -59,12 +59,12 @@ pub fn de_get_context_http_response(_response_status: u16, _response_headers: &:
 
 pub fn ser_get_context_headers(
                     input: &crate::operation::get_context::GetContextInput,
-                    mut builder: ::http::request::Builder
-                ) -> std::result::Result<::http::request::Builder, ::aws_smithy_types::error::operation::BuildError> {
+                    mut builder: ::http_1x::request::Builder
+                ) -> std::result::Result<::http_1x::request::Builder, ::aws_smithy_types::error::operation::BuildError> {
     if let ::std::option::Option::Some(inner_1) = &input.workspace_id {
         let formatted_2 = inner_1.as_str();
         let header_value = formatted_2;
-                            let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
+                            let header_value: ::http_1x::HeaderValue = header_value.parse().map_err(|err| {
                                 ::aws_smithy_types::error::operation::BuildError::invalid_field("workspace_id", format!(
                                 "`{}` cannot be used as a header value: {}",
                                 &header_value,
@@ -76,7 +76,7 @@ pub fn ser_get_context_headers(
     if let ::std::option::Option::Some(inner_3) = &input.org_id {
         let formatted_4 = inner_3.as_str();
         let header_value = formatted_4;
-                            let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
+                            let header_value: ::http_1x::HeaderValue = header_value.parse().map_err(|err| {
                                 ::aws_smithy_types::error::operation::BuildError::invalid_field("org_id", format!(
                                 "`{}` cannot be used as a header value: {}",
                                 &header_value,
@@ -88,9 +88,11 @@ pub fn ser_get_context_headers(
     Ok(builder)
 }
 
-pub(crate) fn de_get_context(value: &[u8], mut builder: crate::operation::get_context::builders::GetContextOutputBuilder) -> ::std::result::Result<crate::operation::get_context::builders::GetContextOutputBuilder, ::aws_smithy_json::deserialize::error::DeserializeError> {
-    let mut tokens_owned = ::aws_smithy_json::deserialize::json_token_iter(crate::protocol_serde::or_empty_doc(value)).peekable();
+pub(crate) fn de_get_context(_value: &[u8], mut builder: crate::operation::get_context::builders::GetContextOutputBuilder) -> ::std::result::Result<crate::operation::get_context::builders::GetContextOutputBuilder, ::aws_smithy_json::deserialize::error::DeserializeError> {
+    let mut tokens_owned = ::aws_smithy_json::deserialize::json_token_iter(crate::protocol_serde::or_empty_doc(_value)).peekable();
                         let tokens = &mut tokens_owned;
+                        #[allow(unused_variables)]
+                        let depth = 0u32;
                         ::aws_smithy_json::deserialize::token::expect_start_object(tokens.next())?;
     loop {
         match tokens.next().transpose()? {
@@ -154,7 +156,7 @@ pub(crate) fn de_get_context(value: &[u8], mut builder: crate::operation::get_co
                     }
                     "override" => {
                         builder = builder.set_override(
-                            crate::protocol_serde::shape_overrides::de_overrides(tokens)?
+                            crate::protocol_serde::shape_overrides::de_overrides(tokens, _value, depth + 1)?
                         );
                     }
                     "override_id" => {
@@ -168,7 +170,7 @@ pub(crate) fn de_get_context(value: &[u8], mut builder: crate::operation::get_co
                     }
                     "value" => {
                         builder = builder.set_value(
-                            crate::protocol_serde::shape_condition::de_condition(tokens)?
+                            crate::protocol_serde::shape_condition::de_condition(tokens, _value, depth + 1)?
                         );
                     }
                     "weight" => {
@@ -183,7 +185,7 @@ pub(crate) fn de_get_context(value: &[u8], mut builder: crate::operation::get_co
                     _ => ::aws_smithy_json::deserialize::token::skip_value(tokens)?
                 }
             }
-            other => return Err(::aws_smithy_json::deserialize::error::DeserializeError::custom(format!("expected object key or end object, found: {:?}", other)))
+            other => return Err(::aws_smithy_json::deserialize::error::DeserializeError::custom(format!("expected object key or end object, found: {other:?}")))
         }
     }
     if tokens.next().is_some() {

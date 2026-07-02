@@ -38,7 +38,7 @@ impl  ListFunctionInput  {
         self.org_id.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.function_type.is_none()`.
     pub fn function_type(&self) -> &[crate::types::FunctionTypes] {
         self.function_type.as_deref()

@@ -33,7 +33,7 @@ impl  AddMembersToGroupInput  {
         self.change_reason.as_deref()
     }
     /// List of experiment IDs to add/remove to this group.
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.member_experiment_ids.is_none()`.
     pub fn member_experiment_ids(&self) -> &[::std::string::String] {
         self.member_experiment_ids.as_deref()

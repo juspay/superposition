@@ -8,7 +8,7 @@ pub fn de_get_organisation_http_error(_response_status: u16, _response_headers: 
                                 Some(code) => code,
                                 None => return Err(crate::operation::get_organisation::GetOrganisationError::unhandled(generic))
                             };
-    
+
                             let _error_message = generic.message().map(|msg|msg.to_owned());
     Err(match error_code {
         "ResourceNotFound" => crate::operation::get_organisation::GetOrganisationError::ResourceNotFound({
@@ -57,9 +57,11 @@ pub fn de_get_organisation_http_response(_response_status: u16, _response_header
     })
 }
 
-pub(crate) fn de_get_organisation(value: &[u8], mut builder: crate::operation::get_organisation::builders::GetOrganisationOutputBuilder) -> ::std::result::Result<crate::operation::get_organisation::builders::GetOrganisationOutputBuilder, ::aws_smithy_json::deserialize::error::DeserializeError> {
-    let mut tokens_owned = ::aws_smithy_json::deserialize::json_token_iter(crate::protocol_serde::or_empty_doc(value)).peekable();
+pub(crate) fn de_get_organisation(_value: &[u8], mut builder: crate::operation::get_organisation::builders::GetOrganisationOutputBuilder) -> ::std::result::Result<crate::operation::get_organisation::builders::GetOrganisationOutputBuilder, ::aws_smithy_json::deserialize::error::DeserializeError> {
+    let mut tokens_owned = ::aws_smithy_json::deserialize::json_token_iter(crate::protocol_serde::or_empty_doc(_value)).peekable();
                         let tokens = &mut tokens_owned;
+                        #[allow(unused_variables)]
+                        let depth = 0u32;
                         ::aws_smithy_json::deserialize::token::expect_start_object(tokens.next())?;
     loop {
         match tokens.next().transpose()? {
@@ -169,7 +171,7 @@ pub(crate) fn de_get_organisation(value: &[u8], mut builder: crate::operation::g
                     _ => ::aws_smithy_json::deserialize::token::skip_value(tokens)?
                 }
             }
-            other => return Err(::aws_smithy_json::deserialize::error::DeserializeError::custom(format!("expected object key or end object, found: {:?}", other)))
+            other => return Err(::aws_smithy_json::deserialize::error::DeserializeError::custom(format!("expected object key or end object, found: {other:?}")))
         }
     }
     if tokens.next().is_some() {

@@ -44,7 +44,7 @@ impl  UpdateWorkspaceInput  {
         self.config_version.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.mandatory_dimensions.is_none()`.
     pub fn mandatory_dimensions(&self) -> &[::std::string::String] {
         self.mandatory_dimensions.as_deref()

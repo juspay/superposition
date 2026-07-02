@@ -8,7 +8,7 @@ pub fn de_get_type_templates_list_http_error(_response_status: u16, _response_he
                                 Some(code) => code,
                                 None => return Err(crate::operation::get_type_templates_list::GetTypeTemplatesListError::unhandled(generic))
                             };
-    
+
                             let _error_message = generic.message().map(|msg|msg.to_owned());
     Err(match error_code {
         "InternalServerError" => crate::operation::get_type_templates_list::GetTypeTemplatesListError::InternalServerError({
@@ -43,12 +43,12 @@ pub fn de_get_type_templates_list_http_response(_response_status: u16, _response
 
 pub fn ser_get_type_templates_list_headers(
                     input: &crate::operation::get_type_templates_list::GetTypeTemplatesListInput,
-                    mut builder: ::http::request::Builder
-                ) -> std::result::Result<::http::request::Builder, ::aws_smithy_types::error::operation::BuildError> {
+                    mut builder: ::http_1x::request::Builder
+                ) -> std::result::Result<::http_1x::request::Builder, ::aws_smithy_types::error::operation::BuildError> {
     if let ::std::option::Option::Some(inner_1) = &input.workspace_id {
         let formatted_2 = inner_1.as_str();
         let header_value = formatted_2;
-                            let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
+                            let header_value: ::http_1x::HeaderValue = header_value.parse().map_err(|err| {
                                 ::aws_smithy_types::error::operation::BuildError::invalid_field("workspace_id", format!(
                                 "`{}` cannot be used as a header value: {}",
                                 &header_value,
@@ -60,7 +60,7 @@ pub fn ser_get_type_templates_list_headers(
     if let ::std::option::Option::Some(inner_3) = &input.org_id {
         let formatted_4 = inner_3.as_str();
         let header_value = formatted_4;
-                            let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
+                            let header_value: ::http_1x::HeaderValue = header_value.parse().map_err(|err| {
                                 ::aws_smithy_types::error::operation::BuildError::invalid_field("org_id", format!(
                                 "`{}` cannot be used as a header value: {}",
                                 &header_value,
@@ -72,9 +72,11 @@ pub fn ser_get_type_templates_list_headers(
     Ok(builder)
 }
 
-pub(crate) fn de_get_type_templates_list(value: &[u8], mut builder: crate::operation::get_type_templates_list::builders::GetTypeTemplatesListOutputBuilder) -> ::std::result::Result<crate::operation::get_type_templates_list::builders::GetTypeTemplatesListOutputBuilder, ::aws_smithy_json::deserialize::error::DeserializeError> {
-    let mut tokens_owned = ::aws_smithy_json::deserialize::json_token_iter(crate::protocol_serde::or_empty_doc(value)).peekable();
+pub(crate) fn de_get_type_templates_list(_value: &[u8], mut builder: crate::operation::get_type_templates_list::builders::GetTypeTemplatesListOutputBuilder) -> ::std::result::Result<crate::operation::get_type_templates_list::builders::GetTypeTemplatesListOutputBuilder, ::aws_smithy_json::deserialize::error::DeserializeError> {
+    let mut tokens_owned = ::aws_smithy_json::deserialize::json_token_iter(crate::protocol_serde::or_empty_doc(_value)).peekable();
                         let tokens = &mut tokens_owned;
+                        #[allow(unused_variables)]
+                        let depth = 0u32;
                         ::aws_smithy_json::deserialize::token::expect_start_object(tokens.next())?;
     loop {
         match tokens.next().transpose()? {
@@ -83,7 +85,7 @@ pub(crate) fn de_get_type_templates_list(value: &[u8], mut builder: crate::opera
                 match key.to_unescaped()?.as_ref() {
                     "data" => {
                         builder = builder.set_data(
-                            crate::protocol_serde::shape_type_templates_list::de_type_templates_list(tokens)?
+                            crate::protocol_serde::shape_type_templates_list::de_type_templates_list(tokens, _value, depth + 1)?
                         );
                     }
                     "total_items" => {
@@ -103,7 +105,7 @@ pub(crate) fn de_get_type_templates_list(value: &[u8], mut builder: crate::opera
                     _ => ::aws_smithy_json::deserialize::token::skip_value(tokens)?
                 }
             }
-            other => return Err(::aws_smithy_json::deserialize::error::DeserializeError::custom(format!("expected object key or end object, found: {:?}", other)))
+            other => return Err(::aws_smithy_json::deserialize::error::DeserializeError::custom(format!("expected object key or end object, found: {other:?}")))
         }
     }
     if tokens.next().is_some() {

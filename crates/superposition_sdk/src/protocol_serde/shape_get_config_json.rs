@@ -8,7 +8,7 @@ pub fn de_get_config_json_http_error(_response_status: u16, _response_headers: &
                                 Some(code) => code,
                                 None => return Err(crate::operation::get_config_json::GetConfigJsonError::unhandled(generic))
                             };
-    
+
                             let _error_message = generic.message().map(|msg|msg.to_owned());
     Err(match error_code {
         "InternalServerError" => crate::operation::get_config_json::GetConfigJsonError::InternalServerError({
@@ -49,12 +49,12 @@ pub fn de_get_config_json_http_response(_response_status: u16, _response_headers
 
 pub fn ser_get_config_json_headers(
                     input: &crate::operation::get_config_json::GetConfigJsonInput,
-                    mut builder: ::http::request::Builder
-                ) -> std::result::Result<::http::request::Builder, ::aws_smithy_types::error::operation::BuildError> {
+                    mut builder: ::http_1x::request::Builder
+                ) -> std::result::Result<::http_1x::request::Builder, ::aws_smithy_types::error::operation::BuildError> {
     if let ::std::option::Option::Some(inner_1) = &input.workspace_id {
         let formatted_2 = inner_1.as_str();
         let header_value = formatted_2;
-                            let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
+                            let header_value: ::http_1x::HeaderValue = header_value.parse().map_err(|err| {
                                 ::aws_smithy_types::error::operation::BuildError::invalid_field("workspace_id", format!(
                                 "`{}` cannot be used as a header value: {}",
                                 &header_value,
@@ -66,7 +66,7 @@ pub fn ser_get_config_json_headers(
     if let ::std::option::Option::Some(inner_3) = &input.org_id {
         let formatted_4 = inner_3.as_str();
         let header_value = formatted_4;
-                            let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
+                            let header_value: ::http_1x::HeaderValue = header_value.parse().map_err(|err| {
                                 ::aws_smithy_types::error::operation::BuildError::invalid_field("org_id", format!(
                                 "`{}` cannot be used as a header value: {}",
                                 &header_value,
@@ -78,7 +78,7 @@ pub fn ser_get_config_json_headers(
     if let ::std::option::Option::Some(inner_5) = &input.if_modified_since {
         let formatted_6 = inner_5.fmt(::aws_smithy_types::date_time::Format::DateTime)?;
         let header_value = formatted_6;
-                            let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
+                            let header_value: ::http_1x::HeaderValue = header_value.parse().map_err(|err| {
                                 ::aws_smithy_types::error::operation::BuildError::invalid_field("if_modified_since", format!(
                                 "`{}` cannot be used as a header value: {}",
                                 &header_value,

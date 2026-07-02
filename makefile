@@ -49,7 +49,13 @@ DB_CONTAINER_NAME = $(shell $(call read-container-name,postgres))
 DB_UP = $(shell $(call check-container,$(DB_CONTAINER_NAME)))
 LSTACK_CONTAINER_NAME = $(shell $(call read-container-name,localstack))
 LSTACK_UP = $(shell $(call check-container,$(LSTACK_CONTAINER_NAME)))
-export SMITHY_MAVEN_REPOS = https://repo1.maven.org/maven2|https://sandbox.assets.juspay.in/smithy/m2
+## codegen-client 0.1.19 is on Maven Central under groupId software.amazon.smithy.rust,
+## but its POM (and codegen-core's) declare kotlin-stdlib-jdk8 with version "unspecified"
+## (the real version only lives in Gradle module metadata, which the Smithy CLI's Maven
+## resolver ignores). smithy-local-repo mirrors those two artifacts into a file-based repo
+## with corrected POMs; we prepend it so the fixed POMs win over Maven Central's.
+SMITHY_LOCAL_REPO := $(CURDIR)/smithy/.local-m2
+export SMITHY_MAVEN_REPOS = file://$(SMITHY_LOCAL_REPO)|https://repo1.maven.org/maven2|https://sandbox.assets.juspay.in/smithy/m2
 
 .PHONY: amend \
 	amend-no-edit \
@@ -88,6 +94,7 @@ export SMITHY_MAVEN_REPOS = https://repo1.maven.org/maven2|https://sandbox.asset
 	smithy-build \
 	smithy-clean \
 	smithy-clean-build \
+	smithy-local-repo \
 	smithy-clients \
 	smithy-updates \
 	superposition \
@@ -258,7 +265,20 @@ tailwind:
 smithy-clean:
 	rm -rf smithy/output
 
-smithy-build:
+smithy-local-repo:
+	@for a in codegen-client codegen-core; do \
+		dir="$(SMITHY_LOCAL_REPO)/software/amazon/smithy/rust/$$a/0.1.19"; \
+		if [ ! -f "$$dir/$$a-0.1.19.pom" ]; then \
+			mkdir -p "$$dir"; \
+			base="https://repo1.maven.org/maven2/software/amazon/smithy/rust/$$a/0.1.19/$$a-0.1.19"; \
+			curl -fsSL -o "$$dir/$$a-0.1.19.jar" "$$base.jar"; \
+			curl -fsSL -o "$$dir/$$a-0.1.19.pom" "$$base.pom"; \
+			sed -i.bak 's#<version>unspecified</version>#<version>2.1.0</version>#g' "$$dir/$$a-0.1.19.pom" && rm -f "$$dir/$$a-0.1.19.pom.bak"; \
+			echo "prepared $$a-0.1.19 (kotlin-stdlib-jdk8 pinned to 2.1.0)"; \
+		fi; \
+	done
+
+smithy-build: smithy-local-repo
 	cd smithy && smithy build
 
 smithy-clean-build: smithy-clean smithy-build

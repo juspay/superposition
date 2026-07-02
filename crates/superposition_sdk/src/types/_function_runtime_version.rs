@@ -6,9 +6,9 @@
 /// variant in a current version of SDK, your code should continue to work when you
 /// upgrade SDK to a future version in which the enum does include a variant for that
 /// feature.
-/// 
+///
 /// Here is an example of how you can make a match expression forward-compatible:
-/// 
+///
 /// ```text
 /// # let functionruntimeversion = unimplemented!();
 /// match functionruntimeversion {
@@ -29,12 +29,12 @@
 /// Specifically, when `functionruntimeversion` represents `NewFeature`,
 /// the execution path will hit the second last match arm as before by virtue of
 /// calling `as_str` on `FunctionRuntimeVersion::NewFeature` also yielding `"NewFeature"`.
-/// 
+///
 /// Explicitly matching on the `Unknown` variant should
 /// be avoided for two reasons:
 /// - The inner data `UnknownVariantValue` is opaque, and no further information can be extracted.
 /// - It might inadvertently shadow other intended match arms.
-/// 
+///
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::Eq, ::std::cmp::Ord, ::std::cmp::PartialEq, ::std::cmp::PartialOrd, ::std::fmt::Debug, ::std::hash::Hash)]
@@ -94,7 +94,7 @@ impl ::std::fmt::Display for FunctionRuntimeVersion {
                         fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                             match self {
                                 FunctionRuntimeVersion::V1 => write!(f, "1.0"),
-FunctionRuntimeVersion::Unknown(value) => write!(f, "{}", value)
+FunctionRuntimeVersion::Unknown(value) => write!(f, "{value}")
                             }
                         }
                     }

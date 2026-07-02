@@ -23,7 +23,7 @@ impl GetResolvedConfig {
                         let output = context.finalize().map_err(map_err)?;
                         ::std::result::Result::Ok(output.downcast::<crate::operation::get_resolved_config::GetResolvedConfigOutput>().expect("correct output type"))
                     }
-    
+
                     pub(crate) async fn orchestrate_with_stop_point(
                         runtime_plugins: &::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugins,
                         input: crate::operation::get_resolved_config::GetResolvedConfigInput,
@@ -45,20 +45,18 @@ impl GetResolvedConfig {
                                 "rpc.service" = "Superposition",
                                 "rpc.method" = "GetResolvedConfig",
                                 "sdk_invocation_id" = ::fastrand::u32(1_000_000..10_000_000),
-                                
+
                             ))
                         .await
                     }
-    
+
                     pub(crate) fn operation_runtime_plugins(
                         client_runtime_plugins: ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugins,
                         client_config: &crate::config::Config,
                         config_override: ::std::option::Option<crate::config::Builder>,
                     ) -> ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugins {
                         let mut runtime_plugins = client_runtime_plugins.with_operation_plugin(Self::new());
-                        runtime_plugins = runtime_plugins
-                                        .with_client_plugin(crate::auth_plugin::DefaultAuthOptionsPlugin::new(vec![::aws_smithy_runtime_api::client::auth::http::HTTP_BASIC_AUTH_SCHEME_ID
-    , ::aws_smithy_runtime_api::client::auth::http::HTTP_BEARER_AUTH_SCHEME_ID]));
+
                         if let ::std::option::Option::Some(config_override) = config_override {
                             for plugin in config_override.runtime_plugins.iter().cloned() {
                                 runtime_plugins = runtime_plugins.with_operation_plugin(plugin);
@@ -77,8 +75,12 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for GetReso
                     cfg.store_put(::aws_smithy_runtime_api::client::ser_de::SharedRequestSerializer::new(GetResolvedConfigRequestSerializer));
                     cfg.store_put(::aws_smithy_runtime_api::client::ser_de::SharedResponseDeserializer::new(GetResolvedConfigResponseDeserializer));
 
-                    
-                    cfg.store_put(::aws_smithy_runtime_api::client::auth::AuthSchemeOptionResolverParams::new(::aws_smithy_runtime_api::client::auth::static_resolver::StaticAuthSchemeOptionResolverParams::new()));
+                    cfg.store_put(::aws_smithy_runtime_api::client::auth::AuthSchemeOptionResolverParams::new(
+                        crate::config::auth::Params::builder()
+                            .operation_name("GetResolvedConfig")
+                            .build()
+                            .expect("required fields set")
+                    ));
 
                     cfg.store_put(::aws_smithy_runtime_api::client::orchestrator::Metadata::new(
                             "GetResolvedConfig",
@@ -91,8 +93,8 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for GetReso
                 fn runtime_components(&self, _: &::aws_smithy_runtime_api::client::runtime_components::RuntimeComponentsBuilder) -> ::std::borrow::Cow<'_, ::aws_smithy_runtime_api::client::runtime_components::RuntimeComponentsBuilder> {
                     #[allow(unused_mut)]
                     let mut rcb = ::aws_smithy_runtime_api::client::runtime_components::RuntimeComponentsBuilder::new("GetResolvedConfig")
-                            .with_interceptor(::aws_smithy_runtime::client::stalled_stream_protection::StalledStreamProtectionInterceptor::default())
-.with_interceptor(GetResolvedConfigEndpointParamsInterceptor)
+                            .with_interceptor(::aws_smithy_runtime_api::client::interceptors::SharedInterceptor::permanent(::aws_smithy_runtime::client::stalled_stream_protection::StalledStreamProtectionInterceptor::default()))
+.with_interceptor(::aws_smithy_runtime_api::client::interceptors::SharedInterceptor::permanent(GetResolvedConfigEndpointParamsInterceptor))
                             .with_retry_classifier(::aws_smithy_runtime::client::retries::classifiers::TransientErrorClassifier::<crate::operation::get_resolved_config::GetResolvedConfigError>::new())
 .with_retry_classifier(::aws_smithy_runtime::client::retries::classifiers::ModeledAsRetryableClassifier::<crate::operation::get_resolved_config::GetResolvedConfigError>::new());
 
@@ -100,19 +102,19 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for GetReso
                 }
             }
 
-            
+
 #[derive(Debug)]
             struct GetResolvedConfigResponseDeserializer;
             impl ::aws_smithy_runtime_api::client::ser_de::DeserializeResponse for GetResolvedConfigResponseDeserializer {
-                
 
-                fn deserialize_nonstreaming(&self, response: &::aws_smithy_runtime_api::client::orchestrator::HttpResponse) -> ::aws_smithy_runtime_api::client::interceptors::context::OutputOrError {
+
+                fn deserialize_nonstreaming_with_config(&self, response: &::aws_smithy_runtime_api::client::orchestrator::HttpResponse, _cfg: &::aws_smithy_types::config_bag::ConfigBag) -> ::aws_smithy_runtime_api::client::interceptors::context::OutputOrError {
                     let (success, status) = (response.status().is_success(), response.status().as_u16());
             let headers = response.headers();
             let body = response.body().bytes().expect("body loaded");
             #[allow(unused_mut)]
             let mut force_error = false;
-            
+
             let parse_result = if !success && status != 200 || force_error {
                 crate::protocol_serde::shape_get_resolved_config::de_get_resolved_config_http_error(status, headers, body)
             } else {
@@ -129,7 +131,8 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for GetReso
                     let input = input.downcast::<crate::operation::get_resolved_config::GetResolvedConfigInput>().expect("correct type");
                     let _header_serialization_settings = _cfg.load::<crate::serialization_settings::HeaderSerializationSettings>().cloned().unwrap_or_default();
                     let mut request_builder = {
-                        fn uri_base(_input: &crate::operation::get_resolved_config::GetResolvedConfigInput, output: &mut ::std::string::String) -> ::std::result::Result<(), ::aws_smithy_types::error::operation::BuildError> {
+                        #[allow(clippy::uninlined_format_args)]
+fn uri_base(_input: &crate::operation::get_resolved_config::GetResolvedConfigInput, output: &mut ::std::string::String) -> ::std::result::Result<(), ::aws_smithy_types::error::operation::BuildError> {
     use ::std::fmt::Write as _;
     ::std::write!(output, "/config/resolve").expect("formatting should succeed");
     ::std::result::Result::Ok(())
@@ -168,22 +171,22 @@ fn uri_query(_input: &crate::operation::get_resolved_config::GetResolvedConfigIn
 #[allow(clippy::unnecessary_wraps)]
 fn update_http_builder(
                 input: &crate::operation::get_resolved_config::GetResolvedConfigInput,
-                builder: ::http::request::Builder
-            ) -> ::std::result::Result<::http::request::Builder, ::aws_smithy_types::error::operation::BuildError> {
+                builder: ::http_1x::request::Builder
+            ) -> ::std::result::Result<::http_1x::request::Builder, ::aws_smithy_types::error::operation::BuildError> {
     let mut uri = ::std::string::String::new();
     uri_base(input, &mut uri)?;
     uri_query(input, &mut uri)?;
     let builder = crate::protocol_serde::shape_get_resolved_config::ser_get_resolved_config_headers(input, builder)?;
     ::std::result::Result::Ok(builder.method("POST").uri(uri))
 }
-let mut builder = update_http_builder(&input, ::http::request::Builder::new())?;
-builder = _header_serialization_settings.set_default_header(builder, ::http::header::CONTENT_TYPE, "application/json");
+let mut builder = update_http_builder(&input, ::http_1x::request::Builder::new())?;
+builder = _header_serialization_settings.set_default_header(builder, ::http_1x::header::CONTENT_TYPE, "application/json");
 builder
                     };
                     let body = ::aws_smithy_types::body::SdkBody::from(crate::protocol_serde::shape_get_resolved_config::ser_get_resolved_config_input(&input)?);
                     if let Some(content_length) = body.content_length() {
                                 let content_length = content_length.to_string();
-                                request_builder = _header_serialization_settings.set_default_header(request_builder, ::http::header::CONTENT_LENGTH, &content_length);
+                                request_builder = _header_serialization_settings.set_default_header(request_builder, ::http_1x::header::CONTENT_LENGTH, &content_length);
                             }
                     ::std::result::Result::Ok(request_builder.body(body).expect("valid request").try_into().unwrap())
                 }
@@ -191,6 +194,7 @@ builder
 #[derive(Debug)]
             struct GetResolvedConfigEndpointParamsInterceptor;
 
+            #[::aws_smithy_runtime_api::client::interceptors::dyn_dispatch_hint]
             impl ::aws_smithy_runtime_api::client::interceptors::Intercept for GetResolvedConfigEndpointParamsInterceptor {
                 fn name(&self) -> &'static str {
                     "GetResolvedConfigEndpointParamsInterceptor"
@@ -205,10 +209,10 @@ builder
                         .downcast_ref::<GetResolvedConfigInput>()
                         .ok_or("failed to downcast to GetResolvedConfigInput")?;
 
-                    
+
 
                     let params = crate::config::endpoint::Params::builder()
-                        
+
                         .build()
                         .map_err(|err| ::aws_smithy_runtime_api::client::interceptors::error::ContextAttachedError::new("endpoint params could not be built", err))?;
                     cfg.interceptor_state().store_put(::aws_smithy_runtime_api::client::endpoint::EndpointResolverParams::new(params));
@@ -219,7 +223,7 @@ builder
             // The get_* functions below are generated from JMESPath expressions in the
             // operationContextParams trait. They target the operation's input shape.
 
-            
+
 
 /// Error type for the `GetResolvedConfigError` operation.
 #[non_exhaustive]
@@ -241,15 +245,15 @@ impl GetResolvedConfigError {
                     pub fn unhandled(err: impl ::std::convert::Into<::std::boxed::Box<dyn ::std::error::Error + ::std::marker::Send + ::std::marker::Sync + 'static>>) -> Self {
                         Self::Unhandled(crate::error::sealed_unhandled::Unhandled { source: err.into(), meta: ::std::default::Default::default() })
                     }
-    
+
                     /// Creates the `GetResolvedConfigError::Unhandled` variant from an [`ErrorMetadata`](::aws_smithy_types::error::ErrorMetadata).
                     pub fn generic(err: ::aws_smithy_types::error::ErrorMetadata) -> Self {
                         Self::Unhandled(crate::error::sealed_unhandled::Unhandled { source: err.clone().into(), meta: err })
                     }
-    /// 
+    ///
     /// Returns error metadata, which includes the error code, message,
     /// request ID, and potentially additional information.
-    /// 
+    ///
     pub fn meta(&self) -> &::aws_smithy_types::error::ErrorMetadata {
         match self {
             Self::InternalServerError(e) => ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(e),
@@ -318,9 +322,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for GetResol
     }
 }
 
-pub use crate::operation::get_resolved_config::_get_resolved_config_output::GetResolvedConfigOutput;
-
 pub use crate::operation::get_resolved_config::_get_resolved_config_input::GetResolvedConfigInput;
+
+pub use crate::operation::get_resolved_config::_get_resolved_config_output::GetResolvedConfigOutput;
 
 mod _get_resolved_config_input;
 
