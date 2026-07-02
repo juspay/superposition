@@ -2753,6 +2753,151 @@ export interface GetWorkspaceInput {
 
 /**
  * @public
+ * @enum
+ */
+export const ImportOnError = {
+  /**
+   * Roll the whole import back on the first error.
+   */
+  ABORT: "abort",
+  /**
+   * Apply everything that is valid and report per-entity errors.
+   */
+  CONTINUE: "continue",
+} as const
+/**
+ * @public
+ */
+export type ImportOnError = typeof ImportOnError[keyof typeof ImportOnError]
+
+/**
+ * @public
+ * @enum
+ */
+export const ImportStrategy = {
+  /**
+   * Create entities that are present in the file but missing from the workspace. Existing entities are skipped. Nothing is deleted.
+   */
+  CREATE_ONLY: "create_only",
+  /**
+   * Mirror the file: create missing entities, update existing entities, and delete dimensions, default-configs and contexts that are absent from it.
+   */
+  REPLACE: "replace",
+  /**
+   * Create missing entities and update existing entities from the file. Entities absent from the file are left untouched.
+   */
+  UPSERT: "upsert",
+} as const
+/**
+ * @public
+ */
+export type ImportStrategy = typeof ImportStrategy[keyof typeof ImportStrategy]
+
+/**
+ * @public
+ */
+export interface ImportConfigJsonInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  /**
+   * How the import applies file entities to the workspace. Defaults to upsert.
+   * @public
+   */
+  strategy?: ImportStrategy | undefined;
+
+  /**
+   * Whether to abort (default) or continue on per-entity errors.
+   * @public
+   */
+  on_error?: ImportOnError | undefined;
+
+  /**
+   * When true, validates and summarises the import without persisting anything. Defaults to false.
+   * @public
+   */
+  dry_run?: boolean | undefined;
+
+  config_tags?: string | undefined;
+  json_config: string | undefined;
+}
+
+/**
+ * @public
+ */
+export interface ImportErrorItem {
+  id: string | undefined;
+  message: string | undefined;
+}
+
+/**
+ * Per-entity outcome counts for an import.
+ * @public
+ */
+export interface ImportEntityReport {
+  created: number | undefined;
+  updated: number | undefined;
+  skipped: number | undefined;
+  deleted: number | undefined;
+  errors?: (ImportErrorItem)[] | undefined;
+}
+
+/**
+ * Summary of what an import created, updated, skipped or deleted.
+ * @public
+ */
+export interface ImportConfigOutput {
+  strategy: string | undefined;
+  dry_run: boolean | undefined;
+  config_version?: string | undefined;
+  /**
+   * Per-entity outcome counts for an import.
+   * @public
+   */
+  dimensions: ImportEntityReport | undefined;
+
+  /**
+   * Per-entity outcome counts for an import.
+   * @public
+   */
+  default_configs: ImportEntityReport | undefined;
+
+  /**
+   * Per-entity outcome counts for an import.
+   * @public
+   */
+  contexts: ImportEntityReport | undefined;
+}
+
+/**
+ * @public
+ */
+export interface ImportConfigTomlInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  /**
+   * How the import applies file entities to the workspace. Defaults to upsert.
+   * @public
+   */
+  strategy?: ImportStrategy | undefined;
+
+  /**
+   * Whether to abort (default) or continue on per-entity errors.
+   * @public
+   */
+  on_error?: ImportOnError | undefined;
+
+  /**
+   * When true, validates and summarises the import without persisting anything. Defaults to false.
+   * @public
+   */
+  dry_run?: boolean | undefined;
+
+  config_tags?: string | undefined;
+  toml_config: string | undefined;
+}
+
+/**
+ * @public
  */
 export interface ListOrganisationInput {
   /**

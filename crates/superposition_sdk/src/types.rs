@@ -115,6 +115,14 @@ pub use crate::types::_dimension_response::DimensionResponse;
 
 pub use crate::types::_default_config_response::DefaultConfigResponse;
 
+pub use crate::types::_import_entity_report::ImportEntityReport;
+
+pub use crate::types::_import_error_item::ImportErrorItem;
+
+pub use crate::types::_import_on_error::ImportOnError;
+
+pub use crate::types::_import_strategy::ImportStrategy;
+
 mod _audit_action;
 
 mod _audit_log_full;
@@ -178,6 +186,14 @@ mod _function_types;
 mod _group_type;
 
 mod _http_method;
+
+mod _import_entity_report;
+
+mod _import_error_item;
+
+mod _import_on_error;
+
+mod _import_strategy;
 
 mod _list_versions_member;
 

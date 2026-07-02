@@ -238,11 +238,22 @@ test: setup frontend superposition
 	MASTER_ENCRYPTION_KEY=$${MASTER_ENCRYPTION_KEY:-"dGVzdC1tYXN0ZXIta2V5LTMyLWNoYXJhY3RlcnMtb2s="} \
 		$(MAKE) run &
 	@echo "Awaiting superposition boot..."
-## FIXME Curl doesn't retry.
-	@curl	--silent --retry 10 \
-				--connect-timeout 2 \
-				--retry-all-errors \
-				'http://localhost:8080/health' 2>&1 > /dev/null
+## `make run` (re)builds the frontend + server before the binary starts, so the
+## health endpoint can take a while to come up. Poll it for up to 5 minutes
+## instead of relying on curl's own retry handling, which gives up too early on
+## connection-refused while the build is still running.
+	@for i in $$(seq 1 150); do \
+		if curl --silent --fail --connect-timeout 2 \
+				'http://localhost:8080/health' > /dev/null 2>&1; then \
+			echo "superposition is up"; \
+			break; \
+		fi; \
+		if [ $$i -eq 150 ]; then \
+			echo "superposition did not become healthy in time" >&2; \
+			exit 1; \
+		fi; \
+		sleep 2; \
+	done
 	cd tests && bun test:clean
 	$(MAKE) bindings-test
 	$(MAKE) kill
@@ -318,7 +329,7 @@ smithy-api-docs: smithy-build
 	cp $(SMITHY_BUILD_SRC)/openapi/Superposition.openapi.json docs/docs/api/
 	cd docs && npm ci && npm run openapi-docs
 
-smithy-updates: smithy-clients smithy-api-docs
+smithy-updates: smithy-clean smithy-clients smithy-api-docs
 
 leptosfmt:
 	leptosfmt $(LEPTOS_FMT_FLAGS) $(LEPTOS_PACKAGES)

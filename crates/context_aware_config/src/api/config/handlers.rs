@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use actix_web::{
-    HttpRequest, HttpResponse, Scope, get, put, routes,
-    web::{Data, Header, Json, Path, Query},
+    HttpRequest, HttpResponse, Scope, get, post, put, routes,
+    web::{Bytes, Data, Header, Json, Path, Query},
 };
 use chrono::{DateTime, Utc};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
@@ -11,7 +11,9 @@ use serde_json::{Map, Value, json};
 use service_utils::{
     helpers::{fetch_dimensions_info_map, is_not_modified},
     redis::{CONFIG_KEY_SUFFIX, LAST_MODIFIED_KEY_SUFFIX, read_through_cache},
-    service::types::{AppHeader, AppState, DbConnection, WorkspaceContext},
+    service::types::{
+        AppHeader, AppState, CustomHeaders, DbConnection, WorkspaceContext,
+    },
 };
 use superposition_core::{
     ConfigFormat, JsonFormat, TomlFormat,
@@ -69,6 +71,8 @@ pub fn endpoints() -> Scope {
         .service(get_toml_handler)
         .service(get_json_handler)
         .service(detailed_resolve_handler)
+        .service(import_toml_handler)
+        .service(import_json_handler)
         .service(resolve_handler)
         .service(explain_resolve_handler)
         .service(reduce_handler)
@@ -657,6 +661,60 @@ async fn get_json_handler(
     response.insert_header(("Content-Type", "application/json"));
 
     Ok(response.body(json_str))
+}
+
+/// Imports a full config supplied as a TOML document in the request body.
+/// See [`crate::api::config::import`] for the supported `x-import-*` options.
+#[allow(clippy::too_many_arguments)]
+#[authorized]
+#[post("/toml/import")]
+async fn import_toml_handler(
+    req: HttpRequest,
+    body: Bytes,
+    user: User,
+    custom_headers: CustomHeaders,
+    db_conn: DbConnection,
+    workspace_context: WorkspaceContext,
+    state: Data<AppState>,
+) -> superposition::Result<HttpResponse> {
+    let DbConnection(mut conn) = db_conn;
+    super::import::handle_import::<TomlFormat>(
+        &body,
+        &req,
+        custom_headers,
+        &user,
+        &workspace_context,
+        &state,
+        &mut conn,
+    )
+    .await
+}
+
+/// Imports a full config supplied as a JSON document in the request body.
+/// See [`crate::api::config::import`] for the supported `x-import-*` options.
+#[allow(clippy::too_many_arguments)]
+#[authorized]
+#[post("/json/import")]
+async fn import_json_handler(
+    req: HttpRequest,
+    body: Bytes,
+    user: User,
+    custom_headers: CustomHeaders,
+    db_conn: DbConnection,
+    workspace_context: WorkspaceContext,
+    state: Data<AppState>,
+) -> superposition::Result<HttpResponse> {
+    let DbConnection(mut conn) = db_conn;
+    super::import::handle_import::<JsonFormat>(
+        &body,
+        &req,
+        custom_headers,
+        &user,
+        &workspace_context,
+        &state,
+        &mut conn,
+    )
+    .await
 }
 
 #[allow(clippy::too_many_arguments)]

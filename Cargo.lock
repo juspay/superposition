@@ -3784,6 +3784,7 @@ dependencies = [
  "strum_macros 0.25.3",
  "superposition_derives",
  "superposition_types",
+ "toml 0.8.8",
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",

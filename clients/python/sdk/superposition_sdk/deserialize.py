@@ -65,6 +65,8 @@ from .models import (
     GetWebhookByEventOutput,
     GetWebhookOutput,
     GetWorkspaceOutput,
+    ImportConfigJsonOutput,
+    ImportConfigTomlOutput,
     InternalServerError,
     ListAuditLogsOutput,
     ListContextsOutput,
@@ -1541,6 +1543,56 @@ async def _deserialize_error_get_workspace(http_response: HTTPResponse, config: 
 
         case "resourcenotfound":
             return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
+
+        case _:
+            return UnknownApiError(f"{code}: {message}")
+
+async def _deserialize_import_config_json(http_response: HTTPResponse, config: Config) -> ImportConfigJsonOutput:
+    if http_response.status != 200 and http_response.status >= 300:
+        raise await _deserialize_error_import_config_json(http_response, config)
+
+    kwargs: dict[str, Any] = {}
+
+    body = await http_response.consume_body_async()
+    if body:
+        codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+        deserializer = codec.create_deserializer(body)
+        body_kwargs = ImportConfigJsonOutput.deserialize_kwargs(deserializer)
+        kwargs.update(body_kwargs)
+
+    return ImportConfigJsonOutput(**kwargs)
+
+async def _deserialize_error_import_config_json(http_response: HTTPResponse, config: Config) -> ApiError:
+    code, message, parsed_body = await parse_rest_json_error_info(http_response)
+
+    match code.lower():
+        case "internalservererror":
+            return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
+
+        case _:
+            return UnknownApiError(f"{code}: {message}")
+
+async def _deserialize_import_config_toml(http_response: HTTPResponse, config: Config) -> ImportConfigTomlOutput:
+    if http_response.status != 200 and http_response.status >= 300:
+        raise await _deserialize_error_import_config_toml(http_response, config)
+
+    kwargs: dict[str, Any] = {}
+
+    body = await http_response.consume_body_async()
+    if body:
+        codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+        deserializer = codec.create_deserializer(body)
+        body_kwargs = ImportConfigTomlOutput.deserialize_kwargs(deserializer)
+        kwargs.update(body_kwargs)
+
+    return ImportConfigTomlOutput(**kwargs)
+
+async def _deserialize_error_import_config_toml(http_response: HTTPResponse, config: Config) -> ApiError:
+    code, message, parsed_body = await parse_rest_json_error_info(http_response)
+
+    match code.lower():
+        case "internalservererror":
+            return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
 
         case _:
             return UnknownApiError(f"{code}: {message}")

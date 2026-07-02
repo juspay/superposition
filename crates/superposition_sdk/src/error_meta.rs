@@ -1142,6 +1142,48 @@ impl From<crate::operation::get_workspace::GetWorkspaceError> for Error {
         }
     }
 }
+impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::import_config_json::ImportConfigJsonError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
+    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::import_config_json::ImportConfigJsonError, R>) -> Self {
+        match err {
+            ::aws_smithy_runtime_api::client::result::SdkError::ServiceError(context) => Self::from(context.into_err()),
+            _ => Error::Unhandled(
+                                        crate::error::sealed_unhandled::Unhandled {
+                                            meta: ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(&err).clone(),
+                                            source: err.into(),
+                                        }
+                                    ),
+        }
+    }
+}
+impl From<crate::operation::import_config_json::ImportConfigJsonError> for Error {
+    fn from(err: crate::operation::import_config_json::ImportConfigJsonError) -> Self {
+        match err {
+            crate::operation::import_config_json::ImportConfigJsonError::InternalServerError(inner) => Error::InternalServerError(inner),
+            crate::operation::import_config_json::ImportConfigJsonError::Unhandled(inner) => Error::Unhandled(inner),
+        }
+    }
+}
+impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::import_config_toml::ImportConfigTomlError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
+    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::import_config_toml::ImportConfigTomlError, R>) -> Self {
+        match err {
+            ::aws_smithy_runtime_api::client::result::SdkError::ServiceError(context) => Self::from(context.into_err()),
+            _ => Error::Unhandled(
+                                        crate::error::sealed_unhandled::Unhandled {
+                                            meta: ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(&err).clone(),
+                                            source: err.into(),
+                                        }
+                                    ),
+        }
+    }
+}
+impl From<crate::operation::import_config_toml::ImportConfigTomlError> for Error {
+    fn from(err: crate::operation::import_config_toml::ImportConfigTomlError) -> Self {
+        match err {
+            crate::operation::import_config_toml::ImportConfigTomlError::InternalServerError(inner) => Error::InternalServerError(inner),
+            crate::operation::import_config_toml::ImportConfigTomlError::Unhandled(inner) => Error::Unhandled(inner),
+        }
+    }
+}
 impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::list_audit_logs::ListAuditLogsError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
     fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::list_audit_logs::ListAuditLogsError, R>) -> Self {
         match err {

@@ -1,4 +1,5 @@
 use reqwest::header::HeaderMap;
+use serde::Deserialize;
 use serde_json::{Map, Value};
 use superposition_types::{
     Config, PaginatedResponse,
@@ -23,7 +24,8 @@ use superposition_types::{
 };
 
 use crate::utils::{
-    construct_request_headers, parse_json_response, request, use_host_server,
+    construct_request_headers, parse_json_response, request, request_raw_body,
+    use_host_server,
 };
 
 pub mod casbin {
@@ -559,6 +561,185 @@ pub async fn fetch_config(
     .await?;
 
     parse_json_response(response).await
+}
+
+pub mod config_import {
+    use super::*;
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub enum ImportFormat {
+        Json,
+        Toml,
+    }
+
+    impl ImportFormat {
+        pub fn from_file_name(file_name: &str) -> Self {
+            if file_name.to_lowercase().ends_with(".json") {
+                Self::Json
+            } else {
+                Self::Toml
+            }
+        }
+
+        fn content_type(&self) -> &'static str {
+            match self {
+                Self::Json => "application/json",
+                Self::Toml => "application/toml",
+            }
+        }
+
+        fn path_segment(&self) -> &'static str {
+            match self {
+                Self::Json => "json",
+                Self::Toml => "toml",
+            }
+        }
+    }
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub enum ImportStrategy {
+        CreateOnly,
+        Upsert,
+        Replace,
+    }
+
+    impl ImportStrategy {
+        pub fn as_str(&self) -> &'static str {
+            match self {
+                Self::CreateOnly => "create_only",
+                Self::Upsert => "upsert",
+                Self::Replace => "replace",
+            }
+        }
+    }
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub enum ImportOnError {
+        Abort,
+        Continue,
+    }
+
+    impl ImportOnError {
+        fn as_str(&self) -> &'static str {
+            match self {
+                Self::Abort => "abort",
+                Self::Continue => "continue",
+            }
+        }
+    }
+
+    #[derive(Clone, Debug)]
+    pub struct ImportOptions {
+        pub strategy: ImportStrategy,
+        pub on_error: ImportOnError,
+        pub dry_run: bool,
+        pub config_tags: String,
+    }
+
+    #[derive(Clone, Debug, Default, Deserialize, PartialEq)]
+    pub struct ImportErrorItem {
+        pub id: String,
+        pub message: String,
+    }
+
+    #[derive(Clone, Debug, Default, Deserialize, PartialEq)]
+    pub struct ImportEntityReport {
+        pub created: usize,
+        pub updated: usize,
+        pub skipped: usize,
+        pub deleted: usize,
+        #[serde(default)]
+        pub errors: Vec<ImportErrorItem>,
+    }
+
+    impl ImportEntityReport {
+        pub fn total(&self) -> usize {
+            self.created + self.updated + self.skipped + self.deleted
+        }
+    }
+
+    #[derive(Clone, Debug, Default, Deserialize, PartialEq)]
+    pub struct ImportSummary {
+        pub strategy: String,
+        pub dry_run: bool,
+        pub config_version: Option<String>,
+        pub dimensions: ImportEntityReport,
+        pub default_configs: ImportEntityReport,
+        pub contexts: ImportEntityReport,
+    }
+
+    impl ImportSummary {
+        pub fn total_changes(&self) -> usize {
+            self.dimensions.total() + self.default_configs.total() + self.contexts.total()
+        }
+
+        pub fn total_deleted(&self) -> usize {
+            self.dimensions.deleted + self.default_configs.deleted + self.contexts.deleted
+        }
+
+        pub fn total_errors(&self) -> usize {
+            self.dimensions.errors.len()
+                + self.default_configs.errors.len()
+                + self.contexts.errors.len()
+        }
+    }
+
+    pub async fn import_config(
+        file_text: String,
+        format: ImportFormat,
+        options: ImportOptions,
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<ImportSummary, String> {
+        let host = use_host_server();
+        let url = format!("{host}/config/{}/import", format.path_segment());
+        let dry_run = options.dry_run.to_string();
+        let config_tags = options.config_tags.trim().to_string();
+        let mut header_entries = vec![
+            ("x-workspace", workspace),
+            ("x-org-id", org_id),
+            ("Content-Type", format.content_type()),
+            ("x-import-strategy", options.strategy.as_str()),
+            ("x-import-on-error", options.on_error.as_str()),
+            ("x-import-dry-run", dry_run.as_str()),
+        ];
+
+        if !config_tags.is_empty() {
+            header_entries.push(("x-config-tags", config_tags.as_str()));
+        }
+
+        let response = request_raw_body(
+            url,
+            reqwest::Method::POST,
+            file_text,
+            construct_request_headers(&header_entries)?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    pub async fn export_config(
+        format: ImportFormat,
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<String, String> {
+        let host = use_host_server();
+        let url = format!("{host}/config/{}", format.path_segment());
+
+        let response = request(
+            url,
+            reqwest::Method::GET,
+            None::<()>,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
+        )
+        .await?;
+
+        response.text().await.map_err(|err| err.to_string())
+    }
 }
 
 pub async fn fetch_context(

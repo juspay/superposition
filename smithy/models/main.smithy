@@ -30,6 +30,10 @@ service Superposition {
         Secret
         MasterKey
     ]
+    operations: [
+        ImportConfigToml
+        ImportConfigJson
+    ]
     errors: [
         InternalServerError
     ]
