@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.44.0 - 2026-07-02
+#### Features
+- kronos implementation (#1001) - (417a557) - Ankit Kumar Mahato
+- dynamic log level capabilities (#1030) - (680f07d) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.114.0 [skip ci] - (5727fec) - Superposition Bot
+
+- - -
+
 ## service_utils-v0.43.0 - 2026-06-29
 #### Bug Fixes
 - **(oidc)** fall back to email when preferred_username is missing (#1067) - (a2a7acd) - sauraww

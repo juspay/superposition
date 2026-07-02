@@ -2,6 +2,22 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.115.0 - 2026-07-02
+### Package updates
+- service_utils bumped to service_utils-v0.44.0
+- frontend bumped to frontend-v0.56.0
+- superposition_types bumped to superposition_types-v0.49.0
+### Global changes
+#### Features
+- dynamic log level capabilities (#1030) - (680f07d) - Datron
+- kronos implementation (#1001) - (417a557) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(algolia)** update algolia key (#1071) - (236f621) - Datron
+- **(deps)** bump opentelemetry_sdk from 0.32.0 to 0.32.1 (#1068) - (15a30c4) - dependabot[bot]
+- **(version)** v0.114.0 [skip ci] - (5727fec) - Superposition Bot
+
+- - -
+
 ## v0.114.0 - 2026-06-29
 ### Package updates
 - superposition_provider bumped to superposition_provider-v0.9.4

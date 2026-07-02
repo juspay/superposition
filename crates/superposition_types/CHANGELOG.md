@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.49.0 - 2026-07-02
+#### Features
+- kronos implementation (#1001) - (417a557) - Ankit Kumar Mahato
+- dynamic log level capabilities (#1030) - (680f07d) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.114.0 [skip ci] - (5727fec) - Superposition Bot
+
+- - -
+
 ## superposition_types-v0.48.1 - 2026-06-29
 #### Bug Fixes
 - add description field to SuperTOML/JSON dimension and default-config export (#1037) - (f255be9) - Natarajan Kannan

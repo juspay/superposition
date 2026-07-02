@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.56.0 - 2026-07-02
+#### Features
+- kronos implementation (#1001) - (417a557) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(version)** v0.111.0 [skip ci] - (d78c5d3) - Superposition Bot
+
+- - -
+
 ## frontend-v0.55.0 - 2026-06-08
 #### Features
 - Move create, edit, clone and view overrides into a new page (#974) - (a7f074d) - Datron
