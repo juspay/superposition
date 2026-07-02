@@ -6,56 +6,56 @@
                     pub(crate) runtime_plugins: ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugins,
                 }
 
-                
-/// 
+
+///
 /// An ergonomic client for Superposition.
-/// 
+///
 /// This client allows ergonomic access to Superposition.
 /// Each method corresponds to an API defined in the service's Smithy model,
 /// and the request and response shapes are auto-generated from that same model.
-/// 
+///
 /// Client for calling Superposition.
-/// 
+///
 /// ## Constructing a `Client`
-/// 
+///
 /// A `Client` requires a config in order to be constructed. With the default set of Cargo features,
 /// this config will only require an endpoint to produce a functioning client. However, some Smithy
 /// features will require additional configuration. For example, `@auth` requires some kind of identity
 /// or identity resolver to be configured. The config is used to customize various aspects of the client,
 /// such as:
-/// 
+///
 ///   - [The underlying HTTP client](crate::config::Builder::http_client)
 ///   - [Retries](crate::config::Builder::retry_config)
 ///   - [Timeouts](crate::config::Builder::timeout_config)
 ///   - [... and more](crate::config::Builder)
-/// 
+///
 /// Below is a minimal example of how to create a client:
-/// 
+///
 /// ```rust,no_run
 /// let config = superposition_sdk::Config::builder()
 ///     .endpoint_url("http://localhost:1234")
 ///     .build();
 /// let client = superposition_sdk::Client::from_conf(config);
 /// ```
-/// 
+///
 /// _Note:_ Client construction is expensive due to connection thread pool initialization, and should be done
 /// once at application start-up. Cloning a client is cheap (it's just an [`Arc`](std::sync::Arc) under the hood),
 /// so creating it once at start-up and cloning it around the application as needed is recommended.
 /// # Using the `Client`
-/// 
+///
 /// A client has a function for every operation that can be performed by the service.
 /// For example, the [`AddMembersToGroup`](crate::operation::add_members_to_group) operation has
 /// a [`Client::add_members_to_group`], function which returns a builder for that operation.
 /// The fluent builder ultimately has a `send()` function that returns an async future that
 /// returns a result, as illustrated below:
-/// 
+///
 /// ```rust,ignore
 /// let result = client.add_members_to_group()
 ///     .workspace_id("example")
 ///     .send()
 ///     .await;
 /// ```
-/// 
+///
 /// The underlying HTTP requests that get made by this can be modified with the `customize_operation`
 /// function on the fluent builder. See the [`customize`](crate::client::customize) module for more
 /// information.
@@ -137,16 +137,16 @@ mod create_webhook;
 mod create_workspace;
 
 /// Operation customization and supporting types.
-/// 
+///
 /// The underlying HTTP requests made during an operation can be customized
 /// by calling the `customize()` method on the builder returned from a client
 /// operation call. For example, this can be used to add an additional HTTP header:
-/// 
+///
 /// ```ignore
 /// # async fn wrapper() -> ::std::result::Result<(), superposition_sdk::Error> {
 /// # let client: superposition_sdk::Client = unimplemented!();
-/// use ::http::header::{HeaderName, HeaderValue};
-/// 
+/// use ::http_1x::header::{HeaderName, HeaderValue};
+///
 /// let result = client.add_members_to_group()
 ///     .customize()
 ///     .mutate_request(|req| {

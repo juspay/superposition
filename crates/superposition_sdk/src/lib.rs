@@ -12,36 +12,40 @@
 #![allow(clippy::derive_partial_eq_without_eq)]
 #![allow(clippy::result_large_err)]
 #![allow(clippy::unnecessary_map_on_constructor)]
+#![allow(clippy::useless_conversion)]
+#![allow(clippy::deprecated_semver)]
 #![allow(rustdoc::bare_urls)]
 #![allow(rustdoc::redundant_explicit_links)]
+#![allow(rustdoc::broken_intra_doc_links)]
+#![allow(rustdoc::invalid_html_tags)]
 
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 //! superposition_sdk
-//! 
+//!
 //! # Crate Organization
-//! 
+//!
 //! The entry point for most customers will be [`Client`], which exposes one method for each API
 //! offered by Superposition. The return value of each of these methods is a "fluent builder",
 //! where the different inputs for that API are added by builder-style function call chaining,
 //! followed by calling `send()` to get a [`Future`](std::future::Future) that will result in
 //! either a successful output or a [`SdkError`](crate::error::SdkError).
-//! 
+//!
 //! Some of these API inputs may be structs or enums to provide more complex structured information.
 //! These structs and enums live in [`types`](crate::types). There are some simpler types for
 //! representing data such as date times or binary blobs that live in [`primitives`](crate::primitives).
-//! 
+//!
 //! All types required to configure a client via the [`Config`](crate::Config) struct live
 //! in [`config`](crate::config).
-//! 
+//!
 //! The [`operation`](crate::operation) module has a submodule for every API, and in each submodule
 //! is the input, output, and error type for that API, as well as builders to construct each of those.
-//! 
+//!
 //! There is a top-level [`Error`](crate::Error) type that encompasses all the errors that the
 //! client can return. Any other error type can be converted to this `Error` type via the
 //! [`From`](std::convert::From) trait.
-//! 
+//!
 //! The other modules within this crate are not required for normal usage.
 
 
@@ -52,47 +56,47 @@ pub use error_meta::Error;
 pub use config::Config;
 
 /// Client for calling Superposition.
-/// 
+///
 /// ## Constructing a `Client`
-/// 
+///
 /// A `Client` requires a config in order to be constructed. With the default set of Cargo features,
 /// this config will only require an endpoint to produce a functioning client. However, some Smithy
 /// features will require additional configuration. For example, `@auth` requires some kind of identity
 /// or identity resolver to be configured. The config is used to customize various aspects of the client,
 /// such as:
-/// 
+///
 ///   - [The underlying HTTP client](crate::config::Builder::http_client)
 ///   - [Retries](crate::config::Builder::retry_config)
 ///   - [Timeouts](crate::config::Builder::timeout_config)
 ///   - [... and more](crate::config::Builder)
-/// 
+///
 /// Below is a minimal example of how to create a client:
-/// 
+///
 /// ```rust,no_run
 /// let config = superposition_sdk::Config::builder()
 ///     .endpoint_url("http://localhost:1234")
 ///     .build();
 /// let client = superposition_sdk::Client::from_conf(config);
 /// ```
-/// 
+///
 /// _Note:_ Client construction is expensive due to connection thread pool initialization, and should be done
 /// once at application start-up. Cloning a client is cheap (it's just an [`Arc`](std::sync::Arc) under the hood),
 /// so creating it once at start-up and cloning it around the application as needed is recommended.
 /// # Using the `Client`
-/// 
+///
 /// A client has a function for every operation that can be performed by the service.
 /// For example, the [`AddMembersToGroup`](crate::operation::add_members_to_group) operation has
 /// a [`Client::add_members_to_group`], function which returns a builder for that operation.
 /// The fluent builder ultimately has a `send()` function that returns an async future that
 /// returns a result, as illustrated below:
-/// 
+///
 /// ```rust,ignore
 /// let result = client.add_members_to_group()
 ///     .workspace_id("example")
 ///     .send()
 ///     .await;
 /// ```
-/// 
+///
 /// The underlying HTTP requests that get made by this can be modified with the `customize_operation`
 /// function on the fluent builder. See the [`customize`](crate::client::customize) module for more
 /// information.
@@ -114,8 +118,6 @@ pub mod primitives;
 
 /// Data structures used by operation inputs/outputs.
 pub mod types;
-
-mod auth_plugin;
 
 /// All operations that this crate can perform.
 pub mod operation;

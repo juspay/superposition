@@ -80,7 +80,7 @@ impl  ListExperimentGroupsInput  {
         self.sort_by.as_ref()
     }
     /// Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.group_type.is_none()`.
     pub fn group_type(&self) -> &[crate::types::GroupType] {
         self.group_type.as_deref()

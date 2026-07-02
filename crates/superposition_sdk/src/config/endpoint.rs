@@ -5,9 +5,9 @@ pub use ::aws_smithy_runtime_api::client::endpoint::SharedEndpointResolver;
 
 #[cfg(test)]
 mod test {
-    
-    
-    
+
+
+
 }
 
 /// Endpoint resolver trait specific to Superposition
@@ -39,6 +39,7 @@ mod test {
                     };
                     ep
                 }
+
             }
 
 #[non_exhaustive]
@@ -67,23 +68,41 @@ impl ParamsBuilder {
 }
 
 /// An error that occurred during endpoint resolution
-                #[derive(Debug)]
-                pub struct InvalidParams {
-                    field: std::borrow::Cow<'static, str>
-                }
-
-                impl InvalidParams {
-                    #[allow(dead_code)]
-                    fn missing(field: &'static str) -> Self {
-                        Self { field: field.into() }
+                    #[derive(Debug)]
+                    pub struct InvalidParams {
+                        field: std::borrow::Cow<'static, str>,
+                        kind: InvalidParamsErrorKind,
                     }
-                }
 
-                impl std::fmt::Display for InvalidParams {
-                    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                        write!(f, "a required field was missing: `{}`", self.field)
+                    /// The kind of invalid parameter error
+                    #[derive(Debug)]
+                    enum InvalidParamsErrorKind {
+                        MissingField,
+                        InvalidValue {
+                            message: &'static str,
+                        }
                     }
-                }
 
-                impl std::error::Error for InvalidParams { }
+                    impl InvalidParams {
+                        #[allow(dead_code)]
+                        fn missing(field: &'static str) -> Self {
+                            Self { field: field.into(), kind: InvalidParamsErrorKind::MissingField }
+                        }
+
+                        #[allow(dead_code)]
+                        fn invalid_value(field: &'static str, message: &'static str) -> Self {
+                            Self { field: field.into(), kind: InvalidParamsErrorKind::InvalidValue { message }}
+                        }
+                    }
+
+                    impl std::fmt::Display for InvalidParams {
+                        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                            match self.kind {
+                                InvalidParamsErrorKind::MissingField => write!(f, "a required field was missing: `{}`", self.field),
+                                InvalidParamsErrorKind::InvalidValue { message} => write!(f, "invalid value for field: `{}` - {}", self.field, message),
+                            }
+                        }
+                    }
+
+                    impl std::error::Error for InvalidParams { }
 

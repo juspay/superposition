@@ -46,21 +46,21 @@ impl  ListSecretsInput  {
         self.org_id.as_deref()
     }
     /// Filter by secret name.
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.name.is_none()`.
     pub fn name(&self) -> &[::std::string::String] {
         self.name.as_deref()
         .unwrap_or_default()
     }
     /// Filter by the user who created the secret.
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.created_by.is_none()`.
     pub fn created_by(&self) -> &[::std::string::String] {
         self.created_by.as_deref()
         .unwrap_or_default()
     }
     /// Filter by the user who last modified the secret.
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.last_modified_by.is_none()`.
     pub fn last_modified_by(&self) -> &[::std::string::String] {
         self.last_modified_by.as_deref()

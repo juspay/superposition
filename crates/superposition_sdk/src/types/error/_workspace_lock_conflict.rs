@@ -82,7 +82,7 @@ impl WorkspaceLockConflictBuilder {
                                                     self.meta = Some(meta);
                                                     self
                                                 }
-    
+
                                                 /// Sets error metadata
                                                 pub fn set_meta(&mut self, meta: std::option::Option<::aws_smithy_types::error::ErrorMetadata>) -> &mut Self {
                                                     self.meta = meta;

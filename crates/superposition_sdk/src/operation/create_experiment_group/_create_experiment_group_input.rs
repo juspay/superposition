@@ -51,7 +51,7 @@ impl  CreateExperimentGroupInput  {
         self.traffic_percentage
     }
     /// List of experiment IDs that are members of this group.
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.member_experiment_ids.is_none()`.
     pub fn member_experiment_ids(&self) -> &[::std::string::String] {
         self.member_experiment_ids.as_deref()
