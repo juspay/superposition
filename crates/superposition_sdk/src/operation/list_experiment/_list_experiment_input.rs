@@ -70,7 +70,7 @@ impl  ListExperimentInput  {
         self.if_modified_since.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.status.is_none()`.
     pub fn status(&self) -> &[crate::types::ExperimentStatusType] {
         self.status.as_deref()
@@ -89,21 +89,21 @@ impl  ListExperimentInput  {
         self.experiment_name.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.experiment_ids.is_none()`.
     pub fn experiment_ids(&self) -> &[::std::string::String] {
         self.experiment_ids.as_deref()
         .unwrap_or_default()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.experiment_group_ids.is_none()`.
     pub fn experiment_group_ids(&self) -> &[::std::string::String] {
         self.experiment_group_ids.as_deref()
         .unwrap_or_default()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.created_by.is_none()`.
     pub fn created_by(&self) -> &[::std::string::String] {
         self.created_by.as_deref()
@@ -130,7 +130,7 @@ impl  ListExperimentInput  {
         self.dimension_params.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.prefix.is_none()`.
     pub fn prefix(&self) -> &[::std::string::String] {
         self.prefix.as_deref()

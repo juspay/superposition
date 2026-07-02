@@ -401,7 +401,7 @@ jobs:
             - name: Install Smithy CLI
               run: |
                   mkdir -p smithy-install/smithy && \
-                    curl -L https://github.com/smithy-lang/smithy/releases/download/1.55.0/smithy-cli-linux-x86_64.zip -o smithy-install/smithy-cli-linux-x86_64.zip && \
+                    curl -L https://github.com/smithy-lang/smithy/releases/download/1.69.0/smithy-cli-linux-x86_64.zip -o smithy-install/smithy-cli-linux-x86_64.zip && \
                     unzip -qo smithy-install/smithy-cli-linux-x86_64.zip -d smithy-install && \
                     mv smithy-install/smithy-cli-linux-x86_64/* smithy-install/smithy/ && \
                     rm -rf smithy-install/smithy-cli-linux-x86_64.zip

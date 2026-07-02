@@ -8,7 +8,7 @@ pub fn de_get_workspace_http_error(_response_status: u16, _response_headers: &::
                                 Some(code) => code,
                                 None => return Err(crate::operation::get_workspace::GetWorkspaceError::unhandled(generic))
                             };
-    
+
                             let _error_message = generic.message().map(|msg|msg.to_owned());
     Err(match error_code {
         "ResourceNotFound" => crate::operation::get_workspace::GetWorkspaceError::ResourceNotFound({
@@ -59,12 +59,12 @@ pub fn de_get_workspace_http_response(_response_status: u16, _response_headers: 
 
 pub fn ser_get_workspace_headers(
                     input: &crate::operation::get_workspace::GetWorkspaceInput,
-                    mut builder: ::http::request::Builder
-                ) -> std::result::Result<::http::request::Builder, ::aws_smithy_types::error::operation::BuildError> {
+                    mut builder: ::http_1x::request::Builder
+                ) -> std::result::Result<::http_1x::request::Builder, ::aws_smithy_types::error::operation::BuildError> {
     if let ::std::option::Option::Some(inner_1) = &input.org_id {
         let formatted_2 = inner_1.as_str();
         let header_value = formatted_2;
-                            let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
+                            let header_value: ::http_1x::HeaderValue = header_value.parse().map_err(|err| {
                                 ::aws_smithy_types::error::operation::BuildError::invalid_field("org_id", format!(
                                 "`{}` cannot be used as a header value: {}",
                                 &header_value,
@@ -76,9 +76,11 @@ pub fn ser_get_workspace_headers(
     Ok(builder)
 }
 
-pub(crate) fn de_get_workspace(value: &[u8], mut builder: crate::operation::get_workspace::builders::GetWorkspaceOutputBuilder) -> ::std::result::Result<crate::operation::get_workspace::builders::GetWorkspaceOutputBuilder, ::aws_smithy_json::deserialize::error::DeserializeError> {
-    let mut tokens_owned = ::aws_smithy_json::deserialize::json_token_iter(crate::protocol_serde::or_empty_doc(value)).peekable();
+pub(crate) fn de_get_workspace(_value: &[u8], mut builder: crate::operation::get_workspace::builders::GetWorkspaceOutputBuilder) -> ::std::result::Result<crate::operation::get_workspace::builders::GetWorkspaceOutputBuilder, ::aws_smithy_json::deserialize::error::DeserializeError> {
+    let mut tokens_owned = ::aws_smithy_json::deserialize::json_token_iter(crate::protocol_serde::or_empty_doc(_value)).peekable();
                         let tokens = &mut tokens_owned;
+                        #[allow(unused_variables)]
+                        let depth = 0u32;
                         ::aws_smithy_json::deserialize::token::expect_start_object(tokens.next())?;
     loop {
         match tokens.next().transpose()? {
@@ -144,7 +146,7 @@ pub(crate) fn de_get_workspace(value: &[u8], mut builder: crate::operation::get_
                     }
                     "mandatory_dimensions" => {
                         builder = builder.set_mandatory_dimensions(
-                            crate::protocol_serde::shape_list_mandatory_dimensions::de_list_mandatory_dimensions(tokens)?
+                            crate::protocol_serde::shape_list_mandatory_dimensions::de_list_mandatory_dimensions(tokens, _value, depth + 1)?
                         );
                     }
                     "metrics" => {
@@ -181,7 +183,7 @@ pub(crate) fn de_get_workspace(value: &[u8], mut builder: crate::operation::get_
                     }
                     "workspace_lock" => {
                         builder = builder.set_workspace_lock(
-                            crate::protocol_serde::shape_workspace_lock::de_workspace_lock(tokens)?
+                            crate::protocol_serde::shape_workspace_lock::de_workspace_lock(tokens, _value, depth + 1)?
                         );
                     }
                     "workspace_name" => {
@@ -214,7 +216,7 @@ pub(crate) fn de_get_workspace(value: &[u8], mut builder: crate::operation::get_
                     _ => ::aws_smithy_json::deserialize::token::skip_value(tokens)?
                 }
             }
-            other => return Err(::aws_smithy_json::deserialize::error::DeserializeError::custom(format!("expected object key or end object, found: {:?}", other)))
+            other => return Err(::aws_smithy_json::deserialize::error::DeserializeError::custom(format!("expected object key or end object, found: {other:?}")))
         }
     }
     if tokens.next().is_some() {

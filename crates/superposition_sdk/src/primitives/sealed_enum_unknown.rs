@@ -2,7 +2,7 @@
 
 /// Opaque struct used as inner data for the `Unknown` variant defined in enums in
 /// the crate.
-/// 
+///
 /// This is not intended to be used directly.
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::Eq, ::std::cmp::Ord, ::std::cmp::PartialEq, ::std::cmp::PartialOrd, ::std::fmt::Debug, ::std::hash::Hash)]

@@ -8,7 +8,7 @@ pub fn de_create_function_http_error(_response_status: u16, _response_headers: &
                                 Some(code) => code,
                                 None => return Err(crate::operation::create_function::CreateFunctionError::unhandled(generic))
                             };
-    
+
                             let _error_message = generic.message().map(|msg|msg.to_owned());
     Err(match error_code {
         "InternalServerError" => crate::operation::create_function::CreateFunctionError::InternalServerError({
@@ -43,12 +43,12 @@ pub fn de_create_function_http_response(_response_status: u16, _response_headers
 
 pub fn ser_create_function_headers(
                     input: &crate::operation::create_function::CreateFunctionInput,
-                    mut builder: ::http::request::Builder
-                ) -> std::result::Result<::http::request::Builder, ::aws_smithy_types::error::operation::BuildError> {
+                    mut builder: ::http_1x::request::Builder
+                ) -> std::result::Result<::http_1x::request::Builder, ::aws_smithy_types::error::operation::BuildError> {
     if let ::std::option::Option::Some(inner_1) = &input.workspace_id {
         let formatted_2 = inner_1.as_str();
         let header_value = formatted_2;
-                            let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
+                            let header_value: ::http_1x::HeaderValue = header_value.parse().map_err(|err| {
                                 ::aws_smithy_types::error::operation::BuildError::invalid_field("workspace_id", format!(
                                 "`{}` cannot be used as a header value: {}",
                                 &header_value,
@@ -60,7 +60,7 @@ pub fn ser_create_function_headers(
     if let ::std::option::Option::Some(inner_3) = &input.org_id {
         let formatted_4 = inner_3.as_str();
         let header_value = formatted_4;
-                            let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
+                            let header_value: ::http_1x::HeaderValue = header_value.parse().map_err(|err| {
                                 ::aws_smithy_types::error::operation::BuildError::invalid_field("org_id", format!(
                                 "`{}` cannot be used as a header value: {}",
                                 &header_value,
@@ -80,9 +80,11 @@ pub fn ser_create_function_input(input: &crate::operation::create_function::Crea
     Ok(::aws_smithy_types::body::SdkBody::from(out))
 }
 
-pub(crate) fn de_create_function(value: &[u8], mut builder: crate::operation::create_function::builders::CreateFunctionOutputBuilder) -> ::std::result::Result<crate::operation::create_function::builders::CreateFunctionOutputBuilder, ::aws_smithy_json::deserialize::error::DeserializeError> {
-    let mut tokens_owned = ::aws_smithy_json::deserialize::json_token_iter(crate::protocol_serde::or_empty_doc(value)).peekable();
+pub(crate) fn de_create_function(_value: &[u8], mut builder: crate::operation::create_function::builders::CreateFunctionOutputBuilder) -> ::std::result::Result<crate::operation::create_function::builders::CreateFunctionOutputBuilder, ::aws_smithy_json::deserialize::error::DeserializeError> {
+    let mut tokens_owned = ::aws_smithy_json::deserialize::json_token_iter(crate::protocol_serde::or_empty_doc(_value)).peekable();
                         let tokens = &mut tokens_owned;
+                        #[allow(unused_variables)]
+                        let depth = 0u32;
                         ::aws_smithy_json::deserialize::token::expect_start_object(tokens.next())?;
     loop {
         match tokens.next().transpose()? {
@@ -206,7 +208,7 @@ pub(crate) fn de_create_function(value: &[u8], mut builder: crate::operation::cr
                     _ => ::aws_smithy_json::deserialize::token::skip_value(tokens)?
                 }
             }
-            other => return Err(::aws_smithy_json::deserialize::error::DeserializeError::custom(format!("expected object key or end object, found: {:?}", other)))
+            other => return Err(::aws_smithy_json::deserialize::error::DeserializeError::custom(format!("expected object key or end object, found: {other:?}")))
         }
     }
     if tokens.next().is_some() {

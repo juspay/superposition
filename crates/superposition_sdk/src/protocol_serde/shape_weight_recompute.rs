@@ -8,7 +8,7 @@ pub fn de_weight_recompute_http_error(_response_status: u16, _response_headers: 
                                 Some(code) => code,
                                 None => return Err(crate::operation::weight_recompute::WeightRecomputeError::unhandled(generic))
                             };
-    
+
                             let _error_message = generic.message().map(|msg|msg.to_owned());
     Err(match error_code {
         "WebhookFailed" => crate::operation::weight_recompute::WeightRecomputeError::WebhookFailed({
@@ -59,12 +59,12 @@ pub fn de_weight_recompute_http_response(_response_status: u16, _response_header
 
 pub fn ser_weight_recompute_headers(
                     input: &crate::operation::weight_recompute::WeightRecomputeInput,
-                    mut builder: ::http::request::Builder
-                ) -> std::result::Result<::http::request::Builder, ::aws_smithy_types::error::operation::BuildError> {
+                    mut builder: ::http_1x::request::Builder
+                ) -> std::result::Result<::http_1x::request::Builder, ::aws_smithy_types::error::operation::BuildError> {
     if let ::std::option::Option::Some(inner_1) = &input.workspace_id {
         let formatted_2 = inner_1.as_str();
         let header_value = formatted_2;
-                            let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
+                            let header_value: ::http_1x::HeaderValue = header_value.parse().map_err(|err| {
                                 ::aws_smithy_types::error::operation::BuildError::invalid_field("workspace_id", format!(
                                 "`{}` cannot be used as a header value: {}",
                                 &header_value,
@@ -76,7 +76,7 @@ pub fn ser_weight_recompute_headers(
     if let ::std::option::Option::Some(inner_3) = &input.org_id {
         let formatted_4 = inner_3.as_str();
         let header_value = formatted_4;
-                            let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
+                            let header_value: ::http_1x::HeaderValue = header_value.parse().map_err(|err| {
                                 ::aws_smithy_types::error::operation::BuildError::invalid_field("org_id", format!(
                                 "`{}` cannot be used as a header value: {}",
                                 &header_value,
@@ -88,7 +88,7 @@ pub fn ser_weight_recompute_headers(
     if let ::std::option::Option::Some(inner_5) = &input.config_tags {
         let formatted_6 = inner_5.as_str();
         let header_value = formatted_6;
-                            let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
+                            let header_value: ::http_1x::HeaderValue = header_value.parse().map_err(|err| {
                                 ::aws_smithy_types::error::operation::BuildError::invalid_field("config_tags", format!(
                                 "`{}` cannot be used as a header value: {}",
                                 &header_value,
@@ -100,9 +100,11 @@ pub fn ser_weight_recompute_headers(
     Ok(builder)
 }
 
-pub(crate) fn de_weight_recompute(value: &[u8], mut builder: crate::operation::weight_recompute::builders::WeightRecomputeOutputBuilder) -> ::std::result::Result<crate::operation::weight_recompute::builders::WeightRecomputeOutputBuilder, ::aws_smithy_json::deserialize::error::DeserializeError> {
-    let mut tokens_owned = ::aws_smithy_json::deserialize::json_token_iter(crate::protocol_serde::or_empty_doc(value)).peekable();
+pub(crate) fn de_weight_recompute(_value: &[u8], mut builder: crate::operation::weight_recompute::builders::WeightRecomputeOutputBuilder) -> ::std::result::Result<crate::operation::weight_recompute::builders::WeightRecomputeOutputBuilder, ::aws_smithy_json::deserialize::error::DeserializeError> {
+    let mut tokens_owned = ::aws_smithy_json::deserialize::json_token_iter(crate::protocol_serde::or_empty_doc(_value)).peekable();
                         let tokens = &mut tokens_owned;
+                        #[allow(unused_variables)]
+                        let depth = 0u32;
                         ::aws_smithy_json::deserialize::token::expect_start_object(tokens.next())?;
     loop {
         match tokens.next().transpose()? {
@@ -111,13 +113,13 @@ pub(crate) fn de_weight_recompute(value: &[u8], mut builder: crate::operation::w
                 match key.to_unescaped()?.as_ref() {
                     "data" => {
                         builder = builder.set_data(
-                            crate::protocol_serde::shape_weight_recompute_responses::de_weight_recompute_responses(tokens)?
+                            crate::protocol_serde::shape_weight_recompute_responses::de_weight_recompute_responses(tokens, _value, depth + 1)?
                         );
                     }
                     _ => ::aws_smithy_json::deserialize::token::skip_value(tokens)?
                 }
             }
-            other => return Err(::aws_smithy_json::deserialize::error::DeserializeError::custom(format!("expected object key or end object, found: {:?}", other)))
+            other => return Err(::aws_smithy_json::deserialize::error::DeserializeError::custom(format!("expected object key or end object, found: {other:?}")))
         }
     }
     if tokens.next().is_some() {

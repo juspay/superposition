@@ -8,7 +8,7 @@ pub fn de_create_organisation_http_error(_response_status: u16, _response_header
                                 Some(code) => code,
                                 None => return Err(crate::operation::create_organisation::CreateOrganisationError::unhandled(generic))
                             };
-    
+
                             let _error_message = generic.message().map(|msg|msg.to_owned());
     Err(match error_code {
         "InternalServerError" => crate::operation::create_organisation::CreateOrganisationError::InternalServerError({
@@ -49,9 +49,11 @@ pub fn ser_create_organisation_input(input: &crate::operation::create_organisati
     Ok(::aws_smithy_types::body::SdkBody::from(out))
 }
 
-pub(crate) fn de_create_organisation(value: &[u8], mut builder: crate::operation::create_organisation::builders::CreateOrganisationOutputBuilder) -> ::std::result::Result<crate::operation::create_organisation::builders::CreateOrganisationOutputBuilder, ::aws_smithy_json::deserialize::error::DeserializeError> {
-    let mut tokens_owned = ::aws_smithy_json::deserialize::json_token_iter(crate::protocol_serde::or_empty_doc(value)).peekable();
+pub(crate) fn de_create_organisation(_value: &[u8], mut builder: crate::operation::create_organisation::builders::CreateOrganisationOutputBuilder) -> ::std::result::Result<crate::operation::create_organisation::builders::CreateOrganisationOutputBuilder, ::aws_smithy_json::deserialize::error::DeserializeError> {
+    let mut tokens_owned = ::aws_smithy_json::deserialize::json_token_iter(crate::protocol_serde::or_empty_doc(_value)).peekable();
                         let tokens = &mut tokens_owned;
+                        #[allow(unused_variables)]
+                        let depth = 0u32;
                         ::aws_smithy_json::deserialize::token::expect_start_object(tokens.next())?;
     loop {
         match tokens.next().transpose()? {
@@ -161,7 +163,7 @@ pub(crate) fn de_create_organisation(value: &[u8], mut builder: crate::operation
                     _ => ::aws_smithy_json::deserialize::token::skip_value(tokens)?
                 }
             }
-            other => return Err(::aws_smithy_json::deserialize::error::DeserializeError::custom(format!("expected object key or end object, found: {:?}", other)))
+            other => return Err(::aws_smithy_json::deserialize::error::DeserializeError::custom(format!("expected object key or end object, found: {other:?}")))
         }
     }
     if tokens.next().is_some() {

@@ -8,7 +8,7 @@ pub fn de_rotate_master_encryption_key_http_error(_response_status: u16, _respon
                                 Some(code) => code,
                                 None => return Err(crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyError::unhandled(generic))
                             };
-    
+
                             let _error_message = generic.message().map(|msg|msg.to_owned());
     Err(match error_code {
         "InternalServerError" => crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyError::InternalServerError({
@@ -41,9 +41,11 @@ pub fn de_rotate_master_encryption_key_http_response(_response_status: u16, _res
     })
 }
 
-pub(crate) fn de_rotate_master_encryption_key(value: &[u8], mut builder: crate::operation::rotate_master_encryption_key::builders::RotateMasterEncryptionKeyOutputBuilder) -> ::std::result::Result<crate::operation::rotate_master_encryption_key::builders::RotateMasterEncryptionKeyOutputBuilder, ::aws_smithy_json::deserialize::error::DeserializeError> {
-    let mut tokens_owned = ::aws_smithy_json::deserialize::json_token_iter(crate::protocol_serde::or_empty_doc(value)).peekable();
+pub(crate) fn de_rotate_master_encryption_key(_value: &[u8], mut builder: crate::operation::rotate_master_encryption_key::builders::RotateMasterEncryptionKeyOutputBuilder) -> ::std::result::Result<crate::operation::rotate_master_encryption_key::builders::RotateMasterEncryptionKeyOutputBuilder, ::aws_smithy_json::deserialize::error::DeserializeError> {
+    let mut tokens_owned = ::aws_smithy_json::deserialize::json_token_iter(crate::protocol_serde::or_empty_doc(_value)).peekable();
                         let tokens = &mut tokens_owned;
+                        #[allow(unused_variables)]
+                        let depth = 0u32;
                         ::aws_smithy_json::deserialize::token::expect_start_object(tokens.next())?;
     loop {
         match tokens.next().transpose()? {
@@ -67,7 +69,7 @@ pub(crate) fn de_rotate_master_encryption_key(value: &[u8], mut builder: crate::
                     _ => ::aws_smithy_json::deserialize::token::skip_value(tokens)?
                 }
             }
-            other => return Err(::aws_smithy_json::deserialize::error::DeserializeError::custom(format!("expected object key or end object, found: {:?}", other)))
+            other => return Err(::aws_smithy_json::deserialize::error::DeserializeError::custom(format!("expected object key or end object, found: {other:?}")))
         }
     }
     if tokens.next().is_some() {
