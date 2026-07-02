@@ -1489,7 +1489,7 @@ dependencies = [
 
 [[package]]
 name = "cac_client"
-version = "0.114.0"
+version = "0.115.0"
 dependencies = [
  "actix-web",
  "cbindgen",
@@ -1507,7 +1507,7 @@ dependencies = [
 
 [[package]]
 name = "cac_client_integration_example"
-version = "0.114.0"
+version = "0.115.0"
 dependencies = [
  "actix-web",
  "cac_client",
@@ -1516,7 +1516,7 @@ dependencies = [
 
 [[package]]
 name = "cac_toml"
-version = "0.114.0"
+version = "0.115.0"
 dependencies = [
  "clap 4.5.60",
  "pest",
@@ -2039,7 +2039,7 @@ checksum = "7c74b8349d32d297c9134b8c88677813a227df8f779daa29bfc29c183fe3dca6"
 
 [[package]]
 name = "context_aware_config"
-version = "0.114.0"
+version = "0.115.0"
 dependencies = [
  "actix-web",
  "anyhow",
@@ -3472,7 +3472,7 @@ checksum = "0206175f82b8d6bf6652ff7d71a1e27fd2e4efde587fd368662814d6ec1d9ce0"
 
 [[package]]
 name = "experimentation_client"
-version = "0.114.0"
+version = "0.115.0"
 dependencies = [
  "cbindgen",
  "chrono",
@@ -3487,7 +3487,7 @@ dependencies = [
 
 [[package]]
 name = "experimentation_example"
-version = "0.114.0"
+version = "0.115.0"
 dependencies = [
  "actix-web",
  "experimentation_client",
@@ -3496,7 +3496,7 @@ dependencies = [
 
 [[package]]
 name = "experimentation_platform"
-version = "0.114.0"
+version = "0.115.0"
 dependencies = [
  "actix-http",
  "actix-web",
@@ -3761,7 +3761,7 @@ dependencies = [
 
 [[package]]
 name = "frontend"
-version = "0.114.0"
+version = "0.115.0"
 dependencies = [
  "anyhow",
  "cfg-if",
@@ -8253,7 +8253,7 @@ dependencies = [
 
 [[package]]
 name = "service_utils"
-version = "0.114.0"
+version = "0.115.0"
 dependencies = [
  "actix-web",
  "aes-gcm",
@@ -8872,7 +8872,7 @@ checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
 
 [[package]]
 name = "superposition"
-version = "0.114.0"
+version = "0.115.0"
 dependencies = [
  "actix-files",
  "actix-http",
@@ -8912,7 +8912,7 @@ dependencies = [
 
 [[package]]
 name = "superposition-demo-app"
-version = "0.114.0"
+version = "0.115.0"
 dependencies = [
  "actix-files",
  "actix-web",
@@ -8923,7 +8923,7 @@ dependencies = [
 
 [[package]]
 name = "superposition_config_file_examples"
-version = "0.114.0"
+version = "0.115.0"
 dependencies = [
  "serde_json",
  "superposition_core",
@@ -8931,7 +8931,7 @@ dependencies = [
 
 [[package]]
 name = "superposition_core"
-version = "0.114.0"
+version = "0.115.0"
 dependencies = [
  "bigdecimal",
  "blake3",
@@ -8950,7 +8950,7 @@ dependencies = [
 
 [[package]]
 name = "superposition_derives"
-version = "0.114.0"
+version = "0.115.0"
 dependencies = [
  "proc-macro-crate",
  "quote",
@@ -8959,11 +8959,11 @@ dependencies = [
 
 [[package]]
 name = "superposition_macros"
-version = "0.114.0"
+version = "0.115.0"
 
 [[package]]
 name = "superposition_provider"
-version = "0.114.0"
+version = "0.115.0"
 dependencies = [
  "async-trait",
  "aws-smithy-types",
@@ -8987,7 +8987,7 @@ dependencies = [
 
 [[package]]
 name = "superposition_sdk"
-version = "0.114.0"
+version = "0.115.0"
 dependencies = [
  "aws-smithy-async",
  "aws-smithy-http 0.62.2",
@@ -9003,7 +9003,7 @@ dependencies = [
 
 [[package]]
 name = "superposition_types"
-version = "0.114.0"
+version = "0.115.0"
 dependencies = [
  "actix-web",
  "anyhow",
@@ -9029,7 +9029,7 @@ dependencies = [
 
 [[package]]
 name = "supertoml_lsp"
-version = "0.114.0"
+version = "0.115.0"
 dependencies = [
  "dashmap",
  "serde_json",
