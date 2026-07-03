@@ -228,6 +228,20 @@ impl CacConfig {
         cached_config.clone()
     }
 
+    /// Clone only the dimension metadata out of the cached config.
+    ///
+    /// Callers that just need dimensions (e.g. experiment variant resolution)
+    /// must not go through `get_cached_config`, which deep-clones the entire
+    /// context/override set — potentially hundreds of thousands of entries —
+    /// on every resolve.
+    pub async fn get_dimensions(&self) -> HashMap<String, DimensionInfo> {
+        let cached_config = self.cached_config.read().await;
+        cached_config
+            .as_ref()
+            .map(|config| config.dimensions.clone())
+            .unwrap_or_default()
+    }
+
     /// Evaluate configuration for given context and return resolved values
     pub async fn evaluate_config(
         &self,
