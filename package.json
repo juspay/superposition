@@ -17,6 +17,6 @@
     "@tsconfig/node18": "^18.2.4",
     "daisyui": "^4.3.1",
     "newman": "git+ssh://git@github.com:knutties/newman.git#feature/newman-dir",
-    "tailwindcss": "^3.3.5"
+    "tailwindcss": "^4.3.2"
   }
 }
