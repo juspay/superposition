@@ -4,6 +4,10 @@
   "description": "",
   "type": "module",
   "main": "index.js",
+  "scripts": {
+    "demo": "node index.js",
+    "perf:resolve": "node resolve-perf.js"
+  },
   "author": "",
   "license": "ISC",
   "dependencies": {
