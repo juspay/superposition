@@ -153,23 +153,42 @@ BENCH_CONTEXTS=60000 cargo bench -p superposition_core --bench resolve
 The dataset is generated deterministically (a small built-in xorshift PRNG), so
 runs are reproducible without any external `rand` dependency.
 
+The benchmark reports three cases:
+
+- **`optimized_borrowed`** — the current no-prefix resolve path (the one every
+  OpenFeature `resolve_*_value` call takes).
+- **`pre_optimization_cloned`** — reproduces the old per-resolve clone overhead
+  (still passing no prefix), to isolate the cost the optimization removed.
+- **`prefix_filter_slow_path`** — resolve *with* a prefix filter. This is a
+  distinct code path (clone + `filter_by_prefix`) that the optimization
+  deliberately leaves unchanged and that is **not** on the per-flag resolve hot
+  path. Included for coverage / regression guarding.
+
 ### Results (median per-resolve)
 
-| Scale | Pre-optimization (cloned) | Optimized (borrowed) | Speedup |
-|-------|---------------------------|----------------------|---------|
-| 60,000 contexts | 138 ms | 2.69 ms | ~51× |
-| 468,006 contexts | 1.37 s | **22.98 ms** | **~60×** |
+| Scale | Pre-optimization (cloned) | Prefix-filter slow path | Optimized (borrowed) | Speedup (opt vs pre-opt) |
+|-------|---------------------------|-------------------------|----------------------|--------------------------|
+| 60,000 contexts | 197 ms | 137 ms | 3.9 ms | ~51× |
+| 468,006 contexts | 1.69 s | 1.27 s | 59.7 ms | ~28× |
 
-> Note: the benchmark's synthetic per-context payload is heavier than the
-> production data, so the absolute pre-optimization figure runs higher than the
-> reported 444ms. The meaningful takeaways are the **ratio** (~60×) and the
-> **~23ms optimized floor**. In the reported environment, the ~444ms average is
-> expected to drop to well under ~50ms.
+> **On the numbers.** These were measured on a shared, 4-core container and are
+> noisy in absolute terms — across runs the optimized 468k case ranged from
+> ~23ms to ~60ms (the dataset build alone varied 0.8s–3.5s under load). The
+> stable, defensible conclusion is the **order-of-magnitude** gap measured
+> within a single run: the optimized path resolves in **tens of milliseconds**
+> while the clone path takes **~1.4–1.7s** (~20–60× depending on machine load).
+> The benchmark's synthetic per-context payload is also heavier than the
+> production data, so absolute figures run higher than the reported 444ms; in
+> the reported environment the ~444ms average is expected to drop to the
+> tens-of-milliseconds range.
+>
+> Note the prefix-filter path (~1.27s) stays clone-bound and is *not* improved
+> by this change — confirming it is a separate path from the optimized one.
 
 ## Remaining opportunity
 
-After removing the clones, the remaining ~23ms is dominated by the inherent
-linear scan of all 468k contexts calling `apply()` on each. The next lever is an
-**index** — bucketing contexts by a high-cardinality dimension so a query only
-tests candidate contexts rather than the full set. This is a larger
-architectural change and is left as a follow-up.
+After removing the clones, the remaining tens of milliseconds are dominated by
+the inherent linear scan of all 468k contexts calling `apply()` on each. The
+next lever is an **index** — bucketing contexts by a high-cardinality dimension
+so a query only tests candidate contexts rather than the full set. This is a
+larger architectural change and is left as a follow-up.
