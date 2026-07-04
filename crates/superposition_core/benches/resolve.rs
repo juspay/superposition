@@ -187,6 +187,28 @@ fn resolve_pre_optimization(
     .expect("resolve")
 }
 
+/// Resolve with a prefix filter set. This exercises the (unchanged) slow path
+/// that builds an owned `Config` and runs `filter_by_prefix` over every
+/// override and context.
+///
+/// NOTE: the OpenFeature `resolve_*_value` methods always pass `None`, so this
+/// path is *not* on the per-flag resolve hot path — it is reachable via
+/// `evaluate_config` / `get_cached_config` with an explicit prefix. It is
+/// benchmarked for coverage and regression-guarding, not to demonstrate the
+/// clone optimization (which only applies to the no-prefix path).
+fn resolve_with_prefix(ds: &Dataset, query: &Map<String, Value>) -> Map<String, Value> {
+    eval_config(
+        ds.default_config.clone(),
+        &ds.contexts,
+        &ds.overrides,
+        &ds.dimensions,
+        query,
+        MergeStrategy::MERGE,
+        Some(vec![DEFAULT_CONFIG_KEYS[0].to_string()]),
+    )
+    .expect("resolve")
+}
+
 fn bench_resolve(c: &mut Criterion) {
     let num_contexts = std::env::var("BENCH_CONTEXTS")
         .ok()
@@ -224,6 +246,16 @@ fn bench_resolve(c: &mut Criterion) {
             let q = &ds.queries[counter.get() % ds.queries.len()];
             counter.set(counter.get() + 1);
             black_box(resolve_pre_optimization(&ds, q))
+        })
+    });
+
+    // Off-hot-path: prefix filtering (clone + filter_by_prefix), for coverage.
+    group.bench_function("prefix_filter_slow_path", |b| {
+        let counter = Cell::new(0usize);
+        b.iter(|| {
+            let q = &ds.queries[counter.get() % ds.queries.len()];
+            counter.set(counter.get() + 1);
+            black_box(resolve_with_prefix(&ds, q))
         })
     });
 
