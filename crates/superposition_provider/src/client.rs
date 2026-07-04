@@ -234,7 +234,7 @@ impl CacConfig {
     /// must not go through `get_cached_config`, which deep-clones the entire
     /// context/override set — potentially hundreds of thousands of entries —
     /// on every resolve.
-    pub async fn get_dimensions(&self) -> HashMap<String, DimensionInfo> {
+    pub(crate) async fn get_dimensions(&self) -> HashMap<String, DimensionInfo> {
         let cached_config = self.cached_config.read().await;
         cached_config
             .as_ref()

@@ -143,13 +143,6 @@ fn get_overrides(
     mut on_override_select: Option<&mut dyn FnMut(Context)>,
 ) -> Result<Map<String, Value>, String> {
     let mut required_overrides = Map::new();
-    // Only pay for a `Context` clone when a caller actually consumes it; the
-    // borrow keeps the common (callback-less) resolution path allocation-free.
-    let mut on_override_select = |context: &Context| {
-        if let Some(ref mut func) = on_override_select {
-            func(context.clone())
-        }
-    };
 
     for context in contexts {
         if !superposition_types::apply(&context.condition, query_data) {
@@ -178,7 +171,11 @@ fn get_overrides(
                 }
             }
         }
-        on_override_select(context);
+        // Only pay for a `Context` clone when a caller actually consumes it; the
+        // borrow keeps the common (callback-less) resolution path allocation-free.
+        if let Some(ref mut func) = on_override_select {
+            func(context.clone());
+        }
     }
 
     Ok(required_overrides)

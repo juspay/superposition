@@ -136,9 +136,15 @@ All changes preserve existing behavior and semantics; the full
 
 A criterion benchmark was added at
 `crates/superposition_core/benches/resolve.rs`. It reproduces the reported
-workload — **468,006 contexts, 18 dimensions, 3 default configs, and 100 query
-contexts sampled from actual context conditions** — and compares the optimized
-path against a faithful reproduction of the pre-optimization clone behavior.
+workload shape — **468,006 contexts, 18 regular dimensions, 18 derived local
+cohort dimensions, 3 default configs, and 100 query contexts sampled from
+actual context conditions** — and compares the optimized path against a
+faithful reproduction of the pre-optimization clone behavior.
+
+The benchmark intentionally includes local-cohort evaluation: a subset of
+generated context rules targets derived `lcN` cohort dimensions, while sampled
+queries provide the underlying `dN` dimension values. Each measured resolve
+therefore evaluates local cohorts before scanning the full context set.
 
 Run it with:
 
@@ -151,25 +157,28 @@ BENCH_CONTEXTS=60000 cargo bench -p superposition_core --bench resolve
 ```
 
 The dataset is generated deterministically (a small built-in xorshift PRNG), so
-runs are reproducible without any external `rand` dependency.
+runs are reproducible without any external `rand` dependency. This remains a
+core-library benchmark; provider/SDK overhead, network overhead, cold-start
+fetch/cache initialization, and true end-to-end p99 measurements should be
+covered by follow-up benchmarks.
 
-### Results (median per-resolve)
+### Results (per-resolve, local run)
 
 | Scale | Pre-optimization (cloned) | Optimized (borrowed) | Speedup |
 |-------|---------------------------|----------------------|---------|
-| 60,000 contexts | 138 ms | 2.69 ms | ~51× |
-| 468,006 contexts | 1.37 s | **22.98 ms** | **~60×** |
+| 468,006 contexts + local cohorts | ~1.56 s | **~63 ms** | **~25×** |
 
-> Note: the benchmark's synthetic per-context payload is heavier than the
-> production data, so the absolute pre-optimization figure runs higher than the
-> reported 444ms. The meaningful takeaways are the **ratio** (~60×) and the
-> **~23ms optimized floor**. In the reported environment, the ~444ms average is
-> expected to drop to well under ~50ms.
+> Note: these are machine-dependent Criterion estimates from a synthetic
+> workload. The meaningful takeaway is that removing full-config clones is a
+> large core hot-path win even when local-cohort evaluation is included. It is
+> not a claim about end-to-end provider p99 latency.
 
 ## Remaining opportunity
 
-After removing the clones, the remaining ~23ms is dominated by the inherent
-linear scan of all 468k contexts calling `apply()` on each. The next lever is an
-**index** — bucketing contexts by a high-cardinality dimension so a query only
-tests candidate contexts rather than the full set. This is a larger
-architectural change and is left as a follow-up.
+After removing the clones, the remaining time is dominated by local-cohort
+evaluation plus the inherent linear scan of all 468k contexts calling `apply()`
+on each. The next levers are an **evaluation cache** for repeated
+config/context/version lookups and an **index** — bucketing contexts by a
+high-cardinality dimension so a query only tests candidate contexts rather than
+the full set. These are larger behavioral/architectural changes and are left as
+follow-ups.

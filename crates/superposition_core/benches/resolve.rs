@@ -2,9 +2,10 @@
 //!
 //! This benchmark reproduces the shape of the workload reported from
 //! production-scale data (hundreds of thousands of context override rules,
-//! a handful of default configs, ~18 dimensions) and measures a single
-//! "resolve all config" call — the same operation the OpenFeature provider
-//! performs on every flag evaluation via `superposition_core::eval_config`.
+//! a handful of default configs, ~18 regular dimensions, and derived local
+//! cohorts) and measures a single "resolve all config" call — the same
+//! operation the OpenFeature provider performs on every flag evaluation via
+//! `superposition_core::eval_config`.
 //!
 //! Two variants are compared:
 //!   * `optimized_borrowed`     — the current implementation, which resolves
@@ -24,14 +25,15 @@ use std::cell::Cell;
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use serde_json::{json, Map, Value};
-use superposition_core::{eval_config, Config, MergeStrategy};
+use criterion::{Criterion, black_box, criterion_group, criterion_main};
+use serde_json::{Map, Value, json};
+use superposition_core::{Config, MergeStrategy, eval_config};
 use superposition_types::{
-    Cac, Condition, Context, DimensionInfo, OverrideWithKeys, Overrides,
+    Cac, Condition, Context, DimensionInfo, ExtendedMap, OverrideWithKeys, Overrides,
+    database::models::cac::{DependencyGraph, DimensionType},
 };
 
-/// Number of dimensions in the synthetic dataset (mirrors the reported data).
+/// Number of regular dimensions in the synthetic dataset (mirrors the reported data).
 const NUM_DIMENSIONS: usize = 18;
 /// Default number of contexts / override rules (reported production figure).
 const DEFAULT_NUM_CONTEXTS: usize = 468_006;
@@ -65,6 +67,101 @@ impl Rng {
     }
 }
 
+fn root_dimension(dim: usize) -> String {
+    format!("d{dim}")
+}
+
+fn cohort_dimension(dim: usize) -> String {
+    format!("lc{dim}")
+}
+
+fn root_value(val: usize) -> String {
+    format!("v{val}")
+}
+
+fn cohort_value(val: usize) -> String {
+    format!("c{val}")
+}
+
+fn build_dimensions() -> HashMap<String, DimensionInfo> {
+    let mut dimensions = HashMap::with_capacity(NUM_DIMENSIONS * 2);
+
+    for dim in 0..NUM_DIMENSIONS {
+        let root = root_dimension(dim);
+        let cohort = cohort_dimension(dim);
+
+        dimensions.insert(
+            root.clone(),
+            DimensionInfo {
+                schema: ExtendedMap::from(Map::new()),
+                position: dim as i32,
+                dimension_type: DimensionType::Regular {},
+                dependency_graph: DependencyGraph(HashMap::from([
+                    (root.clone(), vec![cohort.clone()]),
+                    (cohort.clone(), Vec::new()),
+                ])),
+                value_compute_function_name: None,
+                description: String::new(),
+            },
+        );
+
+        let mut definitions = Map::new();
+        let mut enum_values = Vec::with_capacity(DIMENSION_CARDINALITY + 1);
+        for val in 0..DIMENSION_CARDINALITY {
+            let cohort_val = cohort_value(val);
+            enum_values.push(Value::String(cohort_val.clone()));
+            definitions.insert(
+                cohort_val,
+                json!({
+                    "==": [
+                        { "var": root },
+                        root_value(val)
+                    ]
+                }),
+            );
+        }
+        enum_values.push(Value::String("otherwise".to_string()));
+
+        let mut schema = Map::new();
+        schema.insert("type".to_string(), json!("string"));
+        schema.insert("enum".to_string(), Value::Array(enum_values));
+        schema.insert("definitions".to_string(), Value::Object(definitions));
+
+        dimensions.insert(
+            cohort.clone(),
+            DimensionInfo {
+                schema: ExtendedMap::from(schema),
+                position: (NUM_DIMENSIONS + dim) as i32,
+                dimension_type: DimensionType::LocalCohort(root),
+                dependency_graph: DependencyGraph(HashMap::from([(cohort, Vec::new())])),
+                value_compute_function_name: None,
+                description: String::new(),
+            },
+        );
+    }
+
+    dimensions
+}
+
+fn query_from_condition(condition: &Condition) -> Map<String, Value> {
+    condition
+        .iter()
+        .map(|(key, value)| {
+            if let Some(dim) = key.strip_prefix("lc") {
+                let root_key = format!("d{dim}");
+                let root_val = value
+                    .as_str()
+                    .and_then(|v| v.strip_prefix('c'))
+                    .map(|v| Value::String(format!("v{v}")))
+                    .unwrap_or_else(|| value.clone());
+                (root_key, root_val)
+            } else {
+                (key.clone(), value.clone())
+            }
+        })
+        .collect()
+}
+
 struct Dataset {
     default_config: Map<String, Value>,
     contexts: Vec<Context>,
@@ -92,7 +189,12 @@ fn build_dataset(num_contexts: usize) -> Dataset {
         for j in 0..num_dims {
             let dim = (start + j) % NUM_DIMENSIONS;
             let val = rng.below(DIMENSION_CARDINALITY);
-            cond.insert(format!("d{dim}"), json!(format!("v{val}")));
+            let (key, value) = if (i + j) % 3 == 0 {
+                (cohort_dimension(dim), cohort_value(val))
+            } else {
+                (root_dimension(dim), root_value(val))
+            };
+            cond.insert(key, json!(value));
         }
         let condition = Cac::<Condition>::try_from(cond)
             .expect("non-empty condition")
@@ -121,21 +223,14 @@ fn build_dataset(num_contexts: usize) -> Dataset {
     let mut queries = Vec::with_capacity(NUM_QUERIES);
     for _ in 0..NUM_QUERIES {
         let idx = rng.below(num_contexts);
-        let query: Map<String, Value> = contexts[idx]
-            .condition
-            .iter()
-            .map(|(k, v)| (k.clone(), v.clone()))
-            .collect();
-        queries.push(query);
+        queries.push(query_from_condition(&contexts[idx].condition));
     }
 
     Dataset {
         default_config,
         contexts,
         overrides,
-        // Empty dimensions => local-cohort evaluation short-circuits, isolating
-        // the context-matching + override-merge cost we care about.
-        dimensions: HashMap::new(),
+        dimensions: build_dimensions(),
         queries,
     }
 }
@@ -196,8 +291,9 @@ fn bench_resolve(c: &mut Criterion) {
     let start = Instant::now();
     let ds = build_dataset(num_contexts);
     eprintln!(
-        "Built dataset: {} contexts, {} dimensions, {} queries in {:.2?}",
+        "Built dataset: {} contexts, {} regular dimensions, {} local cohorts, {} queries in {:.2?}",
         num_contexts,
+        NUM_DIMENSIONS,
         NUM_DIMENSIONS,
         ds.queries.len(),
         start.elapsed()
