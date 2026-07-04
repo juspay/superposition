@@ -9,7 +9,8 @@ pub use open_feature::{
 use serde_json::Value;
 use superposition_core::experiment::ExperimentGroups;
 use superposition_core::{
-    eval_config, get_applicable_variants, Experiments, MergeStrategy,
+    eval_config, eval_config_with_index, get_applicable_variants, ContextIndex,
+    Experiments, MergeStrategy,
 };
 use superposition_types::{Config, DimensionInfo};
 use tokio::join;
@@ -20,12 +21,31 @@ use tokio_util::sync::CancellationToken;
 use crate::types::*;
 use crate::utils::ConversionUtils;
 
+/// A cached `Config` paired with a [`ContextIndex`] built from its contexts.
+///
+/// The index is built once here — whenever the config is (re)loaded — and
+/// reused on every resolve, so its `O(contexts)` build cost never lands on the
+/// per-flag hot path. Keeping both behind the same lock guarantees the index
+/// always matches the contexts it was built from.
+#[derive(Debug, Clone)]
+struct CachedConfig {
+    config: Config,
+    index: Arc<ContextIndex>,
+}
+
+impl CachedConfig {
+    fn new(config: Config) -> Self {
+        let index = Arc::new(ContextIndex::build(&config.contexts));
+        Self { config, index }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct CacConfig {
     superposition_options: SuperpositionOptions,
     options: ConfigurationOptions,
     fallback_config: Option<serde_json::Map<String, Value>>,
-    cached_config: Arc<RwLock<Option<Config>>>,
+    cached_config: Arc<RwLock<Option<CachedConfig>>>,
     last_updated: Arc<RwLock<Option<chrono::DateTime<chrono::Utc>>>>,
     polling_task_cancellation_token: Arc<RwLock<Option<CancellationToken>>>,
 }
@@ -53,7 +73,7 @@ impl CacConfig {
         match latest_config {
             Ok(config) => {
                 let mut cached_config = self.cached_config.write().await;
-                *cached_config = Some(config);
+                *cached_config = Some(CachedConfig::new(config));
                 let mut last_updated = self.last_updated.write().await;
                 *last_updated = Some(chrono::Utc::now());
                 info!("CAC config fetched successfully");
@@ -63,8 +83,9 @@ impl CacConfig {
                 if cached_config.is_none() {
                     // If no cached config, use fallback if available
                     if let Some(fallback) = &self.fallback_config {
-                        *cached_config =
-                            Some(ConversionUtils::convert_value_to_config(fallback)?);
+                        *cached_config = Some(CachedConfig::new(
+                            ConversionUtils::convert_value_to_config(fallback)?,
+                        ));
                         info!("Using fallback config due to initial fetch failure");
                     }
                 } else {
@@ -123,7 +144,7 @@ impl CacConfig {
                         match Self::get_config_static(&superposition_options).await {
                             Ok(config) => {
                                 let mut cached = cached_config.write().await;
-                                *cached = Some(config);
+                                *cached = Some(CachedConfig::new(config));
                                 let mut updated = last_updated.write().await;
                                 *updated = Some(chrono::Utc::now());
                                 debug!("CAC config updated via polling");
@@ -157,7 +178,7 @@ impl CacConfig {
             match self.get_config(&self.superposition_options).await {
                 Ok(config) => {
                     let mut cached_config = self.cached_config.write().await;
-                    *cached_config = Some(config.clone());
+                    *cached_config = Some(CachedConfig::new(config.clone()));
                     let mut last_updated_mut = self.last_updated.write().await;
                     *last_updated_mut = Some(chrono::Utc::now());
                     info!("Config fetched successfully on-demand");
@@ -176,7 +197,7 @@ impl CacConfig {
         // Return cached config
         let cached_config = self.cached_config.read().await;
         match cached_config.as_ref() {
-            Some(config) => Ok(config.clone()),
+            Some(cached) => Ok(cached.config.clone()),
             None => Err(SuperpositionError::ConfigError(
                 "No cached config available".into(),
             )),
@@ -225,39 +246,54 @@ impl CacConfig {
 
     pub async fn get_cached_config(&self) -> Option<Config> {
         let cached_config = self.cached_config.read().await;
-        cached_config.clone()
+        cached_config.as_ref().map(|cached| cached.config.clone())
     }
 
-    /// Evaluate configuration for given context and return resolved values
+    /// Evaluate configuration for given context and return resolved values.
+    ///
+    /// The common case — no prefix filter — takes the index-accelerated path
+    /// ([`eval_config_with_index`]), reusing the [`ContextIndex`] built when the
+    /// config was cached. A prefix filter changes the effective context set, so
+    /// that (rare) case falls back to the linear [`eval_config`].
     pub async fn evaluate_config(
         &self,
         query_data: &serde_json::Map<String, Value>,
         prefix_filter: Option<&[String]>,
     ) -> Result<serde_json::Map<String, Value>> {
         let cached_config = self.cached_config.read().await;
-        match cached_config.as_ref() {
-            Some(cached_config) => {
-                // Use ConversionUtils to evaluate config
-                eval_config(
-                    (*cached_config.default_configs).clone(),
-                    &cached_config.contexts,
-                    &cached_config.overrides,
-                    &cached_config.dimensions,
-                    query_data,
-                    MergeStrategy::MERGE,
-                    prefix_filter.map(|p| p.to_vec()),
-                )
-                .map_err(|e| {
-                    SuperpositionError::ConfigError(format!(
-                        "Failed to evaluate config: {}",
-                        e
-                    ))
-                })
-            }
-            None => Err(SuperpositionError::ConfigError(
+        let Some(cached) = cached_config.as_ref() else {
+            return Err(SuperpositionError::ConfigError(
                 "No cached config available".into(),
-            )),
-        }
+            ));
+        };
+        let config = &cached.config;
+
+        let has_prefix = prefix_filter.is_some_and(|p| !p.is_empty());
+        let result = if has_prefix {
+            eval_config(
+                (*config.default_configs).clone(),
+                &config.contexts,
+                &config.overrides,
+                &config.dimensions,
+                query_data,
+                MergeStrategy::MERGE,
+                prefix_filter.map(|p| p.to_vec()),
+            )
+        } else {
+            eval_config_with_index(
+                (*config.default_configs).clone(),
+                &config.contexts,
+                &cached.index,
+                &config.overrides,
+                &config.dimensions,
+                query_data,
+                MergeStrategy::MERGE,
+            )
+        };
+
+        result.map_err(|e| {
+            SuperpositionError::ConfigError(format!("Failed to evaluate config: {}", e))
+        })
     }
 
     pub async fn close(&self) -> Result<()> {
