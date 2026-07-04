@@ -10,7 +10,7 @@ pub mod validations;
 // Re-export main config functions
 pub use config::{
     eval_config, eval_config_with_index, eval_config_with_reasoning, merge, ContextIndex,
-    MergeStrategy,
+    ContextIndexStats, MergeStrategy,
 };
 
 // Re-export experiment functions

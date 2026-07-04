@@ -259,6 +259,24 @@ pub struct ContextIndex {
     unindexed: Vec<u32>,
 }
 
+/// Structural diagnostics for a [`ContextIndex`]; see [`ContextIndex::stats`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ContextIndexStats {
+    /// Number of distinct pivot buckets.
+    pub buckets: usize,
+    /// Total posting entries across all buckets (equals the number of indexed
+    /// contexts).
+    pub postings: usize,
+    /// Contexts in the always-scanned fallback list.
+    pub unindexed: usize,
+    /// Size of the largest bucket — the worst-case candidates a single pivot can
+    /// contribute before `apply` verification.
+    pub max_bucket: usize,
+    /// Approximate heap bytes owned by the index (lower bound; excludes the
+    /// contexts themselves).
+    pub approx_heap_bytes: usize,
+}
+
 /// JSON scalars have a stable, order-independent `Display`, so they are safe to
 /// use as index keys. Objects/arrays are excluded.
 #[inline]
@@ -332,6 +350,35 @@ impl ContextIndex {
     /// Exposed for diagnostics / tests; ideally zero.
     pub fn unindexed_len(&self) -> usize {
         self.unindexed.len()
+    }
+
+    /// Structural diagnostics: number of pivot buckets, the largest bucket, and
+    /// an estimate of the heap bytes the index itself owns (excluding the
+    /// contexts it points into). Useful for capacity planning and for spotting
+    /// pathological low-selectivity data.
+    pub fn stats(&self) -> ContextIndexStats {
+        let buckets = self.postings.len();
+        let mut postings = 0usize;
+        let mut max_bucket = 0usize;
+        let mut key_bytes = 0usize;
+        for (key, list) in &self.postings {
+            postings += list.len();
+            max_bucket = max_bucket.max(list.len());
+            key_bytes += key.len();
+        }
+        // Rough heap estimate: posting entries (u32) + per-Vec headers +
+        // per-key String headers + the key bytes themselves. Ignores allocator
+        // rounding and HashMap control bytes, so treat as a lower bound.
+        let posting_bytes = (postings + self.unindexed.len()) * 4;
+        let vec_headers = buckets * std::mem::size_of::<Vec<u32>>();
+        let key_headers = buckets * std::mem::size_of::<String>();
+        ContextIndexStats {
+            buckets,
+            postings,
+            unindexed: self.unindexed.len(),
+            max_bucket,
+            approx_heap_bytes: posting_bytes + vec_headers + key_headers + key_bytes,
+        }
     }
 
     /// Collects the (sorted, de-duplicated) indices of contexts that could

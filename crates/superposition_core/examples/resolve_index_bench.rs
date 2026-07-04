@@ -199,12 +199,21 @@ fn main() {
     let index = ContextIndex::build(&contexts);
     let build_time = t.elapsed();
 
+    let s = index.stats();
     println!(
-        "avg constraints/context: {:.2} | unindexed contexts: {}",
+        "avg constraints/context: {:.2}",
         total_constraints as f64 / num_contexts as f64,
-        index.unindexed_len(),
     );
-    println!("ContextIndex::build: {build_time:?}\n");
+    println!(
+        "index: {} buckets | {} postings | {} unindexed | max bucket {} | ~{:.2} MB heap | {:.1} bytes/context",
+        s.buckets,
+        s.postings,
+        s.unindexed,
+        s.max_bucket,
+        s.approx_heap_bytes as f64 / (1024.0 * 1024.0),
+        s.approx_heap_bytes as f64 / num_contexts as f64,
+    );
+    println!("ContextIndex::build (one-time): {build_time:?}\n");
 
     // Correctness cross-check: both paths must agree on every query.
     for (i, q) in queries.iter().enumerate() {

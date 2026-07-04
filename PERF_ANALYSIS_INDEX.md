@@ -180,6 +180,57 @@ governed by candidate-set size, not `N`.
 > lookup is roughly `O(candidates)` and largely independent of `N`). The index
 > build is a one-time, config-load cost, not a per-resolve cost.
 
+## Maintenance cost
+
+### Memory
+
+The index owns two things: one `u32` posting entry per context (each context
+lands in exactly one bucket), plus a `String` key and a `Vec` header per
+distinct pivot. So its footprint is `O(N + K)` where `K` is the number of
+distinct pivots (`K ≤ N`). Measured at production scale (`ContextIndex::stats()`):
+
+| Metric | 468,006 contexts |
+|--------|------------------|
+| pivot buckets (`K`) | 12,330 |
+| posting entries | 468,006 |
+| unindexed contexts | 0 |
+| largest bucket | 2,541 |
+| approx. heap owned by index | **~2.5 MB (~5.6 bytes/context)** |
+
+That is roughly **1% of the `Config` it indexes** (the 468k contexts + overrides
+themselves are on the order of hundreds of MB), so the representation is
+effectively free memory-wise. The estimate is a lower bound (it ignores
+allocator rounding and `HashMap` control bytes); real RSS is a small multiple of
+it, still single-digit MB. The `largest bucket` (2,541) is the worst-case number
+of `apply` checks a single pivot can trigger before verification — three orders
+of magnitude below the full 468k scan, and the metric to watch for pathological
+low-selectivity data.
+
+### Updates
+
+The index is **immutable and rebuilt from scratch** on each config (re)load;
+there is no incremental/delta update. A rebuild is `O(total constraints)` —
+measured **~430 ms at 468k** — and happens only on the events that already
+replace the whole cached `Config`: initial fetch, polling refresh, on-demand TTL
+refresh, and fallback. It is entirely **off the per-resolve hot path**.
+
+Two properties keep the update cost cheap in practice:
+
+- **Amortization.** The ~430 ms build is paid once per refresh and reused across
+  every resolve until the next refresh. With a polling interval of seconds to
+  minutes, its per-resolve share is negligible.
+- **Built off the lock.** The rebuild runs *before* the cache's write lock is
+  taken; only the pointer swap happens under the lock. So a refresh does not
+  stall in-flight resolves for the build duration — readers see either the old
+  or the new `(config, index)` pair, never a half-built one. (Peak memory during
+  a swap is briefly ~2× the index — a few MB — as the old one is dropped after
+  the new one is installed.)
+
+An incremental update (patching the index for a handful of changed contexts
+instead of a full rebuild) is possible but unnecessary here: the config arrives
+as a full snapshot, and a full rebuild at 430 ms is already dominated by the
+config fetch/deserialize it accompanies.
+
 ## Scope and follow-ups
 
 - The index is wired into the **remote `CacConfig`** provider path measured in

@@ -72,8 +72,11 @@ impl CacConfig {
         let latest_config = self.get_config(&self.superposition_options).await;
         match latest_config {
             Ok(config) => {
+                // Build the index before taking the write lock so resolves are
+                // not blocked for the duration of the (O(contexts)) build.
+                let new_cached = CachedConfig::new(config);
                 let mut cached_config = self.cached_config.write().await;
-                *cached_config = Some(CachedConfig::new(config));
+                *cached_config = Some(new_cached);
                 let mut last_updated = self.last_updated.write().await;
                 *last_updated = Some(chrono::Utc::now());
                 info!("CAC config fetched successfully");
@@ -143,8 +146,10 @@ impl CacConfig {
                     loop {
                         match Self::get_config_static(&superposition_options).await {
                             Ok(config) => {
+                                // Build off the lock; only the swap is critical.
+                                let new_cached = CachedConfig::new(config);
                                 let mut cached = cached_config.write().await;
-                                *cached = Some(CachedConfig::new(config));
+                                *cached = Some(new_cached);
                                 let mut updated = last_updated.write().await;
                                 *updated = Some(chrono::Utc::now());
                                 debug!("CAC config updated via polling");
@@ -177,8 +182,9 @@ impl CacConfig {
             debug!("TTL expired. Fetching config on-demand");
             match self.get_config(&self.superposition_options).await {
                 Ok(config) => {
+                    let new_cached = CachedConfig::new(config.clone());
                     let mut cached_config = self.cached_config.write().await;
-                    *cached_config = Some(CachedConfig::new(config.clone()));
+                    *cached_config = Some(new_cached);
                     let mut last_updated_mut = self.last_updated.write().await;
                     *last_updated_mut = Some(chrono::Utc::now());
                     info!("Config fetched successfully on-demand");
