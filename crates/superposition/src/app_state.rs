@@ -38,9 +38,8 @@ pub async fn get(
     let cac_host =
         get_from_env_or_default::<String>("CAC_HOST", format!("http://localhost:{port}"))
             + base;
-    let superposition_host = std::env::var("SUPERPOSITION_HOST")
-        .map(|host| host + base)
-        .unwrap_or_else(|_| cac_host.clone());
+    let superposition_host =
+        std::env::var("SUPERPOSITION_HOST").unwrap_or_else(|_| cac_host.clone());
     let max_pool_size = get_from_env_or_default("MAX_DB_CONNECTION_POOL_SIZE", 2);
     let workspace_lock_default_ttl_ms =
         get_from_env_or_default("WORKSPACE_LOCK_DEFAULT_TTL_MS", 60_000_u64);
