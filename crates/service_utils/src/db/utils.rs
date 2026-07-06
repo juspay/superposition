@@ -35,7 +35,7 @@ pub async fn get_oidc_client_secret(
 
 pub async fn get_kronos_api_key(kms_client: &Option<Client>, app_env: &AppEnv) -> String {
     match app_env {
-        AppEnv::DEV | AppEnv::TEST | AppEnv::SANDBOX => {
+        AppEnv::DEV | AppEnv::TEST => {
             get_from_env_or_default("KRONOS_API_KEY", "dev-api-key".into())
         }
         _ => kms::decrypt(kms_client.clone().unwrap(), "KRONOS_API_KEY").await,
