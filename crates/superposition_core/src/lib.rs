@@ -1,4 +1,7 @@
 #![deny(unused_crate_dependencies)]
+#[cfg(test)]
+use criterion as _;
+
 uniffi::setup_scaffolding!("superposition_client");
 pub mod config;
 pub mod experiment;

@@ -69,11 +69,7 @@ impl SuperpositionProvider {
 
     async fn get_dimensions_info(&self) -> HashMap<String, DimensionInfo> {
         match &self.cac_config {
-            Some(cac_config) => cac_config
-                .get_cached_config()
-                .await
-                .map(|c| c.dimensions.clone())
-                .unwrap_or_default(),
+            Some(cac_config) => cac_config.get_dimensions().await,
             None => HashMap::new(),
         }
     }
@@ -124,8 +120,10 @@ impl SuperpositionProvider {
         let (mut context, targeting_key) =
             conversions::evaluation_context_to_query(evaluation_context.clone());
 
-        let dimensions_info = self.get_dimensions_info().await;
+        // Dimensions are only needed to resolve experiment variants, so avoid
+        // fetching (and cloning) them entirely when experimentation is off.
         let variant_ids = if let Some(exp_config) = &self.exp_config {
+            let dimensions_info = self.get_dimensions_info().await;
             exp_config
                 .get_applicable_variants(&dimensions_info, &context, targeting_key)
                 .await?
