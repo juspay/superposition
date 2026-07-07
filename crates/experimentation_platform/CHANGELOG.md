@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.54.1 - 2026-07-07
+#### Bug Fixes
+- treat same-value experiment ramp as a no-op instead of a 400 (#1080) - (9de7878) - Avinash
+#### Miscellaneous Chores
+- **(version)** v0.112.0 [skip ci] - (83d4693) - Superposition Bot
+
+- - -
+
 ## experimentation_platform-v0.54.0 - 2026-06-11
 #### Features
 - add filter to get global overrides with non conflicting overrides (#1044) - (fb4146d) - sauraww

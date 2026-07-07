@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.49.1 - 2026-07-07
+#### Bug Fixes
+- treat same-value experiment ramp as a no-op instead of a 400 (#1080) - (9de7878) - Avinash
+#### Miscellaneous Chores
+- **(version)** v0.115.0 [skip ci] - (d07f1da) - Superposition Bot
+
+- - -
+
 ## superposition_types-v0.49.0 - 2026-07-02
 #### Features
 - kronos implementation (#1001) - (417a557) - Ankit Kumar Mahato
