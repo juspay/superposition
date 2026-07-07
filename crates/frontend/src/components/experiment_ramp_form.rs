@@ -46,13 +46,27 @@ where
             .await;
             req_inprogress_ws.set(false);
             match result {
-                Ok(_) => {
-                    handle_submit_clone();
-                    enqueue_alert(
-                        String::from("Experiment ramped successfully!"),
-                        AlertType::Success,
-                        5000,
-                    );
+                Ok(experiment) => {
+                    // The API returns the (possibly unchanged) experiment. If its
+                    // traffic percentage still matches the pre-ramp non-zero value,
+                    // the backend treated this as a no-op: just warn and keep the
+                    // popup open (don't call handle_submit, which closes it).
+                    if *experiment.traffic_percentage
+                            == *experiment_clone.traffic_percentage
+                    {
+                        enqueue_alert(
+                            String::from("Ramp is already set to the same value"),
+                            AlertType::Warning,
+                            5000,
+                        );
+                    } else {
+                        handle_submit_clone();
+                        enqueue_alert(
+                            String::from("Experiment ramped successfully!"),
+                            AlertType::Success,
+                            5000,
+                        );
+                    }
                 }
                 Err(e) => {
                     enqueue_alert(e, AlertType::Error, 5000);

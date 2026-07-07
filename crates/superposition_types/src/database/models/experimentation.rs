@@ -208,11 +208,16 @@ impl TrafficPercentage {
         Ok(())
     }
 
-    pub fn compare_old(&self, old: &Self) -> Result<(), String> {
-        if self.0 != 0 && self.0 == old.0 {
-            return Err("The traffic percentage is same as provided")?;
-        }
-        Ok(())
+    /// Returns true when ramping to `self` would leave the traffic percentage
+    /// unchanged and non-zero, i.e. the ramp is a redundant no-op that can be
+    /// skipped.
+    ///
+    /// The `!= 0` guard is load-bearing: starting an experiment is a ramp to `0`
+    /// on a freshly-created experiment (which already sits at `0`), so treating
+    /// a `0 -> 0` ramp as a no-op would prevent it from ever transitioning to
+    /// `INPROGRESS`. Only a repeat of the same *non-zero* value is a no-op.
+    pub fn is_noop_ramp(&self, old: &Self) -> bool {
+        self.0 == old.0
     }
 
     fn validate<T: TryInto<u8>>(val: T) -> Result<(), String> {
