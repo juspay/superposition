@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.44.1 - 2026-07-07
+#### Bug Fixes
+- KRONOS_API_KEY (#1081) - (ca2ad81) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(version)** v0.115.0 [skip ci] - (d07f1da) - Superposition Bot
+
+- - -
+
 ## service_utils-v0.44.0 - 2026-07-02
 #### Features
 - kronos implementation (#1001) - (417a557) - Ankit Kumar Mahato
