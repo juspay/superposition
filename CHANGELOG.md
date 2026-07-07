@@ -2,6 +2,20 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.115.1 - 2026-07-07
+### Package updates
+- service_utils bumped to service_utils-v0.44.1
+### Global changes
+#### Bug Fixes
+- superposition_host (#1082) - (4b04dc1) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(deps-dev)** bump yaml from 2.8.0 to 2.9.0 (#1074) - (73594da) - dependabot[bot]
+- **(version)** v0.115.0 [skip ci] - (d07f1da) - Superposition Bot
+#### Performance Improvements
+- **(core/provider)** reduce resolve-time cloning (#1079) - (dd1020a) - sauraww
+
+- - -
+
 ## v0.115.0 - 2026-07-02
 ### Package updates
 - service_utils bumped to service_utils-v0.44.0
