@@ -62,7 +62,7 @@ trait OIDCAuthenticator: Authenticator {
 
         let cookie_result = serde_json::to_string(&protection)
             .map_err(|e| {
-                log::error!("Unable to stringify data: {e}");
+                log::error!("Unable to stringify data: {e:?}");
                 ErrorInternalServerError("Unable to stringify data".to_string())
             })
             .map(|cookie| {
@@ -124,7 +124,7 @@ trait OIDCAuthenticator: Authenticator {
             .request_async(oidcrs::reqwest::async_http_client)
             .await
             .map_err(|e| {
-                log::error!("Failed to exchange auth-code for token: {e}");
+                log::error!("Failed to exchange auth-code for token: {e:?}");
                 ErrorInternalServerError(
                     "Failed to exchange auth-code for token".to_string(),
                 )
@@ -135,14 +135,14 @@ trait OIDCAuthenticator: Authenticator {
             .ok_or_else(|| log::error!("No identity-token!"))
             .and_then(|t| {
                 t.claims(&data.get_client().id_token_verifier(), &p_cookie.nonce)
-                    .map_err(|e| log::error!("Couldn't verify claims: {e}"))
+                    .map_err(|e| log::error!("Couldn't verify claims: {e:?}"))
             })
             .map(|_| token_response.clone());
 
         match response {
             Ok(r) => {
                 let token = serde_json::to_string(&r).map_err(|e| {
-                    log::error!("Unable to stringify data: {e}");
+                    log::error!("Unable to stringify data: {e:?}");
                     ErrorInternalServerError("Unable to stringify data".to_string())
                 })?;
                 let cookie = Cookie::build(login_type.to_string(), token)
