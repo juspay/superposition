@@ -287,7 +287,7 @@ impl Authenticator for SaasOIDCAuthenticator {
             .cookie(&Login::Global.to_string())
             .and_then(|user_cookie| {
                 self.decode_global_token(user_cookie.value())
-                    .map_err(|e| log::error!("Error in decoding user : {e}"))
+                    .map_err(|e| log::error!("Error in decoding user : {e:?}"))
                     .ok()
             })
             .map(|claims| claims.additional_claims().organisations.clone());
@@ -359,7 +359,7 @@ impl Authenticator for SaasOIDCAuthenticator {
                 .request_async(oidcrs::reqwest::async_http_client)
                 .await
                 .map_err(|e| {
-                    log::error!("Failed to switch organisation for token: {e}");
+                    log::error!("Failed to switch organisation for token: {e:?}");
                     Some(ErrorInternalServerError(
                         "Failed to switch organisation for token".to_string(),
                     ))
@@ -372,12 +372,12 @@ impl Authenticator for SaasOIDCAuthenticator {
                         })?
                         .claims(&client.id_token_verifier(), presence_no_check)
                         .map_err(|e| {
-                            log::error!("Couldn't verify claims: {e}");
+                            log::error!("Couldn't verify claims: {e:?}");
                             None
                         })?;
 
                     serde_json::to_string(&tr).map_err(|e| {
-                        log::error!("Unable to stringify data: {e}");
+                        log::error!("Unable to stringify data: {e:?}");
                         Some(ErrorInternalServerError(
                             "Unable to stringify data".to_string(),
                         ))
