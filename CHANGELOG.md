@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.115.3 - 2026-07-08
+### Package updates
+- service_utils bumped to service_utils-v0.44.2
+### Global changes
+#### Miscellaneous Chores
+- **(version)** v0.115.2 [skip ci] - (6cdf263) - Superposition Bot
+
+- - -
+
 ## v0.115.2 - 2026-07-07
 ### Package updates
 - frontend bumped to frontend-v0.56.1
