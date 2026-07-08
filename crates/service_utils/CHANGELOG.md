@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.44.2 - 2026-07-08
+#### Bug Fixes
+- Proper debug log on auth failures (#1087) - (521bd76) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.115.1 [skip ci] - (ddf6a3f) - Superposition Bot
+
+- - -
+
 ## service_utils-v0.44.1 - 2026-07-07
 #### Bug Fixes
 - KRONOS_API_KEY (#1081) - (ca2ad81) - Ankit Kumar Mahato
