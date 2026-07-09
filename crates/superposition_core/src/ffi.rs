@@ -55,9 +55,9 @@ fn ffi_eval_logic(
     experimentation: Option<ExperimentationArgs>,
     eval_fn: EvalFn,
 ) -> Result<HashMap<String, String>, OperationError> {
-    let _d = json_from_map(default_config)
+    let d = json_from_map(default_config)
         .map_err(|err| OperationError::Unexpected(err.to_string()))?;
-    let mut _q = json_from_map(query_data)
+    let mut q = json_from_map(query_data)
         .map_err(|err| OperationError::Unexpected(err.to_string()))?;
 
     if let Some(e_args) = experimentation {
@@ -68,19 +68,19 @@ fn ffi_eval_logic(
             &dimensions,
             e_args.experiments,
             &e_args.experiment_groups,
-            &_q,
+            &q,
             &identifier,
             filter_prefixes.clone(),
         );
-        _q.insert("variantIds".to_string(), variants.into());
+        q.insert("variantIds".to_string(), variants.into());
     }
 
     let r = eval_fn(
-        _d,
+        d,
         contexts,
         &overrides,
         &dimensions,
-        &_q,
+        &q,
         merge_strategy,
         filter_prefixes,
     )

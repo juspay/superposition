@@ -27,10 +27,11 @@ use std::time::{Duration, Instant};
 
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use serde_json::{Map, Value, json};
-use superposition_core::{Config, MergeStrategy, eval_config};
+use superposition_core::{Config, MergeStrategy, eval_config, resolve_overrides_on_default_config_singlethreaded};
 use superposition_types::{
     Cac, Condition, Context, DimensionInfo, ExtendedMap, OverrideWithKeys, Overrides,
     database::models::cac::{DependencyGraph, DimensionType},
+    logic::evaluate_local_cohorts,
 };
 
 /// Number of regular dimensions in the synthetic dataset (mirrors the reported data).
@@ -249,6 +250,25 @@ fn resolve_optimized(ds: &Dataset, query: &Map<String, Value>) -> Map<String, Va
     .expect("resolve")
 }
 
+/// Post-optimization (sequential): borrowed data, single-threaded resolve.
+/// Isolates the threading speedup from the clone-elimination speedup.
+fn resolve_post_optimization_sequential(
+    ds: &Dataset,
+    query: &Map<String, Value>,
+) -> Map<String, Value> {
+    let modified_query_data = evaluate_local_cohorts(&ds.dimensions, query);
+    let mut result_config = ds.default_config.clone();
+    resolve_overrides_on_default_config_singlethreaded(
+        &mut result_config,
+        &ds.contexts,
+        &ds.overrides,
+        &modified_query_data,
+        &MergeStrategy::MERGE,
+        None,
+    );
+    result_config
+}
+
 /// Pre-optimization behavior: every resolve deep-cloned the full context set
 /// twice — once while extracting dimensions, once while building a throwaway
 /// `Config` for (unused) prefix filtering.
@@ -311,6 +331,15 @@ fn bench_resolve(c: &mut Criterion) {
             let q = &ds.queries[counter.get() % ds.queries.len()];
             counter.set(counter.get() + 1);
             black_box(resolve_optimized(&ds, q))
+        })
+    });
+
+    group.bench_function("post_optimization_sequential", |b| {
+        let counter = Cell::new(0usize);
+        b.iter(|| {
+            let q = &ds.queries[counter.get() % ds.queries.len()];
+            counter.set(counter.get() + 1);
+            black_box(resolve_post_optimization_sequential(&ds, q))
         })
     });
 

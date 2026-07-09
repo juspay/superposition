@@ -15,34 +15,23 @@ pub fn eval_config(
     merge_strategy: MergeStrategy,
     filter_prefixes: Option<Vec<String>>,
 ) -> Result<Map<String, Value>, String> {
-    // Local cohort evaluation only reads `dimensions`, which prefix filtering
-    // leaves untouched, so it is safe to compute once regardless of the path.
     let modified_query_data = evaluate_local_cohorts(dimensions, query_data);
 
     let filter_prefixes = filter_prefixes.filter(|p| !p.is_empty());
 
-    // Fast path: no prefix filtering. Resolve directly against the borrowed
-    // contexts/overrides instead of deep-cloning the entire context set (which
-    // can be hundreds of thousands of entries) into a temporary `Config`.
     let Some(prefixes) = filter_prefixes else {
-        let overrides_map = get_overrides(
-            &modified_query_data,
+        let mut result_config = default_config;
+        resolve_overrides_on_default_config(
+            &mut result_config,
             contexts,
             overrides,
+            &modified_query_data,
             &merge_strategy,
             None,
-        )?;
-
-        let mut result_config = default_config;
-        merge_overrides_on_default_config(
-            &mut result_config,
-            overrides_map,
-            &merge_strategy,
         );
         return Ok(result_config);
     };
 
-    // Slow path: prefix filtering needs an owned, filtered `Config`.
     let config = Config {
         default_configs: default_config.into(),
         contexts: contexts.to_vec(),
@@ -51,17 +40,15 @@ pub fn eval_config(
     }
     .filter_by_prefix(&HashSet::from_iter(prefixes));
 
-    let overrides_map: Map<String, Value> = get_overrides(
-        &modified_query_data,
+    let mut result_config = config.default_configs;
+    resolve_overrides_on_default_config(
+        &mut result_config,
         &config.contexts,
         &config.overrides,
+        &modified_query_data,
         &merge_strategy,
         None,
-    )?;
-
-    // Apply overrides to default config
-    let mut result_config = config.default_configs;
-    merge_overrides_on_default_config(&mut result_config, overrides_map, &merge_strategy);
+    );
 
     Ok(result_config.into_inner())
 }
@@ -73,26 +60,21 @@ pub fn eval_config_with_reasoning(
     dimensions: &HashMap<String, DimensionInfo>,
     query_data: &Map<String, Value>,
     merge_strategy: MergeStrategy,
-    filter_prefixes: Option<Vec<String>>, // Optional prefix filtering
+    filter_prefixes: Option<Vec<String>>,
 ) -> Result<Map<String, Value>, String> {
     let modified_query_data = evaluate_local_cohorts(dimensions, query_data);
 
     let filter_prefixes = filter_prefixes.filter(|p| !p.is_empty());
 
     let Some(prefixes) = filter_prefixes else {
-        let overrides_map = get_overrides(
-            &modified_query_data,
+        let mut result_config = default_config;
+        resolve_overrides_on_default_config(
+            &mut result_config,
             contexts,
             overrides,
+            &modified_query_data,
             &merge_strategy,
             None,
-        )?;
-
-        let mut result_config = default_config;
-        merge_overrides_on_default_config(
-            &mut result_config,
-            overrides_map,
-            &merge_strategy,
         );
         return Ok(result_config);
     };
@@ -105,16 +87,15 @@ pub fn eval_config_with_reasoning(
     }
     .filter_by_prefix(&HashSet::from_iter(prefixes));
 
-    let overrides_map = get_overrides(
-        &modified_query_data,
+    let mut result_config = config.default_configs;
+    resolve_overrides_on_default_config(
+        &mut result_config,
         &config.contexts,
         &config.overrides,
+        &modified_query_data,
         &merge_strategy,
         None,
-    )?;
-
-    let mut result_config = config.default_configs;
-    merge_overrides_on_default_config(&mut result_config, overrides_map, &merge_strategy);
+    );
 
     Ok(result_config.into_inner())
 }
@@ -135,25 +116,116 @@ pub fn merge(doc: &mut Value, patch: &Value) {
     }
 }
 
-fn get_overrides(
-    query_data: &Map<String, Value>,
+const PARALLEL_THRESHOLD: usize = 1000;
+
+fn compute_thread_count(len: usize) -> usize {
+    if len <= PARALLEL_THRESHOLD {
+        return 1;
+    }
+    let max = std::thread::available_parallelism()
+        .map(|p| p.get())
+        .unwrap_or(1);
+    if max <= 1 {
+        return 1;
+    }
+    let y = (len as f64 / PARALLEL_THRESHOLD as f64)
+        .log2()
+        .ceil() as usize
+        + 1;
+    y.min(max)
+}
+
+fn resolve_overrides_on_default_config(
+    default_config: &mut Map<String, Value>,
     contexts: &[Context],
     overrides: &HashMap<String, Overrides>,
+    query_data: &Map<String, Value>,
+    merge_strategy: &MergeStrategy,
+    on_override_select: Option<&mut dyn FnMut(Context)>,
+) {
+    let num_threads = compute_thread_count(contexts.len());
+    resolve_overrides_impl(
+        default_config,
+        contexts,
+        overrides,
+        query_data,
+        merge_strategy,
+        on_override_select,
+        num_threads,
+    );
+}
+
+pub fn resolve_overrides_on_default_config_singlethreaded(
+    default_config: &mut Map<String, Value>,
+    contexts: &[Context],
+    overrides: &HashMap<String, Overrides>,
+    query_data: &Map<String, Value>,
+    merge_strategy: &MergeStrategy,
+    on_override_select: Option<&mut dyn FnMut(Context)>,
+) {
+    resolve_overrides_impl(
+        default_config,
+        contexts,
+        overrides,
+        query_data,
+        merge_strategy,
+        on_override_select,
+        1,
+    );
+}
+
+fn resolve_overrides_impl(
+    default_config: &mut Map<String, Value>,
+    contexts: &[Context],
+    overrides: &HashMap<String, Overrides>,
+    query_data: &Map<String, Value>,
     merge_strategy: &MergeStrategy,
     mut on_override_select: Option<&mut dyn FnMut(Context)>,
-) -> Result<Map<String, Value>, String> {
+    num_threads: usize,
+) {
+    let n = contexts.len();
+    let chunk = n.div_ceil(num_threads);
+
+    let indices: Vec<usize> = if num_threads == 1 {
+        contexts
+            .iter()
+            .enumerate()
+            .filter(|(_, ctx)| {
+                superposition_types::apply(&ctx.condition, query_data)
+                    && overrides.contains_key(ctx.override_with_keys.get_key())
+            })
+            .map(|(i, _)| i)
+            .collect()
+    } else {
+        // Not built for wasm32 currently; std::thread::scope is unavailable there.
+        std::thread::scope(|s| {
+            (0..num_threads)
+                .map(|t| {
+                    let start = t * chunk;
+                    let end = start.saturating_add(chunk).min(n);
+                    s.spawn(move || {
+                        contexts[start..end]
+                            .iter()
+                            .enumerate()
+                            .filter(|(_, ctx)| {
+                                superposition_types::apply(&ctx.condition, query_data)
+                                    && overrides.contains_key(ctx.override_with_keys.get_key())
+                            })
+                            .map(|(i, _)| start + i)
+                            .collect::<Vec<_>>()
+                    })
+                })
+                .flat_map(|h| h.join().unwrap())
+                .collect()
+        })
+    };
+
     let mut required_overrides = Map::new();
-
-    for context in contexts {
-        if !superposition_types::apply(&context.condition, query_data) {
-            continue;
-        }
-
-        let override_key = context.override_with_keys.get_key();
-        let Some(overriden_value) = overrides.get(override_key) else {
+    for &i in &indices {
+        let context = &contexts[i];
+        let Some(overriden_value) = overrides.get(context.override_with_keys.get_key()) else {
             continue;
         };
-
         match merge_strategy {
             MergeStrategy::REPLACE => {
                 for (key, value) in overriden_value.iter() {
@@ -171,33 +243,23 @@ fn get_overrides(
                 }
             }
         }
-        // Only pay for a `Context` clone when a caller actually consumes it; the
-        // borrow keeps the common (callback-less) resolution path allocation-free.
         if let Some(ref mut func) = on_override_select {
             func(context.clone());
         }
     }
 
-    Ok(required_overrides)
-}
-
-fn merge_overrides_on_default_config(
-    default_config: &mut Map<String, Value>,
-    overrides: Map<String, Value>,
-    merge_strategy: &MergeStrategy,
-) {
-    overrides.into_iter().for_each(|(key, val)| {
+    for (key, val) in required_overrides {
         if let Some(og_val) = default_config.get_mut(&key) {
             match merge_strategy {
                 MergeStrategy::REPLACE => {
-                    let _ = default_config.insert(key.clone(), val.clone());
+                    let _ = default_config.insert(key.clone(), val);
                 }
                 MergeStrategy::MERGE => merge(og_val, &val),
             }
         } else {
             log::error!("Config: found non-default_config key: {key} in overrides");
         }
-    })
+    }
 }
 
 #[cfg(test)]

@@ -11,7 +11,10 @@ pub mod format;
 pub mod helpers;
 pub mod validations;
 // Re-export main config functions
-pub use config::{eval_config, eval_config_with_reasoning, merge, MergeStrategy};
+pub use config::{
+    eval_config, eval_config_with_reasoning, merge, resolve_overrides_on_default_config_singlethreaded,
+    MergeStrategy,
+};
 
 // Re-export experiment functions
 pub use experiment::{
