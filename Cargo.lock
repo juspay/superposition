@@ -1266,7 +1266,7 @@ dependencies = [
  "bitflags 2.9.1",
  "cexpr",
  "clang-sys",
- "itertools 0.12.1",
+ "itertools 0.10.5",
  "lazy_static",
  "lazycell",
  "log",
@@ -1289,7 +1289,7 @@ dependencies = [
  "bitflags 2.9.1",
  "cexpr",
  "clang-sys",
- "itertools 0.12.1",
+ "itertools 0.10.5",
  "log",
  "prettyplease",
  "proc-macro2",
@@ -5149,7 +5149,7 @@ dependencies = [
 [[package]]
 name = "kronos-common"
 version = "0.1.0"
-source = "git+https://github.com/juspay/kronos.git?rev=b14c6f005024ac7d4cd106a1bb728697ee545c9c#b14c6f005024ac7d4cd106a1bb728697ee545c9c"
+source = "git+https://github.com/juspay/kronos.git?tag=v0.1.0#a47e87101d60dbd660c731922bb01c8b77d7c4ce"
 dependencies = [
  "actix-web",
  "aes-gcm",
@@ -5161,6 +5161,7 @@ dependencies = [
  "dashmap",
  "dotenvy",
  "jsonschema 0.18.3",
+ "log",
  "metrics",
  "metrics-exporter-prometheus",
  "rand 0.8.5",
@@ -5176,7 +5177,7 @@ dependencies = [
 [[package]]
 name = "kronos-worker"
 version = "0.1.0"
-source = "git+https://github.com/juspay/kronos.git?rev=b14c6f005024ac7d4cd106a1bb728697ee545c9c#b14c6f005024ac7d4cd106a1bb728697ee545c9c"
+source = "git+https://github.com/juspay/kronos.git?tag=v0.1.0#a47e87101d60dbd660c731922bb01c8b77d7c4ce"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -7018,7 +7019,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8a56d757972c98b346a9b766e3f02746cde6dd1cd1d1d563472929fdd74bec4d"
 dependencies = [
  "anyhow",
- "itertools 0.12.1",
+ "itertools 0.10.5",
  "proc-macro2",
  "quote",
  "syn 2.0.117",
@@ -7031,7 +7032,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "27c6023962132f4b30eb4c172c91ce92d933da334c59c23cddee82358ddafb0b"
 dependencies = [
  "anyhow",
- "itertools 0.12.1",
+ "itertools 0.10.5",
  "proc-macro2",
  "quote",
  "syn 2.0.117",

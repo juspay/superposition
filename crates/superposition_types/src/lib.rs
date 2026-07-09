@@ -112,6 +112,8 @@ impl FromRequest for InternalUserContext {
     }
 }
 
+pub struct DispatchUser;
+
 impl User {
     pub fn new(email: String, username: String) -> Self {
         Self { email, username }

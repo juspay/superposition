@@ -21,6 +21,18 @@ pub async fn get_superposition_token(
     }
 }
 
+pub async fn get_kronos_dispatch_token(
+    kms_client: &Option<Client>,
+    app_env: &AppEnv,
+) -> String {
+    match app_env {
+        AppEnv::DEV | AppEnv::TEST => {
+            get_from_env_or_default("KRONOS_DISPATCH_TOKEN", "dispatch-123456".into())
+        }
+        _ => kms::decrypt(kms_client.clone().unwrap(), "KRONOS_DISPATCH_TOKEN").await,
+    }
+}
+
 pub async fn get_oidc_client_secret(
     kms_client: &Option<Client>,
     app_env: &AppEnv,

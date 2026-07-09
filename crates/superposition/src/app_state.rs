@@ -14,7 +14,8 @@ use kronos_worker::{
 };
 use service_utils::{
     db::utils::{
-        get_database_url, get_kronos_api_key, get_superposition_token, init_pool_manager,
+        get_database_url, get_kronos_api_key, get_kronos_dispatch_token,
+        get_superposition_token, init_pool_manager,
     },
     encryption::get_master_encryption_keys,
     helpers::{get_from_env_or_default, get_from_env_unsafe},
@@ -90,6 +91,7 @@ pub async fn get(
     };
 
     let superposition_token = get_superposition_token(kms_client, &app_env).await;
+    let kronos_dispatch_token = get_kronos_dispatch_token(kms_client, &app_env).await;
 
     let kronos_url = std::env::var("KRONOS_URL").ok();
     let (kronos_client, worker_handle, kronos_shutdown_timeout_sec, kronos_workspace): (
@@ -115,7 +117,7 @@ pub async fn get(
             client.as_ref(),
             &workspace,
             &superposition_host,
-            &superposition_token,
+            &kronos_dispatch_token,
         )
         .await;
 
@@ -174,6 +176,7 @@ pub async fn get(
         .collect::<HashSet<_>>(),
         service_prefix,
         superposition_token,
+        kronos_dispatch_token,
         redis: redis_pool,
         workspace_lock_default_ttl: Duration::from_millis(workspace_lock_default_ttl_ms),
         workspace_lock_batch_ttl: Duration::from_millis(workspace_lock_batch_ttl_ms),

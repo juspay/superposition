@@ -183,7 +183,7 @@ async fn create_handler(
             state.kronos_client.as_ref(),
             &workspace_schema_name.0,
             &state.superposition_host,
-            &state.superposition_token,
+            &state.kronos_dispatch_token,
         )
         .await;
     }
@@ -477,7 +477,7 @@ async fn migrate_schema_handler(
             state.kronos_client.as_ref(),
             &schema_name.0,
             &state.superposition_host,
-            &state.superposition_token,
+            &state.kronos_dispatch_token,
         )
         .await;
     }

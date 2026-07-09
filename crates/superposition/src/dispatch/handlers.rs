@@ -13,14 +13,16 @@ use service_utils::{
     kronos_dispatch::{has_pattern_in_headers, substitute_templates},
     service::types::{AppState, DbConnection, WorkspaceContext},
 };
+use superposition_derives::{authorized, declare_resource};
 use superposition_macros::unexpected_error;
 use superposition_types::{
-    InternalUserContext,
     database::schema::{secrets::dsl as secrets_dsl, variables::dsl as variables_dsl},
     result as superposition,
 };
 
 use crate::webhooks::helper::fetch_webhook;
+
+declare_resource!(Webhook);
 
 #[derive(Deserialize)]
 struct DispatchWebhookRequest {
@@ -32,19 +34,14 @@ pub fn endpoints() -> Scope {
     Scope::new("").service(dispatch_handler)
 }
 
+#[authorized]
 #[post("/webhook")]
 async fn dispatch_handler(
-    caller: InternalUserContext,
     workspace_context: WorkspaceContext,
     state: Data<AppState>,
     db_conn: DbConnection,
     body: Json<DispatchWebhookRequest>,
 ) -> superposition::Result<HttpResponse> {
-    if !*caller {
-        return Err(unexpected_error!(
-            "Unauthorized: only internal callers may use this endpoint"
-        ));
-    }
     let DispatchWebhookRequest { webhook_name, data } = body.into_inner();
 
     let DbConnection(mut conn) = db_conn;

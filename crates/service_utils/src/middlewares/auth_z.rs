@@ -19,7 +19,9 @@ use derive_more::Deref;
 use futures_util::future::LocalBoxFuture;
 use no_auth::NoAuth;
 use superposition_macros::{forbidden, unexpected_error};
-use superposition_types::{InternalUser, Resource, User, result as superposition};
+use superposition_types::{
+    DispatchUser, InternalUser, Resource, User, result as superposition,
+};
 
 use crate::{helpers::get_from_env_unsafe, service::types::AppEnv};
 
@@ -120,7 +122,11 @@ impl<A: Action> FromRequest for AuthZ<A> {
             }
         };
 
-        if req.extensions().get::<InternalUser>().is_some() {
+        // DispatchUser bypasses too: the marker is only ever set on the dispatch
+        // route (enforced in auth_n), so this cannot leak to other endpoints.
+        if req.extensions().get::<InternalUser>().is_some()
+            || req.extensions().get::<DispatchUser>().is_some()
+        {
             return Box::pin(async {
                 Ok(AuthZ::new(auth_z_handler, domain, user, true))
             });
