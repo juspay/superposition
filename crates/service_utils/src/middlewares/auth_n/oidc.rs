@@ -12,8 +12,9 @@ use actix_web::{
 };
 use base64::{Engine, engine::general_purpose};
 use openidconnect::{
-    self as oidcrs, AuthenticationFlow, CsrfToken, Nonce, TokenResponse,
-    core::{CoreClient, CoreResponseType},
+    self as oidcrs, AuthenticationFlow, ClaimsVerificationError, CsrfToken, Nonce,
+    TokenResponse,
+    core::{CoreClient, CoreResponseType, CoreTokenResponse},
 };
 pub use saas_authenticator::SaasOIDCAuthenticator;
 pub use simple_authenticator::SimpleOIDCAuthenticator;
@@ -27,7 +28,14 @@ use crate::middlewares::auth_n::{
 /// Trait defining OIDC specific authenticator methods
 /// This is to be implemented by any OIDC based authenticator - SimpleOIDCAuthenticator, SaasOIDCAuthenticator etc.
 trait OIDCAuthenticator: Authenticator {
-    fn get_client(&self) -> &CoreClient;
+    fn get_client(&self) -> CoreClient;
+
+    /// Re-fetch the OpenID Provider metadata (including the JWKS signing keys)
+    /// from the issuer and swap in a freshly-built client. Called when ID token
+    /// verification fails, so a long-lived process recovers automatically once
+    /// the IdP rotates its signing keys (e.g. Google rotates JWKS every few
+    /// hours/days) instead of serving stale keys until the pod is restarted.
+    async fn refresh_client(&self) -> Result<(), String>;
 
     fn get_global_user(
         &self,
@@ -130,14 +138,30 @@ trait OIDCAuthenticator: Authenticator {
                 )
             })?;
 
-        let response = token_response
-            .id_token()
-            .ok_or_else(|| log::error!("No identity-token!"))
-            .and_then(|t| {
-                t.claims(&data.get_client().id_token_verifier(), &p_cookie.nonce)
-                    .map_err(|e| log::error!("Couldn't verify claims: {e:?}"))
-            })
-            .map(|_| token_response.clone());
+        // Verify the freshly-minted ID token. If verification fails, the most
+        // common cause is that the IdP has rotated its signing keys since we
+        // last fetched the JWKS, so the cached keys can't validate the new
+        // token's signature. Refresh the provider metadata once and retry
+        // before giving up — this self-heals key rotation without a restart.
+        let mut response =
+            verify_id_token(&data.get_client(), &token_response, &p_cookie.nonce);
+        if let Err(e) = &response {
+            log::error!(
+                "OIDC: ID token verification failed; refreshing provider keys and retrying, error: {e:?}"
+            );
+            match data.refresh_client().await {
+                Ok(()) => {
+                    response = verify_id_token(
+                        &data.get_client(),
+                        &token_response,
+                        &p_cookie.nonce,
+                    );
+                }
+                Err(e) => {
+                    log::error!("OIDC: failed to refresh provider metadata: {e}")
+                }
+            }
+        }
 
         match response {
             Ok(r) => {
@@ -156,10 +180,42 @@ trait OIDCAuthenticator: Authenticator {
                     .insert_header((header::LOCATION, params.state.redirect_uri.clone()))
                     .finish())
             }
-            Err(()) => Ok(data.new_redirect(
-                &login_type,
-                format!("{}/admin/organisations", data.get_path_prefix()),
-            )),
+            // Verification failed even after refreshing keys. Avoid retrying.
+            Err(e) => {
+                log::error!(
+                    "OIDC: ID token verification failed even after refreshing keys: {e:?}"
+                );
+                Ok(sign_in_failed_response(&format!(
+                    "{}/admin/organisations",
+                    data.get_path_prefix()
+                )))
+            }
         }
     }
+}
+
+fn verify_id_token(
+    client: &CoreClient,
+    token_response: &CoreTokenResponse,
+    nonce: &Nonce,
+) -> Result<CoreTokenResponse, ClaimsVerificationError> {
+    token_response
+        .id_token()
+        .ok_or_else(|| ClaimsVerificationError::Other("Id Token not found".to_string()))
+        .and_then(|t| t.claims(&client.id_token_verifier(), nonce))
+        .map(|_| token_response.clone())
+}
+
+fn sign_in_failed_response(retry_url: &str) -> HttpResponse {
+    let body = format!(
+        "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Sign-in failed</title></head>\
+         <body style=\"font-family:sans-serif;max-width:32rem;margin:4rem auto;text-align:center\">\
+         <h1>Sign-in failed</h1>\
+         <p>We couldn't complete your sign-in. This is usually temporary.</p>\
+         <p><a href=\"{retry_url}\">Try signing in again</a></p>\
+         </body></html>"
+    );
+    HttpResponse::Unauthorized()
+        .content_type("text/html; charset=utf-8")
+        .body(body)
 }

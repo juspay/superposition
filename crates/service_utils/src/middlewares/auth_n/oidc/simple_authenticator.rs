@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 
 use actix_web::{
     HttpRequest, HttpResponse,
@@ -8,8 +8,8 @@ use actix_web::{
 use derive_more::{Deref, DerefMut};
 use futures_util::future::LocalBoxFuture;
 use openidconnect::{
-    self as oidcrs, ClientId, ClientSecret, IssuerUrl, RedirectUrl, TokenResponse,
-    core::{CoreClient, CoreIdTokenClaims, CoreProviderMetadata, CoreTokenResponse},
+    ClientId, ClientSecret, IssuerUrl, RedirectUrl, TokenResponse,
+    core::{CoreClient, CoreIdTokenClaims, CoreTokenResponse},
 };
 use superposition_types::User;
 
@@ -18,13 +18,16 @@ use crate::middlewares::auth_n::{
     helpers::fetch_org_ids_from_db,
     oidc::{
         OIDCAuthenticator,
-        utils::{try_user_from, verify_presence},
+        utils::{build_client, fetch_provider_metadata, try_user_from, verify_presence},
     },
 };
 
-#[derive(Clone)]
 pub struct AuthenticatorInner {
-    client: CoreClient,
+    client: RwLock<CoreClient>,
+    issuer_url: IssuerUrl,
+    client_id: ClientId,
+    client_secret: ClientSecret,
+    redirect_url: RedirectUrl,
     path_prefix: String,
 }
 
@@ -47,44 +50,63 @@ impl SimpleOIDCAuthenticator {
         let issuer_url = IssuerUrl::new(idp_url)
             .map_err(|e| format!("Unable to create issuer url: {}", e))
             .unwrap();
+        let redirect_url =
+            RedirectUrl::new(format!("{base_url}{path_prefix}/oidc/login"))?;
+        let client_id = ClientId::new(client_id);
+        let client_secret = ClientSecret::new(client_secret);
 
-        // Discover OpenID Provider metadata
-        let provider_metadata = CoreProviderMetadata::discover_async(
-            issuer_url,
-            oidcrs::reqwest::async_http_client,
-        )
-        .await?;
+        let provider_metadata = fetch_provider_metadata(issuer_url.clone()).await?;
 
-        // Create client
-        let client = CoreClient::from_provider_metadata(
-            provider_metadata.clone(),
-            ClientId::new(client_id.clone()),
-            Some(ClientSecret::new(client_secret.clone())),
-        )
-        .set_redirect_uri(RedirectUrl::new(format!(
-            "{base_url}{path_prefix}/oidc/login"
-        ))?);
+        let client = build_client(
+            provider_metadata,
+            client_id.clone(),
+            client_secret.clone(),
+            redirect_url.clone(),
+        );
 
         Ok(Self(Arc::new(AuthenticatorInner {
-            client,
+            client: RwLock::new(client),
+            issuer_url,
+            client_id,
+            client_secret,
+            redirect_url,
             path_prefix,
         })))
     }
 
     fn decode_global_token(&self, cookie: &str) -> Result<CoreIdTokenClaims, String> {
+        let client = self.get_client();
         let ctr = serde_json::from_str::<CoreTokenResponse>(cookie)
             .map_err(|e| format!("Error while decoding token: {e}"))?;
         ctr.id_token()
             .ok_or(String::from("Id Token not found"))?
-            .claims(&self.client.id_token_verifier(), verify_presence)
+            .claims(&client.id_token_verifier(), verify_presence)
             .map_err(|e| format!("Error in claims verification: {e}"))
             .cloned()
     }
 }
 
 impl OIDCAuthenticator for SimpleOIDCAuthenticator {
-    fn get_client(&self) -> &CoreClient {
-        &self.client
+    fn get_client(&self) -> CoreClient {
+        self.client
+            .read()
+            .unwrap_or_else(|e| e.into_inner())
+            .clone()
+    }
+
+    async fn refresh_client(&self) -> Result<(), String> {
+        let provider_metadata = fetch_provider_metadata(self.issuer_url.clone())
+            .await
+            .map_err(|e| format!("Failed to refresh provider metadata: {e:?}"))?;
+        let client = build_client(
+            provider_metadata,
+            self.client_id.clone(),
+            self.client_secret.clone(),
+            self.redirect_url.clone(),
+        );
+
+        *self.client.write().unwrap_or_else(|e| e.into_inner()) = client;
+        Ok(())
     }
 
     fn get_global_user(

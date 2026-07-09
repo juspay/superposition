@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 
 use actix_web::{
     HttpRequest, HttpResponse,
@@ -27,18 +27,22 @@ use crate::{
                 GlobalUserClaims, GlobalUserTokenResponse, OrgUserClaims,
                 OrgUserTokenResponse,
             },
-            utils::{presence_no_check, try_user_from, verify_presence},
+            utils::{
+                build_client, fetch_provider_metadata, presence_no_check, try_user_from,
+                verify_presence,
+            },
         },
     },
 };
 
-#[derive(Clone)]
 pub struct AuthenticatorInner {
-    client: CoreClient,
-    provider_metadata: CoreProviderMetadata,
-    client_id: String,
-    client_secret: String,
+    client: RwLock<CoreClient>,
+    provider_metadata: RwLock<CoreProviderMetadata>,
+    issuer_url: IssuerUrl,
+    client_id: ClientId,
+    client_secret: ClientSecret,
     base_url: String,
+    redirect_url: RedirectUrl,
     path_prefix: String,
     issuer_endpoint_format: String,
     token_endpoint_format: String,
@@ -71,30 +75,28 @@ impl SaasOIDCAuthenticator {
         let issuer_url = IssuerUrl::new(idp_url)
             .map_err(|e| format!("Unable to create issuer url: {}", e))
             .unwrap();
+        let redirect_url =
+            RedirectUrl::new(format!("{base_url}{path_prefix}/oidc/login"))?;
+        let client_id = ClientId::new(client_id);
+        let client_secret = ClientSecret::new(client_secret);
 
-        // Discover OpenID Provider metadata
-        let provider_metadata = CoreProviderMetadata::discover_async(
-            issuer_url,
-            oidcrs::reqwest::async_http_client,
-        )
-        .await?;
+        let provider_metadata = fetch_provider_metadata(issuer_url.clone()).await?;
 
-        // Create client
-        let client = CoreClient::from_provider_metadata(
+        let client = build_client(
             provider_metadata.clone(),
-            ClientId::new(client_id.clone()),
-            Some(ClientSecret::new(client_secret.clone())),
-        )
-        .set_redirect_uri(RedirectUrl::new(format!(
-            "{base_url}{path_prefix}/oidc/login"
-        ))?);
+            client_id.clone(),
+            client_secret.clone(),
+            redirect_url.clone(),
+        );
 
         Ok(Self(Arc::new(AuthenticatorInner {
-            client,
-            provider_metadata,
+            client: RwLock::new(client),
+            provider_metadata: RwLock::new(provider_metadata),
+            issuer_url,
             client_id,
             client_secret,
             base_url,
+            redirect_url,
             path_prefix,
             issuer_endpoint_format,
             token_endpoint_format,
@@ -123,16 +125,18 @@ impl SaasOIDCAuthenticator {
 
         let provider = self
             .provider_metadata
+            .read()
+            .unwrap_or_else(|e| e.into_inner())
             .clone()
             .set_issuer(issuer_url)
             .set_token_endpoint(Some(token_url));
 
-        Ok(CoreClient::from_provider_metadata(
+        Ok(build_client(
             provider,
-            ClientId::new(self.client_id.clone()),
-            Some(ClientSecret::new(self.client_secret.clone())),
-        )
-        .set_redirect_uri(redirect_url))
+            self.client_id.clone(),
+            self.client_secret.clone(),
+            redirect_url,
+        ))
     }
 
     fn get_issuer_url(
@@ -153,11 +157,12 @@ impl SaasOIDCAuthenticator {
     }
 
     fn decode_global_token(&self, cookie: &str) -> Result<GlobalUserClaims, String> {
+        let client = self.get_client();
         let ctr = serde_json::from_str::<GlobalUserTokenResponse>(cookie)
             .map_err(|e| format!("Error while decoding token: {e}"))?;
         ctr.id_token()
             .ok_or(String::from("Id Token not found"))?
-            .claims(&self.client.id_token_verifier(), verify_presence)
+            .claims(&client.id_token_verifier(), verify_presence)
             .map_err(|e| format!("Error in claims verification: {e}"))
             .cloned()
     }
@@ -217,8 +222,34 @@ impl SaasOIDCAuthenticator {
 }
 
 impl OIDCAuthenticator for SaasOIDCAuthenticator {
-    fn get_client(&self) -> &CoreClient {
-        &self.client
+    fn get_client(&self) -> CoreClient {
+        self.client
+            .read()
+            .unwrap_or_else(|e| e.into_inner())
+            .clone()
+    }
+
+    async fn refresh_client(&self) -> Result<(), String> {
+        let provider_metadata = fetch_provider_metadata(self.issuer_url.clone())
+            .await
+            .map_err(|e| format!("Failed to refresh provider metadata: {e:?}"))?;
+
+        let client = build_client(
+            provider_metadata.clone(),
+            self.client_id.clone(),
+            self.client_secret.clone(),
+            self.redirect_url.clone(),
+        );
+
+        // Update the metadata first so org-specific clients derived from it also
+        // pick up the fresh keys, then swap in the rebuilt global client.
+        // Recover through poisoning: these locks only guard whole-value swaps.
+        *self
+            .provider_metadata
+            .write()
+            .unwrap_or_else(|e| e.into_inner()) = provider_metadata;
+        *self.client.write().unwrap_or_else(|e| e.into_inner()) = client;
+        Ok(())
     }
 
     fn get_global_user(

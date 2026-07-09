@@ -1,4 +1,8 @@
-use openidconnect::{AdditionalClaims, GenderClaim, IdTokenClaims, Nonce};
+use openidconnect::{
+    self as oidcrs, AdditionalClaims, ClientId, ClientSecret, GenderClaim, IdTokenClaims,
+    IssuerUrl, Nonce, RedirectUrl,
+    core::{CoreClient, CoreProviderMetadata},
+};
 use superposition_types::User;
 
 pub(super) fn verify_presence(n: Option<&Nonce>) -> Result<(), String> {
@@ -27,4 +31,26 @@ pub(super) fn try_user_from<A: AdditionalClaims, B: GenderClaim>(
         .ok_or(String::from("Username not found"))?;
 
     Ok(User::new(email, username))
+}
+
+pub(super) async fn fetch_provider_metadata(
+    issuer_url: IssuerUrl,
+) -> Result<CoreProviderMetadata, Box<dyn std::error::Error>> {
+    let provider_metadata = CoreProviderMetadata::discover_async(
+        issuer_url,
+        oidcrs::reqwest::async_http_client,
+    )
+    .await?;
+
+    Ok(provider_metadata)
+}
+
+pub(super) fn build_client(
+    provider_metadata: CoreProviderMetadata,
+    client_id: ClientId,
+    client_secret: ClientSecret,
+    redirect_url: RedirectUrl,
+) -> CoreClient {
+    CoreClient::from_provider_metadata(provider_metadata, client_id, Some(client_secret))
+        .set_redirect_uri(redirect_url)
 }
