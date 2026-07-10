@@ -101,10 +101,14 @@ impl FromStr for DimensionType {
     type Err = String;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let parts: Vec<&str> = s.split(':').collect();
-        match parts[0] {
-            "REGULAR" => Ok(DimensionType::Regular {}),
-            "LOCAL_COHORT" => Ok(DimensionType::LocalCohort(parts[1].to_string())),
-            "REMOTE_COHORT" => Ok(DimensionType::RemoteCohort(parts[1].to_string())),
+        match parts.as_slice() {
+            ["REGULAR"] => Ok(DimensionType::Regular {}),
+            ["LOCAL_COHORT", cohort_based_on] if !cohort_based_on.is_empty() => {
+                Ok(DimensionType::LocalCohort(cohort_based_on.to_string()))
+            }
+            ["REMOTE_COHORT", cohort_based_on] if !cohort_based_on.is_empty() => {
+                Ok(DimensionType::RemoteCohort(cohort_based_on.to_string()))
+            }
             _ => Err(format!("Invalid dimension type: {}", s)),
         }
     }
@@ -517,3 +521,37 @@ where
 #[cfg_attr(feature = "diesel_derives", diesel(sql_type = Json))]
 pub struct DependencyGraph(pub HashMap<String, Vec<String>>);
 uniffi::custom_newtype!(DependencyGraph, HashMap<String, Vec<String>>);
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use super::DimensionType;
+
+    #[test]
+    fn dimension_type_parsing_requires_the_complete_shape() {
+        assert_eq!(
+            DimensionType::from_str("LOCAL_COHORT:country"),
+            Ok(DimensionType::LocalCohort("country".to_string()))
+        );
+        assert_eq!(
+            DimensionType::from_str("REMOTE_COHORT:merchant"),
+            Ok(DimensionType::RemoteCohort("merchant".to_string()))
+        );
+
+        for malformed in [
+            "REGULAR:amount",
+            "LOCAL_COHORT",
+            "LOCAL_COHORT:",
+            "LOCAL_COHORT:country:extra",
+            "REMOTE_COHORT",
+            "REMOTE_COHORT:",
+            "REMOTE_COHORT:merchant:extra",
+        ] {
+            assert!(
+                DimensionType::from_str(malformed).is_err(),
+                "{malformed} should be rejected"
+            );
+        }
+    }
+}
