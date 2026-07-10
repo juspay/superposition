@@ -5,10 +5,7 @@ use std::collections::HashMap;
 
 use serde_json::{Map, Value};
 
-use crate::{
-    database::models::cac::{DependencyGraph, DimensionType},
-    DimensionInfo,
-};
+use crate::{database::models::cac::DimensionType, DimensionInfo};
 
 #[inline]
 fn apply_logic(
@@ -16,26 +13,17 @@ fn apply_logic(
     context: &Map<String, Value>,
     partial: bool,
 ) -> bool {
-    for (dimension, value) in condition {
-        if let Some(context_value) = context.get(dimension) {
-            if dimension == "variantIds" {
-                if let Value::Array(ref context_values) = context_value {
-                    if !context_values.contains(value) {
-                        return false;
-                    }
-                } else {
-                    return false;
-                }
-            } else if *context_value != *value {
-                return false;
-            }
-        } else if partial {
-            continue;
-        } else {
-            return false;
+    condition.iter().all(|(dimension, expected_value)| {
+        let Some(actual_value) = context.get(dimension) else {
+            return partial;
+        };
+
+        match (dimension.as_str(), actual_value) {
+            ("variantIds", Value::Array(values)) => values.contains(expected_value),
+            ("variantIds", _) => false,
+            (_, actual_value) => actual_value == expected_value,
         }
-    }
-    true
+    })
 }
 
 /// Core context application logic - checks if all dimensions in condition are satisfied by context
@@ -76,146 +64,143 @@ pub fn partial_apply(
     true
 }
 
-fn _evaluate_local_cohort_dimension(
-    cohort_based_on: &str,
-    cohort_based_on_value: &Value,
-    schema: &Map<String, Value>,
-) -> Option<String> {
-    let definitions_object = schema.get("definitions")?.as_object()?;
+mod cohort_evaluation {
+    use crate::database::models::cac::DependencyGraph;
 
-    // Get the array of cohort names from the "enum" field and remove "otherwise"
-    let cohort_enums = schema
-        .get("enum")?
-        .as_array()?
-        .iter()
-        .filter_map(|v| v.as_str())
-        .filter(|s| *s != "otherwise")
-        .collect::<Vec<_>>();
+    use super::*;
 
-    for cohort_option in cohort_enums {
-        let jsonlogic = definitions_object.get(cohort_option)?;
-        // Find the first matching cohort definition
-        let evaluation_data = serde_json::json!({cohort_based_on: cohort_based_on_value});
-        if jsonlogic::apply(jsonlogic, &evaluation_data) == Ok(Value::Bool(true)) {
-            return Some(cohort_option.to_string());
+    const COHORT_OTHERWISE: &str = "otherwise";
+
+    fn matching_local_cohort(
+        cohort_based_on: &str,
+        cohort_based_on_value: &Value,
+        schema: &Map<String, Value>,
+    ) -> Option<String> {
+        let definitions = schema.get("definitions")?.as_object()?;
+        let cohort_options = schema
+            .get("enum")?
+            .as_array()?
+            .iter()
+            .filter_map(Value::as_str)
+            .filter(|option| *option != COHORT_OTHERWISE);
+
+        for option in cohort_options {
+            let definition = definitions.get(option)?;
+            let evaluation_data =
+                serde_json::json!({cohort_based_on: cohort_based_on_value});
+            if jsonlogic::apply(definition, &evaluation_data) == Ok(Value::Bool(true)) {
+                return Some(option.to_string());
+            }
         }
+
+        None
     }
 
-    None
-}
+    pub(super) fn evaluate_local_cohort_dimension(
+        cohort_based_on: &str,
+        cohort_based_on_value: &Value,
+        schema: &Map<String, Value>,
+    ) -> String {
+        matching_local_cohort(cohort_based_on, cohort_based_on_value, schema)
+            .unwrap_or_else(|| COHORT_OTHERWISE.to_string())
+    }
 
-fn evaluate_local_cohort_dimension(
-    cohort_based_on: &str,
-    cohort_based_on_value: &Value,
-    schema: &Map<String, Value>,
-) -> String {
-    _evaluate_local_cohort_dimension(cohort_based_on, cohort_based_on_value, schema)
-        .unwrap_or_else(|| "otherwise".to_string())
-}
+    /// Evaluates local cohort dependencies in a depth-first manner.
+    fn evaluate_dependencies(
+        dimension: &str,
+        value: &Value,
+        dependency_graph: &DependencyGraph,
+        dimensions: &HashMap<String, DimensionInfo>,
+        modified_context: &mut Map<String, Value>,
+        query_data: &Map<String, Value>,
+    ) {
+        let mut stack = dependency_graph
+            .get(dimension)
+            .cloned()
+            .unwrap_or_default()
+            .into_iter()
+            .map(|dependent| (dependent, dimension.to_string(), value.clone()))
+            .collect::<Vec<_>>();
 
-/// Evaluates local cohort dependencies in a depth-first manner
-fn evaluate_local_cohorts_dependency(
-    dimension: &str,
-    value: &Value,
-    dependency_graph: &DependencyGraph,
-    dimensions: &HashMap<String, DimensionInfo>,
-    modified_context: &mut Map<String, Value>,
-    query_data: &Map<String, Value>,
-) {
-    let mut stack = dependency_graph
-        .get(dimension)
-        .cloned()
-        .unwrap_or_default()
-        .into_iter()
-        .map(|d| (d, dimension.to_string(), value.clone()))
-        .collect::<Vec<_>>();
+        while let Some((cohort_dimension, based_on, based_on_value)) = stack.pop() {
+            let Some(dimension_info) = dimensions.get(&cohort_dimension) else {
+                continue;
+            };
 
-    // Depth-first traversal of dependencies
-    while let Some((cohort_dimension, based_on, based_on_val)) = stack.pop() {
-        if let Some(dimension_info) = dimensions.get(&cohort_dimension) {
-            let mut cohort_val = None;
-            match &dimension_info.dimension_type {
+            let cohort_value = match &dimension_info.dimension_type {
                 DimensionType::LocalCohort(_) => {
-                    let cohort_value = Value::String(evaluate_local_cohort_dimension(
+                    Some(Value::String(evaluate_local_cohort_dimension(
                         &based_on,
-                        &based_on_val,
+                        &based_on_value,
                         &dimension_info.schema,
-                    ));
-                    modified_context
-                        .insert(cohort_dimension.clone(), cohort_value.clone());
-                    cohort_val = Some(cohort_value);
+                    )))
                 }
-                _ => {
-                    if let Some(value) = query_data.get(&cohort_dimension) {
-                        modified_context.insert(cohort_dimension.clone(), value.clone());
-                        cohort_val = Some(value.clone());
-                    }
-                }
-            }
+                _ => query_data.get(&cohort_dimension).cloned(),
+            };
 
-            if let Some(cohort_val) = cohort_val {
-                stack.extend(
-                    dimension_info
-                        .dependency_graph
-                        .get(&cohort_dimension)
-                        .cloned()
-                        .unwrap_or_default()
-                        .into_iter()
-                        .map(|d| (d, cohort_dimension.clone(), cohort_val.clone()))
-                        .collect::<Vec<_>>(),
-                );
-            }
-        }
-    }
-}
+            let Some(cohort_value) = cohort_value else {
+                continue;
+            };
 
-fn _evaluate_local_cohorts(
-    dimensions: &HashMap<String, DimensionInfo>,
-    query_data: &Map<String, Value>,
-    skip_unresolved: bool,
-) -> Map<String, Value> {
-    if dimensions.is_empty() {
-        return query_data.clone();
-    }
-
-    let mut modified_context = Map::new();
-
-    // Start from dimensions that are closest to root in each tree
-    for dimension_key in dimensions_to_start_from(dimensions, query_data) {
-        if let Some(value) = query_data.get(&dimension_key) {
-            if let Some(dimension_info) = dimensions.get(&dimension_key) {
-                modified_context.insert(dimension_key.to_string(), value.clone());
-                evaluate_local_cohorts_dependency(
-                    &dimension_key,
-                    value,
-                    &dimension_info.dependency_graph,
-                    dimensions,
-                    &mut modified_context,
-                    query_data,
-                );
-            }
+            modified_context.insert(cohort_dimension.clone(), cohort_value.clone());
+            stack.extend(
+                dimension_info
+                    .dependency_graph
+                    .get(&cohort_dimension)
+                    .cloned()
+                    .unwrap_or_default()
+                    .into_iter()
+                    .map(|dependent| {
+                        (dependent, cohort_dimension.clone(), cohort_value.clone())
+                    }),
+            );
         }
     }
 
-    if skip_unresolved {
-        return modified_context;
-    }
+    pub(super) fn evaluate_context(
+        dimensions: &HashMap<String, DimensionInfo>,
+        query_data: &Map<String, Value>,
+        skip_unresolved: bool,
+    ) -> Map<String, Value> {
+        if dimensions.is_empty() {
+            return query_data.clone();
+        }
 
-    // For any local cohort dimension not yet set, set it to "otherwise"
-    for dimension_key in dimensions.keys() {
-        if let Some(dimension_info) = dimensions.get(dimension_key) {
+        let mut modified_context = Map::new();
+
+        for dimension_key in dimensions_to_start_from(dimensions, query_data) {
+            if let Some(value) = query_data.get(&dimension_key) {
+                if let Some(dimension_info) = dimensions.get(&dimension_key) {
+                    modified_context.insert(dimension_key.to_string(), value.clone());
+                    evaluate_dependencies(
+                        &dimension_key,
+                        value,
+                        &dimension_info.dependency_graph,
+                        dimensions,
+                        &mut modified_context,
+                        query_data,
+                    );
+                }
+            }
+        }
+
+        if skip_unresolved {
+            return modified_context;
+        }
+
+        for (dimension_key, dimension_info) in dimensions {
             if matches!(dimension_info.dimension_type, DimensionType::LocalCohort(_))
                 && !modified_context.contains_key(dimension_key)
             {
                 modified_context.insert(
-                    dimension_key.to_string(),
-                    Value::String("otherwise".to_string()),
+                    dimension_key.clone(),
+                    Value::String(COHORT_OTHERWISE.to_string()),
                 );
             }
         }
-    }
 
-    modified_context
+        modified_context
+    }
 }
 
 /// Evaluates all local cohort dimensions based on the provided query data and dimension definitions
@@ -229,7 +214,7 @@ pub fn evaluate_local_cohorts(
     dimensions: &HashMap<String, DimensionInfo>,
     query_data: &Map<String, Value>,
 ) -> Map<String, Value> {
-    _evaluate_local_cohorts(dimensions, query_data, false)
+    cohort_evaluation::evaluate_context(dimensions, query_data, false)
 }
 
 /// Same as evaluate_local_cohorts but does not set unresolved local cohorts to "otherwise"
@@ -237,7 +222,7 @@ pub fn evaluate_local_cohorts_skip_unresolved(
     dimensions: &HashMap<String, DimensionInfo>,
     query_data: &Map<String, Value>,
 ) -> Map<String, Value> {
-    _evaluate_local_cohorts(dimensions, query_data, true)
+    cohort_evaluation::evaluate_context(dimensions, query_data, true)
 }
 
 /// Identifies starting dimensions for evaluation based on query data and dimension definitions
