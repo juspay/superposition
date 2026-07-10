@@ -7,12 +7,12 @@
 //! operation the OpenFeature provider performs on every flag evaluation via
 //! `superposition_core::eval_config`.
 //!
-//! Two variants are compared:
-//!   * `optimized_borrowed`     — the current implementation, which resolves
-//!     directly against the borrowed context/override set.
-//!   * `pre_optimization_cloned` — reproduces the pre-optimization overhead,
-//!     where every resolve deep-cloned the entire context set (once to read
-//!     the dimensions, once more to build a throwaway `Config`).
+//! Three variants are compared:
+//!   * `optimized_borrowed` — resolves all config without prefix filtering.
+//!   * `prefix_pre_optimization_cloned` — reproduces the old prefix path,
+//!     which cloned and filtered the complete config before resolving.
+//!   * `prefix_optimized_borrowed` — resolves a prefix-filtered config while
+//!     borrowing the context/override set.
 //!
 //! Run with:
 //!     cargo bench -p superposition_core --bench resolve
@@ -22,15 +22,15 @@
 //!     BENCH_CONTEXTS=50000 cargo bench -p superposition_core --bench resolve
 
 use std::cell::Cell;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
 
-use criterion::{Criterion, black_box, criterion_group, criterion_main};
-use serde_json::{Map, Value, json};
-use superposition_core::{Config, MergeStrategy, eval_config};
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use serde_json::{json, Map, Value};
+use superposition_core::{eval_config, Config, MergeStrategy};
 use superposition_types::{
-    Cac, Condition, Context, DimensionInfo, ExtendedMap, OverrideWithKeys, Overrides,
     database::models::cac::{DependencyGraph, DimensionType},
+    Cac, Condition, Context, DimensionInfo, ExtendedMap, OverrideWithKeys, Overrides,
 };
 
 /// Number of regular dimensions in the synthetic dataset (mirrors the reported data).
@@ -43,6 +43,7 @@ const NUM_QUERIES: usize = 100;
 const DIMENSION_CARDINALITY: usize = 12;
 /// The (small) set of default config keys.
 const DEFAULT_CONFIG_KEYS: [&str; 3] = ["config.alpha", "config.beta", "config.gamma"];
+const PREFIX_FILTER: [&str; 1] = ["config.a"];
 
 /// Tiny deterministic xorshift64 PRNG so the dataset is fully reproducible
 /// without pulling in an external `rand` dependency.
@@ -235,8 +236,10 @@ fn build_dataset(num_contexts: usize) -> Dataset {
     }
 }
 
-/// Current implementation: resolve directly against the borrowed data.
-fn resolve_optimized(ds: &Dataset, query: &Map<String, Value>) -> Map<String, Value> {
+fn resolve_prefix_optimized(
+    ds: &Dataset,
+    query: &Map<String, Value>,
+) -> Map<String, Value> {
     eval_config(
         ds.default_config.clone(),
         &ds.contexts,
@@ -244,36 +247,56 @@ fn resolve_optimized(ds: &Dataset, query: &Map<String, Value>) -> Map<String, Va
         &ds.dimensions,
         query,
         MergeStrategy::MERGE,
+        Some(
+            PREFIX_FILTER
+                .iter()
+                .map(|prefix| prefix.to_string())
+                .collect(),
+        ),
+    )
+    .expect("resolve")
+}
+
+fn resolve_prefix_pre_optimization(
+    ds: &Dataset,
+    query: &Map<String, Value>,
+) -> Map<String, Value> {
+    let prefixes = PREFIX_FILTER
+        .iter()
+        .map(|prefix| prefix.to_string())
+        .collect::<HashSet<_>>();
+
+    let Config {
+        contexts,
+        overrides,
+        default_configs,
+        dimensions,
+    } = Config {
+        contexts: ds.contexts.clone(),
+        overrides: ds.overrides.clone(),
+        default_configs: ds.default_config.clone().into(),
+        dimensions: ds.dimensions.clone(),
+    }
+    .filter_by_prefix(&prefixes);
+
+    eval_config(
+        default_configs.into_inner(),
+        &contexts,
+        &overrides,
+        &dimensions,
+        query,
+        MergeStrategy::MERGE,
         None,
     )
     .expect("resolve")
 }
 
-/// Pre-optimization behavior: every resolve deep-cloned the full context set
-/// twice — once while extracting dimensions, once while building a throwaway
-/// `Config` for (unused) prefix filtering.
-fn resolve_pre_optimization(
-    ds: &Dataset,
-    query: &Map<String, Value>,
-) -> Map<String, Value> {
-    // (1) Old `get_dimensions_info`: cloned the whole Config just to read
-    //     `.dimensions`.
-    let full = Config {
-        contexts: ds.contexts.clone(),
-        overrides: ds.overrides.clone(),
-        default_configs: ds.default_config.clone().into(),
-        dimensions: ds.dimensions.clone(),
-    };
-    let _dimensions = full.dimensions.clone();
-
-    // (2) Old `eval_config`: cloned contexts + overrides into a temporary
-    //     Config before resolving.
-    let contexts = ds.contexts.clone();
-    let overrides = ds.overrides.clone();
+/// Current implementation: resolve directly against the borrowed data.
+fn resolve_optimized(ds: &Dataset, query: &Map<String, Value>) -> Map<String, Value> {
     eval_config(
         ds.default_config.clone(),
-        &contexts,
-        &overrides,
+        &ds.contexts,
+        &ds.overrides,
         &ds.dimensions,
         query,
         MergeStrategy::MERGE,
@@ -314,12 +337,21 @@ fn bench_resolve(c: &mut Criterion) {
         })
     });
 
-    group.bench_function("pre_optimization_cloned", |b| {
+    group.bench_function("prefix_optimized_borrowed", |b| {
         let counter = Cell::new(0usize);
         b.iter(|| {
             let q = &ds.queries[counter.get() % ds.queries.len()];
             counter.set(counter.get() + 1);
-            black_box(resolve_pre_optimization(&ds, q))
+            black_box(resolve_prefix_optimized(&ds, q))
+        })
+    });
+
+    group.bench_function("prefix_pre_optimization_cloned", |b| {
+        let counter = Cell::new(0usize);
+        b.iter(|| {
+            let q = &ds.queries[counter.get() % ds.queries.len()];
+            counter.set(counter.get() + 1);
+            black_box(resolve_prefix_pre_optimization(&ds, q))
         })
     });
 
