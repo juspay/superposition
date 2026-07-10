@@ -14,7 +14,7 @@ use base64::{Engine, engine::general_purpose};
 use openidconnect::{
     self as oidcrs, AuthenticationFlow, ClaimsVerificationError, CsrfToken, Nonce,
     TokenResponse,
-    core::{CoreClient, CoreResponseType, CoreTokenResponse},
+    core::{CoreClient, CoreIdToken, CoreResponseType, CoreTokenResponse},
 };
 pub use saas_authenticator::SaasOIDCAuthenticator;
 pub use simple_authenticator::SimpleOIDCAuthenticator;
@@ -138,24 +138,21 @@ trait OIDCAuthenticator: Authenticator {
                 )
             })?;
 
+        let client = data.get_client();
+
         // Verify the freshly-minted ID token. If verification fails, the most
         // common cause is that the IdP has rotated its signing keys since we
         // last fetched the JWKS, so the cached keys can't validate the new
         // token's signature. Refresh the provider metadata once and retry
         // before giving up — this self-heals key rotation without a restart.
-        let mut response =
-            verify_id_token(&data.get_client(), &token_response, &p_cookie.nonce);
+        let mut response = verify_id_token(&client, &token_response, &p_cookie.nonce);
         if let Err(e) = &response {
             log::error!(
                 "OIDC: ID token verification failed; refreshing provider keys and retrying, error: {e:?}"
             );
             match data.refresh_client().await {
                 Ok(()) => {
-                    response = verify_id_token(
-                        &data.get_client(),
-                        &token_response,
-                        &p_cookie.nonce,
-                    );
+                    response = verify_id_token(&client, &token_response, &p_cookie.nonce);
                 }
                 Err(e) => {
                     log::error!("OIDC: failed to refresh provider metadata: {e}")
@@ -165,11 +162,7 @@ trait OIDCAuthenticator: Authenticator {
 
         match response {
             Ok(r) => {
-                let token = serde_json::to_string(&r).map_err(|e| {
-                    log::error!("Unable to stringify data: {e:?}");
-                    ErrorInternalServerError("Unable to stringify data".to_string())
-                })?;
-                let cookie = Cookie::build(login_type.to_string(), token)
+                let cookie = Cookie::build(login_type.to_string(), r.to_string())
                     .path(data.get_cookie_path())
                     .http_only(true)
                     .secure(true)
@@ -194,16 +187,16 @@ trait OIDCAuthenticator: Authenticator {
     }
 }
 
-fn verify_id_token(
-    client: &CoreClient,
-    token_response: &CoreTokenResponse,
-    nonce: &Nonce,
-) -> Result<CoreTokenResponse, ClaimsVerificationError> {
-    token_response
-        .id_token()
-        .ok_or_else(|| ClaimsVerificationError::Other("Id Token not found".to_string()))
-        .and_then(|t| t.claims(&client.id_token_verifier(), nonce))
-        .map(|_| token_response.clone())
+fn verify_id_token<'a>(
+    client: &'a CoreClient,
+    token_response: &'a CoreTokenResponse,
+    nonce: &'a Nonce,
+) -> Result<&'a CoreIdToken, ClaimsVerificationError> {
+    let id_token = token_response.id_token().ok_or_else(|| {
+        ClaimsVerificationError::Other("Id Token not found".to_string())
+    })?;
+    id_token.claims(&client.id_token_verifier(), nonce)?;
+    Ok(id_token)
 }
 
 fn sign_in_failed_response(retry_url: &str) -> HttpResponse {

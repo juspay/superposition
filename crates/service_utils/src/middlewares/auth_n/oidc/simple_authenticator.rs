@@ -2,14 +2,14 @@ use std::sync::{Arc, RwLock};
 
 use actix_web::{
     HttpRequest, HttpResponse,
-    error::{ErrorBadRequest, ErrorInternalServerError},
+    error::{ErrorBadRequest, ErrorInternalServerError, ErrorUnauthorized},
     web::{self, Data, get, resource},
 };
 use derive_more::{Deref, DerefMut};
 use futures_util::future::LocalBoxFuture;
 use openidconnect::{
-    ClientId, ClientSecret, IssuerUrl, RedirectUrl, TokenResponse,
-    core::{CoreClient, CoreIdTokenClaims, CoreTokenResponse},
+    ClientId, ClientSecret, IssuerUrl, RedirectUrl,
+    core::{CoreClient, CoreIdToken, CoreIdTokenClaims},
 };
 use superposition_types::User;
 
@@ -76,11 +76,10 @@ impl SimpleOIDCAuthenticator {
 
     fn decode_global_token(&self, cookie: &str) -> Result<CoreIdTokenClaims, String> {
         let client = self.get_client();
-        let ctr = serde_json::from_str::<CoreTokenResponse>(cookie)
+        let ctr = cookie
+            .parse::<CoreIdToken>()
             .map_err(|e| format!("Error while decoding token: {e}"))?;
-        ctr.id_token()
-            .ok_or(String::from("Id Token not found"))?
-            .claims(&client.id_token_verifier(), verify_presence)
+        ctr.claims(&client.id_token_verifier(), verify_presence)
             .map_err(|e| format!("Error in claims verification: {e}"))
             .cloned()
     }
@@ -155,6 +154,29 @@ impl Authenticator for SimpleOIDCAuthenticator {
                 let resp = auth_n.get_global_user(request, request.path().to_string());
                 Box::pin(async { resp })
             }
+        }
+    }
+
+    fn authenticate_with_token(
+        &self,
+        login_type: &Login,
+        token: &str,
+    ) -> Result<User, HttpResponse> {
+        match login_type {
+            Login::None => Ok(User::default()),
+            _ => self
+                .decode_global_token(token)
+                .map_err(|e| {
+                    log::error!("Error in decoding user : {e}");
+                    ErrorUnauthorized(String::from("Unable to get user"))
+                })
+                .and_then(|claims| {
+                    try_user_from(&claims).map_err(|e| {
+                        log::error!("Unable to get user: {e}");
+                        ErrorUnauthorized(String::from("Unable to get user"))
+                    })
+                })
+                .map_err(Into::into),
         }
     }
 

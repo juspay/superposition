@@ -52,6 +52,12 @@ pub trait Authenticator: Sync + Send {
         login_type: &Login,
     ) -> LocalBoxFuture<'static, Result<User, HttpResponse>>;
 
+    fn authenticate_with_token(
+        &self,
+        login_type: &Login,
+        token: &str,
+    ) -> Result<User, HttpResponse>;
+
     fn get_organisations(&self, req: &HttpRequest) -> HttpResponse;
 
     fn generate_org_user<'a>(

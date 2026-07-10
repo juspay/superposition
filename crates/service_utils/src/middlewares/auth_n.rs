@@ -102,7 +102,10 @@ where
     fn call(&self, request: ServiceRequest) -> Self::Future {
         let state = request.app_data::<Data<AppState>>().unwrap();
 
-        let result = request
+        let login_type =
+            self.get_login_type(&request, &state.tenant_middleware_exclusion_list);
+
+        let auth_future = request
             .headers()
             .get(header::AUTHORIZATION)
             .and_then(|auth| auth.to_str().ok())
@@ -123,8 +126,30 @@ where
                                 request
                                     .extensions_mut()
                                     .insert::<InternalUser>(InternalUser);
-                                Ok(user)
+                                Box::pin(ready(Ok(user))) as LocalBoxFuture<'static, _>
                             })
+                    }
+                    (Some("Bearer"), Some(token)) => {
+                        let resp = self
+                            .auth_n_handler
+                            .0
+                            .authenticate_with_token(&login_type, token);
+                        Some(Box::pin(ready(resp)) as LocalBoxFuture<'static, _>)
+                    }
+                    (Some("Basic"), Some(credential))
+                        if request.path().ends_with("/dispatch/webhook")
+                            && is_dispatch_credential(
+                                credential,
+                                &state.kronos_dispatch_token,
+                            ) =>
+                    {
+                        request
+                            .extensions_mut()
+                            .insert::<DispatchUser>(DispatchUser);
+                        Some(Ok(User::new(
+                            format!("{DISPATCHER_USERNAME}@superposition.io"),
+                            DISPATCHER_USERNAME.to_string(),
+                        )))
                     }
                     (Some("Basic"), Some(credential))
                         if request.path().ends_with("/dispatch/webhook")
@@ -145,36 +170,21 @@ where
                 }
             })
             .unwrap_or_else(|| {
-                let login_type = self
-                    .get_login_type(&request, &state.tenant_middleware_exclusion_list);
-
-                Err(self
-                    .auth_n_handler
+                self.auth_n_handler
                     .0
-                    .authenticate(request.request(), &login_type))
+                    .authenticate(request.request(), &login_type)
             });
 
-        match result {
-            Ok(user) => {
-                request.extensions_mut().insert::<User>(user);
-                let fut = self.service.call(request);
-                Box::pin(async { fut.await.map(|sr| sr.map_into_left_body()) })
+        let srv = self.service.clone();
+        Box::pin(async move {
+            match auth_future.await {
+                Ok(user) => {
+                    request.extensions_mut().insert::<User>(user);
+                    srv.call(request).await.map(|sr| sr.map_into_left_body())
+                }
+                Err(resp) => Ok(request.into_response(resp.map_into_right_body())),
             }
-            Err(fut) => {
-                let srv = self.service.clone();
-                Box::pin(async move {
-                    match fut.await {
-                        Ok(user) => {
-                            request.extensions_mut().insert::<User>(user);
-                            srv.call(request).await.map(|sr| sr.map_into_left_body())
-                        }
-                        Err(resp) => {
-                            Ok(request.into_response(resp.map_into_right_body()))
-                        }
-                    }
-                })
-            }
-        }
+        })
     }
 }
 

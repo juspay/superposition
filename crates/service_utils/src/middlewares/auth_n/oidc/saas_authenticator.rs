@@ -3,7 +3,7 @@ use std::sync::{Arc, RwLock};
 use actix_web::{
     HttpRequest, HttpResponse,
     cookie::{Cookie, time::Duration},
-    error::{ErrorBadRequest, ErrorInternalServerError},
+    error::{ErrorBadRequest, ErrorInternalServerError, ErrorUnauthorized},
     http::header,
     web::{self, Data, Json, get, resource},
 };
@@ -12,7 +12,7 @@ use futures_util::future::LocalBoxFuture;
 use openidconnect::{
     self as oidcrs, ClientId, ClientSecret, IssuerUrl, RedirectUrl,
     ResourceOwnerPassword, ResourceOwnerUsername, Scope, TokenResponse, TokenUrl,
-    core::{CoreClient, CoreProviderMetadata},
+    core::{CoreClient, CoreIdToken, CoreProviderMetadata},
 };
 use superposition_types::User;
 
@@ -23,10 +23,7 @@ use crate::{
         authentication::{Authenticator, Login},
         oidc::{
             OIDCAuthenticator,
-            types::{
-                GlobalUserClaims, GlobalUserTokenResponse, OrgUserClaims,
-                OrgUserTokenResponse,
-            },
+            types::{GlobalUserClaims, GlobalUserIdToken, OrgUserClaims},
             utils::{
                 build_client, fetch_provider_metadata, presence_no_check, try_user_from,
                 verify_presence,
@@ -158,11 +155,10 @@ impl SaasOIDCAuthenticator {
 
     fn decode_global_token(&self, cookie: &str) -> Result<GlobalUserClaims, String> {
         let client = self.get_client();
-        let ctr = serde_json::from_str::<GlobalUserTokenResponse>(cookie)
+        let ctr = cookie
+            .parse::<GlobalUserIdToken>()
             .map_err(|e| format!("Error while decoding token: {e}"))?;
-        ctr.id_token()
-            .ok_or(String::from("Id Token not found"))?
-            .claims(&client.id_token_verifier(), verify_presence)
+        ctr.claims(&client.id_token_verifier(), verify_presence)
             .map_err(|e| format!("Error in claims verification: {e}"))
             .cloned()
     }
@@ -177,11 +173,10 @@ impl SaasOIDCAuthenticator {
             .map_err(|e| format!("Error in getting Org specific client: {e}"))?;
         let id_token_verifier = client.id_token_verifier();
 
-        let ctr = serde_json::from_str::<OrgUserTokenResponse>(cookie)
+        let ctr = cookie
+            .parse::<CoreIdToken>()
             .map_err(|e| format!("Error while decoding token: {e}"))?;
-        ctr.id_token()
-            .ok_or(String::from("Id Token not found"))?
-            .claims(&id_token_verifier, presence_no_check)
+        ctr.claims(&id_token_verifier, presence_no_check)
             .map_err(|e| format!("Error in claims verification: {e}"))
             .cloned()
     }
@@ -307,6 +302,42 @@ impl Authenticator for SaasOIDCAuthenticator {
         }
     }
 
+    fn authenticate_with_token(
+        &self,
+        login_type: &Login,
+        token: &str,
+    ) -> Result<User, HttpResponse> {
+        match login_type {
+            Login::None => Ok(User::default()),
+            Login::Global => self
+                .decode_global_token(token)
+                .map_err(|e| {
+                    log::error!("Error in decoding user : {e}");
+                    ErrorUnauthorized(String::from("Unable to get user"))
+                })
+                .and_then(|claims| {
+                    try_user_from(&claims).map_err(|e| {
+                        log::error!("Unable to get user: {e}");
+                        ErrorUnauthorized(String::from("Unable to get user"))
+                    })
+                })
+                .map_err(Into::into),
+            Login::Org(org_id) => self
+                .decode_org_token(org_id, token)
+                .map_err(|e| {
+                    log::error!("Error in decoding org_user : {e}");
+                    ErrorUnauthorized(String::from("Unable to get org_user"))
+                })
+                .and_then(|claims| {
+                    try_user_from(&claims).map_err(|e| {
+                        log::error!("Unable to get org_user: {e}");
+                        ErrorUnauthorized(String::from("Unable to get org_user"))
+                    })
+                })
+                .map_err(Into::into),
+        }
+    }
+
     fn routes(&self) -> actix_web::Scope {
         web::scope("oidc")
             .app_data(Data::new(self.to_owned()))
@@ -396,23 +427,18 @@ impl Authenticator for SaasOIDCAuthenticator {
                     ))
                 })
                 .and_then(|tr| {
-                    tr.id_token()
-                        .ok_or_else(|| {
-                            log::error!("No identity-token!");
-                            None
-                        })?
+                    let id_token = tr.id_token().ok_or_else(|| {
+                        log::error!("No identity-token!");
+                        None
+                    })?;
+                    id_token
                         .claims(&client.id_token_verifier(), presence_no_check)
                         .map_err(|e| {
                             log::error!("Couldn't verify claims: {e:?}");
                             None
                         })?;
 
-                    serde_json::to_string(&tr).map_err(|e| {
-                        log::error!("Unable to stringify data: {e:?}");
-                        Some(ErrorInternalServerError(
-                            "Unable to stringify data".to_string(),
-                        ))
-                    })
+                    Ok(id_token.to_string())
                 })
                 .map_err(|e| e.map(Into::into).unwrap_or(redirect))
         })

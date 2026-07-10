@@ -32,6 +32,10 @@ impl Authenticator for DisabledAuthenticator {
         Box::pin(async { Ok(User::default()) })
     }
 
+    fn authenticate_with_token(&self, _: &Login, _: &str) -> Result<User, HttpResponse> {
+        Ok(User::default())
+    }
+
     fn routes(&self) -> actix_web::Scope {
         Scope::new("no_auth")
     }
