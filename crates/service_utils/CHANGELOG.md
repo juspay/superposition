@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.44.3 - 2026-07-13
+#### Bug Fixes
+- add separate kronos dispatch token (#1089) - (8e7bebd) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(version)** v0.115.3 [skip ci] - (77e840c) - Superposition Bot
+
+- - -
+
 ## service_utils-v0.44.2 - 2026-07-08
 #### Bug Fixes
 - Proper debug log on auth failures (#1087) - (521bd76) - Ayush Jain
