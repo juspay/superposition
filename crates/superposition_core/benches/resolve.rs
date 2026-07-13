@@ -25,12 +25,12 @@ use std::cell::Cell;
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
-use criterion::{Criterion, black_box, criterion_group, criterion_main};
-use serde_json::{Map, Value, json};
-use superposition_core::{Config, MergeStrategy, eval_config};
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use serde_json::{json, Map, Value};
+use superposition_core::{eval_config, Config, MergeStrategy};
 use superposition_types::{
-    Cac, Condition, Context, DimensionInfo, ExtendedMap, OverrideWithKeys, Overrides,
     database::models::cac::{DependencyGraph, DimensionType},
+    Cac, Condition, Context, DimensionInfo, ExtendedMap, OverrideWithKeys, Overrides,
 };
 
 /// Number of regular dimensions in the synthetic dataset (mirrors the reported data).

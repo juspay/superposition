@@ -52,7 +52,7 @@ where
                     // the backend treated this as a no-op: just warn and keep the
                     // popup open (don't call handle_submit, which closes it).
                     if *experiment.traffic_percentage
-                            == *experiment_clone.traffic_percentage
+                        == *experiment_clone.traffic_percentage
                     {
                         enqueue_alert(
                             String::from("Ramp is already set to the same value"),
