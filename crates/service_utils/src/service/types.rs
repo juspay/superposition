@@ -104,6 +104,7 @@ pub struct AppState {
     pub tenant_middleware_exclusion_list: HashSet<String>,
     pub service_prefix: String,
     pub superposition_token: String,
+    pub kronos_dispatch_token: String,
     pub redis: Option<fred::clients::RedisPool>,
     pub workspace_lock_default_ttl: Duration,
     pub workspace_lock_batch_ttl: Duration,

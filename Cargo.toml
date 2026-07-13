@@ -100,8 +100,8 @@ tracing-actix-web = "0.7.21"
 url = "2.5.0"
 uuid = { version = "1.20.0", features = ["v4", "serde", "js"] }
 uniffi = { version = "0.29.3", features = ["cli"] }
-kronos-worker = { git = "https://github.com/juspay/kronos.git", rev = "b14c6f005024ac7d4cd106a1bb728697ee545c9c" }
-kronos-common = { git = "https://github.com/juspay/kronos.git", rev = "b14c6f005024ac7d4cd106a1bb728697ee545c9c" }
+kronos-worker = { git = "https://github.com/juspay/kronos.git", tag = "v0.1.0" }
+kronos-common = { git = "https://github.com/juspay/kronos.git", tag = "v0.1.0" }
 superposition = { path = "crates/superposition", version = "0.115.3" }
 superposition_types = { path = "crates/superposition_types", version = "0.115.3" }
 superposition_derives = { path = "crates/superposition_derives", version = "0.115.3" }

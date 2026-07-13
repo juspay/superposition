@@ -20,17 +20,34 @@ use actix_web::{
 };
 use authentication::{Authenticator, Login, SwitchOrgParams};
 use aws_sdk_kms::Client;
+use base64::{Engine, engine::general_purpose};
 use futures_util::future::LocalBoxFuture;
 use no_auth::DisabledAuthenticator;
 use oidc::{SaasOIDCAuthenticator, SimpleOIDCAuthenticator};
-use superposition_types::{InternalUser, User};
+use superposition_types::{DispatchUser, InternalUser, User};
 
 use crate::{
     db::utils::get_oidc_client_secret,
     extensions::HttpRequestExt,
     helpers::get_from_env_unsafe,
+    kronos_dispatch::DISPATCHER_USERNAME,
     service::types::{AppEnv, AppState},
 };
+
+/// Verifies a `Basic` credential as the Kronos dispatch callback credential:
+/// `base64("kronos-dispatcher:<dispatch_token>")`.
+fn is_dispatch_credential(credential: &str, dispatch_token: &str) -> bool {
+    general_purpose::STANDARD
+        .decode(credential)
+        .ok()
+        .and_then(|decoded| String::from_utf8(decoded).ok())
+        .and_then(|decoded| {
+            decoded
+                .split_once(':')
+                .map(|(user, token)| user == DISPATCHER_USERNAME && token == dispatch_token)
+        })
+        .unwrap_or(false)
+}
 
 pub struct AuthNMiddleware<S> {
     service: Rc<S>,
@@ -108,6 +125,21 @@ where
                                     .insert::<InternalUser>(InternalUser);
                                 Ok(user)
                             })
+                    }
+                    (Some("Basic"), Some(credential))
+                        if request.path().ends_with("/dispatch/webhook")
+                            && is_dispatch_credential(
+                                credential,
+                                &state.kronos_dispatch_token,
+                            ) =>
+                    {
+                        request
+                            .extensions_mut()
+                            .insert::<DispatchUser>(DispatchUser);
+                        Some(Ok(User::new(
+                            format!("{DISPATCHER_USERNAME}@superposition.io"),
+                            DISPATCHER_USERNAME.to_string(),
+                        )))
                     }
                     (_, _) => None,
                 }

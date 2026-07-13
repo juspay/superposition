@@ -1,12 +1,11 @@
 use std::collections::HashMap;
 
+use base64::{Engine, engine::general_purpose};
 use kronos_common::{sqlx, tenant::SchemaProvider};
 use kronos_worker::{JobTrigger, KronosClient};
 use once_cell::sync::Lazy;
 use serde::Serialize;
 use serde_json::json;
-
-use superposition_types::User;
 
 use crate::helpers::get_from_env_or_default;
 
@@ -17,6 +16,15 @@ static CONFIG_REFERENCE_REGEX: Lazy<regex::Regex> = Lazy::new(|| {
 
 pub const DISPATCHER_ENDPOINT_NAME: &str = "superposition-webhook-dispatcher";
 pub const DISPATCHER_SECRET_NAME: &str = "superposition-internal-token";
+/// Username part of the Basic credential the dispatcher calls back with.
+pub const DISPATCHER_USERNAME: &str = "kronos-dispatcher";
+
+/// Build the Basic credential blob stored as the Kronos secret:
+/// `base64("kronos-dispatcher:<token>")`. Kronos stores it encrypted and sends
+/// it verbatim in the Authorization header; SP decodes and verifies it.
+pub fn dispatcher_basic_credential(dispatch_token: &str) -> String {
+    general_purpose::STANDARD.encode(format!("{DISPATCHER_USERNAME}:{dispatch_token}"))
+}
 
 pub struct SuperpositionSchemaProvider {
     pool: sqlx::PgPool,
@@ -57,17 +65,14 @@ pub fn dispatcher_endpoint_spec(dispatcher_url: &str) -> serde_json::Value {
     json!({
         "url": dispatcher_url,
         "method": "POST",
-        // Match the internal-call convention enforced by the auth middleware:
-        // `Authorization: Internal <token>` plus an `x-user` identity header —
-        // both are required for the request to be marked InternalUser. The SP workspace
-        // rides in the `x-org-id`/`x-workspace` headers, templated from the job input.
+        // `Authorization: Basic <base64(kronos-dispatcher:token)>` — matches the
+        // org-wide API-key-in-Basic convention. The stored secret is already the
+        // base64 blob (see `dispatcher_basic_credential`); Kronos sends it as-is.
+        // SP's auth middleware decodes it, verifies the token, and assigns the
+        // fixed kronos-dispatcher identity. The SP workspace rides in the
+        // `x-org-id`/`x-workspace` headers, templated from the job input.
         "headers": {
-            "Authorization": format!("Internal {{{{secret.{DISPATCHER_SECRET_NAME}}}}}"),
-            "x-user": serde_json::to_string(&User::new(
-                "kronos-dispatcher@superposition.io".to_string(),
-                "kronos-dispatcher".to_string(),
-            ))
-            .unwrap_or_default(),
+            "Authorization": format!("Basic {{{{secret.{DISPATCHER_SECRET_NAME}}}}}"),
             "x-org-id": "{{input.org_id}}",
             "x-workspace": "{{input.workspace}}"
         },
@@ -90,7 +95,7 @@ pub async fn setup_dispatcher(
     kronos_client: &dyn KronosClient,
     workspace: &str,
     superposition_host: &str,
-    superposition_token: &str,
+    dispatch_token: &str,
 ) {
     if let Err(e) = kronos_client.provision_workspace(workspace).await {
         log::warn!(
@@ -99,8 +104,9 @@ pub async fn setup_dispatcher(
     }
 
     let dispatcher_url = format!("{superposition_host}/dispatch/webhook");
+    let basic_credential = dispatcher_basic_credential(dispatch_token);
     if let Err(e) = kronos_client
-        .upsert_secret(workspace, DISPATCHER_SECRET_NAME, superposition_token)
+        .upsert_secret(workspace, DISPATCHER_SECRET_NAME, &basic_credential)
         .await
     {
         log::warn!("Kronos dispatcher: secret upsert failed for '{workspace}': {e}");
