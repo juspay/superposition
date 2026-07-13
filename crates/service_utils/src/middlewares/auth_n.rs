@@ -42,9 +42,9 @@ fn is_dispatch_credential(credential: &str, dispatch_token: &str) -> bool {
         .ok()
         .and_then(|decoded| String::from_utf8(decoded).ok())
         .and_then(|decoded| {
-            decoded
-                .split_once(':')
-                .map(|(user, token)| user == DISPATCHER_USERNAME && token == dispatch_token)
+            decoded.split_once(':').map(|(user, token)| {
+                user == DISPATCHER_USERNAME && token == dispatch_token
+            })
         })
         .unwrap_or(false)
 }
