@@ -9,15 +9,17 @@ from datetime import datetime
 from typing import Dict, List, Optional, Any
 
 from smithy_core.documents import Document
+from smithy_core.interceptors import Interceptor, ResponseContext
 from superposition_bindings.superposition_client import ExperimentConfig
 
 from superposition_sdk.client import Superposition
 from superposition_sdk.config import Config as SdkConfig
 from superposition_sdk.auth_helpers import bearer_auth_config
 from superposition_sdk.models import GetConfigInput, DimensionMatchStrategy, \
-    GetExperimentConfigInput, UnknownApiError
+    GetExperimentConfigInput, ServiceError
 from .conversions import experiments_to_ffi_experiments, exp_grps_to_ffi_exp_grps, config_response_to_ffi_config
 
+from .errors import SuperpositionError
 from .types import SuperpositionOptions
 from .data_source import (
     SuperpositionDataSource,
@@ -27,6 +29,34 @@ from .data_source import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+class _NotModified(ServiceError):
+    """The service answered 304: the caller's cached copy is still current.
+
+    Deliberately a `ServiceError`: the client wraps anything else in one on its way out
+    (`raise ServiceError(e) from e`), which would bury this behind a cause chain.
+    """
+
+
+class _NotModifiedInterceptor(Interceptor):
+    """Turns an HTTP 304 into a distinguishable signal.
+
+    The generated SDK models no shape for 304, and its deserializer treats every status
+    >= 300 as a failure, collapsing it into an `UnknownApiError` that carries only a
+    message string. Reading the raw status before deserialization is the only way to tell
+    "your cached copy is still current" from a genuine failure — the Java client solves
+    this the same way.
+
+    This replaces an `except UnknownApiError: return not_modified()` catch-all, which
+    reported expired credentials and 500s as a successful "nothing changed" and silently
+    froze the config.
+    """
+
+    def read_after_transmit(self, context: ResponseContext) -> None:
+        response = context.transport_response
+        if response is not None and response.status == 304:
+            raise _NotModified()
 
 
 class HttpDataSource(SuperpositionDataSource):
@@ -56,7 +86,8 @@ class HttpDataSource(SuperpositionDataSource):
         sdk_config = SdkConfig(
             endpoint_uri=self.options.endpoint,
             http_auth_scheme_resolver=resolver,
-            http_auth_schemes=schemes
+            http_auth_schemes=schemes,
+            interceptors=[_NotModifiedInterceptor()],
         )
 
         # Create Superposition client
@@ -93,11 +124,10 @@ class HttpDataSource(SuperpositionDataSource):
                 fetched_at=response.last_modified,
                 data=config_response_to_ffi_config(response),
             ))
-        except UnknownApiError as e:
-            # this is a hack for now, need to fix it properly by checking the content of UnkownApiError
+        except _NotModified:
             return FetchResponse.not_modified()
         except Exception as e:
-            raise e
+            raise SuperpositionError.network_error(f"Failed to fetch config: {e}", e) from e
 
     async def _fetch_filtered_experiment(
         self,
@@ -126,11 +156,12 @@ class HttpDataSource(SuperpositionDataSource):
                     experiment_groups=exp_grps_to_ffi_exp_grps(response.experiment_groups),
                 )
             ))
-        except UnknownApiError as e:
-            # this is a hack for now, need to fix it properly by checking the content of UnkownApiError
+        except _NotModified:
             return FetchResponse.not_modified()
         except Exception as e:
-            raise e
+            raise SuperpositionError.network_error(
+                f"Failed to fetch experiments: {e}", e
+            ) from e
 
     async def fetch_active_experiments(
         self,

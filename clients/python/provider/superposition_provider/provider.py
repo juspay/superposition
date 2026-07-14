@@ -41,12 +41,9 @@ class SuperpositionProvider(AbstractProvider):
                     cac_options=ConfigurationOptions(
                         refresh_strategy=self.options.refresh_strategy,
                         fallback_config=self.options.fallback_config,
-                        evaluation_cache_options=self.options.evaluation_cache_options
                     ),
                     exp_options=ExperimentationOptions(
                         refresh_strategy=self.options.experimentation_options.refresh_strategy,
-                        evaluation_cache_options=self.options.experimentation_options.evaluation_cache_options,
-                        default_toss=self.options.experimentation_options.default_toss
                     )
                 )
                 await self.client.create_config()

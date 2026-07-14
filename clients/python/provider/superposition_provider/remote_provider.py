@@ -76,7 +76,7 @@ class SuperpositionAPIProvider(AbstractProvider, AllFeatureProvider, FeatureExpe
             logger.info("SuperpositionAPIProvider initialized successfully")
         except Exception as e:
             logger.error(f"Failed to initialize SuperpositionAPIProvider: {e}")
-            self.status = ProviderStatus.FATAL
+            self.status = ProviderStatus.ERROR
             raise
 
     def shutdown(self):
@@ -146,16 +146,12 @@ class SuperpositionAPIProvider(AbstractProvider, AllFeatureProvider, FeatureExpe
         """
         targeting_key, merged_context = self._get_merged_context(context)
 
-        if not targeting_key:
-            logger.warning("Missing targeting key for variant resolution")
-            return []
-
         try:
             response = await self.client.applicable_variants(
                 input=ApplicableVariantsInput(
                     workspace_id=self.options.workspace_id,
                     org_id=self.options.org_id,
-                    identifier=targeting_key,
+                    identifier=targeting_key or "",
                     context=merged_context,
                     prefix=prefix_filter,
                 )
