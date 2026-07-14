@@ -47,7 +47,7 @@ interface RefreshJob<T> {
                         if (t != null) t.cancel(false);
                         return;
                     }
-                    var o = RefreshJob.runRefreshWithTimeout(self.action, self.config.timeout);
+                    var o = RefreshJob.runRefreshWithTimeout(self.action, self.config.getTimeoutMilliseconds());
                     if (o != null) {
                         boolean changed = !o.equals(self.latestOutput);
                         self.latestOutput = o;
@@ -66,7 +66,7 @@ interface RefreshJob<T> {
                     }
                 },
                 0,
-                config.interval,
+                config.getIntervalMilliseconds(),
                 TimeUnit.MILLISECONDS
             );
 
@@ -83,7 +83,7 @@ interface RefreshJob<T> {
                 if (poll == null) {
                     log.warn("Polling hasn't started but the output is being used.");
                 } else if (!firstOutput.isDone()) {
-                    return Optional.ofNullable(firstOutput.get(config.timeout, TimeUnit.MILLISECONDS));
+                    return Optional.ofNullable(firstOutput.get(config.getTimeoutMilliseconds(), TimeUnit.MILLISECONDS));
                 }
             } catch (Exception e) {
                 log.warn("Attempted to await for poll output but an exception occurred: {}", e.toString());
@@ -118,9 +118,9 @@ interface RefreshJob<T> {
         @Override
         public Optional<T> getOutput() {
             if (!stopped) {
-                if (lastUpdated - System.currentTimeMillis() < config.ttl) {
+                if (lastUpdated - System.currentTimeMillis() < config.getTtlMilliseconds()) {
                     log.debug("Running refresh as current output is stale.");
-                    var o = RefreshJob.runRefreshWithTimeout(action, config.timeout);
+                    var o = RefreshJob.runRefreshWithTimeout(action, config.getTimeoutMilliseconds());
                     if (o != null) {
                         boolean changed = !o.equals(output);
                         output = o;

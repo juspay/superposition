@@ -121,13 +121,16 @@ public class DefaultConfigPopulator {
         }
 
         // create context
-        client.createContext(CreateContextInput.builder().
-            context(Map.of("d2", Document.of("test"))).
-            override(Map.of("bool", Document.of(false))).
-            description("description").
-            changeReason("change").
-            workspaceId(this.workspaceId).
-            orgId(this.orgId).build()
+        client.createContext(CreateContextInput.builder()
+            .request(ContextPut.builder()
+                .context(Map.of("d2", Document.of("test")))
+                .override(Map.of("bool", Document.of(false)))
+                .description("description")
+                .changeReason("change")
+                .build())
+            .workspaceId(this.workspaceId)
+            .orgId(this.orgId)
+            .build()
         );
 
         System.out.println("Provided data population completed successfully!");
@@ -220,7 +223,7 @@ public class DefaultConfigPopulator {
 
     private List<String> extractExistingKeys(ListDefaultConfigsOutput existingConfigs) {
         List<String> keys = new ArrayList<>();
-        ListIterator<DefaultConfigFull> keysIterator = existingConfigs.data().listIterator();
+        ListIterator<DefaultConfigResponse> keysIterator = existingConfigs.data().listIterator();
 
         while (keysIterator.hasNext()) {
             keys.add(keysIterator.next().key());
@@ -241,7 +244,7 @@ public class DefaultConfigPopulator {
 
         // Add optional fields if they exist
         if (functionName != null) {
-            inputBuilder.functionName(functionName);
+            inputBuilder.valueValidationFunctionName(functionName);
         }
         if (autocompleteFunctionName != null) {
             inputBuilder.valueComputeFunctionName(autocompleteFunctionName);
