@@ -19,28 +19,44 @@ logger = logging.getLogger(__name__)
 T = TypeVar('T')
 
 class FetchResponse(Generic[T]):
-    """Represents a fetch response with optional data, supporting 304 Not Modified."""
+    """Either fetched data or a 304 Not Modified marker.
 
-    def __init__(self, data: Optional[T] = None):
+    A true sum type: `NotModified` is a distinct variant rather than "data is None", so a data
+    source that legitimately returns nothing cannot be mistaken for an unchanged one.
+    """
+
+    __slots__ = ("_data", "_not_modified")
+
+    def __init__(self, data: Optional[T] = None, not_modified: bool = False):
         self._data = data
+        self._not_modified = not_modified
 
     @staticmethod
-    def not_modified():
+    def not_modified() -> "FetchResponse[T]":
         """Create a 304 Not Modified response."""
-        return FetchResponse(data=None)
+        return FetchResponse(data=None, not_modified=True)
 
     @staticmethod
-    def data(data: T):
+    def data(data: T) -> "FetchResponse[T]":
         """Create a successful response with data."""
-        return FetchResponse(data=data)
+        return FetchResponse(data=data, not_modified=False)
 
     def is_not_modified(self) -> bool:
         """Check if this is a 304 Not Modified response."""
-        return self._data is None
+        return self._not_modified
 
     def get_data(self) -> Optional[T]:
         """Get the response data, or None if not modified."""
         return self._data
+
+    def map_data(self, mapper):
+        """Transform the data if present, preserving a NotModified response."""
+        if self._not_modified:
+            return FetchResponse.not_modified()
+        return FetchResponse.data(mapper(self._data))
+
+    def __repr__(self) -> str:
+        return "FetchResponse.NotModified" if self._not_modified else f"FetchResponse.Data({self._data})"
 
 
 @dataclass

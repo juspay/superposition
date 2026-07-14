@@ -314,8 +314,8 @@ async def setup_with_sdk(client, org_id: str, workspace_id: str):
 
 async def run_demo(org_id: str, workspace_id: str):
     refresh_strategy = PollingStrategy(
-        interval=5,
-        timeout=3,
+        interval_milliseconds=5_000,
+        timeout_milliseconds=3_000,
     )
     http_options = SuperpositionOptions(
         endpoint="http://localhost:8080",

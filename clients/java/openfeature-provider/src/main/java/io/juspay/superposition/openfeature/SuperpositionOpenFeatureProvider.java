@@ -20,6 +20,7 @@ import uniffi.superposition_types.MergeStrategy;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -33,7 +34,7 @@ import java.util.stream.Collectors;
  * // Configure experimentation options
  * SuperpositionProviderOptions.ExperimentationOptions expOptions =
  * SuperpositionProviderOptions.ExperimentationOptions.builder()
- * .refreshStrategy(RefreshStrategy.Polling.of(5000, 2000)) // 5s timeout, 2s interval
+ * .refreshStrategy(new RefreshStrategy.Polling(5000, 2000)) // 5s timeout, 2s interval
  * .build();
  *
  * // Configure provider options
@@ -43,7 +44,7 @@ import java.util.stream.Collectors;
  * .workspaceId("your-workspace-id")
  * .endpoint("https://api.superposition.dev")
  * .token("your-api-token")
- * .refreshStrategy(RefreshStrategy.Polling.of(10000, 5000)) // 10s timeout, 5s interval
+ * .refreshStrategy(new RefreshStrategy.Polling(10000, 5000)) // 10s timeout, 5s interval
  * .experimentationOptions(expOptions)
  * .build();
  *
@@ -95,7 +96,7 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
         }
         this.sdk = builder.build();
         this.cache = new ProviderCache();
-        this.configTimeout = options.refreshStrategy.getTimeout();
+        this.configTimeout = options.refreshStrategy.getTimeoutMilliseconds();
 
         var getConfigInput = GetConfigInput.builder()
             .context(Map.of())
@@ -110,7 +111,7 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
 
         if (options.experimentationOptions != null) {
             this.experimentationTimeout =
-                options.experimentationOptions.refreshStrategy.getTimeout();
+                options.experimentationOptions.refreshStrategy.getTimeoutMilliseconds();
             var listExpInput = ListExperimentInput.builder()
                 .orgId(options.orgId)
                 .workspaceId(options.workspaceId)
@@ -328,7 +329,7 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
                 throw new Exception("Experiments cache not initialized within timeout (" + experimentationTimeout + "ms).");
             }
         }
-        var ctx_ = defaultCtx.isPresent() ? ctx.merge(defaultCtx.get()) : ctx;
+        var ctx_ = defaultCtx.isPresent() ? defaultCtx.get().merge(ctx) : ctx;
         var queryData = EvaluationArgs.Companion.buildQueryData(ctx_);
         String targetingKey = ctx_.getTargetingKey();
         return cache.evalConfig(queryData, MergeStrategy.MERGE, null, targetingKey);
@@ -336,8 +337,8 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
 
     private List<String> getApplicableVariantsInternal(EvaluationContext ctx) throws Exception {
         EvaluationArgs args = getEvaluationArgs(ctx);
-        var ctx_ = defaultCtx.isPresent() ? ctx.merge(defaultCtx.get()) : ctx;
-        return args.getApplicableVariants(ctx_, getExperimentationArgs(ctx_));
+        var ctx_ = defaultCtx.isPresent() ? defaultCtx.get().merge(ctx) : ctx;
+        return args.getApplicableVariants(ctx_, Objects.requireNonNull(getExperimentationArgs(ctx_)));
     }
 
     private ExperimentationArgs getExperimentationArgs(EvaluationContext ctx) {

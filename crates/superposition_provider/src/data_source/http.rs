@@ -1,7 +1,6 @@
 use async_trait::async_trait;
 use chrono::{DateTime, TimeZone, Utc};
 use serde_json::{Map, Value};
-use superposition_sdk::error::SdkError;
 use superposition_sdk::types::DimensionMatchStrategy;
 use superposition_sdk::{Client, Config as SdkConfig};
 
@@ -85,7 +84,7 @@ impl HttpDataSource {
                     })
                     .map(FetchResponse::Data)
             }
-            Err(SdkError::ResponseError(r)) if r.raw().status().as_u16() == 304 => {
+            Err(e) if e.raw_response().map(|r| r.status().as_u16()) == Some(304) => {
                 Ok(FetchResponse::NotModified)
             }
             Err(e) => Err(SuperpositionError::NetworkError(format!(
@@ -148,7 +147,7 @@ impl SuperpositionDataSource for HttpDataSource {
                     })
                     .map(FetchResponse::Data)
             }
-            Err(SdkError::ResponseError(r)) if r.raw().status().as_u16() == 304 => {
+            Err(e) if e.raw_response().map(|r| r.status().as_u16()) == Some(304) => {
                 Ok(FetchResponse::NotModified)
             }
             Err(e) => Err(SuperpositionError::NetworkError(format!(

@@ -78,21 +78,21 @@ impl CacConfig {
         match &self.options.refresh_strategy {
             RefreshStrategy::Polling(polling_strategy) => {
                 info!(
-                    "Using PollingStrategy: interval={}s, timeout={}s",
-                    polling_strategy.interval,
-                    polling_strategy.timeout.unwrap_or(30)
+                    "Using PollingStrategy: interval={}ms, timeout={}ms",
+                    polling_strategy.interval_ms(),
+                    polling_strategy.timeout_ms().unwrap_or(30_000)
                 );
-                let task_token = self.start_polling(polling_strategy.interval).await;
+                let task_token = self.start_polling(polling_strategy.interval_ms()).await;
                 let mut polling_task_cancellation_token =
                     self.polling_task_cancellation_token.write().await;
                 *polling_task_cancellation_token = Some(task_token);
             }
             RefreshStrategy::OnDemand(on_demand_strategy) => {
                 info!(
-                    "Using OnDemandStrategy: ttl={}s, use_stale_on_error={}, timeout={}s",
-                    on_demand_strategy.ttl,
-                    on_demand_strategy.use_stale_on_error.unwrap_or(false),
-                    on_demand_strategy.timeout.unwrap_or(30)
+                    "Using OnDemandStrategy: ttl={}ms, use_stale_on_error={}, timeout={}ms",
+                    on_demand_strategy.ttl_ms(),
+                    on_demand_strategy.use_stale_on_error(),
+                    on_demand_strategy.timeout_ms().unwrap_or(30_000)
                 );
             }
             RefreshStrategy::Watch(_) => {
@@ -106,7 +106,7 @@ impl CacConfig {
         Ok(())
     }
 
-    async fn start_polling(&self, interval: u64) -> CancellationToken {
+    async fn start_polling(&self, interval_ms: u64) -> CancellationToken {
         let superposition_options = self.superposition_options.clone();
         let cached_config = self.cached_config.clone();
         let last_updated = self.last_updated.clone();
@@ -132,7 +132,7 @@ impl CacConfig {
                                 error!("Polling error: {}", e);
                             }
                         }
-                        sleep(Duration::from_secs(interval)).await;
+                        sleep(Duration::from_millis(interval_ms)).await;
                     }
                 } => {}
             }
@@ -141,14 +141,14 @@ impl CacConfig {
         cancellation_token
     }
 
-    pub async fn on_demand_config(&self, ttl: u64, use_stale: bool) -> Result<Config> {
+    pub async fn on_demand_config(&self, ttl_ms: u64, use_stale: bool) -> Result<Config> {
         let now = chrono::Utc::now();
         let last_updated;
         {
             last_updated = self.last_updated.read().await;
         }
         let should_refresh = match *last_updated {
-            Some(last) => (now - last).num_seconds() > ttl as i64,
+            Some(last) => (now - last).num_milliseconds() > ttl_ms as i64,
             None => true,
         };
 
@@ -357,18 +357,18 @@ impl ExperimentationConfig {
         match &self.options.refresh_strategy {
             RefreshStrategy::Polling(polling_strategy) => {
                 info!(
-                    "Using PollingStrategy for experiments: interval={}s",
-                    polling_strategy.interval
+                    "Using PollingStrategy for experiments: interval={}ms",
+                    polling_strategy.interval_ms()
                 );
-                let task_token = self.start_polling(polling_strategy.interval).await;
+                let task_token = self.start_polling(polling_strategy.interval_ms()).await;
                 let mut polling_task_cancellation_token =
                     self.polling_task_cancellation_token.write().await;
                 *polling_task_cancellation_token = Some(task_token);
             }
             RefreshStrategy::OnDemand(on_demand_strategy) => {
                 info!(
-                    "Using OnDemandStrategy for experiments: ttl={}s",
-                    on_demand_strategy.ttl
+                    "Using OnDemandStrategy for experiments: ttl={}ms",
+                    on_demand_strategy.ttl_ms()
                 );
             }
             RefreshStrategy::Watch(_) => {
@@ -382,7 +382,7 @@ impl ExperimentationConfig {
         Ok(())
     }
 
-    async fn start_polling(&self, interval: u64) -> CancellationToken {
+    async fn start_polling(&self, interval_ms: u64) -> CancellationToken {
         let superposition_options = self.superposition_options.clone();
         let cached_experiments = self.cached_experiments.clone();
         let cached_experiment_groups = self.cached_experiment_groups.clone();
@@ -421,7 +421,7 @@ impl ExperimentationConfig {
                             }
                             _ => {}
                         }
-                        sleep(Duration::from_secs(interval)).await;
+                        sleep(Duration::from_millis(interval_ms)).await;
                     }
                 } => {}
             }
@@ -432,14 +432,14 @@ impl ExperimentationConfig {
 
     pub async fn on_demand_config(
         &self,
-        ttl: u64,
+        ttl_ms: u64,
         use_stale: bool,
     ) -> Result<Experiments> {
         let now = chrono::Utc::now();
         let last_updated = self.last_updated.read().await;
 
         let should_refresh = match *last_updated {
-            Some(last) => (now - last).num_seconds() > ttl as i64,
+            Some(last) => (now - last).num_milliseconds() > ttl_ms as i64,
             None => true,
         };
 

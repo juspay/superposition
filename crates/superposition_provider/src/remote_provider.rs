@@ -118,11 +118,6 @@ impl FeatureExperimentMeta for SuperpositionAPIProvider {
         prefix_filter: Option<Vec<String>>,
     ) -> Result<Vec<String>> {
         let (query_data, targeting_key) = self.get_merged_context(context).await;
-        let Some(targeting_key) = targeting_key else {
-            return Err(SuperpositionError::ProviderError(
-                "Missing targeting key in evaluation context".to_string(),
-            ));
-        };
 
         let applicable_variants = self
             .client
@@ -130,7 +125,7 @@ impl FeatureExperimentMeta for SuperpositionAPIProvider {
             .workspace_id(&self.options.workspace_id)
             .org_id(&self.options.org_id)
             .set_context(Some(query_data))
-            .identifier(targeting_key)
+            .identifier(targeting_key.unwrap_or_default())
             .set_prefix(prefix_filter)
             .send()
             .await
