@@ -64,7 +64,7 @@ impl SuperpositionDataSource for FileDataSource {
         let content = tokio::fs::read_to_string(&self.file_path)
             .await
             .map_err(|e| {
-                SuperpositionError::ConfigError(format!(
+                SuperpositionError::DataSourceError(format!(
                     "Failed to read config file {:?}: {}",
                     self.file_path, e
                 ))
@@ -75,7 +75,7 @@ impl SuperpositionDataSource for FileDataSource {
             _ => TomlFormat::parse_config,
         };
         let mut config = parser(&content).map_err(|e| {
-            SuperpositionError::ConfigError(format!(
+            SuperpositionError::DataSourceError(format!(
                 "Failed to parse {} config: {}",
                 self.file_format.to_uppercase(),
                 e
@@ -97,7 +97,7 @@ impl SuperpositionDataSource for FileDataSource {
         &self,
         _if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ExperimentData>> {
-        Err(SuperpositionError::ConfigError(
+        Err(SuperpositionError::DataSourceError(
             "Experiments not supported by FileDataSource".into(),
         ))
     }
@@ -108,7 +108,7 @@ impl SuperpositionDataSource for FileDataSource {
         _prefix_filter: Option<Vec<String>>,
         _if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ExperimentData>> {
-        Err(SuperpositionError::ConfigError(
+        Err(SuperpositionError::DataSourceError(
             "Experiments not supported by FileDataSource".into(),
         ))
     }
@@ -119,7 +119,7 @@ impl SuperpositionDataSource for FileDataSource {
         _prefix_filter: Option<Vec<String>>,
         _if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ExperimentData>> {
-        Err(SuperpositionError::ConfigError(
+        Err(SuperpositionError::DataSourceError(
             "Experiments not supported by FileDataSource".into(),
         ))
     }
@@ -131,7 +131,7 @@ impl SuperpositionDataSource for FileDataSource {
     fn watch(&self) -> Result<Option<WatchStream>> {
         // Acquire both locks upfront to prevent concurrent watcher creation
         let mut watcher_guard = self.watcher.lock().map_err(|e| {
-            SuperpositionError::ConfigError(format!(
+            SuperpositionError::DataSourceError(format!(
                 "Failed to lock watcher mutex: {}",
                 e
             ))
@@ -159,7 +159,7 @@ impl SuperpositionDataSource for FileDataSource {
             },
         )
         .map_err(|e| {
-            SuperpositionError::ConfigError(format!(
+            SuperpositionError::DataSourceError(format!(
                 "Failed to create file watcher: {}",
                 e
             ))
@@ -168,7 +168,7 @@ impl SuperpositionDataSource for FileDataSource {
         watcher
             .watch(&self.file_path, notify::RecursiveMode::NonRecursive)
             .map_err(|e| {
-                SuperpositionError::ConfigError(format!(
+                SuperpositionError::DataSourceError(format!(
                     "Failed to watch file {:?}: {}",
                     self.file_path, e
                 ))
@@ -187,7 +187,7 @@ impl SuperpositionDataSource for FileDataSource {
 
     async fn close(&self) -> Result<()> {
         let mut guard = self.watcher.lock().map_err(|e| {
-            SuperpositionError::ConfigError(format!(
+            SuperpositionError::DataSourceError(format!(
                 "Failed to lock watcher mutex: {}",
                 e
             ))

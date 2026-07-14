@@ -31,6 +31,8 @@ pub struct LocalResolutionProviderInner {
     refresh_strategy: RefreshStrategy,
     cached_config: RwLock<Option<ConfigData>>,
     cached_experiments: RwLock<Option<ExperimentData>>,
+    config_checked_at: RwLock<Option<DateTime<Utc>>>,
+    experiments_checked_at: RwLock<Option<DateTime<Utc>>>,
     background_task: RwLock<Option<JoinHandle<()>>>,
     metadata: ProviderMetadata,
     status: RwLock<ProviderStatus>,
@@ -52,6 +54,8 @@ impl LocalResolutionProvider {
             refresh_strategy,
             cached_config: RwLock::new(None),
             cached_experiments: RwLock::new(None),
+            config_checked_at: RwLock::new(None),
+            experiments_checked_at: RwLock::new(None),
             background_task: RwLock::new(None),
             metadata: ProviderMetadata {
                 name: "LocalResolutionProvider".to_string(),
@@ -62,6 +66,22 @@ impl LocalResolutionProvider {
     }
 
     pub async fn init(&self, context: EvaluationContext) -> Result<()> {
+        // Single-shot: a provider is initialized once and then served. Re-initializing a live
+        // provider would strand the running background task (it holds a strong Arc, so it would
+        // poll forever), so it is refused. A fresh (NotReady) or previously-failed (Error)
+        // provider proceeds. The claim happens under the status lock so it is atomic.
+        {
+            let mut status = self.status.write().await;
+            if matches!(*status, ProviderStatus::Ready | ProviderStatus::STALE) {
+                log::warn!(
+                    "LocalResolutionProvider already initialized; ignoring init(). \
+                     Providers are single-shot — build a new instance."
+                );
+                return Ok(());
+            }
+            *status = ProviderStatus::NotReady;
+        }
+
         // Fetch initial config from primary, fall back if needed
         let config_data = match self.primary.fetch_config(None).await {
             Ok(data) => {
@@ -97,6 +117,7 @@ impl LocalResolutionProvider {
             let mut cached = self.cached_config.write().await;
             *cached = config_data.into_data();
         }
+        *self.config_checked_at.write().await = Some(Utc::now());
 
         // Fetch experiments best-effort: try primary, else fallback
         let exp_data = if self.primary.supports_experiments() {
@@ -144,22 +165,25 @@ impl LocalResolutionProvider {
             let mut cached = self.cached_experiments.write().await;
             *cached = Some(data);
         }
+        if self.primary.supports_experiments() {
+            *self.experiments_checked_at.write().await = Some(Utc::now());
+        }
 
         // Start refresh strategy
         match &self.refresh_strategy {
             RefreshStrategy::Polling(polling_strategy) => {
                 log::info!(
-                    "LocalResolutionProvider: starting polling with interval={}s",
-                    polling_strategy.interval
+                    "LocalResolutionProvider: starting polling with interval={}ms",
+                    polling_strategy.interval_ms()
                 );
-                let task = self.start_polling(polling_strategy.interval).await;
+                let task = self.start_polling(polling_strategy.interval_ms()).await;
                 let mut background_task = self.background_task.write().await;
                 *background_task = Some(task);
             }
             RefreshStrategy::OnDemand(on_demand_strategy) => {
                 log::info!(
-                    "LocalResolutionProvider: using OnDemand strategy with ttl={}s",
-                    on_demand_strategy.ttl
+                    "LocalResolutionProvider: using OnDemand strategy with ttl={}ms",
+                    on_demand_strategy.ttl_ms()
                 );
             }
             RefreshStrategy::Watch(watch_strategy) => {
@@ -243,6 +267,8 @@ impl LocalResolutionProvider {
             let mut cached = self.cached_experiments.write().await;
             *cached = None;
         }
+        *self.config_checked_at.write().await = None;
+        *self.experiments_checked_at.write().await = None;
 
         {
             let mut global_context = self.global_context.write().await;
@@ -258,7 +284,74 @@ impl LocalResolutionProvider {
         Ok(())
     }
 
+    /// The timeout the configured strategy puts on a single refresh, if any.
+    fn refresh_timeout(&self) -> Option<Duration> {
+        match &self.refresh_strategy {
+            RefreshStrategy::Polling(polling) => polling.timeout_ms(),
+            RefreshStrategy::OnDemand(on_demand) => on_demand.timeout_ms(),
+            RefreshStrategy::Watch(_) | RefreshStrategy::Manual => None,
+        }
+        .map(Duration::from_millis)
+    }
+
+    /// Runs a refresh, bounded by the strategy's timeout. Without this a data source that never
+    /// answers would stall the poller — or, under OnDemand, the evaluating thread — indefinitely.
+    ///
+    /// Every refresh path funnels through here, so this is also where staleness is recorded.
     async fn do_refresh(&self) -> Result<()> {
+        let result = match self.refresh_timeout() {
+            Some(timeout) => {
+                match tokio::time::timeout(timeout, self.refresh_once()).await {
+                    Ok(result) => result,
+                    Err(_) => {
+                        log::warn!(
+                        "LocalResolutionProvider: refresh timed out after {}ms, keeping last known good",
+                        timeout.as_millis()
+                    );
+                        Err(SuperpositionError::RefreshError(format!(
+                            "Refresh timed out after {}ms",
+                            timeout.as_millis()
+                        )))
+                    }
+                }
+            }
+            None => self.refresh_once().await,
+        };
+
+        self.record_refresh_outcome(result.is_ok()).await;
+        result
+    }
+
+    /// A refresh that fails while the cache is still served leaves the provider STALE: the flags
+    /// are frozen at their last known good values, and this is the only signal a consumer has that
+    /// they stopped tracking the source of truth. The next successful refresh clears it.
+    ///
+    /// Only meaningful from Ready. A failure during init is an Error — there is no good data to be
+    /// stale — and a provider that has been shut down stays NotReady.
+    ///
+    /// Evaluation is unaffected: the SDK's client never consults provider status, so a STALE
+    /// provider keeps resolving flags from its cache.
+    ///
+    /// Unlike the Java and Python clients, this cannot notify anyone. `open_feature` 0.2.5 has no
+    /// provider-event API, so the only way to observe staleness is to hold the provider and call
+    /// [`FeatureProvider::status`]. Java emits PROVIDER_STALE and Python emits its equivalent, so
+    /// consumers there can subscribe. Revisit when the crate grows events.
+    async fn record_refresh_outcome(&self, succeeded: bool) {
+        let mut status = self.status.write().await;
+        match (&*status, succeeded) {
+            (ProviderStatus::Ready, false) => {
+                log::warn!("LocalResolutionProvider: refresh failed, serving stale data");
+                *status = ProviderStatus::STALE;
+            }
+            (ProviderStatus::STALE, true) => {
+                log::info!("LocalResolutionProvider: refresh recovered, no longer stale");
+                *status = ProviderStatus::Ready;
+            }
+            _ => {}
+        }
+    }
+
+    async fn refresh_once(&self) -> Result<()> {
         // Fetch config from primary; keep last known good on failure
         let last_fetched_at = {
             self.cached_config
@@ -273,10 +366,14 @@ impl LocalResolutionProvider {
                 Ok(FetchResponse::Data(data)) => {
                     let mut cached = self.cached_config.write().await;
                     *cached = Some(data);
+                    *self.config_checked_at.write().await = Some(Utc::now());
                     log::debug!("LocalResolutionProvider: config refreshed from primary");
                     Ok(())
                 }
                 Ok(FetchResponse::NotModified) => {
+                    // A 304 is a successful check: the cache is confirmed current, so the TTL
+                    // clock restarts. Without this the next evaluation would ask again at once.
+                    *self.config_checked_at.write().await = Some(Utc::now());
                     log::debug!("LocalResolutionProvider: config not modified");
                     Ok(())
                 }
@@ -309,6 +406,8 @@ impl LocalResolutionProvider {
                         if let Some(data) = exp_resp.into_data() {
                             *cached = Some(data);
                         }
+                        // Data or NotModified — both are a successful check, so the TTL restarts.
+                        *self.experiments_checked_at.write().await = Some(Utc::now());
                         log::debug!(
                             "LocalResolutionProvider: experiments refreshed from primary"
                         );
@@ -336,11 +435,11 @@ impl LocalResolutionProvider {
         }
     }
 
-    async fn start_polling(&self, interval: u64) -> JoinHandle<()> {
+    async fn start_polling(&self, interval_ms: u64) -> JoinHandle<()> {
         let provider = self.clone();
         tokio::spawn(async move {
             loop {
-                sleep(Duration::from_secs(interval)).await;
+                sleep(Duration::from_millis(interval_ms)).await;
                 let _ = provider.do_refresh().await;
             }
         })
@@ -375,28 +474,28 @@ impl LocalResolutionProvider {
 
     async fn ensure_fresh_data(&self) -> Result<()> {
         if let RefreshStrategy::OnDemand(on_demand) = &self.refresh_strategy {
-            let ttl = on_demand.ttl;
-            let use_stale_on_error = on_demand.use_stale_on_error.unwrap_or_default();
+            let ttl = on_demand.ttl_ms();
+            let use_stale_on_error = on_demand.use_stale_on_error();
 
             let is_elapsed = |cached_at: DateTime<Utc>| {
-                (chrono::Utc::now() - cached_at).num_seconds() > ttl as i64
+                (chrono::Utc::now() - cached_at).num_milliseconds() > ttl as i64
             };
 
-            let should_refresh_config = {
-                let cached = self.cached_config.read().await;
-                cached
-                    .as_ref()
-                    .map(|data| is_elapsed(data.fetched_at))
-                    .unwrap_or(true)
-            };
+            // Never checked, or last checked before the TTL window opened.
+            let should_refresh_config = self
+                .config_checked_at
+                .read()
+                .await
+                .map(is_elapsed)
+                .unwrap_or(true);
 
-            let should_refresh_experiments = {
-                let cached = self.cached_experiments.read().await;
-                cached
-                    .as_ref()
-                    .map(|data| is_elapsed(data.fetched_at))
-                    .unwrap_or(true)
-            };
+            let should_refresh_experiments = self.primary.supports_experiments()
+                && self
+                    .experiments_checked_at
+                    .read()
+                    .await
+                    .map(is_elapsed)
+                    .unwrap_or(true);
 
             if should_refresh_config || should_refresh_experiments {
                 log::debug!("LocalResolutionProvider: TTL expired, refreshing on-demand");
@@ -480,8 +579,8 @@ impl LocalResolutionProvider {
                     e
                 ))
             }),
-            None => Err(SuperpositionError::ConfigError(
-                "No cached config available".into(),
+            None => Err(SuperpositionError::ProviderError(
+                "Provider not initialized: no cached config available".into(),
             )),
         }
     }
@@ -530,10 +629,8 @@ impl FeatureExperimentMeta for LocalResolutionProvider {
 impl FeatureProvider for LocalResolutionProvider {
     async fn initialize(&mut self, context: &EvaluationContext) {
         log::info!("Initializing LocalResolutionProvider...");
-        {
-            let mut status = self.status.write().await;
-            *status = ProviderStatus::NotReady;
-        }
+        // init() owns the status transition: it refuses a re-init of a live provider and only
+        // then moves to NotReady. Resetting the status here would defeat that guard.
         if (self.init(context.clone()).await).is_err() {
             let mut status = self.status.write().await;
             *status = ProviderStatus::Error;
@@ -622,7 +719,7 @@ impl SuperpositionDataSource for LocalResolutionProvider {
             match cached.as_ref() {
                 Some(data) => data.clone(),
                 None => {
-                    return Err(SuperpositionError::ConfigError(
+                    return Err(SuperpositionError::DataSourceError(
                         "No cached config available".into(),
                     ))
                 }
@@ -640,7 +737,7 @@ impl SuperpositionDataSource for LocalResolutionProvider {
         if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ExperimentData>> {
         if !self.supports_experiments() {
-            return Err(SuperpositionError::ConfigError(
+            return Err(SuperpositionError::DataSourceError(
                 "Experiments not supported by this provider".into(),
             ));
         }
@@ -650,7 +747,7 @@ impl SuperpositionDataSource for LocalResolutionProvider {
         let cached = self.cached_experiments.read().await;
         match cached.clone() {
             Some(data) => Ok(FetchResponse::Data(data)),
-            None => Err(SuperpositionError::ConfigError(
+            None => Err(SuperpositionError::DataSourceError(
                 "No cached experiments available".into(),
             )),
         }
@@ -663,7 +760,7 @@ impl SuperpositionDataSource for LocalResolutionProvider {
         if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ExperimentData>> {
         if !self.supports_experiments() {
-            return Err(SuperpositionError::ConfigError(
+            return Err(SuperpositionError::DataSourceError(
                 "Experiments not supported by this provider".into(),
             ));
         }
@@ -695,7 +792,7 @@ impl SuperpositionDataSource for LocalResolutionProvider {
         if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ExperimentData>> {
         if !self.supports_experiments() {
-            return Err(SuperpositionError::ConfigError(
+            return Err(SuperpositionError::DataSourceError(
                 "Experiments not supported by this provider".into(),
             ));
         }
