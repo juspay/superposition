@@ -11,7 +11,6 @@ use diesel::{
     connection::SimpleConnection,
     r2d2::{ConnectionManager, PooledConnection},
 };
-use fred::{prelude::KeysInterface, types::Expiration};
 use regex::Regex;
 use service_utils::{
     encryption::{
@@ -21,9 +20,8 @@ use service_utils::{
     helpers::get_workspace,
     kronos_dispatch::setup_dispatcher,
     middlewares::auth_z::AuthZHandler,
-    service::types::{
-        AppState, DbConnection, OrganisationId, SchemaName, WorkspaceContext, WorkspaceId,
-    },
+    redis::put_workspace_in_redis,
+    service::types::{AppState, DbConnection, OrganisationId, SchemaName},
 };
 use superposition_derives::{authorized, declare_resource};
 use superposition_macros::{bad_argument, db_error, unexpected_error, validation_error};
@@ -176,7 +174,7 @@ async fn create_handler(
             Ok(inserted_workspace.remove(0))
         })?;
 
-    put_workspace_in_redis(&created_workspace, &state, &workspace_schema_name.0).await;
+    put_workspace_in_redis(&created_workspace, &state.redis).await;
 
     if state.kronos_workspace.is_none() {
         setup_dispatcher(
@@ -284,7 +282,7 @@ async fn update_handler(
         })?;
 
     let workspace = get_workspace(&schema_name, &mut conn)?;
-    put_workspace_in_redis(&workspace, &app_state, &schema_name.0).await;
+    put_workspace_in_redis(&workspace, &app_state.redis).await;
 
     if let Some(old_email) = old_email {
         let _ = authz_handler
@@ -303,35 +301,6 @@ async fn update_handler(
 
     let response = WorkspaceResponse::from(workspace);
     Ok(Json(response))
-}
-
-async fn put_workspace_in_redis(
-    workspace: &Workspace,
-    state: &Data<AppState>,
-    schema_name: &str,
-) {
-    let redis_pool = match &state.redis {
-        Some(pool) => pool,
-        None => {
-            log::debug!("Redis not configured, skipping workspace cache update");
-            return;
-        }
-    };
-
-    let key_ttl: i64 =
-        service_utils::helpers::get_from_env_or_default("REDIS_KEY_TTL", 604800);
-    let expiration = Some(Expiration::EX(key_ttl));
-
-    if let Ok(serialized) = serde_json::to_string(workspace) {
-        let client = redis_pool.next_connected();
-
-        if let Err(e) = client
-            .set::<(), &str, String>(schema_name, serialized, expiration, None, false)
-            .await
-        {
-            log::warn!("Failed to update Redis cache with workspace: {}", e);
-        }
-    };
 }
 
 // TODO: Add ABAC based filtering for this endpoint, currently it returns all the workspaces in the org, we need to filter it based on the permissions of the user
@@ -483,7 +452,7 @@ async fn migrate_schema_handler(
     }
 
     let workspace = get_workspace(&schema_name, &mut conn)?;
-    put_workspace_in_redis(&workspace, &state, &schema_name.0).await;
+    put_workspace_in_redis(&workspace, &state.redis).await;
 
     let response = WorkspaceResponse::from(workspace);
     Ok(Json(response))
@@ -507,27 +476,21 @@ pub async fn rotate_encryption_key_handler(
         ));
     };
 
-    let schema_name = SchemaName(format!("{}_{}", *org_id, workspace_name.into_inner()));
-    let workspace = get_workspace(&schema_name, &mut conn)?;
-    let workspace_context = WorkspaceContext {
-        schema_name: schema_name.clone(),
-        organisation_id: org_id,
-        workspace_id: WorkspaceId(workspace.workspace_name.clone()),
-        settings: workspace,
-    };
+    let workspace_name = workspace_name.into_inner();
+    let user_email = user.get_email();
 
-    let total_secrets_re_encrypted = conn
-        .transaction::<i64, superposition::AppError, _>(|conn| {
+    let (total_secrets_re_encrypted, workspace) = conn
+        .transaction::<(i64, Workspace), superposition::AppError, _>(|conn| {
             rotate_workspace_encryption_key_helper(
-                &workspace_context,
+                &org_id.0,
+                &workspace_name,
                 conn,
                 master_encryption_key,
-                &user.get_email(),
+                &user_email,
             )
         })?;
 
-    let workspace = get_workspace(&schema_name, &mut conn)?;
-    put_workspace_in_redis(&workspace, &state, &schema_name.0).await;
+    put_workspace_in_redis(&workspace, &state.redis).await;
 
     Ok(Json(KeyRotationResponse {
         total_secrets_re_encrypted,
