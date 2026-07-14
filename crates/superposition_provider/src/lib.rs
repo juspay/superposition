@@ -37,7 +37,6 @@ mod tests {
         let config_options = ConfigurationOptions::new(
             RefreshStrategy::OnDemand(OnDemandStrategy::default()),
             None,
-            None,
         );
 
         let cac_config = CacConfig::new(superposition_options, config_options);
