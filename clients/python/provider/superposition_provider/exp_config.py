@@ -76,7 +76,7 @@ class ExperimentationConfig():
                 finally:
                     del self_ref
 
-                await asyncio.sleep(interval)
+                await asyncio.sleep(interval / 1000)  # interval is in milliseconds
 
         latest_exp_list = await self._get_experiments(self.superposition_options)
         latest_exp_grp_list = await self._get_experiment_groups(self.superposition_options)
@@ -92,13 +92,18 @@ class ExperimentationConfig():
                 self.on_config_change()
 
         match self.options.refresh_strategy:
-            case PollingStrategy(interval=interval, timeout=timeout):
-                logger.info(f"Using PollingStrategy: interval={interval}, timeout={timeout}")
+            case PollingStrategy():
+                interval = self.options.refresh_strategy.interval_ms()
+                timeout = self.options.refresh_strategy.timeout_ms()
+                logger.info(f"Using PollingStrategy: interval={interval}ms, timeout={timeout}ms")
                 if self._polling_task is None:
                     self._polling_task = asyncio.create_task(poll_config(interval, timeout))
 
-            case OnDemandStrategy(ttl=ttl, use_stale_on_error=use_stale, timeout=timeout):
-                logger.info(f"Using OnDemandStrategy: ttl={ttl}, use_stale_on_error={use_stale}, timeout={timeout}")
+            case OnDemandStrategy():
+                ttl = self.options.refresh_strategy.ttl_ms()
+                use_stale = self.options.refresh_strategy.use_stale_on_error
+                timeout = self.options.refresh_strategy.timeout_ms()
+                logger.info(f"Using OnDemandStrategy: ttl={ttl}ms, use_stale_on_error={use_stale}, timeout={timeout}ms")
 
     @staticmethod
     async def _get_experiments(superposition_options: SuperpositionOptions) -> Optional[list[FfiExperiment]]:
