@@ -14,11 +14,12 @@ use actix_web::{
     Error, HttpMessage, HttpRequest, HttpResponse, Scope,
     body::{BoxBody, EitherBody},
     dev::{Service, ServiceRequest, ServiceResponse, Transform, forward_ready},
+    error::ErrorBadRequest,
     get,
     http::header,
     web::{self, Data, Path},
 };
-use authentication::{Authenticator, Login, SwitchOrgParams};
+use authentication::{Authenticator, BasicAuthGrant, Login, SwitchOrgParams};
 use aws_sdk_kms::Client;
 use base64::{Engine, engine::general_purpose};
 use futures_util::future::LocalBoxFuture;
@@ -133,7 +134,7 @@ where
                         let resp = self
                             .auth_n_handler
                             .0
-                            .authenticate_with_token(&login_type, token);
+                            .authenticate_with_bearer_token(&login_type, token);
                         Some(Box::pin(ready(resp)) as LocalBoxFuture<'static, _>)
                     }
                     (Some("Basic"), Some(credential))
@@ -165,6 +166,41 @@ where
                             format!("{DISPATCHER_USERNAME}@superposition.io"),
                             DISPATCHER_USERNAME.to_string(),
                         )))
+                    }
+                    (Some("Basic"), Some(token)) => {
+                        // `X-Grant-Type` selects how the Basic pair is validated:
+                        // absent => client_credentials (M2M), `password` => ROPC,
+                        // anything else is rejected with a 400.
+                        let grant_type = request
+                            .headers()
+                            .get("x-grant-type")
+                            .and_then(|v| v.to_str().ok());
+                        general_purpose::STANDARD
+                            .decode(token)
+                            .ok()
+                            .and_then(|decoded| String::from_utf8(decoded).ok())
+                            .and_then(|decoded| {
+                                let mut parts = decoded.splitn(2, ':');
+                                match (parts.next(), parts.next()) {
+                                    (Some(id), Some(secret)) => {
+                                        Some((id.to_string(), secret.to_string()))
+                                    }
+                                    _ => None,
+                                }
+                            })
+                            .map(|(id, secret)| {
+                                match BasicAuthGrant::resolve(grant_type, id, secret) {
+                                    Some(grant) => self
+                                        .auth_n_handler
+                                        .0
+                                        .authenticate_with_basic_auth(&login_type, grant),
+                                    None => Box::pin(ready(Err(ErrorBadRequest(
+                                        "Unsupported X-Grant-Type",
+                                    )
+                                    .into())))
+                                        as LocalBoxFuture<'static, _>,
+                                }
+                            })
                     }
                     (_, _) => None,
                 }

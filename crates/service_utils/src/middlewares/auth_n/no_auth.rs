@@ -4,7 +4,7 @@ use superposition_types::User;
 
 use crate::middlewares::auth_n::helpers::fetch_org_ids_from_db;
 
-use super::authentication::{Authenticator, Login};
+use super::authentication::{Authenticator, BasicAuthGrant, Login};
 
 /// An Authenticator implementation that performs no authentication
 /// This is primarily for development and testing purposes
@@ -32,8 +32,20 @@ impl Authenticator for DisabledAuthenticator {
         Box::pin(async { Ok(User::default()) })
     }
 
-    fn authenticate_with_token(&self, _: &Login, _: &str) -> Result<User, HttpResponse> {
+    fn authenticate_with_bearer_token(
+        &self,
+        _: &Login,
+        _: &str,
+    ) -> Result<User, HttpResponse> {
         Ok(User::default())
+    }
+
+    fn authenticate_with_basic_auth(
+        &self,
+        _: &Login,
+        _: BasicAuthGrant,
+    ) -> LocalBoxFuture<'static, Result<User, HttpResponse>> {
+        Box::pin(async { Ok(User::default()) })
     }
 
     fn routes(&self) -> actix_web::Scope {

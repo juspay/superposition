@@ -9,26 +9,32 @@ use derive_more::{Deref, DerefMut};
 use futures_util::future::LocalBoxFuture;
 use openidconnect::{
     ClientId, ClientSecret, IssuerUrl, RedirectUrl,
-    core::{CoreClient, CoreIdToken, CoreIdTokenClaims},
+    core::{CoreClient, CoreIdToken, CoreIdTokenClaims, CoreProviderMetadata},
 };
 use superposition_types::User;
 
 use crate::middlewares::auth_n::{
-    authentication::{Authenticator, Login},
+    authentication::{Authenticator, BasicAuthGrant, Login},
     helpers::fetch_org_ids_from_db,
     oidc::{
         OIDCAuthenticator,
-        utils::{build_client, fetch_provider_metadata, try_user_from, verify_presence},
+        token_cache::{CachedGrant, TokenExchangeCache},
+        utils::{
+            build_client, exchange_password_for_id_token, fetch_provider_metadata,
+            try_user_from, validate_client_credentials, verify_presence,
+        },
     },
 };
 
 pub struct AuthenticatorInner {
     client: RwLock<CoreClient>,
+    provider_metadata: RwLock<CoreProviderMetadata>,
     issuer_url: IssuerUrl,
     client_id: ClientId,
     client_secret: ClientSecret,
     redirect_url: RedirectUrl,
     path_prefix: String,
+    token_cache: TokenExchangeCache,
 }
 
 /// A simple OIDC Authenticator implementation that uses a single
@@ -58,7 +64,7 @@ impl SimpleOIDCAuthenticator {
         let provider_metadata = fetch_provider_metadata(issuer_url.clone()).await?;
 
         let client = build_client(
-            provider_metadata,
+            provider_metadata.clone(),
             client_id.clone(),
             client_secret.clone(),
             redirect_url.clone(),
@@ -66,11 +72,13 @@ impl SimpleOIDCAuthenticator {
 
         Ok(Self(Arc::new(AuthenticatorInner {
             client: RwLock::new(client),
+            provider_metadata: RwLock::new(provider_metadata),
             issuer_url,
             client_id,
             client_secret,
             redirect_url,
             path_prefix,
+            token_cache: TokenExchangeCache::new(),
         })))
     }
 
@@ -82,6 +90,35 @@ impl SimpleOIDCAuthenticator {
         ctr.claims(&client.id_token_verifier(), verify_presence)
             .map_err(|e| format!("Error in claims verification: {e}"))
             .cloned()
+    }
+
+    fn get_user_from_id_token(&self, token: &str) -> Result<User, String> {
+        self.decode_global_token(token)
+            .map_err(|e| format!("Error in decoding user: {e}"))
+            .and_then(|claims| {
+                try_user_from(&claims).map_err(|e| format!("Unable to get user: {e}"))
+            })
+    }
+
+    /// Builds an OIDC client configured with the *machine's* credentials (from
+    /// a `Basic` header) so a `client_credentials` exchange authenticates the
+    /// machine rather than this service's own OIDC client.
+    fn machine_client(
+        &self,
+        client_id: ClientId,
+        client_secret: ClientSecret,
+    ) -> CoreClient {
+        let provider_metadata = self
+            .provider_metadata
+            .read()
+            .unwrap_or_else(|e| e.into_inner())
+            .clone();
+        build_client(
+            provider_metadata,
+            client_id,
+            client_secret,
+            self.redirect_url.clone(),
+        )
     }
 }
 
@@ -98,12 +135,16 @@ impl OIDCAuthenticator for SimpleOIDCAuthenticator {
             .await
             .map_err(|e| format!("Failed to refresh provider metadata: {e:?}"))?;
         let client = build_client(
-            provider_metadata,
+            provider_metadata.clone(),
             self.client_id.clone(),
             self.client_secret.clone(),
             self.redirect_url.clone(),
         );
 
+        *self
+            .provider_metadata
+            .write()
+            .unwrap_or_else(|e| e.into_inner()) = provider_metadata;
         *self.client.write().unwrap_or_else(|e| e.into_inner()) = client;
         Ok(())
     }
@@ -157,26 +198,94 @@ impl Authenticator for SimpleOIDCAuthenticator {
         }
     }
 
-    fn authenticate_with_token(
+    fn authenticate_with_bearer_token(
         &self,
         login_type: &Login,
         token: &str,
     ) -> Result<User, HttpResponse> {
         match login_type {
             Login::None => Ok(User::default()),
-            _ => self
-                .decode_global_token(token)
-                .map_err(|e| {
-                    log::error!("Error in decoding user : {e}");
-                    ErrorUnauthorized(String::from("Unable to get user"))
+            _ => self.get_user_from_id_token(token).map_err(|e| {
+                log::error!("Error in decoding user : {e}");
+                ErrorUnauthorized(String::from("Unable to get user")).into()
+            }),
+        }
+    }
+
+    fn authenticate_with_basic_auth(
+        &self,
+        login_type: &Login,
+        grant: BasicAuthGrant,
+    ) -> LocalBoxFuture<'static, Result<User, HttpResponse>> {
+        if matches!(login_type, Login::None) {
+            return Box::pin(async { Ok(User::default()) });
+        }
+
+        let auth_n = self.clone();
+        match grant {
+            BasicAuthGrant::Password { username, password } => {
+                let key = TokenExchangeCache::key(
+                    None,
+                    CachedGrant::Password,
+                    username.as_str(),
+                    password.secret(),
+                );
+                let client = self.get_client();
+
+                Box::pin(async move {
+                    if let Some(user) = auth_n.token_cache.get(&key) {
+                        return Ok(user);
+                    }
+
+                    let (id_token, expires_in) =
+                        exchange_password_for_id_token(&client, &username, &password)
+                            .await
+                            .map_err(|e| {
+                                log::error!("Basic auth (password) failed: {e}");
+                                actix_web::Error::from(e)
+                            })?;
+
+                    let user = auth_n.get_user_from_id_token(&id_token).map_err(|e| {
+                        log::error!("Error in decoding user : {e}");
+                        actix_web::Error::from(ErrorInternalServerError(String::from(
+                            "Unable to get user",
+                        )))
+                    })?;
+                    auth_n.token_cache.insert(key, user.clone(), expires_in);
+                    Ok(user)
                 })
-                .and_then(|claims| {
-                    try_user_from(&claims).map_err(|e| {
-                        log::error!("Unable to get user: {e}");
-                        ErrorUnauthorized(String::from("Unable to get user"))
-                    })
+            }
+            BasicAuthGrant::ClientCredentials {
+                client_id,
+                client_secret,
+            } => {
+                let key = TokenExchangeCache::key(
+                    None,
+                    CachedGrant::ClientCredentials,
+                    client_id.as_str(),
+                    client_secret.secret(),
+                );
+                let client = self.machine_client(client_id.clone(), client_secret);
+
+                Box::pin(async move {
+                    if let Some(user) = auth_n.token_cache.get(&key) {
+                        return Ok(user);
+                    }
+
+                    let expires_in =
+                        validate_client_credentials(&client).await.map_err(|e| {
+                            log::error!("Basic auth (client_credentials) failed: {e}");
+                            actix_web::Error::from(e)
+                        })?;
+
+                    // No user identity in a client_credentials grant; derive a
+                    // stable, namespaced service principal from the client_id.
+                    let principal = format!("service-account-{}", client_id.as_str());
+                    let user = User::new(principal.clone(), principal);
+                    auth_n.token_cache.insert(key, user.clone(), expires_in);
+                    Ok(user)
                 })
-                .map_err(Into::into),
+            }
         }
     }
 

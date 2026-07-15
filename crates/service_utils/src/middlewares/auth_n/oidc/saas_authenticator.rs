@@ -20,12 +20,14 @@ use crate::{
     extensions::HttpRequestExt,
     helpers::get_from_env_unsafe,
     middlewares::auth_n::{
-        authentication::{Authenticator, Login},
+        authentication::{Authenticator, BasicAuthGrant, Login},
         oidc::{
             OIDCAuthenticator,
+            token_cache::{CachedGrant, TokenExchangeCache},
             types::{GlobalUserClaims, GlobalUserIdToken, OrgUserClaims},
             utils::{
-                build_client, fetch_provider_metadata, presence_no_check, try_user_from,
+                build_client, exchange_password_for_id_token, fetch_provider_metadata,
+                presence_no_check, try_user_from, validate_client_credentials,
                 verify_presence,
             },
         },
@@ -43,6 +45,7 @@ pub struct AuthenticatorInner {
     path_prefix: String,
     issuer_endpoint_format: String,
     token_endpoint_format: String,
+    token_cache: TokenExchangeCache,
 }
 
 /// An OIDC Authenticator implementation for SaaS setups
@@ -97,6 +100,7 @@ impl SaasOIDCAuthenticator {
             path_prefix,
             issuer_endpoint_format,
             token_endpoint_format,
+            token_cache: TokenExchangeCache::new(),
         })))
     }
 
@@ -134,6 +138,41 @@ impl SaasOIDCAuthenticator {
             self.client_secret.clone(),
             redirect_url,
         ))
+    }
+
+    /// Builds an OIDC client configured with the *machine's* credentials (from
+    /// a `Basic` header) against the **org-specific** endpoints, so a
+    /// `client_credentials` exchange authenticates the machine. In a SaaS setup
+    /// service accounts are provisioned per organisation, so a
+    /// client_credentials request that isn't org-scoped is rejected.
+    fn machine_client(
+        &self,
+        login_type: &Login,
+        client_id: ClientId,
+        client_secret: ClientSecret,
+    ) -> Result<CoreClient, String> {
+        let Login::Org(org_id) = login_type else {
+            return Err(
+                "client_credentials requires an organisation-scoped request".to_string(),
+            );
+        };
+        let issuer_url = self
+            .get_issuer_url(org_id)
+            .map_err(|e| format!("Unable to create issuer url: {e}"))?;
+        let token_url = self
+            .get_token_url(org_id)
+            .map_err(|e| format!("Unable to create token url: {e}"))?;
+        let redirect_url =
+            RedirectUrl::new(format!("{}{}/", self.base_url, self.path_prefix))
+                .map_err(|e| format!("Unable to create redirect url: {e}"))?;
+        let provider = self
+            .provider_metadata
+            .read()
+            .unwrap_or_else(|e| e.into_inner())
+            .clone()
+            .set_issuer(issuer_url)
+            .set_token_endpoint(Some(token_url));
+        Ok(build_client(provider, client_id, client_secret, redirect_url))
     }
 
     fn get_issuer_url(
@@ -302,7 +341,7 @@ impl Authenticator for SaasOIDCAuthenticator {
         }
     }
 
-    fn authenticate_with_token(
+    fn authenticate_with_bearer_token(
         &self,
         login_type: &Login,
         token: &str,
@@ -311,30 +350,134 @@ impl Authenticator for SaasOIDCAuthenticator {
             Login::None => Ok(User::default()),
             Login::Global => self
                 .decode_global_token(token)
-                .map_err(|e| {
-                    log::error!("Error in decoding user : {e}");
-                    ErrorUnauthorized(String::from("Unable to get user"))
-                })
+                .map_err(|e| format!("Error in decoding user : {e}"))
                 .and_then(|claims| {
-                    try_user_from(&claims).map_err(|e| {
-                        log::error!("Unable to get user: {e}");
-                        ErrorUnauthorized(String::from("Unable to get user"))
-                    })
+                    try_user_from(&claims).map_err(|e| format!("Unable to get user: {e}"))
                 })
-                .map_err(Into::into),
+                .map_err(|e| {
+                    log::error!("{e}");
+                    ErrorUnauthorized(String::from("Unable to get org_user")).into()
+                }),
             Login::Org(org_id) => self
                 .decode_org_token(org_id, token)
-                .map_err(|e| {
-                    log::error!("Error in decoding org_user : {e}");
-                    ErrorUnauthorized(String::from("Unable to get org_user"))
-                })
+                .map_err(|e| format!("Error in decoding org_user : {e}"))
                 .and_then(|claims| {
-                    try_user_from(&claims).map_err(|e| {
-                        log::error!("Unable to get org_user: {e}");
-                        ErrorUnauthorized(String::from("Unable to get org_user"))
-                    })
+                    try_user_from(&claims)
+                        .map_err(|e| format!("Unable to get org_user: {e}"))
                 })
-                .map_err(Into::into),
+                .map_err(|e| {
+                    log::error!("{e}");
+                    ErrorUnauthorized(String::from("Unable to get org_user")).into()
+                }),
+        }
+    }
+
+    fn authenticate_with_basic_auth(
+        &self,
+        login_type: &Login,
+        grant: BasicAuthGrant,
+    ) -> LocalBoxFuture<'static, Result<User, HttpResponse>> {
+        if matches!(login_type, Login::None) {
+            return Box::pin(async { Ok(User::default()) });
+        }
+
+        // Per-org realms in SaaS: scope the cache key by org so the same
+        // credentials can't be reused across org realms.
+        let scope = match login_type {
+            Login::Org(org_id) => Some(org_id.clone()),
+            _ => None,
+        };
+
+        match grant {
+            BasicAuthGrant::Password { username, password } => {
+                let client = match login_type {
+                    Login::Org(org_id) => match self.get_org_client(org_id) {
+                        Ok(client) => client,
+                        Err(e) => {
+                            log::error!("Error in getting Org specific client: {e}");
+                            return Box::pin(async {
+                                Err(ErrorInternalServerError(String::from(
+                                    "Error in getting Org specific client",
+                                ))
+                                .into())
+                            });
+                        }
+                    },
+                    _ => self.get_client(),
+                };
+                let auth_n = self.clone();
+                let login_type = login_type.clone();
+                let key = TokenExchangeCache::key(
+                    scope,
+                    CachedGrant::Password,
+                    username.as_str(),
+                    password.secret(),
+                );
+                Box::pin(async move {
+                    if let Some(user) = auth_n.token_cache.get(&key) {
+                        return Ok(user);
+                    }
+
+                    let (id_token, expires_in) =
+                        exchange_password_for_id_token(&client, &username, &password)
+                            .await
+                            .map_err(|e| {
+                                log::error!("Basic auth (password) failed: {e}");
+                                actix_web::Error::from(e)
+                            })?;
+
+                    let user = auth_n
+                        .authenticate_with_bearer_token(&login_type, &id_token)?;
+                    auth_n.token_cache.insert(key, user.clone(), expires_in);
+                    Ok(user)
+                })
+            }
+            BasicAuthGrant::ClientCredentials {
+                client_id,
+                client_secret,
+            } => {
+                let auth_n = self.clone();
+                let key = TokenExchangeCache::key(
+                    scope,
+                    CachedGrant::ClientCredentials,
+                    client_id.as_str(),
+                    client_secret.secret(),
+                );
+                let client = match self.machine_client(
+                    login_type,
+                    client_id.clone(),
+                    client_secret,
+                ) {
+                    Ok(client) => client,
+                    Err(e) => {
+                        log::error!("Error building machine client: {e}");
+                        return Box::pin(async {
+                            Err(ErrorInternalServerError(String::from(
+                                "Error building machine client",
+                            ))
+                            .into())
+                        });
+                    }
+                };
+                Box::pin(async move {
+                    if let Some(user) = auth_n.token_cache.get(&key) {
+                        return Ok(user);
+                    }
+
+                    let expires_in =
+                        validate_client_credentials(&client).await.map_err(|e| {
+                            log::error!("Basic auth (client_credentials) failed: {e}");
+                            actix_web::Error::from(e)
+                        })?;
+
+                    // No user identity in a client_credentials grant; derive a
+                    // stable, namespaced service principal from the client_id.
+                    let principal = format!("service-account-{}", client_id.as_str());
+                    let user = User::new(principal.clone(), principal);
+                    auth_n.token_cache.insert(key, user.clone(), expires_in);
+                    Ok(user)
+                })
+            }
         }
     }
 
@@ -417,7 +560,7 @@ impl Authenticator for SaasOIDCAuthenticator {
         Box::pin(async move {
             client
                 .exchange_password(&user, &pass)
-                .add_scope(Scope::new(String::from("openid")))
+                .add_scope(Scope::new("openid".to_string()))
                 .request_async(oidcrs::reqwest::async_http_client)
                 .await
                 .map_err(|e| {
