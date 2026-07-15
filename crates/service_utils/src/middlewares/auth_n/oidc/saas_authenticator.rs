@@ -2,7 +2,6 @@ use std::sync::Arc;
 
 use actix_web::{
     HttpRequest, HttpResponse,
-    cookie::{Cookie, time::Duration},
     error::{ErrorBadRequest, ErrorInternalServerError},
     http::header,
     web::{self, Data, Json, get, resource},
@@ -20,7 +19,7 @@ use crate::{
     extensions::HttpRequestExt,
     helpers::get_from_env_unsafe,
     middlewares::auth_n::{
-        authentication::{Authenticator, Login},
+        authentication::{Authenticator, Login, add_org_cookie_with_eviction},
         oidc::{
             OIDCAuthenticator,
             types::{
@@ -201,16 +200,16 @@ impl SaasOIDCAuthenticator {
             self.generate_org_user(&request, &org_id, &login_type)
                 .await
                 .and_then(|token| {
-                    let cookie = Cookie::build(login_type.to_string(), token)
-                        .path(self.get_cookie_path())
-                        .http_only(true)
-                        .secure(true)
-                        .max_age(Duration::days(1))
-                        .finish();
-                    Err(HttpResponse::Found()
-                        .cookie(cookie)
-                        .insert_header((header::LOCATION, request.path().to_string()))
-                        .finish())
+                    let response = add_org_cookie_with_eviction(
+                        &request,
+                        &login_type,
+                        token,
+                        self.get_cookie_path(),
+                        HttpResponse::Found(),
+                    )
+                    .insert_header((header::LOCATION, request.path().to_string()))
+                    .finish();
+                    Err(response)
                 })
         }
     }
