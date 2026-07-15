@@ -37,17 +37,90 @@ use crate::{
 
 /// Verifies a `Basic` credential as the Kronos dispatch callback credential:
 /// `base64("kronos-dispatcher:<dispatch_token>")`.
-fn is_dispatch_credential(credential: &str, dispatch_token: &str) -> bool {
-    general_purpose::STANDARD
-        .decode(credential)
+fn is_dispatch_credential(id: &str, secret: &str, dispatch_token: &str) -> bool {
+    id == DISPATCHER_USERNAME && secret == dispatch_token
+}
+
+fn process_internal_token<'a>(
+    request: &ServiceRequest,
+) -> Option<LocalBoxFuture<'a, Result<User, HttpResponse>>> {
+    request
+        .headers()
+        .get("x-user")
+        .and_then(|auth| auth.to_str().ok())
+        .and_then(|user_str| serde_json::from_str::<User>(user_str).ok())
+        .map(|user| {
+            request
+                .extensions_mut()
+                .insert::<InternalUser>(InternalUser);
+            Box::pin(ready(Ok(user))) as LocalBoxFuture<'a, _>
+        })
+}
+
+fn process_bearer_token<'a>(
+    auth_n_handler: &AuthNHandler,
+    login_type: &Login,
+    token: &str,
+) -> Option<LocalBoxFuture<'a, Result<User, HttpResponse>>> {
+    let resp = auth_n_handler
+        .0
+        .authenticate_with_bearer_token(&login_type, token);
+    Some(Box::pin(ready(resp)))
+}
+
+fn process_dipatcher_token(request: &ServiceRequest) -> User {
+    request
+        .extensions_mut()
+        .insert::<DispatchUser>(DispatchUser);
+
+    User::new(
+        format!("{DISPATCHER_USERNAME}@superposition.io"),
+        DISPATCHER_USERNAME.to_string(),
+    )
+}
+
+fn process_basic_auth<'a>(
+    request: &ServiceRequest,
+    auth_n_handler: &AuthNHandler,
+    login_type: &Login,
+    token: &str,
+    state: &AppState,
+) -> Option<LocalBoxFuture<'a, Result<User, HttpResponse>>> {
+    let (id, secret) = general_purpose::STANDARD
+        .decode(token)
         .ok()
         .and_then(|decoded| String::from_utf8(decoded).ok())
         .and_then(|decoded| {
-            decoded.split_once(':').map(|(user, token)| {
-                user == DISPATCHER_USERNAME && token == dispatch_token
-            })
-        })
-        .unwrap_or(false)
+            let mut parts = decoded.splitn(2, ':');
+            match (parts.next(), parts.next()) {
+                (Some(id), Some(secret)) => Some((id.to_string(), secret.to_string())),
+                _ => None,
+            }
+        })?;
+
+    if is_dispatch_credential(&id, &secret, &state.kronos_dispatch_token) {
+        let user = process_dipatcher_token(&request);
+        return Some(Box::pin(ready(Ok(user))));
+    }
+
+    // `X-Grant-Type` selects how the Basic pair is validated:
+    // absent => client_credentials (M2M), `password` => ROPC,
+    // anything else is rejected with a 400.
+    let grant_type = request
+        .headers()
+        .get("x-grant-type")
+        .and_then(|v| v.to_str().ok());
+
+    let user_resp = match BasicAuthGrant::resolve(grant_type, id, secret) {
+        Some(grant) => auth_n_handler
+            .0
+            .authenticate_with_basic_auth(&login_type, grant),
+        None => Box::pin(ready(Err(
+            ErrorBadRequest("Unsupported X-Grant-Type").into()
+        ))),
+    };
+
+    Some(user_resp)
 }
 
 pub struct AuthNMiddleware<S> {
@@ -116,92 +189,18 @@ where
                     (Some("Internal"), Some(token))
                         if token == state.superposition_token =>
                     {
-                        request
-                            .headers()
-                            .get("x-user")
-                            .and_then(|auth| auth.to_str().ok())
-                            .and_then(|user_str| {
-                                serde_json::from_str::<User>(user_str).ok()
-                            })
-                            .map(|user| {
-                                request
-                                    .extensions_mut()
-                                    .insert::<InternalUser>(InternalUser);
-                                Box::pin(ready(Ok(user))) as LocalBoxFuture<'static, _>
-                            })
+                        process_internal_token(&request)
                     }
                     (Some("Bearer"), Some(token)) => {
-                        let resp = self
-                            .auth_n_handler
-                            .0
-                            .authenticate_with_bearer_token(&login_type, token);
-                        Some(Box::pin(ready(resp)) as LocalBoxFuture<'static, _>)
+                        process_bearer_token(&self.auth_n_handler, &login_type, token)
                     }
-                    (Some("Basic"), Some(credential))
-                        if request.path().ends_with("/dispatch/webhook")
-                            && is_dispatch_credential(
-                                credential,
-                                &state.kronos_dispatch_token,
-                            ) =>
-                    {
-                        request
-                            .extensions_mut()
-                            .insert::<DispatchUser>(DispatchUser);
-                        Some(Ok(User::new(
-                            format!("{DISPATCHER_USERNAME}@superposition.io"),
-                            DISPATCHER_USERNAME.to_string(),
-                        )))
-                    }
-                    (Some("Basic"), Some(credential))
-                        if request.path().ends_with("/dispatch/webhook")
-                            && is_dispatch_credential(
-                                credential,
-                                &state.kronos_dispatch_token,
-                            ) =>
-                    {
-                        request
-                            .extensions_mut()
-                            .insert::<DispatchUser>(DispatchUser);
-                        Some(Ok(User::new(
-                            format!("{DISPATCHER_USERNAME}@superposition.io"),
-                            DISPATCHER_USERNAME.to_string(),
-                        )))
-                    }
-                    (Some("Basic"), Some(token)) => {
-                        // `X-Grant-Type` selects how the Basic pair is validated:
-                        // absent => client_credentials (M2M), `password` => ROPC,
-                        // anything else is rejected with a 400.
-                        let grant_type = request
-                            .headers()
-                            .get("x-grant-type")
-                            .and_then(|v| v.to_str().ok());
-                        general_purpose::STANDARD
-                            .decode(token)
-                            .ok()
-                            .and_then(|decoded| String::from_utf8(decoded).ok())
-                            .and_then(|decoded| {
-                                let mut parts = decoded.splitn(2, ':');
-                                match (parts.next(), parts.next()) {
-                                    (Some(id), Some(secret)) => {
-                                        Some((id.to_string(), secret.to_string()))
-                                    }
-                                    _ => None,
-                                }
-                            })
-                            .map(|(id, secret)| {
-                                match BasicAuthGrant::resolve(grant_type, id, secret) {
-                                    Some(grant) => self
-                                        .auth_n_handler
-                                        .0
-                                        .authenticate_with_basic_auth(&login_type, grant),
-                                    None => Box::pin(ready(Err(ErrorBadRequest(
-                                        "Unsupported X-Grant-Type",
-                                    )
-                                    .into())))
-                                        as LocalBoxFuture<'static, _>,
-                                }
-                            })
-                    }
+                    (Some("Basic"), Some(token)) => process_basic_auth(
+                        &request,
+                        &self.auth_n_handler,
+                        &login_type,
+                        token,
+                        &state,
+                    ),
                     (_, _) => None,
                 }
             })
