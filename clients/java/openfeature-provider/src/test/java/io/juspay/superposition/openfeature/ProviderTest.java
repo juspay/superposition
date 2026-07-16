@@ -25,14 +25,14 @@ class ProviderTest {
     final static String token = "my-token";
     final static Logger log = LoggerFactory.getLogger(ProviderTest.class);
     final static SuperpositionProviderOptions.ExperimentationOptions eopts = SuperpositionProviderOptions.ExperimentationOptions.builder()
-        .refreshStrategy(RefreshStrategy.Polling.of(1000, 1000))
+        .refreshStrategy(new RefreshStrategy.Polling(1000, 1000))
         .build();
     final static SuperpositionProviderOptions options = SuperpositionProviderOptions.builder()
         .orgId(orgId)
         .workspaceId(workspace)
         .endpoint(endpoint)
         .token(token)
-        .refreshStrategy(RefreshStrategy.Polling.of(1000, 100))
+        .refreshStrategy(new RefreshStrategy.Polling(1000, 100))
         .experimentationOptions(eopts)
         .build();
     SuperpositionOpenFeatureProvider provider;
