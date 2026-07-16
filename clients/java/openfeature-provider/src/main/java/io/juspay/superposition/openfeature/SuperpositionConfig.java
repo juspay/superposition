@@ -1,6 +1,5 @@
 package io.juspay.superposition.openfeature;
 
-import dev.openfeature.sdk.Structure;
 import dev.openfeature.sdk.Value;
 import lombok.Builder;
 import lombok.Data;
