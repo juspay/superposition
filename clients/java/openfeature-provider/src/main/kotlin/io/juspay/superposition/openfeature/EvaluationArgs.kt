@@ -10,7 +10,7 @@ import io.juspay.superposition.model.GetConfigOutput
 import software.amazon.smithy.java.core.serde.document.Document
 import uniffi.superposition_client.*
 import uniffi.superposition_types.Bucket
-import uniffi.superposition_types.Buckets
+import uniffi.superposition_types.Config
 import uniffi.superposition_types.Context
 import uniffi.superposition_types.DimensionInfo
 import uniffi.superposition_types.DimensionType
@@ -62,6 +62,13 @@ internal class EvaluationArgs {
         overrides = config.overrides.mapValues {
             it.value.mapValues { e -> valueToJsonString(toSerializable(e.value)) }
         }
+        dimensions = config.dimensions
+    }
+
+    constructor(config: Config) {
+        defaultConfig = config.defaultConfigs
+        contexts = config.contexts
+        overrides = config.overrides
         dimensions = config.dimensions
     }
 
@@ -154,10 +161,7 @@ internal class EvaluationArgs {
         }
 
         private fun toQueryData(eContext: EvaluationContext): Map<String, String> {
-            val m = eContext.asObjectMap()
-            if (m == null) {
-                return HashMap()
-            }
+            val m = eContext.asObjectMap() ?: return HashMap()
             return m.mapValues { valueToJsonString(it.value) }
         }
 
@@ -198,8 +202,8 @@ internal class EvaluationArgs {
 
         private fun toFfiDimensionType(dimType: io.juspay.superposition.model.DimensionType): DimensionType {
             return when (dimType.type()) {
-                io.juspay.superposition.model.DimensionType.Type.localCohort -> DimensionType.LocalCohort(dimType.getValue<String>())
-                io.juspay.superposition.model.DimensionType.Type.remoteCohort -> DimensionType.RemoteCohort(dimType.getValue<String>())
+                io.juspay.superposition.model.DimensionType.Type.localCohort -> DimensionType.LocalCohort(dimType.getValue())
+                io.juspay.superposition.model.DimensionType.Type.remoteCohort -> DimensionType.RemoteCohort(dimType.getValue())
                 else -> DimensionType.Regular
             }
         }
