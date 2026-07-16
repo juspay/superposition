@@ -62,8 +62,9 @@ Superposition currently has two practical deployment modes:
 
 - `APP_ENV=PROD`: the app initializes AWS KMS and expects encrypted, base64 KMS
   ciphertext values for sensitive settings such as `DB_PASSWORD`,
-  `SUPERPOSITION_TOKEN`, `OIDC_CLIENT_SECRET`, `CASBIN_DB_PASSWORD`, and
-  `MASTER_ENCRYPTION_KEY`.
+  `SUPERPOSITION_TOKEN`, `OIDC_CLIENT_SECRET`, `OIDC_INTROSPECTION_AUTH_HEADER`
+  and `OIDC_API_STATIC_TOKENS` (when API-token auth is enabled),
+  `CASBIN_DB_PASSWORD`, and `MASTER_ENCRYPTION_KEY`.
 - `APP_ENV=DEV`: the app reads those values directly from environment variables.
   This is useful for local and non-AWS self-hosted deployments. If you use this
   mode outside local development, inject secrets from your platform secret
@@ -114,6 +115,40 @@ OIDC_REDIRECT_HOST=https://superposition.example.com
 OIDC_ORG_TOKEN_ENDPOINT_FORMAT='https://issuer.example.com/realms/<organisation>/protocol/openid-connect/token'
 OIDC_ORG_ISSUER_ENDPOINT_FORMAT='https://issuer.example.com/realms/<organisation>'
 ```
+
+Optional API-token authentication (OIDC only) is enabled with a prefix plus at
+least one validation mechanism: **static tokens** and/or **RFC 7662 token
+introspection**. When both are configured, a presented key is matched against
+static tokens first, then introspected.
+
+```bash
+OIDC_API_TOKEN_PREFIX=apikey                      # arbitrary, operator-chosen; marks a bearer token as an API key
+OIDC_API_TOKEN_DELIMITER=_                         # optional; separates prefix and key (defaults to "_")
+
+# Mechanism 1 — static tokens. KMS-encrypted (like OIDC_CLIENT_SECRET) JSON array;
+# each entry maps a token to a fixed principal. In SaaS, "org" binds a token to an
+# organisation; omit "org" for a global-scoped token. "email" is optional.
+OIDC_API_STATIC_TOKENS='[{"token":"<key>","principal":"svc-ci","org":"acme"}]'
+
+# Mechanism 2 — RFC 7662 introspection. Verbatim Authorization header sent to the
+# endpoint (Bearer or Basic). Secret — KMS-encrypted in non-dev.
+OIDC_INTROSPECTION_AUTH_HEADER='Bearer <token>'   # or 'Basic <base64(id:secret)>'
+
+# Introspection endpoint URLs are OPTIONAL — when unset, the endpoint is
+# discovered from provider metadata. Simple: single endpoint (optional).
+OIDC_TOKEN_INTROSPECTION_URL='https://issuer.example.com/realms/users/protocol/openid-connect/token/introspect'
+
+# SaaS OIDC: the per-org format is REQUIRED when introspection is enabled (a
+# global-only SaaS introspection config is rejected at startup); the global
+# (Login::Global) endpoint is discovered unless OIDC_TOKEN_INTROSPECTION_URL
+# overrides it.
+OIDC_ORG_TOKEN_INTROSPECTION_URL_FORMAT='https://issuer.example.com/realms/<organisation>/protocol/openid-connect/token/introspect'
+```
+
+For the complete authentication picture — all credential schemes (including
+`Basic` machine-to-machine access and API-key introspection), how they behave,
+caching, and error semantics — see the dedicated
+[Authentication](./authentication.md) page.
 
 ## Authorization
 

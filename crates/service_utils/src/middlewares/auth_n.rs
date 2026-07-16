@@ -28,7 +28,9 @@ use oidc::{SaasOIDCAuthenticator, SimpleOIDCAuthenticator};
 use superposition_types::{DispatchUser, InternalUser, User};
 
 use crate::{
-    db::utils::get_oidc_client_secret,
+    db::utils::{
+        get_introspection_auth_header, get_oidc_client_secret, get_static_api_tokens,
+    },
     extensions::HttpRequestExt,
     helpers::get_from_env_unsafe,
     kronos_dispatch::DISPATCHER_USERNAME,
@@ -62,9 +64,22 @@ fn process_bearer_token<'a>(
     login_type: &Login,
     token: &str,
 ) -> Option<LocalBoxFuture<'a, Result<User, HttpResponse>>> {
+    // When the optional RFC 7662 API-token flow is configured and the token
+    // carries its prefix, strip the prefix and validate via introspection.
+    // Otherwise treat the token as a standard OIDC id-token.
+    if let Some(prefix) = auth_n_handler.0.api_token_prefix() {
+        if let Some(api_key) = token.strip_prefix(prefix.as_str()) {
+            return Some(
+                auth_n_handler
+                    .0
+                    .authenticate_with_api_token(login_type, api_key),
+            );
+        }
+    }
+
     let resp = auth_n_handler
         .0
-        .authenticate_with_bearer_token(&login_type, token);
+        .authenticate_with_bearer_token(login_type, token);
     Some(Box::pin(ready(resp)))
 }
 
@@ -99,7 +114,7 @@ fn process_basic_auth<'a>(
         })?;
 
     if is_dispatch_credential(&id, &secret, &state.kronos_dispatch_token) {
-        let user = process_dipatcher_token(&request);
+        let user = process_dipatcher_token(request);
         return Some(Box::pin(ready(Ok(user))));
     }
 
@@ -114,7 +129,7 @@ fn process_basic_auth<'a>(
     let user_resp = match BasicAuthGrant::resolve(grant_type, id, secret) {
         Some(grant) => auth_n_handler
             .0
-            .authenticate_with_basic_auth(&login_type, grant),
+            .authenticate_with_basic_auth(login_type, grant),
         None => Box::pin(ready(Err(
             ErrorBadRequest("Unsupported X-Grant-Type").into()
         ))),
@@ -199,7 +214,7 @@ where
                         &self.auth_n_handler,
                         &login_type,
                         token,
-                        &state,
+                        state,
                     ),
                     (_, _) => None,
                 }
@@ -250,6 +265,9 @@ impl AuthNHandler {
                 let base_url = get_from_env_unsafe("OIDC_REDIRECT_HOST").unwrap();
                 let cid = get_from_env_unsafe("OIDC_CLIENT_ID").unwrap();
                 let csecret = get_oidc_client_secret(kms_client, app_env).await;
+                let introspection_auth =
+                    get_introspection_auth_header(kms_client, app_env).await;
+                let static_tokens = get_static_api_tokens(kms_client, app_env).await;
                 Arc::new(
                     SimpleOIDCAuthenticator::new(
                         url,
@@ -257,6 +275,8 @@ impl AuthNHandler {
                         path_prefix,
                         cid,
                         csecret,
+                        introspection_auth,
+                        static_tokens,
                     )
                     .await
                     .unwrap(),
@@ -267,10 +287,21 @@ impl AuthNHandler {
                 let base_url = get_from_env_unsafe("OIDC_REDIRECT_HOST").unwrap();
                 let cid = get_from_env_unsafe("OIDC_CLIENT_ID").unwrap();
                 let csecret = get_oidc_client_secret(kms_client, app_env).await;
+                let introspection_auth =
+                    get_introspection_auth_header(kms_client, app_env).await;
+                let static_tokens = get_static_api_tokens(kms_client, app_env).await;
                 Arc::new(
-                    SaasOIDCAuthenticator::new(url, base_url, path_prefix, cid, csecret)
-                        .await
-                        .unwrap(),
+                    SaasOIDCAuthenticator::new(
+                        url,
+                        base_url,
+                        path_prefix,
+                        cid,
+                        csecret,
+                        introspection_auth,
+                        static_tokens,
+                    )
+                    .await
+                    .unwrap(),
                 )
             }
             _ => panic!("Missing/Unknown authenticator."),

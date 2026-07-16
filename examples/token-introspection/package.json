@@ -1,0 +1,13 @@
+{
+  "name": "superposition-token-introspection-example",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Reference RFC 7662 token introspection endpoint for Superposition API-token auth",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

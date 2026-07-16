@@ -3,6 +3,7 @@ use std::fmt::Display;
 use actix_web::{
     HttpRequest, HttpResponse, Scope,
     cookie::{Cookie, time::Duration},
+    error::ErrorNotImplemented,
     http::header,
     web::Path,
 };
@@ -96,6 +97,27 @@ pub trait Authenticator: Sync + Send {
         login_type: &Login,
         token: &str,
     ) -> Result<User, HttpResponse>;
+
+    /// The configured API-token prefix (`custom_prefix` + `delimiter`) when the
+    /// optional RFC 7662 introspection flow is enabled, else `None`. The
+    /// middleware uses this to route `Bearer <prefix>...` tokens to
+    /// [`Self::authenticate_with_api_token`] instead of OIDC id-token validation.
+    fn api_token_prefix(&self) -> Option<String> {
+        None
+    }
+
+    /// Validates an API token (the prefix already stripped) via RFC 7662 token
+    /// introspection. Only invoked when [`Self::api_token_prefix`] is `Some`;
+    /// the default is a safety net for providers that don't support the flow.
+    fn authenticate_with_api_token(
+        &self,
+        _login_type: &Login,
+        _api_key: &str,
+    ) -> LocalBoxFuture<'static, Result<User, HttpResponse>> {
+        Box::pin(async {
+            Err(ErrorNotImplemented("API token authentication is not supported").into())
+        })
+    }
 
     fn authenticate_with_basic_auth(
         &self,

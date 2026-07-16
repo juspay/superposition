@@ -28,6 +28,7 @@ const FALLBACK_TTL_SECS: Duration = Duration::from_secs(60);
 pub(super) enum CachedGrant {
     Password,
     ClientCredentials,
+    ApiToken,
 }
 
 /// Cache key: `(scope, grant, principal_id, hash(secret))`.
@@ -76,7 +77,7 @@ impl TokenExchangeCache {
     /// entries are pruned lazily on write so the map cannot grow unbounded.
     pub(super) fn insert(&self, key: CacheKey, user: User, expires_in: Option<Duration>) {
         let ttl = expires_in
-            .unwrap_or_else(|| FALLBACK_TTL_SECS)
+            .unwrap_or(FALLBACK_TTL_SECS)
             .saturating_sub(CACHE_REFRESH_SAFETY_MARGIN_SECS);
         let expires_at = Instant::now() + ttl;
 

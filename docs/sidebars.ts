@@ -42,6 +42,10 @@ const sidebars: SidebarsConfig = {
                 },
                 {
                     type: "doc",
+                    id: "self-hosting/authentication",
+                },
+                {
+                    type: "doc",
                     id: "self-hosting/production",
                 },
                 {

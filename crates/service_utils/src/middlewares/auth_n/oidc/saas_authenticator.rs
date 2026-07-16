@@ -3,7 +3,9 @@ use std::sync::{Arc, RwLock};
 use actix_web::{
     HttpRequest, HttpResponse,
     cookie::{Cookie, time::Duration},
-    error::{ErrorBadRequest, ErrorInternalServerError, ErrorUnauthorized},
+    error::{
+        ErrorBadRequest, ErrorInternalServerError, ErrorNotImplemented, ErrorUnauthorized,
+    },
     http::header,
     web::{self, Data, Json, get, resource},
 };
@@ -12,7 +14,7 @@ use futures_util::future::LocalBoxFuture;
 use openidconnect::{
     self as oidcrs, ClientId, ClientSecret, IssuerUrl, RedirectUrl,
     ResourceOwnerPassword, ResourceOwnerUsername, Scope, TokenResponse, TokenUrl,
-    core::{CoreClient, CoreIdToken, CoreProviderMetadata},
+    core::{CoreClient, CoreIdToken},
 };
 use superposition_types::User;
 
@@ -23,10 +25,12 @@ use crate::{
         authentication::{Authenticator, BasicAuthGrant, Login},
         oidc::{
             OIDCAuthenticator,
+            api_token::{ApiTokenConfig, cache_ttl},
             token_cache::{CachedGrant, TokenExchangeCache},
             types::{GlobalUserClaims, GlobalUserIdToken, OrgUserClaims},
             utils::{
-                build_client, exchange_password_for_id_token, fetch_provider_metadata,
+                OidcProviderMetadata, build_client, discovered_introspection_endpoint,
+                exchange_password_for_id_token, fetch_provider_metadata,
                 presence_no_check, try_user_from, validate_client_credentials,
                 verify_presence,
             },
@@ -36,7 +40,7 @@ use crate::{
 
 pub struct AuthenticatorInner {
     client: RwLock<CoreClient>,
-    provider_metadata: RwLock<CoreProviderMetadata>,
+    provider_metadata: RwLock<OidcProviderMetadata>,
     issuer_url: IssuerUrl,
     client_id: ClientId,
     client_secret: ClientSecret,
@@ -46,6 +50,7 @@ pub struct AuthenticatorInner {
     issuer_endpoint_format: String,
     token_endpoint_format: String,
     token_cache: TokenExchangeCache,
+    api_token: Option<ApiTokenConfig>,
 }
 
 /// An OIDC Authenticator implementation for SaaS setups
@@ -66,6 +71,8 @@ impl SaasOIDCAuthenticator {
         path_prefix: String,
         client_id: String,
         client_secret: String,
+        introspection_auth_header: Option<String>,
+        static_tokens_raw: Option<String>,
     ) -> Result<Self, Box<dyn std::error::Error>> {
         let issuer_endpoint_format =
             get_from_env_unsafe::<String>("OIDC_ORG_ISSUER_ENDPOINT_FORMAT").unwrap();
@@ -89,6 +96,13 @@ impl SaasOIDCAuthenticator {
             redirect_url.clone(),
         );
 
+        let api_token =
+            ApiTokenConfig::from_env(introspection_auth_header, static_tokens_raw, true)?;
+        if let Some(cfg) = &api_token {
+            let discovered = discovered_introspection_endpoint(&provider_metadata);
+            cfg.ensure_serviceable(discovered.as_deref())?;
+        }
+
         Ok(Self(Arc::new(AuthenticatorInner {
             client: RwLock::new(client),
             provider_metadata: RwLock::new(provider_metadata),
@@ -101,6 +115,7 @@ impl SaasOIDCAuthenticator {
             issuer_endpoint_format,
             token_endpoint_format,
             token_cache: TokenExchangeCache::new(),
+            api_token,
         })))
     }
 
@@ -153,7 +168,7 @@ impl SaasOIDCAuthenticator {
     ) -> Result<CoreClient, String> {
         let Login::Org(org_id) = login_type else {
             return Err(
-                "client_credentials requires an organisation-scoped request".to_string(),
+                "client_credentials requires an organisation-scoped request".to_string()
             );
         };
         let issuer_url = self
@@ -172,7 +187,12 @@ impl SaasOIDCAuthenticator {
             .clone()
             .set_issuer(issuer_url)
             .set_token_endpoint(Some(token_url));
-        Ok(build_client(provider, client_id, client_secret, redirect_url))
+        Ok(build_client(
+            provider,
+            client_id,
+            client_secret,
+            redirect_url,
+        ))
     }
 
     fn get_issuer_url(
@@ -372,6 +392,73 @@ impl Authenticator for SaasOIDCAuthenticator {
         }
     }
 
+    fn api_token_prefix(&self) -> Option<String> {
+        self.api_token.as_ref().map(|c| c.prefix.clone())
+    }
+
+    fn authenticate_with_api_token(
+        &self,
+        login_type: &Login,
+        api_key: &str,
+    ) -> LocalBoxFuture<'static, Result<User, HttpResponse>> {
+        if matches!(login_type, Login::None) {
+            return Box::pin(async { Ok(User::default()) });
+        }
+
+        let scope = match login_type {
+            Login::Org(org_id) => Some(org_id.clone()),
+            _ => None,
+        };
+        let auth_n = self.clone();
+        let api_key = api_key.to_string();
+        let key =
+            TokenExchangeCache::key(scope.clone(), CachedGrant::ApiToken, "", &api_key);
+        Box::pin(async move {
+            let Some(config) = auth_n.api_token.as_ref() else {
+                return Err(ErrorNotImplemented(
+                    "API token authentication is not configured",
+                )
+                .into());
+            };
+
+            if let Some(user) = config.match_static_token(scope.as_deref(), &api_key) {
+                return Ok(user);
+            }
+
+            if !config.introspection_enabled() {
+                return Err(ErrorUnauthorized("Invalid or inactive API token").into());
+            }
+
+            if let Some(user) = auth_n.token_cache.get(&key) {
+                return Ok(user);
+            }
+
+            // For a global request, fall back to the introspection endpoint
+            // advertised in the (cached) provider metadata.
+            let discovered = discovered_introspection_endpoint(
+                &auth_n
+                    .provider_metadata
+                    .read()
+                    .unwrap_or_else(|e| e.into_inner()),
+            );
+            let Some(endpoint) = config.resolve_endpoint(scope.as_deref(), discovered)
+            else {
+                return Err(ErrorBadRequest(
+                    "API token authentication is not available for global requests \
+                     in this configuration",
+                )
+                .into());
+            };
+
+            let (user, exp) = config
+                .introspect(&endpoint, &api_key)
+                .await
+                .map_err(actix_web::Error::from)?;
+            auth_n.token_cache.insert(key, user.clone(), cache_ttl(exp));
+            Ok(user)
+        })
+    }
+
     fn authenticate_with_basic_auth(
         &self,
         login_type: &Login,
@@ -426,8 +513,8 @@ impl Authenticator for SaasOIDCAuthenticator {
                                 actix_web::Error::from(e)
                             })?;
 
-                    let user = auth_n
-                        .authenticate_with_bearer_token(&login_type, &id_token)?;
+                    let user =
+                        auth_n.authenticate_with_bearer_token(&login_type, &id_token)?;
                     auth_n.token_cache.insert(key, user.clone(), expires_in);
                     Ok(user)
                 })

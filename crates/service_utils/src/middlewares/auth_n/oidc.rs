@@ -1,3 +1,4 @@
+mod api_token;
 mod saas_authenticator;
 mod simple_authenticator;
 mod token_cache;

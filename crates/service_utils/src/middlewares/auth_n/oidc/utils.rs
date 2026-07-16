@@ -4,12 +4,66 @@ use actix_web::error::{
     ErrorInternalServerError, ErrorNotImplemented, ErrorUnauthorized,
 };
 use openidconnect::{
-    self as oidcrs, AdditionalClaims, ClientId, ClientSecret, GenderClaim, IdTokenClaims,
-    IssuerUrl, Nonce, OAuth2TokenResponse, RedirectUrl, RequestTokenError,
-    ResourceOwnerPassword, ResourceOwnerUsername, Scope, TokenResponse,
-    core::{CoreClient, CoreErrorResponseType, CoreProviderMetadata},
+    self as oidcrs, AdditionalClaims, AdditionalProviderMetadata, ClientId, ClientSecret,
+    GenderClaim, IdTokenClaims, IntrospectionUrl, IssuerUrl, Nonce, OAuth2TokenResponse,
+    ProviderMetadata, RedirectUrl, RequestTokenError, ResourceOwnerPassword,
+    ResourceOwnerUsername, Scope, TokenResponse,
+    core::{
+        CoreAuthDisplay, CoreClaimName, CoreClaimType, CoreClient, CoreClientAuthMethod,
+        CoreErrorResponseType, CoreGrantType, CoreJsonWebKey, CoreJsonWebKeyType,
+        CoreJsonWebKeyUse, CoreJweContentEncryptionAlgorithm,
+        CoreJweKeyManagementAlgorithm, CoreJwsSigningAlgorithm, CoreResponseMode,
+        CoreResponseType, CoreSubjectIdentifierType,
+    },
 };
+use serde::{Deserialize, Serialize};
 use superposition_types::User;
+
+/// Additional provider-metadata beyond OIDC Core discovery: the RFC 7662
+/// introspection endpoint (defined by RFC 8414). It is OPTIONAL — a provider may
+/// support introspection without advertising it — hence `Option`.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub(super) struct IntrospectionMetadata {
+    #[serde(default)]
+    pub(super) introspection_endpoint: Option<IntrospectionUrl>,
+}
+
+impl AdditionalProviderMetadata for IntrospectionMetadata {}
+
+/// OIDC provider metadata carrying the introspection endpoint alongside the
+/// standard Core fields. Mirrors `CoreProviderMetadata` with our additional
+/// metadata swapped in for the empty default.
+pub(super) type OidcProviderMetadata = ProviderMetadata<
+    IntrospectionMetadata,
+    CoreAuthDisplay,
+    CoreClientAuthMethod,
+    CoreClaimName,
+    CoreClaimType,
+    CoreGrantType,
+    CoreJweContentEncryptionAlgorithm,
+    CoreJweKeyManagementAlgorithm,
+    CoreJwsSigningAlgorithm,
+    CoreJsonWebKeyType,
+    CoreJsonWebKeyUse,
+    CoreJsonWebKey,
+    CoreResponseMode,
+    CoreResponseType,
+    CoreSubjectIdentifierType,
+>;
+
+/// The introspection endpoint advertised in the provider's discovery metadata
+/// (RFC 8414 `introspection_endpoint`), as a plain string, if present. Keeps the
+/// `openidconnect` metadata-digging in one place so callers (and the
+/// introspection config) deal only in URLs.
+pub(super) fn discovered_introspection_endpoint(
+    metadata: &OidcProviderMetadata,
+) -> Option<String> {
+    metadata
+        .additional_metadata()
+        .introspection_endpoint
+        .as_ref()
+        .map(|url| url.url().as_str().to_string())
+}
 
 /// Classifies a failure of the Basic-auth (ROPC / password grant) exchange so
 /// callers can surface an accurate HTTP status instead of a blanket 500.
@@ -83,8 +137,8 @@ pub(super) fn try_user_from<A: AdditionalClaims, B: GenderClaim>(
 
 pub(super) async fn fetch_provider_metadata(
     issuer_url: IssuerUrl,
-) -> Result<CoreProviderMetadata, Box<dyn std::error::Error>> {
-    let provider_metadata = CoreProviderMetadata::discover_async(
+) -> Result<OidcProviderMetadata, Box<dyn std::error::Error>> {
+    let provider_metadata = OidcProviderMetadata::discover_async(
         issuer_url,
         oidcrs::reqwest::async_http_client,
     )
@@ -94,7 +148,7 @@ pub(super) async fn fetch_provider_metadata(
 }
 
 pub(super) fn build_client(
-    provider_metadata: CoreProviderMetadata,
+    provider_metadata: OidcProviderMetadata,
     client_id: ClientId,
     client_secret: ClientSecret,
     redirect_url: RedirectUrl,
