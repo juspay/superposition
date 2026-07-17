@@ -20,8 +20,8 @@ use crate::middlewares::auth_n::{
     helpers::fetch_org_ids_from_db,
     oidc::{
         OIDCAuthenticator,
-        api_token::{ApiTokenConfig, cache_ttl},
-        token_cache::{CachedGrant, TokenExchangeCache},
+        api_token::ApiTokenConfig,
+        token_cache::{CachedGrant, TokenCacheConfig, TokenExchangeCache},
         utils::{
             OidcProviderMetadata, build_client, discovered_introspection_endpoint,
             exchange_password_for_id_token, fetch_provider_metadata, try_user_from,
@@ -95,7 +95,7 @@ impl SimpleOIDCAuthenticator {
             client_secret,
             redirect_url,
             path_prefix,
-            token_cache: TokenExchangeCache::new(),
+            token_cache: TokenExchangeCache::new(TokenCacheConfig::from_env()),
             api_token,
         })))
     }
@@ -287,7 +287,9 @@ impl Authenticator for SimpleOIDCAuthenticator {
                 .introspect(&endpoint, &api_key)
                 .await
                 .map_err(actix_web::Error::from)?;
-            auth_n.token_cache.insert(key, user.clone(), cache_ttl(exp));
+            auth_n
+                .token_cache
+                .insert(key, user.clone(), config.cache_ttl(exp));
             Ok(user)
         })
     }

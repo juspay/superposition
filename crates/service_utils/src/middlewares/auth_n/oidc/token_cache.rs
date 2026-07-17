@@ -14,13 +14,44 @@ use std::{
 
 use superposition_types::User;
 
-/// Drop a cached principal this many seconds before the exchanged token's
-/// actual expiry, to stay ahead of clock skew and in-flight latency.
-const CACHE_REFRESH_SAFETY_MARGIN_SECS: Duration = Duration::from_secs(30);
+use crate::helpers::get_from_env_or_default;
 
-/// Fallback TTL when the IdP omits `expires_in` from the token response
-/// (`expires_in` is only RECOMMENDED by RFC 6749 §5.1, not required).
-const FALLBACK_TTL_SECS: Duration = Duration::from_secs(60);
+/// Default seconds to drop a cached principal before the token's actual expiry
+/// (overridable via `OIDC_CACHE_REFRESH_SAFETY_MARGIN_SECS`).
+const DEFAULT_CACHE_REFRESH_SAFETY_MARGIN_SECS: u64 = 30;
+
+/// Default fallback TTL in seconds when the IdP omits `expires_in`
+/// (overridable via `OIDC_FALLBACK_TTL_SECS`).
+const DEFAULT_FALLBACK_TTL_SECS: u64 = 60;
+
+/// Tunable TTLs for [`TokenExchangeCache`], loaded from env. Kept separate from
+/// the cache itself so the cache stays a pure data structure (constructible with
+/// explicit values in tests) and env-reading lives in one place.
+pub(super) struct TokenCacheConfig {
+    /// Drop a cached principal this many seconds before the exchanged token's
+    /// actual expiry, to stay ahead of clock skew and in-flight latency.
+    refresh_margin: Duration,
+    /// Fallback TTL when the IdP omits `expires_in` from the token response
+    /// (`expires_in` is only RECOMMENDED by RFC 6749 §5.1, not required).
+    fallback_ttl: Duration,
+}
+
+impl TokenCacheConfig {
+    /// Reads the TTL overrides from env at startup, so a malformed override
+    /// fails fast at boot rather than on the first cached request.
+    pub(super) fn from_env() -> Self {
+        Self {
+            refresh_margin: Duration::from_secs(get_from_env_or_default(
+                "OIDC_CACHE_REFRESH_SAFETY_MARGIN_SECS",
+                DEFAULT_CACHE_REFRESH_SAFETY_MARGIN_SECS,
+            )),
+            fallback_ttl: Duration::from_secs(get_from_env_or_default(
+                "OIDC_FALLBACK_TTL_SECS",
+                DEFAULT_FALLBACK_TTL_SECS,
+            )),
+        }
+    }
+}
 
 /// Which Basic grant produced an entry. Part of the key so a `username` can
 /// never collide with a `client_id`.
@@ -43,14 +74,19 @@ struct CacheEntry {
     expires_at: Instant,
 }
 
-#[derive(Default)]
 pub(super) struct TokenExchangeCache {
     entries: RwLock<HashMap<CacheKey, CacheEntry>>,
+    config: TokenCacheConfig,
 }
 
 impl TokenExchangeCache {
-    pub(super) fn new() -> Self {
-        Self::default()
+    /// Builds a cache with the given TTL config. Pure — the caller reads the
+    /// config (from env at startup, or explicit values in tests).
+    pub(super) fn new(config: TokenCacheConfig) -> Self {
+        Self {
+            entries: RwLock::new(HashMap::new()),
+            config,
+        }
     }
 
     /// Builds a cache key, hashing the secret so it is never stored in plaintext.
@@ -77,8 +113,8 @@ impl TokenExchangeCache {
     /// entries are pruned lazily on write so the map cannot grow unbounded.
     pub(super) fn insert(&self, key: CacheKey, user: User, expires_in: Option<Duration>) {
         let ttl = expires_in
-            .unwrap_or(FALLBACK_TTL_SECS)
-            .saturating_sub(CACHE_REFRESH_SAFETY_MARGIN_SECS);
+            .unwrap_or(self.config.fallback_ttl)
+            .saturating_sub(self.config.refresh_margin);
         let expires_at = Instant::now() + ttl;
 
         let mut entries = self.entries.write().unwrap_or_else(|e| e.into_inner());

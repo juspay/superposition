@@ -30,20 +30,11 @@ use crate::helpers::{get_from_env_or_default, get_from_env_unsafe};
 /// Reused connection-pooling client for introspection calls.
 static HTTP_CLIENT: Lazy<reqwest::Client> = Lazy::new(reqwest::Client::new);
 
-/// Upper bound on how long an introspection result is cached, regardless of the
-/// token's `exp`. Introspection exists for near-real-time revocation, so we cap
-/// caching to keep revocation lag small even for long-lived tokens.
-const MAX_INTROSPECTION_CACHE_TTL: Duration = Duration::from_secs(300);
-
-/// Cache TTL for an introspection result: the time until the token's `exp`,
-/// capped at [`MAX_INTROSPECTION_CACHE_TTL`]. Returns `None` (no or already-past
-/// `exp`) so the cache applies its own short fallback.
-pub(super) fn cache_ttl(exp: Option<u64>) -> Option<Duration> {
-    let exp = exp?;
-    let now = SystemTime::now().duration_since(UNIX_EPOCH).ok()?.as_secs();
-    let remaining = exp.checked_sub(now)?;
-    Some(Duration::from_secs(remaining).min(MAX_INTROSPECTION_CACHE_TTL))
-}
+/// Default upper bound (seconds) on how long an introspection result is cached,
+/// regardless of the token's `exp`. Introspection exists for near-real-time
+/// revocation, so we cap caching to keep revocation lag small even for
+/// long-lived tokens. Overridable via `OIDC_MAX_INTROSPECTION_CACHE_TTL_SECS`.
+const DEFAULT_MAX_INTROSPECTION_CACHE_TTL_SECS: u64 = 300;
 
 /// Length-independent* byte comparison, to avoid leaking how many leading bytes
 /// of a static token matched via response timing. (*Length is not hidden; token
@@ -119,6 +110,9 @@ struct IntrospectionSettings {
     /// Explicit single/global introspection endpoint (both modes). Optional:
     /// when absent, the endpoint discovered from provider metadata is used.
     global_endpoint: Option<String>,
+    /// Upper bound on how long an introspection result is cached, regardless of
+    /// the token's `exp`. Read from env at startup.
+    max_cache_ttl: Duration,
 }
 
 /// Static configuration for the API-token flow, loaded from env. Owns the prefix
@@ -167,6 +161,10 @@ impl ApiTokenConfig {
         };
 
         let introspection = auth_header.map(|auth_header| {
+            let max_cache_ttl = Duration::from_secs(get_from_env_or_default(
+                "OIDC_MAX_INTROSPECTION_CACHE_TTL_SECS",
+                DEFAULT_MAX_INTROSPECTION_CACHE_TTL_SECS,
+            ));
             let org_endpoint_format = is_saas
                 .then(|| {
                     get_from_env_unsafe::<String>(
@@ -181,6 +179,7 @@ impl ApiTokenConfig {
                 auth_header,
                 org_endpoint_format,
                 global_endpoint,
+                max_cache_ttl,
             }
         });
 
@@ -206,6 +205,18 @@ impl ApiTokenConfig {
     /// Whether RFC 7662 introspection is configured (vs. static-only).
     pub(super) fn introspection_enabled(&self) -> bool {
         self.introspection.is_some()
+    }
+
+    /// Cache TTL for an introspection result: the time until the token's `exp`,
+    /// capped at the configured `max_cache_ttl`. Returns `None` (no or
+    /// already-past `exp`, or introspection not configured) so the cache
+    /// applies its own short fallback.
+    pub(super) fn cache_ttl(&self, exp: Option<u64>) -> Option<Duration> {
+        let cap = self.introspection.as_ref()?.max_cache_ttl;
+        let exp = exp?;
+        let now = SystemTime::now().duration_since(UNIX_EPOCH).ok()?.as_secs();
+        let remaining = exp.checked_sub(now)?;
+        Some(Duration::from_secs(remaining).min(cap))
     }
 
     /// Startup validation for the introspection mechanism (a static-only config

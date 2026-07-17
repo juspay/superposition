@@ -140,21 +140,25 @@ trait OIDCAuthenticator: Authenticator {
                 )
             })?;
 
-        let client = data.get_client();
-
         // Verify the freshly-minted ID token. If verification fails, the most
         // common cause is that the IdP has rotated its signing keys since we
         // last fetched the JWKS, so the cached keys can't validate the new
         // token's signature. Refresh the provider metadata once and retry
         // before giving up — this self-heals key rotation without a restart.
-        let mut response = verify_id_token(&client, &token_response, &p_cookie.nonce);
+        let mut response =
+            verify_id_token(&data.get_client(), &token_response, &p_cookie.nonce);
         if let Err(e) = &response {
             log::error!(
                 "OIDC: ID token verification failed; refreshing provider keys and retrying, error: {e:?}"
             );
             match data.refresh_client().await {
                 Ok(()) => {
-                    response = verify_id_token(&client, &token_response, &p_cookie.nonce);
+                    let refreshed_client = data.get_client();
+                    response = verify_id_token(
+                        &refreshed_client,
+                        &token_response,
+                        &p_cookie.nonce,
+                    );
                 }
                 Err(e) => {
                     log::error!("OIDC: failed to refresh provider metadata: {e}")
@@ -190,9 +194,9 @@ trait OIDCAuthenticator: Authenticator {
 }
 
 fn verify_id_token<'a>(
-    client: &'a CoreClient,
+    client: &CoreClient,
     token_response: &'a CoreTokenResponse,
-    nonce: &'a Nonce,
+    nonce: &Nonce,
 ) -> Result<&'a CoreIdToken, ClaimsVerificationError> {
     let id_token = token_response.id_token().ok_or_else(|| {
         ClaimsVerificationError::Other("Id Token not found".to_string())

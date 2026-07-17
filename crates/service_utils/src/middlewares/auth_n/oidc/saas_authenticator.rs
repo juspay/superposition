@@ -25,8 +25,8 @@ use crate::{
         authentication::{Authenticator, BasicAuthGrant, Login},
         oidc::{
             OIDCAuthenticator,
-            api_token::{ApiTokenConfig, cache_ttl},
-            token_cache::{CachedGrant, TokenExchangeCache},
+            api_token::ApiTokenConfig,
+            token_cache::{CachedGrant, TokenCacheConfig, TokenExchangeCache},
             types::{GlobalUserClaims, GlobalUserIdToken, OrgUserClaims},
             utils::{
                 OidcProviderMetadata, build_client, discovered_introspection_endpoint,
@@ -114,7 +114,7 @@ impl SaasOIDCAuthenticator {
             path_prefix,
             issuer_endpoint_format,
             token_endpoint_format,
-            token_cache: TokenExchangeCache::new(),
+            token_cache: TokenExchangeCache::new(TokenCacheConfig::from_env()),
             api_token,
         })))
     }
@@ -454,7 +454,9 @@ impl Authenticator for SaasOIDCAuthenticator {
                 .introspect(&endpoint, &api_key)
                 .await
                 .map_err(actix_web::Error::from)?;
-            auth_n.token_cache.insert(key, user.clone(), cache_ttl(exp));
+            auth_n
+                .token_cache
+                .insert(key, user.clone(), config.cache_ttl(exp));
             Ok(user)
         })
     }
