@@ -145,6 +145,25 @@ OIDC_TOKEN_INTROSPECTION_URL='https://issuer.example.com/realms/users/protocol/o
 OIDC_ORG_TOKEN_INTROSPECTION_URL_FORMAT='https://issuer.example.com/realms/<organisation>/protocol/openid-connect/token/introspect'
 ```
 
+Optional cache-tuning knobs (all in seconds). Defaults are sensible; override
+only if you need to. Values are read at startup, so a malformed value fails the
+process at boot rather than on a request.
+
+```bash
+# Cap on how long an RFC 7662 introspection result is cached, regardless of the
+# token's own expiry — keeps revocation lag small for long-lived tokens. (300)
+OIDC_MAX_INTROSPECTION_CACHE_TTL_SECS=300
+
+# For Basic-auth (password / client_credentials) token-exchange caching:
+# how far before the exchanged token's expiry a cached principal is dropped,
+# to stay ahead of clock skew and in-flight latency. (30)
+OIDC_CACHE_REFRESH_SAFETY_MARGIN_SECS=30
+
+# Fallback cache TTL used when the IdP omits `expires_in` from a Basic-auth
+# token response (`expires_in` is only RECOMMENDED by RFC 6749, not required). (60)
+OIDC_FALLBACK_TTL_SECS=60
+```
+
 For the complete authentication picture — all credential schemes (including
 `Basic` machine-to-machine access and API-key introspection), how they behave,
 caching, and error semantics — see the dedicated
