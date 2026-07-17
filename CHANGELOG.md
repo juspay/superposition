@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.115.5 - 2026-07-17
+### Package updates
+- frontend bumped to frontend-v0.56.2
+- service_utils bumped to service_utils-v0.44.4
+- superposition_core bumped to superposition_core-v0.16.2
+### Global changes
+#### Bug Fixes
+- **(auth_n)** try refresh oidc client on token exchange failure (#1088) - (d3ebf3e) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.115.4 [skip ci] - (314914f) - Superposition Bot
+
+- - -
+
 ## v0.115.4 - 2026-07-13
 ### Package updates
 - superposition_types bumped to superposition_types-v0.49.2

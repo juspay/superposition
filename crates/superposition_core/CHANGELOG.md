@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_core-v0.16.2 - 2026-07-17
+#### Bug Fixes
+- fmt (#1092) - (b71e629) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(version)** v0.114.0 [skip ci] - (5727fec) - Superposition Bot
+#### Performance Improvements
+- **(core/provider)** reduce resolve-time cloning (#1079) - (dd1020a) - sauraww
+
+- - -
+
 ## superposition_core-v0.16.1 - 2026-06-29
 #### Bug Fixes
 - allow TOML and JSON config without overrides section (#1028) - (6727fee) - Natarajan Kannan

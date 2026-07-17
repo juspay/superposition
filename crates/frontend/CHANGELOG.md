@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.56.2 - 2026-07-17
+#### Bug Fixes
+- fmt (#1092) - (b71e629) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(version)** v0.115.2 [skip ci] - (6cdf263) - Superposition Bot
+
+- - -
+
 ## frontend-v0.56.1 - 2026-07-07
 #### Bug Fixes
 - treat same-value experiment ramp as a no-op instead of a 400 (#1080) - (9de7878) - Avinash
