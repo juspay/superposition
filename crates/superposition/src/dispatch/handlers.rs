@@ -4,18 +4,27 @@ use actix_web::{
     HttpResponse, Scope, post,
     web::{Data, Json},
 };
+use context_aware_config::api::{
+    config::execute_reduce, context::execute_priority_recompute,
+};
 use diesel::{QueryDsl, RunQueryDsl};
 use secrecy::ExposeSecret;
 use serde::Deserialize;
 use service_utils::{
     encryption::{EncryptionError, decrypt_secret, decrypt_workspace_key},
     helpers::get_from_env_or_default,
-    kronos_dispatch::{has_pattern_in_headers, substitute_templates},
+    kronos_dispatch::{
+        append_job_logs, has_pattern_in_headers, substitute_templates,
+        update_job_progress, update_job_status,
+    },
     service::types::{AppState, DbConnection, WorkspaceContext},
 };
 use superposition_derives::{authorized, declare_resource};
 use superposition_macros::unexpected_error;
 use superposition_types::{
+    User,
+    api::jobs::{JobDispatchRequest, JobRequest},
+    database::models::BackgroundJobStatus,
     database::schema::{secrets::dsl as secrets_dsl, variables::dsl as variables_dsl},
     result as superposition,
 };
@@ -31,7 +40,9 @@ struct DispatchWebhookRequest {
 }
 
 pub fn endpoints() -> Scope {
-    Scope::new("").service(dispatch_handler)
+    Scope::new("")
+        .service(dispatch_handler)
+        .service(dispatch_job_handler)
 }
 
 #[authorized]
@@ -43,26 +54,97 @@ async fn dispatch_handler(
     body: Json<DispatchWebhookRequest>,
 ) -> superposition::Result<HttpResponse> {
     let DispatchWebhookRequest { webhook_name, data } = body.into_inner();
-
     let DbConnection(mut conn) = db_conn;
-    let webhook =
-        fetch_webhook(&webhook_name, &workspace_context.schema_name, &mut conn)?;
+
+    execute_webhook_dispatch(&workspace_context, &state, &mut conn, &webhook_name, &data)
+        .await?;
+    Ok(HttpResponse::Ok().finish())
+}
+
+#[authorized]
+#[post("/job")]
+async fn dispatch_job_handler(
+    workspace_context: WorkspaceContext,
+    state: Data<AppState>,
+    db_conn: DbConnection,
+    user: User,
+    body: Json<JobDispatchRequest>,
+) -> superposition::Result<HttpResponse> {
+    let JobDispatchRequest {
+        job_id,
+        job_request,
+    } = body.into_inner();
+    let DbConnection(mut conn) = db_conn;
+
+    update_job_status(&mut conn, job_id, BackgroundJobStatus::Inprogress)
+        .map_err(|e| unexpected_error!("Failed to update job status: {}", e))?;
+
+    let result = match &job_request {
+        JobRequest::Webhook(req) => {
+            execute_webhook_dispatch(
+                &workspace_context,
+                &state,
+                &mut conn,
+                &req.webhook_name,
+                &req.data,
+            )
+            .await
+        }
+        JobRequest::PriorityRecompute(_) => {
+            execute_priority_recompute(&workspace_context, &state, &mut conn, &user).await
+        }
+        JobRequest::Reduce(req) => {
+            execute_reduce(&workspace_context, &state, &mut conn, &user, req.approve)
+                .await
+        }
+    };
+
+    match result {
+        Ok(()) => {
+            update_job_status(&mut conn, job_id, BackgroundJobStatus::Completed)
+                .map_err(|e| unexpected_error!("Failed to update job status: {}", e))?;
+            update_job_progress(&mut conn, job_id, 100)
+                .map_err(|e| unexpected_error!("Failed to update job progress: {}", e))?;
+            Ok(HttpResponse::Ok().finish())
+        }
+        Err(e) => {
+            let error_msg = format!("{e}");
+            log::error!("Job {job_id} failed: {error_msg}");
+            update_job_status(&mut conn, job_id, BackgroundJobStatus::Failed)
+                .map_err(|e| unexpected_error!("Failed to update job status: {}", e))?;
+            append_job_logs(&mut conn, job_id, &error_msg)
+                .map_err(|e| unexpected_error!("Failed to append logs: {}", e))?;
+            Err(unexpected_error!("Job {job_id} failed: {error_msg}"))
+        }
+    }
+}
+
+async fn execute_webhook_dispatch(
+    workspace_context: &WorkspaceContext,
+    state: &Data<AppState>,
+    conn: &mut diesel::r2d2::PooledConnection<
+        diesel::r2d2::ConnectionManager<diesel::PgConnection>,
+    >,
+    webhook_name: &String,
+    data: &serde_json::Value,
+) -> superposition::Result<()> {
+    let webhook = fetch_webhook(webhook_name, &workspace_context.schema_name, conn)?;
 
     if !webhook.enabled {
-        return Ok(HttpResponse::Ok().finish());
+        return Ok(());
     }
 
     let raw_headers = (*webhook.custom_headers).clone();
     let (has_vars, has_secrets) = has_pattern_in_headers(&raw_headers);
 
     let vars = if has_vars {
-        fetch_variables(&workspace_context, &mut conn)?
+        fetch_variables(workspace_context, conn)?
     } else {
         HashMap::new()
     };
 
     let secrets = if has_secrets {
-        fetch_decrypted_secrets(&workspace_context, &mut conn, &state)?
+        fetch_decrypted_secrets(workspace_context, conn, state)?
     } else {
         HashMap::new()
     };
@@ -78,7 +160,7 @@ async fn dispatch_handler(
             "WEBHOOK_OUTBOUND_TIMEOUT_SEC",
             10u64,
         )))
-        .json(&data);
+        .json(data);
 
     for (key, value) in &raw_headers {
         let value_str = value
@@ -95,7 +177,7 @@ async fn dispatch_handler(
         .map_err(|e| unexpected_error!("Dispatcher HTTP send failed: {}", e))?;
 
     if resp.status().is_success() {
-        Ok(HttpResponse::Ok().finish())
+        Ok(())
     } else {
         Err(unexpected_error!(
             "Target returned unexpected status {}",
