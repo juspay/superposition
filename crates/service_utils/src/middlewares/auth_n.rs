@@ -14,11 +14,12 @@ use actix_web::{
     Error, HttpMessage, HttpRequest, HttpResponse, Scope,
     body::{BoxBody, EitherBody},
     dev::{Service, ServiceRequest, ServiceResponse, Transform, forward_ready},
+    error::ErrorBadRequest,
     get,
     http::header,
     web::{self, Data, Path},
 };
-use authentication::{Authenticator, Login, SwitchOrgParams};
+use authentication::{Authenticator, BasicAuthGrant, Login, SwitchOrgParams};
 use aws_sdk_kms::Client;
 use base64::{Engine, engine::general_purpose};
 use futures_util::future::LocalBoxFuture;
@@ -27,7 +28,9 @@ use oidc::{SaasOIDCAuthenticator, SimpleOIDCAuthenticator};
 use superposition_types::{DispatchUser, InternalUser, User};
 
 use crate::{
-    db::utils::get_oidc_client_secret,
+    db::utils::{
+        get_introspection_auth_header, get_oidc_client_secret, get_static_api_tokens,
+    },
     extensions::HttpRequestExt,
     helpers::get_from_env_unsafe,
     kronos_dispatch::DISPATCHER_USERNAME,
@@ -36,17 +39,105 @@ use crate::{
 
 /// Verifies a `Basic` credential as the Kronos dispatch callback credential:
 /// `base64("kronos-dispatcher:<dispatch_token>")`.
-fn is_dispatch_credential(credential: &str, dispatch_token: &str) -> bool {
-    general_purpose::STANDARD
-        .decode(credential)
+fn is_dispatch_credential(id: &str, secret: &str, dispatch_token: &str) -> bool {
+    id == DISPATCHER_USERNAME && secret == dispatch_token
+}
+
+fn process_internal_token<'a>(
+    request: &ServiceRequest,
+) -> Option<LocalBoxFuture<'a, Result<User, HttpResponse>>> {
+    request
+        .headers()
+        .get("x-user")
+        .and_then(|auth| auth.to_str().ok())
+        .and_then(|user_str| serde_json::from_str::<User>(user_str).ok())
+        .map(|user| {
+            request
+                .extensions_mut()
+                .insert::<InternalUser>(InternalUser);
+            Box::pin(ready(Ok(user))) as LocalBoxFuture<'a, _>
+        })
+}
+
+fn process_bearer_token<'a>(
+    auth_n_handler: &AuthNHandler,
+    login_type: &Login,
+    token: &str,
+) -> Option<LocalBoxFuture<'a, Result<User, HttpResponse>>> {
+    // When the optional RFC 7662 API-token flow is configured and the token
+    // carries its prefix, strip the prefix and validate via introspection.
+    // Otherwise treat the token as a standard OIDC id-token.
+    if let Some(prefix) = auth_n_handler.0.api_token_prefix() {
+        if let Some(api_key) = token.strip_prefix(prefix.as_str()) {
+            return Some(
+                auth_n_handler
+                    .0
+                    .authenticate_with_api_token(login_type, api_key),
+            );
+        }
+    }
+
+    let resp = auth_n_handler
+        .0
+        .authenticate_with_bearer_token(login_type, token);
+    Some(Box::pin(ready(resp)))
+}
+
+fn process_dipatcher_token(request: &ServiceRequest) -> User {
+    request
+        .extensions_mut()
+        .insert::<DispatchUser>(DispatchUser);
+
+    User::new(
+        format!("{DISPATCHER_USERNAME}@superposition.io"),
+        DISPATCHER_USERNAME.to_string(),
+    )
+}
+
+fn process_basic_auth<'a>(
+    request: &ServiceRequest,
+    auth_n_handler: &AuthNHandler,
+    login_type: &Login,
+    token: &str,
+    state: &AppState,
+) -> Option<LocalBoxFuture<'a, Result<User, HttpResponse>>> {
+    let (id, secret) = general_purpose::STANDARD
+        .decode(token)
         .ok()
         .and_then(|decoded| String::from_utf8(decoded).ok())
         .and_then(|decoded| {
-            decoded.split_once(':').map(|(user, token)| {
-                user == DISPATCHER_USERNAME && token == dispatch_token
-            })
-        })
-        .unwrap_or(false)
+            let mut parts = decoded.splitn(2, ':');
+            match (parts.next(), parts.next()) {
+                (Some(id), Some(secret)) => Some((id.to_string(), secret.to_string())),
+                _ => None,
+            }
+        })?;
+
+    if request.path().ends_with("/dispatch/webhook")
+        && is_dispatch_credential(&id, &secret, &state.kronos_dispatch_token)
+    {
+        let user = process_dipatcher_token(request);
+        return Some(Box::pin(ready(Ok(user))));
+    }
+
+    // `X-Grant-Type` selects how the Basic pair is validated:
+    // absent => client_credentials (M2M), `password` => ROPC,
+    // anything else is rejected with a 400.
+    let grant_type = request
+        .headers()
+        .get("x-grant-type")
+        .and_then(|v| v.to_str().ok());
+
+    let user_resp = match BasicAuthGrant::resolve(grant_type, id, secret) {
+        Some(grant) => auth_n_handler
+            .0
+            .authenticate_with_basic_auth(login_type, grant),
+        None => Box::pin(ready(Err(
+            ErrorBadRequest("Unsupported X-Grant-Type").into()
+        ))),
+    };
+
+    Some(user_resp)
 }
 
 pub struct AuthNMiddleware<S> {
@@ -102,7 +193,10 @@ where
     fn call(&self, request: ServiceRequest) -> Self::Future {
         let state = request.app_data::<Data<AppState>>().unwrap();
 
-        let result = request
+        let login_type =
+            self.get_login_type(&request, &state.tenant_middleware_exclusion_list);
+
+        let auth_future = request
             .headers()
             .get(header::AUTHORIZATION)
             .and_then(|auth| auth.to_str().ok())
@@ -112,69 +206,37 @@ where
                     (Some("Internal"), Some(token))
                         if token == state.superposition_token =>
                     {
-                        request
-                            .headers()
-                            .get("x-user")
-                            .and_then(|auth| auth.to_str().ok())
-                            .and_then(|user_str| {
-                                serde_json::from_str::<User>(user_str).ok()
-                            })
-                            .map(|user| {
-                                request
-                                    .extensions_mut()
-                                    .insert::<InternalUser>(InternalUser);
-                                Ok(user)
-                            })
+                        process_internal_token(&request)
                     }
-                    (Some("Basic"), Some(credential))
-                        if request.path().ends_with("/dispatch/webhook")
-                            && is_dispatch_credential(
-                                credential,
-                                &state.kronos_dispatch_token,
-                            ) =>
-                    {
-                        request
-                            .extensions_mut()
-                            .insert::<DispatchUser>(DispatchUser);
-                        Some(Ok(User::new(
-                            format!("{DISPATCHER_USERNAME}@superposition.io"),
-                            DISPATCHER_USERNAME.to_string(),
-                        )))
+                    (Some("Bearer"), Some(token)) => {
+                        process_bearer_token(&self.auth_n_handler, &login_type, token)
                     }
+                    (Some("Basic"), Some(token)) => process_basic_auth(
+                        &request,
+                        &self.auth_n_handler,
+                        &login_type,
+                        token,
+                        state,
+                    ),
                     (_, _) => None,
                 }
             })
             .unwrap_or_else(|| {
-                let login_type = self
-                    .get_login_type(&request, &state.tenant_middleware_exclusion_list);
-
-                Err(self
-                    .auth_n_handler
+                self.auth_n_handler
                     .0
-                    .authenticate(request.request(), &login_type))
+                    .authenticate(request.request(), &login_type)
             });
 
-        match result {
-            Ok(user) => {
-                request.extensions_mut().insert::<User>(user);
-                let fut = self.service.call(request);
-                Box::pin(async { fut.await.map(|sr| sr.map_into_left_body()) })
+        let srv = self.service.clone();
+        Box::pin(async move {
+            match auth_future.await {
+                Ok(user) => {
+                    request.extensions_mut().insert::<User>(user);
+                    srv.call(request).await.map(|sr| sr.map_into_left_body())
+                }
+                Err(resp) => Ok(request.into_response(resp.map_into_right_body())),
             }
-            Err(fut) => {
-                let srv = self.service.clone();
-                Box::pin(async move {
-                    match fut.await {
-                        Ok(user) => {
-                            request.extensions_mut().insert::<User>(user);
-                            srv.call(request).await.map(|sr| sr.map_into_left_body())
-                        }
-                        Err(resp) => {
-                            Ok(request.into_response(resp.map_into_right_body()))
-                        }
-                    }
-                })
-            }
-        }
+        })
     }
 }
 
@@ -205,6 +267,9 @@ impl AuthNHandler {
                 let base_url = get_from_env_unsafe("OIDC_REDIRECT_HOST").unwrap();
                 let cid = get_from_env_unsafe("OIDC_CLIENT_ID").unwrap();
                 let csecret = get_oidc_client_secret(kms_client, app_env).await;
+                let introspection_auth =
+                    get_introspection_auth_header(kms_client, app_env).await;
+                let static_tokens = get_static_api_tokens(kms_client, app_env).await;
                 Arc::new(
                     SimpleOIDCAuthenticator::new(
                         url,
@@ -212,6 +277,8 @@ impl AuthNHandler {
                         path_prefix,
                         cid,
                         csecret,
+                        introspection_auth,
+                        static_tokens,
                     )
                     .await
                     .unwrap(),
@@ -222,10 +289,21 @@ impl AuthNHandler {
                 let base_url = get_from_env_unsafe("OIDC_REDIRECT_HOST").unwrap();
                 let cid = get_from_env_unsafe("OIDC_CLIENT_ID").unwrap();
                 let csecret = get_oidc_client_secret(kms_client, app_env).await;
+                let introspection_auth =
+                    get_introspection_auth_header(kms_client, app_env).await;
+                let static_tokens = get_static_api_tokens(kms_client, app_env).await;
                 Arc::new(
-                    SaasOIDCAuthenticator::new(url, base_url, path_prefix, cid, csecret)
-                        .await
-                        .unwrap(),
+                    SaasOIDCAuthenticator::new(
+                        url,
+                        base_url,
+                        path_prefix,
+                        cid,
+                        csecret,
+                        introspection_auth,
+                        static_tokens,
+                    )
+                    .await
+                    .unwrap(),
                 )
             }
             _ => panic!("Missing/Unknown authenticator."),

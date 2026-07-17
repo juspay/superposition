@@ -45,6 +45,53 @@ pub async fn get_oidc_client_secret(
     }
 }
 
+/// The verbatim `Authorization` header value Superposition presents to the RFC
+/// 7662 introspection endpoint (e.g. `Bearer <token>` or `Basic <base64>`).
+/// This is a secret and is KMS-decrypted like other secrets in non-dev
+/// environments. Returns `None` when the (optional) API-token flow is not
+/// configured.
+pub async fn get_introspection_auth_header(
+    kms_client: &Option<Client>,
+    app_env: &AppEnv,
+) -> Option<String> {
+    if std::env::var("OIDC_INTROSPECTION_AUTH_HEADER").is_err() {
+        return None;
+    }
+    match app_env {
+        AppEnv::DEV | AppEnv::TEST | AppEnv::SANDBOX => {
+            std::env::var("OIDC_INTROSPECTION_AUTH_HEADER").ok()
+        }
+        _ => Some(
+            kms::decrypt(
+                kms_client.clone().unwrap(),
+                "OIDC_INTROSPECTION_AUTH_HEADER",
+            )
+            .await,
+        ),
+    }
+}
+
+/// The JSON array of static API tokens (`OIDC_API_STATIC_TOKENS`), each entry
+/// `{token, principal[, email, org]}`. A secret, KMS-decrypted like other
+/// secrets in non-dev environments. Returns `None` when unset (static-token
+/// mechanism disabled).
+pub async fn get_static_api_tokens(
+    kms_client: &Option<Client>,
+    app_env: &AppEnv,
+) -> Option<String> {
+    if std::env::var("OIDC_API_STATIC_TOKENS").is_err() {
+        return None;
+    }
+    match app_env {
+        AppEnv::DEV | AppEnv::TEST | AppEnv::SANDBOX => {
+            std::env::var("OIDC_API_STATIC_TOKENS").ok()
+        }
+        _ => Some(
+            kms::decrypt(kms_client.clone().unwrap(), "OIDC_API_STATIC_TOKENS").await,
+        ),
+    }
+}
+
 pub async fn get_kronos_api_key(kms_client: &Option<Client>, app_env: &AppEnv) -> String {
     match app_env {
         AppEnv::DEV | AppEnv::TEST => {
