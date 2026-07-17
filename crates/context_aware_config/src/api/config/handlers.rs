@@ -10,6 +10,7 @@ use itertools::Itertools;
 use serde_json::{Map, Value, json};
 use service_utils::{
     helpers::{fetch_dimensions_info_map, is_not_modified},
+    kronos_dispatch::submit_job,
     redis::{CONFIG_KEY_SUFFIX, LAST_MODIFIED_KEY_SUFFIX, read_through_cache},
     service::types::{AppHeader, AppState, DbConnection, WorkspaceContext},
 };
@@ -28,6 +29,7 @@ use superposition_types::{
             MergeStrategy, ResolveConfigQuery,
         },
         context::PutRequest,
+        jobs::{JobCreateResponse, JobRequest, ReduceRequest},
     },
     custom_query::{
         self as superposition_query, CustomQuery, DimensionQuery, PaginationParams,
@@ -35,7 +37,7 @@ use superposition_types::{
     },
     database::{
         models::{
-            ChangeReason,
+            ChangeReason, JobWorkspace,
             cac::{ConfigVersion, ConfigVersionListItem},
         },
         schema::config_versions::dsl as config_versions,
@@ -442,49 +444,72 @@ async fn reduce_config_key(
     })
 }
 
-#[authorized]
-#[put("/reduce")]
-async fn reduce_handler(
-    workspace_context: WorkspaceContext,
-    req: HttpRequest,
-    user: User,
-    db_conn: DbConnection,
-    state: Data<AppState>,
-) -> superposition::Result<HttpResponse> {
-    let DbConnection(mut conn) = db_conn;
-    let is_approve = req
-        .headers()
-        .get("x-approve")
-        .and_then(|value| value.to_str().ok().and_then(|s| s.parse::<bool>().ok()))
-        .unwrap_or(false);
-
+pub async fn execute_reduce(
+    workspace_context: &WorkspaceContext,
+    state: &Data<AppState>,
+    conn: &mut DBConnection,
+    user: &User,
+    is_approve: bool,
+) -> superposition::Result<()> {
     let dimensions_info_map =
-        fetch_dimensions_info_map(&mut conn, &workspace_context.schema_name)?;
-    let mut config = generate_cac(&mut conn, &workspace_context.schema_name)?;
+        fetch_dimensions_info_map(conn, &workspace_context.schema_name)?;
+    let mut config = generate_cac(conn, &workspace_context.schema_name)?;
     let default_config = (*config.default_configs).clone();
     for (key, _) in default_config {
         let contexts = config.contexts;
         let overrides = config.overrides;
         let default_config = config.default_configs.into_inner();
         config = reduce_config_key(
-            &user,
-            &mut conn,
+            user,
+            conn,
             contexts.clone(),
             overrides.clone(),
             key.as_str(),
             &dimensions_info_map,
             default_config.clone(),
             is_approve,
-            &workspace_context,
-            &state,
+            workspace_context,
+            state,
         )
         .await?;
         if is_approve {
-            config = generate_cac(&mut conn, &workspace_context.schema_name)?;
+            config = generate_cac(conn, &workspace_context.schema_name)?;
         }
     }
+    Ok(())
+}
 
-    Ok(HttpResponse::Ok().json(config))
+#[authorized]
+#[put("/reduce")]
+async fn reduce_handler(
+    workspace_context: WorkspaceContext,
+    db_conn: DbConnection,
+    state: Data<AppState>,
+) -> superposition::Result<Json<JobCreateResponse>> {
+    let DbConnection(mut conn) = db_conn;
+    let job_request = JobRequest::Reduce(ReduceRequest::default());
+    let job_workspace = JobWorkspace::from(&workspace_context.schema_name.0);
+    let target_workspace = state
+        .kronos_workspace
+        .as_deref()
+        .unwrap_or(&workspace_context.schema_name);
+
+    let response = submit_job(
+        state.kronos_client.as_ref(),
+        target_workspace,
+        &job_workspace,
+        &workspace_context.organisation_id,
+        &workspace_context.workspace_id,
+        &job_request,
+        &state.snowflake_generator,
+        &mut conn,
+        3,
+        "Reduce config job",
+    )
+    .await
+    .map_err(|e| unexpected_error!("Failed to submit reduce job: {}", e))?;
+
+    Ok(Json(response))
 }
 
 #[authorized]
