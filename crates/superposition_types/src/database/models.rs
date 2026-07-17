@@ -380,15 +380,20 @@ impl JobWorkspace {
             Self::Workspace(schema) => schema.clone(),
         }
     }
+}
 
-    pub fn from_workspace_schema(schema: &str) -> Self {
-        Self::Workspace(schema.to_string())
+impl From<&String> for JobWorkspace {
+    fn from(value: &String) -> Self {
+        if value == Self::GLOBAL {
+            Self::Global
+        } else {
+            Self::Workspace(value.clone())
+        }
     }
 }
 
 impl TryFrom<String> for JobWorkspace {
     type Error = String;
-
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value == Self::GLOBAL {
             Ok(Self::Global)
