@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.44.4 - 2026-07-17
+#### Bug Fixes
+- **(auth_n)** try refresh oidc client on token exchange failure (#1088) - (d3ebf3e) - Ayush Jain
+- fmt (#1092) - (b71e629) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(version)** v0.115.4 [skip ci] - (314914f) - Superposition Bot
+
+- - -
+
 ## service_utils-v0.44.3 - 2026-07-13
 #### Bug Fixes
 - add separate kronos dispatch token (#1089) - (8e7bebd) - Ankit Kumar Mahato
