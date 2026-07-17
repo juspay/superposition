@@ -29,10 +29,10 @@ use crate::{
             token_cache::{CachedGrant, TokenCacheConfig, TokenExchangeCache},
             types::{GlobalUserClaims, GlobalUserIdToken, OrgUserClaims},
             utils::{
-                OidcProviderMetadata, build_client, discovered_introspection_endpoint,
-                exchange_password_for_id_token, fetch_provider_metadata,
-                presence_no_check, try_user_from, validate_client_credentials,
-                verify_presence,
+                BasicAuthError, OidcProviderMetadata, build_client,
+                discovered_introspection_endpoint, exchange_password_for_id_token,
+                fetch_provider_metadata, presence_no_check, try_user_from,
+                validate_client_credentials, verify_presence,
             },
         },
     },
@@ -273,6 +273,18 @@ impl SaasOIDCAuthenticator {
                 })
         }
     }
+
+    fn get_specific_client(&self, login_type: &Login) -> actix_web::Result<CoreClient> {
+        match login_type {
+            Login::Org(org_id) => self.get_org_client(org_id).map_err(|e| {
+                log::error!("Error in getting Org specific client: {e}");
+                ErrorInternalServerError(String::from(
+                    "Error in getting Org specific client",
+                ))
+            }),
+            _ => Ok(self.get_client()),
+        }
+    }
 }
 
 impl OIDCAuthenticator for SaasOIDCAuthenticator {
@@ -479,20 +491,9 @@ impl Authenticator for SaasOIDCAuthenticator {
 
         match grant {
             BasicAuthGrant::Password { username, password } => {
-                let client = match login_type {
-                    Login::Org(org_id) => match self.get_org_client(org_id) {
-                        Ok(client) => client,
-                        Err(e) => {
-                            log::error!("Error in getting Org specific client: {e}");
-                            return Box::pin(async {
-                                Err(ErrorInternalServerError(String::from(
-                                    "Error in getting Org specific client",
-                                ))
-                                .into())
-                            });
-                        }
-                    },
-                    _ => self.get_client(),
+                let client = match self.get_specific_client(login_type) {
+                    Ok(client) => client,
+                    Err(e) => return Box::pin(async { Err(e.into()) }),
                 };
                 let auth_n = self.clone();
                 let login_type = login_type.clone();
@@ -507,13 +508,37 @@ impl Authenticator for SaasOIDCAuthenticator {
                         return Ok(user);
                     }
 
-                    let (id_token, expires_in) =
-                        exchange_password_for_id_token(&client, &username, &password)
-                            .await
-                            .map_err(|e| {
-                                log::error!("Basic auth (password) failed: {e}");
-                                actix_web::Error::from(e)
+                    let (id_token, expires_in) = match exchange_password_for_id_token(
+                        &client, &username, &password,
+                    )
+                    .await
+                    {
+                        Err(BasicAuthError::TokenVerification(detail)) => {
+                            log::error!(
+                                "Basic auth (password): ID token verification failed; \
+                                 refreshing provider keys and retrying: {detail}"
+                            );
+                            auth_n.refresh_client().await.map_err(|e| {
+                                log::error!("Failed to refresh provider metadata: {e}");
+                                ErrorInternalServerError(String::from(
+                                    "Unable to authenticate user",
+                                ))
                             })?;
+                            let client = auth_n.get_specific_client(&login_type)?;
+                            exchange_password_for_id_token(&client, &username, &password)
+                                .await
+                                .map_err(|e| {
+                                    log::error!(
+                                        "Basic auth (password) failed after key refresh: {e}"
+                                    );
+                                    actix_web::Error::from(e)
+                                })?
+                        }
+                        result => result.map_err(|e| {
+                            log::error!("Basic auth (password) failed: {e}");
+                            actix_web::Error::from(e)
+                        })?,
+                    };
 
                     let user =
                         auth_n.authenticate_with_bearer_token(&login_type, &id_token)?;

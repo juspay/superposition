@@ -74,8 +74,13 @@ pub(super) enum BasicAuthError {
     Unsupported,
     /// The supplied username/password was rejected by the identity provider.
     InvalidCredentials,
-    /// Any other failure: network error, misconfiguration, missing id-token,
-    /// or claims verification failure. Detail is for logs, not the client.
+    /// The exchanged ID token could not be verified. The most common cause is
+    /// stale JWKS: the IdP rotated its signing keys since the provider metadata
+    /// was last fetched. Callers can retry after refreshing the metadata. Detail
+    /// is for logs, not the client.
+    TokenVerification(String),
+    /// Any other failure: network error, misconfiguration, or missing id-token.
+    /// Detail is for logs, not the client.
     Internal(String),
 }
 
@@ -86,6 +91,7 @@ impl std::fmt::Display for BasicAuthError {
                 write!(f, "password grant not supported by identity provider")
             }
             Self::InvalidCredentials => write!(f, "invalid username or password"),
+            Self::TokenVerification(detail) => write!(f, "{detail}"),
             Self::Internal(detail) => write!(f, "{detail}"),
         }
     }
@@ -100,7 +106,7 @@ impl From<BasicAuthError> for actix_web::Error {
             BasicAuthError::InvalidCredentials => {
                 ErrorUnauthorized("Invalid username or password")
             }
-            BasicAuthError::Internal(_) => {
+            BasicAuthError::TokenVerification(_) | BasicAuthError::Internal(_) => {
                 ErrorInternalServerError("Failed to authenticate user")
             }
         }
@@ -201,7 +207,7 @@ pub(super) async fn exchange_password_for_id_token(
     id_token
         .claims(&client.id_token_verifier(), presence_no_check)
         .map_err(|e| {
-            BasicAuthError::Internal(format!("Couldn't verify claims: {e:?}"))
+            BasicAuthError::TokenVerification(format!("Couldn't verify claims: {e:?}"))
         })?;
 
     Ok((id_token.to_string(), expires_in))

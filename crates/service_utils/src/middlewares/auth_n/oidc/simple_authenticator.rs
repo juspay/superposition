@@ -23,9 +23,10 @@ use crate::middlewares::auth_n::{
         api_token::ApiTokenConfig,
         token_cache::{CachedGrant, TokenCacheConfig, TokenExchangeCache},
         utils::{
-            OidcProviderMetadata, build_client, discovered_introspection_endpoint,
-            exchange_password_for_id_token, fetch_provider_metadata, try_user_from,
-            validate_client_credentials, verify_presence,
+            BasicAuthError, OidcProviderMetadata, build_client,
+            discovered_introspection_endpoint, exchange_password_for_id_token,
+            fetch_provider_metadata, try_user_from, validate_client_credentials,
+            verify_presence,
         },
     },
 };
@@ -319,13 +320,40 @@ impl Authenticator for SimpleOIDCAuthenticator {
                         return Ok(user);
                     }
 
-                    let (id_token, expires_in) =
-                        exchange_password_for_id_token(&client, &username, &password)
+                    let (id_token, expires_in) = match exchange_password_for_id_token(
+                        &client, &username, &password,
+                    )
+                    .await
+                    {
+                        Err(BasicAuthError::TokenVerification(detail)) => {
+                            log::error!(
+                                "Basic auth (password): ID token verification failed; \
+                                 refreshing provider keys and retrying: {detail}"
+                            );
+                            auth_n.refresh_client().await.map_err(|e| {
+                                log::error!("Failed to refresh provider metadata: {e}");
+                                ErrorInternalServerError(String::from(
+                                    "Unable to authenticate user",
+                                ))
+                            })?;
+                            exchange_password_for_id_token(
+                                &auth_n.get_client(),
+                                &username,
+                                &password,
+                            )
                             .await
                             .map_err(|e| {
-                                log::error!("Basic auth (password) failed: {e}");
+                                log::error!(
+                                    "Basic auth (password) failed after key refresh: {e}"
+                                );
                                 actix_web::Error::from(e)
-                            })?;
+                            })?
+                        }
+                        result => result.map_err(|e| {
+                            log::error!("Basic auth (password) failed: {e}");
+                            actix_web::Error::from(e)
+                        })?,
+                    };
 
                     let user = auth_n.get_user_from_id_token(&id_token).map_err(|e| {
                         log::error!("Error in decoding user : {e}");
