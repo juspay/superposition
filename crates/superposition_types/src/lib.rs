@@ -83,6 +83,8 @@ pub enum Resource {
     Variable,
     Secret,
     MasterEncryptionKey,
+    WorkspaceJob,
+    GlobalJob,
 }
 
 impl From<Resource> for String {

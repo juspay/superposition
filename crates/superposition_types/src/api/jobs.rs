@@ -3,7 +3,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::database::models::{
-    BackgroundJob, BackgroundJobStatus, BackgroundJobType,
+    others::WorkspaceJobView, BackgroundJob, BackgroundJobStatus, BackgroundJobType,
+    JobWorkspace,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -48,19 +49,43 @@ impl JobRequest {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct JobDispatchRequest {
+    #[serde(with = "crate::database::models::i64_formatter")]
+    pub job_id: i64,
+    #[serde(flatten)]
+    pub job_request: JobRequest,
+}
+
+#[derive(Debug, Clone, Serialize)]
 pub struct JobResponse {
     #[serde(with = "crate::database::models::i64_formatter")]
     pub id: i64,
     pub kronos_job_id: String,
     pub description: String,
-    #[serde(rename = "type")]
     pub job_type: BackgroundJobType,
     pub status: BackgroundJobStatus,
     pub name: String,
     pub progress: i32,
-    pub workspace_schema: String,
+    pub workspace_schema: JobWorkspace,
     pub created_at: DateTime<Utc>,
     pub logs: String,
+}
+
+impl JobResponse {
+    pub fn from_view(view: &WorkspaceJobView, schema: &String) -> Self {
+        Self {
+            id: view.id,
+            kronos_job_id: view.kronos_job_id.clone(),
+            description: view.description.clone(),
+            job_type: view.job_type,
+            status: view.status,
+            name: view.name.clone(),
+            progress: view.progress,
+            workspace_schema: JobWorkspace::from(schema),
+            created_at: view.created_at,
+            logs: view.logs.clone(),
+        }
+    }
 }
 
 impl From<BackgroundJob> for JobResponse {
@@ -98,7 +123,7 @@ pub struct ExecutionDetails {
     pub execution_status: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct JobDetailResponse {
     #[serde(flatten)]
     pub job: JobResponse,
