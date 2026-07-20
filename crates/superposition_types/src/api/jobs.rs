@@ -22,7 +22,7 @@ pub struct DispatchWebhookRequest {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct PriorityRecomputeRequest {}
+pub struct PriorityRecomputeRequest;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ReduceRequest {
@@ -68,7 +68,7 @@ pub struct JobResponse {
     pub progress: i32,
     pub workspace_schema: JobWorkspace,
     pub created_at: DateTime<Utc>,
-    pub logs: String,
+    pub logs: serde_json::Value,
 }
 
 impl JobResponse {

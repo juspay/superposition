@@ -289,7 +289,7 @@ pub async fn submit_job(
         progress: 0,
         workspace_schema: workspace.clone(),
         created_at: Utc::now(),
-        logs: String::new(),
+        logs: json!({}),
     };
 
     diesel::insert_into(job_manager_dsl::job_manager)
@@ -342,12 +342,18 @@ pub async fn submit_job(
         Err(e) => {
             let error_msg = format!("Kronos job creation failed: {e}");
             log::error!("submit_job: {error_msg}");
+            let mut log_map = serde_json::Map::new();
+            log_map.insert(
+                Utc::now().to_rfc3339(),
+                serde_json::Value::String(error_msg),
+            );
+            let log_entry = serde_json::Value::Object(log_map);
             diesel::update(
                 job_manager_dsl::job_manager.filter(job_manager_dsl::id.eq(job_id)),
             )
             .set((
                 job_manager_dsl::status.eq(BackgroundJobStatus::Failed),
-                job_manager_dsl::logs.eq(&error_msg),
+                job_manager_dsl::logs.eq(&log_entry),
             ))
             .execute(conn)?;
             Err(e)
@@ -410,9 +416,19 @@ pub fn update_job_progress(
     job_id: i64,
     progress: i32,
 ) -> anyhow::Result<()> {
-    diesel::update(job_manager_dsl::job_manager.filter(job_manager_dsl::id.eq(job_id)))
+    let threshold: i32 = get_from_env_or_default("JOB_PROGRESS_DIFF_UPDATE", 10);
+    let previous_progress = job_manager_dsl::job_manager
+        .filter(job_manager_dsl::id.eq(job_id))
+        .select(job_manager_dsl::progress)
+        .first::<i32>(conn)?;
+
+    if (progress - previous_progress).abs() > threshold {
+        diesel::update(
+            job_manager_dsl::job_manager.filter(job_manager_dsl::id.eq(job_id)),
+        )
         .set(job_manager_dsl::progress.eq(progress))
         .execute(conn)?;
+    }
     Ok(())
 }
 
@@ -420,20 +436,24 @@ pub fn append_job_logs(
     conn: &mut DBConnection,
     job_id: i64,
     log_line: &str,
-) -> anyhow::Result<()> {
+    key: Option<String>,
+) -> anyhow::Result<String> {
     let current = job_manager_dsl::job_manager
         .filter(job_manager_dsl::id.eq(job_id))
         .select(job_manager_dsl::logs)
-        .first::<String>(conn)?;
+        .first::<serde_json::Value>(conn)?;
 
-    let new_logs = if current.is_empty() {
-        log_line.to_string()
-    } else {
-        format!("{current}\n{log_line}")
-    };
+    let timed_key = key.unwrap_or(Utc::now().to_rfc3339());
+
+    let mut logs = current.as_object().cloned().unwrap_or_default();
+    logs.insert(
+        timed_key.clone(),
+        serde_json::Value::String(log_line.to_string()),
+    );
+    let new_logs = serde_json::Value::Object(logs);
 
     diesel::update(job_manager_dsl::job_manager.filter(job_manager_dsl::id.eq(job_id)))
         .set(job_manager_dsl::logs.eq(new_logs))
         .execute(conn)?;
-    Ok(())
+    Ok(timed_key)
 }

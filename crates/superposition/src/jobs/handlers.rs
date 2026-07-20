@@ -123,20 +123,27 @@ async fn cancel_handler(
         .clone()
         .unwrap_or_else(|| workspace_context.schema_name.to_string());
 
+    let key = chrono::Utc::now().to_rfc3339();
+
     if let Err(e) = state
         .kronos_client
         .cancel_job(&target_workspace, &job.kronos_job_id)
         .await
     {
-        append_job_logs(&mut conn, job_id, &format!("Cancel attempt failed: {e}"))
-            .map_err(|e| unexpected_error!("Failed to append logs: {}", e))?;
+        let _ = append_job_logs(
+            &mut conn,
+            job_id,
+            &format!("Cancel attempt failed: {e}"),
+            Some(key.clone()),
+        )
+        .map_err(|e| unexpected_error!("Failed to append logs: {}", e))?;
         return Err(unexpected_error!("Failed to cancel Kronos job: {}", e));
     }
 
     update_job_status(&mut conn, job_id, BackgroundJobStatus::Failed)
         .map_err(|e| unexpected_error!("Failed to update job status: {}", e))?;
 
-    append_job_logs(&mut conn, job_id, "Job cancelled by user")
+    let _ = append_job_logs(&mut conn, job_id, "Job cancelled by user", Some(key))
         .map_err(|e| unexpected_error!("Failed to append logs: {}", e))?;
 
     Ok(HttpResponse::Ok().finish())

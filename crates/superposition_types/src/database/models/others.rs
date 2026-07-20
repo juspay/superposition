@@ -287,5 +287,5 @@ pub struct WorkspaceJobView {
     pub name: String,
     pub progress: i32,
     pub created_at: DateTime<Utc>,
-    pub logs: String,
+    pub logs: serde_json::Value,
 }
