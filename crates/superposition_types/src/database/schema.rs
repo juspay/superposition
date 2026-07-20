@@ -255,7 +255,7 @@ diesel::table! {
         name -> Text,
         progress -> Int4,
         created_at -> Timestamptz,
-        logs -> Text,
+        logs -> Jsonb,
     }
 }
 

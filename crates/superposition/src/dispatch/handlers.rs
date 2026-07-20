@@ -78,6 +78,8 @@ async fn dispatch_job_handler(
 
     update_job_status(&mut conn, job_id, BackgroundJobStatus::Inprogress)
         .map_err(|e| unexpected_error!("Failed to update job status: {}", e))?;
+    let key = append_job_logs(&mut conn, job_id, "Job started", None)
+        .map_err(|e| unexpected_error!("Failed to append logs: {}", e))?;
 
     let result = match &job_request {
         JobRequest::Webhook(req) => {
@@ -105,6 +107,8 @@ async fn dispatch_job_handler(
                 .map_err(|e| unexpected_error!("Failed to update job status: {}", e))?;
             update_job_progress(&mut conn, job_id, 100)
                 .map_err(|e| unexpected_error!("Failed to update job progress: {}", e))?;
+            append_job_logs(&mut conn, job_id, "Job completed", Some(key))
+                .map_err(|e| unexpected_error!("Failed to append logs: {}", e))?;
             Ok(HttpResponse::Ok().finish())
         }
         Err(e) => {
@@ -112,7 +116,7 @@ async fn dispatch_job_handler(
             log::error!("Job {job_id} failed: {error_msg}");
             update_job_status(&mut conn, job_id, BackgroundJobStatus::Failed)
                 .map_err(|e| unexpected_error!("Failed to update job status: {}", e))?;
-            append_job_logs(&mut conn, job_id, &error_msg)
+            append_job_logs(&mut conn, job_id, &format!("Job failed: {error_msg}"), Some(key))
                 .map_err(|e| unexpected_error!("Failed to append logs: {}", e))?;
             Err(unexpected_error!("Job {job_id} failed: {error_msg}"))
         }
