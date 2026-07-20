@@ -438,7 +438,7 @@ pub struct BackgroundJob {
     pub progress: i32,
     pub workspace_schema: JobWorkspace,
     pub created_at: DateTime<Utc>,
-    pub logs: String,
+    pub logs: serde_json::Value,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]

@@ -93,7 +93,7 @@ pub mod superposition {
             progress -> Int4,
             workspace_schema -> Text,
             created_at -> Timestamptz,
-            logs -> Text,
+            logs -> Jsonb,
         }
     }
 

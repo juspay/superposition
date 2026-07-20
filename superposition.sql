@@ -187,7 +187,7 @@ CREATE TABLE IF NOT EXISTS superposition.job_manager (
     progress INT NOT NULL DEFAULT 0 CHECK (progress >= 0 AND progress <= 100),
     workspace_schema TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    logs TEXT NOT NULL DEFAULT ''
+    logs JSONB NOT NULL DEFAULT '{}'::jsonb
 );
 
 CREATE INDEX IF NOT EXISTS idx_job_manager_workspace_schema
