@@ -8,9 +8,9 @@ use service_utils::{
     encryption::{
         decrypt_workspace_key, encrypt_secret, rotate_workspace_encryption_key_helper,
     },
+    redis::put_workspace_in_redis,
     service::types::{
-        AppState, DbConnection, EncryptionKey, OrganisationId, SchemaName,
-        WorkspaceContext, WorkspaceId,
+        AppState, DbConnection, EncryptionKey, SchemaName, WorkspaceContext,
     },
 };
 use superposition_derives::{authorized, declare_resource};
@@ -48,11 +48,9 @@ pub fn master_key_endpoints() -> Scope {
 }
 
 fn get_workspace_encryption_key(
-    workspace_context: &WorkspaceContext,
+    workspace: &Workspace,
     master_encryption_key: &Option<EncryptionKey>,
 ) -> superposition::Result<SecretString> {
-    let workspace: &Workspace = &workspace_context.settings;
-
     let Some(master_encryption_key) = master_encryption_key else {
         log::error!("Master encryption key not configured");
         return Err(bad_argument!(
@@ -157,31 +155,45 @@ async fn create_handler(
     let req = req.into_inner();
 
     let DbConnection(mut conn) = db_conn;
+    let user_email = user.get_email();
 
-    let encryption_key =
-        get_workspace_encryption_key(&workspace_context, &state.master_encryption_key)?;
+    let created_secret =
+        conn.transaction::<Secret, superposition::AppError, _>(|conn| {
+            // Share the workspace-row lock with key rotation and reload the key from the
+            // database. Holding this lock through the insert prevents a secret from being
+            // written with an old cached key while a rotation is in flight.
+            let workspace = workspaces::table
+                .find((
+                    &workspace_context.organisation_id.0,
+                    &workspace_context.workspace_id.0,
+                ))
+                .for_share()
+                .get_result::<Workspace>(conn)?;
+            let encryption_key =
+                get_workspace_encryption_key(&workspace, &state.master_encryption_key)?;
+            let encrypted_secret_value = encrypt_secret(&req.value, &encryption_key)
+                .map_err(|e| bad_argument!("Encryption failed: {}", e))?;
+            let schema_name = SchemaName(workspace.workspace_schema_name);
+            let now = chrono::Utc::now();
 
-    let encrypted_secret_value = encrypt_secret(&req.value, &encryption_key)
-        .map_err(|e| bad_argument!("Encryption failed: {}", e))?;
+            let new_secret = Secret {
+                name: req.name,
+                encrypted_value: encrypted_secret_value,
+                description: req.description,
+                change_reason: req.change_reason.clone(),
+                created_at: now,
+                last_modified_at: now,
+                created_by: user_email.clone(),
+                last_modified_by: user_email,
+            };
 
-    let now = chrono::Utc::now();
-
-    let new_secret = Secret {
-        name: req.name,
-        encrypted_value: encrypted_secret_value,
-        description: req.description,
-        change_reason: req.change_reason.clone(),
-        created_at: now,
-        last_modified_at: now,
-        created_by: user.get_email(),
-        last_modified_by: user.get_email(),
-    };
-
-    let created_secret = diesel::insert_into(secrets::table)
-        .values(&new_secret)
-        .returning(Secret::as_returning())
-        .schema_name(&workspace_context.schema_name)
-        .get_result(&mut conn)?;
+            diesel::insert_into(secrets::table)
+                .values(&new_secret)
+                .returning(Secret::as_returning())
+                .schema_name(&schema_name)
+                .get_result(conn)
+                .map_err(Into::into)
+        })?;
 
     Ok(Json(SecretResponse::from(created_secret)))
 }
@@ -218,35 +230,47 @@ async fn update_handler(
     let DbConnection(mut conn) = db_conn;
     let secret_name = path.into_inner();
     let req_inner = req.into_inner();
+    let user_email = user.get_email();
 
-    let encrypted_value_opt = if let Some(ref plaintext_value) = req_inner.value {
-        let encryption_key = get_workspace_encryption_key(
-            &workspace_context,
-            &state.master_encryption_key,
-        )?;
-        Some(
-            encrypt_secret(plaintext_value, &encryption_key)
-                .map_err(|e| bad_argument!("Encryption failed: {}", e))?,
-        )
-    } else {
-        None
-    };
+    let updated_secret =
+        conn.transaction::<Secret, superposition::AppError, _>(|conn| {
+            let workspace = workspaces::table
+                .find((
+                    &workspace_context.organisation_id.0,
+                    &workspace_context.workspace_id.0,
+                ))
+                .for_share()
+                .get_result::<Workspace>(conn)?;
+            let encrypted_value = if let Some(ref plaintext_value) = req_inner.value {
+                let encryption_key = get_workspace_encryption_key(
+                    &workspace,
+                    &state.master_encryption_key,
+                )?;
+                Some(
+                    encrypt_secret(plaintext_value, &encryption_key)
+                        .map_err(|e| bad_argument!("Encryption failed: {}", e))?,
+                )
+            } else {
+                None
+            };
+            let schema_name = SchemaName(workspace.workspace_schema_name);
+            let changeset = UpdateSecretChangeset {
+                encrypted_value,
+                description: req_inner.description,
+                change_reason: req_inner.change_reason,
+            };
 
-    let changeset = UpdateSecretChangeset {
-        encrypted_value: encrypted_value_opt,
-        description: req_inner.description,
-        change_reason: req_inner.change_reason,
-    };
-
-    let updated_secret = diesel::update(secrets::table)
-        .filter(secrets::name.eq(secret_name))
-        .set((
-            changeset,
-            secrets::last_modified_at.eq(chrono::Utc::now()),
-            secrets::last_modified_by.eq(user.get_email()),
-        ))
-        .schema_name(&workspace_context.schema_name)
-        .get_result::<Secret>(&mut conn)?;
+            diesel::update(secrets::table)
+                .filter(secrets::name.eq(secret_name))
+                .set((
+                    changeset,
+                    secrets::last_modified_at.eq(chrono::Utc::now()),
+                    secrets::last_modified_by.eq(user_email),
+                ))
+                .schema_name(&schema_name)
+                .get_result::<Secret>(conn)
+                .map_err(Into::into)
+        })?;
 
     Ok(Json(SecretResponse::from(updated_secret)))
 }
@@ -302,45 +326,41 @@ pub async fn rotate_master_key_handler(
         )
     })?;
 
-    let all_workspaces: Vec<Workspace> = workspaces::table.load(&mut conn)?;
-
     let user_email = user.get_email();
 
-    let (workspaces_rotated, total_secrets_re_encrypted) = conn
-        .transaction::<(i64, i64), superposition::AppError, _>(|conn| {
-            let mut workspaces_rotated = 0i64;
+    let (rotated_workspaces, total_secrets_re_encrypted) = conn
+        .transaction::<(Vec<Workspace>, i64), superposition::AppError, _>(|conn| {
+            let workspace_targets: Vec<(String, String)> = workspaces::table
+                .select((workspaces::organisation_id, workspaces::workspace_name))
+                .order((
+                    workspaces::organisation_id.asc(),
+                    workspaces::workspace_name.asc(),
+                ))
+                .load(conn)?;
+
+            let mut rotated_workspaces = Vec::with_capacity(workspace_targets.len());
             let mut total_secrets_re_encrypted = 0i64;
 
-            for workspace in all_workspaces {
-                let workspace_context = WorkspaceContext {
-                    workspace_id: WorkspaceId(workspace.workspace_name.clone()),
-                    organisation_id: OrganisationId(workspace.organisation_id.clone()),
-                    schema_name: SchemaName(workspace.workspace_schema_name.clone()),
-                    settings: workspace,
-                };
-                match rotate_workspace_encryption_key_helper(
-                    &workspace_context,
+            for (organisation_id, workspace_name) in workspace_targets {
+                let (secrets_count, workspace) = rotate_workspace_encryption_key_helper(
+                    &organisation_id,
+                    &workspace_name,
                     conn,
                     master_encryption_key,
                     &user_email,
-                ) {
-                    Ok(secrets_count) => {
-                        workspaces_rotated += 1;
-                        total_secrets_re_encrypted += secrets_count;
-                    }
-                    Err(e) => {
-                        log::error!(
-                            "Failed to rotate keys for workspace {}: {}",
-                            workspace_context.schema_name.0,
-                            e
-                        );
-                        return Err(e);
-                    }
-                }
+                )?;
+                total_secrets_re_encrypted += secrets_count;
+                rotated_workspaces.push(workspace);
             }
 
-            Ok((workspaces_rotated, total_secrets_re_encrypted))
+            Ok((rotated_workspaces, total_secrets_re_encrypted))
         })?;
+
+    for workspace in &rotated_workspaces {
+        put_workspace_in_redis(workspace, &state.redis).await;
+    }
+
+    let workspaces_rotated = rotated_workspaces.len() as i64;
 
     log::info!(
         "Successfully rotated master encryption key. Rotated {} workspaces, re-encrypted {} secrets.",
