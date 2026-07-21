@@ -281,7 +281,7 @@ list WeightRecomputeResponses {
     member: WeightRecomputeResponse
 }
 
-@documentation("Recalculates and updates the priority weights for all contexts in the workspace based on their dimensions.")
+@documentation("Recalculates and updates the priority weights for all contexts in the workspace based on their dimensions. This operation is asynchronous — it submits a background job and returns the job ID for polling.")
 @http(method: "PUT", uri: "/context/weight/recompute")
 @tags(["Context Management"])
 operation WeightRecompute with [WebhookOperation, WorkspaceWriteOperation] {
@@ -291,10 +291,7 @@ operation WeightRecompute with [WebhookOperation, WorkspaceWriteOperation] {
         config_tags: String
     }
 
-    output := {
-        @notProperty
-        data: WeightRecomputeResponses
-    }
+    output: JobCreateResponse
 }
 
 structure ContextPut for Context {
