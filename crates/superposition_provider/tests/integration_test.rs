@@ -2,8 +2,8 @@ use open_feature::{provider::FeatureProvider, EvaluationContext, OpenFeature};
 use serde_json::Value;
 use superposition_provider::{
     data_source::{file::FileDataSource, http::HttpDataSource},
-    AllFeatureProvider, LocalResolutionProvider, PollingStrategy, RefreshStrategy,
-    SuperpositionAPIProvider, SuperpositionOptions,
+    AllFeatureProvider, AuthMethod, LocalResolutionProvider, PollingStrategy,
+    RefreshStrategy, SuperpositionAPIProvider, SuperpositionOptions,
 };
 use superposition_sdk::{
     types::{ContextPut, DimensionType, Variant, WorkspaceStatus},
@@ -381,13 +381,13 @@ async fn run_provider_tests(org_id: &str, workspace_id: &str) {
     let refresh_strategy = RefreshStrategy::Polling(PollingStrategy::default());
     let http_options = SuperpositionOptions {
         endpoint: ENDPOINT.to_string(),
-        token: TOKEN.to_string(),
+        auth: AuthMethod::Token(TOKEN.to_string()),
         org_id: org_id.to_string(),
         workspace_id: workspace_id.to_string(),
     };
     let wrong_http_options = SuperpositionOptions {
         endpoint: ENDPOINT.to_string(),
-        token: "12345678".to_string(),
+        auth: AuthMethod::Token("12345678".to_string()),
         org_id: org_id.to_string(),
         workspace_id: "workspace_id".to_string(),
     };

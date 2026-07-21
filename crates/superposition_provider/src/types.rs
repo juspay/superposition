@@ -20,9 +20,15 @@ pub enum SuperpositionError {
 pub type Result<T> = std::result::Result<T, SuperpositionError>;
 
 #[derive(Debug, Clone)]
+pub enum AuthMethod {
+    Token(String),
+    Basic { username: String, password: String },
+}
+
+#[derive(Debug, Clone)]
 pub struct SuperpositionOptions {
     pub endpoint: String,
-    pub token: String,
+    pub auth: AuthMethod,
     pub org_id: String,
     pub workspace_id: String,
 }
@@ -30,16 +36,34 @@ pub struct SuperpositionOptions {
 impl SuperpositionOptions {
     pub fn new(
         endpoint: String,
-        token: String,
+        auth: AuthMethod,
         org_id: String,
         workspace_id: String,
     ) -> Self {
         Self {
             endpoint,
-            token,
+            auth,
             org_id,
             workspace_id,
         }
+    }
+}
+
+impl From<&SuperpositionOptions> for superposition_sdk::Config {
+    fn from(options: &SuperpositionOptions) -> Self {
+        let sdk_config = superposition_sdk::Config::builder()
+            .endpoint_url(&options.endpoint)
+            .behavior_version_latest();
+
+        let sdk_config = match &options.auth {
+            AuthMethod::Token(token) => sdk_config
+                .bearer_token(superposition_sdk::config::Token::new(token, None)),
+            AuthMethod::Basic { username, password } => sdk_config.basic_auth_login(
+                superposition_sdk::config::Login::new(username, password, None),
+            ),
+        };
+
+        sdk_config.build()
     }
 }
 

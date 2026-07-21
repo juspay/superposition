@@ -8,7 +8,6 @@ import dev.openfeature.sdk.ProviderEvaluation;
 import dev.openfeature.sdk.ProviderState;
 import dev.openfeature.sdk.Value;
 import io.juspay.superposition.client.SuperpositionClient;
-import io.juspay.superposition.client.auth.BearerTokenIdentityResolver;
 import io.juspay.superposition.model.ApplicableVariantsInput;
 import io.juspay.superposition.model.ApplicableVariantsOutput;
 import io.juspay.superposition.model.GetResolvedConfigWithIdentifierInput;
@@ -60,7 +59,7 @@ public class SuperpositionAPIProvider implements FeatureProvider, AllFeatureProv
         this.options = options;
         this.sdk = SuperpositionClient.builder()
                 .endpointResolver(EndpointResolver.staticEndpoint(options.getEndpoint()))
-                .addIdentityResolver(new BearerTokenIdentityResolver(options.getToken()))
+                .addIdentityResolver(options.getAuth().identityResolver())
                 .build();
         log.debug("SuperpositionAPIProvider created for endpoint: {}", options.getEndpoint());
     }

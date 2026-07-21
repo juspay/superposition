@@ -22,7 +22,7 @@ use std::env;
 use open_feature::{EvaluationContext, OpenFeature};
 use superposition_provider::{
     data_source::http::HttpDataSource, local_provider::LocalResolutionProvider,
-    PollingStrategy, RefreshStrategy, SuperpositionOptions,
+    AuthMethod, PollingStrategy, RefreshStrategy, SuperpositionOptions,
 };
 use tokio::time::{sleep, Duration};
 
@@ -53,7 +53,10 @@ async fn main() {
     println!();
 
     let http_source = HttpDataSource::new(SuperpositionOptions::new(
-        endpoint, token, org_id, workspace,
+        endpoint,
+        AuthMethod::Token(token),
+        org_id,
+        workspace,
     ));
 
     let provider = LocalResolutionProvider::new(

@@ -2,9 +2,9 @@ use std::path::PathBuf;
 
 use open_feature::{EvaluationContext, OpenFeature};
 use superposition_provider::{
-    data_source::file::FileDataSource, data_source::http::HttpDataSource,
-    local_provider::LocalResolutionProvider, PollingStrategy, RefreshStrategy,
-    SuperpositionOptions,
+    data_source::{file::FileDataSource, http::HttpDataSource},
+    local_provider::LocalResolutionProvider,
+    AuthMethod, PollingStrategy, RefreshStrategy, SuperpositionOptions,
 };
 use tokio::time::{sleep, Duration};
 
@@ -14,7 +14,7 @@ async fn main() {
 
     let http_source = HttpDataSource::new(SuperpositionOptions::new(
         "http://localhost:8080".to_string(),
-        "token".to_string(),
+        AuthMethod::Token("token".to_string()),
         "localorg".to_string(),
         "dev".to_string(),
     ));

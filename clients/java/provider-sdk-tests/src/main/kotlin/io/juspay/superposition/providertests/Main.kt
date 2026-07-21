@@ -9,6 +9,7 @@ import io.juspay.superposition.openfeature.SuperpositionOpenFeatureProvider
 import io.juspay.superposition.openfeature.SuperpositionProviderOptions
 import io.juspay.superposition.openfeature.data_source.FileDataSource
 import io.juspay.superposition.openfeature.data_source.HttpDataSource
+import io.juspay.superposition.openfeature.options.AuthMethod
 import io.juspay.superposition.openfeature.options.RefreshStrategy
 import io.juspay.superposition.openfeature.options.SuperpositionOptions
 import io.juspay.superposition.openfeature.provider.LocalResolutionProvider
@@ -371,7 +372,7 @@ class Main {
 
         val httpOptions = SuperpositionOptions(
             endpoint = config.endpoint,
-            token = config.token,
+            auth = AuthMethod.Token(config.token),
             orgId = orgId,
             workspaceId = workspaceId,
         )
@@ -379,7 +380,7 @@ class Main {
         // Wrong token and workspace: every call to the primary fails, forcing the fallback.
         val wrongHttpOptions = SuperpositionOptions(
             endpoint = config.endpoint,
-            token = "12345678",
+            auth = AuthMethod.Token("12345678"),
             orgId = orgId,
             workspaceId = "workspace_id",
         )

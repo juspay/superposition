@@ -16,7 +16,7 @@ from pathlib import Path
 from openfeature.evaluation_context import EvaluationContext
 
 from superposition_provider import LocalResolutionProvider, HttpDataSource, FileDataSource
-from superposition_provider.types import SuperpositionOptions, PollingStrategy
+from superposition_provider.types import SuperpositionOptions, TokenAuth, PollingStrategy
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ async def main():
     # Configure Superposition API connection
     options = SuperpositionOptions(
         endpoint="http://localhost:8080",
-        token="token",
+        auth=TokenAuth("token"),
         org_id="localorg",
         workspace_id="dev",
     )
