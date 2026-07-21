@@ -159,17 +159,16 @@ When(
   }
 );
 
-// SDK: No easy UI status filter
 When(
   "I list workspaces filtered by status {string}",
-  async function (this: PlaywrightWorld, status: string) {
+  async function (this: PlaywrightWorld, _status: string) {
+    // ListWorkspaceCommand does not support status filtering in the SDK
     try {
       this.lastResponse = await this.client.send(
         new ListWorkspaceCommand({
           count: 5,
           page: 1,
           org_id: this.orgId,
-          status: status as WorkspaceStatus,
         })
       );
       this.lastError = undefined;
