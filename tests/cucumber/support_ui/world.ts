@@ -56,6 +56,9 @@ export class PlaywrightWorld extends World {
   public experimentId: string = "";
   public experimentVariants: any[] = [];
   public createdExperimentIds: string[] = [];
+  public _pendingExpName: string = "";
+  public _pendingExpContext: Record<string, unknown> = {};
+  public _pendingExpVariants: any[] = [];
 
   // ── Experiment group state ────────────────────────────────────────
   public experimentGroupId: string = "";
