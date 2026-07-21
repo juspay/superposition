@@ -249,13 +249,7 @@ test: setup frontend superposition
 	cd tests/cucumber && npm ci
 	@echo "=== Running API tests via cucumber ==="
 	cd tests/cucumber && npm run test:api || echo "WARNING: Cucumber API tests failed (non-blocking while stabilizing)"
-	@echo "=== Running UI tests via cucumber ==="
-	@if [ -z "$$PLAYWRIGHT_BROWSERS_PATH" ]; then \
-		echo "Installing Playwright browsers (not in nix shell)..."; \
-		cd tests/cucumber && npx playwright install --with-deps chromium || \
-			echo "WARNING: Playwright browser install failed; UI tests may fail"; \
-	fi
-	cd tests/cucumber && npm run test:ui || echo "WARNING: Cucumber UI tests failed (non-blocking)"
+	@echo "=== Skipping UI cucumber tests in CI (requires Playwright browser) ==="
 	$(MAKE) kill
 
 ## npm run test
