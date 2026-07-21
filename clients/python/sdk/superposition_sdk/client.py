@@ -84,6 +84,8 @@ from .deserialize import (
     _deserialize_get_webhook,
     _deserialize_get_webhook_by_event,
     _deserialize_get_workspace,
+    _deserialize_import_config_json,
+    _deserialize_import_config_toml,
     _deserialize_list_audit_logs,
     _deserialize_list_contexts,
     _deserialize_list_default_configs,
@@ -273,6 +275,12 @@ from .models import (
     GetWebhookOutput,
     GetWorkspaceInput,
     GetWorkspaceOutput,
+    IMPORT_CONFIG_JSON,
+    IMPORT_CONFIG_TOML,
+    ImportConfigJsonInput,
+    ImportConfigJsonOutput,
+    ImportConfigTomlInput,
+    ImportConfigTomlOutput,
     LIST_AUDIT_LOGS,
     LIST_CONTEXTS,
     LIST_DEFAULT_CONFIGS,
@@ -437,6 +445,8 @@ from .serialize import (
     _serialize_get_webhook,
     _serialize_get_webhook_by_event,
     _serialize_get_workspace,
+    _serialize_import_config_json,
+    _serialize_import_config_toml,
     _serialize_list_audit_logs,
     _serialize_list_contexts,
     _serialize_list_default_configs,
@@ -1851,6 +1861,62 @@ class Superposition:
             deserialize=_deserialize_get_workspace,
             config=self._config,
             operation=GET_WORKSPACE,
+        )
+
+    async def import_config_json(self, input: ImportConfigJsonInput, plugins: list[Plugin] | None = None) -> ImportConfigJsonOutput:
+        """
+        Imports a full config from a JSON document, persisting dimensions,
+        default-configs and contexts in a single transaction after validating the
+        document.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_import_config_json,
+            deserialize=_deserialize_import_config_json,
+            config=self._config,
+            operation=IMPORT_CONFIG_JSON,
+        )
+
+    async def import_config_toml(self, input: ImportConfigTomlInput, plugins: list[Plugin] | None = None) -> ImportConfigTomlOutput:
+        """
+        Imports a full config from a TOML document, persisting dimensions,
+        default-configs and contexts in a single transaction after validating the
+        document.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_import_config_toml,
+            deserialize=_deserialize_import_config_toml,
+            config=self._config,
+            operation=IMPORT_CONFIG_TOML,
         )
 
     async def list_audit_logs(self, input: ListAuditLogsInput, plugins: list[Plugin] | None = None) -> ListAuditLogsOutput:

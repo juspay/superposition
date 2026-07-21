@@ -173,6 +173,37 @@ final class SharedSerde {
         }
     }
 
+    static final class ImportErrorListSerializer implements BiConsumer<List<ImportErrorItem>, ShapeSerializer> {
+        static final ImportErrorListSerializer INSTANCE = new ImportErrorListSerializer();
+
+        @Override
+        public void accept(List<ImportErrorItem> values, ShapeSerializer serializer) {
+            for (var value : values) {
+                serializer.writeStruct(SharedSchemas.IMPORT_ERROR_LIST.listMember(), value);
+            }
+        }
+    }
+
+    static List<ImportErrorItem> deserializeImportErrorList(Schema schema, ShapeDeserializer deserializer) {
+        var size = deserializer.containerSize();
+        List<ImportErrorItem> result = size == -1 ? new ArrayList<>() : new ArrayList<>(size);
+        deserializer.readList(schema, result, ImportErrorList$MemberDeserializer.INSTANCE);
+        return result;
+    }
+
+    private static final class ImportErrorList$MemberDeserializer implements ShapeDeserializer.ListMemberConsumer<List<ImportErrorItem>> {
+        static final ImportErrorList$MemberDeserializer INSTANCE = new ImportErrorList$MemberDeserializer();
+
+        @Override
+        public void accept(List<ImportErrorItem> state, ShapeDeserializer deserializer) {
+            if (deserializer.isNull()) {
+
+                return;
+            }
+            state.add(ImportErrorItem.builder().deserializeMember(deserializer, SharedSchemas.IMPORT_ERROR_LIST.listMember()).build());
+        }
+    }
+
     static final class TypeTemplatesListSerializer implements BiConsumer<List<TypeTemplatesResponse>, ShapeSerializer> {
         static final TypeTemplatesListSerializer INSTANCE = new TypeTemplatesListSerializer();
 

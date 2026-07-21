@@ -183,6 +183,148 @@ operation GetConfigJson {
     }
 }
 
+@documentation("How an import applies file entities to the workspace.")
+enum ImportStrategy {
+    @documentation("Create entities that are present in the file but missing from the workspace. Existing entities are skipped. Nothing is deleted.")
+    CREATE_ONLY = "create_only"
+
+    @documentation("Create missing entities and update existing entities from the file. Entities absent from the file are left untouched.")
+    UPSERT = "upsert"
+
+    @documentation("Mirror the file: create missing entities, update existing entities, and delete dimensions, default-configs and contexts that are absent from it.")
+    REPLACE = "replace"
+}
+
+@documentation("How an import reacts when an individual entity fails to apply.")
+enum ImportOnError {
+    @documentation("Roll the whole import back on the first error.")
+    ABORT = "abort"
+
+    @documentation("Apply everything that is valid and report per-entity errors.")
+    CONTINUE = "continue"
+}
+
+@documentation("Per-entity outcome counts for an import.")
+structure ImportEntityReport {
+    @required
+    created: Integer
+
+    @required
+    updated: Integer
+
+    @required
+    skipped: Integer
+
+    @required
+    deleted: Integer
+
+    errors: ImportErrorList
+}
+
+list ImportErrorList {
+    member: ImportErrorItem
+}
+
+structure ImportErrorItem {
+    @required
+    id: String
+
+    @required
+    message: String
+}
+
+@documentation("Summary of what an import created, updated, skipped or deleted.")
+structure ImportConfigOutput {
+    @required
+    @notProperty
+    strategy: String
+
+    @required
+    @notProperty
+    dry_run: Boolean
+
+    @notProperty
+    config_version: String
+
+    @required
+    @notProperty
+    dimensions: ImportEntityReport
+
+    @required
+    @notProperty
+    default_configs: ImportEntityReport
+
+    @required
+    @notProperty
+    contexts: ImportEntityReport
+}
+
+@documentation("Imports a full config from a TOML document, persisting dimensions, default-configs and contexts in a single transaction after validating the document.")
+@http(method: "POST", uri: "/config/toml/import")
+@tags(["Configuration Management"])
+operation ImportConfigToml {
+    input := with [WorkspaceMixin] {
+        @documentation("How the import applies file entities to the workspace. Defaults to upsert.")
+        @httpHeader("x-import-strategy")
+        @notProperty
+        strategy: ImportStrategy
+
+        @documentation("Whether to abort (default) or continue on per-entity errors.")
+        @httpHeader("x-import-on-error")
+        @notProperty
+        on_error: ImportOnError
+
+        @documentation("When true, validates and summarises the import without persisting anything. Defaults to false.")
+        @httpHeader("x-import-dry-run")
+        @notProperty
+        dry_run: Boolean
+
+        @httpHeader("x-config-tags")
+        @notProperty
+        config_tags: String
+
+        @httpPayload
+        @required
+        @notProperty
+        toml_config: String
+    }
+
+    output: ImportConfigOutput
+}
+
+@documentation("Imports a full config from a JSON document, persisting dimensions, default-configs and contexts in a single transaction after validating the document.")
+@http(method: "POST", uri: "/config/json/import")
+@tags(["Configuration Management"])
+operation ImportConfigJson {
+    input := with [WorkspaceMixin] {
+        @documentation("How the import applies file entities to the workspace. Defaults to upsert.")
+        @httpHeader("x-import-strategy")
+        @notProperty
+        strategy: ImportStrategy
+
+        @documentation("Whether to abort (default) or continue on per-entity errors.")
+        @httpHeader("x-import-on-error")
+        @notProperty
+        on_error: ImportOnError
+
+        @documentation("When true, validates and summarises the import without persisting anything. Defaults to false.")
+        @httpHeader("x-import-dry-run")
+        @notProperty
+        dry_run: Boolean
+
+        @httpHeader("x-config-tags")
+        @notProperty
+        config_tags: String
+
+        @httpPayload
+        @required
+        @notProperty
+        json_config: String
+    }
+
+    output: ImportConfigOutput
+}
+
 enum MergeStrategy {
     MERGE
     REPLACE

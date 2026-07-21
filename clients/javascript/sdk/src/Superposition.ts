@@ -254,6 +254,16 @@ import {
   GetWorkspaceCommandOutput,
 } from "./commands/GetWorkspaceCommand";
 import {
+  ImportConfigJsonCommand,
+  ImportConfigJsonCommandInput,
+  ImportConfigJsonCommandOutput,
+} from "./commands/ImportConfigJsonCommand";
+import {
+  ImportConfigTomlCommand,
+  ImportConfigTomlCommandInput,
+  ImportConfigTomlCommandOutput,
+} from "./commands/ImportConfigTomlCommand";
+import {
   ListAuditLogsCommand,
   ListAuditLogsCommandInput,
   ListAuditLogsCommandOutput,
@@ -492,6 +502,8 @@ const commands = {
   GetWebhookCommand,
   GetWebhookByEventCommand,
   GetWorkspaceCommand,
+  ImportConfigJsonCommand,
+  ImportConfigTomlCommand,
   ListAuditLogsCommand,
   ListContextsCommand,
   ListDefaultConfigsCommand,
@@ -1380,6 +1392,40 @@ export interface Superposition {
     args: GetWorkspaceCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: GetWorkspaceCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link ImportConfigJsonCommand}
+   */
+  importConfigJson(
+    args: ImportConfigJsonCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<ImportConfigJsonCommandOutput>;
+  importConfigJson(
+    args: ImportConfigJsonCommandInput,
+    cb: (err: any, data?: ImportConfigJsonCommandOutput) => void
+  ): void;
+  importConfigJson(
+    args: ImportConfigJsonCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: ImportConfigJsonCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link ImportConfigTomlCommand}
+   */
+  importConfigToml(
+    args: ImportConfigTomlCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<ImportConfigTomlCommandOutput>;
+  importConfigToml(
+    args: ImportConfigTomlCommandInput,
+    cb: (err: any, data?: ImportConfigTomlCommandOutput) => void
+  ): void;
+  importConfigToml(
+    args: ImportConfigTomlCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: ImportConfigTomlCommandOutput) => void
   ): void;
 
   /**

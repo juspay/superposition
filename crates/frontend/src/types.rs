@@ -329,6 +329,8 @@ pub enum RouteSegment {
     Experiments,
     #[strum(serialize = "function")]
     Function,
+    #[strum(serialize = "import")]
+    Import,
     #[strum(serialize = "resolve")]
     Resolve,
     #[strum(serialize = "secrets")]

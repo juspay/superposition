@@ -101,6 +101,10 @@ import io.juspay.superposition.model.GetWebhookInput;
 import io.juspay.superposition.model.GetWebhookOutput;
 import io.juspay.superposition.model.GetWorkspaceInput;
 import io.juspay.superposition.model.GetWorkspaceOutput;
+import io.juspay.superposition.model.ImportConfigJsonInput;
+import io.juspay.superposition.model.ImportConfigJsonOutput;
+import io.juspay.superposition.model.ImportConfigTomlInput;
+import io.juspay.superposition.model.ImportConfigTomlOutput;
 import io.juspay.superposition.model.InternalServerError;
 import io.juspay.superposition.model.ListAuditLogsInput;
 import io.juspay.superposition.model.ListAuditLogsOutput;
@@ -1159,6 +1163,42 @@ public interface SuperpositionAsyncClient {
     CompletableFuture<GetWorkspaceOutput> getWorkspace(GetWorkspaceInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Imports a full config from a JSON document, persisting dimensions, default-configs and contexts in a
+     * single transaction after validating the document.
+     *
+     * @throws InternalServerError
+     */
+    default CompletableFuture<ImportConfigJsonOutput> importConfigJson(ImportConfigJsonInput input) {
+        return importConfigJson(input, null);
+    }
+
+    /**
+     * Imports a full config from a JSON document, persisting dimensions, default-configs and contexts in a
+     * single transaction after validating the document.
+     *
+     * @throws InternalServerError
+     */
+    CompletableFuture<ImportConfigJsonOutput> importConfigJson(ImportConfigJsonInput input, RequestOverrideConfig overrideConfig);
+
+    /**
+     * Imports a full config from a TOML document, persisting dimensions, default-configs and contexts in a
+     * single transaction after validating the document.
+     *
+     * @throws InternalServerError
+     */
+    default CompletableFuture<ImportConfigTomlOutput> importConfigToml(ImportConfigTomlInput input) {
+        return importConfigToml(input, null);
+    }
+
+    /**
+     * Imports a full config from a TOML document, persisting dimensions, default-configs and contexts in a
+     * single transaction after validating the document.
+     *
+     * @throws InternalServerError
+     */
+    CompletableFuture<ImportConfigTomlOutput> importConfigToml(ImportConfigTomlInput input, RequestOverrideConfig overrideConfig);
+
+    /**
      * Retrieves a paginated list of audit logs with support for filtering by date range, table names,
      * actions, and usernames for compliance and monitoring purposes.
      *
@@ -1901,11 +1941,11 @@ public interface SuperpositionAsyncClient {
             Node.objectNode()
         );
 
-        private static final HttpBasicAuthTrait httpBasicAuthScheme = new HttpBasicAuthTrait();
-        private static final AuthSchemeFactory<HttpBasicAuthTrait> httpBasicAuthSchemeFactory = new HttpBasicAuthAuthScheme.Factory();
-
         private static final HttpBearerAuthTrait httpBearerAuthScheme = new HttpBearerAuthTrait();
         private static final AuthSchemeFactory<HttpBearerAuthTrait> httpBearerAuthSchemeFactory = new HttpBearerAuthScheme.Factory();
+
+        private static final HttpBasicAuthTrait httpBasicAuthScheme = new HttpBasicAuthTrait();
+        private static final AuthSchemeFactory<HttpBasicAuthTrait> httpBasicAuthSchemeFactory = new HttpBasicAuthAuthScheme.Factory();
 
         private Builder() {
             configBuilder().putSupportedAuthSchemes(httpBasicAuthSchemeFactory.createAuthScheme(httpBasicAuthScheme), httpBearerAuthSchemeFactory.createAuthScheme(httpBearerAuthScheme));

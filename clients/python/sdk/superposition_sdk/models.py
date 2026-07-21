@@ -186,6 +186,14 @@ from ._private.schemas import (
     GET_WORKSPACE as _SCHEMA_GET_WORKSPACE,
     GET_WORKSPACE_INPUT as _SCHEMA_GET_WORKSPACE_INPUT,
     GET_WORKSPACE_OUTPUT as _SCHEMA_GET_WORKSPACE_OUTPUT,
+    IMPORT_CONFIG_JSON as _SCHEMA_IMPORT_CONFIG_JSON,
+    IMPORT_CONFIG_JSON_INPUT as _SCHEMA_IMPORT_CONFIG_JSON_INPUT,
+    IMPORT_CONFIG_JSON_OUTPUT as _SCHEMA_IMPORT_CONFIG_JSON_OUTPUT,
+    IMPORT_CONFIG_TOML as _SCHEMA_IMPORT_CONFIG_TOML,
+    IMPORT_CONFIG_TOML_INPUT as _SCHEMA_IMPORT_CONFIG_TOML_INPUT,
+    IMPORT_CONFIG_TOML_OUTPUT as _SCHEMA_IMPORT_CONFIG_TOML_OUTPUT,
+    IMPORT_ENTITY_REPORT as _SCHEMA_IMPORT_ENTITY_REPORT,
+    IMPORT_ERROR_ITEM as _SCHEMA_IMPORT_ERROR_ITEM,
     INTERNAL_SERVER_ERROR as _SCHEMA_INTERNAL_SERVER_ERROR,
     LIST_AUDIT_LOGS as _SCHEMA_LIST_AUDIT_LOGS,
     LIST_AUDIT_LOGS_INPUT as _SCHEMA_LIST_AUDIT_LOGS_INPUT,
@@ -15245,6 +15253,472 @@ GET_WORKSPACE = APIOperation(
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+           ShapeID("smithy.api#httpBasicAuth"),
+ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
+class ImportOnError(StrEnum):
+    """
+    How an import reacts when an individual entity fails to apply.
+
+    """
+    ABORT = "abort"
+    """
+    Roll the whole import back on the first error.
+
+    """
+    CONTINUE_ = "continue"
+    """
+    Apply everything that is valid and report per-entity errors.
+
+    """
+
+class ImportStrategy(StrEnum):
+    """
+    How an import applies file entities to the workspace.
+
+    """
+    CREATE_ONLY = "create_only"
+    """
+    Create entities that are present in the file but missing from the workspace.
+    Existing entities are skipped. Nothing is deleted.
+
+    """
+    UPSERT = "upsert"
+    """
+    Create missing entities and update existing entities from the file. Entities
+    absent from the file are left untouched.
+
+    """
+    REPLACE = "replace"
+    """
+    Mirror the file: create missing entities, update existing entities, and delete
+    dimensions, default-configs and contexts that are absent from it.
+
+    """
+
+@dataclass(kw_only=True)
+class ImportConfigJsonInput:
+    """
+
+    :param strategy:
+         How the import applies file entities to the workspace. Defaults to upsert.
+
+    :param on_error:
+         Whether to abort (default) or continue on per-entity errors.
+
+    :param dry_run:
+         When true, validates and summarises the import without persisting anything.
+         Defaults to false.
+
+    """
+
+    workspace_id: str | None = None
+    org_id: str | None = None
+    strategy: str | None = None
+    on_error: str | None = None
+    dry_run: bool | None = None
+    config_tags: str | None = None
+    json_config: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_IMPORT_CONFIG_JSON_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_IMPORT_CONFIG_JSON_INPUT.members["workspace_id"])
+
+                case 1:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_IMPORT_CONFIG_JSON_INPUT.members["org_id"])
+
+                case 2:
+                    kwargs["strategy"] = de.read_string(_SCHEMA_IMPORT_CONFIG_JSON_INPUT.members["strategy"])
+
+                case 3:
+                    kwargs["on_error"] = de.read_string(_SCHEMA_IMPORT_CONFIG_JSON_INPUT.members["on_error"])
+
+                case 4:
+                    kwargs["dry_run"] = de.read_boolean(_SCHEMA_IMPORT_CONFIG_JSON_INPUT.members["dry_run"])
+
+                case 5:
+                    kwargs["config_tags"] = de.read_string(_SCHEMA_IMPORT_CONFIG_JSON_INPUT.members["config_tags"])
+
+                case 6:
+                    kwargs["json_config"] = de.read_string(_SCHEMA_IMPORT_CONFIG_JSON_INPUT.members["json_config"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_IMPORT_CONFIG_JSON_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class ImportErrorItem:
+
+    id: str
+
+    message: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_IMPORT_ERROR_ITEM, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_IMPORT_ERROR_ITEM.members["id"], self.id)
+        serializer.write_string(_SCHEMA_IMPORT_ERROR_ITEM.members["message"], self.message)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["id"] = de.read_string(_SCHEMA_IMPORT_ERROR_ITEM.members["id"])
+
+                case 1:
+                    kwargs["message"] = de.read_string(_SCHEMA_IMPORT_ERROR_ITEM.members["message"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_IMPORT_ERROR_ITEM, consumer=_consumer)
+        return kwargs
+
+def _serialize_import_error_list(serializer: ShapeSerializer, schema: Schema, value: list[ImportErrorItem]) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_struct(member_schema, e)
+
+def _deserialize_import_error_list(deserializer: ShapeDeserializer, schema: Schema) -> list[ImportErrorItem]:
+    result: list[ImportErrorItem] = []
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(ImportErrorItem.deserialize(d))
+    deserializer.read_list(schema, _read_value)
+    return result
+
+@dataclass(kw_only=True)
+class ImportEntityReport:
+    """
+    Per-entity outcome counts for an import.
+
+    """
+
+    created: int
+
+    updated: int
+
+    skipped: int
+
+    deleted: int
+
+    errors: list[ImportErrorItem] | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_IMPORT_ENTITY_REPORT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_integer(_SCHEMA_IMPORT_ENTITY_REPORT.members["created"], self.created)
+        serializer.write_integer(_SCHEMA_IMPORT_ENTITY_REPORT.members["updated"], self.updated)
+        serializer.write_integer(_SCHEMA_IMPORT_ENTITY_REPORT.members["skipped"], self.skipped)
+        serializer.write_integer(_SCHEMA_IMPORT_ENTITY_REPORT.members["deleted"], self.deleted)
+        if self.errors is not None:
+            _serialize_import_error_list(serializer, _SCHEMA_IMPORT_ENTITY_REPORT.members["errors"], self.errors)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["created"] = de.read_integer(_SCHEMA_IMPORT_ENTITY_REPORT.members["created"])
+
+                case 1:
+                    kwargs["updated"] = de.read_integer(_SCHEMA_IMPORT_ENTITY_REPORT.members["updated"])
+
+                case 2:
+                    kwargs["skipped"] = de.read_integer(_SCHEMA_IMPORT_ENTITY_REPORT.members["skipped"])
+
+                case 3:
+                    kwargs["deleted"] = de.read_integer(_SCHEMA_IMPORT_ENTITY_REPORT.members["deleted"])
+
+                case 4:
+                    kwargs["errors"] = _deserialize_import_error_list(de, _SCHEMA_IMPORT_ENTITY_REPORT.members["errors"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_IMPORT_ENTITY_REPORT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class ImportConfigJsonOutput:
+    """
+    Summary of what an import created, updated, skipped or deleted.
+
+    :param dimensions:
+        **[Required]** - Per-entity outcome counts for an import.
+
+    :param default_configs:
+        **[Required]** - Per-entity outcome counts for an import.
+
+    :param contexts:
+        **[Required]** - Per-entity outcome counts for an import.
+
+    """
+
+    strategy: str
+
+    dry_run: bool
+
+    dimensions: ImportEntityReport
+
+    default_configs: ImportEntityReport
+
+    contexts: ImportEntityReport
+
+    config_version: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_IMPORT_CONFIG_JSON_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_IMPORT_CONFIG_JSON_OUTPUT.members["strategy"], self.strategy)
+        serializer.write_boolean(_SCHEMA_IMPORT_CONFIG_JSON_OUTPUT.members["dry_run"], self.dry_run)
+        if self.config_version is not None:
+            serializer.write_string(_SCHEMA_IMPORT_CONFIG_JSON_OUTPUT.members["config_version"], self.config_version)
+
+        serializer.write_struct(_SCHEMA_IMPORT_CONFIG_JSON_OUTPUT.members["dimensions"], self.dimensions)
+        serializer.write_struct(_SCHEMA_IMPORT_CONFIG_JSON_OUTPUT.members["default_configs"], self.default_configs)
+        serializer.write_struct(_SCHEMA_IMPORT_CONFIG_JSON_OUTPUT.members["contexts"], self.contexts)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["strategy"] = de.read_string(_SCHEMA_IMPORT_CONFIG_JSON_OUTPUT.members["strategy"])
+
+                case 1:
+                    kwargs["dry_run"] = de.read_boolean(_SCHEMA_IMPORT_CONFIG_JSON_OUTPUT.members["dry_run"])
+
+                case 2:
+                    kwargs["config_version"] = de.read_string(_SCHEMA_IMPORT_CONFIG_JSON_OUTPUT.members["config_version"])
+
+                case 3:
+                    kwargs["dimensions"] = ImportEntityReport.deserialize(de)
+
+                case 4:
+                    kwargs["default_configs"] = ImportEntityReport.deserialize(de)
+
+                case 5:
+                    kwargs["contexts"] = ImportEntityReport.deserialize(de)
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_IMPORT_CONFIG_JSON_OUTPUT, consumer=_consumer)
+        return kwargs
+
+IMPORT_CONFIG_JSON = APIOperation(
+        input = ImportConfigJsonInput,
+        output = ImportConfigJsonOutput,
+        schema = _SCHEMA_IMPORT_CONFIG_JSON,
+        input_schema = _SCHEMA_IMPORT_CONFIG_JSON_INPUT,
+        output_schema = _SCHEMA_IMPORT_CONFIG_JSON_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+           ShapeID("smithy.api#httpBasicAuth"),
+ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
+@dataclass(kw_only=True)
+class ImportConfigTomlInput:
+    """
+
+    :param strategy:
+         How the import applies file entities to the workspace. Defaults to upsert.
+
+    :param on_error:
+         Whether to abort (default) or continue on per-entity errors.
+
+    :param dry_run:
+         When true, validates and summarises the import without persisting anything.
+         Defaults to false.
+
+    """
+
+    workspace_id: str | None = None
+    org_id: str | None = None
+    strategy: str | None = None
+    on_error: str | None = None
+    dry_run: bool | None = None
+    config_tags: str | None = None
+    toml_config: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_IMPORT_CONFIG_TOML_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_IMPORT_CONFIG_TOML_INPUT.members["workspace_id"])
+
+                case 1:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_IMPORT_CONFIG_TOML_INPUT.members["org_id"])
+
+                case 2:
+                    kwargs["strategy"] = de.read_string(_SCHEMA_IMPORT_CONFIG_TOML_INPUT.members["strategy"])
+
+                case 3:
+                    kwargs["on_error"] = de.read_string(_SCHEMA_IMPORT_CONFIG_TOML_INPUT.members["on_error"])
+
+                case 4:
+                    kwargs["dry_run"] = de.read_boolean(_SCHEMA_IMPORT_CONFIG_TOML_INPUT.members["dry_run"])
+
+                case 5:
+                    kwargs["config_tags"] = de.read_string(_SCHEMA_IMPORT_CONFIG_TOML_INPUT.members["config_tags"])
+
+                case 6:
+                    kwargs["toml_config"] = de.read_string(_SCHEMA_IMPORT_CONFIG_TOML_INPUT.members["toml_config"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_IMPORT_CONFIG_TOML_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class ImportConfigTomlOutput:
+    """
+    Summary of what an import created, updated, skipped or deleted.
+
+    :param dimensions:
+        **[Required]** - Per-entity outcome counts for an import.
+
+    :param default_configs:
+        **[Required]** - Per-entity outcome counts for an import.
+
+    :param contexts:
+        **[Required]** - Per-entity outcome counts for an import.
+
+    """
+
+    strategy: str
+
+    dry_run: bool
+
+    dimensions: ImportEntityReport
+
+    default_configs: ImportEntityReport
+
+    contexts: ImportEntityReport
+
+    config_version: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_IMPORT_CONFIG_TOML_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_IMPORT_CONFIG_TOML_OUTPUT.members["strategy"], self.strategy)
+        serializer.write_boolean(_SCHEMA_IMPORT_CONFIG_TOML_OUTPUT.members["dry_run"], self.dry_run)
+        if self.config_version is not None:
+            serializer.write_string(_SCHEMA_IMPORT_CONFIG_TOML_OUTPUT.members["config_version"], self.config_version)
+
+        serializer.write_struct(_SCHEMA_IMPORT_CONFIG_TOML_OUTPUT.members["dimensions"], self.dimensions)
+        serializer.write_struct(_SCHEMA_IMPORT_CONFIG_TOML_OUTPUT.members["default_configs"], self.default_configs)
+        serializer.write_struct(_SCHEMA_IMPORT_CONFIG_TOML_OUTPUT.members["contexts"], self.contexts)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["strategy"] = de.read_string(_SCHEMA_IMPORT_CONFIG_TOML_OUTPUT.members["strategy"])
+
+                case 1:
+                    kwargs["dry_run"] = de.read_boolean(_SCHEMA_IMPORT_CONFIG_TOML_OUTPUT.members["dry_run"])
+
+                case 2:
+                    kwargs["config_version"] = de.read_string(_SCHEMA_IMPORT_CONFIG_TOML_OUTPUT.members["config_version"])
+
+                case 3:
+                    kwargs["dimensions"] = ImportEntityReport.deserialize(de)
+
+                case 4:
+                    kwargs["default_configs"] = ImportEntityReport.deserialize(de)
+
+                case 5:
+                    kwargs["contexts"] = ImportEntityReport.deserialize(de)
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_IMPORT_CONFIG_TOML_OUTPUT, consumer=_consumer)
+        return kwargs
+
+IMPORT_CONFIG_TOML = APIOperation(
+        input = ImportConfigTomlInput,
+        output = ImportConfigTomlOutput,
+        schema = _SCHEMA_IMPORT_CONFIG_TOML,
+        input_schema = _SCHEMA_IMPORT_CONFIG_TOML_INPUT,
+        output_schema = _SCHEMA_IMPORT_CONFIG_TOML_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
            ShapeID("smithy.api#httpBasicAuth"),
