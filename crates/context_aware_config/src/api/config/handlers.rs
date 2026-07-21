@@ -699,7 +699,7 @@ async fn detailed_resolve_handler(
             unexpected_error!("Unable to get db connection from pool, error: {}", e)
         })?;
         resolve_detailed(
-            &config,
+            config,
             query_data,
             merge_strategy,
             &mut conn,
@@ -809,8 +809,6 @@ async fn resolve_handler(
         return Ok(HttpResponse::NotModified().finish());
     };
 
-    let mut config = config;
-
     let resolved_config = {
         let mut conn = state.db_pool.get().map_err(|e| {
             log::error!("Unable to get db connection from pool, error: {e}");
@@ -818,7 +816,7 @@ async fn resolve_handler(
         })?;
         // TODO: resolve doesn't return diesel::error, figure that out
         resolve(
-            &mut config,
+            config,
             query_data,
             merge_strategy,
             &mut conn,

@@ -337,6 +337,20 @@
                         "explode": true
                     },
                     {
+                        "name": "exclude_prefix",
+                        "in": "query",
+                        "description": "Excludes configuration keys that start with any of the supplied prefixes. When combined with prefix, exclusion is applied to the allow-listed keys.",
+                        "style": "form",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "Excludes configuration keys that start with any of the supplied prefixes. When combined with prefix, exclusion is applied to the allow-listed keys."
+                        },
+                        "explode": true
+                    },
+                    {
                         "name": "version",
                         "in": "query",
                         "schema": {
@@ -459,6 +473,20 @@
                             "items": {
                                 "type": "string"
                             }
+                        },
+                        "explode": true
+                    },
+                    {
+                        "name": "exclude_prefix",
+                        "in": "query",
+                        "description": "Excludes configuration keys that start with any of the supplied prefixes. When combined with prefix, exclusion is applied to the allow-listed keys.",
+                        "style": "form",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "Excludes configuration keys that start with any of the supplied prefixes. When combined with prefix, exclusion is applied to the allow-listed keys."
                         },
                         "explode": true
                     },

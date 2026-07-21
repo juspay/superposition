@@ -143,24 +143,31 @@ fn uri_query(_input: &crate::operation::get_detailed_resolved_config::GetDetaile
             }
         }
     }
-    if let ::std::option::Option::Some(inner_3) = &_input.version {
+    if let ::std::option::Option::Some(inner_3) = &_input.exclude_prefix {
          {
-            query.push_kv("version", &::aws_smithy_http::query::fmt_string(inner_3));
+            for inner_4 in inner_3 {
+                query.push_kv("exclude_prefix", &::aws_smithy_http::query::fmt_string(inner_4));
+            }
         }
     }
-    if let ::std::option::Option::Some(inner_4) = &_input.show_reasoning {
+    if let ::std::option::Option::Some(inner_5) = &_input.version {
          {
-            query.push_kv("show_reasoning", ::aws_smithy_types::primitive::Encoder::from(*inner_4).encode());
+            query.push_kv("version", &::aws_smithy_http::query::fmt_string(inner_5));
         }
     }
-    if let ::std::option::Option::Some(inner_5) = &_input.context_id {
+    if let ::std::option::Option::Some(inner_6) = &_input.show_reasoning {
          {
-            query.push_kv("context_id", &::aws_smithy_http::query::fmt_string(inner_5));
+            query.push_kv("show_reasoning", ::aws_smithy_types::primitive::Encoder::from(*inner_6).encode());
         }
     }
-    if let ::std::option::Option::Some(inner_6) = &_input.resolve_remote {
+    if let ::std::option::Option::Some(inner_7) = &_input.context_id {
          {
-            query.push_kv("resolve_remote", ::aws_smithy_types::primitive::Encoder::from(*inner_6).encode());
+            query.push_kv("context_id", &::aws_smithy_http::query::fmt_string(inner_7));
+        }
+    }
+    if let ::std::option::Option::Some(inner_8) = &_input.resolve_remote {
+         {
+            query.push_kv("resolve_remote", ::aws_smithy_types::primitive::Encoder::from(*inner_8).encode());
         }
     }
     ::std::result::Result::Ok(())

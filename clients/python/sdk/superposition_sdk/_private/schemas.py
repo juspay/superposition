@@ -2353,9 +2353,19 @@ GET_DETAILED_RESOLVED_CONFIG_INPUT = Schema.collection(
             ],
         },
 
+        "exclude_prefix": {
+            "target": STRING_LIST,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="exclude_prefix"),
+
+            ],
+        },
+
         "version": {
             "target": STRING,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="version"),
@@ -2365,7 +2375,7 @@ GET_DETAILED_RESOLVED_CONFIG_INPUT = Schema.collection(
 
         "show_reasoning": {
             "target": BOOLEAN,
-            "index": 4,
+            "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="show_reasoning"),
@@ -2375,7 +2385,7 @@ GET_DETAILED_RESOLVED_CONFIG_INPUT = Schema.collection(
 
         "merge_strategy": {
             "target": MERGE_STRATEGY,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-merge-strategy"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -2385,7 +2395,7 @@ GET_DETAILED_RESOLVED_CONFIG_INPUT = Schema.collection(
 
         "context_id": {
             "target": STRING,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="context_id"),
@@ -2395,7 +2405,7 @@ GET_DETAILED_RESOLVED_CONFIG_INPUT = Schema.collection(
 
         "resolve_remote": {
             "target": BOOLEAN,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="resolve_remote"),
@@ -2405,7 +2415,7 @@ GET_DETAILED_RESOLVED_CONFIG_INPUT = Schema.collection(
 
         "context": {
             "target": CONTEXT_MAP,
-            "index": 8,
+            "index": 9,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
@@ -2521,9 +2531,19 @@ GET_RESOLVED_CONFIG_INPUT = Schema.collection(
             ],
         },
 
+        "exclude_prefix": {
+            "target": STRING_LIST,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="exclude_prefix"),
+
+            ],
+        },
+
         "version": {
             "target": STRING,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="version"),
@@ -2533,7 +2553,7 @@ GET_RESOLVED_CONFIG_INPUT = Schema.collection(
 
         "show_reasoning": {
             "target": BOOLEAN,
-            "index": 4,
+            "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="show_reasoning"),
@@ -2543,7 +2563,7 @@ GET_RESOLVED_CONFIG_INPUT = Schema.collection(
 
         "merge_strategy": {
             "target": MERGE_STRATEGY,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-merge-strategy"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -2553,7 +2573,7 @@ GET_RESOLVED_CONFIG_INPUT = Schema.collection(
 
         "context_id": {
             "target": STRING,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="context_id"),
@@ -2563,7 +2583,7 @@ GET_RESOLVED_CONFIG_INPUT = Schema.collection(
 
         "resolve_remote": {
             "target": BOOLEAN,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="resolve_remote"),
@@ -2573,7 +2593,7 @@ GET_RESOLVED_CONFIG_INPUT = Schema.collection(
 
         "context": {
             "target": CONTEXT_MAP,
-            "index": 8,
+            "index": 9,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 

@@ -1252,6 +1252,8 @@ async def _serialize_get_detailed_resolved_config(input: GetDetailedResolvedConf
     query_params: list[tuple[str, str | None]] = []
     if input.prefix is not None:
         query_params.extend(("prefix", e) for e in input.prefix)
+    if input.exclude_prefix is not None:
+        query_params.extend(("exclude_prefix", e) for e in input.exclude_prefix)
     if input.version is not None:
         query_params.append(("version", input.version))
     if input.show_reasoning is not None:
@@ -1506,6 +1508,8 @@ async def _serialize_get_resolved_config(input: GetResolvedConfigInput, config: 
     query_params: list[tuple[str, str | None]] = []
     if input.prefix is not None:
         query_params.extend(("prefix", e) for e in input.prefix)
+    if input.exclude_prefix is not None:
+        query_params.extend(("exclude_prefix", e) for e in input.exclude_prefix)
     if input.version is not None:
         query_params.append(("version", input.version))
     if input.show_reasoning is not None:
