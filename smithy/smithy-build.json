@@ -80,7 +80,8 @@
         "Workspace Management",
         "Secrets",
         "Audit & Monitoring",
-        "Variables"
+        "Variables",
+        "Background Jobs"
       ],
       "defaultBlobFormat": "byte",
       "keepUnusedComponents": false,
