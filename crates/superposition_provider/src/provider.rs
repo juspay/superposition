@@ -33,7 +33,7 @@ impl SuperpositionProvider {
         // Create CAC config
         let superposition_options = SuperpositionOptions::new(
             provider_options.endpoint,
-            provider_options.token,
+            AuthMethod::Token(provider_options.token),
             provider_options.org_id,
             provider_options.workspace_id,
         );

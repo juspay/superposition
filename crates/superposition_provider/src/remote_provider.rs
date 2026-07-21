@@ -22,21 +22,11 @@ pub struct SuperpositionAPIProvider {
     client: Client,
 }
 
-fn create_client(options: &SuperpositionOptions) -> Client {
-    let sdk_config = SdkConfig::builder()
-        .endpoint_url(&options.endpoint)
-        .bearer_token(options.token.clone().into())
-        .behavior_version_latest()
-        .build();
-
-    Client::from_conf(sdk_config)
-}
-
 impl SuperpositionAPIProvider {
     /// Create a new provider without response caching.
     pub fn new(options: SuperpositionOptions) -> Self {
         Self {
-            client: create_client(&options),
+            client: Client::from_conf(SdkConfig::from(&options)),
             options,
             global_context: RwLock::new(EvaluationContext::default()),
             metadata: ProviderMetadata {
