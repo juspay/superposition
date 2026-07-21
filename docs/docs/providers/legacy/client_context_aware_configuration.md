@@ -67,9 +67,24 @@ Create a client in the factory. You can chose to use the result to check for err
 ##### Function definition
 ```
 pub async fn create_client(
+        &self,
         tenant: String,
         polling_interval: Duration,
         hostname: String,
+    ) -> Result<Arc<Client>, String>
+```
+
+To configure the local resolution cache explicitly, use:
+
+```
+pub async fn create_client_with_cache_properties(
+        &self,
+        tenant: String,
+        polling_interval: Duration,
+        hostname: String,
+        cache_max_capacity: u64,
+        cache_ttl: u64,
+        cache_tti: u64,
     ) -> Result<Arc<Client>, String>
 ```
 ##### Params
@@ -100,23 +115,23 @@ Below is the rust implementation to instantiate CAC client using the client fact
 
 ```rust
 use cac_client as cc;
+use std::time::Duration;
 
-let tenants: Vec<String> = ["dev", "test"];
-//You can create a clientFactory
+let tenants = ["dev", "test"];
 for tenant in tenants {
-    cc::CLIENT_FACTORY
+    let client = cc::CLIENT_FACTORY
         .create_client(
             tenant.to_string(),
-            update_cac_periodically,//flag for if you want to update cac config periodically
-            polling_interval,//polling interval in secs, default is 60
-            cac_hostname.to_string(),// superposition service host
+            Duration::from_secs(10),
+            cac_hostname.to_string(),
         )
         .await
         .expect(format!("{}: Failed to acquire cac_client", tenant).as_str());
+    tokio::spawn(client.clone().run_polling_updates());
 };
-//You can extract an individual tenant's client from clientFactory
+
 let tenant = "dev".to_owned();
-let cac_client = cc::CLIENT_FACTORY.get_client(tenant.clone()).map_err(|e| {
+let cac_client = cc::CLIENT_FACTORY.get_client(tenant.clone()).await.map_err(|e| {
         log::error!("{}: {}", tenant.clone(), e);
         ErrorType::IgnoreError(format!("{}: Failed to get cac client", tenant))
     })?;
@@ -151,7 +166,11 @@ pub struct Config {
 ##### Funtion Definition
 
 ```
-pub fn get_full_config_state_with_filter(query_data: Option<Map<String, Value>>) -> Result<Config, String>
+pub async fn get_full_config_state_with_filter(
+        &self,
+        query_data: Option<Map<String, Value>>,
+        prefix: Option<Vec<String>>,
+    ) -> Result<Config, String>
 ``` 
 
 #### Get the last modified Time
@@ -161,24 +180,30 @@ CAC client lets you get the last modified time of your configs, in case you want
 ##### Function Definition
 
 ```
-pub fn get_last_modified() -> Result<DateTime<Utc>, String>
+pub async fn get_last_modified(&self) -> DateTime<Utc>
 ``` 
 
 #### Evaluate Context to derive configs
 
-Given a context, get overrides for a specific set of keys, if provided. If None is provided for `filter_keys`, all configs are returned.
+Given a context, get overrides for a specific set of keys, if provided. If None is provided for `filter_keys`, all configs are returned. The Rust client also requires a `MergeStrategy`.
 
 ##### Function Definition
 
 ```
-pub fn get_resolved_config(context: Map<String, Value>, filter_keys: Option<Vec<String>>) -> Result<Map<String, Value>, String>
+pub async fn get_resolved_config(
+        &self,
+        query_data: Map<String, Value>,
+        filter_keys: Option<Vec<String>>,
+        merge_strategy: MergeStrategy,
+    ) -> Result<Map<String, Value>, String>
 ``` 
 ##### Params
 
-| Param         | type                | description                                                                           | Example value                             |
-| ---------     | ------------------  | ------------------------------------------------------------------------------------- | ----------------------------------------- |
-| `context`     | `Map<String, Value>`  | The context under which you want to resolve configs                                   | `{"os": "android", "merchant": "juspay"}` |
-| `filter_keys` | `Option<Vec<String>>` | The keys for which you want the values. If empty, all configuration keys are returned | `Some([payment, network, color])`         |
+| Param            | type                  | description                                                                           | Example value                             |
+| ---------        | ------------------    | ------------------------------------------------------------------------------------- | ----------------------------------------- |
+| `query_data`     | `Map<String, Value>`  | The context under which you want to resolve configs                                   | `{"os": "android", "merchant": "juspay"}` |
+| `filter_keys`    | `Option<Vec<String>>` | The keys for which you want the values. If empty, all configuration keys are returned | `Some(vec!["payment".into(), "network".into()])` |
+| `merge_strategy` | `MergeStrategy`       | Merge mode to use while applying overrides                                            | `MergeStrategy::MERGE`                    |
 
 #### Get Default Config
 
@@ -187,7 +212,10 @@ The default config for a specific set of keys, if provided. If None is provided 
 ##### Function Definition
 
 ```
-pub fn get_default_config(filter_keys: Option<Vec<String>>) -> Result<Map<String, Value>, String>
+pub async fn get_default_config(
+        &self,
+        filter_keys: Option<Vec<String>>,
+    ) -> ExtendedMap
 ```
 ##### Param
 | Param         | type                | description                                                                           | Example value                     |
@@ -237,6 +265,12 @@ Create a new client in the Client Factory
 
 ```
 createCacClient:: Tenant -> Interval -> Hostname -> IO (Either Error ())
+```
+
+To configure cache properties explicitly:
+
+```
+createCacClientWithCacheProperties :: Tenant -> Interval -> Hostname -> Integer -> Integer -> Integer -> IO (Either Error ())
 ```
 
 ##### Param
@@ -316,12 +350,13 @@ getCacLastModified :: ForeignPtr CacClient -> IO (Either Error String)
 
 #### Evaluate Context to derive configs
 
-Given a context, get overrides for a specific set of keys, if provided. If Nothing is provided for `filter_keys`, all configs are returned.
+Given a context, get overrides for a specific set of keys, if provided. If Nothing is provided for `filter_keys`, all configs are returned. `getResolvedConfig` uses `MERGE`; use `getResolvedConfigWithStrategy` to pass `MERGE` or `REPLACE`.
 
 ##### Function Definition
 
 ```
-getResolvedConfig :: ForeignPtr CacClient -> String -> Maybe [String] -> IO (Either Error Value)
+getResolvedConfig :: FromJSON a => ForeignPtr CacClient -> String -> Maybe [String] -> IO (Either Error a)
+getResolvedConfigWithStrategy :: FromJSON a => ForeignPtr CacClient -> String -> Maybe [String] -> MergeStrategy -> IO (Either Error a)
 ``` 
 ##### Params
 

@@ -25,25 +25,25 @@ waiting_charge = { value = 2.0, schema = { type = "number", minimum = 0, descrip
 
 [dimensions]
 city = {
-    position = 4,
+    position = 5,
     schema = { type = "string", enum = ["Bangalore", "Delhi", "Chennai", "Mumbai"] }
 }
 vehicle_type = {
-    position = 2,
+    position = 3,
     schema = { type = "string", enum = ["auto", "cab", "bike", "premium"] }
 }
 hour_of_day = {
-    position = 3,
+    position = 4,
     schema = { type = "integer", minimum = 0, maximum = 23 }
 }
 
 # Derived dimension for time periods
 time_period = {
-    position = 1,
+    position = 2,
     type = "LOCAL_COHORT:hour_of_day",
     schema = {
         type = "string",
-        enum = ["morning_rush", "evening_rush", "off_peak"],
+        enum = ["morning_rush", "evening_rush", "otherwise"],
         definitions = {
             morning_rush = { and = [
                 { ">=" = [{ var = "hour_of_day" }, 7] },
@@ -148,7 +148,7 @@ waiting_charge = 1.5
 | `{ city: "Bangalore", vehicle_type: "cab", hour_of_day: 14 }`  | 16.0        | 0.0          | 50.0      |
 | `{ city: "Delhi", vehicle_type: "cab", hour_of_day: 18 }`      | 22.0        | 3.0          | 60.0      |
 | `{ city: "Chennai", vehicle_type: "bike", hour_of_day: 8 }`    | 12.0        | 1.5          | 30.0      |
-| `{ city: "Mumbai", vehicle_type: "premium", hour_of_day: 20 }` | 35.0        | 2.0          | 100.0     |
+| `{ city: "Mumbai", vehicle_type: "premium", hour_of_day: 20 }` | 22.0        | 2.0          | 55.0      |
 
 ---
 

@@ -126,25 +126,23 @@ SuperTOML configurations can also be written in JSON - both formats are equivale
 
 ## Language Support
 
-SuperTOML can be consumed from multiple programming languages:
+SuperTOML is parsed by the shared `superposition_core` implementation. The checked-in Rust and Python providers expose local file/data-source flows around that resolver; the other OpenFeature providers consume Superposition service data through their current provider APIs.
 
 | Language   | Library                  | Description                     |
 | ---------- | ------------------------ | ------------------------------- |
 | Rust       | `superposition_provider` | Native Rust implementation      |
 | JavaScript | `superposition-provider` | OpenFeature compatible provider |
 | Python     | `superposition_provider` | OpenFeature compatible provider |
-| Java       | `openfeature-provider`   | OpenFeature compatible provider |
-
-All languages support the same configuration format and resolution logic.
+| Java       | `io.juspay.superposition.openfeature:superposition-provider` | OpenFeature compatible provider |
 
 ## LSP Support
 
-SuperTOML has full Language Server Protocol support, providing:
+SuperTOML has a `supertoml-analyzer` Language Server Protocol implementation under `tooling/lsp`, providing:
 
 - **Autocomplete** - Suggestions for dimension names, config keys, and enum values
 - **Validation** - Real-time schema validation with error diagnostics
 - **Hover Information** - Documentation and type information on hover
-- **Go to Definition** - Navigate to dimension or config definitions
+- **Formatting** - Full-document formatting through the LSP server
 
 This makes editing SuperTOML files as comfortable as working with code in an IDE.
 

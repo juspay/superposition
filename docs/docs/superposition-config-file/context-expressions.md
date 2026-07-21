@@ -64,7 +64,7 @@ For these use cases, use **LOCAL_COHORT dimensions** with JSONLogic definitions.
 
 ## Complex Conditions with LOCAL_COHORT
 
-When you need conditions beyond simple equality, create a LOCAL_COHORT dimension that derives its value using JSONLogic.
+When you need conditions beyond simple equality on one source dimension, create a LOCAL_COHORT dimension that derives its value using JSONLogic.
 
 ### What is JSONLogic?
 
@@ -134,7 +134,7 @@ time_period = {
     type = "LOCAL_COHORT:hour_of_day",
     schema = {
         type = "string",
-        enum = ["morning_rush", "evening_rush", "off_peak"],
+        enum = ["morning_rush", "evening_rush", "otherwise"],
         definitions = {
             morning_rush = { "and": [
                 { ">=": [{ "var": "hour_of_day" }, 7] },
@@ -174,7 +174,7 @@ is_not_delhi = {
     type = "LOCAL_COHORT:city",
     schema = {
         type = "string",
-        enum = ["yes", "no"],
+        enum = ["yes", "otherwise"],
         definitions = {
             yes = { "!=": [{ "var": "city" }, "Delhi"] }
         }
@@ -220,42 +220,36 @@ _context_ = { region = "north" }
 per_km_rate = 22.0
 ```
 
-### Complex Conditions: Peak Hours in Specific City
+### Complex Conditions: Business Hour Bands
 
-Combine multiple conditions:
+Combine multiple JSONLogic operations against the cohort's source dimension:
 
 ```toml
 [dimensions]
-city = { position = 4, schema = { type = "string" } }
 hour_of_day = { position = 3, schema = { type = "integer", minimum = 0, maximum = 23 } }
 
-delhi_peak_hours = {
+business_hour_band = {
     position = 1,
-    type = "LOCAL_COHORT:city",
+    type = "LOCAL_COHORT:hour_of_day",
     schema = {
         type = "string",
-        enum = ["yes", "no"],
+        enum = ["business_hours", "late_night", "otherwise"],
         definitions = {
-            yes = { "and": [
-                { "==": [{ "var": "city" }, "Delhi"] },
-                { "or": [
-                    { "and": [
-                        { ">=": [{ "var": "hour_of_day" }, 8] },
-                        { "<=": [{ "var": "hour_of_day" }, 10] }
-                    ]},
-                    { "and": [
-                        { ">=": [{ "var": "hour_of_day" }, 18] },
-                        { "<=": [{ "var": "hour_of_day" }, 21] }
-                    ]}
-                ]}
+            business_hours = { "and": [
+                { ">=": [{ "var": "hour_of_day" }, 9] },
+                { "<": [{ "var": "hour_of_day" }, 18] }
+            ]},
+            late_night = { "or": [
+                { "<": [{ "var": "hour_of_day" }, 5] },
+                { ">=": [{ "var": "hour_of_day" }, 22] }
             ]}
         }
     }
 }
 
 [[overrides]]
-_context_ = { delhi_peak_hours = "yes" }
-surge_factor = 2.5
+_context_ = { business_hour_band = "late_night" }
+support_mode = "async_only"
 ```
 
 ### Range Check: Age Groups
@@ -272,7 +266,7 @@ age_group = {
     type = "LOCAL_COHORT:user_age",
     schema = {
         type = "string",
-        enum = ["youth", "adult", "senior"],
+        enum = ["youth", "senior", "otherwise"],
         definitions = {
             youth = { "<": [{ "var": "user_age" }, 25] },
             senior = { ">=": [{ "var": "user_age" }, 60] }
@@ -312,7 +306,7 @@ is_peak_hour = {
     type = "LOCAL_COHORT:hour_of_day",
     schema = {
         type = "string",
-        enum = ["yes", "no"],
+        enum = ["yes", "otherwise"],
         definitions = {
             yes = { "or": [
                 { "and": [
@@ -346,16 +340,16 @@ condition_1 = { ... }
 check = { ... }
 ```
 
-### 4. Always Include a Default Value
+### 4. Always Include `otherwise`
 
-Cohorts should have a default value for unmatched cases:
+Local cohorts must include `otherwise` in the enum for unmatched cases:
 
 ```toml
 schema = {
     type = "string",
-    enum = ["yes", "no"],  # "no" is the default for unmatched
+    enum = ["yes", "otherwise"],
     definitions = {
-        yes = { ... }  # Only define the "yes" condition
+        yes = { ... }  # Do not define "otherwise"; it is the fallback
     }
 }
 ```
@@ -374,7 +368,7 @@ Context conditions are validated at parse time:
 
 1. **Dimension existence**: All dimensions in `_context_` must be declared
 2. **Value validity**: Values must match dimension schemas
-3. **Cohort definitions**: JSONLogic must be valid and reference existing dimensions
+3. **Cohort definitions**: `LOCAL_COHORT` schemas must include `otherwise`, exclude it from `definitions`, and define every other enum option
 
 ### Example Errors
 

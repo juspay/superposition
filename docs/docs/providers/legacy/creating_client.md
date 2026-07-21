@@ -13,6 +13,7 @@ title: Creating a Client
     - [const char \*cac\_last\_error\_message(void)](#const-char-cac_last_error_messagevoid)
     - [void cac\_free\_string(char \*s)](#void-cac_free_stringchar-s)
     - [int cac\_new\_client(const char \*tenant, unsigned long update\_frequency, const char \*hostname)](#int-cac_new_clientconst-char-tenant-unsigned-long-update_frequency-const-char-hostname)
+    - [int cac\_new\_client\_with\_cache\_properties(const char \*tenant, unsigned long update\_frequency, const char \*hostname, unsigned long cache\_max\_capacity, unsigned long cache\_ttl, unsigned long cache\_tti)](#int-cac_new_client_with_cache_propertiesconst-char-tenant-unsigned-long-update_frequency-const-char-hostname-unsigned-long-cache_max_capacity-unsigned-long-cache_ttl-unsigned-long-cache_tti)
     - [void cac\_start\_polling\_update(const char \*tenant)](#void-cac_start_polling_updateconst-char-tenant)
     - [void cac\_free\_client(struct Arc\_Client \*ptr)](#void-cac_free_clientstruct-arc_client-ptr)
     - [struct Arc\_Client \*cac\_get\_client(const char \*tenant)](#struct-arc_client-cac_get_clientconst-char-tenant)
@@ -31,9 +32,9 @@ title: Creating a Client
     - [void expt\_start\_polling\_update(const char \*tenant)](#void-expt_start_polling_updateconst-char-tenant)
     - [void expt\_free\_client(struct Arc\_Client \*ptr)](#void-expt_free_clientstruct-arc_client-ptr)
     - [struct Arc\_Client \*expt\_get\_client(const char \*tenant)](#struct-arc_client-expt_get_clientconst-char-tenant)
-    - [char \*expt\_get\_applicable\_variant(struct Arc\_Client \*client, const char \*c\_context, short toss)](#char-expt_get_applicable_variantstruct-arc_client-client-const-char-c_context-short-toss)
-    - [char \*expt\_get\_satisfied\_experiments(struct Arc\_Client \*client, const char \*c\_context, const char \*filter\_prefix)](#char-expt_get_satisfied_experimentsstruct-arc_client-client-const-char-c_context-const-char-filter_prefix)
-    - [char \*expt\_get\_filtered\_satisfied\_experiments(struct Arc\_Client \*client, const char \*c\_context, const char \*filter\_prefix)](#char-expt_get_filtered_satisfied_experimentsstruct-arc_client-client-const-char-c_context-const-char-filter_prefix)
+    - [char \*expt\_get\_applicable\_variant(struct Arc\_Client \*client, const char \*c\_dimensions, const char \*c\_context, const char \*identifier, const char \*filter\_prefix)](#char-expt_get_applicable_variantstruct-arc_client-client-const-char-c_dimensions-const-char-c_context-const-char-identifier-const-char-filter_prefix)
+    - [char \*expt\_get\_satisfied\_experiments(struct Arc\_Client \*client, const char \*c\_dimensions, const char \*c\_context, const char \*filter\_prefix)](#char-expt_get_satisfied_experimentsstruct-arc_client-client-const-char-c_dimensions-const-char-c_context-const-char-filter_prefix)
+    - [char \*expt\_get\_filtered\_satisfied\_experiments(struct Arc\_Client \*client, const char \*c\_dimensions, const char \*c\_context, const char \*filter\_prefix)](#char-expt_get_filtered_satisfied_experimentsstruct-arc_client-client-const-char-c_dimensions-const-char-c_context-const-char-filter_prefix)
     - [char \*expt\_get\_running\_experiments(struct Arc\_Client \*client)](#char-expt_get_running_experimentsstruct-arc_client-client)
   - [Testing with an Example](#testing-with-an-example-1)
 
@@ -61,7 +62,7 @@ Thank you for considering adding support for a new language in superposition cli
 All C structs and functions are generated automatically when the  `cac-client` written in rust is compiled. Superposition uses the crate `cbindgen` to do this. The compiler generates a `.h` header file and an object file specific to the target platform, for example a `.dll` for windows or `.so` for linux. Some tips for writing an FFI/ABI to these files:
 
 - All memory operations should be done by the rust segment of the code. You should always free memory for strings and clients using the inbuilt `free_*` functions
-- You don't need to store the client on your implementation's end. Always use `get_cac_client` to get a pointer to a client to pass to other functions 
+- You don't need to store the client on your implementation's end. Always use `cac_get_client` to get a pointer to a client to pass to other functions
 - Remember, a client is created for a particular tenant
 - Check the header files in the `headers` directory for further documentation
 - Your client implementation should expect the object file that it dynamically links to be present in the same directory
@@ -91,6 +92,13 @@ This function takes a character pointer as an arg and frees memory allocated to 
 ### int cac_new_client(const char *tenant, unsigned long update_frequency, const char *hostname)
 
 A function that takes a tenant name as string, the update frequency and the hostname of the Superposition Server as arguments and creates a client that is internally managed by rust. Use `cac_get_client` to get a reference to this client
+
+Returns 0 if client was successfully initialized
+Returns 1 if an error occurred, use `cac_last_error_message` to get the error
+
+### int cac_new_client_with_cache_properties(const char *tenant, unsigned long update_frequency, const char *hostname, unsigned long cache_max_capacity, unsigned long cache_ttl, unsigned long cache_tti)
+
+Creates a CAC client with explicit cache sizing and expiry settings. `cache_max_capacity` is interpreted as megabytes, while `cache_ttl` and `cache_tti` are interpreted as minutes.
 
 Returns 0 if client was successfully initialized
 Returns 1 if an error occurred, use `cac_last_error_message` to get the error
@@ -129,7 +137,7 @@ returns a string that represents the config of your tenant based on your client 
 
 ### const char *cac_get_resolved_config(struct Arc_Client *client, const char *query, const char *filter_keys, const char *merge_strategy)
 
-Does the same thing as `cac_get_config` but does not return the entire config, rather the config filtered on the keys provided as arguments
+Resolves configuration for `query`, filters by `filter_keys` when provided, and applies the requested `merge_strategy`. `filter_keys` is a pipe-separated string such as `payment|network`. `merge_strategy` is parsed as `merge` or `replace`, defaulting to merge for unknown values.
 
 returns a null pointer if an error occurred. Use `cac_last_error_message` to get the error
 
@@ -154,7 +162,7 @@ Checkout the examples directory to understand how to create examples for `cac_cl
 All C structs and functions are generated automatically when the  `exp-client` written in rust is compiled. Superposition uses the crate `cbindgen` to do this. The compiler generates a `.h` header file and an object file specific to the target platform, for example a `.dll` for windows or `.so` for linux. Some tips for writing an FFI/ABI to these files:
 
 - All memory operations should be done by the rust segment of the code. You should always free memory for strings and clients using the inbuilt `free_*` functions
-- You don't need to store the client on your implementation's end. Always use `get_exp_client` to get a pointer to a client to pass to other functions 
+- You don't need to store the client on your implementation's end. Always use `expt_get_client` to get a pointer to a client to pass to other functions
 - Remember, a client is created for a particular tenant
 - Check the header files in the `headers` directory for further documentation
 - Your client implementation should expect the object file that it dynamically links to be present in the same directory
@@ -194,7 +202,7 @@ Start polling the superposition server for updates for the given tenant
 
 ### void expt_free_client(struct Arc_Client *ptr)
 
-Free the memory allocated to the cac client. Always call this function instead of the implementing language's `free` memory function
+Free the memory allocated to the experimentation client. Always call this function instead of the implementing language's `free` memory function
 
 ### struct Arc_Client *expt_get_client(const char *tenant)
 
@@ -204,23 +212,23 @@ returns a null pointer if an error occurred. Use `expt_last_error_message` to ge
 
 returns a pointer to Arc_Client that can be used to perform other client operations
 
-### char *expt_get_applicable_variant(struct Arc_Client *client, const char *c_context, short toss)
+### char *expt_get_applicable_variant(struct Arc_Client *client, const char *c_dimensions, const char *c_context, const char *identifier, const char *filter_prefix)
 
-get the experiments that apply to a given context `c_context`. It also takes a number toss between 0 - 100 that is used to assign a variant IDs 
+Get the variant IDs that apply to `c_context`. `c_dimensions` is a JSON object of dimension metadata used to evaluate local cohorts, `identifier` is a stable bucketing key, and `filter_prefix` is an optional comma-separated config-key prefix filter.
 
 returns null pointer if no variant is found
 returns a string formatted array of variant IDs that match the parameters passed
 
-### char *expt_get_satisfied_experiments(struct Arc_Client *client, const char *c_context, const char *filter_prefix)
+### char *expt_get_satisfied_experiments(struct Arc_Client *client, const char *c_dimensions, const char *c_context, const char *filter_prefix)
 
-get the experiments that apply to a given context `c_context`. It also filters on config key prefix
+Get the experiments that apply to `c_context` after evaluating local cohorts from `c_dimensions`. It also filters on config key prefix.
 
 returns null pointer if no variant is found
 returns a string formatted array of experiments that match the parameters passed
 
-### char *expt_get_filtered_satisfied_experiments(struct Arc_Client *client, const char *c_context, const char *filter_prefix)
+### char *expt_get_filtered_satisfied_experiments(struct Arc_Client *client, const char *c_dimensions, const char *c_context, const char *filter_prefix)
 
-get the experiments that apply to a given context `c_context`. It also filters on config key prefix
+Get the experiments that apply to `c_context`, skipping unresolved local cohorts while evaluating dimensions. It also filters on config key prefix.
 
 returns null pointer if no variant is found
 returns a string formatted array of experiments that match the parameters passed

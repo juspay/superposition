@@ -8,10 +8,10 @@ The `cac_redis_module` extends Redis with custom commands that allow clients to 
 
 ## Features
 
-- **Context-Aware Configuration**: Resolve configurations based on dynamic context conditions using JSONLogic
+- **Context-Aware Configuration**: Resolve configurations based on dynamic context conditions using Superposition's JSONLogic-compatible evaluator
 - **Redis Integration**: Access configuration resolution through Redis commands
 - **Real-time Configuration**: Load and evaluate configurations from local JSON files
-- **Multiple Merge Strategies**: Support for MERGE and REPLACE strategies when applying overrides
+- **MERGE Resolution**: `CAC.EVAL` applies selected overrides with the `MERGE` strategy. `REPLACE` exists in the internal evaluator, but is not exposed by the Redis command.
 - **Error Handling**: Comprehensive error reporting with timestamps and detailed messages
 
 ## Architecture
@@ -38,12 +38,14 @@ git clone https://github.com/juspay/superposition.git
 cd superposition/examples/cac_redis_module
 ```
 
-2. Build the Redis module:
+2. As checked in today, this example is under the repository workspace but is not listed in the root `workspace.members`. Before running Cargo commands from this directory, either add `examples/cac_redis_module` to the root workspace members or make the example an independent workspace by adding an empty `[workspace]` table to `examples/cac_redis_module/Cargo.toml`.
+
+3. Build the Redis module:
 ```bash
 cargo build --release
 ```
 
-3. The compiled module will be available at `target/release/libredis_module_cac.so` (Linux) or `target/release/libredis_module_cac.dylib` (macOS).
+4. The compiled module is emitted to Cargo's target directory. In a root workspace build, that is typically `<repo>/target/release/libredis_module_cac.so` on Linux or `<repo>/target/release/libredis_module_cac.dylib` on macOS. In a standalone example workspace, the same files are under `target/release/` in the example directory.
 
 ### Loading the Module
 
@@ -223,7 +225,7 @@ The module provides detailed error messages for various scenarios:
 ## Performance Considerations
 
 - **File I/O**: Configuration is loaded from disk on each evaluation. For production use, consider caching mechanisms
-- **JSON Parsing**: JSONLogic evaluation is performed for each context condition
+- **Condition Evaluation**: The Superposition logic helper evaluates each context condition
 - **Memory Usage**: Module keeps minimal state; most data is processed per request
 
 ## Development
@@ -234,8 +236,7 @@ The module uses these key dependencies:
 
 - `redis-module`: Redis module SDK for Rust
 - `serde_json`: JSON serialization/deserialization
-- `jsonlogic`: JSONLogic rule evaluation engine
-- `superposition_types`: Superposition's type definitions
+- `superposition_types`: Superposition's shared types and condition evaluation helpers
 
 ### Extending the Module
 
@@ -304,7 +305,7 @@ redis-cli> CAC.EVAL '{"test": "value"}'
 
 - The module reads configuration files from the local filesystem
 - No authentication is performed on Redis commands (use Redis AUTH if needed)
-- JSONLogic evaluation should be considered when exposing user-controllable context data
+- Condition evaluation should be considered when exposing user-controllable context data
 
 ## License
 

@@ -90,9 +90,19 @@ Type templates are used when defining:
 
 **Example Usage in Default Config:**
 ```toml
-[default-config]
-per_km_rate = { "value" = 20.0, "schema" = { "$ref": "#/types/Decimal" } }
-user_location = { "value" = {"lat": 0.0, "lng": 0.0}, "schema" = { "$ref": "#/types/GeographicCoordinate" } }
+[default-configs]
+per_km_rate = { value = 20.0, schema = { type = "number" } }
+user_location = {
+  value = { lat = 0.0, lng = 0.0 },
+  schema = {
+    type = "object",
+    properties = {
+      lat = { type = "number" },
+      lng = { type = "number" }
+    },
+    required = ["lat", "lng"]
+  }
+}
 ```
 
 #### Type Template Management
