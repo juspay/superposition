@@ -270,7 +270,10 @@ repeat requests bearing the same credentials:
 - **Value**: the resolved `User` plus an expiry.
 - **TTL**: derived from the token's `expires_in` / `exp`, minus a 30s safety
   margin (60s fallback when the IdP omits expiry). Introspection results are
-  additionally **capped at 5 minutes** so revocation lag stays small.
+  additionally **capped at 5 minutes** so revocation lag stays small. All three
+  bounds are overridable via env (`OIDC_CACHE_REFRESH_SAFETY_MARGIN_SECS`,
+  `OIDC_FALLBACK_TTL_SECS`, `OIDC_MAX_INTROSPECTION_CACHE_TTL_SECS`; seconds) —
+  see [Environment variables](./environment-variables.md).
 - Expired entries are pruned lazily on write, so the cache cannot grow unbounded.
 
 **Revocation trade-off:** because results are cached, a revoked credential can
