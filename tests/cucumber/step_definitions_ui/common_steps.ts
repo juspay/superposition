@@ -17,10 +17,9 @@ Then(
   "the operation should fail with error matching {string}",
   function (this: PlaywrightWorld, errorPattern: string) {
     assert.ok(this.lastError !== undefined, "Expected an error but operation succeeded");
-    // The SDK may throw a SyntaxError when the server returns non-JSON error responses.
-    // In that case, the raw server response is available on $response.body.
-    const rawBody = typeof this.lastError?.$response?.body === "string"
-      ? this.lastError.$response.body
+    // The SDK stores raw response text on $responseBodyText for non-JSON errors
+    const rawBody = typeof this.lastError?.$responseBodyText === "string"
+      ? this.lastError.$responseBodyText
       : "";
     const message = rawBody || this.lastError?.message || String(this.lastError);
     assert.ok(
