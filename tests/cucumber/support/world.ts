@@ -49,7 +49,7 @@ export class SuperpositionWorld extends World {
   public experimentVariants: any[] = [];
   public createdExperimentIds: string[] = [];
   public _pendingExpName: string = "";
-  public _pendingExpContext: Record<string, unknown> = {};
+  public _pendingExpContext: Record<string, any> = {};
   public _pendingExpVariants: any[] = [];
 
   // Experiment group state
