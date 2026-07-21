@@ -4,7 +4,7 @@ import json
 import logging
 from typing import Tuple, Dict, List, Any, Optional
 from .configuration_client import ConfigurationClient
-from .types import SuperpositionOptions, SuperpositionProviderOptions, ConfigurationOptions, ExperimentationOptions
+from .types import SuperpositionOptions, SuperpositionProviderOptions, ConfigurationOptions, ExperimentationOptions, TokenAuth
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ class SuperpositionProvider(AbstractProvider):
                 self.client = ConfigurationClient(
                     superposition_options=SuperpositionOptions(
                         endpoint=self.options.endpoint,
-                        token=self.options.token,
+                        auth=TokenAuth(self.options.token),
                         org_id=self.options.org_id,
                         workspace_id=self.options.workspace_id
                     ),
