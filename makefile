@@ -245,6 +245,11 @@ test: setup frontend superposition
 				'http://localhost:8080/health' 2>&1 > /dev/null
 	cd tests && bun test:clean
 	$(MAKE) bindings-test
+	@echo "=== Installing cucumber test dependencies ==="
+	cd tests/cucumber && npm ci
+	@echo "=== Running API tests via cucumber ==="
+	cd tests/cucumber && npm run test:api || echo "WARNING: Cucumber API tests failed (non-blocking while stabilizing)"
+	@echo "=== Skipping UI cucumber tests in CI (requires Playwright browser) ==="
 	$(MAKE) kill
 
 ## npm run test
