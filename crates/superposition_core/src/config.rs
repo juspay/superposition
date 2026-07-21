@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use serde_json::{Map, Value};
 pub use superposition_types::api::config::MergeStrategy;
 use superposition_types::{
-    logic::evaluate_local_cohorts, Config, Context, DimensionInfo, Overrides,
+    logic::evaluate_local_cohorts, Context, DimensionInfo, Overrides,
 };
 
 pub fn eval_config(
@@ -19,51 +19,26 @@ pub fn eval_config(
     // leaves untouched, so it is safe to compute once regardless of the path.
     let modified_query_data = evaluate_local_cohorts(dimensions, query_data);
 
-    let filter_prefixes = filter_prefixes.filter(|p| !p.is_empty());
-
-    // Fast path: no prefix filtering. Resolve directly against the borrowed
-    // contexts/overrides instead of deep-cloning the entire context set (which
-    // can be hundreds of thousands of entries) into a temporary `Config`.
-    let Some(prefixes) = filter_prefixes else {
-        let overrides_map = get_overrides(
-            &modified_query_data,
-            contexts,
-            overrides,
-            &merge_strategy,
-            None,
-        )?;
-
-        let mut result_config = default_config;
-        merge_overrides_on_default_config(
-            &mut result_config,
-            overrides_map,
-            &merge_strategy,
-        );
-        return Ok(result_config);
-    };
-
-    // Slow path: prefix filtering needs an owned, filtered `Config`.
-    let config = Config {
-        default_configs: default_config.into(),
-        contexts: contexts.to_vec(),
-        overrides: overrides.clone(),
-        dimensions: dimensions.clone(),
-    }
-    .filter_by_prefix(&HashSet::from_iter(prefixes));
+    let filter_prefixes: Option<HashSet<String>> = filter_prefixes
+        .filter(|prefixes| !prefixes.is_empty())
+        .map(HashSet::from_iter);
 
     let overrides_map: Map<String, Value> = get_overrides(
         &modified_query_data,
-        &config.contexts,
-        &config.overrides,
+        contexts,
+        overrides,
         &merge_strategy,
+        filter_prefixes.as_ref(),
         None,
     )?;
 
-    // Apply overrides to default config
-    let mut result_config = config.default_configs;
+    let mut result_config = match &filter_prefixes {
+        Some(prefixes) => filter_config_keys_by_prefix(default_config, prefixes),
+        None => default_config,
+    };
     merge_overrides_on_default_config(&mut result_config, overrides_map, &merge_strategy);
 
-    Ok(result_config.into_inner())
+    Ok(result_config)
 }
 
 pub fn eval_config_with_reasoning(
@@ -77,46 +52,26 @@ pub fn eval_config_with_reasoning(
 ) -> Result<Map<String, Value>, String> {
     let modified_query_data = evaluate_local_cohorts(dimensions, query_data);
 
-    let filter_prefixes = filter_prefixes.filter(|p| !p.is_empty());
-
-    let Some(prefixes) = filter_prefixes else {
-        let overrides_map = get_overrides(
-            &modified_query_data,
-            contexts,
-            overrides,
-            &merge_strategy,
-            None,
-        )?;
-
-        let mut result_config = default_config;
-        merge_overrides_on_default_config(
-            &mut result_config,
-            overrides_map,
-            &merge_strategy,
-        );
-        return Ok(result_config);
-    };
-
-    let config = Config {
-        default_configs: default_config.into(),
-        contexts: contexts.to_vec(),
-        overrides: overrides.clone(),
-        dimensions: dimensions.clone(),
-    }
-    .filter_by_prefix(&HashSet::from_iter(prefixes));
+    let filter_prefixes: Option<HashSet<String>> = filter_prefixes
+        .filter(|prefixes| !prefixes.is_empty())
+        .map(HashSet::from_iter);
 
     let overrides_map = get_overrides(
         &modified_query_data,
-        &config.contexts,
-        &config.overrides,
+        contexts,
+        overrides,
         &merge_strategy,
+        filter_prefixes.as_ref(),
         None,
     )?;
 
-    let mut result_config = config.default_configs;
+    let mut result_config = match &filter_prefixes {
+        Some(prefixes) => filter_config_keys_by_prefix(default_config, prefixes),
+        None => default_config,
+    };
     merge_overrides_on_default_config(&mut result_config, overrides_map, &merge_strategy);
 
-    Ok(result_config.into_inner())
+    Ok(result_config)
 }
 
 pub fn merge(doc: &mut Value, patch: &Value) {
@@ -135,11 +90,28 @@ pub fn merge(doc: &mut Value, patch: &Value) {
     }
 }
 
+fn matches_prefix_filter(key: &str, prefix_filter: Option<&HashSet<String>>) -> bool {
+    prefix_filter
+        .map(|prefixes| prefixes.iter().any(|prefix| key.starts_with(prefix)))
+        .unwrap_or(true)
+}
+
+fn filter_config_keys_by_prefix(
+    config: Map<String, Value>,
+    prefix_filter: &HashSet<String>,
+) -> Map<String, Value> {
+    config
+        .into_iter()
+        .filter(|(key, _)| matches_prefix_filter(key, Some(prefix_filter)))
+        .collect()
+}
+
 fn get_overrides(
     query_data: &Map<String, Value>,
     contexts: &[Context],
     overrides: &HashMap<String, Overrides>,
     merge_strategy: &MergeStrategy,
+    prefix_filter: Option<&HashSet<String>>,
     mut on_override_select: Option<&mut dyn FnMut(Context)>,
 ) -> Result<Map<String, Value>, String> {
     let mut required_overrides = Map::new();
@@ -157,11 +129,17 @@ fn get_overrides(
         match merge_strategy {
             MergeStrategy::REPLACE => {
                 for (key, value) in overriden_value.iter() {
+                    if !matches_prefix_filter(key, prefix_filter) {
+                        continue;
+                    }
                     required_overrides.insert(key.clone(), value.clone());
                 }
             }
             MergeStrategy::MERGE => {
                 for (key, value) in overriden_value.iter() {
+                    if !matches_prefix_filter(key, prefix_filter) {
+                        continue;
+                    }
                     merge(
                         required_overrides
                             .entry(key.as_str())

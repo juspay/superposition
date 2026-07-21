@@ -126,7 +126,7 @@ MergeStrategy::MERGE => {
 | # | Location | Change |
 |---|----------|--------|
 | 1 | `client.rs` / `provider.rs` | Added `CacConfig::get_dimensions()` that clones only the `dimensions` map under the read lock. The provider now fetches dimensions **only when experimentation is enabled** (they are unused otherwise). |
-| 2 | `core/config.rs` (`eval_config`, `eval_config_with_reasoning`) | Added a fast path that resolves directly against the **borrowed** `contexts`/`overrides` when there is no prefix filter. Only the rare prefix-filter path builds an owned `Config`. |
+| 2 | `core/config.rs` (`eval_config`, `eval_config_with_reasoning`) | Resolves directly against the **borrowed** `contexts`/`overrides` for both unfiltered and prefix-filtered requests. Prefix filtering is applied while collecting override keys, and the already-owned default config is filtered without building a temporary `Config`. |
 | 3 | `core/config.rs` (`get_overrides`) | Clone a matched `Context` only when a callback actually consumes it; merge override maps by reference instead of cloning them into a temporary `Value::Object`. |
 
 All changes preserve existing behavior and semantics; the full
@@ -138,8 +138,9 @@ A criterion benchmark was added at
 `crates/superposition_core/benches/resolve.rs`. It reproduces the reported
 workload shape — **468,006 contexts, 18 regular dimensions, 18 derived local
 cohort dimensions, 3 default configs, and 100 query contexts sampled from
-actual context conditions** — and compares the optimized path against a
-faithful reproduction of the pre-optimization clone behavior.
+actual context conditions**. It measures the unfiltered borrowed path and
+compares the prefix-filtered borrowed path against a faithful reproduction of
+the previous prefix path, which cloned and filtered the complete `Config`.
 
 The benchmark intentionally includes local-cohort evaluation: a subset of
 generated context rules targets derived `lcN` cohort dimensions, while sampled
@@ -172,6 +173,29 @@ covered by follow-up benchmarks.
 > workload. The meaningful takeaway is that removing full-config clones is a
 > large core hot-path win even when local-cohort evaluation is included. It is
 > not a claim about end-to-end provider p99 latency.
+
+### Prefix-filter path results
+
+The prefix benchmark uses the same 468,006-context dataset, 100 rotating
+queries, merge strategy, and `config.a` prefix for both implementations.
+
+| Benchmark | Criterion estimate | Estimate interval |
+|-----------|---------------------:|------------------:|
+| Unfiltered borrowed reference | 54.674 ms | 53.903–55.856 ms |
+| Prefix-filtered, previous cloned path | 904.50 ms | 883.46–927.97 ms |
+| Prefix-filtered, optimized borrowed path | **55.535 ms** | 54.544–56.591 ms |
+
+For the prefix-filtered path, removing the full-config clone reduced the
+central estimate by approximately **93.9%**, from 904.50 ms to 55.535 ms, or
+about a **16.3× speedup**. The optimized prefix path was approximately 1.6%
+slower than the unfiltered borrowed reference in this run, representing the
+remaining prefix-matching work.
+
+Criterion's `change` percentage compares a benchmark with its own saved result
+from an earlier run. It does not compare different benchmark names. The
+before/after comparison above therefore uses the absolute estimates from
+`prefix_pre_optimization_cloned` and `prefix_optimized_borrowed`. These
+intervals are Criterion estimates, not p99 latency measurements.
 
 ## Remaining opportunity
 
