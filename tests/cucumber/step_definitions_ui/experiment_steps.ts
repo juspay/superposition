@@ -167,16 +167,16 @@ When(
   async function (this: PlaywrightWorld, name: string, dim: string, val: string) {
     // Store for the multi-step creation
     this.experimentId = ""; // Will be set in the final step
-    (this as any)._pendingExpName = this.uniqueName(name);
-    (this as any)._pendingExpContext = { [dim]: val };
-    (this as any)._pendingExpVariants = [];
+    this._pendingExpName = this.uniqueName(name);
+    this._pendingExpContext = { [dim]: val };
+    this._pendingExpVariants = [];
   }
 );
 
 When(
   "the experiment has a control variant with override {string} = {string}",
   function (this: PlaywrightWorld, key: string, value: string) {
-    (this as any)._pendingExpVariants.push({
+    this._pendingExpVariants.push({
       variant_type: VariantType.CONTROL,
       id: "control",
       overrides: { [key]: value },
@@ -187,7 +187,7 @@ When(
 When(
   "the experiment has an experimental variant with override {string} = {string}",
   async function (this: PlaywrightWorld, key: string, value: string) {
-    (this as any)._pendingExpVariants.push({
+    this._pendingExpVariants.push({
       variant_type: VariantType.EXPERIMENTAL,
       id: "experimental",
       overrides: { [key]: value },
@@ -199,9 +199,9 @@ When(
         new CreateExperimentCommand({
           workspace_id: this.workspaceId,
           org_id: this.orgId,
-          name: (this as any)._pendingExpName,
-          context: (this as any)._pendingExpContext,
-          variants: (this as any)._pendingExpVariants,
+          name: this._pendingExpName,
+          context: this._pendingExpContext,
+          variants: this._pendingExpVariants,
           description: "Cucumber test experiment",
           change_reason: "Cucumber test",
         })
@@ -217,7 +217,7 @@ When(
         await this.page.waitForTimeout(500);
         const tableText = await this.page.locator("table").textContent();
         // The experiment name should be visible in the table
-        if (tableText && !tableText.includes((this as any)._pendingExpName)) {
+        if (tableText && !tableText.includes(this._pendingExpName)) {
           console.warn("Experiment created via SDK but not yet visible in UI table");
         }
       } catch {

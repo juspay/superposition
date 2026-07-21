@@ -17,6 +17,7 @@ import {
   DeleteSecretCommand,
   DeleteTypeTemplatesCommand,
   DeleteContextCommand,
+  DeleteWebhookCommand,
   DiscardExperimentCommand,
   DeleteExperimentGroupCommand,
 } from "@juspay/superposition-sdk";
@@ -314,6 +315,21 @@ After(async function (this: PlaywrightWorld, scenario) {
           workspace_id: this.workspaceId,
           org_id: this.orgId,
           type_name: name,
+        })
+      );
+    } catch {
+      // May already be deleted
+    }
+  }
+
+  // Cleanup webhooks
+  for (const name of this.createdWebhooks) {
+    try {
+      await this.client.send(
+        new DeleteWebhookCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          name,
         })
       );
     } catch {
