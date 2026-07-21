@@ -1268,7 +1268,7 @@ async fn weight_recompute_handler(
     db_conn: DbConnection,
 ) -> superposition::Result<Json<JobCreateResponse>> {
     let DbConnection(mut conn) = db_conn;
-    let job_request = JobRequest::PriorityRecompute(PriorityRecomputeRequest::default());
+    let job_request = JobRequest::PriorityRecompute(PriorityRecomputeRequest);
     let job_workspace = JobWorkspace::from(&workspace_context.schema_name.0);
     let target_workspace = state
         .kronos_workspace

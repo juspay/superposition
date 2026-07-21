@@ -116,8 +116,13 @@ async fn dispatch_job_handler(
             log::error!("Job {job_id} failed: {error_msg}");
             update_job_status(&mut conn, job_id, BackgroundJobStatus::Failed)
                 .map_err(|e| unexpected_error!("Failed to update job status: {}", e))?;
-            append_job_logs(&mut conn, job_id, &format!("Job failed: {error_msg}"), Some(key))
-                .map_err(|e| unexpected_error!("Failed to append logs: {}", e))?;
+            append_job_logs(
+                &mut conn,
+                job_id,
+                &format!("Job failed: {error_msg}"),
+                Some(key),
+            )
+            .map_err(|e| unexpected_error!("Failed to append logs: {}", e))?;
             Err(unexpected_error!("Job {job_id} failed: {error_msg}"))
         }
     }
