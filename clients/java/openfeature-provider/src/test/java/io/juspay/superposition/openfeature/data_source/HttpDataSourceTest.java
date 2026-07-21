@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import io.juspay.superposition.openfeature.error.SuperpositionError;
+import io.juspay.superposition.openfeature.options.AuthMethod;
 import io.juspay.superposition.openfeature.options.SuperpositionOptions;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -127,7 +128,8 @@ class HttpDataSourceTest {
         server.start();
 
         source = new HttpDataSource(new SuperpositionOptions(
-            "http://127.0.0.1:" + server.getAddress().getPort(), "test-token", "localorg", "test"));
+            "http://127.0.0.1:" + server.getAddress().getPort(),
+            new AuthMethod.Token("test-token"), "localorg", "test"));
     }
 
     @AfterEach

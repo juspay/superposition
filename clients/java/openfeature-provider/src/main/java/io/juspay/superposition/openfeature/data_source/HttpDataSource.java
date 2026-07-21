@@ -1,7 +1,6 @@
 package io.juspay.superposition.openfeature.data_source;
 
 import io.juspay.superposition.client.SuperpositionAsyncClient;
-import io.juspay.superposition.client.auth.BearerTokenIdentityResolver;
 import io.juspay.superposition.model.DimensionMatchStrategy;
 import io.juspay.superposition.model.GetConfigInput;
 import io.juspay.superposition.model.GetConfigOutput;
@@ -58,7 +57,7 @@ public class HttpDataSource implements SuperpositionDataSource {
 
         this.sdk = SuperpositionAsyncClient.builder()
             .endpointResolver(EndpointResolver.staticEndpoint(options.getEndpoint()))
-            .addIdentityResolver(new BearerTokenIdentityResolver(options.getToken()))
+            .addIdentityResolver(options.getAuth().identityResolver())
             .addInterceptor(new NotModifiedInterceptor())
             .addInterceptor(new PrefixQueryInterceptor())
             .build();

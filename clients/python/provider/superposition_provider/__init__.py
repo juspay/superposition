@@ -27,6 +27,9 @@ from .errors import SuperpositionError, ErrorCode
 
 from .types import (
     SuperpositionOptions,
+    AuthMethod,
+    TokenAuth,
+    BasicAuth,
     PollingStrategy,
     OnDemandStrategy,
     WatchStrategy,
@@ -57,6 +60,9 @@ __all__ = [
     "ErrorCode",
     # Types
     "SuperpositionOptions",
+    "AuthMethod",
+    "TokenAuth",
+    "BasicAuth",
     "PollingStrategy",
     "OnDemandStrategy",
     "WatchStrategy",

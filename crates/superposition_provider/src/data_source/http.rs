@@ -15,20 +15,10 @@ pub struct HttpDataSource {
     client: Client,
 }
 
-fn create_client(options: &SuperpositionOptions) -> Client {
-    let sdk_config = SdkConfig::builder()
-        .endpoint_url(&options.endpoint)
-        .bearer_token(options.token.clone().into())
-        .behavior_version_latest()
-        .build();
-
-    Client::from_conf(sdk_config)
-}
-
 impl HttpDataSource {
     pub fn new(options: SuperpositionOptions) -> Self {
         Self {
-            client: create_client(&options),
+            client: Client::from_conf(SdkConfig::from(&options)),
             options,
         }
     }
