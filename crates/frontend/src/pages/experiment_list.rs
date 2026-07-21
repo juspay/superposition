@@ -12,7 +12,6 @@ use superposition_types::{
         default_config::DefaultConfigFilters,
         dimension::DimensionResponse,
         experiments::{ExperimentListFilters, ExperimentResponse},
-        workspace::WorkspaceResponse,
     },
     custom_query::{CustomQuery, DimensionQuery, PaginationParams, Query, QueryMap},
     database::models::cac::DefaultConfig,
@@ -22,19 +21,14 @@ use utils::experiment_table_columns;
 use crate::{
     api::{default_configs, dimensions, fetch_experiments},
     components::{
-        drawer::{Drawer, DrawerBtn, close_drawer},
-        experiment_form::ExperimentForm,
+        button::ButtonAnchor,
         skeleton::Skeleton,
         stat::Stat,
         table::{Table, types::TablePaginationProps},
     },
-    logic::Conditions,
-    providers::{
-        condition_collapse_provider::ConditionCollapseProvider,
-        editor_provider::EditorProvider,
-    },
+    providers::condition_collapse_provider::ConditionCollapseProvider,
     query_updater::use_signal_from_query,
-    types::{OrganisationId, VariantFormTs, Workspace},
+    types::{OrganisationId, Workspace},
 };
 
 #[derive(Serialize, Deserialize, Clone, Default)]
@@ -46,10 +40,8 @@ struct CombinedResource {
 
 #[component]
 pub fn ExperimentList() -> impl IntoView {
-    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
-    let (reset_exp_form, set_exp_form) = create_signal(0);
     let (filters_rws, pagination_params_rws, dimension_params_rws) =
         use_signal_from_query(move |query_string| {
             (
@@ -71,7 +63,6 @@ pub fn ExperimentList() -> impl IntoView {
             )
         },
         |(workspace, filters, dimension_params, pagination_params, org_id)| async move {
-            // Perform all fetch operations concurrently
             let fetch_all_filters = PaginationParams::all_entries();
             let default_config_filters = DefaultConfigFilters::default();
             let experiments_future = fetch_experiments(
@@ -91,7 +82,6 @@ pub fn ExperimentList() -> impl IntoView {
             );
             let (experiments_result, dimensions_result, config_result) =
                 join!(experiments_future, dimensions_future, config_future,);
-            // Construct the combined result, handling errors as needed
             CombinedResource {
                 experiments: experiments_result.unwrap_or_default(),
                 dimensions: dimensions_result.unwrap_or_default().data,
@@ -99,16 +89,6 @@ pub fn ExperimentList() -> impl IntoView {
             }
         },
     );
-
-    let handle_submit_experiment_form = move |_| {
-        filters_rws.set(ExperimentListFilters::default());
-        pagination_params_rws.update(|f| f.reset_page());
-        combined_resource.refetch();
-        set_exp_form.update(|val| {
-            *val += 1;
-        });
-        close_drawer("create_exp_drawer");
-    };
 
     let handle_page_change = Callback::new(move |page: i64| {
         pagination_params_rws.update(|f| f.page = Some(page));
@@ -136,8 +116,9 @@ pub fn ExperimentList() -> impl IntoView {
                                     filters_rws
                                     combined_resource=combined_resource.get().unwrap_or_default()
                                 />
-                                <DrawerBtn
-                                    drawer_id="create_exp_drawer"
+                                <ButtonAnchor
+                                    class="h-fit"
+                                    href="action/create"
                                     text="Create Experiment"
                                     icon_class="ri-add-line"
                                 />
@@ -190,37 +171,6 @@ pub fn ExperimentList() -> impl IntoView {
                     </div>
                 </div>
             </div>
-            {move || {
-                let CombinedResource {
-                    dimensions: dim,
-                    default_config: def_conf,
-                    experiments: _,
-                } = combined_resource.get().unwrap_or_default();
-                let _ = reset_exp_form.get();
-                view! {
-                    <Drawer
-                        id="create_exp_drawer"
-                        header="Create New Experiment"
-                        width_class="max-w-[780px] min-w-[680px] w-[45vw]"
-                        handle_close=move || {
-                            close_drawer("create_exp_drawer");
-                            set_exp_form.update(|i| *i += 1);
-                        }
-                    >
-
-                        <EditorProvider>
-                            <ExperimentForm
-                                context=Conditions::default()
-                                variants=VariantFormTs::default()
-                                dimensions=dim.clone()
-                                default_config=def_conf.clone()
-                                handle_submit=handle_submit_experiment_form
-                                metrics=workspace_settings.with_value(|w| w.metrics.clone())
-                            />
-                        </EditorProvider>
-                    </Drawer>
-                }
-            }}
 
         </Suspense>
     }

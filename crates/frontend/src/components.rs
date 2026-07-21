@@ -21,6 +21,7 @@ pub mod experiment;
 pub mod experiment_action_form;
 pub mod experiment_conclude_form;
 pub mod experiment_form;
+pub mod experiment_form_page;
 pub mod experiment_group_form;
 pub mod experiment_ramp_form;
 pub mod form;
