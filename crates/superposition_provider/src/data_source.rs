@@ -107,6 +107,18 @@ pub trait SuperpositionDataSource: Send + Sync {
             .await
     }
 
+    /// Fetch the full resolved configuration only if the source changed.
+    ///
+    /// The default implementation delegates to `fetch_config`; data sources
+    /// with cheaper change detection can override this without changing normal
+    /// refresh behavior.
+    async fn fetch_config_if_modified(
+        &self,
+        if_modified_since: Option<DateTime<Utc>>,
+    ) -> Result<FetchResponse<ConfigData>> {
+        self.fetch_config(if_modified_since).await
+    }
+
     /// Fetch a resolved configuration filtered by the given context and key prefixes.
     async fn fetch_filtered_config(
         &self,
