@@ -172,6 +172,18 @@
                         "explode": true
                     },
                     {
+                        "name": "exclude_prefix",
+                        "in": "query",
+                        "style": "form",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "explode": true
+                    },
+                    {
                         "name": "version",
                         "in": "query",
                         "schema": {
@@ -337,6 +349,20 @@
                         "explode": true
                     },
                     {
+                        "name": "exclude_prefix",
+                        "in": "query",
+                        "description": "Excludes configuration keys that start with any of the supplied prefixes. When combined with prefix, exclusion is applied to the allow-listed keys.",
+                        "style": "form",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "Excludes configuration keys that start with any of the supplied prefixes. When combined with prefix, exclusion is applied to the allow-listed keys."
+                        },
+                        "explode": true
+                    },
+                    {
                         "name": "version",
                         "in": "query",
                         "schema": {
@@ -459,6 +485,20 @@
                             "items": {
                                 "type": "string"
                             }
+                        },
+                        "explode": true
+                    },
+                    {
+                        "name": "exclude_prefix",
+                        "in": "query",
+                        "description": "Excludes configuration keys that start with any of the supplied prefixes. When combined with prefix, exclusion is applied to the allow-listed keys.",
+                        "style": "form",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "Excludes configuration keys that start with any of the supplied prefixes. When combined with prefix, exclusion is applied to the allow-listed keys."
                         },
                         "explode": true
                     },
@@ -843,6 +883,18 @@
                     },
                     {
                         "name": "prefix",
+                        "in": "query",
+                        "style": "form",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "explode": true
+                    },
+                    {
+                        "name": "exclude_prefix",
                         "in": "query",
                         "style": "form",
                         "schema": {
@@ -2330,6 +2382,18 @@
                         "explode": true
                     },
                     {
+                        "name": "exclude_prefix",
+                        "in": "query",
+                        "style": "form",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "explode": true
+                    },
+                    {
                         "name": "dimension_match_strategy",
                         "in": "query",
                         "description": "Strategy to follow while filter items based on the context",
@@ -3075,6 +3139,18 @@
                         "explode": true
                     },
                     {
+                        "name": "exclude_prefix",
+                        "in": "query",
+                        "style": "form",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "explode": true
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -3262,6 +3338,18 @@
                     },
                     {
                         "name": "prefix",
+                        "in": "query",
+                        "style": "form",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "explode": true
+                    },
+                    {
+                        "name": "exclude_prefix",
                         "in": "query",
                         "style": "form",
                         "schema": {
@@ -4419,6 +4507,18 @@
                 "parameters": [
                     {
                         "name": "prefix",
+                        "in": "query",
+                        "style": "form",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "explode": true
+                    },
+                    {
+                        "name": "exclude_prefix",
                         "in": "query",
                         "style": "form",
                         "schema": {

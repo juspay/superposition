@@ -146,6 +146,7 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
         self,
         context: Optional[EvaluationContext],
         prefix_filter: Optional[List[str]] = None,
+        exclude_prefix_filter: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """Resolve all features with optional filtering.
 
@@ -173,6 +174,7 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
                 query_data,
                 MergeStrategy.MERGE,
                 prefix_filter,
+                exclude_prefix_filter,
                 targeting_key,
             )
 
@@ -186,6 +188,7 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
         self,
         context: Optional[EvaluationContext],
         prefix_filter: Optional[List[str]] = None,
+        exclude_prefix_filter: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """Resolve all features with optional filtering.
 
@@ -211,6 +214,7 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
                 query_data,
                 MergeStrategy.MERGE,
                 prefix_filter,
+                exclude_prefix_filter,
                 targeting_key,
             )
 
@@ -226,12 +230,14 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
         self,
         context: Optional[EvaluationContext],
         prefix_filter: Optional[List[str]] = None,
+        exclude_prefix_filter: Optional[List[str]] = None,
     ) -> List[str]:
         """Get applicable experiment variants.
 
         Args:
             context: Evaluation context with targeting key.
-            prefix_filter: Optional list of variant ID prefixes.
+            prefix_filter: Optional list of variant ID prefixes to include.
+            exclude_prefix_filter: Optional list of variant ID prefixes to exclude.
 
         Returns:
             List of applicable variant IDs.
@@ -252,6 +258,7 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
             return self.ffi_cache.get_applicable_variants(
                 query_data,
                 prefix_filter,
+                exclude_prefix_filter,
                 targeting_key,
             )
 
@@ -601,6 +608,7 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
         self,
         context: Optional[Dict[str, Any]] = None,
         prefix_filter: Optional[List[str]] = None,
+        exclude_prefix_filter: Optional[List[str]] = None,
         if_modified_since: Optional[datetime] = None,
     ) -> FetchResponse[ConfigData]:
         """Fetch configuration, optionally filtered.
@@ -623,7 +631,7 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
             logger.debug("LocalResolutionProvider: ignoring if_modified_since, always reading fresh from file")
 
         return FetchResponse.data(ConfigData(
-            data=self.ffi_cache.filter_config(context, prefix_filter),
+            data=self.ffi_cache.filter_config(context, prefix_filter, exclude_prefix_filter),
             fetched_at=self.cached_config.fetched_at,
         ))
 
@@ -654,6 +662,7 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
         self,
         context: Optional[Dict[str, Any]] = None,
         prefix_filter: Optional[List[str]] = None,
+        exclude_prefix_filter: Optional[List[str]] = None,
         if_modified_since: Optional[datetime] = None,
     ) -> FetchResponse[ExperimentData]:
         """Fetch candidate active experiments."""
@@ -667,7 +676,7 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
             logger.debug("LocalResolutionProvider: ignoring if_modified_since for experiments, always returning cached data")
 
         return FetchResponse.data(ExperimentData(
-            data=self.ffi_cache.filter_experiment(context, prefix_filter, False),
+            data=self.ffi_cache.filter_experiment(context, prefix_filter, exclude_prefix_filter, False),
             fetched_at=self.cached_experiments.fetched_at,
         ))
 
@@ -675,6 +684,7 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
         self,
         context: Optional[Dict[str, Any]] = None,
         prefix_filter: Optional[List[str]] = None,
+        exclude_prefix_filter: Optional[List[str]] = None,
         if_modified_since: Optional[datetime] = None,
     ) -> FetchResponse[ExperimentData]:
         """Fetch matching active experiments."""
@@ -688,7 +698,7 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
             logger.debug("LocalResolutionProvider: ignoring if_modified_since for experiments, always returning cached data")
 
         return FetchResponse.data(ExperimentData(
-            data=self.ffi_cache.filter_experiment(context, prefix_filter, True),
+            data=self.ffi_cache.filter_experiment(context, prefix_filter, exclude_prefix_filter, True),
             fetched_at=self.cached_experiments.fetched_at,
         ))
 

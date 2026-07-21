@@ -551,7 +551,11 @@ async fn get_handler(
     )
     .await
     .map_err(|e| unexpected_error!("failed to generate config: {}", e))?;
-    config = apply_prefix_filter_to_config(&query_filters.prefix, config)?;
+    config = apply_prefix_filter_to_config(
+        config,
+        query_filters.prefix,
+        query_filters.exclude_prefix,
+    )?;
     let context = if req.method() == actix_web::http::Method::GET {
         dimension_params.into_inner()
     } else {
@@ -699,11 +703,11 @@ async fn detailed_resolve_handler(
             unexpected_error!("Unable to get db connection from pool, error: {}", e)
         })?;
         resolve_detailed(
-            &config,
+            config,
             query_data,
             merge_strategy,
             &mut conn,
-            &query_filters,
+            query_filters,
             &workspace_context,
             &state.master_encryption_key,
         )?
@@ -809,8 +813,6 @@ async fn resolve_handler(
         return Ok(HttpResponse::NotModified().finish());
     };
 
-    let mut config = config;
-
     let resolved_config = {
         let mut conn = state.db_pool.get().map_err(|e| {
             log::error!("Unable to get db connection from pool, error: {e}");
@@ -818,11 +820,11 @@ async fn resolve_handler(
         })?;
         // TODO: resolve doesn't return diesel::error, figure that out
         resolve(
-            &mut config,
+            config,
             query_data,
             merge_strategy,
             &mut conn,
-            &query_filters,
+            query_filters,
             &workspace_context,
             &state.master_encryption_key,
         )?

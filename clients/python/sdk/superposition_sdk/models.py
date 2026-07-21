@@ -713,6 +713,7 @@ class ApplicableVariantsInput:
     context: dict[str, Document] | None = None
     identifier: str | None = None
     prefix: list[str] | None = None
+    exclude_prefix: list[str] | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_APPLICABLE_VARIANTS_INPUT, self)
@@ -745,6 +746,9 @@ class ApplicableVariantsInput:
 
                 case 4:
                     kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_APPLICABLE_VARIANTS_INPUT.members["prefix"])
+
+                case 5:
+                    kwargs["exclude_prefix"] = _deserialize_string_list(de, _SCHEMA_APPLICABLE_VARIANTS_INPUT.members["exclude_prefix"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -2679,6 +2683,7 @@ class GetConfigInput:
     workspace_id: str | None = None
     org_id: str | None = None
     prefix: list[str] | None = None
+    exclude_prefix: list[str] | None = None
     version: str | None = None
     if_modified_since: datetime | None = None
     context: dict[str, Document] | None = None
@@ -2710,12 +2715,15 @@ class GetConfigInput:
                     kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_GET_CONFIG_INPUT.members["prefix"])
 
                 case 3:
-                    kwargs["version"] = de.read_string(_SCHEMA_GET_CONFIG_INPUT.members["version"])
+                    kwargs["exclude_prefix"] = _deserialize_string_list(de, _SCHEMA_GET_CONFIG_INPUT.members["exclude_prefix"])
 
                 case 4:
-                    kwargs["if_modified_since"] = de.read_timestamp(_SCHEMA_GET_CONFIG_INPUT.members["if_modified_since"])
+                    kwargs["version"] = de.read_string(_SCHEMA_GET_CONFIG_INPUT.members["version"])
 
                 case 5:
+                    kwargs["if_modified_since"] = de.read_timestamp(_SCHEMA_GET_CONFIG_INPUT.members["if_modified_since"])
+
+                case 6:
                     kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_CONFIG_INPUT.members["context"])
 
                 case _:
@@ -3024,6 +3032,10 @@ class MergeStrategy(StrEnum):
 class GetDetailedResolvedConfigInput:
     """
 
+    :param exclude_prefix:
+         Excludes configuration keys that start with any of the supplied prefixes. When
+         combined with prefix, exclusion is applied to the allow-listed keys.
+
     :param resolve_remote:
          Intended for control resolution. If true, evaluates and includes remote
          cohort-based contexts during config resolution.
@@ -3036,6 +3048,7 @@ class GetDetailedResolvedConfigInput:
     workspace_id: str | None = None
     org_id: str | None = None
     prefix: list[str] | None = None
+    exclude_prefix: list[str] | None = None
     version: str | None = None
     show_reasoning: bool | None = None
     merge_strategy: str | None = None
@@ -3070,21 +3083,24 @@ class GetDetailedResolvedConfigInput:
                     kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["prefix"])
 
                 case 3:
-                    kwargs["version"] = de.read_string(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["version"])
+                    kwargs["exclude_prefix"] = _deserialize_string_list(de, _SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["exclude_prefix"])
 
                 case 4:
-                    kwargs["show_reasoning"] = de.read_boolean(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["show_reasoning"])
+                    kwargs["version"] = de.read_string(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["version"])
 
                 case 5:
-                    kwargs["merge_strategy"] = de.read_string(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["merge_strategy"])
+                    kwargs["show_reasoning"] = de.read_boolean(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["show_reasoning"])
 
                 case 6:
-                    kwargs["context_id"] = de.read_string(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["context_id"])
+                    kwargs["merge_strategy"] = de.read_string(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["merge_strategy"])
 
                 case 7:
-                    kwargs["resolve_remote"] = de.read_boolean(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["resolve_remote"])
+                    kwargs["context_id"] = de.read_string(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["context_id"])
 
                 case 8:
+                    kwargs["resolve_remote"] = de.read_boolean(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["resolve_remote"])
+
+                case 9:
                     kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["context"])
 
                 case _:
@@ -3157,6 +3173,10 @@ ShapeID("smithy.api#httpBearerAuth")
 class GetResolvedConfigInput:
     """
 
+    :param exclude_prefix:
+         Excludes configuration keys that start with any of the supplied prefixes. When
+         combined with prefix, exclusion is applied to the allow-listed keys.
+
     :param resolve_remote:
          Intended for control resolution. If true, evaluates and includes remote
          cohort-based contexts during config resolution.
@@ -3169,6 +3189,7 @@ class GetResolvedConfigInput:
     workspace_id: str | None = None
     org_id: str | None = None
     prefix: list[str] | None = None
+    exclude_prefix: list[str] | None = None
     version: str | None = None
     show_reasoning: bool | None = None
     merge_strategy: str | None = None
@@ -3203,21 +3224,24 @@ class GetResolvedConfigInput:
                     kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["prefix"])
 
                 case 3:
-                    kwargs["version"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["version"])
+                    kwargs["exclude_prefix"] = _deserialize_string_list(de, _SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["exclude_prefix"])
 
                 case 4:
-                    kwargs["show_reasoning"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["show_reasoning"])
+                    kwargs["version"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["version"])
 
                 case 5:
-                    kwargs["merge_strategy"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["merge_strategy"])
+                    kwargs["show_reasoning"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["show_reasoning"])
 
                 case 6:
-                    kwargs["context_id"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["context_id"])
+                    kwargs["merge_strategy"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["merge_strategy"])
 
                 case 7:
-                    kwargs["resolve_remote"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["resolve_remote"])
+                    kwargs["context_id"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["context_id"])
 
                 case 8:
+                    kwargs["resolve_remote"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["resolve_remote"])
+
+                case 9:
                     kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["context"])
 
                 case _:
@@ -3545,6 +3569,7 @@ class GetResolvedConfigWithIdentifierInput:
     workspace_id: str | None = None
     org_id: str | None = None
     prefix: list[str] | None = None
+    exclude_prefix: list[str] | None = None
     version: str | None = None
     show_reasoning: bool | None = None
     merge_strategy: str | None = None
@@ -3580,24 +3605,27 @@ class GetResolvedConfigWithIdentifierInput:
                     kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["prefix"])
 
                 case 3:
-                    kwargs["version"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["version"])
+                    kwargs["exclude_prefix"] = _deserialize_string_list(de, _SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["exclude_prefix"])
 
                 case 4:
-                    kwargs["show_reasoning"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["show_reasoning"])
+                    kwargs["version"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["version"])
 
                 case 5:
-                    kwargs["merge_strategy"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["merge_strategy"])
+                    kwargs["show_reasoning"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["show_reasoning"])
 
                 case 6:
-                    kwargs["context_id"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["context_id"])
+                    kwargs["merge_strategy"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["merge_strategy"])
 
                 case 7:
-                    kwargs["resolve_remote"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["resolve_remote"])
+                    kwargs["context_id"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["context_id"])
 
                 case 8:
-                    kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["context"])
+                    kwargs["resolve_remote"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["resolve_remote"])
 
                 case 9:
+                    kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["context"])
+
+                case 10:
                     kwargs["identifier"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["identifier"])
 
                 case _:
@@ -4646,6 +4674,7 @@ class ListContextsInput:
     workspace_id: str | None = None
     org_id: str | None = None
     prefix: list[str] | None = None
+    exclude_prefix: list[str] | None = None
     sort_on: str | None = None
     sort_by: str | None = None
     created_by: list[str] | None = None
@@ -4689,24 +4718,27 @@ class ListContextsInput:
                     kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_LIST_CONTEXTS_INPUT.members["prefix"])
 
                 case 6:
-                    kwargs["sort_on"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["sort_on"])
+                    kwargs["exclude_prefix"] = _deserialize_string_list(de, _SCHEMA_LIST_CONTEXTS_INPUT.members["exclude_prefix"])
 
                 case 7:
-                    kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["sort_by"])
+                    kwargs["sort_on"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["sort_on"])
 
                 case 8:
-                    kwargs["created_by"] = _deserialize_string_list(de, _SCHEMA_LIST_CONTEXTS_INPUT.members["created_by"])
+                    kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["sort_by"])
 
                 case 9:
-                    kwargs["last_modified_by"] = _deserialize_string_list(de, _SCHEMA_LIST_CONTEXTS_INPUT.members["last_modified_by"])
+                    kwargs["created_by"] = _deserialize_string_list(de, _SCHEMA_LIST_CONTEXTS_INPUT.members["created_by"])
 
                 case 10:
-                    kwargs["plaintext"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["plaintext"])
+                    kwargs["last_modified_by"] = _deserialize_string_list(de, _SCHEMA_LIST_CONTEXTS_INPUT.members["last_modified_by"])
 
                 case 11:
-                    kwargs["dimension_match_strategy"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["dimension_match_strategy"])
+                    kwargs["plaintext"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["plaintext"])
 
                 case 12:
+                    kwargs["dimension_match_strategy"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["dimension_match_strategy"])
+
+                case 13:
                     kwargs["dimension_params"] = _deserialize_dimension_query_params(de, _SCHEMA_LIST_CONTEXTS_INPUT.members["dimension_params"])
 
                 case _:
@@ -10521,6 +10553,7 @@ class GetExperimentConfigInput:
     org_id: str | None = None
     if_modified_since: datetime | None = None
     prefix: list[str] | None = None
+    exclude_prefix: list[str] | None = None
     context: dict[str, Document] | None = None
     dimension_match_strategy: str | None = None
 
@@ -10554,9 +10587,12 @@ class GetExperimentConfigInput:
                     kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["prefix"])
 
                 case 4:
-                    kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["context"])
+                    kwargs["exclude_prefix"] = _deserialize_string_list(de, _SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["exclude_prefix"])
 
                 case 5:
+                    kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["context"])
+
+                case 6:
                     kwargs["dimension_match_strategy"] = de.read_string(_SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["dimension_match_strategy"])
 
                 case _:
@@ -11718,6 +11754,7 @@ class ListExperimentInput:
     dimension_match_strategy: str | None = None
     dimension_params: dict[str, str] | None = None
     prefix: list[str] | None = None
+    exclude_prefix: list[str] | None = None
     context: dict[str, Document] | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -11795,6 +11832,9 @@ class ListExperimentInput:
                     kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["prefix"])
 
                 case 19:
+                    kwargs["exclude_prefix"] = _deserialize_string_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["exclude_prefix"])
+
+                case 20:
                     kwargs["context"] = _deserialize_context_map(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["context"])
 
                 case _:

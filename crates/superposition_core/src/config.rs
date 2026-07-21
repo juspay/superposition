@@ -1,11 +1,12 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use serde_json::{Map, Value};
 pub use superposition_types::api::config::MergeStrategy;
 use superposition_types::{
-    logic::evaluate_local_cohorts, Config, Context, DimensionInfo, Overrides,
+    logic::evaluate_local_cohorts, Config, Context, DimensionInfo, Overrides, PrefixList,
 };
 
+#[allow(clippy::too_many_arguments)]
 pub fn eval_config(
     default_config: Map<String, Value>,
     contexts: &[Context],
@@ -14,17 +15,19 @@ pub fn eval_config(
     query_data: &Map<String, Value>,
     merge_strategy: MergeStrategy,
     filter_prefixes: Option<Vec<String>>,
+    filter_exclude_prefixes: Option<Vec<String>>,
 ) -> Result<Map<String, Value>, String> {
     // Local cohort evaluation only reads `dimensions`, which prefix filtering
     // leaves untouched, so it is safe to compute once regardless of the path.
     let modified_query_data = evaluate_local_cohorts(dimensions, query_data);
 
     let filter_prefixes = filter_prefixes.filter(|p| !p.is_empty());
+    let filter_exclude_prefixes = filter_exclude_prefixes.filter(|p| !p.is_empty());
 
     // Fast path: no prefix filtering. Resolve directly against the borrowed
     // contexts/overrides instead of deep-cloning the entire context set (which
     // can be hundreds of thousands of entries) into a temporary `Config`.
-    let Some(prefixes) = filter_prefixes else {
+    if filter_prefixes.is_none() && filter_exclude_prefixes.is_none() {
         let overrides_map = get_overrides(
             &modified_query_data,
             contexts,
@@ -40,7 +43,7 @@ pub fn eval_config(
             &merge_strategy,
         );
         return Ok(result_config);
-    };
+    }
 
     // Slow path: prefix filtering needs an owned, filtered `Config`.
     let config = Config {
@@ -49,7 +52,10 @@ pub fn eval_config(
         overrides: overrides.clone(),
         dimensions: dimensions.clone(),
     }
-    .filter_by_prefix(&HashSet::from_iter(prefixes));
+    .filter_by_prefix(
+        &PrefixList::from(filter_prefixes),
+        &PrefixList::from(filter_exclude_prefixes),
+    );
 
     let overrides_map: Map<String, Value> = get_overrides(
         &modified_query_data,
@@ -66,6 +72,7 @@ pub fn eval_config(
     Ok(result_config.into_inner())
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn eval_config_with_reasoning(
     default_config: Map<String, Value>,
     contexts: &[Context],
@@ -74,12 +81,15 @@ pub fn eval_config_with_reasoning(
     query_data: &Map<String, Value>,
     merge_strategy: MergeStrategy,
     filter_prefixes: Option<Vec<String>>, // Optional prefix filtering
+    filter_exclude_prefixes: Option<Vec<String>>, // Optional exclude prefix filtering
 ) -> Result<Map<String, Value>, String> {
     let modified_query_data = evaluate_local_cohorts(dimensions, query_data);
 
     let filter_prefixes = filter_prefixes.filter(|p| !p.is_empty());
 
-    let Some(prefixes) = filter_prefixes else {
+    let filter_exclude_prefixes = filter_exclude_prefixes.filter(|p| !p.is_empty());
+
+    if filter_prefixes.is_none() && filter_exclude_prefixes.is_none() {
         let overrides_map = get_overrides(
             &modified_query_data,
             contexts,
@@ -95,7 +105,7 @@ pub fn eval_config_with_reasoning(
             &merge_strategy,
         );
         return Ok(result_config);
-    };
+    }
 
     let config = Config {
         default_configs: default_config.into(),
@@ -103,7 +113,10 @@ pub fn eval_config_with_reasoning(
         overrides: overrides.clone(),
         dimensions: dimensions.clone(),
     }
-    .filter_by_prefix(&HashSet::from_iter(prefixes));
+    .filter_by_prefix(
+        &PrefixList::from(filter_prefixes),
+        &PrefixList::from(filter_exclude_prefixes),
+    );
 
     let overrides_map = get_overrides(
         &modified_query_data,
@@ -251,6 +264,7 @@ mod tests {
             &HashMap::new(),
             &query_data,
             MergeStrategy::MERGE,
+            None,
             None,
         )
         .unwrap();

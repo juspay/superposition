@@ -18,6 +18,7 @@ module Io.Superposition.Model.ListExperimentInput (
     setDimensionMatchStrategy,
     setDimensionParams,
     setPrefix,
+    setExcludePrefix,
     setContext,
     build,
     ListExperimentInputBuilder,
@@ -41,6 +42,7 @@ module Io.Superposition.Model.ListExperimentInput (
     dimension_match_strategy,
     dimension_params,
     prefix,
+    exclude_prefix,
     context
 ) where
 import qualified Control.Applicative
@@ -83,6 +85,7 @@ data ListExperimentInput = ListExperimentInput {
     dimension_match_strategy :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMatchStrategy.DimensionMatchStrategy,
     dimension_params :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text),
     prefix :: Data.Maybe.Maybe ([] Data.Text.Text),
+    exclude_prefix :: Data.Maybe.Maybe ([] Data.Text.Text),
     context :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value)
 } deriving (
   GHC.Show.Show,
@@ -111,6 +114,7 @@ instance Data.Aeson.ToJSON ListExperimentInput where
         "dimension_match_strategy" Data.Aeson..= dimension_match_strategy a,
         "dimension_params" Data.Aeson..= dimension_params a,
         "prefix" Data.Aeson..= prefix a,
+        "exclude_prefix" Data.Aeson..= exclude_prefix a,
         "context" Data.Aeson..= context a
         ]
     
@@ -138,6 +142,7 @@ instance Data.Aeson.FromJSON ListExperimentInput where
         Control.Applicative.<*> (v Data.Aeson..:? "dimension_match_strategy")
         Control.Applicative.<*> (v Data.Aeson..:? "dimension_params")
         Control.Applicative.<*> (v Data.Aeson..:? "prefix")
+        Control.Applicative.<*> (v Data.Aeson..:? "exclude_prefix")
         Control.Applicative.<*> (v Data.Aeson..:? "context")
     
 
@@ -163,6 +168,7 @@ data ListExperimentInputBuilderState = ListExperimentInputBuilderState {
     dimension_match_strategyBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.DimensionMatchStrategy.DimensionMatchStrategy,
     dimension_paramsBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text),
     prefixBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
+    exclude_prefixBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     contextBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value)
 } deriving (
   GHC.Generics.Generic
@@ -189,6 +195,7 @@ defaultBuilderState = ListExperimentInputBuilderState {
     dimension_match_strategyBuilderState = Data.Maybe.Nothing,
     dimension_paramsBuilderState = Data.Maybe.Nothing,
     prefixBuilderState = Data.Maybe.Nothing,
+    exclude_prefixBuilderState = Data.Maybe.Nothing,
     contextBuilderState = Data.Maybe.Nothing
 }
 
@@ -270,6 +277,10 @@ setPrefix :: Data.Maybe.Maybe ([] Data.Text.Text) -> ListExperimentInputBuilder 
 setPrefix value =
    Control.Monad.State.Strict.modify (\s -> (s { prefixBuilderState = value }))
 
+setExcludePrefix :: Data.Maybe.Maybe ([] Data.Text.Text) -> ListExperimentInputBuilder ()
+setExcludePrefix value =
+   Control.Monad.State.Strict.modify (\s -> (s { exclude_prefixBuilderState = value }))
+
 setContext :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value) -> ListExperimentInputBuilder ()
 setContext value =
    Control.Monad.State.Strict.modify (\s -> (s { contextBuilderState = value }))
@@ -296,6 +307,7 @@ build builder = do
     dimension_match_strategy' <- Data.Either.Right (dimension_match_strategyBuilderState st)
     dimension_params' <- Data.Either.Right (dimension_paramsBuilderState st)
     prefix' <- Data.Either.Right (prefixBuilderState st)
+    exclude_prefix' <- Data.Either.Right (exclude_prefixBuilderState st)
     context' <- Data.Either.Right (contextBuilderState st)
     Data.Either.Right (ListExperimentInput { 
         count = count',
@@ -317,6 +329,7 @@ build builder = do
         dimension_match_strategy = dimension_match_strategy',
         dimension_params = dimension_params',
         prefix = prefix',
+        exclude_prefix = exclude_prefix',
         context = context'
     })
 
@@ -342,6 +355,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder ListExperimentInput where
         Io.Superposition.Utility.serQuery "dimension_match_strategy" (dimension_match_strategy self)
         Io.Superposition.Utility.serQuery "sort_on" (sort_on self)
         Io.Superposition.Utility.serQuery "to_date" (to_date self)
+        Io.Superposition.Utility.serQuery "exclude_prefix" (exclude_prefix self)
         Io.Superposition.Utility.serQuery "page" (page self)
         Io.Superposition.Utility.serQuery "status" (status self)
         Io.Superposition.Utility.serHeader "if-modified-since" (if_modified_since self)

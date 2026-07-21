@@ -51,6 +51,9 @@ export interface ListContextsCommandOutput extends ListContextsOutput, __Metadat
  *   prefix: [ // StringList
  *     "STRING_VALUE",
  *   ],
+ *   exclude_prefix: [
+ *     "STRING_VALUE",
+ *   ],
  *   sort_on: "last_modified_at" || "created_at" || "weight",
  *   sort_by: "desc" || "asc",
  *   created_by: [

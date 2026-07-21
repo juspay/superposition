@@ -241,6 +241,10 @@ structure ApplicableVariantsInput for Experiments with [WorkspaceMixin] {
     @notProperty
     @httpQuery("prefix")
     prefix: StringList
+
+    @httpQuery("exclude_prefix")
+    @notProperty
+    exclude_prefix: StringList
 }
 
 // Operations
@@ -402,6 +406,10 @@ operation ListExperiment {
         @httpQuery("prefix")
         @notProperty
         prefix: StringList
+
+        @httpQuery("exclude_prefix")
+        @notProperty
+        exclude_prefix: StringList
 
         @notProperty
         context: ContextMap

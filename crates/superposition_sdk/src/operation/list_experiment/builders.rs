@@ -393,6 +393,25 @@ impl ListExperimentFluentBuilder {
                     self.inner.get_prefix()
                 }
     /// 
+    /// Appends an item to `exclude_prefix`.
+    /// 
+    /// To override the contents of this collection use [`set_exclude_prefix`](Self::set_exclude_prefix).
+    /// 
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn exclude_prefix(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+                        self.inner = self.inner.exclude_prefix(input.into());
+                        self
+                    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_exclude_prefix(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
+                    self.inner = self.inner.set_exclude_prefix(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_exclude_prefix(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+                    self.inner.get_exclude_prefix()
+                }
+    /// 
     /// Adds a key-value pair to `context`.
     /// 
     /// To override the contents of this collection use [`set_context`](Self::set_context).

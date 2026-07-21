@@ -13,46 +13,64 @@ module Data.OpenFeature.SuperpositionProvider
   )
 where
 
-import Control.Exception (SomeException, try)
-import Control.Exception.Base (displayException)
-import Control.Monad.Logger (LoggingT, filterLogger, runStdoutLoggingT)
-import Control.Monad.Logger.Aeson qualified as Log
-import Control.Monad.Trans.Class (lift)
-import Data.Aeson (FromJSON, ToJSON (..), encode, withObject, (.:?))
-import Data.Aeson.Decoding (eitherDecode)
-import Data.Aeson.Types (Object, parseEither)
-import Data.Functor
-import Data.IORef (IORef, newIORef, readIORef, writeIORef)
-import Data.Maybe (fromMaybe, isJust, isNothing)
-import Data.Time.Clock (UTCTime)
-import Data.OpenFeature.FeatureProvider
-import Data.OpenFeature.EvaluationDetails
-import Data.OpenFeature.EvaluationContext
-import Data.OpenFeature.SuperpositionProvider.OnDemandRefresh
-import Data.OpenFeature.SuperpositionProvider.PollingRefresh
-import Data.OpenFeature.SuperpositionProvider.RefreshTask (RefreshFn, RefreshTask (..))
-import Data.OpenFeature.SuperpositionProviderOptions
-import Data.String (IsString (..))
-import Data.Text as T (Text, unpack)
-import Data.Text.Lazy qualified as LT
-import Data.Text.Lazy.Encoding qualified as LTE
-import FFI.Superposition qualified as FFI
-import GHC.Base (when)
-import GHC.Conc (TVar, atomically, newTVarIO, readTVarIO)
-import GHC.Conc.Sync (writeTVar)
-import Io.Superposition.Command.GetConfig qualified as SDK
-import Io.Superposition.Command.ListExperiment qualified as Exp
-import Io.Superposition.Command.ListExperimentGroups qualified as ExpGrp
-import Io.Superposition.Model.ExperimentStatusType (ExperimentStatusType (INPROGRESS, CREATED))
-import Io.Superposition.Model.GetConfigInput qualified as SDK
-import Io.Superposition.Model.GetConfigOutput qualified as SDK
-import Io.Superposition.Model.ListExperimentInput qualified as Exp
-import Io.Superposition.Model.ListExperimentOutput qualified as Exp
-import Io.Superposition.Model.ListExperimentGroupsInput qualified as ExpGrp
-import Io.Superposition.Model.ListExperimentGroupsOutput qualified as ExpGrp
-import Io.Superposition.SuperpositionClient qualified as Client
-import Network.HTTP.Client.TLS qualified as Net
-import System.Mem.Weak (addFinalizer)
+import           Control.Exception                                      (SomeException,
+                                                                         try)
+import           Control.Exception.Base                                 (displayException)
+import           Control.Monad.Logger                                   (LoggingT,
+                                                                         filterLogger,
+                                                                         runStdoutLoggingT)
+import qualified Control.Monad.Logger.Aeson                             as Log
+import           Control.Monad.Trans.Class                              (lift)
+import           Data.Aeson                                             (FromJSON,
+                                                                         ToJSON (..),
+                                                                         encode,
+                                                                         withObject,
+                                                                         (.:?))
+import           Data.Aeson.Decoding                                    (eitherDecode)
+import           Data.Aeson.Types                                       (Object,
+                                                                         parseEither)
+import           Data.Functor
+import           Data.IORef                                             (IORef,
+                                                                         newIORef,
+                                                                         readIORef,
+                                                                         writeIORef)
+import           Data.Maybe                                             (fromMaybe,
+                                                                         isJust,
+                                                                         isNothing)
+import           Data.OpenFeature.EvaluationContext
+import           Data.OpenFeature.EvaluationDetails
+import           Data.OpenFeature.FeatureProvider
+import           Data.OpenFeature.SuperpositionProvider.OnDemandRefresh
+import           Data.OpenFeature.SuperpositionProvider.PollingRefresh
+import           Data.OpenFeature.SuperpositionProvider.RefreshTask     (RefreshFn,
+                                                                         RefreshTask (..))
+import           Data.OpenFeature.SuperpositionProviderOptions
+import           Data.String                                            (IsString (..))
+import           Data.Text                                              as T (Text,
+                                                                              unpack)
+import qualified Data.Text.Lazy                                         as LT
+import qualified Data.Text.Lazy.Encoding                                as LTE
+import           Data.Time.Clock                                        (UTCTime)
+import qualified FFI.Superposition                                      as FFI
+import           GHC.Base                                               (when)
+import           GHC.Conc                                               (TVar,
+                                                                         atomically,
+                                                                         newTVarIO,
+                                                                         readTVarIO)
+import           GHC.Conc.Sync                                          (writeTVar)
+import qualified Io.Superposition.Command.GetConfig                     as SDK
+import qualified Io.Superposition.Command.ListExperiment                as Exp
+import qualified Io.Superposition.Command.ListExperimentGroups          as ExpGrp
+import           Io.Superposition.Model.ExperimentStatusType            (ExperimentStatusType (CREATED, INPROGRESS))
+import qualified Io.Superposition.Model.GetConfigInput                  as SDK
+import qualified Io.Superposition.Model.GetConfigOutput                 as SDK
+import qualified Io.Superposition.Model.ListExperimentGroupsInput       as ExpGrp
+import qualified Io.Superposition.Model.ListExperimentGroupsOutput      as ExpGrp
+import qualified Io.Superposition.Model.ListExperimentInput             as Exp
+import qualified Io.Superposition.Model.ListExperimentOutput            as Exp
+import qualified Io.Superposition.SuperpositionClient                   as Client
+import qualified Network.HTTP.Client.TLS                                as Net
+import           System.Mem.Weak                                        (addFinalizer)
 
 data DynRefreshTask a = forall r. (RefreshTask r a) => DynRefreshTask (r a)
 
@@ -65,16 +83,16 @@ type ExperimentGroupsRefreshTask = DynRefreshTask ExpGrp.ListExperimentGroupsOut
 type Logger = forall a. LoggingT IO a -> IO a
 
 data SuperpositionProvider = SuperpositionProvider
-  { providerCache :: FFI.ProviderCacheHandle,
+  { providerCache     :: FFI.ProviderCacheHandle,
     configRefreshTask :: ConfigRefreshTask,
-    expRefreshTask :: Maybe ExperimentsRefreshTask,
+    expRefreshTask    :: Maybe ExperimentsRefreshTask,
     expGrpRefreshTask :: Maybe ExperimentGroupsRefreshTask,
-    _initContext :: TVar (Maybe EvaluationContext),
-    _anchor :: IORef (),
-    _cacheFreed :: IORef Bool,
-    runLogger :: Logger,
+    _initContext      :: TVar (Maybe EvaluationContext),
+    _anchor           :: IORef (),
+    _cacheFreed       :: IORef Bool,
+    runLogger         :: Logger,
     -- TODO
-    fallbackConfig :: ()
+    fallbackConfig    :: ()
   }
 
 toStr :: (ToJSON a) => a -> String
@@ -135,7 +153,7 @@ getResolvedKey SuperpositionProvider {..} key ec = do
   runLogger $
     when (isJust expRefreshTask && isNothing (targetingKey ec)) $
       Log.logWarn "Targeting key missing, experimentation will not have any effect."
-  rcfg <- FFI.evalConfig providerCache queryJson FFI.Merge Nothing tkey
+  rcfg <- FFI.evalConfig providerCache queryJson FFI.Merge Nothing Nothing tkey
   let parser = withObject "ResolvedConfig" (.:? (fromString $ T.unpack key))
       result =
         rcfg
@@ -157,7 +175,7 @@ resolveAllConfig (SuperpositionProvider {..}) ec = do
   let ec' = fromMaybe ec $ mergeEvaluationContext <$> defEc <*> Just ec
       queryJson = toStr $ customFields ec'
       tkey = T.unpack <$> targetingKey ec'
-  FFI.evalConfig providerCache queryJson FFI.Merge Nothing tkey
+  FFI.evalConfig providerCache queryJson FFI.Merge Nothing Nothing tkey
 
 resolveValue ::
   (FromJSON a) =>
@@ -184,7 +202,7 @@ instance FeatureProvider SuperpositionProvider where
     dc <- readTVarIO _initContext
     pure $ case dc of
         Just _ -> Ready
-        _ -> NotReady
+        _      -> NotReady
 
   initialize SuperpositionProvider {..} ec = do
     init <- isJust <$> readTVarIO _initContext

@@ -103,7 +103,7 @@ pub trait SuperpositionDataSource: Send + Sync {
         &self,
         if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ConfigData>> {
-        self.fetch_filtered_config(None, None, if_modified_since)
+        self.fetch_filtered_config(None, None, None, if_modified_since)
             .await
     }
 
@@ -112,6 +112,7 @@ pub trait SuperpositionDataSource: Send + Sync {
         &self,
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
+        exclude_prefix_filter: Option<Vec<String>>,
         if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ConfigData>>;
 
@@ -127,6 +128,7 @@ pub trait SuperpositionDataSource: Send + Sync {
         &self,
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
+        exclude_prefix_filter: Option<Vec<String>>,
         if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ExperimentData>>;
 
@@ -135,6 +137,7 @@ pub trait SuperpositionDataSource: Send + Sync {
         &self,
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
+        exclude_prefix_filter: Option<Vec<String>>,
         if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ExperimentData>>;
 

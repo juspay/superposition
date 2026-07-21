@@ -69,7 +69,7 @@ async fn resolve_with_exp_handler(
     let config_version =
         get_config_version(&query_filters.version, &workspace_context, &state).await?;
 
-    let mut config = read_through_cache::<Config>(
+    let config = read_through_cache::<Config>(
         format!("{}::{}{CONFIG_KEY_SUFFIX}", *schema_name, config_version),
         &schema_name,
         &state.redis,
@@ -102,6 +102,7 @@ async fn resolve_with_exp_handler(
             &config.dimensions,
             identifier,
             query_filters.prefix.clone().map(|p| p.0),
+            query_filters.exclude_prefix.clone().map(|p| p.0),
             &workspace_context,
             &state,
         )
@@ -115,11 +116,11 @@ async fn resolve_with_exp_handler(
             unexpected_error!("Unable to get db connection from pool: {}", e)
         })?;
         resolve(
-            &mut config,
+            config,
             query_data,
             merge_strategy,
             &mut conn,
-            &query_filters,
+            query_filters,
             &workspace_context,
             &state.master_encryption_key,
         )?

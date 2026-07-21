@@ -99,12 +99,14 @@ class SuperpositionAPIProvider(AbstractProvider, AllFeatureProvider, FeatureExpe
         self,
         context: Optional[EvaluationContext] = None,
         prefix_filter: Optional[List[str]] = None,
+        exclude_prefix_filter: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """Resolve all features with optional prefix filtering.
 
         Args:
             context: Evaluation context (optional, uses global context if not provided).
             prefix_filter: Optional list of key prefixes to include.
+            exclude_prefix_filter: Optional list of key prefixes to exclude.
 
         Returns:
             Dictionary of filtered resolved flags.
@@ -134,12 +136,14 @@ class SuperpositionAPIProvider(AbstractProvider, AllFeatureProvider, FeatureExpe
         self,
         context: Optional[EvaluationContext] = None,
         prefix_filter: Optional[List[str]] = None,
+        exclude_prefix_filter: Optional[List[str]] = None,
     ) -> List[str]:
         """Get applicable experiment variants via remote API.
 
         Args:
             context: Evaluation context with targeting key (optional).
-            prefix_filter: Optional list of variant ID prefixes.
+            prefix_filter: Optional list of variant ID prefixes to include.
+            exclude_prefix_filter: Optional list of variant ID prefixes to exclude.
 
         Returns:
             List of applicable variant IDs.
@@ -158,6 +162,7 @@ class SuperpositionAPIProvider(AbstractProvider, AllFeatureProvider, FeatureExpe
                     identifier=targeting_key,
                     context=merged_context,
                     prefix=prefix_filter,
+                    exclude_prefix=exclude_prefix_filter,
                 )
             )
 
@@ -265,12 +270,14 @@ class SuperpositionAPIProvider(AbstractProvider, AllFeatureProvider, FeatureExpe
         self,
         context: Optional[EvaluationContext] = None,
         prefix_filter: Optional[List[str]] = None,
+        exclude_prefix_filter: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """Resolve configuration via remote API.
 
         Args:
             context: Merged context dictionary with string values.
-            prefix_filter: Optional list of key prefixes.
+            prefix_filter: Optional[List[str]] = None,
+            exclude_prefix_filter: Optional[List[str]] = None,
 
         Returns:
             Dictionary of resolved flags.
@@ -283,6 +290,7 @@ class SuperpositionAPIProvider(AbstractProvider, AllFeatureProvider, FeatureExpe
                     org_id=self.options.org_id,
                     context=merged_context,
                     prefix=prefix_filter,
+                    exclude_prefix=exclude_prefix_filter,
                     identifier=targeting_key,
                 )
             )

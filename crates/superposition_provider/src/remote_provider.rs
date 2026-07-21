@@ -60,6 +60,7 @@ impl SuperpositionAPIProvider {
         &self,
         context: EvaluationContext,
         prefix_filter: Option<Vec<String>>,
+        exclude_prefix_filter: Option<Vec<String>>,
     ) -> Result<Map<String, Value>> {
         // TODO: Check if we need to add a separte check to verify the status of provider before doing stuff
 
@@ -73,6 +74,7 @@ impl SuperpositionAPIProvider {
             .set_context(Some(query_data))
             .set_identifier(targeting_key)
             .set_prefix(prefix_filter)
+            .set_exclude_prefix(exclude_prefix_filter)
             .send()
             .await
             .map_err(|e| {
@@ -105,8 +107,10 @@ impl AllFeatureProvider for SuperpositionAPIProvider {
         &self,
         context: EvaluationContext,
         prefix_filter: Option<Vec<String>>,
+        exclude_prefix_filter: Option<Vec<String>>,
     ) -> Result<Map<String, Value>> {
-        self.resolve_remote(context, prefix_filter).await
+        self.resolve_remote(context, prefix_filter, exclude_prefix_filter)
+            .await
     }
 }
 
@@ -116,6 +120,7 @@ impl FeatureExperimentMeta for SuperpositionAPIProvider {
         &self,
         context: EvaluationContext,
         prefix_filter: Option<Vec<String>>,
+        exclude_prefix_filter: Option<Vec<String>>,
     ) -> Result<Vec<String>> {
         let (query_data, targeting_key) = self.get_merged_context(context).await;
         let Some(targeting_key) = targeting_key else {
@@ -132,6 +137,7 @@ impl FeatureExperimentMeta for SuperpositionAPIProvider {
             .set_context(Some(query_data))
             .identifier(targeting_key)
             .set_prefix(prefix_filter)
+            .set_exclude_prefix(exclude_prefix_filter)
             .send()
             .await
             .map_err(|e| {

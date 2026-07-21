@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 use serde::{Deserialize, Serialize};
@@ -8,6 +8,7 @@ use superposition_types::database::models::experimentation::{
     Variant, Variants,
 };
 use superposition_types::experimental::{Experimental, ExperimentalVariants};
+use superposition_types::PrefixList;
 use superposition_types::{logic::evaluate_local_cohorts, Condition, DimensionInfo};
 
 use std::fmt;
@@ -116,6 +117,7 @@ pub fn get_applicable_variants(
     query_data: &Map<String, Value>,
     identifier: &str,
     prefix: Option<Vec<String>>,
+    exclude_prefix: Option<Vec<String>>,
 ) -> Vec<String> {
     let context = evaluate_local_cohorts(dimensions_info, query_data);
 
@@ -123,7 +125,7 @@ pub fn get_applicable_variants(
         get_applicable_buckets_from_group(experiment_groups, &context, identifier);
 
     let experiments: HashMap<String, FfiExperiment> =
-        get_satisfied_experiments(experiments, &context, prefix)
+        get_satisfied_experiments(experiments, &context, prefix, exclude_prefix)
             .into_iter()
             .map(|exp| (exp.id.clone(), exp))
             .collect();
@@ -211,10 +213,17 @@ pub fn get_satisfied_experiments(
     mut experiments: Experiments,
     context: &Map<String, Value>,
     filter_prefixes: Option<Vec<String>>,
+    filter_exclude_prefixes: Option<Vec<String>>,
 ) -> Experiments {
-    if let Some(prefix_list) = filter_prefixes.filter(|p| !p.is_empty()) {
-        let prefix_list: HashSet<String> = HashSet::from_iter(prefix_list);
-        experiments = FfiExperiment::filter_keys_by_prefix(experiments, &prefix_list);
+    let prefix_list = PrefixList::from(filter_prefixes);
+    let exclude_prefix_list = PrefixList::from(filter_exclude_prefixes);
+
+    if !prefix_list.is_empty() || !exclude_prefix_list.is_empty() {
+        experiments = FfiExperiment::filter_keys_by_prefix(
+            experiments,
+            &prefix_list,
+            &exclude_prefix_list,
+        );
     }
 
     if !context.is_empty() {
@@ -228,10 +237,17 @@ pub fn filter_experiments_by_context(
     mut experiments: Experiments,
     context: &Map<String, Value>,
     filter_prefixes: Option<Vec<String>>,
+    filter_exclude_prefixes: Option<Vec<String>>,
 ) -> Experiments {
-    if let Some(prefix_list) = filter_prefixes.filter(|p| !p.is_empty()) {
-        let prefix_list: HashSet<String> = HashSet::from_iter(prefix_list);
-        experiments = FfiExperiment::filter_keys_by_prefix(experiments, &prefix_list);
+    let prefix_list = PrefixList::from(filter_prefixes);
+    let exclude_prefix_list = PrefixList::from(filter_exclude_prefixes);
+
+    if !prefix_list.is_empty() || !exclude_prefix_list.is_empty() {
+        experiments = FfiExperiment::filter_keys_by_prefix(
+            experiments,
+            &prefix_list,
+            &exclude_prefix_list,
+        );
     }
 
     if !context.is_empty() {

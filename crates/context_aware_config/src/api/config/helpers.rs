@@ -18,7 +18,7 @@ use service_utils::{
 };
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    Config, DBConnection,
+    Config, DBConnection, PrefixList,
     api::config::{
         ContextPayload, DetailedResolvedConfigValue, DetailedResolvedConfiguration,
         ExplainKeyQuery, ExplainResolveQuery, Explanation, ExplanationTimelineItem,
@@ -44,11 +44,15 @@ struct DefaultConfigMetadata {
 }
 
 pub fn apply_prefix_filter_to_config(
-    prefix: &Option<CommaSeparatedStringQParams>,
     mut config: Config,
+    prefix: Option<CommaSeparatedStringQParams>,
+    exclude_prefix: Option<CommaSeparatedStringQParams>,
 ) -> superposition::Result<Config> {
-    if let Some(prefix) = prefix {
-        config = config.filter_by_prefix(&prefix.iter().map(Clone::clone).collect());
+    let prefix = PrefixList::from(prefix);
+    let exclude_prefix = PrefixList::from(exclude_prefix);
+
+    if !prefix.is_empty() || !exclude_prefix.is_empty() {
+        config = config.filter_by_prefix(&prefix, &exclude_prefix);
     }
 
     Ok(config)
@@ -251,11 +255,17 @@ fn apply_context_id_filter(
 }
 
 fn apply_resolution_filters(
-    config: &mut Config,
-    query_filters: &ResolveConfigQuery,
-) -> superposition::Result<()> {
-    *config = apply_prefix_filter_to_config(&query_filters.prefix, config.clone())?;
-    apply_context_id_filter(config, &query_filters.context_id)
+    mut config: Config,
+    query_filters: ResolveConfigQuery,
+) -> superposition::Result<Config> {
+    config = apply_prefix_filter_to_config(
+        config,
+        query_filters.prefix,
+        query_filters.exclude_prefix,
+    )?;
+
+    apply_context_id_filter(&mut config, &query_filters.context_id)?;
+    Ok(config)
 }
 
 fn prepare_remote_query_data(
@@ -363,51 +373,52 @@ fn build_resolved_config(
 }
 
 pub fn resolve(
-    config: &mut Config,
+    config: Config,
     query_data: QueryMap,
     merge_strategy: Header<MergeStrategy>,
     conn: &mut DBConnection,
-    query_filters: &ResolveConfigQuery,
+    query_filters: ResolveConfigQuery,
     workspace_context: &WorkspaceContext,
     master_encryption_key: &Option<EncryptionKey>,
 ) -> superposition::Result<Map<String, Value>> {
-    apply_resolution_filters(config, query_filters)?;
+    let resolve_remote = query_filters.resolve_remote;
+    let show_reason = query_filters.show_reasoning.unwrap_or_default();
+    let config = apply_resolution_filters(config, query_filters)?;
     let query_data = prepare_remote_query_data(
-        config,
+        &config,
         query_data,
         conn,
-        query_filters.resolve_remote,
+        resolve_remote,
         workspace_context,
         master_encryption_key,
     )?;
     let merge_strategy = merge_strategy.into_inner();
-    let show_reason = query_filters.show_reasoning.unwrap_or_default();
 
-    evaluate_resolved_config(config, &query_data, merge_strategy, show_reason)
+    evaluate_resolved_config(&config, &query_data, merge_strategy, show_reason)
 }
 
 pub fn resolve_detailed(
-    config: &Config,
+    config: Config,
     context_data: QueryMap,
     merge_strategy: Header<MergeStrategy>,
     conn: &mut DBConnection,
-    resolve_options: &ResolveConfigQuery,
+    resolve_options: ResolveConfigQuery,
     workspace_context: &WorkspaceContext,
     master_encryption_key: &Option<EncryptionKey>,
 ) -> superposition::Result<DetailedResolvedConfiguration> {
-    let mut resolution_config = config.clone();
-    apply_resolution_filters(&mut resolution_config, resolve_options)?;
+    let resolve_remote = resolve_options.resolve_remote;
+    let show_reason = resolve_options.show_reasoning.unwrap_or_default();
+    let resolution_config = apply_resolution_filters(config, resolve_options)?;
 
     let context_data = prepare_remote_query_data(
         &resolution_config,
         context_data,
         conn,
-        resolve_options.resolve_remote,
+        resolve_remote,
         workspace_context,
         master_encryption_key,
     )?;
     let merge_strategy = merge_strategy.into_inner();
-    let show_reason = resolve_options.show_reasoning.unwrap_or_default();
 
     let resolved_config = evaluate_resolved_config(
         &resolution_config,
@@ -496,4 +507,63 @@ pub fn explain_resolved_config(
         key: explain_key.key.clone(),
         timeline,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+    use superposition_types::custom_query::CommaSeparatedQParams;
+
+    use super::*;
+
+    fn config_with_keys() -> Config {
+        Config {
+            default_configs: json!({
+                "foo.enabled": true,
+                "bar.enabled": true
+            })
+            .as_object()
+            .expect("default configs should be an object")
+            .clone()
+            .into(),
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn exclude_prefix_filter_discards_blank_entries() {
+        let mut config = config_with_keys();
+        let query_filters = ResolveConfigQuery {
+            exclude_prefix: Some(CommaSeparatedQParams(vec![
+                String::new(),
+                "   ".to_string(),
+                "foo.".to_string(),
+            ])),
+            ..Default::default()
+        };
+
+        config = apply_resolution_filters(config, query_filters)
+            .expect("resolution filters should be applied");
+
+        assert!(!config.default_configs.contains_key("foo.enabled"));
+        assert!(config.default_configs.contains_key("bar.enabled"));
+    }
+
+    #[test]
+    fn exclude_prefix_filter_with_only_blank_entries_is_noop() {
+        let mut config = config_with_keys();
+        let query_filters = ResolveConfigQuery {
+            exclude_prefix: Some(CommaSeparatedQParams(vec![
+                String::new(),
+                "   ".to_string(),
+            ])),
+            ..Default::default()
+        };
+
+        config = apply_resolution_filters(config, query_filters)
+            .expect("resolution filters should be applied");
+
+        assert!(config.default_configs.contains_key("foo.enabled"));
+        assert!(config.default_configs.contains_key("bar.enabled"));
+    }
 }

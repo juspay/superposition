@@ -32,6 +32,10 @@ operation GetExperimentConfig {
         @notProperty
         prefix: StringList
 
+        @httpQuery("exclude_prefix")
+        @notProperty
+        exclude_prefix: StringList
+
         @notProperty
         context: ContextMap
 

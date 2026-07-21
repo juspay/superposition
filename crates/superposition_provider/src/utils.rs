@@ -15,7 +15,7 @@ use superposition_types::database::models::experimentation::{
 };
 use superposition_types::{
     Cac, Condition, Config, Context, DimensionInfo, Exp, ExtendedMap, OverrideWithKeys,
-    Overrides,
+    Overrides, PrefixList,
 };
 
 use crate::{conversions, types::*};
@@ -501,6 +501,7 @@ impl ConversionUtils {
         config: Config,
         dimension_data: &Map<String, Value>,
         prefix_filter: Option<&[String]>,
+        exclude_prefix_filter: Option<&[String]>,
     ) -> Result<HashMap<String, Value>> {
         debug!(
             "Evaluating config with dimension data: {:?}",
@@ -515,10 +516,14 @@ impl ConversionUtils {
         );
 
         // Apply prefix filtering if specified
-        let final_config = if let Some(prefixes) = prefix_filter {
-            let prefix_set: std::collections::HashSet<String> =
-                prefixes.iter().cloned().collect();
-            filtered_config.filter_by_prefix(&prefix_set)
+        let prefix_set = prefix_filter
+            .map(|p| PrefixList::from_iter(p.iter().cloned()))
+            .unwrap_or_default();
+        let exclude_prefix_set = exclude_prefix_filter
+            .map(|p| PrefixList::from_iter(p.iter().cloned()))
+            .unwrap_or_default();
+        let final_config = if !prefix_set.is_empty() || !exclude_prefix_set.is_empty() {
+            filtered_config.filter_by_prefix(&prefix_set, &exclude_prefix_set)
         } else {
             filtered_config
         };

@@ -1,7 +1,4 @@
-use std::{
-    collections::{HashMap, HashSet},
-    sync::Arc,
-};
+use std::{collections::HashMap, sync::Arc};
 
 use async_trait::async_trait;
 use log::{error, info};
@@ -12,7 +9,7 @@ use open_feature::{
     StructValue,
 };
 use serde_json::{Map, Value};
-use superposition_types::{Config, DimensionInfo};
+use superposition_types::{Config, DimensionInfo, PrefixList};
 use tokio::sync::RwLock;
 
 use crate::types::*;
@@ -137,7 +134,7 @@ impl SuperpositionProvider {
         );
 
         match &self.cac_config {
-            Some(cac_config) => cac_config.evaluate_config(&context, None).await,
+            Some(cac_config) => cac_config.evaluate_config(&context, None, None).await,
             None => Err(SuperpositionError::ConfigError(
                 "CAC config not initialized".into(),
             )),
@@ -148,6 +145,7 @@ impl SuperpositionProvider {
         &self,
         dimension_filter: Option<Map<String, Value>>,
         prefix_filters: Option<Vec<String>>,
+        exclude_prefix_filters: Option<Vec<String>>,
     ) -> Result<Config> {
         let Some(cac_client) = &self.cac_config else {
             return Err(SuperpositionError::ConfigError(
@@ -161,8 +159,10 @@ impl SuperpositionProvider {
                 ));
         };
 
-        if let Some(prefix) = prefix_filters.filter(|f| !f.is_empty()) {
-            cached_config = cached_config.filter_by_prefix(&HashSet::from_iter(prefix));
+        let prefix = PrefixList::from(prefix_filters);
+        let exclude_prefix = PrefixList::from(exclude_prefix_filters);
+        if !prefix.is_empty() || !exclude_prefix.is_empty() {
+            cached_config = cached_config.filter_by_prefix(&prefix, &exclude_prefix);
         }
 
         if let Some(dimension_filter) =

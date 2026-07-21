@@ -171,6 +171,8 @@ pub struct ApplicableVariantsQuery {
     pub identifier: Option<String>,
     #[query_param(skip_if_empty, iterable)]
     pub prefix: Option<CommaSeparatedStringQParams>,
+    #[query_param(skip_if_empty, iterable)]
+    pub exclude_prefix: Option<CommaSeparatedStringQParams>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -232,6 +234,8 @@ pub struct ExperimentListFilters {
     pub global_experiments_only: Option<bool>,
     #[query_param(skip_if_empty, iterable)]
     pub prefix: Option<CommaSeparatedStringQParams>,
+    #[query_param(skip_if_empty, iterable)]
+    pub exclude_prefix: Option<CommaSeparatedStringQParams>,
     pub dimension_match_strategy: Option<DimensionMatchStrategy>,
 }
 
@@ -258,6 +262,7 @@ impl Default for ExperimentListFilters {
             sort_by: Some(SortBy::Desc),
             global_experiments_only: None,
             prefix: None,
+            exclude_prefix: None,
             dimension_match_strategy: None,
         }
     }

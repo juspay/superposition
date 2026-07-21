@@ -1,7 +1,4 @@
-use std::{
-    cmp::min,
-    collections::{HashMap, HashSet},
-};
+use std::{cmp::min, collections::HashMap};
 
 use actix_web::{
     Either, HttpResponse, Scope, delete, get, post, put, routes,
@@ -30,7 +27,7 @@ use superposition_derives::{authorized, declare_resource};
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
     Contextual, DBConnection, DimensionInfo, InternalUserContext, ListResponse,
-    Overridden, Overrides, PaginatedResponse, Resource, SortBy, User,
+    Overridden, Overrides, PaginatedResponse, PrefixList, Resource, SortBy, User,
     api::{
         DimensionMatchStrategy,
         context::{
@@ -601,22 +598,29 @@ async fn list_handler(
         }
     };
 
-    let perform_in_memory_filter =
-        !dimension_params.is_empty() || filter_params.prefix.is_some();
+    let perform_in_memory_filter = !dimension_params.is_empty()
+        || filter_params.prefix.is_some()
+        || filter_params.exclude_prefix.is_some();
 
     let paginated_response = if perform_in_memory_filter {
         let mut all_contexts: Vec<Context> = base_query.load(&mut conn)?;
-        if let Some(prefix) = filter_params.prefix {
-            let prefix_list = HashSet::from_iter(prefix.0);
+        let prefix_list = PrefixList::from(filter_params.prefix);
+        let exclude_prefix_list = PrefixList::from(filter_params.exclude_prefix);
+
+        if !prefix_list.is_empty() || !exclude_prefix_list.is_empty() {
             all_contexts = all_contexts
                 .into_iter()
                 .filter_map(|mut context| {
-                    Context::filter_keys_by_prefix(&context, &prefix_list)
-                        .map(|filtered_overrides_map| {
-                            context.override_ = filtered_overrides_map.into_inner();
-                            context
-                        })
-                        .ok()
+                    Context::filter_keys_by_prefix(
+                        &context,
+                        &prefix_list,
+                        &exclude_prefix_list,
+                    )
+                    .map(|filtered_overrides_map| {
+                        context.override_ = filtered_overrides_map.into_inner();
+                        context
+                    })
+                    .ok()
                 })
                 .collect()
         }

@@ -327,6 +327,15 @@ impl<T: Display + FromStr> Display for CommaSeparatedQParams<T> {
     }
 }
 
+impl IntoIterator for CommaSeparatedQParams<String> {
+    type Item = String;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
 impl<'de, T: Display + FromStr> Deserialize<'de> for CommaSeparatedQParams<T> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where

@@ -74,6 +74,9 @@ export interface ListExperimentCommandOutput extends ListExperimentOutput, __Met
  *   prefix: [
  *     "STRING_VALUE",
  *   ],
+ *   exclude_prefix: [
+ *     "STRING_VALUE",
+ *   ],
  *   context: { // ContextMap
  *     "<keys>": "DOCUMENT_VALUE",
  *   },

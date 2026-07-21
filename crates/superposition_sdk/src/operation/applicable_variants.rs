@@ -149,6 +149,13 @@ fn uri_query(_input: &crate::operation::applicable_variants::ApplicableVariantsI
             }
         }
     }
+    if let ::std::option::Option::Some(inner_4) = &_input.exclude_prefix {
+         {
+            for inner_5 in inner_4 {
+                query.push_kv("exclude_prefix", &::aws_smithy_http::query::fmt_string(inner_5));
+            }
+        }
+    }
     ::std::result::Result::Ok(())
 }
 #[allow(clippy::unnecessary_wraps)]

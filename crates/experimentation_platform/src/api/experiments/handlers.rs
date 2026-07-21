@@ -41,7 +41,7 @@ use superposition_derives::{authorized, declare_resource};
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
     Cac, Condition, Contextual, DBConnection, DimensionInfo, Exp, ListResponse,
-    Overridden, Overrides, PaginatedResponse, Resource, SortBy, User,
+    Overridden, Overrides, PaginatedResponse, PrefixList, Resource, SortBy, User,
     api::{
         DimensionMatchStrategy,
         context::{
@@ -919,6 +919,7 @@ pub async fn get_applicable_variants_helper(
     dimensions_info: &HashMap<String, DimensionInfo>,
     identifier: String,
     prefix_filter: Option<Vec<String>>,
+    exclude_prefix_filter: Option<Vec<String>>,
     workspace_context: &WorkspaceContext,
     app_state: &Data<AppState>,
 ) -> superposition::Result<(Vec<String>, HashMap<String, ExperimentResponse>)> {
@@ -979,9 +980,14 @@ pub async fn get_applicable_variants_helper(
     .await?
     .data;
 
-    if let Some(prefix_filter) = prefix_filter.filter(|f| !f.is_empty()) {
-        let prefix_list: HashSet<String> = HashSet::from_iter(prefix_filter);
-        exps = ExperimentResponse::filter_keys_by_prefix(exps, &prefix_list);
+    let prefix_filter = PrefixList::from(prefix_filter);
+    let exclude_prefix_filter = PrefixList::from(exclude_prefix_filter);
+    if !prefix_filter.is_empty() || !exclude_prefix_filter.is_empty() {
+        exps = ExperimentResponse::filter_keys_by_prefix(
+            exps,
+            &prefix_filter,
+            &exclude_prefix_filter,
+        );
     }
 
     let exps = exps
@@ -1035,6 +1041,7 @@ async fn get_applicable_variants_handler(
         &di,
         identifier,
         query_data.prefix.map(|p| p.0),
+        query_data.exclude_prefix.map(|p| p.0),
         &workspace_context,
         &state,
     )
@@ -1221,9 +1228,10 @@ fn list_experiments_db(
 
     let paginated_response = if perform_in_memory_filter {
         let mut all_experiments: Vec<Experiment> = base_query.load(conn)?;
+        let prefix_list = PrefixList::from(filters.prefix);
+        let exclude_prefix_list = PrefixList::from(filters.exclude_prefix);
 
-        if let Some(prefix) = filters.prefix.filter(|p| !p.is_empty()) {
-            let prefix_list = HashSet::from_iter(prefix.0);
+        if !prefix_list.is_empty() || !exclude_prefix_list.is_empty() {
             all_experiments = all_experiments
                 .into_iter()
                 .filter_map(|experiment| {
@@ -1231,12 +1239,16 @@ fn list_experiments_db(
                         .variants
                         .into_iter()
                         .filter_map(|mut variant| {
-                            Variant::filter_keys_by_prefix(&variant, &prefix_list)
-                                .map(|filtered_overrides_map| {
-                                    variant.overrides = filtered_overrides_map;
-                                    variant
-                                })
-                                .ok()
+                            Variant::filter_keys_by_prefix(
+                                &variant,
+                                &prefix_list,
+                                &exclude_prefix_list,
+                            )
+                            .map(|filtered_overrides_map| {
+                                variant.overrides = filtered_overrides_map;
+                                variant
+                            })
+                            .ok()
                         })
                         .collect();
 

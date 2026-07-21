@@ -123,6 +123,7 @@ export interface ApplicableVariantsInput {
 
   identifier: string | undefined;
   prefix?: (string)[] | undefined;
+  exclude_prefix?: (string)[] | undefined;
 }
 
 /**
@@ -792,6 +793,7 @@ export interface GetConfigInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
   prefix?: (string)[] | undefined;
+  exclude_prefix?: (string)[] | undefined;
   version?: string | undefined;
   /**
    * While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
@@ -886,6 +888,12 @@ export interface GetDetailedResolvedConfigInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
   prefix?: (string)[] | undefined;
+  /**
+   * Excludes configuration keys that start with any of the supplied prefixes. When combined with prefix, exclusion is applied to the allow-listed keys.
+   * @public
+   */
+  exclude_prefix?: (string)[] | undefined;
+
   version?: string | undefined;
   show_reasoning?: boolean | undefined;
   merge_strategy?: MergeStrategy | undefined;
@@ -921,6 +929,12 @@ export interface GetResolvedConfigInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
   prefix?: (string)[] | undefined;
+  /**
+   * Excludes configuration keys that start with any of the supplied prefixes. When combined with prefix, exclusion is applied to the allow-listed keys.
+   * @public
+   */
+  exclude_prefix?: (string)[] | undefined;
+
   version?: string | undefined;
   show_reasoning?: boolean | undefined;
   merge_strategy?: MergeStrategy | undefined;
@@ -1014,6 +1028,7 @@ export interface GetResolvedConfigWithIdentifierInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
   prefix?: (string)[] | undefined;
+  exclude_prefix?: (string)[] | undefined;
   version?: string | undefined;
   show_reasoning?: boolean | undefined;
   merge_strategy?: MergeStrategy | undefined;
@@ -1219,6 +1234,7 @@ export interface ListContextsInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
   prefix?: (string)[] | undefined;
+  exclude_prefix?: (string)[] | undefined;
   sort_on?: ContextFilterSortOn | undefined;
   /**
    * Sort order enumeration for list operations.
@@ -2108,6 +2124,7 @@ export interface GetExperimentConfigInput {
   if_modified_since?: Date | undefined;
 
   prefix?: (string)[] | undefined;
+  exclude_prefix?: (string)[] | undefined;
   /**
    * Map representing the context.
    * Keys correspond to the names of the dimensions.
@@ -2375,6 +2392,7 @@ export interface ListExperimentInput {
   dimension_params?: Record<string, string> | undefined;
 
   prefix?: (string)[] | undefined;
+  exclude_prefix?: (string)[] | undefined;
   /**
    * Map representing the context.
    * Keys correspond to the names of the dimensions.

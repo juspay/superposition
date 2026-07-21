@@ -148,6 +148,7 @@ class ConfigurationClient:
                 query_data,
                 MergeStrategy.MERGE,
                 None, 
+                None,
                 targeting_key
             )
 

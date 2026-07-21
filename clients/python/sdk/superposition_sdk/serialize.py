@@ -156,6 +156,8 @@ async def _serialize_applicable_variants(input: ApplicableVariantsInput, config:
         query_params.append(("identifier", input.identifier))
     if input.prefix is not None:
         query_params.extend(("prefix", e) for e in input.prefix)
+    if input.exclude_prefix is not None:
+        query_params.extend(("exclude_prefix", e) for e in input.exclude_prefix)
 
     query = join_query_params(params=query_params, prefix=query)
 
@@ -1048,6 +1050,8 @@ async def _serialize_get_config(input: GetConfigInput, config: Config) -> HTTPRe
     query_params: list[tuple[str, str | None]] = []
     if input.prefix is not None:
         query_params.extend(("prefix", e) for e in input.prefix)
+    if input.exclude_prefix is not None:
+        query_params.extend(("exclude_prefix", e) for e in input.exclude_prefix)
     if input.version is not None:
         query_params.append(("version", input.version))
 
@@ -1252,6 +1256,8 @@ async def _serialize_get_detailed_resolved_config(input: GetDetailedResolvedConf
     query_params: list[tuple[str, str | None]] = []
     if input.prefix is not None:
         query_params.extend(("prefix", e) for e in input.prefix)
+    if input.exclude_prefix is not None:
+        query_params.extend(("exclude_prefix", e) for e in input.exclude_prefix)
     if input.version is not None:
         query_params.append(("version", input.version))
     if input.show_reasoning is not None:
@@ -1368,6 +1374,8 @@ async def _serialize_get_experiment_config(input: GetExperimentConfigInput, conf
     query_params: list[tuple[str, str | None]] = []
     if input.prefix is not None:
         query_params.extend(("prefix", e) for e in input.prefix)
+    if input.exclude_prefix is not None:
+        query_params.extend(("exclude_prefix", e) for e in input.exclude_prefix)
     if input.dimension_match_strategy is not None:
         query_params.append(("dimension_match_strategy", input.dimension_match_strategy))
 
@@ -1506,6 +1514,8 @@ async def _serialize_get_resolved_config(input: GetResolvedConfigInput, config: 
     query_params: list[tuple[str, str | None]] = []
     if input.prefix is not None:
         query_params.extend(("prefix", e) for e in input.prefix)
+    if input.exclude_prefix is not None:
+        query_params.extend(("exclude_prefix", e) for e in input.exclude_prefix)
     if input.version is not None:
         query_params.append(("version", input.version))
     if input.show_reasoning is not None:
@@ -1611,6 +1621,8 @@ async def _serialize_get_resolved_config_with_identifier(input: GetResolvedConfi
     query_params: list[tuple[str, str | None]] = []
     if input.prefix is not None:
         query_params.extend(("prefix", e) for e in input.prefix)
+    if input.exclude_prefix is not None:
+        query_params.extend(("exclude_prefix", e) for e in input.exclude_prefix)
     if input.version is not None:
         query_params.append(("version", input.version))
     if input.show_reasoning is not None:
@@ -1980,6 +1992,8 @@ async def _serialize_list_contexts(input: ListContextsInput, config: Config) -> 
         query_params.append(("all", ('true' if input.all else 'false')))
     if input.prefix is not None:
         query_params.extend(("prefix", e) for e in input.prefix)
+    if input.exclude_prefix is not None:
+        query_params.extend(("exclude_prefix", e) for e in input.exclude_prefix)
     if input.sort_on is not None:
         query_params.append(("sort_on", input.sort_on))
     if input.sort_by is not None:
@@ -2130,6 +2144,8 @@ async def _serialize_list_experiment(input: ListExperimentInput, config: Config)
         query_params.append(("dimension_match_strategy", input.dimension_match_strategy))
     if input.prefix is not None:
         query_params.extend(("prefix", e) for e in input.prefix)
+    if input.exclude_prefix is not None:
+        query_params.extend(("exclude_prefix", e) for e in input.exclude_prefix)
     if input.dimension_params is not None:
         query_params.extend((k, v) for k, v in input.dimension_params.items())
     query = join_query_params(params=query_params, prefix=query)

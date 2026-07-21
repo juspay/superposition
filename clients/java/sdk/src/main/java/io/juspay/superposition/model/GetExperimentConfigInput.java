@@ -37,6 +37,8 @@ public final class GetExperimentConfigInput implements SerializableStruct {
                 new HttpHeaderTrait("if-modified-since"))
         .putMember("prefix", SharedSchemas.STRING_LIST,
                 new HttpQueryTrait("prefix"))
+        .putMember("exclude_prefix", SharedSchemas.STRING_LIST,
+                new HttpQueryTrait("exclude_prefix"))
         .putMember("context", SharedSchemas.CONTEXT_MAP)
         .putMember("dimension_match_strategy", DimensionMatchStrategy.$SCHEMA,
                 new HttpQueryTrait("dimension_match_strategy"))
@@ -46,6 +48,7 @@ public final class GetExperimentConfigInput implements SerializableStruct {
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
     private static final Schema $SCHEMA_IF_MODIFIED_SINCE = $SCHEMA.member("if_modified_since");
     private static final Schema $SCHEMA_PREFIX = $SCHEMA.member("prefix");
+    private static final Schema $SCHEMA_EXCLUDE_PREFIX = $SCHEMA.member("exclude_prefix");
     private static final Schema $SCHEMA_CONTEXT = $SCHEMA.member("context");
     private static final Schema $SCHEMA_DIMENSION_MATCH_STRATEGY = $SCHEMA.member("dimension_match_strategy");
 
@@ -53,6 +56,7 @@ public final class GetExperimentConfigInput implements SerializableStruct {
     private final transient String orgId;
     private final transient Instant ifModifiedSince;
     private final transient List<String> prefix;
+    private final transient List<String> excludePrefix;
     private final transient Map<String, Document> context;
     private final transient DimensionMatchStrategy dimensionMatchStrategy;
 
@@ -61,6 +65,7 @@ public final class GetExperimentConfigInput implements SerializableStruct {
         this.orgId = builder.orgId;
         this.ifModifiedSince = builder.ifModifiedSince;
         this.prefix = builder.prefix == null ? null : Collections.unmodifiableList(builder.prefix);
+        this.excludePrefix = builder.excludePrefix == null ? null : Collections.unmodifiableList(builder.excludePrefix);
         this.context = builder.context == null ? null : Collections.unmodifiableMap(builder.context);
         this.dimensionMatchStrategy = builder.dimensionMatchStrategy;
     }
@@ -91,6 +96,17 @@ public final class GetExperimentConfigInput implements SerializableStruct {
 
     public boolean hasPrefix() {
         return prefix != null;
+    }
+
+    public List<String> excludePrefix() {
+        if (excludePrefix == null) {
+            return Collections.emptyList();
+        }
+        return excludePrefix;
+    }
+
+    public boolean hasExcludePrefix() {
+        return excludePrefix != null;
     }
 
     public Map<String, Document> context() {
@@ -126,13 +142,14 @@ public final class GetExperimentConfigInput implements SerializableStruct {
                && Objects.equals(this.orgId, that.orgId)
                && Objects.equals(this.ifModifiedSince, that.ifModifiedSince)
                && Objects.equals(this.prefix, that.prefix)
+               && Objects.equals(this.excludePrefix, that.excludePrefix)
                && Objects.equals(this.context, that.context)
                && Objects.equals(this.dimensionMatchStrategy, that.dimensionMatchStrategy);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, ifModifiedSince, prefix, context, dimensionMatchStrategy);
+        return Objects.hash(workspaceId, orgId, ifModifiedSince, prefix, excludePrefix, context, dimensionMatchStrategy);
     }
 
     @Override
@@ -150,6 +167,9 @@ public final class GetExperimentConfigInput implements SerializableStruct {
         if (prefix != null) {
             serializer.writeList($SCHEMA_PREFIX, prefix, prefix.size(), SharedSerde.StringListSerializer.INSTANCE);
         }
+        if (excludePrefix != null) {
+            serializer.writeList($SCHEMA_EXCLUDE_PREFIX, excludePrefix, excludePrefix.size(), SharedSerde.StringListSerializer.INSTANCE);
+        }
         if (context != null) {
             serializer.writeMap($SCHEMA_CONTEXT, context, context.size(), SharedSerde.ContextMapSerializer.INSTANCE);
         }
@@ -166,8 +186,9 @@ public final class GetExperimentConfigInput implements SerializableStruct {
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_IF_MODIFIED_SINCE, member, ifModifiedSince);
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, prefix);
-            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
-            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, dimensionMatchStrategy);
+            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXCLUDE_PREFIX, member, excludePrefix);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, dimensionMatchStrategy);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -185,6 +206,7 @@ public final class GetExperimentConfigInput implements SerializableStruct {
         builder.orgId(this.orgId);
         builder.ifModifiedSince(this.ifModifiedSince);
         builder.prefix(this.prefix);
+        builder.excludePrefix(this.excludePrefix);
         builder.context(this.context);
         builder.dimensionMatchStrategy(this.dimensionMatchStrategy);
         return builder;
@@ -206,6 +228,7 @@ public final class GetExperimentConfigInput implements SerializableStruct {
         private String orgId;
         private Instant ifModifiedSince;
         private List<String> prefix;
+        private List<String> excludePrefix;
         private Map<String, Document> context;
         private DimensionMatchStrategy dimensionMatchStrategy;
 
@@ -259,6 +282,14 @@ public final class GetExperimentConfigInput implements SerializableStruct {
         /**
          * @return this builder.
          */
+        public Builder excludePrefix(List<String> excludePrefix) {
+            this.excludePrefix = excludePrefix;
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
         public Builder context(Map<String, Document> context) {
             this.context = context;
             return this;
@@ -286,8 +317,9 @@ public final class GetExperimentConfigInput implements SerializableStruct {
                 case 1 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 case 2 -> ifModifiedSince((Instant) SchemaUtils.validateSameMember($SCHEMA_IF_MODIFIED_SINCE, member, value));
                 case 3 -> prefix((List<String>) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, value));
-                case 4 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
-                case 5 -> dimensionMatchStrategy((DimensionMatchStrategy) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, value));
+                case 4 -> excludePrefix((List<String>) SchemaUtils.validateSameMember($SCHEMA_EXCLUDE_PREFIX, member, value));
+                case 5 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
+                case 6 -> dimensionMatchStrategy((DimensionMatchStrategy) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -328,8 +360,9 @@ public final class GetExperimentConfigInput implements SerializableStruct {
                     case 1 -> builder.orgId(de.readString(member));
                     case 2 -> builder.ifModifiedSince(de.readTimestamp(member));
                     case 3 -> builder.prefix(SharedSerde.deserializeStringList(member, de));
-                    case 4 -> builder.context(SharedSerde.deserializeContextMap(member, de));
-                    case 5 -> builder.dimensionMatchStrategy(DimensionMatchStrategy.builder().deserializeMember(de, member).build());
+                    case 4 -> builder.excludePrefix(SharedSerde.deserializeStringList(member, de));
+                    case 5 -> builder.context(SharedSerde.deserializeContextMap(member, de));
+                    case 6 -> builder.dimensionMatchStrategy(DimensionMatchStrategy.builder().deserializeMember(de, member).build());
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

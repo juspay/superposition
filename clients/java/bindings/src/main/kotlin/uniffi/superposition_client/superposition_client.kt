@@ -873,25 +873,25 @@ fun uniffi_superposition_core_fn_free_providercache(`ptr`: Pointer,uniffi_out_er
 ): Unit
 fun uniffi_superposition_core_fn_constructor_providercache_new(uniffi_out_err: UniffiRustCallStatus, 
 ): Pointer
-fun uniffi_superposition_core_fn_method_providercache_eval_config(`ptr`: Pointer,`queryData`: RustBuffer.ByValue,`mergeStrategy`: RustBufferMergeStrategy.ByValue,`filterPrefixes`: RustBuffer.ByValue,`targetingKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+fun uniffi_superposition_core_fn_method_providercache_eval_config(`ptr`: Pointer,`queryData`: RustBuffer.ByValue,`mergeStrategy`: RustBufferMergeStrategy.ByValue,`filterPrefixes`: RustBuffer.ByValue,`filterExcludePrefixes`: RustBuffer.ByValue,`targetingKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
-fun uniffi_superposition_core_fn_method_providercache_filter_config(`ptr`: Pointer,`dimensionData`: RustBuffer.ByValue,`prefix`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+fun uniffi_superposition_core_fn_method_providercache_filter_config(`ptr`: Pointer,`dimensionData`: RustBuffer.ByValue,`prefix`: RustBuffer.ByValue,`excludePrefix`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBufferConfig.ByValue
-fun uniffi_superposition_core_fn_method_providercache_filter_experiment(`ptr`: Pointer,`dimensionData`: RustBuffer.ByValue,`prefix`: RustBuffer.ByValue,`partialApply`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+fun uniffi_superposition_core_fn_method_providercache_filter_experiment(`ptr`: Pointer,`dimensionData`: RustBuffer.ByValue,`prefix`: RustBuffer.ByValue,`excludePrefix`: RustBuffer.ByValue,`partialApply`: Byte,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
-fun uniffi_superposition_core_fn_method_providercache_get_applicable_variants(`ptr`: Pointer,`dimensionData`: RustBuffer.ByValue,`prefix`: RustBuffer.ByValue,`targetingKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+fun uniffi_superposition_core_fn_method_providercache_get_applicable_variants(`ptr`: Pointer,`dimensionData`: RustBuffer.ByValue,`prefix`: RustBuffer.ByValue,`excludePrefix`: RustBuffer.ByValue,`targetingKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
 fun uniffi_superposition_core_fn_method_providercache_init_config(`ptr`: Pointer,`defaultConfig`: RustBuffer.ByValue,`contexts`: RustBuffer.ByValue,`overrides`: RustBuffer.ByValue,`dimensions`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): Unit
 fun uniffi_superposition_core_fn_method_providercache_init_experiments(`ptr`: Pointer,`experiments`: RustBuffer.ByValue,`experimentGroups`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): Unit
-fun uniffi_superposition_core_fn_func_ffi_eval_config(`defaultConfig`: RustBuffer.ByValue,`contexts`: RustBuffer.ByValue,`overrides`: RustBuffer.ByValue,`dimensions`: RustBuffer.ByValue,`queryData`: RustBuffer.ByValue,`mergeStrategy`: RustBufferMergeStrategy.ByValue,`filterPrefixes`: RustBuffer.ByValue,`experimentation`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+fun uniffi_superposition_core_fn_func_ffi_eval_config(`defaultConfig`: RustBuffer.ByValue,`contexts`: RustBuffer.ByValue,`overrides`: RustBuffer.ByValue,`dimensions`: RustBuffer.ByValue,`queryData`: RustBuffer.ByValue,`mergeStrategy`: RustBufferMergeStrategy.ByValue,`filterPrefixes`: RustBuffer.ByValue,`filterExcludePrefixes`: RustBuffer.ByValue,`experimentation`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
-fun uniffi_superposition_core_fn_func_ffi_eval_config_with_reasoning(`defaultConfig`: RustBuffer.ByValue,`contexts`: RustBuffer.ByValue,`overrides`: RustBuffer.ByValue,`dimensions`: RustBuffer.ByValue,`queryData`: RustBuffer.ByValue,`mergeStrategy`: RustBufferMergeStrategy.ByValue,`filterPrefixes`: RustBuffer.ByValue,`experimentation`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+fun uniffi_superposition_core_fn_func_ffi_eval_config_with_reasoning(`defaultConfig`: RustBuffer.ByValue,`contexts`: RustBuffer.ByValue,`overrides`: RustBuffer.ByValue,`dimensions`: RustBuffer.ByValue,`queryData`: RustBuffer.ByValue,`mergeStrategy`: RustBufferMergeStrategy.ByValue,`filterPrefixes`: RustBuffer.ByValue,`filterExcludePrefixes`: RustBuffer.ByValue,`experimentation`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
-fun uniffi_superposition_core_fn_func_ffi_get_applicable_variants(`eargs`: RustBuffer.ByValue,`dimensionsInfo`: RustBuffer.ByValue,`queryData`: RustBuffer.ByValue,`prefix`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+fun uniffi_superposition_core_fn_func_ffi_get_applicable_variants(`eargs`: RustBuffer.ByValue,`dimensionsInfo`: RustBuffer.ByValue,`queryData`: RustBuffer.ByValue,`prefix`: RustBuffer.ByValue,`excludePrefix`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
-fun uniffi_superposition_core_fn_func_ffi_parse_config_file_with_filters(`fileContent`: RustBuffer.ByValue,`format`: RustBuffer.ByValue,`dimensionData`: RustBuffer.ByValue,`prefix`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+fun uniffi_superposition_core_fn_func_ffi_parse_config_file_with_filters(`fileContent`: RustBuffer.ByValue,`format`: RustBuffer.ByValue,`dimensionData`: RustBuffer.ByValue,`prefix`: RustBuffer.ByValue,`excludePrefix`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBufferConfig.ByValue
 fun uniffi_superposition_core_fn_func_ffi_parse_json_config(`jsonContent`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBufferConfig.ByValue
@@ -1023,16 +1023,16 @@ private fun uniffiCheckContractApiVersion(lib: IntegrityCheckingUniffiLib) {
 }
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
-    if (lib.uniffi_superposition_core_checksum_func_ffi_eval_config() != 61169.toShort()) {
+    if (lib.uniffi_superposition_core_checksum_func_ffi_eval_config() != 51777.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_superposition_core_checksum_func_ffi_eval_config_with_reasoning() != 47981.toShort()) {
+    if (lib.uniffi_superposition_core_checksum_func_ffi_eval_config_with_reasoning() != 2696.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_superposition_core_checksum_func_ffi_get_applicable_variants() != 58234.toShort()) {
+    if (lib.uniffi_superposition_core_checksum_func_ffi_get_applicable_variants() != 63950.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_superposition_core_checksum_func_ffi_parse_config_file_with_filters() != 63728.toShort()) {
+    if (lib.uniffi_superposition_core_checksum_func_ffi_parse_config_file_with_filters() != 52671.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_superposition_core_checksum_func_ffi_parse_json_config() != 30321.toShort()) {
@@ -1041,16 +1041,16 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if (lib.uniffi_superposition_core_checksum_func_ffi_parse_toml_config() != 1558.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_superposition_core_checksum_method_providercache_eval_config() != 7889.toShort()) {
+    if (lib.uniffi_superposition_core_checksum_method_providercache_eval_config() != 35291.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_superposition_core_checksum_method_providercache_filter_config() != 21761.toShort()) {
+    if (lib.uniffi_superposition_core_checksum_method_providercache_filter_config() != 49737.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_superposition_core_checksum_method_providercache_filter_experiment() != 31120.toShort()) {
+    if (lib.uniffi_superposition_core_checksum_method_providercache_filter_experiment() != 24945.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_superposition_core_checksum_method_providercache_get_applicable_variants() != 12269.toShort()) {
+    if (lib.uniffi_superposition_core_checksum_method_providercache_get_applicable_variants() != 3792.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_superposition_core_checksum_method_providercache_init_config() != 28151.toShort()) {
@@ -1409,13 +1409,13 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
 
 public interface ProviderCacheInterface {
     
-    fun `evalConfig`(`queryData`: Map<kotlin.String, kotlin.String>, `mergeStrategy`: MergeStrategy, `filterPrefixes`: List<kotlin.String>?, `targetingKey`: kotlin.String?): Map<kotlin.String, kotlin.String>
+    fun `evalConfig`(`queryData`: Map<kotlin.String, kotlin.String>, `mergeStrategy`: MergeStrategy, `filterPrefixes`: List<kotlin.String>?, `filterExcludePrefixes`: List<kotlin.String>?, `targetingKey`: kotlin.String?): Map<kotlin.String, kotlin.String>
     
-    fun `filterConfig`(`dimensionData`: Map<kotlin.String, kotlin.String>?, `prefix`: List<kotlin.String>?): Config
+    fun `filterConfig`(`dimensionData`: Map<kotlin.String, kotlin.String>?, `prefix`: List<kotlin.String>?, `excludePrefix`: List<kotlin.String>?): Config
     
-    fun `filterExperiment`(`dimensionData`: Map<kotlin.String, kotlin.String>?, `prefix`: List<kotlin.String>?, `partialApply`: kotlin.Boolean): ExperimentConfig
+    fun `filterExperiment`(`dimensionData`: Map<kotlin.String, kotlin.String>?, `prefix`: List<kotlin.String>?, `excludePrefix`: List<kotlin.String>?, `partialApply`: kotlin.Boolean): ExperimentConfig
     
-    fun `getApplicableVariants`(`dimensionData`: Map<kotlin.String, kotlin.String>?, `prefix`: List<kotlin.String>?, `targetingKey`: kotlin.String): List<kotlin.String>
+    fun `getApplicableVariants`(`dimensionData`: Map<kotlin.String, kotlin.String>?, `prefix`: List<kotlin.String>?, `excludePrefix`: List<kotlin.String>?, `targetingKey`: kotlin.String): List<kotlin.String>
     
     fun `initConfig`(`defaultConfig`: Map<kotlin.String, kotlin.String>, `contexts`: List<Context>, `overrides`: Map<kotlin.String, Overrides>, `dimensions`: Map<kotlin.String, DimensionInfo>)
     
@@ -1514,12 +1514,12 @@ open class ProviderCache: Disposable, AutoCloseable, ProviderCacheInterface
     }
 
     
-    @Throws(OperationException::class)override fun `evalConfig`(`queryData`: Map<kotlin.String, kotlin.String>, `mergeStrategy`: MergeStrategy, `filterPrefixes`: List<kotlin.String>?, `targetingKey`: kotlin.String?): Map<kotlin.String, kotlin.String> {
+    @Throws(OperationException::class)override fun `evalConfig`(`queryData`: Map<kotlin.String, kotlin.String>, `mergeStrategy`: MergeStrategy, `filterPrefixes`: List<kotlin.String>?, `filterExcludePrefixes`: List<kotlin.String>?, `targetingKey`: kotlin.String?): Map<kotlin.String, kotlin.String> {
             return FfiConverterMapStringString.lift(
     callWithPointer {
     uniffiRustCallWithError(OperationException) { _status ->
     UniffiLib.INSTANCE.uniffi_superposition_core_fn_method_providercache_eval_config(
-        it, FfiConverterMapStringString.lower(`queryData`),FfiConverterTypeMergeStrategy.lower(`mergeStrategy`),FfiConverterOptionalSequenceString.lower(`filterPrefixes`),FfiConverterOptionalString.lower(`targetingKey`),_status)
+        it, FfiConverterMapStringString.lower(`queryData`),FfiConverterTypeMergeStrategy.lower(`mergeStrategy`),FfiConverterOptionalSequenceString.lower(`filterPrefixes`),FfiConverterOptionalSequenceString.lower(`filterExcludePrefixes`),FfiConverterOptionalString.lower(`targetingKey`),_status)
 }
     }
     )
@@ -1527,12 +1527,12 @@ open class ProviderCache: Disposable, AutoCloseable, ProviderCacheInterface
     
 
     
-    @Throws(OperationException::class)override fun `filterConfig`(`dimensionData`: Map<kotlin.String, kotlin.String>?, `prefix`: List<kotlin.String>?): Config {
+    @Throws(OperationException::class)override fun `filterConfig`(`dimensionData`: Map<kotlin.String, kotlin.String>?, `prefix`: List<kotlin.String>?, `excludePrefix`: List<kotlin.String>?): Config {
             return FfiConverterTypeConfig.lift(
     callWithPointer {
     uniffiRustCallWithError(OperationException) { _status ->
     UniffiLib.INSTANCE.uniffi_superposition_core_fn_method_providercache_filter_config(
-        it, FfiConverterOptionalMapStringString.lower(`dimensionData`),FfiConverterOptionalSequenceString.lower(`prefix`),_status)
+        it, FfiConverterOptionalMapStringString.lower(`dimensionData`),FfiConverterOptionalSequenceString.lower(`prefix`),FfiConverterOptionalSequenceString.lower(`excludePrefix`),_status)
 }
     }
     )
@@ -1540,12 +1540,12 @@ open class ProviderCache: Disposable, AutoCloseable, ProviderCacheInterface
     
 
     
-    @Throws(OperationException::class)override fun `filterExperiment`(`dimensionData`: Map<kotlin.String, kotlin.String>?, `prefix`: List<kotlin.String>?, `partialApply`: kotlin.Boolean): ExperimentConfig {
+    @Throws(OperationException::class)override fun `filterExperiment`(`dimensionData`: Map<kotlin.String, kotlin.String>?, `prefix`: List<kotlin.String>?, `excludePrefix`: List<kotlin.String>?, `partialApply`: kotlin.Boolean): ExperimentConfig {
             return FfiConverterTypeExperimentConfig.lift(
     callWithPointer {
     uniffiRustCallWithError(OperationException) { _status ->
     UniffiLib.INSTANCE.uniffi_superposition_core_fn_method_providercache_filter_experiment(
-        it, FfiConverterOptionalMapStringString.lower(`dimensionData`),FfiConverterOptionalSequenceString.lower(`prefix`),FfiConverterBoolean.lower(`partialApply`),_status)
+        it, FfiConverterOptionalMapStringString.lower(`dimensionData`),FfiConverterOptionalSequenceString.lower(`prefix`),FfiConverterOptionalSequenceString.lower(`excludePrefix`),FfiConverterBoolean.lower(`partialApply`),_status)
 }
     }
     )
@@ -1553,12 +1553,12 @@ open class ProviderCache: Disposable, AutoCloseable, ProviderCacheInterface
     
 
     
-    @Throws(OperationException::class)override fun `getApplicableVariants`(`dimensionData`: Map<kotlin.String, kotlin.String>?, `prefix`: List<kotlin.String>?, `targetingKey`: kotlin.String): List<kotlin.String> {
+    @Throws(OperationException::class)override fun `getApplicableVariants`(`dimensionData`: Map<kotlin.String, kotlin.String>?, `prefix`: List<kotlin.String>?, `excludePrefix`: List<kotlin.String>?, `targetingKey`: kotlin.String): List<kotlin.String> {
             return FfiConverterSequenceString.lift(
     callWithPointer {
     uniffiRustCallWithError(OperationException) { _status ->
     UniffiLib.INSTANCE.uniffi_superposition_core_fn_method_providercache_get_applicable_variants(
-        it, FfiConverterOptionalMapStringString.lower(`dimensionData`),FfiConverterOptionalSequenceString.lower(`prefix`),FfiConverterString.lower(`targetingKey`),_status)
+        it, FfiConverterOptionalMapStringString.lower(`dimensionData`),FfiConverterOptionalSequenceString.lower(`prefix`),FfiConverterOptionalSequenceString.lower(`excludePrefix`),FfiConverterString.lower(`targetingKey`),_status)
 }
     }
     )
@@ -2312,41 +2312,41 @@ public object FfiConverterMapStringTypeOverrides: FfiConverterRustBuffer<Map<kot
 
 
 
-    @Throws(OperationException::class) fun `ffiEvalConfig`(`defaultConfig`: Map<kotlin.String, kotlin.String>, `contexts`: List<Context>, `overrides`: Map<kotlin.String, Overrides>, `dimensions`: Map<kotlin.String, DimensionInfo>, `queryData`: Map<kotlin.String, kotlin.String>, `mergeStrategy`: MergeStrategy, `filterPrefixes`: List<kotlin.String>?, `experimentation`: ExperimentationArgs?): Map<kotlin.String, kotlin.String> {
+    @Throws(OperationException::class) fun `ffiEvalConfig`(`defaultConfig`: Map<kotlin.String, kotlin.String>, `contexts`: List<Context>, `overrides`: Map<kotlin.String, Overrides>, `dimensions`: Map<kotlin.String, DimensionInfo>, `queryData`: Map<kotlin.String, kotlin.String>, `mergeStrategy`: MergeStrategy, `filterPrefixes`: List<kotlin.String>?, `filterExcludePrefixes`: List<kotlin.String>?, `experimentation`: ExperimentationArgs?): Map<kotlin.String, kotlin.String> {
             return FfiConverterMapStringString.lift(
     uniffiRustCallWithError(OperationException) { _status ->
     UniffiLib.INSTANCE.uniffi_superposition_core_fn_func_ffi_eval_config(
-        FfiConverterMapStringString.lower(`defaultConfig`),FfiConverterSequenceTypeContext.lower(`contexts`),FfiConverterMapStringTypeOverrides.lower(`overrides`),FfiConverterMapStringTypeDimensionInfo.lower(`dimensions`),FfiConverterMapStringString.lower(`queryData`),FfiConverterTypeMergeStrategy.lower(`mergeStrategy`),FfiConverterOptionalSequenceString.lower(`filterPrefixes`),FfiConverterOptionalTypeExperimentationArgs.lower(`experimentation`),_status)
+        FfiConverterMapStringString.lower(`defaultConfig`),FfiConverterSequenceTypeContext.lower(`contexts`),FfiConverterMapStringTypeOverrides.lower(`overrides`),FfiConverterMapStringTypeDimensionInfo.lower(`dimensions`),FfiConverterMapStringString.lower(`queryData`),FfiConverterTypeMergeStrategy.lower(`mergeStrategy`),FfiConverterOptionalSequenceString.lower(`filterPrefixes`),FfiConverterOptionalSequenceString.lower(`filterExcludePrefixes`),FfiConverterOptionalTypeExperimentationArgs.lower(`experimentation`),_status)
 }
     )
     }
     
 
-    @Throws(OperationException::class) fun `ffiEvalConfigWithReasoning`(`defaultConfig`: Map<kotlin.String, kotlin.String>, `contexts`: List<Context>, `overrides`: Map<kotlin.String, Overrides>, `dimensions`: Map<kotlin.String, DimensionInfo>, `queryData`: Map<kotlin.String, kotlin.String>, `mergeStrategy`: MergeStrategy, `filterPrefixes`: List<kotlin.String>?, `experimentation`: ExperimentationArgs?): Map<kotlin.String, kotlin.String> {
+    @Throws(OperationException::class) fun `ffiEvalConfigWithReasoning`(`defaultConfig`: Map<kotlin.String, kotlin.String>, `contexts`: List<Context>, `overrides`: Map<kotlin.String, Overrides>, `dimensions`: Map<kotlin.String, DimensionInfo>, `queryData`: Map<kotlin.String, kotlin.String>, `mergeStrategy`: MergeStrategy, `filterPrefixes`: List<kotlin.String>?, `filterExcludePrefixes`: List<kotlin.String>?, `experimentation`: ExperimentationArgs?): Map<kotlin.String, kotlin.String> {
             return FfiConverterMapStringString.lift(
     uniffiRustCallWithError(OperationException) { _status ->
     UniffiLib.INSTANCE.uniffi_superposition_core_fn_func_ffi_eval_config_with_reasoning(
-        FfiConverterMapStringString.lower(`defaultConfig`),FfiConverterSequenceTypeContext.lower(`contexts`),FfiConverterMapStringTypeOverrides.lower(`overrides`),FfiConverterMapStringTypeDimensionInfo.lower(`dimensions`),FfiConverterMapStringString.lower(`queryData`),FfiConverterTypeMergeStrategy.lower(`mergeStrategy`),FfiConverterOptionalSequenceString.lower(`filterPrefixes`),FfiConverterOptionalTypeExperimentationArgs.lower(`experimentation`),_status)
+        FfiConverterMapStringString.lower(`defaultConfig`),FfiConverterSequenceTypeContext.lower(`contexts`),FfiConverterMapStringTypeOverrides.lower(`overrides`),FfiConverterMapStringTypeDimensionInfo.lower(`dimensions`),FfiConverterMapStringString.lower(`queryData`),FfiConverterTypeMergeStrategy.lower(`mergeStrategy`),FfiConverterOptionalSequenceString.lower(`filterPrefixes`),FfiConverterOptionalSequenceString.lower(`filterExcludePrefixes`),FfiConverterOptionalTypeExperimentationArgs.lower(`experimentation`),_status)
 }
     )
     }
     
 
-    @Throws(OperationException::class) fun `ffiGetApplicableVariants`(`eargs`: ExperimentationArgs, `dimensionsInfo`: Map<kotlin.String, DimensionInfo>, `queryData`: Map<kotlin.String, kotlin.String>, `prefix`: List<kotlin.String>?): List<kotlin.String> {
+    @Throws(OperationException::class) fun `ffiGetApplicableVariants`(`eargs`: ExperimentationArgs, `dimensionsInfo`: Map<kotlin.String, DimensionInfo>, `queryData`: Map<kotlin.String, kotlin.String>, `prefix`: List<kotlin.String>?, `excludePrefix`: List<kotlin.String>?): List<kotlin.String> {
             return FfiConverterSequenceString.lift(
     uniffiRustCallWithError(OperationException) { _status ->
     UniffiLib.INSTANCE.uniffi_superposition_core_fn_func_ffi_get_applicable_variants(
-        FfiConverterTypeExperimentationArgs.lower(`eargs`),FfiConverterMapStringTypeDimensionInfo.lower(`dimensionsInfo`),FfiConverterMapStringString.lower(`queryData`),FfiConverterOptionalSequenceString.lower(`prefix`),_status)
+        FfiConverterTypeExperimentationArgs.lower(`eargs`),FfiConverterMapStringTypeDimensionInfo.lower(`dimensionsInfo`),FfiConverterMapStringString.lower(`queryData`),FfiConverterOptionalSequenceString.lower(`prefix`),FfiConverterOptionalSequenceString.lower(`excludePrefix`),_status)
 }
     )
     }
     
 
-    @Throws(OperationException::class) fun `ffiParseConfigFileWithFilters`(`fileContent`: kotlin.String, `format`: kotlin.String, `dimensionData`: Map<kotlin.String, kotlin.String>?, `prefix`: List<kotlin.String>?): Config {
+    @Throws(OperationException::class) fun `ffiParseConfigFileWithFilters`(`fileContent`: kotlin.String, `format`: kotlin.String, `dimensionData`: Map<kotlin.String, kotlin.String>?, `prefix`: List<kotlin.String>?, `excludePrefix`: List<kotlin.String>?): Config {
             return FfiConverterTypeConfig.lift(
     uniffiRustCallWithError(OperationException) { _status ->
     UniffiLib.INSTANCE.uniffi_superposition_core_fn_func_ffi_parse_config_file_with_filters(
-        FfiConverterString.lower(`fileContent`),FfiConverterString.lower(`format`),FfiConverterOptionalMapStringString.lower(`dimensionData`),FfiConverterOptionalSequenceString.lower(`prefix`),_status)
+        FfiConverterString.lower(`fileContent`),FfiConverterString.lower(`format`),FfiConverterOptionalMapStringString.lower(`dimensionData`),FfiConverterOptionalSequenceString.lower(`prefix`),FfiConverterOptionalSequenceString.lower(`excludePrefix`),_status)
 }
     )
     }

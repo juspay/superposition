@@ -245,6 +245,7 @@ fn resolve_optimized(ds: &Dataset, query: &Map<String, Value>) -> Map<String, Va
         query,
         MergeStrategy::MERGE,
         None,
+        None,
     )
     .expect("resolve")
 }
@@ -277,6 +278,7 @@ fn resolve_pre_optimization(
         &ds.dimensions,
         query,
         MergeStrategy::MERGE,
+        None,
         None,
     )
     .expect("resolve")

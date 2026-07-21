@@ -96,6 +96,7 @@ class SuperpositionDataSource(ABC):
         self,
         context: Optional[Dict[str, Any]] = None,
         prefix_filter: Optional[List[str]] = None,
+        exclude_prefix_filter: Optional[List[str]] = None,
         if_modified_since: Optional[datetime] = None,
     ) -> FetchResponse[ConfigData]:
         """Fetch resolved configuration filtered by context and prefixes.
@@ -103,6 +104,7 @@ class SuperpositionDataSource(ABC):
         Args:
             context: Optional context for filtering.
             prefix_filter: Optional list of key prefixes to include.
+            exclude_prefix_filter: Optional list of key prefixes to exclude.
             if_modified_since: Optional timestamp for 304 Not Modified check.
 
         Returns:
@@ -130,6 +132,7 @@ class SuperpositionDataSource(ABC):
         self,
         context: Optional[Dict[str, Any]] = None,
         prefix_filter: Optional[List[str]] = None,
+        exclude_prefix_filter: Optional[List[str]] = None,
         if_modified_since: Optional[datetime] = None,
     ) -> FetchResponse[ExperimentData]:
         """Fetch active experiments with conditions matching the context.
@@ -137,6 +140,7 @@ class SuperpositionDataSource(ABC):
         Args:
             context: Optional context for filtering.
             prefix_filter: Optional list of key prefixes to include.
+            exclude_prefix_filter: Optional list of key prefixes to exclude.
             if_modified_since: Optional timestamp for 304 Not Modified check.
 
         Returns:
@@ -149,6 +153,7 @@ class SuperpositionDataSource(ABC):
         self,
         context: Optional[Dict[str, Any]] = None,
         prefix_filter: Optional[List[str]] = None,
+        exclude_prefix_filter: Optional[List[str]] = None,
         if_modified_since: Optional[datetime] = None,
     ) -> FetchResponse[ExperimentData]:
         """Fetch active experiments that match the context.
@@ -156,6 +161,7 @@ class SuperpositionDataSource(ABC):
         Args:
             context: Optional context for filtering.
             prefix_filter: Optional list of key prefixes to include.
+            exclude_prefix_filter: Optional list of key prefixes to exclude.
             if_modified_since: Optional timestamp for 304 Not Modified check.
 
         Returns:

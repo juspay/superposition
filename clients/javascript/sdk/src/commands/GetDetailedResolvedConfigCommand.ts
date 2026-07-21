@@ -48,6 +48,9 @@ export interface GetDetailedResolvedConfigCommandOutput extends GetDetailedResol
  *   prefix: [ // StringList
  *     "STRING_VALUE",
  *   ],
+ *   exclude_prefix: [
+ *     "STRING_VALUE",
+ *   ],
  *   version: "STRING_VALUE",
  *   show_reasoning: true || false,
  *   merge_strategy: "MERGE" || "REPLACE",

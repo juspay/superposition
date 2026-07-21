@@ -247,6 +247,7 @@ impl CacConfig {
         &self,
         query_data: &serde_json::Map<String, Value>,
         prefix_filter: Option<&[String]>,
+        exclude_prefix_filter: Option<&[String]>,
     ) -> Result<serde_json::Map<String, Value>> {
         let cached_config = self.cached_config.read().await;
         match cached_config.as_ref() {
@@ -260,6 +261,7 @@ impl CacConfig {
                     query_data,
                     MergeStrategy::MERGE,
                     prefix_filter.map(|p| p.to_vec()),
+                    exclude_prefix_filter.map(|p| p.to_vec()),
                 )
                 .map_err(|e| {
                     SuperpositionError::ConfigError(format!(
@@ -628,6 +630,7 @@ impl ExperimentationConfig {
                     experiment_groups,
                     contexts,
                     &identifier.unwrap_or_default(),
+                    None,
                     None,
                 ))
             }

@@ -136,7 +136,7 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for ListExp
 }
 fn uri_query(_input: &crate::operation::list_experiment::ListExperimentInput, mut output: &mut ::std::string::String) -> ::std::result::Result<(), ::aws_smithy_types::error::operation::BuildError> {
     let mut query = ::aws_smithy_http::query::Writer::new(output);
-    let protected_params = ["count", "page", "all", "status", "from_date", "to_date", "experiment_name", "experiment_ids", "experiment_group_ids", "created_by", "sort_on", "sort_by", "global_experiments_only", "dimension_match_strategy", "prefix"];
+    let protected_params = ["count", "page", "all", "status", "from_date", "to_date", "experiment_name", "experiment_ids", "experiment_group_ids", "created_by", "sort_on", "sort_by", "global_experiments_only", "dimension_match_strategy", "prefix", "exclude_prefix"];
     if let ::std::option::Option::Some(inner_1) = &_input.dimension_params {
          {
             for (k, v) in inner_1 {
@@ -228,6 +228,13 @@ fn uri_query(_input: &crate::operation::list_experiment::ListExperimentInput, mu
          {
             for inner_21 in inner_20 {
                 query.push_kv("prefix", &::aws_smithy_http::query::fmt_string(inner_21));
+            }
+        }
+    }
+    if let ::std::option::Option::Some(inner_22) = &_input.exclude_prefix {
+         {
+            for inner_23 in inner_22 {
+                query.push_kv("exclude_prefix", &::aws_smithy_http::query::fmt_string(inner_23));
             }
         }
     }

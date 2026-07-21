@@ -4,7 +4,7 @@ mod interface;
 pub mod utils;
 
 use std::{
-    collections::{BTreeSet, HashMap, HashSet},
+    collections::{BTreeSet, HashMap},
     convert::identity,
     sync::Arc,
     time::{Duration, UNIX_EPOCH},
@@ -18,7 +18,7 @@ use mini_moka::sync::Cache;
 use reqwest::{RequestBuilder, Response, StatusCode};
 use serde_json::{Map, Value};
 pub use superposition_types::api::config::MergeStrategy;
-use superposition_types::{Config, Context, ExtendedMap};
+use superposition_types::{Config, Context, ExtendedMap, PrefixList};
 use tokio::sync::RwLock;
 use utils::{core::MapError, json_to_sorted_string};
 
@@ -157,11 +157,14 @@ impl Client {
         &self,
         query_data: Option<Map<String, Value>>,
         prefix: Option<Vec<String>>,
+        exclude_prefix: Option<Vec<String>>,
     ) -> Result<Config, String> {
         let cac = self.config.read().await;
-        let filtered_config = cac
-            .to_owned()
-            .filter(query_data.as_ref(), prefix.map(HashSet::from_iter).as_ref());
+        let filtered_config = cac.to_owned().filter(
+            query_data.as_ref(),
+            prefix.map(PrefixList::from_iter).as_ref(),
+            exclude_prefix.map(PrefixList::from_iter).as_ref(),
+        );
 
         Ok(filtered_config)
     }
@@ -174,9 +177,15 @@ impl Client {
         &self,
         query_data: Map<String, Value>,
         filter_keys: Option<Vec<String>>,
+        exclude_prefix: Option<Vec<String>>,
         merge_strategy: MergeStrategy,
     ) -> Result<Map<String, Value>, String> {
         let filter_keys_concat = if let Some(vec) = filter_keys.clone() {
+            BTreeSet::from_iter(vec).iter().join(",")
+        } else {
+            "null".to_string()
+        };
+        let filter_exlude_concat = if let Some(vec) = exclude_prefix.clone() {
             BTreeSet::from_iter(vec).iter().join(",")
         } else {
             "null".to_string()
@@ -185,14 +194,18 @@ impl Client {
             + "?"
             + &merge_strategy.clone().to_string()
             + "?"
-            + &filter_keys_concat;
+            + &filter_keys_concat
+            + "?"
+            + &filter_exlude_concat;
         if let Some(value) = self.config_cache.get(&hash_key) {
             Ok(value)
         } else {
             let cac = self.config.read().await;
             let mut config = cac.to_owned();
-            if let Some(keys) = filter_keys {
-                config = config.filter_by_prefix(&HashSet::from_iter(keys));
+            let keys = PrefixList::from(filter_keys);
+            let exclude_prefix = PrefixList::from(exclude_prefix);
+            if !keys.is_empty() || !exclude_prefix.is_empty() {
+                config = config.filter_by_prefix(&keys, &exclude_prefix);
             }
             let evaled_cac = eval::eval_cac(&config, &query_data, merge_strategy)?;
             self.config_cache.insert(hash_key, evaled_cac.clone());
@@ -203,12 +216,16 @@ impl Client {
     pub async fn get_default_config(
         &self,
         filter_keys: Option<Vec<String>>,
+        exclude_prefix: Option<Vec<String>>,
     ) -> ExtendedMap {
         let configs = self.config.read().await;
 
-        match filter_keys {
-            None => configs.default_configs.clone(),
-            Some(keys) => configs.filter_default_by_prefix(&HashSet::from_iter(keys)),
+        match (filter_keys.as_ref(), exclude_prefix.as_ref()) {
+            (None, None) => configs.default_configs.clone(),
+            _ => configs.filter_default_by_prefix(
+                &PrefixList::from(filter_keys),
+                &PrefixList::from(exclude_prefix),
+            ),
         }
     }
 }
