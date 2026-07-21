@@ -16,7 +16,7 @@ impl ::std::fmt::Display for InternalServerError {
         ::std::write!(f, "InternalServerError")?;
         if let ::std::option::Option::Some(inner_1) = &self.message {
              {
-                ::std::write!(f, ": {}", inner_1)?;
+                ::std::write!(f, ": {inner_1}")?;
             }
         }
         Ok(())
@@ -59,7 +59,7 @@ impl InternalServerErrorBuilder {
                                                     self.meta = Some(meta);
                                                     self
                                                 }
-    
+
                                                 /// Sets error metadata
                                                 pub fn set_meta(&mut self, meta: std::option::Option<::aws_smithy_types::error::ErrorMetadata>) -> &mut Self {
                                                     self.meta = meta;
