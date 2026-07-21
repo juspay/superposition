@@ -404,11 +404,22 @@ test-js-provider: provider-template
 test-py-provider: provider-template
 	bash ./scripts/setup_provider_binaries.sh py
 	cd clients/python/provider-sdk-tests && VERSION=1.0.0 uv sync
+	# Unit tests (no live server needed; run in the sdk-tests env so the native binding is present)
+	for t in test_type_contract test_http_data_source test_ondemand_ttl test_file_watch; do \
+		VERSION=1.0.0 uv run --directory clients/python/provider-sdk-tests python $(CURDIR)/clients/python/provider/$$t.py || exit 1; \
+	done
+	# Integration harness against the live server
 	VERSION=1.0.0 uv run --directory clients/python/provider-sdk-tests python main.py
 	$(MAKE) kill
 
 test-kotlin-provider: provider-template
 	bash ./scripts/setup_provider_binaries.sh kotlin
+	# Unit tests (the .provider and .data_source packages; excludes the legacy ProviderTest, which
+	# is a live-server integration test seeded via DefaultConfigPopulator)
+	cd clients/java && ./gradlew :openfeature-provider:test \
+		--tests 'io.juspay.superposition.openfeature.provider.*' \
+		--tests 'io.juspay.superposition.openfeature.data_source.*'
+	# Integration harness against the live server
 	cd clients/java && ./gradlew :provider-sdk-tests:run
 	$(MAKE) kill
 

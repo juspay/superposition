@@ -12,10 +12,43 @@ from typing import Optional, Dict, Any, Union
 # ============================================================================
 
 @dataclass
+class TokenAuth:
+    """Bearer-token authentication."""
+    token: str
+
+
+@dataclass
+class BasicAuth:
+    """HTTP basic authentication."""
+    username: str
+    password: str
+
+
+# How to authenticate with the Superposition backend.
+AuthMethod = Union[TokenAuth, BasicAuth]
+
+
+def auth_scheme_config(auth: AuthMethod):
+    """Build the SDK ``(resolver, schemes)`` pair for the given auth method.
+
+    One place that maps an :data:`AuthMethod` to the SDK's auth scheme, mirroring the Rust
+    client's ``From<&SuperpositionOptions> for Config`` — every client-creation site goes
+    through here rather than hard-coding bearer auth.
+    """
+    from superposition_sdk.auth_helpers import bearer_auth_config, basic_auth_config
+
+    if isinstance(auth, TokenAuth):
+        return bearer_auth_config(token=auth.token)
+    if isinstance(auth, BasicAuth):
+        return basic_auth_config(username=auth.username, password=auth.password)
+    raise TypeError(f"Unsupported auth method: {type(auth).__name__}")
+
+
+@dataclass
 class SuperpositionOptions:
     """Core Superposition API configuration."""
     endpoint: str
-    token: str
+    auth: AuthMethod
     org_id: str
     workspace_id: str
 
