@@ -97,6 +97,7 @@ Health is good :D
 | --- | --- | --- |
 | Superposition app | Yes | Runs the Rust API server and bundled admin UI on `PORT`, default `8080`. |
 | PostgreSQL | Yes | Stores organisations, workspace metadata, and one schema per workspace. |
+| Kronos | Yes | Provides durable, retryable webhook delivery. It runs as an embedded library by default or as a separate service when `KRONOS_URL` is set. |
 | Redis | No | Enables shared caching. If `REDIS_URL` is unset, the app reads from PostgreSQL directly. |
 | OIDC provider | Recommended | Required when using `AUTH_PROVIDER=OIDC` or `AUTH_PROVIDER=OIDC_SAAS`. |
 | Casbin policy DB | Optional | Required only when `AUTH_Z_PROVIDER=CASBIN`; it can use the same PostgreSQL instance. |
@@ -143,6 +144,8 @@ See [Organisations](./basic-concepts/administration/organisations.md) and
 
 - [Environment Variables](./self-hosting/environment-variables.md) for runtime
   configuration, auth, and secret loading.
+- [Kronos](./self-hosting/kronos.md) to choose between the embedded library and
+  a separately deployed service for webhook delivery.
 - [Production](./self-hosting/production.md) for operational guidance, scaling,
   and upgrades.
 - [Kubernetes](./self-hosting/kubernetes.md) for Helm-based cluster

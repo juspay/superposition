@@ -38,6 +38,25 @@ deployment.
 | `REDIS_MAX_ATTEMPTS` | `10` | Redis reconnect attempts. |
 | `REDIS_CONN_TIMEOUT` | `1000` | Redis connect timeout in milliseconds. |
 
+## Kronos Webhook Delivery
+
+Kronos provides durable, retryable webhook delivery. It runs as an embedded
+library by default; setting `KRONOS_URL` selects service mode.
+
+| Variable | Mode | Notes |
+| --- | --- | --- |
+| `SUPERPOSITION_HOST` | Both | Callback base URL reachable by Kronos. Include `SERVICE_PREFIX` when configured. Falls back to `CAC_HOST`. |
+| `KRONOS_DISPATCH_TOKEN` | Both | Secret used only to authenticate Kronos callbacks. |
+ | `KRONOS_ENCRYPTION_KEY` | Library | Stable 64-character hexadecimal key. Generate with `openssl rand -hex 32`. Do not leave this unset in production (the app defaults to 64 `0` characters). |
+| `KRONOS_DB_POOL_SIZE` | Library | Embedded Kronos PostgreSQL pool size per app process. Defaults to `1`. |
+| `KRONOS_TABLE_PREFIX` | Library | Prefix for embedded Kronos tables. Defaults to `kronos_`. |
+| `KRONOS_URL` | Service | Kronos API base URL without `/v1`. Its presence enables service mode. |
+| `KRONOS_API_KEY` | Service | API key accepted by the Kronos service. |
+| `KRONOS_ORG_ID` | Service | Existing Kronos organisation used by Superposition (must already exist in Kronos). Defaults to `superposition`. |
+| `KRONOS_WORKSPACE` | Service | Shared Kronos workspace. Defaults to `superposition`. |
+
+See [Kronos](./kronos.md) for the mode comparison and setup examples.
+
 ## Required Validation Flags
 
 These flags are required during startup:
@@ -62,8 +81,9 @@ Superposition currently has two practical deployment modes:
 
 - `APP_ENV=PROD`: the app initializes AWS KMS and expects encrypted, base64 KMS
   ciphertext values for sensitive settings such as `DB_PASSWORD`,
-  `SUPERPOSITION_TOKEN`, `OIDC_CLIENT_SECRET`, `OIDC_INTROSPECTION_AUTH_HEADER`
-  and `OIDC_API_STATIC_TOKENS` (when API-token auth is enabled),
+  `SUPERPOSITION_TOKEN`, `KRONOS_API_KEY`, `KRONOS_DISPATCH_TOKEN`,
+  `OIDC_CLIENT_SECRET`, `OIDC_INTROSPECTION_AUTH_HEADER` and
+  `OIDC_API_STATIC_TOKENS` (when API-token auth is enabled),
   `CASBIN_DB_PASSWORD`, and `MASTER_ENCRYPTION_KEY`.
 - `APP_ENV=DEV`: the app reads those values directly from environment variables.
   This is useful for local and non-AWS self-hosted deployments. If you use this
