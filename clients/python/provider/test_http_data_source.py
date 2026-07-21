@@ -14,7 +14,7 @@ import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 from superposition_provider.http_data_source import HttpDataSource
-from superposition_provider.types import SuperpositionOptions
+from superposition_provider.types import SuperpositionOptions, TokenAuth
 
 # Set per-test; the handler replies with whatever is here.
 STATUS = 200
@@ -54,7 +54,7 @@ def _fetch_config(server):
     async def run():
         source = HttpDataSource(SuperpositionOptions(
             endpoint=f"http://127.0.0.1:{server.server_address[1]}",
-            token="test-token",
+            auth=TokenAuth("test-token"),
             org_id="test-org",
             workspace_id="test-workspace",
         ))

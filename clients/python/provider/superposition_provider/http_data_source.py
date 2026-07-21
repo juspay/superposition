@@ -14,13 +14,12 @@ from superposition_bindings.superposition_client import ExperimentConfig
 
 from superposition_sdk.client import Superposition
 from superposition_sdk.config import Config as SdkConfig
-from superposition_sdk.auth_helpers import bearer_auth_config
 from superposition_sdk.models import GetConfigInput, DimensionMatchStrategy, \
     GetExperimentConfigInput, ServiceError
 from .conversions import experiments_to_ffi_experiments, exp_grps_to_ffi_exp_grps, config_response_to_ffi_config
 
 from .errors import SuperpositionError
-from .types import SuperpositionOptions
+from .types import SuperpositionOptions, auth_scheme_config
 from .data_source import (
     SuperpositionDataSource,
     FetchResponse,
@@ -80,9 +79,7 @@ class HttpDataSource(SuperpositionDataSource):
 
     def _create_client(self) -> Superposition:
         """Create and configure the SDK client."""
-        (resolver, schemes) = bearer_auth_config(
-            token=self.options.token
-        )
+        (resolver, schemes) = auth_scheme_config(self.options.auth)
         sdk_config = SdkConfig(
             endpoint_uri=self.options.endpoint,
             http_auth_scheme_resolver=resolver,

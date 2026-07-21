@@ -5,10 +5,9 @@ from decimal import Decimal
 from typing import Any, Dict, Optional, TypeVar
 
 from .conversions import to_dimension_type, document_to_python_value
-from .types import OnDemandStrategy, PollingStrategy, SuperpositionOptions, ConfigurationOptions
+from .types import OnDemandStrategy, PollingStrategy, SuperpositionOptions, ConfigurationOptions, auth_scheme_config
 from superposition_sdk.client import Superposition, GetConfigInput
 from superposition_sdk.config import Config
-from superposition_sdk.auth_helpers import bearer_auth_config
 import asyncio
 from datetime import datetime, timedelta
 from superposition_bindings.superposition_types import Context, DimensionInfo
@@ -168,9 +167,7 @@ class CacConfig:
         """
         try:
             # Create SDK config with bearer token authentication
-            (resolver, schemes) = bearer_auth_config(
-                token=superposition_options.token
-            )
+            (resolver, schemes) = auth_scheme_config(superposition_options.auth)
             sdk_config = Config(
                 endpoint_uri=superposition_options.endpoint,
                 http_auth_scheme_resolver=resolver,
