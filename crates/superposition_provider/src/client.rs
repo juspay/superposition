@@ -192,15 +192,8 @@ impl CacConfig {
 
         info!("Fetching config from Superposition service using SDK");
 
-        // Create SDK config
-        let sdk_config = SdkConfig::builder()
-            .endpoint_url(&options.endpoint)
-            .bearer_token(options.token.clone().into())
-            .behavior_version_latest()
-            .build();
-
         // Create Superposition client
-        let client = Client::from_conf(sdk_config);
+        let client = Client::from_conf(SdkConfig::from(options));
 
         // Call the get_config API
         let response = client
@@ -508,15 +501,8 @@ impl ExperimentationConfig {
 
         info!("Fetching experiments from Superposition service using SDK");
 
-        // Create SDK config
-        let sdk_config = SdkConfig::builder()
-            .endpoint_url(&options.endpoint)
-            .bearer_token(options.token.clone().into())
-            .behavior_version_latest()
-            .build();
-
         // Create Superposition client
-        let client = Client::from_conf(sdk_config);
+        let client = Client::from_conf(SdkConfig::from(options));
 
         let response = client
             .list_experiment()
@@ -550,15 +536,8 @@ impl ExperimentationConfig {
 
         info!("Fetching experiment groups from Superposition service using SDK");
 
-        // Create SDK config
-        let sdk_config = SdkConfig::builder()
-            .endpoint_url(&options.endpoint)
-            .bearer_token(options.token.clone().into())
-            .behavior_version_latest()
-            .build();
-
         // Create Superposition client
-        let client = Client::from_conf(sdk_config);
+        let client = Client::from_conf(SdkConfig::from(options));
 
         let response = client
             .list_experiment_groups()
