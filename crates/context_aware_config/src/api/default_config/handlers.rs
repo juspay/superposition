@@ -37,10 +37,10 @@ use superposition_types::{
     database::{
         models::{
             Description,
-            cac::{self as models, Context, DefaultConfig, FunctionType},
+            cac::{self as models, Context, DefaultConfig, DimensionType, FunctionType},
             others::WebhookEvent,
         },
-        schema::{self, contexts::dsl::contexts, default_configs::dsl},
+        schema::{self, contexts::dsl::contexts, default_configs::dsl, dimensions},
     },
     result as superposition,
 };
@@ -67,6 +67,28 @@ pub fn endpoints() -> Scope {
         .service(delete_handler)
 }
 
+fn reject_user_cohort_key(
+    key: &str,
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> superposition::Result<()> {
+    let dimension_type = dimensions::dsl::dimensions
+        .filter(dimensions::dsl::dimension.eq(key))
+        .select(dimensions::dsl::dimension_type)
+        .schema_name(schema_name)
+        .first::<DimensionType>(conn)
+        .optional()?;
+
+    if matches!(dimension_type, Some(DimensionType::UserCohort(_))) {
+        Err(bad_argument!(
+            "Default config key `{}` is owned by a user cohort and can only be changed through the dimension API",
+            key
+        ))
+    } else {
+        Ok(())
+    }
+}
+
 #[authorized]
 #[post("")]
 async fn create_handler(
@@ -83,6 +105,8 @@ async fn create_handler(
 
     let key = req.key;
     let tags = parse_config_tags(custom_headers.config_tags)?;
+
+    reject_user_cohort_key(&key, conn, &workspace_context.schema_name)?;
 
     if req.schema.is_empty() {
         return Err(bad_argument!("Schema cannot be empty."));
@@ -238,10 +262,13 @@ async fn update_handler(
     _auth_z.authorized(&[key.deref()]).await?;
 
     let req = request.into_inner();
-    let key_str = key.into();
+
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
     let conn = write_permit.checkout();
+
+    reject_user_cohort_key(&key, conn, &workspace_context.schema_name)?;
+    let key_str: String = key.into();
 
     let existing = fetch_default_key(&key_str, conn, &workspace_context.schema_name)
         .map_err(|e| match e {
@@ -525,6 +552,8 @@ async fn delete_handler(
     let key: String = key.into();
 
     let conn = write_permit.checkout();
+
+    reject_user_cohort_key(&key, conn, &workspace_context.schema_name)?;
 
     let context_ids =
         get_key_usage_context_ids(&key, conn, &workspace_context.schema_name)

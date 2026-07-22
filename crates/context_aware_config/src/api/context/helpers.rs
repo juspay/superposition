@@ -8,7 +8,10 @@ use service_utils::{
     helpers::fetch_dimensions_info_map,
     service::types::{EncryptionKey, SchemaName, WorkspaceContext},
 };
-use superposition_core::helpers::{calculate_context_weight, hash};
+use superposition_core::{
+    helpers::{calculate_context_weight, hash},
+    merge,
+};
 use superposition_macros::{unexpected_error, validation_error};
 use superposition_types::{
     Cac, Condition, DBConnection, DimensionInfo, InternalUserContext, Overrides, User,
@@ -26,7 +29,7 @@ use superposition_types::{
         },
         schema::{contexts, default_configs::dsl, dimensions},
     },
-    logic::dimensions_to_start_from,
+    logic::find_evaluation_start_dimensions,
     result as superposition,
 };
 
@@ -63,7 +66,7 @@ fn validate_condition_with_dependent_dimensions(
     dimensions: &HashMap<String, DimensionInfo>,
     context_map: &Map<String, Value>,
 ) -> superposition::Result<()> {
-    let required_dimensions = dimensions_to_start_from(dimensions, context_map);
+    let required_dimensions = find_evaluation_start_dimensions(dimensions, context_map);
 
     let invalid_dimensions = context_map
         .keys()
@@ -464,7 +467,7 @@ pub fn update_override_of_existing_ctx(
         .select(dsl::override_)
         .schema_name(schema_name)
         .first(conn)?;
-    cac_client::merge(
+    merge(
         &mut new_override,
         &Value::Object(ctx.override_.clone().into()),
     );

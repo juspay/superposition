@@ -7,6 +7,7 @@ union DimensionType {
     REGULAR: Unit
     LOCAL_COHORT: String
     REMOTE_COHORT: String
+    USER_COHORT: String
 }
 
 map DependencyGraph {

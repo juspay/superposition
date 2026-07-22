@@ -41,7 +41,7 @@ use superposition_types::{
             default_configs::dsl as def_conf,
         },
     },
-    logic::dimensions_to_start_from,
+    logic::find_evaluation_start_dimensions,
     result as superposition,
 };
 
@@ -363,7 +363,10 @@ fn evaluate_remote_cohorts_dependency(
     // Depth-first traversal of dependencies
     while let Some((ref cohort_dimension, ref based_on)) = stack.pop() {
         if let Some(data) = dimensions.get(cohort_dimension) {
-            if matches!(data.dimension_type, DimensionType::LocalCohort(_)) {
+            if matches!(
+                data.dimension_type,
+                DimensionType::LocalCohort(_) | DimensionType::UserCohort(_)
+            ) {
                 continue;
             }
 
@@ -447,11 +450,13 @@ pub fn evaluate_remote_cohorts(
     let mut modified_context = Map::new();
 
     // First, evaluate all remote cohort dimensions and their dependencies
-    for dimension_key in dimensions_to_start_from(dimensions, query_data) {
+    for dimension_key in find_evaluation_start_dimensions(dimensions, query_data) {
         if let Some(value) = query_data.get(&dimension_key) {
             if let Some(data) = dimensions.get(&dimension_key) {
                 match data.dimension_type {
-                    DimensionType::LocalCohort(_) => continue,
+                    DimensionType::LocalCohort(_) | DimensionType::UserCohort(_) => {
+                        continue;
+                    }
                     DimensionType::Regular {} | DimensionType::RemoteCohort(_) => {
                         modified_context.insert(dimension_key.to_string(), value.clone());
                         evaluate_remote_cohorts_dependency(

@@ -7,7 +7,7 @@ use diesel::{
     Connection, ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl,
     SelectableHelper,
 };
-use serde_json::Value;
+use serde_json::{Map, Value};
 use service_utils::{
     helpers::{WebhookData, execute_webhook_call, parse_config_tags},
     service::types::{
@@ -16,9 +16,11 @@ use service_utils::{
 };
 use superposition_core::validations::validate_schema;
 use superposition_derives::{authorized, declare_resource};
-use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
+use superposition_macros::{
+    bad_argument, db_error, not_found, unexpected_error, validation_error,
+};
 use superposition_types::{
-    PaginatedResponse, Resource, User,
+    ExtendedMap, PaginatedResponse, Resource, User,
     api::{
         dimension::{
             CreateRequest, DeleteRequest, DimensionName, DimensionResponse, UpdateRequest,
@@ -29,10 +31,17 @@ use superposition_types::{
     database::{
         models::{
             Description,
-            cac::{DependencyGraph, Dimension, DimensionType},
+            cac::{DefaultConfig, DependencyGraph, Dimension, DimensionType},
             others::WebhookEvent,
         },
-        schema::dimensions::{self, dsl::*},
+        schema::{
+            default_configs,
+            dimensions::{self, dsl::*},
+        },
+    },
+    logic::{
+        build_user_cohort_definition_schema, extract_user_cohort_definitions,
+        validate_user_cohort_definitions,
     },
     result as superposition,
 };
@@ -40,6 +49,7 @@ use superposition_types::{
 use crate::api::dimension::validations::allow_primitive_types;
 use crate::helpers::put_config_in_redis;
 use crate::{
+    api::default_config::get_key_usage_context_ids,
     api::dimension::{
         utils::{
             create_connections_with_dependents, get_dimension_usage_context_ids,
@@ -56,6 +66,21 @@ use crate::{
 };
 
 declare_resource!(Dimension);
+
+fn generated_user_cohort_config_parts(
+    dimension_schema: &Map<String, Value>,
+    based_on: &str,
+) -> superposition::Result<(Value, ExtendedMap)> {
+    let definitions = extract_user_cohort_definitions(dimension_schema)
+        .map_err(|error| validation_error!(error))?;
+    let value = Value::Object(definitions);
+    validate_user_cohort_definitions(&value, dimension_schema, based_on)
+        .map_err(|error| validation_error!(error))?;
+    let generated_schema = build_user_cohort_definition_schema(dimension_schema)
+        .map_err(|error| validation_error!(error))?;
+
+    Ok((value, generated_schema))
+}
 
 pub fn endpoints() -> Scope {
     Scope::new("")
@@ -129,7 +154,8 @@ async fn create_handler(
             )?;
             validate_cohort_position(&create_req.position, &based_on_dimension, true)?;
         }
-        DimensionType::LocalCohort(ref cohort_based_on) => {
+        DimensionType::LocalCohort(ref cohort_based_on)
+        | DimensionType::UserCohort(ref cohort_based_on) => {
             let based_on_dimension = validate_cohort_schema(
                 &schema_value,
                 cohort_based_on,
@@ -152,6 +178,30 @@ async fn create_handler(
         &mut conn,
         &workspace_context.schema_name,
     )?;
+
+    let generated_default_config = match &create_req.dimension_type {
+        DimensionType::UserCohort(cohort_based_on) => {
+            let (value, generated_schema) =
+                generated_user_cohort_config_parts(&create_req.schema, cohort_based_on)?;
+            let key: String = create_req.dimension.clone().into();
+            let now = Utc::now();
+
+            Some(DefaultConfig {
+                key,
+                value,
+                created_at: now,
+                created_by: user.get_email(),
+                schema: generated_schema,
+                value_validation_function_name: None,
+                last_modified_at: now,
+                last_modified_by: user.get_email(),
+                description: create_req.description.clone(),
+                change_reason: create_req.change_reason.clone(),
+                value_compute_function_name: None,
+            })
+        }
+        _ => None,
+    };
 
     let dimension_data = Dimension {
         dimension: create_req.dimension.into(),
@@ -184,7 +234,8 @@ async fn create_handler(
 
             match dimension_data.dimension_type {
                 DimensionType::LocalCohort(ref cohort_based_on)
-                | DimensionType::RemoteCohort(ref cohort_based_on) => {
+                | DimensionType::RemoteCohort(ref cohort_based_on)
+                | DimensionType::UserCohort(ref cohort_based_on) => {
                     // Update dependency graphs of all dimensions that
                     // depend on the cohort_based_on dimension as well as
                     // the cohorted dimension itself
@@ -207,6 +258,30 @@ async fn create_handler(
 
             match insert_resp {
                 Ok(inserted_dimension) => {
+                    if let Some(ref generated_default_config) = generated_default_config {
+                        diesel::insert_into(default_configs::table)
+                            .values(generated_default_config)
+                            .returning(DefaultConfig::as_returning())
+                            .schema_name(&workspace_context.schema_name)
+                            .execute(transaction_conn)
+                            .map_err(|error| {
+                                if matches!(
+                                    error,
+                                    diesel::result::Error::DatabaseError(
+                                        diesel::result::DatabaseErrorKind::UniqueViolation,
+                                        _
+                                    )
+                                ) {
+                                    bad_argument!(
+                                        "A default config key named `{}` already exists",
+                                        generated_default_config.key
+                                    )
+                                } else {
+                                    db_error!(error)
+                                }
+                            })?;
+                    }
+
                     let is_mandatory = workspace_context
                         .settings
                         .mandatory_dimensions
@@ -355,7 +430,8 @@ async fn update_handler(
                     ))
                 })?;
             }
-            DimensionType::LocalCohort(ref cohort_based_on) => {
+            DimensionType::LocalCohort(ref cohort_based_on)
+            | DimensionType::UserCohort(ref cohort_based_on) => {
                 validate_cohort_schema(
                     &schema_value,
                     cohort_based_on,
@@ -370,7 +446,8 @@ async fn update_handler(
         match dimension_data.dimension_type {
             DimensionType::Regular {} => (),
             DimensionType::RemoteCohort(ref cohort_based_on)
-            | DimensionType::LocalCohort(ref cohort_based_on) => {
+            | DimensionType::LocalCohort(ref cohort_based_on)
+            | DimensionType::UserCohort(ref cohort_based_on) => {
                 let based_on_dimension = does_dimension_exist_for_cohorting(
                     cohort_based_on,
                     &workspace_context.schema_name,
@@ -396,6 +473,31 @@ async fn update_handler(
     }
 
     let update_change_reason = update_req.change_reason.clone();
+    let generated_default_update = match &dimension_data.dimension_type {
+        DimensionType::UserCohort(cohort_based_on) => {
+            let dimension_schema =
+                update_req.schema.as_ref().unwrap_or(&dimension_data.schema);
+            let (value, generated_schema) =
+                generated_user_cohort_config_parts(dimension_schema, cohort_based_on)?;
+
+            if update_req.schema.is_some() {
+                crate::api::dimension::validations::validate_user_cohort_overrides(
+                    &name,
+                    dimension_schema,
+                    cohort_based_on,
+                    &mut conn,
+                    &workspace_context.schema_name,
+                )?;
+            }
+
+            let generated_description = update_req
+                .description
+                .clone()
+                .unwrap_or_else(|| dimension_data.description.clone());
+            Some((value, generated_schema, generated_description))
+        }
+        _ => None,
+    };
 
     let (result, is_mandatory, config_version) = conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -463,6 +565,26 @@ async fn update_handler(
                 .schema_name(&workspace_context.schema_name)
                 .get_result::<Dimension>(transaction_conn)
                 .map_err(|err| db_error!(err))?;
+
+            if let Some((value, generated_schema, generated_description)) =
+                &generated_default_update
+            {
+                diesel::update(
+                    default_configs::table
+                        .filter(default_configs::key.eq(&result.dimension)),
+                )
+                .set((
+                    default_configs::value.eq(value),
+                    default_configs::schema.eq(Value::from(generated_schema)),
+                    default_configs::last_modified_at.eq(Utc::now()),
+                    default_configs::last_modified_by.eq(user.get_email()),
+                    default_configs::description.eq(generated_description),
+                    default_configs::change_reason.eq(update_change_reason.clone()),
+                ))
+                .returning(DefaultConfig::as_returning())
+                .schema_name(&workspace_context.schema_name)
+                .get_result::<DefaultConfig>(transaction_conn)?;
+            }
 
             let is_mandatory = workspace_context
                 .settings
@@ -606,11 +728,22 @@ async fn delete_handler(
         ));
     }
 
-    let context_ids = get_dimension_usage_context_ids(
+    let mut context_ids = get_dimension_usage_context_ids(
         &name,
         &mut conn,
         &workspace_context.schema_name,
     )?;
+    let is_user_cohort =
+        matches!(dimension_data.dimension_type, DimensionType::UserCohort(_));
+    if is_user_cohort {
+        context_ids.extend(get_key_usage_context_ids(
+            &name,
+            &mut conn,
+            &workspace_context.schema_name,
+        )?);
+        context_ids.sort();
+        context_ids.dedup();
+    }
 
     if context_ids.is_empty() {
         let (config_version, dimension_data) = conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -622,7 +755,8 @@ async fn delete_handler(
 
             match dimension_data.dimension_type {
                 DimensionType::LocalCohort(ref cohort_based_on)
-                | DimensionType::RemoteCohort(ref cohort_based_on) => {
+                | DimensionType::RemoteCohort(ref cohort_based_on)
+                | DimensionType::UserCohort(ref cohort_based_on) => {
                     // Remove dependency graphs of all dimensions that
                     // depend on the cohort_based_on dimension as well as
                     // the cohorted dimension itself
@@ -650,6 +784,14 @@ async fn delete_handler(
                 .schema_name(&workspace_context.schema_name)
                 .get_result::<Dimension>(transaction_conn)
                 .optional()?;
+
+            if is_user_cohort {
+                diesel::delete(
+                    default_configs::table.filter(default_configs::key.eq(&name)),
+                )
+                .schema_name(&workspace_context.schema_name)
+                .get_result::<DefaultConfig>(transaction_conn)?;
+            }
 
             diesel::update(dimensions::dsl::dimensions)
                 .filter(dimensions::position.gt(dimension_data.position))

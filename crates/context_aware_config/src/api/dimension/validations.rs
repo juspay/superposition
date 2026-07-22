@@ -9,9 +9,10 @@ use superposition_types::{
     DBConnection,
     api::dimension::DimensionName,
     database::{
-        models::cac::{Dimension, DimensionType, FunctionType, Position},
-        schema::dimensions,
+        models::cac::{Context, Dimension, DimensionType, FunctionType, Position},
+        schema::{contexts, dimensions},
     },
+    logic::validate_user_cohort_definitions,
     result as superposition,
 };
 
@@ -117,10 +118,12 @@ pub fn does_dimension_exist_for_cohorting(
         .optional()?
     {
         match dim.dimension_type {
-            DimensionType::LocalCohort(_) => Err(validation_error!(
-                "Dimension {} is a local cohort and cannot be used in cohorting",
-                &dim.dimension
-            )),
+            DimensionType::LocalCohort(_) | DimensionType::UserCohort(_) => {
+                Err(validation_error!(
+                    "Dimension {} cannot be used as the base for another cohort",
+                    &dim.dimension
+                ))
+            }
             _ => Ok(dim),
         }
     } else {
@@ -160,9 +163,13 @@ pub fn validate_value_compute_function(
 ) -> superposition::Result<()> {
     let fn_type = FunctionType::ValueCompute;
     match dimension_type {
-        DimensionType::LocalCohort(_) if function.is_some() => Err(validation_error!(
-            "Value Compute function should not be provided for local cohort dimensions"
-        )),
+        DimensionType::LocalCohort(_) | DimensionType::UserCohort(_)
+            if function.is_some() =>
+        {
+            Err(validation_error!(
+                "Value Compute function should not be provided for local or user cohort dimensions"
+            ))
+        }
         DimensionType::RemoteCohort(_) => {
             if let Some(func_name) = function {
                 check_fn_published(func_name, fn_type, conn, schema_name)
@@ -298,6 +305,34 @@ pub fn validate_cohort_schema(
             ))
         }
     }
+}
+
+pub fn validate_user_cohort_overrides(
+    key: &str,
+    dimension_schema: &Map<String, Value>,
+    based_on: &str,
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> superposition::Result<()> {
+    let rows = contexts::dsl::contexts
+        .schema_name(schema_name)
+        .load::<Context>(conn)?;
+
+    for context in rows {
+        if let Some(definitions) = context.override_.get(key) {
+            validate_user_cohort_definitions(definitions, dimension_schema, based_on)
+                .map_err(|error| {
+                    validation_error!(
+                        "Context {} contains an invalid override for user cohort {}: {}",
+                        context.id,
+                        key,
+                        error
+                    )
+                })?;
+        }
+    }
+
+    Ok(())
 }
 
 // ************ Tests *************

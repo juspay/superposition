@@ -71,6 +71,7 @@ export interface GetDimensionCommandOutput extends DimensionResponse, __Metadata
  * //     REGULAR: {},
  * //     LOCAL_COHORT: "STRING_VALUE",
  * //     REMOTE_COHORT: "STRING_VALUE",
+ * //     USER_COHORT: "STRING_VALUE",
  * //   },
  * //   value_compute_function_name: "STRING_VALUE",
  * //   mandatory: true || false, // required

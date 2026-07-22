@@ -712,6 +712,7 @@ export type DimensionType =
   | DimensionType.LOCAL_COHORTMember
   | DimensionType.REGULARMember
   | DimensionType.REMOTE_COHORTMember
+  | DimensionType.USER_COHORTMember
   | DimensionType.$UnknownMember
 
 /**
@@ -723,6 +724,7 @@ export namespace DimensionType {
     REGULAR: Unit;
     LOCAL_COHORT?: never;
     REMOTE_COHORT?: never;
+    USER_COHORT?: never;
     $unknown?: never;
   }
 
@@ -730,6 +732,7 @@ export namespace DimensionType {
     REGULAR?: never;
     LOCAL_COHORT: string;
     REMOTE_COHORT?: never;
+    USER_COHORT?: never;
     $unknown?: never;
   }
 
@@ -737,6 +740,15 @@ export namespace DimensionType {
     REGULAR?: never;
     LOCAL_COHORT?: never;
     REMOTE_COHORT: string;
+    USER_COHORT?: never;
+    $unknown?: never;
+  }
+
+  export interface USER_COHORTMember {
+    REGULAR?: never;
+    LOCAL_COHORT?: never;
+    REMOTE_COHORT?: never;
+    USER_COHORT: string;
     $unknown?: never;
   }
 
@@ -747,6 +759,7 @@ export namespace DimensionType {
     REGULAR?: never;
     LOCAL_COHORT?: never;
     REMOTE_COHORT?: never;
+    USER_COHORT?: never;
     $unknown: [string, any];
   }
 
@@ -754,6 +767,7 @@ export namespace DimensionType {
     REGULAR: (value: Unit) => T;
     LOCAL_COHORT: (value: string) => T;
     REMOTE_COHORT: (value: string) => T;
+    USER_COHORT: (value: string) => T;
     _: (name: string, value: any) => T;
   }
 
@@ -764,6 +778,7 @@ export namespace DimensionType {
     if (value.REGULAR !== undefined) return visitor.REGULAR(value.REGULAR);
     if (value.LOCAL_COHORT !== undefined) return visitor.LOCAL_COHORT(value.LOCAL_COHORT);
     if (value.REMOTE_COHORT !== undefined) return visitor.REMOTE_COHORT(value.REMOTE_COHORT);
+    if (value.USER_COHORT !== undefined) return visitor.USER_COHORT(value.USER_COHORT);
     return visitor._(value.$unknown[0], value.$unknown[1]);
   }
 

@@ -19,7 +19,7 @@ use uniffi::deps::anyhow;
 use crate::database::schema::dimensions;
 use crate::{
     database::models::cac::{DependencyGraph, DimensionType},
-    logic::evaluate_local_cohorts_skip_unresolved,
+    logic::{evaluate_local_cohorts_skip_unresolved, user_cohort_dimension_names},
     overridden::{filter_config_keys_by_prefix, filter_into_config_keys_by_prefix},
     Cac, Contextual, Exp, ExtendedMap,
 };
@@ -322,7 +322,9 @@ impl Config {
     }
 
     pub fn filter_by_prefix(self, prefix_list: &HashSet<String>) -> Self {
-        let filtered_default_config = self.filter_default_by_prefix(prefix_list);
+        let mut effective_prefixes = prefix_list.clone();
+        effective_prefixes.extend(user_cohort_dimension_names(&self.dimensions));
+        let filtered_default_config = self.filter_default_by_prefix(&effective_prefixes);
 
         let filtered_overrides = self
             .overrides
@@ -330,7 +332,7 @@ impl Config {
             .filter_map(|(key, overrides)| {
                 let filtered_overrides_map = filter_into_config_keys_by_prefix(
                     overrides.into_inner(),
-                    prefix_list,
+                    &effective_prefixes,
                 );
                 Cac::<Overrides>::try_from(filtered_overrides_map).ok().map(
                     |filtered_overrides_map| (key, filtered_overrides_map.into_inner()),

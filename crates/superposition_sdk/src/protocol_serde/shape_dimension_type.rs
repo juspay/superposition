@@ -46,6 +46,16 @@ pub(crate) fn de_dimension_type<'a, I>(tokens: &mut ::std::iter::Peekable<I>) ->
                                     .ok_or_else(|| ::aws_smithy_json::deserialize::error::DeserializeError::custom("value for 'REMOTE_COHORT' cannot be null"))?
                                 ))
                             }
+                            "USER_COHORT" => {
+                                Some(crate::types::DimensionType::UserCohort(
+                                    ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                        s.to_unescaped().map(|u|
+                                            u.into_owned()
+                                        )
+                                    ).transpose()?
+                                    .ok_or_else(|| ::aws_smithy_json::deserialize::error::DeserializeError::custom("value for 'USER_COHORT' cannot be null"))?
+                                ))
+                            }
                             _ => {
                                                                               ::aws_smithy_json::deserialize::token::skip_value(tokens)?;
                                                                               Some(crate::types::DimensionType::Unknown)
@@ -81,6 +91,11 @@ pub fn ser_dimension_type(object_5: &mut ::aws_smithy_json::serialize::JsonObjec
         crate::types::DimensionType::RemoteCohort(inner) => {
              {
                 object_5.key("REMOTE_COHORT").string(inner.as_str());
+            }
+        },
+        crate::types::DimensionType::UserCohort(inner) => {
+             {
+                object_5.key("USER_COHORT").string(inner.as_str());
             }
         },
         crate::types::DimensionType::Unknown => return Err(::aws_smithy_types::error::operation::SerializationError::unknown_variant("DimensionType"))
