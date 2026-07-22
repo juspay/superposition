@@ -16,8 +16,13 @@ use std::{
 
 use serde_json::Value;
 use superposition_types::{
-    database::models::cac::DimensionType, Condition, Config, DefaultConfigsWithSchema,
-    DetailedConfig, DimensionInfo, Overrides,
+    database::models::cac::DimensionType,
+    logic::{
+        build_user_cohort_definition_schema, extract_user_cohort_definitions,
+        validate_user_cohort_definitions,
+    },
+    Condition, Config, DefaultConfigsWithSchema, DetailedConfig, DimensionInfo,
+    Overrides,
 };
 
 use crate::{
@@ -123,7 +128,8 @@ pub trait ConfigFormat {
                 .push(dim.clone());
 
             match dim_info.dimension_type {
-                DimensionType::LocalCohort(ref cohort_dim) => {
+                DimensionType::LocalCohort(ref cohort_dim)
+                | DimensionType::UserCohort(ref cohort_dim) => {
                     if !dimensions.contains_key(cohort_dim) {
                         return Err(FormatError::InvalidDimension(cohort_dim.clone()));
                     }
@@ -143,6 +149,13 @@ pub trait ConfigFormat {
                             FormatError::InvalidDimension(cohort_dim.clone())
                         })?;
 
+                    if matches!(
+                        cohort_dimension_info.dimension_type,
+                        DimensionType::LocalCohort(_) | DimensionType::UserCohort(_)
+                    ) {
+                        return Err(FormatError::InvalidDimension(cohort_dim.clone()));
+                    }
+
                     validations::validate_cohort_dimension_position(
                         cohort_dimension_info,
                         &dim_info,
@@ -155,6 +168,60 @@ pub trait ConfigFormat {
                             cohort_dimension_position: cohort_dimension_info.position,
                         }
                     })?;
+
+                    if matches!(dim_info.dimension_type, DimensionType::UserCohort(_)) {
+                        let generated_config = default_configs.get(&dim).ok_or_else(|| {
+                            FormatError::ValidationError {
+                                key: format!("default-configs.{dim}"),
+                                errors: format!(
+                                    "Generated definition key for user cohort dimension {dim} is missing"
+                                ),
+                            }
+                        })?;
+                        let definitions =
+                            extract_user_cohort_definitions(dim_info.schema.inner())
+                                .map_err(|errors| FormatError::ValidationError {
+                                    key: format!("dimensions.{dim}.schema.definitions"),
+                                    errors,
+                                })?;
+
+                        validate_user_cohort_definitions(
+                            &generated_config.value,
+                            dim_info.schema.inner(),
+                            cohort_dim,
+                        )
+                        .map_err(|errors| {
+                            FormatError::ValidationError {
+                                key: format!("default-configs.{dim}.value"),
+                                errors,
+                            }
+                        })?;
+
+                        if generated_config.value != Value::Object(definitions) {
+                            return Err(FormatError::ValidationError {
+                                key: format!("default-configs.{dim}.value"),
+                                errors: format!(
+                                    "Generated definition key must match the definitions stored in user cohort dimension {dim}"
+                                ),
+                            });
+                        }
+
+                        let expected_schema = Value::from(
+                            build_user_cohort_definition_schema(dim_info.schema.inner())
+                                .map_err(|errors| FormatError::ValidationError {
+                                    key: format!("dimensions.{dim}.schema"),
+                                    errors,
+                                })?,
+                        );
+                        if generated_config.schema != expected_schema {
+                            return Err(FormatError::ValidationError {
+                                key: format!("default-configs.{dim}.schema"),
+                                errors: format!(
+                                    "Generated definition key schema does not match user cohort dimension {dim}"
+                                ),
+                            });
+                        }
+                    }
 
                     create_connections_with_dependents(cohort_dim, &dim, &mut dimensions);
                 }
@@ -173,6 +240,13 @@ pub trait ConfigFormat {
                         dimensions.get(cohort_dim).ok_or_else(|| {
                             FormatError::InvalidDimension(cohort_dim.clone())
                         })?;
+
+                    if matches!(
+                        cohort_dimension_info.dimension_type,
+                        DimensionType::LocalCohort(_) | DimensionType::UserCohort(_)
+                    ) {
+                        return Err(FormatError::InvalidDimension(cohort_dim.clone()));
+                    }
 
                     validations::validate_cohort_dimension_position(
                         cohort_dimension_info,
@@ -259,6 +333,26 @@ pub trait ConfigFormat {
                     }
                 },
             )?;
+
+            for (key, value) in override_vals.iter() {
+                let Some(dimension) = dimensions.get(key) else {
+                    continue;
+                };
+                let DimensionType::UserCohort(based_on) = &dimension.dimension_type
+                else {
+                    continue;
+                };
+
+                validate_user_cohort_definitions(
+                    value,
+                    dimension.schema.inner(),
+                    based_on,
+                )
+                .map_err(|errors| FormatError::ValidationError {
+                    key: format!("context[{index}].{key}"),
+                    errors,
+                })?;
+            }
 
             let (context, override_hash, override_vals) =
                 build_context(condition, override_vals, &dimensions).map_err(|e| {

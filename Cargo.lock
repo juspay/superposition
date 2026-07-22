@@ -2057,7 +2057,6 @@ dependencies = [
  "anyhow",
  "bigdecimal",
  "blake3",
- "cac_client",
  "chrono",
  "fred",
  "inventory",

@@ -88,7 +88,8 @@ pub fn DimensionForm(
     let (cohort_based_on_rs, cohort_based_on_ws) = create_signal(match dimension_type {
         DimensionType::Regular {} => String::new(),
         DimensionType::LocalCohort(cohort_based_on)
-        | DimensionType::RemoteCohort(cohort_based_on) => cohort_based_on,
+        | DimensionType::RemoteCohort(cohort_based_on)
+        | DimensionType::UserCohort(cohort_based_on) => cohort_based_on,
     });
     let (req_inprogress_rs, req_inprogress_ws) = create_signal(false);
     let update_request_rws = RwSignal::new(None);
@@ -305,7 +306,12 @@ pub fn DimensionForm(
                                 dropdown_options=DimensionTypeOptions::iter().collect()
                                 on_select=Callback::new(move |selected_item: DimensionTypeOptions| {
                                     logging::log!("selected item {}", selected_item);
-                                    if selected_item == DimensionTypeOptions::LocalCohort {
+                                    if matches!(
+                                        selected_item,
+                                        DimensionTypeOptions::LocalCohort
+                                        | DimensionTypeOptions::UserCohort
+                                    ) {
+                                        value_compute_function_name_ws.set(None);
                                         dimension_schema_ws
                                             .set(
                                                 serde_json::to_value(CohortSchemaFormat::default())
@@ -380,7 +386,7 @@ pub fn DimensionForm(
                                                     (d.dimension != dimension_name
                                                         && !matches!(
                                                             d.dimension_type,
-                                                            DimensionType::LocalCohort(_)
+                                                            DimensionType::LocalCohort(_) | DimensionType::UserCohort(_)
                                                         ))
                                                         .then_some(d.dimension.clone())
                                                 })
@@ -405,8 +411,11 @@ pub fn DimensionForm(
                                                         on_select=move |selected_item: String| {
                                                             logging::log!("selected item {:?}", selected_item);
                                                             if cohort_based_on_rs.get() != selected_item
-                                                                && dimension_type_rs.get()
-                                                                    == DimensionTypeOptions::LocalCohort
+                                                                && matches!(
+                                                                    dimension_type_rs.get(),
+                                                                    DimensionTypeOptions::LocalCohort
+                                                                    | DimensionTypeOptions::UserCohort
+                                                                )
                                                             {
                                                                 dimension_schema_ws
                                                                     .set(
@@ -423,7 +432,8 @@ pub fn DimensionForm(
                                     </Show>
                                     {move || {
                                         match dimension_type_rs.get() {
-                                            DimensionTypeOptions::LocalCohort => {
+                                            DimensionTypeOptions::LocalCohort
+                                            | DimensionTypeOptions::UserCohort => {
                                                 let cohort_based_on_name = cohort_based_on_rs.get();
                                                 let cohort_based_on = combined_resources
                                                     .with(|c| c.as_ref().map(|c| c.dimensions.clone()))
@@ -539,6 +549,9 @@ pub fn DimensionForm(
                             &functions,
                             FunctionType::ValueCompute,
                         );
+                        let value_compute_function_names = StoredValue::new(
+                            value_compute_function_names,
+                        );
 
                         view! {
                             <div class="flex flex-wrap gap-x-10 gap-y-5">
@@ -560,23 +573,31 @@ pub fn DimensionForm(
                                     />
                                 </div>
 
-                                <div class="form-control">
-                                    <Label
-                                        title="Value Compute Function"
-                                        description="Function to add value compute suggestion to your dimension"
-                                    />
-                                    <Dropdown
-                                        dropdown_width="w-100"
-                                        dropdown_icon="".to_string()
-                                        dropdown_text=value_compute_function_name_rs
-                                            .get()
-                                            .map_or("Add Function".to_string(), |v| v.to_string())
-                                        dropdown_direction=DropdownDirection::Down
-                                        dropdown_btn_type=DropdownBtnType::Select
-                                        dropdown_options=value_compute_function_names
-                                        on_select=handle_value_compute_fn_select
-                                    />
-                                </div>
+                                <Show when=move || {
+                                    !matches!(
+                                        dimension_type_rs.get(),
+                                        DimensionTypeOptions::LocalCohort
+                                        | DimensionTypeOptions::UserCohort
+                                    )
+                                }>
+                                    <div class="form-control">
+                                        <Label
+                                            title="Value Compute Function"
+                                            description="Function to add value compute suggestion to your dimension"
+                                        />
+                                        <Dropdown
+                                            dropdown_width="w-100"
+                                            dropdown_icon="".to_string()
+                                            dropdown_text=value_compute_function_name_rs
+                                                .get()
+                                                .map_or("Add Function".to_string(), |v| v.to_string())
+                                            dropdown_direction=DropdownDirection::Down
+                                            dropdown_btn_type=DropdownBtnType::Select
+                                            dropdown_options=value_compute_function_names.get_value()
+                                            on_select=handle_value_compute_fn_select
+                                        />
+                                    </div>
+                                </Show>
                             </div>
                         }
                     }}

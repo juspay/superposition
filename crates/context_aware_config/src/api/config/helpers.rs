@@ -4,7 +4,6 @@ use actix_web::{
     HttpRequest,
     web::{Data, Header, Json},
 };
-use cac_client::{eval_cac, eval_cac_with_reasoning};
 use chrono::{DateTime, Utc};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, dsl::max};
 use serde_json::{Map, Value};
@@ -15,6 +14,9 @@ use service_utils::{
         read_through_cache,
     },
     service::types::{AppState, EncryptionKey, SchemaName, WorkspaceContext},
+};
+use superposition_core::config::{
+    eval_cac, eval_cac_with_reasoning, resolve_user_cohort_query,
 };
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
@@ -445,6 +447,15 @@ pub fn explain_resolved_config(
         master_encryption_key,
     )?;
     let merge_strategy = merge_strategy.into_inner();
+    let context_data = resolve_user_cohort_query(
+        &explanation_config,
+        &context_data,
+        merge_strategy.clone(),
+    )
+    .map_err(|err| {
+        log::error!("failed to resolve user cohorts for explanation: {err}");
+        unexpected_error!("user cohort resolution failed")
+    })?;
 
     let mut current_value = explanation_config
         .default_configs

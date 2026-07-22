@@ -282,3 +282,108 @@ fn test_json_round_trip_preserve_config() {
     assert_eq!(detailed.contexts.len(), reparsed.contexts.len());
     assert_eq!(detailed.overrides.len(), reparsed.overrides.len());
 }
+
+const USER_COHORT_JSON: &str = r#"{
+  "default-configs": {
+    "amount_bucket": {
+      "value": {
+        "high": { ">=": [{ "var": "amount" }, 500] },
+        "low": { "<": [{ "var": "amount" }, 500] }
+      },
+      "schema": {
+        "type": "object",
+        "properties": { "high": {}, "low": {} },
+        "required": ["high", "low"],
+        "additionalProperties": false
+      }
+    },
+    "decision": {
+      "value": "approve",
+      "schema": { "type": "string" }
+    }
+  },
+  "dimensions": {
+    "amount_bucket": {
+      "position": 1,
+      "type": "USER_COHORT:amount",
+      "schema": {
+        "type": "string",
+        "enum": ["high", "low", "otherwise"],
+        "definitions": {
+          "high": { ">=": [{ "var": "amount" }, 500] },
+          "low": { "<": [{ "var": "amount" }, 500] }
+        }
+      }
+    },
+    "amount": {
+      "position": 2,
+      "schema": { "type": "number" }
+    },
+    "merchant": {
+      "position": 3,
+      "schema": { "type": "string" }
+    }
+  },
+  "overrides": [
+    {
+      "_context_": { "merchant": "saurav" },
+      "amount_bucket": {
+        "high": { ">=": [{ "var": "amount" }, 100] },
+        "low": { "<": [{ "var": "amount" }, 100] }
+      }
+    }
+  ]
+}"#;
+
+#[test]
+fn test_user_cohort_import_preserves_dimension_key_pair() {
+    let detailed = JsonFormat::parse_into_detailed(USER_COHORT_JSON)
+        .expect("user cohort should parse");
+
+    assert!(detailed.dimensions.contains_key("amount_bucket"));
+    assert!(detailed.default_configs.contains_key("amount_bucket"));
+    assert_eq!(detailed.contexts.len(), 1);
+}
+
+#[test]
+fn test_user_cohort_import_rejects_missing_generated_key() {
+    let input = USER_COHORT_JSON.replace(
+        r#"    "amount_bucket": {
+      "value": {
+        "high": { ">=": [{ "var": "amount" }, 500] },
+        "low": { "<": [{ "var": "amount" }, 500] }
+      },
+      "schema": {
+        "type": "object",
+        "properties": { "high": {}, "low": {} },
+        "required": ["high", "low"],
+        "additionalProperties": false
+      }
+    },
+"#,
+        "",
+    );
+
+    let error = JsonFormat::parse_into_detailed(&input)
+        .expect_err("missing generated key should fail")
+        .to_string();
+    assert!(error.contains("Generated definition key"), "{error}");
+}
+
+#[test]
+fn test_user_cohort_import_rejects_invalid_merchant_override() {
+    let input = USER_COHORT_JSON.replace(
+        r#"{ "var": "amount" }, 100] },
+        "low": { "<": [{ "var": "amount" }, 100] }"#,
+        r#"{ "var": "transaction_amount" }, 100] },
+        "low": { "<": [{ "var": "transaction_amount" }, 100] }"#,
+    );
+
+    let error = JsonFormat::parse_into_detailed(&input)
+        .expect_err("override with the wrong parent should fail")
+        .to_string();
+    assert!(
+        error.contains("declared based_on dimension amount"),
+        "{error}"
+    );
+}

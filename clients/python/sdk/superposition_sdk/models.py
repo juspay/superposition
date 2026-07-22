@@ -2491,6 +2491,21 @@ class DimensionTypeREMOTE_COHORT:
         return cls(value=deserializer.read_string(_SCHEMA_DIMENSION_TYPE.members["REMOTE_COHORT"]))
 
 @dataclass
+class DimensionTypeUSER_COHORT:
+
+    value: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_DIMENSION_TYPE, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_DIMENSION_TYPE.members["USER_COHORT"], self.value)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(value=deserializer.read_string(_SCHEMA_DIMENSION_TYPE.members["USER_COHORT"]))
+
+@dataclass
 class DimensionTypeUnknown:
     """Represents an unknown variant.
 
@@ -2512,7 +2527,7 @@ class DimensionTypeUnknown:
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
         raise NotImplementedError()
 
-DimensionType = Union[DimensionTypeREGULAR | DimensionTypeLOCAL_COHORT | DimensionTypeREMOTE_COHORT | DimensionTypeUnknown]
+DimensionType = Union[DimensionTypeREGULAR | DimensionTypeLOCAL_COHORT | DimensionTypeREMOTE_COHORT | DimensionTypeUSER_COHORT | DimensionTypeUnknown]
 
 class _DimensionTypeDeserializer:
     _result: DimensionType | None = None
@@ -2536,6 +2551,9 @@ class _DimensionTypeDeserializer:
 
             case 2:
                 self._set_result(DimensionTypeREMOTE_COHORT.deserialize(de))
+
+            case 3:
+                self._set_result(DimensionTypeUSER_COHORT.deserialize(de))
 
             case _:
                 logger.debug("Unexpected member schema: %s", schema)

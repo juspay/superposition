@@ -22,11 +22,13 @@ public abstract class DimensionType implements SerializableStruct {
         .putMember("REGULAR", Unit.SCHEMA)
         .putMember("LOCAL_COHORT", PreludeSchemas.STRING)
         .putMember("REMOTE_COHORT", PreludeSchemas.STRING)
+        .putMember("USER_COHORT", PreludeSchemas.STRING)
         .build();
 
     private static final Schema $SCHEMA_REGULA_R = $SCHEMA.member("REGULAR");
     private static final Schema $SCHEMA_LOCAL_COHORT = $SCHEMA.member("LOCAL_COHORT");
     private static final Schema $SCHEMA_REMOTE_COHORT = $SCHEMA.member("REMOTE_COHORT");
+    private static final Schema $SCHEMA_USER_COHORT = $SCHEMA.member("USER_COHORT");
 
     private final Type type;
 
@@ -45,7 +47,8 @@ public abstract class DimensionType implements SerializableStruct {
         $UNKNOWN,
         regulaR,
         localCohort,
-        remoteCohort
+        remoteCohort,
+        userCohort
     }
 
     @Override
@@ -124,6 +127,31 @@ public abstract class DimensionType implements SerializableStruct {
         }
 
         public String remoteCohort() {
+            return value;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public <T> T getValue() {
+            return (T) value;
+        }
+    }
+
+    @SmithyGenerated
+    public static final class UserCohortMember extends DimensionType {
+        private final transient String value;
+
+        public UserCohortMember(String value) {
+            super(Type.userCohort);
+            this.value = Objects.requireNonNull(value, "Union value cannot be null");
+        }
+
+        @Override
+        public void serializeMembers(ShapeSerializer serializer) {
+            serializer.writeString($SCHEMA_USER_COHORT, value);
+        }
+
+        public String userCohort() {
             return value;
         }
 
@@ -213,6 +241,10 @@ public abstract class DimensionType implements SerializableStruct {
             return setValue(new RemoteCohortMember(value));
         }
 
+        public BuildStage userCohort(String value) {
+            return setValue(new UserCohortMember(value));
+        }
+
         public BuildStage $unknownMember(String memberName) {
             return setValue(new $UnknownMember(memberName));
         }
@@ -240,6 +272,7 @@ public abstract class DimensionType implements SerializableStruct {
                 case 0 -> regulaR((Unit) SchemaUtils.validateSameMember($SCHEMA_REGULA_R, member, value));
                 case 1 -> localCohort((String) SchemaUtils.validateSameMember($SCHEMA_LOCAL_COHORT, member, value));
                 case 2 -> remoteCohort((String) SchemaUtils.validateSameMember($SCHEMA_REMOTE_COHORT, member, value));
+                case 3 -> userCohort((String) SchemaUtils.validateSameMember($SCHEMA_USER_COHORT, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -265,6 +298,7 @@ public abstract class DimensionType implements SerializableStruct {
                     case 0 -> builder.regulaR(Unit.builder().deserializeMember(de, member).build());
                     case 1 -> builder.localCohort(de.readString(member));
                     case 2 -> builder.remoteCohort(de.readString(member));
+                    case 3 -> builder.userCohort(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use log::debug;
 use serde_json::{Map, Value};
+use superposition_core::config::eval_cac;
 use superposition_core::experiment::{
     ExperimentConfig, ExperimentGroups, FfiExperimentGroup,
 };
@@ -108,7 +109,7 @@ impl ConversionUtils {
             dimensions,
         };
 
-        debug!("Successfully converted config with {} contexts, {} overrides, {} default configs", 
+        debug!("Successfully converted config with {} contexts, {} overrides, {} default configs",
                config.contexts.len(), config.overrides.len(), config.default_configs.len());
 
         Ok(config)
@@ -123,6 +124,9 @@ impl ConversionUtils {
             }
             superposition_sdk::types::DimensionType::LocalCohort(cohort_based_on) => {
                 Ok(DimensionType::LocalCohort(cohort_based_on))
+            }
+            superposition_sdk::types::DimensionType::UserCohort(cohort_based_on) => {
+                Ok(DimensionType::UserCohort(cohort_based_on))
             }
             superposition_sdk::types::DimensionType::Regular => {
                 Ok(DimensionType::Regular {})
@@ -507,45 +511,20 @@ impl ConversionUtils {
             dimension_data.keys().collect::<Vec<_>>()
         );
 
-        // Filter by dimensions first
-        let filtered_config = config.filter_by_dimensions(dimension_data);
-        debug!(
-            "Filtered config has {} contexts after dimension filtering",
-            filtered_config.contexts.len()
-        );
-
-        // Apply prefix filtering if specified
-        let final_config = if let Some(prefixes) = prefix_filter {
+        let config = if let Some(prefixes) = prefix_filter {
             let prefix_set: std::collections::HashSet<String> =
                 prefixes.iter().cloned().collect();
-            filtered_config.filter_by_prefix(&prefix_set)
+            config.filter_by_prefix(&prefix_set)
         } else {
-            filtered_config
+            config
         };
 
-        debug!(
-            "Final config has {} contexts after prefix filtering",
-            final_config.contexts.len()
-        );
-
-        // Start with default configs
-        let mut result = final_config.default_configs.into_inner();
-
-        // Apply overrides based on context priority (higher priority wins)
-        let mut sorted_contexts = final_config.contexts.clone();
-        sorted_contexts.sort_by_key(|c| std::cmp::Reverse(c.priority)); // Sort by priority descending
-
-        for context in sorted_contexts {
-            if let Some(override_key) = context.override_with_keys.first() {
-                if let Some(overrides) = final_config.overrides.get(override_key) {
-                    let override_map: Map<String, Value> = overrides.clone().into();
-                    for (override_key, value) in override_map {
-                        result.insert(override_key, value);
-                        debug!("Applied override for key");
-                    }
-                }
-            }
-        }
+        let result = eval_cac(
+            &config,
+            dimension_data,
+            superposition_types::api::config::MergeStrategy::REPLACE,
+        )
+        .map_err(SuperpositionError::ConfigError)?;
 
         debug!(
             "Config evaluation completed with {} final keys",
@@ -555,5 +534,20 @@ impl ConversionUtils {
         // Convert Map<String, Value> to HashMap<String, Value>
         let final_result: HashMap<String, Value> = result.into_iter().collect();
         Ok(final_result)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{ConversionUtils, DimensionType};
+
+    #[test]
+    fn converts_user_cohort_dimension_from_sdk() {
+        let converted = ConversionUtils::try_dimension_type(
+            superposition_sdk::types::DimensionType::UserCohort("amount".to_string()),
+        )
+        .expect("user cohort should convert");
+
+        assert_eq!(converted, DimensionType::UserCohort("amount".to_string()));
     }
 }

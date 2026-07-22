@@ -169,7 +169,7 @@ fn DimensionInfo(dimension: DimensionResponse) -> impl IntoView {
                                 </div>
                             }
                         }
-                        DimensionType::LocalCohort(_) => {
+                        DimensionType::LocalCohort(_) | DimensionType::UserCohort(_) => {
                             view! {
                                 <div class="flex gap-4">
                                     <div class="stat-title">"Cohort Schema"</div>
@@ -236,7 +236,8 @@ fn DimensionData(dimension: DimensionResponse) -> impl IntoView {
                             {match dimension.dimension_type {
                                 DimensionType::Regular {} => ().into_view(),
                                 DimensionType::LocalCohort(cohort_based_on)
-                                | DimensionType::RemoteCohort(cohort_based_on) => {
+                                | DimensionType::RemoteCohort(cohort_based_on)
+                                | DimensionType::UserCohort(cohort_based_on) => {
                                     view! {
                                         <div class="flex flex-row gap-6 flex-wrap">
                                             <div class="h-fit flex flex-col gap-1">

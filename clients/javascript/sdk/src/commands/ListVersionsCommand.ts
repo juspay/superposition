@@ -88,6 +88,7 @@ export interface ListVersionsCommandOutput extends ListVersionsOutput, __Metadat
  * //               REGULAR: {},
  * //               LOCAL_COHORT: "STRING_VALUE",
  * //               REMOTE_COHORT: "STRING_VALUE",
+ * //               USER_COHORT: "STRING_VALUE",
  * //             },
  * //             dependency_graph: { // DependencyGraph // required
  * //               "<keys>": [ // StringList

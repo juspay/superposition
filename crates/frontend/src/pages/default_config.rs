@@ -9,10 +9,10 @@ use superposition_types::{
     IsEmpty,
     custom_query::QueryParam,
     custom_query::{CustomQuery, Query},
-    database::models::cac::DefaultConfig,
+    database::models::cac::{DefaultConfig, DimensionType},
 };
 
-use crate::api::default_configs;
+use crate::api::{default_configs, dimensions};
 use crate::components::button::ButtonAnchor;
 use crate::components::{
     alert::AlertType,
@@ -26,6 +26,21 @@ use crate::providers::{alert_provider::enqueue_alert, editor_provider::EditorPro
 use crate::query_updater::use_signal_from_query;
 use crate::schema::{EnumVariants, JsonSchemaType, SchemaType};
 use crate::types::{OrganisationId, Workspace};
+
+async fn get_with_ownership(
+    key: &str,
+    workspace: &str,
+    org_id: &str,
+) -> Result<(DefaultConfig, bool), String> {
+    let default_config = default_configs::get(key, workspace, org_id).await?;
+    let system_owned =
+        dimensions::get(key, workspace, org_id)
+            .await
+            .is_ok_and(|dimension| {
+                matches!(dimension.dimension_type, DimensionType::UserCohort(_))
+            });
+    Ok((default_config, system_owned))
+}
 
 #[component]
 fn ConfigInfo(default_config: DefaultConfig) -> impl IntoView {
@@ -142,7 +157,7 @@ pub fn DefaultConfig() -> impl IntoView {
     let default_config_resource = create_blocking_resource(
         move || (default_config_key.get(), workspace.get().0, org.get().0),
         |(default_config_key, workspace, org_id)| async move {
-            default_configs::get(&default_config_key, &workspace, &org_id)
+            get_with_ownership(&default_config_key, &workspace, &org_id)
                 .await
                 .ok()
         },
@@ -187,7 +202,7 @@ pub fn DefaultConfig() -> impl IntoView {
             view! { <Skeleton variant=SkeletonVariant::DetailPage /> }
         }>
             {move || {
-                let default_config = match default_config_resource.get() {
+                let (default_config, system_owned) = match default_config_resource.get() {
                     Some(Some(config)) => config,
                     _ => return view! { <h1>"Error fetching default config"</h1> }.into_view(),
                 };
@@ -195,20 +210,33 @@ pub fn DefaultConfig() -> impl IntoView {
                     <div class="flex flex-col gap-4">
                         <div class="flex justify-between items-center">
                             <h1 class="text-2xl font-extrabold">{default_config.key.clone()}</h1>
-                            <div class="w-full max-w-fit flex flex-row join">
-                                <ButtonAnchor
-                                    force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg rounded-lg"
-                                    href="edit"
-                                    icon_class="ri-edit-line"
-                                    text="Edit"
-                                />
-                                <Button
-                                    force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg rounded-lg"
-                                    on_click=move |_| action_rws.set(Action::Delete)
-                                    icon_class="ri-delete-bin-line"
-                                    text="Delete"
-                                />
-                            </div>
+                            {if system_owned {
+                                view! {
+                                    <div class="badge badge-info badge-outline gap-2">
+                                        <i class="ri-lock-line" />
+                                        "User cohort definition"
+                                    </div>
+                                }
+                                    .into_view()
+                            } else {
+                                view! {
+                                    <div class="w-full max-w-fit flex flex-row join">
+                                        <ButtonAnchor
+                                            force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg rounded-lg"
+                                            href="edit"
+                                            icon_class="ri-edit-line"
+                                            text="Edit"
+                                        />
+                                        <Button
+                                            force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg rounded-lg"
+                                            on_click=move |_| action_rws.set(Action::Delete)
+                                            icon_class="ri-delete-bin-line"
+                                            text="Delete"
+                                        />
+                                    </div>
+                                }
+                                    .into_view()
+                            }}
                         </div>
                         <ContentDescription
                             description=default_config.description.clone()
@@ -248,7 +276,7 @@ pub fn EditDefaultConfig() -> impl IntoView {
     let default_config_resource = create_blocking_resource(
         move || (default_config_key.get(), workspace.get().0, org.get().0),
         |(default_config_key, workspace, org_id)| async move {
-            default_configs::get(&default_config_key, &workspace, &org_id)
+            get_with_ownership(&default_config_key, &workspace, &org_id)
                 .await
                 .ok()
         },
@@ -259,10 +287,24 @@ pub fn EditDefaultConfig() -> impl IntoView {
             view! { <Skeleton variant=SkeletonVariant::DetailPage /> }
         }>
             {move || {
-                let default_config = match default_config_resource.get() {
+                let (default_config, system_owned) = match default_config_resource.get() {
                     Some(Some(default_config)) => default_config,
                     _ => return view! { <h1>"Error fetching default config"</h1> }.into_view(),
                 };
+                if system_owned {
+                    return view! {
+                        <div class="flex flex-col gap-4">
+                            <div class="alert alert-info">
+                                <i class="ri-lock-line" />
+                                <span>
+                                    "This key is managed by its user cohort dimension. Edit the dimension to update these definitions."
+                                </span>
+                            </div>
+                            <ConfigInfo default_config />
+                        </div>
+                    }
+                        .into_view();
+                }
 
                 view! {
                     <DefaultConfigForm

@@ -6,7 +6,12 @@ use serde_json::{Map, Value};
 use service_utils::service::types::SchemaName;
 use superposition_core::validations::{try_into_jsonschema, validation_err_to_str};
 use superposition_macros::{bad_argument, validation_error};
-use superposition_types::{DBConnection, DimensionInfo, database::schema, result};
+use superposition_types::{
+    DBConnection, DimensionInfo,
+    database::{models::cac::DimensionType, schema},
+    logic::validate_user_cohort_definitions,
+    result,
+};
 
 pub fn validate_override_with_default_configs(
     conn: &mut DBConnection,
@@ -15,7 +20,7 @@ pub fn validate_override_with_default_configs(
 ) -> result::Result<()> {
     let keys_array: Vec<&String> = override_.keys().collect();
     let res: Vec<(String, Value)> = schema::default_configs::dsl::default_configs
-        .filter(schema::default_configs::dsl::key.eq_any(keys_array))
+        .filter(schema::default_configs::dsl::key.eq_any(&keys_array))
         .select((
             schema::default_configs::dsl::key,
             schema::default_configs::dsl::schema,
@@ -24,6 +29,21 @@ pub fn validate_override_with_default_configs(
         .get_results::<(String, Value)>(conn)?;
 
     let map = Map::from_iter(res);
+    let user_cohort_dimensions = schema::dimensions::dsl::dimensions
+        .filter(schema::dimensions::dsl::dimension.eq_any(&keys_array))
+        .select((
+            schema::dimensions::dsl::dimension,
+            schema::dimensions::dsl::schema,
+            schema::dimensions::dsl::dimension_type,
+        ))
+        .schema_name(schema_name)
+        .load::<(String, Value, DimensionType)>(conn)?
+        .into_iter()
+        .filter_map(|(dimension, schema, dimension_type)| match dimension_type {
+            DimensionType::UserCohort(based_on) => Some((dimension, (schema, based_on))),
+            _ => None,
+        })
+        .collect::<HashMap<_, _>>();
 
     for (key, value) in override_.iter() {
         let schema = map
@@ -45,6 +65,24 @@ pub fn validate_override_with_default_configs(
                     .unwrap_or(&String::new())
             )
         })?;
+
+        if let Some((dimension_schema, based_on)) = user_cohort_dimensions.get(key) {
+            let dimension_schema = dimension_schema.as_object().ok_or_else(|| {
+                validation_error!(
+                    "Stored schema for user cohort {} is not an object",
+                    key
+                )
+            })?;
+            validate_user_cohort_definitions(value, dimension_schema, based_on).map_err(
+                |error| {
+                    validation_error!(
+                        "Invalid definition override for user cohort {}: {}",
+                        key,
+                        error
+                    )
+                },
+            )?;
+        }
     }
 
     Ok(())

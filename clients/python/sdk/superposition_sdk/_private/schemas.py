@@ -1840,6 +1840,11 @@ DIMENSION_TYPE = Schema.collection(
             "index": 2,
         },
 
+        "USER_COHORT": {
+            "target": STRING,
+            "index": 3,
+        },
+
     }
 )
 

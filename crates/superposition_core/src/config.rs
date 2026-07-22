@@ -1,10 +1,163 @@
 use std::collections::{HashMap, HashSet};
 
-use serde_json::{Map, Value};
+use serde_json::{json, Map, Value};
 pub use superposition_types::api::config::MergeStrategy;
 use superposition_types::{
-    logic::evaluate_local_cohorts, Config, Context, DimensionInfo, Overrides,
+    logic::{
+        evaluate_cohorts_with_resolved_definitions, evaluate_local_cohorts,
+        user_cohort_dimension_names,
+    },
+    Config, Context, DimensionInfo, Overrides,
 };
+
+fn eval_config_once(
+    default_config: Map<String, Value>,
+    contexts: &[Context],
+    overrides: &HashMap<String, Overrides>,
+    dimensions: &HashMap<String, DimensionInfo>,
+    query_data: &Map<String, Value>,
+    merge_strategy: &MergeStrategy,
+    on_override_select: Option<&mut dyn FnMut(Context)>,
+) -> Result<Map<String, Value>, String> {
+    let modified_query_data = evaluate_local_cohorts(dimensions, query_data);
+    let overrides_map: Map<String, Value> = get_overrides(
+        &modified_query_data,
+        contexts,
+        overrides,
+        merge_strategy,
+        on_override_select,
+    )?;
+
+    let mut result_config = default_config;
+    merge_overrides_on_default_config(&mut result_config, overrides_map, merge_strategy);
+
+    Ok(result_config)
+}
+
+fn resolve_user_cohort_query_from_parts(
+    default_config: &Map<String, Value>,
+    contexts: &[Context],
+    overrides: &HashMap<String, Overrides>,
+    dimensions: &HashMap<String, DimensionInfo>,
+    query_data: &Map<String, Value>,
+    merge_strategy: &MergeStrategy,
+) -> Result<Map<String, Value>, String> {
+    if user_cohort_dimension_names(dimensions).is_empty() {
+        return Ok(query_data.clone());
+    }
+
+    let resolved_definitions = eval_config_once(
+        default_config.clone(),
+        contexts,
+        overrides,
+        dimensions,
+        query_data,
+        merge_strategy,
+        None,
+    )?;
+
+    evaluate_cohorts_with_resolved_definitions(
+        dimensions,
+        query_data,
+        &resolved_definitions,
+    )
+}
+
+pub fn resolve_user_cohort_query(
+    config: &Config,
+    query_data: &Map<String, Value>,
+    merge_strategy: MergeStrategy,
+) -> Result<Map<String, Value>, String> {
+    resolve_user_cohort_query_from_parts(
+        &config.default_configs,
+        &config.contexts,
+        &config.overrides,
+        &config.dimensions,
+        query_data,
+        &merge_strategy,
+    )
+}
+
+fn remove_generated_user_cohort_keys(
+    resolved_config: &mut Map<String, Value>,
+    dimensions: &HashMap<String, DimensionInfo>,
+) {
+    for dimension in user_cohort_dimension_names(dimensions) {
+        resolved_config.remove(&dimension);
+    }
+}
+
+fn eval_config_without_prefix(
+    default_config: Map<String, Value>,
+    contexts: &[Context],
+    overrides: &HashMap<String, Overrides>,
+    dimensions: &HashMap<String, DimensionInfo>,
+    query_data: &Map<String, Value>,
+    merge_strategy: MergeStrategy,
+    on_override_select: Option<&mut dyn FnMut(Context)>,
+) -> Result<Map<String, Value>, String> {
+    let query_data = resolve_user_cohort_query_from_parts(
+        &default_config,
+        contexts,
+        overrides,
+        dimensions,
+        query_data,
+        &merge_strategy,
+    )?;
+    let mut result_config = eval_config_once(
+        default_config,
+        contexts,
+        overrides,
+        dimensions,
+        &query_data,
+        &merge_strategy,
+        on_override_select,
+    )?;
+    remove_generated_user_cohort_keys(&mut result_config, dimensions);
+
+    Ok(result_config)
+}
+
+pub fn eval_cac(
+    config: &Config,
+    query_data: &Map<String, Value>,
+    merge_strategy: MergeStrategy,
+) -> Result<Map<String, Value>, String> {
+    eval_config_without_prefix(
+        (*config.default_configs).clone(),
+        &config.contexts,
+        &config.overrides,
+        &config.dimensions,
+        query_data,
+        merge_strategy,
+        None,
+    )
+}
+
+pub fn eval_cac_with_reasoning(
+    config: &Config,
+    query_data: &Map<String, Value>,
+    merge_strategy: MergeStrategy,
+) -> Result<Map<String, Value>, String> {
+    let mut reasoning = Vec::new();
+    let mut result_config = eval_config_without_prefix(
+        (*config.default_configs).clone(),
+        &config.contexts,
+        &config.overrides,
+        &config.dimensions,
+        query_data,
+        merge_strategy,
+        Some(&mut |context| {
+            reasoning.push(json!({
+                "context": context.condition,
+                "override": context.override_with_keys
+            }));
+        }),
+    )?;
+    result_config.insert("metadata".into(), json!(reasoning));
+
+    Ok(result_config)
+}
 
 pub fn eval_config(
     default_config: Map<String, Value>,
@@ -15,34 +168,18 @@ pub fn eval_config(
     merge_strategy: MergeStrategy,
     filter_prefixes: Option<Vec<String>>,
 ) -> Result<Map<String, Value>, String> {
-    // Local cohort evaluation only reads `dimensions`, which prefix filtering
-    // leaves untouched, so it is safe to compute once regardless of the path.
-    let modified_query_data = evaluate_local_cohorts(dimensions, query_data);
-
-    let filter_prefixes = filter_prefixes.filter(|p| !p.is_empty());
-
-    // Fast path: no prefix filtering. Resolve directly against the borrowed
-    // contexts/overrides instead of deep-cloning the entire context set (which
-    // can be hundreds of thousands of entries) into a temporary `Config`.
-    let Some(prefixes) = filter_prefixes else {
-        let overrides_map = get_overrides(
-            &modified_query_data,
+    let Some(prefixes) = filter_prefixes.filter(|prefixes| !prefixes.is_empty()) else {
+        return eval_config_without_prefix(
+            default_config,
             contexts,
             overrides,
-            &merge_strategy,
+            dimensions,
+            query_data,
+            merge_strategy,
             None,
-        )?;
-
-        let mut result_config = default_config;
-        merge_overrides_on_default_config(
-            &mut result_config,
-            overrides_map,
-            &merge_strategy,
         );
-        return Ok(result_config);
     };
 
-    // Slow path: prefix filtering needs an owned, filtered `Config`.
     let config = Config {
         default_configs: default_config.into(),
         contexts: contexts.to_vec(),
@@ -51,19 +188,7 @@ pub fn eval_config(
     }
     .filter_by_prefix(&HashSet::from_iter(prefixes));
 
-    let overrides_map: Map<String, Value> = get_overrides(
-        &modified_query_data,
-        &config.contexts,
-        &config.overrides,
-        &merge_strategy,
-        None,
-    )?;
-
-    // Apply overrides to default config
-    let mut result_config = config.default_configs;
-    merge_overrides_on_default_config(&mut result_config, overrides_map, &merge_strategy);
-
-    Ok(result_config.into_inner())
+    eval_cac(&config, query_data, merge_strategy)
 }
 
 pub fn eval_config_with_reasoning(
@@ -75,48 +200,15 @@ pub fn eval_config_with_reasoning(
     merge_strategy: MergeStrategy,
     filter_prefixes: Option<Vec<String>>, // Optional prefix filtering
 ) -> Result<Map<String, Value>, String> {
-    let modified_query_data = evaluate_local_cohorts(dimensions, query_data);
-
-    let filter_prefixes = filter_prefixes.filter(|p| !p.is_empty());
-
-    let Some(prefixes) = filter_prefixes else {
-        let overrides_map = get_overrides(
-            &modified_query_data,
-            contexts,
-            overrides,
-            &merge_strategy,
-            None,
-        )?;
-
-        let mut result_config = default_config;
-        merge_overrides_on_default_config(
-            &mut result_config,
-            overrides_map,
-            &merge_strategy,
-        );
-        return Ok(result_config);
-    };
-
-    let config = Config {
-        default_configs: default_config.into(),
-        contexts: contexts.to_vec(),
-        overrides: overrides.clone(),
-        dimensions: dimensions.clone(),
-    }
-    .filter_by_prefix(&HashSet::from_iter(prefixes));
-
-    let overrides_map = get_overrides(
-        &modified_query_data,
-        &config.contexts,
-        &config.overrides,
-        &merge_strategy,
-        None,
-    )?;
-
-    let mut result_config = config.default_configs;
-    merge_overrides_on_default_config(&mut result_config, overrides_map, &merge_strategy);
-
-    Ok(result_config.into_inner())
+    eval_config(
+        default_config,
+        contexts,
+        overrides,
+        dimensions,
+        query_data,
+        merge_strategy,
+        filter_prefixes,
+    )
 }
 
 pub fn merge(doc: &mut Value, patch: &Value) {

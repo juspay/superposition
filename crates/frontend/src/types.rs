@@ -267,6 +267,8 @@ pub enum DimensionTypeOptions {
     LocalCohort,
     #[strum(serialize = "Remote Cohort")]
     RemoteCohort,
+    #[strum(serialize = "User Cohort")]
+    UserCohort,
 }
 
 impl DimensionTypeOptions {
@@ -275,6 +277,7 @@ impl DimensionTypeOptions {
             DimensionTypeOptions::Regular => DimensionType::Regular {},
             DimensionTypeOptions::LocalCohort => DimensionType::LocalCohort(cohort),
             DimensionTypeOptions::RemoteCohort => DimensionType::RemoteCohort(cohort),
+            DimensionTypeOptions::UserCohort => DimensionType::UserCohort(cohort),
         }
     }
 }
@@ -285,6 +288,7 @@ impl From<&DimensionType> for DimensionTypeOptions {
             DimensionType::Regular {} => Self::Regular,
             DimensionType::LocalCohort(_) => Self::LocalCohort,
             DimensionType::RemoteCohort(_) => Self::RemoteCohort,
+            DimensionType::UserCohort(_) => Self::UserCohort,
         }
     }
 }

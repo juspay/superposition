@@ -16,6 +16,7 @@ data DimensionType =
     Regular (Io.Superposition.Model.Unit.Unit)
     | LocalCohort (Data.Text.Text)
     | RemoteCohort (Data.Text.Text)
+    | UserCohort (Data.Text.Text)
     deriving (
     GHC.Generics.Generic,
     GHC.Show.Show,
@@ -26,6 +27,7 @@ instance Data.Aeson.ToJSON DimensionType where
     toJSON (Regular a) = Data.Aeson.object [ "REGULAR" Data.Aeson..= a ]
     toJSON (LocalCohort a) = Data.Aeson.object [ "LOCAL_COHORT" Data.Aeson..= a ]
     toJSON (RemoteCohort a) = Data.Aeson.object [ "REMOTE_COHORT" Data.Aeson..= a ]
+    toJSON (UserCohort a) = Data.Aeson.object [ "USER_COHORT" Data.Aeson..= a ]
 
 instance Io.Superposition.Utility.SerializeBody DimensionType
 instance Data.Aeson.FromJSON DimensionType where
@@ -33,7 +35,8 @@ instance Data.Aeson.FromJSON DimensionType where
         (Regular Data.Functor.<$> v Data.Aeson..: "REGULAR") Control.Applicative.<|>
         (LocalCohort Data.Functor.<$> v Data.Aeson..: "LOCAL_COHORT") Control.Applicative.<|>
         (RemoteCohort Data.Functor.<$> v Data.Aeson..: "REMOTE_COHORT") Control.Applicative.<|>
-        fail "Could not parse DimensionType. Expected an object with one of keys: REGULAR, LOCAL_COHORT, REMOTE_COHORT."
+        (UserCohort Data.Functor.<$> v Data.Aeson..: "USER_COHORT") Control.Applicative.<|>
+        fail "Could not parse DimensionType. Expected an object with one of keys: REGULAR, LOCAL_COHORT, REMOTE_COHORT, USER_COHORT."
     
 
 

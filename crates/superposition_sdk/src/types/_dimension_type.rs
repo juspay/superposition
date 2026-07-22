@@ -9,6 +9,8 @@ pub enum DimensionType {
     Regular,
     #[allow(missing_docs)] // documentation missing in model
     RemoteCohort(::std::string::String),
+    #[allow(missing_docs)] // documentation missing in model
+    UserCohort(::std::string::String),
     /// The `Unknown` variant represents cases where new union variant was received. Consider upgrading the SDK to the latest available version.
     /// An unknown enum variant
     ///
@@ -46,6 +48,15 @@ impl DimensionType {
     /// Returns true if this is a [`RemoteCohort`](crate::types::DimensionType::RemoteCohort).
     pub fn is_remote_cohort(&self) -> bool {
         self.as_remote_cohort().is_ok()
+    }
+    /// Tries to convert the enum instance into [`UserCohort`](crate::types::DimensionType::UserCohort), extracting the inner [`String`](::std::string::String).
+    /// Returns `Err(&Self)` if it can't be converted.
+    pub fn as_user_cohort(&self) -> ::std::result::Result<&::std::string::String, &Self> {
+        if let DimensionType::UserCohort(val) = &self { ::std::result::Result::Ok(val) } else { ::std::result::Result::Err(self) }
+    }
+    /// Returns true if this is a [`UserCohort`](crate::types::DimensionType::UserCohort).
+    pub fn is_user_cohort(&self) -> bool {
+        self.as_user_cohort().is_ok()
     }
     /// Returns true if the enum instance is the `Unknown` variant.
     pub fn is_unknown(&self) -> bool {

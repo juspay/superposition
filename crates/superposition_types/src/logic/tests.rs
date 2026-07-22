@@ -2,16 +2,17 @@ use std::collections::HashMap;
 
 use crate::{
     logic::{
-        dimensions_to_start_from, evaluate_local_cohort_dimension, evaluate_local_cohorts,
+        cohort_evaluation::resolve_local_cohort_option_for_test as resolve_local_cohort_option,
+        evaluate_local_cohorts, find_evaluation_start_dimensions,
     },
     DimensionInfo,
 };
 use serde_json::{json, Map};
 
 #[test]
-// Tests dimensions_to_start_from when query data exists for dimensions at different levels
+// Tests find_evaluation_start_dimensions when query data exists for dimensions at different levels
 // Verifies "closest to root" selection and LocalCohort fallback behavior
-fn test_dimensions_to_start_from_with_query_data() {
+fn test_find_evaluation_start_dimensions_with_query_data() {
     let dimensions_json = json!({
         "test": {
             "dimension_type": { "REGULAR": {} },
@@ -61,7 +62,7 @@ fn test_dimensions_to_start_from_with_query_data() {
     .unwrap()
     .clone();
 
-    let start_dims = dimensions_to_start_from(&dimensions, &query_data);
+    let start_dims = find_evaluation_start_dimensions(&dimensions, &query_data);
     assert_eq!(start_dims.len(), 2);
     assert!(start_dims.contains(&"testtest".to_string()));
     assert!(start_dims.contains(&"testdep".to_string()));
@@ -70,7 +71,7 @@ fn test_dimensions_to_start_from_with_query_data() {
 #[test]
 // Tests LocalCohort selection as starting point when no query data is available
 // Verifies fallback behavior when traversing from Regular dimension to LocalCohort
-fn test_dimensions_to_start_from_with_local_cohort() {
+fn test_find_evaluation_start_dimensions_with_local_cohort() {
     let dimensions_json = json!({
         "test": {
             "dimension_type": { "REGULAR": {} },
@@ -96,14 +97,14 @@ fn test_dimensions_to_start_from_with_local_cohort() {
 
     let query_data = Map::new();
 
-    let start_dims = dimensions_to_start_from(&dimensions, &query_data);
+    let start_dims = find_evaluation_start_dimensions(&dimensions, &query_data);
     assert_eq!(start_dims, vec!["testdep".to_string()]);
 }
 
 #[test]
 // Tests behavior with empty dimensions HashMap
 // Verifies graceful handling of edge case with no dimension configuration
-fn test_dimensions_to_start_from_empty_dimensions() {
+fn test_find_evaluation_start_dimensions_empty_dimensions() {
     let dimensions_json = json!({});
     let dimensions: HashMap<String, DimensionInfo> =
         serde_json::from_value(dimensions_json).unwrap();
@@ -114,14 +115,14 @@ fn test_dimensions_to_start_from_empty_dimensions() {
     .unwrap()
     .clone();
 
-    let start_dims = dimensions_to_start_from(&dimensions, &query_data);
+    let start_dims = find_evaluation_start_dimensions(&dimensions, &query_data);
     assert_eq!(start_dims, Vec::<String>::new());
 }
 
 #[test]
 // Tests processing of multiple independent dependency trees
 // Verifies algorithm correctly handles separate root dimensions and their branches
-fn test_dimensions_to_start_from_multiple_trees() {
+fn test_find_evaluation_start_dimensions_multiple_trees() {
     let dimensions_json = json!({
         "dim1": {
             "dimension_type": { "REGULAR": {} },
@@ -170,7 +171,7 @@ fn test_dimensions_to_start_from_multiple_trees() {
     .unwrap()
     .clone();
 
-    let start_dims = dimensions_to_start_from(&dimensions, &query_data);
+    let start_dims = find_evaluation_start_dimensions(&dimensions, &query_data);
     assert_eq!(start_dims.len(), 2);
     assert!(start_dims.contains(&"dim1".to_string()));
     assert!(start_dims.contains(&"dim4".to_string()));
@@ -307,9 +308,9 @@ fn test_evaluate_local_cohorts_with_dependency() {
 }
 
 #[test]
-// Tests direct evaluation of evaluate_local_cohort_dimension function
+// Tests direct evaluation of resolve_local_cohort_option function
 // Verifies JSON Logic evaluation with matching and non-matching conditions
-fn test_evaluate_local_cohort_dimension_function() {
+fn test_resolve_local_cohort_option_function() {
     let schema = json!({
         "enum": ["exactly_42", "otherwise"],
         "definitions": {
@@ -322,13 +323,13 @@ fn test_evaluate_local_cohort_dimension_function() {
     .unwrap()
     .clone();
 
-    let result = evaluate_local_cohort_dimension("test_value", &json!(42), &schema);
+    let result = resolve_local_cohort_option("test_value", &json!(42), &schema);
     assert_eq!(result, "exactly_42");
 
-    let result = evaluate_local_cohort_dimension("test_value", &json!(100), &schema);
+    let result = resolve_local_cohort_option("test_value", &json!(100), &schema);
     assert_eq!(result, "otherwise");
 
-    let result = evaluate_local_cohort_dimension("test_value", &json!("string"), &schema);
+    let result = resolve_local_cohort_option("test_value", &json!("string"), &schema);
     assert_eq!(result, "otherwise");
 }
 
@@ -396,7 +397,7 @@ fn test_sample_dependency_graph() {
     .unwrap()
     .clone();
 
-    let start_dims = dimensions_to_start_from(&dimensions, &query_data);
+    let start_dims = find_evaluation_start_dimensions(&dimensions, &query_data);
     assert_eq!(start_dims.len(), 1);
     assert!(start_dims.contains(&"test".to_string()));
 
@@ -413,7 +414,7 @@ fn test_sample_dependency_graph() {
     .unwrap()
     .clone();
 
-    let start_dims2 = dimensions_to_start_from(&dimensions, &query_data2);
+    let start_dims2 = find_evaluation_start_dimensions(&dimensions, &query_data2);
     assert_eq!(start_dims2.len(), 2);
     assert!(start_dims2.contains(&"testtest".to_string()));
     assert!(start_dims2.contains(&"testdep".to_string()));
@@ -426,7 +427,7 @@ fn test_sample_dependency_graph() {
 #[test]
 // Tests algorithm doesn't return duplicate dimensions in starting points
 // Verifies deduplication logic when processing multiple independent trees
-fn test_no_duplicates_in_dimensions_to_start_from() {
+fn test_find_evaluation_start_dimensions_has_no_duplicates() {
     let dimensions_json = json!({
         "root1": {
             "dimension_type": { "REGULAR": {} },
@@ -475,7 +476,7 @@ fn test_no_duplicates_in_dimensions_to_start_from() {
     .unwrap()
     .clone();
 
-    let start_dims = dimensions_to_start_from(&dimensions, &query_data);
+    let start_dims = find_evaluation_start_dimensions(&dimensions, &query_data);
     assert_eq!(start_dims.len(), 2);
     assert!(start_dims.contains(&"dep1".to_string()));
     assert!(start_dims.contains(&"dep2".to_string()));
@@ -484,7 +485,7 @@ fn test_no_duplicates_in_dimensions_to_start_from() {
 #[test]
 // Tests deep hierarchical dependency chains with query data at different levels
 // Verifies "closest to root" selection across 4-level deep tree with mixed dimension types
-fn test_dimensions_to_start_from_deep_tree_with_query_at_different_levels() {
+fn test_find_evaluation_start_dimensions_deep_tree_with_query_at_different_levels() {
     let dimensions_json = json!({
         "root": {
             "dimension_type": { "REGULAR": {} },
@@ -537,7 +538,7 @@ fn test_dimensions_to_start_from_deep_tree_with_query_at_different_levels() {
     .unwrap()
     .clone();
 
-    let start_dims1 = dimensions_to_start_from(&dimensions, &query_data1);
+    let start_dims1 = find_evaluation_start_dimensions(&dimensions, &query_data1);
     assert_eq!(start_dims1, vec!["root".to_string()]);
 
     // Test: Query data at middle level - should select middle level (closest to root)
@@ -549,7 +550,7 @@ fn test_dimensions_to_start_from_deep_tree_with_query_at_different_levels() {
     .unwrap()
     .clone();
 
-    let start_dims2 = dimensions_to_start_from(&dimensions, &query_data2);
+    let start_dims2 = find_evaluation_start_dimensions(&dimensions, &query_data2);
     assert_eq!(start_dims2, vec!["level1".to_string()]);
 
     // Test: Query data only at leaf level - should select leaf
@@ -560,20 +561,20 @@ fn test_dimensions_to_start_from_deep_tree_with_query_at_different_levels() {
     .unwrap()
     .clone();
 
-    let start_dims3 = dimensions_to_start_from(&dimensions, &query_data3);
+    let start_dims3 = find_evaluation_start_dimensions(&dimensions, &query_data3);
     assert_eq!(start_dims3, vec!["level3".to_string()]);
 
     // Test: No query data - should select LocalCohort fallback
     let query_data4 = Map::new();
 
-    let start_dims4 = dimensions_to_start_from(&dimensions, &query_data4);
+    let start_dims4 = find_evaluation_start_dimensions(&dimensions, &query_data4);
     assert_eq!(start_dims4, vec!["level3".to_string()]);
 }
 
 #[test]
 // Tests behavior when Regular dimension has empty dependency graph
 // Verifies algorithm handles missing dependency information gracefully
-fn test_dimensions_to_start_from_missing_dependency_graph() {
+fn test_find_evaluation_start_dimensions_missing_dependency_graph() {
     let dimensions_json = json!({
         "root": {
             "dimension_type": { "REGULAR": {} },
@@ -593,7 +594,7 @@ fn test_dimensions_to_start_from_missing_dependency_graph() {
     .unwrap()
     .clone();
 
-    let start_dims = dimensions_to_start_from(&dimensions, &query_data);
+    let start_dims = find_evaluation_start_dimensions(&dimensions, &query_data);
     // When no dependencies and no query data matches, algorithm doesn't traverse further
     // and doesn't add the root as a starting point
     assert_eq!(start_dims, Vec::<String>::new());
@@ -607,7 +608,7 @@ fn test_dimensions_to_start_from_missing_dependency_graph() {
     .clone();
 
     let start_dims_with_root =
-        dimensions_to_start_from(&dimensions, &query_data_with_root);
+        find_evaluation_start_dimensions(&dimensions, &query_data_with_root);
     assert_eq!(start_dims_with_root, vec!["root".to_string()]);
 }
 
@@ -870,7 +871,7 @@ fn test_evaluate_local_cohorts_fills_missing_local_cohorts() {
 #[test]
 // Tests processing multiple Regular root dimensions with LocalCohort fallbacks
 // Verifies algorithm handles multiple independent trees and selects appropriate fallbacks
-fn test_dimensions_to_start_from_with_multiple_regular_roots() {
+fn test_find_evaluation_start_dimensions_with_multiple_regular_roots() {
     let dimensions_json = json!({
         "root1": {
             "dimension_type": { "REGULAR": {} },
@@ -914,19 +915,19 @@ fn test_dimensions_to_start_from_with_multiple_regular_roots() {
     // Test: No query data - should get LocalCohort fallbacks from both trees
     let query_data = Map::new();
 
-    let start_dims = dimensions_to_start_from(&dimensions, &query_data);
+    let start_dims = find_evaluation_start_dimensions(&dimensions, &query_data);
     assert_eq!(start_dims.len(), 2);
     assert!(start_dims.contains(&"child1".to_string()));
     assert!(start_dims.contains(&"child2".to_string()));
 }
 
 #[test]
-// Tests evaluate_local_cohort_dimension function with various edge cases
+// Tests resolve_local_cohort_option function with various edge cases
 // Verifies error handling for malformed schemas, missing fields, and invalid data types
-fn test_evaluate_local_cohort_dimension_edge_cases() {
+fn test_resolve_local_cohort_option_edge_cases() {
     // Test with empty schema
     let empty_schema = Map::new();
-    let result = evaluate_local_cohort_dimension("test", &json!("value"), &empty_schema);
+    let result = resolve_local_cohort_option("test", &json!("value"), &empty_schema);
     assert_eq!(result, "otherwise");
 
     // Test with schema missing enum
@@ -941,8 +942,7 @@ fn test_evaluate_local_cohort_dimension_edge_cases() {
     .unwrap()
     .clone();
 
-    let result =
-        evaluate_local_cohort_dimension("test", &json!("value"), &schema_no_enum);
+    let result = resolve_local_cohort_option("test", &json!("value"), &schema_no_enum);
     assert_eq!(result, "otherwise");
 
     // Test with schema missing definitions
@@ -954,7 +954,7 @@ fn test_evaluate_local_cohort_dimension_edge_cases() {
     .clone();
 
     let result =
-        evaluate_local_cohort_dimension("test", &json!("value"), &schema_no_definitions);
+        resolve_local_cohort_option("test", &json!("value"), &schema_no_definitions);
     assert_eq!(result, "otherwise");
 
     // Test with malformed enum (not array)
@@ -970,8 +970,7 @@ fn test_evaluate_local_cohort_dimension_edge_cases() {
     .unwrap()
     .clone();
 
-    let result =
-        evaluate_local_cohort_dimension("test", &json!("value"), &schema_bad_enum);
+    let result = resolve_local_cohort_option("test", &json!("value"), &schema_bad_enum);
     assert_eq!(result, "otherwise");
 }
 
@@ -1162,7 +1161,7 @@ fn test_local_cohort_chain_with_intermediate_query_data() {
     .unwrap()
     .clone();
 
-    let start_dims = dimensions_to_start_from(&dimensions, &query_data);
+    let start_dims = find_evaluation_start_dimensions(&dimensions, &query_data);
     assert_eq!(start_dims.len(), 1);
     assert!(start_dims.contains(&"country_group".to_string()));
 
@@ -1456,7 +1455,7 @@ fn test_multi_tree_complex_branching() {
     .unwrap()
     .clone();
 
-    let start_dims1 = dimensions_to_start_from(&dimensions, &query_data1);
+    let start_dims1 = find_evaluation_start_dimensions(&dimensions, &query_data1);
     assert_eq!(start_dims1.len(), 3);
     assert!(start_dims1.contains(&"user_preferences".to_string()));
     assert!(start_dims1.contains(&"location".to_string()));
@@ -1483,7 +1482,7 @@ fn test_multi_tree_complex_branching() {
     .unwrap()
     .clone();
 
-    let start_dims2 = dimensions_to_start_from(&dimensions, &query_data2);
+    let start_dims2 = find_evaluation_start_dimensions(&dimensions, &query_data2);
     assert_eq!(start_dims2.len(), 3);
     assert!(start_dims2.contains(&"user_id".to_string()));
     assert!(start_dims2.contains(&"timezone".to_string()));
@@ -1621,7 +1620,7 @@ fn test_big_tree_random_branch_queries() {
     .unwrap()
     .clone();
 
-    let start_dims1 = dimensions_to_start_from(&dimensions, &query_data1);
+    let start_dims1 = find_evaluation_start_dimensions(&dimensions, &query_data1);
     assert_eq!(start_dims1.len(), 1);
     assert!(start_dims1.contains(&"root".to_string()));
 
@@ -1634,7 +1633,7 @@ fn test_big_tree_random_branch_queries() {
     .unwrap()
     .clone();
 
-    let start_dims2 = dimensions_to_start_from(&dimensions, &query_data2);
+    let start_dims2 = find_evaluation_start_dimensions(&dimensions, &query_data2);
     assert_eq!(start_dims2.len(), 3);
     assert!(start_dims2.contains(&"level2_a".to_string()));
     assert!(start_dims2.contains(&"level2_b".to_string()));
@@ -1648,7 +1647,7 @@ fn test_big_tree_random_branch_queries() {
     .unwrap()
     .clone();
 
-    let start_dims3 = dimensions_to_start_from(&dimensions, &query_data3);
+    let start_dims3 = find_evaluation_start_dimensions(&dimensions, &query_data3);
     assert_eq!(start_dims3.len(), 3);
     assert!(start_dims3.contains(&"level2_a".to_string()));
     assert!(start_dims3.contains(&"level2_b".to_string()));
@@ -1657,7 +1656,7 @@ fn test_big_tree_random_branch_queries() {
     // Test 4: No query data - should get all leaf LocalCohorts as fallbacks
     let query_data4 = Map::new();
 
-    let start_dims4 = dimensions_to_start_from(&dimensions, &query_data4);
+    let start_dims4 = find_evaluation_start_dimensions(&dimensions, &query_data4);
     assert_eq!(start_dims4.len(), 3);
     assert!(start_dims4.contains(&"level2_a".to_string()));
     assert!(start_dims4.contains(&"level2_b".to_string()));
@@ -1725,7 +1724,7 @@ fn test_regular_overrides_local_cohort_in_query() {
     .unwrap()
     .clone();
 
-    let start_dims1 = dimensions_to_start_from(&dimensions, &query_data1);
+    let start_dims1 = find_evaluation_start_dimensions(&dimensions, &query_data1);
     assert_eq!(start_dims1.len(), 1);
     assert!(start_dims1.contains(&"user_score".to_string()));
 
@@ -1743,7 +1742,7 @@ fn test_regular_overrides_local_cohort_in_query() {
     .unwrap()
     .clone();
 
-    let start_dims2 = dimensions_to_start_from(&dimensions, &query_data2);
+    let start_dims2 = find_evaluation_start_dimensions(&dimensions, &query_data2);
     assert_eq!(start_dims2.len(), 1);
     assert!(start_dims2.contains(&"user_category".to_string()));
 
@@ -1759,7 +1758,7 @@ fn test_regular_overrides_local_cohort_in_query() {
     .unwrap()
     .clone();
 
-    let start_dims3 = dimensions_to_start_from(&dimensions, &query_data3);
+    let start_dims3 = find_evaluation_start_dimensions(&dimensions, &query_data3);
     assert_eq!(start_dims3.len(), 1);
     assert!(start_dims3.contains(&"user_category".to_string()));
 
