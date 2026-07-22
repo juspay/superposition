@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.juspay.superposition.openfeature.error.SuperpositionError;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -140,11 +141,29 @@ class FileDataSourceTest {
     }
 
     @Test
-    void ifModifiedSinceIsIgnored(@TempDir Path dir) throws Exception {
-        FetchResponse<ConfigData> response = sourceOf(dir, "config.toml", TOML_CONFIG)
-            .fetchConfig(Optional.of(Instant.now().plusSeconds(3600)));
+    void ifModifiedSinceReturnsNotModifiedForAnUnchangedFile(@TempDir Path dir) throws Exception {
+        FileDataSource source = sourceOf(dir, "config.toml", TOML_CONFIG);
+        Instant fetchedAt = source.fetchConfig(Optional.empty()).getData().orElseThrow().getFetchedAt();
 
+        // The file has not changed since it was read, so a conditional fetch is NotModified.
+        assertTrue(source.fetchConfig(Optional.of(fetchedAt)).isNotModified());
+    }
+
+    @Test
+    void ifModifiedSinceReturnsFreshDataAfterTheFileChanges(@TempDir Path dir) throws Exception {
+        Path file = dir.resolve("config.toml");
+        Files.writeString(file, TOML_CONFIG);
+        FileDataSource source = new FileDataSource(file);
+        Instant fetchedAt = source.fetchConfig(Optional.empty()).getData().orElseThrow().getFetchedAt();
+
+        // Rewrite the file with a later modified time; the next conditional fetch must re-read.
+        Files.writeString(file, TOML_CONFIG.replace("\"Rupee\"", "\"Yen\""));
+        Files.setLastModifiedTime(file, FileTime.from(fetchedAt.plusSeconds(2)));
+
+        FetchResponse<ConfigData> response = source.fetchConfig(Optional.of(fetchedAt));
         assertFalse(response.isNotModified());
+        assertEquals("\"Yen\"",
+            response.getData().orElseThrow().getData().getDefaultConfigs().get("currency"));
     }
 
     /**

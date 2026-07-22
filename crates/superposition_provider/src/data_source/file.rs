@@ -47,6 +47,30 @@ impl FileDataSource {
             watcher: Mutex::new(None),
         })
     }
+
+    async fn last_modified_at(&self) -> Result<DateTime<Utc>> {
+        tokio::fs::metadata(&self.file_path)
+            .await
+            .map_err(|e| {
+                SuperpositionError::DataSourceError(format!(
+                    "Failed to read metadata for config file {:?}: {}",
+                    self.file_path, e
+                ))
+            })?
+            .modified()
+            .map(DateTime::<Utc>::from)
+            .map_err(|e| {
+                SuperpositionError::DataSourceError(format!(
+                    "Failed to read modified time for config file {:?}: {}",
+                    self.file_path, e
+                ))
+            })
+    }
+
+    async fn is_not_modified(&self, if_modified_since: DateTime<Utc>) -> Result<bool> {
+        let last_modified_at = self.last_modified_at().await?;
+        Ok(last_modified_at <= if_modified_since)
+    }
 }
 
 #[async_trait]
@@ -57,9 +81,16 @@ impl SuperpositionDataSource for FileDataSource {
         prefix_filter: Option<Vec<String>>,
         if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ConfigData>> {
-        if if_modified_since.is_some() {
-            log::debug!("FileDataSource: ignoring if_modified_since, always reading fresh from file");
+        if let Some(if_modified_since) = if_modified_since {
+            if self.is_not_modified(if_modified_since).await? {
+                log::debug!(
+                    "FileDataSource: config file not modified since {:?}",
+                    if_modified_since
+                );
+                return Ok(FetchResponse::NotModified);
+            }
         }
+
         let now = Utc::now();
         let content = tokio::fs::read_to_string(&self.file_path)
             .await
