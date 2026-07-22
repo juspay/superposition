@@ -9,8 +9,10 @@ use service_utils::{
 use superposition_derives::{authorized, declare_resource};
 use superposition_macros::unexpected_error;
 use superposition_types::{
+    PaginatedResponse,
     api::jobs::{ExecutionDetails, JobDetailResponse, JobListFilters, JobResponse},
-    database::models::{BackgroundJobStatus, JobWorkspace, others::WorkspaceJobView},
+    custom_query::PaginationParams,
+    database::models::{BackgroundJobStatus, JobWorkspace},
     result as superposition,
 };
 
@@ -28,16 +30,38 @@ pub fn endpoints() -> Scope {
 async fn list_handler(
     workspace_context: WorkspaceContext,
     db_conn: DbConnection,
+    pagination: Query<PaginationParams>,
     filters: Query<JobListFilters>,
-) -> superposition::Result<Json<Vec<WorkspaceJobView>>> {
+) -> superposition::Result<Json<PaginatedResponse<JobResponse>>> {
     let DbConnection(mut conn) = db_conn;
     let filters = filters.into_inner();
-    let job_workspace = JobWorkspace::from(&workspace_context.schema_name.0);
+    let pagination = pagination.into_inner();
 
-    let jobs = list_jobs(&mut conn, &job_workspace, filters.job_type, filters.status)
-        .map_err(|e| unexpected_error!("Failed to list jobs: {}", e))?;
+    let (total_items, jobs) = list_jobs(
+        &mut conn,
+        &workspace_context.schema_name,
+        &filters,
+        &pagination,
+    )
+    .map_err(|e| unexpected_error!("Failed to list jobs: {}", e))?;
 
-    Ok(Json(jobs))
+    let data: Vec<JobResponse> = jobs
+        .into_iter()
+        .map(|j| JobResponse::from_view(&j, &workspace_context.schema_name.0))
+        .collect();
+
+    if let Some(true) = pagination.all {
+        return Ok(Json(PaginatedResponse::all(data)));
+    }
+
+    let limit = pagination.count.unwrap_or(10);
+    let total_pages = (total_items as f64 / limit as f64).ceil() as i64;
+
+    Ok(Json(PaginatedResponse {
+        total_pages,
+        total_items,
+        data,
+    }))
 }
 
 #[authorized]
