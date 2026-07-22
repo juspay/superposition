@@ -34,7 +34,13 @@ dependencies {
 }
 
 tasks.test {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        // Unit tests run by default; the live-server integration tests are opt-in. This lets the
+        // test task auto-discover every unit test without maintaining an explicit class list.
+        if (!project.hasProperty("withIntegration")) {
+            excludeTags("integration")
+        }
+    }
     testLogging {
         events("passed", "skipped", "failed", "standardOut", "standardError")
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
