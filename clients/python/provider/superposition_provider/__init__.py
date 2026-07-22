@@ -23,9 +23,13 @@ from .interfaces import AllFeatureProvider, FeatureExperimentMeta
 from .local_provider import LocalResolutionProvider, RefreshStrategy
 from .remote_provider import SuperpositionAPIProvider
 
+from .errors import SuperpositionError, ErrorCode
+
 from .types import (
     SuperpositionOptions,
-    EvaluationCacheOptions,
+    AuthMethod,
+    TokenAuth,
+    BasicAuth,
     PollingStrategy,
     OnDemandStrategy,
     WatchStrategy,
@@ -33,8 +37,6 @@ from .types import (
     RefreshStrategy as RefreshStrategyType,
     ConfigurationOptions,
     ExperimentationOptions,
-    LocalProviderOptions,
-    RemoteProviderOptions,
     SuperpositionProviderOptions,
 )
 
@@ -53,9 +55,14 @@ __all__ = [
     "LocalResolutionProvider",
     "SuperpositionAPIProvider",
     "RefreshStrategy",
+    # Errors
+    "SuperpositionError",
+    "ErrorCode",
     # Types
     "SuperpositionOptions",
-    "EvaluationCacheOptions",
+    "AuthMethod",
+    "TokenAuth",
+    "BasicAuth",
     "PollingStrategy",
     "OnDemandStrategy",
     "WatchStrategy",
@@ -63,7 +70,5 @@ __all__ = [
     "RefreshStrategyType",
     "ConfigurationOptions",
     "ExperimentationOptions",
-    "LocalProviderOptions",
-    "RemoteProviderOptions",
     "SuperpositionProviderOptions",
 ]

@@ -6,10 +6,9 @@ from typing import Any, Dict, Optional, TypeVar
 
 from superposition_bindings.superposition_client import FfiExperiment, FfiExperimentGroup
 from superposition_sdk.models import ExperimentStatusType as SDKExperimentStatusType
-from .types import OnDemandStrategy, PollingStrategy, SuperpositionOptions, ExperimentationOptions
+from .types import OnDemandStrategy, PollingStrategy, SuperpositionOptions, ExperimentationOptions, auth_scheme_config
 from superposition_sdk.client import Superposition, ListExperimentInput, ListExperimentGroupsInput
 from superposition_sdk.config import Config
-from superposition_sdk.auth_helpers import bearer_auth_config
 import asyncio
 from datetime import datetime, timedelta
 from .conversions import exp_grps_to_ffi_exp_grps, experiments_to_ffi_experiments
@@ -76,7 +75,7 @@ class ExperimentationConfig():
                 finally:
                     del self_ref
 
-                await asyncio.sleep(interval)
+                await asyncio.sleep(interval / 1000)  # interval is in milliseconds
 
         latest_exp_list = await self._get_experiments(self.superposition_options)
         latest_exp_grp_list = await self._get_experiment_groups(self.superposition_options)
@@ -92,13 +91,18 @@ class ExperimentationConfig():
                 self.on_config_change()
 
         match self.options.refresh_strategy:
-            case PollingStrategy(interval=interval, timeout=timeout):
-                logger.info(f"Using PollingStrategy: interval={interval}, timeout={timeout}")
+            case PollingStrategy():
+                interval = self.options.refresh_strategy.interval_ms()
+                timeout = self.options.refresh_strategy.timeout_ms()
+                logger.info(f"Using PollingStrategy: interval={interval}ms, timeout={timeout}ms")
                 if self._polling_task is None:
                     self._polling_task = asyncio.create_task(poll_config(interval, timeout))
 
-            case OnDemandStrategy(ttl=ttl, use_stale_on_error=use_stale, timeout=timeout):
-                logger.info(f"Using OnDemandStrategy: ttl={ttl}, use_stale_on_error={use_stale}, timeout={timeout}")
+            case OnDemandStrategy():
+                ttl = self.options.refresh_strategy.ttl_ms()
+                use_stale = self.options.refresh_strategy.use_stale_on_error
+                timeout = self.options.refresh_strategy.timeout_ms()
+                logger.info(f"Using OnDemandStrategy: ttl={ttl}ms, use_stale_on_error={use_stale}, timeout={timeout}ms")
 
     @staticmethod
     async def _get_experiments(superposition_options: SuperpositionOptions) -> Optional[list[FfiExperiment]]:
@@ -113,9 +117,7 @@ class ExperimentationConfig():
         """
         try:
             # Create SDK config with bearer token authentication
-            (resolver, schemes) = bearer_auth_config(
-                token=superposition_options.token
-            )
+            (resolver, schemes) = auth_scheme_config(superposition_options.auth)
             sdk_config = Config(
                 endpoint_uri=superposition_options.endpoint,
                 http_auth_scheme_resolver=resolver,
@@ -156,9 +158,7 @@ class ExperimentationConfig():
         """
         try:
             # Create SDK config with bearer token authentication
-            (resolver, schemes) = bearer_auth_config(
-                token=superposition_options.token
-            )
+            (resolver, schemes) = auth_scheme_config(superposition_options.auth)
             sdk_config = Config(
                 endpoint_uri=superposition_options.endpoint,
                 http_auth_scheme_resolver=resolver,

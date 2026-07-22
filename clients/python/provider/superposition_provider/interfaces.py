@@ -10,7 +10,7 @@ from typing import Dict, List, Optional, Any, Union, Mapping, Sequence
 
 from openfeature.evaluation_context import EvaluationContext
 from openfeature.exception import ErrorCode
-from openfeature.flag_evaluation import FlagResolutionDetails
+from openfeature.flag_evaluation import FlagResolutionDetails, Reason
 
 logger = logging.getLogger(__name__)
 
@@ -90,6 +90,13 @@ class AllFeatureProvider(ABC):
 
         Resolves all features and extracts a specific flag, applying type conversion.
 
+        TODO: successful resolutions leave `reason` unset. Reporting it accurately (STATIC for a
+        default-config value, TARGETING_MATCH for a context override, SPLIT for an experiment
+        variant) needs `eval_config` in superposition_core to say, per key, where the value came
+        from. Until it does, guessing would be worse than saying nothing — a flag no experiment
+        touched would still be labelled SPLIT. Error reasons are set below. The same TODO applies
+        to the Rust and Java clients.
+
         Args:
             flag_key: The flag key to resolve.
             evaluation_context: Evaluation context.
@@ -103,17 +110,33 @@ class AllFeatureProvider(ABC):
         try:
             config = self.resolve_all_features(evaluation_context)
             if flag_key not in config:
-                return FlagResolutionDetails(default)
+                return FlagResolutionDetails(
+                    default,
+                    reason=Reason.ERROR,
+                    error_code=ErrorCode.FLAG_NOT_FOUND,
+                    error_message=f"Flag '{flag_key}' not found"
+                )
 
             value = config[flag_key]
             extracted = extractor(value)
             if extracted is None:
-                return FlagResolutionDetails(default)
+                return FlagResolutionDetails(
+                    default,
+                    reason=Reason.ERROR,
+                    error_code=ErrorCode.TYPE_MISMATCH,
+                    error_message=f"Flag '{flag_key}' is not a {type_name}"
+                )
             return FlagResolutionDetails(extracted)
+        except NotImplementedError:
+            # A provider that cannot resolve this way at all (SuperpositionAPIProvider is
+            # async-only). Reporting it as a per-flag GENERAL error made every sync call quietly
+            # return the default forever, with nothing to distinguish it from a real evaluation.
+            raise
         except Exception as e:
             logger.error(f"Error evaluating {type_name} flag {flag_key}: {e}")
             return FlagResolutionDetails(
                 default,
+                reason=Reason.ERROR,
                 error_code=ErrorCode.GENERAL,
                 error_message=f"Error evaluating flag '{flag_key}': {e}"
             )
@@ -129,7 +152,7 @@ class AllFeatureProvider(ABC):
             flag_key,
             evaluation_context,
             "boolean",
-            lambda v: _to_bool(v),
+            lambda v: v if isinstance(v, bool) else None,
             default_value
         )
 
@@ -249,17 +272,33 @@ class AllFeatureProvider(ABC):
         try:
             config = await self.resolve_all_features_async(evaluation_context)
             if flag_key not in config:
-                return FlagResolutionDetails(default)
+                return FlagResolutionDetails(
+                    default,
+                    reason=Reason.ERROR,
+                    error_code=ErrorCode.FLAG_NOT_FOUND,
+                    error_message=f"Flag '{flag_key}' not found"
+                )
 
             value = config[flag_key]
             extracted = extractor(value)
             if extracted is None:
-                return FlagResolutionDetails(default)
+                return FlagResolutionDetails(
+                    default,
+                    reason=Reason.ERROR,
+                    error_code=ErrorCode.TYPE_MISMATCH,
+                    error_message=f"Flag '{flag_key}' is not a {type_name}"
+                )
             return FlagResolutionDetails(extracted)
+        except NotImplementedError:
+            # A provider that cannot resolve this way at all (SuperpositionAPIProvider is
+            # async-only). Reporting it as a per-flag GENERAL error made every sync call quietly
+            # return the default forever, with nothing to distinguish it from a real evaluation.
+            raise
         except Exception as e:
             logger.error(f"Error evaluating {type_name} flag {flag_key}: {e}")
             return FlagResolutionDetails(
                 default,
+                reason=Reason.ERROR,
                 error_code=ErrorCode.GENERAL,
                 error_message=f"Error evaluating flag '{flag_key}': {e}"
             )
@@ -275,7 +314,7 @@ class AllFeatureProvider(ABC):
             flag_key,
             evaluation_context,
             "boolean",
-            lambda v: _to_bool(v),
+            lambda v: v if isinstance(v, bool) else None,
             default_value
         )
 
@@ -339,10 +378,3 @@ class AllFeatureProvider(ABC):
             default_value
         )
 
-def _to_bool(value: Any) -> Optional[bool]:
-    if isinstance(value, bool): return value
-    if isinstance(value, str):
-        if value.lower() == "true": return True
-        if value.lower() == "false": return False
-    if isinstance(value, (int, float)): return value != 0
-    return None

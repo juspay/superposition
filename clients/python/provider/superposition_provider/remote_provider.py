@@ -20,12 +20,11 @@ from smithy_core.documents import Document
 
 from superposition_sdk.client import Superposition
 from superposition_sdk.config import Config as SdkConfig
-from superposition_sdk.auth_helpers import bearer_auth_config
 from superposition_sdk.models import ApplicableVariantsInput, GetResolvedConfigWithIdentifierInput
 
 from .conversions import document_to_python_value
 from .interfaces import AllFeatureProvider, FeatureExperimentMeta
-from .types import SuperpositionOptions
+from .types import SuperpositionOptions, auth_scheme_config
 
 logger = logging.getLogger(__name__)
 
@@ -51,9 +50,7 @@ class SuperpositionAPIProvider(AbstractProvider, AllFeatureProvider, FeatureExpe
 
     def _create_client(self) -> Superposition:
         """Create and configure the SDK client."""
-        (resolver, schemes) = bearer_auth_config(
-            token=self.options.token
-        )
+        (resolver, schemes) = auth_scheme_config(self.options.auth)
         sdk_config = SdkConfig(
             endpoint_uri=self.options.endpoint,
             http_auth_scheme_resolver=resolver,
@@ -76,7 +73,7 @@ class SuperpositionAPIProvider(AbstractProvider, AllFeatureProvider, FeatureExpe
             logger.info("SuperpositionAPIProvider initialized successfully")
         except Exception as e:
             logger.error(f"Failed to initialize SuperpositionAPIProvider: {e}")
-            self.status = ProviderStatus.FATAL
+            self.status = ProviderStatus.ERROR
             raise
 
     def shutdown(self):
@@ -146,16 +143,12 @@ class SuperpositionAPIProvider(AbstractProvider, AllFeatureProvider, FeatureExpe
         """
         targeting_key, merged_context = self._get_merged_context(context)
 
-        if not targeting_key:
-            logger.warning("Missing targeting key for variant resolution")
-            return []
-
         try:
             response = await self.client.applicable_variants(
                 input=ApplicableVariantsInput(
                     workspace_id=self.options.workspace_id,
                     org_id=self.options.org_id,
-                    identifier=targeting_key,
+                    identifier=targeting_key or "",
                     context=merged_context,
                     prefix=prefix_filter,
                 )
