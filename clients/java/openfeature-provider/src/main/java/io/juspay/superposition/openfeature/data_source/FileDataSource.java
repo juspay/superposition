@@ -26,7 +26,8 @@ import uniffi.superposition_types.Config;
  * File-based implementation of SuperpositionDataSource.
  *
  * Reads configuration from a local JSON or TOML file, picking the parser from the file
- * extension. Always returns fresh data — {@code ifModifiedSince} is accepted but ignored.
+ * extension. Honors {@code ifModifiedSince} via the file's last-modified time, returning
+ * {@code NotModified} when the file is unchanged.
  * Context and prefix filtering are applied by the core via
  * {@link FfiUtils#parseConfigFileWithFilters}, so they prune contexts and overrides exactly
  * the way the server would.
@@ -85,8 +86,9 @@ public class FileDataSource implements SuperpositionDataSource {
             Optional<List<String>> prefixFilter,
             Optional<Instant> ifModifiedSince)
             throws SuperpositionError {
-        if (ifModifiedSince.isPresent()) {
-            log.debug("FileDataSource: ignoring ifModifiedSince, always reading fresh from file");
+        if (ifModifiedSince.isPresent() && isNotModified(ifModifiedSince.get())) {
+            log.debug("FileDataSource: config file not modified since {}", ifModifiedSince.get());
+            return FetchResponse.notModified();
         }
         Instant now = Instant.now();
 
@@ -109,6 +111,22 @@ public class FileDataSource implements SuperpositionDataSource {
         }
 
         return FetchResponse.data(new ConfigData(config, now));
+    }
+
+    /** The file's last-modified time. */
+    private Instant lastModifiedAt() throws SuperpositionError {
+        try {
+            return Files.getLastModifiedTime(filePath).toInstant();
+        } catch (IOException e) {
+            throw SuperpositionError.dataSourceError(
+                "Failed to read modified time for config file " + filePath + ": " + e.getMessage(),
+                e);
+        }
+    }
+
+    /** Whether the file is unchanged since {@code ifModifiedSince} (mtime at or before it). */
+    private boolean isNotModified(Instant ifModifiedSince) throws SuperpositionError {
+        return !lastModifiedAt().isAfter(ifModifiedSince);
     }
 
     @Override

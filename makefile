@@ -404,9 +404,10 @@ test-js-provider: provider-template
 test-py-provider: provider-template
 	bash ./scripts/setup_provider_binaries.sh py
 	cd clients/python/provider-sdk-tests && VERSION=1.0.0 uv sync
-	# Unit tests (no live server needed; run in the sdk-tests env so the native binding is present)
-	for t in test_type_contract test_http_data_source test_ondemand_ttl test_file_watch; do \
-		VERSION=1.0.0 uv run --directory clients/python/provider-sdk-tests python $(CURDIR)/clients/python/provider/$$t.py || exit 1; \
+	# Unit tests, auto-discovered — no live server needed; run in the sdk-tests env so the native
+	# binding is present. Each test_*.py self-runs via its __main__ block and exits non-zero on failure.
+	for t in $(CURDIR)/clients/python/provider/test_*.py; do \
+		echo "== $$t ==" && VERSION=1.0.0 uv run --directory clients/python/provider-sdk-tests python "$$t" || exit 1; \
 	done
 	# Integration harness against the live server
 	VERSION=1.0.0 uv run --directory clients/python/provider-sdk-tests python main.py
@@ -414,11 +415,9 @@ test-py-provider: provider-template
 
 test-kotlin-provider: provider-template
 	bash ./scripts/setup_provider_binaries.sh kotlin
-	# Unit tests (the .provider and .data_source packages; excludes the legacy ProviderTest, which
-	# is a live-server integration test seeded via DefaultConfigPopulator)
-	cd clients/java && ./gradlew :openfeature-provider:test \
-		--tests 'io.juspay.superposition.openfeature.provider.*' \
-		--tests 'io.juspay.superposition.openfeature.data_source.*'
+	# Unit tests, auto-discovered. The @Tag("integration") ProviderTest is excluded by default in
+	# build.gradle.kts (it needs a live server); everything else runs.
+	cd clients/java && ./gradlew :openfeature-provider:test
 	# Integration harness against the live server
 	cd clients/java && ./gradlew :provider-sdk-tests:run
 	$(MAKE) kill
