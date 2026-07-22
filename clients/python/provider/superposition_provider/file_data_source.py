@@ -156,8 +156,9 @@ class FileDataSource(SuperpositionDataSource):
         Returns:
             FetchResponse with ConfigData or NotModified status.
         """
-        if if_modified_since is not None:
-            logger.debug("FileDataSource: ignoring if_modified_since, always reading fresh from file")
+        if if_modified_since is not None and self._is_not_modified(if_modified_since):
+            logger.debug(f"FileDataSource: config file not modified since {if_modified_since}")
+            return FetchResponse.not_modified()
 
         try:
             now = datetime.now(timezone.utc)
@@ -178,6 +179,20 @@ class FileDataSource(SuperpositionDataSource):
             raise SuperpositionError.data_source_error(
                 f"Failed to read config file {self.file_path}: {e}", e
             ) from e
+
+    def _last_modified_at(self) -> datetime:
+        """The file's last-modified time."""
+        try:
+            mtime = os.path.getmtime(self.file_path)
+        except OSError as e:
+            raise SuperpositionError.data_source_error(
+                f"Failed to read modified time for config file {self.file_path}: {e}", e
+            ) from e
+        return datetime.fromtimestamp(mtime, tz=timezone.utc)
+
+    def _is_not_modified(self, if_modified_since: datetime) -> bool:
+        """Whether the file is unchanged since ``if_modified_since`` (mtime at or before it)."""
+        return self._last_modified_at() <= if_modified_since
 
     async def fetch_active_experiments(
         self,
