@@ -5,6 +5,7 @@ import io.juspay.superposition.openfeature.options.RefreshStrategy;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import dev.openfeature.sdk.*;
@@ -14,6 +15,12 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Integration test for the legacy provider — needs a live Superposition server (seeded by
+ * {@link DefaultConfigPopulator} in {@code @BeforeAll}). Tagged so the default unit-test run skips
+ * it; run it with {@code ./gradlew test -PwithIntegration}.
+ */
+@Tag("integration")
 class ProviderTest {
     static {
         System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "DEBUG");
