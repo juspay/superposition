@@ -29,14 +29,13 @@ mod tests {
     async fn test_cac_config_creation() {
         let superposition_options = SuperpositionOptions::new(
             "http://localhost:8080".to_string(),
-            "test-token".to_string(),
+            AuthMethod::Token("test-token".to_string()),
             "test-org".to_string(),
             "test-workspace".to_string(),
         );
 
         let config_options = ConfigurationOptions::new(
             RefreshStrategy::OnDemand(OnDemandStrategy::default()),
-            None,
             None,
         );
 
@@ -49,7 +48,7 @@ mod tests {
     async fn test_experimentation_config_creation() {
         let superposition_options = SuperpositionOptions::new(
             "http://localhost:8080".to_string(),
-            "test-token".to_string(),
+            AuthMethod::Token("test-token".to_string()),
             "test-org".to_string(),
             "test-workspace".to_string(),
         );

@@ -3,7 +3,7 @@ use superposition_provider::{
     data_source::http::HttpDataSource,
     local_provider::LocalResolutionProvider,
     traits::{AllFeatureProvider, FeatureExperimentMeta},
-    PollingStrategy, RefreshStrategy, SuperpositionOptions,
+    AuthMethod, PollingStrategy, RefreshStrategy, SuperpositionOptions,
 };
 
 #[tokio::main]
@@ -12,7 +12,7 @@ async fn main() {
 
     let http_source = HttpDataSource::new(SuperpositionOptions::new(
         "http://localhost:8080".to_string(),
-        "token".to_string(),
+        AuthMethod::Token("token".to_string()),
         "localorg".to_string(),
         "dev".to_string(),
     ));
@@ -20,10 +20,7 @@ async fn main() {
     let provider = LocalResolutionProvider::new(
         Box::new(http_source),
         None,
-        RefreshStrategy::Polling(PollingStrategy {
-            interval: 30,
-            timeout: Some(10),
-        }),
+        RefreshStrategy::Polling(PollingStrategy::new(30_000, Some(10_000))),
     );
     provider.init(EvaluationContext::default()).await.unwrap();
 

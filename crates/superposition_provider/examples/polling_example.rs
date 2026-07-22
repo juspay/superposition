@@ -22,7 +22,7 @@ use std::env;
 use open_feature::{EvaluationContext, OpenFeature};
 use superposition_provider::{
     data_source::http::HttpDataSource, local_provider::LocalResolutionProvider,
-    PollingStrategy, RefreshStrategy, SuperpositionOptions,
+    AuthMethod, PollingStrategy, RefreshStrategy, SuperpositionOptions,
 };
 use tokio::time::{sleep, Duration};
 
@@ -38,29 +38,31 @@ async fn main() {
     let token = env_or("SUPERPOSITION_TOKEN", "token");
     let org_id = env_or("SUPERPOSITION_ORG_ID", "localorg");
     let workspace = env_or("SUPERPOSITION_WORKSPACE", "dev");
-    let poll_interval: u64 = env_or("POLL_INTERVAL", "10").parse().unwrap_or(10);
+    let poll_interval_ms: u64 = env_or("POLL_INTERVAL_MS", "10000")
+        .parse()
+        .unwrap_or(10_000);
     let print_interval: u64 = env_or("PRINT_INTERVAL", "5").parse().unwrap_or(5);
     let config_key = env_or("CONFIG_KEY", "max_connections");
 
     println!("=== Superposition Polling Example ===");
     println!("Endpoint:        {}", endpoint);
     println!("Org / Workspace: {} / {}", org_id, workspace);
-    println!("Poll interval:   {}s", poll_interval);
+    println!("Poll interval:   {}ms", poll_interval_ms);
     println!("Print interval:  {}s", print_interval);
     println!("Watching key:    {}", config_key);
     println!();
 
     let http_source = HttpDataSource::new(SuperpositionOptions::new(
-        endpoint, token, org_id, workspace,
+        endpoint,
+        AuthMethod::Token(token),
+        org_id,
+        workspace,
     ));
 
     let provider = LocalResolutionProvider::new(
         Box::new(http_source),
         None,
-        RefreshStrategy::Polling(PollingStrategy {
-            interval: poll_interval,
-            timeout: Some(10),
-        }),
+        RefreshStrategy::Polling(PollingStrategy::new(poll_interval_ms, Some(10_000))),
     );
 
     // Register with OpenFeature and create a client

@@ -43,6 +43,18 @@ pub trait AllFeatureProvider: Send + Sync {
         prefix_filter: Option<Vec<String>>,
     ) -> Result<Map<String, Value>>;
 
+    /// Resolve a flag and extract it as `T`.
+    ///
+    /// Error reasons need no handling here: the failure paths return `EvaluationError`, which has
+    /// no `reason` field, and the SDK stamps `EvaluationReason::Error` on the details it builds
+    /// from it. The Java and Python providers return the details object themselves, so they set it
+    /// explicitly — same outcome, different seam.
+    ///
+    /// TODO: successful resolutions leave `reason` unset. Reporting it accurately (STATIC for a
+    /// default-config value, TARGETING_MATCH for a context override, SPLIT for an experiment
+    /// variant) needs `eval_config` in `superposition_core` to say, per key, where the value came
+    /// from. Until it does, guessing would be worse than saying nothing — a flag no experiment
+    /// touched would still be labelled SPLIT. The same TODO applies to the Java and Python clients.
     async fn resolve_typed<T: Send + Sync>(
         &self,
         flag_key: &str,
@@ -126,6 +138,32 @@ pub trait AllFeatureProvider: Send + Sync {
     ) -> EvaluationResult<ResolutionDetails<StructValue>> {
         self.resolve_typed(flag_key, evaluation_context, "struct", |v| {
             conversions::value_to_struct(v).ok()
+        })
+        .await
+    }
+
+    /// Resolve a flag whose value is a JSON array.
+    ///
+    /// `resolve_struct` cannot return one: OpenFeature models an object flag as a
+    /// `StructValue`, which has no array form, so a top-level array is a TypeMismatch there.
+    /// (An array *nested inside* an object flag is fine and needs no special handling.)
+    /// This is the typed way to read one; the alternative is `resolve_all_features`, which
+    /// hands back the raw `serde_json::Value`.
+    ///
+    /// The Java and Python clients return top-level arrays from their object accessor
+    /// directly, because their SDKs' object type admits one. This method exists to close
+    /// that gap, not to add a capability the other clients lack.
+    async fn resolve_array(
+        &self,
+        flag_key: &str,
+        evaluation_context: EvaluationContext,
+    ) -> EvaluationResult<ResolutionDetails<Vec<open_feature::Value>>> {
+        self.resolve_typed(flag_key, evaluation_context, "array", |v| match v {
+            Value::Array(items) => items
+                .into_iter()
+                .map(|item| conversions::value_to_openfeature_value(item).ok())
+                .collect(),
+            _ => None,
         })
         .await
     }

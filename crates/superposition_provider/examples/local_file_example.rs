@@ -17,10 +17,7 @@ async fn main() {
     let provider = LocalResolutionProvider::new(
         Box::new(file_source),
         None,
-        RefreshStrategy::OnDemand(OnDemandStrategy {
-            ttl: 60,
-            ..Default::default()
-        }),
+        RefreshStrategy::OnDemand(OnDemandStrategy::new(60_000, None, None)),
     );
     provider.init(EvaluationContext::default()).await.unwrap();
 
