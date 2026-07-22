@@ -485,9 +485,11 @@ async fn reduce_handler(
     workspace_context: WorkspaceContext,
     db_conn: DbConnection,
     state: Data<AppState>,
+    req: Json<ReduceRequest>,
 ) -> superposition::Result<Json<JobCreateResponse>> {
     let DbConnection(mut conn) = db_conn;
-    let job_request = JobRequest::Reduce(ReduceRequest::default());
+    let req = req.into_inner();
+    let job_request = JobRequest::Reduce(req);
     let job_workspace = JobWorkspace::from(&workspace_context.schema_name.0);
     let target_workspace = state
         .kronos_workspace

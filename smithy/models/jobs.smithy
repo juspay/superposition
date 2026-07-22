@@ -11,7 +11,7 @@ resource Job {
     properties: {
         kronos_job_id: String
         description: String
-        type: BackgroundJobType
+        job_type: BackgroundJobType
         status: BackgroundJobStatus
         name: String
         progress: Integer
@@ -92,38 +92,9 @@ structure JobDetailResponse for Job {
     execution: ExecutionDetails
 }
 
-@documentation("Job summary returned by list operations. Does not include workspace_schema.")
-structure JobSummary for Job {
-    @required
-    $id
-
-    @required
-    $kronos_job_id
-
-    @required
-    $description
-
-    @required
-    $type
-
-    @required
-    $status
-
-    @required
-    $name
-
-    @required
-    $progress
-
-    @required
-    $created_at
-
-    @required
-    $logs
-}
 
 list JobList {
-    member: JobSummary
+    member: JobDetailResponse
 }
 
 @documentation("Response returned when a job is submitted. Contains the BJM job ID, Kronos job ID, and initial status.")
@@ -143,7 +114,7 @@ structure JobCreateResponse for Job {
 @http(method: "GET", uri: "/jobs")
 @tags(["Background Jobs"])
 operation ListJobs {
-    input := with [WorkspaceMixin] {
+    input := with [PaginationParams, WorkspaceMixin] {
         @httpQuery("status")
         @notProperty
         status: BackgroundJobStatus
@@ -153,7 +124,7 @@ operation ListJobs {
         job_type: BackgroundJobType
     }
 
-    output := {
+    output := with [PaginatedResponse] {
         @required
         data: JobList
     }

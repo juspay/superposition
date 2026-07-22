@@ -14,7 +14,8 @@ use serde_json::json;
 use snowflake::SnowflakeIdGenerator;
 use superposition_types::{
     DBConnection,
-    api::jobs::{JobCreateResponse, JobRequest},
+    api::jobs::{JobCreateResponse, JobListFilters, JobRequest},
+    custom_query::PaginationParams,
     database::{
         models::{
             BackgroundJob, BackgroundJobStatus, JobWorkspace, others::WorkspaceJobView,
@@ -24,7 +25,7 @@ use superposition_types::{
     },
 };
 
-use crate::helpers::get_from_env_or_default;
+use crate::{helpers::get_from_env_or_default, service::types::SchemaName};
 
 static CONFIG_REFERENCE_REGEX: Lazy<regex::Regex> = Lazy::new(|| {
     regex::Regex::new(r"\{\{(?P<type>VARS|SECRETS)\.(?P<name>[A-Z0-9_]+)\}\}")
@@ -377,27 +378,89 @@ pub fn get_job_by_id(
 
 pub fn list_jobs(
     conn: &mut DBConnection,
-    workspace: &JobWorkspace,
-    job_type: Option<superposition_types::database::models::BackgroundJobType>,
-    status: Option<BackgroundJobStatus>,
-) -> anyhow::Result<Vec<WorkspaceJobView>> {
-    let schema = workspace.as_db_string();
-    let mut query = job_manager_view_dsl::job_manager
-        .schema_name(&schema)
-        .select(WorkspaceJobView::as_select())
-        .into_boxed();
+    schema: &SchemaName,
+    filters: &JobListFilters,
+    pagination: &PaginationParams,
+) -> anyhow::Result<(i64, Vec<WorkspaceJobView>)> {
+    let build_query = |f: &JobListFilters| {
+        let mut query = job_manager_view_dsl::job_manager
+            .schema_name(schema)
+            .into_boxed();
+        if let Some(jt) = f.job_type {
+            query = query.filter(job_manager_view_dsl::job_type.eq(jt));
+        }
+        if let Some(st) = f.status {
+            query = query.filter(job_manager_view_dsl::status.eq(st));
+        }
+        query
+    };
 
-    if let Some(jt) = job_type {
-        query = query.filter(job_manager_view_dsl::job_type.eq(jt));
-    }
-    if let Some(st) = status {
-        query = query.filter(job_manager_view_dsl::status.eq(st));
+    let base_query = build_query(filters);
+
+    if let Some(true) = pagination.all {
+        let data = base_query
+            .order(job_manager_view_dsl::created_at.desc())
+            .get_results(conn)?;
+        return Ok((data.len() as i64, data));
     }
 
-    query
+    let count_query = build_query(filters);
+
+    let total_items: i64 = count_query.count().get_result(conn)?;
+
+    let limit = pagination.count.unwrap_or(10);
+    let mut paged_query = base_query
         .order(job_manager_view_dsl::created_at.desc())
-        .load::<WorkspaceJobView>(conn)
-        .map_err(|e| anyhow::anyhow!("Failed to list jobs: {e}"))
+        .limit(limit);
+    if let Some(page) = pagination.page {
+        let offset = (page - 1) * limit;
+        paged_query = paged_query.offset(offset);
+    }
+    let data = paged_query.get_results(conn)?;
+
+    Ok((total_items, data))
+}
+
+pub fn list_jobs_global(
+    conn: &mut DBConnection,
+    filters: &JobListFilters,
+    pagination: &PaginationParams,
+) -> anyhow::Result<(i64, Vec<BackgroundJob>)> {
+    let build_query = |f: &JobListFilters| {
+        let mut query = job_manager_dsl::job_manager.into_boxed();
+        if let Some(jt) = f.job_type {
+            query = query.filter(job_manager_dsl::job_type.eq(jt));
+        }
+        if let Some(st) = f.status {
+            query = query.filter(job_manager_dsl::status.eq(st));
+        }
+        query
+    };
+
+    let base_query = build_query(filters);
+
+    if let Some(true) = pagination.all {
+        let data = base_query
+            .order(job_manager_dsl::created_at.desc())
+            .get_results(conn)?;
+        return Ok((data.len() as i64, data));
+    }
+
+    let count_query = build_query(filters);
+
+    let total_items: i64 = count_query.count().get_result(conn)?;
+
+    let limit = pagination.count.unwrap_or(10);
+    let mut paged_query = base_query
+        .order(job_manager_dsl::created_at.desc())
+        .limit(limit);
+    if let Some(page) = pagination.page {
+        let offset = (page - 1) * limit;
+        paged_query = paged_query.offset(offset);
+    }
+    let data = paged_query.get_results(conn)?;
+
+    Ok((total_items, data))
 }
 
 pub fn update_job_status(
@@ -422,7 +485,7 @@ pub fn update_job_progress(
         .select(job_manager_dsl::progress)
         .first::<i32>(conn)?;
 
-    if (progress - previous_progress).abs() > threshold {
+    if progress == 100 || (progress - previous_progress).abs() > threshold {
         diesel::update(
             job_manager_dsl::job_manager.filter(job_manager_dsl::id.eq(job_id)),
         )
