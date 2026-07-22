@@ -20,7 +20,7 @@ async fn main() {
     let provider = LocalResolutionProvider::new(
         Box::new(http_source),
         None,
-        RefreshStrategy::Polling(PollingStrategy::new(30_000, Some(10_000))),
+        RefreshStrategy::Polling(PollingStrategy::new(30_000).with_timeout(10_000)),
     );
     provider.init(EvaluationContext::default()).await.unwrap();
 

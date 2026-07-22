@@ -90,7 +90,7 @@ pub struct PollingStrategy {
 
 impl PollingStrategy {
     /// Build a polling strategy from millisecond durations.
-    pub fn new(interval_milliseconds: u64, timeout_milliseconds: Option<u64>) -> Self {
+    pub fn new(interval_milliseconds: u64) -> Self {
         #[allow(deprecated)]
         Self {
             // Left unset: the accessors read the millisecond fields. Mirroring a value back would
@@ -98,8 +98,13 @@ impl PollingStrategy {
             interval: 0,
             timeout: None,
             interval_milliseconds: Some(interval_milliseconds),
-            timeout_milliseconds,
+            timeout_milliseconds: None,
         }
+    }
+
+    pub fn with_timeout(mut self, timeout_milliseconds: u64) -> Self {
+        self.timeout_milliseconds = Some(timeout_milliseconds);
+        self
     }
 
     /// The refresh interval in milliseconds, falling back to the deprecated seconds field.
@@ -148,11 +153,7 @@ pub struct OnDemandStrategy {
 
 impl OnDemandStrategy {
     /// Build an on-demand strategy from millisecond durations.
-    pub fn new(
-        ttl_milliseconds: u64,
-        timeout_milliseconds: Option<u64>,
-        use_stale_on_error: Option<bool>,
-    ) -> Self {
+    pub fn new(ttl_milliseconds: u64) -> Self {
         #[allow(deprecated)]
         Self {
             // Left unset: the accessors read the millisecond fields. Mirroring a value back would
@@ -160,9 +161,19 @@ impl OnDemandStrategy {
             ttl: 0,
             timeout: None,
             ttl_milliseconds: Some(ttl_milliseconds),
-            timeout_milliseconds,
-            use_stale_on_error,
+            timeout_milliseconds: None,
+            use_stale_on_error: None,
         }
+    }
+
+    pub fn with_timeout(mut self, timeout_milliseconds: u64) -> Self {
+        self.timeout_milliseconds = Some(timeout_milliseconds);
+        self
+    }
+
+    pub fn with_use_stale_on_error(mut self, use_stale_on_error: bool) -> Self {
+        self.use_stale_on_error = Some(use_stale_on_error);
+        self
     }
 
     /// The cache TTL in milliseconds, falling back to the deprecated seconds field.
@@ -338,11 +349,13 @@ mod tests {
         assert_eq!(polling.interval_ms(), 1_500);
 
         assert_eq!(
-            PollingStrategy::new(5_500, Some(2_500)).interval_ms(),
+            PollingStrategy::new(5_500)
+                .with_timeout(2_500)
+                .interval_ms(),
             5_500
         );
         assert_eq!(
-            PollingStrategy::new(5_500, Some(2_500)).timeout_ms(),
+            PollingStrategy::new(5_500).with_timeout(2_500).timeout_ms(),
             Some(2_500)
         );
     }

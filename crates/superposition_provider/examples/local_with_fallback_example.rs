@@ -26,7 +26,7 @@ async fn main() {
     let provider = LocalResolutionProvider::new(
         Box::new(http_source),
         Some(Box::new(file_source)),
-        RefreshStrategy::Polling(PollingStrategy::new(10_000, Some(10_000))),
+        RefreshStrategy::Polling(PollingStrategy::new(10_000).with_timeout(10_000)),
     );
 
     // Register with OpenFeature and create a client
