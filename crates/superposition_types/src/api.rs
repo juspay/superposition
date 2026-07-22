@@ -11,6 +11,7 @@ pub mod experiment_groups;
 #[cfg(feature = "experimentation")]
 pub mod experiments;
 pub mod functions;
+pub mod jobs;
 pub mod organisation;
 pub mod secrets;
 pub mod type_templates;

@@ -19,8 +19,10 @@ use superposition_derives::{TextFromSql, TextToSql};
 use crate::RegexEnum;
 
 #[cfg(feature = "diesel_derives")]
-use super::super::schema::{secrets, variables, webhooks};
-use super::{ChangeReason, Description, NonEmptyString};
+use super::super::schema::{job_manager, secrets, variables, webhooks};
+use super::{
+    BackgroundJobStatus, BackgroundJobType, ChangeReason, Description, NonEmptyString,
+};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Default)]
 #[cfg_attr(
@@ -269,4 +271,21 @@ pub struct Secret {
     pub last_modified_at: DateTime<Utc>,
     pub created_by: String,
     pub last_modified_by: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "diesel_derives", derive(Queryable, Selectable))]
+#[cfg_attr(feature = "diesel_derives", diesel(check_for_backend(diesel::pg::Pg)))]
+#[cfg_attr(feature = "diesel_derives", diesel(table_name = job_manager))]
+#[cfg_attr(feature = "diesel_derives", diesel(primary_key(id)))]
+pub struct WorkspaceJobView {
+    pub id: i64,
+    pub kronos_job_id: String,
+    pub description: String,
+    pub job_type: BackgroundJobType,
+    pub status: BackgroundJobStatus,
+    pub name: String,
+    pub progress: i32,
+    pub created_at: DateTime<Utc>,
+    pub logs: serde_json::Value,
 }

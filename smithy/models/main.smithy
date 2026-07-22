@@ -29,6 +29,7 @@ service Superposition {
         Variable
         Secret
         MasterKey
+        Job
     ]
     errors: [
         InternalServerError

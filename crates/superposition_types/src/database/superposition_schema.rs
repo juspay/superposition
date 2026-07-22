@@ -9,6 +9,14 @@ pub mod superposition {
         #[derive(diesel::sql_types::SqlType)]
         #[diesel(postgres_type(name = "workspace_status", schema = "superposition"))]
         pub struct WorkspaceStatus;
+
+        #[derive(diesel::sql_types::SqlType)]
+        #[diesel(postgres_type(name = "background_job_type", schema = "public"))]
+        pub struct BackgroundJobType;
+
+        #[derive(diesel::sql_types::SqlType)]
+        #[diesel(postgres_type(name = "background_job_status", schema = "public"))]
+        pub struct BackgroundJobStatus;
     }
 
     diesel::table! {
@@ -70,7 +78,26 @@ pub mod superposition {
         }
     }
 
+    diesel::table! {
+        use diesel::sql_types::*;
+        use super::sql_types::BackgroundJobType;
+        use super::sql_types::BackgroundJobStatus;
+
+        superposition.job_manager (id) {
+            id -> Int8,
+            kronos_job_id -> Text,
+            description -> Text,
+            job_type -> BackgroundJobType,
+            status -> BackgroundJobStatus,
+            name -> Text,
+            progress -> Int4,
+            workspace_schema -> Text,
+            created_at -> Timestamptz,
+            logs -> Jsonb,
+        }
+    }
+
     diesel::joinable!(workspaces -> organisations (organisation_id));
 
-    diesel::allow_tables_to_appear_in_same_query!(organisations, workspaces,);
+    diesel::allow_tables_to_appear_in_same_query!(organisations, workspaces, job_manager,);
 }

@@ -23,6 +23,7 @@ resource Config {
         GetResolvedConfigWithIdentifier
         GetConfigToml
         GetConfigJson
+        Reduce
     ]
 }
 
@@ -541,4 +542,13 @@ operation GetResolvedConfigWithIdentifier {
         @notProperty
         audit_id: String
     }
+}
+
+@documentation("Reduces the configuration by removing redundant overrides across contexts. This operation is asynchronous — it submits a background job and returns the job ID for polling.")
+@http(method: "PUT", uri: "/config/reduce")
+@tags(["Configuration Management"])
+operation Reduce {
+    input := with [WorkspaceMixin] {}
+
+    output: JobCreateResponse
 }

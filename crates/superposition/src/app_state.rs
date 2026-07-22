@@ -19,7 +19,9 @@ use service_utils::{
     },
     encryption::get_master_encryption_keys,
     helpers::{get_from_env_or_default, get_from_env_unsafe},
-    kronos_dispatch::{SuperpositionSchemaProvider, setup_dispatcher},
+    kronos_dispatch::{
+        SuperpositionSchemaProvider, setup_dispatcher, setup_job_dispatcher,
+    },
     service::types::{AppEnv, AppState, ExperimentationFlags},
 };
 use snowflake::SnowflakeIdGenerator;
@@ -120,6 +122,8 @@ pub async fn get(
             &kronos_dispatch_token,
         )
         .await;
+
+        setup_job_dispatcher(client.as_ref(), &workspace, &superposition_host).await;
 
         (client, None, 0, Some(workspace))
     } else {

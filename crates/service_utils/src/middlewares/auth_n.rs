@@ -113,7 +113,8 @@ fn process_basic_auth<'a>(
             }
         })?;
 
-    if request.path().ends_with("/dispatch/webhook")
+    if (request.path().ends_with("/dispatch/webhook")
+        || request.path().ends_with("/dispatch/job"))
         && is_dispatch_credential(&id, &secret, &state.kronos_dispatch_token)
     {
         let user = process_dipatcher_token(request);

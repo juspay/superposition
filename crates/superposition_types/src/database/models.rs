@@ -288,6 +288,159 @@ pub struct Workspace {
     pub workspace_lock_expires_at: Option<DateTime<Utc>>,
 }
 
+#[derive(
+    Debug, Clone, Copy, PartialEq, Deserialize, Serialize, strum_macros::Display,
+)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(diesel_derive_enum::DbEnum, QueryId)
+)]
+#[cfg_attr(feature = "diesel_derives", DbValueStyle = "SCREAMING_SNAKE_CASE")]
+#[cfg_attr(
+    feature = "diesel_derives",
+    ExistingTypePath = "crate::database::superposition_schema::superposition::sql_types::BackgroundJobType"
+)]
+pub enum BackgroundJobType {
+    Webhook,
+    PriorityRecompute,
+    Reduce,
+}
+
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Deserialize,
+    Serialize,
+    strum_macros::Display,
+    strum_macros::EnumIter,
+)]
+#[serde(rename_all = "UPPERCASE")]
+#[strum(serialize_all = "UPPERCASE")]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(diesel_derive_enum::DbEnum, QueryId)
+)]
+#[cfg_attr(feature = "diesel_derives", DbValueStyle = "UPPERCASE")]
+#[cfg_attr(
+    feature = "diesel_derives",
+    ExistingTypePath = "crate::database::superposition_schema::superposition::sql_types::BackgroundJobStatus"
+)]
+pub enum BackgroundJobStatus {
+    Created,
+    Scheduled,
+    Inprogress,
+    Failed,
+    Completed,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(
+    all(
+        feature = "diesel_derives",
+        not(feature = "disable_db_data_validation")
+    ),
+    derive(TextFromSql)
+)]
+#[cfg_attr(
+    all(feature = "diesel_derives", feature = "disable_db_data_validation"),
+    derive(TextFromSqlNoValidation)
+)]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(AsExpression, FromSqlRow, TextToSql)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(sql_type = Text))]
+pub enum JobWorkspace {
+    Global,
+    Workspace(String),
+}
+
+impl Serialize for JobWorkspace {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match self {
+            Self::Global => serializer.serialize_str("GLOBAL"),
+            Self::Workspace(schema) => serializer.serialize_str(schema),
+        }
+    }
+}
+
+impl JobWorkspace {
+    pub const GLOBAL: &'static str = "global";
+
+    pub fn as_db_string(&self) -> String {
+        match self {
+            Self::Global => Self::GLOBAL.to_string(),
+            Self::Workspace(schema) => schema.clone(),
+        }
+    }
+}
+
+impl From<&String> for JobWorkspace {
+    fn from(value: &String) -> Self {
+        if value == Self::GLOBAL {
+            Self::Global
+        } else {
+            Self::Workspace(value.clone())
+        }
+    }
+}
+
+impl TryFrom<String> for JobWorkspace {
+    type Error = String;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value == Self::GLOBAL {
+            Ok(Self::Global)
+        } else {
+            Ok(Self::Workspace(value))
+        }
+    }
+}
+
+impl From<&JobWorkspace> for String {
+    fn from(value: &JobWorkspace) -> Self {
+        value.as_db_string()
+    }
+}
+
+#[cfg(feature = "disable_db_data_validation")]
+impl DisableDBValidation for JobWorkspace {
+    type Source = String;
+    fn from_db_unvalidated(data: Self::Source) -> Self {
+        Self::try_from(data).unwrap_or(Self::Global)
+    }
+}
+
+#[derive(Clone, Serialize, Debug)]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(Queryable, Selectable, Insertable, AsChangeset)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(check_for_backend(diesel::pg::Pg)))]
+#[cfg_attr(feature = "diesel_derives", diesel(primary_key(id)))]
+#[cfg_attr(
+    feature = "diesel_derives",
+    diesel(table_name = job_manager)
+)]
+pub struct BackgroundJob {
+    pub id: i64,
+    pub kronos_job_id: String,
+    pub description: String,
+    pub job_type: BackgroundJobType,
+    pub status: BackgroundJobStatus,
+    pub name: String,
+    pub progress: i32,
+    pub workspace_schema: JobWorkspace,
+    pub created_at: DateTime<Utc>,
+    pub logs: serde_json::Value,
+}
+
 #[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum MetricSource {
