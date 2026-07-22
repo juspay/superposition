@@ -409,11 +409,9 @@ test-py-provider: provider-template
 
 test-kotlin-provider: provider-template
 	bash ./scripts/setup_provider_binaries.sh kotlin
-	# Unit tests (the .provider and .data_source packages; excludes the legacy ProviderTest, which
-	# is a live-server integration test seeded via DefaultConfigPopulator)
-	cd clients/java && ./gradlew :openfeature-provider:test \
-		--tests 'io.juspay.superposition.openfeature.provider.*' \
-		--tests 'io.juspay.superposition.openfeature.data_source.*'
+	# Unit tests, auto-discovered. The @Tag("integration") ProviderTest is excluded by default in
+	# build.gradle.kts (it needs a live server); everything else runs.
+	cd clients/java && ./gradlew :openfeature-provider:test
 	# Integration harness against the live server
 	cd clients/java && ./gradlew :provider-sdk-tests:run
 	$(MAKE) kill
