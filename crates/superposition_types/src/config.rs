@@ -20,7 +20,10 @@ use crate::database::schema::dimensions;
 use crate::{
     database::models::cac::{DependencyGraph, DimensionType},
     logic::evaluate_local_cohorts_skip_unresolved,
-    overridden::{filter_config_keys_by_prefix, filter_into_config_keys_by_prefix},
+    overridden::{
+        filter_config_keys_by_prefix, filter_into_config_keys_by_excluded_prefix,
+        filter_into_config_keys_by_prefix,
+    },
     Cac, Contextual, Exp, ExtendedMap,
 };
 
@@ -339,6 +342,47 @@ impl Config {
             .collect::<HashMap<_, _>>();
 
         let filtered_context: Vec<Context> = self
+            .contexts
+            .into_iter()
+            .filter(|context| {
+                filtered_overrides.contains_key(context.override_with_keys.get_key())
+            })
+            .collect();
+
+        Self {
+            contexts: filtered_context,
+            overrides: filtered_overrides,
+            default_configs: filtered_default_config,
+            dimensions: self.dimensions,
+        }
+    }
+
+    pub fn filter_by_excluded_prefix(self, prefix_list: &HashSet<String>) -> Self {
+        if prefix_list.is_empty() {
+            return self;
+        }
+
+        let filtered_default_config = filter_into_config_keys_by_excluded_prefix(
+            self.default_configs.into_inner(),
+            prefix_list,
+        )
+        .into();
+
+        let filtered_overrides = self
+            .overrides
+            .into_iter()
+            .filter_map(|(key, overrides)| {
+                let filtered_overrides_map = filter_into_config_keys_by_excluded_prefix(
+                    overrides.into_inner(),
+                    prefix_list,
+                );
+                Cac::<Overrides>::try_from(filtered_overrides_map).ok().map(
+                    |filtered_overrides_map| (key, filtered_overrides_map.into_inner()),
+                )
+            })
+            .collect::<HashMap<_, _>>();
+
+        let filtered_context = self
             .contexts
             .into_iter()
             .filter(|context| {

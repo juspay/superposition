@@ -241,6 +241,11 @@ operation GetResolvedConfig {
         @notProperty
         prefix: StringList
 
+        @documentation("Excludes configuration keys that start with any of the supplied prefixes. When combined with prefix, exclusion is applied to the allow-listed keys.")
+        @httpQuery("exclude_prefix")
+        @notProperty
+        exclude_prefix: StringList
+
         @httpQuery("version")
         @notProperty
         version: String
@@ -294,6 +299,11 @@ operation GetDetailedResolvedConfig {
         @httpQuery("prefix")
         @notProperty
         prefix: StringList
+
+        @documentation("Excludes configuration keys that start with any of the supplied prefixes. When combined with prefix, exclusion is applied to the allow-listed keys.")
+        @httpQuery("exclude_prefix")
+        @notProperty
+        exclude_prefix: StringList
 
         @httpQuery("version")
         @notProperty

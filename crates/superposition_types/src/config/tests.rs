@@ -243,3 +243,59 @@ fn filter_by_prefix_without_dimension() {
         }
     );
 }
+
+#[test]
+fn filter_by_excluded_prefix_removes_only_matching_keys() {
+    let config = without_dimensions::get_config();
+    let prefix_list = HashSet::from_iter([String::from("test."), String::from("test2.")]);
+
+    let filtered = config.filter_by_excluded_prefix(&prefix_list);
+
+    assert_eq!(
+        filtered.default_configs,
+        json!({ "key1": false }).as_object().unwrap().clone().into()
+    );
+    assert_eq!(filtered.contexts.len(), 1);
+    assert_eq!(filtered.overrides.len(), 1);
+    assert!(filtered
+        .overrides
+        .values()
+        .all(|overrides| overrides.contains_key("key1")));
+}
+
+#[test]
+fn filter_by_excluded_prefix_keeps_non_matching_keys_and_empty_filter_is_noop() {
+    let config = with_dimensions::get_config();
+
+    let non_matching = HashSet::from_iter([String::from("unknown.")]);
+    assert_eq!(
+        config.clone().filter_by_excluded_prefix(&non_matching),
+        config
+    );
+
+    assert_eq!(
+        config.clone().filter_by_excluded_prefix(&HashSet::new()),
+        config
+    );
+}
+
+#[test]
+fn prefix_allow_list_is_applied_before_excluded_prefixes() {
+    let config = without_dimensions::get_config();
+    let allowed = HashSet::from_iter([String::from("test.")]);
+    let excluded = HashSet::from_iter([String::from("test.test.")]);
+
+    let filtered = config
+        .filter_by_prefix(&allowed)
+        .filter_by_excluded_prefix(&excluded);
+
+    assert_eq!(
+        filtered.default_configs,
+        json!({ "test.test1": 12 })
+            .as_object()
+            .unwrap()
+            .clone()
+            .into()
+    );
+    assert_eq!(filtered.contexts.len(), 1);
+}

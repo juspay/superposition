@@ -143,6 +143,25 @@ impl GetResolvedConfigFluentBuilder {
     pub fn get_prefix(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
                     self.inner.get_prefix()
                 }
+    /// 
+    /// Appends an item to `exclude_prefix`.
+    /// 
+    /// To override the contents of this collection use [`set_exclude_prefix`](Self::set_exclude_prefix).
+    /// 
+    /// Excludes configuration keys that start with any of the supplied prefixes. When combined with prefix, exclusion is applied to the allow-listed keys.
+    pub fn exclude_prefix(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+                        self.inner = self.inner.exclude_prefix(input.into());
+                        self
+                    }
+    /// Excludes configuration keys that start with any of the supplied prefixes. When combined with prefix, exclusion is applied to the allow-listed keys.
+    pub fn set_exclude_prefix(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
+                    self.inner = self.inner.set_exclude_prefix(input);
+                    self
+                }
+    /// Excludes configuration keys that start with any of the supplied prefixes. When combined with prefix, exclusion is applied to the allow-listed keys.
+    pub fn get_exclude_prefix(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+                    self.inner.get_exclude_prefix()
+                }
     #[allow(missing_docs)] // documentation missing in model
     pub fn version(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
                     self.inner = self.inner.version(input.into());

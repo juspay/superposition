@@ -1265,6 +1265,7 @@ export const se_GetDetailedResolvedConfigCommand = async(
   b.bp("/config/resolve/detailed");
   const query: any = map({
     [_p]: [() => input.prefix !== void 0, () => ((input[_p]! || []))],
+    [_ep]: [() => input.exclude_prefix !== void 0, () => ((input[_ep]! || []))],
     [_v]: [,input[_v]!],
     [_sr]: [() => input.show_reasoning !== void 0, () => (input[_sr]!.toString())],
     [_ci]: [,input[_ci]!],
@@ -1431,6 +1432,7 @@ export const se_GetResolvedConfigCommand = async(
   b.bp("/config/resolve");
   const query: any = map({
     [_p]: [() => input.prefix !== void 0, () => ((input[_p]! || []))],
+    [_ep]: [() => input.exclude_prefix !== void 0, () => ((input[_ep]! || []))],
     [_v]: [,input[_v]!],
     [_sr]: [() => input.show_reasoning !== void 0, () => (input[_sr]!.toString())],
     [_ci]: [,input[_ci]!],
@@ -6476,6 +6478,7 @@ const de_CommandError = async(
   const _egi = "experiment_group_ids";
   const _ei = "experiment_ids";
   const _en = "experiment_name";
+  const _ep = "exclude_prefix";
   const _fd = "from_date";
   const _ft = "function_type";
   const _geo = "global_experiments_only";

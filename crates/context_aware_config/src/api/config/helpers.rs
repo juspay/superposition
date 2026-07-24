@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use actix_web::{
     HttpRequest,
@@ -251,11 +251,21 @@ fn apply_context_id_filter(
 }
 
 fn apply_resolution_filters(
-    config: &mut Config,
+    mut config: Config,
     query_filters: &ResolveConfigQuery,
-) -> superposition::Result<()> {
-    *config = apply_prefix_filter_to_config(&query_filters.prefix, config.clone())?;
-    apply_context_id_filter(config, &query_filters.context_id)
+) -> superposition::Result<Config> {
+    config = apply_prefix_filter_to_config(&query_filters.prefix, config)?;
+    if let Some(exclude_prefix) = &query_filters.exclude_prefix {
+        let exclude_prefix = exclude_prefix
+            .iter()
+            .map(|prefix| prefix.trim())
+            .filter(|prefix| !prefix.is_empty())
+            .map(ToOwned::to_owned)
+            .collect::<HashSet<_>>();
+        config = config.filter_by_excluded_prefix(&exclude_prefix);
+    }
+    apply_context_id_filter(&mut config, &query_filters.context_id)?;
+    Ok(config)
 }
 
 fn prepare_remote_query_data(
@@ -363,7 +373,7 @@ fn build_resolved_config(
 }
 
 pub fn resolve(
-    config: &mut Config,
+    config: Config,
     query_data: QueryMap,
     merge_strategy: Header<MergeStrategy>,
     conn: &mut DBConnection,
@@ -371,9 +381,9 @@ pub fn resolve(
     workspace_context: &WorkspaceContext,
     master_encryption_key: &Option<EncryptionKey>,
 ) -> superposition::Result<Map<String, Value>> {
-    apply_resolution_filters(config, query_filters)?;
+    let config = apply_resolution_filters(config, query_filters)?;
     let query_data = prepare_remote_query_data(
-        config,
+        &config,
         query_data,
         conn,
         query_filters.resolve_remote,
@@ -383,11 +393,11 @@ pub fn resolve(
     let merge_strategy = merge_strategy.into_inner();
     let show_reason = query_filters.show_reasoning.unwrap_or_default();
 
-    evaluate_resolved_config(config, &query_data, merge_strategy, show_reason)
+    evaluate_resolved_config(&config, &query_data, merge_strategy, show_reason)
 }
 
 pub fn resolve_detailed(
-    config: &Config,
+    config: Config,
     context_data: QueryMap,
     merge_strategy: Header<MergeStrategy>,
     conn: &mut DBConnection,
@@ -395,8 +405,7 @@ pub fn resolve_detailed(
     workspace_context: &WorkspaceContext,
     master_encryption_key: &Option<EncryptionKey>,
 ) -> superposition::Result<DetailedResolvedConfiguration> {
-    let mut resolution_config = config.clone();
-    apply_resolution_filters(&mut resolution_config, resolve_options)?;
+    let resolution_config = apply_resolution_filters(config, resolve_options)?;
 
     let context_data = prepare_remote_query_data(
         &resolution_config,
@@ -496,4 +505,63 @@ pub fn explain_resolved_config(
         key: explain_key.key.clone(),
         timeline,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+    use superposition_types::custom_query::CommaSeparatedQParams;
+
+    use super::*;
+
+    fn config_with_keys() -> Config {
+        Config {
+            default_configs: json!({
+                "foo.enabled": true,
+                "bar.enabled": true
+            })
+            .as_object()
+            .expect("default configs should be an object")
+            .clone()
+            .into(),
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn exclude_prefix_filter_discards_blank_entries() {
+        let mut config = config_with_keys();
+        let query_filters = ResolveConfigQuery {
+            exclude_prefix: Some(CommaSeparatedQParams(vec![
+                String::new(),
+                "   ".to_string(),
+                "foo.".to_string(),
+            ])),
+            ..Default::default()
+        };
+
+        config = apply_resolution_filters(config, &query_filters)
+            .expect("resolution filters should be applied");
+
+        assert!(!config.default_configs.contains_key("foo.enabled"));
+        assert!(config.default_configs.contains_key("bar.enabled"));
+    }
+
+    #[test]
+    fn exclude_prefix_filter_with_only_blank_entries_is_noop() {
+        let mut config = config_with_keys();
+        let query_filters = ResolveConfigQuery {
+            exclude_prefix: Some(CommaSeparatedQParams(vec![
+                String::new(),
+                "   ".to_string(),
+            ])),
+            ..Default::default()
+        };
+
+        config = apply_resolution_filters(config, &query_filters)
+            .expect("resolution filters should be applied");
+
+        assert!(config.default_configs.contains_key("foo.enabled"));
+        assert!(config.default_configs.contains_key("bar.enabled"));
+    }
 }

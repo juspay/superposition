@@ -886,6 +886,12 @@ export interface GetDetailedResolvedConfigInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
   prefix?: (string)[] | undefined;
+  /**
+   * Excludes configuration keys that start with any of the supplied prefixes. When combined with prefix, exclusion is applied to the allow-listed keys.
+   * @public
+   */
+  exclude_prefix?: (string)[] | undefined;
+
   version?: string | undefined;
   show_reasoning?: boolean | undefined;
   merge_strategy?: MergeStrategy | undefined;
@@ -921,6 +927,12 @@ export interface GetResolvedConfigInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
   prefix?: (string)[] | undefined;
+  /**
+   * Excludes configuration keys that start with any of the supplied prefixes. When combined with prefix, exclusion is applied to the allow-listed keys.
+   * @public
+   */
+  exclude_prefix?: (string)[] | undefined;
+
   version?: string | undefined;
   show_reasoning?: boolean | undefined;
   merge_strategy?: MergeStrategy | undefined;
