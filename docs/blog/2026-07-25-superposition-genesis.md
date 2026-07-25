@@ -133,7 +133,7 @@ notification_enabled = true
 
 We finalized the above to be the core of our configuration system and it has served us well.
 
-## Inspirations
+## Inspiration
 We would be failing in our duty if we do not call out pieces of technology from where we drew our inspiration to build Superposition:
 
 1. [Yahoo Configuration Bundles](http://github.com/yahoo/ycb) (for the concept of dimensions/overrides)
