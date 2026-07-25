@@ -4,9 +4,9 @@ title: Superposition - its genesis
 description:  This blog post talks about the genesis of Superposition from a first principles perspective - what made us build it and the thought process behind why it was structured the way it was.
 tags: [superposition, genesis, introduction]
 ---
+This blog post talks about the genesis of Superposition from a first principles perspective - what made us build it and the thought process behind why it was structured the way it was.
 
 ## How did it all start?
-This blog post talks about the genesis of Superposition from a first principles perspective - what made us build it and the thought process behind why it was structured the way it was.
 
 There were many applications in Juspay that needed runtime configuration management systems.  Many systems relied on json files deployed on S3.  There were just too many issues in this model of serving configuration files.  No problem modelling of the configuration values, no tooling to safely edit and roll out those changes in a safe manner.  Some of these configuration changes were the cause of production outages as well.  Superposition started off as a system to address this use-case.
 
