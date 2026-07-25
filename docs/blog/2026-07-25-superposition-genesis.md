@@ -136,8 +136,8 @@ We finalized the above to be the core of our configuration system and it has ser
 ## Inspirations
 We would be failing in our duty if we do not call out pieces of technology from where we drew our inspiration to build Superposition:
 
-1. Yahoo Configuration Bundles (for the concept of dimensions/overrides)
-2. Cascading Style Sheets (for the concept of specificity)
+1. [Yahoo Configuration Bundles](http://github.com/yahoo/ycb) (for the concept of dimensions/overrides)
+2. [Cascading Style Sheets](https://developer.mozilla.org/en/docs/Web/CSS) (for the concept of specificity)
 
-### P.S.
+#### P.S.
 _While we illustrated the core capabilities of Superposition using a toml representation above, for a full fledged cloud application, Superposition is available as a deployable service.  We will get into the architecture of the Superposition service in a following post._
