@@ -1,7 +1,7 @@
 ---
 slug: superposition-genesis
 title: Superposition - its genesis
-description: 
+description:  This blog post talks about the genesis of Superposition from a first principles perspective - what made us build it and the thought process behind why it was structured the way it was.
 tags: [superposition, genesis, introduction]
 ---
 
@@ -140,4 +140,4 @@ We would be failing in our duty if we do not call out pieces of technology from 
 2. Cascading Style Sheets (for the concept of specificity)
 
 ### P.S.
-While we illustrated the core capabilities of Superposition using a toml representation above, for a full fledged cloud application, Superposition is available as a deployable service.  We will get into the architecture of the Superposition service in a following post.
+_While we illustrated the core capabilities of Superposition using a toml representation above, for a full fledged cloud application, Superposition is available as a deployable service.  We will get into the architecture of the Superposition service in a following post._
