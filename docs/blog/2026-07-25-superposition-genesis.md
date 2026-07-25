@@ -129,8 +129,15 @@ notification_enabled = false
 _context_ = { browser = "edge", bucket="new"} # acts as the experimental variant for the configuration change
 notification_enabled = true
 ```
+**Note:** In the above example - when a particular flow is assigned to the `new` bucket vs the `old` is not dictated by the core configuration system.  It is typically done by an experimentation assignment system while finally delegating the configuration resolution to the core configuration system.  
 
 We finalized the above to be the core of our configuration system and it has served us well.
 
+## Inspirations
+We would be failing in our duty if we do not call out pieces of technology from where we drew our inspiration to build Superposition:
+
+1. Yahoo Configuration Bundles (for the concept of dimensions/overrides)
+2. Cascading Style Sheets (for the concept of specificity)
+
 ### P.S.
-Note that in the above example - when a particular flow is assigned to the `new` bucket vs the `old` is not dictated by the core configuration system.  It is typically done by an experimentation assignment system while finally delegating the configuration resolution to the core configuration system.  While we illustrated the core capabilities of Superposition using a toml representation above, for a full fledged cloud application, Superposition is available as a deployable service.  We will get into the architecture of the Superposition service in a following post.
+While we illustrated the core capabilities of Superposition using a toml representation above, for a full fledged cloud application, Superposition is available as a deployable service.  We will get into the architecture of the Superposition service in a following post.
