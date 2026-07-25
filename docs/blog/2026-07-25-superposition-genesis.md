@@ -1,6 +1,6 @@
 ---
 slug: superposition-genesis
-title: Superposition - its genesis
+title: Superposition - The Genesis
 description:  This blog post talks about the genesis of Superposition from a first principles perspective - what made us build it and the thought process behind why it was structured the way it was.
 tags: [superposition, genesis, introduction]
 ---
