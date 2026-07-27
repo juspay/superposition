@@ -1469,9 +1469,11 @@ async fn ramp_handler(
         .check_max_allowed(variants_count)
         .map_err(|e| bad_argument!(e))?;
 
-    // Ramping to the same non-zero traffic percentage is a no-op: return the
-    // current experiment as-is without touching the DB, Redis, or webhooks.
-    if new_traffic_percentage.is_noop_ramp(&old_traffic_percentage) {
+    if new_traffic_percentage.compare_old(&old_traffic_percentage) {
+        log::warn!(
+            "Same traffic percentage for experiment {exp_id}: {}",
+            **new_traffic_percentage
+        );
         return Ok(HttpResponse::Ok().json(ExperimentResponse::from(experiment)));
     }
 
