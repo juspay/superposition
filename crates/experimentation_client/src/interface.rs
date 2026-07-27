@@ -176,6 +176,7 @@ pub extern "C" fn expt_get_applicable_variant(
     c_context: *const c_char,
     identifier: *const c_char,
     filter_prefix: *const c_char,
+    filter_exclude_prefix: *const c_char,
 ) -> *mut c_char {
     let dimensions = unwrap_safe!(
         cstring_to_rstring(c_dimensions),
@@ -204,8 +205,24 @@ pub extern "C" fn expt_get_applicable_variant(
         let prefix_list = filter_string.split(',').map(String::from).collect();
         Some(prefix_list)
     };
+    let exclude_prefix_list = if filter_exclude_prefix.is_null() {
+        None
+    } else {
+        let filter_string = unwrap_safe!(
+            cstring_to_rstring(filter_exclude_prefix),
+            return std::ptr::null_mut()
+        );
+        let exclude_prefix_list = filter_string.split(',').map(String::from).collect();
+        Some(exclude_prefix_list)
+    };
     let variants_result = EXP_RUNTIME.block_on(unsafe {
-        (*client).get_applicable_variant(&dimensions, &context, &identifier, prefix_list)
+        (*client).get_applicable_variant(
+            &dimensions,
+            &context,
+            &identifier,
+            prefix_list,
+            exclude_prefix_list,
+        )
     });
     variants_result
         .map(|result| {
@@ -222,6 +239,7 @@ pub extern "C" fn expt_get_satisfied_experiments(
     c_dimensions: *const c_char,
     c_context: *const c_char,
     filter_prefix: *const c_char,
+    filter_exclude_prefix: *const c_char,
 ) -> *mut c_char {
     let context =
         unwrap_safe!(cstring_to_rstring(c_context), return std::ptr::null_mut());
@@ -252,6 +270,17 @@ pub extern "C" fn expt_get_satisfied_experiments(
         Some(prefix_list)
     };
 
+    let exclude_prefix_list = if filter_exclude_prefix.is_null() {
+        None
+    } else {
+        let filter_string = unwrap_safe!(
+            cstring_to_rstring(filter_exclude_prefix),
+            return std::ptr::null_mut()
+        );
+        let exclude_prefix_list = filter_string.split(',').map(String::from).collect();
+        Some(exclude_prefix_list)
+    };
+
     let context = evaluate_local_cohorts(&dimensions, &context);
 
     let local = task::LocalSet::new();
@@ -259,7 +288,7 @@ pub extern "C" fn expt_get_satisfied_experiments(
         unsafe {
             unwrap_safe!(
                 (*client)
-                    .get_satisfied_experiments(&context, prefix_list)
+                    .get_satisfied_experiments(&context, prefix_list, exclude_prefix_list)
                     .await
                     .map(|exp| {
                         rstring_to_cstring(serde_json::to_value(exp).unwrap().to_string())
@@ -277,6 +306,7 @@ pub extern "C" fn expt_get_filtered_satisfied_experiments(
     c_dimensions: *const c_char,
     c_context: *const c_char,
     filter_prefix: *const c_char,
+    filter_exclude_prefix: *const c_char,
 ) -> *mut c_char {
     let context =
         unwrap_safe!(cstring_to_rstring(c_context), return std::ptr::null_mut());
@@ -309,6 +339,19 @@ pub extern "C" fn expt_get_filtered_satisfied_experiments(
         Some(prefix_list)
     };
 
+    let exclude_prefix_list = if filter_exclude_prefix.is_null() {
+        None
+    } else {
+        let filter_string = unwrap_safe!(
+            cstring_to_rstring(filter_exclude_prefix),
+            return std::ptr::null_mut()
+        );
+        let exclude_prefix_list: Vec<String> =
+            filter_string.split(',').map(String::from).collect();
+
+        Some(exclude_prefix_list)
+    };
+
     let context = evaluate_local_cohorts_skip_unresolved(&dimensions, &context);
 
     let local = task::LocalSet::new();
@@ -316,7 +359,11 @@ pub extern "C" fn expt_get_filtered_satisfied_experiments(
         unsafe {
             unwrap_safe!(
                 (*client)
-                    .get_filtered_satisfied_experiments(&context, prefix_list)
+                    .get_filtered_satisfied_experiments(
+                        &context,
+                        prefix_list,
+                        exclude_prefix_list
+                    )
                     .await
                     .map(|exp| {
                         rstring_to_cstring(serde_json::to_value(exp).unwrap().to_string())

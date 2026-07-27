@@ -1,8 +1,8 @@
-use std::collections::HashSet;
-
 use serde_json::{Map, Value};
 
-use crate::{database::models::experimentation::Variant, logic, Condition, Overridden};
+use crate::{
+    database::models::experimentation::Variant, logic, Condition, Overridden, PrefixList,
+};
 
 pub trait Experimental: Clone {
     fn get_condition(&self) -> &Condition;
@@ -40,18 +40,23 @@ pub trait ExperimentalVariants: Experimental {
 
     fn filter_keys_by_prefix(
         experiments: Vec<Self>,
-        prefix_list: &HashSet<String>,
+        prefix_list: &PrefixList,
+        exclude_prefix_list: &PrefixList,
     ) -> Vec<Self> {
         experiments
             .into_iter()
             .filter_map(|mut experiment| {
                 experiment.get_variants_mut().retain_mut(|variant| {
-                    Variant::filter_keys_by_prefix(variant, prefix_list)
-                        .map(|filtered_overrides_map| {
-                            variant.overrides = filtered_overrides_map;
-                            true
-                        })
-                        .unwrap_or(false)
+                    Variant::filter_keys_by_prefix(
+                        variant,
+                        prefix_list,
+                        exclude_prefix_list,
+                    )
+                    .map(|filtered_overrides_map| {
+                        variant.overrides = filtered_overrides_map;
+                        true
+                    })
+                    .unwrap_or(false)
                 });
 
                 if !experiment.get_variants_mut().is_empty() {

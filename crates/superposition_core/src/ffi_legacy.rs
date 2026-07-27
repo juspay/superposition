@@ -145,6 +145,7 @@ pub unsafe extern "C" fn core_provider_cache_eval_config(
     query_data_json: *const c_char,
     merge_strategy_str: *const c_char,
     filter_prefixes_json: *const c_char,
+    filter_exclude_prefixes_json: *const c_char,
     targeting_key: *const c_char,
     ebuf: *mut c_char,
 ) -> *mut c_char {
@@ -181,6 +182,23 @@ pub unsafe extern "C" fn core_provider_cache_eval_config(
             }
         }
     };
+
+    let filter_exclude_prefixes: Option<Vec<String>> =
+        if filter_exclude_prefixes_json.is_null() {
+            None
+        } else {
+            match parse_json::<Vec<String>>(filter_exclude_prefixes_json) {
+                Ok(v) => Some(v),
+                Err(e) => {
+                    copy_string(
+                        ebuf,
+                        format!("Failed to parse filter_exclude_prefixes: {}", e),
+                    );
+                    return ptr::null_mut();
+                }
+            }
+        };
+
     let tkey: Option<String> = if targeting_key.is_null() {
         None
     } else {
@@ -211,6 +229,7 @@ pub unsafe extern "C" fn core_provider_cache_eval_config(
                 &query_data,
                 tkey.as_deref().unwrap_or(""),
                 filter_prefixes.clone(),
+                filter_exclude_prefixes.clone(),
             );
             query_data.insert("variantIds".to_string(), variants.into());
         }
@@ -224,6 +243,7 @@ pub unsafe extern "C" fn core_provider_cache_eval_config(
         &query_data,
         merge_strategy,
         filter_prefixes,
+        filter_exclude_prefixes,
     ) {
         Ok(result) => match serde_json::to_string(&result) {
             Ok(json_str) => string_to_c_str(json_str),
@@ -282,6 +302,7 @@ pub unsafe extern "C" fn core_get_resolved_config(
     query_data_json: *const c_char,
     merge_strategy_str: *const c_char,
     filter_prefixes_json: *const c_char,
+    filter_exclude_prefixes_json: *const c_char,
     experimentation_json: *const c_char,
     ebuf: *mut c_char,
 ) -> *mut c_char {
@@ -353,6 +374,22 @@ pub unsafe extern "C" fn core_get_resolved_config(
         }
     };
 
+    let filter_exclude_prefixes: Option<Vec<String>> =
+        if filter_exclude_prefixes_json.is_null() {
+            None
+        } else {
+            match parse_json::<Vec<String>>(filter_exclude_prefixes_json) {
+                Ok(v) => Some(v),
+                Err(e) => {
+                    copy_string(
+                        ebuf,
+                        format!("Failed to parse filter_exclude_prefixes: {}", e),
+                    );
+                    return ptr::null_mut();
+                }
+            }
+        };
+
     let experimentation: Option<ExperimentationArgs> = if experimentation_json.is_null() {
         None
     } else {
@@ -383,6 +420,7 @@ pub unsafe extern "C" fn core_get_resolved_config(
             &query_data,
             &identifier,
             filter_prefixes.clone(),
+            filter_exclude_prefixes.clone(),
         );
 
         query_data.insert("variantIds".to_string(), variants.into());
@@ -397,6 +435,7 @@ pub unsafe extern "C" fn core_get_resolved_config(
         &query_data,
         merge_strategy,
         filter_prefixes,
+        filter_exclude_prefixes,
     ) {
         Ok(result) => match serde_json::to_string(&result) {
             Ok(json_str) => string_to_c_str(json_str),
@@ -425,6 +464,7 @@ pub unsafe extern "C" fn core_get_resolved_config_with_reasoning(
     query_data_json: *const c_char,
     merge_strategy_str: *const c_char,
     filter_prefixes_json: *const c_char,
+    filter_exclude_prefixes_json: *const c_char,
     experimentation_json: *const c_char,
     ebuf: *mut c_char,
 ) -> *mut c_char {
@@ -497,6 +537,22 @@ pub unsafe extern "C" fn core_get_resolved_config_with_reasoning(
         }
     };
 
+    let filter_exclude_prefixes: Option<Vec<String>> =
+        if filter_exclude_prefixes_json.is_null() {
+            None
+        } else {
+            match parse_json::<Vec<String>>(filter_exclude_prefixes_json) {
+                Ok(v) => Some(v),
+                Err(e) => {
+                    copy_string(
+                        ebuf,
+                        format!("Failed to parse filter_exclude_prefixes: {}", e),
+                    );
+                    return ptr::null_mut();
+                }
+            }
+        };
+
     let experimentation: Option<ExperimentationArgs> = if experimentation_json.is_null() {
         None
     } else {
@@ -527,6 +583,7 @@ pub unsafe extern "C" fn core_get_resolved_config_with_reasoning(
             &query_data,
             &identifier,
             filter_prefixes.clone(),
+            filter_exclude_prefixes.clone(),
         );
 
         query_data.insert("variantIds".to_string(), variants.into());
@@ -541,6 +598,7 @@ pub unsafe extern "C" fn core_get_resolved_config_with_reasoning(
         &query_data,
         merge_strategy,
         filter_prefixes,
+        filter_exclude_prefixes,
     ) {
         Ok(result) => match serde_json::to_string(&result) {
             Ok(json_str) => string_to_c_str(json_str),
@@ -588,6 +646,7 @@ pub unsafe extern "C" fn core_get_applicable_variants(
     query_data_json: *const c_char,
     identifier: *const c_char,
     filter_prefixes_json: *const c_char,
+    filter_exclude_prefixes_json: *const c_char,
     ebuf: *mut c_char,
 ) -> *mut c_char {
     if experiments_json.is_null() || query_data_json.is_null() || dimensions.is_null() {
@@ -639,6 +698,22 @@ pub unsafe extern "C" fn core_get_applicable_variants(
         }
     };
 
+    let filter_exclude_prefixes: Option<Vec<String>> =
+        if filter_exclude_prefixes_json.is_null() {
+            None
+        } else {
+            match parse_json::<Vec<String>>(filter_exclude_prefixes_json) {
+                Ok(v) => Some(v),
+                Err(e) => {
+                    copy_string(
+                        ebuf,
+                        format!("Failed to parse filter_exclude_prefixes: {}", e),
+                    );
+                    return ptr::null_mut();
+                }
+            }
+        };
+
     let identifier = match c_str_to_string(identifier) {
         Ok(id) => id,
         Err(e) => {
@@ -655,6 +730,7 @@ pub unsafe extern "C" fn core_get_applicable_variants(
         &query_data,
         &identifier,
         filter_prefixes,
+        filter_exclude_prefixes,
     );
     match serde_json::to_string(&result) {
         Ok(json_str) => string_to_c_str(json_str),

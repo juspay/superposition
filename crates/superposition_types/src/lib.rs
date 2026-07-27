@@ -44,7 +44,7 @@ pub use config::{
 };
 pub use contextual::Contextual;
 pub use logic::{apply, partial_apply};
-pub use overridden::Overridden;
+pub use overridden::{Overridden, PrefixList};
 
 pub trait IsEmpty {
     fn is_empty(&self) -> bool;

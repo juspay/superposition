@@ -16,14 +16,14 @@ module Client
 ) where
 
 import           Data.Aeson
-import           Data.Text.Encoding    (encodeUtf8)
 import           Data.Functor          (($>))
 import           Data.List             (intercalate)
-import           Data.Text (pack)
+import           Data.Text             (pack)
+import           Data.Text.Encoding    (encodeUtf8)
 import           Foreign.C.String      (CString, newCString, peekCString)
 import           Foreign.C.Types       (CInt (CInt), CULong (..))
 import           Foreign.ForeignPtr
-import           Foreign.Marshal.Alloc (malloc, free)
+import           Foreign.Marshal.Alloc (free, malloc)
 import           Foreign.Marshal.Array (withArrayLen)
 import           Foreign.Ptr
 import           Prelude
@@ -56,13 +56,13 @@ foreign import ccall unsafe "cac_get_last_modified"
     c_get_last_modified_time :: Ptr CacClient -> IO CString
 
 foreign import ccall unsafe "cac_get_config"
-    c_get_config :: Ptr CacClient -> CString -> CString -> IO CString
+    c_get_config :: Ptr CacClient -> CString -> CString -> CString -> IO CString
 
 foreign import ccall unsafe "cac_get_resolved_config"
-    c_cac_get_resolved_config :: Ptr CacClient -> CString -> CString -> CString -> IO CString
+    c_cac_get_resolved_config :: Ptr CacClient -> CString -> CString -> CString -> CString -> IO CString
 
 foreign import ccall unsafe "cac_get_default_config"
-    c_cac_get_default_config :: Ptr CacClient -> CString -> IO CString
+    c_cac_get_default_config :: Ptr CacClient -> CString -> CString -> IO CString
 
 foreign import ccall safe "cac_start_polling_update"
     c_cac_poll :: CTenant -> IO ()
@@ -120,16 +120,19 @@ getCacClient tenant = do
         then Left <$> getError
         else Right <$> newForeignPtr c_free_cac_client cacClient
 
-getFullConfigStateWithFilter :: ForeignPtr CacClient -> Maybe String -> Maybe [String] -> IO (Either Error Value)
-getFullConfigStateWithFilter client mbFilters mbPrefix = do
+getFullConfigStateWithFilter :: ForeignPtr CacClient -> Maybe String -> Maybe [String] -> Maybe [String] -> IO (Either Error Value)
+getFullConfigStateWithFilter client mbFilters mbPrefix mbExcludePrefix = do
     cFilters <- case mbFilters of
         Just filters -> newCString filters
         Nothing      -> return nullPtr
     cPrefix <- case mbPrefix of
         Just prefix -> newCString (intercalate "," prefix)
         Nothing     -> return nullPtr
-    config <- withForeignPtr client $ \clientPtr -> c_get_config clientPtr cFilters cPrefix
-    _ <- cleanup [cFilters]
+    cExcludePrefix <- case mbExcludePrefix of
+        Just excludePrefix -> newCString (intercalate "," excludePrefix)
+        Nothing            -> return nullPtr
+    config <- withForeignPtr client $ \clientPtr -> c_get_config clientPtr cFilters cPrefix cExcludePrefix
+    _ <- cleanup [cFilters, cPrefix, cExcludePrefix]
     if config == nullPtr
         then Left <$> getError
         else do
@@ -145,15 +148,18 @@ getCacLastModified client = do
             fptrLastModified <- newForeignPtr c_free_string lastModified
             Right <$> withForeignPtr fptrLastModified peekCString
 
-getResolvedConfigWithStrategy :: FromJSON a => ForeignPtr CacClient -> String -> Maybe [String] -> MergeStrategy -> IO (Either Error a)
-getResolvedConfigWithStrategy client context mbKeys mergeStrat = do
+getResolvedConfigWithStrategy :: FromJSON a => ForeignPtr CacClient -> String -> Maybe [String] -> Maybe [String] -> MergeStrategy -> IO (Either Error a)
+getResolvedConfigWithStrategy client context mbKeys mbExcludePrefix mergeStrat = do
     cContext    <- newCString context
     cMergeStrat <- newCString (show mergeStrat)
     cStrKeys    <- case mbKeys of
         Just keys ->  newCString (intercalate "|" keys)
         Nothing   ->  return nullPtr
-    overrides   <- withForeignPtr client $ \clientPtr -> c_cac_get_resolved_config clientPtr cContext cStrKeys cMergeStrat
-    _           <- cleanup [cContext, cStrKeys]
+    cExcludePrefix <- case mbExcludePrefix of
+        Just excludePrefix -> newCString (intercalate "," excludePrefix)
+        Nothing            -> return nullPtr
+    overrides   <- withForeignPtr client $ \clientPtr -> c_cac_get_resolved_config clientPtr cContext cStrKeys cMergeStrat cExcludePrefix
+    _           <- cleanup [cContext, cStrKeys, cMergeStrat, cExcludePrefix]
     if overrides == nullPtr
         then Left <$> getError
         else do
@@ -161,13 +167,16 @@ getResolvedConfigWithStrategy client context mbKeys mergeStrat = do
             (maybe (Left "Failed to decode resolved config") Right . decodeStrict <$> encodeUtf8) . pack <$> withForeignPtr fptrOverrides peekCString
 
 
-getDefaultConfig :: ForeignPtr CacClient -> Maybe [String] -> IO (Either Error Value)
-getDefaultConfig client mbKeys = do
+getDefaultConfig :: ForeignPtr CacClient -> Maybe [String] -> Maybe [String] -> IO (Either Error Value)
+getDefaultConfig client mbKeys mbExcludePrefix = do
     cStrKeys    <- case mbKeys of
         Just keys ->  newCString (intercalate "|" keys)
         Nothing   ->  return nullPtr
-    overrides   <- withForeignPtr client $ \clientPtr -> c_cac_get_default_config clientPtr cStrKeys
-    _           <- cleanup [cStrKeys]
+    cExcludePrefix <- case mbExcludePrefix of
+        Just excludePrefix -> newCString (intercalate "," excludePrefix)
+        Nothing            -> return nullPtr
+    overrides   <- withForeignPtr client $ \clientPtr -> c_cac_get_default_config clientPtr cStrKeys cExcludePrefix
+    _           <- cleanup [cStrKeys, cExcludePrefix]
     if overrides == nullPtr
         then Left <$> getError
         else do

@@ -19,6 +19,8 @@ pub struct ExperimentConfig {
 pub struct ExperimentConfigFilters {
     #[query_param(skip_if_empty, iterable)]
     pub prefix: Option<CommaSeparatedStringQParams>,
+    #[query_param(skip_if_empty, iterable)]
+    pub exclude_prefix: Option<CommaSeparatedStringQParams>,
     pub dimension_match_strategy: Option<DimensionMatchStrategy>,
 }
 

@@ -52,6 +52,9 @@ export interface ApplicableVariantsCommandOutput extends ApplicableVariantsOutpu
  *   prefix: [ // StringList
  *     "STRING_VALUE",
  *   ],
+ *   exclude_prefix: [
+ *     "STRING_VALUE",
+ *   ],
  * };
  * const command = new ApplicableVariantsCommand(input);
  * const response = await client.send(command);

@@ -20,6 +20,7 @@ fn evaluate_and_print(
         dimensions,
         MergeStrategy::MERGE,
         None,
+        None,
     )?;
 
     let dims_str: Vec<String> = dimensions

@@ -30,11 +30,15 @@ const char *cac_get_last_modified(struct Arc_Client *client);
 
 const char *cac_get_config(struct Arc_Client *client,
                            const char *filter_query,
-                           const char *filter_prefix);
+                           const char *filter_prefix,
+                           const char *filter_exclude_prefix);
 
 const char *cac_get_resolved_config(struct Arc_Client *client,
                                     const char *query,
                                     const char *filter_keys,
+                                    const char *filter_exclude_prefix,
                                     const char *merge_strategy);
 
-const char *cac_get_default_config(struct Arc_Client *client, const char *filter_keys);
+const char *cac_get_default_config(struct Arc_Client *client,
+                                   const char *filter_keys,
+                                   const char *filter_exclude_prefix);

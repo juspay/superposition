@@ -143,9 +143,16 @@ fn uri_query(_input: &crate::operation::get_experiment_config::GetExperimentConf
             }
         }
     }
-    if let ::std::option::Option::Some(inner_3) = &_input.dimension_match_strategy {
+    if let ::std::option::Option::Some(inner_3) = &_input.exclude_prefix {
          {
-            query.push_kv("dimension_match_strategy", &::aws_smithy_http::query::fmt_string(inner_3));
+            for inner_4 in inner_3 {
+                query.push_kv("exclude_prefix", &::aws_smithy_http::query::fmt_string(inner_4));
+            }
+        }
+    }
+    if let ::std::option::Option::Some(inner_5) = &_input.dimension_match_strategy {
+         {
+            query.push_kv("dimension_match_strategy", &::aws_smithy_http::query::fmt_string(inner_5));
         }
     }
     ::std::result::Result::Ok(())

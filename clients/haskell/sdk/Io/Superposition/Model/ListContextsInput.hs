@@ -5,6 +5,7 @@ module Io.Superposition.Model.ListContextsInput (
     setWorkspaceId,
     setOrgId,
     setPrefix,
+    setExcludePrefix,
     setSortOn,
     setSortBy,
     setCreatedBy,
@@ -21,6 +22,7 @@ module Io.Superposition.Model.ListContextsInput (
     workspace_id,
     org_id,
     prefix,
+    exclude_prefix,
     sort_on,
     sort_by,
     created_by,
@@ -54,6 +56,7 @@ data ListContextsInput = ListContextsInput {
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
     prefix :: Data.Maybe.Maybe ([] Data.Text.Text),
+    exclude_prefix :: Data.Maybe.Maybe ([] Data.Text.Text),
     sort_on :: Data.Maybe.Maybe Io.Superposition.Model.ContextFilterSortOn.ContextFilterSortOn,
     sort_by :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy,
     created_by :: Data.Maybe.Maybe ([] Data.Text.Text),
@@ -75,6 +78,7 @@ instance Data.Aeson.ToJSON ListContextsInput where
         "workspace_id" Data.Aeson..= workspace_id a,
         "org_id" Data.Aeson..= org_id a,
         "prefix" Data.Aeson..= prefix a,
+        "exclude_prefix" Data.Aeson..= exclude_prefix a,
         "sort_on" Data.Aeson..= sort_on a,
         "sort_by" Data.Aeson..= sort_by a,
         "created_by" Data.Aeson..= created_by a,
@@ -95,6 +99,7 @@ instance Data.Aeson.FromJSON ListContextsInput where
         Control.Applicative.<*> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
         Control.Applicative.<*> (v Data.Aeson..:? "prefix")
+        Control.Applicative.<*> (v Data.Aeson..:? "exclude_prefix")
         Control.Applicative.<*> (v Data.Aeson..:? "sort_on")
         Control.Applicative.<*> (v Data.Aeson..:? "sort_by")
         Control.Applicative.<*> (v Data.Aeson..:? "created_by")
@@ -113,6 +118,7 @@ data ListContextsInputBuilderState = ListContextsInputBuilderState {
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     prefixBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
+    exclude_prefixBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     sort_onBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.ContextFilterSortOn.ContextFilterSortOn,
     sort_byBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy,
     created_byBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
@@ -132,6 +138,7 @@ defaultBuilderState = ListContextsInputBuilderState {
     workspace_idBuilderState = Data.Maybe.Nothing,
     org_idBuilderState = Data.Maybe.Nothing,
     prefixBuilderState = Data.Maybe.Nothing,
+    exclude_prefixBuilderState = Data.Maybe.Nothing,
     sort_onBuilderState = Data.Maybe.Nothing,
     sort_byBuilderState = Data.Maybe.Nothing,
     created_byBuilderState = Data.Maybe.Nothing,
@@ -166,6 +173,10 @@ setOrgId value =
 setPrefix :: Data.Maybe.Maybe ([] Data.Text.Text) -> ListContextsInputBuilder ()
 setPrefix value =
    Control.Monad.State.Strict.modify (\s -> (s { prefixBuilderState = value }))
+
+setExcludePrefix :: Data.Maybe.Maybe ([] Data.Text.Text) -> ListContextsInputBuilder ()
+setExcludePrefix value =
+   Control.Monad.State.Strict.modify (\s -> (s { exclude_prefixBuilderState = value }))
 
 setSortOn :: Data.Maybe.Maybe Io.Superposition.Model.ContextFilterSortOn.ContextFilterSortOn -> ListContextsInputBuilder ()
 setSortOn value =
@@ -204,6 +215,7 @@ build builder = do
     workspace_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListContextsInput.ListContextsInput.workspace_id is a required property.") Data.Either.Right (workspace_idBuilderState st)
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListContextsInput.ListContextsInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
     prefix' <- Data.Either.Right (prefixBuilderState st)
+    exclude_prefix' <- Data.Either.Right (exclude_prefixBuilderState st)
     sort_on' <- Data.Either.Right (sort_onBuilderState st)
     sort_by' <- Data.Either.Right (sort_byBuilderState st)
     created_by' <- Data.Either.Right (created_byBuilderState st)
@@ -218,6 +230,7 @@ build builder = do
         workspace_id = workspace_id',
         org_id = org_id',
         prefix = prefix',
+        exclude_prefix = exclude_prefix',
         sort_on = sort_on',
         sort_by = sort_by',
         created_by = created_by',
@@ -244,6 +257,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder ListContextsInput where
         Io.Superposition.Utility.serQuery "created_by" (created_by self)
         Io.Superposition.Utility.serQuery "dimension_match_strategy" (dimension_match_strategy self)
         Io.Superposition.Utility.serQuery "sort_on" (sort_on self)
+        Io.Superposition.Utility.serQuery "exclude_prefix" (exclude_prefix self)
         Io.Superposition.Utility.serQuery "page" (page self)
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)

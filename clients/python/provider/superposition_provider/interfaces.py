@@ -27,12 +27,14 @@ class FeatureExperimentMeta(ABC):
         self,
         context: Optional[EvaluationContext],
         prefix_filter: Optional[List[str]] = None,
+        exclude_prefix_filter: Optional[List[str]] = None,
     ) -> List[str]:
         """Get the list of applicable experiment variant IDs for the given context.
 
         Args:
             context: Evaluation context with targeting key and attributes.
-            prefix_filter: Optional list of variant ID prefixes to filter by.
+            prefix_filter: Optional list of variant ID prefixes to include.
+            exclude_prefix_filter: Optional list of variant ID prefixes to exclude.
 
         Returns:
             List of variant IDs that apply to this context.
@@ -59,19 +61,21 @@ class AllFeatureProvider(ABC):
         Returns:
             Map of all resolved feature flags and their values.
         """
-        return self.resolve_all_features_with_filter(context, None)
+        return self.resolve_all_features_with_filter(context)
 
     @abstractmethod
     def resolve_all_features_with_filter(
         self,
         context: Optional[EvaluationContext],
         prefix_filter: Optional[List[str]] = None,
+        exclude_prefix_filter: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """Resolve all features, optionally filtered by key prefixes.
 
         Args:
             context: Evaluation context with targeting key and attributes.
             prefix_filter: Optional list of key prefixes to include.
+            exclude_prefix_filter: Optional list of key prefixes to exclude.
 
         Returns:
             Map of filtered resolved feature flags and their values.
@@ -205,13 +209,14 @@ class AllFeatureProvider(ABC):
         Returns:
             Map of all resolved feature flags and their values.
         """
-        return await self.resolve_all_features_with_filter_async(context, None)
+        return await self.resolve_all_features_with_filter_async(context)
 
     @abstractmethod
     async def resolve_all_features_with_filter_async(
         self,
         context: Optional[EvaluationContext],
         prefix_filter: Optional[List[str]] = None,
+        exclude_prefix_filter: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """Resolve all features, optionally filtered by key prefixes.
 

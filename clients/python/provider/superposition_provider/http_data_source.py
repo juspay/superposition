@@ -66,6 +66,7 @@ class HttpDataSource(SuperpositionDataSource):
         self,
         context: Optional[Dict[str, Any]] = None,
         prefix_filter: Optional[List[str]] = None,
+        exclude_prefix_filter: Optional[List[str]] = None,
         if_modified_since: Optional[datetime] = None,
     ) -> FetchResponse[ConfigData]:
         """Fetch resolved configuration filtered by context and prefixes.
@@ -73,6 +74,7 @@ class HttpDataSource(SuperpositionDataSource):
         Args:
             context: Optional context for filtering.
             prefix_filter: Optional list of key prefixes to include.
+            exclude_prefix_filter: Optional list of key prefixes to exclude.
             if_modified_since: Optional timestamp for 304 Not Modified check.
 
         Returns:
@@ -86,6 +88,7 @@ class HttpDataSource(SuperpositionDataSource):
                     org_id=self.options.org_id,
                     context=context,
                     prefix=prefix_filter,
+                    exclude_prefix=exclude_prefix_filter,
                     if_modified_since=if_modified_since,
                 )
             )
@@ -103,6 +106,7 @@ class HttpDataSource(SuperpositionDataSource):
         self,
         context: Optional[Dict[str, Any]] = None,
         prefix_filter: Optional[List[str]] = None,
+        exclude_prefix_filter: Optional[List[str]] = None,
         if_modified_since: Optional[datetime] = None,
         dimension_match_strategy: Optional[DimensionMatchStrategy] = None,
     ) -> FetchResponse[ExperimentData]:
@@ -115,6 +119,7 @@ class HttpDataSource(SuperpositionDataSource):
                     org_id=self.options.org_id,
                     context=context,
                     prefix=prefix_filter,
+                    exclude_prefix=exclude_prefix_filter,
                     if_modified_since=if_modified_since,
                     dimension_match_strategy=dimension_match_strategy,
                 )
@@ -150,6 +155,7 @@ class HttpDataSource(SuperpositionDataSource):
         self,
         context: Optional[Dict[str, Any]] = None,
         prefix_filter: Optional[List[str]] = None,
+        exclude_prefix_filter: Optional[List[str]] = None,
         if_modified_since: Optional[datetime] = None,
     ) -> FetchResponse[ExperimentData]:
         """Fetch active experiments with candidate conditions.
@@ -157,6 +163,7 @@ class HttpDataSource(SuperpositionDataSource):
         Args:
             context: Optional context for filtering.
             prefix_filter: Optional list of key prefixes to include.
+            exclude_prefix_filter: Optional list of key prefixes to exclude.
             if_modified_since: Optional timestamp for 304 Not Modified check.
 
         Returns:
@@ -165,6 +172,7 @@ class HttpDataSource(SuperpositionDataSource):
         return await self._fetch_filtered_experiment(
             context,
             prefix_filter,
+            exclude_prefix_filter,
             if_modified_since,
             DimensionMatchStrategy.EXACT
         )
@@ -173,6 +181,7 @@ class HttpDataSource(SuperpositionDataSource):
         self,
         context: Optional[Dict[str, Any]] = None,
         prefix_filter: Optional[List[str]] = None,
+        exclude_prefix_filter: Optional[List[str]] = None,
         if_modified_since: Optional[datetime] = None,
     ) -> FetchResponse[ExperimentData]:
         """Fetch active experiments matching the context.
@@ -180,6 +189,7 @@ class HttpDataSource(SuperpositionDataSource):
         Args:
             context: Optional context for filtering.
             prefix_filter: Optional list of key prefixes to include.
+            exclude_prefix_filter: Optional list of key prefixes to exclude.
             if_modified_since: Optional timestamp for 304 Not Modified check.
 
         Returns:
@@ -188,6 +198,7 @@ class HttpDataSource(SuperpositionDataSource):
         return await self._fetch_filtered_experiment(
             context,
             prefix_filter,
+            exclude_prefix_filter,
             if_modified_since,
             DimensionMatchStrategy.SUBSET
         )

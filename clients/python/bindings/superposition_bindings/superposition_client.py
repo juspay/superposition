@@ -495,25 +495,25 @@ def _uniffi_check_contract_api_version(lib):
         raise InternalError("UniFFI contract version mismatch: try cleaning and rebuilding your project")
 
 def _uniffi_check_api_checksums(lib):
-    if lib.uniffi_superposition_core_checksum_func_ffi_eval_config() != 61169:
+    if lib.uniffi_superposition_core_checksum_func_ffi_eval_config() != 51777:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    if lib.uniffi_superposition_core_checksum_func_ffi_eval_config_with_reasoning() != 47981:
+    if lib.uniffi_superposition_core_checksum_func_ffi_eval_config_with_reasoning() != 2696:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    if lib.uniffi_superposition_core_checksum_func_ffi_get_applicable_variants() != 58234:
+    if lib.uniffi_superposition_core_checksum_func_ffi_get_applicable_variants() != 63950:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    if lib.uniffi_superposition_core_checksum_func_ffi_parse_config_file_with_filters() != 63728:
+    if lib.uniffi_superposition_core_checksum_func_ffi_parse_config_file_with_filters() != 52671:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_superposition_core_checksum_func_ffi_parse_json_config() != 30321:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_superposition_core_checksum_func_ffi_parse_toml_config() != 1558:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    if lib.uniffi_superposition_core_checksum_method_providercache_eval_config() != 7889:
+    if lib.uniffi_superposition_core_checksum_method_providercache_eval_config() != 35291:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    if lib.uniffi_superposition_core_checksum_method_providercache_filter_config() != 21761:
+    if lib.uniffi_superposition_core_checksum_method_providercache_filter_config() != 49737:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    if lib.uniffi_superposition_core_checksum_method_providercache_filter_experiment() != 31120:
+    if lib.uniffi_superposition_core_checksum_method_providercache_filter_experiment() != 24945:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    if lib.uniffi_superposition_core_checksum_method_providercache_get_applicable_variants() != 12269:
+    if lib.uniffi_superposition_core_checksum_method_providercache_get_applicable_variants() != 3792:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_superposition_core_checksum_method_providercache_init_config() != 28151:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
@@ -647,11 +647,13 @@ _UniffiLib.uniffi_superposition_core_fn_method_providercache_eval_config.argtype
     _UniffiRustBufferMergeStrategy,
     _UniffiRustBuffer,
     _UniffiRustBuffer,
+    _UniffiRustBuffer,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
 _UniffiLib.uniffi_superposition_core_fn_method_providercache_eval_config.restype = _UniffiRustBuffer
 _UniffiLib.uniffi_superposition_core_fn_method_providercache_filter_config.argtypes = (
     ctypes.c_void_p,
+    _UniffiRustBuffer,
     _UniffiRustBuffer,
     _UniffiRustBuffer,
     ctypes.POINTER(_UniffiRustCallStatus),
@@ -661,12 +663,14 @@ _UniffiLib.uniffi_superposition_core_fn_method_providercache_filter_experiment.a
     ctypes.c_void_p,
     _UniffiRustBuffer,
     _UniffiRustBuffer,
+    _UniffiRustBuffer,
     ctypes.c_int8,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
 _UniffiLib.uniffi_superposition_core_fn_method_providercache_filter_experiment.restype = _UniffiRustBuffer
 _UniffiLib.uniffi_superposition_core_fn_method_providercache_get_applicable_variants.argtypes = (
     ctypes.c_void_p,
+    _UniffiRustBuffer,
     _UniffiRustBuffer,
     _UniffiRustBuffer,
     _UniffiRustBuffer,
@@ -698,6 +702,7 @@ _UniffiLib.uniffi_superposition_core_fn_func_ffi_eval_config.argtypes = (
     _UniffiRustBufferMergeStrategy,
     _UniffiRustBuffer,
     _UniffiRustBuffer,
+    _UniffiRustBuffer,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
 _UniffiLib.uniffi_superposition_core_fn_func_ffi_eval_config.restype = _UniffiRustBuffer
@@ -710,6 +715,7 @@ _UniffiLib.uniffi_superposition_core_fn_func_ffi_eval_config_with_reasoning.argt
     _UniffiRustBufferMergeStrategy,
     _UniffiRustBuffer,
     _UniffiRustBuffer,
+    _UniffiRustBuffer,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
 _UniffiLib.uniffi_superposition_core_fn_func_ffi_eval_config_with_reasoning.restype = _UniffiRustBuffer
@@ -718,10 +724,12 @@ _UniffiLib.uniffi_superposition_core_fn_func_ffi_get_applicable_variants.argtype
     _UniffiRustBuffer,
     _UniffiRustBuffer,
     _UniffiRustBuffer,
+    _UniffiRustBuffer,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
 _UniffiLib.uniffi_superposition_core_fn_func_ffi_get_applicable_variants.restype = _UniffiRustBuffer
 _UniffiLib.uniffi_superposition_core_fn_func_ffi_parse_config_file_with_filters.argtypes = (
+    _UniffiRustBuffer,
     _UniffiRustBuffer,
     _UniffiRustBuffer,
     _UniffiRustBuffer,
@@ -1765,13 +1773,13 @@ class _UniffiConverterMapStringTypeOverrides(_UniffiConverterRustBuffer):
 
 # objects.
 class ProviderCacheProtocol(typing.Protocol):
-    def eval_config(self, query_data: "dict[str, str]",merge_strategy: "MergeStrategy",filter_prefixes: "typing.Optional[typing.List[str]]",targeting_key: "typing.Optional[str]"):
+    def eval_config(self, query_data: "dict[str, str]",merge_strategy: "MergeStrategy",filter_prefixes: "typing.Optional[typing.List[str]]",filter_exclude_prefixes: "typing.Optional[typing.List[str]]",targeting_key: "typing.Optional[str]"):
         raise NotImplementedError
-    def filter_config(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]"):
+    def filter_config(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]",exclude_prefix: "typing.Optional[typing.List[str]]"):
         raise NotImplementedError
-    def filter_experiment(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]",partial_apply: "bool"):
+    def filter_experiment(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]",exclude_prefix: "typing.Optional[typing.List[str]]",partial_apply: "bool"):
         raise NotImplementedError
-    def get_applicable_variants(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]",targeting_key: "str"):
+    def get_applicable_variants(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]",exclude_prefix: "typing.Optional[typing.List[str]]",targeting_key: "str"):
         raise NotImplementedError
     def init_config(self, default_config: "dict[str, str]",contexts: "typing.List[Context]",overrides: "dict[str, Overrides]",dimensions: "dict[str, DimensionInfo]"):
         raise NotImplementedError
@@ -1802,12 +1810,14 @@ class ProviderCache():
         return inst
 
 
-    def eval_config(self, query_data: "dict[str, str]",merge_strategy: "MergeStrategy",filter_prefixes: "typing.Optional[typing.List[str]]",targeting_key: "typing.Optional[str]") -> "dict[str, str]":
+    def eval_config(self, query_data: "dict[str, str]",merge_strategy: "MergeStrategy",filter_prefixes: "typing.Optional[typing.List[str]]",filter_exclude_prefixes: "typing.Optional[typing.List[str]]",targeting_key: "typing.Optional[str]") -> "dict[str, str]":
         _UniffiConverterMapStringString.check_lower(query_data)
         
         _UniffiConverterTypeMergeStrategy.check_lower(merge_strategy)
         
         _UniffiConverterOptionalSequenceString.check_lower(filter_prefixes)
+        
+        _UniffiConverterOptionalSequenceString.check_lower(filter_exclude_prefixes)
         
         _UniffiConverterOptionalString.check_lower(targeting_key)
         
@@ -1816,6 +1826,7 @@ class ProviderCache():
         _UniffiConverterMapStringString.lower(query_data),
         _UniffiConverterTypeMergeStrategy.lower(merge_strategy),
         _UniffiConverterOptionalSequenceString.lower(filter_prefixes),
+        _UniffiConverterOptionalSequenceString.lower(filter_exclude_prefixes),
         _UniffiConverterOptionalString.lower(targeting_key))
         )
 
@@ -1823,25 +1834,30 @@ class ProviderCache():
 
 
 
-    def filter_config(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]") -> "Config":
+    def filter_config(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]",exclude_prefix: "typing.Optional[typing.List[str]]") -> "Config":
         _UniffiConverterOptionalMapStringString.check_lower(dimension_data)
         
         _UniffiConverterOptionalSequenceString.check_lower(prefix)
         
+        _UniffiConverterOptionalSequenceString.check_lower(exclude_prefix)
+        
         return _UniffiConverterTypeConfig.lift(
             _uniffi_rust_call_with_error(_UniffiConverterTypeOperationError,_UniffiLib.uniffi_superposition_core_fn_method_providercache_filter_config,self._uniffi_clone_pointer(),
         _UniffiConverterOptionalMapStringString.lower(dimension_data),
-        _UniffiConverterOptionalSequenceString.lower(prefix))
+        _UniffiConverterOptionalSequenceString.lower(prefix),
+        _UniffiConverterOptionalSequenceString.lower(exclude_prefix))
         )
 
 
 
 
 
-    def filter_experiment(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]",partial_apply: "bool") -> "ExperimentConfig":
+    def filter_experiment(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]",exclude_prefix: "typing.Optional[typing.List[str]]",partial_apply: "bool") -> "ExperimentConfig":
         _UniffiConverterOptionalMapStringString.check_lower(dimension_data)
         
         _UniffiConverterOptionalSequenceString.check_lower(prefix)
+        
+        _UniffiConverterOptionalSequenceString.check_lower(exclude_prefix)
         
         _UniffiConverterBool.check_lower(partial_apply)
         
@@ -1849,6 +1865,7 @@ class ProviderCache():
             _uniffi_rust_call_with_error(_UniffiConverterTypeOperationError,_UniffiLib.uniffi_superposition_core_fn_method_providercache_filter_experiment,self._uniffi_clone_pointer(),
         _UniffiConverterOptionalMapStringString.lower(dimension_data),
         _UniffiConverterOptionalSequenceString.lower(prefix),
+        _UniffiConverterOptionalSequenceString.lower(exclude_prefix),
         _UniffiConverterBool.lower(partial_apply))
         )
 
@@ -1856,10 +1873,12 @@ class ProviderCache():
 
 
 
-    def get_applicable_variants(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]",targeting_key: "str") -> "typing.List[str]":
+    def get_applicable_variants(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]",exclude_prefix: "typing.Optional[typing.List[str]]",targeting_key: "str") -> "typing.List[str]":
         _UniffiConverterOptionalMapStringString.check_lower(dimension_data)
         
         _UniffiConverterOptionalSequenceString.check_lower(prefix)
+        
+        _UniffiConverterOptionalSequenceString.check_lower(exclude_prefix)
         
         _UniffiConverterString.check_lower(targeting_key)
         
@@ -1867,6 +1886,7 @@ class ProviderCache():
             _uniffi_rust_call_with_error(_UniffiConverterTypeOperationError,_UniffiLib.uniffi_superposition_core_fn_method_providercache_get_applicable_variants,self._uniffi_clone_pointer(),
         _UniffiConverterOptionalMapStringString.lower(dimension_data),
         _UniffiConverterOptionalSequenceString.lower(prefix),
+        _UniffiConverterOptionalSequenceString.lower(exclude_prefix),
         _UniffiConverterString.lower(targeting_key))
         )
 
@@ -1963,7 +1983,7 @@ class _UniffiConverterTypeProviderCache:
 
 # Async support
 
-def ffi_eval_config(default_config: "dict[str, str]",contexts: "typing.List[Context]",overrides: "dict[str, Overrides]",dimensions: "dict[str, DimensionInfo]",query_data: "dict[str, str]",merge_strategy: "MergeStrategy",filter_prefixes: "typing.Optional[typing.List[str]]",experimentation: "typing.Optional[ExperimentationArgs]") -> "dict[str, str]":
+def ffi_eval_config(default_config: "dict[str, str]",contexts: "typing.List[Context]",overrides: "dict[str, Overrides]",dimensions: "dict[str, DimensionInfo]",query_data: "dict[str, str]",merge_strategy: "MergeStrategy",filter_prefixes: "typing.Optional[typing.List[str]]",filter_exclude_prefixes: "typing.Optional[typing.List[str]]",experimentation: "typing.Optional[ExperimentationArgs]") -> "dict[str, str]":
     _UniffiConverterMapStringString.check_lower(default_config)
     
     _UniffiConverterSequenceTypeContext.check_lower(contexts)
@@ -1977,6 +1997,8 @@ def ffi_eval_config(default_config: "dict[str, str]",contexts: "typing.List[Cont
     _UniffiConverterTypeMergeStrategy.check_lower(merge_strategy)
     
     _UniffiConverterOptionalSequenceString.check_lower(filter_prefixes)
+    
+    _UniffiConverterOptionalSequenceString.check_lower(filter_exclude_prefixes)
     
     _UniffiConverterOptionalTypeExperimentationArgs.check_lower(experimentation)
     
@@ -1988,10 +2010,11 @@ def ffi_eval_config(default_config: "dict[str, str]",contexts: "typing.List[Cont
         _UniffiConverterMapStringString.lower(query_data),
         _UniffiConverterTypeMergeStrategy.lower(merge_strategy),
         _UniffiConverterOptionalSequenceString.lower(filter_prefixes),
+        _UniffiConverterOptionalSequenceString.lower(filter_exclude_prefixes),
         _UniffiConverterOptionalTypeExperimentationArgs.lower(experimentation)))
 
 
-def ffi_eval_config_with_reasoning(default_config: "dict[str, str]",contexts: "typing.List[Context]",overrides: "dict[str, Overrides]",dimensions: "dict[str, DimensionInfo]",query_data: "dict[str, str]",merge_strategy: "MergeStrategy",filter_prefixes: "typing.Optional[typing.List[str]]",experimentation: "typing.Optional[ExperimentationArgs]") -> "dict[str, str]":
+def ffi_eval_config_with_reasoning(default_config: "dict[str, str]",contexts: "typing.List[Context]",overrides: "dict[str, Overrides]",dimensions: "dict[str, DimensionInfo]",query_data: "dict[str, str]",merge_strategy: "MergeStrategy",filter_prefixes: "typing.Optional[typing.List[str]]",filter_exclude_prefixes: "typing.Optional[typing.List[str]]",experimentation: "typing.Optional[ExperimentationArgs]") -> "dict[str, str]":
     _UniffiConverterMapStringString.check_lower(default_config)
     
     _UniffiConverterSequenceTypeContext.check_lower(contexts)
@@ -2006,6 +2029,8 @@ def ffi_eval_config_with_reasoning(default_config: "dict[str, str]",contexts: "t
     
     _UniffiConverterOptionalSequenceString.check_lower(filter_prefixes)
     
+    _UniffiConverterOptionalSequenceString.check_lower(filter_exclude_prefixes)
+    
     _UniffiConverterOptionalTypeExperimentationArgs.check_lower(experimentation)
     
     return _UniffiConverterMapStringString.lift(_uniffi_rust_call_with_error(_UniffiConverterTypeOperationError,_UniffiLib.uniffi_superposition_core_fn_func_ffi_eval_config_with_reasoning,
@@ -2016,10 +2041,11 @@ def ffi_eval_config_with_reasoning(default_config: "dict[str, str]",contexts: "t
         _UniffiConverterMapStringString.lower(query_data),
         _UniffiConverterTypeMergeStrategy.lower(merge_strategy),
         _UniffiConverterOptionalSequenceString.lower(filter_prefixes),
+        _UniffiConverterOptionalSequenceString.lower(filter_exclude_prefixes),
         _UniffiConverterOptionalTypeExperimentationArgs.lower(experimentation)))
 
 
-def ffi_get_applicable_variants(eargs: "ExperimentationArgs",dimensions_info: "dict[str, DimensionInfo]",query_data: "dict[str, str]",prefix: "typing.Optional[typing.List[str]]") -> "typing.List[str]":
+def ffi_get_applicable_variants(eargs: "ExperimentationArgs",dimensions_info: "dict[str, DimensionInfo]",query_data: "dict[str, str]",prefix: "typing.Optional[typing.List[str]]",exclude_prefix: "typing.Optional[typing.List[str]]") -> "typing.List[str]":
     _UniffiConverterTypeExperimentationArgs.check_lower(eargs)
     
     _UniffiConverterMapStringTypeDimensionInfo.check_lower(dimensions_info)
@@ -2028,14 +2054,17 @@ def ffi_get_applicable_variants(eargs: "ExperimentationArgs",dimensions_info: "d
     
     _UniffiConverterOptionalSequenceString.check_lower(prefix)
     
+    _UniffiConverterOptionalSequenceString.check_lower(exclude_prefix)
+    
     return _UniffiConverterSequenceString.lift(_uniffi_rust_call_with_error(_UniffiConverterTypeOperationError,_UniffiLib.uniffi_superposition_core_fn_func_ffi_get_applicable_variants,
         _UniffiConverterTypeExperimentationArgs.lower(eargs),
         _UniffiConverterMapStringTypeDimensionInfo.lower(dimensions_info),
         _UniffiConverterMapStringString.lower(query_data),
-        _UniffiConverterOptionalSequenceString.lower(prefix)))
+        _UniffiConverterOptionalSequenceString.lower(prefix),
+        _UniffiConverterOptionalSequenceString.lower(exclude_prefix)))
 
 
-def ffi_parse_config_file_with_filters(file_content: "str",format: "str",dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]") -> "Config":
+def ffi_parse_config_file_with_filters(file_content: "str",format: "str",dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]",exclude_prefix: "typing.Optional[typing.List[str]]") -> "Config":
     _UniffiConverterString.check_lower(file_content)
     
     _UniffiConverterString.check_lower(format)
@@ -2044,11 +2073,14 @@ def ffi_parse_config_file_with_filters(file_content: "str",format: "str",dimensi
     
     _UniffiConverterOptionalSequenceString.check_lower(prefix)
     
+    _UniffiConverterOptionalSequenceString.check_lower(exclude_prefix)
+    
     return _UniffiConverterTypeConfig.lift(_uniffi_rust_call_with_error(_UniffiConverterTypeOperationError,_UniffiLib.uniffi_superposition_core_fn_func_ffi_parse_config_file_with_filters,
         _UniffiConverterString.lower(file_content),
         _UniffiConverterString.lower(format),
         _UniffiConverterOptionalMapStringString.lower(dimension_data),
-        _UniffiConverterOptionalSequenceString.lower(prefix)))
+        _UniffiConverterOptionalSequenceString.lower(prefix),
+        _UniffiConverterOptionalSequenceString.lower(exclude_prefix)))
 
 
 def ffi_parse_json_config(json_content: "str") -> "Config":

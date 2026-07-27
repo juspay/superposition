@@ -277,6 +277,7 @@ max_count = 95
         &dims,
         crate::MergeStrategy::MERGE,
         None,
+        None,
     )
     .unwrap();
 

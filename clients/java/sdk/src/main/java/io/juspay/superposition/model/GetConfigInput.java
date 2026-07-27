@@ -35,6 +35,8 @@ public final class GetConfigInput implements SerializableStruct {
                 new RequiredTrait())
         .putMember("prefix", SharedSchemas.STRING_LIST,
                 new HttpQueryTrait("prefix"))
+        .putMember("exclude_prefix", SharedSchemas.STRING_LIST,
+                new HttpQueryTrait("exclude_prefix"))
         .putMember("version", PreludeSchemas.STRING,
                 new HttpQueryTrait("version"))
         .putMember("if_modified_since", SharedSchemas.DATE_TIME,
@@ -45,6 +47,7 @@ public final class GetConfigInput implements SerializableStruct {
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
     private static final Schema $SCHEMA_PREFIX = $SCHEMA.member("prefix");
+    private static final Schema $SCHEMA_EXCLUDE_PREFIX = $SCHEMA.member("exclude_prefix");
     private static final Schema $SCHEMA_VERSION = $SCHEMA.member("version");
     private static final Schema $SCHEMA_IF_MODIFIED_SINCE = $SCHEMA.member("if_modified_since");
     private static final Schema $SCHEMA_CONTEXT = $SCHEMA.member("context");
@@ -52,6 +55,7 @@ public final class GetConfigInput implements SerializableStruct {
     private final transient String workspaceId;
     private final transient String orgId;
     private final transient List<String> prefix;
+    private final transient List<String> excludePrefix;
     private final transient String version;
     private final transient Instant ifModifiedSince;
     private final transient Map<String, Document> context;
@@ -60,6 +64,7 @@ public final class GetConfigInput implements SerializableStruct {
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
         this.prefix = builder.prefix == null ? null : Collections.unmodifiableList(builder.prefix);
+        this.excludePrefix = builder.excludePrefix == null ? null : Collections.unmodifiableList(builder.excludePrefix);
         this.version = builder.version;
         this.ifModifiedSince = builder.ifModifiedSince;
         this.context = builder.context == null ? null : Collections.unmodifiableMap(builder.context);
@@ -82,6 +87,17 @@ public final class GetConfigInput implements SerializableStruct {
 
     public boolean hasPrefix() {
         return prefix != null;
+    }
+
+    public List<String> excludePrefix() {
+        if (excludePrefix == null) {
+            return Collections.emptyList();
+        }
+        return excludePrefix;
+    }
+
+    public boolean hasExcludePrefix() {
+        return excludePrefix != null;
     }
 
     public String version() {
@@ -125,6 +141,7 @@ public final class GetConfigInput implements SerializableStruct {
         return Objects.equals(this.workspaceId, that.workspaceId)
                && Objects.equals(this.orgId, that.orgId)
                && Objects.equals(this.prefix, that.prefix)
+               && Objects.equals(this.excludePrefix, that.excludePrefix)
                && Objects.equals(this.version, that.version)
                && Objects.equals(this.ifModifiedSince, that.ifModifiedSince)
                && Objects.equals(this.context, that.context);
@@ -132,7 +149,7 @@ public final class GetConfigInput implements SerializableStruct {
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, prefix, version, ifModifiedSince, context);
+        return Objects.hash(workspaceId, orgId, prefix, excludePrefix, version, ifModifiedSince, context);
     }
 
     @Override
@@ -146,6 +163,9 @@ public final class GetConfigInput implements SerializableStruct {
         serializer.writeString($SCHEMA_ORG_ID, orgId);
         if (prefix != null) {
             serializer.writeList($SCHEMA_PREFIX, prefix, prefix.size(), SharedSerde.StringListSerializer.INSTANCE);
+        }
+        if (excludePrefix != null) {
+            serializer.writeList($SCHEMA_EXCLUDE_PREFIX, excludePrefix, excludePrefix.size(), SharedSerde.StringListSerializer.INSTANCE);
         }
         if (version != null) {
             serializer.writeString($SCHEMA_VERSION, version);
@@ -165,9 +185,10 @@ public final class GetConfigInput implements SerializableStruct {
             case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, workspaceId);
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, prefix);
-            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, version);
-            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_IF_MODIFIED_SINCE, member, ifModifiedSince);
-            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
+            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXCLUDE_PREFIX, member, excludePrefix);
+            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, version);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_IF_MODIFIED_SINCE, member, ifModifiedSince);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -184,6 +205,7 @@ public final class GetConfigInput implements SerializableStruct {
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
         builder.prefix(this.prefix);
+        builder.excludePrefix(this.excludePrefix);
         builder.version(this.version);
         builder.ifModifiedSince(this.ifModifiedSince);
         builder.context(this.context);
@@ -205,6 +227,7 @@ public final class GetConfigInput implements SerializableStruct {
         private String workspaceId;
         private String orgId;
         private List<String> prefix;
+        private List<String> excludePrefix;
         private String version;
         private Instant ifModifiedSince;
         private Map<String, Document> context;
@@ -241,6 +264,14 @@ public final class GetConfigInput implements SerializableStruct {
          */
         public Builder prefix(List<String> prefix) {
             this.prefix = prefix;
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
+        public Builder excludePrefix(List<String> excludePrefix) {
+            this.excludePrefix = excludePrefix;
             return this;
         }
 
@@ -285,9 +316,10 @@ public final class GetConfigInput implements SerializableStruct {
                 case 0 -> workspaceId((String) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, value));
                 case 1 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 case 2 -> prefix((List<String>) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, value));
-                case 3 -> version((String) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, value));
-                case 4 -> ifModifiedSince((Instant) SchemaUtils.validateSameMember($SCHEMA_IF_MODIFIED_SINCE, member, value));
-                case 5 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
+                case 3 -> excludePrefix((List<String>) SchemaUtils.validateSameMember($SCHEMA_EXCLUDE_PREFIX, member, value));
+                case 4 -> version((String) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, value));
+                case 5 -> ifModifiedSince((Instant) SchemaUtils.validateSameMember($SCHEMA_IF_MODIFIED_SINCE, member, value));
+                case 6 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -327,9 +359,10 @@ public final class GetConfigInput implements SerializableStruct {
                     case 0 -> builder.workspaceId(de.readString(member));
                     case 1 -> builder.orgId(de.readString(member));
                     case 2 -> builder.prefix(SharedSerde.deserializeStringList(member, de));
-                    case 3 -> builder.version(de.readString(member));
-                    case 4 -> builder.ifModifiedSince(de.readTimestamp(member));
-                    case 5 -> builder.context(SharedSerde.deserializeContextMap(member, de));
+                    case 3 -> builder.excludePrefix(SharedSerde.deserializeStringList(member, de));
+                    case 4 -> builder.version(de.readString(member));
+                    case 5 -> builder.ifModifiedSince(de.readTimestamp(member));
+                    case 6 -> builder.context(SharedSerde.deserializeContextMap(member, de));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

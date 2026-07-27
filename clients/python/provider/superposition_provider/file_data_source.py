@@ -59,7 +59,8 @@ def _parse_config_file(
     content: str,
     file_format: str,
     context: Optional[Dict[str, Any]] = None,
-    prefix_filter: Optional[List[str]] = None
+    prefix_filter: Optional[List[str]] = None,
+    exclude_prefix_filter: Optional[List[str]] = None,
 ) -> Config:
     """Parse TOML or JSON configuration file.
 
@@ -68,7 +69,7 @@ def _parse_config_file(
     """
     try:
         query_data = {k: json.dumps(v) for k, v in context.items()} if context else None
-        return ffi_parse_config_file_with_filters(content, file_format, query_data, prefix_filter)
+        return ffi_parse_config_file_with_filters(content, file_format, query_data, prefix_filter, exclude_prefix_filter)
     except Exception as e:
         logger.error(f"Failed to parse config file: {e}")
         raise
@@ -104,6 +105,7 @@ class FileDataSource(SuperpositionDataSource):
         self,
         context: Optional[Dict[str, Any]] = None,
         prefix_filter: Optional[List[str]] = None,
+        exclude_prefix_filter: Optional[List[str]] = None,
         if_modified_since: Optional[datetime] = None,
     ) -> FetchResponse[ConfigData]:
         """Fetch configuration, optionally filtered.
@@ -114,6 +116,7 @@ class FileDataSource(SuperpositionDataSource):
         Args:
             context: Optional context for filtering (ignored).
             prefix_filter: Optional key prefixes to include.
+            exclude_prefix_filter: Optional key prefixes to exclude.
             if_modified_since: Timestamp for 304 Not Modified check.
 
         Returns:
@@ -128,7 +131,7 @@ class FileDataSource(SuperpositionDataSource):
             with open(self.file_path, 'r') as f:
                 content = f.read()
 
-            config = _parse_config_file(content, self.file_format, context, prefix_filter)
+            config = _parse_config_file(content, self.file_format, context, prefix_filter, exclude_prefix_filter)
 
             return FetchResponse.data(ConfigData(
                 data=config,
@@ -156,6 +159,7 @@ class FileDataSource(SuperpositionDataSource):
         self,
         context: Optional[Dict[str, Any]] = None,
         prefix_filter: Optional[List[str]] = None,
+        exclude_prefix_filter: Optional[List[str]] = None,
         if_modified_since: Optional[datetime] = None,
     ) -> FetchResponse[ExperimentData]:
         """Fetch candidate active experiments."""
@@ -165,6 +169,7 @@ class FileDataSource(SuperpositionDataSource):
         self,
         context: Optional[Dict[str, Any]] = None,
         prefix_filter: Optional[List[str]] = None,
+        exclude_prefix_filter: Optional[List[str]] = None,
         if_modified_since: Optional[datetime] = None,
     ) -> FetchResponse[ExperimentData]:
         """Fetch matching active experiments."""

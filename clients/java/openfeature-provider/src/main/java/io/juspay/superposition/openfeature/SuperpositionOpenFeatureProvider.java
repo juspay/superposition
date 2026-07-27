@@ -331,7 +331,7 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
         var ctx_ = defaultCtx.isPresent() ? ctx.merge(defaultCtx.get()) : ctx;
         var queryData = EvaluationArgs.Companion.buildQueryData(ctx_);
         String targetingKey = ctx_.getTargetingKey();
-        return cache.evalConfig(queryData, MergeStrategy.MERGE, null, targetingKey);
+        return cache.evalConfig(queryData, MergeStrategy.MERGE, null, null, targetingKey);
     }
 
     private List<String> getApplicableVariantsInternal(EvaluationContext ctx) throws Exception {

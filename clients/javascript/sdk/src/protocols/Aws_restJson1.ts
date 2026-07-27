@@ -473,6 +473,7 @@ export const se_ApplicableVariantsCommand = async(
   const query: any = map({
     [_i]: [,__expectNonNull(input[_i]!, `identifier`)],
     [_p]: [() => input.prefix !== void 0, () => ((input[_p]! || []))],
+    [_ep]: [() => input.exclude_prefix !== void 0, () => ((input[_ep]! || []))],
   });
   let body: any;
   body = JSON.stringify(take(input, {
@@ -1122,6 +1123,7 @@ export const se_GetConfigCommand = async(
   b.bp("/config");
   const query: any = map({
     [_p]: [() => input.prefix !== void 0, () => ((input[_p]! || []))],
+    [_ep]: [() => input.exclude_prefix !== void 0, () => ((input[_ep]! || []))],
     [_v]: [,input[_v]!],
   });
   let body: any;
@@ -1265,6 +1267,7 @@ export const se_GetDetailedResolvedConfigCommand = async(
   b.bp("/config/resolve/detailed");
   const query: any = map({
     [_p]: [() => input.prefix !== void 0, () => ((input[_p]! || []))],
+    [_ep]: [() => input.exclude_prefix !== void 0, () => ((input[_ep]! || []))],
     [_v]: [,input[_v]!],
     [_sr]: [() => input.show_reasoning !== void 0, () => (input[_sr]!.toString())],
     [_ci]: [,input[_ci]!],
@@ -1340,6 +1343,7 @@ export const se_GetExperimentConfigCommand = async(
   b.bp("/experiment-config");
   const query: any = map({
     [_p]: [() => input.prefix !== void 0, () => ((input[_p]! || []))],
+    [_ep]: [() => input.exclude_prefix !== void 0, () => ((input[_ep]! || []))],
     [_dms]: [,input[_dms]!],
   });
   let body: any;
@@ -1431,6 +1435,7 @@ export const se_GetResolvedConfigCommand = async(
   b.bp("/config/resolve");
   const query: any = map({
     [_p]: [() => input.prefix !== void 0, () => ((input[_p]! || []))],
+    [_ep]: [() => input.exclude_prefix !== void 0, () => ((input[_ep]! || []))],
     [_v]: [,input[_v]!],
     [_sr]: [() => input.show_reasoning !== void 0, () => (input[_sr]!.toString())],
     [_ci]: [,input[_ci]!],
@@ -1496,6 +1501,7 @@ export const se_GetResolvedConfigWithIdentifierCommand = async(
   b.bp("/resolve");
   const query: any = map({
     [_p]: [() => input.prefix !== void 0, () => ((input[_p]! || []))],
+    [_ep]: [() => input.exclude_prefix !== void 0, () => ((input[_ep]! || []))],
     [_v]: [,input[_v]!],
     [_sr]: [() => input.show_reasoning !== void 0, () => (input[_sr]!.toString())],
     [_ci]: [,input[_ci]!],
@@ -1737,6 +1743,7 @@ export const se_ListContextsCommand = async(
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
     [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
     [_p]: [() => input.prefix !== void 0, () => ((input[_p]! || []))],
+    [_ep]: [() => input.exclude_prefix !== void 0, () => ((input[_ep]! || []))],
     [_so]: [,input[_so]!],
     [_sb]: [,input[_sb]!],
     [_cb]: [() => input.created_by !== void 0, () => ((input[_cb]! || []))],
@@ -1837,6 +1844,7 @@ export const se_ListExperimentCommand = async(
     [_geo]: [() => input.global_experiments_only !== void 0, () => (input[_geo]!.toString())],
     [_dms]: [,input[_dms]!],
     [_p]: [() => input.prefix !== void 0, () => ((input[_p]! || []))],
+    [_ep]: [() => input.exclude_prefix !== void 0, () => ((input[_ep]! || []))],
   });
   let body: any;
   body = JSON.stringify(take(input, {
@@ -6476,6 +6484,7 @@ const de_CommandError = async(
   const _egi = "experiment_group_ids";
   const _ei = "experiment_ids";
   const _en = "experiment_name";
+  const _ep = "exclude_prefix";
   const _fd = "from_date";
   const _ft = "function_type";
   const _geo = "global_experiments_only";

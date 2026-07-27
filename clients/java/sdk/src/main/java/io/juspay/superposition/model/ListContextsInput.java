@@ -40,6 +40,8 @@ public final class ListContextsInput implements SerializableStruct {
                 new RequiredTrait())
         .putMember("prefix", SharedSchemas.STRING_LIST,
                 new HttpQueryTrait("prefix"))
+        .putMember("exclude_prefix", SharedSchemas.STRING_LIST,
+                new HttpQueryTrait("exclude_prefix"))
         .putMember("sort_on", ContextFilterSortOn.$SCHEMA,
                 new HttpQueryTrait("sort_on"))
         .putMember("sort_by", SortBy.$SCHEMA,
@@ -62,6 +64,7 @@ public final class ListContextsInput implements SerializableStruct {
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
     private static final Schema $SCHEMA_PREFIX = $SCHEMA.member("prefix");
+    private static final Schema $SCHEMA_EXCLUDE_PREFIX = $SCHEMA.member("exclude_prefix");
     private static final Schema $SCHEMA_SORT_ON = $SCHEMA.member("sort_on");
     private static final Schema $SCHEMA_SORT_BY = $SCHEMA.member("sort_by");
     private static final Schema $SCHEMA_CREATED_BY = $SCHEMA.member("created_by");
@@ -76,6 +79,7 @@ public final class ListContextsInput implements SerializableStruct {
     private final transient String workspaceId;
     private final transient String orgId;
     private final transient List<String> prefix;
+    private final transient List<String> excludePrefix;
     private final transient ContextFilterSortOn sortOn;
     private final transient SortBy sortBy;
     private final transient List<String> createdBy;
@@ -91,6 +95,7 @@ public final class ListContextsInput implements SerializableStruct {
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
         this.prefix = builder.prefix == null ? null : Collections.unmodifiableList(builder.prefix);
+        this.excludePrefix = builder.excludePrefix == null ? null : Collections.unmodifiableList(builder.excludePrefix);
         this.sortOn = builder.sortOn;
         this.sortBy = builder.sortBy;
         this.createdBy = builder.createdBy == null ? null : Collections.unmodifiableList(builder.createdBy);
@@ -138,6 +143,17 @@ public final class ListContextsInput implements SerializableStruct {
 
     public boolean hasPrefix() {
         return prefix != null;
+    }
+
+    public List<String> excludePrefix() {
+        if (excludePrefix == null) {
+            return Collections.emptyList();
+        }
+        return excludePrefix;
+    }
+
+    public boolean hasExcludePrefix() {
+        return excludePrefix != null;
     }
 
     public ContextFilterSortOn sortOn() {
@@ -209,6 +225,7 @@ public final class ListContextsInput implements SerializableStruct {
                && Objects.equals(this.workspaceId, that.workspaceId)
                && Objects.equals(this.orgId, that.orgId)
                && Objects.equals(this.prefix, that.prefix)
+               && Objects.equals(this.excludePrefix, that.excludePrefix)
                && Objects.equals(this.sortOn, that.sortOn)
                && Objects.equals(this.sortBy, that.sortBy)
                && Objects.equals(this.createdBy, that.createdBy)
@@ -220,7 +237,7 @@ public final class ListContextsInput implements SerializableStruct {
 
     @Override
     public int hashCode() {
-        return Objects.hash(count, page, all, workspaceId, orgId, prefix, sortOn, sortBy, createdBy, lastModifiedBy, plaintext, dimensionMatchStrategy, dimensionParams);
+        return Objects.hash(count, page, all, workspaceId, orgId, prefix, excludePrefix, sortOn, sortBy, createdBy, lastModifiedBy, plaintext, dimensionMatchStrategy, dimensionParams);
     }
 
     @Override
@@ -243,6 +260,9 @@ public final class ListContextsInput implements SerializableStruct {
         serializer.writeString($SCHEMA_ORG_ID, orgId);
         if (prefix != null) {
             serializer.writeList($SCHEMA_PREFIX, prefix, prefix.size(), SharedSerde.StringListSerializer.INSTANCE);
+        }
+        if (excludePrefix != null) {
+            serializer.writeList($SCHEMA_EXCLUDE_PREFIX, excludePrefix, excludePrefix.size(), SharedSerde.StringListSerializer.INSTANCE);
         }
         if (sortOn != null) {
             serializer.writeString($SCHEMA_SORT_ON, sortOn.value());
@@ -277,13 +297,14 @@ public final class ListContextsInput implements SerializableStruct {
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, page);
             case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_ALL, member, all);
             case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, prefix);
-            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, sortOn);
-            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, sortBy);
-            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, createdBy);
-            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, lastModifiedBy);
-            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_PLAINTEXT, member, plaintext);
-            case 11 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, dimensionMatchStrategy);
-            case 12 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_PARAMS, member, dimensionParams);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXCLUDE_PREFIX, member, excludePrefix);
+            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, sortOn);
+            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, sortBy);
+            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, createdBy);
+            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, lastModifiedBy);
+            case 11 -> (T) SchemaUtils.validateSameMember($SCHEMA_PLAINTEXT, member, plaintext);
+            case 12 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, dimensionMatchStrategy);
+            case 13 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_PARAMS, member, dimensionParams);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -303,6 +324,7 @@ public final class ListContextsInput implements SerializableStruct {
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
         builder.prefix(this.prefix);
+        builder.excludePrefix(this.excludePrefix);
         builder.sortOn(this.sortOn);
         builder.sortBy(this.sortBy);
         builder.createdBy(this.createdBy);
@@ -331,6 +353,7 @@ public final class ListContextsInput implements SerializableStruct {
         private String workspaceId;
         private String orgId;
         private List<String> prefix;
+        private List<String> excludePrefix;
         private ContextFilterSortOn sortOn;
         private SortBy sortBy;
         private List<String> createdBy;
@@ -407,6 +430,14 @@ public final class ListContextsInput implements SerializableStruct {
         /**
          * @return this builder.
          */
+        public Builder excludePrefix(List<String> excludePrefix) {
+            this.excludePrefix = excludePrefix;
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
         public Builder sortOn(ContextFilterSortOn sortOn) {
             this.sortOn = sortOn;
             return this;
@@ -476,13 +507,14 @@ public final class ListContextsInput implements SerializableStruct {
                 case 3 -> page((int) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, value));
                 case 4 -> all((boolean) SchemaUtils.validateSameMember($SCHEMA_ALL, member, value));
                 case 5 -> prefix((List<String>) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, value));
-                case 6 -> sortOn((ContextFilterSortOn) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, value));
-                case 7 -> sortBy((SortBy) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, value));
-                case 8 -> createdBy((List<String>) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, value));
-                case 9 -> lastModifiedBy((List<String>) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, value));
-                case 10 -> plaintext((String) SchemaUtils.validateSameMember($SCHEMA_PLAINTEXT, member, value));
-                case 11 -> dimensionMatchStrategy((DimensionMatchStrategy) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, value));
-                case 12 -> dimensionParams((Map<String, String>) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_PARAMS, member, value));
+                case 6 -> excludePrefix((List<String>) SchemaUtils.validateSameMember($SCHEMA_EXCLUDE_PREFIX, member, value));
+                case 7 -> sortOn((ContextFilterSortOn) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, value));
+                case 8 -> sortBy((SortBy) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, value));
+                case 9 -> createdBy((List<String>) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, value));
+                case 10 -> lastModifiedBy((List<String>) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, value));
+                case 11 -> plaintext((String) SchemaUtils.validateSameMember($SCHEMA_PLAINTEXT, member, value));
+                case 12 -> dimensionMatchStrategy((DimensionMatchStrategy) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, value));
+                case 13 -> dimensionParams((Map<String, String>) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_PARAMS, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -525,13 +557,14 @@ public final class ListContextsInput implements SerializableStruct {
                     case 3 -> builder.page(de.readInteger(member));
                     case 4 -> builder.all(de.readBoolean(member));
                     case 5 -> builder.prefix(SharedSerde.deserializeStringList(member, de));
-                    case 6 -> builder.sortOn(ContextFilterSortOn.builder().deserializeMember(de, member).build());
-                    case 7 -> builder.sortBy(SortBy.builder().deserializeMember(de, member).build());
-                    case 8 -> builder.createdBy(SharedSerde.deserializeStringList(member, de));
-                    case 9 -> builder.lastModifiedBy(SharedSerde.deserializeStringList(member, de));
-                    case 10 -> builder.plaintext(de.readString(member));
-                    case 11 -> builder.dimensionMatchStrategy(DimensionMatchStrategy.builder().deserializeMember(de, member).build());
-                    case 12 -> builder.dimensionParams(SharedSerde.deserializeDimensionQueryParams(member, de));
+                    case 6 -> builder.excludePrefix(SharedSerde.deserializeStringList(member, de));
+                    case 7 -> builder.sortOn(ContextFilterSortOn.builder().deserializeMember(de, member).build());
+                    case 8 -> builder.sortBy(SortBy.builder().deserializeMember(de, member).build());
+                    case 9 -> builder.createdBy(SharedSerde.deserializeStringList(member, de));
+                    case 10 -> builder.lastModifiedBy(SharedSerde.deserializeStringList(member, de));
+                    case 11 -> builder.plaintext(de.readString(member));
+                    case 12 -> builder.dimensionMatchStrategy(DimensionMatchStrategy.builder().deserializeMember(de, member).build());
+                    case 13 -> builder.dimensionParams(SharedSerde.deserializeDimensionQueryParams(member, de));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

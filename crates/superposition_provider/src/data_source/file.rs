@@ -6,6 +6,7 @@ use chrono::{DateTime, Utc};
 use notify::{Event, RecommendedWatcher, Watcher};
 use serde_json::{Map, Value};
 use superposition_core::{ConfigFormat, JsonFormat, TomlFormat};
+use superposition_types::PrefixList;
 use tokio::sync::broadcast;
 
 use crate::data_source::FetchResponse;
@@ -55,6 +56,7 @@ impl SuperpositionDataSource for FileDataSource {
         &self,
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
+        exclude_prefix_filter: Option<Vec<String>>,
         if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ConfigData>> {
         if if_modified_since.is_some() {
@@ -84,7 +86,8 @@ impl SuperpositionDataSource for FileDataSource {
 
         config = config.filter(
             context.as_ref(),
-            prefix_filter.map(|p| p.into_iter().collect()).as_ref(),
+            prefix_filter.map(PrefixList::from_iter).as_ref(),
+            exclude_prefix_filter.map(PrefixList::from_iter).as_ref(),
         );
 
         Ok(FetchResponse::Data(ConfigData {
@@ -106,6 +109,7 @@ impl SuperpositionDataSource for FileDataSource {
         &self,
         _context: Option<Map<String, Value>>,
         _prefix_filter: Option<Vec<String>>,
+        _exclude_prefix_filter: Option<Vec<String>>,
         _if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ExperimentData>> {
         Err(SuperpositionError::ConfigError(
@@ -117,6 +121,7 @@ impl SuperpositionDataSource for FileDataSource {
         &self,
         _context: Option<Map<String, Value>>,
         _prefix_filter: Option<Vec<String>>,
+        _exclude_prefix_filter: Option<Vec<String>>,
         _if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ExperimentData>> {
         Err(SuperpositionError::ConfigError(

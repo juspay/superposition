@@ -2,8 +2,9 @@
 mod interface;
 mod types;
 mod utils;
+
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashMap,
     hash::{DefaultHasher, Hash, Hasher},
     sync::Arc,
 };
@@ -20,7 +21,7 @@ use superposition_types::{
     },
     experimental::{Experimental, ExperimentalVariants},
     logic::evaluate_local_cohorts,
-    DimensionInfo, PaginatedResponse,
+    DimensionInfo, PaginatedResponse, PrefixList,
 };
 pub use superposition_types::{
     api::experiments::ExperimentResponse, database::models::experimentation::Variants,
@@ -117,6 +118,7 @@ impl Client {
         context: &Map<String, Value>,
         identifier: &str,
         prefix: Option<Vec<String>>,
+        exclude_prefix: Option<Vec<String>>,
     ) -> Result<Vec<String>, String> {
         let experiment_groups = self
             .experiment_groups
@@ -132,7 +134,7 @@ impl Client {
             get_applicable_buckets_from_group(&experiment_groups, &context, identifier);
 
         let experiments = self
-            .get_satisfied_experiments(&context, prefix)
+            .get_satisfied_experiments(&context, prefix, exclude_prefix)
             .await?
             .into_iter()
             .map(|exp| (exp.id.clone(), exp))
@@ -148,6 +150,7 @@ impl Client {
         &self,
         context: &Map<String, Value>,
         prefix: Option<Vec<String>>,
+        exclude_prefix: Option<Vec<String>>,
     ) -> Result<Experiments, String> {
         let mut experiments = self
             .experiments
@@ -157,10 +160,14 @@ impl Client {
             .cloned()
             .collect::<Experiments>();
 
-        if let Some(prefix_list) = prefix.filter(|p| !p.is_empty()) {
-            let prefix_set: HashSet<String> = HashSet::from_iter(prefix_list);
-            experiments =
-                ExperimentResponse::filter_keys_by_prefix(experiments, &prefix_set);
+        let prefix_list = PrefixList::from(prefix);
+        let exclude_prefix_list = PrefixList::from(exclude_prefix);
+        if !prefix_list.is_empty() || !exclude_prefix_list.is_empty() {
+            experiments = ExperimentResponse::filter_keys_by_prefix(
+                experiments,
+                &prefix_list,
+                &exclude_prefix_list,
+            );
         }
 
         if !context.is_empty() {
@@ -174,6 +181,7 @@ impl Client {
         &self,
         context: &Map<String, Value>,
         prefix: Option<Vec<String>>,
+        exclude_prefix: Option<Vec<String>>,
     ) -> Result<Experiments, String> {
         let mut experiments = self
             .experiments
@@ -183,10 +191,14 @@ impl Client {
             .cloned()
             .collect::<Experiments>();
 
-        if let Some(prefix_list) = prefix.filter(|p| !p.is_empty()) {
-            let prefix_list: HashSet<String> = HashSet::from_iter(prefix_list);
-            experiments =
-                ExperimentResponse::filter_keys_by_prefix(experiments, &prefix_list);
+        let prefix_list = PrefixList::from(prefix);
+        let exclude_prefix_list = PrefixList::from(exclude_prefix);
+        if !prefix_list.is_empty() || !exclude_prefix_list.is_empty() {
+            experiments = ExperimentResponse::filter_keys_by_prefix(
+                experiments,
+                &prefix_list,
+                &exclude_prefix_list,
+            );
         }
 
         if !context.is_empty() {
@@ -297,6 +309,7 @@ async fn get_experiments(
         sort_by: None,
         global_experiments_only: None,
         prefix: None,
+        exclude_prefix: None,
         dimension_match_strategy: None,
     };
     let pagination_params = PaginationParams::all_entries();

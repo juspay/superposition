@@ -68,6 +68,8 @@ public final class ListExperimentInput implements SerializableStruct {
                 new HttpQueryParamsTrait())
         .putMember("prefix", SharedSchemas.STRING_LIST,
                 new HttpQueryTrait("prefix"))
+        .putMember("exclude_prefix", SharedSchemas.STRING_LIST,
+                new HttpQueryTrait("exclude_prefix"))
         .putMember("context", SharedSchemas.CONTEXT_MAP)
         .build();
 
@@ -90,6 +92,7 @@ public final class ListExperimentInput implements SerializableStruct {
     private static final Schema $SCHEMA_DIMENSION_MATCH_STRATEGY = $SCHEMA.member("dimension_match_strategy");
     private static final Schema $SCHEMA_DIMENSION_PARAMS = $SCHEMA.member("dimension_params");
     private static final Schema $SCHEMA_PREFIX = $SCHEMA.member("prefix");
+    private static final Schema $SCHEMA_EXCLUDE_PREFIX = $SCHEMA.member("exclude_prefix");
     private static final Schema $SCHEMA_CONTEXT = $SCHEMA.member("context");
 
     private final transient Integer count;
@@ -111,6 +114,7 @@ public final class ListExperimentInput implements SerializableStruct {
     private final transient DimensionMatchStrategy dimensionMatchStrategy;
     private final transient Map<String, String> dimensionParams;
     private final transient List<String> prefix;
+    private final transient List<String> excludePrefix;
     private final transient Map<String, Document> context;
 
     private ListExperimentInput(Builder builder) {
@@ -133,6 +137,7 @@ public final class ListExperimentInput implements SerializableStruct {
         this.dimensionMatchStrategy = builder.dimensionMatchStrategy;
         this.dimensionParams = builder.dimensionParams == null ? null : Collections.unmodifiableMap(builder.dimensionParams);
         this.prefix = builder.prefix == null ? null : Collections.unmodifiableList(builder.prefix);
+        this.excludePrefix = builder.excludePrefix == null ? null : Collections.unmodifiableList(builder.excludePrefix);
         this.context = builder.context == null ? null : Collections.unmodifiableMap(builder.context);
     }
 
@@ -268,6 +273,17 @@ public final class ListExperimentInput implements SerializableStruct {
         return prefix != null;
     }
 
+    public List<String> excludePrefix() {
+        if (excludePrefix == null) {
+            return Collections.emptyList();
+        }
+        return excludePrefix;
+    }
+
+    public boolean hasExcludePrefix() {
+        return excludePrefix != null;
+    }
+
     public Map<String, Document> context() {
         if (context == null) {
             return Collections.emptyMap();
@@ -312,12 +328,13 @@ public final class ListExperimentInput implements SerializableStruct {
                && Objects.equals(this.dimensionMatchStrategy, that.dimensionMatchStrategy)
                && Objects.equals(this.dimensionParams, that.dimensionParams)
                && Objects.equals(this.prefix, that.prefix)
+               && Objects.equals(this.excludePrefix, that.excludePrefix)
                && Objects.equals(this.context, that.context);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(count, page, all, workspaceId, orgId, ifModifiedSince, status, fromDate, toDate, experimentName, experimentIds, experimentGroupIds, createdBy, sortOn, sortBy, globalExperimentsOnly, dimensionMatchStrategy, dimensionParams, prefix, context);
+        return Objects.hash(count, page, all, workspaceId, orgId, ifModifiedSince, status, fromDate, toDate, experimentName, experimentIds, experimentGroupIds, createdBy, sortOn, sortBy, globalExperimentsOnly, dimensionMatchStrategy, dimensionParams, prefix, excludePrefix, context);
     }
 
     @Override
@@ -380,6 +397,9 @@ public final class ListExperimentInput implements SerializableStruct {
         if (prefix != null) {
             serializer.writeList($SCHEMA_PREFIX, prefix, prefix.size(), SharedSerde.StringListSerializer.INSTANCE);
         }
+        if (excludePrefix != null) {
+            serializer.writeList($SCHEMA_EXCLUDE_PREFIX, excludePrefix, excludePrefix.size(), SharedSerde.StringListSerializer.INSTANCE);
+        }
         if (context != null) {
             serializer.writeMap($SCHEMA_CONTEXT, context, context.size(), SharedSerde.ContextMapSerializer.INSTANCE);
         }
@@ -408,7 +428,8 @@ public final class ListExperimentInput implements SerializableStruct {
             case 16 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, dimensionMatchStrategy);
             case 17 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_PARAMS, member, dimensionParams);
             case 18 -> (T) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, prefix);
-            case 19 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
+            case 19 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXCLUDE_PREFIX, member, excludePrefix);
+            case 20 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -441,6 +462,7 @@ public final class ListExperimentInput implements SerializableStruct {
         builder.dimensionMatchStrategy(this.dimensionMatchStrategy);
         builder.dimensionParams(this.dimensionParams);
         builder.prefix(this.prefix);
+        builder.excludePrefix(this.excludePrefix);
         builder.context(this.context);
         return builder;
     }
@@ -476,6 +498,7 @@ public final class ListExperimentInput implements SerializableStruct {
         private DimensionMatchStrategy dimensionMatchStrategy;
         private Map<String, String> dimensionParams;
         private List<String> prefix;
+        private List<String> excludePrefix;
         private Map<String, Document> context;
 
         private Builder() {}
@@ -654,6 +677,14 @@ public final class ListExperimentInput implements SerializableStruct {
         /**
          * @return this builder.
          */
+        public Builder excludePrefix(List<String> excludePrefix) {
+            this.excludePrefix = excludePrefix;
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
         public Builder context(Map<String, Document> context) {
             this.context = context;
             return this;
@@ -688,7 +719,8 @@ public final class ListExperimentInput implements SerializableStruct {
                 case 16 -> dimensionMatchStrategy((DimensionMatchStrategy) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, value));
                 case 17 -> dimensionParams((Map<String, String>) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_PARAMS, member, value));
                 case 18 -> prefix((List<String>) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, value));
-                case 19 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
+                case 19 -> excludePrefix((List<String>) SchemaUtils.validateSameMember($SCHEMA_EXCLUDE_PREFIX, member, value));
+                case 20 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -744,7 +776,8 @@ public final class ListExperimentInput implements SerializableStruct {
                     case 16 -> builder.dimensionMatchStrategy(DimensionMatchStrategy.builder().deserializeMember(de, member).build());
                     case 17 -> builder.dimensionParams(SharedSerde.deserializeDimensionQueryParams(member, de));
                     case 18 -> builder.prefix(SharedSerde.deserializeStringList(member, de));
-                    case 19 -> builder.context(SharedSerde.deserializeContextMap(member, de));
+                    case 19 -> builder.excludePrefix(SharedSerde.deserializeStringList(member, de));
+                    case 20 -> builder.context(SharedSerde.deserializeContextMap(member, de));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

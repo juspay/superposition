@@ -10,6 +10,8 @@ pub struct GetResolvedConfigWithIdentifierInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     #[allow(missing_docs)] // documentation missing in model
+    pub exclude_prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    #[allow(missing_docs)] // documentation missing in model
     pub version: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub show_reasoning: ::std::option::Option<bool>,
@@ -38,6 +40,13 @@ impl  GetResolvedConfigWithIdentifierInput  {
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.prefix.is_none()`.
     pub fn prefix(&self) -> &[::std::string::String] {
         self.prefix.as_deref()
+        .unwrap_or_default()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    /// 
+    /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.exclude_prefix.is_none()`.
+    pub fn exclude_prefix(&self) -> &[::std::string::String] {
+        self.exclude_prefix.as_deref()
         .unwrap_or_default()
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -83,6 +92,7 @@ pub struct GetResolvedConfigWithIdentifierInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
     pub(crate) prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub(crate) exclude_prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     pub(crate) version: ::std::option::Option<::std::string::String>,
     pub(crate) show_reasoning: ::std::option::Option<bool>,
     pub(crate) merge_strategy: ::std::option::Option<crate::types::MergeStrategy>,
@@ -137,6 +147,24 @@ impl GetResolvedConfigWithIdentifierInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_prefix(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
         &self.prefix
+    }
+    /// Appends an item to `exclude_prefix`.
+    ///
+    /// To override the contents of this collection use [`set_exclude_prefix`](Self::set_exclude_prefix).
+    ///
+    pub fn exclude_prefix(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        let mut v = self.exclude_prefix.unwrap_or_default();
+                        v.push(input.into());
+                        self.exclude_prefix = ::std::option::Option::Some(v);
+                        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_exclude_prefix(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
+        self.exclude_prefix = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_exclude_prefix(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+        &self.exclude_prefix
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn version(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
@@ -244,6 +272,8 @@ impl GetResolvedConfigWithIdentifierInputBuilder {
                 org_id: self.org_id
                 ,
                 prefix: self.prefix
+                ,
+                exclude_prefix: self.exclude_prefix
                 ,
                 version: self.version
                 ,

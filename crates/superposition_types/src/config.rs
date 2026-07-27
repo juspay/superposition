@@ -1,7 +1,7 @@
 #[cfg(test)]
 pub(crate) mod tests;
 
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap};
 
 use derive_more::{AsRef, Deref, DerefMut, Into};
 #[cfg(feature = "diesel_derives")]
@@ -20,7 +20,9 @@ use crate::database::schema::dimensions;
 use crate::{
     database::models::cac::{DependencyGraph, DimensionType},
     logic::evaluate_local_cohorts_skip_unresolved,
-    overridden::{filter_config_keys_by_prefix, filter_into_config_keys_by_prefix},
+    overridden::{
+        filter_config_keys_by_prefix, filter_into_config_keys_by_prefix, PrefixList,
+    },
     Cac, Contextual, Exp, ExtendedMap,
 };
 
@@ -317,12 +319,26 @@ impl Config {
         }
     }
 
-    pub fn filter_default_by_prefix(&self, prefix_list: &HashSet<String>) -> ExtendedMap {
-        filter_config_keys_by_prefix(&self.default_configs, prefix_list).into()
+    pub fn filter_default_by_prefix(
+        &self,
+        prefix_list: &PrefixList,
+        exclude_prefix_list: &PrefixList,
+    ) -> ExtendedMap {
+        filter_config_keys_by_prefix(
+            &self.default_configs,
+            prefix_list,
+            exclude_prefix_list,
+        )
+        .into()
     }
 
-    pub fn filter_by_prefix(self, prefix_list: &HashSet<String>) -> Self {
-        let filtered_default_config = self.filter_default_by_prefix(prefix_list);
+    pub fn filter_by_prefix(
+        self,
+        prefix_list: &PrefixList,
+        exclude_prefix_list: &PrefixList,
+    ) -> Self {
+        let filtered_default_config =
+            self.filter_default_by_prefix(prefix_list, exclude_prefix_list);
 
         let filtered_overrides = self
             .overrides
@@ -331,6 +347,7 @@ impl Config {
                 let filtered_overrides_map = filter_into_config_keys_by_prefix(
                     overrides.into_inner(),
                     prefix_list,
+                    exclude_prefix_list,
                 );
                 Cac::<Overrides>::try_from(filtered_overrides_map).ok().map(
                     |filtered_overrides_map| (key, filtered_overrides_map.into_inner()),
@@ -357,14 +374,17 @@ impl Config {
     pub fn filter(
         self,
         dimension_data: Option<&Map<String, Value>>,
-        prefix_list: Option<&HashSet<String>>,
+        prefix_list: Option<&PrefixList>,
+        exclude_prefix_list: Option<&PrefixList>,
     ) -> Self {
         let mut config = self;
 
-        if let Some(prefixes) = prefix_list {
-            if !prefixes.is_empty() {
-                config = config.filter_by_prefix(prefixes);
-            }
+        let empty_prefix_list = PrefixList::new();
+        let prefix_list = prefix_list.unwrap_or(&empty_prefix_list);
+        let exclude_prefix_list = exclude_prefix_list.unwrap_or(&empty_prefix_list);
+
+        if !prefix_list.is_empty() || !exclude_prefix_list.is_empty() {
+            config = config.filter_by_prefix(prefix_list, exclude_prefix_list);
         }
 
         if let Some(ctx) = dimension_data {

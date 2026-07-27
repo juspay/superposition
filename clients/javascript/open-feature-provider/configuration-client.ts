@@ -88,7 +88,7 @@ export class ConfigurationClient {
             this.experimentationClient = new ExperimentationClient(
                 config,
                 experimentationOptions,
-                this.reinitExperimentsCache.bind(this)
+                this.reinitExperimentsCache.bind(this),
             );
         }
 
@@ -117,26 +117,29 @@ export class ConfigurationClient {
     private reinitExperimentsCache(): void {
         if (!this.experimentationClient || !this.providerCache) return;
         const experiments = this.experimentationClient.getCachedExperiments();
-        const experimentGroups = this.experimentationClient.getCachedExperimentGroups();
+        const experimentGroups =
+            this.experimentationClient.getCachedExperimentGroups();
         if (experiments && experimentGroups) {
             this.providerCache.initExperiments(experiments, experimentGroups);
         }
     }
 
-
     async eval(
         queryData: Record<string, any>,
         filterPrefixes?: string[],
+        filterExcludePrefixes?: string[],
         targetingKey?: string,
     ): Promise<any>;
     async eval<T>(
         queryData: Record<string, any>,
         filterPrefixes?: string[],
+        filterExcludePrefixes?: string[],
         targetingKey?: string,
     ): Promise<T>;
     async eval(
         queryData: Record<string, any>,
         filterPrefixes?: string[],
+        filterExcludePrefixes?: string[],
         targetingKey?: string,
     ): Promise<any> {
         try {
@@ -150,14 +153,23 @@ export class ConfigurationClient {
                 );
             }
 
-            if (this.experimentationClient && targetingKey &&
-                !this.experimentationClient.getCachedExperiments()) {
+            if (
+                this.experimentationClient &&
+                targetingKey &&
+                !this.experimentationClient.getCachedExperiments()
+            ) {
                 await this.experimentationClient.getExperiments();
                 await this.experimentationClient.getExperimentGroups();
                 this.reinitExperimentsCache();
             }
 
-            return this.providerCache!.evalConfig(queryData, "merge", filterPrefixes, targetingKey);
+            return this.providerCache!.evalConfig(
+                queryData,
+                "merge",
+                filterPrefixes,
+                filterExcludePrefixes,
+                targetingKey,
+            );
         } catch (error) {
             if (this.defaults) {
                 console.log("Falling back to defaults");
@@ -169,6 +181,7 @@ export class ConfigurationClient {
                     queryData,
                     "merge",
                     filterPrefixes,
+                    filterExcludePrefixes,
                 );
             }
             throw error;
@@ -225,14 +238,23 @@ export class ConfigurationClient {
                 );
             }
 
-            if (this.experimentationClient && targetingKey &&
-                !this.experimentationClient.getCachedExperiments()) {
+            if (
+                this.experimentationClient &&
+                targetingKey &&
+                !this.experimentationClient.getCachedExperiments()
+            ) {
                 await this.experimentationClient.getExperiments();
                 await this.experimentationClient.getExperimentGroups();
                 this.reinitExperimentsCache();
             }
 
-            return this.providerCache!.evalConfig(context, "merge", undefined, targetingKey);
+            return this.providerCache!.evalConfig(
+                context,
+                "merge",
+                undefined,
+                undefined,
+                targetingKey,
+            );
         } catch (error) {
             if (this.defaults) {
                 return this.resolver.resolveConfig(

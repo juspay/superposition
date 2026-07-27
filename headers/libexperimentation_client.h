@@ -23,16 +23,19 @@ char *expt_get_applicable_variant(struct Arc_Client *client,
                                   const char *c_dimensions,
                                   const char *c_context,
                                   const char *identifier,
-                                  const char *filter_prefix);
+                                  const char *filter_prefix,
+                                  const char *filter_exclude_prefix);
 
 char *expt_get_satisfied_experiments(struct Arc_Client *client,
                                      const char *c_dimensions,
                                      const char *c_context,
-                                     const char *filter_prefix);
+                                     const char *filter_prefix,
+                                     const char *filter_exclude_prefix);
 
 char *expt_get_filtered_satisfied_experiments(struct Arc_Client *client,
                                               const char *c_dimensions,
                                               const char *c_context,
-                                              const char *filter_prefix);
+                                              const char *filter_prefix,
+                                              const char *filter_exclude_prefix);
 
 char *expt_get_running_experiments(struct Arc_Client *client);

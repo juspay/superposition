@@ -49,6 +49,9 @@ export interface GetExperimentConfigCommandOutput extends GetExperimentConfigOut
  *   prefix: [ // StringList
  *     "STRING_VALUE",
  *   ],
+ *   exclude_prefix: [
+ *     "STRING_VALUE",
+ *   ],
  *   context: { // ContextMap
  *     "<keys>": "DOCUMENT_VALUE",
  *   },

@@ -214,6 +214,7 @@ pub extern "C" fn cac_get_config(
     client: *mut Arc<Client>,
     filter_query: *const c_char,
     filter_prefix: *const c_char,
+    filter_exclude_prefix: *const c_char,
 ) -> *const c_char {
     null_check!(
         client,
@@ -244,11 +245,29 @@ pub extern "C" fn cac_get_config(
 
         Some(prefix_list).filter(|list| !list.is_empty())
     };
+
+    let exclude_prefix_list = if filter_exclude_prefix.is_null() {
+        None
+    } else {
+        let filter_string = unwrap_safe!(
+            cstring_to_rstring(filter_exclude_prefix),
+            return std::ptr::null()
+        );
+        let exclude_prefix_list: Vec<String> =
+            filter_string.split(',').map(String::from).collect();
+
+        Some(exclude_prefix_list).filter(|list| !list.is_empty())
+    };
+
     CAC_RUNTIME.block_on(async move {
         unsafe {
             unwrap_safe!(
                 (*client)
-                    .get_full_config_state_with_filter(filters, prefix_list)
+                    .get_full_config_state_with_filter(
+                        filters,
+                        prefix_list,
+                        exclude_prefix_list
+                    )
                     .await
                     .map(|config| {
                         rstring_to_cstring(
@@ -267,6 +286,7 @@ pub extern "C" fn cac_get_resolved_config(
     client: *mut Arc<Client>,
     query: *const c_char,
     filter_keys: *const c_char,
+    filter_exclude_prefix: *const c_char,
     merge_strategy: *const c_char,
 ) -> *const c_char {
     null_check!(
@@ -281,6 +301,16 @@ pub extern "C" fn cac_get_resolved_config(
         let filter_string =
             unwrap_safe!(cstring_to_rstring(filter_keys), return std::ptr::null());
         Some(filter_string.split('|').map(str::to_string).collect())
+    };
+
+    let exclude_prefix_list: Option<Vec<String>> = if filter_exclude_prefix.is_null() {
+        None
+    } else {
+        let filter_string = unwrap_safe!(
+            cstring_to_rstring(filter_exclude_prefix),
+            return std::ptr::null()
+        );
+        Some(filter_string.split(',').map(str::to_string).collect())
     };
 
     let query = unwrap_safe!(cstring_to_rstring(query), return std::ptr::null());
@@ -302,6 +332,7 @@ pub extern "C" fn cac_get_resolved_config(
                     .get_resolved_config(
                         context,
                         keys,
+                        exclude_prefix_list,
                         MergeStrategy::from(merge_strategem),
                     )
                     .await
@@ -322,6 +353,7 @@ pub extern "C" fn cac_get_resolved_config(
 pub extern "C" fn cac_get_default_config(
     client: *mut Arc<Client>,
     filter_keys: *const c_char,
+    filter_exclude_prefix: *const c_char,
 ) -> *const c_char {
     let keys: Option<Vec<String>> = if filter_keys.is_null() {
         None
@@ -335,11 +367,28 @@ pub extern "C" fn cac_get_default_config(
         };
         Some(filter_string.split('|').map(str::to_string).collect())
     };
+
+    let exclude_prefix_list: Option<Vec<String>> = if filter_exclude_prefix.is_null() {
+        None
+    } else {
+        let filter_string = match cstring_to_rstring(filter_exclude_prefix) {
+            Ok(s) => s,
+            Err(err) => {
+                update_last_error(err);
+                return std::ptr::null();
+            }
+        };
+        Some(filter_string.split(',').map(str::to_string).collect())
+    };
+
     CAC_RUNTIME.block_on(async move {
         unsafe {
             unwrap_safe!(
                 serde_json::to_string::<Map<String, Value>>(
-                    &(*client).get_default_config(keys).await.into_inner()
+                    &(*client)
+                        .get_default_config(keys, exclude_prefix_list)
+                        .await
+                        .into_inner()
                 )
                 .map(|overrides| rstring_to_cstring(overrides).into_raw()),
                 std::ptr::null()

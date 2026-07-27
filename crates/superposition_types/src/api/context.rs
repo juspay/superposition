@@ -40,6 +40,8 @@ impl Default for SortOn {
 pub struct ContextListFilters {
     #[query_param(skip_if_empty, iterable)]
     pub prefix: Option<CommaSeparatedStringQParams>,
+    #[query_param(skip_if_empty, iterable)]
+    pub exclude_prefix: Option<CommaSeparatedStringQParams>,
     pub sort_on: Option<SortOn>,
     pub sort_by: Option<SortBy>,
     #[query_param(skip_if_empty, iterable)]

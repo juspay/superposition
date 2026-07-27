@@ -68,7 +68,7 @@ async fn get_full_config(request: HttpRequest) -> HttpResponse {
     println!(
         "full config with filters: {:?}",
         client
-            .get_full_config_state_with_filter(Some(query_params), prefix)
+            .get_full_config_state_with_filter(Some(query_params), prefix, None)
             .await
     );
     HttpResponse::Ok().body("check your console")
@@ -86,7 +86,12 @@ async fn get_resolved_config(request: HttpRequest) -> HttpResponse {
     println!(
         "resolved config with filters: {:?}",
         client
-            .get_resolved_config(query_params, None, cac_client::MergeStrategy::MERGE)
+            .get_resolved_config(
+                query_params,
+                None,
+                None,
+                cac_client::MergeStrategy::MERGE
+            )
             .await
     );
     HttpResponse::Ok().body("check your console")
@@ -100,7 +105,7 @@ async fn get_default_config() -> HttpResponse {
         .expect("No client found for dev tenant");
     println!(
         "default config: {:?}",
-        client.get_default_config(None).await
+        client.get_default_config(None, None).await
     );
     HttpResponse::Ok().body("check your console")
 }

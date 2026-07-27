@@ -38,6 +38,7 @@ impl HttpDataSource {
         &self,
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
+        exclude_prefix_filter: Option<Vec<String>>,
         if_modified_since: Option<DateTime<Utc>>,
         filter: Option<DimensionMatchStrategy>,
     ) -> Result<FetchResponse<ExperimentData>> {
@@ -64,6 +65,13 @@ impl HttpDataSource {
         if let Some(prefixes) = prefix_filter {
             if !prefixes.is_empty() {
                 experiment_builder = experiment_builder.set_prefix(Some(prefixes));
+            }
+        }
+
+        if let Some(exclude_prefixes) = exclude_prefix_filter {
+            if !exclude_prefixes.is_empty() {
+                experiment_builder =
+                    experiment_builder.set_exclude_prefix(Some(exclude_prefixes));
             }
         }
 
@@ -106,6 +114,7 @@ impl SuperpositionDataSource for HttpDataSource {
         &self,
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
+        exclude_prefix_filter: Option<Vec<String>>,
         if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ConfigData>> {
         log::info!("Fetching config from Superposition service using SDK");
@@ -132,6 +141,12 @@ impl SuperpositionDataSource for HttpDataSource {
         if let Some(prefixes) = prefix_filter {
             if !prefixes.is_empty() {
                 builder = builder.set_prefix(Some(prefixes));
+            }
+        }
+
+        if let Some(exclude_prefixes) = exclude_prefix_filter {
+            if !exclude_prefixes.is_empty() {
+                builder = builder.set_exclude_prefix(Some(exclude_prefixes));
             }
         }
 
@@ -164,7 +179,7 @@ impl SuperpositionDataSource for HttpDataSource {
         &self,
         if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ExperimentData>> {
-        self.fetch_experiments_with_filters(None, None, if_modified_since, None)
+        self.fetch_experiments_with_filters(None, None, None, if_modified_since, None)
             .await
     }
 
@@ -172,11 +187,13 @@ impl SuperpositionDataSource for HttpDataSource {
         &self,
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
+        exclude_prefix_filter: Option<Vec<String>>,
         if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ExperimentData>> {
         self.fetch_experiments_with_filters(
             context,
             prefix_filter,
+            exclude_prefix_filter,
             if_modified_since,
             Some(DimensionMatchStrategy::Exact),
         )
@@ -186,12 +203,14 @@ impl SuperpositionDataSource for HttpDataSource {
     async fn fetch_matching_active_experiments(
         &self,
         context: Option<Map<String, Value>>,
+        exclude_prefix_filter: Option<Vec<String>>,
         prefix_filter: Option<Vec<String>>,
         if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ExperimentData>> {
         self.fetch_experiments_with_filters(
             context,
             prefix_filter,
+            exclude_prefix_filter,
             if_modified_since,
             Some(DimensionMatchStrategy::Subset),
         )

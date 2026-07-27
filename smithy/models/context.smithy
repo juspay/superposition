@@ -208,6 +208,10 @@ operation ListContexts {
         @notProperty
         prefix: StringList
 
+        @httpQuery("exclude_prefix")
+        @notProperty
+        exclude_prefix: StringList
+
         @httpQuery("sort_on")
         @notProperty
         sort_on: ContextFilterSortOn

@@ -18,6 +18,7 @@ pub trait FeatureExperimentMeta: Send + Sync {
         &self,
         context: EvaluationContext,
         prefix_filter: Option<Vec<String>>,
+        exclude_prefix_filter: Option<Vec<String>>,
     ) -> Result<Vec<String>>;
 }
 
@@ -32,7 +33,8 @@ pub trait AllFeatureProvider: Send + Sync {
         &self,
         context: EvaluationContext,
     ) -> Result<Map<String, Value>> {
-        self.resolve_all_features_with_filter(context, None).await
+        self.resolve_all_features_with_filter(context, None, None)
+            .await
     }
 
     /// Resolve all features for the given evaluation context, optionally
@@ -41,6 +43,7 @@ pub trait AllFeatureProvider: Send + Sync {
         &self,
         context: EvaluationContext,
         prefix_filter: Option<Vec<String>>,
+        exclude_prefix_filter: Option<Vec<String>>,
     ) -> Result<Map<String, Value>>;
 
     async fn resolve_typed<T: Send + Sync>(

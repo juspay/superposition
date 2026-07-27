@@ -39,6 +39,7 @@ internal class EvaluationArgs {
             query,
             MergeStrategy.MERGE,
             null,
+            null,
             eargs
         ).toMutableMap()
     }
@@ -46,7 +47,7 @@ internal class EvaluationArgs {
     @Throws(OperationException::class)
     fun getApplicableVariants(ectx: EvaluationContext, experimentationArgs: ExperimentationArgs): List<String> {
         val qdata = toQueryData(ectx)
-        return ffiGetApplicableVariants(experimentationArgs, dimensions, qdata, null)
+        return ffiGetApplicableVariants(experimentationArgs, dimensions, qdata, null, null)
     }
 
     constructor(output: GetConfigOutput) {

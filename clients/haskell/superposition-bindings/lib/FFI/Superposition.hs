@@ -17,20 +17,20 @@ module FFI.Superposition
     evalConfig,
   ) where
 
-import Control.Monad (when)
-import Data.Aeson (Value, eitherDecodeStrict')
-import Data.ByteString (packCString)
-import Data.Either (fromRight)
-import Data.Foldable (traverse_)
-import Data.Maybe (fromMaybe)
-import Data.Text (unpack)
-import qualified Data.Text as T
-import Data.Text.Encoding (decodeUtf8')
-import Foreign (callocBytes, nullPtr)
-import Foreign.C.String (CString, newCString, peekCAString)
-import Foreign.ForeignPtr (newForeignPtr, withForeignPtr)
-import Foreign.Ptr (FunPtr, Ptr)
-import Foreign.Marshal (free)
+import           Control.Monad      (when)
+import           Data.Aeson         (Value, eitherDecodeStrict')
+import           Data.ByteString    (packCString)
+import           Data.Either        (fromRight)
+import           Data.Foldable      (traverse_)
+import           Data.Maybe         (fromMaybe)
+import           Data.Text          (unpack)
+import qualified Data.Text          as T
+import           Data.Text.Encoding (decodeUtf8')
+import           Foreign            (callocBytes, nullPtr)
+import           Foreign.C.String   (CString, newCString, peekCAString)
+import           Foreign.ForeignPtr (newForeignPtr, withForeignPtr)
+import           Foreign.Marshal    (free)
+import           Foreign.Ptr        (FunPtr, Ptr)
 
 type BufferSize = Int
 errorBufferSize :: BufferSize
@@ -69,6 +69,7 @@ foreign import capi "superposition_core.h core_provider_cache_eval_config"
     CString -> -- query_data_json
     CString -> -- merge_strategy_str
     CString -> -- filter_prefixes_json (nullable)
+    CString -> -- filter_exclude_prefixes_json (nullable)
     CString -> -- targeting_key (nullable)
     CString -> -- ebuf
     IO CString
@@ -88,6 +89,8 @@ foreign import capi "superposition_core.h core_get_resolved_config"
     -- | merge_strategy_json
     CString ->
     -- | filter_prefixes_json (optional)
+    CString ->
+    -- | filter_exclude_prefixes_json (optional)
     CString ->
     -- | experimentation_json (optional)
     CString ->
@@ -120,7 +123,7 @@ foreign import capi "superposition_core.h &core_free_string"
 data MergeStrategy = Merge | Replace
 
 instance Show MergeStrategy where
-  show Merge = "MERGE"
+  show Merge   = "MERGE"
   show Replace = "REPLACE"
 
 -- | Create a new ProviderCache handle.
@@ -158,14 +161,15 @@ initExperiments handle experiments experimentGroups = do
   pure $ if null err then Nothing else Just err
 
 -- | Evaluate config from the cache.
-evalConfig :: ProviderCacheHandle -> String -> MergeStrategy -> Maybe String -> Maybe String -> IO (Either String String)
-evalConfig handle queryJson strategy filterPrefixes targetingKey = do
+evalConfig :: ProviderCacheHandle -> String -> MergeStrategy -> Maybe String -> Maybe String -> Maybe String -> IO (Either String String)
+evalConfig handle queryJson strategy filterPrefixes filterExcludePrefixes targetingKey = do
   ebuf <- callocBytes errorBufferSize
   qStr <- newCString queryJson
   msStr <- newCString (show strategy)
   fpStr <- maybe (pure nullPtr) newCString filterPrefixes
+  fepStr <- maybe (pure nullPtr) newCString filterExcludePrefixes
   tkStr <- maybe (pure nullPtr) newCString targetingKey
-  res <- provider_cache_eval_config handle qStr msStr fpStr tkStr ebuf
+  res <- provider_cache_eval_config handle qStr msStr fpStr fepStr tkStr ebuf
   err <- peekCAString ebuf
   result <- if res /= nullPtr
     then Just <$> peekCAString res
@@ -175,23 +179,24 @@ evalConfig handle queryJson strategy filterPrefixes targetingKey = do
     resFptr <- newForeignPtr p_free_string res
     withForeignPtr resFptr (\_ -> pure ())
   let freeNonNull p = when (p /= nullPtr) (free p)
-  traverse_ freeNonNull [qStr, msStr, fpStr, tkStr, ebuf]
+  traverse_ freeNonNull [qStr, msStr, fpStr, fepStr, tkStr, ebuf]
   pure $ case (result, err) of
     (Just cfg, []) -> Right cfg
-    (Nothing, []) -> Left "null pointer returned"
-    _ -> Left err
+    (Nothing, [])  -> Left "null pointer returned"
+    _              -> Left err
 
 -- Legacy stateless API
 
 data ResolveConfigParams = ResolveConfigParams
-  { defaultConfig :: Maybe String,
-    context :: Maybe String,
-    overrides :: Maybe String,
-    dimensionInfo :: Maybe String,
-    query :: Maybe String,
-    mergeStrategy :: Maybe MergeStrategy,
-    prefixFilter :: Maybe String,
-    experimentation :: Maybe String
+  { defaultConfig       :: Maybe String,
+    context             :: Maybe String,
+    overrides           :: Maybe String,
+    dimensionInfo       :: Maybe String,
+    query               :: Maybe String,
+    mergeStrategy       :: Maybe MergeStrategy,
+    prefixFilter        :: Maybe String,
+    excludePrefixFilter :: Maybe String,
+    experimentation     :: Maybe String
   }
 
 defaultResolveParams :: ResolveConfigParams
@@ -204,6 +209,7 @@ defaultResolveParams =
       query = Nothing,
       mergeStrategy = Nothing,
       prefixFilter = Nothing,
+      excludePrefixFilter = Nothing,
       experimentation = Nothing
     }
 
@@ -222,6 +228,7 @@ getResolvedConfig params = do
   qry <- newOrNull query
   mergeS <- newCString $ show $ fromMaybe Merge mergeStrategy
   pfltr <- newOrNull prefixFilter
+  exclPfltr <- newOrNull excludePrefixFilter
   exp <- newOrNull experimentation
   res <-
     peekMaybe
@@ -233,14 +240,15 @@ getResolvedConfig params = do
         qry
         mergeS
         pfltr
+        exclPfltr
         exp
         ebuf
   err <- peekCAString ebuf
   traverse_ freeNonNull [dc, ctx, ovrs, di, qry, mergeS, pfltr, exp, ebuf]
   pure $ case (res, err) of
     (Just cfg, []) -> Right cfg
-    (Nothing, []) -> Left "null pointer returned"
-    _ -> Left err
+    (Nothing, [])  -> Left "null pointer returned"
+    _              -> Left err
 
 -- | Parse TOML configuration string into structured format
 -- Returns JSON matching the Config type with:

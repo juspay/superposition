@@ -17,47 +17,47 @@ export class NativeResolver {
 
             // Define the core resolution functions with CORRECT 8 parameters each
             this.lib.core_get_resolved_config = this.lib.func(
-                "char* core_get_resolved_config(const char*, const char*, const char*, const char*, const char*, const char*, const char*, const char*, const char*)"
+                "char* core_get_resolved_config(const char*, const char*, const char*, const char*, const char*, const char*, const char*, const char*, const char*, const char*)",
             );
             this.lib.core_get_resolved_config_with_reasoning = this.lib.func(
-                "char* core_get_resolved_config_with_reasoning(const char*, const char*, const char*, const char*, const char*, const char*, const char*, const char*, const char*)"
+                "char* core_get_resolved_config_with_reasoning(const char*, const char*, const char*, const char*, const char*, const char*, const char*, const char*, const char*, const char*)",
             );
             this.lib.core_free_string = this.lib.func(
-                "void core_free_string(char*)"
+                "void core_free_string(char*)",
             );
             this.lib.core_get_applicable_variants = this.lib.func(
-                "char* core_get_applicable_variants(const char*, const char*, const char*, const char*, const char*)"
+                "char* core_get_applicable_variants(const char*, const char*, const char*, const char*, const char*, const char*)",
             );
             this.lib.core_test_connection = this.lib.func(
-                "int core_test_connection()"
+                "int core_test_connection()",
             );
             this.lib.core_parse_toml_config = this.lib.func(
-                "char* core_parse_toml_config(const char*, char*)"
+                "char* core_parse_toml_config(const char*, char*)",
             );
             this.lib.core_parse_json_config = this.lib.func(
-                "char* core_parse_json_config(const char*, char*)"
+                "char* core_parse_json_config(const char*, char*)",
             );
             this.lib.core_provider_cache_new = this.lib.func(
-                "void* core_provider_cache_new()"
+                "void* core_provider_cache_new()",
             );
             this.lib.core_provider_cache_free = this.lib.func(
-                "void core_provider_cache_free(void*)"
+                "void core_provider_cache_free(void*)",
             );
             this.lib.core_provider_cache_init_config = this.lib.func(
-                "void core_provider_cache_init_config(void*, const char*, const char*, const char*, const char*, char*)"
+                "void core_provider_cache_init_config(void*, const char*, const char*, const char*, const char*, char*)",
             );
             this.lib.core_provider_cache_init_experiments = this.lib.func(
-                "void core_provider_cache_init_experiments(void*, const char*, const char*, char*)"
+                "void core_provider_cache_init_experiments(void*, const char*, const char*, char*)",
             );
             this.lib.core_provider_cache_eval_config = this.lib.func(
-                "char* core_provider_cache_eval_config(void*, const char*, const char*, const char*, const char*, char*)"
+                "char* core_provider_cache_eval_config(void*, const char*, const char*, const char*, const char*, const char*, char*)",
             );
 
             this.isAvailable = true;
         } catch (error) {
             console.warn(
                 "Native resolver library not available, falling back to JavaScript implementation:",
-                error
+                error,
             );
             this.isAvailable = false;
         }
@@ -75,11 +75,12 @@ export class NativeResolver {
         queryData: Record<string, any>,
         mergeStrategy: "merge" | "replace" = "merge",
         filterPrefixes?: string[],
-        experimentation?: any
+        filterExcludePrefixes?: string[],
+        experimentation?: any,
     ): Record<string, any> {
         if (!this.isAvailable) {
             throw new Error(
-                "Native resolver is not available. Please ensure the native library is built and accessible."
+                "Native resolver is not available. Please ensure the native library is built and accessible.",
             );
         }
 
@@ -109,6 +110,10 @@ export class NativeResolver {
             filterPrefixes && filterPrefixes.length > 0
                 ? JSON.stringify(filterPrefixes)
                 : null;
+        const filterExcludePrefixesJson =
+            filterExcludePrefixes && filterExcludePrefixes.length > 0
+                ? JSON.stringify(filterExcludePrefixes)
+                : null;
         const experimentationJson = experimentation
             ? JSON.stringify(experimentation)
             : null;
@@ -124,7 +129,7 @@ export class NativeResolver {
         console.log("  experiment:", experimentation?.experiments?.length);
         console.log(
             "  experiment groups:",
-            experimentation?.experiment_groups?.length
+            experimentation?.experiment_groups?.length,
         );
         console.log("  targetingKey:", experimentation?.targetingKey);
 
@@ -173,13 +178,14 @@ export class NativeResolver {
             queryDataJson,
             mergeStrategy,
             filterPrefixesJson,
+            filterExcludePrefixesJson,
             experimentationJson,
-            ebuf
+            ebuf,
         );
 
         console.log("🔧 FFI call completed, result:", result);
 
-        const err = ebuf.toString('utf8').split('\0')[0];
+        const err = ebuf.toString("utf8").split("\0")[0];
         if (err.length !== 0) {
             this.throwFFIError(err);
         }
@@ -199,7 +205,7 @@ export class NativeResolver {
             console.error("Failed to parse config result:", parseError);
             console.error("Raw result string:", configStr);
             throw new Error(
-                `Failed to parse config evaluation result: ${parseError}`
+                `Failed to parse config evaluation result: ${parseError}`,
             );
         }
     }
@@ -212,17 +218,22 @@ export class NativeResolver {
         queryData: Record<string, any>,
         mergeStrategy: "merge" | "replace" = "merge",
         filterPrefixes?: string[],
-        experimentation?: any
+        filterExcludePrefixes?: string[],
+        experimentation?: any,
     ): Record<string, any> {
         if (!this.isAvailable) {
             throw new Error(
-                "Native resolver is not available. Please ensure the native library is built and accessible."
+                "Native resolver is not available. Please ensure the native library is built and accessible.",
             );
         }
 
         const filterPrefixesJson =
             filterPrefixes && filterPrefixes.length > 0
                 ? JSON.stringify(filterPrefixes)
+                : null;
+        const filterExcludePrefixesJson =
+            filterExcludePrefixes && filterExcludePrefixes.length > 0
+                ? JSON.stringify(filterExcludePrefixes)
                 : null;
         const experimentationJson = experimentation
             ? JSON.stringify(experimentation)
@@ -237,11 +248,12 @@ export class NativeResolver {
             JSON.stringify(queryData),
             mergeStrategy,
             filterPrefixesJson,
+            filterExcludePrefixesJson,
             experimentationJson,
-            ebuf
+            ebuf,
         );
 
-        const err = ebuf.toString('utf8').split('\0')[0];
+        const err = ebuf.toString("utf8").split("\0")[0];
         if (err.length !== 0) {
             this.throwFFIError(err);
         }
@@ -261,7 +273,7 @@ export class NativeResolver {
             console.error("Failed to parse reasoning result:", parseError);
             console.error("Raw result string:", configStr);
             throw new Error(
-                `Failed to parse reasoning evaluation result: ${parseError}`
+                `Failed to parse reasoning evaluation result: ${parseError}`,
             );
         }
     }
@@ -272,11 +284,12 @@ export class NativeResolver {
         dimensions: Record<string, Record<string, any>>,
         userContext: Record<string, any>,
         identifier: string,
-        filterPrefixes: string[] = []
+        filterPrefixes: string[] = [],
+        filterExcludePrefixes: string[] = [],
     ): string[] {
         if (!this.isAvailable) {
             throw new Error(
-                "Native resolver is not available. Please ensure the native library is built and accessible."
+                "Native resolver is not available. Please ensure the native library is built and accessible.",
             );
         }
 
@@ -293,6 +306,10 @@ export class NativeResolver {
         const dimensionsJson = JSON.stringify(dimensions);
         const filterPrefixesJson =
             filterPrefixes.length > 0 ? JSON.stringify(filterPrefixes) : null;
+        const filterExcludePrefixesJson =
+            filterExcludePrefixes.length > 0
+                ? JSON.stringify(filterExcludePrefixes)
+                : null;
 
         console.log("Calling FFI getApplicableVariants with parameters:");
         console.log("  experiments:", experiments.length);
@@ -300,6 +317,7 @@ export class NativeResolver {
         console.log("  userContext:", userContext);
         console.log("  identifier:", identifier);
         console.log("  filterPrefixes:", filterPrefixes);
+        console.log("  filterExcludePrefixes:", filterExcludePrefixes);
 
         const ebuf = Buffer.alloc(ERROR_BUFFER_SIZE);
         const result = this.lib.core_get_applicable_variants(
@@ -308,15 +326,17 @@ export class NativeResolver {
             dimensionsJson,
             userContextJson,
             identifier,
-            filterPrefixesJson
+            filterPrefixesJson,
+            filterExcludePrefixesJson,
+            ebuf,
         );
 
         console.log(
             "FFI getApplicableVariants call completed, result:",
-            result
+            result,
         );
 
-        const err = ebuf.toString('utf8').split('\0')[0];
+        const err = ebuf.toString("utf8").split("\0")[0];
         if (err.length !== 0) {
             this.throwFFIError(err);
         }
@@ -336,7 +356,7 @@ export class NativeResolver {
             console.error("Failed to parse variants result:", parseError);
             console.error("Raw result string:", resultStr);
             throw new Error(
-                `Failed to parse variants evaluation result: ${parseError}`
+                `Failed to parse variants evaluation result: ${parseError}`,
             );
         }
     }
@@ -356,25 +376,32 @@ export class NativeResolver {
     } {
         if (!this.isAvailable) {
             throw new Error(
-                "Native resolver is not available. Please ensure the native library is built and accessible."
+                "Native resolver is not available. Please ensure the native library is built and accessible.",
             );
         }
 
-        if (typeof tomlContent !== 'string') {
-            throw new TypeError('tomlContent must be a string');
+        if (typeof tomlContent !== "string") {
+            throw new TypeError("tomlContent must be a string");
         }
 
         // Allocate error buffer (matching the Rust implementation)
         const errorBuffer = Buffer.alloc(ERROR_BUFFER_SIZE);
 
         // Call the C function
-        const resultJson = this.lib.core_parse_toml_config(tomlContent, errorBuffer);
+        const resultJson = this.lib.core_parse_toml_config(
+            tomlContent,
+            errorBuffer,
+        );
 
         // Check for errors
         if (!resultJson) {
             // Read error message from buffer
             const nullTermIndex = errorBuffer.indexOf(0);
-            const errorMsg = errorBuffer.toString('utf8', 0, nullTermIndex > 0 ? nullTermIndex : errorBuffer.length);
+            const errorMsg = errorBuffer.toString(
+                "utf8",
+                0,
+                nullTermIndex > 0 ? nullTermIndex : errorBuffer.length,
+            );
             throw new Error(`TOML parsing failed: ${errorMsg}`);
         }
 
@@ -415,25 +442,32 @@ export class NativeResolver {
     } {
         if (!this.isAvailable) {
             throw new Error(
-                "Native resolver is not available. Please ensure the native library is built and accessible."
+                "Native resolver is not available. Please ensure the native library is built and accessible.",
             );
         }
 
-        if (typeof jsonContent !== 'string') {
-            throw new TypeError('jsonContent must be a string');
+        if (typeof jsonContent !== "string") {
+            throw new TypeError("jsonContent must be a string");
         }
 
         // Allocate error buffer (matching the Rust implementation)
         const errorBuffer = Buffer.alloc(ERROR_BUFFER_SIZE);
 
         // Call the C function
-        const resultJson = this.lib.core_parse_json_config(jsonContent, errorBuffer);
+        const resultJson = this.lib.core_parse_json_config(
+            jsonContent,
+            errorBuffer,
+        );
 
         // Check for errors
         if (!resultJson) {
             // Read error message from buffer
             const nullTermIndex = errorBuffer.indexOf(0);
-            const errorMsg = errorBuffer.toString('utf8', 0, nullTermIndex > 0 ? nullTermIndex : errorBuffer.length);
+            const errorMsg = errorBuffer.toString(
+                "utf8",
+                0,
+                nullTermIndex > 0 ? nullTermIndex : errorBuffer.length,
+            );
             throw new Error(`JSON parsing failed: ${errorMsg}`);
         }
 
@@ -489,7 +523,7 @@ export class NativeResolver {
         const packageRootPath = path.resolve(dirname, "..", filename);
         if (this.fileExists(packageRootPath)) {
             console.log(
-                `Using native library from package root: ${packageRootPath}`
+                `Using native library from package root: ${packageRootPath}`,
             );
             return packageRootPath;
         }
@@ -498,11 +532,11 @@ export class NativeResolver {
         const packageNativeLibPath = path.resolve(
             dirname,
             "native-lib",
-            filename
+            filename,
         );
         if (this.fileExists(packageNativeLibPath)) {
             console.log(
-                `Using native library from package: ${packageNativeLibPath}`
+                `Using native library from package: ${packageNativeLibPath}`,
             );
             return packageNativeLibPath;
         }
@@ -511,11 +545,11 @@ export class NativeResolver {
             dirname,
             "..",
             "native-lib",
-            filename
+            filename,
         );
         if (this.fileExists(packageNative2LibPath)) {
             console.log(
-                `Using native library from package: ${packageNative2LibPath}`
+                `Using native library from package: ${packageNative2LibPath}`,
             );
             return packageNative2LibPath;
         }
@@ -527,11 +561,11 @@ export class NativeResolver {
             "..",
             "native-lib",
             platformDir,
-            filename
+            filename,
         );
         if (this.fileExists(platformSpecificPath)) {
             console.log(
-                `Using platform-specific native library: ${platformSpecificPath}`
+                `Using platform-specific native library: ${platformSpecificPath}`,
             );
             return platformSpecificPath;
         }
@@ -545,7 +579,7 @@ export class NativeResolver {
             "..",
             "target",
             "release",
-            filename
+            filename,
         );
         if (this.fileExists(localBuildPath)) {
             console.log(`Using local build: ${localBuildPath}`);
@@ -564,7 +598,7 @@ export class NativeResolver {
 
         // 5. Final fallback - assume it's in the system path
         console.warn(
-            `Native library not found in expected locations, trying: ${filename}`
+            `Native library not found in expected locations, trying: ${filename}`,
         );
         return filename;
     }
@@ -592,7 +626,7 @@ export class NativeResolver {
                 defaultConfigs: Record<string, any>,
                 contexts: any[],
                 overrides: Record<string, any>,
-                dimensions: Record<string, any>
+                dimensions: Record<string, any>,
             ): void {
                 const ebuf = Buffer.alloc(ERROR_BUFFER_SIZE);
                 lib.core_provider_cache_init_config(
@@ -601,9 +635,9 @@ export class NativeResolver {
                     JSON.stringify(contexts || []),
                     JSON.stringify(overrides || {}),
                     JSON.stringify(dimensions || {}),
-                    ebuf
+                    ebuf,
                 );
-                const err = ebuf.toString('utf8').split('\0')[0];
+                const err = ebuf.toString("utf8").split("\0")[0];
                 if (err.length !== 0) throw new Error("ffi: " + err);
             },
             initExperiments(experiments: any[], experimentGroups: any[]): void {
@@ -612,31 +646,37 @@ export class NativeResolver {
                     handle,
                     JSON.stringify(experiments || []),
                     JSON.stringify(experimentGroups || []),
-                    ebuf
+                    ebuf,
                 );
-                const err = ebuf.toString('utf8').split('\0')[0];
+                const err = ebuf.toString("utf8").split("\0")[0];
                 if (err.length !== 0) throw new Error("ffi: " + err);
             },
             evalConfig(
                 queryData: Record<string, any>,
                 mergeStrategy: string = "merge",
                 filterPrefixes?: string[],
-                targetingKey?: string | null
+                filterExcludePrefixes?: string[],
+                targetingKey?: string | null,
             ): Record<string, any> {
                 const ebuf = Buffer.alloc(ERROR_BUFFER_SIZE);
                 const filterPrefixesJson =
                     filterPrefixes && filterPrefixes.length > 0
                         ? JSON.stringify(filterPrefixes)
                         : null;
+                const filterExcludePrefixesJson =
+                    filterExcludePrefixes && filterExcludePrefixes.length > 0
+                        ? JSON.stringify(filterExcludePrefixes)
+                        : null;
                 const result = lib.core_provider_cache_eval_config(
                     handle,
                     JSON.stringify(queryData || {}),
                     mergeStrategy,
                     filterPrefixesJson,
+                    filterExcludePrefixesJson,
                     targetingKey || null,
-                    ebuf
+                    ebuf,
                 );
-                const err = ebuf.toString('utf8').split('\0')[0];
+                const err = ebuf.toString("utf8").split("\0")[0];
                 if (err.length !== 0) throw new Error("ffi: " + err);
                 const configStr =
                     typeof result === "string"
@@ -652,6 +692,6 @@ export class NativeResolver {
     }
 
     private throwFFIError(err: String): never {
-        throw new Error("ffi: " + err)
+        throw new Error("ffi: " + err);
     }
 }

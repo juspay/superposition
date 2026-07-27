@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use async_trait::async_trait;
@@ -14,7 +14,7 @@ use superposition_core::{
     eval_config, get_applicable_variants, get_satisfied_experiments, MergeStrategy,
 };
 use superposition_types::experimental::Experimental;
-use superposition_types::DimensionInfo;
+use superposition_types::{DimensionInfo, PrefixList};
 use tokio::sync::RwLock;
 use tokio::task::JoinHandle;
 use tokio::time::{sleep, Duration};
@@ -436,6 +436,7 @@ impl LocalResolutionProvider {
         &self,
         context: EvaluationContext,
         prefix_filter: Option<Vec<String>>,
+        exclude_prefix_filter: Option<Vec<String>>,
     ) -> Result<Map<String, Value>> {
         self.ensure_fresh_data().await?;
 
@@ -453,6 +454,7 @@ impl LocalResolutionProvider {
                     &query_data,
                     &targeting_key.unwrap_or_default(),
                     prefix_filter.clone(),
+                    exclude_prefix_filter.clone(),
                 );
 
                 query_data.insert(
@@ -473,6 +475,7 @@ impl LocalResolutionProvider {
                 &query_data,
                 MergeStrategy::MERGE,
                 prefix_filter,
+                exclude_prefix_filter,
             )
             .map_err(|e| {
                 SuperpositionError::ConfigError(format!(
@@ -493,8 +496,10 @@ impl AllFeatureProvider for LocalResolutionProvider {
         &self,
         context: EvaluationContext,
         prefix_filter: Option<Vec<String>>,
+        exclude_prefix_filter: Option<Vec<String>>,
     ) -> Result<Map<String, Value>> {
-        self.eval_with_context(context, prefix_filter).await
+        self.eval_with_context(context, prefix_filter, exclude_prefix_filter)
+            .await
     }
 }
 
@@ -504,6 +509,7 @@ impl FeatureExperimentMeta for LocalResolutionProvider {
         &self,
         context: EvaluationContext,
         prefix_filter: Option<Vec<String>>,
+        exclude_prefix_filter: Option<Vec<String>>,
     ) -> Result<Vec<String>> {
         self.ensure_fresh_data().await?;
 
@@ -519,6 +525,7 @@ impl FeatureExperimentMeta for LocalResolutionProvider {
                 &query_data,
                 &targeting_key.unwrap_or_default(),
                 prefix_filter,
+                exclude_prefix_filter,
             ),
             None => vec![],
         };
@@ -611,6 +618,7 @@ impl SuperpositionDataSource for LocalResolutionProvider {
         &self,
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
+        exclude_prefix_filter: Option<Vec<String>>,
         if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ConfigData>> {
         if if_modified_since.is_some() {
@@ -629,8 +637,13 @@ impl SuperpositionDataSource for LocalResolutionProvider {
             }
         };
 
-        let prefix = prefix_filter.map(HashSet::from_iter);
-        config_data.data = config_data.data.filter(context.as_ref(), prefix.as_ref());
+        let prefix = prefix_filter.map(PrefixList::from_iter);
+        let exclude_prefix = exclude_prefix_filter.map(PrefixList::from_iter);
+        config_data.data = config_data.data.filter(
+            context.as_ref(),
+            prefix.as_ref(),
+            exclude_prefix.as_ref(),
+        );
 
         Ok(FetchResponse::Data(config_data))
     }
@@ -660,6 +673,7 @@ impl SuperpositionDataSource for LocalResolutionProvider {
         &self,
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
+        exclude_prefix_filter: Option<Vec<String>>,
         if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ExperimentData>> {
         if !self.supports_experiments() {
@@ -677,6 +691,7 @@ impl SuperpositionDataSource for LocalResolutionProvider {
                     exp_data.data.experiments,
                     &context,
                     prefix_filter,
+                    exclude_prefix_filter,
                 );
                 exp_data.data.experiment_groups = FfiExperimentGroup::get_satisfied(
                     exp_data.data.experiment_groups,
@@ -692,6 +707,7 @@ impl SuperpositionDataSource for LocalResolutionProvider {
         &self,
         context: Option<Map<String, Value>>,
         prefix_filter: Option<Vec<String>>,
+        exclude_prefix_filter: Option<Vec<String>>,
         if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ExperimentData>> {
         if !self.supports_experiments() {
@@ -709,6 +725,7 @@ impl SuperpositionDataSource for LocalResolutionProvider {
                     exp_data.data.experiments,
                     &context,
                     prefix_filter,
+                    exclude_prefix_filter,
                 );
                 exp_data.data.experiment_groups = FfiExperimentGroup::filter_by_eval(
                     exp_data.data.experiment_groups,

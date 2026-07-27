@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use actix_web::{
     HttpRequest, HttpResponse, Scope, routes,
@@ -17,7 +17,7 @@ use service_utils::{
 };
 use superposition_derives::{authorized, declare_resource};
 use superposition_types::{
-    DBConnection, IsEmpty, PaginatedResponse,
+    DBConnection, IsEmpty, PaginatedResponse, PrefixList,
     api::{
         DimensionMatchStrategy,
         experiment_config::{
@@ -174,10 +174,14 @@ fn get_experiment_config_db(
             .schema_name(&workspace_context.schema_name)
             .load::<Experiment>(conn)?;
 
-        if let Some(prefix_list) = filters.prefix.filter(|p| !p.is_empty()) {
+        let prefix_list = PrefixList::from(filters.prefix);
+        let exclude_prefix_list = PrefixList::from(filters.exclude_prefix);
+
+        if !prefix_list.is_empty() || !exclude_prefix_list.is_empty() {
             experiment_list = Experiment::filter_keys_by_prefix(
                 experiment_list,
-                &HashSet::from_iter(prefix_list.0),
+                &prefix_list,
+                &exclude_prefix_list,
             );
         }
 

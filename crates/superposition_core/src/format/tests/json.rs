@@ -302,6 +302,7 @@ fn test_json_resolution_with_local_cohorts() {
         &dims,
         crate::MergeStrategy::MERGE,
         None,
+        None,
     )
     .unwrap();
 

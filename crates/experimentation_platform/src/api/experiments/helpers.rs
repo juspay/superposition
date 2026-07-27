@@ -407,6 +407,7 @@ pub async fn fetch_cac_config(
         // Without this, CAC falls back to the workspace's default version setting, which may cause issue.
         version: Some("latest".to_string()),
         prefix: None,
+        exclude_prefix: None,
     };
     let url = format!(
         "{}/config?{}",
