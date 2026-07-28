@@ -208,16 +208,8 @@ impl TrafficPercentage {
         Ok(())
     }
 
-    /// Returns true when ramping to `self` would leave the traffic percentage
-    /// unchanged and non-zero, i.e. the ramp is a redundant no-op that can be
-    /// skipped.
-    ///
-    /// The `!= 0` guard is load-bearing: starting an experiment is a ramp to `0`
-    /// on a freshly-created experiment (which already sits at `0`), so treating
-    /// a `0 -> 0` ramp as a no-op would prevent it from ever transitioning to
-    /// `INPROGRESS`. Only a repeat of the same *non-zero* value is a no-op.
-    pub fn is_noop_ramp(&self, old: &Self) -> bool {
-        self.0 == old.0
+    pub fn compare_old(&self, old: &Self) -> bool {
+        self.0 != 0 && self.0 == old.0
     }
 
     fn validate<T: TryInto<u8>>(val: T) -> Result<(), String> {
@@ -554,3 +546,41 @@ uniffi::custom_type!(Buckets, Vec<Option<Bucket>>, {
     },
     lower: |obj: Buckets| obj.0.to_vec(),
 });
+
+#[cfg(test)]
+mod tests {
+    /// These cases pin down the intended behaviour of `TrafficPercentage`, not
+    /// the current shape of its implementation. Do NOT edit or delete them to
+    /// make a change compile or pass — if a change breaks one of these tests,
+    /// the change is wrong unless the intended behaviour itself was explicitly
+    /// agreed to be different. Add new cases freely; adjust existing ones only
+    /// alongside a deliberate, documented behaviour change.
+    mod traffic_percentage {
+        use crate::database::models::experimentation::TrafficPercentage;
+
+        fn traffic(value: u8) -> TrafficPercentage {
+            TrafficPercentage::try_from(value).unwrap()
+        }
+
+        #[test]
+        fn test_compare_old_both_zero() {
+            // A ramp of 0 is never treated as a no-op, even when unchanged.
+            assert!(!traffic(0).compare_old(&traffic(0)));
+        }
+
+        #[test]
+        fn test_compare_old_zero_to_non_zero() {
+            assert!(!traffic(10).compare_old(&traffic(0)));
+        }
+
+        #[test]
+        fn test_compare_old_non_zero_to_zero() {
+            assert!(!traffic(0).compare_old(&traffic(10)));
+        }
+
+        #[test]
+        fn test_compare_old_same_non_zero() {
+            assert!(traffic(10).compare_old(&traffic(10)));
+        }
+    }
+}
