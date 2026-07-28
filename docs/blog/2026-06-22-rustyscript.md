@@ -1,7 +1,7 @@
 ---
 slug: js-sandbox-in-rust
 title: Rust JS Sandbox - Running Untrusted JavaScript Inside Superposition
-description: Designing and implementing validation and value-compute functions: how we run user-defined JS inside Rust, seamlessly, and in isolation.
+description: Designing and implementing validation and value-compute functions - how we run user-defined JS inside Rust, seamlessly, and in isolation.
 tags: [technical deepdive, rust, js, functions]
 ---
 
@@ -50,7 +50,7 @@ This was a simple solution we tried initially and it worked well - until users w
 
 # Other options
 
-The team had previously looked into [`mlua`](https://crates.io/crates/mlua)(which we decided to not pursue since Superposition users were more familiar with Javascript and looked at ways to run Javascript from within Rust to have better interoperability. Two options we considered were [`rquickjs`](https://crates.io/crates/rquickjs) and [`Rustyscript`](https://crates.io/crates/rustyscript); we went with Rustyscript because of its [documentation](https://rscarson.github.io/rustyscript-book/), features, and better compatibility with Node.js.
+The team had previously looked into [`mlua`](https://crates.io/crates/mlua), which we decided to not pursue since Superposition users were more familiar with Javascript and looked at ways to run Javascript from within Rust to have better interoperability. Two options we considered were [`rquickjs`](https://crates.io/crates/rquickjs) and [`Rustyscript`](https://crates.io/crates/rustyscript); we went with Rustyscript because of its [documentation](https://rscarson.github.io/rustyscript-book/), features, and better compatibility with Node.js.
 
 # Running Javascript in Rust with Rustyscript
 
@@ -71,76 +71,8 @@ async function execute(payload) {
 All functions in Superposition are named `execute`. This is because, while validating the user input, we wrap this code with some helpers and the final code that is passed to Rustyscript looks like:
 
 ```Javascript
-async function execute(payload) {
-    const { value_validate } = payload;
-    // value_validate is an object that contains all arguments a validation function would need
-    const { key, value, type, environment } = value_validate; 
-    let response = await fetch(value);
-    return response.status === 200;
-}
-export function typeCheck() {
-    if (typeof execute === "undefined") {
-        throw new Error("execute function is not defined");
-    }
-}
-```
-We validate this with `rustyscript::validate`, which takes a string and tells you if it is valid JS syntax:
 
-```rust
-rustyscript::validate(&type_check_code).map_err(|err| {
-    log::error!("Invalid function syntax: {:?}", err);
-    bad_argument!("Invalid function syntax: {}", err)
-})?;
-```
-This validates the syntax, but is `execute` a function? To run a function in Rustyscript we need to:
-
-- Create a basic runtime
-- Load a Javascript module
-- Call a function and consume the resulting value as a Rust type
-
-We check `execute` by running and calling `typeCheck`:
-
-```rust
-// create a basic runtime
-let module = Module::new("type_check.js", &type_check_code);
-let runtime_options = RuntimeOptions {
-    timeout: Duration::from_millis(1500),
-    ..Default::default()
-};
-
-let mut runtime = Runtime::new(runtime_options).map_err(|e| {
-    let err_str = e.to_string();
-    validation_error!("Failed to create runtime: {}", err_str)
-})?;
-
-let module_handle = runtime.load_module(&module).map_err(|e| {
-    let err_str = e.to_string();
-    validation_error!("Failed to load module: {}", err_str)
-})?;
-// typeCheck is not an async function, but call_function_async is used as a 
-// catch all for sync and async code
-let tokio_runtime = runtime.tokio_runtime();
-tokio_runtime
-    .block_on(async {
-        runtime
-            .call_function_async::<()>(
-                Some(&module_handle),
-                "typeCheck",
-                json_args!(),
-            )
-            .await
-    })
-    .map_err(|e| {
-        let err_str = e.to_string();
-        validation_error!("Function validation failed: {}", err_str)
-    })?;
-
-Ok(())
-```
-
-Now when this function needs to be run to validate any input or change, it is wrapped in the JS code below. Note the console override — it routes every log call into an in-memory buffer that we expose via `getLogBuffer`:
-
-```Javascript
+// wrapper code
 let logBuffer = [];
 const originalConsole = console;
 const customConsole = {
@@ -175,13 +107,135 @@ function clearLogBuffer() {
     logBuffer = [];
 }
 
-{replaceme-with-code}
+// actual user function
+async function execute(payload) {
+    const { value_validate } = payload;
+    // value_validate is an object that contains all arguments a validation function would need
+    const { key, value, type, environment } = value_validate; 
+    let response = await fetch(value);
+    return response.status === 200;
+}
 
 export { execute, getLogBuffer, clearLogBuffer };
 ```
 
-and this wrapped code is executed like this:
+Note the console override — it routes every log call into an in-memory buffer that we expose via `getLogBuffer`.
 
+We validate the syntax of the above Javascript with `rustyscript::validate`, which takes a string and tells you if it is valid syntax or not. If it is not valid, we return an error to the user. This is done before we even try to run the function:
+
+```rust
+rustyscript::validate(&type_check_code).map_err(|err| {
+    log::error!("Invalid function syntax: {:?}", err);
+    bad_argument!("Invalid function syntax: {}", err)
+})?;
+```
+
+This validates the syntax, but is `execute` a function and does it return a value that Superposition expects from this category of function? With rustyscript, we can simply just run the function with some default inputs and inspect its return value. This checks:
+
+- `execute` exists
+- `execute` is a function
+- `execute` returns a value of the expected type (boolean for validation functions, array for value-compute functions)
+- the function has handled potential null/undefined values correctly
+
+To run a function in Rustyscript we need to:
+
+- Create a basic runtime
+- Load a Javascript module
+- Call a function and consume the resulting value as a Rust type
+
+```rust
+let type_check_code = generate_wrapped_code(&stubbed_code);
+
+rustyscript::validate(&type_check_code).map_err(|err| {
+    log::error!("Invalid function syntax: {:?}", err);
+    bad_argument!("Invalid function syntax: {}", err)
+})?;
+
+let module = Module::new("type_check.js", &type_check_code);
+let runtime_options = RuntimeOptions {
+    timeout: Duration::from_millis(1500),
+    ..Default::default()
+};
+
+let mut runtime = Runtime::new(runtime_options).map_err(|e| {
+    let err_str = e.to_string();
+    validation_error!("Failed to create runtime: {}", err_str)
+})?;
+
+let module_handle = runtime.load_module(&module).map_err(|e| {
+    let err_str = e.to_string();
+    validation_error!("Failed to load module: {}", err_str)
+})?;
+
+let tokio_runtime = runtime.tokio_runtime();
+tokio_runtime
+    .block_on(async {
+        let environment = FunctionEnvironment {
+            context: serde_json::Map::new(),
+            overrides: serde_json::Map::new(),
+        };
+        match fn_type {
+            FunctionType::ValueCompute => {
+                let payload = FunctionExecutionRequest::ValueComputeFunctionRequest {
+                    name: String::new(),
+                    prefix: String::new(),
+                    r#type: superposition_types::api::functions::KeyType::ConfigKey,
+                    environment,
+                };
+                let serde_json::Value::Array(_) = runtime
+                    .call_function_async::<serde_json::Value>(
+                        Some(&module_handle),
+                        "execute",
+                        json_args!(payload),
+                    )
+                    .await? else {
+                        return Err(rustyscript::Error::Runtime("The value compute function did not return an array".to_string()));
+                    };
+                Ok(())
+            }
+            other => {
+                let payload = match other {
+                    FunctionType::ValueValidation => FunctionExecutionRequest::ValueValidationFunctionRequest {
+                        key: String::new(),
+                        value: serde_json::Value::String(String::new()),
+                        r#type:
+                            KeyType::ConfigKey,
+                        environment,
+                    },
+                    FunctionType::ContextValidation => FunctionExecutionRequest::ContextValidationFunctionRequest {
+                        environment,
+                        trigger_reason: ContextValidationTrigger::Context,
+                    },
+                    FunctionType::ChangeReasonValidation => FunctionExecutionRequest::ChangeReasonValidationFunctionRequest {
+                        change_reason: ChangeReason::default(),
+                    },
+                    _ => {
+                        return Err(rustyscript::Error::Runtime("An invalid situation occurred in the runtime".to_string()))
+                    }
+                };
+                let serde_json::Value::Bool(_) = runtime
+                    .call_function_async::<serde_json::Value>(
+                        Some(&module_handle),
+                        "execute",
+                        json_args!(payload),
+                    )
+                    .await? else {
+                        return Err(rustyscript::Error::Runtime("The function did not return a boolean".to_string()))
+                    };
+                Ok(())
+            }
+
+        }
+    })
+    .map_err(|e| {
+        let err_str = e.to_string();
+        validation_error!("Function validation failed: {}", err_str)
+    })?;
+```
+
+Now when this function needs to be run to validate any input or change, it is run with actual inputs that the system infers based on context. This context could be derived or explicitly stated by the user. 
+
+When running this function with user inputs, we use the same code as above, but instead of using a stubbed payload, we use the actual payload that is being validated. The code looks like this:
 
 ```rust
 // wrap user function with code shown above
