@@ -6,14 +6,17 @@ use base64::{Engine, engine::general_purpose};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use rand::RngCore;
 use secrecy::{ExposeSecret, SecretString};
-use superposition_macros::bad_argument;
+use superposition_macros::unexpected_error;
 use superposition_types::{
     DBConnection,
-    database::{schema::secrets, superposition_schema::superposition::workspaces},
+    database::{
+        models::Workspace, schema::secrets,
+        superposition_schema::superposition::workspaces,
+    },
     result,
 };
 
-use crate::service::types::{AppEnv, EncryptionKey, SchemaName, WorkspaceContext};
+use crate::service::types::{AppEnv, EncryptionKey, SchemaName};
 
 const NONCE_SIZE: usize = 12;
 const ENCRYPTION_KEY_BYTE_LENGTH: usize = 32;
@@ -235,17 +238,14 @@ fn re_encrypt_secrets(
         return Ok(0);
     }
 
+    // Complete every cryptographic operation before mutating the database. This keeps
+    // crypto failures side-effect free and lets the surrounding transaction roll back
+    // database failures without leaving a partially rotated workspace.
+    let re_encrypted_secrets =
+        re_encrypt_secret_values(&all_secrets, current_key, new_key)?;
     let now = chrono::Utc::now();
 
-    for (name, encrypted_value) in &all_secrets {
-        let decrypted_value = decrypt_secret(encrypted_value, current_key)
-            .map_err(|e| bad_argument!("Failed to decrypt secret '{}': {}", name, e))?;
-
-        let new_encrypted_value =
-            encrypt_secret(decrypted_value.expose_secret(), new_key).map_err(|e| {
-                bad_argument!("Failed to encrypt secret '{}' with new key: {}", name, e)
-            })?;
-
+    for (name, new_encrypted_value) in &re_encrypted_secrets {
         diesel::update(secrets::table.find(&name))
             .set((
                 secrets::encrypted_value.eq(&new_encrypted_value),
@@ -260,68 +260,109 @@ fn re_encrypt_secrets(
     Ok(all_secrets.len() as i64)
 }
 
+fn re_encrypt_secret_values(
+    secrets: &[(String, String)],
+    current_key: &SecretString,
+    new_key: &SecretString,
+) -> result::Result<Vec<(String, String)>> {
+    secrets
+        .iter()
+        .map(|(name, encrypted_value)| {
+            let decrypted_value =
+                decrypt_secret(encrypted_value, current_key).map_err(|e| {
+                    log::error!(
+                        "Failed to decrypt secret '{}' during key rotation: {}",
+                        name,
+                        e
+                    );
+                    unexpected_error!("Failed to decrypt secret during key rotation")
+                })?;
+
+            let new_encrypted_value =
+                encrypt_secret(decrypted_value.expose_secret(), new_key).map_err(
+                    |e| {
+                        log::error!(
+                            "Failed to encrypt secret '{}' during key rotation: {}",
+                            name,
+                            e
+                        );
+                        unexpected_error!("Failed to encrypt secret during key rotation")
+                    },
+                )?;
+
+            Ok((name.clone(), new_encrypted_value))
+        })
+        .collect()
+}
+
+/// Rotate a workspace encryption key while holding a row lock on the canonical
+/// workspace record.
+///
+/// This function must be called from inside a database transaction. The row lock
+/// serializes rotations for the same workspace and is held until that transaction
+/// commits or rolls back.
 pub fn rotate_workspace_encryption_key_helper(
-    workspace_context: &WorkspaceContext,
+    organisation_id: &str,
+    workspace_name: &str,
     conn: &mut DBConnection,
     master_encryption_key: &EncryptionKey,
     user_email: &str,
-) -> result::Result<i64> {
-    let current_key = decrypt_workspace_key(
-        &workspace_context.settings.encryption_key,
-        master_encryption_key,
-    )
-    .map_err(|e| {
-        log::error!("Failed to decrypt current workspace key for  {}", e);
-        bad_argument!("Failed to decrypt workspace encryption key")
-    })?;
+) -> result::Result<(i64, Workspace)> {
+    let workspace = workspaces::dsl::workspaces
+        .find((organisation_id, workspace_name))
+        .for_update()
+        .get_result::<Workspace>(conn)?;
+    let schema_name = SchemaName(workspace.workspace_schema_name.clone());
+
+    let current_key =
+        decrypt_workspace_key(&workspace.encryption_key, master_encryption_key).map_err(
+            |e| {
+                log::error!(
+                    "Failed to decrypt current key for workspace '{}': {}",
+                    workspace_name,
+                    e
+                );
+                unexpected_error!("Failed to decrypt workspace encryption key")
+            },
+        )?;
 
     let new_key = generate_encryption_key();
     let encrypted_new_key =
         encrypt_workspace_key(&new_key, &master_encryption_key.current_key).map_err(
             |e| {
-                log::error!("Failed to encrypt new workspace key: {}", e);
-                bad_argument!("Failed to encrypt new workspace key: {}", e)
+                log::error!(
+                    "Failed to encrypt new key for workspace '{}': {}",
+                    workspace_name,
+                    e
+                );
+                unexpected_error!("Failed to encrypt new workspace key")
             },
         )?;
 
-    // Re-encrypt secrets if we have an existing key, otherwise this is initialization
-    let total_secrets_re_encrypted = re_encrypt_secrets(
-        conn,
-        &workspace_context.schema_name,
-        &current_key,
-        &new_key,
-        user_email,
-    )
-    .unwrap_or_else(|_| {
-        log::info!(
-            "Initializing encryption key for workspace {}",
-            workspace_context.settings.workspace_name
-        );
-        0 // Just return i64, not Result<i64>
-    });
+    let total_secrets_re_encrypted =
+        re_encrypt_secrets(conn, &schema_name, &current_key, &new_key, user_email)?;
 
     let rotation_time = chrono::Utc::now();
 
     // Update workspace with new encrypted key
-    diesel::update(workspaces::dsl::workspaces.find((
-        &workspace_context.organisation_id.0,
-        &workspace_context.settings.workspace_name,
-    )))
+    let updated_workspace = diesel::update(
+        workspaces::dsl::workspaces.find((organisation_id, workspace_name)),
+    )
     .set((
         workspaces::dsl::encryption_key.eq(&encrypted_new_key),
         workspaces::dsl::key_rotated_at.eq(Some(rotation_time)),
         workspaces::dsl::last_modified_at.eq(rotation_time),
         workspaces::dsl::last_modified_by.eq(user_email),
     ))
-    .execute(conn)?;
+    .get_result::<Workspace>(conn)?;
 
     log::info!(
         "Rotated encryption key for workspace {}. total number of re-encrypted secrets {}",
-        workspace_context.settings.workspace_name,
+        workspace_name,
         total_secrets_re_encrypted
     );
 
-    Ok(total_secrets_re_encrypted)
+    Ok((total_secrets_re_encrypted, updated_workspace))
 }
 
 #[cfg(test)]
@@ -375,5 +416,60 @@ mod tests {
 
         let decrypted = decrypt_with_fallback(&encrypted, &encryption_key).unwrap();
         assert_eq!(plaintext, decrypted.expose_secret());
+    }
+
+    #[test]
+    fn test_re_encrypt_secret_values() {
+        let current_key = generate_encryption_key();
+        let new_key = generate_encryption_key();
+        let secrets = vec![
+            (
+                "first".to_string(),
+                encrypt_secret("first value", &current_key).unwrap(),
+            ),
+            (
+                "second".to_string(),
+                encrypt_secret("second value", &current_key).unwrap(),
+            ),
+        ];
+
+        let Ok(re_encrypted) = re_encrypt_secret_values(&secrets, &current_key, &new_key)
+        else {
+            panic!("secret re-encryption should succeed");
+        };
+
+        assert_eq!(re_encrypted.len(), 2);
+        assert_eq!(
+            decrypt_secret(&re_encrypted[0].1, &new_key)
+                .unwrap()
+                .expose_secret(),
+            "first value"
+        );
+        assert_eq!(
+            decrypt_secret(&re_encrypted[1].1, &new_key)
+                .unwrap()
+                .expose_secret(),
+            "second value"
+        );
+    }
+
+    #[test]
+    fn test_re_encrypt_secret_values_propagates_crypto_failure() {
+        let current_key = generate_encryption_key();
+        let new_key = generate_encryption_key();
+        let secrets = vec![
+            (
+                "valid".to_string(),
+                encrypt_secret("valid value", &current_key).unwrap(),
+            ),
+            ("corrupt".to_string(), "not-valid-ciphertext".to_string()),
+        ];
+
+        let rotation_result = re_encrypt_secret_values(&secrets, &current_key, &new_key);
+
+        assert!(matches!(
+            rotation_result,
+            Err(result::AppError::UnexpectedError(_))
+        ));
     }
 }

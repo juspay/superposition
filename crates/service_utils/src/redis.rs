@@ -4,7 +4,9 @@ use fred::{
 };
 use serde::{Serialize, de::DeserializeOwned};
 use superposition_macros::unexpected_error;
-use superposition_types::{DBConnection, result as superposition};
+use superposition_types::{
+    DBConnection, database::models::Workspace, result as superposition,
+};
 
 use crate::{
     db::{PgSchemaConnectionPool, run_query},
@@ -22,6 +24,41 @@ pub const EXPERIMENT_GROUPS_LAST_MODIFIED_KEY_SUFFIX: &str =
     "::experiment_groups::last_modified_at";
 pub const EXPERIMENT_CONFIG_LAST_MODIFIED_KEY_SUFFIX: &str =
     "::experiment_config::last_modified_at";
+
+/// Best-effort update of the canonical workspace cache entry.
+pub async fn put_workspace_in_redis(
+    workspace: &Workspace,
+    redis_pool: &Option<RedisPool>,
+) {
+    let Some(pool) = redis_pool else {
+        log::debug!("Redis not configured, skipping workspace cache update");
+        return;
+    };
+
+    let serialized = match serde_json::to_string(workspace) {
+        Ok(serialized) => serialized,
+        Err(error) => {
+            log::error!("Failed to serialize workspace for Redis: {}", error);
+            return;
+        }
+    };
+    let key_ttl: i64 = get_from_env_or_default("REDIS_KEY_TTL", 604800);
+
+    if let Err(error) = redis_set_data(
+        pool,
+        workspace.workspace_schema_name.clone(),
+        serialized,
+        Some(Expiration::EX(key_ttl)),
+    )
+    .await
+    {
+        log::warn!(
+            "Failed to update Redis cache for workspace '{}': {}",
+            workspace.workspace_schema_name,
+            error
+        );
+    }
+}
 
 /// Fetch data from Redis if available, else fall back to database call and write back to Redis
 /// if redis is disabled read from the database directly
