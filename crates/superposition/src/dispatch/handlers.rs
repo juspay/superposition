@@ -17,7 +17,7 @@ use service_utils::{
         append_job_logs, has_pattern_in_headers, substitute_templates,
         update_job_progress, update_job_status,
     },
-    service::types::{AppState, DbConnection, WorkspaceContext},
+    service::types::{AppState, DbConnection, WorkspaceContext, WorkspaceWritePermit},
 };
 use superposition_derives::{authorized, declare_resource};
 use superposition_macros::unexpected_error;
@@ -66,7 +66,7 @@ async fn dispatch_handler(
 async fn dispatch_job_handler(
     workspace_context: WorkspaceContext,
     state: Data<AppState>,
-    db_conn: DbConnection,
+    mut write_permit: WorkspaceWritePermit,
     user: User,
     body: Json<JobDispatchRequest>,
 ) -> superposition::Result<HttpResponse> {
@@ -74,11 +74,11 @@ async fn dispatch_job_handler(
         job_id,
         job_request,
     } = body.into_inner();
-    let DbConnection(mut conn) = db_conn;
 
-    update_job_status(&mut conn, job_id, BackgroundJobStatus::Inprogress)
+    let conn = write_permit.connection();
+    update_job_status(conn, job_id, BackgroundJobStatus::Inprogress)
         .map_err(|e| unexpected_error!("Failed to update job status: {}", e))?;
-    let key = append_job_logs(&mut conn, job_id, "Job started", None)
+    let key = append_job_logs(conn, job_id, "Job started", None)
         .map_err(|e| unexpected_error!("Failed to append logs: {}", e))?;
 
     let result = match &job_request {
@@ -86,43 +86,37 @@ async fn dispatch_job_handler(
             execute_webhook_dispatch(
                 &workspace_context,
                 &state,
-                &mut conn,
+                conn,
                 &req.webhook_name,
                 &req.data,
             )
             .await
         }
         JobRequest::PriorityRecompute(_) => {
-            execute_priority_recompute(&workspace_context, &state, &mut conn, &user).await
+            execute_priority_recompute(&workspace_context, &state, conn, &user).await
         }
         JobRequest::Reduce(req) => {
-            execute_reduce(&workspace_context, &state, &mut conn, &user, req.approve)
-                .await
+            execute_reduce(&workspace_context, &state, conn, &user, req.approve).await
         }
     };
 
     match result {
         Ok(()) => {
-            update_job_status(&mut conn, job_id, BackgroundJobStatus::Completed)
+            update_job_status(conn, job_id, BackgroundJobStatus::Completed)
                 .map_err(|e| unexpected_error!("Failed to update job status: {}", e))?;
-            update_job_progress(&mut conn, job_id, 100)
+            update_job_progress(conn, job_id, 100)
                 .map_err(|e| unexpected_error!("Failed to update job progress: {}", e))?;
-            append_job_logs(&mut conn, job_id, "Job completed", Some(key))
+            append_job_logs(conn, job_id, "Job completed", Some(key))
                 .map_err(|e| unexpected_error!("Failed to append logs: {}", e))?;
             Ok(HttpResponse::Ok().finish())
         }
         Err(e) => {
             let error_msg = format!("{e}");
             log::error!("Job {job_id} failed: {error_msg}");
-            update_job_status(&mut conn, job_id, BackgroundJobStatus::Failed)
+            update_job_status(conn, job_id, BackgroundJobStatus::Failed)
                 .map_err(|e| unexpected_error!("Failed to update job status: {}", e))?;
-            append_job_logs(
-                &mut conn,
-                job_id,
-                &format!("Job failed: {error_msg}"),
-                Some(key),
-            )
-            .map_err(|e| unexpected_error!("Failed to append logs: {}", e))?;
+            append_job_logs(conn, job_id, &format!("Job failed: {error_msg}"), Some(key))
+                .map_err(|e| unexpected_error!("Failed to append logs: {}", e))?;
             Err(unexpected_error!("Job {job_id} failed: {error_msg}"))
         }
     }
