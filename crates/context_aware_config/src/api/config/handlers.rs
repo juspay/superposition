@@ -5,16 +5,17 @@ use actix_web::{
     web::{Data, Header, Json, Path, Query},
 };
 use chrono::{DateTime, Utc};
-use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
+use diesel::{
+    ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl, SelectableHelper,
+    r2d2::{ConnectionManager, PooledConnection},
+};
 use itertools::Itertools;
 use serde_json::{Map, Value, json};
 use service_utils::{
     helpers::{fetch_dimensions_info_map, is_not_modified},
     kronos_dispatch::submit_job,
     redis::{CONFIG_KEY_SUFFIX, LAST_MODIFIED_KEY_SUFFIX, read_through_cache},
-    service::types::{
-        AppHeader, AppState, DbConnection, WorkspaceContext, WorkspaceWritePermit,
-    },
+    service::types::{AppHeader, AppState, DbConnection, WorkspaceContext},
 };
 use superposition_core::{
     ConfigFormat, JsonFormat, TomlFormat,
@@ -448,12 +449,11 @@ async fn reduce_config_key(
 
 pub async fn execute_reduce(
     workspace_context: &WorkspaceContext,
-    mut write_permit: WorkspaceWritePermit,
-    user: &User,
     state: &Data<AppState>,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    user: &User,
     is_approve: bool,
 ) -> superposition::Result<()> {
-    let conn = write_permit.connection();
     let dimensions_info_map =
         fetch_dimensions_info_map(conn, &workspace_context.schema_name)?;
     let mut config = generate_cac(conn, &workspace_context.schema_name)?;
@@ -463,7 +463,7 @@ pub async fn execute_reduce(
         let overrides = config.overrides;
         let default_config = config.default_configs.into_inner();
         config = reduce_config_key(
-            &user,
+            user,
             conn,
             contexts.clone(),
             overrides.clone(),

@@ -7,9 +7,10 @@ use actix_web::{
 use bigdecimal::BigDecimal;
 use chrono::Utc;
 use diesel::{
-    Connection, ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl,
-    SelectableHelper,
+    Connection, ExpressionMethods, OptionalExtension, PgConnection, QueryDsl,
+    RunQueryDsl, SelectableHelper,
     dsl::sql,
+    r2d2::{ConnectionManager, PooledConnection},
     sql_types::{Bool, Text},
 };
 use serde_json::{Map, Value};
@@ -29,7 +30,7 @@ use superposition_derives::{authorized, declare_resource};
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
     Contextual, DBConnection, DimensionInfo, InternalUserContext, Overridden, Overrides,
-    PaginatedResponse, Resource, SortBy, User,
+    PaginatedResponse, PrefixList, Resource, SortBy, User,
     api::{
         DimensionMatchStrategy,
         context::{
@@ -1168,14 +1169,12 @@ async fn bulk_operations_handler(
 pub async fn execute_priority_recompute(
     workspace_context: &WorkspaceContext,
     state: &Data<AppState>,
-    mut write_permit: WorkspaceWritePermit,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     user: &User,
 ) -> superposition::Result<()> {
     use superposition_types::database::schema::contexts::dsl::{
         contexts, last_modified_at, last_modified_by, weight,
     };
-
-    let conn = write_permit.connection();
 
     let result: Vec<Context> = contexts
         .schema_name(&workspace_context.schema_name)
@@ -1237,13 +1236,9 @@ pub async fn execute_priority_recompute(
                 .map_err(|e| unexpected_error!(e))?;
             add_config_version(state, None, config_version_desc, transaction_conn, &workspace_context.schema_name)
         })?;
-    let _ = put_config_in_redis(
-        &config_version,
-        &state,
-        &workspace_context.schema_name,
-        conn,
-    )
-    .await;
+    let _ =
+        put_config_in_redis(&config_version, state, &workspace_context.schema_name, conn)
+            .await;
 
     let data = WebhookData {
         payload: &response,
