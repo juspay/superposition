@@ -9,7 +9,9 @@ use crate::components::datetime::DatetimeStr;
 use crate::components::table::types::{
     Column, ColumnSortable, Expandable, default_column_formatter,
 };
-use crate::utils::{construct_request_headers, request, use_host_server};
+use crate::utils::{
+    construct_request_headers, request_with_workspace_lock_retry, use_host_server,
+};
 
 pub fn function_table_columns() -> Vec<Column> {
     vec![
@@ -53,7 +55,7 @@ pub async fn publish_function(
     let host = use_host_server();
     let url = format!("{host}/function/{function_name}/publish");
 
-    let response = request(
+    let response = request_with_workspace_lock_retry(
         url,
         reqwest::Method::PATCH,
         Some(payload),

@@ -7,7 +7,9 @@ use superposition_types::{
     database::models::{ChangeReason, Description, cac::TypeTemplate},
 };
 
-use crate::utils::{construct_request_headers, request, use_host_server};
+use crate::utils::{
+    construct_request_headers, request_with_workspace_lock_retry, use_host_server,
+};
 
 pub async fn create_type(
     type_name: String,
@@ -27,7 +29,7 @@ pub async fn create_type(
     let host = use_host_server();
     let url = format!("{host}/types");
 
-    let response = request(
+    let response = request_with_workspace_lock_retry(
         url,
         reqwest::Method::POST,
         Some(payload),
@@ -57,7 +59,7 @@ pub async fn update_type(
     let host = use_host_server();
     let url = format!("{host}/types/{type_name}");
 
-    let response = request(
+    let response = request_with_workspace_lock_retry(
         url,
         reqwest::Method::PATCH,
         Some(payload),
@@ -77,7 +79,7 @@ pub async fn delete_type(
 
     let payload: Option<()> = None;
 
-    let response = request(
+    let response = request_with_workspace_lock_retry(
         url,
         reqwest::Method::DELETE,
         payload,

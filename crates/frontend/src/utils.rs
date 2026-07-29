@@ -1,13 +1,14 @@
 #[cfg(feature = "ssr")]
 use std::env;
-use std::str::FromStr;
+use std::{str::FromStr, time::Duration};
 
+use leptos::leptos_dom::is_browser;
 use leptos::*;
 use reqwest::{
     StatusCode,
     header::{HeaderMap, HeaderName, HeaderValue},
 };
-use serde::de::DeserializeOwned;
+use serde::{Deserialize, de::DeserializeOwned};
 use superposition_types::{
     api::functions::{FunctionEnvironment, KeyType},
     database::models::cac::{Function, FunctionType},
@@ -199,6 +200,63 @@ pub fn check_url_and_return_val(s: String) -> String {
 use once_cell::sync::Lazy;
 static HTTP_CLIENT: Lazy<reqwest::Client> = Lazy::new(reqwest::Client::new);
 
+const MAX_WORKSPACE_LOCK_RETRIES: u32 = 3;
+const WORKSPACE_LOCK_RETRY_BASE_DELAY: Duration = Duration::from_millis(250);
+
+#[derive(Clone, Copy)]
+enum RetryPolicy {
+    None,
+    WorkspaceLock,
+}
+
+impl RetryPolicy {
+    fn max_retries(self) -> u32 {
+        match self {
+            Self::WorkspaceLock if is_browser() => MAX_WORKSPACE_LOCK_RETRIES,
+            Self::None | Self::WorkspaceLock => 0,
+        }
+    }
+
+    fn should_retry(
+        self,
+        status: StatusCode,
+        error: &WorkspaceLockedErrorResponse,
+        retry: u32,
+        max_retries: u32,
+    ) -> bool {
+        matches!(self, Self::WorkspaceLock)
+            && status == StatusCode::CONFLICT
+            && error.lock.is_some()
+            && retry < max_retries
+    }
+
+    fn delay(self, retry: u32) -> Duration {
+        match self {
+            Self::WorkspaceLock => WORKSPACE_LOCK_RETRY_BASE_DELAY
+                .saturating_mul(2_u32.saturating_pow(retry)),
+            Self::None => Duration::ZERO,
+        }
+    }
+}
+
+#[derive(Deserialize)]
+struct WorkspaceLockedErrorResponse {
+    message: String,
+    #[serde(default)]
+    lock: Option<serde_json::Value>,
+}
+
+async fn sleep(duration: Duration) {
+    let (sender, receiver) = futures::channel::oneshot::channel();
+    set_timeout(
+        move || {
+            _ = sender.send(());
+        },
+        duration,
+    );
+    _ = receiver.await;
+}
+
 pub fn construct_request_headers(entries: &[(&str, &str)]) -> Result<HeaderMap, String> {
     entries
         .iter()
@@ -227,6 +285,99 @@ where
     })
 }
 
+async fn request_with_policy<T>(
+    url: String,
+    method: reqwest::Method,
+    body: Option<T>,
+    headers: HeaderMap,
+    skip_error: &[StatusCode],
+    retry_policy: RetryPolicy,
+) -> Result<reqwest::Response, String>
+where
+    T: serde::Serialize,
+{
+    let ssr_headers = use_context::<Option<SsrSharedHttpRequestHeaders>>().flatten();
+    let cookie = ssr_headers.and_then(|h| h.cookie.clone());
+
+    let max_retries = retry_policy.max_retries();
+    let mut retry = 0;
+
+    loop {
+        let mut request_builder = HTTP_CLIENT
+            .request(method.clone(), &url)
+            .headers(headers.clone());
+        request_builder = match (&method, body.as_ref()) {
+            (&reqwest::Method::GET, _) => request_builder,
+            (_, Some(data)) => request_builder.json(data),
+            _ => request_builder,
+        };
+
+        if let Some(cookie_value) = cookie.as_ref() {
+            request_builder =
+                request_builder.header(reqwest::header::COOKIE, cookie_value);
+        }
+
+        let response = request_builder
+            .send()
+            .await
+            .map_err(|err| err.to_string())?;
+
+        let status = response.status();
+
+        if skip_error.contains(&status) {
+            return Ok(response);
+        }
+
+        if status.is_client_error() {
+            let error = response
+                .json::<WorkspaceLockedErrorResponse>()
+                .await
+                .unwrap_or_else(|_| WorkspaceLockedErrorResponse {
+                    message: String::from("Something went wrong"),
+                    lock: None,
+                });
+
+            if retry_policy.should_retry(status, &error, retry, max_retries) {
+                let delay = retry_policy.delay(retry);
+                retry += 1;
+                logging::log!(
+                    "Workspace is locked; retrying request in {:?} ({}/{})",
+                    delay,
+                    retry,
+                    max_retries,
+                );
+                sleep(delay).await;
+                continue;
+            }
+
+            let error_msg = error.message;
+            logging::error!("{}", error_msg);
+            enqueue_alert(error_msg.clone(), AlertType::Error, 5000);
+            return Err(error_msg);
+        }
+
+        if status.is_server_error() {
+            if status == 512 {
+                enqueue_alert(
+                    "Webhook Call Failed, Please Check the Logs.".to_owned(),
+                    AlertType::Error,
+                    5000,
+                );
+            } else {
+                let error_msg = response
+                    .json::<ErrorResponse>()
+                    .await
+                    .map_or(String::from("Something went wrong"), |error| error.message);
+                logging::error!("{}", error_msg);
+                enqueue_alert(error_msg.clone(), AlertType::Error, 5000);
+                return Err(error_msg);
+            }
+        }
+
+        return Ok(response);
+    }
+}
+
 pub async fn request_with_skip_error<T>(
     url: String,
     method: reqwest::Method,
@@ -237,59 +388,7 @@ pub async fn request_with_skip_error<T>(
 where
     T: serde::Serialize,
 {
-    let ssr_headers = use_context::<Option<SsrSharedHttpRequestHeaders>>().flatten();
-    let cookie = ssr_headers.and_then(|h| h.cookie.clone());
-
-    let mut request_builder = HTTP_CLIENT.request(method.clone(), url).headers(headers);
-    request_builder = match (method, body) {
-        (reqwest::Method::GET, _) => request_builder,
-        (_, Some(data)) => request_builder.json(&data),
-        _ => request_builder,
-    };
-
-    if let Some(cookie_value) = cookie {
-        request_builder = request_builder.header(reqwest::header::COOKIE, cookie_value);
-    }
-
-    let response = request_builder
-        .send()
-        .await
-        .map_err(|err| err.to_string())?;
-
-    let status = response.status();
-
-    if skip_error.contains(&status) {
-        return Ok(response);
-    }
-
-    if status.is_client_error() {
-        let error_msg = response
-            .json::<ErrorResponse>()
-            .await
-            .map_or(String::from("Something went wrong"), |error| error.message);
-        logging::error!("{}", error_msg);
-        enqueue_alert(error_msg.clone(), AlertType::Error, 5000);
-        return Err(error_msg);
-    }
-    if status.is_server_error() {
-        if status == 512 {
-            enqueue_alert(
-                "Webhook Call Failed, Please Check the Logs.".to_owned(),
-                AlertType::Error,
-                5000,
-            );
-        } else {
-            let error_msg = response
-                .json::<ErrorResponse>()
-                .await
-                .map_or(String::from("Something went wrong"), |error| error.message);
-            logging::error!("{}", error_msg);
-            enqueue_alert(error_msg.clone(), AlertType::Error, 5000);
-            return Err(error_msg);
-        }
-    }
-
-    Ok(response)
+    request_with_policy(url, method, body, headers, skip_error, RetryPolicy::None).await
 }
 
 pub async fn request<T>(
@@ -301,7 +400,19 @@ pub async fn request<T>(
 where
     T: serde::Serialize,
 {
-    request_with_skip_error(url, method, body, headers, &[]).await
+    request_with_policy(url, method, body, headers, &[], RetryPolicy::None).await
+}
+
+pub async fn request_with_workspace_lock_retry<T>(
+    url: String,
+    method: reqwest::Method,
+    body: Option<T>,
+    headers: HeaderMap,
+) -> Result<reqwest::Response, String>
+where
+    T: serde::Serialize,
+{
+    request_with_policy(url, method, body, headers, &[], RetryPolicy::WorkspaceLock).await
 }
 
 pub fn unwrap_option_or_default_with_error<T>(option: Option<T>, default: T) -> T {
