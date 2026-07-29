@@ -1063,6 +1063,16 @@
                     "404": {
                         "description": "ResourceNotFound 404 response"
                     },
+                    "409": {
+                        "description": "WorkspaceLockConflict 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkspaceLockConflictResponseContent"
+                                }
+                            }
+                        }
+                    },
                     "500": {
                         "description": "InternalServerError 500 response",
                         "content": {
@@ -1141,6 +1151,16 @@
                     },
                     "404": {
                         "description": "ResourceNotFound 404 response"
+                    },
+                    "409": {
+                        "description": "WorkspaceLockConflict 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkspaceLockConflictResponseContent"
+                                }
+                            }
+                        }
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -1283,6 +1303,16 @@
                     "404": {
                         "description": "ResourceNotFound 404 response"
                     },
+                    "409": {
+                        "description": "WorkspaceLockConflict 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkspaceLockConflictResponseContent"
+                                }
+                            }
+                        }
+                    },
                     "500": {
                         "description": "InternalServerError 500 response",
                         "content": {
@@ -1361,6 +1391,16 @@
                     },
                     "404": {
                         "description": "ResourceNotFound 404 response"
+                    },
+                    "409": {
+                        "description": "WorkspaceLockConflict 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkspaceLockConflictResponseContent"
+                                }
+                            }
+                        }
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -1480,6 +1520,16 @@
                             }
                         }
                     },
+                    "409": {
+                        "description": "WorkspaceLockConflict 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkspaceLockConflictResponseContent"
+                                }
+                            }
+                        }
+                    },
                     "500": {
                         "description": "InternalServerError 500 response",
                         "content": {
@@ -1549,6 +1599,16 @@
                     },
                     "404": {
                         "description": "ResourceNotFound 404 response"
+                    },
+                    "409": {
+                        "description": "WorkspaceLockConflict 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkspaceLockConflictResponseContent"
+                                }
+                            }
+                        }
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -2130,6 +2190,16 @@
                             }
                         }
                     },
+                    "409": {
+                        "description": "WorkspaceLockConflict 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkspaceLockConflictResponseContent"
+                                }
+                            }
+                        }
+                    },
                     "500": {
                         "description": "InternalServerError 500 response",
                         "content": {
@@ -2192,6 +2262,16 @@
                     },
                     "404": {
                         "description": "ResourceNotFound 404 response"
+                    },
+                    "409": {
+                        "description": "WorkspaceLockConflict 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkspaceLockConflictResponseContent"
+                                }
+                            }
+                        }
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -2328,6 +2408,16 @@
                     },
                     "404": {
                         "description": "ResourceNotFound 404 response"
+                    },
+                    "409": {
+                        "description": "WorkspaceLockConflict 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkspaceLockConflictResponseContent"
+                                }
+                            }
+                        }
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -4120,6 +4210,16 @@
                             }
                         }
                     },
+                    "409": {
+                        "description": "WorkspaceLockConflict 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkspaceLockConflictResponseContent"
+                                }
+                            }
+                        }
+                    },
                     "500": {
                         "description": "InternalServerError 500 response",
                         "content": {
@@ -4172,6 +4272,16 @@
                     },
                     "404": {
                         "description": "ResourceNotFound 404 response"
+                    },
+                    "409": {
+                        "description": "WorkspaceLockConflict 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkspaceLockConflictResponseContent"
+                                }
+                            }
+                        }
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -4299,6 +4409,16 @@
                     "404": {
                         "description": "ResourceNotFound 404 response"
                     },
+                    "409": {
+                        "description": "WorkspaceLockConflict 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkspaceLockConflictResponseContent"
+                                }
+                            }
+                        }
+                    },
                     "500": {
                         "description": "InternalServerError 500 response",
                         "content": {
@@ -4368,6 +4488,16 @@
                     },
                     "404": {
                         "description": "ResourceNotFound 404 response"
+                    },
+                    "409": {
+                        "description": "WorkspaceLockConflict 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkspaceLockConflictResponseContent"
+                                }
+                            }
+                        }
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -4811,6 +4941,16 @@
                             }
                         }
                     },
+                    "409": {
+                        "description": "WorkspaceLockConflict 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkspaceLockConflictResponseContent"
+                                }
+                            }
+                        }
+                    },
                     "500": {
                         "description": "InternalServerError 500 response",
                         "content": {
@@ -4870,6 +5010,16 @@
                     },
                     "404": {
                         "description": "ResourceNotFound 404 response"
+                    },
+                    "409": {
+                        "description": "WorkspaceLockConflict 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkspaceLockConflictResponseContent"
+                                }
+                            }
+                        }
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -4996,6 +5146,16 @@
                     },
                     "404": {
                         "description": "ResourceNotFound 404 response"
+                    },
+                    "409": {
+                        "description": "WorkspaceLockConflict 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkspaceLockConflictResponseContent"
+                                }
+                            }
+                        }
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -5324,6 +5484,16 @@
                             }
                         }
                     },
+                    "409": {
+                        "description": "WorkspaceLockConflict 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkspaceLockConflictResponseContent"
+                                }
+                            }
+                        }
+                    },
                     "500": {
                         "description": "InternalServerError 500 response",
                         "content": {
@@ -5383,6 +5553,16 @@
                     },
                     "404": {
                         "description": "ResourceNotFound 404 response"
+                    },
+                    "409": {
+                        "description": "WorkspaceLockConflict 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkspaceLockConflictResponseContent"
+                                }
+                            }
+                        }
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -5509,6 +5689,16 @@
                     },
                     "404": {
                         "description": "ResourceNotFound 404 response"
+                    },
+                    "409": {
+                        "description": "WorkspaceLockConflict 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkspaceLockConflictResponseContent"
+                                }
+                            }
+                        }
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -5701,6 +5891,16 @@
                             }
                         }
                     },
+                    "409": {
+                        "description": "WorkspaceLockConflict 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkspaceLockConflictResponseContent"
+                                }
+                            }
+                        }
+                    },
                     "500": {
                         "description": "InternalServerError 500 response",
                         "content": {
@@ -5760,6 +5960,16 @@
                     },
                     "404": {
                         "description": "ResourceNotFound 404 response"
+                    },
+                    "409": {
+                        "description": "WorkspaceLockConflict 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkspaceLockConflictResponseContent"
+                                }
+                            }
+                        }
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -5886,6 +6096,16 @@
                     },
                     "404": {
                         "description": "ResourceNotFound 404 response"
+                    },
+                    "409": {
+                        "description": "WorkspaceLockConflict 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkspaceLockConflictResponseContent"
+                                }
+                            }
+                        }
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -6080,6 +6300,16 @@
                             }
                         }
                     },
+                    "409": {
+                        "description": "WorkspaceLockConflict 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkspaceLockConflictResponseContent"
+                                }
+                            }
+                        }
+                    },
                     "500": {
                         "description": "InternalServerError 500 response",
                         "content": {
@@ -6192,6 +6422,16 @@
                     },
                     "404": {
                         "description": "ResourceNotFound 404 response"
+                    },
+                    "409": {
+                        "description": "WorkspaceLockConflict 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkspaceLockConflictResponseContent"
+                                }
+                            }
+                        }
                     },
                     "500": {
                         "description": "InternalServerError 500 response",
@@ -6318,6 +6558,16 @@
                     },
                     "404": {
                         "description": "ResourceNotFound 404 response"
+                    },
+                    "409": {
+                        "description": "WorkspaceLockConflict 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkspaceLockConflictResponseContent"
+                                }
+                            }
+                        }
                     },
                     "500": {
                         "description": "InternalServerError 500 response",

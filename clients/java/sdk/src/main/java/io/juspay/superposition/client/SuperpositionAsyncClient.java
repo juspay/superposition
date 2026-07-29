@@ -241,6 +241,7 @@ public interface SuperpositionAsyncClient {
      * @throws InternalServerError
      * @throws WebhookFailed
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      */
     default CompletableFuture<BulkOperationOutput> bulkOperation(BulkOperationInput input) {
         return bulkOperation(input, null);
@@ -253,6 +254,7 @@ public interface SuperpositionAsyncClient {
      * @throws InternalServerError
      * @throws WebhookFailed
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      */
     CompletableFuture<BulkOperationOutput> bulkOperation(BulkOperationInput input, RequestOverrideConfig overrideConfig);
 
@@ -284,6 +286,7 @@ public interface SuperpositionAsyncClient {
      *
      * @throws ResourceNotFound
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CompletableFuture<CreateContextOutput> createContext(CreateContextInput input) {
@@ -296,6 +299,7 @@ public interface SuperpositionAsyncClient {
      *
      * @throws ResourceNotFound
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CompletableFuture<CreateContextOutput> createContext(CreateContextInput input, RequestOverrideConfig overrideConfig);
@@ -327,6 +331,7 @@ public interface SuperpositionAsyncClient {
      * used for context-based config management.
      *
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CompletableFuture<CreateDimensionOutput> createDimension(CreateDimensionInput input) {
@@ -338,6 +343,7 @@ public interface SuperpositionAsyncClient {
      * used for context-based config management.
      *
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CompletableFuture<CreateDimensionOutput> createDimension(CreateDimensionInput input, RequestOverrideConfig overrideConfig);
@@ -382,6 +388,7 @@ public interface SuperpositionAsyncClient {
      * Creates a new custom function for value_validation, value_compute, context_validation or
      * change_reason_validation with specified code, runtime version, and function type.
      *
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CompletableFuture<CreateFunctionOutput> createFunction(CreateFunctionInput input) {
@@ -392,6 +399,7 @@ public interface SuperpositionAsyncClient {
      * Creates a new custom function for value_validation, value_compute, context_validation or
      * change_reason_validation with specified code, runtime version, and function type.
      *
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CompletableFuture<CreateFunctionOutput> createFunction(CreateFunctionInput input, RequestOverrideConfig overrideConfig);
@@ -418,6 +426,7 @@ public interface SuperpositionAsyncClient {
      * Creates a new encrypted secret with the specified name and value. The secret is encrypted with the
      * workspace's current encryption key. Secret values are never returned in responses for security.
      *
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CompletableFuture<CreateSecretOutput> createSecret(CreateSecretInput input) {
@@ -428,6 +437,7 @@ public interface SuperpositionAsyncClient {
      * Creates a new encrypted secret with the specified name and value. The secret is encrypted with the
      * workspace's current encryption key. Secret values are never returned in responses for security.
      *
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CompletableFuture<CreateSecretOutput> createSecret(CreateSecretInput input, RequestOverrideConfig overrideConfig);
@@ -436,6 +446,7 @@ public interface SuperpositionAsyncClient {
      * Creates a new type template with specified schema definition, providing reusable type definitions
      * for config validation.
      *
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CompletableFuture<CreateTypeTemplatesOutput> createTypeTemplates(CreateTypeTemplatesInput input) {
@@ -446,6 +457,7 @@ public interface SuperpositionAsyncClient {
      * Creates a new type template with specified schema definition, providing reusable type definitions
      * for config validation.
      *
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CompletableFuture<CreateTypeTemplatesOutput> createTypeTemplates(CreateTypeTemplatesInput input, RequestOverrideConfig overrideConfig);
@@ -453,6 +465,7 @@ public interface SuperpositionAsyncClient {
     /**
      * Creates a new variable with the specified name and value.
      *
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CompletableFuture<CreateVariableOutput> createVariable(CreateVariableInput input) {
@@ -462,6 +475,7 @@ public interface SuperpositionAsyncClient {
     /**
      * Creates a new variable with the specified name and value.
      *
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CompletableFuture<CreateVariableOutput> createVariable(CreateVariableInput input, RequestOverrideConfig overrideConfig);
@@ -470,6 +484,7 @@ public interface SuperpositionAsyncClient {
      * Creates a new webhook config to receive HTTP notifications when specified events occur in the
      * system.
      *
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CompletableFuture<CreateWebhookOutput> createWebhook(CreateWebhookInput input) {
@@ -480,6 +495,7 @@ public interface SuperpositionAsyncClient {
      * Creates a new webhook config to receive HTTP notifications when specified events occur in the
      * system.
      *
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CompletableFuture<CreateWebhookOutput> createWebhook(CreateWebhookInput input, RequestOverrideConfig overrideConfig);
@@ -508,6 +524,7 @@ public interface SuperpositionAsyncClient {
      *
      * @throws ResourceNotFound
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CompletableFuture<DeleteContextOutput> deleteContext(DeleteContextInput input) {
@@ -520,6 +537,7 @@ public interface SuperpositionAsyncClient {
      *
      * @throws ResourceNotFound
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CompletableFuture<DeleteContextOutput> deleteContext(DeleteContextInput input, RequestOverrideConfig overrideConfig);
@@ -554,6 +572,7 @@ public interface SuperpositionAsyncClient {
      *
      * @throws ResourceNotFound
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CompletableFuture<DeleteDimensionOutput> deleteDimension(DeleteDimensionInput input) {
@@ -566,6 +585,7 @@ public interface SuperpositionAsyncClient {
      *
      * @throws ResourceNotFound
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CompletableFuture<DeleteDimensionOutput> deleteDimension(DeleteDimensionInput input, RequestOverrideConfig overrideConfig);
@@ -593,6 +613,7 @@ public interface SuperpositionAsyncClient {
      * with all associated code. It fails if already in use
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CompletableFuture<DeleteFunctionOutput> deleteFunction(DeleteFunctionInput input) {
@@ -604,6 +625,7 @@ public interface SuperpositionAsyncClient {
      * with all associated code. It fails if already in use
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CompletableFuture<DeleteFunctionOutput> deleteFunction(DeleteFunctionInput input, RequestOverrideConfig overrideConfig);
@@ -613,6 +635,7 @@ public interface SuperpositionAsyncClient {
      * recovered.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CompletableFuture<DeleteSecretOutput> deleteSecret(DeleteSecretInput input) {
@@ -624,6 +647,7 @@ public interface SuperpositionAsyncClient {
      * recovered.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CompletableFuture<DeleteSecretOutput> deleteSecret(DeleteSecretInput input, RequestOverrideConfig overrideConfig);
@@ -632,6 +656,7 @@ public interface SuperpositionAsyncClient {
      * Permanently removes a type template from the workspace. No checks performed while deleting
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CompletableFuture<DeleteTypeTemplatesOutput> deleteTypeTemplates(DeleteTypeTemplatesInput input) {
@@ -642,6 +667,7 @@ public interface SuperpositionAsyncClient {
      * Permanently removes a type template from the workspace. No checks performed while deleting
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CompletableFuture<DeleteTypeTemplatesOutput> deleteTypeTemplates(DeleteTypeTemplatesInput input, RequestOverrideConfig overrideConfig);
@@ -650,6 +676,7 @@ public interface SuperpositionAsyncClient {
      * Permanently deletes a variable from the workspace.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CompletableFuture<DeleteVariableOutput> deleteVariable(DeleteVariableInput input) {
@@ -660,6 +687,7 @@ public interface SuperpositionAsyncClient {
      * Permanently deletes a variable from the workspace.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CompletableFuture<DeleteVariableOutput> deleteVariable(DeleteVariableInput input, RequestOverrideConfig overrideConfig);
@@ -669,6 +697,7 @@ public interface SuperpositionAsyncClient {
      * that endpoint.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CompletableFuture<DeleteWebhookOutput> deleteWebhook(DeleteWebhookInput input) {
@@ -680,6 +709,7 @@ public interface SuperpositionAsyncClient {
      * that endpoint.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CompletableFuture<DeleteWebhookOutput> deleteWebhook(DeleteWebhookInput input, RequestOverrideConfig overrideConfig);
@@ -1412,6 +1442,7 @@ public interface SuperpositionAsyncClient {
      *
      * @throws ResourceNotFound
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CompletableFuture<MoveContextOutput> moveContext(MoveContextInput input) {
@@ -1424,6 +1455,7 @@ public interface SuperpositionAsyncClient {
      *
      * @throws ResourceNotFound
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CompletableFuture<MoveContextOutput> moveContext(MoveContextInput input, RequestOverrideConfig overrideConfig);
@@ -1455,6 +1487,7 @@ public interface SuperpositionAsyncClient {
      * value_compute, context_validation or change_reason_validation in the system.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CompletableFuture<PublishOutput> publish(PublishInput input) {
@@ -1466,6 +1499,7 @@ public interface SuperpositionAsyncClient {
      * value_compute, context_validation or change_reason_validation in the system.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CompletableFuture<PublishOutput> publish(PublishInput input, RequestOverrideConfig overrideConfig);
@@ -1616,6 +1650,7 @@ public interface SuperpositionAsyncClient {
      *
      * @throws ResourceNotFound
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CompletableFuture<UpdateDimensionOutput> updateDimension(UpdateDimensionInput input) {
@@ -1628,6 +1663,7 @@ public interface SuperpositionAsyncClient {
      *
      * @throws ResourceNotFound
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CompletableFuture<UpdateDimensionOutput> updateDimension(UpdateDimensionInput input, RequestOverrideConfig overrideConfig);
@@ -1655,6 +1691,7 @@ public interface SuperpositionAsyncClient {
      * while preserving the published version.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CompletableFuture<UpdateFunctionOutput> updateFunction(UpdateFunctionInput input) {
@@ -1666,6 +1703,7 @@ public interface SuperpositionAsyncClient {
      * while preserving the published version.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CompletableFuture<UpdateFunctionOutput> updateFunction(UpdateFunctionInput input, RequestOverrideConfig overrideConfig);
@@ -1696,6 +1734,7 @@ public interface SuperpositionAsyncClient {
      *
      * @throws ResourceNotFound
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CompletableFuture<UpdateOverrideOutput> updateOverride(UpdateOverrideInput input) {
@@ -1708,6 +1747,7 @@ public interface SuperpositionAsyncClient {
      *
      * @throws ResourceNotFound
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CompletableFuture<UpdateOverrideOutput> updateOverride(UpdateOverrideInput input, RequestOverrideConfig overrideConfig);
@@ -1741,6 +1781,7 @@ public interface SuperpositionAsyncClient {
      * workspace encryption key. Returns masked value.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CompletableFuture<UpdateSecretOutput> updateSecret(UpdateSecretInput input) {
@@ -1752,6 +1793,7 @@ public interface SuperpositionAsyncClient {
      * workspace encryption key. Returns masked value.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CompletableFuture<UpdateSecretOutput> updateSecret(UpdateSecretInput input, RequestOverrideConfig overrideConfig);
@@ -1761,6 +1803,7 @@ public interface SuperpositionAsyncClient {
      * and usage history.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CompletableFuture<UpdateTypeTemplatesOutput> updateTypeTemplates(UpdateTypeTemplatesInput input) {
@@ -1772,6 +1815,7 @@ public interface SuperpositionAsyncClient {
      * and usage history.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CompletableFuture<UpdateTypeTemplatesOutput> updateTypeTemplates(UpdateTypeTemplatesInput input, RequestOverrideConfig overrideConfig);
@@ -1780,6 +1824,7 @@ public interface SuperpositionAsyncClient {
      * Updates an existing variable's value, description, or tags.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CompletableFuture<UpdateVariableOutput> updateVariable(UpdateVariableInput input) {
@@ -1790,6 +1835,7 @@ public interface SuperpositionAsyncClient {
      * Updates an existing variable's value, description, or tags.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CompletableFuture<UpdateVariableOutput> updateVariable(UpdateVariableInput input, RequestOverrideConfig overrideConfig);
@@ -1799,6 +1845,7 @@ public interface SuperpositionAsyncClient {
      * properties.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     default CompletableFuture<UpdateWebhookOutput> updateWebhook(UpdateWebhookInput input) {
@@ -1810,6 +1857,7 @@ public interface SuperpositionAsyncClient {
      * properties.
      *
      * @throws ResourceNotFound
+     * @throws WorkspaceLockConflict
      * @throws InternalServerError
      */
     CompletableFuture<UpdateWebhookOutput> updateWebhook(UpdateWebhookInput input, RequestOverrideConfig overrideConfig);
@@ -1856,6 +1904,7 @@ public interface SuperpositionAsyncClient {
      *
      * @throws InternalServerError
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      */
     default CompletableFuture<WeightRecomputeOutput> weightRecompute(WeightRecomputeInput input) {
         return weightRecompute(input, null);
@@ -1867,6 +1916,7 @@ public interface SuperpositionAsyncClient {
      *
      * @throws InternalServerError
      * @throws WebhookFailed
+     * @throws WorkspaceLockConflict
      */
     CompletableFuture<WeightRecomputeOutput> weightRecompute(WeightRecomputeInput input, RequestOverrideConfig overrideConfig);
 
@@ -1901,11 +1951,11 @@ public interface SuperpositionAsyncClient {
             Node.objectNode()
         );
 
-        private static final HttpBasicAuthTrait httpBasicAuthScheme = new HttpBasicAuthTrait();
-        private static final AuthSchemeFactory<HttpBasicAuthTrait> httpBasicAuthSchemeFactory = new HttpBasicAuthAuthScheme.Factory();
-
         private static final HttpBearerAuthTrait httpBearerAuthScheme = new HttpBearerAuthTrait();
         private static final AuthSchemeFactory<HttpBearerAuthTrait> httpBearerAuthSchemeFactory = new HttpBearerAuthScheme.Factory();
+
+        private static final HttpBasicAuthTrait httpBasicAuthScheme = new HttpBasicAuthTrait();
+        private static final AuthSchemeFactory<HttpBasicAuthTrait> httpBasicAuthSchemeFactory = new HttpBasicAuthAuthScheme.Factory();
 
         private Builder() {
             configBuilder().putSupportedAuthSchemes(httpBasicAuthSchemeFactory.createAuthScheme(httpBasicAuthScheme), httpBearerAuthSchemeFactory.createAuthScheme(httpBearerAuthScheme));

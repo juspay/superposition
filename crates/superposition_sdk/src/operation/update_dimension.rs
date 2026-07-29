@@ -203,6 +203,8 @@ pub enum UpdateDimensionError {
     ResourceNotFound(crate::types::error::ResourceNotFound),
     /// Indicates that the operation succeeded but the webhook call failed. The response body contains the successful result, but the client should be aware that webhook notification did not complete.
     WebhookFailed(crate::types::error::WebhookFailed),
+    /// Returned when a workspace write operation cannot proceed because another write operation currently holds the workspace lock.
+    WorkspaceLockConflict(crate::types::error::WorkspaceLockConflict),
     #[allow(missing_docs)] // documentation missing in model
     InternalServerError(crate::types::error::InternalServerError),
     /// An unexpected error occurred (e.g., invalid JSON returned by the service or an unknown error code).
@@ -232,6 +234,7 @@ impl UpdateDimensionError {
         match self {
             Self::ResourceNotFound(e) => ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(e),
             Self::WebhookFailed(e) => ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(e),
+            Self::WorkspaceLockConflict(e) => ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(e),
             Self::InternalServerError(e) => ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(e),
             Self::Unhandled(e) => &e.meta,
         }
@@ -243,6 +246,10 @@ impl UpdateDimensionError {
     /// Returns `true` if the error kind is `UpdateDimensionError::WebhookFailed`.
     pub fn is_webhook_failed(&self) -> bool {
         matches!(self, Self::WebhookFailed(_))
+    }
+    /// Returns `true` if the error kind is `UpdateDimensionError::WorkspaceLockConflict`.
+    pub fn is_workspace_lock_conflict(&self) -> bool {
+        matches!(self, Self::WorkspaceLockConflict(_))
     }
     /// Returns `true` if the error kind is `UpdateDimensionError::InternalServerError`.
     pub fn is_internal_server_error(&self) -> bool {
@@ -256,6 +263,9 @@ impl ::std::error::Error for UpdateDimensionError {
             ::std::option::Option::Some(_inner)
             ,
             Self::WebhookFailed(_inner) =>
+            ::std::option::Option::Some(_inner)
+            ,
+            Self::WorkspaceLockConflict(_inner) =>
             ::std::option::Option::Some(_inner)
             ,
             Self::InternalServerError(_inner) =>
@@ -274,6 +284,9 @@ impl ::std::fmt::Display for UpdateDimensionError {
             _inner.fmt(f)
             ,
             Self::WebhookFailed(_inner) =>
+            _inner.fmt(f)
+            ,
+            Self::WorkspaceLockConflict(_inner) =>
             _inner.fmt(f)
             ,
             Self::InternalServerError(_inner) =>
@@ -304,6 +317,9 @@ impl ::aws_smithy_types::error::metadata::ProvideErrorMetadata for UpdateDimensi
             ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(_inner)
             ,
             Self::WebhookFailed(_inner) =>
+            ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(_inner)
+            ,
+            Self::WorkspaceLockConflict(_inner) =>
             ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(_inner)
             ,
             Self::InternalServerError(_inner) =>

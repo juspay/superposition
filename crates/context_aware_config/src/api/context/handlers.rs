@@ -20,6 +20,7 @@ use service_utils::{
     middlewares::auth_z::{Action as AuthZAction, AuthZ},
     service::types::{
         AppHeader, AppState, CustomHeaders, DbConnection, SchemaName, WorkspaceContext,
+        WorkspaceLockTtlPolicy, WorkspaceWritePermit,
     },
 };
 use superposition_core::helpers::{calculate_context_weight, hash};
@@ -68,7 +69,11 @@ pub fn endpoints() -> Scope {
         .service(update_handler)
         .service(move_handler)
         .service(delete_handler)
-        .service(bulk_operations_handler)
+        .service(
+            Scope::new("/bulk-operations")
+                .app_data(WorkspaceLockTtlPolicy::Batch)
+                .service(bulk_operations_handler),
+        )
         .service(list_handler)
         .service(get_from_condition_handler)
         .service(get_handler)
@@ -94,13 +99,14 @@ async fn create_handler(
     state: Data<AppState>,
     custom_headers: CustomHeaders,
     req: Json<PutRequest>,
-    mut db_conn: DbConnection,
+    mut write_permit: WorkspaceWritePermit,
     user: User,
     internal_user: InternalUserContext,
 ) -> superposition::Result<HttpResponse> {
     let req = req.into_inner();
     create_authorized(&_auth_z, &req.r#override).await?;
 
+    let conn = write_permit.connection();
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let description = match req.description.clone() {
         Some(val) => val,
@@ -108,7 +114,7 @@ async fn create_handler(
             // TODO: get rid of `query_description` function altogether
             let resp = query_description(
                 Value::Object(req.context.clone().into_inner().into()),
-                &mut db_conn,
+                conn,
                 &workspace_context.schema_name,
             );
             match resp {
@@ -127,7 +133,7 @@ async fn create_handler(
     validate_change_reason(
         &workspace_context,
         &req_change_reason,
-        &mut db_conn,
+        conn,
         &state.master_encryption_key,
     )
     .await?;
@@ -135,7 +141,7 @@ async fn create_handler(
     let new_ctx = create_ctx_from_put_req(
         req,
         description,
-        &mut db_conn,
+        conn,
         &user,
         &workspace_context,
         &state.master_encryption_key,
@@ -143,7 +149,7 @@ async fn create_handler(
     )
     .await?;
 
-    let (put_response, config_version) = db_conn
+    let (put_response, config_version) = conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
             let put_response = operations::upsert(
                 transaction_conn,
@@ -168,12 +174,11 @@ async fn create_handler(
             Ok((put_response, config_version))
         })?;
 
-    let DbConnection(mut conn) = db_conn;
     let _ = put_config_in_redis(
         &config_version,
         &state,
         &workspace_context.schema_name,
-        &mut conn,
+        conn,
     )
     .await;
 
@@ -186,7 +191,7 @@ async fn create_handler(
     };
 
     let webhook_status =
-        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+        execute_webhook_call(data, &workspace_context, &state, conn).await;
 
     let mut http_resp = if webhook_status {
         HttpResponse::Ok()
@@ -232,9 +237,10 @@ async fn update_handler(
     state: Data<AppState>,
     custom_headers: CustomHeaders,
     req: Json<UpdateRequest>,
-    mut db_conn: DbConnection,
+    mut write_permit: WorkspaceWritePermit,
     user: User,
 ) -> superposition::Result<HttpResponse> {
+    let conn = write_permit.connection();
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let req_change_reason = req.change_reason.clone();
 
@@ -243,19 +249,17 @@ async fn update_handler(
         &req.context,
         &req.override_,
         &workspace_context.schema_name,
-        &mut db_conn,
+        conn,
     )
     .await?;
 
     validate_change_reason(
         &workspace_context,
         &req_change_reason,
-        &mut db_conn,
+        conn,
         &state.master_encryption_key,
     )
     .await?;
-
-    let DbConnection(mut conn) = db_conn;
 
     let (context_id, context) = match &req.context {
         Identifier::Context(context) => {
@@ -266,7 +270,7 @@ async fn update_handler(
             let ctx_value: Context = dsl::contexts
                 .filter(dsl::id.eq(i.clone()))
                 .schema_name(&workspace_context.schema_name)
-                .get_result::<Context>(&mut conn)?;
+                .get_result::<Context>(conn)?;
             (i.clone(), ctx_value.value.into())
         }
     };
@@ -274,7 +278,7 @@ async fn update_handler(
 
     validate_override_with_functions(
         &workspace_context,
-        &mut conn,
+        conn,
         &r_override,
         &context,
         &state.master_encryption_key,
@@ -309,7 +313,7 @@ async fn update_handler(
         &config_version,
         &state,
         &workspace_context.schema_name,
-        &mut conn,
+        conn,
     )
     .await;
 
@@ -322,7 +326,7 @@ async fn update_handler(
     };
 
     let webhook_status =
-        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+        execute_webhook_call(data, &workspace_context, &state, conn).await;
 
     let mut http_resp = if webhook_status {
         HttpResponse::Ok()
@@ -365,18 +369,13 @@ async fn move_handler(
     path: Path<String>,
     custom_headers: CustomHeaders,
     req: Json<MoveRequest>,
-    mut db_conn: DbConnection,
+    mut write_permit: WorkspaceWritePermit,
     user: User,
     internal_user: InternalUserContext,
 ) -> superposition::Result<HttpResponse> {
+    let conn = write_permit.connection();
     let ctx_id = path.into_inner();
-    move_authorized(
-        &_auth_z,
-        &ctx_id,
-        &workspace_context.schema_name,
-        &mut db_conn,
-    )
-    .await?;
+    move_authorized(&_auth_z, &ctx_id, &workspace_context.schema_name, conn).await?;
 
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
@@ -386,7 +385,7 @@ async fn move_handler(
             // TODO: get rid of `query_description` function altogether
             let resp = query_description(
                 Value::Object(req.context.clone().into_inner().into()),
-                &mut db_conn,
+                conn,
                 &workspace_context.schema_name,
             );
             match resp {
@@ -404,17 +403,15 @@ async fn move_handler(
     validate_change_reason(
         &workspace_context,
         &req.change_reason,
-        &mut db_conn,
+        conn,
         &state.master_encryption_key,
     )
     .await?;
 
-    let DbConnection(mut conn) = db_conn;
-
     let ctx_condition = req.context.clone().into_inner();
 
     let dimension_data_map = validate_ctx(
-        &mut conn,
+        conn,
         &workspace_context,
         ctx_condition,
         Overrides::default(),
@@ -454,7 +451,7 @@ async fn move_handler(
         &config_version,
         &state,
         &workspace_context.schema_name,
-        &mut conn,
+        conn,
     )
     .await;
 
@@ -467,7 +464,7 @@ async fn move_handler(
     };
 
     let webhook_status =
-        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+        execute_webhook_call(data, &workspace_context, &state, conn).await;
 
     let mut http_resp = if webhook_status {
         HttpResponse::Ok()
@@ -719,22 +716,17 @@ async fn delete_handler(
     path: Path<String>,
     custom_headers: CustomHeaders,
     user: User,
-    mut db_conn: DbConnection,
+    mut write_permit: WorkspaceWritePermit,
 ) -> superposition::Result<HttpResponse> {
     use superposition_types::database::schema::contexts::dsl::{
         contexts as contexts_table, id as context_id,
     };
+    let conn = write_permit.connection();
     let ctx_id = path.into_inner();
-    delete_authorized(
-        &_auth_z,
-        &ctx_id,
-        &workspace_context.schema_name,
-        &mut db_conn,
-    )
-    .await?;
+    delete_authorized(&_auth_z, &ctx_id, &workspace_context.schema_name, conn).await?;
 
     let tags = parse_config_tags(custom_headers.config_tags)?;
-    let (config_version, deleted_ctx) = db_conn
+    let (config_version, deleted_ctx) = conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
             contexts_table
                 .filter(context_id.eq(ctx_id.clone()))
@@ -759,12 +751,11 @@ async fn delete_handler(
             Ok((config_version, deleted_ctx))
         })?;
 
-    let DbConnection(mut conn) = db_conn;
     let _ = put_config_in_redis(
         &config_version,
         &state,
         &workspace_context.schema_name,
-        &mut conn,
+        conn,
     )
     .await;
     let data = WebhookData {
@@ -776,7 +767,7 @@ async fn delete_handler(
     };
 
     let webhook_status =
-        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+        execute_webhook_call(data, &workspace_context, &state, conn).await;
 
     let mut http_resp = if webhook_status {
         HttpResponse::NoContent()
@@ -850,25 +841,25 @@ enum PreparedOperation {
 
 #[allow(clippy::too_many_arguments)]
 #[authorized]
-#[put("/bulk-operations")]
+#[put("")]
 async fn bulk_operations_handler(
     workspace_context: WorkspaceContext,
     state: Data<AppState>,
     custom_headers: CustomHeaders,
     req: Either<Json<Vec<ContextAction>>, Json<BulkOperation>>,
-    db_conn: DbConnection,
+    mut write_permit: WorkspaceWritePermit,
     user: User,
     internal_user: InternalUserContext,
 ) -> superposition::Result<HttpResponse> {
     use contexts::dsl::contexts;
 
-    let DbConnection(mut conn) = db_conn;
+    let conn = write_permit.connection();
     let is_v2 = matches!(req, Either::Right(_));
     let ops = match req {
         Either::Left(o) => o.into_inner(),
         Either::Right(bo) => bo.into_inner().operations,
     };
-    bulk_authorized(&_auth_z, &ops, &workspace_context.schema_name, &mut conn).await?;
+    bulk_authorized(&_auth_z, &ops, &workspace_context.schema_name, conn).await?;
 
     let mut webhook_actions: Vec<Action> = Vec::new();
     let mut webhook_contexts: Vec<Context> = Vec::new();
@@ -887,7 +878,7 @@ async fn bulk_operations_handler(
                 validate_change_reason(
                     &workspace_context,
                     &put_req.change_reason,
-                    &mut conn,
+                    conn,
                     &state.master_encryption_key,
                 )
                 .await?;
@@ -896,7 +887,7 @@ async fn bulk_operations_handler(
                     Some(val) => val,
                     None => query_description(
                         ctx_condition_value,
-                        &mut conn,
+                        conn,
                         &workspace_context.schema_name,
                     )?,
                 };
@@ -904,7 +895,7 @@ async fn bulk_operations_handler(
                 let new_ctx = create_ctx_from_put_req(
                     put_req,
                     description.clone(),
-                    &mut conn,
+                    conn,
                     &user,
                     &workspace_context,
                     &state.master_encryption_key,
@@ -929,7 +920,7 @@ async fn bulk_operations_handler(
                         let ctx_value: Context = dsl::contexts
                             .filter(dsl::id.eq(i.clone()))
                             .schema_name(&workspace_context.schema_name)
-                            .get_result::<Context>(&mut conn)?;
+                            .get_result::<Context>(conn)?;
                         (i.clone(), ctx_value.value.into())
                     }
                 };
@@ -937,7 +928,7 @@ async fn bulk_operations_handler(
 
                 validate_override_with_functions(
                     &workspace_context,
-                    &mut conn,
+                    conn,
                     &r_override,
                     &context,
                     &state.master_encryption_key,
@@ -961,7 +952,7 @@ async fn bulk_operations_handler(
                     Some(val) => val,
                     None => query_description(
                         Value::Object(move_req.context.clone().into_inner().into()),
-                        &mut conn,
+                        conn,
                         &workspace_context.schema_name,
                     )?,
                 };
@@ -969,7 +960,7 @@ async fn bulk_operations_handler(
                 let ctx_condition = move_req.context.clone().into_inner();
 
                 let dimension_data_map = validate_ctx(
-                    &mut conn,
+                    conn,
                     &workspace_context,
                     ctx_condition,
                     Overrides::default(),
@@ -1138,7 +1129,7 @@ async fn bulk_operations_handler(
         &config_version,
         &state,
         &workspace_context.schema_name,
-        &mut conn,
+        conn,
     )
     .await;
 
@@ -1151,7 +1142,7 @@ async fn bulk_operations_handler(
     };
 
     let webhook_status =
-        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+        execute_webhook_call(data, &workspace_context, &state, conn).await;
 
     let mut resp_builder = if webhook_status {
         HttpResponse::Ok()
@@ -1180,25 +1171,25 @@ async fn weight_recompute_handler(
     workspace_context: WorkspaceContext,
     state: Data<AppState>,
     custom_headers: CustomHeaders,
-    db_conn: DbConnection,
+    mut write_permit: WorkspaceWritePermit,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     use superposition_types::database::schema::contexts::dsl::{
         contexts, last_modified_at, last_modified_by, weight,
     };
 
-    let DbConnection(mut conn) = db_conn;
+    let conn = write_permit.connection();
 
     let result: Vec<Context> = contexts
         .schema_name(&workspace_context.schema_name)
-        .load(&mut conn)
+        .load(conn)
         .map_err(|err| {
             log::error!("failed to fetch contexts with error: {}", err);
             unexpected_error!("Something went wrong")
         })?;
 
     let dimension_info_map =
-        fetch_dimensions_info_map(&mut conn, &workspace_context.schema_name)?;
+        fetch_dimensions_info_map(conn, &workspace_context.schema_name)?;
     let mut response: Vec<WeightRecomputeResponse> = vec![];
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
@@ -1254,7 +1245,7 @@ async fn weight_recompute_handler(
         &config_version,
         &state,
         &workspace_context.schema_name,
-        &mut conn,
+        conn,
     )
     .await;
 
@@ -1267,7 +1258,7 @@ async fn weight_recompute_handler(
     };
 
     let webhook_status =
-        execute_webhook_call(data, &workspace_context, &state, &mut conn).await;
+        execute_webhook_call(data, &workspace_context, &state, conn).await;
 
     let mut http_resp = if webhook_status {
         HttpResponse::Ok()

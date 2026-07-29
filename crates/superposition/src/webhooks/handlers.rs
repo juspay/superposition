@@ -6,9 +6,10 @@ use actix_web::{
 use chrono::Utc;
 use context_aware_config::helpers::validate_change_reason;
 use diesel::{ExpressionMethods, PgArrayExpressionMethods, QueryDsl, RunQueryDsl};
+
 use service_utils::{
     helpers::get_from_env_or_default,
-    service::types::{AppState, DbConnection, WorkspaceContext},
+    service::types::{AppState, DbConnection, WorkspaceContext, WorkspaceWritePermit},
 };
 use superposition_derives::{authorized, declare_resource};
 use superposition_types::{
@@ -43,22 +44,22 @@ pub fn endpoints() -> Scope {
 async fn create_handler(
     workspace_context: WorkspaceContext,
     request: Json<CreateWebhookRequest>,
-    db_conn: DbConnection,
+    mut write_permit: WorkspaceWritePermit,
     user: User,
     state: Data<AppState>,
 ) -> superposition::Result<Json<Webhook>> {
-    let DbConnection(mut conn) = db_conn;
+    let conn = write_permit.connection();
     let req = request.into_inner();
 
     validate_change_reason(
         &workspace_context,
         &req.change_reason,
-        &mut conn,
+        conn,
         &state.master_encryption_key,
     )
     .await?;
 
-    validate_events(&req.events, None, &workspace_context.schema_name, &mut conn)?;
+    validate_events(&req.events, None, &workspace_context.schema_name, conn)?;
     let cap = max_webhook_retries();
     let retries = req.max_retries.unwrap_or(cap);
     if retries > cap {
@@ -66,6 +67,7 @@ async fn create_handler(
             "max_retries must not exceed {cap}"
         )));
     }
+
     let now = Utc::now();
     let webhook_data = Webhook {
         name: req.name.to_string(),
@@ -88,7 +90,7 @@ async fn create_handler(
     diesel::insert_into(webhooks::table)
         .values(&webhook_data)
         .schema_name(&workspace_context.schema_name)
-        .execute(&mut conn)?;
+        .execute(conn)?;
 
     Ok(Json(webhook_data))
 }
@@ -98,19 +100,19 @@ async fn create_handler(
 async fn update_handler(
     workspace_context: WorkspaceContext,
     params: web::Path<WebhookName>,
-    db_conn: DbConnection,
+    mut write_permit: WorkspaceWritePermit,
     user: User,
     request: Json<UpdateWebhookRequest>,
     state: Data<AppState>,
 ) -> superposition::Result<Json<Webhook>> {
-    let DbConnection(mut conn) = db_conn;
+    let conn = write_permit.connection();
     let req = request.into_inner();
     let w_name: String = params.into_inner().into();
 
     validate_change_reason(
         &workspace_context,
         &req.change_reason,
-        &mut conn,
+        conn,
         &state.master_encryption_key,
     )
     .await?;
@@ -120,7 +122,7 @@ async fn update_handler(
             webhook_events,
             Some(&w_name),
             &workspace_context.schema_name,
-            &mut conn,
+            conn,
         )?;
     }
 
@@ -141,7 +143,7 @@ async fn update_handler(
             last_modified_by.eq(user.get_email()),
         ))
         .schema_name(&workspace_context.schema_name)
-        .get_result::<Webhook>(&mut conn)?;
+        .get_result::<Webhook>(conn)?;
 
     Ok(Json(update))
 }
@@ -207,10 +209,10 @@ async fn list_handler(
 async fn delete_handler(
     workspace_context: WorkspaceContext,
     params: web::Path<WebhookName>,
-    db_conn: DbConnection,
+    mut write_permit: WorkspaceWritePermit,
     user: User,
 ) -> superposition::Result<HttpResponse> {
-    let DbConnection(mut conn) = db_conn;
+    let conn = write_permit.connection();
     let w_name: String = params.into_inner().into();
 
     diesel::update(webhooks::table)
@@ -220,11 +222,10 @@ async fn delete_handler(
             webhooks::last_modified_by.eq(user.get_email()),
         ))
         .schema_name(&workspace_context.schema_name)
-        .execute(&mut conn)?;
+        .execute(conn)?;
     diesel::delete(webhooks.filter(webhooks::name.eq(&w_name)))
         .schema_name(&workspace_context.schema_name)
-        .execute(&mut conn)?;
-
+        .execute(conn)?;
     Ok(HttpResponse::NoContent().finish())
 }
 

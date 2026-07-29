@@ -27,6 +27,12 @@ pub(crate) fn webhook_failed_correct_errors(mut builder: crate::types::error::bu
                 builder
             }
 
+pub(crate) fn workspace_lock_conflict_correct_errors(mut builder: crate::types::error::builders::WorkspaceLockConflictBuilder) -> crate::types::error::builders::WorkspaceLockConflictBuilder {
+                if builder.message.is_none() { builder.message = Some(Default::default()) }
+if builder.lock.is_none() { builder.lock = { let builder = crate::types::builders::WorkspaceLockBuilder::default(); crate::serde_util::workspace_lock_correct_errors(builder).build().ok() } }
+                builder
+            }
+
 pub(crate) fn bulk_operation_output_output_correct_errors(mut builder: crate::operation::bulk_operation::builders::BulkOperationOutputBuilder) -> crate::operation::bulk_operation::builders::BulkOperationOutputBuilder {
                 if builder.output.is_none() { builder.output = Some(Default::default()) }
                 builder
@@ -62,12 +68,6 @@ if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::
 if builder.created_by.is_none() { builder.created_by = Some(Default::default()) }
 if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
-                builder
-            }
-
-pub(crate) fn workspace_lock_conflict_correct_errors(mut builder: crate::types::error::builders::WorkspaceLockConflictBuilder) -> crate::types::error::builders::WorkspaceLockConflictBuilder {
-                if builder.message.is_none() { builder.message = Some(Default::default()) }
-if builder.lock.is_none() { builder.lock = { let builder = crate::types::builders::WorkspaceLockBuilder::default(); crate::serde_util::workspace_lock_correct_errors(builder).build().ok() } }
                 builder
             }
 
