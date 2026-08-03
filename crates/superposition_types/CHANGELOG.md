@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.50.0 - 2026-08-03
+#### Bug Fixes
+- **(exp)** Ramp at 0 (#1119) - (8beba19) - Ayush Jain
+#### Features
+- add ignore-prefix filter for resolve api (#1115) - (889de8d) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.115.4 [skip ci] - (314914f) - Superposition Bot
+
+- - -
+
 ## superposition_types-v0.49.2 - 2026-07-13
 #### Bug Fixes
 - add separate kronos dispatch token (#1089) - (8e7bebd) - Ankit Kumar Mahato

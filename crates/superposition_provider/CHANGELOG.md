@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_provider-v0.10.0 - 2026-08-03
+#### Features
+- add ignore-prefix filter for resolve api (#1115) - (889de8d) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.114.0 [skip ci] - (5727fec) - Superposition Bot
+#### Performance Improvements
+- **(core/provider)** reduce resolve-time cloning (#1079) - (dd1020a) - sauraww
+
+- - -
+
 ## superposition_provider-v0.9.4 - 2026-06-29
 #### Bug Fixes
 - add description field to SuperTOML/JSON dimension and default-config export (#1037) - (f255be9) - Natarajan Kannan

@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.79.0 - 2026-08-03
+#### Features
+- extend workspace lock to CAC write entities (#1069) - (dc5c98f) - sauraww
+- harden function code by validating return values (#1070) - (2f629bb) - Datron
+- add ignore-prefix filter for resolve api (#1115) - (889de8d) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.114.0 [skip ci] - (5727fec) - Superposition Bot
+
+- - -
+
 ## context_aware_config-v0.78.1 - 2026-06-29
 #### Bug Fixes
 - add description field to SuperTOML/JSON dimension and default-config export (#1037) - (f255be9) - Natarajan Kannan

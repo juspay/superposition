@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_core-v0.17.0 - 2026-08-03
+#### Features
+- add ignore-prefix filter for resolve api (#1115) - (889de8d) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.115.5 [skip ci] - (3cffb2b) - Superposition Bot
+
+- - -
+
 ## superposition_core-v0.16.2 - 2026-07-17
 #### Bug Fixes
 - fmt (#1092) - (b71e629) - Ankit Kumar Mahato

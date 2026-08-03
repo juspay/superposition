@@ -2,6 +2,35 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.116.0 - 2026-08-03
+### Package updates
+- haskell_client bumped to haskell_client-v0.24.0
+- experimentation_client bumped to experimentation_client-v0.23.0
+- superposition_sdk bumped to superposition_sdk-v0.23.0
+- cac_client bumped to cac_client-v0.27.0
+- experimentation_platform bumped to experimentation_platform-v0.55.0
+- superposition_core bumped to superposition_core-v0.17.0
+- superposition_types bumped to superposition_types-v0.50.0
+- context_aware_config bumped to context_aware_config-v0.79.0
+- service_utils bumped to service_utils-v0.45.0
+- superposition_provider bumped to superposition_provider-v0.10.0
+### Global changes
+#### Documentation
+- **(kronos)** add deployment documentation (#1114) - (11cf2a8) - sauraww
+- include foundational blogs (#1118) - (a51032d) - Natarajan Kannan
+#### Features
+- add ignore-prefix filter for resolve api (#1115) - (889de8d) - sauraww
+- extend workspace lock to CAC write entities (#1069) - (dc5c98f) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.115.5 [skip ci] - (3cffb2b) - Superposition Bot
+- adding missing doc changes for auth_n ENVs (#1101) - (d673227) - Ayush Jain
+- reroute docs through our domain (#1120) - (a27d911) - Datron
+- update docusaurus config - (db72474) - datron
+- try non prefixed path - (3f00b78) - datron
+- move back to superposition in the prefix - (3508ffb) - datron
+
+- - -
+
 ## v0.115.5 - 2026-07-17
 ### Package updates
 - frontend bumped to frontend-v0.56.2
