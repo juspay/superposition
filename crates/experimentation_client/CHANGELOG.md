@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_client-v0.23.0 - 2026-08-03
+#### Features
+- add ignore-prefix filter for resolve api (#1115) - (889de8d) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.105.0 [skip ci] - (972948b) - Superposition Bot
+
+- - -
+
 ## experimentation_client-v0.22.0 - 2026-04-27
 #### Features
 - move from nodeJS to rustyscript (#840) - (a3ede33) - Datron

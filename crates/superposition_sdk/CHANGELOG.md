@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_sdk-v0.23.0 - 2026-08-03
+#### Features
+- extend workspace lock to CAC write entities (#1069) - (dc5c98f) - sauraww
+- add ignore-prefix filter for resolve api (#1115) - (889de8d) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.114.0 [skip ci] - (5727fec) - Superposition Bot
+
+- - -
+
 ## superposition_sdk-v0.22.0 - 2026-06-29
 #### Features
 - added smithy for workspace lock (#1006) - (10cbd84) - sauraww

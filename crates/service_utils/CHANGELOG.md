@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.45.0 - 2026-08-03
+#### Features
+- extend workspace lock to CAC write entities (#1069) - (dc5c98f) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.115.5 [skip ci] - (3cffb2b) - Superposition Bot
+
+- - -
+
 ## service_utils-v0.44.4 - 2026-07-17
 #### Bug Fixes
 - **(auth_n)** try refresh oidc client on token exchange failure (#1088) - (d3ebf3e) - Ayush Jain

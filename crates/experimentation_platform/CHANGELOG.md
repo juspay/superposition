@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## experimentation_platform-v0.55.0 - 2026-08-03
+#### Bug Fixes
+- **(exp)** Ramp at 0 (#1119) - (8beba19) - Ayush Jain
+#### Features
+- add ignore-prefix filter for resolve api (#1115) - (889de8d) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.115.2 [skip ci] - (6cdf263) - Superposition Bot
+
+- - -
+
 ## experimentation_platform-v0.54.1 - 2026-07-07
 #### Bug Fixes
 - treat same-value experiment ramp as a no-op instead of a 400 (#1080) - (9de7878) - Avinash
