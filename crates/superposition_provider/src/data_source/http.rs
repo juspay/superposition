@@ -1,7 +1,6 @@
 use async_trait::async_trait;
 use chrono::{DateTime, TimeZone, Utc};
 use serde_json::{Map, Value};
-use superposition_sdk::error::SdkError;
 use superposition_sdk::types::DimensionMatchStrategy;
 use superposition_sdk::{Client, Config as SdkConfig};
 
@@ -16,20 +15,10 @@ pub struct HttpDataSource {
     client: Client,
 }
 
-fn create_client(options: &SuperpositionOptions) -> Client {
-    let sdk_config = SdkConfig::builder()
-        .endpoint_url(&options.endpoint)
-        .bearer_token(options.token.clone().into())
-        .behavior_version_latest()
-        .build();
-
-    Client::from_conf(sdk_config)
-}
-
 impl HttpDataSource {
     pub fn new(options: SuperpositionOptions) -> Self {
         Self {
-            client: create_client(&options),
+            client: Client::from_conf(SdkConfig::from(&options)),
             options,
         }
     }
@@ -93,7 +82,7 @@ impl HttpDataSource {
                     })
                     .map(FetchResponse::Data)
             }
-            Err(SdkError::ResponseError(r)) if r.raw().status().as_u16() == 304 => {
+            Err(e) if e.raw_response().map(|r| r.status().as_u16()) == Some(304) => {
                 Ok(FetchResponse::NotModified)
             }
             Err(e) => Err(SuperpositionError::NetworkError(format!(
@@ -163,7 +152,7 @@ impl SuperpositionDataSource for HttpDataSource {
                     })
                     .map(FetchResponse::Data)
             }
-            Err(SdkError::ResponseError(r)) if r.raw().status().as_u16() == 304 => {
+            Err(e) if e.raw_response().map(|r| r.status().as_u16()) == Some(304) => {
                 Ok(FetchResponse::NotModified)
             }
             Err(e) => Err(SuperpositionError::NetworkError(format!(
@@ -203,8 +192,8 @@ impl SuperpositionDataSource for HttpDataSource {
     async fn fetch_matching_active_experiments(
         &self,
         context: Option<Map<String, Value>>,
-        exclude_prefix_filter: Option<Vec<String>>,
         prefix_filter: Option<Vec<String>>,
+        exclude_prefix_filter: Option<Vec<String>>,
         if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ExperimentData>> {
         self.fetch_experiments_with_filters(

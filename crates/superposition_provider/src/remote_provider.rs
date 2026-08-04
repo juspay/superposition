@@ -22,21 +22,11 @@ pub struct SuperpositionAPIProvider {
     client: Client,
 }
 
-fn create_client(options: &SuperpositionOptions) -> Client {
-    let sdk_config = SdkConfig::builder()
-        .endpoint_url(&options.endpoint)
-        .bearer_token(options.token.clone().into())
-        .behavior_version_latest()
-        .build();
-
-    Client::from_conf(sdk_config)
-}
-
 impl SuperpositionAPIProvider {
     /// Create a new provider without response caching.
     pub fn new(options: SuperpositionOptions) -> Self {
         Self {
-            client: create_client(&options),
+            client: Client::from_conf(SdkConfig::from(&options)),
             options,
             global_context: RwLock::new(EvaluationContext::default()),
             metadata: ProviderMetadata {
@@ -123,11 +113,6 @@ impl FeatureExperimentMeta for SuperpositionAPIProvider {
         exclude_prefix_filter: Option<Vec<String>>,
     ) -> Result<Vec<String>> {
         let (query_data, targeting_key) = self.get_merged_context(context).await;
-        let Some(targeting_key) = targeting_key else {
-            return Err(SuperpositionError::ProviderError(
-                "Missing targeting key in evaluation context".to_string(),
-            ));
-        };
 
         let applicable_variants = self
             .client
@@ -135,7 +120,7 @@ impl FeatureExperimentMeta for SuperpositionAPIProvider {
             .workspace_id(&self.options.workspace_id)
             .org_id(&self.options.org_id)
             .set_context(Some(query_data))
-            .identifier(targeting_key)
+            .identifier(targeting_key.unwrap_or_default())
             .set_prefix(prefix_filter)
             .set_exclude_prefix(exclude_prefix_filter)
             .send()
