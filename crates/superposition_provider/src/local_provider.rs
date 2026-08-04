@@ -128,8 +128,8 @@ impl LocalResolutionProvider {
                         "LocalResolutionProvider: primary experiment fetch failed: {}",
                         e
                     );
-                    if let Some(fallback) = &self.fallback {
-                        if fallback.supports_experiments() {
+                    match &self.fallback {
+                        Some(fallback) if fallback.supports_experiments() => {
                             match fallback.fetch_active_experiments(None).await {
                                 Ok(exp_resp) => exp_resp.into_data(),
                                 Err(fb_err) => {
@@ -143,17 +143,12 @@ impl LocalResolutionProvider {
                                     )));
                                 }
                             }
-                        } else {
-                            log::warn!(
-                                "LocalResolutionProvider: fallback does not support experiments"
-                            );
-                            None
                         }
-                    } else {
-                        return Err(SuperpositionError::ConfigError(format!(
-                            "Primary experiment fetch failed and no fallback configured: {}",
-                            e
-                        )));
+                        _ => {
+                            return Err(SuperpositionError::ConfigError(format!(
+                                "Primary experiment fetch failed and no fallback configured supporting experiments: {e}",
+                            )));
+                        }
                     }
                 }
             }

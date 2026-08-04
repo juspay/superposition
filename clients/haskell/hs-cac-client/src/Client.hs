@@ -183,5 +183,5 @@ getDefaultConfig client mbKeys mbExcludePrefix = do
             fptrOverrides <- newForeignPtr c_free_string overrides
             Right . toJSON <$> withForeignPtr fptrOverrides peekCString
 
-getResolvedConfig :: FromJSON a => ForeignPtr CacClient -> String -> Maybe [String] -> IO (Either Error a)
-getResolvedConfig client context mbKeys = getResolvedConfigWithStrategy client context mbKeys MERGE
+getResolvedConfig :: FromJSON a => ForeignPtr CacClient -> String -> Maybe [String] -> Maybe [String] -> IO (Either Error a)
+getResolvedConfig client context mbKeys mbExcludePrefix = getResolvedConfigWithStrategy client context mbKeys mbExcludePrefix MERGE

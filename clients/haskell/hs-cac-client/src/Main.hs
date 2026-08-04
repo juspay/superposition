@@ -20,11 +20,11 @@ main = do
     getCacClient "dev" >>= \case
         Left err     -> putStrLn err
         Right client -> do
-            config          <- getFullConfigStateWithFilter client Nothing Nothing
+            config          <- getFullConfigStateWithFilter client Nothing Nothing Nothing
             lastModified    <- getCacLastModified client
-            overrides :: (Either String Value) <- getResolvedConfig client "{\"country\": \"India\"}" $ Just ["country_image_url", "hyperpay_version"]
-            defaults        <- getDefaultConfig client $ Just ["country_image_url", "hyperpay_version"]
-            filteredConfig  <- getFullConfigStateWithFilter client (Just "{\"os\": \"android\"}") $ Just ["hyperpay"]
+            overrides :: (Either String Value) <- getResolvedConfig client "{\"country\": \"India\"}" (Just ["country_image_url", "hyperpay_version"]) Nothing
+            defaults        <- getDefaultConfig client (Just ["country_image_url", "hyperpay_version"]) Nothing
+            filteredConfig  <- getFullConfigStateWithFilter client (Just "{\"os\": \"android\"}") (Just ["hyperpay"]) Nothing
             print config
             print lastModified
             print overrides

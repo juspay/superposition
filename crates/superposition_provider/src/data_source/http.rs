@@ -192,8 +192,8 @@ impl SuperpositionDataSource for HttpDataSource {
     async fn fetch_matching_active_experiments(
         &self,
         context: Option<Map<String, Value>>,
-        exclude_prefix_filter: Option<Vec<String>>,
         prefix_filter: Option<Vec<String>>,
+        exclude_prefix_filter: Option<Vec<String>>,
         if_modified_since: Option<DateTime<Utc>>,
     ) -> Result<FetchResponse<ExperimentData>> {
         self.fetch_experiments_with_filters(
