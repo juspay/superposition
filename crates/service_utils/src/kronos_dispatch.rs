@@ -14,7 +14,7 @@ use serde_json::json;
 use snowflake::SnowflakeIdGenerator;
 use superposition_types::{
     DBConnection,
-    api::jobs::{JobCreateResponse, JobListFilters, JobRequest},
+    api::jobs::{JobCreateResponse, JobListFilters, JobRequest, KronosJobRequest},
     custom_query::PaginationParams,
     database::{
         models::{
@@ -263,7 +263,7 @@ pub async fn submit_job(
     workspace: &JobWorkspace,
     org_id: &str,
     workspace_id: &str,
-    job_request: &JobRequest,
+    job_request: JobRequest,
     snowflake_generator: &Arc<Mutex<SnowflakeIdGenerator>>,
     conn: &mut DBConnection,
     max_attempts: i64,
@@ -297,13 +297,12 @@ pub async fn submit_job(
         .values(&bjm_entry)
         .execute(conn)?;
 
-    let job_request_value = serde_json::to_value(job_request)?;
-    let mut input = job_request_value;
-    if let Some(obj) = input.as_object_mut() {
-        obj.insert("org_id".to_string(), json!(org_id));
-        obj.insert("workspace".to_string(), json!(workspace_id));
-        obj.insert("job_id".to_string(), json!(job_id.to_string()));
-    }
+    let input = KronosJobRequest {
+        request: job_request,
+        org_id: org_id.to_string(),
+        workspace_id: workspace_id.to_string(),
+        job_id,
+    };
 
     let idempotency_key = format!(
         "{}_{}_{}_{}",
@@ -317,7 +316,7 @@ pub async fn submit_job(
         .create_job(
             target_workspace,
             JOB_DISPATCHER_ENDPOINT_NAME,
-            input,
+            json!(input),
             max_attempts,
             JobTrigger::Immediate,
             Some(&idempotency_key),

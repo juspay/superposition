@@ -505,7 +505,7 @@ async fn reduce_handler(
         &job_workspace,
         &workspace_context.organisation_id,
         &workspace_context.workspace_id,
-        &job_request,
+        job_request,
         &state.snowflake_generator,
         &mut conn,
         3,

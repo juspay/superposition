@@ -88,6 +88,16 @@ impl JobResponse {
     }
 }
 
+#[derive(Debug, Clone, Serialize)]
+pub struct KronosJobRequest {
+    #[serde(flatten)]
+    pub request: JobRequest,
+    pub org_id: String,
+    pub workspace_id: String,
+    #[serde(with = "crate::database::models::i64_formatter")]
+    pub job_id: i64,
+}
+
 impl From<BackgroundJob> for JobResponse {
     fn from(job: BackgroundJob) -> Self {
         Self {
