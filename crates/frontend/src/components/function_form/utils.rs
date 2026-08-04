@@ -10,7 +10,8 @@ use superposition_types::{
 };
 
 use crate::utils::{
-    construct_request_headers, parse_json_response, request, use_host_server,
+    construct_request_headers, parse_json_response, request,
+    request_with_workspace_lock_retry, use_host_server,
 };
 
 #[allow(clippy::too_many_arguments)]
@@ -35,7 +36,7 @@ pub async fn create_function(
 
     let host = use_host_server();
     let url = format!("{host}/function");
-    let response = request(
+    let response = request_with_workspace_lock_retry(
         url,
         reqwest::Method::POST,
         Some(payload),
@@ -65,7 +66,7 @@ pub async fn update_function(
     let host = use_host_server();
     let url = format!("{host}/function/{function_name}");
 
-    let response = request(
+    let response = request_with_workspace_lock_retry(
         url,
         reqwest::Method::PATCH,
         Some(payload),

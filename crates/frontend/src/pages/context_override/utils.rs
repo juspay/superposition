@@ -7,7 +7,8 @@ use superposition_types::{
 };
 
 use crate::utils::{
-    construct_request_headers, parse_json_response, request, use_host_server,
+    construct_request_headers, parse_json_response, request_with_workspace_lock_retry,
+    use_host_server,
 };
 
 use super::Conditions;
@@ -41,7 +42,7 @@ pub async fn create_context(
     let url = format!("{host}/context");
     let request_payload =
         context_payload(overrides, conditions, description, change_reason);
-    let response = request(
+    let response = request_with_workspace_lock_retry(
         url,
         reqwest::Method::PUT,
         Some(request_payload),
@@ -73,7 +74,7 @@ pub async fn update_context(
 ) -> Result<Context, String> {
     let host = use_host_server();
     let url = format!("{host}/context/overrides");
-    let response = request(
+    let response = request_with_workspace_lock_retry(
         url,
         reqwest::Method::PATCH,
         Some(request_payload),

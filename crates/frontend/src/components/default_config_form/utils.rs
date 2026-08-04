@@ -8,7 +8,8 @@ use superposition_types::{
 };
 
 use crate::utils::{
-    construct_request_headers, parse_json_response, request, use_host_server,
+    construct_request_headers, parse_json_response, request_with_workspace_lock_retry,
+    use_host_server,
 };
 
 #[allow(clippy::too_many_arguments)]
@@ -35,7 +36,7 @@ pub async fn create_default_config(
     let host = use_host_server();
     let url = format!("{host}/default-config");
 
-    let response = request(
+    let response = request_with_workspace_lock_retry(
         url,
         reqwest::Method::POST,
         Some(payload),
@@ -73,7 +74,7 @@ pub async fn update_default_config(
     let host = use_host_server();
     let url = format!("{host}/default-config/{key}");
 
-    let response = request(
+    let response = request_with_workspace_lock_retry(
         url,
         reqwest::Method::PATCH,
         Some(update_payload),

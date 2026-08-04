@@ -23,7 +23,8 @@ use superposition_types::{
 };
 
 use crate::utils::{
-    construct_request_headers, parse_json_response, request, use_host_server,
+    construct_request_headers, parse_json_response, request,
+    request_with_workspace_lock_retry, use_host_server,
 };
 
 pub mod casbin {
@@ -386,7 +387,7 @@ pub mod dimensions {
         let host = use_host_server();
         let url = format!("{host}/dimension");
 
-        let response = request(
+        let response = request_with_workspace_lock_retry(
             url,
             reqwest::Method::POST,
             Some(payload),
@@ -409,7 +410,7 @@ pub mod dimensions {
         let host = use_host_server();
         let url = format!("{host}/dimension/{dimension_name}");
 
-        let response = request(
+        let response = request_with_workspace_lock_retry(
             url,
             reqwest::Method::PATCH,
             Some(payload),
@@ -431,7 +432,7 @@ pub mod dimensions {
         let host = use_host_server();
         let url = format!("{host}/dimension/{name}");
 
-        request(
+        request_with_workspace_lock_retry(
             url,
             reqwest::Method::DELETE,
             None::<()>,
@@ -454,7 +455,7 @@ pub async fn delete_context(
     let host = use_host_server();
     let url = format!("{}/context/{}", host, context_id);
 
-    request(
+    request_with_workspace_lock_retry(
         url,
         reqwest::Method::DELETE,
         None::<()>,
@@ -644,7 +645,7 @@ pub mod default_configs {
         let host = use_host_server();
         let url = format!("{host}/default-config/{key}");
 
-        request(
+        request_with_workspace_lock_retry(
             url,
             reqwest::Method::DELETE,
             None::<()>,
@@ -859,7 +860,7 @@ pub async fn create_webhook(
     let host = use_host_server();
     let url = format!("{host}/webhook");
 
-    let response = request(
+    let response = request_with_workspace_lock_retry(
         url,
         reqwest::Method::POST,
         Some(payload),
@@ -879,7 +880,7 @@ pub async fn update_webhook(
     let host = use_host_server();
     let url = format!("{host}/webhook/{webhook_name}");
 
-    let response = request(
+    let response = request_with_workspace_lock_retry(
         url,
         reqwest::Method::PATCH,
         Some(payload),
@@ -917,7 +918,7 @@ pub async fn delete_webhooks(
     let host = use_host_server();
     let url = format!("{host}/webhook/{name}");
 
-    request(
+    request_with_workspace_lock_retry(
         url,
         reqwest::Method::DELETE,
         None::<()>,
@@ -1195,7 +1196,7 @@ pub mod variables {
         let host = use_host_server();
         let url = format!("{host}/variables");
 
-        let response = request(
+        let response = request_with_workspace_lock_retry(
             url,
             reqwest::Method::POST,
             Some(payload),
@@ -1240,7 +1241,7 @@ pub mod variables {
         let host = use_host_server();
         let url = format!("{host}/variables/{variable_name}");
 
-        let response = request(
+        let response = request_with_workspace_lock_retry(
             url,
             reqwest::Method::PATCH,
             Some(payload),
@@ -1262,7 +1263,7 @@ pub mod variables {
         let host = use_host_server();
         let url = format!("{host}/variables/{variable_name}");
 
-        request(
+        request_with_workspace_lock_retry(
             url,
             reqwest::Method::DELETE,
             None::<()>,
@@ -1332,7 +1333,7 @@ pub mod secrets {
         let host = use_host_server();
         let url = format!("{host}/secrets");
 
-        let response = request(
+        let response = request_with_workspace_lock_retry(
             url,
             reqwest::Method::POST,
             Some(payload),
@@ -1377,7 +1378,7 @@ pub mod secrets {
         let host = use_host_server();
         let url = format!("{host}/secrets/{secret_name}");
 
-        let response = request(
+        let response = request_with_workspace_lock_retry(
             url,
             reqwest::Method::PATCH,
             Some(payload),
@@ -1399,7 +1400,7 @@ pub mod secrets {
         let host = use_host_server();
         let url = format!("{host}/secrets/{secret_name}");
 
-        let response = request(
+        let response = request_with_workspace_lock_retry(
             url,
             reqwest::Method::DELETE,
             None::<()>,
