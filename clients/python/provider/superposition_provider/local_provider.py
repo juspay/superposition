@@ -112,11 +112,59 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
             # Create FFI cache
             self.ffi_cache = ProviderCache()
 
-            # Fetch initial config (required)
-            await self._fetch_and_cache_config(init=True)
+            # Fetch initial config from primary, fall back if needed. A fetch *error* triggers the
+            # fallback; init fails if the fallback errors too — same shape as Rust.
+            try:
+                response = await self.primary_source.fetch_config(None)
+                config_data = response.get_data()
+                logger.info("LocalResolutionProvider: fetched config from primary source")
+            except Exception as primary_err:
+                logger.warning(f"LocalResolutionProvider: primary config fetch failed: {primary_err}")
+                if self.fallback_source is None:
+                    raise SuperpositionError.config_error(
+                        f"Primary config fetch failed and no fallback configured: {primary_err}"
+                    ) from primary_err
+                try:
+                    response = await self.fallback_source.fetch_config(None)
+                    config_data = response.get_data()
+                    logger.info("LocalResolutionProvider: fetched config from fallback source")
+                except Exception as fallback_err:
+                    raise SuperpositionError.config_error(
+                        f"Both primary and fallback config fetch failed. "
+                        f"Primary: {primary_err}. Fallback: {fallback_err}"
+                    ) from fallback_err
+            if config_data is not None:
+                self.cached_config = config_data
+                self._update_config_ffi_cache()
+            self.config_checked_at = datetime.now(timezone.utc)
 
-            # Fetch initial experiments (best-effort)
-            await self._fetch_and_cache_experiments(init=True)
+            # Fetch initial experiments. A source that doesn't support experiments simply yields none
+            # (non-fatal). If the primary *does* support them, a fetch error requires an experiment-
+            # capable fallback (or init fails) — same shape as Rust.
+            if self.primary_source.supports_experiments():
+                try:
+                    response = await self.primary_source.fetch_active_experiments(None)
+                    experiment_data = response.get_data()
+                    logger.info("LocalResolutionProvider: fetched experiments from primary source")
+                except Exception as primary_err:
+                    logger.warning(f"LocalResolutionProvider: primary experiment fetch failed: {primary_err}")
+                    if self.fallback_source is None or not self.fallback_source.supports_experiments():
+                        raise SuperpositionError.config_error(
+                            f"Primary experiment fetch failed and no experiment-capable fallback configured: {primary_err}"
+                        ) from primary_err
+                    try:
+                        response = await self.fallback_source.fetch_active_experiments(None)
+                        experiment_data = response.get_data()
+                        logger.info("LocalResolutionProvider: fetched experiments from fallback source")
+                    except Exception as fallback_err:
+                        raise SuperpositionError.config_error(
+                            f"Both primary and fallback experiment fetch failed. "
+                            f"Primary: {primary_err}. Fallback: {fallback_err}"
+                        ) from fallback_err
+                if experiment_data is not None:
+                    self.cached_experiments = experiment_data
+                    self._update_exp_ffi_cache()
+                self.experiments_checked_at = datetime.now(timezone.utc)
 
             # Start refresh strategy
             await self._start_refresh_strategy()
@@ -479,105 +527,50 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
                 return None
 
     async def _refresh_once(self) -> None:
-        """Fetch config and experiments concurrently."""
-        await asyncio.gather(self._fetch_and_cache_config(), self._fetch_and_cache_experiments())
+        """Refresh config and experiments concurrently, keeping last known good on failure.
 
-    # --- Private helpers ---
-
-    async def _handle_fetch_config_from_fallback(self):
-        """Fetch config from fallback source, if available."""
-        try:
-            logger.info("Attempting to fetch config from fallback source...")
-            if self.fallback_source:
-                logger.info("Fetching config from fallback source...")
-                response = await self.fallback_source.fetch_config(None)
-                if response.get_data():
-                    self.cached_config = response.get_data()
-                    self._update_config_ffi_cache()
-                    logger.info("Config updated from fallback source")
-        except Exception as e:
-            logger.error(f"Error fetching fallback config: {e}")
-            raise e
-
-    async def _fetch_and_cache_config(self, init: bool = False) -> None:
-        """Fetch and cache configuration from primary/fallback sources."""
-        try:
-            logger.info(f"Fetching config (init={init})...")
-            # Try primary source. A refresh after a failed init has no cached copy to date
-            # from, so it must ask for everything.
-            if_modified_since = (
-                None if init or self.cached_config is None
-                else self.cached_config.fetched_at
-            )
+        Mirrors Rust's ``refresh_once`` (inline, no per-source helpers): each source refreshes in its
+        own coroutine; a 304 just restarts the TTL clock, a failure keeps the cache but propagates so
+        refresh() marks the provider STALE. Config failure takes priority in what is surfaced.
+        """
+        async def refresh_config() -> None:
+            if_modified_since = None if self.cached_config is None else self.cached_config.fetched_at
             response = await self.primary_source.fetch_config(if_modified_since)
-            logger.debug(f"Primary source fetch_config response: {response}")
-            # The fetch returned, so the cache is confirmed current — whether it came back with
-            # new data or a 304. Either way the TTL clock restarts.
+            # New data or a 304 — both confirm the cache is current, so the TTL clock restarts.
             self.config_checked_at = datetime.now(timezone.utc)
             if response.get_data():
                 self.cached_config = response.get_data()
                 self._update_config_ffi_cache()
-                logger.info("Config updated from primary source")
+                logger.debug("LocalResolutionProvider: config refreshed from primary")
 
-            if not self.cached_config:
-                raise SuperpositionError.config_error("Failed to fetch config from both primary and fallback sources")
-        except Exception as e:
-            logger.error(f"Error fetching config from primary source: {e}, init={init}")
-            # Try fallback source if available
-            if init:
-                logger.info("Attempting to fetch config from fallback source due to primary source error during initialization")
-                await self._handle_fetch_config_from_fallback()
-            else:
-                logger.error(f"Error fetching fallback config: {e}")
-
-            if not self.cached_config:
-                raise e
-
-    async def _handle_fetch_experiments_from_fallback(self):
-        """Fetch experiments from fallback source, if available."""
-        if not self.fallback_source or not self.fallback_source.supports_experiments():
-            return
-        try:
-            response = await self.fallback_source.fetch_active_experiments(None)
-            if response.get_data():
-                self.cached_experiments = response.get_data()
-                self._update_exp_ffi_cache()
-                logger.info("Experiments updated from fallback source")
-        except Exception as e:
-            logger.error(f"Error fetching fallback experiments: {e}")
-            raise e
-
-    async def _fetch_and_cache_experiments(self, init: bool = False) -> None:
-        """Fetch and cache experiments from primary/fallback sources."""
-        if not self.primary_source.supports_experiments():
-            return
-        try:
-            # Try primary source
-            if_modified_since = (
-                None if init or self.cached_experiments is None
-                else self.cached_experiments.fetched_at
-            )
+        async def refresh_experiments() -> None:
+            if not self.primary_source.supports_experiments():
+                return
+            if_modified_since = None if self.cached_experiments is None else self.cached_experiments.fetched_at
             response = await self.primary_source.fetch_active_experiments(if_modified_since)
-            # See _fetch_and_cache_config: new data or a 304, both are a successful check.
             self.experiments_checked_at = datetime.now(timezone.utc)
             if response.get_data():
                 self.cached_experiments = response.get_data()
                 self._update_exp_ffi_cache()
-                logger.info("Experiments updated from primary source")
+                logger.debug("LocalResolutionProvider: experiments refreshed from primary")
 
-            if (not self.fallback_source or self.fallback_source.supports_experiments()) and not self.cached_experiments:
-                raise SuperpositionError.config_error("Failed to fetch experiments from both primary and fallback sources")
-        except Exception as e:
-            logger.error(f"Error fetching experiments from primary source: {e}")
+        config_result, exp_result = await asyncio.gather(
+            refresh_config(), refresh_experiments(), return_exceptions=True
+        )
+        # Both coroutines run to completion; the cache is never overwritten on failure. Surface the
+        # config error first (like Rust), else the experiment error — either marks the provider STALE.
+        if isinstance(config_result, BaseException):
+            logger.warning(
+                f"LocalResolutionProvider: config refresh failed, keeping last known good: {config_result}"
+            )
+            raise config_result
+        if isinstance(exp_result, BaseException):
+            logger.warning(
+                f"LocalResolutionProvider: experiment refresh failed, keeping last known good: {exp_result}"
+            )
+            raise exp_result
 
-            # Try fallback source if available
-            if init:
-                await self._handle_fetch_experiments_from_fallback()
-            else:
-                logger.error(f"Error fetching fallback experiments: {e}")
-
-            if init and self.fallback_source and self.fallback_source.supports_experiments() and not self.cached_experiments:
-                raise e
+    # --- Private helpers ---
 
     async def _ensure_fresh_data(self) -> None:
         """Check if data needs refresh (for ON_DEMAND strategy)."""
