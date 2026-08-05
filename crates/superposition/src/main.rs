@@ -1,6 +1,7 @@
 #![deny(unused_crate_dependencies)]
 mod app_state;
 mod dispatch;
+mod jobs;
 mod log_span;
 mod organisation;
 mod resolve;
@@ -467,6 +468,11 @@ impl ScopeExt for Scope {
             scope("/dispatch")
                 .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
                 .service(dispatch::endpoints()),
+        )
+        .service(
+            scope("/jobs")
+                .wrap(OrgWorkspaceMiddlewareFactory::new(true, true))
+                .service(jobs::endpoints()),
         )
     }
 
