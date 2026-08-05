@@ -2,14 +2,75 @@ import { themes as prismThemes } from "prism-react-renderer";
 import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
 import type * as OpenApiPlugin from "docusaurus-plugin-openapi-docs";
+import * as fs from "fs";
+import * as path from "path";
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
+
+// Relocate all webpack build output (JS, CSS, images) under a unique
+// "docs_static/assets/" prefix so the CloudFront proxy can forward a clean,
+// bounded set of path prefixes without colliding with the root app at "/".
+function docsStaticAssetsPlugin() {
+  return {
+    name: "docs-static-assets",
+    configureWebpack(config: any, isServer: boolean) {
+      if (isServer || config.mode !== "production") return {};
+      for (const plugin of config.plugins ?? []) {
+        if (plugin?.constructor?.name?.includes("CssExtract") && plugin.options) {
+          plugin.options.filename = "docs_static/assets/css/[name].[contenthash:8].css";
+          plugin.options.chunkFilename = "docs_static/assets/css/[name].[contenthash:8].css";
+        }
+      }
+      return {
+        output: {
+          filename: "docs_static/assets/js/[name].[contenthash:8].js",
+          chunkFilename: "docs_static/assets/js/[name].[contenthash:8].js",
+          assetModuleFilename: "docs_static/assets/[name].[contenthash:8][ext]",
+        },
+      };
+    },
+  };
+}
+
+// Emit a small "foo.html" stub at each no-slash path that redirects to the
+// canonical "/foo/" with a root-relative URL. Because "foo.html" exists,
+// GitHub Pages serves it directly and never issues its own redirect that
+// would leak the "juspay.github.io" origin to the browser.
+function noSlashRedirectStubsPlugin() {
+  return {
+    name: "no-slash-redirect-stubs",
+    async postBuild({ outDir }: { outDir: string }) {
+      const indexFiles: string[] = [];
+      (function collect(dir: string) {
+        for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+          const full = path.join(dir, e.name);
+          if (e.isDirectory()) collect(full);
+          else if (e.name === "index.html") indexFiles.push(full);
+        }
+      })(outDir);
+      for (const file of indexFiles) {
+        const relDir = path.relative(outDir, path.dirname(file));
+        if (relDir === "") continue;
+        const urlPath = "/" + relDir.split(path.sep).join("/") + "/";
+        const stub = path.join(outDir, relDir + ".html");
+        if (fs.existsSync(stub)) continue;
+        fs.writeFileSync(
+          stub,
+          `<!doctype html><html lang="en"><head><meta charset="utf-8">` +
+            `<meta http-equiv="refresh" content="0; url=${urlPath}">` +
+            `<title>Redirecting…</title></head>` +
+            `<body>Redirecting to <a href="${urlPath}">${urlPath}</a>…</body></html>\n`,
+        );
+      }
+    },
+  };
+}
 
 const config: Config = {
     title: "Superposition",
     tagline:
         "Documentation of APIs, OpenFeature Providers and SDKs for Superposition",
-    favicon: "img/favicon.ico",
+    favicon: "docs_static/img/favicon.ico",
 
     // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
     future: {
@@ -19,9 +80,11 @@ const config: Config = {
     // Set the production url of your site here
     url: "https://superposition.juspay.io",
     // Set the /<baseUrl>/ pathname under which your site is served
-    // For GitHub pages deployment, it is often '/<projectName>/'
-    baseUrl: "/superposition/",
-    trailingSlash: false,
+    // baseUrl is "/" because the site is served behind a CloudFront proxy that
+    // forwards specific path prefixes (/docs, /blog, /docs_static, etc.) to the
+    // GitHub Pages origin. We don't want "/superposition" in any URL.
+    baseUrl: "/",
+    trailingSlash: true,
 
     // GitHub pages deployment config.
     organizationName: "juspay",
@@ -36,6 +99,8 @@ const config: Config = {
     },
 
     plugins: [
+        docsStaticAssetsPlugin,
+        noSlashRedirectStubsPlugin,
         [
             'docusaurus-plugin-openapi-docs',
             {
@@ -92,7 +157,7 @@ const config: Config = {
     themes: ["docusaurus-theme-openapi-docs"], // export theme components
 
     themeConfig: {
-        image: "img/logo.jpg",
+        image: "docs_static/img/logo.jpg",
         algolia: {
             appId: 'ZK6EG087JC',
             // Public API key: it is safe to commit it
@@ -104,6 +169,7 @@ const config: Config = {
             logo: {
                 alt: "Superposition",
                 src: "https://juspay.io/images/superposition/logo.jpg",
+                href: "/docs",
             },
             items: [
                 // {

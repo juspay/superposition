@@ -1,38 +1,23 @@
-// attached to behaviours 0, 1 in behaviour_settings.png in this directory
+// attached to CloudFront behaviours for path prefixes:
+//   /docs/*, /blog/*, /docs_static/*, /sitemap.xml, /opensearch.xml
+//
+// The Docusaurus site is built with baseUrl "/" and served from GitHub Pages at
+// juspay.github.io/superposition/. This function prepends "/superposition" to
+// the origin request URI so that the browser-facing URLs have no
+// "/superposition" prefix while the origin receives the path it expects.
+//
+// The noSlashRedirectStubsPlugin in docusaurus.config.ts emits "foo.html"
+// redirect stubs so GitHub Pages never issues its own 301 that would leak the
+// "juspay.github.io" origin to the browser. No trailing-slash manipulation is
+// needed here.
 
 function handler(event) {
   var request = event.request;
   var uri = request.uri;
-  var headers = request.headers;
-  var prefix = '/open-source';
-  var newUri = uri;
-  var newUrl;
 
-
-  // Example: Redirect www.example.com to example.com
-    if (uri.startsWith(prefix + '/superposition/docs')) {
-        newUri = uri.substring(prefix.length); // Remove prefix
-        newUrl = 'https://' + headers.host.value + newUri;
-        var response = {
-            statusCode: 301,
-            statusDescription: 'Moved Permanently',
-            headers: {
-                'location': { value: newUrl }
-            }
-        };
-        console.log('redirecting to ' + newUrl);
-
-        return response;
-    }
-
-  // implies all urls are now /superposition/docs - just add the trailing slash if missing
-  if (!newUri.endsWith('/')) {
-      newUri += '/';
-  }
-
-  console.log('old request.uri is: + ' + uri + ' new request.uri is ' + newUri);
-
-  request.uri = newUri;
+  // Prepend the GitHub Pages project path so the origin receives
+  // /superposition/docs/... instead of /docs/...
+  request.uri = '/superposition' + uri;
 
   return request;
 }
