@@ -6,7 +6,7 @@ description: Language Server Protocol support for SuperTOML
 
 # LSP Support
 
-SuperTOML has full Language Server Protocol (LSP) support, providing a rich editing experience in IDEs and text editors. The LSP enables real-time validation, autocompletion, hover information, and more.
+SuperTOML has a Language Server Protocol (LSP) server in this repository: `supertoml-analyzer`, built from the `supertoml_lsp` crate. Editor integrations live under `tooling/lsp/`.
 
 ## Features
 
@@ -17,7 +17,7 @@ Get intelligent suggestions while typing:
 - **Dimension names**: Suggests available dimensions when editing `_context_`
 - **Config keys**: Suggests valid configuration keys in overrides
 - **Enum values**: Suggests valid enum values for dimensions and configs
-- **Schema properties**: Suggests JSON Schema properties
+- **Schema properties**: Suggests JSON Schema draft-7 properties
 
 **Example:**
 
@@ -46,6 +46,9 @@ Real-time validation catches errors before you run your application:
 per_km_rate = { value = -5.0, schema = { type = "number", minimum = 0 } }
 # Error: Value -5.0 is less than minimum 0
 
+[dimensions]
+city = { position = 1, schema = { type = "string", enum = ["Bangalore", "Delhi", "Chennai"] } }
+
 [[overrides]]
 _context_ = { city = "Mumbai" }  # Error: "Mumbai" is not in enum ["Bangalore", "Delhi", "Chennai"]
 per_km_rate = 25.0
@@ -73,6 +76,10 @@ per_km_rate = { value = 20.0, schema = { type = "number", minimum = 0 } }
 # ---
 ```
 
+### Formatting
+
+The server exposes document formatting and uses Taplo formatting for the full document.
+
 ### Diagnostics
 
 Get detailed error messages and warnings:
@@ -80,64 +87,58 @@ Get detailed error messages and warnings:
 - **Syntax errors**: Invalid TOML syntax
 - **Schema errors**: Values don't match schemas
 - **Reference errors**: Unknown dimensions or config keys
-- **Logic errors**: Conflicting overrides, circular dependencies
-
-### Go to Definition
-
-Navigate to definitions:
-
-- From a context dimension name to its dimension definition
-- From an override key to its default-config definition
-- From a cohort reference to its base dimension
-
-### Code Actions
-
-Quick fixes for common issues:
-
-- **Add missing schema**: Add schema to config without one
-- **Fix enum value**: Correct an invalid enum value
-- **Add missing dimension**: Add an undeclared dimension
+- **Structure errors**: Missing required sections, duplicate positions, invalid cohort references
 
 ## Editor Setup
 
 ### VS Code
 
-1. Install the SuperTOML extension from the marketplace
-2. Open any `.toml` file with SuperTOML content
-3. The extension automatically activates for files with `[default-configs]` section
+Build the language server and run the checked-in extension from source:
+
+```bash
+cargo build -p supertoml_lsp
+cd tooling/lsp/vscode-extension
+npm install
+npm run compile
+```
+
+Open `tooling/lsp/vscode-extension` in VS Code and start the extension development host, or package it with `npm run package` and install the generated VSIX.
 
 **Extension features:**
 
 - Syntax highlighting for SuperTOML
-- Full LSP integration
+- LSP integration with diagnostics, completions, hover, and formatting
 - Configuration snippets
 - File icons
 
 ### Neovim
 
-Configure Neovim to use the SuperTOML language server:
+Use the checked-in Neovim plugin after building the language server:
 
 ```lua
--- Using nvim-lspconfig
-local lspconfig = require('lspconfig')
-
-lspconfig.supertoml.setup {
-    filetypes = { 'toml' },
-    root_dir = function(fname)
-        return lspconfig.util.find_git_ancestor(fname)
+{
+    "superposition/superposition",
+    dir = "/path/to/superposition",
+    rtp = "tooling/lsp/neovim-extension",
+    config = function()
+        require("supertoml-analyzer").setup({
+            server = {
+                path = "/path/to/superposition/target/debug/supertoml-analyzer",
+            },
+        })
     end,
 }
 ```
 
 ### Emacs
 
-Use `lsp-mode` with the SuperTOML language server:
+Use `lsp-mode` with the `supertoml-analyzer` binary:
 
 ```elisp
 (use-package lsp-mode
   :config
   (lsp-register-client
-   (make-lsp-client :new-connection (lsp-stdio-connection "supertoml-lsp")
+   (make-lsp-client :new-connection (lsp-stdio-connection "supertoml-analyzer")
                     :major-modes '(toml-mode)
                     :server-id 'supertoml))
   (add-hook 'toml-mode-hook #'lsp))
@@ -147,7 +148,7 @@ Use `lsp-mode` with the SuperTOML language server:
 
 Any editor with LSP support can use the SuperTOML language server:
 
-1. Install the `supertoml-lsp` binary
+1. Build or install the `supertoml-analyzer` binary
 2. Configure your editor to use it for TOML files
 3. The server communicates via stdio
 
@@ -160,20 +161,10 @@ Configure the language server during initialization:
 ```json
 {
     "settings": {
-        "supertoml": {
-            "validation": {
-                "enabled": true,
-                "strict": false
-            },
-            "completion": {
-                "enabled": true,
-                "suggestValues": true
-            },
-            "hover": {
-                "enabled": true,
-                "showSchema": true
-            }
-        }
+        "superTOML.diagnostics.enable": true,
+        "superTOML.completions.enable": true,
+        "superTOML.hover.enable": true,
+        "superTOML.server.path": "/path/to/superposition/target/debug/supertoml-analyzer"
     }
 }
 ```
@@ -182,12 +173,11 @@ Configure the language server during initialization:
 
 | Setting                    | Type    | Default | Description                 |
 | -------------------------- | ------- | ------- | --------------------------- |
-| `validation.enabled`       | boolean | true    | Enable real-time validation |
-| `validation.strict`        | boolean | false   | Treat warnings as errors    |
-| `completion.enabled`       | boolean | true    | Enable autocomplete         |
-| `completion.suggestValues` | boolean | true    | Suggest enum values         |
-| `hover.enabled`            | boolean | true    | Enable hover information    |
-| `hover.showSchema`         | boolean | true    | Show schema in hover        |
+| `superTOML.server.path` | string | `""` | Path to the `supertoml-analyzer` binary |
+| `superTOML.trace.server` | string | `"off"` | VS Code language-client tracing |
+| `superTOML.diagnostics.enable` | boolean | true | Enable diagnostics |
+| `superTOML.completions.enable` | boolean | true | Enable completions |
+| `superTOML.hover.enable` | boolean | true | Enable hover documentation |
 
 ## Validation Rules
 
@@ -209,7 +199,7 @@ The LSP validates the following:
 
 - Every dimension has `position` and `schema`
 - Positions are unique
-- Position 0 is not used (reserved)
+- Position 0 is conventionally left for experimentation/`variantIds` workflows
 - Cohort references are valid
 
 ### Overrides Validation
@@ -222,63 +212,38 @@ The LSP validates the following:
 
 ## Performance
 
-The language server is optimized for large configuration files:
-
-- **Incremental parsing**: Only re-parses changed sections
-- **Caching**: Schemas and validations are cached
-- **Lazy validation**: Only validates visible ranges
-- **Background processing**: Heavy operations don't block the UI
-
-### File Size Limits
-
-| File Size     | Performance        |
-| ------------- | ------------------ |
-| < 100 KB      | Instant validation |
-| 100 KB - 1 MB | < 100ms validation |
-| 1 MB - 10 MB  | < 500ms validation |
-| > 10 MB       | May require tuning |
-
-### Optimizing Large Files
-
-For very large configuration files:
-
-1. **Split into multiple files**: Use includes or imports
-2. **Reduce schema complexity**: Simpler schemas validate faster
-3. **Disable strict mode**: Use `validation.strict: false`
-4. **Increase memory**: Allocate more memory to the language server
+The current server uses full-document sync and validates the current document text. For very large files, expect the full file to be parsed again after edits.
 
 ## Troubleshooting
 
 ### Language Server Not Starting
 
-1. Check that `supertoml-lsp` is installed and in PATH
+1. Check that `supertoml-analyzer` is built and in PATH, or configure the editor with its full path
 2. Check editor logs for error messages
 3. Verify the file type is recognized as TOML
 
 ### No Autocomplete
 
 1. Ensure the file has a `[default-configs]` section
-2. Check that `completion.enabled` is true
+2. Check that `superTOML.completions.enable` is true
 3. Verify schemas are valid JSON Schema
 
 ### Validation Not Working
 
-1. Check that `validation.enabled` is true
+1. Check that `superTOML.diagnostics.enable` is true
 2. Look for syntax errors that prevent parsing
 3. Check the output panel for language server errors
 
 ### Slow Performance
 
-1. Reduce file size by splitting
-2. Disable features you don't need
-3. Check for circular references in schemas
-4. Increase language server memory
+1. Reduce schema complexity where possible
+2. Disable editor-side features you do not need
+3. Check for syntax errors that force repeated failed parses
 
 ## Future Features
 
 The LSP is actively developed with planned features:
 
-- **Code formatting**: Auto-format SuperTOML files
 - **Refactoring**: Rename dimensions and config keys
 - **Find references**: Find all uses of a dimension or config
 - **Code lenses**: Inline actions and information

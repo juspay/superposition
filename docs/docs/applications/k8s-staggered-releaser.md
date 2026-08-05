@@ -1,6 +1,6 @@
 # Kubernetes Staggered Releaser (Mayday)
 
-A Kubernetes deployment automation tool that leverages Superposition's experimentation features to perform safe, gradual rollouts with automatic traffic management and rollback capabilities.
+A Kubernetes deployment automation example that leverages Superposition's experimentation events to perform gradual rollouts with NGINX Ingress traffic management.
 
 ## Overview
 
@@ -13,7 +13,7 @@ The `k8s-staggered-releaser` (internally named "Mayday") is a webhook-driven dep
 - **Automatic Resource Management**: Creates and manages Kubernetes Deployments, Services, and Ingresses
 - **Multi-Namespace Support**: Deploy to different Kubernetes namespaces based on context
 - **Traffic Management**: Uses NGINX Ingress Controller for weighted traffic distribution
-- **Rollback Capability**: Automatic cleanup and rollback when experiments conclude
+- **Conclusion Cleanup**: Updates the main Service for the chosen variant and deletes experimental Services and Ingresses when experiments conclude. Deployment deletion is not implemented in the checked-in example.
 - **Configuration Integration**: Fetches deployment configurations from Superposition
 
 ## Architecture
@@ -31,7 +31,7 @@ The `k8s-staggered-releaser` (internally named "Mayday") is a webhook-driven dep
 
 1. **Experiment Started**: Creates new Deployment, Service, and Ingress resources
 2. **Experiment In Progress**: Updates traffic weights for gradual rollout
-3. **Experiment Concluded**: Promotes winning variant and cleans up resources
+3. **Experiment Concluded**: Promotes the winning variant by updating the main Service, then deletes experimental Services and Ingresses
 
 ## Installation
 
@@ -56,12 +56,14 @@ pub const K8S_API_SERVER: &str = "https://your-k8s-api-server:6443";
 pub const TOKEN: &str = "your-k8s-api-token";
 ```
 
-3. Build the application:
+3. As checked in today, this example is under the repository workspace but is not listed in the root `workspace.members`. Before running Cargo commands from this directory, either add `examples/k8s-staggered-releaser` to the root workspace members or make the example an independent workspace by adding an empty `[workspace]` table to `examples/k8s-staggered-releaser/Cargo.toml`.
+
+4. Build the application:
 ```bash
 cargo build --release
 ```
 
-4. Run the webhook server:
+5. Run the webhook server:
 ```bash
 cargo run
 ```
@@ -70,13 +72,13 @@ The server will start on `127.0.0.1:8090` and listen for webhook events at `/hi`
 
 ## Configuration
 
-### Environment Variables
+### Source Constants
 
-You can configure the following constants in `src/utils.rs`:
+The checked-in example reads these values as constants in `src/utils.rs`, not as environment variables:
 
 - `K8S_API_SERVER`: Kubernetes API server URL
 - `TOKEN`: Kubernetes API authentication token
-- `NAMESPACE`: Default namespace for deployments
+- `NAMESPACE`: Declared as `"default"`, but the webhook handlers derive the active namespace from `payload.context` through `get_namespace`
 
 ### Superposition Integration
 
@@ -186,17 +188,17 @@ Triggered when an experiment ends with a chosen variant:
 **Actions Performed:**
 - Updates main service to point to winning variant deployment
 - Removes experimental Ingress resources
-- Cleans up unused Services and Deployments
+- Deletes experimental Ingresses and Services. Deployment cleanup is not implemented.
 
 ### Configuration Resolution
 
 The system fetches deployment configurations from Superposition using the `/config/resolve` endpoint:
 
 ```
-GET /config/resolve?namespace={namespace}&variantIds={variant_id}
+GET http://localhost:8080/config/resolve?dimension[namespace]={namespace}&dimension[variantIds]={variant_id}
 Headers:
   x-org-id: localorg
-  x-tenant: {service_name}
+  x-tenant: {workspace_id}
 ```
 
 Expected configuration format:
@@ -235,11 +237,13 @@ metadata:
     nginx.ingress.kubernetes.io/canary: "true"
     nginx.ingress.kubernetes.io/canary-weight: "25"
 spec:
+  ingressClassName: nginx
   rules:
   - host: nginxservice.mumbai
     http:
       paths:
       - path: /
+        pathType: Prefix
         backend:
           service:
             name: nginxservice-service-variant-123
@@ -344,12 +348,7 @@ Common error scenarios and troubleshooting:
 
 ### Health Checks
 
-Monitor the webhook endpoint:
-
-```bash
-# Basic health check
-curl http://127.0.0.1:8090/hi
-```
+There is no separate health endpoint. The `/hi` route is a GET webhook receiver that expects a JSON request body matching the Superposition event shape.
 
 ## Advanced Configuration
 
@@ -363,6 +362,8 @@ let app_state = Data::new(AppState {
     tenants: ["service1".to_string(), "service2".to_string()].to_vec(),
 });
 ```
+
+The checked-in handler stores this `AppState`, but does not currently validate webhook namespaces or tenants against those lists.
 
 ### Custom Resource Templates
 

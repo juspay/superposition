@@ -37,7 +37,7 @@ The position determines how much weight this dimension contributes to context pr
 
 - Weight = 2^position
 - Higher positions = more influence on priority
-- Position 0 is reserved for `variantIds` (experimentation)
+- Position 0 is conventionally left for `variantIds` in experimentation flows; it is not rejected by the file parser
 - Positions must be unique
 
 :::info
@@ -189,10 +189,10 @@ peak_hours = { ">=" = [{ var = "hour_of_day" }, 18] }
 Combine conditions:
 
 ```toml
-premium_zone = {
+after_hours = {
     and = [
-        { in = [{ var = "city" }, ["Bangalore", "Delhi"]] },
-        { ">=" = [{ var = "hour_of_day" }, 18] }
+        { ">=" = [{ var = "hour_of_day" }, 18] },
+        { "<=" = [{ var = "hour_of_day" }, 23] }
     ]
 }
 ```
@@ -239,7 +239,7 @@ time_period = {
     type = "LOCAL_COHORT:hour_of_day",
     schema = {
         type = "string",
-        enum = ["morning_rush", "evening_rush", "off_peak"],
+        enum = ["morning_rush", "evening_rush", "otherwise"],
         definitions = {
             morning_rush = { and = [{ ">=" = [{ var = "hour_of_day" }, 7] }, { "<=" = [{ var = "hour_of_day" }, 9] }] },
             evening_rush = { and = [{ ">=" = [{ var = "hour_of_day" }, 17] }, { "<=" = [{ var = "hour_of_day" }, 20] }] }
@@ -269,7 +269,7 @@ tier = {
     type = "LOCAL_COHORT:user_segment",
     schema = {
         type = "string",
-        enum = ["premium", "regular", "new"],
+        enum = ["premium", "new", "otherwise"],
         definitions = {
             premium = { in = [{ var = "user_segment" }, ["gold", "platinum", "diamond"]] },
             new = { in = [{ var = "user_segment" }, ["trial", "onboarding"]] }
@@ -284,7 +284,7 @@ support_priority = "high"
 
 ### REMOTE_COHORT
 
-A `REMOTE_COHORT` dimension derives its value from an external service:
+A `REMOTE_COHORT` dimension declares that a cohort value is derived outside the local file resolver:
 
 ```toml
 [dimensions]
@@ -300,10 +300,10 @@ user_cohort = {
 }
 ```
 
-The cohort value is fetched from an external service at resolution time, allowing for dynamic segmentation based on real-time data.
+In local file resolution, remote cohort values are expected to be present in the runtime context. Server/API resolution paths can compute remote cohorts when `resolve_remote` is enabled and the dimension has a value-compute function configured.
 
 :::note
-REMOTE_COHORT requires backend service integration. The cohort value is resolved by calling an external API with the base dimension value.
+REMOTE_COHORT requires backend service integration. The standalone SuperTOML parser validates the reference and schema; it does not call external services.
 :::
 
 ## Dimension Dependencies
@@ -336,7 +336,7 @@ region = {
     type = "LOCAL_COHORT:city",
     schema = {
         type = "string",
-        enum = ["south", "north", "west"],
+        enum = ["south", "north", "otherwise"],
         definitions = {
             south = { in = [{ var = "city" }, ["Bangalore"]] },
             north = { in = [{ var = "city" }, ["Delhi"]] }
@@ -350,7 +350,7 @@ market_tier = {
     type = "LOCAL_COHORT:city",
     schema = {
         type = "string",
-        enum = ["tier1", "tier2"],
+        enum = ["tier1", "otherwise"],
         definitions = {
             tier1 = { in = [{ var = "city" }, ["Bangalore", "Delhi", "Mumbai"]] }
         }
@@ -454,8 +454,8 @@ Avoid using cohorts for:
 ## Validation Rules
 
 1. **Position uniqueness**: No two dimensions can have the same position
-2. **Position 0 reserved**: Reserved for `variantIds`
+2. **Position 0 convention**: Leave position 0 for `variantIds` when using experimentation flows
 3. **Cohort reference**: Must reference an existing dimension
 4. **Cohort position**: Must be ≤ referenced dimension's position
 5. **Schema validity**: All schemas must be valid JSON Schema
-6. **Cohort schema structure**: Must have `type`, `enum`, and `definitions`
+6. **Cohort schema structure**: `LOCAL_COHORT` schemas must have `type`, `enum`, and `definitions`; `enum` must include `otherwise`, and every other enum value must have a definition

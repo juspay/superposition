@@ -355,30 +355,30 @@ _context_ = { city = "Bangalore", vehicle_type = "cab" }
 per_km_rate = 22.0
 ```
 
-### 2. Conflicting Overrides at Same Priority
+### 2. Conflicting Overrides for the Same Context
 
-Avoid overrides that conflict at the same priority level:
+Avoid duplicate overrides that set the same key for the same context:
 
 ```toml
-# ❌ Bad: Same priority, different values
+# Bad: Same context, different values
 [[overrides]]
 _context_ = { city = "Bangalore" }
 per_km_rate = 22.0
 
 [[overrides]]
-_context_ = { vehicle_type = "cab" }
+_context_ = { city = "Bangalore" }
 per_km_rate = 25.0
 
-# For Bangalore cab: which one wins?
-# Both have same priority (one dimension each)
+# For Bangalore: which one wins?
+# Both use the same dimension set and therefore the same computed weight.
 ```
 
-Resolution: Make one more specific:
+Resolution: keep only one override, or make the later override intentionally more specific:
 
 ```toml
-# ✅ Good: Clear priority
+# Good: Clear priority
 [[overrides]]
-_context_ = { vehicle_type = "cab" }
+_context_ = { city = "Bangalore" }
 per_km_rate = 25.0
 
 [[overrides]]
