@@ -15388,6 +15388,401 @@ GET_WORKSPACE = Schema(
 
 )
 
+IMPORT_STRATEGY = Schema.collection(
+    id=ShapeID("io.superposition#ImportStrategy"),
+    shape_type=ShapeType.ENUM,
+    members={
+        "CREATE_ONLY": {
+            "target": UNIT,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="create_only"),
+
+            ],
+        },
+
+        "UPSERT": {
+            "target": UNIT,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="upsert"),
+
+            ],
+        },
+
+        "REPLACE": {
+            "target": UNIT,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="replace"),
+
+            ],
+        },
+
+    }
+)
+
+IMPORT_CONFIG_JSON_INPUT = Schema.collection(
+    id=ShapeID("io.superposition#ImportConfigJsonInput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#input")),
+
+    ],
+    members={
+        "workspace_id": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-workspace"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "org_id": {
+            "target": STRING,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "strategy": {
+            "target": IMPORT_STRATEGY,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-import-strategy"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "dry_run": {
+            "target": BOOLEAN,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-import-dry-run"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "config_tags": {
+            "target": STRING,
+            "index": 4,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-config-tags"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "json_config": {
+            "target": STRING,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(id=ShapeID("smithy.api#httpPayload")),
+
+            ],
+        },
+
+    }
+)
+
+IMPORT_ENTITY_REPORT = Schema.collection(
+    id=ShapeID("io.superposition#ImportEntityReport"),
+
+    members={
+        "created": {
+            "target": INTEGER,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "updated": {
+            "target": INTEGER,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "skipped": {
+            "target": INTEGER,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "deleted": {
+            "target": INTEGER,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
+IMPORT_CONFIG_JSON_OUTPUT = Schema.collection(
+    id=ShapeID("io.superposition#ImportConfigJsonOutput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#ImportConfigOutput"),
+        Trait.new(id=ShapeID("smithy.api#output")),
+
+    ],
+    members={
+        "strategy": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "dry_run": {
+            "target": BOOLEAN,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "config_version": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "dimensions": {
+            "target": IMPORT_ENTITY_REPORT,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "default_configs": {
+            "target": IMPORT_ENTITY_REPORT,
+            "index": 4,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "contexts": {
+            "target": IMPORT_ENTITY_REPORT,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
+IMPORT_CONFIG_JSON = Schema(
+    id=ShapeID("io.superposition#ImportConfigJson"),
+    shape_type=ShapeType.OPERATION,
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Configuration Management",
+            )),
+        Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
+                "method": "POST",
+                "uri": "/config/json/import",
+            })),
+
+    ],
+
+)
+
+IMPORT_CONFIG_TOML_INPUT = Schema.collection(
+    id=ShapeID("io.superposition#ImportConfigTomlInput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#input")),
+
+    ],
+    members={
+        "workspace_id": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-workspace"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "org_id": {
+            "target": STRING,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "strategy": {
+            "target": IMPORT_STRATEGY,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-import-strategy"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "dry_run": {
+            "target": BOOLEAN,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-import-dry-run"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "config_tags": {
+            "target": STRING,
+            "index": 4,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-config-tags"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "toml_config": {
+            "target": STRING,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(id=ShapeID("smithy.api#httpPayload")),
+
+            ],
+        },
+
+    }
+)
+
+IMPORT_CONFIG_TOML_OUTPUT = Schema.collection(
+    id=ShapeID("io.superposition#ImportConfigTomlOutput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#ImportConfigOutput"),
+        Trait.new(id=ShapeID("smithy.api#output")),
+
+    ],
+    members={
+        "strategy": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "dry_run": {
+            "target": BOOLEAN,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "config_version": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "dimensions": {
+            "target": IMPORT_ENTITY_REPORT,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "default_configs": {
+            "target": IMPORT_ENTITY_REPORT,
+            "index": 4,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "contexts": {
+            "target": IMPORT_ENTITY_REPORT,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
+IMPORT_CONFIG_TOML = Schema(
+    id=ShapeID("io.superposition#ImportConfigToml"),
+    shape_type=ShapeType.OPERATION,
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Configuration Management",
+            )),
+        Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
+                "method": "POST",
+                "uri": "/config/toml/import",
+            })),
+
+    ],
+
+)
+
 LIST_ORGANISATION_INPUT = Schema.collection(
     id=ShapeID("io.superposition#ListOrganisationInput"),
 

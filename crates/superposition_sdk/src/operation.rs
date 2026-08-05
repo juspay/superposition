@@ -150,6 +150,12 @@ pub mod get_webhook_by_event;
 /// Types for the `GetWorkspace` operation.
 pub mod get_workspace;
 
+/// Types for the `ImportConfigJson` operation.
+pub mod import_config_json;
+
+/// Types for the `ImportConfigToml` operation.
+pub mod import_config_toml;
+
 /// Types for the `ListAuditLogs` operation.
 pub mod list_audit_logs;
 

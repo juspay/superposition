@@ -151,6 +151,12 @@ import io.juspay.superposition.model.GetWebhookOutput;
 import io.juspay.superposition.model.GetWorkspace;
 import io.juspay.superposition.model.GetWorkspaceInput;
 import io.juspay.superposition.model.GetWorkspaceOutput;
+import io.juspay.superposition.model.ImportConfigJson;
+import io.juspay.superposition.model.ImportConfigJsonInput;
+import io.juspay.superposition.model.ImportConfigJsonOutput;
+import io.juspay.superposition.model.ImportConfigToml;
+import io.juspay.superposition.model.ImportConfigTomlInput;
+import io.juspay.superposition.model.ImportConfigTomlOutput;
 import io.juspay.superposition.model.ListAuditLogs;
 import io.juspay.superposition.model.ListAuditLogsInput;
 import io.juspay.superposition.model.ListAuditLogsOutput;
@@ -278,7 +284,15 @@ import software.amazon.smithy.utils.SmithyGenerated;
 @SmithyGenerated
 final class SuperpositionClientImpl extends Client implements SuperpositionClient {
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+        .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
+>>>>>>> e7989c66 (feat: add frontend changes for import and simplified backend behavior)
+=======
+>>>>>>> 673eaf0c (feat: add frontend changes for import and simplified backend behavior)
         .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
+        .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
         .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
         .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
         .putType(InternalFailureException.$ID, InternalFailureException.class, InternalFailureException::builder)
@@ -736,6 +750,24 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
     public GetWorkspaceOutput getWorkspace(GetWorkspaceInput input, RequestOverrideConfig overrideConfig) {
         try {
             return call(input, GetWorkspace.instance(), overrideConfig).join();
+        } catch (CompletionException e) {
+            throw unwrapAndThrow(e);
+        }
+    }
+
+    @Override
+    public ImportConfigJsonOutput importConfigJson(ImportConfigJsonInput input, RequestOverrideConfig overrideConfig) {
+        try {
+            return call(input, ImportConfigJson.instance(), overrideConfig).join();
+        } catch (CompletionException e) {
+            throw unwrapAndThrow(e);
+        }
+    }
+
+    @Override
+    public ImportConfigTomlOutput importConfigToml(ImportConfigTomlInput input, RequestOverrideConfig overrideConfig) {
+        try {
+            return call(input, ImportConfigToml.instance(), overrideConfig).join();
         } catch (CompletionException e) {
             throw unwrapAndThrow(e);
         }

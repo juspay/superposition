@@ -1,7 +1,7 @@
 //! Tests for JSON format implementation
 
-use serde_json::{json, Map, Value};
-use std::collections::BTreeMap;
+use serde_json::{Map, Value, json};
+use std::collections::{BTreeMap, HashMap};
 use superposition_types::{
     Config, DefaultConfigInfo, DefaultConfigsWithSchema, DetailedConfig,
 };
@@ -42,6 +42,7 @@ fn config_to_detailed(config: &Config) -> DetailedConfig {
 
     DetailedConfig {
         contexts: config.contexts.clone(),
+        context_descriptions: HashMap::new(),
         overrides: config.overrides.clone(),
         default_configs: DefaultConfigsWithSchema::from(default_configs),
         dimensions: config.dimensions.clone(),
@@ -100,11 +101,20 @@ fn test_json_description_exported_and_falls_back_to_name() {
             "region": { "position": 2, "schema": { "type": "string" } }
         },
         "overrides": [
-            { "_context_": { "os": "linux" }, "timeout": 60 }
+            {
+                "_context_": { "os": "linux" },
+                "_description_": "Linux context",
+                "timeout": 60
+            }
         ]
     }"#;
 
     let detailed = JsonFormat::parse_into_detailed(json_str).unwrap();
+    let context_id = &detailed.contexts[0].id;
+    assert_eq!(
+        detailed.context_descriptions.get(context_id).unwrap(),
+        "Linux context"
+    );
     assert_eq!(
         detailed.dimensions.get("os").unwrap().description,
         "operating system"
@@ -128,6 +138,17 @@ fn test_json_description_exported_and_falls_back_to_name() {
     assert!(serialized.contains(r#""description": "region""#));
     assert!(serialized.contains(r#""description": "request timeout""#));
     assert!(serialized.contains(r#""description": "retries""#));
+    assert!(serialized.contains(r#""_description_": "Linux context""#));
+}
+
+#[test]
+fn test_json_serialize_rejects_missing_override() {
+    let mut detailed = JsonFormat::parse_into_detailed(EXAMPLE_JSON).unwrap();
+    detailed.overrides.clear();
+
+    let error = JsonFormat::serialize(detailed).unwrap_err();
+
+    assert!(error.to_string().contains("Missing override"));
 }
 
 #[test]

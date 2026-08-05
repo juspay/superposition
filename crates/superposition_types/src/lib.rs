@@ -46,6 +46,50 @@ pub use contextual::Contextual;
 pub use logic::{apply, partial_apply};
 pub use overridden::{Overridden, PrefixList};
 
+#[derive(Debug, Clone, Copy, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum MarkupFormat {
+    Json,
+    Toml,
+    Yaml,
+}
+
+impl MarkupFormat {
+    pub fn from_file_name(file_name: &str) -> Self {
+        if file_name.to_lowercase().ends_with(".json") {
+            Self::Json
+        } else {
+            Self::Toml
+        }
+    }
+
+    pub const fn path_segment(self) -> &'static str {
+        match self {
+            Self::Json => "json",
+            Self::Toml => "toml",
+            Self::Yaml => "yaml",
+        }
+    }
+
+    pub const fn content_type(self) -> &'static str {
+        match self {
+            Self::Json => "application/json",
+            Self::Toml => "application/toml",
+            Self::Yaml => "application/yaml",
+        }
+    }
+}
+
+impl Display for MarkupFormat {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            Self::Json => "JSON",
+            Self::Toml => "TOML",
+            Self::Yaml => "YAML",
+        })
+    }
+}
+
 pub trait IsEmpty {
     fn is_empty(&self) -> bool;
 }

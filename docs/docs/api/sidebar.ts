@@ -41,6 +41,13 @@ const sidebar: SidebarsConfig = {
         },
         {
           type: "doc",
+          id: "api/import-config-json",
+          label: "ImportConfigJson",
+          customProps: {},
+          className: "api-method post",
+        },
+        {
+          type: "doc",
           id: "api/get-resolved-config",
           label: "GetResolvedConfig",
           customProps: {},
@@ -64,6 +71,13 @@ const sidebar: SidebarsConfig = {
           type: "doc",
           id: "api/get-config-toml",
           label: "GetConfigToml",
+          customProps: {},
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "api/import-config-toml",
+          label: "ImportConfigToml",
           customProps: {},
           className: "api-method post",
         },

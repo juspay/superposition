@@ -14,10 +14,12 @@ region = { position = 2, schema = { type = "string" } }
 
 [[overrides]]
 _context_ = { os = "linux" }
+_description_ = "test context"
 timeout = 60
 
 [[overrides]]
 _context_ = { os = "linux", region = "us-east" }
+_description_ = "test context"
 timeout = 90
 enabled = false
 "#;
@@ -81,6 +83,7 @@ os = { position = 1, schema = { type = "string" } }
 
 [[overrides]]
 _context_ = { unknown_dim = "value" }
+_description_ = "test context"
 timeout = 60
 "#;
 

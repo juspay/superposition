@@ -127,6 +127,14 @@ pub(crate) mod shape_get_webhook_by_event;
 
 pub(crate) mod shape_get_workspace;
 
+pub(crate) mod shape_import_config_json;
+
+pub(crate) mod shape_import_config_json_input;
+
+pub(crate) mod shape_import_config_toml;
+
+pub(crate) mod shape_import_config_toml_input;
+
 pub(crate) mod shape_list_audit_logs;
 
 pub(crate) mod shape_list_contexts;
@@ -364,6 +372,8 @@ pub(crate) mod shape_experiment_list;
 pub(crate) mod shape_function_execution_request;
 
 pub(crate) mod shape_function_list_response;
+
+pub(crate) mod shape_import_entity_report;
 
 pub(crate) mod shape_list_context_out;
 

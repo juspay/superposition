@@ -584,6 +584,24 @@ if builder.enable_change_reason_validation.is_none() { builder.enable_change_rea
                 builder
             }
 
+pub(crate) fn import_config_json_output_output_correct_errors(mut builder: crate::operation::import_config_json::builders::ImportConfigJsonOutputBuilder) -> crate::operation::import_config_json::builders::ImportConfigJsonOutputBuilder {
+                if builder.strategy.is_none() { builder.strategy = Some(Default::default()) }
+if builder.dry_run.is_none() { builder.dry_run = Some(Default::default()) }
+if builder.dimensions.is_none() { builder.dimensions = { let builder = crate::types::builders::ImportEntityReportBuilder::default(); crate::serde_util::import_entity_report_correct_errors(builder).build().ok() } }
+if builder.default_configs.is_none() { builder.default_configs = { let builder = crate::types::builders::ImportEntityReportBuilder::default(); crate::serde_util::import_entity_report_correct_errors(builder).build().ok() } }
+if builder.contexts.is_none() { builder.contexts = { let builder = crate::types::builders::ImportEntityReportBuilder::default(); crate::serde_util::import_entity_report_correct_errors(builder).build().ok() } }
+                builder
+            }
+
+pub(crate) fn import_config_toml_output_output_correct_errors(mut builder: crate::operation::import_config_toml::builders::ImportConfigTomlOutputBuilder) -> crate::operation::import_config_toml::builders::ImportConfigTomlOutputBuilder {
+                if builder.strategy.is_none() { builder.strategy = Some(Default::default()) }
+if builder.dry_run.is_none() { builder.dry_run = Some(Default::default()) }
+if builder.dimensions.is_none() { builder.dimensions = { let builder = crate::types::builders::ImportEntityReportBuilder::default(); crate::serde_util::import_entity_report_correct_errors(builder).build().ok() } }
+if builder.default_configs.is_none() { builder.default_configs = { let builder = crate::types::builders::ImportEntityReportBuilder::default(); crate::serde_util::import_entity_report_correct_errors(builder).build().ok() } }
+if builder.contexts.is_none() { builder.contexts = { let builder = crate::types::builders::ImportEntityReportBuilder::default(); crate::serde_util::import_entity_report_correct_errors(builder).build().ok() } }
+                builder
+            }
+
 pub(crate) fn list_audit_logs_output_output_correct_errors(mut builder: crate::operation::list_audit_logs::builders::ListAuditLogsOutputBuilder) -> crate::operation::list_audit_logs::builders::ListAuditLogsOutputBuilder {
                 if builder.total_pages.is_none() { builder.total_pages = Some(Default::default()) }
 if builder.total_items.is_none() { builder.total_items = Some(Default::default()) }
@@ -1012,6 +1030,14 @@ pub(crate) fn config_data_correct_errors(mut builder: crate::types::builders::Co
 if builder.overrides.is_none() { builder.overrides = Some(Default::default()) }
 if builder.default_configs.is_none() { builder.default_configs = Some(Default::default()) }
 if builder.dimensions.is_none() { builder.dimensions = Some(Default::default()) }
+                builder
+            }
+
+pub(crate) fn import_entity_report_correct_errors(mut builder: crate::types::builders::ImportEntityReportBuilder) -> crate::types::builders::ImportEntityReportBuilder {
+                if builder.created.is_none() { builder.created = Some(Default::default()) }
+if builder.updated.is_none() { builder.updated = Some(Default::default()) }
+if builder.skipped.is_none() { builder.skipped = Some(Default::default()) }
+if builder.deleted.is_none() { builder.deleted = Some(Default::default()) }
                 builder
             }
 

@@ -10,39 +10,48 @@ city_cohort = { position = 1, schema = { enum = ["south", "otherwise"], type = "
 
 [[overrides]]
 _context_ = { vehicle_type = "cab" }
+_description_ = "test context"
 per_km_rate = 25.0
 
 [[overrides]]
 _context_ = { vehicle_type = "bike" }
+_description_ = "test context"
 per_km_rate = 15.0
 
 [[overrides]]
 _context_ = { city = "Bangalore", vehicle_type = "cab" }
+_description_ = "test context"
 per_km_rate = 22.0
 
 [[overrides]]
 _context_ = { city = "Delhi", vehicle_type = "cab", hour_of_day = 18 }
+_description_ = "test context"
 surge_factor = 5.0
 
 [[overrides]]
 _context_ = { city = "Delhi", vehicle_type = "cab", hour_of_day = 6 }
+_description_ = "test context"
 surge_factor = 5.0
 
 [[overrides]]
 _context_ = { city_cohort = "south" }
+_description_ = "test context"
 per_km_rate = 100.0
 
 [[overrides]]
 _context_ = { vehicle_type = "auto" }
+_description_ = "test context"
 per_km_rate = 100.0
 surge_factor = 1.0
 
 [[overrides]]
 _context_ = { vehicle_type = "auto",  city = "Chennai" }
+_description_ = "test context"
 per_km_rate = 200.0
 surge_factor = 2.0
 
 [[overrides]]
 _context_ = { vehicle_type = "auto",  city = "Bangalore" }
+_description_ = "test context"
 per_km_rate = 300.0
 surge_factor = 3.0
