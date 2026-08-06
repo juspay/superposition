@@ -1038,7 +1038,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if (lib.uniffi_superposition_core_checksum_func_ffi_parse_json_config() != 30321.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_superposition_core_checksum_func_ffi_parse_toml_config() != 1558.toShort()) {
+    if (lib.uniffi_superposition_core_checksum_func_ffi_parse_toml_config() != 12918.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_superposition_core_checksum_method_providercache_eval_config() != 35291.toShort()) {
@@ -2410,6 +2410,7 @@ public object FfiConverterMapStringTypeOverrides: FfiConverterRustBuffer<Map<kot
          *
          * [[overrides]]
          * _context_ = { os = "linux" }
+         * _description_ = "Linux context"
          * timeout = 60
          * ```
          */
