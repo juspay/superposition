@@ -51,6 +51,7 @@ pub struct ImportSummary {
     pub strategy: ImportStrategy,
     pub dry_run: bool,
 
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub config_version: Option<String>,
     pub dimensions: ImportEntityReport,
     pub default_configs: ImportEntityReport,
