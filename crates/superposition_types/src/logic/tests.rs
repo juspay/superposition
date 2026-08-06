@@ -2,7 +2,8 @@ use std::collections::HashMap;
 
 use crate::{
     logic::{
-        dimensions_to_start_from, evaluate_local_cohort_dimension, evaluate_local_cohorts,
+        cohort_evaluation::evaluate_local_cohort_dimension, dimensions_to_start_from,
+        evaluate_local_cohorts,
     },
     DimensionInfo,
 };

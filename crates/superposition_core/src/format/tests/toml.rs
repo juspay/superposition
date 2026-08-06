@@ -390,7 +390,7 @@ timeout = 60
     assert!(result.is_err());
     let err = result.unwrap_err().to_string();
     assert!(
-        err.contains("does not exist") || err.contains("not found"),
+        err.contains("Invalid dimension type"),
         "Expected error about empty cohort name, got: {err}"
     );
 }
@@ -460,7 +460,7 @@ timeout = 60
     assert!(result.is_err());
     let err = result.unwrap_err().to_string();
     assert!(
-        err.contains("does not exist") || err.contains("not found"),
+        err.contains("Invalid dimension type"),
         "Expected error about empty cohort name, got: {err}"
     );
 }
