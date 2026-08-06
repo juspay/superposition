@@ -27,6 +27,7 @@ use crate::pages::{
     default_config::{CreateDefaultConfig, DefaultConfig, EditDefaultConfig},
     default_config_list::DefaultConfigList,
     experiment::ExperimentPage,
+    experiment_page::{CreateExperiment, EditExperiment},
     home::Home,
     organisations::Organisations,
     override_page::{CreateOverride, EditOverride, OverridePage},
@@ -249,10 +250,28 @@ pub fn App(app_envs: Envs) -> impl IntoView {
                         <Route
                             ssr=SsrMode::Async
                             path=join_route_parts([
+                                RouteSegment::Experiments,
+                                RouteSegment::Action,
+                                RouteSegment::Create,
+                            ])
+                            view=CreateExperiment
+                        />
+                        <Route
+                            ssr=SsrMode::Async
+                            path=join_route_parts([
                                 RoutePart::from(RouteSegment::Experiments),
                                 RoutePart::from("id"),
                             ])
                             view=ExperimentPage
+                        />
+                        <Route
+                            ssr=SsrMode::Async
+                            path=join_route_parts([
+                                RoutePart::from(RouteSegment::Experiments),
+                                RoutePart::from("id"),
+                                RoutePart::from(RouteSegment::Edit),
+                            ])
+                            view=EditExperiment
                         />
 
                         <Route

@@ -12,6 +12,7 @@ pub mod experiment;
 pub mod experiment_group_listing;
 pub mod experiment_groups;
 pub mod experiment_list;
+pub mod experiment_page;
 pub mod function;
 pub mod home;
 pub mod not_found;
