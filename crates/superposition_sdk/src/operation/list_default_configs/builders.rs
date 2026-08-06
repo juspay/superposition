@@ -166,19 +166,66 @@ impl ListDefaultConfigsFluentBuilder {
     pub fn get_all(&self) -> &::std::option::Option<bool> {
                     self.inner.get_all()
                 }
+    /// 
+    /// Appends an item to `name`.
+    /// 
+    /// To override the contents of this collection use [`set_name`](Self::set_name).
+    /// 
     #[allow(missing_docs)] // documentation missing in model
     pub fn name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.name(input.into());
-                    self
-                }
+                        self.inner = self.inner.name(input.into());
+                        self
+                    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+    pub fn set_name(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
                     self.inner = self.inner.set_name(input);
                     self
                 }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_name(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_name(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
                     self.inner.get_name()
+                }
+    /// Sort order enumeration for list operations.
+    pub fn sort_by(mut self, input: crate::types::SortBy) -> Self {
+                    self.inner = self.inner.sort_by(input);
+                    self
+                }
+    /// Sort order enumeration for list operations.
+    pub fn set_sort_by(mut self, input: ::std::option::Option<crate::types::SortBy>) -> Self {
+                    self.inner = self.inner.set_sort_by(input);
+                    self
+                }
+    /// Sort order enumeration for list operations.
+    pub fn get_sort_by(&self) -> &::std::option::Option<crate::types::SortBy> {
+                    self.inner.get_sort_by()
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn sort_on(mut self, input: crate::types::DefaultConfigSortOn) -> Self {
+                    self.inner = self.inner.sort_on(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_sort_on(mut self, input: ::std::option::Option<crate::types::DefaultConfigSortOn>) -> Self {
+                    self.inner = self.inner.set_sort_on(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_sort_on(&self) -> &::std::option::Option<crate::types::DefaultConfigSortOn> {
+                    self.inner.get_sort_on()
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn search(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+                    self.inner = self.inner.search(input.into());
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_search(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+                    self.inner = self.inner.set_search(input);
+                    self
+                }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_search(&self) -> &::std::option::Option<::std::string::String> {
+                    self.inner.get_search()
                 }
 }
 
