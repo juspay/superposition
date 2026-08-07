@@ -14,8 +14,8 @@ use superposition_types::database::models::experimentation::{
     Bucket, Buckets, ExperimentStatusType, GroupType, Variant, VariantType, Variants,
 };
 use superposition_types::{
-    Cac, Condition, Config, Context, DimensionInfo, Exp, ExtendedMap, OverrideWithKeys,
-    Overrides, PrefixList,
+    Cac, Condition, Config, ConfigFilter, Context, DimensionInfo, Exp, ExtendedMap,
+    OverrideWithKeys, Overrides, PrefixList,
 };
 
 use crate::{conversions, types::*};

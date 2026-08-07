@@ -18,7 +18,7 @@ use mini_moka::sync::Cache;
 use reqwest::{RequestBuilder, Response, StatusCode};
 use serde_json::{Map, Value};
 pub use superposition_types::api::config::MergeStrategy;
-use superposition_types::{Config, Context, ExtendedMap, PrefixList};
+use superposition_types::{Config, ConfigFilter, Context, ExtendedMap, PrefixList};
 use tokio::sync::RwLock;
 use utils::{core::MapError, json_to_sorted_string};
 
@@ -204,7 +204,7 @@ impl Client {
             if !keys.is_empty() || !exclude_prefix.is_empty() {
                 config = config.filter_by_prefix(&keys, &exclude_prefix);
             }
-            let evaled_cac = eval::eval_cac(config, query_data, merge_strategy)?;
+            let evaled_cac = eval::eval_cac(config, query_data, merge_strategy);
             self.config_cache.insert(hash_key, evaled_cac.clone());
             Ok(evaled_cac)
         }
@@ -300,6 +300,6 @@ use once_cell::sync::Lazy;
 pub static CLIENT_FACTORY: Lazy<ClientFactory> =
     Lazy::new(|| ClientFactory(RwLock::new(HashMap::new())));
 
+pub use eval::eval;
 pub use eval::eval_cac;
-pub use eval::eval_cac_with_reasoning;
 pub use eval::merge;

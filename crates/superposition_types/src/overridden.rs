@@ -66,30 +66,42 @@ pub(crate) fn filter_config_keys_by_prefix(
         .collect()
 }
 
+pub(crate) fn filter_config_keys_by_prefix_mut(
+    overrides: &mut Map<String, Value>,
+    prefix_list: &PrefixList,
+    exclude_prefix_list: &PrefixList,
+) {
+    overrides.retain(|key, _| key_is_retained(key, prefix_list, exclude_prefix_list));
+}
+
 pub(crate) fn filter_into_config_keys_by_prefix(
     mut overrides: Map<String, Value>,
     prefix_list: &PrefixList,
     exclude_prefix_list: &PrefixList,
 ) -> Map<String, Value> {
-    overrides.retain(|key, _| key_is_retained(key, prefix_list, exclude_prefix_list));
+    filter_config_keys_by_prefix_mut(&mut overrides, prefix_list, exclude_prefix_list);
     overrides
 }
 
-pub trait Overridden<T: TryFrom<Map<String, Value>>>: Clone {
-    fn get_overrides(&self) -> Overrides;
+pub trait Overridden: Sized {
+    fn get_overrides_mut(&mut self) -> &mut Overrides;
 
     fn filter_keys_by_prefix(
-        context: &Self,
+        context: &mut Self,
         prefix_list: &PrefixList,
         exclude_prefix_list: &PrefixList,
-    ) -> Result<T, <T as TryFrom<Map<String, Value>>>::Error> {
-        let filtered_override = filter_config_keys_by_prefix(
-            &context.get_overrides(),
+    ) -> Result<(), String> {
+        filter_config_keys_by_prefix_mut(
+            context.get_overrides_mut(),
             prefix_list,
             exclude_prefix_list,
         );
 
-        T::try_from(filtered_override)
+        if context.get_overrides_mut().is_empty() {
+            Err("No overrides left after filtering".to_string())
+        } else {
+            Ok(())
+        }
     }
 }
 

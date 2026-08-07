@@ -1,6 +1,6 @@
-use serde_json::{Map, Value, json};
+use serde_json::{json, Map, Value};
 use std::fs;
-use superposition_core::{MergeStrategy, eval_config, parse_toml_config};
+use superposition_core::{eval_config, format::toml::parse_toml_config, MergeStrategy};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Superposition TOML Parser Example ===\n");
@@ -43,16 +43,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "vehicle_type".to_string(),
         Value::String("bike".to_string()),
     );
-    let config_clone = config.clone();
-    let result1 = eval_config(
-        config_clone.default_configs,
-        config_clone.contexts,
-        config_clone.overrides,
-        config_clone.dimensions,
-        dims1,
-        MergeStrategy::MERGE,
-        None,
-    )?;
+    let result1 = eval_config(config.clone(), dims1, MergeStrategy::MERGE, None, None);
 
     println!("Input dimensions: vehicle_type=bike");
     println!("Resolved config:");
@@ -71,16 +62,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     dims2.insert("city".to_string(), Value::String("Bangalore".to_string()));
     dims2.insert("vehicle_type".to_string(), Value::String("cab".to_string()));
 
-    let config_clone = config.clone();
-    let result2 = eval_config(
-        config_clone.default_configs,
-        config_clone.contexts,
-        config_clone.overrides,
-        config_clone.dimensions,
-        dims2,
-        MergeStrategy::MERGE,
-        None,
-    )?;
+    let result2 = eval_config(config.clone(), dims2, MergeStrategy::MERGE, None, None);
 
     println!("Input dimensions: city=Bangalore, vehicle_type=cab");
     println!("Resolved config:");
@@ -100,16 +82,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     dims3.insert("vehicle_type".to_string(), Value::String("cab".to_string()));
     dims3.insert("hour_of_day".to_string(), Value::Number(6.into()));
 
-    let config_clone = config.clone();
-    let result3 = eval_config(
-        config_clone.default_configs,
-        config_clone.contexts,
-        config_clone.overrides,
-        config_clone.dimensions,
-        dims3,
-        MergeStrategy::MERGE,
-        None,
-    )?;
+    let result3 = eval_config(config.clone(), dims3, MergeStrategy::MERGE, None, None);
 
     println!("Input dimensions: city=Delhi, vehicle_type=cab, hour_of_day=6");
     println!("Resolved config:");
@@ -130,16 +103,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Value::String("auto".to_string()),
     );
 
-    let config_clone = config.clone();
-    let result4 = eval_config(
-        config_clone.default_configs,
-        config_clone.contexts,
-        config_clone.overrides,
-        config_clone.dimensions,
-        dims4,
-        MergeStrategy::MERGE,
-        None,
-    )?;
+    let result4 = eval_config(config.clone(), dims4, MergeStrategy::MERGE, None, None);
 
     println!("Input dimensions: vehicle_type=auto");
     println!("Resolved config:");
@@ -157,15 +121,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut dims5 = Map::new();
     dims5.insert("city".to_string(), Value::String("Chennai".to_string()));
 
-    let result5 = eval_config(
-        config.default_configs,
-        config.contexts,
-        config.overrides,
-        config.dimensions,
-        dims5,
-        MergeStrategy::MERGE,
-        None,
-    )?;
+    let result5 = eval_config(config.clone(), dims5, MergeStrategy::MERGE, None, None);
 
     println!("Input dimensions: city=Chennai");
     println!("Resolved config:");
@@ -187,15 +143,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Value::String("auto".to_string()),
     );
 
-    let result10 = eval_config(
-        default_configs.clone(),
-        &config.contexts,
-        &config.overrides,
-        &config.dimensions,
-        &dims10,
-        MergeStrategy::MERGE,
-        None,
-    )?;
+    let result10 = eval_config(config.clone(), dims10, MergeStrategy::MERGE, None, None);
 
     println!("Input: vehicle_type = auto");
     println!(
@@ -213,15 +161,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Value::String("auto".to_string()),
     );
 
-    let result11 = eval_config(
-        default_configs.clone(),
-        &config.contexts,
-        &config.overrides,
-        &config.dimensions,
-        &dims11,
-        MergeStrategy::MERGE,
-        None,
-    )?;
+    let result11 = eval_config(config.clone(), dims11, MergeStrategy::MERGE, None, None);
 
     println!("Input: city=Chennai, vehicle_type=auto");
     println!(
@@ -239,15 +179,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Value::String("auto".to_string()),
     );
 
-    let result11 = eval_config(
-        default_configs.clone(),
-        &config.contexts,
-        &config.overrides,
-        &config.dimensions,
-        &dims11,
-        MergeStrategy::MERGE,
-        None,
-    )?;
+    let result11 = eval_config(config, dims11, MergeStrategy::MERGE, None, None);
 
     println!("Input: city=Bangalore, vehicle_type=auto");
     println!(
