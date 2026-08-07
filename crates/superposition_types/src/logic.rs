@@ -77,8 +77,7 @@ pub fn partial_apply(
 }
 
 fn _evaluate_local_cohort_dimension(
-    cohort_based_on: &str,
-    cohort_based_on_value: &Value,
+    evaluation_data: &Value,
     schema: &Map<String, Value>,
 ) -> Option<String> {
     let definitions_object = schema.get("definitions")?.as_object()?;
@@ -95,8 +94,7 @@ fn _evaluate_local_cohort_dimension(
     for cohort_option in cohort_enums {
         let jsonlogic = definitions_object.get(cohort_option)?;
         // Find the first matching cohort definition
-        let evaluation_data = serde_json::json!({cohort_based_on: cohort_based_on_value});
-        if jsonlogic::apply(jsonlogic, &evaluation_data) == Ok(Value::Bool(true)) {
+        if jsonlogic::apply(jsonlogic, evaluation_data) == Ok(Value::Bool(true)) {
             return Some(cohort_option.to_string());
         }
     }
@@ -105,23 +103,29 @@ fn _evaluate_local_cohort_dimension(
 }
 
 fn evaluate_local_cohort_dimension(
-    cohort_based_on: &str,
-    cohort_based_on_value: &Value,
+    cohort_based_on: String,
+    cohort_based_on_value: Value,
     schema: &Map<String, Value>,
 ) -> String {
-    _evaluate_local_cohort_dimension(cohort_based_on, cohort_based_on_value, schema)
+    let evaluation_data =
+        Value::Object(Map::from_iter([(cohort_based_on, cohort_based_on_value)]));
+    _evaluate_local_cohort_dimension(&evaluation_data, schema)
         .unwrap_or_else(|| "otherwise".to_string())
 }
 
 /// Evaluates local cohort dependencies in a depth-first manner
 fn evaluate_local_cohorts_dependency(
     dimension: &str,
-    value: &Value,
     dependency_graph: &DependencyGraph,
     dimensions: &HashMap<String, DimensionInfo>,
     modified_context: &mut Map<String, Value>,
     query_data: &Map<String, Value>,
 ) {
+    let Some(value) = modified_context.get(dimension) else {
+        // This case is not possible, as the function is called only for dimensions that have been set in modified_context
+        return;
+    };
+
     let mut stack = dependency_graph
         .get(dimension)
         .cloned()
@@ -133,27 +137,23 @@ fn evaluate_local_cohorts_dependency(
     // Depth-first traversal of dependencies
     while let Some((cohort_dimension, based_on, based_on_val)) = stack.pop() {
         if let Some(dimension_info) = dimensions.get(&cohort_dimension) {
-            let mut cohort_val = None;
             match &dimension_info.dimension_type {
                 DimensionType::LocalCohort(_) => {
                     let cohort_value = Value::String(evaluate_local_cohort_dimension(
-                        &based_on,
-                        &based_on_val,
+                        based_on,
+                        based_on_val,
                         &dimension_info.schema,
                     ));
-                    modified_context
-                        .insert(cohort_dimension.clone(), cohort_value.clone());
-                    cohort_val = Some(cohort_value);
+                    modified_context.insert(cohort_dimension.clone(), cohort_value);
                 }
                 _ => {
                     if let Some(value) = query_data.get(&cohort_dimension) {
                         modified_context.insert(cohort_dimension.clone(), value.clone());
-                        cohort_val = Some(value.clone());
                     }
                 }
             }
 
-            if let Some(cohort_val) = cohort_val {
+            if let Some(cohort_val) = modified_context.get(&cohort_dimension) {
                 stack.extend(
                     dimension_info
                         .dependency_graph
@@ -171,27 +171,26 @@ fn evaluate_local_cohorts_dependency(
 
 fn _evaluate_local_cohorts(
     dimensions: &HashMap<String, DimensionInfo>,
-    query_data: &Map<String, Value>,
+    mut query_data: Map<String, Value>,
     skip_unresolved: bool,
 ) -> Map<String, Value> {
     if dimensions.is_empty() {
-        return query_data.clone();
+        return query_data;
     }
 
     let mut modified_context = Map::new();
 
     // Start from dimensions that are closest to root in each tree
-    for dimension_key in dimensions_to_start_from(dimensions, query_data) {
-        if let Some(value) = query_data.get(&dimension_key) {
+    for dimension_key in dimensions_to_start_from(dimensions, &query_data) {
+        if let Some(value) = query_data.remove(&dimension_key) {
             if let Some(dimension_info) = dimensions.get(&dimension_key) {
-                modified_context.insert(dimension_key.to_string(), value.clone());
+                modified_context.insert(dimension_key.to_string(), value);
                 evaluate_local_cohorts_dependency(
                     &dimension_key,
-                    value,
                     &dimension_info.dependency_graph,
                     dimensions,
                     &mut modified_context,
-                    query_data,
+                    &query_data,
                 );
             }
         }
@@ -227,7 +226,7 @@ fn _evaluate_local_cohorts(
 /// if the value provided for the local cohort was incorrect in the query data.
 pub fn evaluate_local_cohorts(
     dimensions: &HashMap<String, DimensionInfo>,
-    query_data: &Map<String, Value>,
+    query_data: Map<String, Value>,
 ) -> Map<String, Value> {
     _evaluate_local_cohorts(dimensions, query_data, false)
 }
@@ -235,7 +234,7 @@ pub fn evaluate_local_cohorts(
 /// Same as evaluate_local_cohorts but does not set unresolved local cohorts to "otherwise"
 pub fn evaluate_local_cohorts_skip_unresolved(
     dimensions: &HashMap<String, DimensionInfo>,
-    query_data: &Map<String, Value>,
+    query_data: Map<String, Value>,
 ) -> Map<String, Value> {
     _evaluate_local_cohorts(dimensions, query_data, true)
 }
@@ -256,10 +255,9 @@ pub fn dimensions_to_start_from(
         .collect::<Vec<String>>();
 
     for root_dimension in regular_dimensions {
-        let dependency_graph = &dimensions
+        let dependency_graph = dimensions
             .get(&root_dimension)
-            .map(|data| data.dependency_graph.clone())
-            .unwrap_or_default();
+            .map(|data| &data.dependency_graph);
 
         let mut stack = vec![root_dimension];
 
@@ -278,7 +276,7 @@ pub fn dimensions_to_start_from(
 
             stack.extend(
                 dependency_graph
-                    .get(&current_dimension)
+                    .and_then(|dg| dg.get(&current_dimension))
                     .cloned()
                     .unwrap_or_default(),
             );

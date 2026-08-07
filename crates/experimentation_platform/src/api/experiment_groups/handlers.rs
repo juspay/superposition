@@ -469,9 +469,11 @@ fn list_experiment_groups_db(
 
         let dimensions_info =
             fetch_dimensions_info_map(conn, &workspace_context.schema_name)?;
-        let original_req_keys = dimension_params.keys().collect::<Vec<_>>();
-        let dimension_params =
-            evaluate_local_cohorts_skip_unresolved(&dimensions_info, &dimension_params);
+        let original_req_keys = dimension_params.keys().cloned().collect::<Vec<_>>();
+        let dimension_params = evaluate_local_cohorts_skip_unresolved(
+            &dimensions_info,
+            dimension_params.into_inner(),
+        );
 
         let strategy = filters.dimension_match_strategy.unwrap_or_default();
 
@@ -488,7 +490,7 @@ fn list_experiment_groups_db(
             DimensionMatchStrategy::NonConflicting => dimension_filtered_experiments,
             _ => ExperimentGroup::filter_by_dimension(
                 dimension_filtered_experiments,
-                &original_req_keys,
+                &original_req_keys.iter().collect::<Vec<_>>(),
                 &dimensions_info,
             ),
         };

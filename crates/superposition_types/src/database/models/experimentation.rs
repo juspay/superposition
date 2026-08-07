@@ -248,9 +248,9 @@ pub struct Variant {
     pub overrides: Exp<Overrides>,
 }
 
-impl Overridden<Exp<Overrides>> for Variant {
-    fn get_overrides(&self) -> Overrides {
-        self.overrides.clone().into_inner()
+impl Overridden for Variant {
+    fn get_overrides_mut(&mut self) -> &mut Overrides {
+        &mut self.overrides
     }
 }
 

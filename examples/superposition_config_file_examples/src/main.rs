@@ -1,19 +1,21 @@
 use serde_json::{json, Map, Value};
 use std::fs;
-use superposition_core::{
-    eval_config, ConfigFormat, JsonFormat, MergeStrategy, TomlFormat,
-};
+use superposition_core::{eval, ConfigFormat, JsonFormat, MergeStrategy, TomlFormat};
 
 fn evaluate_and_print(
     config: &superposition_core::Config,
-    default_configs: &Map<String, Value>,
     description: &str,
-    dimensions: &Map<String, Value>,
-) -> Result<(), Box<dyn std::error::Error>> {
+    dimensions: Map<String, Value>,
+) {
     println!("\n--- {} ---", description);
 
-    let result = eval_config(
-        default_configs.clone(),
+    let dims_str: Vec<String> = dimensions
+        .iter()
+        .map(|(k, v)| format!("{}={}", k, v))
+        .collect();
+
+    let result = eval(
+        config.default_configs.clone(),
         &config.contexts,
         &config.overrides,
         &config.dimensions,
@@ -21,12 +23,8 @@ fn evaluate_and_print(
         MergeStrategy::MERGE,
         None,
         None,
-    )?;
+    );
 
-    let dims_str: Vec<String> = dimensions
-        .iter()
-        .map(|(k, v)| format!("{}={}", k, v))
-        .collect();
     println!("Input dimensions: {}", dims_str.join(", "));
     println!("Resolved config:");
     println!(
@@ -37,8 +35,6 @@ fn evaluate_and_print(
         "  surge_factor: {}",
         result.get("surge_factor").unwrap_or(&json!(null))
     );
-
-    Ok(())
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -98,7 +94,6 @@ fn run_toml_example() -> Result<(), Box<dyn std::error::Error>> {
 
     // Evaluate with different dimensions
     println!("\n--- Evaluating TOML Configuration ---");
-    let default_configs = (*config.default_configs).clone();
 
     // Example 1: Basic bike ride
     let mut dims1 = Map::new();
@@ -106,30 +101,20 @@ fn run_toml_example() -> Result<(), Box<dyn std::error::Error>> {
         "vehicle_type".to_string(),
         Value::String("bike".to_string()),
     );
-    evaluate_and_print(
-        &config,
-        &default_configs,
-        "Bike ride (no specific city)",
-        &dims1,
-    )?;
+    evaluate_and_print(&config, "Bike ride (no specific city)", dims1);
 
     // Example 2: Cab ride in Bangalore
     let mut dims2 = Map::new();
     dims2.insert("city".to_string(), Value::String("Bangalore".to_string()));
     dims2.insert("vehicle_type".to_string(), Value::String("cab".to_string()));
-    evaluate_and_print(&config, &default_configs, "Cab ride in Bangalore", &dims2)?;
+    evaluate_and_print(&config, "Cab ride in Bangalore", dims2);
 
     // Example 3: Cab ride in Delhi at 6 AM (morning surge)
     let mut dims3 = Map::new();
     dims3.insert("city".to_string(), Value::String("Delhi".to_string()));
     dims3.insert("vehicle_type".to_string(), Value::String("cab".to_string()));
     dims3.insert("hour_of_day".to_string(), Value::Number(6.into()));
-    evaluate_and_print(
-        &config,
-        &default_configs,
-        "Cab ride in Delhi at 6 AM (morning surge)",
-        &dims3,
-    )?;
+    evaluate_and_print(&config, "Cab ride in Delhi at 6 AM (morning surge)", dims3);
 
     // Example 4: Auto ride (uses default values)
     let mut dims4 = Map::new();
@@ -137,22 +122,12 @@ fn run_toml_example() -> Result<(), Box<dyn std::error::Error>> {
         "vehicle_type".to_string(),
         Value::String("auto".to_string()),
     );
-    evaluate_and_print(
-        &config,
-        &default_configs,
-        "Auto ride (uses default values)",
-        &dims4,
-    )?;
+    evaluate_and_print(&config, "Auto ride (uses default values)", dims4);
 
     // Example 5: Chennai ride
     let mut dims5 = Map::new();
     dims5.insert("city".to_string(), Value::String("Chennai".to_string()));
-    evaluate_and_print(
-        &config,
-        &default_configs,
-        "Chennai ride (uses default values)",
-        &dims5,
-    )?;
+    evaluate_and_print(&config, "Chennai ride (uses default values)", dims5);
 
     Ok(())
 }
@@ -187,7 +162,6 @@ fn run_json_example() -> Result<(), Box<dyn std::error::Error>> {
 
     // Evaluate with different dimensions
     println!("\n--- Evaluating JSON Configuration ---");
-    let default_configs = (*config.default_configs).clone();
 
     // Example 1: Basic bike ride
     let mut dims1 = Map::new();
@@ -195,30 +169,20 @@ fn run_json_example() -> Result<(), Box<dyn std::error::Error>> {
         "vehicle_type".to_string(),
         Value::String("bike".to_string()),
     );
-    evaluate_and_print(
-        &config,
-        &default_configs,
-        "Bike ride (no specific city)",
-        &dims1,
-    )?;
+    evaluate_and_print(&config, "Bike ride (no specific city)", dims1);
 
     // Example 2: Cab ride in Bangalore
     let mut dims2 = Map::new();
     dims2.insert("city".to_string(), Value::String("Bangalore".to_string()));
     dims2.insert("vehicle_type".to_string(), Value::String("cab".to_string()));
-    evaluate_and_print(&config, &default_configs, "Cab ride in Bangalore", &dims2)?;
+    evaluate_and_print(&config, "Cab ride in Bangalore", dims2);
 
     // Example 3: Cab ride in Delhi at 6 AM (morning surge)
     let mut dims3 = Map::new();
     dims3.insert("city".to_string(), Value::String("Delhi".to_string()));
     dims3.insert("vehicle_type".to_string(), Value::String("cab".to_string()));
     dims3.insert("hour_of_day".to_string(), Value::Number(6.into()));
-    evaluate_and_print(
-        &config,
-        &default_configs,
-        "Cab ride in Delhi at 6 AM (morning surge)",
-        &dims3,
-    )?;
+    evaluate_and_print(&config, "Cab ride in Delhi at 6 AM (morning surge)", dims3);
 
     // Example 4: Auto ride (uses default values)
     let mut dims4 = Map::new();
@@ -226,22 +190,12 @@ fn run_json_example() -> Result<(), Box<dyn std::error::Error>> {
         "vehicle_type".to_string(),
         Value::String("auto".to_string()),
     );
-    evaluate_and_print(
-        &config,
-        &default_configs,
-        "Auto ride (uses default values)",
-        &dims4,
-    )?;
+    evaluate_and_print(&config, "Auto ride (uses default values)", dims4);
 
     // Example 5: Chennai ride
     let mut dims5 = Map::new();
     dims5.insert("city".to_string(), Value::String("Chennai".to_string()));
-    evaluate_and_print(
-        &config,
-        &default_configs,
-        "Chennai ride (uses default values)",
-        &dims5,
-    )?;
+    evaluate_and_print(&config, "Chennai ride (uses default values)", dims5);
 
     Ok(())
 }

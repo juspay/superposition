@@ -22,8 +22,8 @@ use superposition_core::{
 use superposition_derives::{authorized, declare_resource};
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
-    Cac, Condition, Config, Context, DBConnection, DimensionInfo, InternalUserContext,
-    OverrideWithKeys, Overrides, PaginatedResponse, User,
+    Cac, Condition, Config, ConfigFilter, Context, DBConnection, DimensionInfo,
+    InternalUserContext, OverrideWithKeys, Overrides, PaginatedResponse, User,
     api::{
         config::{
             ConfigQuery, ContextPayload, ExplainKeyQuery, ExplainResolveQuery,
@@ -564,7 +564,7 @@ async fn get_handler(
         body.map_or_else(QueryMap::default, |body| body.into_inner().context.into())
     };
     if !context.is_empty() {
-        config = config.filter_by_dimensions(&context);
+        config = config.filter_by_dimensions(context.into_inner());
     }
     AppHeader::add_last_modified(max_created_at, is_smithy, &mut response);
     AppHeader::add_config_version(&Some(version), &mut response);
@@ -764,7 +764,7 @@ async fn explain_resolve_handler(
         })?;
 
         explain_resolved_config(
-            &config,
+            config,
             query_data,
             merge_strategy,
             &mut conn,
