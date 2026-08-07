@@ -1,31 +1,63 @@
-use std::collections::HashMap;
+use std::{borrow::Cow, collections::HashMap};
 
 use serde_json::{json, Map, Value};
 pub use superposition_types::api::config::MergeStrategy;
 use superposition_types::{
-    logic::evaluate_local_cohorts, Config, Context, DimensionInfo, ExtendedMap,
-    Overrides, PrefixList,
+    logic::evaluate_local_cohorts, Config, ConfigFilter, Context, DimensionInfo,
+    ExtendedMap, Overrides, PrefixList,
 };
 
-#[allow(clippy::too_many_arguments)]
+struct ConfigRef<'a> {
+    pub contexts: Vec<&'a Context>,
+    pub overrides: Cow<'a, HashMap<String, Overrides>>,
+    pub default_configs: ExtendedMap,
+    pub dimensions: &'a HashMap<String, DimensionInfo>,
+}
+
+impl<'a> ConfigFilter<'a> for ConfigRef<'a> {
+    type Context = &'a Context;
+    type Dimensions = &'a HashMap<String, DimensionInfo>;
+
+    fn into_parts(
+        self,
+    ) -> (
+        Vec<Self::Context>,
+        Cow<'a, HashMap<String, Overrides>>,
+        ExtendedMap,
+        Self::Dimensions,
+    ) {
+        (
+            self.contexts,
+            self.overrides,
+            self.default_configs,
+            self.dimensions,
+        )
+    }
+
+    fn from_parts(
+        contexts: Vec<Self::Context>,
+        overrides: Cow<'a, HashMap<String, Overrides>>,
+        default_configs: ExtendedMap,
+        dimensions: Self::Dimensions,
+    ) -> Self {
+        Self {
+            contexts,
+            overrides,
+            default_configs,
+            dimensions,
+        }
+    }
+}
+
+/// To be used when you have full ownership of the `Config` struct and
+/// want to evaluate it with a given set of dimensions.
 pub fn eval_config(
-    default_configs: ExtendedMap,
-    contexts: Vec<Context>,
-    overrides: HashMap<String, Overrides>,
-    dimensions: HashMap<String, DimensionInfo>,
+    mut config: Config,
     query_data: Map<String, Value>,
     merge_strategy: MergeStrategy,
     filter_prefixes: Option<Vec<String>>,
     filter_exclude_prefixes: Option<Vec<String>>,
-) -> Result<Map<String, Value>, String> {
-    // Create Config struct to use existing filtering logic
-    let mut config = Config {
-        default_configs,
-        contexts,
-        overrides,
-        dimensions,
-    };
-
+) -> Map<String, Value> {
     let filter_prefixes = PrefixList::from(filter_prefixes);
     let filter_exclude_prefixes = PrefixList::from(filter_exclude_prefixes);
 
@@ -38,39 +70,39 @@ pub fn eval_config(
 
     let overrides_map: Map<String, Value> = get_overrides(
         &modified_query_data,
-        config.contexts,
-        config.overrides,
+        config.contexts.iter().collect(),
+        Cow::Owned(config.overrides),
         &merge_strategy,
-        drop,
-    )?;
+    );
 
     // Apply overrides to default config
-    let result_config = merge_overrides_on_default_config(
+    let result = merge_overrides_on_default_config(
         config.default_configs,
         overrides_map,
         merge_strategy,
     );
 
-    Ok(result_config.into_inner())
+    result.into_inner()
 }
 
+/// To be used when the ownership of the `Config` struct is `not available`
+/// and you want to evaluate it with a given set of dimensions.
 #[allow(clippy::too_many_arguments)]
-pub fn eval_config_with_reasoning(
+pub fn eval(
     default_configs: ExtendedMap,
-    contexts: Vec<Context>,
-    overrides: HashMap<String, Overrides>,
-    dimensions: HashMap<String, DimensionInfo>,
+    contexts: &[Context],
+    overrides: &HashMap<String, Overrides>,
+    dimensions: &HashMap<String, DimensionInfo>,
     query_data: Map<String, Value>,
     merge_strategy: MergeStrategy,
-    filter_prefixes: Option<Vec<String>>, // Optional prefix filtering
-    filter_exclude_prefixes: Option<Vec<String>>, // Optional exclude prefix filtering
-) -> Result<Map<String, Value>, String> {
-    let mut reasoning: Vec<Value> = vec![];
-
-    let mut config = Config {
+    filter_prefixes: Option<Vec<String>>,
+    filter_exclude_prefixes: Option<Vec<String>>,
+) -> Map<String, Value> {
+    // Create Config struct to use existing filtering logic
+    let mut config = ConfigRef {
         default_configs,
-        contexts,
-        overrides,
+        contexts: contexts.iter().collect(),
+        overrides: Cow::Borrowed(overrides),
         dimensions,
     };
 
@@ -82,33 +114,23 @@ pub fn eval_config_with_reasoning(
         config = config.filter_by_prefix(&filter_prefixes, &filter_exclude_prefixes);
     }
 
-    let reasoning_collector = |context: Context| {
-        reasoning.push(json!({
-            "context": context.condition,
-            "override": context.override_with_keys
-        }));
-    };
+    let modified_query_data = evaluate_local_cohorts(config.dimensions, query_data);
 
-    let modified_query_data = evaluate_local_cohorts(&config.dimensions, query_data);
-
-    let overrides_map = get_overrides(
+    let overrides_map: Map<String, Value> = get_overrides(
         &modified_query_data,
         config.contexts,
         config.overrides,
         &merge_strategy,
-        reasoning_collector,
-    )?;
+    );
 
-    let mut result_config = merge_overrides_on_default_config(
+    // Apply overrides to default config
+    let result = merge_overrides_on_default_config(
         config.default_configs,
         overrides_map,
         merge_strategy,
     );
 
-    // Add reasoning metadata
-    result_config.insert("metadata".into(), json!(reasoning));
-
-    Ok(result_config.into_inner())
+    result.into_inner()
 }
 
 pub fn merge(doc: &mut Value, patch: Value) {
@@ -135,41 +157,38 @@ pub fn merge(doc: &mut Value, patch: Value) {
 /// share one and each must apply it at its own position. An override is therefore
 /// cloned only when more than one matching context needs it, and the last of those
 /// contexts moves it out of `overrides` rather than cloning.
-fn get_overrides<F: FnMut(Context)>(
+fn get_overrides(
     query_data: &Map<String, Value>,
-    contexts: Vec<Context>,
-    mut overrides: HashMap<String, Overrides>,
+    mut contexts: Vec<&Context>,
+    mut overrides: Cow<'_, HashMap<String, Overrides>>,
     merge_strategy: &MergeStrategy,
-    mut on_override_select: F,
-) -> Result<Map<String, Value>, String> {
-    let mut final_consumer_context: HashMap<String, String> = HashMap::new();
+) -> Map<String, Value> {
+    // borrow the keys instead of allocating two Strings per matching context
+    let mut final_consumer_context: HashMap<&str, &str> = HashMap::new();
 
-    let contexts = contexts
-        .into_iter()
-        .filter(|context| {
-            if !superposition_types::apply(&context.condition, query_data) {
-                return false;
-            }
-
-            final_consumer_context.insert(
-                context.override_with_keys.get_key().to_string(),
-                context.id.to_string(),
-            );
-            true
-        })
-        .collect::<Vec<_>>();
+    contexts.retain(|&context| {
+        if !superposition_types::apply(&context.condition, query_data) {
+            return false;
+        }
+        final_consumer_context.insert(
+            context.override_with_keys.get_key().as_str(),
+            context.id.as_str(),
+        );
+        true
+    });
 
     let mut required_overrides: Value = json!({});
 
     for context in contexts {
         let override_key = context.override_with_keys.get_key();
-        // the last matching context needing an override moves it out, the rest clone
-        let overriden_value =
-            if final_consumer_context.get(override_key.as_str()) == Some(&context.id) {
-                overrides.remove(override_key)
-            } else {
-                overrides.get(override_key).cloned()
-            };
+        let is_last = final_consumer_context.get(override_key.as_str())
+            == Some(&context.id.as_str());
+
+        // move it out only when we own the map *and* this is its last consumer
+        let overriden_value = match (&mut overrides, is_last) {
+            (Cow::Owned(map), true) => map.remove(override_key).map(Cow::Owned),
+            (map, _) => map.get(override_key).map(Cow::Borrowed),
+        };
 
         let Some(overriden_value) = overriden_value else {
             continue;
@@ -178,24 +197,21 @@ fn get_overrides<F: FnMut(Context)>(
         match merge_strategy {
             MergeStrategy::REPLACE => {
                 if let Some(doc) = required_overrides.as_object_mut() {
-                    for (key, value) in overriden_value.into_inner() {
+                    for (key, value) in overriden_value.into_owned().into_inner() {
                         doc.insert(key, value);
                     }
                 }
             }
-            MergeStrategy::MERGE => {
-                merge(
-                    &mut required_overrides,
-                    Value::Object(overriden_value.into_inner()),
-                );
-            }
+            MergeStrategy::MERGE => merge(
+                &mut required_overrides,
+                Value::Object(overriden_value.into_owned().into_inner()),
+            ),
         }
-        on_override_select(context)
     }
 
     match required_overrides {
-        Value::Object(map) => Ok(map),
-        _ => Err("Failed to create overrides map".to_string()),
+        Value::Object(map) => map,
+        _ => Map::new(),
     }
 }
 
@@ -264,19 +280,16 @@ mod tests {
         )]);
         let query_data = value_map(vec![("country", json!("IN"))]);
 
-        let resolved = eval_config_with_reasoning(
-            default_config,
-            vec![context],
+        let config = Config {
+            default_configs: default_config,
+            contexts: vec![context],
             overrides,
-            HashMap::new(),
-            query_data,
-            MergeStrategy::MERGE,
-            None,
-            None,
-        )
-        .unwrap();
+            dimensions: HashMap::new(),
+        };
+
+        let resolved = eval_config(config, query_data, MergeStrategy::MERGE, None, None);
 
         assert_eq!(resolved.get("checkout.enabled"), Some(&json!(true)));
-        assert!(!resolved.contains_key("metadata"));
+        // assert!(!resolved.contains_key("metadata"));
     }
 }

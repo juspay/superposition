@@ -22,8 +22,8 @@ use superposition_core::{
 use superposition_derives::{authorized, declare_resource};
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
-    Cac, Condition, Config, Context, DBConnection, DimensionInfo, InternalUserContext,
-    OverrideWithKeys, Overrides, PaginatedResponse, User,
+    Cac, Condition, Config, ConfigFilter, Context, DBConnection, DimensionInfo,
+    InternalUserContext, OverrideWithKeys, Overrides, PaginatedResponse, User,
     api::{
         config::{
             ConfigQuery, ContextPayload, ExplainKeyQuery, ExplainResolveQuery,

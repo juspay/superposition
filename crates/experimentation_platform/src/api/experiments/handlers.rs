@@ -1232,36 +1232,18 @@ fn list_experiments_db(
         let exclude_prefix_list = PrefixList::from(filters.exclude_prefix);
 
         if !prefix_list.is_empty() || !exclude_prefix_list.is_empty() {
-            all_experiments = all_experiments
-                .into_iter()
-                .filter_map(|experiment| {
-                    let variants: Vec<_> = experiment
-                        .variants
-                        .into_iter()
-                        .filter_map(|mut variant| {
-                            Variant::filter_keys_by_prefix(
-                                &variant,
-                                &prefix_list,
-                                &exclude_prefix_list,
-                            )
-                            .map(|filtered_overrides_map| {
-                                variant.overrides = filtered_overrides_map;
-                                variant
-                            })
-                            .ok()
-                        })
-                        .collect();
+            all_experiments.retain_mut(|experiment| {
+                experiment.variants.retain_mut(|variant| {
+                    Variant::filter_keys_by_prefix(
+                        variant,
+                        &prefix_list,
+                        &exclude_prefix_list,
+                    )
+                    .is_ok()
+                });
 
-                    if !variants.is_empty() {
-                        Some(Experiment {
-                            variants: Variants::new(variants),
-                            ..experiment
-                        })
-                    } else {
-                        None // Skip this experiment
-                    }
-                })
-                .collect()
+                !experiment.variants.is_empty()
+            });
         }
 
         let filtered_experiments = if filters.global_experiments_only.unwrap_or_default()

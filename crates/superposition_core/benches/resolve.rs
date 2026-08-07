@@ -27,7 +27,7 @@ use std::time::{Duration, Instant};
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use serde_json::{json, Map, Value};
-use superposition_core::{eval_config, Config, MergeStrategy};
+use superposition_core::{eval, eval_config, Config, MergeStrategy};
 use superposition_types::{
     database::models::cac::{DependencyGraph, DimensionType},
     Cac, Condition, Context, DimensionInfo, ExtendedMap, OverrideWithKeys, Overrides,
@@ -164,10 +164,7 @@ fn query_from_condition(condition: &Condition) -> Map<String, Value> {
 
 #[derive(Clone)]
 struct Dataset {
-    default_config: ExtendedMap,
-    contexts: Vec<Context>,
-    overrides: HashMap<String, Overrides>,
-    dimensions: HashMap<String, DimensionInfo>,
+    config: Config,
     queries: Vec<Map<String, Value>>,
 }
 
@@ -219,37 +216,45 @@ fn build_dataset(num_contexts: usize) -> Dataset {
         });
     }
 
-    // Sample query contexts directly from real context conditions, matching
-    // the "100 actual context conditions sampled from data" methodology.
     let mut queries = Vec::with_capacity(NUM_QUERIES);
     for _ in 0..NUM_QUERIES {
         let idx = rng.below(num_contexts);
         queries.push(query_from_condition(&contexts[idx].condition));
     }
 
-    Dataset {
-        default_config,
+    let config = Config {
+        default_configs: default_config,
         contexts,
         overrides,
         dimensions: build_dimensions(),
-        queries,
-    }
+    };
+    Dataset { config, queries }
 }
 
-/// Current implementation: `eval_config` consumes its inputs, so a caller that
-/// keeps its dataset around has to hand over its own copy on every resolve.
-fn resolve_optimized(ds: Dataset, query: Map<String, Value>) -> Map<String, Value> {
-    eval_config(
-        ds.default_config,
-        ds.contexts,
-        ds.overrides,
-        ds.dimensions,
+/// Current implementation: `eval` borrows the contexts, overrides and
+/// dimensions, so a caller that keeps its dataset around only hands over a copy
+/// of the default config on every resolve.
+fn resolve_optimized_borrowed(
+    config: &Config,
+    query: Map<String, Value>,
+) -> Map<String, Value> {
+    eval(
+        config.default_configs.clone(),
+        &config.contexts,
+        &config.overrides,
+        &config.dimensions,
         query,
         MergeStrategy::MERGE,
         None,
         None,
     )
-    .expect("resolve")
+}
+
+fn resolve_optimized_owned(
+    config: Config,
+    query: Map<String, Value>,
+) -> Map<String, Value> {
+    eval_config(config, query, MergeStrategy::MERGE, None, None)
 }
 
 /// Pre-optimization behavior: every resolve deep-cloned the full context set
@@ -261,23 +266,18 @@ fn resolve_pre_optimization(
 ) -> Map<String, Value> {
     // (1) Old `get_dimensions_info`: cloned the whole Config just to read
     //     `.dimensions`.
-    let full = Config {
-        contexts: ds.contexts.clone(),
-        overrides: ds.overrides.clone(),
-        default_configs: ds.default_config.clone(),
-        dimensions: ds.dimensions.clone(),
-    };
+    let full = ds.config.clone();
     let _dimensions = full.dimensions.clone();
 
     // (2) Old `eval_config`: cloned contexts + overrides into a temporary
     //     Config before resolving.
-    let contexts = ds.contexts.clone();
-    let overrides = ds.overrides.clone();
+    let contexts = ds.config.contexts.clone();
+    let overrides = ds.config.overrides.clone();
     pre_optimization::eval_config(
         full.default_configs.into_inner(),
         &contexts,
         &overrides,
-        &ds.dimensions,
+        &ds.config.dimensions,
         query,
         MergeStrategy::MERGE,
         None,
@@ -314,7 +314,16 @@ fn bench_resolve(c: &mut Criterion) {
         b.iter(|| {
             let q = &ds.queries[counter.get() % ds.queries.len()];
             counter.set(counter.get() + 1);
-            black_box(resolve_optimized(ds.clone(), q.clone()))
+            black_box(resolve_optimized_borrowed(&ds.config, q.clone()))
+        })
+    });
+
+    group.bench_function("optimization_owned", |b| {
+        let counter = Cell::new(0usize);
+        b.iter(|| {
+            let q = &ds.queries[counter.get() % ds.queries.len()];
+            counter.set(counter.get() + 1);
+            black_box(resolve_optimized_owned(ds.config.clone(), q.clone()))
         })
     });
 
@@ -340,7 +349,7 @@ mod pre_optimization {
     pub use superposition_types::api::config::MergeStrategy;
     use superposition_types::{
         database::models::cac::{DependencyGraph, DimensionType},
-        Config, Context, DimensionInfo, Overrides, PrefixList,
+        Config, ConfigFilter, Context, DimensionInfo, Overrides, PrefixList,
     };
 
     #[inline]

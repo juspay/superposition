@@ -4,7 +4,7 @@ use actix_web::{
     HttpRequest,
     web::{Data, Header, Json},
 };
-use cac_client::{eval_cac, eval_cac_with_reasoning};
+use cac_client::eval_cac;
 use chrono::{DateTime, Utc};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, dsl::max};
 use serde_json::{Map, Value};
@@ -18,7 +18,7 @@ use service_utils::{
 };
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    Config, DBConnection, PrefixList,
+    Config, ConfigFilter, DBConnection, PrefixList,
     api::config::{
         ContextPayload, DetailedResolvedConfigValue, DetailedResolvedConfiguration,
         ExplainKeyQuery, ExplainResolveQuery, Explanation, ExplanationTimelineItem,
@@ -293,21 +293,9 @@ fn evaluate_resolved_config(
     config: Config,
     query_data: QueryMap,
     merge_strategy: MergeStrategy,
-    show_reason: bool,
-) -> superposition::Result<Map<String, Value>> {
-    if show_reason {
-        eval_cac_with_reasoning(config, query_data.into_inner(), merge_strategy).map_err(
-            |err| {
-                log::error!("failed to eval cac with err: {}", err);
-                unexpected_error!("cac eval failed")
-            },
-        )
-    } else {
-        eval_cac(config, query_data.into_inner(), merge_strategy).map_err(|err| {
-            log::error!("failed to eval cac with err: {}", err);
-            unexpected_error!("cac eval failed")
-        })
-    }
+    _show_reason: bool, // TODO: Remove this
+) -> Map<String, Value> {
+    eval_cac(config, query_data.into_inner(), merge_strategy)
 }
 
 fn fetch_default_config_metadata(
@@ -396,7 +384,12 @@ pub fn resolve(
     )?;
     let merge_strategy = merge_strategy.into_inner();
 
-    evaluate_resolved_config(config, query_data, merge_strategy, show_reason)
+    Ok(evaluate_resolved_config(
+        config,
+        query_data,
+        merge_strategy,
+        show_reason,
+    ))
 }
 
 pub fn resolve_detailed(
@@ -427,7 +420,7 @@ pub fn resolve_detailed(
         context_data,
         merge_strategy,
         show_reason,
-    )?;
+    );
     let keys = resolved_config.keys().cloned().collect::<Vec<_>>();
     let metadata =
         fetch_default_config_metadata(conn, &workspace_context.schema_name, &keys)?;

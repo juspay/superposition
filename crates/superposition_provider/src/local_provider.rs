@@ -11,10 +11,10 @@ use open_feature::{EvaluationContext, EvaluationResult, StructValue};
 use serde_json::{Map, Value};
 use superposition_core::experiment::{filter_experiments_by_context, FfiExperimentGroup};
 use superposition_core::{
-    eval_config, get_applicable_variants, get_satisfied_experiments, MergeStrategy,
+    eval, get_applicable_variants, get_satisfied_experiments, MergeStrategy,
 };
 use superposition_types::experimental::Experimental;
-use superposition_types::{DimensionInfo, PrefixList};
+use superposition_types::{ConfigFilter, DimensionInfo, PrefixList};
 use tokio::sync::RwLock;
 use tokio::task::JoinHandle;
 use tokio::time::{sleep, Duration};
@@ -561,25 +561,16 @@ impl LocalResolutionProvider {
         // Evaluate config using cached data
         let cached = self.cached_config.read().await;
         match cached.as_ref() {
-            Some(config_data) => {
-                let config = config_data.data.clone();
-                eval_config(
-                    config.default_configs,
-                    config.contexts,
-                    config.overrides,
-                    config.dimensions,
-                    query_data,
-                    MergeStrategy::MERGE,
-                    prefix_filter,
-                    exclude_prefix_filter,
-                )
-                .map_err(|e| {
-                    SuperpositionError::ConfigError(format!(
-                        "Failed to evaluate config: {}",
-                        e
-                    ))
-                })
-            }
+            Some(config_data) => Ok(eval(
+                config_data.data.default_configs.clone(),
+                &config_data.data.contexts,
+                &config_data.data.overrides,
+                &config_data.data.dimensions,
+                query_data,
+                MergeStrategy::MERGE,
+                prefix_filter,
+                exclude_prefix_filter,
+            )),
             None => Err(SuperpositionError::ProviderError(
                 "Provider not initialized: no cached config available".into(),
             )),

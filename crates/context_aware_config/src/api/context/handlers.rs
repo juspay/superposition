@@ -605,21 +605,14 @@ async fn list_handler(
         let exclude_prefix_list = PrefixList::from(filter_params.exclude_prefix);
 
         if !prefix_list.is_empty() || !exclude_prefix_list.is_empty() {
-            all_contexts = all_contexts
-                .into_iter()
-                .filter_map(|mut context| {
-                    Context::filter_keys_by_prefix(
-                        &context,
-                        &prefix_list,
-                        &exclude_prefix_list,
-                    )
-                    .map(|filtered_overrides_map| {
-                        context.override_ = filtered_overrides_map.into_inner();
-                        context
-                    })
-                    .ok()
-                })
-                .collect()
+            all_contexts.retain_mut(|context| {
+                Context::filter_keys_by_prefix(
+                    context,
+                    &prefix_list,
+                    &exclude_prefix_list,
+                )
+                .is_ok()
+            })
         }
         let eval_filter_contexts = if dimension_params.is_empty() {
             all_contexts

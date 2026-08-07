@@ -9,7 +9,7 @@ use open_feature::{
     StructValue,
 };
 use serde_json::{Map, Value};
-use superposition_types::{Config, DimensionInfo, PrefixList};
+use superposition_types::{Config, ConfigFilter, DimensionInfo, PrefixList};
 use tokio::sync::RwLock;
 
 use crate::types::*;

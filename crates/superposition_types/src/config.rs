@@ -1,7 +1,10 @@
 #[cfg(test)]
 pub(crate) mod tests;
 
-use std::collections::{BTreeMap, HashMap};
+use std::{
+    borrow::{Borrow, Cow},
+    collections::{BTreeMap, HashMap},
+};
 
 use derive_more::{AsRef, Deref, DerefMut, Into};
 #[cfg(feature = "diesel_derives")]
@@ -301,31 +304,6 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn filter_by_dimensions(self, dimension_data: Map<String, Value>) -> Self {
-        let modified_context =
-            evaluate_local_cohorts_skip_unresolved(&self.dimensions, dimension_data);
-
-        let filtered_context =
-            Contextual::filter_by_eval(self.contexts, &modified_context);
-        let mut initial_overrides = self.overrides;
-        let filtered_overrides: HashMap<String, Overrides> = filtered_context
-            .iter()
-            .flat_map(|ele| {
-                let override_with_key = ele.override_with_keys.get_key();
-                initial_overrides
-                    .remove(override_with_key)
-                    .map(|value| (override_with_key.to_string(), value))
-            })
-            .collect();
-
-        Self {
-            contexts: filtered_context,
-            overrides: filtered_overrides,
-            default_configs: self.default_configs,
-            dimensions: self.dimensions,
-        }
-    }
-
     pub fn filter_default_by_prefix(
         &self,
         prefix_list: &PrefixList,
@@ -338,17 +316,119 @@ impl Config {
         )
         .into()
     }
+}
 
-    pub fn filter_by_prefix(
+impl<'a> ConfigFilter<'a> for Config {
+    type Context = Context;
+    type Dimensions = HashMap<String, DimensionInfo>;
+
+    fn into_parts(
+        self,
+    ) -> (
+        Vec<Self::Context>,
+        Cow<'a, HashMap<String, Overrides>>,
+        ExtendedMap,
+        Self::Dimensions,
+    ) {
+        (
+            self.contexts,
+            Cow::Owned(self.overrides),
+            self.default_configs,
+            self.dimensions,
+        )
+    }
+
+    fn from_parts(
+        contexts: Vec<Self::Context>,
+        overrides: Cow<'a, HashMap<String, Overrides>>,
+        default_configs: ExtendedMap,
+        dimensions: Self::Dimensions,
+    ) -> Self {
+        Self {
+            contexts,
+            overrides: overrides.into_owned(),
+            default_configs,
+            dimensions,
+        }
+    }
+}
+
+// Lets a context be either owned or borrowed without touching `Contextual`.
+pub trait OverrideKeyed {
+    fn override_key(&self) -> &String;
+}
+
+impl<T: Borrow<Context>> OverrideKeyed for T {
+    fn override_key(&self) -> &String {
+        self.borrow().override_with_keys.get_key()
+    }
+}
+
+/// `'a` is the lifetime the overrides may be borrowed from: an owning config
+/// implements this for any `'a`, a borrowing one only for its own.
+pub trait ConfigFilter<'a>: Sized {
+    type Context: Contextual + OverrideKeyed;
+    type Dimensions: Borrow<HashMap<String, DimensionInfo>>;
+
+    #[allow(clippy::type_complexity)]
+    fn into_parts(
+        self,
+    ) -> (
+        Vec<Self::Context>,
+        Cow<'a, HashMap<String, Overrides>>,
+        ExtendedMap,
+        Self::Dimensions,
+    );
+
+    fn from_parts(
+        contexts: Vec<Self::Context>,
+        overrides: Cow<'a, HashMap<String, Overrides>>,
+        default_configs: ExtendedMap,
+        dimensions: Self::Dimensions,
+    ) -> Self;
+
+    fn filter_by_dimensions(self, dimension_data: Map<String, Value>) -> Self {
+        let (contexts, mut overrides, defaults, dims) = self.into_parts();
+        let modified_context =
+            evaluate_local_cohorts_skip_unresolved(dims.borrow(), dimension_data);
+        let filtered_context = Contextual::filter_by_eval(contexts, &modified_context);
+
+        let filtered_overrides = filtered_context
+            .iter()
+            .flat_map(|ele| {
+                let key = ele.override_key();
+                // move the override out when we own the map, clone it when we don't
+                match &mut overrides {
+                    Cow::Owned(overrides) => overrides.remove(key),
+                    Cow::Borrowed(overrides) => overrides.get(key).cloned(),
+                }
+                .map(|v| (key.to_string(), v))
+            })
+            .collect();
+
+        Self::from_parts(
+            filtered_context,
+            Cow::Owned(filtered_overrides),
+            defaults,
+            dims,
+        )
+    }
+
+    fn filter_by_prefix(
         self,
         prefix_list: &PrefixList,
         exclude_prefix_list: &PrefixList,
     ) -> Self {
-        let filtered_default_config =
-            self.filter_default_by_prefix(prefix_list, exclude_prefix_list);
+        let (contexts, overrides, defaults, dims) = self.into_parts();
+        let filtered_default_config: ExtendedMap = filter_into_config_keys_by_prefix(
+            defaults.into_inner(),
+            prefix_list,
+            exclude_prefix_list,
+        )
+        .into();
 
-        let filtered_overrides = self
-            .overrides
+        let filtered_overrides = overrides
+            .into_owned()
             .into_iter()
             .filter_map(|(key, overrides)| {
                 let filtered_overrides_map = filter_into_config_keys_by_prefix(
@@ -365,15 +445,15 @@ impl Config {
         let mut filtered_context = contexts;
         filtered_context.retain(|c| filtered_overrides.contains_key(c.override_key()));
 
-        Self {
-            contexts: filtered_context,
-            overrides: filtered_overrides,
-            default_configs: filtered_default_config,
-            dimensions: self.dimensions,
-        }
+        Self::from_parts(
+            filtered_context,
+            Cow::Owned(filtered_overrides),
+            filtered_default_config,
+            dims,
+        )
     }
 
-    pub fn filter(
+    fn filter(
         self,
         dimension_data: Option<Map<String, Value>>,
         prefix_list: Option<&PrefixList>,

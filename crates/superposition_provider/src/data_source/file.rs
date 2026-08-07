@@ -6,7 +6,7 @@ use chrono::{DateTime, Utc};
 use notify::{Event, RecommendedWatcher, Watcher};
 use serde_json::{Map, Value};
 use superposition_core::{ConfigFormat, JsonFormat, TomlFormat};
-use superposition_types::PrefixList;
+use superposition_types::{ConfigFilter, PrefixList};
 use tokio::sync::broadcast;
 
 use crate::data_source::FetchResponse;

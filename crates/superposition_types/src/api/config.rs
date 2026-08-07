@@ -46,6 +46,7 @@ pub struct ExplainResolveQuery {
 pub struct ResolveConfigQuery {
     #[query_param(skip_if_empty)]
     pub version: Option<String>,
+    // TODO: Deprecate this
     pub show_reasoning: Option<bool>,
     pub resolve_remote: Option<bool>,
     #[query_param(skip_if_empty)]

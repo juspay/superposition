@@ -6,7 +6,7 @@ use map::{with_dimensions, without_dimensions};
 use serde_json::{from_value, json, Map, Number, Value};
 
 use super::Config;
-use crate::{ExtendedMap, PrefixList};
+use crate::{ConfigFilter, ExtendedMap, PrefixList};
 
 pub(crate) fn get_dimension_data1() -> Map<String, Value> {
     Map::from_iter(vec![(String::from("test3"), Value::Bool(true))])

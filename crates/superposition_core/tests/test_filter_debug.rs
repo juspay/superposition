@@ -1,7 +1,7 @@
 use serde_json::{Map, Value};
 use superposition_core::{ConfigFormat, TomlFormat};
 use superposition_types::{
-    Config, DefaultConfigInfo, DefaultConfigsWithSchema, DetailedConfig,
+    Config, ConfigFilter, DefaultConfigInfo, DefaultConfigsWithSchema, DetailedConfig,
 };
 
 /// Helper function to convert Config to DetailedConfig by inferring schema from value.

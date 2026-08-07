@@ -7,9 +7,9 @@ pub use open_feature::{
     EvaluationContext,
 };
 use serde_json::{Map, Value};
-use superposition_core::experiment::ExperimentGroups;
 use superposition_core::{
-    eval_config, get_applicable_variants, Experiments, MergeStrategy,
+    eval, experiment::ExperimentGroups, get_applicable_variants, Experiments,
+    MergeStrategy,
 };
 use superposition_types::{Config, DimensionInfo};
 use tokio::join;
@@ -243,25 +243,19 @@ impl CacConfig {
         exclude_prefix_filter: Option<&[String]>,
     ) -> Result<Map<String, Value>> {
         let cached_config = self.cached_config.read().await;
-        match cached_config.to_owned() {
+        match cached_config.as_ref() {
             Some(cached_config) => {
                 // Use ConversionUtils to evaluate config
-                eval_config(
-                    cached_config.default_configs,
-                    cached_config.contexts,
-                    cached_config.overrides,
-                    cached_config.dimensions,
+                Ok(eval(
+                    cached_config.default_configs.clone(),
+                    &cached_config.contexts,
+                    &cached_config.overrides,
+                    &cached_config.dimensions,
                     query_data,
                     MergeStrategy::MERGE,
                     prefix_filter.map(|p| p.to_vec()),
                     exclude_prefix_filter.map(|p| p.to_vec()),
-                )
-                .map_err(|e| {
-                    SuperpositionError::ConfigError(format!(
-                        "Failed to evaluate config: {}",
-                        e
-                    ))
-                })
+                ))
             }
             None => Err(SuperpositionError::ConfigError(
                 "No cached config available".into(),
