@@ -19,7 +19,7 @@ use service_utils::{
     helpers::{fetch_dimensions_info_map, generate_snowflake_id},
     service::types::{AppState, EncryptionKey, SchemaName, WorkspaceContext},
 };
-use superposition_macros::{db_error, unexpected_error, validation_error};
+use superposition_macros::{bad_argument, db_error, unexpected_error, validation_error};
 use superposition_types::{
     Cac, Condition, Config, Context, DBConnection, DefaultConfigInfo,
     DefaultConfigsWithSchema, DetailedConfig, DimensionInfo, OverrideWithKeys, Overrides,
@@ -56,6 +56,25 @@ use crate::{
     validation_functions::execute_fn,
 };
 
+type ContextData = (
+    Vec<Context>,
+    HashMap<String, Overrides>,
+    HashMap<String, String>,
+);
+
+pub(crate) fn validate_bulk_size(operation_count: usize) -> superposition::Result<()> {
+    let max_operations = get_from_env_or_default("MAX_BULK_OPERATION", 1000);
+
+    match operation_count {
+        0 => Err(bad_argument!("At least one bulk operation is required")),
+        count if count > max_operations => Err(bad_argument!(
+            "A bulk request cannot contain more than {} operations",
+            max_operations
+        )),
+        _ => Ok(()),
+    }
+}
+
 pub fn parse_headermap_safe(headermap: &HeaderMap) -> HashMap<String, String> {
     let mut req_headers = HashMap::new();
     let record_header = |(header_name, header_val): (&HeaderName, &HeaderValue)| {
@@ -78,28 +97,30 @@ pub fn parse_headermap_safe(headermap: &HeaderMap) -> HashMap<String, String> {
 fn get_context_data(
     conn: &mut DBConnection,
     schema_name: &SchemaName,
-) -> superposition::Result<(Vec<Context>, HashMap<String, Overrides>)> {
-    let contexts_vec: Vec<(String, Condition, String, Overrides)> = ctxt::contexts
-        .select((ctxt::id, ctxt::value, ctxt::override_id, ctxt::override_))
-        .order_by((ctxt::weight.asc(), ctxt::created_at.asc()))
-        .schema_name(schema_name)
-        .load::<(String, Condition, String, Overrides)>(conn)
-        .map_err(|err| {
-            log::error!("failed to fetch contexts with error: {}", err);
-            db_error!(err)
-        })?;
-    let contexts_vec: Vec<(String, Condition, i32, String, Overrides)> = contexts_vec
-        .into_iter()
-        .enumerate()
-        .map(|(index, (id, value, override_id, override_))| {
-            (id, value, index as i32, override_id, override_)
-        })
-        .collect();
-
+) -> superposition::Result<ContextData> {
+    let contexts_vec: Vec<(String, Condition, String, Overrides, String)> =
+        ctxt::contexts
+            .select((
+                ctxt::id,
+                ctxt::value,
+                ctxt::override_id,
+                ctxt::override_,
+                ctxt::description,
+            ))
+            .order_by((ctxt::weight.asc(), ctxt::created_at.asc()))
+            .schema_name(schema_name)
+            .load::<(String, Condition, String, Overrides, String)>(conn)
+            .map_err(|err| {
+                log::error!("failed to fetch contexts with error: {}", err);
+                db_error!(err)
+            })?;
     let mut contexts = Vec::new();
     let mut overrides: HashMap<String, Overrides> = HashMap::new();
+    let mut descriptions = HashMap::new();
 
-    for (id, condition, weight, override_id, override_) in contexts_vec.into_iter() {
+    for (weight, (id, condition, override_id, override_, description)) in
+        contexts_vec.into_iter().enumerate()
+    {
         let condition = Cac::<Condition>::validate_db_data(condition.into())
             .map_err(|err| {
                 log::error!("generate_cac : failed to decode context from db {}", err);
@@ -113,25 +134,26 @@ fn get_context_data(
                 unexpected_error!(err)
             })?
             .into_inner();
+        descriptions.insert(id.clone(), description);
         let ctxt = Context {
             id,
             condition,
-            priority: weight,
-            weight,
+            priority: weight as i32,
+            weight: weight as i32,
             override_with_keys: OverrideWithKeys::new(override_id.to_owned()),
         };
         contexts.push(ctxt);
         overrides.insert(override_id, override_);
     }
 
-    Ok((contexts, overrides))
+    Ok((contexts, overrides, descriptions))
 }
 
 pub fn generate_cac(
     conn: &mut DBConnection,
     schema_name: &SchemaName,
 ) -> superposition::Result<Config> {
-    let (contexts, overrides) = get_context_data(conn, schema_name)?;
+    let (contexts, overrides, _) = get_context_data(conn, schema_name)?;
     let default_config_vec = def_conf::default_configs
         .select((def_conf::key, def_conf::value))
         .schema_name(schema_name)
@@ -165,7 +187,8 @@ pub fn generate_detailed_cac(
     conn: &mut DBConnection,
     schema_name: &SchemaName,
 ) -> superposition::Result<DetailedConfig> {
-    let (contexts, overrides) = get_context_data(conn, schema_name)?;
+    let (contexts, overrides, context_descriptions) =
+        get_context_data(conn, schema_name)?;
 
     // Fetch default_configs with value, schema and description
     let default_config_vec = def_conf::default_configs
@@ -201,6 +224,7 @@ pub fn generate_detailed_cac(
 
     Ok(DetailedConfig {
         contexts,
+        context_descriptions,
         overrides,
         default_configs: DefaultConfigsWithSchema::from(default_configs),
         dimensions,

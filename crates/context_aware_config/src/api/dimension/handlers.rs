@@ -1,5 +1,5 @@
 use actix_web::{
-    HttpResponse, Scope, delete, get, post, routes,
+    HttpResponse, Scope, delete, get, post, put, routes,
     web::{self, Data, Json, Path, Query},
 };
 use chrono::Utc;
@@ -12,17 +12,18 @@ use service_utils::{
     helpers::{WebhookData, execute_webhook_call, parse_config_tags},
     service::types::{
         AppHeader, AppState, CustomHeaders, DbConnection, WorkspaceContext,
-        WorkspaceWritePermit,
+        WorkspaceLockTtlPolicy, WorkspaceWritePermit,
     },
 };
-use superposition_core::validations::validate_schema;
 use superposition_derives::{authorized, declare_resource};
 use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
 use superposition_types::{
     PaginatedResponse, Resource, User,
     api::{
         dimension::{
-            CreateRequest, DeleteRequest, DimensionName, DimensionResponse, UpdateRequest,
+            BulkOperation, BulkOperationResponse, CreateRequest, DeleteRequest,
+            DimensionAction, DimensionBulkResponse, DimensionName, DimensionResponse,
+            UpdateRequest,
         },
         webhook::Action,
     },
@@ -38,8 +39,8 @@ use superposition_types::{
     result as superposition,
 };
 
-use crate::api::dimension::validations::allow_primitive_types;
-use crate::helpers::put_config_in_redis;
+use crate::api::dimension::operations::{refresh_dependency_graphs, upsert_dimension};
+use crate::helpers::{put_config_in_redis, validate_bulk_size};
 use crate::{
     api::dimension::{
         utils::{
@@ -47,10 +48,10 @@ use crate::{
             remove_connections_with_dependents,
         },
         validations::{
-            does_dimension_exist_for_cohorting, validate_cohort_position,
-            validate_cohort_schema, validate_dimension_position,
-            validate_position_wrt_dependency, validate_validation_function,
-            validate_value_compute_function,
+            does_dimension_exist_for_cohorting, validate_bulk_operation,
+            validate_cohort_position, validate_cohort_schema,
+            validate_dimension_functions, validate_dimension_position,
+            validate_dimension_schema, validate_position_wrt_dependency,
         },
     },
     helpers::{add_config_version, validate_change_reason},
@@ -58,9 +59,33 @@ use crate::{
 
 declare_resource!(Dimension);
 
+fn dimension_from_create_request(req: CreateRequest, email: String) -> Dimension {
+    let now = Utc::now();
+    Dimension {
+        dimension: req.dimension.into(),
+        position: req.position,
+        schema: req.schema,
+        value_validation_function_name: req.value_validation_function_name,
+        created_at: now,
+        created_by: email.clone(),
+        last_modified_at: now,
+        last_modified_by: email,
+        description: req.description,
+        change_reason: req.change_reason,
+        dependency_graph: DependencyGraph::default(),
+        value_compute_function_name: req.value_compute_function_name,
+        dimension_type: req.dimension_type,
+    }
+}
+
 pub fn endpoints() -> Scope {
     Scope::new("")
         .service(create_handler)
+        .service(
+            Scope::new("/bulk-operations")
+                .app_data(WorkspaceLockTtlPolicy::Batch)
+                .service(bulk_operations_handler),
+        )
         .service(update_handler)
         .service(get_handler)
         .service(list_handler)
@@ -107,22 +132,10 @@ async fn create_handler(
 
     match create_req.dimension_type {
         DimensionType::Regular {} => {
-            allow_primitive_types(&create_req.schema)?;
-            validate_schema(&schema_value).map_err(|e| {
-                superposition::AppError::ValidationError(format!(
-                    "JSON Schema's schema is broken - this is unexpected {}",
-                    e.join("")
-                ))
-            })?;
+            validate_dimension_schema(&create_req.dimension_type, &create_req.schema)?;
         }
         DimensionType::RemoteCohort(ref cohort_based_on) => {
-            allow_primitive_types(&create_req.schema)?;
-            validate_schema(&schema_value).map_err(|e| {
-                superposition::AppError::ValidationError(format!(
-                    "JSON Schema's schema is broken - this is unexpected {}",
-                    e.join("")
-                ))
-            })?;
+            validate_dimension_schema(&create_req.dimension_type, &create_req.schema)?;
             let based_on_dimension = does_dimension_exist_for_cohorting(
                 cohort_based_on,
                 &workspace_context.schema_name,
@@ -141,34 +154,16 @@ async fn create_handler(
         }
     }
 
-    validate_validation_function(
-        &create_req.value_validation_function_name,
-        conn,
-        &workspace_context.schema_name,
-    )?;
-
-    validate_value_compute_function(
+    validate_dimension_functions(
         &create_req.dimension_type,
+        &create_req.value_validation_function_name,
         &create_req.value_compute_function_name,
         conn,
         &workspace_context.schema_name,
     )?;
 
-    let dimension_data = Dimension {
-        dimension: create_req.dimension.into(),
-        position: create_req.position,
-        schema: create_req.schema,
-        created_by: user.get_email(),
-        created_at: Utc::now(),
-        value_validation_function_name: create_req.value_validation_function_name.clone(),
-        last_modified_at: Utc::now(),
-        last_modified_by: user.get_email(),
-        description: create_req.description,
-        change_reason: create_req.change_reason,
-        dependency_graph: DependencyGraph::default(),
-        value_compute_function_name: create_req.value_compute_function_name,
-        dimension_type: create_req.dimension_type,
-    };
+    let validation_function_name = create_req.value_validation_function_name.clone();
+    let dimension_data = dimension_from_create_request(create_req, user.get_email());
 
     let (inserted_dimension, is_mandatory, config_version) =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -228,14 +223,12 @@ async fn create_handler(
                     diesel::result::DatabaseErrorKind::ForeignKeyViolation,
                     e,
                 )) => {
-                    let fun_name = create_req.value_validation_function_name.clone();
+                    let fun_name = validation_function_name.clone();
                     log::error!("{fun_name:?} function not found with error: {e:?}");
                     Err(bad_argument!(
                         "Function {} doesn't exists",
-                        Into::<Option<String>>::into(
-                            create_req.value_validation_function_name.clone()
-                        )
-                        .unwrap_or_default()
+                        Into::<Option<String>>::into(validation_function_name.clone())
+                            .unwrap_or_default()
                     ))
                 }
                 Err(e) => {
@@ -277,6 +270,249 @@ async fn create_handler(
         config_version.id.to_string(),
     ));
     Ok(http_resp.json(DimensionResponse::new(inserted_dimension, is_mandatory)))
+}
+
+#[allow(clippy::too_many_arguments)]
+#[authorized]
+#[put("")]
+async fn bulk_operations_handler(
+    workspace_context: WorkspaceContext,
+    state: Data<AppState>,
+    custom_headers: CustomHeaders,
+    request: Json<BulkOperation>,
+    mut write_permit: WorkspaceWritePermit,
+    user: User,
+) -> superposition::Result<HttpResponse> {
+    let conn = write_permit.connection();
+    let tags = parse_config_tags(custom_headers.config_tags)?;
+    validate_bulk_size(request.operations.len())?;
+    let operations = request.into_inner().operations;
+    let mut change_reasons = Vec::with_capacity(operations.len());
+
+    for operation in &operations {
+        change_reasons.push(
+            validate_bulk_operation(
+                operation,
+                &workspace_context,
+                conn,
+                &state.master_encryption_key,
+                &user,
+            )
+            .await?,
+        );
+    }
+
+    let mut actions = Vec::with_capacity(operations.len());
+    let mut affected_dimensions = Vec::with_capacity(operations.len());
+    let (output, config_version) =
+        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            let mut output = Vec::with_capacity(operations.len());
+            let mut written = Vec::new();
+            for operation in operations {
+                match operation {
+                    DimensionAction::Create(request) => {
+                        let row =
+                            dimension_from_create_request(request, user.get_email());
+                        let (created, row) = upsert_dimension(
+                            transaction_conn,
+                            &workspace_context.schema_name,
+                            row,
+                        )?;
+                        if !created {
+                            return Err(bad_argument!(
+                                "Dimension '{}' already exists",
+                                row.dimension
+                            ));
+                        }
+                        let mandatory = workspace_context
+                            .settings
+                            .mandatory_dimensions
+                            .as_ref()
+                            .is_some_and(|mandatory_dimensions| {
+                                mandatory_dimensions.contains(&row.dimension)
+                            });
+                        output.push(DimensionBulkResponse::Create(
+                            DimensionResponse::new(row.clone(), mandatory),
+                        ));
+                        actions.push(Action::Create);
+                        affected_dimensions.push(row.clone());
+                        written.push((true, row));
+                    }
+                    DimensionAction::Update {
+                        dimension: dimension_name,
+                        request,
+                    } => {
+                        let name: String = dimension_name.into();
+                        let existing = dimensions
+                            .filter(dimension.eq(&name))
+                            .schema_name(&workspace_context.schema_name)
+                            .get_result::<Dimension>(transaction_conn)?;
+                        let row = Dimension {
+                            dimension: existing.dimension,
+                            position: request.position.unwrap_or(existing.position),
+                            schema: request.schema.unwrap_or(existing.schema),
+                            value_validation_function_name: request
+                                .value_validation_function_name
+                                .unwrap_or(existing.value_validation_function_name),
+                            created_at: existing.created_at,
+                            created_by: existing.created_by,
+                            last_modified_at: Utc::now(),
+                            last_modified_by: user.get_email(),
+                            description: request
+                                .description
+                                .unwrap_or(existing.description),
+                            change_reason: request.change_reason,
+                            dependency_graph: existing.dependency_graph,
+                            value_compute_function_name: request
+                                .value_compute_function_name
+                                .unwrap_or(existing.value_compute_function_name),
+                            dimension_type: existing.dimension_type,
+                        };
+                        let (created, row) = upsert_dimension(
+                            transaction_conn,
+                            &workspace_context.schema_name,
+                            row,
+                        )?;
+                        if created {
+                            return Err(bad_argument!(
+                                "Dimension '{}' does not exist",
+                                row.dimension
+                            ));
+                        }
+                        let mandatory = workspace_context
+                            .settings
+                            .mandatory_dimensions
+                            .as_ref()
+                            .is_some_and(|mandatory_dimensions| {
+                                mandatory_dimensions.contains(&row.dimension)
+                            });
+                        output.push(DimensionBulkResponse::Update(
+                            DimensionResponse::new(row.clone(), mandatory),
+                        ));
+                        actions.push(Action::Update);
+                        affected_dimensions.push(row.clone());
+                        written.push((false, row));
+                    }
+                    DimensionAction::Delete(request) => {
+                        let name: String = request.into();
+                        let row = dimensions
+                            .filter(dimension.eq(&name))
+                            .schema_name(&workspace_context.schema_name)
+                            .get_result::<Dimension>(transaction_conn)?;
+                        if !row.dependency_graph.is_empty() {
+                            return Err(bad_argument!(
+                                "Dimension {} has dependent cohort dimensions",
+                                row.dimension
+                            ));
+                        }
+                        if let DimensionType::LocalCohort(parent)
+                        | DimensionType::RemoteCohort(parent) = &row.dimension_type
+                        {
+                            remove_connections_with_dependents(
+                                &row.dimension,
+                                parent,
+                                &user.get_email(),
+                                &workspace_context.schema_name,
+                                transaction_conn,
+                            )?;
+                        }
+                        diesel::delete(dimensions.filter(dimension.eq(&row.dimension)))
+                            .schema_name(&workspace_context.schema_name)
+                            .execute(transaction_conn)?;
+                        diesel::update(dimensions.filter(position.gt(row.position)))
+                            .set(position.eq(position - 1))
+                            .schema_name(&workspace_context.schema_name)
+                            .execute(transaction_conn)?;
+                        output.push(DimensionBulkResponse::Delete(format!(
+                            "{} deleted successfully",
+                            row.dimension
+                        )));
+                        actions.push(Action::Delete);
+                        affected_dimensions.push(row);
+                    }
+                }
+            }
+
+            let dimension_count = dimensions
+                .count()
+                .schema_name(&workspace_context.schema_name)
+                .get_result::<i64>(transaction_conn)?;
+            for (created, row) in &written {
+                validate_dimension_position(
+                    DimensionName::try_from(row.dimension.clone()).map_err(|error| {
+                        bad_argument!(
+                            "Invalid dimension name '{}': {}",
+                            row.dimension,
+                            error
+                        )
+                    })?,
+                    row.position,
+                    dimension_count - 1,
+                )?;
+
+                let based_on = match &row.dimension_type {
+                    DimensionType::Regular {} => continue,
+                    DimensionType::RemoteCohort(parent) => {
+                        does_dimension_exist_for_cohorting(
+                            parent,
+                            &workspace_context.schema_name,
+                            transaction_conn,
+                        )?
+                    }
+                    DimensionType::LocalCohort(parent) => validate_cohort_schema(
+                        &Value::from(&row.schema),
+                        parent,
+                        &workspace_context.schema_name,
+                        transaction_conn,
+                    )?,
+                };
+                validate_cohort_position(&row.position, &based_on, *created)?;
+            }
+
+            refresh_dependency_graphs(transaction_conn, &workspace_context.schema_name)?;
+            let config_version = add_config_version(
+                &state,
+                tags,
+                Description::try_from_change_reasons(change_reasons).unwrap_or_default(),
+                transaction_conn,
+                &workspace_context.schema_name,
+            )?;
+            Ok((output, config_version))
+        })?;
+
+    let _ = put_config_in_redis(
+        &config_version,
+        &state,
+        &workspace_context.schema_name,
+        conn,
+    )
+    .await;
+    let webhook_status = execute_webhook_call(
+        WebhookData {
+            payload: &affected_dimensions,
+            resource: Resource::Dimension,
+            event: WebhookEvent::ConfigChanged,
+            config_version_opt: Some(config_version.id.to_string()),
+            action: Action::Batch(actions),
+        },
+        &workspace_context,
+        &state,
+        conn,
+    )
+    .await;
+    let mut response = if webhook_status {
+        HttpResponse::Ok()
+    } else {
+        HttpResponse::build(
+            actix_web::http::StatusCode::from_u16(512)
+                .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
+    response.insert_header((
+        AppHeader::XConfigVersion.to_string(),
+        config_version.id.to_string(),
+    ));
+    Ok(response.json(BulkOperationResponse { output }))
 }
 
 #[authorized]
@@ -348,13 +584,7 @@ async fn update_handler(
         let schema_value = Value::from(new_schema);
         match dimension_data.dimension_type {
             DimensionType::Regular {} | DimensionType::RemoteCohort(_) => {
-                allow_primitive_types(new_schema)?;
-                validate_schema(&schema_value).map_err(|e| {
-                    superposition::AppError::ValidationError(format!(
-                        "JSON Schema's schema is broken - this is unexpected {}",
-                        e.join("")
-                    ))
-                })?;
+                validate_dimension_schema(&dimension_data.dimension_type, new_schema)?;
             }
             DimensionType::LocalCohort(ref cohort_based_on) => {
                 validate_cohort_schema(
@@ -382,15 +612,21 @@ async fn update_handler(
         }
     }
 
-    if let Some(ref fn_name) = update_req.value_validation_function_name {
-        validate_validation_function(fn_name, conn, &workspace_context.schema_name)?;
-    }
-
-    if let Some(ref value_compute_function_name_) = update_req.value_compute_function_name
+    if update_req.value_validation_function_name.is_some()
+        || update_req.value_compute_function_name.is_some()
     {
-        validate_value_compute_function(
+        let validation_function = update_req
+            .value_validation_function_name
+            .as_ref()
+            .unwrap_or(&dimension_data.value_validation_function_name);
+        let compute_function = update_req
+            .value_compute_function_name
+            .as_ref()
+            .unwrap_or(&dimension_data.value_compute_function_name);
+        validate_dimension_functions(
             &dimension_data.dimension_type,
-            value_compute_function_name_,
+            validation_function,
+            compute_function,
             conn,
             &workspace_context.schema_name,
         )?;

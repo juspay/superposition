@@ -1,18 +1,19 @@
 use std::collections::HashMap;
 
 use actix_web::{
-    HttpRequest, HttpResponse, Scope, get, put, routes,
-    web::{Data, Header, Json, Path, Query},
+    HttpRequest, HttpResponse, Scope, get, post, put, routes,
+    web::{Bytes, Data, Header, Json, Path, PayloadConfig, Query},
 };
 use chrono::{DateTime, Utc};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use itertools::Itertools;
 use serde_json::{Map, Value, json};
 use service_utils::{
-    helpers::{fetch_dimensions_info_map, is_not_modified},
+    helpers::{fetch_dimensions_info_map, get_from_env_or_default, is_not_modified},
     redis::{CONFIG_KEY_SUFFIX, LAST_MODIFIED_KEY_SUFFIX, read_through_cache},
     service::types::{
-        AppHeader, AppState, DbConnection, WorkspaceContext, WorkspaceWritePermit,
+        AppHeader, AppState, CustomHeaders, DbConnection, WorkspaceContext,
+        WorkspaceLockTtlPolicy, WorkspaceWritePermit,
     },
 };
 use superposition_core::{
@@ -23,7 +24,7 @@ use superposition_derives::{authorized, declare_resource};
 use superposition_macros::{bad_argument, unexpected_error};
 use superposition_types::{
     Cac, Condition, Config, Context, DBConnection, DimensionInfo, InternalUserContext,
-    OverrideWithKeys, Overrides, PaginatedResponse, User,
+    MarkupFormat, OverrideWithKeys, Overrides, PaginatedResponse, User,
     api::{
         config::{
             ConfigQuery, ContextPayload, ExplainKeyQuery, ExplainResolveQuery,
@@ -66,6 +67,8 @@ use super::helpers::{
 declare_resource!(Config);
 
 pub fn endpoints() -> Scope {
+    let config_import_max_size =
+        get_from_env_or_default("CONFIG_IMPORT_MAX_SIZE", 50 * 1024 * 1024);
     Scope::new("")
         .service(get_handler)
         .service(get_toml_handler)
@@ -76,6 +79,12 @@ pub fn endpoints() -> Scope {
         .service(reduce_handler)
         .service(list_version_handler)
         .service(get_version_handler)
+        .service(
+            Scope::new("")
+                .app_data(PayloadConfig::new(config_import_max_size))
+                .app_data(WorkspaceLockTtlPolicy::Batch)
+                .service(import_handler),
+        )
 }
 
 fn generate_subsets(map: &Map<String, Value>) -> Vec<Map<String, Value>> {
@@ -663,6 +672,55 @@ async fn get_json_handler(
     response.insert_header(("Content-Type", "application/json"));
 
     Ok(response.body(json_str))
+}
+
+/// Imports a full config supplied as the raw request body.
+/// See [`crate::api::config::import`] for the supported `x-import-*` options.
+#[allow(clippy::too_many_arguments)]
+#[authorized]
+#[post("/{format}/import")]
+async fn import_handler(
+    req: HttpRequest,
+    body: Bytes,
+    user: User,
+    internal_user: InternalUserContext,
+    custom_headers: CustomHeaders,
+    mut write_permit: WorkspaceWritePermit,
+    workspace_context: WorkspaceContext,
+    state: Data<AppState>,
+    format: Path<MarkupFormat>,
+) -> superposition::Result<HttpResponse> {
+    let conn = write_permit.connection();
+
+    match format.into_inner() {
+        MarkupFormat::Toml => {
+            super::import::handle_import::<TomlFormat>(
+                &body,
+                &req,
+                custom_headers,
+                &user,
+                &internal_user,
+                &workspace_context,
+                &state,
+                conn,
+            )
+            .await
+        }
+
+        MarkupFormat::Json => {
+            super::import::handle_import::<JsonFormat>(
+                &body,
+                &req,
+                custom_headers,
+                &user,
+                &internal_user,
+                &workspace_context,
+                &state,
+                conn,
+            )
+            .await
+        }
+    }
 }
 
 #[allow(clippy::too_many_arguments)]

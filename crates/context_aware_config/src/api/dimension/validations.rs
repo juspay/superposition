@@ -2,20 +2,163 @@ use std::collections::HashSet;
 
 use diesel::{ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl};
 use serde_json::{Map, Value};
-use service_utils::{helpers::fetch_dimensions_info_map, service::types::SchemaName};
-use superposition_core::validations::validate_cohort_schema_structure;
-use superposition_macros::{unexpected_error, validation_error};
+use service_utils::{
+    helpers::fetch_dimensions_info_map,
+    service::types::{EncryptionKey, SchemaName, WorkspaceContext},
+};
+use superposition_core::validations::{
+    validate_cohort_schema_structure, validate_schema,
+};
+use superposition_macros::{bad_argument, unexpected_error, validation_error};
 use superposition_types::{
-    DBConnection,
-    api::dimension::DimensionName,
+    api::dimension::{DimensionAction, DimensionName},
     database::{
-        models::cac::{Dimension, DimensionType, FunctionType, Position},
+        models::{
+            cac::{Dimension, DimensionType, FunctionType, Position},
+            ChangeReason,
+        },
         schema::dimensions,
     },
-    result as superposition,
+    result as superposition, DBConnection, ExtendedMap, User,
 };
 
-use crate::api::functions::helpers::check_fn_published;
+use crate::{
+    api::{
+        dimension::utils::get_dimension_usage_context_ids,
+        functions::helpers::check_fn_published,
+    },
+    helpers::validate_change_reason,
+};
+
+pub(super) async fn validate_bulk_operation(
+    operation: &DimensionAction,
+    workspace_context: &WorkspaceContext,
+    conn: &mut DBConnection,
+    master_encryption_key: &Option<EncryptionKey>,
+    user: &User,
+) -> superposition::Result<ChangeReason> {
+    match operation {
+        DimensionAction::Create(request) => {
+            validate_change_reason(
+                workspace_context,
+                &request.change_reason,
+                conn,
+                master_encryption_key,
+            )
+            .await?;
+            validate_dimension_schema(&request.dimension_type, &request.schema)?;
+            validate_dimension_functions(
+                &request.dimension_type,
+                &request.value_validation_function_name,
+                &request.value_compute_function_name,
+                conn,
+                &workspace_context.schema_name,
+            )?;
+            Ok(request.change_reason.clone())
+        }
+        DimensionAction::Update { dimension, request } => {
+            validate_change_reason(
+                workspace_context,
+                &request.change_reason,
+                conn,
+                master_encryption_key,
+            )
+            .await?;
+
+            let name: &String = dimension.as_ref();
+            let existing = dimensions::dsl::dimensions
+                .filter(dimensions::dsl::dimension.eq(name))
+                .schema_name(&workspace_context.schema_name)
+                .get_result::<Dimension>(conn)?;
+
+            let schema = request.schema.as_ref().unwrap_or(&existing.schema);
+            validate_dimension_schema(&existing.dimension_type, schema)?;
+
+            let validation_function = request
+                .value_validation_function_name
+                .as_ref()
+                .unwrap_or(&existing.value_validation_function_name);
+            let compute_function = request
+                .value_compute_function_name
+                .as_ref()
+                .unwrap_or(&existing.value_compute_function_name);
+            validate_dimension_functions(
+                &existing.dimension_type,
+                validation_function,
+                compute_function,
+                conn,
+                &workspace_context.schema_name,
+            )?;
+            Ok(request.change_reason.clone())
+        }
+        DimensionAction::Delete(request) => {
+            let name: &String = request.as_ref();
+            dimensions::dsl::dimensions
+                .filter(dimensions::dsl::dimension.eq(name))
+                .schema_name(&workspace_context.schema_name)
+                .get_result::<Dimension>(conn)?;
+
+            if workspace_context
+                .settings
+                .mandatory_dimensions
+                .as_ref()
+                .is_some_and(|mandatory| mandatory.contains(name))
+            {
+                return Err(bad_argument!(
+                    "Dimension `{}` is mandatory and cannot be deleted",
+                    name
+                ));
+            }
+
+            let context_ids = get_dimension_usage_context_ids(
+                name,
+                conn,
+                &workspace_context.schema_name,
+            )?;
+            if !context_ids.is_empty() {
+                return Err(bad_argument!(
+                    "Dimension `{}` is in use by contexts: {}",
+                    name,
+                    context_ids.join(",")
+                ));
+            }
+
+            ChangeReason::try_from(format!("Dimension deleted by {}", user.get_email()))
+                .map_err(|error| unexpected_error!(error))
+        }
+    }
+}
+
+pub(crate) fn validate_dimension_schema(
+    dimension_type: &DimensionType,
+    schema: &ExtendedMap,
+) -> superposition::Result<()> {
+    match dimension_type {
+        DimensionType::Regular {} | DimensionType::RemoteCohort(_) => {
+            allow_primitive_types(schema)?;
+            validate_schema(&Value::from(schema)).map_err(|errors| {
+                superposition::AppError::ValidationError(errors.join("; "))
+            })
+        }
+        DimensionType::LocalCohort(_) => {
+            validate_cohort_schema_structure(&Value::from(schema)).map_err(|errors| {
+                superposition::AppError::ValidationError(errors.join("; "))
+            })?;
+            Ok(())
+        }
+    }
+}
+
+pub(crate) fn validate_dimension_functions(
+    dimension_type: &DimensionType,
+    validation_function: &Option<String>,
+    compute_function: &Option<String>,
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+) -> superposition::Result<()> {
+    validate_validation_function(validation_function, conn, schema_name)?;
+    validate_value_compute_function(dimension_type, compute_function, conn, schema_name)
+}
 
 pub fn validate_dimension_position(
     dimension_name: DimensionName,
