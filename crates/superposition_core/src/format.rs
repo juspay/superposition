@@ -9,15 +9,12 @@ pub mod json;
 pub mod tests;
 pub mod toml;
 
-use std::{
-    collections::HashMap,
-    fmt::{self, Display},
-};
+use std::collections::HashMap;
 
 use serde_json::Value;
 use superposition_types::{
-    database::models::cac::DimensionType, Condition, Config, DefaultConfigsWithSchema,
-    DetailedConfig, DimensionInfo, Overrides,
+    Condition, Config, DefaultConfigsWithSchema, DetailedConfig, DimensionInfo,
+    Overrides, database::models::Description, database::models::cac::DimensionType,
 };
 
 use crate::{
@@ -25,23 +22,7 @@ use crate::{
     validations,
 };
 pub use error::FormatError;
-
-#[derive(Debug)]
-pub enum MarkupFormat {
-    Json,
-    Toml,
-    Yaml,
-}
-
-impl Display for MarkupFormat {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            MarkupFormat::Json => write!(f, "JSON"),
-            MarkupFormat::Toml => write!(f, "TOML"),
-            MarkupFormat::Yaml => write!(f, "YAML"),
-        }
-    }
-}
+pub use superposition_types::MarkupFormat;
 
 /// Trait for configuration format parsers/serializers
 pub trait ConfigFormat {
@@ -93,10 +74,11 @@ pub trait ConfigFormat {
         split_overrides: F,
     ) -> Result<DetailedConfig, FormatError>
     where
-        F: Fn(T) -> Result<(Condition, Overrides), FormatError>,
+        F: Fn(T) -> Result<(Condition, Overrides, Option<String>), FormatError>,
     {
         let mut modified_overrides = HashMap::new();
         let mut contexts = Vec::new();
+        let mut context_descriptions = HashMap::new();
 
         // Default configs validation
         for (k, v) in default_configs.iter() {
@@ -211,7 +193,7 @@ pub trait ConfigFormat {
 
         // Context and override generation with validation
         for (index, ctx) in overrides.into_iter().enumerate() {
-            let (condition, override_vals) = split_overrides(ctx)?;
+            let (condition, override_vals, description) = split_overrides(ctx)?;
 
             validations::validate_context(&condition, &dimensions).map_err(|errors| {
                 let first_error = &errors[0];
@@ -265,6 +247,9 @@ pub trait ConfigFormat {
                     Self::conversion_error(format!("Failed to build context: {}", e))
                 })?;
 
+            if let Some(description) = description {
+                context_descriptions.insert(context.id.clone(), description);
+            }
             modified_overrides.insert(override_hash, override_vals);
             contexts.push(context);
         }
@@ -282,7 +267,19 @@ pub trait ConfigFormat {
             default_configs,
             dimensions,
             contexts,
+            context_descriptions,
             overrides: modified_overrides,
         })
     }
+}
+
+fn validate_context_description<F: ConfigFormat>(
+    description: String,
+) -> Result<String, FormatError> {
+    if description.trim().is_empty() {
+        return Err(F::conversion_error("Context description cannot be empty"));
+    }
+    Description::try_from(description.clone())
+        .map_err(|e| F::conversion_error(format!("Invalid context description: {e}")))?;
+    Ok(description)
 }

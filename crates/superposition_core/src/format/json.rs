@@ -3,12 +3,14 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use superposition_types::{
-    database::models::cac::{DependencyGraph, DimensionType},
     Cac, Condition, DefaultConfigsWithSchema, DetailedConfig, DimensionInfo, ExtendedMap,
     Overrides,
+    database::models::cac::{DependencyGraph, DimensionType},
 };
 
-use crate::format::{ConfigFormat, FormatError, MarkupFormat};
+use crate::format::{
+    ConfigFormat, FormatError, MarkupFormat, validate_context_description,
+};
 
 fn dim_type_default() -> String {
     DimensionType::default().to_string()
@@ -78,6 +80,12 @@ struct JsonConfig {
 struct JsonContext {
     #[serde(rename = "_context_")]
     context: Map<String, Value>,
+    #[serde(
+        rename = "_description_",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    description: Option<String>,
     #[serde(flatten)]
     overrides: Map<String, Value>,
 }
@@ -128,7 +136,12 @@ impl TryFrom<JsonConfig> for DetailedConfig {
                         JsonFormat::conversion_error(format!("Invalid overrides: {}", e))
                     })?;
 
-                Ok((condition, override_vals))
+                let description = ctx
+                    .description
+                    .map(validate_context_description::<JsonFormat>)
+                    .transpose()?;
+
+                Ok((condition, override_vals, description))
             },
         )
     }
@@ -138,8 +151,15 @@ impl TryFrom<DetailedConfig> for JsonConfig {
     type Error = FormatError;
 
     fn try_from(detailed_config: DetailedConfig) -> Result<Self, Self::Error> {
-        let dimensions: HashMap<String, DimensionInfoJson> = detailed_config
-            .dimensions
+        let DetailedConfig {
+            contexts,
+            context_descriptions,
+            overrides,
+            mut default_configs,
+            dimensions,
+        } = detailed_config;
+
+        let dimensions: HashMap<String, DimensionInfoJson> = dimensions
             .iter()
             .map(|(k, v)| {
                 let mut dim = DimensionInfoJson::try_from(v.clone())?;
@@ -152,32 +172,26 @@ impl TryFrom<DetailedConfig> for JsonConfig {
             })
             .collect::<Result<_, FormatError>>()?;
 
-        let overrides = detailed_config
-            .contexts
+        let overrides = contexts
             .into_iter()
-            .map(|ctx| {
+            .map(|ctx| -> Result<_, FormatError> {
                 let override_key = ctx.override_with_keys.get_key();
-                let overrides = detailed_config
-                    .overrides
-                    .get(override_key)
-                    .cloned()
-                    .unwrap_or_default();
+                let overrides =
+                    overrides.get(override_key).cloned().ok_or_else(|| {
+                        JsonFormat::serialization_error(format!(
+                            "Missing override '{}' for context '{}'",
+                            override_key, ctx.id
+                        ))
+                    })?;
 
-                let condition_value =
-                    serde_json::to_value(&ctx.condition).unwrap_or_default();
-                let context_map = match condition_value {
-                    Value::Object(map) => map,
-                    _ => Map::new(),
-                };
-
-                JsonContext {
-                    context: context_map,
+                Ok(JsonContext {
+                    context: ctx.condition.into_inner(),
+                    description: context_descriptions.get(&ctx.id).cloned(),
                     overrides: overrides.into(),
-                }
+                })
             })
-            .collect();
+            .collect::<Result<_, _>>()?;
 
-        let mut default_configs = detailed_config.default_configs;
         for (k, info) in default_configs.iter_mut() {
             // Description is mandatory in the exported file; fall back to the
             // key name when it is missing.

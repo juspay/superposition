@@ -1,7 +1,7 @@
 use reqwest::header::HeaderMap;
 use serde_json::{Map, Value};
 use superposition_types::{
-    Config, PaginatedResponse,
+    Config, MarkupFormat, PaginatedResponse,
     api::{
         config::{ConfigQuery, ResolveConfigQuery},
         context::ContextListFilters,
@@ -23,7 +23,7 @@ use superposition_types::{
 };
 
 use crate::utils::{
-    construct_request_headers, parse_json_response, request,
+    construct_request_headers, parse_json_response, request, request_raw_body,
     request_with_workspace_lock_retry, use_host_server,
 };
 
@@ -560,6 +560,54 @@ pub async fn fetch_config(
     .await?;
 
     parse_json_response(response).await
+}
+
+pub mod config_import {
+    use super::*;
+    pub use superposition_types::api::config::{
+        ImportEntityReport, ImportStrategy, ImportSummary,
+    };
+
+    #[derive(Clone, Debug)]
+    pub struct ImportOptions {
+        pub strategy: ImportStrategy,
+        pub dry_run: bool,
+        pub config_tags: String,
+    }
+
+    pub async fn import_config(
+        file_text: String,
+        format: MarkupFormat,
+        options: ImportOptions,
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<ImportSummary, String> {
+        let host = use_host_server();
+        let url = format!("{host}/config/{}/import", format.path_segment());
+        let dry_run = options.dry_run.to_string();
+        let config_tags = options.config_tags.trim().to_string();
+        let mut header_entries = vec![
+            ("x-workspace", workspace),
+            ("x-org-id", org_id),
+            ("Content-Type", format.content_type()),
+            ("x-import-strategy", options.strategy.as_str()),
+            ("x-import-dry-run", dry_run.as_str()),
+        ];
+
+        if !config_tags.is_empty() {
+            header_entries.push(("x-config-tags", config_tags.as_str()));
+        }
+
+        let response = request_raw_body(
+            url,
+            reqwest::Method::POST,
+            file_text,
+            construct_request_headers(&header_entries)?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
 }
 
 pub async fn fetch_context(

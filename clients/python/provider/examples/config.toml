@@ -13,12 +13,15 @@ city = { position = 2, schema = { type = "string" } }
 
 [[overrides]]
 _context_ = { os = "linux" }
+_description_ = "test context"
 timeout = 45
 
 [[overrides]]
 _context_ = { city = "Boston" }
+_description_ = "test context"
 currency = "Dollar"
 
 [[overrides]]
 _context_ = { city = "Berlin" }
+_description_ = "test context"
 currency = "Euro"

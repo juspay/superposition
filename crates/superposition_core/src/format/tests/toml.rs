@@ -42,6 +42,11 @@ fn config_to_detailed(config: &Config) -> DetailedConfig {
 
     DetailedConfig {
         contexts: config.contexts.clone(),
+        context_descriptions: config
+            .contexts
+            .iter()
+            .map(|ctx| (ctx.id.clone(), "test context".to_string()))
+            .collect(),
         overrides: config.overrides.clone(),
         default_configs: DefaultConfigsWithSchema::from(default_configs),
         dimensions: config.dimensions.clone(),
@@ -59,6 +64,7 @@ os = { position = 1, schema = { "type" = "string" } }
 
 [[overrides]]
 _context_ = { os = "linux" }
+_description_ = "test context"
 "time.out" = 60
 "#;
 
@@ -82,10 +88,16 @@ os = { position = 1, schema = { type = "string" }, description = "operating syst
 
 [[overrides]]
 _context_ = { os = "linux" }
+_description_ = "Linux context"
 timeout = 60
 "#;
 
     let detailed = TomlFormat::parse_into_detailed(toml).unwrap();
+    let context_id = &detailed.contexts[0].id;
+    assert_eq!(
+        detailed.context_descriptions.get(context_id).unwrap(),
+        "Linux context"
+    );
     assert_eq!(
         detailed.dimensions.get("os").unwrap().description,
         "operating system"
@@ -96,11 +108,17 @@ timeout = 60
     );
 
     let serialized = TomlFormat::serialize(detailed).unwrap();
+    assert!(serialized.contains(r#"_description_ = "Linux context""#));
     assert!(serialized.contains(r#"description = "operating system""#));
     assert!(serialized.contains(r#"description = "request timeout""#));
 
     // Description survives a full round-trip.
     let reparsed = TomlFormat::parse_into_detailed(&serialized).unwrap();
+    let context_id = &reparsed.contexts[0].id;
+    assert_eq!(
+        reparsed.context_descriptions.get(context_id).unwrap(),
+        "Linux context"
+    );
     assert_eq!(
         reparsed.dimensions.get("os").unwrap().description,
         "operating system"
@@ -108,6 +126,72 @@ timeout = 60
     assert_eq!(
         reparsed.default_configs.get("timeout").unwrap().description,
         "request timeout"
+    );
+}
+
+#[test]
+fn test_toml_context_description_is_required_and_validated() {
+    let toml = |description: &str| {
+        format!(
+            r#"
+[default-configs]
+timeout = {{ value = 30, schema = {{ type = "integer" }} }}
+
+[dimensions]
+os = {{ position = 1, schema = {{ type = "string" }} }}
+
+[[overrides]]
+_context_ = {{ os = "linux" }}
+{description}
+timeout = 60
+"#
+        )
+    };
+
+    let missing = TomlFormat::parse_into_detailed(&toml("")).unwrap_err();
+    assert!(missing.to_string().contains("_description_"));
+
+    for description in ["", "   "] {
+        let line = format!("_description_ = {description:?}");
+        let error = TomlFormat::parse_into_detailed(&toml(&line)).unwrap_err();
+        assert!(error.to_string().contains("description cannot be empty"));
+    }
+
+    let line = format!("_description_ = {:?}", "x".repeat(1025));
+    let oversized = TomlFormat::parse_into_detailed(&toml(&line)).unwrap_err();
+    assert!(oversized
+        .to_string()
+        .contains("longer than 1024 characters"));
+}
+
+#[test]
+fn test_toml_context_description_does_not_capture_description_override() {
+    let toml = r#"
+[default-configs]
+description = { value = "default", schema = { type = "string" } }
+
+[dimensions]
+os = { position = 1, schema = { type = "string" } }
+
+[[overrides]]
+_context_ = { os = "linux" }
+_description_ = "Linux context"
+description = "override"
+"#;
+
+    let detailed = TomlFormat::parse_into_detailed(toml).unwrap();
+    let context = &detailed.contexts[0];
+    assert_eq!(
+        detailed.context_descriptions.get(&context.id).unwrap(),
+        "Linux context"
+    );
+    assert_eq!(
+        detailed
+            .overrides
+            .get(context.override_with_keys.get_key())
+            .unwrap()
+            .get("description"),
+        Some(&Value::String("override".to_string()))
     );
 }
 
@@ -123,6 +207,7 @@ os = { position = 1, schema = { type = "string" } }
 
 [[overrides]]
 _context_ = { os = "linux" }
+_description_ = "test context"
 timeout = 60
 "#;
 
@@ -155,6 +240,7 @@ os = { position = 1, schema = { type = "string" } }
 
 [[overrides]]
 _context_ = { os = "linux" }
+_description_ = "test context"
 zebra = 10
 alpha = 20
 nested = { zoo = 100, ant = 200 }
@@ -193,6 +279,7 @@ os_cohort = { position = 1, type = "LOCAL_COHORT:os", schema = { type = "string"
 
 [[overrides]]
 _context_ = { os = "linux" }
+_description_ = "test context"
 timeout = 60
 "#;
 
@@ -213,6 +300,7 @@ os = { position = 1, schema = { type = "string" } }
 
 [[overrides]]
 _context_ = { region = "us-east" }
+_description_ = "test context"
 timeout = 60
 "#;
 
@@ -232,10 +320,12 @@ region = { position = 2, schema = { type = "string" } }
 
 [[overrides]]
 _context_ = { os = "linux" }
+_description_ = "test context"
 timeout = 60
 
 [[overrides]]
 _context_ = { os = "linux", region = "us-east" }
+_description_ = "test context"
 timeout = 90
 "#;
 
@@ -257,10 +347,12 @@ os_cohort = { position = 1, schema = { enum = ["unix", "otherwise"], type = "str
 
 [[overrides]]
 _context_ = { os = "linux" }
+_description_ = "test context"
 config = { host = "prod.example.com", port = 443 }
 
 [[overrides]]
 _context_ = { os_cohort = "unix" }
+_description_ = "test context"
 config = { host = "prod.unix.com", port = 8443 }
 max_count = 95
 "#;
@@ -298,6 +390,7 @@ os = { position = 1, schema = { type = "string" } }
 
 [[overrides]]
 _context_ = { os = "linux" }
+_description_ = "test context"
 timeout = 60
 "#;
 
@@ -337,6 +430,7 @@ os = { position = 1, schema = { type = "string" }, type = "REGULAR" }
 
 [[overrides]]
 _context_ = { os = "linux" }
+_description_ = "test context"
 timeout = 60
 "#;
 
@@ -359,6 +453,7 @@ os_cohort = { position = 1, schema = { type = "string" }, type = "LOCAL_COHORT:n
 
 [[overrides]]
 _context_ = { os = "linux" }
+_description_ = "test context"
 timeout = 60
 "#;
 
@@ -383,6 +478,7 @@ os_cohort = { position = 2, schema = { type = "string" }, type = "LOCAL_COHORT:"
 
 [[overrides]]
 _context_ = { os = "linux" }
+_description_ = "test context"
 timeout = 60
 "#;
 
@@ -407,6 +503,7 @@ os_cohort = { position = 1, type = "REMOTE_COHORT:os", schema = { type = "string
 
 [[overrides]]
 _context_ = { os = "linux" }
+_description_ = "test context"
 timeout = 60
 "#;
 
@@ -429,6 +526,7 @@ os_cohort = { position = 1, schema = { type = "string" }, type = "REMOTE_COHORT:
 
 [[overrides]]
 _context_ = { os = "linux" }
+_description_ = "test context"
 timeout = 60
 "#;
 
@@ -453,6 +551,7 @@ os_cohort = { position = 2, schema = { type = "string" }, type = "REMOTE_COHORT:
 
 [[overrides]]
 _context_ = { os = "linux" }
+_description_ = "test context"
 timeout = 60
 "#;
 
@@ -477,6 +576,7 @@ os_cohort = { position = 2, type = "REMOTE_COHORT:os", schema = { type = "invali
 
 [[overrides]]
 _context_ = { os = "linux" }
+_description_ = "test context"
 timeout = 60
 "#;
 
@@ -499,6 +599,7 @@ os = { position = 1, schema = { type = "string" } }
 
 [[overrides]]
 _context_ = { os = "linux" }
+_description_ = "test context"
 timeout = 60
 "#;
 
@@ -521,6 +622,7 @@ os = { position = 1, schema = { type = "string" }, type = "local_cohort" }
 
 [[overrides]]
 _context_ = { os = "linux" }
+_description_ = "test context"
 timeout = 60
 "#;
 
@@ -541,6 +643,7 @@ os = { position = 1, schema = { type = "string" } }
 
 [[overrides]]
 _context_ = { os = "linux" }
+_description_ = "test context"
 timeout = 60
 "#;
 
@@ -599,6 +702,7 @@ os = { position = 1, schema = { type = "string" } }
 
 [[overrides]]
 _context_ = { os = "linux" }
+_description_ = "test context"
 port = 8080
 "#;
 
@@ -622,6 +726,7 @@ region = { position = 1, schema = { type = "string" } }
 
 [[overrides]]
 _context_ = { os = "linux" }
+_description_ = "test context"
 timeout = 60
 "#;
 
@@ -649,6 +754,7 @@ os = { position = 1, schema = { type = "string" } }
 
 [[overrides]]
 _context_ = { os = "linux" }
+_description_ = "test context"
 timeout = 60
 "#;
 
@@ -667,6 +773,7 @@ os = { position = 1, schema = { type = "string" } }
 
 [[overrides]]
 _context_ = { os = "linux" }
+_description_ = "test context"
 timeout = 60
 "#;
 
@@ -688,6 +795,7 @@ os = { position = 1, schema = { type = "string" } }
 
 [[overrides]]
 _context_ = { os = "linux" }
+_description_ = "test context"
 timeout = 60
 "#;
 
@@ -706,6 +814,7 @@ os = { position = 1, schema = { type = "string" } }
 
 [[overrides]]
 _context_ = { os = "linux" }
+_description_ = "test context"
 timeout = "not_an_integer"
 "#;
 
@@ -729,10 +838,12 @@ os_cohort = { position = 1, schema = { enum = ["unix", "otherwise"], type = "str
 
 [[overrides]]
 _context_ = { os = "linux" }
+_description_ = "test context"
 config = { host = "prod.example.com", port = 443 }
 
 [[overrides]]
 _context_ = { os_cohort = "unix" }
+_description_ = "test context"
 config = { host = "prod.unix.com", port = 8443 }
 "#;
 
