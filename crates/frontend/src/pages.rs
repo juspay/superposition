@@ -14,6 +14,7 @@ pub mod experiment_groups;
 pub mod experiment_list;
 pub mod function;
 pub mod home;
+pub mod import_config;
 pub mod not_found;
 pub mod organisations;
 pub mod override_page;

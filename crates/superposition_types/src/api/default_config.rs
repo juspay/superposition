@@ -76,10 +76,82 @@ pub struct DefaultConfigUpdateRequest {
     pub change_reason: ChangeReason,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum DefaultConfigAction {
+    Create(DefaultConfigCreateRequest),
+    Update {
+        key: DefaultConfigKey,
+        request: DefaultConfigUpdateRequest,
+    },
+    Delete(DefaultConfigKey),
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum DefaultConfigBulkResponse {
+    Create(crate::database::models::cac::DefaultConfig),
+    Update(crate::database::models::cac::DefaultConfig),
+    Delete(String),
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct BulkOperation {
+    pub operations: Vec<DefaultConfigAction>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct BulkOperationResponse {
+    pub output: Vec<DefaultConfigBulkResponse>,
+}
+
 fn deserialize_option<'de, D>(deserializer: D) -> Result<Option<Value>, D::Error>
 where
     D: Deserializer<'de>,
 {
     let value: Value = Deserialize::deserialize(deserializer)?;
     Ok(Some(value))
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+
+    use super::*;
+
+    #[test]
+    fn bulk_operation_deserializes_all_actions() {
+        let request: BulkOperation = serde_json::from_value(json!({
+            "operations": [
+                {
+                    "CREATE": {
+                        "key": "timeout",
+                        "value": 30,
+                        "schema": { "type": "number" },
+                        "value_validation_function_name": null,
+                        "description": "Request timeout",
+                        "change_reason": "Add timeout",
+                        "value_compute_function_name": null
+                    }
+                },
+                {
+                    "UPDATE": {
+                        "key": "timeout",
+                        "request": { "change_reason": "Change timeout" }
+                    }
+                },
+                { "DELETE": "timeout" }
+            ]
+        }))
+        .expect("all default-config bulk actions should deserialize");
+
+        assert!(matches!(
+            request.operations.as_slice(),
+            [
+                DefaultConfigAction::Create(_),
+                DefaultConfigAction::Update { .. },
+                DefaultConfigAction::Delete(_)
+            ]
+        ));
+    }
 }

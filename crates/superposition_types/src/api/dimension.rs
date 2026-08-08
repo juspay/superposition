@@ -71,6 +71,35 @@ pub struct CreateRequest {
     pub dimension_type: DimensionType,
 }
 
+#[derive(Deserialize, Serialize, Debug)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum DimensionAction {
+    Create(CreateRequest),
+    Update {
+        dimension: DimensionName,
+        request: UpdateRequest,
+    },
+    Delete(DeleteRequest),
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum DimensionBulkResponse {
+    Create(DimensionResponse),
+    Update(DimensionResponse),
+    Delete(String),
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct BulkOperation {
+    pub operations: Vec<DimensionAction>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct BulkOperationResponse {
+    pub output: Vec<DimensionBulkResponse>,
+}
+
 #[derive(Debug, Deserialize, Serialize, Clone)]
 #[cfg_attr(feature = "diesel_derives", derive(AsChangeset))]
 #[cfg_attr(feature = "diesel_derives", diesel(table_name = dimensions))]
@@ -112,7 +141,7 @@ impl TryFrom<String> for DimensionName {
     }
 }
 
-#[derive(Debug, Deserialize, AsRef, Deref, DerefMut, Into)]
+#[derive(Debug, Deserialize, Serialize, AsRef, Deref, DerefMut, Into)]
 #[serde(try_from = "String")]
 pub struct DeleteRequest(String);
 

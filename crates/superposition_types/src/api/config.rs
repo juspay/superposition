@@ -13,6 +13,84 @@ use crate::{
     IsEmpty,
 };
 
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ImportStrategy {
+    CreateOnly,
+    #[default]
+    Upsert,
+    Replace,
+}
+
+impl ImportStrategy {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::CreateOnly => "create_only",
+            Self::Upsert => "upsert",
+            Self::Replace => "replace",
+        }
+    }
+}
+
+impl FromStr for ImportStrategy {
+    type Err = &'static str;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        match value {
+            "create_only" => Ok(Self::CreateOnly),
+            "upsert" => Ok(Self::Upsert),
+            "replace" => Ok(Self::Replace),
+            _ => Err("expected create_only, upsert, or replace"),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+pub struct ImportEntityReport {
+    pub created: usize,
+    pub updated: usize,
+    pub skipped: usize,
+    pub deleted: usize,
+}
+
+impl ImportEntityReport {
+    pub fn total_changes(&self) -> usize {
+        self.created + self.updated + self.deleted
+    }
+}
+
+#[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+pub struct ImportSummary {
+    pub strategy: ImportStrategy,
+    pub dry_run: bool,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub config_version: Option<String>,
+    pub dimensions: ImportEntityReport,
+    pub default_configs: ImportEntityReport,
+    pub contexts: ImportEntityReport,
+}
+
+impl ImportSummary {
+    pub fn new(strategy: ImportStrategy, dry_run: bool) -> Self {
+        Self {
+            strategy,
+            dry_run,
+            ..Self::default()
+        }
+    }
+
+    pub fn total_changes(&self) -> usize {
+        self.dimensions.total_changes()
+            + self.default_configs.total_changes()
+            + self.contexts.total_changes()
+    }
+
+    pub fn total_deleted(&self) -> usize {
+        self.dimensions.deleted + self.default_configs.deleted + self.contexts.deleted
+    }
+}
+
 #[derive(Deserialize)]
 pub struct ContextPayload {
     pub context: Map<String, Value>,

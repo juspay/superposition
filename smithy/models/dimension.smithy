@@ -40,6 +40,7 @@ resource Dimension {
     read: GetDimension
     operations: [
         CreateDimension
+        BulkDimensionOperation
     ]
 }
 
@@ -118,6 +119,86 @@ operation CreateDimension with [WebhookOperation, WorkspaceWriteOperation] {
     }
 
     output: DimensionResponse
+}
+
+structure DimensionBulkItem for Dimension {
+    @required
+    $dimension
+
+    @required
+    $position
+
+    @required
+    $schema
+
+    $value_validation_function_name
+
+    @required
+    $description
+
+    @required
+    $change_reason
+
+    $dimension_type
+
+    $value_compute_function_name
+}
+
+@length(min: 1)
+list DimensionBulkOperationList {
+    member: DimensionAction
+}
+
+structure DimensionUpdateBulkRequest {
+    @required
+    dimension: String
+
+    @required
+    request: DimensionUpdateBulkPayload
+}
+
+structure DimensionUpdateBulkPayload for Dimension {
+    $schema
+    $position
+    $value_validation_function_name
+    $description
+
+    @required
+    $change_reason
+
+    $value_compute_function_name
+}
+
+union DimensionAction {
+    CREATE: DimensionBulkItem
+    UPDATE: DimensionUpdateBulkRequest
+    DELETE: String
+}
+
+union DimensionBulkOperationOutput {
+    CREATE: DimensionResponse
+    UPDATE: DimensionResponse
+    DELETE: String
+}
+
+list DimensionBulkOperationOutputList {
+    member: DimensionBulkOperationOutput
+}
+
+@documentation("Executes multiple dimension create, update, and delete operations atomically.")
+@idempotent
+@http(method: "PUT", uri: "/dimension/bulk-operations")
+@tags(["Dimensions"])
+operation BulkDimensionOperation with [WebhookOperation, WorkspaceWriteOperation] {
+    input := with [WorkspaceMixin] {
+        @required
+        operations: DimensionBulkOperationList
+    }
+
+    output := {
+        @required
+        output: DimensionBulkOperationOutputList
+    }
 }
 
 @documentation("Retrieves a paginated list of all dimensions in the workspace. Dimensions are returned with their details and metadata.")

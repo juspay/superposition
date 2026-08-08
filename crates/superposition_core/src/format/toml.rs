@@ -17,7 +17,9 @@ use superposition_types::{
 };
 use toml::Value as TomlValue;
 
-use crate::format::{ConfigFormat, FormatError, MarkupFormat};
+use crate::format::{
+    validate_context_description, ConfigFormat, FormatError, MarkupFormat,
+};
 
 /// TOML format implementation
 pub struct TomlFormat;
@@ -83,15 +85,37 @@ impl TryFrom<DimensionInfoToml> for DimensionInfo {
 struct ContextToml {
     #[serde(rename = "_context_")]
     context: toml::Table,
+    #[serde(rename = "_description_")]
+    description: String,
     #[serde(flatten)]
     overrides: toml::Table,
 }
 
-impl TryFrom<(Context, &HashMap<String, Overrides>)> for ContextToml {
+impl
+    TryFrom<(
+        Context,
+        &HashMap<String, Overrides>,
+        &HashMap<String, String>,
+    )> for ContextToml
+{
     type Error = FormatError;
     fn try_from(
-        (context, overrides): (Context, &HashMap<String, Overrides>),
+        (context, overrides, descriptions): (
+            Context,
+            &HashMap<String, Overrides>,
+            &HashMap<String, String>,
+        ),
     ) -> Result<Self, Self::Error> {
+        let description = descriptions
+            .get(&context.id)
+            .cloned()
+            .ok_or_else(|| {
+                TomlFormat::serialization_error(format!(
+                    "Missing description for context '{}'",
+                    context.id
+                ))
+            })
+            .and_then(validate_context_description::<TomlFormat>)?;
         let context_toml: toml::Table =
             toml::Table::try_from(context.condition.deref().clone())
                 .map_err(|e| TomlFormat::conversion_error(e.to_string()))?;
@@ -101,12 +125,13 @@ impl TryFrom<(Context, &HashMap<String, Overrides>)> for ContextToml {
 
         Ok(Self {
             context: context_toml,
+            description,
             overrides: overrides_toml,
         })
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize)]
 struct DetailedConfigToml {
     #[serde(rename = "default-configs")]
     default_configs: DefaultConfigsWithSchema,
@@ -170,6 +195,10 @@ impl DetailedConfigToml {
 
         let context_str = format_toml_value(&TomlValue::Table(ctx.context));
         out.push_str(&format!("_context_ = {}\n", context_str));
+        out.push_str(&format!(
+            "_description_ = {}\n",
+            format_toml_value(&TomlValue::String(ctx.description))
+        ));
 
         let mut overrides: Vec<(String, TomlValue)> = ctx.overrides.into_iter().collect();
         overrides.sort_by(|(a, _), (b, _)| a.cmp(b));
@@ -203,10 +232,17 @@ impl DetailedConfigToml {
 impl TryFrom<DetailedConfig> for DetailedConfigToml {
     type Error = FormatError;
     fn try_from(d: DetailedConfig) -> Result<Self, Self::Error> {
+        let DetailedConfig {
+            contexts,
+            context_descriptions,
+            overrides,
+            default_configs,
+            dimensions,
+        } = d;
+
         Ok(Self {
-            default_configs: d.default_configs,
-            dimensions: d
-                .dimensions
+            default_configs,
+            dimensions: dimensions
                 .into_iter()
                 .map(|(k, v)| {
                     DimensionInfoToml::try_from(v).map(|mut dim| {
@@ -219,10 +255,9 @@ impl TryFrom<DetailedConfig> for DetailedConfigToml {
                     })
                 })
                 .collect::<Result<BTreeMap<_, _>, _>>()?,
-            overrides: d
-                .contexts
+            overrides: contexts
                 .into_iter()
-                .map(|c| ContextToml::try_from((c, &d.overrides)))
+                .map(|c| ContextToml::try_from((c, &overrides, &context_descriptions)))
                 .collect::<Result<Vec<_>, _>>()?,
         })
     }
@@ -255,9 +290,11 @@ impl TryFrom<DetailedConfigToml> for DetailedConfig {
         }
 
         TomlFormat::try_into_detailed(default_configs, dimensions, d.overrides, |ctx| {
+            let description =
+                validate_context_description::<TomlFormat>(ctx.description)?;
             let condition = try_condition_from_toml(ctx.context)?;
             let override_vals = try_overrides_from_toml(ctx.overrides)?;
-            Ok((condition, override_vals))
+            Ok((condition, override_vals, Some(description)))
         })
     }
 }
