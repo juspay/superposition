@@ -28,6 +28,7 @@ use crate::pages::{
     default_config_list::DefaultConfigList,
     experiment::ExperimentPage,
     home::Home,
+    import_config::ImportConfig,
     organisations::Organisations,
     override_page::{CreateOverride, EditOverride, OverridePage},
     type_template::TypePage,
@@ -340,6 +341,12 @@ pub fn App(app_envs: Envs) -> impl IntoView {
                             ssr=SsrMode::Async
                             path=join_route_parts([RouteSegment::Resolve])
                             view=Home
+                        />
+
+                        <Route
+                            ssr=SsrMode::Async
+                            path=join_route_parts([RouteSegment::Import])
+                            view=ImportConfig
                         />
 
                         <Route

@@ -38,6 +38,11 @@ fn config_to_detailed(config: &Config) -> DetailedConfig {
 
     DetailedConfig {
         contexts: config.contexts.clone(),
+        context_descriptions: config
+            .contexts
+            .iter()
+            .map(|ctx| (ctx.id.clone(), "test context".to_string()))
+            .collect(),
         overrides: config.overrides.clone(),
         default_configs: DefaultConfigsWithSchema::from(default_configs),
         dimensions: config.dimensions.clone(),
@@ -55,10 +60,12 @@ dimension = { position = 1, schema = { type = "string" } }
 
 [[overrides]]
 _context_ = { dimension = "d1" }
+_description_ = "test context"
 timeout = 60
 
 [[overrides]]
 _context_ = { dimension = "d2" }
+_description_ = "test context"
 timeout = 90
 "#;
 

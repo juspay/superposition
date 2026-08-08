@@ -1,7 +1,7 @@
 use std::ops::Deref;
 
 use actix_web::{
-    HttpResponse, Scope, delete, get, post, routes,
+    HttpResponse, Scope, delete, get, post, put, routes,
     web::{Data, Json, Path, Query},
 };
 use chrono::Utc;
@@ -9,35 +9,32 @@ use diesel::{
     Connection, ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl,
     SelectableHelper, TextExpressionMethods,
 };
-use jsonschema::ValidationError;
-use serde_json::Value;
 use service_utils::{
-    helpers::{WebhookData, execute_webhook_call, parse_config_tags},
+    helpers::{
+        WebhookData, execute_webhook_call, get_from_env_or_default, parse_config_tags,
+    },
     service::types::{
-        AppHeader, AppState, CustomHeaders, DbConnection, EncryptionKey, SchemaName,
-        WorkspaceContext, WorkspaceWritePermit,
+        AppHeader, AppState, CustomHeaders, DbConnection, SchemaName, WorkspaceContext,
+        WorkspaceLockTtlPolicy, WorkspaceWritePermit,
     },
 };
-use superposition_core::validations::{try_into_jsonschema, validation_err_to_str};
 use superposition_derives::{authorized, declare_resource};
-use superposition_macros::{
-    bad_argument, db_error, not_found, unexpected_error, validation_error,
-};
+use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
 use superposition_types::{
     DBConnection, PaginatedResponse, Resource, User,
     api::{
         default_config::{
-            DefaultConfigCreateRequest, DefaultConfigFilters, DefaultConfigKey,
-            DefaultConfigUpdateRequest,
+            BulkOperation, BulkOperationResponse, DefaultConfigAction,
+            DefaultConfigBulkResponse, DefaultConfigCreateRequest, DefaultConfigFilters,
+            DefaultConfigKey, DefaultConfigUpdateRequest,
         },
-        functions::{FunctionEnvironment, FunctionExecutionRequest, KeyType},
         webhook::Action,
     },
     custom_query::PaginationParams,
     database::{
         models::{
             Description,
-            cac::{self as models, Context, DefaultConfig, FunctionType},
+            cac::{self as models, Context, DefaultConfig},
             others::WebhookEvent,
         },
         schema::{self, contexts::dsl::contexts, default_configs::dsl},
@@ -45,15 +42,11 @@ use superposition_types::{
     result as superposition,
 };
 
-use crate::{
-    api::{
-        context::helpers::validation_function_executor,
-        functions::{
-            helpers::{check_fn_published, get_published_function_code},
-            types::FunctionInfo,
-        },
-    },
-    helpers::{add_config_version, put_config_in_redis, validate_change_reason},
+use crate::helpers::{add_config_version, put_config_in_redis};
+
+use super::validations::{
+    validate_bulk_operation, validate_create_request, validate_delete_request,
+    validate_update_request,
 };
 
 declare_resource!(DefaultConfig);
@@ -61,6 +54,11 @@ declare_resource!(DefaultConfig);
 pub fn endpoints() -> Scope {
     Scope::new("")
         .service(create_handler)
+        .service(
+            Scope::new("/bulk-operations")
+                .app_data(WorkspaceLockTtlPolicy::Batch)
+                .service(bulk_operations_handler),
+        )
         .service(update_handler)
         .service(get_handler)
         .service(list_handler)
@@ -81,26 +79,13 @@ async fn create_handler(
     _auth_z.authorized(&[req.key.deref()]).await?;
     let conn = write_permit.connection();
 
-    let key = req.key;
     let tags = parse_config_tags(custom_headers.config_tags)?;
-
-    if req.schema.is_empty() {
-        return Err(bad_argument!("Schema cannot be empty."));
-    }
-
-    validate_change_reason(
-        &workspace_context,
-        &req.change_reason,
-        conn,
-        &state.master_encryption_key,
-    )
-    .await?;
-
-    let value = req.value;
+    validate_create_request(&req, &workspace_context, conn, &state.master_encryption_key)
+        .await?;
 
     let default_config = DefaultConfig {
-        key: key.to_owned(),
-        value,
+        key: req.key.into(),
+        value: req.value,
         schema: req.schema,
         value_validation_function_name: req.value_validation_function_name,
         created_by: user.get_email(),
@@ -111,48 +96,6 @@ async fn create_handler(
         change_reason: req.change_reason.clone(),
         value_compute_function_name: req.value_compute_function_name,
     };
-
-    let schema = Value::from(&default_config.schema);
-
-    let schema_compile_result = try_into_jsonschema(&schema);
-    let jschema = match schema_compile_result {
-        Ok(jschema) => jschema,
-        Err(e) => {
-            log::info!("Failed to compile as a Draft-7 JSON schema: {e}");
-            return Err(bad_argument!("Invalid JSON schema (failed to compile)"));
-        }
-    };
-
-    if let Err(e) = jschema.validate(&default_config.value) {
-        let verrors = e.collect::<Vec<ValidationError>>();
-        log::info!(
-            "Validation for value with given JSON schema failed: {:?}",
-            verrors
-        );
-        return Err(validation_error!(
-            "Schema validation failed: {}",
-            &validation_err_to_str(verrors)
-                .first()
-                .unwrap_or(&String::new())
-        ));
-    }
-
-    validate_default_config_with_function(
-        &workspace_context,
-        conn,
-        &default_config.value_validation_function_name,
-        &default_config.key,
-        &default_config.value,
-        &state.master_encryption_key,
-    )
-    .await?;
-
-    validate_fn_published(
-        &default_config.value_compute_function_name,
-        FunctionType::ValueCompute,
-        conn,
-        &workspace_context.schema_name,
-    )?;
 
     let config_version =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -209,6 +152,161 @@ async fn create_handler(
 }
 
 #[authorized]
+#[put("")]
+async fn bulk_operations_handler(
+    workspace_context: WorkspaceContext,
+    state: Data<AppState>,
+    custom_headers: CustomHeaders,
+    request: Json<BulkOperation>,
+    mut write_permit: WorkspaceWritePermit,
+    user: User,
+) -> superposition::Result<HttpResponse> {
+    let conn = write_permit.connection();
+    let tags = parse_config_tags(custom_headers.config_tags)?;
+    let operations = request.into_inner().operations;
+    if operations.is_empty() {
+        return Err(bad_argument!(
+            "At least one default config operation is required"
+        ));
+    }
+    let max_bulk_operations: usize = get_from_env_or_default("MAX_BULK_OPERATION", 1000);
+    if operations.len() > max_bulk_operations {
+        return Err(bad_argument!(
+            "A bulk request cannot contain more than {} operations",
+            max_bulk_operations
+        ));
+    }
+    let mut change_reasons = Vec::with_capacity(operations.len());
+
+    for operation in &operations {
+        change_reasons.push(
+            validate_bulk_operation(
+                operation,
+                &workspace_context,
+                conn,
+                &state.master_encryption_key,
+                &user,
+            )
+            .await?,
+        );
+    }
+
+    let (output, webhook_rows, actions, config_version) = conn
+        .transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            let mut output = Vec::with_capacity(operations.len());
+            let mut webhook_rows = Vec::with_capacity(operations.len());
+            let mut actions = Vec::with_capacity(operations.len());
+
+            for operation in operations {
+                match operation {
+                    DefaultConfigAction::Create(request) => {
+                        let now = Utc::now();
+                        let email = user.get_email();
+                        let row = DefaultConfig {
+                            key: request.key.into(),
+                            value: request.value,
+                            schema: request.schema,
+                            value_validation_function_name: request
+                                .value_validation_function_name,
+                            value_compute_function_name: request
+                                .value_compute_function_name,
+                            created_at: now,
+                            created_by: email.clone(),
+                            last_modified_at: now,
+                            last_modified_by: email,
+                            description: request.description,
+                            change_reason: request.change_reason,
+                        };
+                        let row = diesel::insert_into(dsl::default_configs)
+                            .values(&row)
+                            .returning(DefaultConfig::as_returning())
+                            .schema_name(&workspace_context.schema_name)
+                            .get_result::<DefaultConfig>(transaction_conn)?;
+                        output.push(DefaultConfigBulkResponse::Create(row.clone()));
+                        webhook_rows.push(row);
+                        actions.push(Action::Create);
+                    }
+                    DefaultConfigAction::Update { key, request } => {
+                        let key: String = key.into();
+                        let row = diesel::update(
+                            dsl::default_configs.filter(dsl::key.eq(&key)),
+                        )
+                        .set((
+                            request,
+                            dsl::last_modified_at.eq(Utc::now()),
+                            dsl::last_modified_by.eq(user.get_email()),
+                        ))
+                        .returning(DefaultConfig::as_returning())
+                        .schema_name(&workspace_context.schema_name)
+                        .get_result::<DefaultConfig>(transaction_conn)?;
+                        output.push(DefaultConfigBulkResponse::Update(row.clone()));
+                        webhook_rows.push(row);
+                        actions.push(Action::Update);
+                    }
+                    DefaultConfigAction::Delete(key) => {
+                        let key: String = key.into();
+                        let row = diesel::delete(
+                            dsl::default_configs.filter(dsl::key.eq(&key)),
+                        )
+                        .schema_name(&workspace_context.schema_name)
+                        .returning(DefaultConfig::as_returning())
+                        .get_result::<DefaultConfig>(transaction_conn)?;
+                        output.push(DefaultConfigBulkResponse::Delete(format!(
+                            "{} deleted successfully",
+                            row.key
+                        )));
+                        webhook_rows.push(row);
+                        actions.push(Action::Delete);
+                    }
+                }
+            }
+
+            let config_version = add_config_version(
+                &state,
+                tags,
+                Description::try_from_change_reasons(change_reasons).unwrap_or_default(),
+                transaction_conn,
+                &workspace_context.schema_name,
+            )?;
+            Ok((output, webhook_rows, actions, config_version))
+        })?;
+
+    let _ = put_config_in_redis(
+        &config_version,
+        &state,
+        &workspace_context.schema_name,
+        conn,
+    )
+    .await;
+    let webhook_status = execute_webhook_call(
+        WebhookData {
+            payload: &webhook_rows,
+            resource: Resource::DefaultConfig,
+            event: WebhookEvent::ConfigChanged,
+            config_version_opt: Some(config_version.id.to_string()),
+            action: Action::Batch(actions),
+        },
+        &workspace_context,
+        &state,
+        conn,
+    )
+    .await;
+    let mut response = if webhook_status {
+        HttpResponse::Ok()
+    } else {
+        HttpResponse::build(
+            actix_web::http::StatusCode::from_u16(512)
+                .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
+    response.insert_header((
+        AppHeader::XConfigVersion.to_string(),
+        config_version.id.to_string(),
+    ));
+    Ok(response.json(BulkOperationResponse { output }))
+}
+
+#[authorized]
 #[get("/{key}")]
 async fn get_handler(
     workspace_context: WorkspaceContext,
@@ -257,57 +355,15 @@ async fn update_handler(
             }
         })?;
 
-    validate_change_reason(
+    validate_update_request(
+        &key_str,
+        &req,
+        &existing,
         &workspace_context,
-        &req.change_reason,
         conn,
         &state.master_encryption_key,
     )
     .await?;
-
-    let value = req.value.clone().unwrap_or_else(|| existing.value.clone());
-
-    if let Some(ref schema) = req.schema {
-        let schema = Value::from(schema);
-
-        let jschema = try_into_jsonschema(&schema).map_err(|e| {
-            log::info!("Failed to compile JSON schema: {e}");
-            bad_argument!("Invalid JSON schema.")
-        })?;
-
-        jschema.validate(&value).map_err(|e| {
-            let verrors = e.collect::<Vec<ValidationError>>();
-            validation_error!(
-                "Schema validation failed: {}",
-                &validation_err_to_str(verrors)
-                    .first()
-                    .unwrap_or(&String::new())
-            )
-        })?;
-    }
-
-    if let Some(ref validation_function_name) = req.value_validation_function_name {
-        let value = req.value.clone().unwrap_or_else(|| existing.value.clone());
-
-        validate_default_config_with_function(
-            &workspace_context,
-            conn,
-            validation_function_name,
-            &key_str,
-            &value,
-            &state.master_encryption_key,
-        )
-        .await?
-    }
-
-    if let Some(ref value_compute_function_name) = req.value_compute_function_name {
-        validate_fn_published(
-            value_compute_function_name,
-            FunctionType::ValueCompute,
-            conn,
-            &workspace_context.schema_name,
-        )?;
-    }
 
     let (db_row, config_version) =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -367,62 +423,7 @@ async fn update_handler(
     Ok(http_resp.json(db_row))
 }
 
-fn validate_fn_published(
-    function: &Option<String>,
-    f_type: FunctionType,
-    conn: &mut DBConnection,
-    schema_name: &SchemaName,
-) -> superposition::Result<()> {
-    let Some(func_name) = function else {
-        return Ok(());
-    };
-    check_fn_published(func_name, f_type, conn, schema_name)
-}
-
-async fn validate_default_config_with_function(
-    workspace_context: &WorkspaceContext,
-    conn: &mut DBConnection,
-    function_name: &Option<String>,
-    key: &str,
-    value: &Value,
-    master_encryption_key: &Option<EncryptionKey>,
-) -> superposition::Result<()> {
-    if let Some(f_name) = function_name {
-        let FunctionInfo {
-            published_code: function_code,
-            published_runtime_version: function_version,
-            ..
-        } = get_published_function_code(
-            conn,
-            f_name,
-            FunctionType::ValueValidation,
-            &workspace_context.schema_name,
-        )
-        .map_err(|_| {
-            bad_argument!("Function {}'s published code does not exist.", f_name)
-        })?;
-        if let (Some(f_code), Some(f_version)) = (function_code, function_version) {
-            validation_function_executor(
-                workspace_context,
-                f_name.as_str(),
-                &f_code,
-                &FunctionExecutionRequest::ValueValidationFunctionRequest {
-                    key: key.to_string(),
-                    value: value.clone(),
-                    r#type: KeyType::ConfigKey,
-                    environment: FunctionEnvironment::default(),
-                },
-                f_version,
-                conn,
-                master_encryption_key,
-            )
-            .await?;
-        }
-    };
-    Ok(())
-}
-
-fn fetch_default_key(
+pub(super) fn fetch_default_key(
     key: &String,
     conn: &mut DBConnection,
     schema_name: &SchemaName,
@@ -526,89 +527,79 @@ async fn delete_handler(
 
     let conn = write_permit.connection();
 
-    let context_ids =
-        get_key_usage_context_ids(&key, conn, &workspace_context.schema_name)
-            .map_err(|_| unexpected_error!("Something went wrong"))?;
-    if context_ids.is_empty() {
-        let (config_version, default_config) = conn
-            .transaction::<_, superposition::AppError, _>(|transaction_conn| {
-                diesel::update(dsl::default_configs)
-                    .filter(dsl::key.eq(&key))
-                    .set((
-                        dsl::last_modified_at.eq(Utc::now()),
-                        dsl::last_modified_by.eq(user.get_email()),
-                    ))
+    validate_delete_request(&key, conn, &workspace_context.schema_name)?;
+
+    let (config_version, default_config) = conn
+        .transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            diesel::update(dsl::default_configs)
+                .filter(dsl::key.eq(&key))
+                .set((
+                    dsl::last_modified_at.eq(Utc::now()),
+                    dsl::last_modified_by.eq(user.get_email()),
+                ))
+                .schema_name(&workspace_context.schema_name)
+                .execute(transaction_conn)?;
+
+            let deleted_row =
+                diesel::delete(dsl::default_configs.filter(dsl::key.eq(&key)))
                     .schema_name(&workspace_context.schema_name)
-                    .execute(transaction_conn)?;
-
-                let deleted_row =
-                    diesel::delete(dsl::default_configs.filter(dsl::key.eq(&key)))
-                        .schema_name(&workspace_context.schema_name)
-                        .get_result::<DefaultConfig>(transaction_conn)
-                        .optional()?;
-                match deleted_row {
-                    None => {
-                        Err(not_found!("default config key `{}` doesn't exists", key))?
-                    }
-                    Some(default_config) => {
-                        let config_version_desc = Description::try_from(format!(
-                            "Context Deleted by {}",
-                            user.get_email()
-                        ))
-                        .map_err(|e| unexpected_error!(e))?;
-                        let config_version = add_config_version(
-                            &state,
-                            tags,
-                            config_version_desc,
-                            transaction_conn,
-                            &workspace_context.schema_name,
-                        )?;
-                        log::info!(
-                            "default config key: {key} deleted by {}",
-                            user.get_email()
-                        );
-                        Ok((config_version, default_config))
-                    }
+                    .get_result::<DefaultConfig>(transaction_conn)
+                    .optional()?;
+            match deleted_row {
+                None => Err(not_found!("default config key `{}` doesn't exists", key))?,
+                Some(default_config) => {
+                    let config_version_desc = Description::try_from(format!(
+                        "Context Deleted by {}",
+                        user.get_email()
+                    ))
+                    .map_err(|e| unexpected_error!(e))?;
+                    let config_version = add_config_version(
+                        &state,
+                        tags,
+                        config_version_desc,
+                        transaction_conn,
+                        &workspace_context.schema_name,
+                    )?;
+                    log::info!(
+                        "default config key: {key} deleted by {}",
+                        user.get_email()
+                    );
+                    Ok((config_version, default_config))
                 }
-            })?;
+            }
+        })?;
 
-        let _ = put_config_in_redis(
-            &config_version,
-            &state,
-            &workspace_context.schema_name,
-            conn,
-        )
-        .await;
+    let _ = put_config_in_redis(
+        &config_version,
+        &state,
+        &workspace_context.schema_name,
+        conn,
+    )
+    .await;
 
-        let data = WebhookData {
-            payload: &default_config,
-            resource: Resource::DefaultConfig,
-            event: WebhookEvent::ConfigChanged,
-            config_version_opt: Some(config_version.id.to_string()),
-            action: Action::Delete,
-        };
+    let data = WebhookData {
+        payload: &default_config,
+        resource: Resource::DefaultConfig,
+        event: WebhookEvent::ConfigChanged,
+        config_version_opt: Some(config_version.id.to_string()),
+        action: Action::Delete,
+    };
 
-        let webhook_status =
-            execute_webhook_call(data, &workspace_context, &state, conn).await;
+    let webhook_status =
+        execute_webhook_call(data, &workspace_context, &state, conn).await;
 
-        let mut http_resp = if webhook_status {
-            HttpResponse::Ok()
-        } else {
-            HttpResponse::build(
-                actix_web::http::StatusCode::from_u16(512)
-                    .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
-            )
-        };
-        http_resp.insert_header((
-            AppHeader::XConfigVersion.to_string(),
-            config_version.id.to_string(),
-        ));
-
-        Ok(http_resp.finish())
+    let mut http_resp = if webhook_status {
+        HttpResponse::Ok()
     } else {
-        Err(bad_argument!(
-            "Given key already in use in contexts: {}",
-            context_ids.join(",")
-        ))
-    }
+        HttpResponse::build(
+            actix_web::http::StatusCode::from_u16(512)
+                .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
+    http_resp.insert_header((
+        AppHeader::XConfigVersion.to_string(),
+        config_version.id.to_string(),
+    ));
+
+    Ok(http_resp.finish())
 }

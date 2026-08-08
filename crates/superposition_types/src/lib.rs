@@ -40,7 +40,7 @@ use superposition_derives::{JsonFromSql, JsonToSql};
 
 pub use config::{
     Condition, Config, Context, DefaultConfigInfo, DefaultConfigsWithSchema,
-    DetailedConfig, DimensionInfo, OverrideWithKeys, Overrides,
+    DetailedConfig, DimensionInfo, MarkupFormat, OverrideWithKeys, Overrides,
 };
 pub use contextual::Contextual;
 pub use logic::{apply, partial_apply};

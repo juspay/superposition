@@ -1,7 +1,10 @@
 #[cfg(test)]
 pub(crate) mod tests;
 
-use std::collections::{BTreeMap, HashMap};
+use std::{
+    collections::{BTreeMap, HashMap},
+    fmt,
+};
 
 use derive_more::{AsRef, Deref, DerefMut, Into};
 #[cfg(feature = "diesel_derives")]
@@ -25,6 +28,22 @@ use crate::{
     },
     Cac, Contextual, Exp, ExtendedMap,
 };
+
+#[derive(Debug, Clone, Copy, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum MarkupFormat {
+    Json,
+    Toml,
+}
+
+impl fmt::Display for MarkupFormat {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            Self::Json => "JSON",
+            Self::Toml => "TOML",
+        })
+    }
+}
 
 macro_rules! impl_try_from_map {
     ($wrapper:ident, $type:ident, $validate:expr) => {
@@ -452,6 +471,7 @@ impl From<BTreeMap<String, DefaultConfigInfo>> for DefaultConfigsWithSchema {
 #[cfg_attr(test, derive(PartialEq))]
 pub struct DetailedConfig {
     pub contexts: Vec<Context>,
+    pub context_descriptions: HashMap<String, String>,
     pub overrides: HashMap<String, Overrides>,
     pub default_configs: DefaultConfigsWithSchema,
     pub dimensions: HashMap<String, DimensionInfo>,

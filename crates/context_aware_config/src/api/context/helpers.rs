@@ -59,7 +59,7 @@ pub fn validate_condition_with_mandatory_dimensions(
 
 /// Given a set of dimensions and a context map, validate that dependent dimensions,
 ///  of the given dimensions in context, are not present
-fn validate_condition_with_dependent_dimensions(
+pub(crate) fn validate_condition_with_dependent_dimensions(
     dimensions: &HashMap<String, DimensionInfo>,
     context_map: &Map<String, Value>,
 ) -> superposition::Result<()> {

@@ -32,28 +32,35 @@ variantIds = { position = 0, schema = { pattern = ".*", type = "string" }, type 
 
 [[overrides]]
 _context_ = { customers = "platinum" }
+_description_ = "test context"
 price = 5000
 
 [[overrides]]
 _context_ = { customers = "gold" }
+_description_ = "test context"
 price = 8000
 
 [[overrides]]
 _context_ = { name = "karbik" }
+_description_ = "test context"
 price = 1
 
 [[overrides]]
 _context_ = { city = "Boston" }
+_description_ = "test context"
 currency = "Dollar"
 
 [[overrides]]
 _context_ = { city = "Berlin" }
+_description_ = "test context"
 currency = "Euro"
 
 [[overrides]]
 _context_ = { city = "Kolkata", variantIds = "7445772794710855680-test-control" }
+_description_ = "test context"
 price = 8000
 
 [[overrides]]
 _context_ = { city = "Kolkata", variantIds = "7445772794710855680-test-experimental" }
+_description_ = "test context"
 price = 7000
