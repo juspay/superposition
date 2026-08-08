@@ -56,10 +56,12 @@ Dimensions define the variables that can be used in context expressions.
 ```toml
 [[overrides]]
 _context_ = { vehicle_type = "cab" }
+_description_ = "Context description"
 per_km_rate = 25.0
 
 [[overrides]]
 _context_ = { city = "Bangalore", vehicle_type = "cab" }
+_description_ = "Context description"
 per_km_rate = 22.0
 ```
 

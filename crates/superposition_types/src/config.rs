@@ -452,6 +452,7 @@ impl From<BTreeMap<String, DefaultConfigInfo>> for DefaultConfigsWithSchema {
 #[cfg_attr(test, derive(PartialEq))]
 pub struct DetailedConfig {
     pub contexts: Vec<Context>,
+    pub context_descriptions: HashMap<String, String>,
     pub overrides: HashMap<String, Overrides>,
     pub default_configs: DefaultConfigsWithSchema,
     pub dimensions: HashMap<String, DimensionInfo>,
