@@ -470,26 +470,28 @@ fn list_experiment_groups_db(
         let dimensions_info =
             fetch_dimensions_info_map(conn, &workspace_context.schema_name)?;
         let original_req_keys = dimension_params.keys().cloned().collect::<Vec<_>>();
-        let dimension_params = evaluate_local_cohorts_skip_unresolved(
-            &dimensions_info,
-            dimension_params.into_inner(),
-        );
 
         let strategy = filters.dimension_match_strategy.unwrap_or_default();
 
-        let dimension_filtered_experiments = match strategy {
+        let dimension_filtered_experiment_grps = match strategy {
             DimensionMatchStrategy::Exact => {
                 ExperimentGroup::filter_exact_match(all_experiments, &dimension_params)
             }
             DimensionMatchStrategy::Subset | DimensionMatchStrategy::NonConflicting => {
-                ExperimentGroup::filter_by_eval(all_experiments, &dimension_params)
+                let evaluated_params = evaluate_local_cohorts_skip_unresolved(
+                    &dimensions_info,
+                    dimension_params.into_inner(),
+                );
+                ExperimentGroup::filter_by_eval(all_experiments, &evaluated_params)
             }
         };
 
         let filtered_experiments = match strategy {
-            DimensionMatchStrategy::NonConflicting => dimension_filtered_experiments,
-            _ => ExperimentGroup::filter_by_dimension(
-                dimension_filtered_experiments,
+            DimensionMatchStrategy::NonConflicting | DimensionMatchStrategy::Exact => {
+                dimension_filtered_experiment_grps
+            }
+            DimensionMatchStrategy::Subset => ExperimentGroup::filter_by_dimension(
+                dimension_filtered_experiment_grps,
                 &original_req_keys.iter().collect::<Vec<_>>(),
                 &dimensions_info,
             ),

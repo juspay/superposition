@@ -621,26 +621,27 @@ async fn list_handler(
                 fetch_dimensions_info_map(&mut conn, &workspace_context.schema_name)?;
 
             let original_req_keys = dimension_params.keys().cloned().collect::<Vec<_>>();
-            let evaluated_params = evaluate_local_cohorts_skip_unresolved(
-                &dimensions_info,
-                dimension_params.into_inner(),
-            );
 
             let strategy = filter_params.dimension_match_strategy.unwrap_or_default();
 
             let eval_filtered = match strategy {
                 DimensionMatchStrategy::Exact => {
-                    Context::filter_exact_match(all_contexts, &evaluated_params)
+                    Context::filter_exact_match(all_contexts, &dimension_params)
                 }
                 DimensionMatchStrategy::Subset
                 | DimensionMatchStrategy::NonConflicting => {
+                    let evaluated_params = evaluate_local_cohorts_skip_unresolved(
+                        &dimensions_info,
+                        dimension_params.into_inner(),
+                    );
                     Context::filter_by_eval(all_contexts, &evaluated_params)
                 }
             };
 
             match strategy {
-                DimensionMatchStrategy::NonConflicting => eval_filtered,
-                _ => Context::filter_by_dimension(
+                DimensionMatchStrategy::NonConflicting
+                | DimensionMatchStrategy::Exact => eval_filtered,
+                DimensionMatchStrategy::Subset => Context::filter_by_dimension(
                     eval_filtered,
                     &original_req_keys.iter().collect::<Vec<_>>(),
                     &dimensions_info,
