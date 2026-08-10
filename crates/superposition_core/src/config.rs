@@ -76,7 +76,7 @@ pub fn eval_config(
     );
 
     // Apply overrides to default config
-    let result = merge_overrides_on_default_config(
+    let result = apply_overrides_on_default_config(
         config.default_configs,
         overrides_map,
         merge_strategy,
@@ -124,7 +124,7 @@ pub fn eval(
     );
 
     // Apply overrides to default config
-    let result = merge_overrides_on_default_config(
+    let result = apply_overrides_on_default_config(
         config.default_configs,
         overrides_map,
         merge_strategy,
@@ -133,20 +133,15 @@ pub fn eval(
     result.into_inner()
 }
 
+// TODO: Move explain function to this file to avoid making this funcition public
 pub fn merge(doc: &mut Value, patch: Value) {
-    if !patch.is_object() {
-        *doc = patch;
-        return;
-    }
-
-    if !doc.is_object() {
-        *doc = Value::Object(Map::new());
-    }
-
-    if let (Some(map), Value::Object(obj)) = (doc.as_object_mut(), patch) {
-        for (key, value) in obj {
-            merge(map.entry(key.as_str()).or_insert(Value::Null), value);
+    match (doc, patch) {
+        (Value::Object(map), Value::Object(obj)) => {
+            for (key, value) in obj {
+                merge(map.entry(key).or_insert(Value::Null), value);
+            }
         }
+        (doc, patch) => *doc = patch,
     }
 }
 
@@ -215,7 +210,7 @@ fn get_overrides(
     }
 }
 
-fn merge_overrides_on_default_config(
+fn apply_overrides_on_default_config(
     mut default_config: ExtendedMap,
     overrides: Map<String, Value>,
     merge_strategy: MergeStrategy,

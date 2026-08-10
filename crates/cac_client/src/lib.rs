@@ -302,4 +302,3 @@ pub static CLIENT_FACTORY: Lazy<ClientFactory> =
 
 pub use eval::eval;
 pub use eval::eval_cac;
-pub use eval::merge;
