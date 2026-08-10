@@ -508,10 +508,16 @@ pub fn append_job_logs(
     let timed_key = key.unwrap_or(Utc::now().to_rfc3339());
 
     let mut logs = current.as_object().cloned().unwrap_or_default();
-    logs.insert(
-        timed_key.clone(),
-        serde_json::Value::String(log_line.to_string()),
-    );
+    let final_log_lines = match logs.get(&timed_key) {
+        Some(serde_json::Value::String(log_lines)) => {
+            let mut updated_lines = log_lines.clone();
+            updated_lines.push_str("\n");
+            updated_lines.push_str(log_line);
+            serde_json::Value::String(updated_lines)
+        }
+        _ => serde_json::Value::String(log_line.to_string()),
+    };
+    logs.insert(timed_key.clone(), final_log_lines);
     let new_logs = serde_json::Value::Object(logs);
 
     diesel::update(job_manager_dsl::job_manager.filter(job_manager_dsl::id.eq(job_id)))

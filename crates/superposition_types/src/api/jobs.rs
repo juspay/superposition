@@ -93,6 +93,7 @@ pub struct KronosJobRequest {
     #[serde(flatten)]
     pub request: JobRequest,
     pub org_id: String,
+    #[serde(rename = "workspace")]
     pub workspace_id: String,
     #[serde(with = "crate::database::models::i64_formatter")]
     pub job_id: i64,
