@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 use std::{borrow::Cow, collections::HashMap};
 
 use serde_json::{json, Map, Value};
@@ -228,63 +231,4 @@ fn apply_overrides_on_default_config(
         }
     });
     default_config
-}
-
-#[cfg(test)]
-mod tests {
-    use std::collections::HashMap;
-
-    use serde_json::{json, Map, Value};
-    use superposition_types::{Cac, Condition, Context, OverrideWithKeys, Overrides};
-
-    use super::*;
-
-    fn value_map(values: Vec<(&str, Value)>) -> Map<String, Value> {
-        values
-            .into_iter()
-            .map(|(key, value)| (key.to_string(), value))
-            .collect()
-    }
-
-    fn condition(values: Vec<(&str, Value)>) -> Condition {
-        Cac::<Condition>::try_from(value_map(values))
-            .unwrap()
-            .into_inner()
-    }
-
-    fn overrides(values: Vec<(&str, Value)>) -> Overrides {
-        Cac::<Overrides>::try_from(value_map(values))
-            .unwrap()
-            .into_inner()
-    }
-
-    #[test]
-    fn eval_config_with_reasoning_does_not_add_metadata_key() {
-        let default_config =
-            ExtendedMap::from(value_map(vec![("checkout.enabled", json!(false))]));
-        let context = Context {
-            id: "c0".to_string(),
-            condition: condition(vec![("country", json!("IN"))]),
-            priority: 0,
-            weight: 0,
-            override_with_keys: OverrideWithKeys::new("o0".to_string()),
-        };
-        let overrides = HashMap::from([(
-            "o0".to_string(),
-            overrides(vec![("checkout.enabled", json!(true))]),
-        )]);
-        let query_data = value_map(vec![("country", json!("IN"))]);
-
-        let config = Config {
-            default_configs: default_config,
-            contexts: vec![context],
-            overrides,
-            dimensions: HashMap::new(),
-        };
-
-        let resolved = eval_config(config, query_data, MergeStrategy::MERGE, None, None);
-
-        assert_eq!(resolved.get("checkout.enabled"), Some(&json!(true)));
-        // assert!(!resolved.contains_key("metadata"));
-    }
 }

@@ -19,14 +19,11 @@ export class NativeResolver {
             this.lib.core_get_resolved_config = this.lib.func(
                 "char* core_get_resolved_config(const char*, const char*, const char*, const char*, const char*, const char*, const char*, const char*, const char*, const char*)",
             );
-            this.lib.core_get_resolved_config_with_reasoning = this.lib.func(
-                "char* core_get_resolved_config_with_reasoning(const char*, const char*, const char*, const char*, const char*, const char*, const char*, const char*, const char*, const char*)",
-            );
             this.lib.core_free_string = this.lib.func(
                 "void core_free_string(char*)",
             );
             this.lib.core_get_applicable_variants = this.lib.func(
-                "char* core_get_applicable_variants(const char*, const char*, const char*, const char*, const char*, const char*)",
+                "char* core_get_applicable_variants(const char*, const char*, const char*, const char*, const char*, const char*, const char*, char*)",
             );
             this.lib.core_test_connection = this.lib.func(
                 "int core_test_connection()",
@@ -206,74 +203,6 @@ export class NativeResolver {
             console.error("Raw result string:", configStr);
             throw new Error(
                 `Failed to parse config evaluation result: ${parseError}`,
-            );
-        }
-    }
-
-    resolveConfigWithReasoning(
-        defaultConfigs: Record<string, any>,
-        contexts: any[],
-        overrides: Record<string, Record<string, any>>,
-        dimensions: Record<string, Record<string, any>>,
-        queryData: Record<string, any>,
-        mergeStrategy: "merge" | "replace" = "merge",
-        filterPrefixes?: string[],
-        filterExcludePrefixes?: string[],
-        experimentation?: any,
-    ): Record<string, any> {
-        if (!this.isAvailable) {
-            throw new Error(
-                "Native resolver is not available. Please ensure the native library is built and accessible.",
-            );
-        }
-
-        const filterPrefixesJson =
-            filterPrefixes && filterPrefixes.length > 0
-                ? JSON.stringify(filterPrefixes)
-                : null;
-        const filterExcludePrefixesJson =
-            filterExcludePrefixes && filterExcludePrefixes.length > 0
-                ? JSON.stringify(filterExcludePrefixes)
-                : null;
-        const experimentationJson = experimentation
-            ? JSON.stringify(experimentation)
-            : null;
-
-        const ebuf = Buffer.alloc(ERROR_BUFFER_SIZE);
-        const result = this.lib.core_get_resolved_config_with_reasoning(
-            JSON.stringify(defaultConfigs || {}),
-            JSON.stringify(contexts),
-            JSON.stringify(overrides),
-            JSON.stringify(dimensions),
-            JSON.stringify(queryData),
-            mergeStrategy,
-            filterPrefixesJson,
-            filterExcludePrefixesJson,
-            experimentationJson,
-            ebuf,
-        );
-
-        const err = ebuf.toString("utf8").split("\0")[0];
-        if (err.length !== 0) {
-            this.throwFFIError(err);
-        }
-
-        const configStr =
-            typeof result === "string"
-                ? result
-                : this.lib.decode(result, "string");
-
-        if (typeof result !== "string") {
-            this.lib.core_free_string(result);
-        }
-
-        try {
-            return JSON.parse(configStr);
-        } catch (parseError) {
-            console.error("Failed to parse reasoning result:", parseError);
-            console.error("Raw result string:", configStr);
-            throw new Error(
-                `Failed to parse reasoning evaluation result: ${parseError}`,
             );
         }
     }

@@ -467,43 +467,43 @@ fn list_experiment_groups_db(
     let paginated_response = if perform_in_memory_filter {
         let all_experiments: Vec<ExperimentGroup> = base_query.load(conn)?;
 
-        let dimensions_info =
-            fetch_dimensions_info_map(conn, &workspace_context.schema_name)?;
-        let original_req_keys = dimension_params.keys().cloned().collect::<Vec<_>>();
-
         let strategy = filters.dimension_match_strategy.unwrap_or_default();
-
-        let dimension_filtered_experiment_grps = match strategy {
+        let filtered_experiment_grps = match strategy {
             DimensionMatchStrategy::Exact => {
                 ExperimentGroup::filter_exact_match(all_experiments, &dimension_params)
             }
             DimensionMatchStrategy::Subset | DimensionMatchStrategy::NonConflicting => {
+                let dimensions_info =
+                    fetch_dimensions_info_map(conn, &workspace_context.schema_name)?;
+                let original_req_keys =
+                    dimension_params.keys().cloned().collect::<Vec<_>>();
+
                 let evaluated_params = evaluate_local_cohorts_skip_unresolved(
                     &dimensions_info,
                     dimension_params.into_inner(),
                 );
-                ExperimentGroup::filter_by_eval(all_experiments, &evaluated_params)
-            }
-        };
+                let dimension_filtered_experiment_grps =
+                    ExperimentGroup::filter_by_eval(all_experiments, &evaluated_params);
 
-        let filtered_experiments = match strategy {
-            DimensionMatchStrategy::NonConflicting | DimensionMatchStrategy::Exact => {
-                dimension_filtered_experiment_grps
+                if matches!(strategy, DimensionMatchStrategy::Subset) {
+                    ExperimentGroup::filter_by_dimension(
+                        dimension_filtered_experiment_grps,
+                        &original_req_keys.iter().collect::<Vec<_>>(),
+                        &dimensions_info,
+                    )
+                } else {
+                    dimension_filtered_experiment_grps
+                }
             }
-            DimensionMatchStrategy::Subset => ExperimentGroup::filter_by_dimension(
-                dimension_filtered_experiment_grps,
-                &original_req_keys.iter().collect::<Vec<_>>(),
-                &dimensions_info,
-            ),
         };
 
         if show_all {
-            PaginatedResponse::all(filtered_experiments)
+            PaginatedResponse::all(filtered_experiment_grps)
         } else {
-            let total_items = filtered_experiments.len();
+            let total_items = filtered_experiment_grps.len();
             let start = offset as usize;
             let end = min((offset + limit) as usize, total_items);
-            let data = filtered_experiments
+            let data = filtered_experiment_grps
                 .get(start..end)
                 .map(|slice| slice.to_vec())
                 .unwrap_or_default();

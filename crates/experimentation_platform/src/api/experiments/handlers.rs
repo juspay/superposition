@@ -1255,35 +1255,35 @@ fn list_experiments_db(
         } else if dimension_params.is_empty() {
             all_experiments
         } else {
-            let dimensions_info =
-                fetch_dimensions_info_map(conn, &workspace_context.schema_name)?;
-            let dimension_params = dimension_params.into_inner();
-            let original_req_keys = dimension_params.keys().cloned().collect::<Vec<_>>();
-
             let strategy = filters.dimension_match_strategy.unwrap_or_default();
-
-            let dimension_filtered_experiments = match strategy {
+            match strategy {
                 DimensionMatchStrategy::Exact => {
                     Experiment::filter_exact_match(all_experiments, &dimension_params)
                 }
                 DimensionMatchStrategy::Subset
                 | DimensionMatchStrategy::NonConflicting => {
+                    let dimensions_info =
+                        fetch_dimensions_info_map(conn, &workspace_context.schema_name)?;
+                    let original_req_keys =
+                        dimension_params.keys().cloned().collect::<Vec<_>>();
+
                     let evaluated_params = evaluate_local_cohorts_skip_unresolved(
                         &dimensions_info,
-                        dimension_params,
+                        dimension_params.into_inner(),
                     );
-                    Experiment::filter_by_eval(all_experiments, &evaluated_params)
-                }
-            };
+                    let dimension_filtered_experiments =
+                        Experiment::filter_by_eval(all_experiments, &evaluated_params);
 
-            match strategy {
-                DimensionMatchStrategy::NonConflicting
-                | DimensionMatchStrategy::Exact => dimension_filtered_experiments,
-                DimensionMatchStrategy::Subset => Experiment::filter_by_dimension(
-                    dimension_filtered_experiments,
-                    &original_req_keys.iter().collect::<Vec<_>>(),
-                    &dimensions_info,
-                ),
+                    if matches!(strategy, DimensionMatchStrategy::Subset) {
+                        Experiment::filter_by_dimension(
+                            dimension_filtered_experiments,
+                            &original_req_keys.iter().collect::<Vec<_>>(),
+                            &dimensions_info,
+                        )
+                    } else {
+                        dimension_filtered_experiments
+                    }
+                }
             }
         };
 
