@@ -10,6 +10,9 @@ import io.juspay.superposition.model.ApplicableVariantsOutput;
 import io.juspay.superposition.model.BulkOperation;
 import io.juspay.superposition.model.BulkOperationInput;
 import io.juspay.superposition.model.BulkOperationOutput;
+import io.juspay.superposition.model.CancelJob;
+import io.juspay.superposition.model.CancelJobInput;
+import io.juspay.superposition.model.CancelJobOutput;
 import io.juspay.superposition.model.ConcludeExperiment;
 import io.juspay.superposition.model.ConcludeExperimentInput;
 import io.juspay.superposition.model.ConcludeExperimentOutput;
@@ -115,6 +118,9 @@ import io.juspay.superposition.model.GetExperimentOutput;
 import io.juspay.superposition.model.GetFunction;
 import io.juspay.superposition.model.GetFunctionInput;
 import io.juspay.superposition.model.GetFunctionOutput;
+import io.juspay.superposition.model.GetJob;
+import io.juspay.superposition.model.GetJobInput;
+import io.juspay.superposition.model.GetJobOutput;
 import io.juspay.superposition.model.GetOrganisation;
 import io.juspay.superposition.model.GetOrganisationInput;
 import io.juspay.superposition.model.GetOrganisationOutput;
@@ -172,6 +178,9 @@ import io.juspay.superposition.model.ListExperimentOutput;
 import io.juspay.superposition.model.ListFunction;
 import io.juspay.superposition.model.ListFunctionInput;
 import io.juspay.superposition.model.ListFunctionOutput;
+import io.juspay.superposition.model.ListJobs;
+import io.juspay.superposition.model.ListJobsInput;
+import io.juspay.superposition.model.ListJobsOutput;
 import io.juspay.superposition.model.ListOrganisation;
 import io.juspay.superposition.model.ListOrganisationInput;
 import io.juspay.superposition.model.ListOrganisationOutput;
@@ -205,6 +214,9 @@ import io.juspay.superposition.model.PublishOutput;
 import io.juspay.superposition.model.RampExperiment;
 import io.juspay.superposition.model.RampExperimentInput;
 import io.juspay.superposition.model.RampExperimentOutput;
+import io.juspay.superposition.model.Reduce;
+import io.juspay.superposition.model.ReduceInput;
+import io.juspay.superposition.model.ReduceOutput;
 import io.juspay.superposition.model.RemoveMembersFromGroup;
 import io.juspay.superposition.model.RemoveMembersFromGroupInput;
 import io.juspay.superposition.model.RemoveMembersFromGroupOutput;
@@ -278,9 +290,9 @@ import software.amazon.smithy.utils.SmithyGenerated;
 @SmithyGenerated
 final class SuperpositionClientImpl extends Client implements SuperpositionClient {
     private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
-        .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
-        .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
         .putType(NotAuthorizedException.$ID, NotAuthorizedException.class, NotAuthorizedException::builder)
+        .putType(AccessDeniedException.$ID, AccessDeniedException.class, AccessDeniedException::builder)
+        .putType(ValidationException.$ID, ValidationException.class, ValidationException::builder)
         .putType(InternalFailureException.$ID, InternalFailureException.class, InternalFailureException::builder)
         .putType(UnknownOperationException.$ID, UnknownOperationException.class, UnknownOperationException::builder)
         .putType(MalformedRequestException.$ID, MalformedRequestException.class, MalformedRequestException::builder)
@@ -313,6 +325,15 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
     public BulkOperationOutput bulkOperation(BulkOperationInput input, RequestOverrideConfig overrideConfig) {
         try {
             return call(input, BulkOperation.instance(), overrideConfig).join();
+        } catch (CompletionException e) {
+            throw unwrapAndThrow(e);
+        }
+    }
+
+    @Override
+    public CancelJobOutput cancelJob(CancelJobInput input, RequestOverrideConfig overrideConfig) {
+        try {
+            return call(input, CancelJob.instance(), overrideConfig).join();
         } catch (CompletionException e) {
             throw unwrapAndThrow(e);
         }
@@ -634,6 +655,15 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
     }
 
     @Override
+    public GetJobOutput getJob(GetJobInput input, RequestOverrideConfig overrideConfig) {
+        try {
+            return call(input, GetJob.instance(), overrideConfig).join();
+        } catch (CompletionException e) {
+            throw unwrapAndThrow(e);
+        }
+    }
+
+    @Override
     public GetOrganisationOutput getOrganisation(GetOrganisationInput input, RequestOverrideConfig overrideConfig) {
         try {
             return call(input, GetOrganisation.instance(), overrideConfig).join();
@@ -805,6 +835,15 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
     }
 
     @Override
+    public ListJobsOutput listJobs(ListJobsInput input, RequestOverrideConfig overrideConfig) {
+        try {
+            return call(input, ListJobs.instance(), overrideConfig).join();
+        } catch (CompletionException e) {
+            throw unwrapAndThrow(e);
+        }
+    }
+
+    @Override
     public ListOrganisationOutput listOrganisation(ListOrganisationInput input, RequestOverrideConfig overrideConfig) {
         try {
             return call(input, ListOrganisation.instance(), overrideConfig).join();
@@ -898,6 +937,15 @@ final class SuperpositionClientImpl extends Client implements SuperpositionClien
     public RampExperimentOutput rampExperiment(RampExperimentInput input, RequestOverrideConfig overrideConfig) {
         try {
             return call(input, RampExperiment.instance(), overrideConfig).join();
+        } catch (CompletionException e) {
+            throw unwrapAndThrow(e);
+        }
+    }
+
+    @Override
+    public ReduceOutput reduce(ReduceInput input, RequestOverrideConfig overrideConfig) {
+        try {
+            return call(input, Reduce.instance(), overrideConfig).join();
         } catch (CompletionException e) {
             throw unwrapAndThrow(e);
         }

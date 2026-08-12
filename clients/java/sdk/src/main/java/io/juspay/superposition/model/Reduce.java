@@ -1,0 +1,100 @@
+
+package io.juspay.superposition.model;
+
+import java.util.List;
+import software.amazon.smithy.java.core.schema.ApiOperation;
+import software.amazon.smithy.java.core.schema.ApiResource;
+import software.amazon.smithy.java.core.schema.Schema;
+import software.amazon.smithy.java.core.schema.ShapeBuilder;
+import software.amazon.smithy.java.core.serde.TypeRegistry;
+import software.amazon.smithy.model.pattern.UriPattern;
+import software.amazon.smithy.model.shapes.ShapeId;
+import software.amazon.smithy.model.traits.HttpTrait;
+import software.amazon.smithy.utils.SmithyGenerated;
+
+/**
+ * Reduces the configuration by removing redundant overrides across contexts. This operation is
+ * asynchronous — it submits a background job and returns the job ID for polling.
+ */
+@SmithyGenerated
+public final class Reduce implements ApiOperation<ReduceInput, ReduceOutput> {
+    public static final ShapeId $ID = ShapeId.from("io.superposition#Reduce");
+
+    private static final Reduce $INSTANCE = new Reduce();
+
+    static final Schema $SCHEMA = Schema.createOperation($ID,
+            HttpTrait.builder().method("PUT").code(200).uri(UriPattern.parse("/config/reduce")).build());
+
+    private static final TypeRegistry TYPE_REGISTRY = TypeRegistry.builder()
+        .putType(InternalServerError.$ID, InternalServerError.class, InternalServerError::builder)
+        .build();
+
+    private static final List<ShapeId> SCHEMES = List.of(ShapeId.from("smithy.api#httpBasicAuth"), ShapeId.from("smithy.api#httpBearerAuth"));
+
+    /**
+     * Get an instance of this {@code ApiOperation}.
+     *
+     * @return An instance of this class.
+     */
+    public static Reduce instance() {
+        return $INSTANCE;
+    }
+
+    private Reduce() {}
+
+    @Override
+    public ShapeBuilder<ReduceInput> inputBuilder() {
+        return ReduceInput.builder();
+    }
+
+    @Override
+    public ShapeBuilder<ReduceOutput> outputBuilder() {
+        return ReduceOutput.builder();
+    }
+
+    @Override
+    public Schema schema() {
+        return $SCHEMA;
+    }
+
+    @Override
+    public Schema inputSchema() {
+        return ReduceInput.$SCHEMA;
+    }
+
+    @Override
+    public Schema outputSchema() {
+        return ReduceOutput.$SCHEMA;
+    }
+
+    @Override
+    public TypeRegistry errorRegistry() {
+        return TYPE_REGISTRY;
+    }
+
+    @Override
+    public List<ShapeId> effectiveAuthSchemes() {
+        return SCHEMES;
+    }
+
+    @Override
+    public Schema inputStreamMember() {
+        return null;
+    }
+
+    @Override
+    public Schema outputStreamMember() {
+        return null;
+    }
+
+    @Override
+    public Schema idempotencyTokenMember() {
+        return null;
+    }
+
+    @Override
+    public ApiResource boundResource() {
+        return Config.instance();
+    }
+}
+

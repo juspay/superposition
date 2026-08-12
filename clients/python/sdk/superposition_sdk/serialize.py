@@ -18,6 +18,7 @@ from .models import (
     AddMembersToGroupInput,
     ApplicableVariantsInput,
     BulkOperationInput,
+    CancelJobInput,
     ConcludeExperimentInput,
     CreateContextInput,
     CreateDefaultConfigInput,
@@ -53,6 +54,7 @@ from .models import (
     GetExperimentGroupInput,
     GetExperimentInput,
     GetFunctionInput,
+    GetJobInput,
     GetOrganisationInput,
     GetResolvedConfigExplanationInput,
     GetResolvedConfigInput,
@@ -72,6 +74,7 @@ from .models import (
     ListExperimentGroupsInput,
     ListExperimentInput,
     ListFunctionInput,
+    ListJobsInput,
     ListOrganisationInput,
     ListSecretsInput,
     ListVariablesInput,
@@ -83,6 +86,7 @@ from .models import (
     PauseExperimentInput,
     PublishInput,
     RampExperimentInput,
+    ReduceInput,
     RemoveMembersFromGroupInput,
     ResumeExperimentInput,
     RotateMasterEncryptionKeyInput,
@@ -227,6 +231,38 @@ async def _serialize_bulk_operation(input: BulkOperationInput, config: Config) -
             query=query,
         ),
         method="PUT",
+        fields=headers,
+        body=body,
+    )
+
+async def _serialize_cancel_job(input: CancelJobInput, config: Config) -> HTTPRequest:
+    if not input.id:
+        raise ServiceError("id must not be empty.")
+
+    path = "/jobs/{id}/cancel".format(
+        id=urlquote(input.id, safe=''),
+    )
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    headers = Fields(
+        [
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="POST",
         fields=headers,
         body=body,
     )
@@ -1479,6 +1515,38 @@ async def _serialize_get_function(input: GetFunctionInput, config: Config) -> HT
         body=body,
     )
 
+async def _serialize_get_job(input: GetJobInput, config: Config) -> HTTPRequest:
+    if not input.id:
+        raise ServiceError("id must not be empty.")
+
+    path = "/jobs/{id}".format(
+        id=urlquote(input.id, safe=''),
+    )
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    headers = Fields(
+        [
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="GET",
+        fields=headers,
+        body=body,
+    )
+
 async def _serialize_get_organisation(input: GetOrganisationInput, config: Config) -> HTTPRequest:
     if not input.id:
         raise ServiceError("id must not be empty.")
@@ -2286,6 +2354,47 @@ async def _serialize_list_function(input: ListFunctionInput, config: Config) -> 
         body=body,
     )
 
+async def _serialize_list_jobs(input: ListJobsInput, config: Config) -> HTTPRequest:
+    path = "/jobs"
+    query: str = f''
+
+    query_params: list[tuple[str, str | None]] = []
+    if input.count is not None:
+        query_params.append(("count", str(input.count)))
+    if input.page is not None:
+        query_params.append(("page", str(input.page)))
+    if input.all is not None:
+        query_params.append(("all", ('true' if input.all else 'false')))
+    if input.status is not None:
+        query_params.append(("status", input.status))
+    if input.job_type is not None:
+        query_params.append(("job_type", input.job_type))
+
+    query = join_query_params(params=query_params, prefix=query)
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    headers = Fields(
+        [
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="GET",
+        fields=headers,
+        body=body,
+    )
+
 async def _serialize_list_organisation(input: ListOrganisationInput, config: Config) -> HTTPRequest:
     path = "/superposition/organisations"
     query: str = f''
@@ -2714,6 +2823,33 @@ async def _serialize_ramp_experiment(input: RampExperimentInput, config: Config)
             query=query,
         ),
         method="PATCH",
+        fields=headers,
+        body=body,
+    )
+
+async def _serialize_reduce(input: ReduceInput, config: Config) -> HTTPRequest:
+    path = "/config/reduce"
+    query: str = f''
+
+    body: AsyncIterable[bytes] = AsyncBytesReader(b'')
+    headers = Fields(
+        [
+
+        ]
+    )
+
+    if input.workspace_id:
+        headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
+    if input.org_id:
+        headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    return _HTTPRequest(
+        destination=_URI(
+            host="",
+            path=path,
+            scheme="https",
+            query=query,
+        ),
+        method="PUT",
         fields=headers,
         body=body,
     )

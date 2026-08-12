@@ -173,6 +173,37 @@ final class SharedSerde {
         }
     }
 
+    static final class JobListSerializer implements BiConsumer<List<JobDetailResponse>, ShapeSerializer> {
+        static final JobListSerializer INSTANCE = new JobListSerializer();
+
+        @Override
+        public void accept(List<JobDetailResponse> values, ShapeSerializer serializer) {
+            for (var value : values) {
+                serializer.writeStruct(SharedSchemas.JOB_LIST.listMember(), value);
+            }
+        }
+    }
+
+    static List<JobDetailResponse> deserializeJobList(Schema schema, ShapeDeserializer deserializer) {
+        var size = deserializer.containerSize();
+        List<JobDetailResponse> result = size == -1 ? new ArrayList<>() : new ArrayList<>(size);
+        deserializer.readList(schema, result, JobList$MemberDeserializer.INSTANCE);
+        return result;
+    }
+
+    private static final class JobList$MemberDeserializer implements ShapeDeserializer.ListMemberConsumer<List<JobDetailResponse>> {
+        static final JobList$MemberDeserializer INSTANCE = new JobList$MemberDeserializer();
+
+        @Override
+        public void accept(List<JobDetailResponse> state, ShapeDeserializer deserializer) {
+            if (deserializer.isNull()) {
+
+                return;
+            }
+            state.add(JobDetailResponse.builder().deserializeMember(deserializer, SharedSchemas.JOB_LIST.listMember()).build());
+        }
+    }
+
     static final class TypeTemplatesListSerializer implements BiConsumer<List<TypeTemplatesResponse>, ShapeSerializer> {
         static final TypeTemplatesListSerializer INSTANCE = new TypeTemplatesListSerializer();
 
@@ -542,37 +573,6 @@ final class SharedSerde {
                 return;
             }
             state.add(deserializer.readString(SharedSchemas.EVENTS.listMember()));
-        }
-    }
-
-    static final class WeightRecomputeResponsesSerializer implements BiConsumer<List<WeightRecomputeResponse>, ShapeSerializer> {
-        static final WeightRecomputeResponsesSerializer INSTANCE = new WeightRecomputeResponsesSerializer();
-
-        @Override
-        public void accept(List<WeightRecomputeResponse> values, ShapeSerializer serializer) {
-            for (var value : values) {
-                serializer.writeStruct(SharedSchemas.WEIGHT_RECOMPUTE_RESPONSES.listMember(), value);
-            }
-        }
-    }
-
-    static List<WeightRecomputeResponse> deserializeWeightRecomputeResponses(Schema schema, ShapeDeserializer deserializer) {
-        var size = deserializer.containerSize();
-        List<WeightRecomputeResponse> result = size == -1 ? new ArrayList<>() : new ArrayList<>(size);
-        deserializer.readList(schema, result, WeightRecomputeResponses$MemberDeserializer.INSTANCE);
-        return result;
-    }
-
-    private static final class WeightRecomputeResponses$MemberDeserializer implements ShapeDeserializer.ListMemberConsumer<List<WeightRecomputeResponse>> {
-        static final WeightRecomputeResponses$MemberDeserializer INSTANCE = new WeightRecomputeResponses$MemberDeserializer();
-
-        @Override
-        public void accept(List<WeightRecomputeResponse> state, ShapeDeserializer deserializer) {
-            if (deserializer.isNull()) {
-
-                return;
-            }
-            state.add(WeightRecomputeResponse.builder().deserializeMember(deserializer, SharedSchemas.WEIGHT_RECOMPUTE_RESPONSES.listMember()).build());
         }
     }
 

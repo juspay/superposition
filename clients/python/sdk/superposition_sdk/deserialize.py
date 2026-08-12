@@ -18,6 +18,7 @@ from .models import (
     ApiError,
     ApplicableVariantsOutput,
     BulkOperationOutput,
+    CancelJobOutput,
     ConcludeExperimentOutput,
     CreateContextOutput,
     CreateDefaultConfigOutput,
@@ -53,6 +54,7 @@ from .models import (
     GetExperimentGroupOutput,
     GetExperimentOutput,
     GetFunctionOutput,
+    GetJobOutput,
     GetOrganisationOutput,
     GetResolvedConfigExplanationOutput,
     GetResolvedConfigOutput,
@@ -73,6 +75,7 @@ from .models import (
     ListExperimentGroupsOutput,
     ListExperimentOutput,
     ListFunctionOutput,
+    ListJobsOutput,
     ListOrganisationOutput,
     ListSecretsOutput,
     ListVariablesOutput,
@@ -84,6 +87,7 @@ from .models import (
     PauseExperimentOutput,
     PublishOutput,
     RampExperimentOutput,
+    ReduceOutput,
     RemoveMembersFromGroupOutput,
     ResolveExplanation,
     ResourceNotFound,
@@ -194,6 +198,27 @@ async def _deserialize_error_bulk_operation(http_response: HTTPResponse, config:
 
         case "workspacelockconflict":
             return await _deserialize_error_workspace_lock_conflict(http_response, config, parsed_body, message)
+
+        case _:
+            return UnknownApiError(f"{code}: {message}")
+
+async def _deserialize_cancel_job(http_response: HTTPResponse, config: Config) -> CancelJobOutput:
+    if http_response.status != 200 and http_response.status >= 300:
+        raise await _deserialize_error_cancel_job(http_response, config)
+
+    kwargs: dict[str, Any] = {}
+
+    return CancelJobOutput(**kwargs)
+
+async def _deserialize_error_cancel_job(http_response: HTTPResponse, config: Config) -> ApiError:
+    code, message, parsed_body = await parse_rest_json_error_info(http_response)
+
+    match code.lower():
+        case "internalservererror":
+            return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
+
+        case "resourcenotfound":
+            return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
 
         case _:
             return UnknownApiError(f"{code}: {message}")
@@ -1222,6 +1247,34 @@ async def _deserialize_error_get_function(http_response: HTTPResponse, config: C
         case _:
             return UnknownApiError(f"{code}: {message}")
 
+async def _deserialize_get_job(http_response: HTTPResponse, config: Config) -> GetJobOutput:
+    if http_response.status != 200 and http_response.status >= 300:
+        raise await _deserialize_error_get_job(http_response, config)
+
+    kwargs: dict[str, Any] = {}
+
+    body = await http_response.consume_body_async()
+    if body:
+        codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+        deserializer = codec.create_deserializer(body)
+        body_kwargs = GetJobOutput.deserialize_kwargs(deserializer)
+        kwargs.update(body_kwargs)
+
+    return GetJobOutput(**kwargs)
+
+async def _deserialize_error_get_job(http_response: HTTPResponse, config: Config) -> ApiError:
+    code, message, parsed_body = await parse_rest_json_error_info(http_response)
+
+    match code.lower():
+        case "internalservererror":
+            return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
+
+        case "resourcenotfound":
+            return await _deserialize_error_resource_not_found(http_response, config, parsed_body, message)
+
+        case _:
+            return UnknownApiError(f"{code}: {message}")
+
 async def _deserialize_get_organisation(http_response: HTTPResponse, config: Config) -> GetOrganisationOutput:
     if http_response.status != 200 and http_response.status >= 300:
         raise await _deserialize_error_get_organisation(http_response, config)
@@ -1785,6 +1838,31 @@ async def _deserialize_error_list_function(http_response: HTTPResponse, config: 
         case _:
             return UnknownApiError(f"{code}: {message}")
 
+async def _deserialize_list_jobs(http_response: HTTPResponse, config: Config) -> ListJobsOutput:
+    if http_response.status != 200 and http_response.status >= 300:
+        raise await _deserialize_error_list_jobs(http_response, config)
+
+    kwargs: dict[str, Any] = {}
+
+    body = await http_response.consume_body_async()
+    if body:
+        codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+        deserializer = codec.create_deserializer(body)
+        body_kwargs = ListJobsOutput.deserialize_kwargs(deserializer)
+        kwargs.update(body_kwargs)
+
+    return ListJobsOutput(**kwargs)
+
+async def _deserialize_error_list_jobs(http_response: HTTPResponse, config: Config) -> ApiError:
+    code, message, parsed_body = await parse_rest_json_error_info(http_response)
+
+    match code.lower():
+        case "internalservererror":
+            return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
+
+        case _:
+            return UnknownApiError(f"{code}: {message}")
+
 async def _deserialize_list_organisation(http_response: HTTPResponse, config: Config) -> ListOrganisationOutput:
     if http_response.status != 200 and http_response.status >= 300:
         raise await _deserialize_error_list_organisation(http_response, config)
@@ -2086,6 +2164,31 @@ async def _deserialize_error_ramp_experiment(http_response: HTTPResponse, config
 
         case "webhookfailed":
             return await _deserialize_error_webhook_failed(http_response, config, parsed_body, message)
+
+        case _:
+            return UnknownApiError(f"{code}: {message}")
+
+async def _deserialize_reduce(http_response: HTTPResponse, config: Config) -> ReduceOutput:
+    if http_response.status != 200 and http_response.status >= 300:
+        raise await _deserialize_error_reduce(http_response, config)
+
+    kwargs: dict[str, Any] = {}
+
+    body = await http_response.consume_body_async()
+    if body:
+        codec = JSONCodec(default_timestamp_format=TimestampFormat.EPOCH_SECONDS)
+        deserializer = codec.create_deserializer(body)
+        body_kwargs = ReduceOutput.deserialize_kwargs(deserializer)
+        kwargs.update(body_kwargs)
+
+    return ReduceOutput(**kwargs)
+
+async def _deserialize_error_reduce(http_response: HTTPResponse, config: Config) -> ApiError:
+    code, message, parsed_body = await parse_rest_json_error_info(http_response)
+
+    match code.lower():
+        case "internalservererror":
+            return await _deserialize_error_internal_server_error(http_response, config, parsed_body, message)
 
         case _:
             return UnknownApiError(f"{code}: {message}")

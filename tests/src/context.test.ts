@@ -1,4 +1,5 @@
 import {
+    BackgroundJobStatus,
     BulkOperationCommand,
     ContextIdentifier,
     CreateContextCommand,
@@ -1386,18 +1387,8 @@ describe("Context API Integration Tests", () => {
             const response = await client.send(cmd);
 
             expect(response.$metadata.httpStatusCode).toBe(200);
-            expect(response.data).toBeDefined();
-            expect(Array.isArray(response.data)).toBe(true);
-
-            // Each context should have old_weight and new_weight
-            if (response.data && response.data.length > 0) {
-                for (const item of response.data) {
-                    expect(item.id).toBeDefined();
-                    expect(item.old_weight).toBeDefined();
-                    expect(item.new_weight).toBeDefined();
-                    expect(item.condition).toBeDefined();
-                }
-            }
+            expect(response.kronos_job_id).toBeDefined();
+            expect(response.status).toBe(BackgroundJobStatus.CREATED);
         });
     });
 });

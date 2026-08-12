@@ -261,6 +261,36 @@ export interface ListAuditLogsOutput {
 
 /**
  * @public
+ * @enum
+ */
+export const BackgroundJobStatus = {
+  COMPLETED: "COMPLETED",
+  CREATED: "CREATED",
+  FAILED: "FAILED",
+  INPROGRESS: "INPROGRESS",
+  SCHEDULED: "SCHEDULED",
+} as const
+/**
+ * @public
+ */
+export type BackgroundJobStatus = typeof BackgroundJobStatus[keyof typeof BackgroundJobStatus]
+
+/**
+ * @public
+ * @enum
+ */
+export const BackgroundJobType = {
+  PRIORITY_RECOMPUTE: "PRIORITY_RECOMPUTE",
+  REDUCE: "REDUCE",
+  WEBHOOK: "WEBHOOK",
+} as const
+/**
+ * @public
+ */
+export type BackgroundJobType = typeof BackgroundJobType[keyof typeof BackgroundJobType]
+
+/**
+ * @public
  */
 export interface ContextMove {
   /**
@@ -665,6 +695,15 @@ export class WorkspaceLockConflict extends __BaseException {
     Object.setPrototypeOf(this, WorkspaceLockConflict.prototype);
     this.lock = opts.lock;
   }
+}
+
+/**
+ * @public
+ */
+export interface CancelJobInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  id: string | undefined;
 }
 
 /**
@@ -1123,6 +1162,28 @@ export interface GetResolvedConfigWithIdentifierOutput {
 }
 
 /**
+ * Response returned when a job is submitted. Contains the BJM job ID, Kronos job ID, and initial status.
+ * @public
+ */
+export interface JobCreateResponse {
+  id: string | undefined;
+  kronos_job_id: string | undefined;
+  /**
+   * Lifecycle status of a background job.
+   * @public
+   */
+  status: BackgroundJobStatus | undefined;
+}
+
+/**
+ * @public
+ */
+export interface ReduceInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+}
+
+/**
  * @public
  */
 export interface ConfigData {
@@ -1370,37 +1431,6 @@ export interface WeightRecomputeInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
   config_tags?: string | undefined;
-}
-
-/**
- * @public
- */
-export interface WeightRecomputeResponse {
-  id: string | undefined;
-  /**
-   * Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-   * @public
-   */
-  condition: Record<string, __DocumentType> | undefined;
-
-  /**
-   * Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
-   * @public
-   */
-  old_weight: string | undefined;
-
-  /**
-   * Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
-   * @public
-   */
-  new_weight: string | undefined;
-}
-
-/**
- * @public
- */
-export interface WeightRecomputeOutput {
-  data?: (WeightRecomputeResponse)[] | undefined;
 }
 
 /**
@@ -2112,6 +2142,19 @@ export interface DiscardExperimentInput {
 }
 
 /**
+ * Execution details fetched from Kronos for a job.
+ * @public
+ */
+export interface ExecutionDetails {
+  attempt_count?: number | undefined;
+  max_attempts?: number | undefined;
+  started_at?: Date | undefined;
+  completed_at?: Date | undefined;
+  duration_ms?: number | undefined;
+  execution_status?: string | undefined;
+}
+
+/**
  * @public
  */
 export interface GetExperimentConfigInput {
@@ -2677,6 +2720,47 @@ export interface UpdateFunctionRequest {
 /**
  * @public
  */
+export interface GetJobInput {
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  id: string | undefined;
+}
+
+/**
+ * Full job detail including Kronos execution information.
+ * @public
+ */
+export interface JobDetailResponse {
+  id: string | undefined;
+  kronos_job_id: string | undefined;
+  description: string | undefined;
+  /**
+   * Type of background job.
+   * @public
+   */
+  job_type: BackgroundJobType | undefined;
+
+  /**
+   * Lifecycle status of a background job.
+   * @public
+   */
+  status: BackgroundJobStatus | undefined;
+
+  name: string | undefined;
+  progress: number | undefined;
+  workspace_schema: string | undefined;
+  created_at: Date | undefined;
+  logs: __DocumentType | undefined;
+  /**
+   * Execution details fetched from Kronos for a job.
+   * @public
+   */
+  execution?: ExecutionDetails | undefined;
+}
+
+/**
+ * @public
+ */
 export interface GetOrganisationInput {
   id: string | undefined;
 }
@@ -2767,6 +2851,52 @@ export interface GetWebhookByEventInput {
 export interface GetWorkspaceInput {
   org_id: string | undefined;
   workspace_name: string | undefined;
+}
+
+/**
+ * @public
+ */
+export interface ListJobsInput {
+  /**
+   * Number of items to be returned in each page.
+   * @public
+   */
+  count?: number | undefined;
+
+  /**
+   * Page number to retrieve, starting from 1.
+   * @public
+   */
+  page?: number | undefined;
+
+  /**
+   * If true, returns all requested items, ignoring pagination parameters page and count.
+   * @public
+   */
+  all?: boolean | undefined;
+
+  workspace_id: string | undefined;
+  org_id: string | undefined;
+  /**
+   * Lifecycle status of a background job.
+   * @public
+   */
+  status?: BackgroundJobStatus | undefined;
+
+  /**
+   * Type of background job.
+   * @public
+   */
+  job_type?: BackgroundJobType | undefined;
+}
+
+/**
+ * @public
+ */
+export interface ListJobsOutput {
+  total_pages: number | undefined;
+  total_items: number | undefined;
+  data: (JobDetailResponse)[] | undefined;
 }
 
 /**

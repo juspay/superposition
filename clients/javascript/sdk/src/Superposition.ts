@@ -19,6 +19,11 @@ import {
   BulkOperationCommandOutput,
 } from "./commands/BulkOperationCommand";
 import {
+  CancelJobCommand,
+  CancelJobCommandInput,
+  CancelJobCommandOutput,
+} from "./commands/CancelJobCommand";
+import {
   ConcludeExperimentCommand,
   ConcludeExperimentCommandInput,
   ConcludeExperimentCommandOutput,
@@ -194,6 +199,11 @@ import {
   GetFunctionCommandOutput,
 } from "./commands/GetFunctionCommand";
 import {
+  GetJobCommand,
+  GetJobCommandInput,
+  GetJobCommandOutput,
+} from "./commands/GetJobCommand";
+import {
   GetOrganisationCommand,
   GetOrganisationCommandInput,
   GetOrganisationCommandOutput,
@@ -289,6 +299,11 @@ import {
   ListFunctionCommandOutput,
 } from "./commands/ListFunctionCommand";
 import {
+  ListJobsCommand,
+  ListJobsCommandInput,
+  ListJobsCommandOutput,
+} from "./commands/ListJobsCommand";
+import {
   ListOrganisationCommand,
   ListOrganisationCommandInput,
   ListOrganisationCommandOutput,
@@ -343,6 +358,11 @@ import {
   RampExperimentCommandInput,
   RampExperimentCommandOutput,
 } from "./commands/RampExperimentCommand";
+import {
+  ReduceCommand,
+  ReduceCommandInput,
+  ReduceCommandOutput,
+} from "./commands/ReduceCommand";
 import {
   RemoveMembersFromGroupCommand,
   RemoveMembersFromGroupCommandInput,
@@ -445,6 +465,7 @@ const commands = {
   AddMembersToGroupCommand,
   ApplicableVariantsCommand,
   BulkOperationCommand,
+  CancelJobCommand,
   ConcludeExperimentCommand,
   CreateContextCommand,
   CreateDefaultConfigCommand,
@@ -480,6 +501,7 @@ const commands = {
   GetExperimentConfigCommand,
   GetExperimentGroupCommand,
   GetFunctionCommand,
+  GetJobCommand,
   GetOrganisationCommand,
   GetResolvedConfigCommand,
   GetResolvedConfigExplanationCommand,
@@ -499,6 +521,7 @@ const commands = {
   ListExperimentCommand,
   ListExperimentGroupsCommand,
   ListFunctionCommand,
+  ListJobsCommand,
   ListOrganisationCommand,
   ListSecretsCommand,
   ListVariablesCommand,
@@ -510,6 +533,7 @@ const commands = {
   PauseExperimentCommand,
   PublishCommand,
   RampExperimentCommand,
+  ReduceCommand,
   RemoveMembersFromGroupCommand,
   ResumeExperimentCommand,
   RotateMasterEncryptionKeyCommand,
@@ -581,6 +605,23 @@ export interface Superposition {
     args: BulkOperationCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: BulkOperationCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link CancelJobCommand}
+   */
+  cancelJob(
+    args: CancelJobCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<CancelJobCommandOutput>;
+  cancelJob(
+    args: CancelJobCommandInput,
+    cb: (err: any, data?: CancelJobCommandOutput) => void
+  ): void;
+  cancelJob(
+    args: CancelJobCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: CancelJobCommandOutput) => void
   ): void;
 
   /**
@@ -1179,6 +1220,23 @@ export interface Superposition {
   ): void;
 
   /**
+   * @see {@link GetJobCommand}
+   */
+  getJob(
+    args: GetJobCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<GetJobCommandOutput>;
+  getJob(
+    args: GetJobCommandInput,
+    cb: (err: any, data?: GetJobCommandOutput) => void
+  ): void;
+  getJob(
+    args: GetJobCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: GetJobCommandOutput) => void
+  ): void;
+
+  /**
    * @see {@link GetOrganisationCommand}
    */
   getOrganisation(
@@ -1502,6 +1560,23 @@ export interface Superposition {
   ): void;
 
   /**
+   * @see {@link ListJobsCommand}
+   */
+  listJobs(
+    args: ListJobsCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<ListJobsCommandOutput>;
+  listJobs(
+    args: ListJobsCommandInput,
+    cb: (err: any, data?: ListJobsCommandOutput) => void
+  ): void;
+  listJobs(
+    args: ListJobsCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: ListJobsCommandOutput) => void
+  ): void;
+
+  /**
    * @see {@link ListOrganisationCommand}
    */
   listOrganisation(): Promise<ListOrganisationCommandOutput>;
@@ -1687,6 +1762,23 @@ export interface Superposition {
     args: RampExperimentCommandInput,
     options: __HttpHandlerOptions,
     cb: (err: any, data?: RampExperimentCommandOutput) => void
+  ): void;
+
+  /**
+   * @see {@link ReduceCommand}
+   */
+  reduce(
+    args: ReduceCommandInput,
+    options?: __HttpHandlerOptions,
+  ): Promise<ReduceCommandOutput>;
+  reduce(
+    args: ReduceCommandInput,
+    cb: (err: any, data?: ReduceCommandOutput) => void
+  ): void;
+  reduce(
+    args: ReduceCommandInput,
+    options: __HttpHandlerOptions,
+    cb: (err: any, data?: ReduceCommandOutput) => void
   ): void;
 
   /**

@@ -5,8 +5,8 @@ import {
   SuperpositionClientResolvedConfig,
 } from "../SuperpositionClient";
 import {
+  JobCreateResponse,
   WeightRecomputeInput,
-  WeightRecomputeOutput,
 } from "../models/models_0";
 import {
   de_WeightRecomputeCommand,
@@ -32,10 +32,10 @@ export interface WeightRecomputeCommandInput extends WeightRecomputeInput {}
  *
  * The output of {@link WeightRecomputeCommand}.
  */
-export interface WeightRecomputeCommandOutput extends WeightRecomputeOutput, __MetadataBearer {}
+export interface WeightRecomputeCommandOutput extends JobCreateResponse, __MetadataBearer {}
 
 /**
- * Recalculates and updates the priority weights for all contexts in the workspace based on their dimensions.
+ * Recalculates and updates the priority weights for all contexts in the workspace based on their dimensions. This operation is asynchronous — it submits a background job and returns the job ID for polling.
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
@@ -49,17 +49,10 @@ export interface WeightRecomputeCommandOutput extends WeightRecomputeOutput, __M
  * };
  * const command = new WeightRecomputeCommand(input);
  * const response = await client.send(command);
- * // { // WeightRecomputeOutput
- * //   data: [ // WeightRecomputeResponses
- * //     { // WeightRecomputeResponse
- * //       id: "STRING_VALUE", // required
- * //       condition: { // Condition // required
- * //         "<keys>": "DOCUMENT_VALUE",
- * //       },
- * //       old_weight: "STRING_VALUE", // required
- * //       new_weight: "STRING_VALUE", // required
- * //     },
- * //   ],
+ * // { // JobCreateResponse
+ * //   id: "STRING_VALUE", // required
+ * //   kronos_job_id: "STRING_VALUE", // required
+ * //   status: "CREATED" || "SCHEDULED" || "INPROGRESS" || "FAILED" || "COMPLETED", // required
  * // };
  *
  * ```
@@ -102,7 +95,7 @@ export class WeightRecomputeCommand extends $Command.classBuilder<WeightRecomput
 declare protected static __types: {
   api: {
       input: WeightRecomputeInput;
-      output: WeightRecomputeOutput;
+      output: JobCreateResponse;
   };
   sdk: {
       input: WeightRecomputeCommandInput;

@@ -7,6 +7,8 @@ import io.juspay.superposition.model.ApplicableVariantsInput;
 import io.juspay.superposition.model.ApplicableVariantsOutput;
 import io.juspay.superposition.model.BulkOperationInput;
 import io.juspay.superposition.model.BulkOperationOutput;
+import io.juspay.superposition.model.CancelJobInput;
+import io.juspay.superposition.model.CancelJobOutput;
 import io.juspay.superposition.model.ConcludeExperimentInput;
 import io.juspay.superposition.model.ConcludeExperimentOutput;
 import io.juspay.superposition.model.CreateContextInput;
@@ -77,6 +79,8 @@ import io.juspay.superposition.model.GetExperimentInput;
 import io.juspay.superposition.model.GetExperimentOutput;
 import io.juspay.superposition.model.GetFunctionInput;
 import io.juspay.superposition.model.GetFunctionOutput;
+import io.juspay.superposition.model.GetJobInput;
+import io.juspay.superposition.model.GetJobOutput;
 import io.juspay.superposition.model.GetOrganisationInput;
 import io.juspay.superposition.model.GetOrganisationOutput;
 import io.juspay.superposition.model.GetResolvedConfigExplanationInput;
@@ -116,6 +120,8 @@ import io.juspay.superposition.model.ListExperimentInput;
 import io.juspay.superposition.model.ListExperimentOutput;
 import io.juspay.superposition.model.ListFunctionInput;
 import io.juspay.superposition.model.ListFunctionOutput;
+import io.juspay.superposition.model.ListJobsInput;
+import io.juspay.superposition.model.ListJobsOutput;
 import io.juspay.superposition.model.ListOrganisationInput;
 import io.juspay.superposition.model.ListOrganisationOutput;
 import io.juspay.superposition.model.ListSecretsInput;
@@ -138,6 +144,8 @@ import io.juspay.superposition.model.PublishInput;
 import io.juspay.superposition.model.PublishOutput;
 import io.juspay.superposition.model.RampExperimentInput;
 import io.juspay.superposition.model.RampExperimentOutput;
+import io.juspay.superposition.model.ReduceInput;
+import io.juspay.superposition.model.ReduceOutput;
 import io.juspay.superposition.model.RemoveMembersFromGroupInput;
 import io.juspay.superposition.model.RemoveMembersFromGroupOutput;
 import io.juspay.superposition.model.ResourceNotFound;
@@ -256,6 +264,26 @@ public interface SuperpositionClient {
      * @throws WorkspaceLockConflict
      */
     BulkOperationOutput bulkOperation(BulkOperationInput input, RequestOverrideConfig overrideConfig);
+
+    /**
+     * Cancels a background job that is not in a terminal state (COMPLETED or FAILED). Sends a cancellation
+     * request to Kronos and marks the job as FAILED.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    default CancelJobOutput cancelJob(CancelJobInput input) {
+        return cancelJob(input, null);
+    }
+
+    /**
+     * Cancels a background job that is not in a terminal state (COMPLETED or FAILED). Sends a cancellation
+     * request to Kronos and marks the job as FAILED.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    CancelJobOutput cancelJob(CancelJobInput input, RequestOverrideConfig overrideConfig);
 
     /**
      * Concludes an inprogress experiment by selecting a winning variant and transitioning the experiment
@@ -966,6 +994,26 @@ public interface SuperpositionClient {
     GetFunctionOutput getFunction(GetFunctionInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Retrieves detailed information about a specific background job, including Kronos execution details
+     * such as attempt count, timing, and duration.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    default GetJobOutput getJob(GetJobInput input) {
+        return getJob(input, null);
+    }
+
+    /**
+     * Retrieves detailed information about a specific background job, including Kronos execution details
+     * such as attempt count, timing, and duration.
+     *
+     * @throws ResourceNotFound
+     * @throws InternalServerError
+     */
+    GetJobOutput getJob(GetJobInput input, RequestOverrideConfig overrideConfig);
+
+    /**
      * Retrieves detailed information about a specific organisation including its status, contact details,
      * and administrative metadata.
      *
@@ -1312,6 +1360,24 @@ public interface SuperpositionClient {
     ListFunctionOutput listFunction(ListFunctionInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Retrieves a paginated list of background jobs in the workspace, optionally filtered by type and
+     * status.
+     *
+     * @throws InternalServerError
+     */
+    default ListJobsOutput listJobs(ListJobsInput input) {
+        return listJobs(input, null);
+    }
+
+    /**
+     * Retrieves a paginated list of background jobs in the workspace, optionally filtered by type and
+     * status.
+     *
+     * @throws InternalServerError
+     */
+    ListJobsOutput listJobs(ListJobsInput input, RequestOverrideConfig overrideConfig);
+
+    /**
      * Retrieves a paginated list of all organisations with their basic information, creation details, and
      * current status.
      *
@@ -1524,6 +1590,24 @@ public interface SuperpositionClient {
      * @throws InternalServerError
      */
     RampExperimentOutput rampExperiment(RampExperimentInput input, RequestOverrideConfig overrideConfig);
+
+    /**
+     * Reduces the configuration by removing redundant overrides across contexts. This operation is
+     * asynchronous — it submits a background job and returns the job ID for polling.
+     *
+     * @throws InternalServerError
+     */
+    default ReduceOutput reduce(ReduceInput input) {
+        return reduce(input, null);
+    }
+
+    /**
+     * Reduces the configuration by removing redundant overrides across contexts. This operation is
+     * asynchronous — it submits a background job and returns the job ID for polling.
+     *
+     * @throws InternalServerError
+     */
+    ReduceOutput reduce(ReduceInput input, RequestOverrideConfig overrideConfig);
 
     /**
      * Removes members from an existing experiment group.
@@ -1899,11 +1983,12 @@ public interface SuperpositionClient {
 
     /**
      * Recalculates and updates the priority weights for all contexts in the workspace based on their
-     * dimensions.
+     * dimensions. This operation is asynchronous — it submits a background job and returns the job ID for
+     * polling.
      *
-     * @throws InternalServerError
      * @throws WebhookFailed
      * @throws WorkspaceLockConflict
+     * @throws InternalServerError
      */
     default WeightRecomputeOutput weightRecompute(WeightRecomputeInput input) {
         return weightRecompute(input, null);
@@ -1911,11 +1996,12 @@ public interface SuperpositionClient {
 
     /**
      * Recalculates and updates the priority weights for all contexts in the workspace based on their
-     * dimensions.
+     * dimensions. This operation is asynchronous — it submits a background job and returns the job ID for
+     * polling.
      *
-     * @throws InternalServerError
      * @throws WebhookFailed
      * @throws WorkspaceLockConflict
+     * @throws InternalServerError
      */
     WeightRecomputeOutput weightRecompute(WeightRecomputeInput input, RequestOverrideConfig overrideConfig);
 
@@ -1950,11 +2036,11 @@ public interface SuperpositionClient {
             Node.objectNode()
         );
 
-        private static final HttpBearerAuthTrait httpBearerAuthScheme = new HttpBearerAuthTrait();
-        private static final AuthSchemeFactory<HttpBearerAuthTrait> httpBearerAuthSchemeFactory = new HttpBearerAuthScheme.Factory();
-
         private static final HttpBasicAuthTrait httpBasicAuthScheme = new HttpBasicAuthTrait();
         private static final AuthSchemeFactory<HttpBasicAuthTrait> httpBasicAuthSchemeFactory = new HttpBasicAuthAuthScheme.Factory();
+
+        private static final HttpBearerAuthTrait httpBearerAuthScheme = new HttpBearerAuthTrait();
+        private static final AuthSchemeFactory<HttpBearerAuthTrait> httpBearerAuthSchemeFactory = new HttpBearerAuthScheme.Factory();
 
         private Builder() {
             configBuilder().putSupportedAuthSchemes(httpBasicAuthSchemeFactory.createAuthScheme(httpBasicAuthScheme), httpBearerAuthSchemeFactory.createAuthScheme(httpBearerAuthScheme));

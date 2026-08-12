@@ -919,6 +919,92 @@ LIST_AUDIT_LOGS = Schema(
 
 )
 
+BACKGROUND_JOB_STATUS = Schema.collection(
+    id=ShapeID("io.superposition#BackgroundJobStatus"),
+    shape_type=ShapeType.ENUM,
+    members={
+        "CREATED": {
+            "target": UNIT,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="CREATED"),
+
+            ],
+        },
+
+        "SCHEDULED": {
+            "target": UNIT,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="SCHEDULED"),
+
+            ],
+        },
+
+        "INPROGRESS": {
+            "target": UNIT,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="INPROGRESS"),
+
+            ],
+        },
+
+        "FAILED": {
+            "target": UNIT,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="FAILED"),
+
+            ],
+        },
+
+        "COMPLETED": {
+            "target": UNIT,
+            "index": 4,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="COMPLETED"),
+
+            ],
+        },
+
+    }
+)
+
+BACKGROUND_JOB_TYPE = Schema.collection(
+    id=ShapeID("io.superposition#BackgroundJobType"),
+    shape_type=ShapeType.ENUM,
+    members={
+        "WEBHOOK": {
+            "target": UNIT,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="WEBHOOK"),
+
+            ],
+        },
+
+        "PRIORITY_RECOMPUTE": {
+            "target": UNIT,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="PRIORITY_RECOMPUTE"),
+
+            ],
+        },
+
+        "REDUCE": {
+            "target": UNIT,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="REDUCE"),
+
+            ],
+        },
+
+    }
+)
+
 CONTEXT_MOVE = Schema.collection(
     id=ShapeID("io.superposition#ContextMove"),
 
@@ -1443,6 +1529,74 @@ BULK_OPERATION = Schema(
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "PUT",
                 "uri": "/context/bulk-operations",
+            })),
+
+    ],
+
+)
+
+CANCEL_JOB_INPUT = Schema.collection(
+    id=ShapeID("io.superposition#CancelJobInput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#input")),
+
+    ],
+    members={
+        "workspace_id": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-workspace"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "org_id": {
+            "target": STRING,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "id": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(id=ShapeID("smithy.api#httpLabel")),
+
+            ],
+        },
+
+    }
+)
+
+CANCEL_JOB_OUTPUT = Schema.collection(
+    id=ShapeID("io.superposition#CancelJobOutput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="smithy.api#Unit"),
+        Trait.new(id=ShapeID("smithy.api#output")),
+
+    ],
+
+)
+
+CANCEL_JOB = Schema(
+    id=ShapeID("io.superposition#CancelJob"),
+    shape_type=ShapeType.OPERATION,
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Background Jobs",
+            )),
+        Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
+                "method": "POST",
+                "uri": "/jobs/{id}/cancel",
             })),
 
     ],
@@ -3209,6 +3363,95 @@ GET_RESOLVED_CONFIG_WITH_IDENTIFIER = Schema(
 
 )
 
+REDUCE_INPUT = Schema.collection(
+    id=ShapeID("io.superposition#ReduceInput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#input")),
+
+    ],
+    members={
+        "workspace_id": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-workspace"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "org_id": {
+            "target": STRING,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
+REDUCE_OUTPUT = Schema.collection(
+    id=ShapeID("io.superposition#ReduceOutput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#JobCreateResponse"),
+        Trait.new(id=ShapeID("smithy.api#output")),
+
+    ],
+    members={
+        "id": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "kronos_job_id": {
+            "target": STRING,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "status": {
+            "target": BACKGROUND_JOB_STATUS,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
+REDUCE = Schema(
+    id=ShapeID("io.superposition#Reduce"),
+    shape_type=ShapeType.OPERATION,
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Configuration Management",
+            )),
+        Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
+                "method": "PUT",
+                "uri": "/config/reduce",
+            })),
+
+    ],
+
+)
+
 CONFIG_DATA = Schema.collection(
     id=ShapeID("io.superposition#ConfigData"),
 
@@ -4886,74 +5129,41 @@ WEIGHT_RECOMPUTE_INPUT = Schema.collection(
     }
 )
 
-WEIGHT_RECOMPUTE_RESPONSE = Schema.collection(
-    id=ShapeID("io.superposition#WeightRecomputeResponse"),
+WEIGHT_RECOMPUTE_OUTPUT = Schema.collection(
+    id=ShapeID("io.superposition#WeightRecomputeOutput"),
 
+    traits=[
+        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#JobCreateResponse"),
+        Trait.new(id=ShapeID("smithy.api#output")),
+
+    ],
     members={
         "id": {
             "target": STRING,
             "index": 0,
             "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#required")),
 
             ],
         },
 
-        "condition": {
-            "target": CONDITION,
+        "kronos_job_id": {
+            "target": STRING,
             "index": 1,
             "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#required")),
 
             ],
         },
 
-        "old_weight": {
-            "target": WEIGHT,
+        "status": {
+            "target": BACKGROUND_JOB_STATUS,
             "index": 2,
             "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
-        "new_weight": {
-            "target": WEIGHT,
-            "index": 3,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
-    }
-)
-
-WEIGHT_RECOMPUTE_RESPONSES = Schema.collection(
-    id=ShapeID("io.superposition#WeightRecomputeResponses"),
-    shape_type=ShapeType.LIST,
-    members={
-        "member": {
-            "target": WEIGHT_RECOMPUTE_RESPONSE,
-            "index": 0,
-        },
-
-    }
-)
-
-WEIGHT_RECOMPUTE_OUTPUT = Schema.collection(
-    id=ShapeID("io.superposition#WeightRecomputeOutput"),
-
-    traits=[
-        Trait.new(id=ShapeID("smithy.api#output")),
-
-    ],
-    members={
-        "data": {
-            "target": WEIGHT_RECOMPUTE_RESPONSES,
-            "index": 0,
-            "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#required")),
 
             ],
         },
@@ -9985,6 +10195,43 @@ DISCARD_EXPERIMENT = Schema(
 
 )
 
+EXECUTION_DETAILS = Schema.collection(
+    id=ShapeID("io.superposition#ExecutionDetails"),
+
+    members={
+        "attempt_count": {
+            "target": LONG,
+            "index": 0,
+        },
+
+        "max_attempts": {
+            "target": LONG,
+            "index": 1,
+        },
+
+        "started_at": {
+            "target": DATE_TIME,
+            "index": 2,
+        },
+
+        "completed_at": {
+            "target": DATE_TIME,
+            "index": 3,
+        },
+
+        "duration_ms": {
+            "target": LONG,
+            "index": 4,
+        },
+
+        "execution_status": {
+            "target": STRING,
+            "index": 5,
+        },
+
+    }
+)
+
 EXPERIMENT_GROUP_RESPONSE = Schema.collection(
     id=ShapeID("io.superposition#ExperimentGroupResponse"),
 
@@ -14021,6 +14268,175 @@ UPDATE_FUNCTION = Schema(
 
 )
 
+GET_JOB_INPUT = Schema.collection(
+    id=ShapeID("io.superposition#GetJobInput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#input")),
+
+    ],
+    members={
+        "workspace_id": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-workspace"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "org_id": {
+            "target": STRING,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "id": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(id=ShapeID("smithy.api#httpLabel")),
+
+            ],
+        },
+
+    }
+)
+
+GET_JOB_OUTPUT = Schema.collection(
+    id=ShapeID("io.superposition#GetJobOutput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.synthetic#originalShapeId"), value="io.superposition#JobDetailResponse"),
+        Trait.new(id=ShapeID("smithy.api#output")),
+
+    ],
+    members={
+        "id": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "kronos_job_id": {
+            "target": STRING,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "description": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "job_type": {
+            "target": BACKGROUND_JOB_TYPE,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "status": {
+            "target": BACKGROUND_JOB_STATUS,
+            "index": 4,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "name": {
+            "target": STRING,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "progress": {
+            "target": INTEGER,
+            "index": 6,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "workspace_schema": {
+            "target": STRING,
+            "index": 7,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "created_at": {
+            "target": DATE_TIME,
+            "index": 8,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "logs": {
+            "target": DOCUMENT,
+            "index": 9,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "execution": {
+            "target": EXECUTION_DETAILS,
+            "index": 10,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+    }
+)
+
+GET_JOB = Schema(
+    id=ShapeID("io.superposition#GetJob"),
+    shape_type=ShapeType.OPERATION,
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Background Jobs",
+            )),
+        Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
+                "method": "GET",
+                "uri": "/jobs/{id}",
+            })),
+        Trait.new(id=ShapeID("smithy.api#readonly")),
+
+    ],
+
+)
+
 GET_ORGANISATION_INPUT = Schema.collection(
     id=ShapeID("io.superposition#GetOrganisationInput"),
 
@@ -15381,6 +15797,257 @@ GET_WORKSPACE = Schema(
         Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
                 "method": "GET",
                 "uri": "/workspaces/{workspace_name}",
+            })),
+        Trait.new(id=ShapeID("smithy.api#readonly")),
+
+    ],
+
+)
+
+LIST_JOBS_INPUT = Schema.collection(
+    id=ShapeID("io.superposition#ListJobsInput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#input")),
+
+    ],
+    members={
+        "count": {
+            "target": INTEGER,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="count"),
+
+            ],
+        },
+
+        "page": {
+            "target": INTEGER,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="page"),
+
+            ],
+        },
+
+        "all": {
+            "target": BOOLEAN,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="all"),
+
+            ],
+        },
+
+        "workspace_id": {
+            "target": STRING,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-workspace"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "org_id": {
+            "target": STRING,
+            "index": 4,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "status": {
+            "target": BACKGROUND_JOB_STATUS,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="status"),
+
+            ],
+        },
+
+        "job_type": {
+            "target": BACKGROUND_JOB_TYPE,
+            "index": 6,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+                Trait.new(id=ShapeID("smithy.api#httpQuery"), value="job_type"),
+
+            ],
+        },
+
+    }
+)
+
+JOB_DETAIL_RESPONSE = Schema.collection(
+    id=ShapeID("io.superposition#JobDetailResponse"),
+
+    members={
+        "id": {
+            "target": STRING,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "kronos_job_id": {
+            "target": STRING,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "description": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "job_type": {
+            "target": BACKGROUND_JOB_TYPE,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "status": {
+            "target": BACKGROUND_JOB_STATUS,
+            "index": 4,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "name": {
+            "target": STRING,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "progress": {
+            "target": INTEGER,
+            "index": 6,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "workspace_schema": {
+            "target": STRING,
+            "index": 7,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "created_at": {
+            "target": DATE_TIME,
+            "index": 8,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "logs": {
+            "target": DOCUMENT,
+            "index": 9,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "execution": {
+            "target": EXECUTION_DETAILS,
+            "index": 10,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+    }
+)
+
+JOB_LIST = Schema.collection(
+    id=ShapeID("io.superposition#JobList"),
+    shape_type=ShapeType.LIST,
+    members={
+        "member": {
+            "target": JOB_DETAIL_RESPONSE,
+            "index": 0,
+        },
+
+    }
+)
+
+LIST_JOBS_OUTPUT = Schema.collection(
+    id=ShapeID("io.superposition#ListJobsOutput"),
+
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#output")),
+
+    ],
+    members={
+        "total_pages": {
+            "target": INTEGER,
+            "index": 0,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "total_items": {
+            "target": INTEGER,
+            "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "data": {
+            "target": JOB_LIST,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+    }
+)
+
+LIST_JOBS = Schema(
+    id=ShapeID("io.superposition#ListJobs"),
+    shape_type=ShapeType.OPERATION,
+    traits=[
+        Trait.new(id=ShapeID("smithy.api#tags"), value=(
+                "Background Jobs",
+            )),
+        Trait.new(id=ShapeID("smithy.api#http"), value=MappingProxyType({
+                "method": "GET",
+                "uri": "/jobs",
             })),
         Trait.new(id=ShapeID("smithy.api#readonly")),
 

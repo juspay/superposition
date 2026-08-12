@@ -7,7 +7,9 @@ impl super::Client {
     ///   - [`org_id(impl Into<String>)`](crate::operation::weight_recompute::builders::WeightRecomputeFluentBuilder::org_id) / [`set_org_id(Option<String>)`](crate::operation::weight_recompute::builders::WeightRecomputeFluentBuilder::set_org_id):<br>required: **true**<br>(undocumented)<br>
     ///   - [`config_tags(impl Into<String>)`](crate::operation::weight_recompute::builders::WeightRecomputeFluentBuilder::config_tags) / [`set_config_tags(Option<String>)`](crate::operation::weight_recompute::builders::WeightRecomputeFluentBuilder::set_config_tags):<br>required: **false**<br>(undocumented)<br>
                             /// - On success, responds with [`WeightRecomputeOutput`](crate::operation::weight_recompute::WeightRecomputeOutput) with field(s):
-    ///   - [`data(Option<Vec::<WeightRecomputeResponse>>)`](crate::operation::weight_recompute::WeightRecomputeOutput::data): (undocumented)
+    ///   - [`id(String)`](crate::operation::weight_recompute::WeightRecomputeOutput::id): (undocumented)
+    ///   - [`kronos_job_id(String)`](crate::operation::weight_recompute::WeightRecomputeOutput::kronos_job_id): (undocumented)
+    ///   - [`status(BackgroundJobStatus)`](crate::operation::weight_recompute::WeightRecomputeOutput::status): Lifecycle status of a background job.
                             /// - On failure, responds with [`SdkError<WeightRecomputeError>`](crate::operation::weight_recompute::WeightRecomputeError)
     pub fn weight_recompute(&self) -> crate::operation::weight_recompute::builders::WeightRecomputeFluentBuilder {
                                 crate::operation::weight_recompute::builders::WeightRecomputeFluentBuilder::new(self.handle.clone())

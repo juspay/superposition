@@ -37,6 +37,7 @@ from .deserialize import (
     _deserialize_add_members_to_group,
     _deserialize_applicable_variants,
     _deserialize_bulk_operation,
+    _deserialize_cancel_job,
     _deserialize_conclude_experiment,
     _deserialize_create_context,
     _deserialize_create_default_config,
@@ -72,6 +73,7 @@ from .deserialize import (
     _deserialize_get_experiment_config,
     _deserialize_get_experiment_group,
     _deserialize_get_function,
+    _deserialize_get_job,
     _deserialize_get_organisation,
     _deserialize_get_resolved_config,
     _deserialize_get_resolved_config_explanation,
@@ -91,6 +93,7 @@ from .deserialize import (
     _deserialize_list_experiment,
     _deserialize_list_experiment_groups,
     _deserialize_list_function,
+    _deserialize_list_jobs,
     _deserialize_list_organisation,
     _deserialize_list_secrets,
     _deserialize_list_variables,
@@ -102,6 +105,7 @@ from .deserialize import (
     _deserialize_pause_experiment,
     _deserialize_publish,
     _deserialize_ramp_experiment,
+    _deserialize_reduce,
     _deserialize_remove_members_from_group,
     _deserialize_resume_experiment,
     _deserialize_rotate_master_encryption_key,
@@ -132,6 +136,7 @@ from .models import (
     BULK_OPERATION,
     BulkOperationInput,
     BulkOperationOutput,
+    CANCEL_JOB,
     CONCLUDE_EXPERIMENT,
     CREATE_CONTEXT,
     CREATE_DEFAULT_CONFIG,
@@ -145,6 +150,8 @@ from .models import (
     CREATE_VARIABLE,
     CREATE_WEBHOOK,
     CREATE_WORKSPACE,
+    CancelJobInput,
+    CancelJobOutput,
     ConcludeExperimentInput,
     ConcludeExperimentOutput,
     CreateContextInput,
@@ -213,6 +220,7 @@ from .models import (
     GET_EXPERIMENT_CONFIG,
     GET_EXPERIMENT_GROUP,
     GET_FUNCTION,
+    GET_JOB,
     GET_ORGANISATION,
     GET_RESOLVED_CONFIG,
     GET_RESOLVED_CONFIG_EXPLANATION,
@@ -249,6 +257,8 @@ from .models import (
     GetExperimentOutput,
     GetFunctionInput,
     GetFunctionOutput,
+    GetJobInput,
+    GetJobOutput,
     GetOrganisationInput,
     GetOrganisationOutput,
     GetResolvedConfigExplanationInput,
@@ -280,6 +290,7 @@ from .models import (
     LIST_EXPERIMENT,
     LIST_EXPERIMENT_GROUPS,
     LIST_FUNCTION,
+    LIST_JOBS,
     LIST_ORGANISATION,
     LIST_SECRETS,
     LIST_VARIABLES,
@@ -300,6 +311,8 @@ from .models import (
     ListExperimentOutput,
     ListFunctionInput,
     ListFunctionOutput,
+    ListJobsInput,
+    ListJobsOutput,
     ListOrganisationInput,
     ListOrganisationOutput,
     ListSecretsInput,
@@ -325,12 +338,15 @@ from .models import (
     PublishInput,
     PublishOutput,
     RAMP_EXPERIMENT,
+    REDUCE,
     REMOVE_MEMBERS_FROM_GROUP,
     RESUME_EXPERIMENT,
     ROTATE_MASTER_ENCRYPTION_KEY,
     ROTATE_WORKSPACE_ENCRYPTION_KEY,
     RampExperimentInput,
     RampExperimentOutput,
+    ReduceInput,
+    ReduceOutput,
     RemoveMembersFromGroupInput,
     RemoveMembersFromGroupOutput,
     ResumeExperimentInput,
@@ -390,6 +406,7 @@ from .serialize import (
     _serialize_add_members_to_group,
     _serialize_applicable_variants,
     _serialize_bulk_operation,
+    _serialize_cancel_job,
     _serialize_conclude_experiment,
     _serialize_create_context,
     _serialize_create_default_config,
@@ -425,6 +442,7 @@ from .serialize import (
     _serialize_get_experiment_config,
     _serialize_get_experiment_group,
     _serialize_get_function,
+    _serialize_get_job,
     _serialize_get_organisation,
     _serialize_get_resolved_config,
     _serialize_get_resolved_config_explanation,
@@ -444,6 +462,7 @@ from .serialize import (
     _serialize_list_experiment,
     _serialize_list_experiment_groups,
     _serialize_list_function,
+    _serialize_list_jobs,
     _serialize_list_organisation,
     _serialize_list_secrets,
     _serialize_list_variables,
@@ -455,6 +474,7 @@ from .serialize import (
     _serialize_pause_experiment,
     _serialize_publish,
     _serialize_ramp_experiment,
+    _serialize_reduce,
     _serialize_remove_members_from_group,
     _serialize_resume_experiment,
     _serialize_rotate_master_encryption_key,
@@ -580,6 +600,33 @@ class Superposition:
             deserialize=_deserialize_bulk_operation,
             config=self._config,
             operation=BULK_OPERATION,
+        )
+
+    async def cancel_job(self, input: CancelJobInput, plugins: list[Plugin] | None = None) -> CancelJobOutput:
+        """
+        Cancels a background job that is not in a terminal state (COMPLETED or FAILED).
+        Sends a cancellation request to Kronos and marks the job as FAILED.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_cancel_job,
+            deserialize=_deserialize_cancel_job,
+            config=self._config,
+            operation=CANCEL_JOB,
         )
 
     async def conclude_experiment(self, input: ConcludeExperimentInput, plugins: list[Plugin] | None = None) -> ConcludeExperimentOutput:
@@ -1531,6 +1578,33 @@ class Superposition:
             operation=GET_FUNCTION,
         )
 
+    async def get_job(self, input: GetJobInput, plugins: list[Plugin] | None = None) -> GetJobOutput:
+        """
+        Retrieves detailed information about a specific background job, including Kronos
+        execution details such as attempt count, timing, and duration.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_get_job,
+            deserialize=_deserialize_get_job,
+            config=self._config,
+            operation=GET_JOB,
+        )
+
     async def get_organisation(self, input: GetOrganisationInput, plugins: list[Plugin] | None = None) -> GetOrganisationOutput:
         """
         Retrieves detailed information about a specific organisation including its
@@ -2042,6 +2116,33 @@ class Superposition:
             operation=LIST_FUNCTION,
         )
 
+    async def list_jobs(self, input: ListJobsInput, plugins: list[Plugin] | None = None) -> ListJobsOutput:
+        """
+        Retrieves a paginated list of background jobs in the workspace, optionally
+        filtered by type and status.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_list_jobs,
+            deserialize=_deserialize_list_jobs,
+            config=self._config,
+            operation=LIST_JOBS,
+        )
+
     async def list_organisation(self, input: ListOrganisationInput, plugins: list[Plugin] | None = None) -> ListOrganisationOutput:
         """
         Retrieves a paginated list of all organisations with their basic information,
@@ -2339,6 +2440,34 @@ class Superposition:
             deserialize=_deserialize_ramp_experiment,
             config=self._config,
             operation=RAMP_EXPERIMENT,
+        )
+
+    async def reduce(self, input: ReduceInput, plugins: list[Plugin] | None = None) -> ReduceOutput:
+        """
+        Reduces the configuration by removing redundant overrides across contexts. This
+        operation is asynchronous — it submits a background job and returns the job ID
+        for polling.
+
+        :param input: The operation's input.
+
+        :param plugins: A list of callables that modify the configuration dynamically.
+            Changes made by these plugins only apply for the duration of the operation
+            execution and will not affect any other operation invocations.
+
+        """
+        operation_plugins: list[Plugin] = [
+
+        ]
+        if plugins:
+            operation_plugins.extend(plugins)
+
+        return await self._execute_operation(
+            input=input,
+            plugins=operation_plugins,
+            serialize=_serialize_reduce,
+            deserialize=_deserialize_reduce,
+            config=self._config,
+            operation=REDUCE,
         )
 
     async def remove_members_from_group(self, input: RemoveMembersFromGroupInput, plugins: list[Plugin] | None = None) -> RemoveMembersFromGroupOutput:
@@ -2831,7 +2960,8 @@ class Superposition:
     async def weight_recompute(self, input: WeightRecomputeInput, plugins: list[Plugin] | None = None) -> WeightRecomputeOutput:
         """
         Recalculates and updates the priority weights for all contexts in the workspace
-        based on their dimensions.
+        based on their dimensions. This operation is asynchronous — it submits a
+        background job and returns the job ID for polling.
 
         :param input: The operation's input.
 

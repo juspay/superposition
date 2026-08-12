@@ -28,7 +28,8 @@ public final class Config implements ApiResource {
         GetResolvedConfigExplanation.$SCHEMA,
         GetResolvedConfigWithIdentifier.$SCHEMA,
         GetConfigToml.$SCHEMA,
-        GetConfigJson.$SCHEMA);
+        GetConfigJson.$SCHEMA,
+        Reduce.$SCHEMA);
     private static final Schema $SCHEMA = Schema.createResource($ID);
 
     /**

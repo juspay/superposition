@@ -26,6 +26,9 @@ from ._private.schemas import (
     BULK_OPERATION as _SCHEMA_BULK_OPERATION,
     BULK_OPERATION_INPUT as _SCHEMA_BULK_OPERATION_INPUT,
     BULK_OPERATION_OUTPUT as _SCHEMA_BULK_OPERATION_OUTPUT,
+    CANCEL_JOB as _SCHEMA_CANCEL_JOB,
+    CANCEL_JOB_INPUT as _SCHEMA_CANCEL_JOB_INPUT,
+    CANCEL_JOB_OUTPUT as _SCHEMA_CANCEL_JOB_OUTPUT,
     CHANGE_REASON_VALIDATION_FUNCTION_REQUEST as _SCHEMA_CHANGE_REASON_VALIDATION_FUNCTION_REQUEST,
     CONCLUDE_EXPERIMENT as _SCHEMA_CONCLUDE_EXPERIMENT,
     CONCLUDE_EXPERIMENT_INPUT as _SCHEMA_CONCLUDE_EXPERIMENT_INPUT,
@@ -110,6 +113,7 @@ from ._private.schemas import (
     DISCARD_EXPERIMENT as _SCHEMA_DISCARD_EXPERIMENT,
     DISCARD_EXPERIMENT_INPUT as _SCHEMA_DISCARD_EXPERIMENT_INPUT,
     DISCARD_EXPERIMENT_OUTPUT as _SCHEMA_DISCARD_EXPERIMENT_OUTPUT,
+    EXECUTION_DETAILS as _SCHEMA_EXECUTION_DETAILS,
     EXPERIMENT_GROUP_RESPONSE as _SCHEMA_EXPERIMENT_GROUP_RESPONSE,
     EXPERIMENT_RESPONSE as _SCHEMA_EXPERIMENT_RESPONSE,
     FUNCTION_EXECUTION_REQUEST as _SCHEMA_FUNCTION_EXECUTION_REQUEST,
@@ -150,6 +154,9 @@ from ._private.schemas import (
     GET_FUNCTION as _SCHEMA_GET_FUNCTION,
     GET_FUNCTION_INPUT as _SCHEMA_GET_FUNCTION_INPUT,
     GET_FUNCTION_OUTPUT as _SCHEMA_GET_FUNCTION_OUTPUT,
+    GET_JOB as _SCHEMA_GET_JOB,
+    GET_JOB_INPUT as _SCHEMA_GET_JOB_INPUT,
+    GET_JOB_OUTPUT as _SCHEMA_GET_JOB_OUTPUT,
     GET_ORGANISATION as _SCHEMA_GET_ORGANISATION,
     GET_ORGANISATION_INPUT as _SCHEMA_GET_ORGANISATION_INPUT,
     GET_ORGANISATION_OUTPUT as _SCHEMA_GET_ORGANISATION_OUTPUT,
@@ -187,6 +194,7 @@ from ._private.schemas import (
     GET_WORKSPACE_INPUT as _SCHEMA_GET_WORKSPACE_INPUT,
     GET_WORKSPACE_OUTPUT as _SCHEMA_GET_WORKSPACE_OUTPUT,
     INTERNAL_SERVER_ERROR as _SCHEMA_INTERNAL_SERVER_ERROR,
+    JOB_DETAIL_RESPONSE as _SCHEMA_JOB_DETAIL_RESPONSE,
     LIST_AUDIT_LOGS as _SCHEMA_LIST_AUDIT_LOGS,
     LIST_AUDIT_LOGS_INPUT as _SCHEMA_LIST_AUDIT_LOGS_INPUT,
     LIST_AUDIT_LOGS_OUTPUT as _SCHEMA_LIST_AUDIT_LOGS_OUTPUT,
@@ -208,6 +216,9 @@ from ._private.schemas import (
     LIST_FUNCTION as _SCHEMA_LIST_FUNCTION,
     LIST_FUNCTION_INPUT as _SCHEMA_LIST_FUNCTION_INPUT,
     LIST_FUNCTION_OUTPUT as _SCHEMA_LIST_FUNCTION_OUTPUT,
+    LIST_JOBS as _SCHEMA_LIST_JOBS,
+    LIST_JOBS_INPUT as _SCHEMA_LIST_JOBS_INPUT,
+    LIST_JOBS_OUTPUT as _SCHEMA_LIST_JOBS_OUTPUT,
     LIST_ORGANISATION as _SCHEMA_LIST_ORGANISATION,
     LIST_ORGANISATION_INPUT as _SCHEMA_LIST_ORGANISATION_INPUT,
     LIST_ORGANISATION_OUTPUT as _SCHEMA_LIST_ORGANISATION_OUTPUT,
@@ -243,6 +254,9 @@ from ._private.schemas import (
     RAMP_EXPERIMENT as _SCHEMA_RAMP_EXPERIMENT,
     RAMP_EXPERIMENT_INPUT as _SCHEMA_RAMP_EXPERIMENT_INPUT,
     RAMP_EXPERIMENT_OUTPUT as _SCHEMA_RAMP_EXPERIMENT_OUTPUT,
+    REDUCE as _SCHEMA_REDUCE,
+    REDUCE_INPUT as _SCHEMA_REDUCE_INPUT,
+    REDUCE_OUTPUT as _SCHEMA_REDUCE_OUTPUT,
     REMOVE_MEMBERS_FROM_GROUP as _SCHEMA_REMOVE_MEMBERS_FROM_GROUP,
     REMOVE_MEMBERS_FROM_GROUP_INPUT as _SCHEMA_REMOVE_MEMBERS_FROM_GROUP_INPUT,
     REMOVE_MEMBERS_FROM_GROUP_OUTPUT as _SCHEMA_REMOVE_MEMBERS_FROM_GROUP_OUTPUT,
@@ -313,7 +327,6 @@ from ._private.schemas import (
     WEIGHT_RECOMPUTE as _SCHEMA_WEIGHT_RECOMPUTE,
     WEIGHT_RECOMPUTE_INPUT as _SCHEMA_WEIGHT_RECOMPUTE_INPUT,
     WEIGHT_RECOMPUTE_OUTPUT as _SCHEMA_WEIGHT_RECOMPUTE_OUTPUT,
-    WEIGHT_RECOMPUTE_RESPONSE as _SCHEMA_WEIGHT_RECOMPUTE_RESPONSE,
     WORKSPACE_LOCK as _SCHEMA_WORKSPACE_LOCK,
     WORKSPACE_LOCK_CONFLICT as _SCHEMA_WORKSPACE_LOCK_CONFLICT,
     WORKSPACE_RESPONSE as _SCHEMA_WORKSPACE_RESPONSE,
@@ -1205,6 +1218,26 @@ LIST_AUDIT_LOGS = APIOperation(
 ShapeID("smithy.api#httpBearerAuth")
         ]
 )
+
+class BackgroundJobStatus(StrEnum):
+    """
+    Lifecycle status of a background job.
+
+    """
+    CREATED = "CREATED"
+    SCHEDULED = "SCHEDULED"
+    INPROGRESS = "INPROGRESS"
+    FAILED = "FAILED"
+    COMPLETED = "COMPLETED"
+
+class BackgroundJobType(StrEnum):
+    """
+    Type of background job.
+
+    """
+    WEBHOOK = "WEBHOOK"
+    PRIORITY_RECOMPUTE = "PRIORITY_RECOMPUTE"
+    REDUCE = "REDUCE"
 
 @dataclass(kw_only=True)
 class ContextMove:
@@ -2133,6 +2166,86 @@ BULK_OPERATION = APIOperation(
 ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
 ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
+        }),
+        effective_auth_schemes = [
+           ShapeID("smithy.api#httpBasicAuth"),
+ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
+@dataclass(kw_only=True)
+class CancelJobInput:
+
+    workspace_id: str | None = None
+    org_id: str | None = None
+    id: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CANCEL_JOB_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_CANCEL_JOB_INPUT.members["workspace_id"])
+
+                case 1:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_CANCEL_JOB_INPUT.members["org_id"])
+
+                case 2:
+                    kwargs["id"] = de.read_string(_SCHEMA_CANCEL_JOB_INPUT.members["id"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_CANCEL_JOB_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class CancelJobOutput:
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_CANCEL_JOB_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_CANCEL_JOB_OUTPUT, consumer=_consumer)
+        return kwargs
+
+CANCEL_JOB = APIOperation(
+        input = CancelJobInput,
+        output = CancelJobOutput,
+        schema = _SCHEMA_CANCEL_JOB,
+        input_schema = _SCHEMA_CANCEL_JOB_INPUT,
+        output_schema = _SCHEMA_CANCEL_JOB_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
            ShapeID("smithy.api#httpBasicAuth"),
@@ -3820,6 +3933,105 @@ ShapeID("smithy.api#httpBearerAuth")
 )
 
 @dataclass(kw_only=True)
+class ReduceInput:
+
+    workspace_id: str | None = None
+    org_id: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_REDUCE_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_REDUCE_INPUT.members["workspace_id"])
+
+                case 1:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_REDUCE_INPUT.members["org_id"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_REDUCE_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class ReduceOutput:
+    """
+    Response returned when a job is submitted. Contains the BJM job ID, Kronos job
+    ID, and initial status.
+
+    :param status:
+        **[Required]** - Lifecycle status of a background job.
+
+    """
+
+    id: str
+
+    kronos_job_id: str
+
+    status: str
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_REDUCE_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_REDUCE_OUTPUT.members["id"], self.id)
+        serializer.write_string(_SCHEMA_REDUCE_OUTPUT.members["kronos_job_id"], self.kronos_job_id)
+        serializer.write_string(_SCHEMA_REDUCE_OUTPUT.members["status"], self.status)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["id"] = de.read_string(_SCHEMA_REDUCE_OUTPUT.members["id"])
+
+                case 1:
+                    kwargs["kronos_job_id"] = de.read_string(_SCHEMA_REDUCE_OUTPUT.members["kronos_job_id"])
+
+                case 2:
+                    kwargs["status"] = de.read_string(_SCHEMA_REDUCE_OUTPUT.members["status"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_REDUCE_OUTPUT, consumer=_consumer)
+        return kwargs
+
+REDUCE = APIOperation(
+        input = ReduceInput,
+        output = ReduceOutput,
+        schema = _SCHEMA_REDUCE,
+        input_schema = _SCHEMA_REDUCE_INPUT,
+        output_schema = _SCHEMA_REDUCE_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+           ShapeID("smithy.api#httpBasicAuth"),
+ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
+@dataclass(kw_only=True)
 class ConfigData:
     """
 
@@ -5406,96 +5618,29 @@ class WeightRecomputeInput:
         return kwargs
 
 @dataclass(kw_only=True)
-class WeightRecomputeResponse:
+class WeightRecomputeOutput:
     """
+    Response returned when a job is submitted. Contains the BJM job ID, Kronos job
+    ID, and initial status.
 
-    :param condition:
-        **[Required]** - Represents conditional criteria used for context matching. Keys
-        define dimension names and values specify the criteria that must be met.
-
-    :param old_weight:
-        **[Required]** - Priority weight used to determine the order of context
-        evaluation. Higher weights take precedence during configuration resolution.
-
-    :param new_weight:
-        **[Required]** - Priority weight used to determine the order of context
-        evaluation. Higher weights take precedence during configuration resolution.
+    :param status:
+        **[Required]** - Lifecycle status of a background job.
 
     """
 
     id: str
 
-    condition: dict[str, Document]
+    kronos_job_id: str
 
-    old_weight: str
-
-    new_weight: str
-
-    def serialize(self, serializer: ShapeSerializer):
-        serializer.write_struct(_SCHEMA_WEIGHT_RECOMPUTE_RESPONSE, self)
-
-    def serialize_members(self, serializer: ShapeSerializer):
-        serializer.write_string(_SCHEMA_WEIGHT_RECOMPUTE_RESPONSE.members["id"], self.id)
-        _serialize_condition(serializer, _SCHEMA_WEIGHT_RECOMPUTE_RESPONSE.members["condition"], self.condition)
-        serializer.write_string(_SCHEMA_WEIGHT_RECOMPUTE_RESPONSE.members["old_weight"], self.old_weight)
-        serializer.write_string(_SCHEMA_WEIGHT_RECOMPUTE_RESPONSE.members["new_weight"], self.new_weight)
-
-    @classmethod
-    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
-        return cls(**cls.deserialize_kwargs(deserializer))
-
-    @classmethod
-    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
-        kwargs: dict[str, Any] = {}
-
-        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
-            match schema.expect_member_index():
-                case 0:
-                    kwargs["id"] = de.read_string(_SCHEMA_WEIGHT_RECOMPUTE_RESPONSE.members["id"])
-
-                case 1:
-                    kwargs["condition"] = _deserialize_condition(de, _SCHEMA_WEIGHT_RECOMPUTE_RESPONSE.members["condition"])
-
-                case 2:
-                    kwargs["old_weight"] = de.read_string(_SCHEMA_WEIGHT_RECOMPUTE_RESPONSE.members["old_weight"])
-
-                case 3:
-                    kwargs["new_weight"] = de.read_string(_SCHEMA_WEIGHT_RECOMPUTE_RESPONSE.members["new_weight"])
-
-                case _:
-                    logger.debug("Unexpected member schema: %s", schema)
-
-        deserializer.read_struct(_SCHEMA_WEIGHT_RECOMPUTE_RESPONSE, consumer=_consumer)
-        return kwargs
-
-def _serialize_weight_recompute_responses(serializer: ShapeSerializer, schema: Schema, value: list[WeightRecomputeResponse]) -> None:
-    member_schema = schema.members["member"]
-    with serializer.begin_list(schema, len(value)) as ls:
-        for e in value:
-            ls.write_struct(member_schema, e)
-
-def _deserialize_weight_recompute_responses(deserializer: ShapeDeserializer, schema: Schema) -> list[WeightRecomputeResponse]:
-    result: list[WeightRecomputeResponse] = []
-    def _read_value(d: ShapeDeserializer):
-        if d.is_null():
-            d.read_null()
-
-        else:
-            result.append(WeightRecomputeResponse.deserialize(d))
-    deserializer.read_list(schema, _read_value)
-    return result
-
-@dataclass(kw_only=True)
-class WeightRecomputeOutput:
-
-    data: list[WeightRecomputeResponse] | None = None
+    status: str
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_WEIGHT_RECOMPUTE_OUTPUT, self)
 
     def serialize_members(self, serializer: ShapeSerializer):
-        if self.data is not None:
-            _serialize_weight_recompute_responses(serializer, _SCHEMA_WEIGHT_RECOMPUTE_OUTPUT.members["data"], self.data)
+        serializer.write_string(_SCHEMA_WEIGHT_RECOMPUTE_OUTPUT.members["id"], self.id)
+        serializer.write_string(_SCHEMA_WEIGHT_RECOMPUTE_OUTPUT.members["kronos_job_id"], self.kronos_job_id)
+        serializer.write_string(_SCHEMA_WEIGHT_RECOMPUTE_OUTPUT.members["status"], self.status)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -5508,7 +5653,13 @@ class WeightRecomputeOutput:
         def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
             match schema.expect_member_index():
                 case 0:
-                    kwargs["data"] = _deserialize_weight_recompute_responses(de, _SCHEMA_WEIGHT_RECOMPUTE_OUTPUT.members["data"])
+                    kwargs["id"] = de.read_string(_SCHEMA_WEIGHT_RECOMPUTE_OUTPUT.members["id"])
+
+                case 1:
+                    kwargs["kronos_job_id"] = de.read_string(_SCHEMA_WEIGHT_RECOMPUTE_OUTPUT.members["kronos_job_id"])
+
+                case 2:
+                    kwargs["status"] = de.read_string(_SCHEMA_WEIGHT_RECOMPUTE_OUTPUT.members["status"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -5523,9 +5674,9 @@ WEIGHT_RECOMPUTE = APIOperation(
         input_schema = _SCHEMA_WEIGHT_RECOMPUTE_INPUT,
         output_schema = _SCHEMA_WEIGHT_RECOMPUTE_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
-ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
+            ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
 ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
            ShapeID("smithy.api#httpBasicAuth"),
@@ -10244,6 +10395,76 @@ ShapeID("smithy.api#httpBearerAuth")
 )
 
 @dataclass(kw_only=True)
+class ExecutionDetails:
+    """
+    Execution details fetched from Kronos for a job.
+
+    """
+
+    attempt_count: int | None = None
+    max_attempts: int | None = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    duration_ms: int | None = None
+    execution_status: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_EXECUTION_DETAILS, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        if self.attempt_count is not None:
+            serializer.write_long(_SCHEMA_EXECUTION_DETAILS.members["attempt_count"], self.attempt_count)
+
+        if self.max_attempts is not None:
+            serializer.write_long(_SCHEMA_EXECUTION_DETAILS.members["max_attempts"], self.max_attempts)
+
+        if self.started_at is not None:
+            serializer.write_timestamp(_SCHEMA_EXECUTION_DETAILS.members["started_at"], self.started_at)
+
+        if self.completed_at is not None:
+            serializer.write_timestamp(_SCHEMA_EXECUTION_DETAILS.members["completed_at"], self.completed_at)
+
+        if self.duration_ms is not None:
+            serializer.write_long(_SCHEMA_EXECUTION_DETAILS.members["duration_ms"], self.duration_ms)
+
+        if self.execution_status is not None:
+            serializer.write_string(_SCHEMA_EXECUTION_DETAILS.members["execution_status"], self.execution_status)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["attempt_count"] = de.read_long(_SCHEMA_EXECUTION_DETAILS.members["attempt_count"])
+
+                case 1:
+                    kwargs["max_attempts"] = de.read_long(_SCHEMA_EXECUTION_DETAILS.members["max_attempts"])
+
+                case 2:
+                    kwargs["started_at"] = de.read_timestamp(_SCHEMA_EXECUTION_DETAILS.members["started_at"])
+
+                case 3:
+                    kwargs["completed_at"] = de.read_timestamp(_SCHEMA_EXECUTION_DETAILS.members["completed_at"])
+
+                case 4:
+                    kwargs["duration_ms"] = de.read_long(_SCHEMA_EXECUTION_DETAILS.members["duration_ms"])
+
+                case 5:
+                    kwargs["execution_status"] = de.read_string(_SCHEMA_EXECUTION_DETAILS.members["execution_status"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_EXECUTION_DETAILS, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
 class ExperimentGroupResponse:
     """
     Standard response structure for an experiment group.
@@ -14023,6 +14244,164 @@ ShapeID("smithy.api#httpBearerAuth")
 )
 
 @dataclass(kw_only=True)
+class GetJobInput:
+
+    workspace_id: str | None = None
+    org_id: str | None = None
+    id: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_JOB_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_GET_JOB_INPUT.members["workspace_id"])
+
+                case 1:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_GET_JOB_INPUT.members["org_id"])
+
+                case 2:
+                    kwargs["id"] = de.read_string(_SCHEMA_GET_JOB_INPUT.members["id"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_JOB_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class GetJobOutput:
+    """
+    Full job detail including Kronos execution information.
+
+    :param job_type:
+        **[Required]** - Type of background job.
+
+    :param status:
+        **[Required]** - Lifecycle status of a background job.
+
+    :param execution:
+         Execution details fetched from Kronos for a job.
+
+    """
+
+    id: str
+
+    kronos_job_id: str
+
+    description: str
+
+    job_type: str
+
+    status: str
+
+    name: str
+
+    progress: int
+
+    workspace_schema: str
+
+    created_at: datetime
+
+    logs: Document
+
+    execution: ExecutionDetails | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_GET_JOB_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_GET_JOB_OUTPUT.members["id"], self.id)
+        serializer.write_string(_SCHEMA_GET_JOB_OUTPUT.members["kronos_job_id"], self.kronos_job_id)
+        serializer.write_string(_SCHEMA_GET_JOB_OUTPUT.members["description"], self.description)
+        serializer.write_string(_SCHEMA_GET_JOB_OUTPUT.members["job_type"], self.job_type)
+        serializer.write_string(_SCHEMA_GET_JOB_OUTPUT.members["status"], self.status)
+        serializer.write_string(_SCHEMA_GET_JOB_OUTPUT.members["name"], self.name)
+        serializer.write_integer(_SCHEMA_GET_JOB_OUTPUT.members["progress"], self.progress)
+        serializer.write_string(_SCHEMA_GET_JOB_OUTPUT.members["workspace_schema"], self.workspace_schema)
+        serializer.write_timestamp(_SCHEMA_GET_JOB_OUTPUT.members["created_at"], self.created_at)
+        serializer.write_document(_SCHEMA_GET_JOB_OUTPUT.members["logs"], self.logs)
+        if self.execution is not None:
+            serializer.write_struct(_SCHEMA_GET_JOB_OUTPUT.members["execution"], self.execution)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["id"] = de.read_string(_SCHEMA_GET_JOB_OUTPUT.members["id"])
+
+                case 1:
+                    kwargs["kronos_job_id"] = de.read_string(_SCHEMA_GET_JOB_OUTPUT.members["kronos_job_id"])
+
+                case 2:
+                    kwargs["description"] = de.read_string(_SCHEMA_GET_JOB_OUTPUT.members["description"])
+
+                case 3:
+                    kwargs["job_type"] = de.read_string(_SCHEMA_GET_JOB_OUTPUT.members["job_type"])
+
+                case 4:
+                    kwargs["status"] = de.read_string(_SCHEMA_GET_JOB_OUTPUT.members["status"])
+
+                case 5:
+                    kwargs["name"] = de.read_string(_SCHEMA_GET_JOB_OUTPUT.members["name"])
+
+                case 6:
+                    kwargs["progress"] = de.read_integer(_SCHEMA_GET_JOB_OUTPUT.members["progress"])
+
+                case 7:
+                    kwargs["workspace_schema"] = de.read_string(_SCHEMA_GET_JOB_OUTPUT.members["workspace_schema"])
+
+                case 8:
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_GET_JOB_OUTPUT.members["created_at"])
+
+                case 9:
+                    kwargs["logs"] = de.read_document(_SCHEMA_GET_JOB_OUTPUT.members["logs"])
+
+                case 10:
+                    kwargs["execution"] = ExecutionDetails.deserialize(de)
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_GET_JOB_OUTPUT, consumer=_consumer)
+        return kwargs
+
+GET_JOB = APIOperation(
+        input = GetJobInput,
+        output = GetJobOutput,
+        schema = _SCHEMA_GET_JOB,
+        input_schema = _SCHEMA_GET_JOB_INPUT,
+        output_schema = _SCHEMA_GET_JOB_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+           ShapeID("smithy.api#httpBasicAuth"),
+ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
+@dataclass(kw_only=True)
 class GetOrganisationInput:
 
     id: str | None = None
@@ -15306,6 +15685,257 @@ GET_WORKSPACE = APIOperation(
         error_registry = TypeRegistry({
             ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("io.superposition#InternalServerError"): InternalServerError,
+        }),
+        effective_auth_schemes = [
+           ShapeID("smithy.api#httpBasicAuth"),
+ShapeID("smithy.api#httpBearerAuth")
+        ]
+)
+
+@dataclass(kw_only=True)
+class ListJobsInput:
+    """
+
+    :param count:
+         Number of items to be returned in each page.
+
+    :param page:
+         Page number to retrieve, starting from 1.
+
+    :param all:
+         If true, returns all requested items, ignoring pagination parameters page and
+         count.
+
+    :param status:
+         Lifecycle status of a background job.
+
+    :param job_type:
+         Type of background job.
+
+    """
+
+    count: int | None = None
+    page: int | None = None
+    all: bool | None = None
+    workspace_id: str | None = None
+    org_id: str | None = None
+    status: str | None = None
+    job_type: str | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_LIST_JOBS_INPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        pass
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["count"] = de.read_integer(_SCHEMA_LIST_JOBS_INPUT.members["count"])
+
+                case 1:
+                    kwargs["page"] = de.read_integer(_SCHEMA_LIST_JOBS_INPUT.members["page"])
+
+                case 2:
+                    kwargs["all"] = de.read_boolean(_SCHEMA_LIST_JOBS_INPUT.members["all"])
+
+                case 3:
+                    kwargs["workspace_id"] = de.read_string(_SCHEMA_LIST_JOBS_INPUT.members["workspace_id"])
+
+                case 4:
+                    kwargs["org_id"] = de.read_string(_SCHEMA_LIST_JOBS_INPUT.members["org_id"])
+
+                case 5:
+                    kwargs["status"] = de.read_string(_SCHEMA_LIST_JOBS_INPUT.members["status"])
+
+                case 6:
+                    kwargs["job_type"] = de.read_string(_SCHEMA_LIST_JOBS_INPUT.members["job_type"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_LIST_JOBS_INPUT, consumer=_consumer)
+        return kwargs
+
+@dataclass(kw_only=True)
+class JobDetailResponse:
+    """
+    Full job detail including Kronos execution information.
+
+    :param job_type:
+        **[Required]** - Type of background job.
+
+    :param status:
+        **[Required]** - Lifecycle status of a background job.
+
+    :param execution:
+         Execution details fetched from Kronos for a job.
+
+    """
+
+    id: str
+
+    kronos_job_id: str
+
+    description: str
+
+    job_type: str
+
+    status: str
+
+    name: str
+
+    progress: int
+
+    workspace_schema: str
+
+    created_at: datetime
+
+    logs: Document
+
+    execution: ExecutionDetails | None = None
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_JOB_DETAIL_RESPONSE, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_string(_SCHEMA_JOB_DETAIL_RESPONSE.members["id"], self.id)
+        serializer.write_string(_SCHEMA_JOB_DETAIL_RESPONSE.members["kronos_job_id"], self.kronos_job_id)
+        serializer.write_string(_SCHEMA_JOB_DETAIL_RESPONSE.members["description"], self.description)
+        serializer.write_string(_SCHEMA_JOB_DETAIL_RESPONSE.members["job_type"], self.job_type)
+        serializer.write_string(_SCHEMA_JOB_DETAIL_RESPONSE.members["status"], self.status)
+        serializer.write_string(_SCHEMA_JOB_DETAIL_RESPONSE.members["name"], self.name)
+        serializer.write_integer(_SCHEMA_JOB_DETAIL_RESPONSE.members["progress"], self.progress)
+        serializer.write_string(_SCHEMA_JOB_DETAIL_RESPONSE.members["workspace_schema"], self.workspace_schema)
+        serializer.write_timestamp(_SCHEMA_JOB_DETAIL_RESPONSE.members["created_at"], self.created_at)
+        serializer.write_document(_SCHEMA_JOB_DETAIL_RESPONSE.members["logs"], self.logs)
+        if self.execution is not None:
+            serializer.write_struct(_SCHEMA_JOB_DETAIL_RESPONSE.members["execution"], self.execution)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["id"] = de.read_string(_SCHEMA_JOB_DETAIL_RESPONSE.members["id"])
+
+                case 1:
+                    kwargs["kronos_job_id"] = de.read_string(_SCHEMA_JOB_DETAIL_RESPONSE.members["kronos_job_id"])
+
+                case 2:
+                    kwargs["description"] = de.read_string(_SCHEMA_JOB_DETAIL_RESPONSE.members["description"])
+
+                case 3:
+                    kwargs["job_type"] = de.read_string(_SCHEMA_JOB_DETAIL_RESPONSE.members["job_type"])
+
+                case 4:
+                    kwargs["status"] = de.read_string(_SCHEMA_JOB_DETAIL_RESPONSE.members["status"])
+
+                case 5:
+                    kwargs["name"] = de.read_string(_SCHEMA_JOB_DETAIL_RESPONSE.members["name"])
+
+                case 6:
+                    kwargs["progress"] = de.read_integer(_SCHEMA_JOB_DETAIL_RESPONSE.members["progress"])
+
+                case 7:
+                    kwargs["workspace_schema"] = de.read_string(_SCHEMA_JOB_DETAIL_RESPONSE.members["workspace_schema"])
+
+                case 8:
+                    kwargs["created_at"] = de.read_timestamp(_SCHEMA_JOB_DETAIL_RESPONSE.members["created_at"])
+
+                case 9:
+                    kwargs["logs"] = de.read_document(_SCHEMA_JOB_DETAIL_RESPONSE.members["logs"])
+
+                case 10:
+                    kwargs["execution"] = ExecutionDetails.deserialize(de)
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_JOB_DETAIL_RESPONSE, consumer=_consumer)
+        return kwargs
+
+def _serialize_job_list(serializer: ShapeSerializer, schema: Schema, value: list[JobDetailResponse]) -> None:
+    member_schema = schema.members["member"]
+    with serializer.begin_list(schema, len(value)) as ls:
+        for e in value:
+            ls.write_struct(member_schema, e)
+
+def _deserialize_job_list(deserializer: ShapeDeserializer, schema: Schema) -> list[JobDetailResponse]:
+    result: list[JobDetailResponse] = []
+    def _read_value(d: ShapeDeserializer):
+        if d.is_null():
+            d.read_null()
+
+        else:
+            result.append(JobDetailResponse.deserialize(d))
+    deserializer.read_list(schema, _read_value)
+    return result
+
+@dataclass(kw_only=True)
+class ListJobsOutput:
+
+    total_pages: int
+
+    total_items: int
+
+    data: list[JobDetailResponse]
+
+    def serialize(self, serializer: ShapeSerializer):
+        serializer.write_struct(_SCHEMA_LIST_JOBS_OUTPUT, self)
+
+    def serialize_members(self, serializer: ShapeSerializer):
+        serializer.write_integer(_SCHEMA_LIST_JOBS_OUTPUT.members["total_pages"], self.total_pages)
+        serializer.write_integer(_SCHEMA_LIST_JOBS_OUTPUT.members["total_items"], self.total_items)
+        _serialize_job_list(serializer, _SCHEMA_LIST_JOBS_OUTPUT.members["data"], self.data)
+
+    @classmethod
+    def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
+        return cls(**cls.deserialize_kwargs(deserializer))
+
+    @classmethod
+    def deserialize_kwargs(cls, deserializer: ShapeDeserializer) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {}
+
+        def _consumer(schema: Schema, de: ShapeDeserializer) -> None:
+            match schema.expect_member_index():
+                case 0:
+                    kwargs["total_pages"] = de.read_integer(_SCHEMA_LIST_JOBS_OUTPUT.members["total_pages"])
+
+                case 1:
+                    kwargs["total_items"] = de.read_integer(_SCHEMA_LIST_JOBS_OUTPUT.members["total_items"])
+
+                case 2:
+                    kwargs["data"] = _deserialize_job_list(de, _SCHEMA_LIST_JOBS_OUTPUT.members["data"])
+
+                case _:
+                    logger.debug("Unexpected member schema: %s", schema)
+
+        deserializer.read_struct(_SCHEMA_LIST_JOBS_OUTPUT, consumer=_consumer)
+        return kwargs
+
+LIST_JOBS = APIOperation(
+        input = ListJobsInput,
+        output = ListJobsOutput,
+        schema = _SCHEMA_LIST_JOBS,
+        input_schema = _SCHEMA_LIST_JOBS_INPUT,
+        output_schema = _SCHEMA_LIST_JOBS_OUTPUT,
+        error_registry = TypeRegistry({
+            ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
            ShapeID("smithy.api#httpBasicAuth"),

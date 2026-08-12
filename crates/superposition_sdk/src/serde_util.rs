@@ -447,6 +447,20 @@ if builder.function_type.is_none() { builder.function_type = "no value was set".
                 builder
             }
 
+pub(crate) fn get_job_output_output_correct_errors(mut builder: crate::operation::get_job::builders::GetJobOutputBuilder) -> crate::operation::get_job::builders::GetJobOutputBuilder {
+                if builder.id.is_none() { builder.id = Some(Default::default()) }
+if builder.kronos_job_id.is_none() { builder.kronos_job_id = Some(Default::default()) }
+if builder.description.is_none() { builder.description = Some(Default::default()) }
+if builder.job_type.is_none() { builder.job_type = "no value was set".parse::<crate::types::BackgroundJobType>().ok() }
+if builder.status.is_none() { builder.status = "no value was set".parse::<crate::types::BackgroundJobStatus>().ok() }
+if builder.name.is_none() { builder.name = Some(Default::default()) }
+if builder.progress.is_none() { builder.progress = Some(Default::default()) }
+if builder.workspace_schema.is_none() { builder.workspace_schema = Some(Default::default()) }
+if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.logs.is_none() { builder.logs = Some(Default::default()) }
+                builder
+            }
+
 pub(crate) fn get_organisation_output_output_correct_errors(mut builder: crate::operation::get_organisation::builders::GetOrganisationOutputBuilder) -> crate::operation::get_organisation::builders::GetOrganisationOutputBuilder {
                 if builder.id.is_none() { builder.id = Some(Default::default()) }
 if builder.name.is_none() { builder.name = Some(Default::default()) }
@@ -635,6 +649,13 @@ if builder.data.is_none() { builder.data = Some(Default::default()) }
                 builder
             }
 
+pub(crate) fn list_jobs_output_output_correct_errors(mut builder: crate::operation::list_jobs::builders::ListJobsOutputBuilder) -> crate::operation::list_jobs::builders::ListJobsOutputBuilder {
+                if builder.total_pages.is_none() { builder.total_pages = Some(Default::default()) }
+if builder.total_items.is_none() { builder.total_items = Some(Default::default()) }
+if builder.data.is_none() { builder.data = Some(Default::default()) }
+                builder
+            }
+
 pub(crate) fn list_organisation_output_output_correct_errors(mut builder: crate::operation::list_organisation::builders::ListOrganisationOutputBuilder) -> crate::operation::list_organisation::builders::ListOrganisationOutputBuilder {
                 if builder.total_pages.is_none() { builder.total_pages = Some(Default::default()) }
 if builder.total_items.is_none() { builder.total_items = Some(Default::default()) }
@@ -758,6 +779,13 @@ if builder.variants.is_none() { builder.variants = Some(Default::default()) }
 if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
 if builder.description.is_none() { builder.description = Some(Default::default()) }
 if builder.change_reason.is_none() { builder.change_reason = Some(Default::default()) }
+                builder
+            }
+
+pub(crate) fn reduce_output_output_correct_errors(mut builder: crate::operation::reduce::builders::ReduceOutputBuilder) -> crate::operation::reduce::builders::ReduceOutputBuilder {
+                if builder.id.is_none() { builder.id = Some(Default::default()) }
+if builder.kronos_job_id.is_none() { builder.kronos_job_id = Some(Default::default()) }
+if builder.status.is_none() { builder.status = "no value was set".parse::<crate::types::BackgroundJobStatus>().ok() }
                 builder
             }
 
@@ -992,6 +1020,13 @@ if builder.enable_change_reason_validation.is_none() { builder.enable_change_rea
                 builder
             }
 
+pub(crate) fn weight_recompute_output_output_correct_errors(mut builder: crate::operation::weight_recompute::builders::WeightRecomputeOutputBuilder) -> crate::operation::weight_recompute::builders::WeightRecomputeOutputBuilder {
+                if builder.id.is_none() { builder.id = Some(Default::default()) }
+if builder.kronos_job_id.is_none() { builder.kronos_job_id = Some(Default::default()) }
+if builder.status.is_none() { builder.status = "no value was set".parse::<crate::types::BackgroundJobStatus>().ok() }
+                builder
+            }
+
 pub(crate) fn workspace_lock_correct_errors(mut builder: crate::types::builders::WorkspaceLockBuilder) -> crate::types::builders::WorkspaceLockBuilder {
                 if builder.lock_id.is_none() { builder.lock_id = Some(Default::default()) }
 if builder.operation.is_none() { builder.operation = Some(Default::default()) }
@@ -1142,6 +1177,20 @@ if builder.function_type.is_none() { builder.function_type = "no value was set".
                 builder
             }
 
+pub(crate) fn job_detail_response_correct_errors(mut builder: crate::types::builders::JobDetailResponseBuilder) -> crate::types::builders::JobDetailResponseBuilder {
+                if builder.id.is_none() { builder.id = Some(Default::default()) }
+if builder.kronos_job_id.is_none() { builder.kronos_job_id = Some(Default::default()) }
+if builder.description.is_none() { builder.description = Some(Default::default()) }
+if builder.job_type.is_none() { builder.job_type = "no value was set".parse::<crate::types::BackgroundJobType>().ok() }
+if builder.status.is_none() { builder.status = "no value was set".parse::<crate::types::BackgroundJobStatus>().ok() }
+if builder.name.is_none() { builder.name = Some(Default::default()) }
+if builder.progress.is_none() { builder.progress = Some(Default::default()) }
+if builder.workspace_schema.is_none() { builder.workspace_schema = Some(Default::default()) }
+if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
+if builder.logs.is_none() { builder.logs = Some(Default::default()) }
+                builder
+            }
+
 pub(crate) fn list_versions_member_correct_errors(mut builder: crate::types::builders::ListVersionsMemberBuilder) -> crate::types::builders::ListVersionsMemberBuilder {
                 if builder.id.is_none() { builder.id = Some(Default::default()) }
 if builder.config.is_none() { builder.config = { let builder = crate::types::builders::ConfigDataBuilder::default(); crate::serde_util::config_data_correct_errors(builder).build().ok() } }
@@ -1218,14 +1267,6 @@ if builder.created_by.is_none() { builder.created_by = Some(Default::default()) 
 if builder.created_at.is_none() { builder.created_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
 if builder.last_modified_by.is_none() { builder.last_modified_by = Some(Default::default()) }
 if builder.last_modified_at.is_none() { builder.last_modified_at = Some(::aws_smithy_types::DateTime::from_fractional_secs(0, 0_f64)) }
-                builder
-            }
-
-pub(crate) fn weight_recompute_response_correct_errors(mut builder: crate::types::builders::WeightRecomputeResponseBuilder) -> crate::types::builders::WeightRecomputeResponseBuilder {
-                if builder.id.is_none() { builder.id = Some(Default::default()) }
-if builder.condition.is_none() { builder.condition = Some(Default::default()) }
-if builder.old_weight.is_none() { builder.old_weight = Some(Default::default()) }
-if builder.new_weight.is_none() { builder.new_weight = Some(Default::default()) }
                 builder
             }
 

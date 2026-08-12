@@ -19,6 +19,8 @@ pub(crate) mod shape_applicable_variants;
 
 pub(crate) mod shape_bulk_operation;
 
+pub(crate) mod shape_cancel_job;
+
 pub(crate) mod shape_conclude_experiment;
 
 pub(crate) mod shape_create_context;
@@ -103,6 +105,8 @@ pub(crate) mod shape_get_experiment_group;
 
 pub(crate) mod shape_get_function;
 
+pub(crate) mod shape_get_job;
+
 pub(crate) mod shape_get_organisation;
 
 pub(crate) mod shape_get_resolved_config;
@@ -141,6 +145,8 @@ pub(crate) mod shape_list_experiment_groups;
 
 pub(crate) mod shape_list_function;
 
+pub(crate) mod shape_list_jobs;
+
 pub(crate) mod shape_list_organisation;
 
 pub(crate) mod shape_list_secrets;
@@ -164,6 +170,8 @@ pub(crate) mod shape_pause_experiment;
 pub(crate) mod shape_publish;
 
 pub(crate) mod shape_ramp_experiment;
+
+pub(crate) mod shape_reduce;
 
 pub(crate) mod shape_remove_members_from_group;
 
@@ -357,6 +365,8 @@ pub(crate) mod shape_document;
 
 pub(crate) mod shape_events;
 
+pub(crate) mod shape_execution_details;
+
 pub(crate) mod shape_experiment_group_list;
 
 pub(crate) mod shape_experiment_list;
@@ -364,6 +374,8 @@ pub(crate) mod shape_experiment_list;
 pub(crate) mod shape_function_execution_request;
 
 pub(crate) mod shape_function_list_response;
+
+pub(crate) mod shape_job_list;
 
 pub(crate) mod shape_list_context_out;
 
@@ -403,8 +415,6 @@ pub(crate) mod shape_variant_update_request;
 
 pub(crate) mod shape_webhook_list;
 
-pub(crate) mod shape_weight_recompute_responses;
-
 pub(crate) mod shape_workspace_list;
 
 pub(crate) mod shape_workspace_lock;
@@ -439,6 +449,8 @@ pub(crate) mod shape_experiment_response;
 
 pub(crate) mod shape_function_response;
 
+pub(crate) mod shape_job_detail_response;
+
 pub(crate) mod shape_list_versions_member;
 
 pub(crate) mod shape_organisation_response;
@@ -454,8 +466,6 @@ pub(crate) mod shape_value_validation_function_request;
 pub(crate) mod shape_variable_response;
 
 pub(crate) mod shape_webhook_response;
-
-pub(crate) mod shape_weight_recompute_response;
 
 pub(crate) mod shape_workspace_response;
 

@@ -12,6 +12,10 @@ import {
   BulkOperationCommandOutput,
 } from "../commands/BulkOperationCommand";
 import {
+  CancelJobCommandInput,
+  CancelJobCommandOutput,
+} from "../commands/CancelJobCommand";
+import {
   ConcludeExperimentCommandInput,
   ConcludeExperimentCommandOutput,
 } from "../commands/ConcludeExperimentCommand";
@@ -152,6 +156,10 @@ import {
   GetFunctionCommandOutput,
 } from "../commands/GetFunctionCommand";
 import {
+  GetJobCommandInput,
+  GetJobCommandOutput,
+} from "../commands/GetJobCommand";
+import {
   GetOrganisationCommandInput,
   GetOrganisationCommandOutput,
 } from "../commands/GetOrganisationCommand";
@@ -228,6 +236,10 @@ import {
   ListFunctionCommandOutput,
 } from "../commands/ListFunctionCommand";
 import {
+  ListJobsCommandInput,
+  ListJobsCommandOutput,
+} from "../commands/ListJobsCommand";
+import {
   ListOrganisationCommandInput,
   ListOrganisationCommandOutput,
 } from "../commands/ListOrganisationCommand";
@@ -271,6 +283,10 @@ import {
   RampExperimentCommandInput,
   RampExperimentCommandOutput,
 } from "../commands/RampExperimentCommand";
+import {
+  ReduceCommandInput,
+  ReduceCommandOutput,
+} from "../commands/ReduceCommand";
 import {
   RemoveMembersFromGroupCommandInput,
   RemoveMembersFromGroupCommandOutput,
@@ -366,11 +382,13 @@ import {
   DimensionInfo,
   DimensionResponse,
   DimensionType,
+  ExecutionDetails,
   ExperimentGroupResponse,
   ExperimentResponse,
   FunctionExecutionRequest,
   FunctionResponse,
   InternalServerError,
+  JobDetailResponse,
   ListVersionsMember,
   OrganisationResponse,
   ResolveExplanation,
@@ -387,7 +405,6 @@ import {
   VariantUpdateRequest,
   WebhookFailed,
   WebhookResponse,
-  WeightRecomputeResponse,
   WorkspaceLock,
   WorkspaceLockConflict,
   WorkspaceResponse,
@@ -506,6 +523,27 @@ export const se_BulkOperationCommand = async(
     'operations': _ => se_BulkOperationList(_, context),
   }));
   b.m("PUT")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
+ * serializeAws_restJson1CancelJobCommand
+ */
+export const se_CancelJobCommand = async(
+  input: CancelJobCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    [_xw]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/jobs/{id}/cancel");
+  b.p('id', () => input.id!, '{id}', false)
+  let body: any;
+  b.m("POST")
   .h(headers)
   .b(body);
   return b.build();
@@ -1400,6 +1438,27 @@ export const se_GetFunctionCommand = async(
 }
 
 /**
+ * serializeAws_restJson1GetJobCommand
+ */
+export const se_GetJobCommand = async(
+  input: GetJobCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    [_xw]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/jobs/{id}");
+  b.p('id', () => input.id!, '{id}', false)
+  let body: any;
+  b.m("GET")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
  * serializeAws_restJson1GetOrganisationCommand
  */
 export const se_GetOrganisationCommand = async(
@@ -1924,6 +1983,34 @@ export const se_ListFunctionCommand = async(
 }
 
 /**
+ * serializeAws_restJson1ListJobsCommand
+ */
+export const se_ListJobsCommand = async(
+  input: ListJobsCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    [_xw]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/jobs");
+  const query: any = map({
+    [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
+    [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
+    [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
+    [_s]: [,input[_s]!],
+    [_jt]: [,input[_jt]!],
+  });
+  let body: any;
+  b.m("GET")
+  .h(headers)
+  .q(query)
+  .b(body);
+  return b.build();
+}
+
+/**
  * serializeAws_restJson1ListOrganisationCommand
  */
 export const se_ListOrganisationCommand = async(
@@ -2205,6 +2292,26 @@ export const se_RampExperimentCommand = async(
     'traffic_percentage': [],
   }));
   b.m("PATCH")
+  .h(headers)
+  .b(body);
+  return b.build();
+}
+
+/**
+ * serializeAws_restJson1ReduceCommand
+ */
+export const se_ReduceCommand = async(
+  input: ReduceCommandInput,
+  context: __SerdeContext
+): Promise<__HttpRequest> => {
+  const b = rb(input, context);
+  const headers: any = map({}, isSerializableHeaderValue, {
+    [_xw]: input[_wi]!,
+    [_xoi]: input[_oi]!,
+  });
+  b.bp("/config/reduce");
+  let body: any;
+  b.m("PUT")
   .h(headers)
   .b(body);
   return b.build();
@@ -2794,6 +2901,23 @@ export const de_BulkOperationCommand = async(
     'output': _ => de_BulkOperationOutList(_, context),
   });
   Object.assign(contents, doc);
+  return contents;
+}
+
+/**
+ * deserializeAws_restJson1CancelJobCommand
+ */
+export const de_CancelJobCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<CancelJobCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  await collectBody(output.body, context);
   return contents;
 }
 
@@ -3816,6 +3940,37 @@ export const de_GetFunctionCommand = async(
 }
 
 /**
+ * deserializeAws_restJson1GetJobCommand
+ */
+export const de_GetJobCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<GetJobCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'created_at': _ => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    'description': __expectString,
+    'execution': _ => de_ExecutionDetails(_, context),
+    'id': __expectString,
+    'job_type': __expectString,
+    'kronos_job_id': __expectString,
+    'logs': _ => de_Document(_, context),
+    'name': __expectString,
+    'progress': __expectInt32,
+    'status': __expectString,
+    'workspace_schema': __expectString,
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
  * deserializeAws_restJson1GetOrganisationCommand
  */
 export const de_GetOrganisationCommand = async(
@@ -4316,6 +4471,29 @@ export const de_ListFunctionCommand = async(
 }
 
 /**
+ * deserializeAws_restJson1ListJobsCommand
+ */
+export const de_ListJobsCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<ListJobsCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'data': _ => de_JobList(_, context),
+    'total_items': __expectInt32,
+    'total_pages': __expectInt32,
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
  * deserializeAws_restJson1ListOrganisationCommand
  */
 export const de_ListOrganisationCommand = async(
@@ -4631,6 +4809,29 @@ export const de_RampExperimentCommand = async(
     'status': __expectString,
     'traffic_percentage': __expectInt32,
     'variants': _ => de_ListVariant(_, context),
+  });
+  Object.assign(contents, doc);
+  return contents;
+}
+
+/**
+ * deserializeAws_restJson1ReduceCommand
+ */
+export const de_ReduceCommand = async(
+  output: __HttpResponse,
+  context: __SerdeContext
+): Promise<ReduceCommandOutput> => {
+  if (output.statusCode !== 200 && output.statusCode >= 300) {
+    return de_CommandError(output, context);
+  }
+  const contents: any = map({
+    $metadata: deserializeMetadata(output),
+  });
+  const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
+  const doc = take(data, {
+    'id': __expectString,
+    'kronos_job_id': __expectString,
+    'status': __expectString,
   });
   Object.assign(contents, doc);
   return contents;
@@ -5200,7 +5401,9 @@ export const de_WeightRecomputeCommand = async(
   });
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
-    'data': _ => de_WeightRecomputeResponses(_, context),
+    'id': __expectString,
+    'kronos_job_id': __expectString,
+    'status': __expectString,
   });
   Object.assign(contents, doc);
   return contents;
@@ -5894,6 +6097,23 @@ const de_CommandError = async(
   // de_Events omitted.
 
   /**
+   * deserializeAws_restJson1ExecutionDetails
+   */
+  const de_ExecutionDetails = (
+    output: any,
+    context: __SerdeContext
+  ): ExecutionDetails => {
+    return take(output, {
+      'attempt_count': __expectLong,
+      'completed_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+      'duration_ms': __expectLong,
+      'execution_status': __expectString,
+      'max_attempts': __expectLong,
+      'started_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+    }) as any;
+  }
+
+  /**
    * deserializeAws_restJson1ExperimentGroupList
    */
   const de_ExperimentGroupList = (
@@ -6011,6 +6231,41 @@ const de_CommandError = async(
       'published_code': __expectString,
       'published_runtime_version': __expectString,
     }) as any;
+  }
+
+  /**
+   * deserializeAws_restJson1JobDetailResponse
+   */
+  const de_JobDetailResponse = (
+    output: any,
+    context: __SerdeContext
+  ): JobDetailResponse => {
+    return take(output, {
+      'created_at': (_: any) => __expectNonNull(__parseRfc3339DateTimeWithOffset(_)),
+      'description': __expectString,
+      'execution': (_: any) => de_ExecutionDetails(_, context),
+      'id': __expectString,
+      'job_type': __expectString,
+      'kronos_job_id': __expectString,
+      'logs': (_: any) => de_Document(_, context),
+      'name': __expectString,
+      'progress': __expectInt32,
+      'status': __expectString,
+      'workspace_schema': __expectString,
+    }) as any;
+  }
+
+  /**
+   * deserializeAws_restJson1JobList
+   */
+  const de_JobList = (
+    output: any,
+    context: __SerdeContext
+  ): (JobDetailResponse)[] => {
+    const retVal = (output || []).filter((e: any) => e != null).map((entry: any) => {
+      return de_JobDetailResponse(entry, context);
+    });
+    return retVal;
   }
 
   /**
@@ -6366,34 +6621,6 @@ const de_CommandError = async(
   }
 
   /**
-   * deserializeAws_restJson1WeightRecomputeResponse
-   */
-  const de_WeightRecomputeResponse = (
-    output: any,
-    context: __SerdeContext
-  ): WeightRecomputeResponse => {
-    return take(output, {
-      'condition': (_: any) => de_Condition(_, context),
-      'id': __expectString,
-      'new_weight': __expectString,
-      'old_weight': __expectString,
-    }) as any;
-  }
-
-  /**
-   * deserializeAws_restJson1WeightRecomputeResponses
-   */
-  const de_WeightRecomputeResponses = (
-    output: any,
-    context: __SerdeContext
-  ): (WeightRecomputeResponse)[] => {
-    const retVal = (output || []).filter((e: any) => e != null).map((entry: any) => {
-      return de_WeightRecomputeResponse(entry, context);
-    });
-    return retVal;
-  }
-
-  /**
    * deserializeAws_restJson1WorkspaceList
    */
   const de_WorkspaceList = (
@@ -6494,6 +6721,7 @@ const de_CommandError = async(
   const _ik_ = "idempotency-key";
   const _ims = "if_modified_since";
   const _ims_ = "if-modified-since";
+  const _jt = "job_type";
   const _lm = "last-modified";
   const _lm_ = "last_modified";
   const _lmb = "last_modified_by";

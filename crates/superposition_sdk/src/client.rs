@@ -110,6 +110,8 @@ mod applicable_variants;
 
 mod bulk_operation;
 
+mod cancel_job;
+
 mod conclude_experiment;
 
 mod create_context;
@@ -207,6 +209,8 @@ mod get_experiment_group;
 
 mod get_function;
 
+mod get_job;
+
 mod get_organisation;
 
 mod get_resolved_config;
@@ -245,6 +249,8 @@ mod list_experiment_groups;
 
 mod list_function;
 
+mod list_jobs;
+
 mod list_organisation;
 
 mod list_secrets;
@@ -266,6 +272,8 @@ mod pause_experiment;
 mod publish;
 
 mod ramp_experiment;
+
+mod reduce;
 
 mod remove_members_from_group;
 

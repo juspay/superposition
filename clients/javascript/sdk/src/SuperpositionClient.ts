@@ -18,6 +18,10 @@ import {
   BulkOperationCommandOutput,
 } from "./commands/BulkOperationCommand";
 import {
+  CancelJobCommandInput,
+  CancelJobCommandOutput,
+} from "./commands/CancelJobCommand";
+import {
   ConcludeExperimentCommandInput,
   ConcludeExperimentCommandOutput,
 } from "./commands/ConcludeExperimentCommand";
@@ -158,6 +162,10 @@ import {
   GetFunctionCommandOutput,
 } from "./commands/GetFunctionCommand";
 import {
+  GetJobCommandInput,
+  GetJobCommandOutput,
+} from "./commands/GetJobCommand";
+import {
   GetOrganisationCommandInput,
   GetOrganisationCommandOutput,
 } from "./commands/GetOrganisationCommand";
@@ -234,6 +242,10 @@ import {
   ListFunctionCommandOutput,
 } from "./commands/ListFunctionCommand";
 import {
+  ListJobsCommandInput,
+  ListJobsCommandOutput,
+} from "./commands/ListJobsCommand";
+import {
   ListOrganisationCommandInput,
   ListOrganisationCommandOutput,
 } from "./commands/ListOrganisationCommand";
@@ -277,6 +289,10 @@ import {
   RampExperimentCommandInput,
   RampExperimentCommandOutput,
 } from "./commands/RampExperimentCommand";
+import {
+  ReduceCommandInput,
+  ReduceCommandOutput,
+} from "./commands/ReduceCommand";
 import {
   RemoveMembersFromGroupCommandInput,
   RemoveMembersFromGroupCommandOutput,
@@ -422,6 +438,7 @@ export type ServiceInputTypes =
   | AddMembersToGroupCommandInput
   | ApplicableVariantsCommandInput
   | BulkOperationCommandInput
+  | CancelJobCommandInput
   | ConcludeExperimentCommandInput
   | CreateContextCommandInput
   | CreateDefaultConfigCommandInput
@@ -457,6 +474,7 @@ export type ServiceInputTypes =
   | GetExperimentConfigCommandInput
   | GetExperimentGroupCommandInput
   | GetFunctionCommandInput
+  | GetJobCommandInput
   | GetOrganisationCommandInput
   | GetResolvedConfigCommandInput
   | GetResolvedConfigExplanationCommandInput
@@ -476,6 +494,7 @@ export type ServiceInputTypes =
   | ListExperimentCommandInput
   | ListExperimentGroupsCommandInput
   | ListFunctionCommandInput
+  | ListJobsCommandInput
   | ListOrganisationCommandInput
   | ListSecretsCommandInput
   | ListVariablesCommandInput
@@ -487,6 +506,7 @@ export type ServiceInputTypes =
   | PauseExperimentCommandInput
   | PublishCommandInput
   | RampExperimentCommandInput
+  | ReduceCommandInput
   | RemoveMembersFromGroupCommandInput
   | ResumeExperimentCommandInput
   | RotateMasterEncryptionKeyCommandInput
@@ -514,6 +534,7 @@ export type ServiceOutputTypes =
   | AddMembersToGroupCommandOutput
   | ApplicableVariantsCommandOutput
   | BulkOperationCommandOutput
+  | CancelJobCommandOutput
   | ConcludeExperimentCommandOutput
   | CreateContextCommandOutput
   | CreateDefaultConfigCommandOutput
@@ -549,6 +570,7 @@ export type ServiceOutputTypes =
   | GetExperimentConfigCommandOutput
   | GetExperimentGroupCommandOutput
   | GetFunctionCommandOutput
+  | GetJobCommandOutput
   | GetOrganisationCommandOutput
   | GetResolvedConfigCommandOutput
   | GetResolvedConfigExplanationCommandOutput
@@ -568,6 +590,7 @@ export type ServiceOutputTypes =
   | ListExperimentCommandOutput
   | ListExperimentGroupsCommandOutput
   | ListFunctionCommandOutput
+  | ListJobsCommandOutput
   | ListOrganisationCommandOutput
   | ListSecretsCommandOutput
   | ListVariablesCommandOutput
@@ -579,6 +602,7 @@ export type ServiceOutputTypes =
   | PauseExperimentCommandOutput
   | PublishCommandOutput
   | RampExperimentCommandOutput
+  | ReduceCommandOutput
   | RemoveMembersFromGroupCommandOutput
   | ResumeExperimentCommandOutput
   | RotateMasterEncryptionKeyCommandOutput
