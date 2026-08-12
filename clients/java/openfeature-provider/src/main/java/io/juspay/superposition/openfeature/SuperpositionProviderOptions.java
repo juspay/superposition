@@ -1,6 +1,5 @@
 package io.juspay.superposition.openfeature;
 
-import io.juspay.superposition.openfeature.options.EvaluationCacheOptions;
 import io.juspay.superposition.openfeature.options.RefreshStrategy;
 import lombok.Builder;
 import lombok.Data;
@@ -52,8 +51,5 @@ public class SuperpositionProviderOptions {
         /** Refresh strategy for experimentation data. */
         @NonNull
         RefreshStrategy refreshStrategy;
-        /** Evaluation cache options for experimentation data (optional). */
-        @Nullable
-        EvaluationCacheOptions evaluationCacheOptions;
     }
 }
