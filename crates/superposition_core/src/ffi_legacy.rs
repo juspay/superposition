@@ -5,15 +5,14 @@ use std::{
 };
 
 use serde_json::{Map, Value};
-use superposition_types::{Context, DimensionInfo, ExtendedMap, Overrides};
+use superposition_types::{
+    Config, Context, DimensionInfo, ExtendedMap, Overrides, PrefixList,
+};
 
 use crate::config::{self, MergeStrategy};
 use crate::experiment::{ExperimentConfig, ExperimentGroups, ExperimentationArgs};
 use crate::ffi::ProviderCache;
-use crate::{
-    get_applicable_variants, ConfigFormat, Experiments, FfiExperiment, JsonFormat,
-    TomlFormat,
-};
+use crate::{get_applicable_variants, Experiments, FfiExperiment};
 
 #[no_mangle]
 pub extern "C" fn core_provider_cache_new() -> *mut ProviderCache {
@@ -79,16 +78,22 @@ pub unsafe extern "C" fn core_provider_cache_init_config(
         }
     };
 
+    let config = Config {
+        default_configs: default_config.into(),
+        contexts,
+        overrides,
+        dimensions,
+    };
+
     let cache = &*handle;
-    match cache.data.lock() {
-        Ok(mut d) => {
-            d.config.default_configs = default_config.into();
-            d.config.contexts = contexts;
-            d.config.overrides = overrides;
-            d.config.dimensions = dimensions;
+    // Swap under the lock, free the previous config outside of it.
+    let _old = match cache.data.write() {
+        Ok(mut d) => std::mem::replace(&mut d.config, config),
+        Err(e) => {
+            copy_string(ebuf, format!("Failed to acquire cache lock: {e}"));
+            return;
         }
-        Err(e) => copy_string(ebuf, format!("Failed to acquire cache lock: {}", e)),
-    }
+    };
 }
 
 /// # Safety
@@ -123,16 +128,20 @@ pub unsafe extern "C" fn core_provider_cache_init_experiments(
         }
     };
 
+    let experiment = ExperimentConfig {
+        experiments,
+        experiment_groups,
+    };
+
     let cache = &*handle;
-    match cache.data.lock() {
-        Ok(mut d) => {
-            d.experiment = Some(ExperimentConfig {
-                experiments,
-                experiment_groups,
-            });
+    // Swap under the lock, free the previous experiments outside of it.
+    let _old = match cache.data.write() {
+        Ok(mut d) => d.experiment.replace(experiment),
+        Err(e) => {
+            copy_string(ebuf, format!("Failed to acquire cache lock: {e}"));
+            return;
         }
-        Err(e) => copy_string(ebuf, format!("Failed to acquire cache lock: {}", e)),
-    }
+    };
 }
 
 /// # Safety
@@ -155,7 +164,7 @@ pub unsafe extern "C" fn core_provider_cache_eval_config(
         return ptr::null_mut();
     }
 
-    let mut query_data = match parse_json::<Map<String, Value>>(query_data_json) {
+    let query_data = match parse_json::<Map<String, Value>>(query_data_json) {
         Ok(v) => v,
         Err(e) => {
             copy_string(ebuf, format!("Failed to parse query_data: {}", e));
@@ -210,47 +219,25 @@ pub unsafe extern "C" fn core_provider_cache_eval_config(
     };
 
     let cache = &*handle;
-    let data = match cache.data.lock() {
-        Ok(d) => d,
-        Err(e) => {
-            copy_string(ebuf, format!("Failed to acquire cache lock: {}", e));
-            return ptr::null_mut();
-        }
-    };
-
-    if let Some(ref experiment_config) = data.experiment {
-        if (!experiment_config.experiments.is_empty()
-            || !experiment_config.experiment_groups.is_empty())
-            && tkey.as_ref().is_some_and(|key| !key.is_empty())
-        {
-            let variants = get_applicable_variants(
-                &data.config.dimensions,
-                experiment_config.experiments.clone(),
-                &experiment_config.experiment_groups,
-                query_data.clone(),
-                tkey.as_deref().unwrap_or(""),
-                filter_prefixes.clone(),
-                filter_exclude_prefixes.clone(),
-            );
-            query_data.insert("variantIds".to_string(), variants.into());
-        }
-    }
-
-    let config = data.config.clone();
-    let result = config::eval(
-        config.default_configs,
-        &config.contexts,
-        &config.overrides,
-        &config.dimensions,
+    let result = match cache.eval_config_inner(
         query_data,
         merge_strategy,
         filter_prefixes,
         filter_exclude_prefixes,
-    );
+        tkey.as_deref(),
+    ) {
+        Ok(result) => result,
+        Err(e) => {
+            copy_string(ebuf, e);
+            return ptr::null_mut();
+        }
+    };
+
+    // Serialise after the read guard is released.
     match serde_json::to_string(&result) {
         Ok(json_str) => string_to_c_str(json_str),
         Err(e) => {
-            copy_string(ebuf, format!("Failed to serialize result: {}", e));
+            copy_string(ebuf, format!("Failed to serialize result: {e}"));
             ptr::null_mut()
         }
     }
@@ -274,6 +261,17 @@ fn parse_json<T: serde::de::DeserializeOwned>(s: *const c_char) -> Result<T, Str
     serde_json::from_str(&json_str).map_err(|e| format!("Invalid JSON: {}", e))
 }
 
+/// Parse an optional JSON argument: a null pointer means `None`, otherwise parse as `T`.
+fn parse_optional_json<T: serde::de::DeserializeOwned>(
+    s: *const c_char,
+) -> Result<Option<T>, String> {
+    if s.is_null() {
+        Ok(None)
+    } else {
+        parse_json::<T>(s).map(Some)
+    }
+}
+
 fn string_to_c_str(s: String) -> *mut c_char {
     CString::new(s).unwrap().into_raw()
 }
@@ -284,6 +282,217 @@ unsafe fn copy_string(to: *mut c_char, from: impl AsRef<str>) {
     let src = cstr.as_ptr();
     // REVIEW Truncate to 256 chars?
     ptr::copy_nonoverlapping(src, to, from.len() + 1 /*+1 for null byte.*/);
+}
+
+/// Filter the cache's stored config by dimension data / prefixes, returning the filtered Config as
+/// JSON. Mirrors the UniFFI `ProviderCache::filter_config`.
+///
+/// # Safety
+///
+/// `handle` must be a valid pointer from `core_provider_cache_new`. `dimension_data_json`,
+/// `prefix_json` and `exclude_prefix_json` are each nullable (null means "no filter"). `ebuf` must be
+/// a sufficiently large buffer for error messages.
+///
+/// # Memory Management
+/// Caller must free the returned string using `core_free_string`.
+#[no_mangle]
+pub unsafe extern "C" fn core_provider_cache_filter_config(
+    handle: *mut ProviderCache,
+    dimension_data_json: *const c_char,
+    prefix_json: *const c_char,
+    exclude_prefix_json: *const c_char,
+    ebuf: *mut c_char,
+) -> *mut c_char {
+    if handle.is_null() {
+        copy_string(ebuf, "handle is null");
+        return ptr::null_mut();
+    }
+
+    let dimension_data =
+        match parse_optional_json::<Map<String, Value>>(dimension_data_json) {
+            Ok(v) => v,
+            Err(e) => {
+                copy_string(ebuf, format!("Failed to parse dimension_data: {}", e));
+                return ptr::null_mut();
+            }
+        };
+    let prefix = match parse_optional_json::<Vec<String>>(prefix_json) {
+        Ok(v) => v,
+        Err(e) => {
+            copy_string(ebuf, format!("Failed to parse prefix: {}", e));
+            return ptr::null_mut();
+        }
+    };
+    let exclude_prefix = match parse_optional_json::<Vec<String>>(exclude_prefix_json) {
+        Ok(v) => v,
+        Err(e) => {
+            copy_string(ebuf, format!("Failed to parse exclude_prefix: {}", e));
+            return ptr::null_mut();
+        }
+    };
+
+    let cache = &*handle;
+    match cache.filter_config_inner(dimension_data, prefix, exclude_prefix) {
+        Ok(config) => match serde_json::to_string(&config) {
+            Ok(json_str) => string_to_c_str(json_str),
+            Err(e) => {
+                copy_string(ebuf, format!("Failed to serialize result: {}", e));
+                ptr::null_mut()
+            }
+        },
+        Err(e) => {
+            copy_string(ebuf, e);
+            ptr::null_mut()
+        }
+    }
+}
+
+/// Filter the cache's stored experiments by dimension data / prefixes, returning the filtered
+/// ExperimentConfig as JSON. `partial_apply` selects candidate (true) vs matching (false) semantics.
+/// Mirrors the UniFFI `ProviderCache::filter_experiment`.
+///
+/// # Safety
+///
+/// See `core_provider_cache_filter_config`. Additionally requires experiments to have been loaded via
+/// `core_provider_cache_init_experiments`.
+///
+/// # Memory Management
+/// Caller must free the returned string using `core_free_string`.
+#[no_mangle]
+pub unsafe extern "C" fn core_provider_cache_filter_experiment_config(
+    handle: *mut ProviderCache,
+    dimension_data_json: *const c_char,
+    prefix_json: *const c_char,
+    exclude_prefix_json: *const c_char,
+    partial_apply: bool,
+    ebuf: *mut c_char,
+) -> *mut c_char {
+    if handle.is_null() {
+        copy_string(ebuf, "handle is null");
+        return ptr::null_mut();
+    }
+
+    let dimension_data =
+        match parse_optional_json::<Map<String, Value>>(dimension_data_json) {
+            Ok(v) => v.unwrap_or_default(),
+            Err(e) => {
+                copy_string(ebuf, format!("Failed to parse dimension_data: {}", e));
+                return ptr::null_mut();
+            }
+        };
+    let prefix = match parse_optional_json::<Vec<String>>(prefix_json) {
+        Ok(v) => v,
+        Err(e) => {
+            copy_string(ebuf, format!("Failed to parse prefix: {}", e));
+            return ptr::null_mut();
+        }
+    };
+    let exclude_prefix = match parse_optional_json::<Vec<String>>(exclude_prefix_json) {
+        Ok(v) => v,
+        Err(e) => {
+            copy_string(ebuf, format!("Failed to parse exclude_prefix: {}", e));
+            return ptr::null_mut();
+        }
+    };
+
+    let cache = &*handle;
+    match cache.filter_experiment_config_inner(
+        &dimension_data,
+        prefix,
+        exclude_prefix,
+        partial_apply,
+    ) {
+        Ok(exp_config) => match serde_json::to_string(&exp_config) {
+            Ok(json_str) => string_to_c_str(json_str),
+            Err(e) => {
+                copy_string(ebuf, format!("Failed to serialize result: {}", e));
+                ptr::null_mut()
+            }
+        },
+        Err(e) => {
+            copy_string(ebuf, e);
+            ptr::null_mut()
+        }
+    }
+}
+
+/// Get the applicable experiment variant IDs from the cache's stored experiments, returning a JSON
+/// array of strings. Mirrors the UniFFI `ProviderCache::get_applicable_variants`.
+///
+/// # Safety
+///
+/// See `core_provider_cache_filter_experiment_config`. `targeting_key` is nullable (null means an empty
+/// identifier).
+///
+/// # Memory Management
+/// Caller must free the returned string using `core_free_string`.
+#[no_mangle]
+pub unsafe extern "C" fn core_provider_cache_get_applicable_variants(
+    handle: *mut ProviderCache,
+    dimension_data_json: *const c_char,
+    prefix_json: *const c_char,
+    exclude_prefix_json: *const c_char,
+    targeting_key: *const c_char,
+    ebuf: *mut c_char,
+) -> *mut c_char {
+    if handle.is_null() {
+        copy_string(ebuf, "handle is null");
+        return ptr::null_mut();
+    }
+
+    let dimension_data =
+        match parse_optional_json::<Map<String, Value>>(dimension_data_json) {
+            Ok(v) => v.unwrap_or_default(),
+            Err(e) => {
+                copy_string(ebuf, format!("Failed to parse dimension_data: {}", e));
+                return ptr::null_mut();
+            }
+        };
+    let prefix = match parse_optional_json::<Vec<String>>(prefix_json) {
+        Ok(v) => v,
+        Err(e) => {
+            copy_string(ebuf, format!("Failed to parse prefix: {}", e));
+            return ptr::null_mut();
+        }
+    };
+    let exclude_prefix = match parse_optional_json::<Vec<String>>(exclude_prefix_json) {
+        Ok(v) => v,
+        Err(e) => {
+            copy_string(ebuf, format!("Failed to parse exclude_prefix: {}", e));
+            return ptr::null_mut();
+        }
+    };
+    let targeting_key = if targeting_key.is_null() {
+        String::new()
+    } else {
+        match c_str_to_string(targeting_key) {
+            Ok(s) => s,
+            Err(e) => {
+                copy_string(ebuf, format!("Invalid UTF-8 in targeting_key: {}", e));
+                return ptr::null_mut();
+            }
+        }
+    };
+
+    let cache = &*handle;
+    match cache.get_applicable_variants_inner(
+        dimension_data,
+        prefix,
+        exclude_prefix,
+        &targeting_key,
+    ) {
+        Ok(variants) => match serde_json::to_string(&variants) {
+            Ok(json_str) => string_to_c_str(json_str),
+            Err(e) => {
+                copy_string(ebuf, format!("Failed to serialize result: {}", e));
+                ptr::null_mut()
+            }
+        },
+        Err(e) => {
+            copy_string(ebuf, e);
+            ptr::null_mut()
+        }
+    }
 }
 
 /// # Safety
@@ -423,12 +632,16 @@ pub unsafe extern "C" fn core_get_resolved_config(
         query_data.insert("variantIds".to_string(), variants.into());
     }
 
+    let config = Config {
+        default_configs: default_config,
+        contexts,
+        overrides,
+        dimensions,
+    };
+
     // Call pure config resolution logic
-    let result = config::eval(
-        default_config,
-        &contexts,
-        &overrides,
-        &dimensions,
+    let result = config::eval_config(
+        config,
         query_data,
         merge_strategy,
         filter_prefixes,
@@ -570,118 +783,86 @@ pub unsafe extern "C" fn core_get_applicable_variants(
     }
 }
 
-/// Parse TOML configuration and return JSON representation of Config type
+/// Parse a config file (JSON or TOML) and filter it by dimension data / prefixes in one step,
+/// returning the filtered Config as JSON.
+///
+/// Mirrors the UniFFI `ffi_parse_config_file_with_filters`; the JS file data source uses this to
+/// honour context and prefix filtering at parse time (matching the Python/Java file sources).
 ///
 /// # Safety
 ///
-/// Caller ensures that `toml_content` is a valid null-terminated C string and `ebuf` is
-/// a sufficiently long buffer (2048 bytes minimum) to store error messages.
-///
-/// # Arguments
-/// * `toml_content` - C string containing TOML configuration
-/// * `ebuf` - Error buffer (2048 bytes) for error messages
-///
-/// # Returns
-/// * Success: JSON string matching the Config type structure with keys:
-///   - "contexts": array of context objects with id, condition, priority, weight, override_with_keys
-///   - "overrides": object mapping override IDs to override key-value pairs
-///   - "default_configs": object with configuration key-value pairs
-///   - "dimensions": object mapping dimension names to dimension info (schema, position, etc.)
-/// * Failure: NULL pointer, error written to ebuf
+/// `file_content` and `format` must be valid null-terminated C strings. `dimension_data_json`,
+/// `prefix_json` and `exclude_prefix_json` are each nullable (a null pointer means "no filter").
+/// `ebuf` must be a sufficiently large buffer for error messages.
 ///
 /// # Memory Management
-/// Caller must free the returned string using core_free_string()
+/// Caller must free the returned string using `core_free_string`.
 #[no_mangle]
-pub unsafe extern "C" fn core_parse_toml_config(
-    toml_content: *const c_char,
+pub unsafe extern "C" fn core_parse_config_file_with_filters(
+    file_content: *const c_char,
+    format: *const c_char,
+    dimension_data_json: *const c_char,
+    prefix_json: *const c_char,
+    exclude_prefix_json: *const c_char,
     ebuf: *mut c_char,
 ) -> *mut c_char {
-    // Null pointer check
-    if toml_content.is_null() {
-        copy_string(ebuf, "toml_content is null");
-        return ptr::null_mut();
-    }
-
-    // Convert C string to Rust string
-    let toml_str = match c_str_to_string(toml_content) {
+    let file_content = match c_str_to_string(file_content) {
         Ok(s) => s,
         Err(e) => {
-            copy_string(ebuf, format!("Invalid UTF-8 in toml_content: {}", e));
+            copy_string(ebuf, format!("Invalid UTF-8 in file_content: {}", e));
+            return ptr::null_mut();
+        }
+    };
+    let format = match c_str_to_string(format) {
+        Ok(s) => s,
+        Err(e) => {
+            copy_string(ebuf, format!("Invalid UTF-8 in format: {}", e));
             return ptr::null_mut();
         }
     };
 
-    // Parse TOML
-    let parsed = match TomlFormat::parse_config(&toml_str) {
-        Ok(p) => p,
+    // Dimension data comes through as a JSON object of real values (like query data elsewhere).
+    let dimension_data =
+        match parse_optional_json::<Map<String, Value>>(dimension_data_json) {
+            Ok(v) => v,
+            Err(e) => {
+                copy_string(ebuf, format!("Failed to parse dimension_data: {}", e));
+                return ptr::null_mut();
+            }
+        };
+    let prefix = match parse_optional_json::<Vec<String>>(prefix_json) {
+        Ok(v) => v,
+        Err(e) => {
+            copy_string(ebuf, format!("Failed to parse prefix: {}", e));
+            return ptr::null_mut();
+        }
+    };
+    let exclude_prefix = match parse_optional_json::<Vec<String>>(exclude_prefix_json) {
+        Ok(v) => v,
+        Err(e) => {
+            copy_string(ebuf, format!("Failed to parse exclude_prefix: {}", e));
+            return ptr::null_mut();
+        }
+    };
+
+    let prefix_list = prefix.map(PrefixList::from_iter);
+    let exclude_prefix_list = exclude_prefix.map(PrefixList::from_iter);
+
+    let filtered = match crate::parse_config_file_with_filters(
+        &file_content,
+        &format,
+        dimension_data,
+        prefix_list.as_ref(),
+        exclude_prefix_list.as_ref(),
+    ) {
+        Ok(c) => c,
         Err(e) => {
             copy_string(ebuf, e.to_string());
             return ptr::null_mut();
         }
     };
 
-    // Serialize the Config directly to JSON (consistent with other FFI functions)
-    match serde_json::to_string(&parsed) {
-        Ok(json_str) => string_to_c_str(json_str),
-        Err(e) => {
-            copy_string(ebuf, format!("JSON serialization error: {}", e));
-            ptr::null_mut()
-        }
-    }
-}
-
-/// Parse JSON configuration and return JSON representation of Config type
-///
-/// # Safety
-///
-/// Caller ensures that `json_content` is a valid null-terminated C string and `ebuf` is
-/// a sufficiently long buffer (2048 bytes minimum) to store error messages.
-///
-/// # Arguments
-/// * `json_content` - C string containing JSON configuration
-/// * `ebuf` - Error buffer (2048 bytes) for error messages
-///
-/// # Returns
-/// * Success: JSON string matching the Config type structure with keys:
-///   - "contexts": array of context objects with id, condition, priority, weight, override_with_keys
-///   - "overrides": object mapping override IDs to override key-value pairs
-///   - "default_configs": object with configuration key-value pairs
-///   - "dimensions": object mapping dimension names to dimension info (schema, position, etc.)
-/// * Failure: NULL pointer, error written to ebuf
-///
-/// # Memory Management
-/// Caller must free the returned string using core_free_string()
-#[no_mangle]
-pub unsafe extern "C" fn core_parse_json_config(
-    json_content: *const c_char,
-    ebuf: *mut c_char,
-) -> *mut c_char {
-    // Null pointer check
-    if json_content.is_null() {
-        copy_string(ebuf, "json_content is null");
-        return ptr::null_mut();
-    }
-
-    // Convert C string to Rust string
-    let json_str = match c_str_to_string(json_content) {
-        Ok(s) => s,
-        Err(e) => {
-            copy_string(ebuf, format!("Invalid UTF-8 in json_content: {}", e));
-            return ptr::null_mut();
-        }
-    };
-
-    // Parse JSON config
-    let parsed = match JsonFormat::parse_config(&json_str) {
-        Ok(p) => p,
-        Err(e) => {
-            copy_string(ebuf, e.to_string());
-            return ptr::null_mut();
-        }
-    };
-
-    // Serialize the Config directly to JSON (consistent with other FFI functions)
-    match serde_json::to_string(&parsed) {
+    match serde_json::to_string(&filtered) {
         Ok(json_str) => string_to_c_str(json_str),
         Err(e) => {
             copy_string(ebuf, format!("JSON serialization error: {}", e));

@@ -99,18 +99,17 @@ foreign import capi "superposition_core.h core_get_resolved_config"
     -- | resolved config json
     IO CString
 
-foreign import capi "superposition_core.h core_parse_toml_config"
-  parse_toml_config ::
-    -- | toml_content
+foreign import capi "superposition_core.h core_parse_config_file_with_filters"
+  parse_config_file_with_filters ::
+    -- | file_content
     CString ->
-    -- | error-buffer
+    -- | format_str
     CString ->
-    -- | parsed config json
-    IO CString
-
-foreign import capi "superposition_core.h core_parse_json_config"
-  parse_json_config ::
-    -- | json_content
+    -- | dimensions_json (nullable)
+    CString ->
+    -- | filter_prefixes_json (nullable)
+    CString ->
+    -- | filter_exclude_prefixes_json (nullable)
     CString ->
     -- | error-buffer
     CString ->

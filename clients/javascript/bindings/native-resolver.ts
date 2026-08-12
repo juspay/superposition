@@ -28,8 +28,8 @@ export class NativeResolver {
             this.lib.core_test_connection = this.lib.func(
                 "int core_test_connection()",
             );
-            this.lib.core_parse_toml_config = this.lib.func(
-                "char* core_parse_toml_config(const char*, char*)",
+            this.lib.core_parse_config_file_with_filters = this.lib.func(
+                "char* core_parse_config_file_with_filters(const char*, const char*, const char*, const char*, const char*, char*)",
             );
             this.lib.core_parse_json_config = this.lib.func(
                 "char* core_parse_json_config(const char*, char*)",
@@ -317,8 +317,12 @@ export class NativeResolver {
         const errorBuffer = Buffer.alloc(ERROR_BUFFER_SIZE);
 
         // Call the C function
-        const resultJson = this.lib.core_parse_toml_config(
+        const resultJson = this.lib.core_parse_config_file_with_filters(
             tomlContent,
+            "toml",
+            undefined,
+            undefined,
+            undefined,
             errorBuffer,
         );
 
