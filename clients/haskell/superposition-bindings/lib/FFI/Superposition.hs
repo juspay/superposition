@@ -6,8 +6,7 @@ module FFI.Superposition
     ResolveConfigParams (..),
     defaultResolveParams,
     MergeStrategy (..),
-    parseTomlConfig,
-    parseJsonConfig,
+    parseConfigFileWithFilters,
     -- ProviderCache API
     ProviderCacheHandle,
     newProviderCache,
@@ -99,18 +98,17 @@ foreign import capi "superposition_core.h core_get_resolved_config"
     -- | resolved config json
     IO CString
 
-foreign import capi "superposition_core.h core_parse_toml_config"
-  parse_toml_config ::
-    -- | toml_content
+foreign import capi "superposition_core.h core_parse_config_file_with_filters"
+  parse_config_file_with_filters ::
+    -- | file_content
     CString ->
-    -- | error-buffer
+    -- | format_str
     CString ->
-    -- | parsed config json
-    IO CString
-
-foreign import capi "superposition_core.h core_parse_json_config"
-  parse_json_config ::
-    -- | json_content
+    -- | dimensions_json (nullable)
+    CString ->
+    -- | filter_prefixes_json (nullable)
+    CString ->
+    -- | filter_exclude_prefixes_json (nullable)
     CString ->
     -- | error-buffer
     CString ->
@@ -250,17 +248,21 @@ getResolvedConfig params = do
     (Nothing, [])  -> Left "null pointer returned"
     _              -> Left err
 
--- | Parse TOML configuration string into structured format
+-- | Parse configuration string into structured format
 -- Returns JSON matching the Config type with:
 --   - contexts: array of context objects with id, condition, priority, weight, override_with_keys
 --   - overrides: object mapping override IDs to override key-value pairs
 --   - default_configs: object with configuration key-value pairs
 --   - dimensions: object mapping dimension names to dimension info (schema, position, etc.)
-parseTomlConfig :: String -> IO (Either String Value)
-parseTomlConfig tomlContent = do
+parseConfigFileWithFilters :: String -> String -> Maybe String -> Maybe String -> Maybe String -> IO (Either String Value)
+parseConfigFileWithFilters content format mDimData mPrefixFilter mExcludePrefixFilter = do
   ebuf <- callocBytes errorBufferSize
-  tomlStr <- newCString tomlContent
-  res <- parse_toml_config tomlStr ebuf
+  fileStr <- newCString content
+  fileFormat <- newCString format
+  dimData <- maybe (pure nullPtr) newCString mDimData
+  prefixFilter <- maybe (pure nullPtr) newCString mPrefixFilter
+  excludePrefixFilter <- maybe (pure nullPtr) newCString mExcludePrefixFilter
+  res <- parse_config_file_with_filters fileStr fileFormat dimData prefixFilter excludePrefixFilter ebuf
   errBytes <- packCString ebuf
   let errText = fromRight mempty $ decodeUtf8' errBytes
   result <- if res /= nullPtr
@@ -269,35 +271,8 @@ parseTomlConfig tomlContent = do
       -- Registers p_free_string as the finalizer (for automatic cleanup)
       withForeignPtr resFptr $ fmap Just . packCString
     else pure Nothing
-  free tomlStr
-  free ebuf
-  pure $ case (result, errText) of
-    (Just cfg, t) | T.null t -> case eitherDecodeStrict' cfg of
-      Right val -> Right val
-      Left e    -> Left $ "JSON parse error: " ++ e
-    (Nothing, t) | T.null t -> Left "null pointer returned"
-    _ -> Left (unpack errText)
-
--- | Parse JSON configuration string into structured format
--- Returns JSON matching the Config type with:
---   - contexts: array of context objects with id, condition, priority, weight, override_with_keys
---   - overrides: object mapping override IDs to override key-value pairs
---   - default_configs: object with configuration key-value pairs
---   - dimensions: object mapping dimension names to dimension info (schema, position, etc.)
-parseJsonConfig :: String -> IO (Either String Value)
-parseJsonConfig jsonContent = do
-  ebuf <- callocBytes errorBufferSize
-  jsonStr <- newCString jsonContent
-  res <- parse_json_config jsonStr ebuf
-  errBytes <- packCString ebuf
-  let errText = fromRight mempty $ decodeUtf8' errBytes
-  result <- if res /= nullPtr
-    then do
-      resFptr <- newForeignPtr p_free_string res
-      withForeignPtr resFptr $ fmap Just . packCString
-    else pure Nothing
-  free jsonStr
-  free ebuf
+  let freeNonNull p = when (p /= nullPtr) (free p)
+  traverse_ freeNonNull [fileStr, fileFormat, dimData, prefixFilter, excludePrefixFilter, ebuf]
   pure $ case (result, errText) of
     (Just cfg, t) | T.null t -> case eitherDecodeStrict' cfg of
       Right val -> Right val

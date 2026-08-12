@@ -42,7 +42,7 @@ class JsonFunctionsTest {
         println("  TEST: Parse JSON Configuration")
         println("=".repeat(70))
 
-        val result = ffiParseJsonConfig(EXAMPLE_JSON)
+        val result = ffiParseConfigFileWithFilters(EXAMPLE_JSON, "JSON", null, null, null)
 
         println("\n✓ Successfully parsed JSON configuration!\n")
 
@@ -88,7 +88,7 @@ class JsonFunctionsTest {
         val invalidJson = "{ invalid json content }"
 
         try {
-            ffiParseJsonConfig(invalidJson)
+            ffiParseConfigFileWithFilters(invalidJson, "JSON", null, null, null)
             fail("Expected OperationException to be thrown")
         } catch (e: OperationException) {
             println("\n✓ Correctly caught error: ${e.javaClass.simpleName}")
@@ -122,8 +122,8 @@ _context_ = { vehicle_type = "bike" }
 per_km_rate = 15.0
 """
 
-        val tomlResult = ffiParseTomlConfig(tomlConfig)
-        val jsonResult = ffiParseJsonConfig(EXAMPLE_JSON)
+        val tomlResult = ffiParseConfigFileWithFilters(tomlConfig, "TOML", null, null, null)
+        val jsonResult = ffiParseConfigFileWithFilters(EXAMPLE_JSON, "JSON", null, null, null)
 
         // Both should parse successfully with same structure
         assertEquals(tomlResult.defaultConfigs.size, jsonResult.defaultConfigs.size)

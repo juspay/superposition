@@ -14,10 +14,10 @@ use std::{
     fmt::{self, Display},
 };
 
-use serde_json::Value;
+use serde_json::{Map, Value};
 use superposition_types::{
-    database::models::cac::DimensionType, Condition, Config, DefaultConfigsWithSchema,
-    DetailedConfig, DimensionInfo, Overrides,
+    database::models::cac::DimensionType, Condition, Config, ConfigFilter,
+    DefaultConfigsWithSchema, DetailedConfig, DimensionInfo, Overrides, PrefixList,
 };
 
 use crate::{
@@ -25,6 +25,36 @@ use crate::{
     validations,
 };
 pub use error::FormatError;
+
+/// Parse a config file in the given `format` (`"json"` or `"toml"`) and apply the given dimension /
+/// prefix filters, returning the resulting [`Config`].
+///
+/// This is the shared parse-and-filter logic behind both FFI adapters — the UniFFI
+/// `ffi_parse_config_file_with_filters` and the C-ABI `core_parse_config_file_with_filters` — so the
+/// two layers only differ in argument marshalling, not in what they do.
+pub fn parse_config_file_with_filters(
+    file_content: &str,
+    format: &str,
+    dimension_data: Option<Map<String, Value>>,
+    prefix_list: Option<&PrefixList>,
+    exclude_prefix_list: Option<&PrefixList>,
+) -> Result<Config, FormatError> {
+    let config = match format.to_lowercase().as_str() {
+        "json" => json::JsonFormat::parse_config(file_content)?,
+        "toml" => toml::TomlFormat::parse_config(file_content)?,
+        other => {
+            return Err(FormatError::ConversionError {
+                format: other.to_string(),
+                message: format!(
+                    "Unsupported format: {}. Supported formats are 'json' and 'toml'.",
+                    other
+                ),
+            })
+        }
+    };
+
+    Ok(config.filter(dimension_data, prefix_list, exclude_prefix_list))
+}
 
 #[derive(Debug)]
 pub enum MarkupFormat {
