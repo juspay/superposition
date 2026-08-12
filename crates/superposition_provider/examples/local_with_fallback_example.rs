@@ -17,7 +17,8 @@ async fn main() {
         AuthMethod::Token("token".to_string()),
         "localorg".to_string(),
         "dev".to_string(),
-    ));
+    )
+    .expect("valid Superposition options"));
 
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let file_source =
