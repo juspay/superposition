@@ -9499,6 +9499,8 @@ dependencies = [
  "num-bigint",
  "serde",
  "serde_json",
+ "strum 0.25.0",
+ "strum_macros 0.25.3",
  "superposition_types",
  "thiserror 1.0.69",
  "toml 0.8.8",

@@ -104,7 +104,7 @@ pub type Experiments = Vec<FfiExperiment>;
 
 pub type ExperimentGroups = Vec<FfiExperimentGroup>;
 
-#[derive(Debug, Clone, uniffi::Record)]
+#[derive(Serialize, Deserialize, Debug, Clone, uniffi::Record)]
 pub struct ExperimentConfig {
     pub experiments: Experiments,
     pub experiment_groups: ExperimentGroups,

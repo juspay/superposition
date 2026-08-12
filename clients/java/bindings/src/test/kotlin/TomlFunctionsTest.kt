@@ -56,7 +56,7 @@ surge_factor = 5.0
         println("  TEST: Parse TOML Configuration")
         println("=".repeat(70))
 
-        val result = ffiParseTomlConfig(EXAMPLE_TOML)
+        val result = ffiParseConfigFileWithFilters(EXAMPLE_TOML, "TOML", null, null, null)
 
         println("\n✓ Successfully parsed TOML configuration!\n")
 
@@ -108,7 +108,7 @@ surge_factor = 5.0
         val invalidToml = "[invalid toml content ][["
 
         try {
-            ffiParseTomlConfig(invalidToml)
+            ffiParseConfigFileWithFilters(invalidToml, "TOML", null, null, null)
             fail("Expected OperationException to be thrown")
         } catch (e: OperationException) {
             println("\n✓ Correctly caught error: ${e.javaClass.simpleName}")
@@ -129,7 +129,7 @@ city = { position = 1, schema = { "type" = "string" } }
 """
 
         try {
-            ffiParseTomlConfig(invalidToml)
+            ffiParseConfigFileWithFilters(invalidToml, "TOML", null, null, null)
             fail("Expected OperationException to be thrown")
         } catch (e: OperationException) {
             println("\n✓ Correctly caught error: ${e.javaClass.simpleName}")

@@ -16,8 +16,8 @@ from superposition_sdk.config import Config as SdkConfig
 from superposition_sdk.auth_helpers import bearer_auth_config
 from superposition_sdk.models import GetConfigInput, DimensionMatchStrategy, \
     GetExperimentConfigInput, UnknownApiError
-from .conversions import experiments_to_ffi_experiments, exp_grps_to_ffi_exp_grps, config_response_to_ffi_config
 
+from .conversions import experiments_to_ffi_experiments, exp_grps_to_ffi_exp_grps, config_response_to_ffi_config
 from .types import SuperpositionOptions
 from .data_source import (
     SuperpositionDataSource,
@@ -97,7 +97,7 @@ class HttpDataSource(SuperpositionDataSource):
                 data=config_response_to_ffi_config(response),
             ))
         except UnknownApiError as e:
-            # this is a hack for now, need to fix it properly by checking the content of UnkownApiError
+            # this is a hack for now, need to fix it properly by checking the content of UnknownApiError
             return FetchResponse.not_modified()
         except Exception as e:
             raise e
