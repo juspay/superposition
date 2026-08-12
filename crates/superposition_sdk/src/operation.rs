@@ -9,6 +9,9 @@ pub mod applicable_variants;
 /// Types for the `BulkOperation` operation.
 pub mod bulk_operation;
 
+/// Types for the `CancelJob` operation.
+pub mod cancel_job;
+
 /// Types for the `ConcludeExperiment` operation.
 pub mod conclude_experiment;
 
@@ -114,6 +117,9 @@ pub mod get_experiment_group;
 /// Types for the `GetFunction` operation.
 pub mod get_function;
 
+/// Types for the `GetJob` operation.
+pub mod get_job;
+
 /// Types for the `GetOrganisation` operation.
 pub mod get_organisation;
 
@@ -171,6 +177,9 @@ pub mod list_experiment_groups;
 /// Types for the `ListFunction` operation.
 pub mod list_function;
 
+/// Types for the `ListJobs` operation.
+pub mod list_jobs;
+
 /// Types for the `ListOrganisation` operation.
 pub mod list_organisation;
 
@@ -203,6 +212,9 @@ pub mod publish;
 
 /// Types for the `RampExperiment` operation.
 pub mod ramp_experiment;
+
+/// Types for the `Reduce` operation.
+pub mod reduce;
 
 /// Types for the `RemoveMembersFromGroup` operation.
 pub mod remove_members_from_group;

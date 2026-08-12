@@ -14,7 +14,8 @@ import software.amazon.smithy.utils.SmithyGenerated;
 
 /**
  * Recalculates and updates the priority weights for all contexts in the workspace based on their
- * dimensions.
+ * dimensions. This operation is asynchronous — it submits a background job and returns the job ID for
+ * polling.
  */
 @SmithyGenerated
 public final class WeightRecompute implements ApiOperation<WeightRecomputeInput, WeightRecomputeOutput> {

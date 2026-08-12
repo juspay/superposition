@@ -66,7 +66,7 @@ pub fn de_weight_recompute_http_response(_response_status: u16, _response_header
         #[allow(unused_mut)]
         let mut output = crate::operation::weight_recompute::builders::WeightRecomputeOutputBuilder::default();
         output = crate::protocol_serde::shape_weight_recompute::de_weight_recompute(_response_body, output).map_err(crate::operation::weight_recompute::WeightRecomputeError::unhandled)?;
-        output.build()
+        crate::serde_util::weight_recompute_output_output_correct_errors(output).build().map_err(crate::operation::weight_recompute::WeightRecomputeError::unhandled)?
     })
 }
 
@@ -122,9 +122,31 @@ pub(crate) fn de_weight_recompute(value: &[u8], mut builder: crate::operation::w
             Some(::aws_smithy_json::deserialize::Token::EndObject { .. }) => break,
                                     Some(::aws_smithy_json::deserialize::Token::ObjectKey { key, .. }) => {
                 match key.to_unescaped()?.as_ref() {
-                    "data" => {
-                        builder = builder.set_data(
-                            crate::protocol_serde::shape_weight_recompute_responses::de_weight_recompute_responses(tokens)?
+                    "id" => {
+                        builder = builder.set_id(
+                            ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                s.to_unescaped().map(|u|
+                                    u.into_owned()
+                                )
+                            ).transpose()?
+                        );
+                    }
+                    "kronos_job_id" => {
+                        builder = builder.set_kronos_job_id(
+                            ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                s.to_unescaped().map(|u|
+                                    u.into_owned()
+                                )
+                            ).transpose()?
+                        );
+                    }
+                    "status" => {
+                        builder = builder.set_status(
+                            ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                s.to_unescaped().map(|u|
+                                    crate::types::BackgroundJobStatus::from(u.as_ref())
+                                )
+                            ).transpose()?
                         );
                     }
                     _ => ::aws_smithy_json::deserialize::token::skip_value(tokens)?

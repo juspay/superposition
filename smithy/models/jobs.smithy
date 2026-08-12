@@ -69,7 +69,7 @@ structure JobDetailResponse for Job {
     $description
 
     @required
-    $type
+    $job_type
 
     @required
     $status
@@ -89,6 +89,7 @@ structure JobDetailResponse for Job {
     @required
     $logs
 
+    @notProperty
     execution: ExecutionDetails
 }
 
@@ -98,15 +99,18 @@ list JobList {
 }
 
 @documentation("Response returned when a job is submitted. Contains the BJM job ID, Kronos job ID, and initial status.")
-structure JobCreateResponse for Job {
+structure JobCreateResponse {
+    @notProperty
     @required
-    $id
+    id: String
 
+    @notProperty
     @required
-    $kronos_job_id
+    kronos_job_id: String
 
+    @notProperty
     @required
-    $status
+    status: BackgroundJobStatus
 }
 
 @documentation("Retrieves a paginated list of background jobs in the workspace, optionally filtered by type and status.")

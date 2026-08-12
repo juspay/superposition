@@ -112,10 +112,6 @@ final class SharedSchemas {
         .putMember("member", ContextResponse.$SCHEMA)
         .build();
 
-    static final Schema WEIGHT_RECOMPUTE_RESPONSES = Schema.listBuilder(ShapeId.from("io.superposition#WeightRecomputeResponses"))
-        .putMember("member", WeightRecomputeResponse.$SCHEMA)
-        .build();
-
     static final Schema EVENTS = Schema.listBuilder(ShapeId.from("io.superposition#Events"))
         .putMember("member", PreludeSchemas.STRING)
         .build();
@@ -162,6 +158,10 @@ final class SharedSchemas {
 
     static final Schema TYPE_TEMPLATES_LIST = Schema.listBuilder(ShapeId.from("io.superposition#TypeTemplatesList"))
         .putMember("member", TypeTemplatesResponse.$SCHEMA)
+        .build();
+
+    static final Schema JOB_LIST = Schema.listBuilder(ShapeId.from("io.superposition#JobList"))
+        .putMember("member", JobDetailResponse.$SCHEMA)
         .build();
 
     static final Schema ORGANISATION_LIST = Schema.listBuilder(ShapeId.from("io.superposition#OrganisationList"))

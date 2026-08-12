@@ -118,6 +118,28 @@ impl From<crate::operation::bulk_operation::BulkOperationError> for Error {
         }
     }
 }
+impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::cancel_job::CancelJobError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
+    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::cancel_job::CancelJobError, R>) -> Self {
+        match err {
+            ::aws_smithy_runtime_api::client::result::SdkError::ServiceError(context) => Self::from(context.into_err()),
+            _ => Error::Unhandled(
+                                        crate::error::sealed_unhandled::Unhandled {
+                                            meta: ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(&err).clone(),
+                                            source: err.into(),
+                                        }
+                                    ),
+        }
+    }
+}
+impl From<crate::operation::cancel_job::CancelJobError> for Error {
+    fn from(err: crate::operation::cancel_job::CancelJobError) -> Self {
+        match err {
+            crate::operation::cancel_job::CancelJobError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::cancel_job::CancelJobError::InternalServerError(inner) => Error::InternalServerError(inner),
+            crate::operation::cancel_job::CancelJobError::Unhandled(inner) => Error::Unhandled(inner),
+        }
+    }
+}
 impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::conclude_experiment::ConcludeExperimentError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
     fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::conclude_experiment::ConcludeExperimentError, R>) -> Self {
         match err {
@@ -897,6 +919,28 @@ impl From<crate::operation::get_function::GetFunctionError> for Error {
         }
     }
 }
+impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_job::GetJobError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
+    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_job::GetJobError, R>) -> Self {
+        match err {
+            ::aws_smithy_runtime_api::client::result::SdkError::ServiceError(context) => Self::from(context.into_err()),
+            _ => Error::Unhandled(
+                                        crate::error::sealed_unhandled::Unhandled {
+                                            meta: ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(&err).clone(),
+                                            source: err.into(),
+                                        }
+                                    ),
+        }
+    }
+}
+impl From<crate::operation::get_job::GetJobError> for Error {
+    fn from(err: crate::operation::get_job::GetJobError) -> Self {
+        match err {
+            crate::operation::get_job::GetJobError::ResourceNotFound(inner) => Error::ResourceNotFound(inner),
+            crate::operation::get_job::GetJobError::InternalServerError(inner) => Error::InternalServerError(inner),
+            crate::operation::get_job::GetJobError::Unhandled(inner) => Error::Unhandled(inner),
+        }
+    }
+}
 impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_organisation::GetOrganisationError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
     fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_organisation::GetOrganisationError, R>) -> Self {
         match err {
@@ -1304,6 +1348,27 @@ impl From<crate::operation::list_function::ListFunctionError> for Error {
         }
     }
 }
+impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::list_jobs::ListJobsError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
+    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::list_jobs::ListJobsError, R>) -> Self {
+        match err {
+            ::aws_smithy_runtime_api::client::result::SdkError::ServiceError(context) => Self::from(context.into_err()),
+            _ => Error::Unhandled(
+                                        crate::error::sealed_unhandled::Unhandled {
+                                            meta: ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(&err).clone(),
+                                            source: err.into(),
+                                        }
+                                    ),
+        }
+    }
+}
+impl From<crate::operation::list_jobs::ListJobsError> for Error {
+    fn from(err: crate::operation::list_jobs::ListJobsError) -> Self {
+        match err {
+            crate::operation::list_jobs::ListJobsError::InternalServerError(inner) => Error::InternalServerError(inner),
+            crate::operation::list_jobs::ListJobsError::Unhandled(inner) => Error::Unhandled(inner),
+        }
+    }
+}
 impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::list_organisation::ListOrganisationError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
     fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::list_organisation::ListOrganisationError, R>) -> Self {
         match err {
@@ -1542,6 +1607,27 @@ impl From<crate::operation::ramp_experiment::RampExperimentError> for Error {
             crate::operation::ramp_experiment::RampExperimentError::WebhookFailed(inner) => Error::WebhookFailed(inner),
             crate::operation::ramp_experiment::RampExperimentError::InternalServerError(inner) => Error::InternalServerError(inner),
             crate::operation::ramp_experiment::RampExperimentError::Unhandled(inner) => Error::Unhandled(inner),
+        }
+    }
+}
+impl<R> From<::aws_smithy_runtime_api::client::result::SdkError<crate::operation::reduce::ReduceError, R>> for Error where R: Send + Sync + std::fmt::Debug + 'static {
+    fn from(err: ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::reduce::ReduceError, R>) -> Self {
+        match err {
+            ::aws_smithy_runtime_api::client::result::SdkError::ServiceError(context) => Self::from(context.into_err()),
+            _ => Error::Unhandled(
+                                        crate::error::sealed_unhandled::Unhandled {
+                                            meta: ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(&err).clone(),
+                                            source: err.into(),
+                                        }
+                                    ),
+        }
+    }
+}
+impl From<crate::operation::reduce::ReduceError> for Error {
+    fn from(err: crate::operation::reduce::ReduceError) -> Self {
+        match err {
+            crate::operation::reduce::ReduceError::InternalServerError(inner) => Error::InternalServerError(inner),
+            crate::operation::reduce::ReduceError::Unhandled(inner) => Error::Unhandled(inner),
         }
     }
 }

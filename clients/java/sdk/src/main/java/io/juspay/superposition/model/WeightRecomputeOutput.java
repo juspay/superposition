@@ -1,9 +1,9 @@
 
 package io.juspay.superposition.model;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
+import software.amazon.smithy.java.core.schema.PreludeSchemas;
+import software.amazon.smithy.java.core.schema.PresenceTracker;
 import software.amazon.smithy.java.core.schema.Schema;
 import software.amazon.smithy.java.core.schema.SchemaUtils;
 import software.amazon.smithy.java.core.schema.SerializableStruct;
@@ -12,33 +12,50 @@ import software.amazon.smithy.java.core.serde.ShapeDeserializer;
 import software.amazon.smithy.java.core.serde.ShapeSerializer;
 import software.amazon.smithy.java.core.serde.ToStringSerializer;
 import software.amazon.smithy.model.shapes.ShapeId;
+import software.amazon.smithy.model.traits.RequiredTrait;
 import software.amazon.smithy.utils.SmithyGenerated;
 
+/**
+ * Response returned when a job is submitted. Contains the BJM job ID, Kronos job ID, and initial
+ * status.
+ */
 @SmithyGenerated
 public final class WeightRecomputeOutput implements SerializableStruct {
-    public static final ShapeId $ID = ShapeId.from("io.superposition#WeightRecomputeOutput");
+    public static final ShapeId $ID = ShapeId.from("io.superposition#JobCreateResponse");
 
     public static final Schema $SCHEMA = Schema.structureBuilder($ID)
-        .putMember("data", SharedSchemas.WEIGHT_RECOMPUTE_RESPONSES)
+        .putMember("id", PreludeSchemas.STRING,
+                new RequiredTrait())
+        .putMember("kronos_job_id", PreludeSchemas.STRING,
+                new RequiredTrait())
+        .putMember("status", BackgroundJobStatus.$SCHEMA,
+                new RequiredTrait())
         .build();
 
-    private static final Schema $SCHEMA_DATA = $SCHEMA.member("data");
+    private static final Schema $SCHEMA_ID = $SCHEMA.member("id");
+    private static final Schema $SCHEMA_KRONOS_JOB_ID = $SCHEMA.member("kronos_job_id");
+    private static final Schema $SCHEMA_STATUS = $SCHEMA.member("status");
 
-    private final transient List<WeightRecomputeResponse> data;
+    private final transient String id;
+    private final transient String kronosJobId;
+    private final transient BackgroundJobStatus status;
 
     private WeightRecomputeOutput(Builder builder) {
-        this.data = builder.data == null ? null : Collections.unmodifiableList(builder.data);
+        this.id = builder.id;
+        this.kronosJobId = builder.kronosJobId;
+        this.status = builder.status;
     }
 
-    public List<WeightRecomputeResponse> data() {
-        if (data == null) {
-            return Collections.emptyList();
-        }
-        return data;
+    public String id() {
+        return id;
     }
 
-    public boolean hasData() {
-        return data != null;
+    public String kronosJobId() {
+        return kronosJobId;
+    }
+
+    public BackgroundJobStatus status() {
+        return status;
     }
 
     @Override
@@ -55,12 +72,14 @@ public final class WeightRecomputeOutput implements SerializableStruct {
             return false;
         }
         WeightRecomputeOutput that = (WeightRecomputeOutput) other;
-        return Objects.equals(this.data, that.data);
+        return Objects.equals(this.id, that.id)
+               && Objects.equals(this.kronosJobId, that.kronosJobId)
+               && Objects.equals(this.status, that.status);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(data);
+        return Objects.hash(id, kronosJobId, status);
     }
 
     @Override
@@ -70,16 +89,18 @@ public final class WeightRecomputeOutput implements SerializableStruct {
 
     @Override
     public void serializeMembers(ShapeSerializer serializer) {
-        if (data != null) {
-            serializer.writeList($SCHEMA_DATA, data, data.size(), SharedSerde.WeightRecomputeResponsesSerializer.INSTANCE);
-        }
+        serializer.writeString($SCHEMA_ID, id);
+        serializer.writeString($SCHEMA_KRONOS_JOB_ID, kronosJobId);
+        serializer.writeString($SCHEMA_STATUS, status.value());
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public <T> T getMemberValue(Schema member) {
         return switch (member.memberIndex()) {
-            case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_DATA, member, data);
+            case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_ID, member, id);
+            case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_KRONOS_JOB_ID, member, kronosJobId);
+            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_STATUS, member, status);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -93,7 +114,9 @@ public final class WeightRecomputeOutput implements SerializableStruct {
      */
     public Builder toBuilder() {
         var builder = new Builder();
-        builder.data(this.data);
+        builder.id(this.id);
+        builder.kronosJobId(this.kronosJobId);
+        builder.status(this.status);
         return builder;
     }
 
@@ -108,7 +131,10 @@ public final class WeightRecomputeOutput implements SerializableStruct {
      * Builder for {@link WeightRecomputeOutput}.
      */
     public static final class Builder implements ShapeBuilder<WeightRecomputeOutput> {
-        private List<WeightRecomputeResponse> data;
+        private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
+        private String id;
+        private String kronosJobId;
+        private BackgroundJobStatus status;
 
         private Builder() {}
 
@@ -118,15 +144,38 @@ public final class WeightRecomputeOutput implements SerializableStruct {
         }
 
         /**
+         * <p><strong>Required</strong>
          * @return this builder.
          */
-        public Builder data(List<WeightRecomputeResponse> data) {
-            this.data = data;
+        public Builder id(String id) {
+            this.id = Objects.requireNonNull(id, "id cannot be null");
+            tracker.setMember($SCHEMA_ID);
+            return this;
+        }
+
+        /**
+         * <p><strong>Required</strong>
+         * @return this builder.
+         */
+        public Builder kronosJobId(String kronosJobId) {
+            this.kronosJobId = Objects.requireNonNull(kronosJobId, "kronosJobId cannot be null");
+            tracker.setMember($SCHEMA_KRONOS_JOB_ID);
+            return this;
+        }
+
+        /**
+         * <p><strong>Required</strong>
+         * @return this builder.
+         */
+        public Builder status(BackgroundJobStatus status) {
+            this.status = Objects.requireNonNull(status, "status cannot be null");
+            tracker.setMember($SCHEMA_STATUS);
             return this;
         }
 
         @Override
         public WeightRecomputeOutput build() {
+            tracker.validate();
             return new WeightRecomputeOutput(this);
         }
 
@@ -134,9 +183,28 @@ public final class WeightRecomputeOutput implements SerializableStruct {
         @SuppressWarnings("unchecked")
         public void setMemberValue(Schema member, Object value) {
             switch (member.memberIndex()) {
-                case 0 -> data((List<WeightRecomputeResponse>) SchemaUtils.validateSameMember($SCHEMA_DATA, member, value));
+                case 0 -> id((String) SchemaUtils.validateSameMember($SCHEMA_ID, member, value));
+                case 1 -> kronosJobId((String) SchemaUtils.validateSameMember($SCHEMA_KRONOS_JOB_ID, member, value));
+                case 2 -> status((BackgroundJobStatus) SchemaUtils.validateSameMember($SCHEMA_STATUS, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
+        }
+
+        @Override
+        public ShapeBuilder<WeightRecomputeOutput> errorCorrection() {
+            if (tracker.allSet()) {
+                return this;
+            }
+            if (!tracker.checkMember($SCHEMA_ID)) {
+                id("");
+            }
+            if (!tracker.checkMember($SCHEMA_KRONOS_JOB_ID)) {
+                kronosJobId("");
+            }
+            if (!tracker.checkMember($SCHEMA_STATUS)) {
+                status(BackgroundJobStatus.unknown(""));
+            }
+            return this;
         }
 
         @Override
@@ -157,7 +225,9 @@ public final class WeightRecomputeOutput implements SerializableStruct {
             @Override
             public void accept(Builder builder, Schema member, ShapeDeserializer de) {
                 switch (member.memberIndex()) {
-                    case 0 -> builder.data(SharedSerde.deserializeWeightRecomputeResponses(member, de));
+                    case 0 -> builder.id(de.readString(member));
+                    case 1 -> builder.kronosJobId(de.readString(member));
+                    case 2 -> builder.status(BackgroundJobStatus.builder().deserializeMember(de, member).build());
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }
