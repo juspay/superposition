@@ -226,10 +226,10 @@ class HttpDataSourceTest {
 
         Optional<Map<String, String>> context = Optional.of(Map.of("city", "\"Boston\""));
 
-        source.fetchCandidateActiveExperiments(context, Optional.empty(), Optional.empty());
+        source.fetchCandidateActiveExperiments(context, Optional.empty(), Optional.empty(), Optional.empty());
         assertTrue(query.get().contains("dimension_match_strategy=exact"), query.get());
 
-        source.fetchMatchingActiveExperiments(context, Optional.of(List.of("price")), Optional.empty());
+        source.fetchMatchingActiveExperiments(context, Optional.of(List.of("price")), Optional.empty(), Optional.empty());
         assertTrue(query.get().contains("dimension_match_strategy=subset"), query.get());
         assertTrue(query.get().contains("prefix=price"), query.get());
     }

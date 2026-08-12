@@ -84,6 +84,7 @@ public class FileDataSource implements SuperpositionDataSource {
     public FetchResponse<ConfigData> fetchFilteredConfig(
             Optional<Map<String, String>> context,
             Optional<List<String>> prefixFilter,
+            Optional<List<String>> excludePrefixFilter,
             Optional<Instant> ifModifiedSince)
             throws SuperpositionError {
         if (ifModifiedSince.isPresent() && isNotModified(ifModifiedSince.get())) {
@@ -103,7 +104,8 @@ public class FileDataSource implements SuperpositionDataSource {
         Config config;
         try {
             config = FfiUtils.parseConfigFileWithFilters(
-                content, fileFormat, context.orElse(null), prefixFilter.orElse(null));
+                content, fileFormat, context.orElse(null), prefixFilter.orElse(null),
+                excludePrefixFilter.orElse(null));
         } catch (OperationException e) {
             throw SuperpositionError.dataSourceError(
                 "Failed to parse " + fileFormat.toUpperCase(Locale.ROOT) + " config from "
@@ -139,6 +141,7 @@ public class FileDataSource implements SuperpositionDataSource {
     public FetchResponse<ExperimentData> fetchCandidateActiveExperiments(
             Optional<Map<String, String>> context,
             Optional<List<String>> prefixFilter,
+            Optional<List<String>> excludePrefixFilter,
             Optional<Instant> ifModifiedSince) throws SuperpositionError {
         throw SuperpositionError.dataSourceError("Experiments not supported by FileDataSource");
     }
@@ -147,6 +150,7 @@ public class FileDataSource implements SuperpositionDataSource {
     public FetchResponse<ExperimentData> fetchMatchingActiveExperiments(
             Optional<Map<String, String>> context,
             Optional<List<String>> prefixFilter,
+            Optional<List<String>> excludePrefixFilter,
             Optional<Instant> ifModifiedSince) throws SuperpositionError {
         throw SuperpositionError.dataSourceError("Experiments not supported by FileDataSource");
     }

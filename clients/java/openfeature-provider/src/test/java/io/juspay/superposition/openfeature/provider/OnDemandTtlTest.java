@@ -56,12 +56,14 @@ class OnDemandTtlTest {
         public FetchResponse<ConfigData> fetchFilteredConfig(
                 Optional<Map<String, String>> context,
                 Optional<List<String>> prefixFilter,
+                Optional<List<String>> excludePrefixFilter,
                 Optional<Instant> ifModifiedSince) throws SuperpositionError {
             fetches.incrementAndGet();
             if (ifModifiedSince.isPresent()) {
                 return FetchResponse.notModified();
             }
-            ConfigData fresh = super.fetchFilteredConfig(context, prefixFilter, Optional.empty())
+            ConfigData fresh = super.fetchFilteredConfig(
+                    context, prefixFilter, excludePrefixFilter, Optional.empty())
                     .getData().orElseThrow();
             return FetchResponse.data(new ConfigData(fresh.getData(), serverLastModified));
         }

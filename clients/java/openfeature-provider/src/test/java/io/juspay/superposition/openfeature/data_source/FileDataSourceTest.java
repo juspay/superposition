@@ -90,7 +90,8 @@ class FileDataSourceTest {
     @Test
     void prefixFilterPrunesOverridesAndContexts(@TempDir Path dir) throws Exception {
         Config config = sourceOf(dir, "config.toml", TOML_CONFIG)
-            .fetchFilteredConfig(Optional.empty(), Optional.of(List.of("currency")), Optional.empty())
+            .fetchFilteredConfig(
+                Optional.empty(), Optional.of(List.of("currency")), Optional.empty(), Optional.empty())
             .getData()
             .orElseThrow()
             .getData();
@@ -105,7 +106,8 @@ class FileDataSourceTest {
     void contextFilterKeepsOnlyMatchingContexts(@TempDir Path dir) throws Exception {
         Config config = sourceOf(dir, "config.toml", TOML_CONFIG)
             .fetchFilteredConfig(
-                Optional.of(Map.of("city", "\"Boston\"")), Optional.empty(), Optional.empty())
+                Optional.of(Map.of("city", "\"Boston\"")), Optional.empty(), Optional.empty(),
+                Optional.empty())
             .getData()
             .orElseThrow()
             .getData();

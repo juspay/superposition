@@ -9,9 +9,6 @@ import io.juspay.superposition.model.GetExperimentConfigOutput;
 import io.juspay.superposition.openfeature.FfiUtils;
 import io.juspay.superposition.openfeature.error.SuperpositionError;
 import io.juspay.superposition.openfeature.options.SuperpositionOptions;
-import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -20,11 +17,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.smithy.java.client.core.endpoint.EndpointResolver;
 import software.amazon.smithy.java.client.core.interceptors.ClientInterceptor;
-import software.amazon.smithy.java.client.core.interceptors.RequestHook;
 import software.amazon.smithy.java.client.core.interceptors.ResponseHook;
 import software.amazon.smithy.java.core.error.CallException;
 import software.amazon.smithy.java.core.error.ErrorFault;
-import software.amazon.smithy.java.http.api.HttpRequest;
 import software.amazon.smithy.java.http.api.HttpResponse;
 import software.amazon.smithy.java.retries.api.RetrySafety;
 
@@ -69,6 +64,7 @@ public class HttpDataSource implements SuperpositionDataSource {
     public FetchResponse<ConfigData> fetchFilteredConfig(
             Optional<Map<String, String>> context,
             Optional<List<String>> prefixFilter,
+            Optional<List<String>> excludePrefixFilter,
             Optional<Instant> ifModifiedSince)
             throws SuperpositionError {
         log.debug("Fetching config from Superposition service using SDK");
@@ -80,6 +76,7 @@ public class HttpDataSource implements SuperpositionDataSource {
         context.filter(c -> !c.isEmpty())
             .ifPresent(c -> inputBuilder.context(FfiUtils.contextToDocuments(c)));
         prefixFilter.filter(p -> !p.isEmpty()).ifPresent(inputBuilder::prefix);
+        excludePrefixFilter.filter(p -> !p.isEmpty()).ifPresent(inputBuilder::excludePrefix);
         ifModifiedSince.ifPresent(inputBuilder::ifModifiedSince);
 
         try {
@@ -105,27 +102,31 @@ public class HttpDataSource implements SuperpositionDataSource {
     public FetchResponse<ExperimentData> fetchActiveExperiments(Optional<Instant> ifModifiedSince)
             throws SuperpositionError {
         return fetchExperimentsWithFilters(
-            Optional.empty(), Optional.empty(), ifModifiedSince, Optional.empty());
+            Optional.empty(), Optional.empty(), Optional.empty(), ifModifiedSince, Optional.empty());
     }
 
     @Override
     public FetchResponse<ExperimentData> fetchCandidateActiveExperiments(
             Optional<Map<String, String>> context,
             Optional<List<String>> prefixFilter,
+            Optional<List<String>> excludePrefixFilter,
             Optional<Instant> ifModifiedSince)
             throws SuperpositionError {
         return fetchExperimentsWithFilters(
-            context, prefixFilter, ifModifiedSince, Optional.of(DimensionMatchStrategy.EXACT));
+            context, prefixFilter, excludePrefixFilter, ifModifiedSince,
+            Optional.of(DimensionMatchStrategy.EXACT));
     }
 
     @Override
     public FetchResponse<ExperimentData> fetchMatchingActiveExperiments(
             Optional<Map<String, String>> context,
             Optional<List<String>> prefixFilter,
+            Optional<List<String>> excludePrefixFilter,
             Optional<Instant> ifModifiedSince)
             throws SuperpositionError {
         return fetchExperimentsWithFilters(
-            context, prefixFilter, ifModifiedSince, Optional.of(DimensionMatchStrategy.SUBSET));
+            context, prefixFilter, excludePrefixFilter, ifModifiedSince,
+            Optional.of(DimensionMatchStrategy.SUBSET));
     }
 
     @Override
@@ -144,6 +145,7 @@ public class HttpDataSource implements SuperpositionDataSource {
     private FetchResponse<ExperimentData> fetchExperimentsWithFilters(
             Optional<Map<String, String>> context,
             Optional<List<String>> prefixFilter,
+            Optional<List<String>> excludePrefixFilter,
             Optional<Instant> ifModifiedSince,
             Optional<DimensionMatchStrategy> matchStrategy)
             throws SuperpositionError {
@@ -156,6 +158,7 @@ public class HttpDataSource implements SuperpositionDataSource {
         context.filter(c -> !c.isEmpty())
             .ifPresent(c -> inputBuilder.context(FfiUtils.contextToDocuments(c)));
         prefixFilter.filter(p -> !p.isEmpty()).ifPresent(inputBuilder::prefix);
+        excludePrefixFilter.filter(p -> !p.isEmpty()).ifPresent(inputBuilder::excludePrefix);
         ifModifiedSince.ifPresent(inputBuilder::ifModifiedSince);
         matchStrategy.ifPresent(inputBuilder::dimensionMatchStrategy);
 
@@ -219,42 +222,4 @@ public class HttpDataSource implements SuperpositionDataSource {
         }
     }
 
-    /**
-     * The generated SDK never serializes list-typed {@code @httpQuery} members, so a {@code prefix}
-     * set on the input silently never reaches the server and the response comes back unfiltered.
-     * Until that is fixed in the SDK, put it on the wire here — comma-joined, which is how the
-     * service parses it.
-     */
-    private static final class PrefixQueryInterceptor implements ClientInterceptor {
-        @Override
-        public <RequestT> RequestT modifyBeforeTransmit(RequestHook<?, ?, RequestT> hook) {
-            List<String> prefix = prefixOf(hook.input());
-            if (prefix.isEmpty()) {
-                return hook.request();
-            }
-            return hook.mapRequest(HttpRequest.class, h -> {
-                URI uri = h.request().uri();
-                String param = "prefix="
-                    + URLEncoder.encode(String.join(",", prefix), StandardCharsets.UTF_8);
-                String query = uri.getRawQuery() == null ? param : uri.getRawQuery() + "&" + param;
-                return h.request().toBuilder().uri(withQuery(uri, query)).build();
-            });
-        }
-
-        private static List<String> prefixOf(Object input) {
-            if (input instanceof GetConfigInput config) {
-                return config.prefix();
-            }
-            if (input instanceof GetExperimentConfigInput experiments) {
-                return experiments.prefix();
-            }
-            return List.of();
-        }
-
-        private static URI withQuery(URI uri, String rawQuery) {
-            String rebuilt = uri.getScheme() + "://" + uri.getRawAuthority() +
-                uri.getRawPath() + '?' + rawQuery;
-            return URI.create(rebuilt);
-        }
-    }
 }

@@ -31,7 +31,7 @@ public interface SuperpositionDataSource {
      */
     default FetchResponse<ConfigData> fetchConfig(Optional<Instant> ifModifiedSince)
             throws SuperpositionError {
-        return fetchFilteredConfig(Optional.empty(), Optional.empty(), ifModifiedSince);
+        return fetchFilteredConfig(Optional.empty(), Optional.empty(), Optional.empty(), ifModifiedSince);
     }
 
     /**
@@ -39,6 +39,7 @@ public interface SuperpositionDataSource {
      *
      * @param context optional dimension values (JSON-encoded) to filter contexts by
      * @param prefixFilter optional list of key prefixes (only keys starting with these are returned)
+     * @param excludePrefixFilter optional list of key prefixes to exclude (keys starting with these are dropped)
      * @param ifModifiedSince optional timestamp for conditional fetching
      * @return FetchResponse containing filtered ConfigData or NotModified
      * @throws SuperpositionError if the fetch fails
@@ -46,6 +47,7 @@ public interface SuperpositionDataSource {
     FetchResponse<ConfigData> fetchFilteredConfig(
             Optional<Map<String, String>> context,
             Optional<List<String>> prefixFilter,
+            Optional<List<String>> excludePrefixFilter,
             Optional<Instant> ifModifiedSince)
             throws SuperpositionError;
 
@@ -67,6 +69,7 @@ public interface SuperpositionDataSource {
      *
      * @param context optional dimension values (JSON-encoded) to match against
      * @param prefixFilter optional list of key prefixes to filter experiments
+     * @param excludePrefixFilter optional list of key prefixes to exclude from experiments
      * @param ifModifiedSince optional timestamp for conditional fetching
      * @return FetchResponse containing filtered ExperimentData or NotModified
      * @throws SuperpositionError if the fetch fails
@@ -74,6 +77,7 @@ public interface SuperpositionDataSource {
     FetchResponse<ExperimentData> fetchCandidateActiveExperiments(
             Optional<Map<String, String>> context,
             Optional<List<String>> prefixFilter,
+            Optional<List<String>> excludePrefixFilter,
             Optional<Instant> ifModifiedSince)
             throws SuperpositionError;
 
@@ -85,6 +89,7 @@ public interface SuperpositionDataSource {
      *
      * @param context optional dimension values (JSON-encoded) to match against
      * @param prefixFilter optional list of key prefixes to filter experiments
+     * @param excludePrefixFilter optional list of key prefixes to exclude from experiments
      * @param ifModifiedSince optional timestamp for conditional fetching
      * @return FetchResponse containing filtered ExperimentData or NotModified
      * @throws SuperpositionError if the fetch fails
@@ -92,6 +97,7 @@ public interface SuperpositionDataSource {
     FetchResponse<ExperimentData> fetchMatchingActiveExperiments(
             Optional<Map<String, String>> context,
             Optional<List<String>> prefixFilter,
+            Optional<List<String>> excludePrefixFilter,
             Optional<Instant> ifModifiedSince)
             throws SuperpositionError;
 
