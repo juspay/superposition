@@ -8,7 +8,6 @@ import {
     OpenFeatureEventEmitter,
     ErrorCode,
     ProviderMetadata,
-    OpenFeature,
     Hook,
     Logger,
     StandardResolutionReasons,
@@ -23,10 +22,9 @@ import {
     getNestedValue,
 } from "./utils";
 import {
-    SuperpositionOptions,
     EvaluationCacheOptions,
     RefreshStrategy,
-    ConfigData,
+    Config,
     ExperimentationOptions,
 } from "./types";
 import { NativeResolver } from "superposition-bindings";
@@ -37,7 +35,7 @@ export interface SuperpositionProviderOptions {
     org_id: string;
     workspace_id: string;
     httpClient?: any;
-    fallbackConfig?: ConfigData;
+    fallbackConfig?: Config;
     evaluationCache?: EvaluationCacheOptions;
     refreshStrategy?: RefreshStrategy;
     experimentationOptions?: ExperimentationOptions;

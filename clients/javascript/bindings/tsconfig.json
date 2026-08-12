@@ -4,6 +4,7 @@
         "module": "ES2020",
         "lib": [
             "es2020",
+            "esnext.disposable",
             "dom"
         ],
         "declaration": true,
