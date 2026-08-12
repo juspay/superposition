@@ -285,16 +285,16 @@ where
     })
 }
 
-async fn request_with_policy<T>(
+async fn send_with_policy<F>(
     url: String,
     method: reqwest::Method,
-    body: Option<T>,
     headers: HeaderMap,
     skip_error: &[StatusCode],
     retry_policy: RetryPolicy,
+    build_body: F,
 ) -> Result<reqwest::Response, String>
 where
-    T: serde::Serialize,
+    F: Fn(reqwest::RequestBuilder) -> reqwest::RequestBuilder,
 {
     let ssr_headers = use_context::<Option<SsrSharedHttpRequestHeaders>>().flatten();
     let cookie = ssr_headers.and_then(|h| h.cookie.clone());
@@ -303,14 +303,11 @@ where
     let mut retry = 0;
 
     loop {
-        let mut request_builder = HTTP_CLIENT
-            .request(method.clone(), &url)
-            .headers(headers.clone());
-        request_builder = match (&method, body.as_ref()) {
-            (&reqwest::Method::GET, _) => request_builder,
-            (_, Some(data)) => request_builder.json(data),
-            _ => request_builder,
-        };
+        let mut request_builder = build_body(
+            HTTP_CLIENT
+                .request(method.clone(), &url)
+                .headers(headers.clone()),
+        );
 
         if let Some(cookie_value) = cookie.as_ref() {
             request_builder =
@@ -378,6 +375,32 @@ where
     }
 }
 
+async fn request_with_policy<T>(
+    url: String,
+    method: reqwest::Method,
+    body: Option<T>,
+    headers: HeaderMap,
+    skip_error: &[StatusCode],
+    retry_policy: RetryPolicy,
+) -> Result<reqwest::Response, String>
+where
+    T: serde::Serialize,
+{
+    let send_body = method != reqwest::Method::GET;
+    send_with_policy(
+        url,
+        method,
+        headers,
+        skip_error,
+        retry_policy,
+        |request_builder| match (send_body, body.as_ref()) {
+            (true, Some(data)) => request_builder.json(data),
+            _ => request_builder,
+        },
+    )
+    .await
+}
+
 pub async fn request_with_skip_error<T>(
     url: String,
     method: reqwest::Method,
@@ -413,6 +436,23 @@ where
     T: serde::Serialize,
 {
     request_with_policy(url, method, body, headers, &[], RetryPolicy::WorkspaceLock).await
+}
+
+pub async fn request_raw_body(
+    url: String,
+    method: reqwest::Method,
+    body: String,
+    headers: HeaderMap,
+) -> Result<reqwest::Response, String> {
+    send_with_policy(
+        url,
+        method,
+        headers,
+        &[],
+        RetryPolicy::WorkspaceLock,
+        move |request_builder| request_builder.body(body.clone()),
+    )
+    .await
 }
 
 pub fn unwrap_option_or_default_with_error<T>(option: Option<T>, default: T) -> T {

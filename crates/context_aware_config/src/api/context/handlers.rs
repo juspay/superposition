@@ -1,21 +1,22 @@
 use std::{cmp::min, collections::HashMap};
 
 use actix_web::{
-    Either, HttpResponse, Scope, delete, get, post, put, routes,
+    delete, get, post, put, routes,
     web::{Data, Json, Path},
+    Either, HttpResponse, Scope,
 };
 use bigdecimal::BigDecimal;
 use chrono::Utc;
 use diesel::{
-    Connection, ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl,
-    SelectableHelper,
     dsl::sql,
     sql_types::{Bool, Text},
+    Connection, ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl,
+    SelectableHelper,
 };
 use serde_json::{Map, Value};
 use service_utils::{
     helpers::{
-        WebhookData, execute_webhook_call, fetch_dimensions_info_map, parse_config_tags,
+        execute_webhook_call, fetch_dimensions_info_map, parse_config_tags, WebhookData,
     },
     middlewares::auth_z::{Action as AuthZAction, AuthZ},
     service::types::{
@@ -27,27 +28,27 @@ use superposition_core::helpers::{calculate_context_weight, hash};
 use superposition_derives::{authorized, declare_resource};
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    Contextual, DBConnection, DimensionInfo, InternalUserContext, ListResponse,
-    Overridden, Overrides, PaginatedResponse, PrefixList, Resource, SortBy, User,
     api::{
-        DimensionMatchStrategy,
         context::{
             BulkOperation, BulkOperationResponse, ContextAction, ContextBulkResponse,
             ContextListFilters, ContextValidationRequest, Identifier, MoveRequest,
             PutRequest, SortOn, UpdateRequest, WeightRecomputeResponse,
         },
         webhook::Action,
+        DimensionMatchStrategy,
     },
     custom_query::{
         self as superposition_query, CustomQuery, DimensionQuery, PaginationParams,
         QueryMap,
     },
     database::{
-        models::{ChangeReason, Description, cac::Context, others::WebhookEvent},
+        models::{cac::Context, others::WebhookEvent, ChangeReason, Description},
         schema::contexts::{self, dsl, id},
     },
     logic::evaluate_local_cohorts_skip_unresolved,
     result::{self as superposition, AppError},
+    Contextual, DBConnection, DimensionInfo, InternalUserContext, ListResponse,
+    Overridden, Overrides, PaginatedResponse, PrefixList, Resource, SortBy, User,
 };
 
 use crate::{
@@ -786,38 +787,6 @@ async fn delete_handler(
         .finish())
 }
 
-async fn bulk_authorized<A: AuthZAction>(
-    auth_z: &AuthZ<A>,
-    operations: &Vec<ContextAction>,
-    schema_name: &SchemaName,
-    conn: &mut DBConnection,
-) -> superposition::Result<()> {
-    for op in operations {
-        match op {
-            ContextAction::Put(put_req) => {
-                create_authorized(auth_z, &put_req.r#override).await?;
-            }
-            ContextAction::Replace(update_req) => {
-                update_authorized(
-                    auth_z,
-                    &update_req.context,
-                    &update_req.override_,
-                    schema_name,
-                    conn,
-                )
-                .await?;
-            }
-            ContextAction::Delete(ctx_id) => {
-                delete_authorized(auth_z, ctx_id, schema_name, conn).await?;
-            }
-            ContextAction::Move { id: ctx_id, .. } => {
-                move_authorized(auth_z, ctx_id, schema_name, conn).await?;
-            }
-        }
-    }
-    Ok(())
-}
-
 enum PreparedOperation {
     Put {
         new_ctx: Context,
@@ -859,8 +828,6 @@ async fn bulk_operations_handler(
         Either::Left(o) => o.into_inner(),
         Either::Right(bo) => bo.into_inner().operations,
     };
-    bulk_authorized(&_auth_z, &ops, &workspace_context.schema_name, conn).await?;
-
     let mut webhook_actions: Vec<Action> = Vec::new();
     let mut webhook_contexts: Vec<Context> = Vec::new();
 

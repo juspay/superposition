@@ -27,6 +27,7 @@ resource DefaultConfig {
     list: ListDefaultConfigs
     operations: [
         CreateDefaultConfig
+        BulkDefaultConfigOperation
     ]
 }
 
@@ -92,6 +93,65 @@ operation GetDefaultConfig with [GetOperation] {
 operation CreateDefaultConfig with [WebhookOperation, WorkspaceWriteOperation] {
     input := with [DefaultConfigMixin, WorkspaceMixin] {}
     output: DefaultConfigResponse
+}
+
+structure DefaultConfigBulkItem with [DefaultConfigMixin] {}
+
+@length(min: 1)
+list DefaultConfigBulkOperationList {
+    member: DefaultConfigAction
+}
+
+structure DefaultConfigUpdateBulkRequest {
+    @required
+    key: String
+
+    @required
+    request: DefaultConfigUpdateBulkPayload
+}
+
+structure DefaultConfigUpdateBulkPayload for DefaultConfig {
+    $value
+    $schema
+    $value_validation_function_name
+    $description
+
+    @required
+    $change_reason
+
+    $value_compute_function_name
+}
+
+union DefaultConfigAction {
+    CREATE: DefaultConfigBulkItem
+    UPDATE: DefaultConfigUpdateBulkRequest
+    DELETE: String
+}
+
+union DefaultConfigBulkOperationOutput {
+    CREATE: DefaultConfigResponse
+    UPDATE: DefaultConfigResponse
+    DELETE: String
+}
+
+list DefaultConfigBulkOperationOutputList {
+    member: DefaultConfigBulkOperationOutput
+}
+
+@documentation("Executes multiple default config create, update, and delete operations atomically.")
+@idempotent
+@http(method: "PUT", uri: "/default-config/bulk-operations")
+@tags(["Default Configuration"])
+operation BulkDefaultConfigOperation with [WebhookOperation, WorkspaceWriteOperation] {
+    input := with [WorkspaceMixin] {
+        @required
+        operations: DefaultConfigBulkOperationList
+    }
+
+    output := {
+        @required
+        output: DefaultConfigBulkOperationOutputList
+    }
 }
 
 @documentation("Retrieves a paginated list of all default config entries in the workspace, including their values, schemas, and metadata.")

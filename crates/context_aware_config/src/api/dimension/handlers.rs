@@ -1,6 +1,7 @@
 use actix_web::{
-    HttpResponse, Scope, delete, get, post, routes,
+    delete, get, post, put, routes,
     web::{self, Data, Json, Path, Query},
+    HttpResponse, Scope,
 };
 use chrono::Utc;
 use diesel::{
@@ -9,36 +10,40 @@ use diesel::{
 };
 use serde_json::Value;
 use service_utils::{
-    helpers::{WebhookData, execute_webhook_call, parse_config_tags},
+    helpers::{execute_webhook_call, parse_config_tags, WebhookData},
     service::types::{
         AppHeader, AppState, CustomHeaders, DbConnection, WorkspaceContext,
-        WorkspaceWritePermit,
+        WorkspaceLockTtlPolicy, WorkspaceWritePermit,
     },
 };
 use superposition_core::validations::validate_schema;
 use superposition_derives::{authorized, declare_resource};
 use superposition_macros::{bad_argument, db_error, not_found, unexpected_error};
 use superposition_types::{
-    PaginatedResponse, Resource, User,
     api::{
         dimension::{
-            CreateRequest, DeleteRequest, DimensionName, DimensionResponse, UpdateRequest,
+            BulkOperation, BulkOperationResponse, CreateRequest, DeleteRequest,
+            DimensionAction, DimensionBulkResponse, DimensionName, DimensionResponse,
+            UpdateRequest,
         },
         webhook::Action,
     },
     custom_query::PaginationParams,
     database::{
         models::{
-            Description,
             cac::{DependencyGraph, Dimension, DimensionType},
             others::WebhookEvent,
+            ChangeReason, Description,
         },
         schema::dimensions::{self, dsl::*},
     },
-    result as superposition,
+    result as superposition, PaginatedResponse, Resource, User,
 };
 
-use crate::api::dimension::validations::allow_primitive_types;
+use crate::api::dimension::{
+    operations::{refresh_dependency_graphs, upsert_dimension},
+    validations::allow_primitive_types,
+};
 use crate::helpers::put_config_in_redis;
 use crate::{
     api::dimension::{
@@ -58,9 +63,39 @@ use crate::{
 
 declare_resource!(Dimension);
 
+fn dimension_from_create_request(req: CreateRequest, email: String) -> Dimension {
+    let now = Utc::now();
+    Dimension {
+        dimension: req.dimension.into(),
+        position: req.position,
+        schema: req.schema,
+        value_validation_function_name: req.value_validation_function_name,
+        created_at: now,
+        created_by: email.clone(),
+        last_modified_at: now,
+        last_modified_by: email,
+        description: req.description,
+        change_reason: req.change_reason,
+        dependency_graph: DependencyGraph::default(),
+        value_compute_function_name: req.value_compute_function_name,
+        dimension_type: req.dimension_type,
+    }
+}
+
+enum PreparedDimensionOperation {
+    Create(Dimension),
+    Update(Dimension),
+    Delete(Dimension),
+}
+
 pub fn endpoints() -> Scope {
     Scope::new("")
         .service(create_handler)
+        .service(
+            Scope::new("/bulk-operations")
+                .app_data(WorkspaceLockTtlPolicy::Batch)
+                .service(bulk_operations_handler),
+        )
         .service(update_handler)
         .service(get_handler)
         .service(list_handler)
@@ -154,21 +189,8 @@ async fn create_handler(
         &workspace_context.schema_name,
     )?;
 
-    let dimension_data = Dimension {
-        dimension: create_req.dimension.into(),
-        position: create_req.position,
-        schema: create_req.schema,
-        created_by: user.get_email(),
-        created_at: Utc::now(),
-        value_validation_function_name: create_req.value_validation_function_name.clone(),
-        last_modified_at: Utc::now(),
-        last_modified_by: user.get_email(),
-        description: create_req.description,
-        change_reason: create_req.change_reason,
-        dependency_graph: DependencyGraph::default(),
-        value_compute_function_name: create_req.value_compute_function_name,
-        dimension_type: create_req.dimension_type,
-    };
+    let validation_function_name = create_req.value_validation_function_name.clone();
+    let dimension_data = dimension_from_create_request(create_req, user.get_email());
 
     let (inserted_dimension, is_mandatory, config_version) =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -228,14 +250,12 @@ async fn create_handler(
                     diesel::result::DatabaseErrorKind::ForeignKeyViolation,
                     e,
                 )) => {
-                    let fun_name = create_req.value_validation_function_name.clone();
+                    let fun_name = validation_function_name.clone();
                     log::error!("{fun_name:?} function not found with error: {e:?}");
                     Err(bad_argument!(
                         "Function {} doesn't exists",
-                        Into::<Option<String>>::into(
-                            create_req.value_validation_function_name.clone()
-                        )
-                        .unwrap_or_default()
+                        Into::<Option<String>>::into(validation_function_name.clone())
+                            .unwrap_or_default()
                     ))
                 }
                 Err(e) => {
@@ -277,6 +297,366 @@ async fn create_handler(
         config_version.id.to_string(),
     ));
     Ok(http_resp.json(DimensionResponse::new(inserted_dimension, is_mandatory)))
+}
+
+#[allow(clippy::too_many_arguments)]
+#[authorized]
+#[put("")]
+async fn bulk_operations_handler(
+    workspace_context: WorkspaceContext,
+    state: Data<AppState>,
+    custom_headers: CustomHeaders,
+    request: Json<BulkOperation>,
+    mut write_permit: WorkspaceWritePermit,
+    user: User,
+) -> superposition::Result<HttpResponse> {
+    let conn = write_permit.connection();
+    let tags = parse_config_tags(custom_headers.config_tags)?;
+    if request.operations.is_empty() {
+        return Err(bad_argument!(
+            "At least one dimension operation is required"
+        ));
+    }
+    let mut operations = Vec::with_capacity(request.operations.len());
+    let mut change_reasons = Vec::with_capacity(request.operations.len());
+
+    for operation in request.into_inner().operations {
+        match operation {
+            DimensionAction::Create(req) => {
+                validate_change_reason(
+                    &workspace_context,
+                    &req.change_reason,
+                    conn,
+                    &state.master_encryption_key,
+                )
+                .await?;
+                match &req.dimension_type {
+                    DimensionType::Regular {} | DimensionType::RemoteCohort(_) => {
+                        allow_primitive_types(&req.schema)?;
+                        validate_schema(&Value::from(&req.schema)).map_err(|errors| {
+                            superposition::AppError::ValidationError(errors.join("; "))
+                        })?;
+                    }
+                    DimensionType::LocalCohort(_) => {
+                        superposition_core::validations::validate_cohort_schema_structure(
+                            &Value::from(&req.schema),
+                        )
+                        .map_err(|errors| {
+                            superposition::AppError::ValidationError(errors.join("; "))
+                        })?;
+                    }
+                }
+                validate_validation_function(
+                    &req.value_validation_function_name,
+                    conn,
+                    &workspace_context.schema_name,
+                )?;
+                validate_value_compute_function(
+                    &req.dimension_type,
+                    &req.value_compute_function_name,
+                    conn,
+                    &workspace_context.schema_name,
+                )?;
+                change_reasons.push(req.change_reason.clone());
+                operations.push(PreparedDimensionOperation::Create(
+                    dimension_from_create_request(req, user.get_email()),
+                ));
+            }
+            DimensionAction::Update {
+                dimension: dimension_name,
+                request,
+            } => {
+                validate_change_reason(
+                    &workspace_context,
+                    &request.change_reason,
+                    conn,
+                    &state.master_encryption_key,
+                )
+                .await?;
+                let name: String = dimension_name.into();
+                let existing = dimensions
+                    .filter(dimension.eq(&name))
+                    .schema_name(&workspace_context.schema_name)
+                    .get_result::<Dimension>(conn)?;
+
+                if let Some(schema_value) = &request.schema {
+                    match &existing.dimension_type {
+                        DimensionType::Regular {} | DimensionType::RemoteCohort(_) => {
+                            allow_primitive_types(schema_value)?;
+                            validate_schema(&Value::from(schema_value)).map_err(
+                                |errors| {
+                                    superposition::AppError::ValidationError(
+                                        errors.join("; "),
+                                    )
+                                },
+                            )?;
+                        }
+                        DimensionType::LocalCohort(_) => {
+                            superposition_core::validations::validate_cohort_schema_structure(
+                                &Value::from(schema_value),
+                            )
+                            .map_err(|errors| {
+                                superposition::AppError::ValidationError(
+                                    errors.join("; "),
+                                )
+                            })?;
+                        }
+                    }
+                }
+                if let Some(function) = &request.value_validation_function_name {
+                    validate_validation_function(
+                        function,
+                        conn,
+                        &workspace_context.schema_name,
+                    )?;
+                }
+                if let Some(function) = &request.value_compute_function_name {
+                    validate_value_compute_function(
+                        &existing.dimension_type,
+                        function,
+                        conn,
+                        &workspace_context.schema_name,
+                    )?;
+                }
+
+                change_reasons.push(request.change_reason.clone());
+                let now = Utc::now();
+                operations.push(PreparedDimensionOperation::Update(Dimension {
+                    dimension: existing.dimension,
+                    position: request.position.unwrap_or(existing.position),
+                    schema: request.schema.unwrap_or(existing.schema),
+                    value_validation_function_name: request
+                        .value_validation_function_name
+                        .unwrap_or(existing.value_validation_function_name),
+                    created_at: existing.created_at,
+                    created_by: existing.created_by,
+                    last_modified_at: now,
+                    last_modified_by: user.get_email(),
+                    description: request.description.unwrap_or(existing.description),
+                    change_reason: request.change_reason,
+                    dependency_graph: existing.dependency_graph,
+                    value_compute_function_name: request
+                        .value_compute_function_name
+                        .unwrap_or(existing.value_compute_function_name),
+                    dimension_type: existing.dimension_type,
+                }));
+            }
+            DimensionAction::Delete(request) => {
+                let name: String = request.into();
+                let existing = dimensions
+                    .filter(dimension.eq(&name))
+                    .schema_name(&workspace_context.schema_name)
+                    .get_result::<Dimension>(conn)?;
+                if workspace_context
+                    .settings
+                    .mandatory_dimensions
+                    .as_ref()
+                    .is_some_and(|mandatory| mandatory.contains(&name))
+                {
+                    return Err(bad_argument!(
+                        "Dimension `{}` is mandatory and cannot be deleted",
+                        name
+                    ));
+                }
+                let context_ids = get_dimension_usage_context_ids(
+                    &name,
+                    conn,
+                    &workspace_context.schema_name,
+                )?;
+                if !context_ids.is_empty() {
+                    return Err(bad_argument!(
+                        "Dimension `{}` is in use by contexts: {}",
+                        name,
+                        context_ids.join(",")
+                    ));
+                }
+                change_reasons.push(
+                    ChangeReason::try_from(format!(
+                        "Dimension deleted by {}",
+                        user.get_email()
+                    ))
+                    .map_err(|error| unexpected_error!(error))?,
+                );
+                operations.push(PreparedDimensionOperation::Delete(existing));
+            }
+        }
+    }
+
+    let mut webhook_actions = Vec::with_capacity(operations.len());
+    let mut webhook_dimensions = Vec::with_capacity(operations.len());
+    let (output, config_version) =
+        conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
+            let mut output = Vec::with_capacity(operations.len());
+            let mut written = Vec::new();
+            for operation in operations {
+                match operation {
+                    PreparedDimensionOperation::Create(row) => {
+                        let (created, row) = upsert_dimension(
+                            transaction_conn,
+                            &workspace_context.schema_name,
+                            row,
+                        )?;
+                        if !created {
+                            return Err(bad_argument!(
+                                "Dimension '{}' already exists",
+                                row.dimension
+                            ));
+                        }
+                        let mandatory = workspace_context
+                            .settings
+                            .mandatory_dimensions
+                            .as_ref()
+                            .is_some_and(|mandatory_dimensions| {
+                                mandatory_dimensions.contains(&row.dimension)
+                            });
+                        output.push(DimensionBulkResponse::Create(
+                            DimensionResponse::new(row.clone(), mandatory),
+                        ));
+                        webhook_actions.push(Action::Create);
+                        webhook_dimensions.push(row.clone());
+                        written.push((true, row));
+                    }
+                    PreparedDimensionOperation::Update(row) => {
+                        let (created, row) = upsert_dimension(
+                            transaction_conn,
+                            &workspace_context.schema_name,
+                            row,
+                        )?;
+                        if created {
+                            return Err(bad_argument!(
+                                "Dimension '{}' does not exist",
+                                row.dimension
+                            ));
+                        }
+                        let mandatory = workspace_context
+                            .settings
+                            .mandatory_dimensions
+                            .as_ref()
+                            .is_some_and(|mandatory_dimensions| {
+                                mandatory_dimensions.contains(&row.dimension)
+                            });
+                        output.push(DimensionBulkResponse::Update(
+                            DimensionResponse::new(row.clone(), mandatory),
+                        ));
+                        webhook_actions.push(Action::Update);
+                        webhook_dimensions.push(row.clone());
+                        written.push((false, row));
+                    }
+                    PreparedDimensionOperation::Delete(row) => {
+                        if !row.dependency_graph.is_empty() {
+                            return Err(bad_argument!(
+                                "Dimension {} has dependent cohort dimensions",
+                                row.dimension
+                            ));
+                        }
+                        if let DimensionType::LocalCohort(parent)
+                        | DimensionType::RemoteCohort(parent) = &row.dimension_type
+                        {
+                            remove_connections_with_dependents(
+                                &row.dimension,
+                                parent,
+                                &user.get_email(),
+                                &workspace_context.schema_name,
+                                transaction_conn,
+                            )?;
+                        }
+                        diesel::delete(dimensions.filter(dimension.eq(&row.dimension)))
+                            .schema_name(&workspace_context.schema_name)
+                            .execute(transaction_conn)?;
+                        diesel::update(dimensions.filter(position.gt(row.position)))
+                            .set(position.eq(position - 1))
+                            .schema_name(&workspace_context.schema_name)
+                            .execute(transaction_conn)?;
+                        output.push(DimensionBulkResponse::Delete(format!(
+                            "{} deleted successfully",
+                            row.dimension
+                        )));
+                        webhook_actions.push(Action::Delete);
+                        webhook_dimensions.push(row);
+                    }
+                }
+            }
+
+            let dimension_count = dimensions
+                .count()
+                .schema_name(&workspace_context.schema_name)
+                .get_result::<i64>(transaction_conn)?;
+            for (created, row) in &written {
+                validate_dimension_position(
+                    DimensionName::try_from(row.dimension.clone()).map_err(|error| {
+                        bad_argument!(
+                            "Invalid dimension name '{}': {}",
+                            row.dimension,
+                            error
+                        )
+                    })?,
+                    row.position,
+                    dimension_count - 1,
+                )?;
+
+                let based_on = match &row.dimension_type {
+                    DimensionType::Regular {} => continue,
+                    DimensionType::RemoteCohort(parent) => {
+                        does_dimension_exist_for_cohorting(
+                            parent,
+                            &workspace_context.schema_name,
+                            transaction_conn,
+                        )?
+                    }
+                    DimensionType::LocalCohort(parent) => validate_cohort_schema(
+                        &Value::from(&row.schema),
+                        parent,
+                        &workspace_context.schema_name,
+                        transaction_conn,
+                    )?,
+                };
+                validate_cohort_position(&row.position, &based_on, *created)?;
+            }
+
+            refresh_dependency_graphs(transaction_conn, &workspace_context.schema_name)?;
+            let config_version = add_config_version(
+                &state,
+                tags,
+                Description::try_from_change_reasons(change_reasons).unwrap_or_default(),
+                transaction_conn,
+                &workspace_context.schema_name,
+            )?;
+            Ok((output, config_version))
+        })?;
+
+    let _ = put_config_in_redis(
+        &config_version,
+        &state,
+        &workspace_context.schema_name,
+        conn,
+    )
+    .await;
+    let webhook_status = execute_webhook_call(
+        WebhookData {
+            payload: &webhook_dimensions,
+            resource: Resource::Dimension,
+            event: WebhookEvent::ConfigChanged,
+            config_version_opt: Some(config_version.id.to_string()),
+            action: Action::Batch(webhook_actions),
+        },
+        &workspace_context,
+        &state,
+        conn,
+    )
+    .await;
+    let mut response = if webhook_status {
+        HttpResponse::Ok()
+    } else {
+        HttpResponse::build(
+            actix_web::http::StatusCode::from_u16(512)
+                .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
+        )
+    };
+    response.insert_header((
+        AppHeader::XConfigVersion.to_string(),
+        config_version.id.to_string(),
+    ));
+    Ok(response.json(BulkOperationResponse { output }))
 }
 
 #[authorized]

@@ -82,21 +82,25 @@ experiment_group = { position = 13, schema = { "type" = "string", "enum" = ["con
 # --- Vehicle type specific rates (priority based on position 4 = 16) ---
 [[overrides]]
 _context_ = { vehicle_type = "bike" }
+_description_ = "test context"
 per_km_rate = 12.0
 max_wait_time_minutes = 10
 
 [[overrides]]
 _context_ = { vehicle_type = "auto" }
+_description_ = "test context"
 per_km_rate = 15.0
 max_wait_time_minutes = 12
 
 [[overrides]]
 _context_ = { vehicle_type = "cab" }
+_description_ = "test context"
 per_km_rate = 22.0
 max_wait_time_minutes = 15
 
 [[overrides]]
 _context_ = { vehicle_type = "premium" }
+_description_ = "test context"
 per_km_rate = 35.0
 surge_factor = 1.5
 max_wait_time_minutes = 20
@@ -104,87 +108,103 @@ notification_settings = { "value" = { "sms" = true, "email" = true, "push" = tru
 
 [[overrides]]
 _context_ = { vehicle_type = "suv" }
+_description_ = "test context"
 per_km_rate = 30.0
 max_wait_time_minutes = 18
 
 # --- City specific overrides (priority based on position 2 = 4) ---
 [[overrides]]
 _context_ = { city = "Bangalore" }
+_description_ = "test context"
 per_km_rate = 18.0
 currency = "INR"
 
 [[overrides]]
 _context_ = { city = "Delhi" }
+_description_ = "test context"
 per_km_rate = 20.0
 currency = "INR"
 
 [[overrides]]
 _context_ = { city = "Mumbai" }
+_description_ = "test context"
 per_km_rate = 22.0
 currency = "INR"
 
 # --- Combined city + vehicle overrides (priority = 4 + 16 = 20) ---
 [[overrides]]
 _context_ = { city = "Bangalore", vehicle_type = "cab" }
+_description_ = "test context"
 per_km_rate = 22.0
 driver_incentive_multiplier = 1.2
 
 [[overrides]]
 _context_ = { city = "Delhi", vehicle_type = "cab" }
+_description_ = "test context"
 per_km_rate = 24.0
 driver_incentive_multiplier = 1.15
 
 [[overrides]]
 _context_ = { city = "Mumbai", vehicle_type = "premium" }
+_description_ = "test context"
 per_km_rate = 45.0
 driver_incentive_multiplier = 1.3
 
 # --- Peak hours surge pricing (priority based on position 6 = 64) ---
 [[overrides]]
 _context_ = { hour_of_day = 7 }
+_description_ = "test context"
 surge_factor = 1.5
 enable_surge_pricing = true
 
 [[overrides]]
 _context_ = { hour_of_day = 8 }
+_description_ = "test context"
 surge_factor = 2.0
 enable_surge_pricing = true
 
 [[overrides]]
 _context_ = { hour_of_day = 9 }
+_description_ = "test context"
 surge_factor = 1.8
 enable_surge_pricing = true
 
 [[overrides]]
 _context_ = { hour_of_day = 18 }
+_description_ = "test context"
 surge_factor = 2.2
 enable_surge_pricing = true
 
 [[overrides]]
 _context_ = { hour_of_day = 19 }
+_description_ = "test context"
 surge_factor = 2.5
 enable_surge_pricing = true
 
 [[overrides]]
 _context_ = { hour_of_day = 20 }
+_description_ = "test context"
 surge_factor = 2.0
 enable_surge_pricing = true
 
 # --- Peak hours combined with city (priority = 4 + 64 = 68) ---
 [[overrides]]
 _context_ = { city = "Delhi", hour_of_day = 19 }
+_description_ = "test context"
 surge_factor = 3.0
 enable_surge_pricing = true
 driver_incentive_multiplier = 1.5
 
 [[overrides]]
 _context_ = { city = "Bangalore", hour_of_day = 18 }
+_description_ = "test context"
 surge_factor = 2.8
 enable_surge_pricing = true
 
 # --- Weekend pricing (priority based on position 12 = 4096) ---
 [[overrides]]
 _context_ = { is_weekend = true }
+_description_ = "test context"
 surge_factor = 1.3
 enable_surge_pricing = true
 platform_fee_percent = 12.0
@@ -192,28 +212,33 @@ platform_fee_percent = 12.0
 # --- City tier based pricing using cohort (priority based on position 10 = 1024) ---
 [[overrides]]
 _context_ = { city_tier = "metro" }
+_description_ = "test context"
 platform_fee_percent = 18.0
 payment_methods = ["cash", "card", "upi", "wallet"]
 
 [[overrides]]
 _context_ = { city_tier = "tier1" }
+_description_ = "test context"
 platform_fee_percent = 15.0
 payment_methods = ["cash", "card", "upi"]
 
 [[overrides]]
 _context_ = { city_tier = "tier2" }
+_description_ = "test context"
 platform_fee_percent = 12.0
 payment_methods = ["cash", "upi"]
 
 # --- User tier benefits (priority based on position 8 = 256) ---
 [[overrides]]
 _context_ = { user_tier = "gold" }
+_description_ = "test context"
 surge_factor = 0.9
 promo_code = "GOLD10"
 platform_fee_percent = 12.0
 
 [[overrides]]
 _context_ = { user_tier = "platinum" }
+_description_ = "test context"
 surge_factor = 0.8
 promo_code = "PLAT20"
 platform_fee_percent = 10.0
@@ -222,12 +247,14 @@ driver_incentive_multiplier = 1.1
 # --- Service tier configurations (priority based on position 5 = 32) ---
 [[overrides]]
 _context_ = { service_tier = "premium" }
+_description_ = "test context"
 per_km_rate = 40.0
 max_wait_time_minutes = 25
 payment_methods = ["card", "wallet"]
 
 [[overrides]]
 _context_ = { service_tier = "luxury" }
+_description_ = "test context"
 per_km_rate = 80.0
 max_wait_time_minutes = 30
 surge_factor = 1.0
@@ -238,6 +265,7 @@ notification_settings = { "value" = { "sms" = true, "email" = true, "push" = tru
 # Weekend evening in Delhi with cab: priority = 4 + 64 + 4096 = 4164
 [[overrides]]
 _context_ = { city = "Delhi", vehicle_type = "cab", is_weekend = true, hour_of_day = 20 }
+_description_ = "test context"
 surge_factor = 2.0
 enable_surge_pricing = true
 per_km_rate = 28.0
@@ -245,23 +273,27 @@ per_km_rate = 28.0
 # Peak hours for platinum user: priority = 64 + 256 = 320
 [[overrides]]
 _context_ = { user_tier = "platinum", peak_hours = "evening_peak" }
+_description_ = "test context"
 surge_factor = 1.0
 enable_surge_pricing = false
 
 # Metro city premium vehicle: priority = 1024 + 16 = 1040
 [[overrides]]
 _context_ = { city_tier = "metro", vehicle_type = "premium" }
+_description_ = "test context"
 per_km_rate = 50.0
 driver_incentive_multiplier = 1.4
 
 # --- Experiment group overrides (for A/B testing) ---
 [[overrides]]
 _context_ = { experiment_group = "variant_a" }
+_description_ = "test context"
 per_km_rate = 19.0
 surge_factor = 1.0
 
 [[overrides]]
 _context_ = { experiment_group = "variant_b" }
+_description_ = "test context"
 per_km_rate = 21.0
 platform_fee_percent = 12.0
 driver_incentive_multiplier = 1.2
@@ -269,12 +301,14 @@ driver_incentive_multiplier = 1.2
 # --- Country-specific defaults (priority based on position 1 = 2) ---
 [[overrides]]
 _context_ = { country = "USA" }
+_description_ = "test context"
 currency = "USD"
 per_km_rate = 2.50
 payment_methods = ["card", "wallet"]
 
 [[overrides]]
 _context_ = { country = "UK" }
+_description_ = "test context"
 currency = "GBP"
 per_km_rate = 2.00
 payment_methods = ["card", "wallet"]
@@ -284,6 +318,7 @@ payment_methods = ["card", "wallet"]
 # Priority = 2^1 + 2^2 + 2^3 + 2^4 + 2^5 + 2^6 + 2^8 + 2^10 + 2^13 = 8278
 [[overrides]]
 _context_ = { country = "India", city = "Bangalore", zone = "airport", vehicle_type = "premium", service_tier = "luxury", hour_of_day = 19, user_tier = "platinum", city_tier = "metro", experiment_group = "variant_b" }
+_description_ = "test context"
 per_km_rate = 100.0
 surge_factor = 1.0
 enable_surge_pricing = false

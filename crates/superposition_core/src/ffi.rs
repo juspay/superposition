@@ -191,6 +191,7 @@ fn ffi_get_applicable_variants(
 ///
 /// [[overrides]]
 /// _context_ = { os = "linux" }
+/// _description_ = "Linux context"
 /// timeout = 60
 /// ```
 #[uniffi::export]

@@ -26,11 +26,13 @@ SuperTOML configuration files consist of three main sections:
 [[overrides]]
 # First override
 _context_ = { /* context condition */ }
+_description_ = "Context description"
 # override values
 
 [[overrides]]
 # Second override
 _context_ = { /* context condition */ }
+_description_ = "Context description"
 # override values
 ```
 
@@ -47,6 +49,7 @@ _context_ = { /* context condition */ }
   "overrides": [
     {
       "_context_": { /* context condition */ },
+      "_description_": "Context description",
       "key": <override_value>
     }
   ]
@@ -254,6 +257,7 @@ The `[[overrides]]` array defines context-specific configuration overrides. Each
 ```toml
 [[overrides]]
 _context_ = { <dimension> = <value>, ... }
+_description_ = "Context description"
 <config_key> = <override_value>
 <config_key> = <override_value>
 ```
@@ -273,6 +277,7 @@ A context matches when **all** specified dimensions match the runtime context:
 ```toml
 [[overrides]]
 _context_ = { vehicle_type = "bike" }
+_description_ = "Context description"
 per_km_rate = 15.0
 ```
 
@@ -283,6 +288,7 @@ When `vehicle_type` is "bike", `per_km_rate` becomes 15.0.
 ```toml
 [[overrides]]
 _context_ = { city = "Delhi", vehicle_type = "cab", hour_of_day = 18 }
+_description_ = "Context description"
 surge_factor = 5.0
 ```
 
@@ -293,10 +299,12 @@ When all three dimensions match, `surge_factor` becomes 5.0.
 ```toml
 [[overrides]]
 _context_ = { vehicle_type = "cab" }
+_description_ = "Context description"
 per_km_rate = 25.0
 
 [[overrides]]
 _context_ = { city = "Bangalore", vehicle_type = "cab" }
+_description_ = "Context description"
 per_km_rate = 22.0
 ```
 
@@ -307,6 +315,7 @@ The more specific context (city + vehicle_type) has higher priority.
 ```toml
 [[overrides]]
 _context_ = { vehicle_type = "auto" }
+_description_ = "Context description"
 per_km_rate = 100.0
 surge_factor = 1.0
 ```
@@ -353,31 +362,37 @@ city_cohort = {
 # Bike rides are cheaper
 [[overrides]]
 _context_ = { vehicle_type = "bike" }
+_description_ = "Context description"
 per_km_rate = 15.0
 
 # Cab rides have premium pricing
 [[overrides]]
 _context_ = { vehicle_type = "cab" }
+_description_ = "Context description"
 per_km_rate = 25.0
 
 # Bangalore cabs have specific rate
 [[overrides]]
 _context_ = { city = "Bangalore", vehicle_type = "cab" }
+_description_ = "Context description"
 per_km_rate = 22.0
 
 # Early morning surge in Delhi
 [[overrides]]
 _context_ = { city = "Delhi", vehicle_type = "cab", hour_of_day = 6 }
+_description_ = "Context description"
 surge_factor = 5.0
 
 # Evening surge in Delhi
 [[overrides]]
 _context_ = { city = "Delhi", vehicle_type = "cab", hour_of_day = 18 }
+_description_ = "Context description"
 surge_factor = 5.0
 
 # South India cohort pricing
 [[overrides]]
 _context_ = { city_cohort = "south" }
+_description_ = "Context description"
 base_fare = 40.0
 ```
 
