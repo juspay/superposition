@@ -1,5 +1,12 @@
 import { OpenFeature } from "@openfeature/server-sdk";
-import { SuperpositionProvider } from "superposition-provider";
+import {
+  LocalResolutionProvider,
+  SuperpositionAPIProvider,
+  HttpDataSource,
+  FileDataSource,
+  AuthMethod,
+  RefreshStrategy,
+} from "superposition-provider";
 import {
   SuperpositionClient,
   CreateWorkspaceCommand,
@@ -336,22 +343,14 @@ async function setupWithSDK(org_id, workspace_id) {
   console.log("\n=== Setup complete ===\n");
 }
 
-async function runDemo(org_id, workspace_id) {
-  const config = {
-    endpoint: "http://localhost:8080",
-    token: "12345678",
-    org_id,
-    workspace_id,
-    experimentationOptions: {
-      refreshStrategy: { interval: 10000 }
-    }
-  };
+// Runs the shared scenario suite against a given provider. `testExperiments`
+// gates the experiment case (a file-backed source, for instance, carries no
+// experiments).
+async function runProviderTests(label, provider, testExperiments = true) {
+  console.log(`\n=== Starting OpenFeature tests: ${label} ===\n`);
+  console.log("Running on CPU architecture:", process.arch);
 
   try {
-    console.log("\n=== Starting OpenFeature tests ===\n");
-    console.log("Running on CPU architecture:", process.arch);
-
-    const provider = new SuperpositionProvider(config);
     console.log("Provider created successfully");
 
     // Initialize the provider
@@ -514,22 +513,87 @@ async function runDemo(org_id, workspace_id) {
       );
       console.log("  ✓ Test passed\n");
     }
-    console.log("Test 9: Experiment case: Bangalore pricing");
-    {
-      const context = { city: "Bangalore", targetingKey: "test" };
-      const price = await ofClient.getNumberValue("price", 0, context);
-      const currency = await ofClient.getStringValue("currency", "", context);
-      console.log(`  Retrieved price: ${price}, currency: ${currency}`);
+    if (testExperiments) {
+      console.log("Test 9: Experiment case: Bangalore pricing");
+      {
+        const context = { city: "Bangalore", targetingKey: "test" };
+        const price = await ofClient.getNumberValue("price", 0, context);
+        const currency = await ofClient.getStringValue("currency", "", context);
+        console.log(`  Retrieved price: ${price}, currency: ${currency}`);
 
-      assert.strictEqual(true, price === 8000 || price === 7000, "Price should be either 8000 (control) or 7000 (experimental) in Bangalore");
-      assert.strictEqual(currency, "Rupee", "Currency should be Rupee in Bangalore");
-      console.log("  ✓ Experiment Test passed\n");
+        assert.strictEqual(true, price === 8000 || price === 7000, "Price should be either 8000 (control) or 7000 (experimental) in Bangalore");
+        assert.strictEqual(currency, "Rupee", "Currency should be Rupee in Bangalore");
+        console.log("  ✓ Experiment Test passed\n");
+      }
     }
 
-    console.log("\n=== All tests passed! ===\n");
+    console.log(`\n=== All tests passed: ${label} ===\n`);
   } catch (error) {
-    console.error("\n❌ Error running tests:", error);
+    console.error(`\n❌ Error running tests (${label}):`, error);
     throw error;
+  }
+}
+
+async function runDemo(org_id, workspace_id) {
+  const options = {
+    endpoint: "http://localhost:8080",
+    auth: AuthMethod.token("12345678"),
+    orgId: org_id,
+    workspaceId: workspace_id,
+  };
+  // Wrong workspace: every call to the primary fails, forcing the file fallback.
+  const wrongOptions = {
+    endpoint: "http://localhost:8080",
+    auth: AuthMethod.token("12345678"),
+    orgId: org_id,
+    workspaceId: "workspace_id",
+  };
+
+  try {
+    // Flow A: LocalResolutionProvider over an HttpDataSource, refreshed by polling.
+    //    The HTTP source supports experiments, so the provider fetches config +
+    //    experiments at init.
+    await runProviderTests(
+      "LocalResolutionProvider with HTTP data source (polling)",
+      new LocalResolutionProvider(
+        new HttpDataSource(options),
+        undefined,
+        RefreshStrategy.polling(10000)
+      ),
+      true
+    );
+
+    // Flow B: SuperpositionAPIProvider — server-side resolution, no local cache.
+    await runProviderTests(
+      "SuperpositionAPIProvider",
+      new SuperpositionAPIProvider(options),
+      true
+    );
+
+    // Flow C: LocalResolutionProvider whose HTTP primary fails, falling back to a
+    //    file. The file source carries no experiments, so the experiment case is
+    //    skipped.
+    await runProviderTests(
+      "LocalResolutionProvider with failing HTTP primary and file fallback",
+      new LocalResolutionProvider(
+        new HttpDataSource(wrongOptions),
+        new FileDataSource("config.toml"),
+        RefreshStrategy.polling(10000)
+      ),
+      false
+    );
+
+    // Flow D: LocalResolutionProvider over HTTP with the OnDemand refresh strategy,
+    //    exercising the lazy TTL refresh path (experiments supported).
+    await runProviderTests(
+      "LocalResolutionProvider with HTTP data source (on-demand refresh)",
+      new LocalResolutionProvider(
+        new HttpDataSource(options),
+        undefined,
+        RefreshStrategy.onDemand(300000, true, 3000)
+      ),
+      true
+    );
   } finally {
     await OpenFeature.close();
     console.log("OpenFeature closed successfully");

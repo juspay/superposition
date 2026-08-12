@@ -49,7 +49,7 @@ function testParseTomlConfig(): boolean {
 
   try {
     const resolver = new NativeResolver();
-    const result = resolver.parseTomlConfig(EXAMPLE_TOML);
+    const result = resolver.parseConfigFileWithFilters(EXAMPLE_TOML, "toml");
 
     console.log('\n✓ Successfully parsed TOML configuration!\n');
 
@@ -117,7 +117,7 @@ function testWithExternalFile(): boolean | null {
   try {
     const resolver = new NativeResolver();
     const tomlContent = fs.readFileSync(exampleFile, 'utf8');
-    const result = resolver.parseTomlConfig(tomlContent);
+    const result = resolver.parseConfigFileWithFilters(tomlContent, "toml");
 
     console.log('\n✓ Successfully parsed external TOML file!');
     console.log('\nParsed configuration summary:');
@@ -161,7 +161,7 @@ function testErrorHandling(): void {
     console.log('-'.repeat(50));
 
     try {
-      resolver.parseTomlConfig(testCase.toml);
+      resolver.parseConfigFileWithFilters(testCase.toml, "toml");
       console.log('✗ Expected error but parsing succeeded!');
     } catch (error: any) {
       console.log(`✓ Correctly caught error: ${error.constructor.name}`);

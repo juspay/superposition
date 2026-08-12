@@ -1,7 +1,7 @@
 import {
     SuperpositionOptions,
     ConfigOptions,
-    ConfigData,
+    Config,
     PollingStrategy,
     ExperimentationArgs,
 } from "./types";
@@ -13,6 +13,7 @@ import {
 } from "superposition-sdk";
 import { ExperimentationClient } from "./experimentation-client";
 import { ExperimentationOptions } from "./types";
+import { configResponseToFfiConfig } from "./conversions";
 
 const _cacheRegistry = new FinalizationRegistry((freeFn: () => void) => {
     setImmediate(freeFn);
@@ -22,7 +23,7 @@ export class ConfigurationClient {
     private config: SuperpositionOptions;
     private resolver: NativeResolver;
     private options: ConfigOptions;
-    private currentConfigData: ConfigData | null = null;
+    private currentConfigData: Config | null = null;
     private experimentationClient?: ExperimentationClient;
     private experimentationOptions?: ExperimentationOptions;
     private providerCache: ReturnType<
@@ -30,7 +31,7 @@ export class ConfigurationClient {
     > | null = null;
     private refreshInterval: ReturnType<typeof setTimeout> | null = null;
 
-    private defaults: ConfigData | null = null;
+    private defaults: Config | null = null;
     private smithyClient: SuperpositionClient;
 
     constructor(
@@ -188,11 +189,11 @@ export class ConfigurationClient {
         }
     }
 
-    setDefault(defaults: ConfigData): void {
+    setDefault(defaults: Config): void {
         this.defaults = defaults;
     }
 
-    private async fetchConfigData(): Promise<ConfigData> {
+    private async fetchConfigData(): Promise<Config> {
         const commandInput: GetConfigCommandInput = {
             workspace_id: this.config.workspace_id,
             org_id: this.config.org_id,
@@ -202,12 +203,7 @@ export class ConfigurationClient {
 
         try {
             const response = await this.smithyClient.send(command);
-            this.currentConfigData = {
-                default_configs: response.default_configs || {},
-                contexts: response.contexts || [],
-                overrides: response.overrides || {},
-                dimensions: response.dimensions || {},
-            };
+            this.currentConfigData = configResponseToFfiConfig(response);
 
             return this.currentConfigData;
         } catch (error) {

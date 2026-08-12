@@ -1,3 +1,24 @@
+// The native FFI shapes live in the bindings package (the JS analog of Python/Java's UniFFI-generated
+// types). Import them for local use (ExperimentationArgs below) and re-export them so existing
+// `./types` importers keep resolving them from one source of truth.
+import type {
+    Config,
+    Variant,
+    FfiExperiment,
+    Bucket,
+    FfiExperimentGroup,
+    ExperimentConfig,
+} from "superposition-bindings";
+
+export type {
+    Config,
+    Variant,
+    FfiExperiment,
+    Bucket,
+    FfiExperimentGroup,
+    ExperimentConfig,
+};
+
 export interface SuperpositionOptions {
     endpoint: string;
     token: string;
@@ -40,42 +61,6 @@ export interface ConfigOptions {
     fallbackConfig?: Record<string, any>;
     evaluationCache?: EvaluationCacheOptions;
     refreshStrategy?: RefreshStrategy;
-}
-
-export interface ConfigData {
-    default_configs: Record<string, any>;
-    contexts: any[];
-    overrides: Record<string, Record<string, any>>;
-    dimensions: Record<string, Record<string, any>>;
-}
-
-export interface FfiExperiment {
-    id: string;
-    context: Record<string, string>;
-    variants: Variant[];
-    traffic_percentage: number;
-}
-
-export interface Variant {
-    id: string;
-    variant_type: "CONTROL" | "EXPERIMENTAL";
-    context_id?: string;
-    override_id?: string;
-    overrides: Record<string, string>;
-}
-
-export interface FfiExperimentGroup {
-    id: string;
-    context: Record<string, string>;
-    traffic_percentage: number;
-    member_experiment_ids: string[];
-    group_type: "SYSTEM_GENERATED" | "USER_CREATED";
-    buckets: Bucket[];
-}
-
-export interface Bucket {
-    variant_id: string;
-    experiment_id: string;
 }
 
 export interface ExperimentationArgs {
