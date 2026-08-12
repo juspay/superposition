@@ -189,7 +189,7 @@ class SuperpositionDataSource(ABC):
         """Whether this data source supports experiments."""
         return False
 
-    async def watch(self) -> Optional[AsyncGenerator[str, None]]:
+    def watch(self) -> Optional[AsyncGenerator[str, None]]:
         """Set up file watching for changes.
 
         Returns:

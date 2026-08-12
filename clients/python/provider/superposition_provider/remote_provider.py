@@ -23,6 +23,7 @@ from superposition_sdk.config import Config as SdkConfig
 from superposition_sdk.models import ApplicableVariantsInput, GetResolvedConfigWithIdentifierInput
 
 from .conversions import document_to_python_value
+from .errors import SuperpositionError
 from .interfaces import AllFeatureProvider, FeatureExperimentMeta
 from .types import SuperpositionOptions, auth_scheme_config
 
@@ -83,6 +84,14 @@ class SuperpositionAPIProvider(AbstractProvider, AllFeatureProvider, FeatureExpe
             self.client = None
         self.status = ProviderStatus.NOT_READY
         logger.info("SuperpositionAPIProvider shutdown completed")
+
+    def _require_client(self) -> Superposition:
+        """Return the SDK client, or raise PROVIDER_ERROR if the provider has been shut down."""
+        if self.client is None:
+            raise SuperpositionError.provider_error(
+                "SuperpositionAPIProvider is shut down"
+            )
+        return self.client
 
     def get_metadata(self) -> Metadata:
         """Get provider metadata."""
@@ -150,7 +159,7 @@ class SuperpositionAPIProvider(AbstractProvider, AllFeatureProvider, FeatureExpe
         targeting_key, merged_context = self._get_merged_context(context)
 
         try:
-            response = await self.client.applicable_variants(
+            response = await self._require_client().applicable_variants(
                 input=ApplicableVariantsInput(
                     workspace_id=self.options.workspace_id,
                     org_id=self.options.org_id,
@@ -163,9 +172,13 @@ class SuperpositionAPIProvider(AbstractProvider, AllFeatureProvider, FeatureExpe
 
             # Extract variant IDs from response
             return [v.id for v in response.data] if response.data else []
+        except SuperpositionError:
+            raise
         except Exception as e:
             logger.error(f"Failed to get applicable variants: {e}")
-            return []
+            raise SuperpositionError.network_error(
+                f"Failed to get applicable variants: {e}", e
+            ) from e
 
     # --- OpenFeature FeatureProvider methods ---
 
@@ -279,14 +292,14 @@ class SuperpositionAPIProvider(AbstractProvider, AllFeatureProvider, FeatureExpe
         """
         try:
             targeting_key, merged_context = self._get_merged_context(context)
-            response = await self.client.get_resolved_config_with_identifier(
+            response = await self._require_client().get_resolved_config_with_identifier(
                 input=GetResolvedConfigWithIdentifierInput(
                     workspace_id=self.options.workspace_id,
                     org_id=self.options.org_id,
                     context=merged_context,
                     prefix=prefix_filter,
                     exclude_prefix=exclude_prefix_filter,
-                    identifier=targeting_key,
+                    identifier=targeting_key or "",
                 )
             )
 
@@ -298,9 +311,13 @@ class SuperpositionAPIProvider(AbstractProvider, AllFeatureProvider, FeatureExpe
             else:
                 # Wrap non-dict responses
                 return {"_value": config_value}
+        except SuperpositionError:
+            raise
         except Exception as e:
             logger.error(f"Failed to resolve config: {e}")
-            raise
+            raise SuperpositionError.network_error(
+                f"Failed to resolve config: {e}", e
+            ) from e
 
     def _get_merged_context(
         self,

@@ -115,8 +115,8 @@ class HttpDataSource(SuperpositionDataSource):
                     workspace_id=self.options.workspace_id,
                     org_id=self.options.org_id,
                     context=context,
-                    prefix=prefix_filter,
-                    exclude_prefix=exclude_prefix_filter,
+                    prefix=prefix_filter or None,
+                    exclude_prefix=exclude_prefix_filter or None,
                     if_modified_since=if_modified_since,
                 )
             )
@@ -145,8 +145,8 @@ class HttpDataSource(SuperpositionDataSource):
                     workspace_id=self.options.workspace_id,
                     org_id=self.options.org_id,
                     context=context,
-                    prefix=prefix_filter,
-                    exclude_prefix=exclude_prefix_filter,
+                    prefix=prefix_filter or None,
+                    exclude_prefix=exclude_prefix_filter or None,
                     if_modified_since=if_modified_since,
                     dimension_match_strategy=dimension_match_strategy,
                 )

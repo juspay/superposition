@@ -772,10 +772,6 @@ internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
 
 
 
-
-
-
-
 // For large crates we prevent `MethodTooLargeException` (see #2340)
 // N.B. the name of the extension is very misleading, since it is 
 // rather `InterfaceTooLargeException`, caused by too many methods 
@@ -798,10 +794,6 @@ fun uniffi_superposition_core_checksum_func_ffi_eval_config_with_reasoning(
 fun uniffi_superposition_core_checksum_func_ffi_get_applicable_variants(
 ): Short
 fun uniffi_superposition_core_checksum_func_ffi_parse_config_file_with_filters(
-): Short
-fun uniffi_superposition_core_checksum_func_ffi_parse_json_config(
-): Short
-fun uniffi_superposition_core_checksum_func_ffi_parse_toml_config(
 ): Short
 fun uniffi_superposition_core_checksum_method_providercache_eval_config(
 ): Short
@@ -892,10 +884,6 @@ fun uniffi_superposition_core_fn_func_ffi_eval_config_with_reasoning(`defaultCon
 fun uniffi_superposition_core_fn_func_ffi_get_applicable_variants(`eargs`: RustBuffer.ByValue,`dimensionsInfo`: RustBuffer.ByValue,`queryData`: RustBuffer.ByValue,`prefix`: RustBuffer.ByValue,`excludePrefix`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
 fun uniffi_superposition_core_fn_func_ffi_parse_config_file_with_filters(`fileContent`: RustBuffer.ByValue,`format`: RustBuffer.ByValue,`dimensionData`: RustBuffer.ByValue,`prefix`: RustBuffer.ByValue,`excludePrefix`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBufferConfig.ByValue
-fun uniffi_superposition_core_fn_func_ffi_parse_json_config(`jsonContent`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBufferConfig.ByValue
-fun uniffi_superposition_core_fn_func_ffi_parse_toml_config(`tomlContent`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBufferConfig.ByValue
 fun ffi_superposition_core_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
@@ -1033,12 +1021,6 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_superposition_core_checksum_func_ffi_parse_config_file_with_filters() != 52671.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_superposition_core_checksum_func_ffi_parse_json_config() != 30321.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_superposition_core_checksum_func_ffi_parse_toml_config() != 1558.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_superposition_core_checksum_method_providercache_eval_config() != 35291.toShort()) {
@@ -2347,77 +2329,6 @@ public object FfiConverterMapStringTypeOverrides: FfiConverterRustBuffer<Map<kot
     uniffiRustCallWithError(OperationException) { _status ->
     UniffiLib.INSTANCE.uniffi_superposition_core_fn_func_ffi_parse_config_file_with_filters(
         FfiConverterString.lower(`fileContent`),FfiConverterString.lower(`format`),FfiConverterOptionalMapStringString.lower(`dimensionData`),FfiConverterOptionalSequenceString.lower(`prefix`),FfiConverterOptionalSequenceString.lower(`excludePrefix`),_status)
-}
-    )
-    }
-    
-
-        /**
-         * Parse JSON configuration string
-         *
-         * # Arguments
-         * * `json_content` - JSON string with configuration
-         *
-         * # Returns
-         * * `Ok(Config)` - Parsed configuration with all components
-         * * `Err(OperationError)` - Detailed error message
-         *
-         * # Example JSON
-         * ```json
-         * {
-         * "default-configs": {
-         * "timeout": { "value": 30, "schema": { "type": "integer" } }
-         * },
-         * "dimensions": {
-         * "os": { "position": 1, "schema": { "type": "string" } }
-         * },
-         * "overrides": [
-         * {
-         * "_context_": { "os": "linux" },
-         * "timeout": 60
-         * }
-         * ]
-         * }
-         * ```
-         */
-    @Throws(OperationException::class) fun `ffiParseJsonConfig`(`jsonContent`: kotlin.String): Config {
-            return FfiConverterTypeConfig.lift(
-    uniffiRustCallWithError(OperationException) { _status ->
-    UniffiLib.INSTANCE.uniffi_superposition_core_fn_func_ffi_parse_json_config(
-        FfiConverterString.lower(`jsonContent`),_status)
-}
-    )
-    }
-    
-
-        /**
-         * Parse TOML configuration string
-         *
-         * # Arguments
-         * * `toml_content` - TOML string with configuration
-         *
-         * # Returns
-         * * `Ok(Config)` - Parsed configuration with all components
-         * * `Err(OperationError)` - Detailed error message
-         *
-         * # Example TOML
-         * ```toml
-         * [default-configs]
-         * timeout = { value = 30, schema = { type = "integer" } }
-         *
-         * [dimensions]
-         * os = { position = 1, schema = { type = "string" } }
-         *
-         * [[overrides]]
-         * _context_ = { os = "linux" }
-         * timeout = 60
-         * ```
-         */
-    @Throws(OperationException::class) fun `ffiParseTomlConfig`(`tomlContent`: kotlin.String): Config {
-            return FfiConverterTypeConfig.lift(
-    uniffiRustCallWithError(OperationException) { _status ->
-    UniffiLib.INSTANCE.uniffi_superposition_core_fn_func_ffi_parse_toml_config(
-        FfiConverterString.lower(`tomlContent`),_status)
 }
     )
     }

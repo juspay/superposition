@@ -73,8 +73,8 @@ async def main():
     provider = LocalResolutionProvider(
         primary_source=HttpDataSource(options),
         refresh_strategy=PollingStrategy(
-            interval=poll_interval,
-            timeout=10,
+            interval_milliseconds=poll_interval * 1000,
+            timeout_milliseconds=10_000,
         ),
     )
 
