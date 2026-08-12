@@ -8,17 +8,15 @@ package io.juspay.superposition.openfeature.options
  */
 sealed interface RefreshStrategy {
 
-    /** How long a single refresh may take before it is abandoned. */
-    val timeoutMilliseconds: Int
-
     /**
      * Fetch periodically at a fixed interval, on a background task started at initialization.
      *
+     * @property timeoutMilliseconds How long a single refresh may take before it is abandoned.
      * @property intervalMilliseconds How often to poll.
      */
     data class Polling
     @JvmOverloads constructor(
-        override val timeoutMilliseconds: Int,
+        val timeoutMilliseconds: Int,
         val intervalMilliseconds: Int,
     ) : RefreshStrategy
 
@@ -28,12 +26,13 @@ sealed interface RefreshStrategy {
      * Keeps backend load down at the cost of a bounded amount of staleness. If a refresh fails and
      * [useStaleOnError] is set, the last known good data is served rather than failing the call.
      *
+     * @property timeoutMilliseconds How long a single refresh may take before it is abandoned.
      * @property ttlMilliseconds How long cached data stays fresh.
      * @property useStaleOnError Whether to serve stale data when a refresh fails.
      */
     data class OnDemand
     @JvmOverloads constructor(
-        override val timeoutMilliseconds: Int,
+        val timeoutMilliseconds: Int,
         val ttlMilliseconds: Int,
         val useStaleOnError: Boolean = true,
     ) : RefreshStrategy
@@ -43,16 +42,19 @@ sealed interface RefreshStrategy {
      * supports watching; a provider configured this way against one that does not fails to
      * initialize rather than silently never refreshing.
      *
+     * Runs each refresh unbounded (no timeout), matching Rust/Python/JS — only Polling and OnDemand
+     * carry a timeout.
+     *
      * @property debounceMs How long to coalesce a burst of rapid changes.
      */
     data class Watch
     @JvmOverloads constructor(
-        override val timeoutMilliseconds: Int,
         val debounceMs: Int = 500,
     ) : RefreshStrategy
 
-    /** Never refresh on its own; the caller drives it by invoking `refresh()`. */
-    data class Manual(
-        override val timeoutMilliseconds: Int,
-    ) : RefreshStrategy
+    /**
+     * Never refresh on its own; the caller drives it by invoking `refresh()`. Carries no
+     * configuration and runs unbounded, matching Rust's unit `Manual` variant.
+     */
+    object Manual : RefreshStrategy
 }

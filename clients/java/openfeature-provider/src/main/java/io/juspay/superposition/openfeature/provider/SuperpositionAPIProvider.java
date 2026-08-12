@@ -15,6 +15,7 @@ import io.juspay.superposition.model.GetResolvedConfigWithIdentifierOutput;
 import io.juspay.superposition.model.Variant;
 import io.juspay.superposition.openfeature.EvaluationArgs;
 import io.juspay.superposition.openfeature.FfiUtils;
+import io.juspay.superposition.openfeature.data_source.PrefixQueryInterceptor;
 import io.juspay.superposition.openfeature.error.SuperpositionError;
 import io.juspay.superposition.openfeature.options.SuperpositionOptions;
 import io.juspay.superposition.openfeature.traits.AllFeatureProvider;
@@ -60,6 +61,7 @@ public class SuperpositionAPIProvider implements FeatureProvider, AllFeatureProv
         this.sdk = SuperpositionClient.builder()
                 .endpointResolver(EndpointResolver.staticEndpoint(options.getEndpoint()))
                 .addIdentityResolver(options.getAuth().identityResolver())
+                .addInterceptor(new PrefixQueryInterceptor())
                 .build();
         log.debug("SuperpositionAPIProvider created for endpoint: {}", options.getEndpoint());
     }
@@ -87,6 +89,17 @@ public class SuperpositionAPIProvider implements FeatureProvider, AllFeatureProv
     public void shutdown() {
         state.set(ProviderState.NOT_READY);
         log.info("SuperpositionAPIProvider shut down");
+    }
+
+    /**
+     * Guard resolution against an un-initialized or shut-down provider. Status-based (blocks both
+     * pre-init and post-shutdown); JS/Python guard on a nulled client, which only blocks the latter.
+     * The SDK client is {@code final} and not closeable, so there is nothing else to tear down.
+     */
+    private void requireReady() throws SuperpositionError {
+        if (state.get() != ProviderState.READY) {
+            throw SuperpositionError.providerError("SuperpositionAPIProvider is not ready");
+        }
     }
 
     // ========== Typed evaluations ==========
@@ -128,7 +141,9 @@ public class SuperpositionAPIProvider implements FeatureProvider, AllFeatureProv
     @Override
     public Map<String, String> resolveAllFeaturesWithFilter(
             EvaluationContext context,
-            Optional<List<String>> prefixFilter) throws SuperpositionError {
+            Optional<List<String>> prefixFilter,
+            Optional<List<String>> excludePrefixFilter) throws SuperpositionError {
+        requireReady();
         EvaluationContext merged = mergeWithGlobal(context);
 
         GetResolvedConfigWithIdentifierInput.Builder inputBuilder =
@@ -137,10 +152,10 @@ public class SuperpositionAPIProvider implements FeatureProvider, AllFeatureProv
                         .orgId(options.getOrgId())
                         .context(contextOf(merged));
 
-        Optional.ofNullable(merged.getTargetingKey())
-                .filter(key -> !key.isEmpty())
-                .ifPresent(inputBuilder::identifier);
+        inputBuilder.identifier(
+                Optional.ofNullable(merged.getTargetingKey()).orElse(""));
         prefixFilter.filter(prefixes -> !prefixes.isEmpty()).ifPresent(inputBuilder::prefix);
+        excludePrefixFilter.filter(prefixes -> !prefixes.isEmpty()).ifPresent(inputBuilder::excludePrefix);
 
         try {
             GetResolvedConfigWithIdentifierOutput output =
@@ -157,20 +172,21 @@ public class SuperpositionAPIProvider implements FeatureProvider, AllFeatureProv
     @Override
     public List<String> getApplicableVariants(
             EvaluationContext context,
-            Optional<List<String>> prefixFilter) throws SuperpositionError {
+            Optional<List<String>> prefixFilter,
+            Optional<List<String>> excludePrefixFilter) throws SuperpositionError {
+        requireReady();
         EvaluationContext merged = mergeWithGlobal(context);
-
-        // An absent targeting key is not an error: the service buckets an empty identifier the
-        // same way local resolution does, and simply matches no experiments.
-        String targetingKey = Optional.ofNullable(merged.getTargetingKey()).orElse("");
 
         ApplicableVariantsInput.Builder inputBuilder = ApplicableVariantsInput.builder()
                 .workspaceId(options.getWorkspaceId())
                 .orgId(options.getOrgId())
-                .context(contextOf(merged))
-                .identifier(targetingKey);
+                .context(contextOf(merged));
+
+        inputBuilder.identifier(
+                Optional.ofNullable(merged.getTargetingKey()).orElse(""));
 
         prefixFilter.filter(prefixes -> !prefixes.isEmpty()).ifPresent(inputBuilder::prefix);
+        excludePrefixFilter.filter(prefixes -> !prefixes.isEmpty()).ifPresent(inputBuilder::excludePrefix);
 
         try {
             ApplicableVariantsOutput output = sdk.applicableVariants(inputBuilder.build());

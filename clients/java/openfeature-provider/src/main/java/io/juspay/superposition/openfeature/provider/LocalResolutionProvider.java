@@ -24,10 +24,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -97,22 +100,70 @@ public class LocalResolutionProvider extends EventProvider
     private final AtomicReference<ProviderState> state = new AtomicReference<>(ProviderState.NOT_READY);
     private volatile EvaluationContext globalContext = new ImmutableContext();
 
-    // Background refresh
-    private final ScheduledExecutorService refreshExecutor =
-            Executors.newSingleThreadScheduledExecutor(r -> {
-                Thread t = new Thread(r, "superposition-refresh");
-                t.setDaemon(true);
-                return t;
-            });
-    /** Runs the refresh itself, so a hung data source blocks a worker rather than the caller. */
+    // Background refresh. The scheduler and the extra config-fetch thread are created on demand — a
+    // non-Polling strategy never creates the scheduler, and a File-backed or never-refreshing provider
+    // never creates the config-fetch thread. The worker is eager: every strategy can refresh (even
+    // Manual, via refresh()), so it is always potentially needed — and being eager means a late refresh
+    // after shutdown() is rejected by shutdownNow() for free, with no flag and no create-after-shutdown
+    // race to guard against.
+    /** Runs each refresh, so a hung data source blocks a worker rather than the caller. */
     private final ExecutorService refreshWorker =
             Executors.newSingleThreadExecutor(r -> {
                 Thread t = new Thread(r, "superposition-refresh-worker");
                 t.setDaemon(true);
                 return t;
             });
+    /** Scheduler for the Polling strategy only; created in {@link #startPolling}, null otherwise. */
+    private volatile ScheduledExecutorService refreshExecutor = null;
+    /**
+     * Runs the config fetch on its own thread so it happens at the same time as the experiment fetch
+     * (which runs on {@link #refreshWorker}), making a refresh cost {@code max(config, experiments)}
+     * rather than their sum. Created lazily and only when it helps — a refresh runs the two fetches
+     * concurrently only when the primary supports experiments ({@link #refreshOnce()}); otherwise the
+     * config fetch runs inline on the worker, so a File-backed source (no experiments) or a provider
+     * that never refreshes never allocates this thread.
+     */
+    private volatile ExecutorService configRefreshExecutor = null;
+
+    /**
+     * Lazily creates the config-fetch executor on first use. Called only from the single refresh
+     * worker thread, so no locking is needed to create it; {@link #shutdown()} reads the field only
+     * after that worker thread has terminated, by which point no new value can be created.
+     */
+    private ExecutorService configRefreshExecutor() {
+        if (configRefreshExecutor == null) {
+            configRefreshExecutor = Executors.newSingleThreadExecutor(r -> {
+                Thread t = new Thread(r, "superposition-refresh-config");
+                t.setDaemon(true);
+                return t;
+            });
+        }
+        return configRefreshExecutor;
+    }
+
+    /**
+     * Lazily creates the polling scheduler, used only by {@link #startPolling}, which runs once during
+     * {@code initialize()} before the provider is concurrently used — so no locking is needed.
+     */
+    private ScheduledExecutorService pollingScheduler() {
+        if (refreshExecutor == null) {
+            refreshExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
+                Thread t = new Thread(r, "superposition-refresh");
+                t.setDaemon(true);
+                return t;
+            });
+        }
+        return refreshExecutor;
+    }
     private volatile ScheduledFuture<?> pollingTask = null;
     private volatile Thread watchThread = null;
+
+    // Single-flight: concurrent refresh() callers (e.g. a burst of on-demand evaluations after the TTL
+    // expires) share ONE in-flight refresh instead of each queuing its own on the single-thread worker.
+    // Without this, N callers cause N serialized re-fetches — an N× load spike on the service and a
+    // latency spike for the last caller.
+    private final Object refreshLock = new Object();
+    private Future<SuperpositionError> inFlightRefresh = null;
 
     /**
      * Create a new local resolution provider.
@@ -185,13 +236,27 @@ public class LocalResolutionProvider extends EventProvider
             watchThread.interrupt();
             watchThread = null;
         }
-        refreshExecutor.shutdownNow();
+        // Stop the poll scheduler (if any) first so it queues no further refreshes, then the worker.
+        ScheduledExecutorService scheduler = refreshExecutor;
+        if (scheduler != null) {
+            scheduler.shutdownNow();
+        }
         refreshWorker.shutdownNow();
         // shutdownNow() only interrupts. A refresh already inside fetchConfig() or cache.initConfig()
-        // keeps using primaryDataSource and cache, so give it a bounded chance to stop before those
-        // handles are closed below. Cleanup proceeds regardless if it overruns.
+        // keeps using primaryDataSource and cache, so give the worker a bounded chance to stop before
+        // those handles are closed below. Cleanup proceeds regardless if it overruns.
         awaitQuietly(refreshWorker);
-        awaitQuietly(refreshExecutor);
+        // The config-fetch executor is only ever created on the worker thread, which has now
+        // terminated — so this read sees its final value and nothing can create it afterward. It may
+        // never have been created (no experiments, or no refresh ever ran).
+        ExecutorService configExec = configRefreshExecutor;
+        if (configExec != null) {
+            configExec.shutdownNow();
+            awaitQuietly(configExec);
+        }
+        if (scheduler != null) {
+            awaitQuietly(scheduler);
+        }
 
         closeQuietly(primaryDataSource, "primary");
         fallbackDataSource.ifPresent(source -> closeQuietly(source, "fallback"));
@@ -247,7 +312,8 @@ public class LocalResolutionProvider extends EventProvider
     @Override
     public Map<String, String> resolveAllFeaturesWithFilter(
             EvaluationContext context,
-            Optional<List<String>> prefixFilter) throws SuperpositionError {
+            Optional<List<String>> prefixFilter,
+            Optional<List<String>> excludePrefixFilter) throws SuperpositionError {
         ensureFreshData();
 
         if (cachedConfigData.get() == null) {
@@ -263,6 +329,7 @@ public class LocalResolutionProvider extends EventProvider
                     EvaluationArgs.buildQueryData(merged),
                     MergeStrategy.MERGE,
                     prefixFilter.orElse(null),
+                    excludePrefixFilter.orElse(null),
                     merged.getTargetingKey());
         } catch (OperationException e) {
             throw SuperpositionError.configError("Failed to evaluate config: " + e.getMessage(), e);
@@ -274,7 +341,8 @@ public class LocalResolutionProvider extends EventProvider
     @Override
     public List<String> getApplicableVariants(
             EvaluationContext context,
-            Optional<List<String>> prefixFilter) throws SuperpositionError {
+            Optional<List<String>> prefixFilter,
+            Optional<List<String>> excludePrefixFilter) throws SuperpositionError {
         ensureFreshData();
 
         if (cachedExperimentData.get() == null) {
@@ -285,7 +353,8 @@ public class LocalResolutionProvider extends EventProvider
         String targetingKey = merged.getTargetingKey() != null ? merged.getTargetingKey() : "";
         try {
             return cache.getApplicableVariants(
-                    EvaluationArgs.buildQueryData(merged), prefixFilter.orElse(null), targetingKey);
+                    EvaluationArgs.buildQueryData(merged), prefixFilter.orElse(null),
+                    excludePrefixFilter.orElse(null), targetingKey);
         } catch (OperationException e) {
             throw SuperpositionError.configError(
                     "Failed to resolve applicable variants: " + e.getMessage(), e);
@@ -298,6 +367,7 @@ public class LocalResolutionProvider extends EventProvider
     public FetchResponse<ConfigData> fetchFilteredConfig(
             Optional<Map<String, String>> context,
             Optional<List<String>> prefixFilter,
+            Optional<List<String>> excludePrefixFilter,
             Optional<Instant> ifModifiedSince) throws SuperpositionError {
         if (ifModifiedSince.isPresent()) {
             log.debug("LocalResolutionProvider: ignoring ifModifiedSince for config, always returning cached data");
@@ -309,7 +379,8 @@ public class LocalResolutionProvider extends EventProvider
         }
 
         try {
-            Config filtered = cache.filterConfig(context.orElse(null), prefixFilter.orElse(null));
+            Config filtered = cache.filterConfig(
+                    context.orElse(null), prefixFilter.orElse(null), excludePrefixFilter.orElse(null));
             return FetchResponse.data(new ConfigData(filtered, cached.getFetchedAt()));
         } catch (OperationException e) {
             throw SuperpositionError.dataSourceError("Failed to filter config: " + e.getMessage(), e);
@@ -335,16 +406,18 @@ public class LocalResolutionProvider extends EventProvider
     public FetchResponse<ExperimentData> fetchCandidateActiveExperiments(
             Optional<Map<String, String>> context,
             Optional<List<String>> prefixFilter,
+            Optional<List<String>> excludePrefixFilter,
             Optional<Instant> ifModifiedSince) throws SuperpositionError {
-        return filterCachedExperiments(context, prefixFilter, ifModifiedSince, false);
+        return filterCachedExperiments(context, prefixFilter, excludePrefixFilter, ifModifiedSince, false);
     }
 
     @Override
     public FetchResponse<ExperimentData> fetchMatchingActiveExperiments(
             Optional<Map<String, String>> context,
             Optional<List<String>> prefixFilter,
+            Optional<List<String>> excludePrefixFilter,
             Optional<Instant> ifModifiedSince) throws SuperpositionError {
-        return filterCachedExperiments(context, prefixFilter, ifModifiedSince, true);
+        return filterCachedExperiments(context, prefixFilter, excludePrefixFilter, ifModifiedSince, true);
     }
 
     @Override
@@ -365,43 +438,99 @@ public class LocalResolutionProvider extends EventProvider
     // ========== Refresh ==========
 
     /**
+     * The timeout the configured strategy puts on a single refresh, or empty (unbounded) for
+     * Watch/Manual — mirroring Rust's {@code Option<Duration>} and the Python/JS equivalents. Only
+     * Polling and OnDemand carry a timeout.
+     *
+     * <p>An {@code instanceof} chain rather than a switch over the sealed type: {@code switch}
+     * patterns need Java 21 and this module compiles at a lower source level.
+     */
+    private OptionalInt refreshTimeoutMs() {
+        if (refreshStrategy instanceof RefreshStrategy.Polling polling) {
+            return OptionalInt.of(polling.getTimeoutMilliseconds());
+        }
+        if (refreshStrategy instanceof RefreshStrategy.OnDemand onDemand) {
+            return OptionalInt.of(onDemand.getTimeoutMilliseconds());
+        }
+        return OptionalInt.empty();
+    }
+
+    /**
      * Refresh config and experiments from the primary source, keeping the last known good data
      * on failure. Drives the Manual strategy; Polling, Watch and OnDemand call it internally.
      *
-     * <p>The refresh runs on a worker thread and is bounded by the refresh strategy's timeout, so a
-     * data source that hangs cannot stall the caller — an evaluation thread under OnDemand, or the
-     * poller — indefinitely.
+     * <p>Bounded by the strategy's timeout for Polling/OnDemand so a hung data source cannot stall an
+     * evaluation thread or the poller; Watch and Manual run unbounded (see {@link #refreshTimeoutMs}).
      *
      * @throws SuperpositionError if the refresh timed out, the config refresh failed, or only the
      *     experiment refresh did
      */
     public void refresh() throws SuperpositionError {
-        int timeoutMs = refreshStrategy.getTimeoutMilliseconds();
-        Future<SuperpositionError> pending = refreshWorker.submit(this::refreshOnce);
-        boolean succeeded = false;
+        OptionalInt timeout = refreshTimeoutMs();
+
+        // Single-flight: start a refresh only if none is running; otherwise join the in-flight one.
+        // The provider state (READY/STALE) is recorded by the worker task itself, exactly once per
+        // real refresh, so it is not driven by how many callers coalesced or by any caller's timeout.
+        Future<SuperpositionError> pending;
+        boolean owner;
+        synchronized (refreshLock) {
+            if (inFlightRefresh == null || inFlightRefresh.isDone()) {
+                try {
+                    inFlightRefresh = refreshWorker.submit(this::refreshOnceAndRecord);
+                } catch (RejectedExecutionException e) {
+                    // The refresh worker has been shut down. A refresh triggered by an evaluation
+                    // after shutdown must fail as a clean PROVIDER_ERROR — which ensureFreshData
+                    // handles, and the resolve path's null-cache check turns into the final error —
+                    // rather than escaping as an unchecked RejectedExecutionException.
+                    throw SuperpositionError.providerError(
+                            "Provider is shut down; cannot refresh", e);
+                }
+                owner = true;
+            } else {
+                owner = false;
+            }
+            pending = inFlightRefresh;
+        }
 
         try {
-            SuperpositionError error =
-                    timeoutMs > 0 ? pending.get(timeoutMs, TimeUnit.MILLISECONDS) : pending.get();
+            SuperpositionError error = timeout.isPresent()
+                    ? pending.get(timeout.getAsInt(), TimeUnit.MILLISECONDS)
+                    : pending.get();
             if (error != null) {
                 throw error;
             }
-            succeeded = true;
         } catch (TimeoutException e) {
-            pending.cancel(true);
-            throw SuperpositionError.refreshError("Refresh timed out after " + timeoutMs + "ms");
+            // Only the caller that started the refresh abandons it, so one impatient follower cannot
+            // kill a refresh the others are still awaiting — yet a genuinely hung refresh is still
+            // cancelled (by its owner) so the next caller can start a fresh one instead of re-joining
+            // the stuck one.
+            if (owner) {
+                pending.cancel(true);
+            }
+            throw SuperpositionError.refreshError(
+                    "Refresh timed out after " + timeout.getAsInt() + "ms");
+        } catch (CancellationException e) {
+            // The owner cancelled the shared refresh (its timeout fired) while this follower awaited it.
+            throw SuperpositionError.refreshError("Refresh cancelled while awaiting a shared refresh", e);
         } catch (InterruptedException e) {
-            pending.cancel(true);
             Thread.currentThread().interrupt();
             throw SuperpositionError.refreshError("Refresh interrupted", e);
         } catch (ExecutionException e) {
             // A task that dies without a cause still has to produce a usable error.
             Throwable cause = e.getCause() != null ? e.getCause() : e;
             throw SuperpositionError.refreshError("Refresh failed: " + cause.getMessage(), cause);
-        } finally {
-            // Every refresh path — polling, watch, on-demand and manual — funnels through here.
-            recordRefreshOutcome(succeeded);
         }
+    }
+
+    /**
+     * Runs one refresh and records its outcome (READY/STALE) on the worker thread, so the state
+     * transition and its event fire exactly once per real refresh regardless of how many callers
+     * coalesced onto it via {@link #refresh()}.
+     */
+    private SuperpositionError refreshOnceAndRecord() {
+        SuperpositionError error = refreshOnce();
+        recordRefreshOutcome(error == null);
+        return error;
     }
 
     /**
@@ -434,23 +563,46 @@ public class LocalResolutionProvider extends EventProvider
         }
     }
 
-    /** @return the error that made the refresh fail, or null if config and experiments both refreshed */
+    /**
+     * Refresh config and experiments concurrently, so a refresh costs {@code max(config, experiments)}.
+     * The config fetch runs on {@link #configRefreshExecutor} while the experiment fetch runs on the
+     * calling worker thread; both keep the last known good data on failure.
+     *
+     * @return the config error if config failed (it takes priority), else the experiment error, else null
+     */
     private SuperpositionError refreshOnce() {
-        SuperpositionError configError = refreshConfig();
+        // Run the two fetches concurrently only when there is a second one. With no experiments (e.g. a
+        // File-backed source) refreshExperiments() is a no-op, so run config inline on this worker
+        // thread and never create the extra config-fetch thread.
+        if (!primaryDataSource.supportsExperiments()) {
+            return refreshConfig();
+        }
+        Future<SuperpositionError> configFuture = configRefreshExecutor().submit(this::refreshConfig);
         SuperpositionError experimentError = refreshExperiments();
 
-        if (configError != null) {
-            return configError;
+        SuperpositionError configError;
+        try {
+            configError = configFuture.get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return SuperpositionError.refreshError("Config refresh interrupted", e);
+        } catch (ExecutionException e) {
+            // refreshConfig() catches its own errors and returns them, so it should not throw — but a
+            // task that dies unexpectedly still has to surface as a refresh failure.
+            Throwable cause = e.getCause() != null ? e.getCause() : e;
+            return SuperpositionError.refreshError("Config refresh failed: " + cause.getMessage(), cause);
         }
-        return experimentError;
+
+        // Config error takes priority in what is surfaced; either failure marks the provider STALE.
+        return configError != null ? configError : experimentError;
     }
 
     // ========== Private: init helpers ==========
 
     private void loadInitialConfig() throws SuperpositionError {
-        ConfigData configData;
+        Optional<ConfigData> configData;
         try {
-            configData = fetchConfigFrom(primaryDataSource);
+            configData = primaryDataSource.fetchConfig(Optional.empty()).getData();
             log.info("LocalResolutionProvider: fetched config from primary source");
         } catch (SuperpositionError primaryError) {
             log.warn("LocalResolutionProvider: primary config fetch failed: {}", primaryError.getMessage());
@@ -459,7 +611,7 @@ public class LocalResolutionProvider extends EventProvider
                             "Primary config fetch failed and no fallback configured: "
                                     + primaryError.getMessage(), primaryError));
             try {
-                configData = fetchConfigFrom(fallback);
+                configData = fallback.fetchConfig(Optional.empty()).getData();
                 log.info("LocalResolutionProvider: fetched config from fallback source");
             } catch (SuperpositionError fallbackError) {
                 throw SuperpositionError.configError(
@@ -469,45 +621,37 @@ public class LocalResolutionProvider extends EventProvider
             }
         }
 
-        cacheConfig(configData);
-    }
-
-    private static ConfigData fetchConfigFrom(SuperpositionDataSource source) throws SuperpositionError {
-        return source.fetchConfig(Optional.empty())
-                .getData()
-                .orElseThrow(() -> SuperpositionError.configError(
-                        "Data source returned no config on initial fetch"));
+        if (configData.isPresent()) {
+            cacheConfig(configData.get());
+        }
     }
 
     /**
-     * Mirrors the Rust provider: experiments come from the primary, falling back to the fallback
-     * source. A source that does not support experiments simply yields none.
+     * Load the initial experiments. A source that does not support experiments simply yields none
+     * (non-fatal). But if the primary <em>does</em> support them, init must end up with experiment
+     * data — the same contract as config: try the primary, fall back to an experiment-capable
+     * fallback, and fail init if neither produces any.
      */
     private void loadInitialExperiments() throws SuperpositionError {
         if (!primaryDataSource.supportsExperiments()) {
             return;
         }
 
-        ExperimentData experimentData;
+        Optional<ExperimentData> experimentData;
         try {
-            experimentData = primaryDataSource.fetchActiveExperiments(Optional.empty())
-                    .getData()
-                    .orElse(null);
+            experimentData = primaryDataSource.fetchActiveExperiments(Optional.empty()).getData();
+            log.info("LocalResolutionProvider: fetched experiments from primary source");
         } catch (SuperpositionError primaryError) {
             log.warn("LocalResolutionProvider: primary experiment fetch failed: {}",
                     primaryError.getMessage());
-            SuperpositionDataSource fallback = fallbackDataSource.orElseThrow(() ->
-                    SuperpositionError.configError(
-                            "Primary experiment fetch failed and no fallback configured: "
-                                    + primaryError.getMessage(), primaryError));
-            if (!fallback.supportsExperiments()) {
-                log.warn("LocalResolutionProvider: fallback does not support experiments");
-                return;
+            if (fallbackDataSource.isEmpty() || !fallbackDataSource.get().supportsExperiments()) {
+                throw SuperpositionError.configError(
+                        "Primary experiment fetch failed and no experiment-capable fallback configured: "
+                                + primaryError.getMessage(), primaryError);
             }
             try {
-                experimentData = fallback.fetchActiveExperiments(Optional.empty())
-                        .getData()
-                        .orElse(null);
+                experimentData = fallbackDataSource.get().fetchActiveExperiments(Optional.empty()).getData();
+                log.info("LocalResolutionProvider: fetched experiments from fallback source");
             } catch (SuperpositionError fallbackError) {
                 throw SuperpositionError.configError(
                         "Both primary and fallback experiment fetch failed. Primary: "
@@ -516,8 +660,8 @@ public class LocalResolutionProvider extends EventProvider
             }
         }
 
-        if (experimentData != null) {
-            cacheExperiments(experimentData);
+        if (experimentData.isPresent()) {
+            cacheExperiments(experimentData.get());
         }
     }
 
@@ -576,7 +720,9 @@ public class LocalResolutionProvider extends EventProvider
         log.info("LocalResolutionProvider: starting polling with interval={}ms", polling.getIntervalMilliseconds());
 
         WeakReference<LocalResolutionProvider> self = new WeakReference<>(this);
-        ScheduledExecutorService scheduler = refreshExecutor;
+        // Capture both executors now: the cleanup below runs after the provider is GC'd and so cannot
+        // reach them through `this`.
+        ScheduledExecutorService scheduler = pollingScheduler();
         ExecutorService worker = refreshWorker;
 
         pollingTask = scheduler.scheduleWithFixedDelay(
@@ -744,6 +890,7 @@ public class LocalResolutionProvider extends EventProvider
     private FetchResponse<ExperimentData> filterCachedExperiments(
             Optional<Map<String, String>> context,
             Optional<List<String>> prefixFilter,
+            Optional<List<String>> excludePrefixFilter,
             Optional<Instant> ifModifiedSince,
             boolean partialApply) throws SuperpositionError {
         ExperimentData cached = fetchActiveExperiments(ifModifiedSince).getData().orElseThrow();
@@ -751,7 +898,8 @@ public class LocalResolutionProvider extends EventProvider
         try {
             return FetchResponse.data(new ExperimentData(
                     cache.filterExperiment(
-                            context.orElse(null), prefixFilter.orElse(null), partialApply),
+                            context.orElse(null), prefixFilter.orElse(null),
+                            excludePrefixFilter.orElse(null), partialApply),
                     cached.getFetchedAt()));
         } catch (OperationException e) {
             throw SuperpositionError.dataSourceError(

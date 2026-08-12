@@ -3,6 +3,7 @@ package io.juspay.superposition.openfeature;
 import com.google.gson.JsonSyntaxException;
 import io.juspay.superposition.client.SuperpositionAsyncClient;
 import io.juspay.superposition.client.auth.BearerTokenIdentityResolver;
+import io.juspay.superposition.openfeature.options.RefreshStrategy;
 import io.juspay.superposition.model.*;
 import lombok.NonNull;
 import lombok.SneakyThrows;
@@ -82,6 +83,19 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
     private final int configTimeout;
     private final int experimentationTimeout;
 
+    // timeoutMilliseconds now lives only on Polling/OnDemand (Watch/Manual are unbounded), so extract
+    // it per-variant. This legacy provider only supports Polling/OnDemand refresh; other variants fall
+    // back to a default. (Legacy path — kept compiling for its tests, not for new use.)
+    private static int refreshTimeoutOf(RefreshStrategy strategy) {
+        if (strategy instanceof RefreshStrategy.Polling p) {
+            return p.getTimeoutMilliseconds();
+        }
+        if (strategy instanceof RefreshStrategy.OnDemand o) {
+            return o.getTimeoutMilliseconds();
+        }
+        return 30000;
+    }
+
     public SuperpositionOpenFeatureProvider(@NonNull SuperpositionProviderOptions options) {
         if (options.fallbackConfig != null) {
             fallbackArgs = Optional.of(new EvaluationArgs(options.fallbackConfig));
@@ -96,7 +110,7 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
         }
         this.sdk = builder.build();
         this.cache = new ProviderCache();
-        this.configTimeout = options.refreshStrategy.getTimeoutMilliseconds();
+        this.configTimeout = refreshTimeoutOf(options.refreshStrategy);
 
         var getConfigInput = GetConfigInput.builder()
             .context(Map.of())
@@ -111,7 +125,7 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
 
         if (options.experimentationOptions != null) {
             this.experimentationTimeout =
-                options.experimentationOptions.refreshStrategy.getTimeoutMilliseconds();
+                refreshTimeoutOf(options.experimentationOptions.refreshStrategy);
             var listExpInput = ListExperimentInput.builder()
                 .orgId(options.orgId)
                 .workspaceId(options.workspaceId)

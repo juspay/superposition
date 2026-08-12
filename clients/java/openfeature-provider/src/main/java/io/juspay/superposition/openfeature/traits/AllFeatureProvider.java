@@ -32,7 +32,7 @@ public interface AllFeatureProvider {
      * @throws SuperpositionError if resolution fails
      */
     default Map<String, String> resolveAllFeatures(EvaluationContext context) throws SuperpositionError {
-        return resolveAllFeaturesWithFilter(context, Optional.empty());
+        return resolveAllFeaturesWithFilter(context, Optional.empty(), Optional.empty());
     }
     /**
      * Resolve all features for the given context, optionally filtered by key prefixes.
@@ -42,12 +42,14 @@ public interface AllFeatureProvider {
      *
      * @param context the evaluation context
      * @param prefixFilter optional list of key prefixes (empty = no filtering)
+     * @param excludePrefixFilter optional list of key prefixes to exclude (empty = no exclusion)
      * @return map of filtered feature keys to their resolved values
      * @throws SuperpositionError if resolution fails
      */
     Map<String, String> resolveAllFeaturesWithFilter(
             EvaluationContext context,
-            Optional<List<String>> prefixFilter) throws SuperpositionError;
+            Optional<List<String>> prefixFilter,
+            Optional<List<String>> excludePrefixFilter) throws SuperpositionError;
 
     /**
      * Default implementation of typed resolution with custom extractor.
@@ -105,7 +107,7 @@ public interface AllFeatureProvider {
                     .variant("error")
                     .reason(Reason.ERROR.name())
                     .errorCode(dev.openfeature.sdk.ErrorCode.GENERAL)
-                    .errorMessage("Error evaluating flag '" + flagKey + "': " + e.getMessage())
+                    .errorMessage("Error evaluating " + typeName + " flag '" + flagKey + "': " + e.getMessage())
                     .build();
         }
     }

@@ -27,12 +27,14 @@ public interface FeatureExperimentMeta {
      * 
      * @param context the evaluation context containing dimensions and targeting key
      * @param prefixFilter optional list of experiment ID prefixes
+     * @param excludePrefixFilter optional list of experiment ID prefixes to exclude
      * @return list of applicable variant IDs (unordered, may contain duplicates)
      * @throws SuperpositionError if resolution fails
      */
     List<String> getApplicableVariants(
             EvaluationContext context,
-            Optional<List<String>> prefixFilter) throws SuperpositionError;
+            Optional<List<String>> prefixFilter,
+            Optional<List<String>> excludePrefixFilter) throws SuperpositionError;
     
     /**
      * Get the list of applicable experiment variant IDs for the given context.
@@ -44,6 +46,6 @@ public interface FeatureExperimentMeta {
      * @throws SuperpositionError if resolution fails
      */
     default List<String> getApplicableVariants(EvaluationContext context) throws SuperpositionError {
-        return getApplicableVariants(context, Optional.empty());
+        return getApplicableVariants(context, Optional.empty(), Optional.empty());
     }
 }
