@@ -39,7 +39,7 @@ function testParseJsonConfig(): boolean {
 
   try {
     const resolver = new NativeResolver();
-    const result = resolver.parseJsonConfig(EXAMPLE_JSON);
+    const result = resolver.parseConfigFileWithFilters(EXAMPLE_JSON, "json");
 
     console.log('\n✓ Successfully parsed JSON configuration!\n');
 
@@ -107,7 +107,7 @@ function testWithExternalFile(): boolean | null {
   try {
     const resolver = new NativeResolver();
     const jsonContent = fs.readFileSync(exampleFile, 'utf8');
-    const result = resolver.parseJsonConfig(jsonContent);
+    const result = resolver.parseConfigFileWithFilters(jsonContent, "json");
 
     console.log('\n✓ Successfully parsed external JSON file!');
     console.log('\nParsed configuration summary:');
@@ -149,7 +149,7 @@ function testErrorHandling(): void {
     console.log('-'.repeat(50));
 
     try {
-      resolver.parseJsonConfig(testCase.json);
+      resolver.parseConfigFileWithFilters(testCase.json, "json");
       console.log('✗ Expected error but parsing succeeded!');
     } catch (error: any) {
       console.log(`✓ Correctly caught error: ${error.constructor.name}`);
@@ -199,8 +199,8 @@ per_km_rate = 15.0
 }
 `;
 
-    const tomlResult = resolver.parseTomlConfig(tomlConfig);
-    const jsonResult = resolver.parseJsonConfig(jsonConfig);
+    const tomlResult = resolver.parseConfigFileWithFilters(tomlConfig, "toml");
+    const jsonResult = resolver.parseConfigFileWithFilters(jsonConfig, "json");
 
     // Both should parse successfully with same structure
     const tomlKeys = Object.keys(tomlResult.default_configs).length;
