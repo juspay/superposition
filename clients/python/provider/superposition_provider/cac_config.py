@@ -5,10 +5,9 @@ from decimal import Decimal
 from typing import Any, Dict, Optional, TypeVar
 
 from .conversions import to_dimension_type, document_to_python_value
-from .types import OnDemandStrategy, PollingStrategy, SuperpositionOptions, ConfigurationOptions
+from .types import OnDemandStrategy, PollingStrategy, SuperpositionOptions, ConfigurationOptions, auth_scheme_config
 from superposition_sdk.client import Superposition, GetConfigInput
 from superposition_sdk.config import Config
-from superposition_sdk.auth_helpers import bearer_auth_config
 import asyncio
 from datetime import datetime, timedelta
 from superposition_bindings.superposition_types import Context, DimensionInfo
@@ -121,7 +120,7 @@ class CacConfig:
                 finally:
                     del self_ref
 
-                await asyncio.sleep(interval)
+                await asyncio.sleep(interval / 1000)  # interval is in milliseconds
 
         latest_config = await self._get_config(self.superposition_options)
         if latest_config is None and self.cached_config is None:
@@ -140,13 +139,18 @@ class CacConfig:
                 self.on_config_change()
 
         match self.options.refresh_strategy:
-            case PollingStrategy(interval=interval, timeout=timeout):
-                logger.info(f"Using PollingStrategy: interval={interval}, timeout={timeout}")
+            case PollingStrategy():
+                interval = self.options.refresh_strategy.interval_ms()
+                timeout = self.options.refresh_strategy.timeout_ms()
+                logger.info(f"Using PollingStrategy: interval={interval}ms, timeout={timeout}ms")
                 if self._polling_task is None:
                     self._polling_task = asyncio.create_task(poll_config(interval, timeout))
 
-            case OnDemandStrategy(ttl=ttl, use_stale_on_error=use_stale, timeout=timeout):
-                logger.info(f"Using OnDemandStrategy: ttl={ttl}, use_stale_on_error={use_stale}, timeout={timeout}")
+            case OnDemandStrategy():
+                ttl = self.options.refresh_strategy.ttl_ms()
+                use_stale = self.options.refresh_strategy.use_stale_on_error
+                timeout = self.options.refresh_strategy.timeout_ms()
+                logger.info(f"Using OnDemandStrategy: ttl={ttl}ms, use_stale_on_error={use_stale}, timeout={timeout}ms")
 
 
 
@@ -163,9 +167,7 @@ class CacConfig:
         """
         try:
             # Create SDK config with bearer token authentication
-            (resolver, schemes) = bearer_auth_config(
-                token=superposition_options.token
-            )
+            (resolver, schemes) = auth_scheme_config(superposition_options.auth)
             sdk_config = Config(
                 endpoint_uri=superposition_options.endpoint,
                 http_auth_scheme_resolver=resolver,

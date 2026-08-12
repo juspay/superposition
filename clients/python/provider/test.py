@@ -164,15 +164,15 @@ async def test_config():
         org_id="localorg", 
         workspace_id="test",
         refresh_strategy=PollingStrategy(
-            interval=5,  # Poll every 5 seconds
-            timeout=3    # Timeout after 3 seconds
+            interval_milliseconds=5_000,  # Poll every 5 seconds
+            timeout_milliseconds=3_000    # Timeout after 3 seconds
         ),
         fallback_config=None,
         evaluation_cache_options=None,
         experimentation_options=ExperimentationOptions(
             refresh_strategy=PollingStrategy(
-                interval=5,  # Poll every 5 seconds
-                timeout=3    # Timeout after 3 seconds
+                interval_milliseconds=5_000,  # Poll every 5 seconds
+                timeout_milliseconds=3_000    # Timeout after 3 seconds
             )
         )
     )

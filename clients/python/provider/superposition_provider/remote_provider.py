@@ -20,12 +20,12 @@ from smithy_core.documents import Document
 
 from superposition_sdk.client import Superposition
 from superposition_sdk.config import Config as SdkConfig
-from superposition_sdk.auth_helpers import bearer_auth_config
 from superposition_sdk.models import ApplicableVariantsInput, GetResolvedConfigWithIdentifierInput
 
 from .conversions import document_to_python_value
+from .errors import SuperpositionError
 from .interfaces import AllFeatureProvider, FeatureExperimentMeta
-from .types import SuperpositionOptions
+from .types import SuperpositionOptions, auth_scheme_config
 
 logger = logging.getLogger(__name__)
 
@@ -51,9 +51,7 @@ class SuperpositionAPIProvider(AbstractProvider, AllFeatureProvider, FeatureExpe
 
     def _create_client(self) -> Superposition:
         """Create and configure the SDK client."""
-        (resolver, schemes) = bearer_auth_config(
-            token=self.options.token
-        )
+        (resolver, schemes) = auth_scheme_config(self.options.auth)
         sdk_config = SdkConfig(
             endpoint_uri=self.options.endpoint,
             http_auth_scheme_resolver=resolver,
@@ -76,7 +74,7 @@ class SuperpositionAPIProvider(AbstractProvider, AllFeatureProvider, FeatureExpe
             logger.info("SuperpositionAPIProvider initialized successfully")
         except Exception as e:
             logger.error(f"Failed to initialize SuperpositionAPIProvider: {e}")
-            self.status = ProviderStatus.FATAL
+            self.status = ProviderStatus.ERROR
             raise
 
     def shutdown(self):
@@ -86,6 +84,14 @@ class SuperpositionAPIProvider(AbstractProvider, AllFeatureProvider, FeatureExpe
             self.client = None
         self.status = ProviderStatus.NOT_READY
         logger.info("SuperpositionAPIProvider shutdown completed")
+
+    def _require_client(self) -> Superposition:
+        """Return the SDK client, or raise PROVIDER_ERROR if the provider has been shut down."""
+        if self.client is None:
+            raise SuperpositionError.provider_error(
+                "SuperpositionAPIProvider is shut down"
+            )
+        return self.client
 
     def get_metadata(self) -> Metadata:
         """Get provider metadata."""
@@ -118,17 +124,19 @@ class SuperpositionAPIProvider(AbstractProvider, AllFeatureProvider, FeatureExpe
         self,
         context: Optional[EvaluationContext] = None,
         prefix_filter: Optional[List[str]] = None,
+        exclude_prefix_filter: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """Resolve all features with optional prefix filtering.
 
         Args:
             context: Evaluation context (optional, uses global context if not provided).
             prefix_filter: Optional list of key prefixes to include.
+            exclude_prefix_filter: Optional list of key prefixes to exclude.
 
         Returns:
             Dictionary of filtered resolved flags.
         """
-        return await self._resolve_remote(context, prefix_filter)
+        return await self._resolve_remote(context, prefix_filter, exclude_prefix_filter)
 
     # --- FeatureExperimentMeta implementation ---
 
@@ -150,16 +158,12 @@ class SuperpositionAPIProvider(AbstractProvider, AllFeatureProvider, FeatureExpe
         """
         targeting_key, merged_context = self._get_merged_context(context)
 
-        if not targeting_key:
-            logger.warning("Missing targeting key for variant resolution")
-            return []
-
         try:
-            response = await self.client.applicable_variants(
+            response = await self._require_client().applicable_variants(
                 input=ApplicableVariantsInput(
                     workspace_id=self.options.workspace_id,
                     org_id=self.options.org_id,
-                    identifier=targeting_key,
+                    identifier=targeting_key or "",
                     context=merged_context,
                     prefix=prefix_filter,
                     exclude_prefix=exclude_prefix_filter,
@@ -168,9 +172,13 @@ class SuperpositionAPIProvider(AbstractProvider, AllFeatureProvider, FeatureExpe
 
             # Extract variant IDs from response
             return [v.id for v in response.data] if response.data else []
+        except SuperpositionError:
+            raise
         except Exception as e:
             logger.error(f"Failed to get applicable variants: {e}")
-            return []
+            raise SuperpositionError.network_error(
+                f"Failed to get applicable variants: {e}", e
+            ) from e
 
     # --- OpenFeature FeatureProvider methods ---
 
@@ -284,7 +292,7 @@ class SuperpositionAPIProvider(AbstractProvider, AllFeatureProvider, FeatureExpe
         """
         try:
             targeting_key, merged_context = self._get_merged_context(context)
-            response = await self.client.get_resolved_config_with_identifier(
+            response = await self._require_client().get_resolved_config_with_identifier(
                 input=GetResolvedConfigWithIdentifierInput(
                     workspace_id=self.options.workspace_id,
                     org_id=self.options.org_id,
@@ -303,9 +311,13 @@ class SuperpositionAPIProvider(AbstractProvider, AllFeatureProvider, FeatureExpe
             else:
                 # Wrap non-dict responses
                 return {"_value": config_value}
+        except SuperpositionError:
+            raise
         except Exception as e:
             logger.error(f"Failed to resolve config: {e}")
-            raise
+            raise SuperpositionError.network_error(
+                f"Failed to resolve config: {e}", e
+            ) from e
 
     def _get_merged_context(
         self,

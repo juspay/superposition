@@ -27,7 +27,7 @@ from typing import Optional
 from openfeature.evaluation_context import EvaluationContext
 
 from superposition_provider import LocalResolutionProvider, HttpDataSource
-from superposition_provider.types import SuperpositionOptions, PollingStrategy
+from superposition_provider.types import SuperpositionOptions, TokenAuth, PollingStrategy
 
 logging.basicConfig(
     level=logging.INFO,
@@ -63,7 +63,7 @@ async def main():
     # Create Superposition API options
     options = SuperpositionOptions(
         endpoint=endpoint,
-        token=token,
+        auth=TokenAuth(token),
         org_id=org_id,
         workspace_id=workspace,
     )
@@ -73,8 +73,8 @@ async def main():
     provider = LocalResolutionProvider(
         primary_source=HttpDataSource(options),
         refresh_strategy=PollingStrategy(
-            interval=poll_interval,
-            timeout=10,
+            interval_milliseconds=poll_interval * 1000,
+            timeout_milliseconds=10_000,
         ),
     )
 

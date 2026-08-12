@@ -404,6 +404,12 @@ test-js-provider: provider-template
 test-py-provider: provider-template
 	bash ./scripts/setup_provider_binaries.sh py
 	cd clients/python/provider-sdk-tests && VERSION=1.0.0 uv sync
+	# Unit tests, auto-discovered — no live server needed; run in the sdk-tests env so the native
+	# binding is present. Each test_*.py self-runs via its __main__ block and exits non-zero on failure.
+	for t in $(CURDIR)/clients/python/provider/test_*.py; do \
+		echo "== $$t ==" && VERSION=1.0.0 uv run --directory clients/python/provider-sdk-tests python "$$t" || exit 1; \
+	done
+	# Integration harness against the live server
 	VERSION=1.0.0 uv run --directory clients/python/provider-sdk-tests python main.py
 	$(MAKE) kill
 
