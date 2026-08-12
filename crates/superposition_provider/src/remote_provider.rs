@@ -36,6 +36,18 @@ impl SuperpositionAPIProvider {
         }
     }
 
+    /// Guard resolution against a provider that has not been initialized. `initialize` flips the
+    /// status to Ready, so a resolve before that — a direct call bypassing the OpenFeature SDK — fails
+    /// cleanly with a `ProviderError` instead of hitting the network uninitialized.
+    async fn ensure_ready(&self) -> Result<()> {
+        match *self.status.read().await {
+            ProviderStatus::Ready => Ok(()),
+            _ => Err(SuperpositionError::ProviderError(
+                "SuperpositionAPIProvider is not ready".to_string(),
+            )),
+        }
+    }
+
     async fn get_merged_context(
         &self,
         mut context: EvaluationContext,
@@ -52,7 +64,7 @@ impl SuperpositionAPIProvider {
         prefix_filter: Option<Vec<String>>,
         exclude_prefix_filter: Option<Vec<String>>,
     ) -> Result<Map<String, Value>> {
-        // TODO: Check if we need to add a separte check to verify the status of provider before doing stuff
+        self.ensure_ready().await?;
 
         let (query_data, targeting_key) = self.get_merged_context(context).await;
 
@@ -112,6 +124,8 @@ impl FeatureExperimentMeta for SuperpositionAPIProvider {
         prefix_filter: Option<Vec<String>>,
         exclude_prefix_filter: Option<Vec<String>>,
     ) -> Result<Vec<String>> {
+        self.ensure_ready().await?;
+
         let (query_data, targeting_key) = self.get_merged_context(context).await;
 
         let applicable_variants = self

@@ -12,12 +12,15 @@ use tokio::time::{sleep, Duration};
 async fn main() {
     env_logger::init();
 
-    let http_source = HttpDataSource::new(SuperpositionOptions::new(
-        "http://localhost:8080".to_string(),
-        AuthMethod::Token("token".to_string()),
-        "localorg".to_string(),
-        "dev".to_string(),
-    ));
+    let http_source = HttpDataSource::new(
+        SuperpositionOptions::new(
+            "http://localhost:8080".to_string(),
+            AuthMethod::Token("token".to_string()),
+            "localorg".to_string(),
+            "dev".to_string(),
+        )
+        .expect("valid Superposition options"),
+    );
 
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let file_source =

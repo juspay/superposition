@@ -62,7 +62,7 @@ class LocalResolutionProviderTest {
         provider = new LocalResolutionProvider(
             new FileDataSource(configFile),
             Optional.empty(),
-            new RefreshStrategy.Manual(1000));
+            RefreshStrategy.Manual.INSTANCE);
         provider.initialize(new ImmutableContext());
     }
 
@@ -184,14 +184,14 @@ class LocalResolutionProviderTest {
         assertEquals(7, all.size());
 
         Map<String, String> filtered = provider.resolveAllFeaturesWithFilter(
-            new ImmutableContext(), Optional.of(List.of("cur")));
+            new ImmutableContext(), Optional.of(List.of("cur")), Optional.empty());
         assertEquals(Map.of("currency", "\"Rupee\""), filtered);
     }
 
     @Test
     void globalContextIsOverriddenByTheEvaluationContext() throws Exception {
         LocalResolutionProvider withGlobal = new LocalResolutionProvider(
-            new FileDataSource(configFile), Optional.empty(), new RefreshStrategy.Manual(1000));
+            new FileDataSource(configFile), Optional.empty(), RefreshStrategy.Manual.INSTANCE);
         withGlobal.initialize(contextOf(Map.of("city", new Value("Boston"))));
 
         try {
@@ -210,14 +210,16 @@ class LocalResolutionProviderTest {
     void servesItsCacheAsAFilteredDataSource() throws Exception {
         // Prefix filter prunes the contexts and overrides that no longer contribute a key.
         Config byPrefix = provider
-            .fetchFilteredConfig(Optional.empty(), Optional.of(List.of("currency")), Optional.empty())
+            .fetchFilteredConfig(
+                Optional.empty(), Optional.of(List.of("currency")), Optional.empty(), Optional.empty())
             .getData().orElseThrow().getData();
         assertEquals(Map.of("currency", "\"Rupee\""), byPrefix.getDefaultConfigs());
         assertEquals(1, byPrefix.getContexts().size());
 
         // Dimension filter keeps only the contexts that match.
         Config byContext = provider
-            .fetchFilteredConfig(Optional.of(Map.of("city", "\"Berlin\"")), Optional.empty(), Optional.empty())
+            .fetchFilteredConfig(
+                Optional.of(Map.of("city", "\"Berlin\"")), Optional.empty(), Optional.empty(), Optional.empty())
             .getData().orElseThrow().getData();
         assertEquals(1, byContext.getContexts().size());
         assertTrue(byContext.getOverrides().values().iterator().next().containsKey("price"));
@@ -234,7 +236,7 @@ class LocalResolutionProviderTest {
         assertFalse(provider.supportsExperiments());
         assertThrows(SuperpositionError.class, () -> provider.fetchActiveExperiments(Optional.empty()));
         assertThrows(SuperpositionError.class, () -> provider.fetchCandidateActiveExperiments(
-            Optional.empty(), Optional.empty(), Optional.empty()));
+            Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()));
     }
 
     @Test
@@ -251,7 +253,7 @@ class LocalResolutionProviderTest {
     void refreshIsBoundedByTheStrategyTimeout() throws Exception {
         HangingDataSource source = new HangingDataSource();
         LocalResolutionProvider hanging = new LocalResolutionProvider(
-            source, Optional.empty(), new RefreshStrategy.Manual(300));
+            source, Optional.empty(), RefreshStrategy.Manual.INSTANCE);
         hanging.initialize(new ImmutableContext());
 
         try {
@@ -276,7 +278,7 @@ class LocalResolutionProviderTest {
     void aFailedRefreshLeavesTheProviderStaleUntilItRecovers() throws Exception {
         HangingDataSource source = new HangingDataSource();
         LocalResolutionProvider flaky = new LocalResolutionProvider(
-            source, Optional.empty(), new RefreshStrategy.Manual(1000));
+            source, Optional.empty(), RefreshStrategy.Manual.INSTANCE);
         flaky.initialize(new ImmutableContext());
 
         try {
@@ -312,6 +314,7 @@ class LocalResolutionProviderTest {
         public FetchResponse<ConfigData> fetchFilteredConfig(
                 Optional<Map<String, String>> context,
                 Optional<List<String>> prefixFilter,
+                Optional<List<String>> excludePrefixFilter,
                 Optional<Instant> ifModifiedSince) throws SuperpositionError {
             if (fail) {
                 throw SuperpositionError.networkError("backend is down");
@@ -323,7 +326,7 @@ class LocalResolutionProviderTest {
                     Thread.currentThread().interrupt();
                 }
             }
-            return super.fetchFilteredConfig(context, prefixFilter, ifModifiedSince);
+            return super.fetchFilteredConfig(context, prefixFilter, excludePrefixFilter, ifModifiedSince);
         }
     }
 
@@ -333,7 +336,7 @@ class LocalResolutionProviderTest {
         Files.writeString(watched, TOML_CONFIG);
 
         LocalResolutionProvider watching = new LocalResolutionProvider(
-            new FileDataSource(watched), Optional.empty(), new RefreshStrategy.Watch(1000, 100));
+            new FileDataSource(watched), Optional.empty(), new RefreshStrategy.Watch(100));
         watching.initialize(new ImmutableContext());
 
         try {
@@ -357,7 +360,7 @@ class LocalResolutionProviderTest {
     @Test
     void watchStrategyRejectsADataSourceThatCannotWatch() throws Exception {
         LocalResolutionProvider unwatchable = new LocalResolutionProvider(
-            new NonWatchableSource(), Optional.empty(), new RefreshStrategy.Watch(1000, 50));
+            new NonWatchableSource(), Optional.empty(), new RefreshStrategy.Watch(50));
 
         SuperpositionError error = assertThrows(SuperpositionError.class,
             () -> unwatchable.initialize(new ImmutableContext()));

@@ -398,6 +398,13 @@ provider-template: setup superposition
 test-js-provider: provider-template
 	cd clients/javascript/provider-sdk-tests && npm ci
 	bash ./scripts/setup_provider_binaries.sh js
+	# Unit tests, auto-discovered. Live in provider-sdk-tests/unit so the built `superposition-provider`
+	# package (and its native binding) resolve; each self-runs and exits non-zero on failure. No live
+	# server needed for these.
+	for t in $(CURDIR)/clients/javascript/provider-sdk-tests/unit/test-*.mjs; do \
+		echo "== $$t ==" && node "$$t" || exit 1; \
+	done
+	# Integration harness against the live server (now exercises the new LocalResolutionProvider).
 	node clients/javascript/provider-sdk-tests/index.js
 	$(MAKE) kill
 

@@ -52,12 +52,10 @@ async fn main() {
     println!("Watching key:    {}", config_key);
     println!();
 
-    let http_source = HttpDataSource::new(SuperpositionOptions::new(
-        endpoint,
-        AuthMethod::Token(token),
-        org_id,
-        workspace,
-    ));
+    let http_source = HttpDataSource::new(
+        SuperpositionOptions::new(endpoint, AuthMethod::Token(token), org_id, workspace)
+            .expect("valid Superposition options"),
+    );
 
     let provider = LocalResolutionProvider::new(
         Box::new(http_source),

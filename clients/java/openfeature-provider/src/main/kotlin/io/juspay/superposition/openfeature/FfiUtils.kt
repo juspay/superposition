@@ -45,6 +45,7 @@ internal object FfiUtils {
      * @param format either `json` or `toml`
      * @param dimensionData dimension values as JSON-encoded strings; null or empty skips dimension filtering
      * @param prefix config key prefixes; null or empty skips prefix filtering
+     * @param excludePrefix config key prefixes to exclude; null or empty skips prefix exclusion
      */
     @JvmStatic
     @Throws(OperationException::class)
@@ -52,12 +53,14 @@ internal object FfiUtils {
         fileContent: String,
         format: String,
         dimensionData: Map<String, String>?,
-        prefix: List<String>?
+        prefix: List<String>?,
+        excludePrefix: List<String>?
     ): Config = ffiParseConfigFileWithFilters(
         fileContent,
         format,
         dimensionData?.takeIf { it.isNotEmpty() },
-        prefix?.takeIf { it.isNotEmpty() }
+        prefix?.takeIf { it.isNotEmpty() },
+        excludePrefix?.takeIf { it.isNotEmpty() }
     )
 
     /**

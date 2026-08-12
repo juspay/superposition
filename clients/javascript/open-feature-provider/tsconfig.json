@@ -3,7 +3,7 @@
         "target": "es2020",
         "module": "ESNext",
         "lib": [
-            "es2020",
+            "es2022",
             "dom"
         ],
         "declaration": true,
@@ -18,7 +18,7 @@
         "paths": {
             "superposition-sdk": ["../sdk/dist-types"],
             "superposition-sdk/*": ["../sdk/dist-types/*"],
-            "superposition-bindings": ["../bindings/dist"],
+            "superposition-bindings": ["../bindings/dist/native-resolver"],
             "superposition-bindings/*": ["../bindings/dist/*"]
         },
         "baseUrl": "."

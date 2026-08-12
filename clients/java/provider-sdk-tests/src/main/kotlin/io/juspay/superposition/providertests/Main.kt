@@ -5,8 +5,6 @@ import dev.openfeature.sdk.ImmutableContext
 import dev.openfeature.sdk.Value
 import io.juspay.superposition.client.SuperpositionClient
 import io.juspay.superposition.model.*
-import io.juspay.superposition.openfeature.SuperpositionOpenFeatureProvider
-import io.juspay.superposition.openfeature.SuperpositionProviderOptions
 import io.juspay.superposition.openfeature.data_source.FileDataSource
 import io.juspay.superposition.openfeature.data_source.HttpDataSource
 import io.juspay.superposition.openfeature.options.AuthMethod
@@ -556,163 +554,28 @@ class Main {
         println("=== All tests passed for $label ===\n")
     }
 
+    /**
+     * Flow D: LocalResolutionProvider over HTTP with the OnDemand refresh strategy,
+     * exercising the lazy TTL refresh path (experiments supported).
+     */
     private fun runDemo(orgId: String, workspaceId: String) {
-        val providerOptions = SuperpositionProviderOptions.builder()
-            .orgId(orgId)
-            .workspaceId(workspaceId)
-            .endpoint("http://localhost:8080")
-            .token("12345678")
-            .refreshStrategy(RefreshStrategy.Polling(10000, 5000))
-            .experimentationOptions(
-                SuperpositionProviderOptions.ExperimentationOptions.builder()
-                        .refreshStrategy(RefreshStrategy.Polling(10000, 5000))
-                        .build()
-            )
-            .build()
+        val httpOptions = SuperpositionOptions(
+            endpoint = config.endpoint,
+            auth = AuthMethod.Token(config.token),
+            orgId = orgId,
+            workspaceId = workspaceId,
+        )
 
         try {
-            println("\n=== Starting OpenFeature tests ===\n")
-            println("Running on JVM: ${System.getProperty("java.version")}")
-
-            val provider = SuperpositionOpenFeatureProvider(providerOptions)
-            println("Provider created successfully")
-
-            // Initialize the provider
-            OpenFeatureAPI.getInstance().setProviderAndWait(provider)
-            println("Provider initialized successfully\n")
-
-            val ofClient = OpenFeatureAPI.getInstance().client
-
-            // Test 1: Default values (no context)
-            println("Test 1: Default values (no context)")
-            run {
-                val context = ImmutableContext()
-                val price = ofClient.getDoubleValue("price", 0.0, context)
-                val currency = ofClient.getStringValue("currency", "", context)
-
-                check(price == 10000.0) { "Default price should be 10000, got $price" }
-                check(currency == "Rupee") { "Default currency should be Rupee, got $currency" }
-                println("  ✓ Test passed\n")
-            }
-
-            // Test 2: Platinum customer - Agush, no city
-            println("Test 2: Platinum customer - Agush (no city)")
-            run {
-                val context = ImmutableContext(mapOf("name" to Value("Agush")))
-                val price = ofClient.getDoubleValue("price", 0.0, context)
-                val currency = ofClient.getStringValue("currency", "", context)
-
-                check(price == 5000.0) { "Price should be 5000 (platinum customer), got $price" }
-                check(currency == "Rupee") { "Currency should be default Rupee, got $currency" }
-                println("  ✓ Test passed\n")
-            }
-
-            // Test 3: Platinum customer - Sauyav, with city Boston
-            println("Test 3: Platinum customer - Sauyav with city Boston")
-            run {
-                val context = ImmutableContext(mapOf(
-                    "name" to Value("Sauyav"),
-                    "city" to Value("Boston")
-                ))
-                val price = ofClient.getDoubleValue("price", 0.0, context)
-                val currency = ofClient.getStringValue("currency", "", context)
-
-                check(price == 5000.0) { "Price should be 5000, got $price" }
-                check(currency == "Dollar") { "Currency should be Dollar, got $currency" }
-                println("  ✓ Test passed\n")
-            }
-
-            // Test 4: Regular customer - John (no city)
-            println("Test 4: Regular customer - John (no city)")
-            run {
-                val context = ImmutableContext(mapOf("name" to Value("John")))
-                val price = ofClient.getDoubleValue("price", 0.0, context)
-                val currency = ofClient.getStringValue("currency", "", context)
-
-                check(price == 10000.0) { "Price should be default 10000, got $price" }
-                check(currency == "Rupee") { "Currency should be default Rupee, got $currency" }
-                println("  ✓ Test passed\n")
-            }
-
-            // Test 5: Platinum customer - Sauyav with city Berlin
-            println("Test 5: Platinum customer - Sauyav with city Berlin")
-            run {
-                val context = ImmutableContext(mapOf(
-                    "name" to Value("Sauyav"),
-                    "city" to Value("Berlin")
-                ))
-                val price = ofClient.getDoubleValue("price", 0.0, context)
-                val currency = ofClient.getStringValue("currency", "", context)
-
-                check(price == 5000.0) { "Price should be 5000, got $price" }
-                check(currency == "Euro") { "Currency should be Euro in Berlin, got $currency" }
-                println("  ✓ Test passed\n")
-            }
-
-            // Test 6: Regular customer - John with city Boston
-            println("Test 6: Regular customer - John with city Boston")
-            run {
-                val context = ImmutableContext(mapOf(
-                    "name" to Value("John"),
-                    "city" to Value("Boston")
-                ))
-                val price = ofClient.getDoubleValue("price", 0.0, context)
-                val currency = ofClient.getStringValue("currency", "", context)
-
-                check(price == 10000.0) { "Price should be default 10000, got $price" }
-                check(currency == "Dollar") { "Currency should be Dollar in Boston, got $currency" }
-                println("  ✓ Test passed\n")
-            }
-
-            // Test 7: Edge case customer - karbik (specific override)
-            println("Test 7: Edge case customer - karbik (specific override)")
-            run {
-                val context = ImmutableContext(mapOf("name" to Value("karbik")))
-                val price = ofClient.getDoubleValue("price", 0.0, context)
-                val currency = ofClient.getStringValue("currency", "", context)
-
-                check(price == 1.0) { "Price should be 1 for karbik, got $price" }
-                check(currency == "Rupee") { "Currency should be default Rupee, got $currency" }
-                println("  ✓ Test passed\n")
-            }
-
-            // Test 8: Edge case customer - karbik with city Boston
-            println("Test 8: Edge case customer - karbik with city Boston")
-            run {
-                val context = ImmutableContext(mapOf(
-                    "name" to Value("karbik"),
-                    "city" to Value("Boston")
-                ))
-                val price = ofClient.getDoubleValue("price", 0.0, context)
-                val currency = ofClient.getStringValue("currency", "", context)
-
-                check(price == 1.0) { "Price should be 1 for karbik, got $price" }
-                check(currency == "Dollar") { "Currency should be Dollar in Boston, got $currency" }
-                println("  ✓ Test passed\n")
-            }
-
-            // Test 9: Experimentation - Bangalore customer
-            println("Test 9: Experimentation - Bangalore customer")
-            run {
-                val context = ImmutableContext(mapOf(
-                    "city" to Value("Bangalore"),
-                    "targetingKey" to Value("test")
-                ))
-
-                val price = ofClient.getDoubleValue("price", 0.0, context)
-                val currency = ofClient.getStringValue("currency", "", context)
-                println("  Retrieved price: $price and currency: $currency for Bangalore customer")
-
-                check(price == 7000.0 || price == 8000.0) { "Price should be either 7000 (experimental) or 8000 (control), got $price" }
-                check(currency == "Rupee") { "Currency should be default Rupee, got $currency" }
-                println(" ✓ Experiment Test passed\n")
-            }
-
-            println("\n=== All tests passed! ===\n")
-        } catch (error: Exception) {
-            println("\n❌ Error running tests: $error")
-            error.printStackTrace()
-            throw error
+            runProviderTests(
+                "LocalResolutionProvider with HTTP data source (on-demand refresh)",
+                LocalResolutionProvider(
+                    HttpDataSource(httpOptions),
+                    Optional.empty(),
+                    RefreshStrategy.OnDemand(3000, 300000)
+                ),
+                testExperiments = true
+            )
         } finally {
             OpenFeatureAPI.getInstance().shutdown()
             println("OpenFeature closed successfully")

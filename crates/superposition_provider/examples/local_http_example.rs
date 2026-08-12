@@ -10,12 +10,15 @@ use superposition_provider::{
 async fn main() {
     env_logger::init();
 
-    let http_source = HttpDataSource::new(SuperpositionOptions::new(
-        "http://localhost:8080".to_string(),
-        AuthMethod::Token("token".to_string()),
-        "localorg".to_string(),
-        "dev".to_string(),
-    ));
+    let http_source = HttpDataSource::new(
+        SuperpositionOptions::new(
+            "http://localhost:8080".to_string(),
+            AuthMethod::Token("token".to_string()),
+            "localorg".to_string(),
+            "dev".to_string(),
+        )
+        .expect("valid Superposition options"),
+    );
 
     let provider = LocalResolutionProvider::new(
         Box::new(http_source),
