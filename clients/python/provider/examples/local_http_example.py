@@ -35,7 +35,7 @@ async def main():
     # Create a provider using HttpDataSource with PollingStrategy
     provider = LocalResolutionProvider(
         primary_source=HttpDataSource(options),
-        refresh_strategy=PollingStrategy(interval=30, timeout=10),
+        refresh_strategy=PollingStrategy(interval_milliseconds=30_000, timeout_milliseconds=10_000),
     )
 
     # Initialize the provider

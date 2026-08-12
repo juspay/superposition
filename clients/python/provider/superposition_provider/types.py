@@ -2,7 +2,6 @@
 Type definitions for Superposition provider configuration.
 """
 
-import warnings
 from dataclasses import dataclass
 from typing import Optional, Dict, Any, Union
 
@@ -52,42 +51,31 @@ class SuperpositionOptions:
     org_id: str
     workspace_id: str
 
+    def __post_init__(self):
+        """Reject a blank endpoint, org, workspace, or auth credential at construction, so
+        misconfiguration fails here rather than as an opaque error on the first request."""
+        def blank(s):
+            return not s or not s.strip()
+
+        if blank(self.endpoint):
+            raise ValueError("endpoint is required")
+        if isinstance(self.auth, TokenAuth):
+            if blank(self.auth.token):
+                raise ValueError("token is required")
+        elif isinstance(self.auth, BasicAuth):
+            if blank(self.auth.username):
+                raise ValueError("username is required")
+            if blank(self.auth.password):
+                raise ValueError("password is required")
+        if blank(self.org_id):
+            raise ValueError("org_id is required")
+        if blank(self.workspace_id):
+            raise ValueError("workspace_id is required")
+
 
 # ============================================================================
-# Refresh Strategy Types
-#
-# Durations are MILLISECONDS, matching the other Superposition clients. The seconds-based
-# `interval` / `ttl` / `timeout` fields are DEPRECATED: set the `_milliseconds` field instead.
-# Setting both units for the same duration raises ValueError — see `_reject_both`.
+# Refresh Strategy Types — all durations are MILLISECONDS.
 # ============================================================================
-
-def _resolve_ms(milliseconds: Optional[int], seconds: Optional[int], name: str) -> Optional[int]:
-    """Prefer the millisecond field; fall back to the deprecated seconds one."""
-    if milliseconds is not None:
-        return milliseconds
-    if seconds is None:
-        return None
-    warnings.warn(
-        f"'{name}' is deprecated and is read as SECONDS; use '{name}_milliseconds' instead.",
-        DeprecationWarning,
-        stacklevel=3,
-    )
-    return seconds * 1000
-
-
-def _reject_both(milliseconds: Optional[int], seconds: Optional[int], name: str) -> None:
-    """Setting both units is ambiguous, so refuse it rather than silently picking one.
-
-    Without this, starting from a default and overriding only the deprecated field —
-    `dataclasses.replace(default_polling_strategy(), interval=30)` — would leave the default's
-    `interval_milliseconds` in place, and it would win: the caller asks for 30s and gets 60s.
-    """
-    if milliseconds is not None and seconds is not None:
-        raise ValueError(
-            f"set either '{name}' (deprecated, seconds) or '{name}_milliseconds', not both; "
-            f"'{name}_milliseconds' would win and '{name}' would be silently ignored"
-        )
-
 
 @dataclass
 class PollingStrategy:
@@ -95,25 +83,16 @@ class PollingStrategy:
 
     Fetches configuration at regular intervals.
     """
-    interval: Optional[int] = None  # DEPRECATED: seconds
-    timeout: Optional[int] = None  # DEPRECATED: seconds
-    interval_milliseconds: Optional[int] = None
+    interval_milliseconds: int
     timeout_milliseconds: Optional[int] = None
-
-    def __post_init__(self):
-        _reject_both(self.interval_milliseconds, self.interval, "interval")
-        _reject_both(self.timeout_milliseconds, self.timeout, "timeout")
 
     def interval_ms(self) -> int:
         """The refresh interval in milliseconds."""
-        resolved = _resolve_ms(self.interval_milliseconds, self.interval, "interval")
-        if resolved is None:
-            raise ValueError("PollingStrategy needs interval_milliseconds")
-        return resolved
+        return self.interval_milliseconds
 
     def timeout_ms(self) -> Optional[int]:
         """The refresh timeout in milliseconds, if one is set."""
-        return _resolve_ms(self.timeout_milliseconds, self.timeout, "timeout")
+        return self.timeout_milliseconds
 
 def default_polling_strategy():
     return PollingStrategy(interval_milliseconds=60_000, timeout_milliseconds=30_000)
@@ -124,30 +103,21 @@ class OnDemandStrategy:
 
     Refreshes only when data becomes stale.
     """
-    ttl: Optional[int] = None  # DEPRECATED: seconds
+    ttl_milliseconds: int
     use_stale_on_error: bool = True
-    timeout: Optional[int] = None  # DEPRECATED: seconds
-    ttl_milliseconds: Optional[int] = None
     timeout_milliseconds: Optional[int] = None
-
-    def __post_init__(self):
-        _reject_both(self.ttl_milliseconds, self.ttl, "ttl")
-        _reject_both(self.timeout_milliseconds, self.timeout, "timeout")
 
     def ttl_ms(self) -> int:
         """How long cached data stays fresh, in milliseconds."""
-        resolved = _resolve_ms(self.ttl_milliseconds, self.ttl, "ttl")
-        if resolved is None:
-            raise ValueError("OnDemandStrategy needs ttl_milliseconds")
-        return resolved
+        return self.ttl_milliseconds
 
     def timeout_ms(self) -> Optional[int]:
         """The refresh timeout in milliseconds, if one is set."""
-        return _resolve_ms(self.timeout_milliseconds, self.timeout, "timeout")
+        return self.timeout_milliseconds
 
 def default_on_demand_strategy():
     return OnDemandStrategy(
-        use_stale_on_error=True, ttl_milliseconds=300_000, timeout_milliseconds=30_000
+        ttl_milliseconds=300_000, use_stale_on_error=True, timeout_milliseconds=30_000
     )
 
 @dataclass

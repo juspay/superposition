@@ -10,7 +10,7 @@ import asyncio
 import json
 import weakref
 from datetime import datetime, timezone
-from typing import Dict, List, Optional, Any, Tuple, Union, Sequence, Mapping
+from typing import AsyncGenerator, Dict, List, Optional, Any, Tuple, Union, Sequence, Mapping
 
 from openfeature.provider import (
     AbstractProvider,
@@ -85,6 +85,11 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
 
         # Background task for refresh strategy
         self._background_task: Optional[asyncio.Task] = None
+
+        # Single-flight: concurrent refresh() callers (e.g. a burst of on-demand evaluations after the
+        # TTL expires) share ONE in-flight refresh instead of each launching its own. Without this, N
+        # callers cause N redundant re-fetches — an N× load spike on the service.
+        self._in_flight_refresh: Optional[asyncio.Future] = None
 
     async def initialize(self, context: EvaluationContext):
         """Initialize the provider.
@@ -206,6 +211,7 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
         self.ffi_cache = None
         self.config_checked_at = None
         self.experiments_checked_at = None
+        self.global_context = EvaluationContext()
 
         self.status = ProviderStatus.NOT_READY
         logger.info("LocalResolutionProvider shutdown completed")
@@ -343,16 +349,12 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
         # Merge contexts
         targeting_key, query_data = self._merge_contexts(context)
 
-        if targeting_key is None:
-            return []
-
         try:
-            # Use FFI for local evaluation
             return self.ffi_cache.get_applicable_variants(
                 query_data,
                 prefix_filter,
                 exclude_prefix_filter,
-                targeting_key,
+                targeting_key or "",
             )
 
         except Exception as e:
@@ -466,6 +468,27 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
 
         Raises:
             SuperpositionError: if the refresh outlives the strategy's timeout.
+        """
+        # Single-flight: start a refresh only if none is running; otherwise join the in-flight one so a
+        # burst of callers collapses to a single fetch. The event loop is single threaded, so this
+        # check-and-set is atomic — there is no await between them. The shared task owns the timeout and
+        # records the outcome once (see _run_one_refresh); shield() keeps one caller's own cancellation
+        # from tearing down a refresh the others are still awaiting.
+        if self._in_flight_refresh is None or self._in_flight_refresh.done():
+            self._in_flight_refresh = asyncio.ensure_future(self._run_one_refresh())
+            # Retrieve the result even if every awaiter goes away, to avoid an "exception never
+            # retrieved" warning on a background (polling/watch) refresh nobody is awaiting.
+            self._in_flight_refresh.add_done_callback(
+                lambda t: t.cancelled() or t.exception()
+            )
+        await asyncio.shield(self._in_flight_refresh)
+
+    async def _run_one_refresh(self) -> None:
+        """The single coalesced refresh: enforces the strategy timeout and records the outcome once.
+
+        Runs as one shared task so concurrent :meth:`refresh` callers observe the same result rather
+        than each launching a redundant fetch. A timed-out refresh is abandoned here, so the task
+        completes and the next caller starts a fresh one instead of joining a stuck refresh.
         """
         succeeded = False
         try:
@@ -638,20 +661,21 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
             except asyncio.CancelledError:
                 logger.info("Polling loop cancelled")
 
-        async def _watch_loop() -> None:
-            """File watching refresh loop with weakref to avoid reference cycle."""
+        async def _watch_loop(watch_iter: AsyncGenerator[str, None]) -> None:
+            """File watching refresh loop with weakref to avoid reference cycle.
+
+            The stream is obtained (and validated non-None) before this task is created, so the Watch
+            strategy fails init rather than silently never refreshing when the source can't watch.
+            """
             self_ref = weak_self()
             if self_ref is None:
                 return
             debounce_interval = self_ref.refresh_strategy.debounce_ms / 1000
-            primary_source = self_ref.primary_source
             del self_ref
 
             logger.info("Starting watch-based refresh")
-            watch_iter = None
             next_event = None
             try:
-                watch_iter = primary_source.watch()
                 next_event = asyncio.ensure_future(anext(watch_iter))
 
                 while True:
@@ -707,7 +731,12 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
 
         match self.refresh_strategy:
             case WatchStrategy():
-                self._background_task = asyncio.create_task(_watch_loop())
+                watch_iter = self.primary_source.watch()
+                if watch_iter is None:
+                    raise SuperpositionError.config_error(
+                        "Watch strategy selected but data source does not support watching"
+                    )
+                self._background_task = asyncio.create_task(_watch_loop(watch_iter))
             case PollingStrategy():
                 self._background_task = asyncio.create_task(_polling_loop())
             case ManualStrategy():

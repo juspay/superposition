@@ -29,7 +29,7 @@ async def main():
     # Create a provider using FileDataSource with OnDemandStrategy
     provider = LocalResolutionProvider(
         primary_source=FileDataSource(config_path.__str__()),
-        refresh_strategy=OnDemandStrategy(ttl=60),
+        refresh_strategy=OnDemandStrategy(ttl_milliseconds=60_000),
     )
 
     # Initialize the provider

@@ -18,7 +18,7 @@ from superposition_bindings.superposition_types import Config
 
 from watchdog.observers import Observer
 from watchdog.observers.api import BaseObserver
-from watchdog.events import FileSystemEventHandler
+from watchdog.events import FileSystemEvent, FileSystemEventHandler
 
 from .data_source import (
     SuperpositionDataSource,
@@ -76,18 +76,43 @@ class _FileEventHandler(FileSystemEventHandler):
         self._loop = loop
         self._subscribers = subscribers
 
-    def on_modified(self, event):
-        """Called when a file is modified (from watchdog's background thread)."""
+    def _matches(self, path: Optional[str]) -> bool:
+        """Whether ``path`` resolves to the file being watched."""
+        return bool(path) and os.path.realpath(path) == os.path.realpath(self.file_path)
+
+    def _dispatch_change(self, event: FileSystemEvent) -> None:
+        """Notify subscribers when an event touches the watched file.
+
+        The directory is watched (not the file node) so the watch survives an
+        atomic-rename save — write a temp file, then rename it over the target,
+        which replaces the inode. Such a save arrives as a create/move against the
+        directory entry, so all of created/modified/moved must be handled: an
+        in-place write reports the file as ``src_path``, while a rename reports the
+        target as ``dest_path``.
+        """
         if event.is_directory:
             return
 
-        if os.path.realpath(event.src_path) != os.path.realpath(self.file_path):
+        dest_path = getattr(event, "dest_path", None)
+        if not (self._matches(event.src_path) or self._matches(dest_path)):
             return
 
         logger.info(f"File changed (watchdog event): {self.file_path}")
         # Thread-safe: schedule the queue puts from the watchdog thread.
         for queue in list(self._subscribers):
             self._loop.call_soon_threadsafe(queue.put_nowait, self.file_path)
+
+    def on_modified(self, event: FileSystemEvent) -> None:
+        """Called when the file is modified in place (watchdog background thread)."""
+        self._dispatch_change(event)
+
+    def on_created(self, event: FileSystemEvent) -> None:
+        """Called when the file is (re)created, e.g. the target of an atomic-rename save."""
+        self._dispatch_change(event)
+
+    def on_moved(self, event: FileSystemEvent) -> None:
+        """Called when a file is renamed onto the watched path (atomic-rename save)."""
+        self._dispatch_change(event)
 
 def _parse_config_file(
     content: str,
@@ -129,9 +154,10 @@ class FileDataSource(SuperpositionDataSource):
         self._observer: Optional[BaseObserver] = None
         self._subscribers: List[asyncio.Queue] = []
         self.file_path = file_path
-        if file_path.endswith('.toml'):
+        extension = os.path.splitext(file_path)[1].lower()
+        if extension == ".toml":
             self.file_format = "toml"
-        elif file_path.endswith('.json'):
+        elif extension == ".json":
             self.file_format = "json"
         else:
             raise SuperpositionError.data_source_error(
@@ -235,18 +261,22 @@ class FileDataSource(SuperpositionDataSource):
         """File source supports experiments if path is configured."""
         return False
 
-    async def watch(self) -> Optional[AsyncGenerator[str, None]]:
-        """Watch the file for changes, yielding its path on every change.
+    def watch(self) -> Optional[AsyncGenerator[str, None]]:
+        """Return a stream of change events for the watched file, or None if unsupported.
 
-        Every caller gets its own stream of events. They share one OS watcher, which starts with
-        the first subscriber and stops when the last one leaves.
+        A File source always supports watching, so this returns a stream (never None); a source that
+        cannot watch returns None, which the provider treats as a fatal misconfiguration for the Watch
+        strategy. Synchronous (returns the stream rather than being the generator itself) so the
+        contract matches the other data sources: `source.watch()` yields an optional stream, and the
+        async iteration lives on that stream.
 
-        Returns:
-            Async generator yielding changed file paths.
+        Every caller gets its own stream of events. They share one OS watcher, which starts with the
+        first subscriber and stops when the last one leaves.
         """
-        if not self.file_path:
-            return
+        return self._watch_stream()
 
+    async def _watch_stream(self) -> AsyncGenerator[str, None]:
+        """The shared-watcher event stream behind :meth:`watch`, yielding the path on every change."""
         event_queue: asyncio.Queue = asyncio.Queue()
         self._subscribers.append(event_queue)
         try:
