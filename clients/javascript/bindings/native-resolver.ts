@@ -28,11 +28,8 @@ export class NativeResolver {
             this.lib.core_test_connection = this.lib.func(
                 "int core_test_connection()",
             );
-            this.lib.core_parse_toml_config = this.lib.func(
-                "char* core_parse_toml_config(const char*, char*)",
-            );
-            this.lib.core_parse_json_config = this.lib.func(
-                "char* core_parse_json_config(const char*, char*)",
+            this.lib.core_parse_config_file_with_filters = this.lib.func(
+                "char* core_parse_config_file_with_filters(const char*, const char*, const char*, const char*, const char*, char*)",
             );
             this.lib.core_provider_cache_new = this.lib.func(
                 "void* core_provider_cache_new()",
@@ -291,13 +288,23 @@ export class NativeResolver {
     }
 
     /**
-     * Parse TOML configuration into structured format matching the Config type
+     * Parse configuration into structured format matching the Config type
      *
-     * @param tomlContent - TOML configuration string
+     * @param content - Configuration string
+     * @param format - Format of the configuration (e.g., "toml")
+     * @param dimensions - Dimensions data for parsing
+     * @param filterPrefixes - Optional array of prefixes to filter contexts
+     * @param filterExcludePrefixes - Optional array of prefixes to exclude contexts
      * @returns Parsed Config object with contexts, overrides, default_configs, dimensions
      * @throws Error if parsing fails
      */
-    parseTomlConfig(tomlContent: string): {
+    parseConfigFileWithFilters(
+        content: string,
+        format: string,
+        dimensions: Record<string, Record<string, any>> = {},
+        filterPrefixes: string[] = [],
+        filterExcludePrefixes: string[] = [],
+    ): {
         contexts: any[];
         overrides: Record<string, Record<string, any>>;
         default_configs: Record<string, any>;
@@ -309,7 +316,7 @@ export class NativeResolver {
             );
         }
 
-        if (typeof tomlContent !== "string") {
+        if (typeof content !== "string") {
             throw new TypeError("tomlContent must be a string");
         }
 
@@ -317,8 +324,16 @@ export class NativeResolver {
         const errorBuffer = Buffer.alloc(ERROR_BUFFER_SIZE);
 
         // Call the C function
-        const resultJson = this.lib.core_parse_toml_config(
-            tomlContent,
+        const resultJson = this.lib.core_parse_config_file_with_filters(
+            content,
+            format,
+            Object.keys(dimensions).length > 0
+                ? JSON.stringify(dimensions)
+                : null,
+            filterPrefixes.length > 0 ? JSON.stringify(filterPrefixes) : null,
+            filterExcludePrefixes.length > 0
+                ? JSON.stringify(filterExcludePrefixes)
+                : null,
             errorBuffer,
         );
 
@@ -353,72 +368,6 @@ export class NativeResolver {
             console.error("Failed to parse TOML result:", parseError);
             console.error("Raw result string:", configStr);
             throw new Error(`Failed to parse TOML result: ${parseError}`);
-        }
-    }
-
-    /**
-     * Parse JSON configuration into structured format matching the Config type
-     *
-     * @param jsonContent - JSON configuration string
-     * @returns Parsed Config object with contexts, overrides, default_configs, dimensions
-     * @throws Error if parsing fails
-     */
-    parseJsonConfig(jsonContent: string): {
-        contexts: any[];
-        overrides: Record<string, Record<string, any>>;
-        default_configs: Record<string, any>;
-        dimensions: Record<string, any>;
-    } {
-        if (!this.isAvailable) {
-            throw new Error(
-                "Native resolver is not available. Please ensure the native library is built and accessible.",
-            );
-        }
-
-        if (typeof jsonContent !== "string") {
-            throw new TypeError("jsonContent must be a string");
-        }
-
-        // Allocate error buffer (matching the Rust implementation)
-        const errorBuffer = Buffer.alloc(ERROR_BUFFER_SIZE);
-
-        // Call the C function
-        const resultJson = this.lib.core_parse_json_config(
-            jsonContent,
-            errorBuffer,
-        );
-
-        // Check for errors
-        if (!resultJson) {
-            // Read error message from buffer
-            const nullTermIndex = errorBuffer.indexOf(0);
-            const errorMsg = errorBuffer.toString(
-                "utf8",
-                0,
-                nullTermIndex > 0 ? nullTermIndex : errorBuffer.length,
-            );
-            throw new Error(`JSON parsing failed: ${errorMsg}`);
-        }
-
-        // Decode the result to a JS string if it's not already a string
-        const configStr =
-            typeof resultJson === "string"
-                ? resultJson
-                : this.lib.decode(resultJson, "string");
-
-        // Free the native string if it wasn't already a string
-        if (typeof resultJson !== "string") {
-            this.lib.core_free_string(resultJson);
-        }
-
-        // Parse the JSON result
-        try {
-            const result = JSON.parse(configStr);
-            return result;
-        } catch (parseError) {
-            console.error("Failed to parse JSON result:", parseError);
-            console.error("Raw result string:", configStr);
-            throw new Error(`Failed to parse JSON result: ${parseError}`);
         }
     }
 

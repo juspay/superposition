@@ -9,15 +9,12 @@ pub mod json;
 pub mod tests;
 pub mod toml;
 
-use std::{
-    collections::HashMap,
-    fmt::{self, Display},
-};
+use std::collections::HashMap;
 
-use serde_json::Value;
+use serde_json::{Map, Value};
 use superposition_types::{
-    database::models::cac::DimensionType, Condition, Config, DefaultConfigsWithSchema,
-    DetailedConfig, DimensionInfo, Overrides,
+    database::models::cac::DimensionType, Condition, Config, ConfigFilter,
+    DefaultConfigsWithSchema, DetailedConfig, DimensionInfo, Overrides, PrefixList,
 };
 
 use crate::{
@@ -26,21 +23,32 @@ use crate::{
 };
 pub use error::FormatError;
 
-#[derive(Debug)]
+/// Parse a config file in the given `format` (`"json"` or `"toml"`) and apply the given dimension /
+/// prefix filters, returning the resulting [`Config`].
+///
+/// This is the shared parse-and-filter logic behind both FFI adapters — the UniFFI
+/// `ffi_parse_config_file_with_filters` and the C-ABI `core_parse_config_file_with_filters` — so the
+/// two layers only differ in argument marshalling, not in what they do.
+pub fn parse_config_file_with_filters(
+    file_content: &str,
+    format: MarkupFormat,
+    dimension_data: Option<Map<String, Value>>,
+    prefix_list: Option<&PrefixList>,
+    exclude_prefix_list: Option<&PrefixList>,
+) -> Result<Config, FormatError> {
+    let config = match format {
+        MarkupFormat::Json => json::JsonFormat::parse_config(file_content)?,
+        MarkupFormat::Toml => toml::TomlFormat::parse_config(file_content)?,
+    };
+
+    Ok(config.filter(dimension_data, prefix_list, exclude_prefix_list))
+}
+
+#[derive(Debug, uniffi::Enum, strum_macros::Display, strum_macros::EnumString)]
+#[strum(serialize_all = "UPPERCASE")]
 pub enum MarkupFormat {
     Json,
     Toml,
-    Yaml,
-}
-
-impl Display for MarkupFormat {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            MarkupFormat::Json => write!(f, "JSON"),
-            MarkupFormat::Toml => write!(f, "TOML"),
-            MarkupFormat::Yaml => write!(f, "YAML"),
-        }
-    }
 }
 
 /// Trait for configuration format parsers/serializers
