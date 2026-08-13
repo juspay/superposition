@@ -74,7 +74,7 @@ impl SuperpositionAPIProvider {
             .workspace_id(&self.options.workspace_id)
             .org_id(&self.options.org_id)
             .set_context(Some(query_data))
-            .set_identifier(targeting_key)
+            .identifier(targeting_key.unwrap_or_default())
             .set_prefix(prefix_filter)
             .set_exclude_prefix(exclude_prefix_filter)
             .send()

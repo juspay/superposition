@@ -79,7 +79,7 @@ export class SuperpositionAPIProvider
                 context: queryData,
                 prefix: prefixFilter,
                 exclude_prefix: excludePrefixFilter,
-                identifier: targetingKey,
+                identifier: targetingKey ?? "",
             }),
         );
 

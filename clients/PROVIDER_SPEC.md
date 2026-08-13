@@ -210,8 +210,9 @@ conventions, but the **set and meaning are fixed**):
 | `DATA_SOURCE_ERROR` | File source errors (bad extension, read/parse/stat failure); "experiments not supported by this source"; a local-provider-as-data-source with no cache. |
 | `REFRESH_ERROR` | A refresh exceeded its timeout (or was interrupted). |
 
-The error type SHOULD carry an optional `cause`/wrapped exception and render as
-`"{CODE}: {message}"`.
+The error type SHOULD carry an optional `cause`/wrapped exception. It MUST expose
+its code and message; how it stringifies is idiomatic to the target language, but
+the rendered form SHOULD include **both** the code and the message.
 
 ### 3.2 OpenFeature evaluation error mapping (REQUIRED)
 On the typed-resolution path the provider MUST return the language's OpenFeature
@@ -227,7 +228,7 @@ config map and a requested `flagKey` + `typeName`:
 3. **Any other error** thrown while producing the resolved map (network, core
    failure, provider-not-initialized, serialization) → OpenFeature **`GENERAL`**,
    reason `ERROR`, value = default, message
-   `"Error evaluating flag '{key}': {underlying message}"`.
+   `"Error evaluating {typeName} flag '{key}': {underlying message}"`.
 
 The evaluation order MUST be: (1) not-found, then (2) type check, then success;
 any thrown error routes to (3). These three are the **only** OpenFeature error
@@ -676,8 +677,10 @@ Every evaluation is a live server call — no cache, no refresh, no STALE.
 
 - **Resolve:** issue "get resolved config with identifier" with `workspace_id`,
   `org_id`, the merged `context`, `prefix`, `exclude_prefix`, and the targeting
-  key as `identifier`. Set `identifier` only when the targeting key is present
-  and non-empty (omit an empty/absent key). Transport failure → `NETWORK_ERROR`.
+  key as `identifier`. A missing/absent targeting key is sent as an **empty string
+  `""`** — the same value local resolution passes to the core (§15.1); the service
+  buckets `""` the same as absent. Do **not** special-case it to omit the field —
+  represent an absent key as `""` uniformly. Transport failure → `NETWORK_ERROR`.
 - **Response shape:** if the returned config is a non-null, non-array object, use
   it directly. Otherwise (a scalar or array top-level response) wrap it as
   `{ "_value": <response> }` so the type contract has a map to resolve against

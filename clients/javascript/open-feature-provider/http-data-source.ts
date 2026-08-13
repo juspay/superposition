@@ -71,8 +71,8 @@ export class HttpDataSource extends BaseDataSource {
                     workspace_id: this.options.workspaceId,
                     org_id: this.options.orgId,
                     context,
-                    prefix: prefixFilter,
-                    exclude_prefix: excludePrefixFilter,
+                    prefix: prefixFilter?.length ? prefixFilter : undefined,
+                    exclude_prefix: excludePrefixFilter?.length ? excludePrefixFilter : undefined,
                     if_modified_since: ifModifiedSince,
                 })
             );
@@ -104,8 +104,8 @@ export class HttpDataSource extends BaseDataSource {
                     workspace_id: this.options.workspaceId,
                     org_id: this.options.orgId,
                     context,
-                    prefix: prefixFilter,
-                    exclude_prefix: excludePrefixFilter,
+                    prefix: prefixFilter?.length ? prefixFilter : undefined,
+                    exclude_prefix: excludePrefixFilter?.length ? excludePrefixFilter : undefined,
                     if_modified_since: ifModifiedSince,
                     dimension_match_strategy: dimensionMatchStrategy,
                 })

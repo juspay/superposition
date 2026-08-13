@@ -30,6 +30,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -474,7 +475,16 @@ public class LocalResolutionProvider extends EventProvider
         boolean owner;
         synchronized (refreshLock) {
             if (inFlightRefresh == null || inFlightRefresh.isDone()) {
-                inFlightRefresh = refreshWorker.submit(this::refreshOnceAndRecord);
+                try {
+                    inFlightRefresh = refreshWorker.submit(this::refreshOnceAndRecord);
+                } catch (RejectedExecutionException e) {
+                    // The refresh worker has been shut down. A refresh triggered by an evaluation
+                    // after shutdown must fail as a clean PROVIDER_ERROR — which ensureFreshData
+                    // handles, and the resolve path's null-cache check turns into the final error —
+                    // rather than escaping as an unchecked RejectedExecutionException.
+                    throw SuperpositionError.providerError(
+                            "Provider is shut down; cannot refresh", e);
+                }
                 owner = true;
             } else {
                 owner = false;

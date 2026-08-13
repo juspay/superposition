@@ -299,7 +299,7 @@ class SuperpositionAPIProvider(AbstractProvider, AllFeatureProvider, FeatureExpe
                     context=merged_context,
                     prefix=prefix_filter,
                     exclude_prefix=exclude_prefix_filter,
-                    identifier=targeting_key,
+                    identifier=targeting_key or "",
                 )
             )
 

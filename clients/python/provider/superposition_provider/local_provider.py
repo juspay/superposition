@@ -112,7 +112,7 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
         try:
             logger.info("Initializing LocalResolutionProvider...")
             self.status = ProviderStatus.NOT_READY
-            self.global_context = context
+            self.global_context = context if context is not None else EvaluationContext()
 
             # Create FFI cache
             self.ffi_cache = ProviderCache()

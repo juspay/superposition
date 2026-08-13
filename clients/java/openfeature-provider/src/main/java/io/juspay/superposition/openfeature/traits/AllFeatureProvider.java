@@ -107,7 +107,7 @@ public interface AllFeatureProvider {
                     .variant("error")
                     .reason(Reason.ERROR.name())
                     .errorCode(dev.openfeature.sdk.ErrorCode.GENERAL)
-                    .errorMessage("Error evaluating flag '" + flagKey + "': " + e.getMessage())
+                    .errorMessage("Error evaluating " + typeName + " flag '" + flagKey + "': " + e.getMessage())
                     .build();
         }
     }

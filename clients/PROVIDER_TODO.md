@@ -1,101 +1,46 @@
 # OpenFeature Provider — Remaining Work (TODO)
 
-Status of the cross-language provider parity effort across **Rust**
+**Open** work for the cross-language provider parity effort across **Rust**
 (`crates/superposition_provider`), **Python** (`clients/python/provider`),
 **Java** (`clients/java/openfeature-provider`), and **JavaScript**
 (`clients/javascript/open-feature-provider`).
 
 Branch: `provider/updated` — **nothing committed yet.**
 
+> Completed & verified items have been moved to **`PROVIDER_DONE.md`**. This file
+> tracks only what is still open.
+
 ---
 
 ## Legend
-- `[ ]` not started · `[~]` partial / discussed · `[x]` done & verified
-- **Sev**: severity from the cross-language review (HIGH already cleared)
+- `[ ]` not started · `[~]` partial / discussed · **DISCUSS** = needs a decision first
 
 ---
 
-## 0. Conformance validation run (against PROVIDER_SPEC.md)
+## 0b. Lower-severity / SHOULD deviations (open)
 
-A full conformance validation of all four languages against the spec surfaced
-**new** deviations beyond the original review. Cross-language ones are added to
-spec §20 (IDs referenced below); single-language bugs are listed here.
-
-> **Re-evaluated against current code (2026-08-09):** all §0a MUST violations
-> below are **still open** — none were touched by the single-flight / executor
-> work. Line references updated to the current source (several had drifted).
-> **Both sides verified:** for every cross-cutting finding the "correct"
-> reference language was also checked and genuinely is correct, so the scoping is
-> accurate — `CTX-RESET`/`EXT-CASE`/`WATCH-GUARD` correct in Rust+Java;
-> `REMOTE-SHUT` correct in JS; `WATCH-TIMEOUT` correct in Rust+Python+JS;
-> `EXP-INIT-STR` canonical in Python+JS+Java.
-
-### 0a. MUST violations (fix first) — all still open
-
-| Lang | Finding | Spec ref |
-|---|---|---|
-| ~~**Python**~~ ✅ | ~~Remote `_resolve_remote` re-raises the raw SDK error with a bare `raise`~~ **DONE** — now wraps as `NETWORK_ERROR`, passes `SuperpositionError` through | §14 |
-| ~~**Python**~~ ✅ | ~~Watch strategy never checks the primary can watch~~ **DONE (option 2)** — normalized `watch()` to a **sync** `def watch() -> Optional[AsyncGenerator]` (matches Rust/Java/JS — capability check is sync, async lives on the returned `_watch_stream()`); `_start_refresh_strategy` calls it and raises `CONFIG_ERROR` on `None` | §9.3 → `WATCH-GUARD` |
-| ~~**Python**~~ ✅ | ~~`shutdown()` does not reset `global_context`~~ **DONE** — resets to `EvaluationContext()` (JS resets to `{}`); closes `CTX-RESET` across all four | §12.3 → `CTX-RESET` |
-| ~~**Python**~~ ✅ | ~~File extension check case-sensitive~~ **DONE (option 2)** — extracts extension via `os.path.splitext` (JS: `path.extname`), lowercases, compares; matches Rust/Java | §7 → `EXT-CASE` |
-| ~~**Python**~~ ✅ | ~~Remote provider: no post-shutdown guard~~ **DONE** — `_require_client()` guards resolve + variants → `PROVIDER_ERROR "…is shut down"` | §14 → `REMOTE-SHUT` (== MED #6) |
-| ~~**JS**~~ ✅ | ~~Watch strategy silently returns when primary can't watch~~ **DONE** — `startWatch` now throws `CONFIG_ERROR` on a null stream (contract was already `AsyncGenerator \| null`; guard only) | §9.3 → `WATCH-GUARD` |
-| ~~**JS**~~ ✅ | ~~`shutdown()` does not reset `globalContext`~~ **DONE** — resets to `{}` (see Python row) | §12.3 → `CTX-RESET` |
-| ~~**JS**~~ ✅ | ~~File extension check case-sensitive~~ **DONE (option 2)** — `path.extname(...).toLowerCase()` compare (see Python row) | §7 → `EXT-CASE` |
-| ~~**Rust**~~ ✅ | ~~Remote provider has no shutdown/guard~~ **DONE (reframed)** — added `ensure_ready()` **pre-init** guard → `ProviderError "…is not ready"`. Post-shutdown is **N/A for Rust**: `open_feature` has no shutdown hook and teardown is `Arc`-drop (the `Client` releases itself), so there's no live-but-shut-down state (same platform bucket as `RS-EVENTS`). `close_provider` was removed as an uncalled method. | §14 → `REMOTE-SHUT` |
-| ~~**Rust**~~ ✅ | ~~Experiment-init error string differs from canonical~~ **DONE** — now `"…no experiment-capable fallback configured: {e}"`, matches Python/JS/Java | §12.2 → `EXP-INIT-STR` |
-| ~~**Rust**~~ ✅ | ~~`FileDataSource::new` returns untyped `String`~~ **DONE** — now `Result<Self>` returning `DataSourceError`, message aligned; 4 `.unwrap()` callers unaffected (build incl. examples+tests green) | §7 / §3.1 |
-| ~~**Java**~~ ✅ | ~~API provider has no post-shutdown guard~~ **DONE** — `requireReady()` before the try in resolve + variants (status-based, option 1) → `providerError "…is not ready"`; client is `final`/not-closeable so no teardown | §14 → `REMOTE-SHUT` |
-| ~~**Java**~~ ✅ | ~~Watch/Manual refresh is timeout-bounded~~ **DONE (model fix, anchored on Rust)** — removed `timeoutMilliseconds` from the sealed interface; `Watch` = `debounceMs` only, `Manual` = config-less `object`; `refreshTimeoutMs()` returns a timeout only for Polling/OnDemand (Watch/Manual unbounded). Same field-model fix applied to JS `options.ts`. Legacy provider patched (not deleted) to keep compiling. | §10.5 → `WATCH-TIMEOUT` |
-
-### 0b. Lower-severity / SHOULD deviations
-
-- [ ] Empty prefix/exclude lists not omitted at SDK-command layer — **Python, JS** (`EMPTY-FILTER`, §16). Rust/Java omit.
-- [x] ~~No single-in-flight-refresh guard (SHOULD) — all four~~ **DONE (§17):** concurrent `refresh()` callers now coalesce onto one in-flight refresh in all four languages, so an OnDemand TTL-expiry burst causes one fetch, not N. Java: shared `Future` + owner-cancels-on-timeout, outcome recorded on the worker. Python: shared `asyncio` task (`_run_one_refresh`) awaited via `shield`. JS: shared self-clearing `Promise` (`runOneRefresh`). Rust: `futures_util::future::Shared` over a `Weak`-capturing boxed future (required `SuperpositionError: Clone`). Compiles/typechecks in all four; full test runs still blocked by the stale-native-lib env issue.
-- [ ] Rust: remote resolve forwards empty `""` identifier instead of omitting (§14). Also Python resolve identifier not omitting empty (`remote_provider.py:289`).
 - [ ] Rust: file watcher not torn down when last subscriber leaves (SHOULD, §7).
+  - **My recommendation: low priority / likely defer.** Now that RS-LEAK is fixed, the `notify` watcher is released by RAII when the data source drops (the common case). The residual gap is only "`watch()` was called, all consumers stopped, but the provider lives on" — a minor lingering-handle case. If we do it: drop the shared `WatcherInner` when the broadcast `receiver_count()` hits 0. Not worth prioritizing over §6/commit.
 - [ ] **File-watch event-filter divergence — all four (DISCUSS, §7).** Each language decides "is this event about my file?" differently, with edge-case gaps:
   - **Rust / JS** filter on **file name equality only** (basename compare). Simplest; blind to symlink indirection and to dropped-event overflow.
   - **Python** filters on **realpath equality** (`os.path.realpath`) — strongest identity match, follows symlinks; costs a stat per event.
   - **Java** matches **filename OR a non-`Path` context** — i.e. on `OVERFLOW` (OS dropped events) it re-reads defensively. The only impl that survives event-queue overflow; the others silently miss the change.
   - Two gaps to decide/close for uniformity: (a) **overflow/dropped-event robustness** — should Rust/JS/Python also re-read defensively when the watcher signals overflow (or a rename with no usable name), matching Java? (b) **symlink resolution** — should realpath-style matching (Python) be the standard everywhere, or name-only (Rust/JS)? Pick one canonical behavior in `PROVIDER_SPEC.md` §7 and align the other three.
-- [ ] Python/JS: core `evalConfig` failure surfaces raw error, not coded `CONFIG_ERROR` (observable OF code still GENERAL; §13.5).
-- [ ] Python: `fetched_at` has no "fallback to now" when server omits `last_modified` (§2.2).
-- [ ] Python: init `global_context = context` with no null→empty default (§12.2).
-- [ ] JS: GENERAL error message inserts `typeName` — `"Error evaluating {typeName} flag '{key}'…"` vs spec `"Error evaluating flag '{key}'…"` (§3.2).
-- [x] ~~JS list-query interceptor~~ — **RESOLVED (verified 2026-07):** the JS smithy-typescript SDK *does* serialize list `@httpQuery` members (`Aws_restJson1.ts:1124-1135` etc. — `prefix`/`exclude_prefix` arrays → `.q(query)`). Rust (aws-smithy-rust, `get_config.rs:139-149`) and Python (smithy-python, `serialize.py:1051/1375/157`) likewise serialize lists correctly. **Only smithy-java is broken** (already fixed via `PrefixQueryInterceptor` + `SdkListQuerySerializationTest`). No interceptor needed for Rust/Python/JS. Re-verify on SDK upgrades.
-- [ ] Java: `SuperpositionError` has no `toString()` → renders class-name, not `"{CODE}: {message}"` (§3.1 SHOULD).
+  - **Suggested canonical (my recommendation):**
+    - (a) **Adopt Java's defensive re-read as canonical.** Silently missing a config change is worse than an occasional spurious reload, so on an overflow/rescan signal — or any event with no usable filename — re-read. JS already does this (the null-`filename` case fires anyway); Java does (`OVERFLOW`). Add it to Rust (`notify` surfaces rescan/error events) and Python (watchdog) where the backend exposes it; where it doesn't, leave a comment noting the gap. Cheap and strictly safer.
+    - (b) **Adopt realpath as canonical.** Resolve the target via realpath at watch setup and match within the *real* parent dir, so a symlinked config path is watched correctly. JS already realpaths at setup; Python realpaths per event; only Rust matches by bare filename — have Rust realpath the target once at setup. One extra stat, no hot-path cost.
+    - Then encode both in `PROVIDER_SPEC.md` §7.
 - [ ] Java: RefreshStrategy defaults (30000/60000/300000) not encoded; no default-OnDemand when none configured (§9).
-- [ ] Java: OnDemand + direct post-shutdown eval can throw `RejectedExecutionException` (unchecked) instead of clean `PROVIDER_ERROR` (§12.3 edge).
-- [ ] Java: out-of-int32-range integral values rejected as TYPE_MISMATCH (platform-forced by 32-bit `Integer`; documented, borderline).
+  - **My recommendation: keep explicit (don't add a default-when-null), but add convenience factories.** Java requiring an explicit strategy is defensible — no hidden behavior. The ergonomic gap is only that a caller must spell out `RefreshStrategy.Polling(30000, 60000)` with magic numbers. Fix that with `RefreshStrategy.polling()` / `.onDemand()` factory methods that carry the canonical defaults (mirroring Rust `Default`/Python `default_*_strategy()`), rather than defaulting a *null* strategy. Low priority; ergonomics, not correctness.
+- [ ] Java: out-of-int32-range integral values rejected as TYPE_MISMATCH (platform-forced by 32-bit `Integer`; documented, borderline). **Leave** — platform limit, not fixable.
 
-### 0c. Confirmed clean (spec-compliant, no action)
-Type predicates (bool≠int, object accepts array, float widens int, no string
-coercion), §3.2 error ordering, candidate=EXACT/matching=SUBSET, mtime `<=`,
-TTL-off-checkedAt incl. 304, config-error-wins, STALE-on-any-failure, exact
-init error strings (except Rust `EXP-INIT-STR`), single-shot guard, fallback
-init-only, and the canonical contract names (§1.4) — **PASS in all four**.
-
----
-
-## 1. MED review findings (behavioral divergences)
-
-IDs in the last column map to the "Known Inconsistencies" table in
-`clients/PROVIDER_SPEC.md` §20 (canonical behavior defined there).
+## 1. MED review findings — open
 
 | # | Sev | Finding | Languages affected | Spec ID |
 |---|-----|---------|--------------------|---------|
-| ~~1~~ ✅ | MED | ~~`getApplicableVariants` swallows API errors → returns `[]`~~ **DONE** — Python + JS remote now propagate as `NETWORK_ERROR` (match Rust `map_err(NetworkError)?` / Java); empty-success still returns `[]` | Python, JS | `VAR-ERR` |
-| ~~2~~ ✅ | MED | ~~Background refresh loop keeps a **strong** `Arc`/ref → provider never dropped~~ **DONE** — `start_polling`/`start_watching` now capture `Weak<Inner>` (mirroring `do_refresh`) and upgrade per tick; polling `break`s when upgrade → `None`, watch `break`s on that **and** on `recv()` → `Closed` (also fixes a busy-spin on the closed channel). A dropped provider now lets `Inner` reach refcount 0 → RAII `Drop` releases the task, data sources, and the `notify` OS watcher — matching the weakref approach in Python/JS/Java. (Rust has no FFI `ProviderCache`; the leaked resources were the task + data sources, not a native cache.) **RUNTIME-VERIFIED:** added `leak_tests` (server-free unit tests) — `polling_loop_does_not_pin_the_provider` + `watch_loop_does_not_pin_the_provider` assert `Arc::strong_count == 1` after init (the task holds only `Weak`) and `weak.upgrade().is_none()` after drop; both pass, and confirmed non-vacuous (reintroducing the strong `self.clone()` makes the poll test fail with count 2). | Rust (`start_polling`/`start_watching`) | `RS-LEAK` |
-| ~~3~~ ✅ | MED | ~~Empty/absent local targeting key → `[]` vs `""`~~ **DONE** — Python (`targeting_key or ""`) + JS (`targetingKey ?? ""`) now hand `""` to the core instead of short-circuiting; matches Rust/Java and their own remote providers | Python, JS | `VAR-KEY` |
-| ~~4~~ ✅ | MED | ~~Constructor does not validate options~~ **DONE** — Rust `SuperpositionOptions::new -> Result<Self>` validates (6 callers `.expect`); Python `__post_init__` raises `ValueError` on blank endpoint/auth/org/workspace. Matches Java/JS | Rust, Python | `OPT-VAL` |
-| ~~5~~ ✅ | MED | ~~File watch observes the file **node** not its dir~~ **DONE** — Rust now watches the parent dir (NonRecursive) and filters events by the target filename; survives atomic-rename saves, matching Java/JS | Rust | `FS-WATCH` |
-| ~~5b~~ ✅ | MED | ~~Python watches the dir but the handler only overrides `on_modified`~~ **DONE** — `_FileEventHandler` watched the parent dir yet reacted to `on_modified` **only**, so atomic-rename saves (delivered as create/move against the dir entry) were dropped — it silently defeated the dir-watch. Now handles created/modified/moved and checks both `src_path` and `dest_path` (a rename's target is `dest_path`). | Python | `FS-WATCH` |
-| ~~6~~ ✅ | MED | ~~Remote-provider shutdown/teardown divergence — no post-shutdown guard~~ **DONE** (== `REMOTE-SHUT` §0a) | Python | — |
-| ~~7~~ ➖ | MED | ~~Object accessor rejects top-level JSON arrays~~ **N/A (platform)** — OpenFeature Rust's object method returns `StructValue` (map-only, no array form) and there's no `resolve_array_value`; `TYPE_MISMATCH` is correct. The index-keyed-map hack was deliberately removed (`conversions.rs:296`); `resolve_array` is the direct escape hatch. Accepted platform characteristic | Rust | `RS-OBJ` |
-| ~~8~~ ➖ | MED | ~~Integer resolve accepts floating values (`1.5` → int)~~ **N/A (platform)** — OpenFeature JS has a single `number` type / only `resolveNumberEvaluation` (no `resolveIntegerEvaluation`); the provider can't know an integer was requested, and `asNumber` accepting `1.5` is correct. A `Number.isInteger` check would wrongly reject every float read. Accepted platform characteristic (bucket with `RS-EVENTS`/`JS-SERR`) | JS | `J-INT` |
-| 9 | MED | Sync `resolve` path skips `ensureFreshData` (no OnDemand refresh on sync calls) | Python | `PY-SYNC` |
-| 10 | LOW | `ErrorCode` omits `SERIALIZATION_ERROR` | JS | `JS-SERR` (intentional) |
+| 9 | MED | Sync `resolve` path skips `ensureFreshData` (no OnDemand refresh on sync calls) — see §7 recommendation (document as a platform limitation) | Python | `PY-SYNC` |
+
+*(MED findings 1–8 and 10 are resolved/accepted — see `PROVIDER_DONE.md`.)*
 
 ## 1a. Remove deprecated legacy providers
 
@@ -108,11 +53,9 @@ be reconciled, only deleted. They are explicitly out of scope in the spec (§1).
 - [ ] Delete Java legacy `SuperpositionOpenFeatureProvider` + `RefreshJob` / `SuperpositionConfig` if superseded.
 - [ ] Repoint any CI / provider-sdk-tests still on a legacy provider to `LocalResolutionProvider` (see §6), then drop the legacy exports from each package `index`.
 
-## 2. LOW review findings
+## 2. LOW review findings — open
 
-- [ ] JS: `fetchedAt = now()` instead of server `last_modified` in one path — confirm/fix.
-- [ ] Java: applicable-variant strings vs structured — cosmetic.
-- [x] ~~Deprecated `*_seconds` fields on refresh strategies — remove where safe~~ **DONE** — removed from the two languages that carried them (Rust `types.rs`, Python `types.py`); Java/JS were always ms-only. Dropped the deprecated `interval`/`ttl`/`timeout` seconds fields + the `_resolve_ms`/`_reject_both`/`DeprecationWarning` machinery (Python) and `#[deprecated]` fields + `#[allow(deprecated)]` (Rust); `interval_milliseconds`/`ttl_milliseconds` are now required (non-Optional). Accessors (`interval_ms()`/`ttl_ms()`/`timeout_ms()`) kept as passthroughs so the legacy `client.rs`/`cac_config.py`/`exp_config.py` still work. Migrated all seconds-kwarg call sites (Python examples + `test.py`) to `_milliseconds` (×1000). Rust: lib+examples+tests build, 11 lib tests pass. Python: compiles + runtime-verified (deprecated kwargs now raise `TypeError`).
+- [ ] Java: applicable-variant strings vs structured — cosmetic. (Already consistent across langs — `List<String>` everywhere — likely no action.)
 - [ ] Misleading docstrings / comments referencing old shapes — sweep. (Fold into the §8 standalone-docs sweep.)
 
 ## 3. PrefixQueryInterceptor follow-ups (deferred — "do later")
@@ -123,32 +66,26 @@ be reconciled, only deleted. They are explicitly out of scope in the spec (§1).
 - [ ] Add an **API-provider-specific** regression test: assert `prefix`/`exclude_prefix` reach the wire for `ApplicableVariants` + `GetResolvedConfigWithIdentifier`, exactly once.
 - [ ] Probe whether a smithy-java upgrade serializes list `@httpQuery` members → retire the interceptor.
 
-## 4. Rust refactor
-
-- [x] ~~`start_polling` / `start_watching`: replace strong `self.clone()` capture with `Weak`~~ **DONE (RS-LEAK, §1 #2).** Used `Weak` upgrade-per-tick (mirroring the existing `do_refresh` idiom), not a `CancellationToken` — the three FFI clients all use weak-ref (not a token), and Rust already has `close_provider().abort()` as the explicit-shutdown path. Watch also `break`s on `recv()` → `Closed`. `cargo build` green.
-
 ## 5. Kotlin conversion (analysis only — not a quick win)
 
-- [ ] Convert `traits/AllFeatureProvider.java` + `FeatureExperimentMeta.java` to Kotlin. Requires `-Xjvm-default=all` in the Kotlin convention plugin (else Java implementers lose the `default` methods via `DefaultImpls`) + `@Throws`. Do as part of a fuller Kotlin migration, not in isolation.
+- [ ] Convert `traits/AllFeatureProvider.java` + `FeatureExperimentMeta.java` to Kotlin. Requires `-Xjvm-default=all` in the Kotlin convention plugin (else Java implementers lose the `default` methods via `DefaultImpls`) + `@Throws`. Do as part of a fuller Kotlin migration, not in isolation. (Pairs with §11 — Kotlin's nullable `T?` is exactly the `@Nullable T` target shape.)
 
 ## 6. Verification / housekeeping (before or alongside commit)
 
-- [ ] Run full test suites — none run end-to-end yet:
+- [ ] Run full test suites — **none run end-to-end yet** (only the Rust `leak_tests` have actually executed):
   - [ ] Rust: `cargo test -p superposition_provider`
   - [ ] Python: `pytest clients/python/provider`
   - [ ] JS: `npm test` (jest) in `open-feature-provider`
-  - [ ] Java: full `gradle test` (only `HttpDataSourceTest` + `SdkListQuerySerializationTest` run so far)
+  - [ ] Java: full `gradle test` (blocked by the stale UniFFI native-lib checksum — run `make uniffi-bindings` first to regenerate from the current core)
+  - [ ] Integration: `make test-<lang>-provider` (needs Docker for the DB/redis + a live server)
 - [ ] Rebuild JS provider `dist/` (`node build-deps.js && npm run build`) — current bundle predates the changes.
-- [x] ~~CI provider-sdk-tests: point each language's harness at the **new** provider~~ **DONE** — JS (`index.js`), Python (`main.py`), Rust (`integration_test.rs`) were already new-only. Java (`Main.kt`): legacy `SuperpositionOpenFeatureProvider`/`SuperpositionProviderOptions` imports dropped. (Legacy provider *classes* still in the module — see §1a.)
-- [x] ~~Harness parity + coverage refactor~~ **DONE** — all four harnesses now run a **shared scenario-runner** over the **same four flows**: **A** Local+HTTP (Polling), **B** Remote `SuperpositionAPIProvider`, **C** Local+wrong-HTTP→**file fallback** (no experiments), **D** Local+HTTP (**OnDemand** — previously untested anywhere). De-duplicated the 3× copy-paste: Rust `run_scenarios`/`run_flow` (1013→615), Python `run_provider_tests(..., is_async)` (704→499), Java `runProviderTests` + `runDemo` repurposed to Flow D (752→622); JS `runProviderTests` grew to 4 flows (+ new `config.toml`). Compiles/typechecks in all four (cargo `--no-run`, py_compile, `node --check`, compileKotlin).
-- [x] **BUG FOUND + FIXED (Python harness):** `main.py` constructed `SuperpositionOptions(token=...)` but the type takes `auth: AuthMethod` (both HEAD and working tree) — a latent `TypeError`, so the Python harness could never have run against the current provider. Fixed to `auth=TokenAuth(...)`.
 - [ ] Commit `provider/updated` once suites are green.
 
-## 7. Spec
+## 7. Spec — open decisions
 
-- [x] `clients/PROVIDER_SPEC.md` — language-agnostic behavioral spec (see that file). Any inconsistencies found while writing it are logged in its "Known Inconsistencies" section and should feed back into sections 1–2 above.
-- [x] ~~Reconcile spec §20 stale "fixed" entries~~ **DONE — §20 removed entirely.** A "Known Inconsistencies" ledger of per-language deviations/status never belonged in a canonical, standalone spec (it made the contract depend on the current implementations — the opposite of the goal). Deleted §20 and cleaned up all 11 cross-references into it; the canonical rule already lived in each section (§4/§3.4/§11 for the genuine platform variances, stated language-neutrally). **All per-implementation deviation/status tracking lives here in `PROVIDER_TODO.md`, not the spec.** Also corrected while in there: §17 RS-LEAK is **Weak-only, no cancellation token**, and "native cache handle / FFI cache" scoped to the FFI clients (Rust releases data-sources/watcher via `Drop`); §7 sharpened to require reacting to **create/rename**, not only in-place modify; §19 checklist updated.
-- [ ] **Open decisions formerly parked in spec §20, now owned here:** **PY-SYNC** (§1 MED #9) and **WATCH-FILTER** (§0b file-watch event-filter divergence — overflow-robustness + symlink handling). The spec states these as implementation-defined pending a decision; resolve them here, then encode the chosen canonical behavior in the spec body.
+- [ ] **Open decisions (implementation-defined in the spec, pending a call here), then encode the chosen canonical behavior in the spec body:**
+  - **WATCH-FILTER — my recommendation:** see the sub-bullets under the §0b `WATCH-FILTER` item (adopt Java's defensive re-read for overflow; adopt realpath matching for symlinks).
+  - **PY-SYNC — my recommendation: document as a platform limitation; do NOT force a fragile sync-over-async bridge.** Under OnDemand + the *synchronous* OpenFeature resolve path, Python cannot `await` the async refresh, so it serves cached data and logs a hint — and because OnDemand has no background loop, that cache stays the init-time snapshot until an *async* resolve refreshes it. Resolution: (1) keep the current behavior (warn + serve cache); (2) document clearly that **OnDemand freshness requires the `*_async` resolution methods in Python** (the sync path is best-effort/cached); (3) the spec §13 already states this as an idiomatic-per-language limitation — leave it. Only revisit if a *robust* blocking bridge (a dedicated event-loop thread the sync call briefly joins) can be built **and validated against a live server** — a bare `asyncio.run()` is not acceptable (breaks under an already-running loop and reuses an async SDK client across loops). Net: lowest-risk, and it doesn't make the sync path lie about freshness.
 
 ## 8. Make each provider's docs standalone (remove cross-language references)
 
@@ -233,3 +170,52 @@ and fix:
   (`koffi` native FFI) + `superposition-sdk` via `bundledDependencies`; verify the
   published artifact actually loads the native lib on a clean install (per-platform),
   not just in this repo's workspace layout.
+
+## 11. Design discussion (Java): `Optional<T>` as method **parameter** types
+
+**DISCUSS — decide, then apply.** IntelliJ flags `'Optional' used as type for parameter`
+across the Java provider. It's a widely-held Java anti-pattern (Brian Goetz, the
+JDK's own API author, intended `Optional` for **return** types only): as a
+parameter it forces every caller to wrap (`Optional.of(x)` / `Optional.empty()`),
+adds a wrapper allocation, and — the irony — the `Optional` reference **can itself
+be null**, so it doesn't even guarantee what it advertises.
+
+**Scope (pervasive — it's on the canonical contract):**
+- `SuperpositionDataSource` (interface, §5 canonical surface): `context`,
+  `prefixFilter`, `excludePrefixFilter`, `ifModifiedSince` are all `Optional<...>`
+  across the fetch methods (~14 signatures).
+- `FileDataSource` / `HttpDataSource` mirror those.
+- The local/remote provider resolve methods take `Optional<List<String>>`
+  prefix/exclude filters.
+
+**The cross-language angle (this is really a "native per language" call, like the
+error-rendering decision):** every other client already expresses "optional param"
+in *its* idiom — Rust `Option<T>`, Python `Optional[T]`, JS `T | undefined` / `?`.
+Java's *idiomatic* "optional parameter" is **not** `Optional<T>` — it's a nullable
+`@Nullable T`. So `Optional<T>` params make Java the odd one out **against its own
+language's conventions**, not just against a linter.
+
+**Options:**
+- **A — keep `Optional<T>` params.** Self-documenting "this is optional"; zero work.
+  But IntelliJ-warned, non-idiomatic, verbose call sites, extra allocation.
+- **B — switch to `@Nullable T` params (recommended).** Java-idiomatic, silences the
+  inspection, matches how the other three express optionality in their own idioms.
+  Cost: reintroduces `null` at these boundaries (needs `!= null` checks internally,
+  a few of which already exist), and adding a `@Nullable`/JSR-305/JSpecify annotation
+  dependency (or a local annotation) for intent.
+- **C — overloads (with/without each optional arg).** Impractical: 4 optional params
+  ⇒ combinatorial method explosion.
+- **D — a `FetchOptions`/params record.** Cleaner signatures, but a bigger refactor
+  and diverges from the other clients' flat parameter lists.
+
+**Recommendation:** **B** — it's the same principle we used for error rendering
+(§3.1, Option C): each language renders/expresses in *its own* idiom rather than a
+forced-uniform shape. Then update `PROVIDER_SPEC.md` §5 / §1.4 to state explicitly
+that **parameter optionality is expressed idiomatically per language** (Rust
+`Option`, Python `Optional`, JS `?`, Java `@Nullable`) — the canonical contract
+fixes the method **names and semantics**, not the wrapper used to signal "optional".
+
+**Note:** this is a **contract-surface** change (the `SuperpositionDataSource`
+signatures are part of §1.4/§5), so it needs the spec clarification above, and it
+should be done together with the §5 Kotlin-conversion consideration if that happens
+(Kotlin expresses this as plain nullable `T?`, which is exactly the target shape).

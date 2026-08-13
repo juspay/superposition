@@ -45,6 +45,9 @@ class SuperpositionError : Exception {
         this.errorCode = errorCode
     }
 
+    /** Renders as `SuperpositionError [CODE]: message` — includes the code, unlike the default. */
+    override fun toString(): String = "SuperpositionError [$errorCode]: $message"
+
     companion object {
         @JvmStatic
         @JvmOverloads

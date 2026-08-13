@@ -152,9 +152,8 @@ public class SuperpositionAPIProvider implements FeatureProvider, AllFeatureProv
                         .orgId(options.getOrgId())
                         .context(contextOf(merged));
 
-        Optional.ofNullable(merged.getTargetingKey())
-                .filter(key -> !key.isEmpty())
-                .ifPresent(inputBuilder::identifier);
+        inputBuilder.identifier(
+                Optional.ofNullable(merged.getTargetingKey()).orElse(""));
         prefixFilter.filter(prefixes -> !prefixes.isEmpty()).ifPresent(inputBuilder::prefix);
         excludePrefixFilter.filter(prefixes -> !prefixes.isEmpty()).ifPresent(inputBuilder::excludePrefix);
 
@@ -178,15 +177,13 @@ public class SuperpositionAPIProvider implements FeatureProvider, AllFeatureProv
         requireReady();
         EvaluationContext merged = mergeWithGlobal(context);
 
-        // An absent targeting key is not an error: the service buckets an empty identifier the
-        // same way local resolution does, and simply matches no experiments.
-        String targetingKey = Optional.ofNullable(merged.getTargetingKey()).orElse("");
-
         ApplicableVariantsInput.Builder inputBuilder = ApplicableVariantsInput.builder()
                 .workspaceId(options.getWorkspaceId())
                 .orgId(options.getOrgId())
-                .context(contextOf(merged))
-                .identifier(targetingKey);
+                .context(contextOf(merged));
+
+        inputBuilder.identifier(
+                Optional.ofNullable(merged.getTargetingKey()).orElse(""));
 
         prefixFilter.filter(prefixes -> !prefixes.isEmpty()).ifPresent(inputBuilder::prefix);
         excludePrefixFilter.filter(prefixes -> !prefixes.isEmpty()).ifPresent(inputBuilder::excludePrefix);

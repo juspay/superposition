@@ -142,7 +142,7 @@ class AllFeatureProvider(ABC):
                 default,
                 reason=Reason.ERROR,
                 error_code=ErrorCode.GENERAL,
-                error_message=f"Error evaluating flag '{flag_key}': {e}"
+                error_message=f"Error evaluating {type_name} flag '{flag_key}': {e}"
             )
 
     def resolve_bool(
@@ -305,7 +305,7 @@ class AllFeatureProvider(ABC):
                 default,
                 reason=Reason.ERROR,
                 error_code=ErrorCode.GENERAL,
-                error_message=f"Error evaluating flag '{flag_key}': {e}"
+                error_message=f"Error evaluating {type_name} flag '{flag_key}': {e}"
             )
 
     async def resolve_bool_async(
