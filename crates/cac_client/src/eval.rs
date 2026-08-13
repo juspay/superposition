@@ -1,158 +1,156 @@
-use std::collections::HashMap;
+use std::{borrow::Cow, collections::HashMap};
 
 use serde_json::{json, Map, Value};
-use superposition_types::{logic::evaluate_local_cohorts, Config, Overrides};
+use superposition_types::{
+    logic::evaluate_local_cohorts, Config, DimensionInfo, ExtendedMap, Overrides,
+};
 
-use crate::{utils::core::MapError, Context, MergeStrategy};
+use crate::{Context, MergeStrategy};
 
-pub fn merge(doc: &mut Value, patch: &Value) {
-    if !patch.is_object() {
-        *doc = patch.clone();
-        return;
-    }
-
-    if !doc.is_object() {
-        *doc = Value::Object(Map::new());
-    }
-    let map = doc.as_object_mut().unwrap();
-    for (key, value) in patch.as_object().unwrap() {
-        merge(map.entry(key.as_str()).or_insert(Value::Null), value);
-    }
-}
-
-fn replace_top_level(
-    doc: &mut Map<String, Value>,
-    patch: &Value,
-    mut on_override: impl FnMut(),
-    override_key: &String,
-) {
-    match patch.as_object() {
-        Some(patch_map) => {
-            for (key, value) in patch_map {
-                doc.insert(key.clone(), value.clone());
+fn merge(doc: &mut Value, patch: Value) {
+    match (doc, patch) {
+        (Value::Object(map), Value::Object(obj)) => {
+            for (key, value) in obj {
+                merge(map.entry(key).or_insert(Value::Null), value);
             }
-            on_override();
         }
-        None => {
-            log::error!("CAC: found non-object override key: {override_key} in overrides")
-        }
+        (doc, patch) => *doc = patch,
     }
 }
 
+/// Merges the overrides of every context matching `query_data` into a single map,
+/// in context order, so that later contexts win.
+///
+/// Override ids are derived from the override's contents, so several contexts can
+/// share one and each must apply it at its own position. An override is therefore
+/// cloned only when more than one matching context needs it, and the last of those
+/// contexts moves it out of `overrides` rather than cloning.
 fn get_overrides(
     query_data: &Map<String, Value>,
-    contexts: &[Context],
-    overrides: &HashMap<String, Overrides>,
+    mut contexts: Vec<&Context>,
+    mut overrides: Cow<'_, HashMap<String, Overrides>>,
     merge_strategy: &MergeStrategy,
-    mut on_override_select: Option<&mut dyn FnMut(Context)>,
-) -> serde_json::Result<Value> {
-    let mut required_overrides: Value = json!({});
-    let mut on_override_select = |context: Context| {
-        if let Some(ref mut func) = on_override_select {
-            func(context)
+) -> Map<String, Value> {
+    // borrow the keys instead of allocating two Strings per matching context
+    let mut final_consumer_context: HashMap<&str, &str> = HashMap::new();
+
+    contexts.retain(|&context| {
+        if !superposition_types::apply(&context.condition, query_data) {
+            return false;
         }
-    };
+        final_consumer_context.insert(
+            context.override_with_keys.get_key().as_str(),
+            context.id.as_str(),
+        );
+        true
+    });
+
+    let mut required_overrides: Value = json!({});
 
     for context in contexts {
-        let valid_context = superposition_types::apply(&context.condition, query_data);
+        let override_key = context.override_with_keys.get_key();
+        let is_last = final_consumer_context.get(override_key.as_str())
+            == Some(&context.id.as_str());
 
-        if valid_context {
-            let override_key = context.override_with_keys.get_key();
-            if let Some(overriden_value) = overrides.get(override_key) {
-                match merge_strategy {
-                    MergeStrategy::REPLACE => replace_top_level(
-                        required_overrides.as_object_mut().unwrap(),
-                        &Value::Object(overriden_value.clone().into()),
-                        || on_override_select(context.clone()),
-                        override_key,
-                    ),
-                    MergeStrategy::MERGE => {
-                        merge(
-                            &mut required_overrides,
-                            &Value::Object(overriden_value.clone().into()),
-                        );
-                        on_override_select(context.clone())
+        // move it out only when we own the map *and* this is its last consumer
+        let overriden_value = match (&mut overrides, is_last) {
+            (Cow::Owned(map), true) => map.remove(override_key).map(Cow::Owned),
+            (map, _) => map.get(override_key).map(Cow::Borrowed),
+        };
+
+        let Some(overriden_value) = overriden_value else {
+            continue;
+        };
+
+        match merge_strategy {
+            MergeStrategy::REPLACE => {
+                if let Some(doc) = required_overrides.as_object_mut() {
+                    for (key, value) in overriden_value.into_owned().into_inner() {
+                        doc.insert(key, value);
                     }
                 }
             }
+            MergeStrategy::MERGE => merge(
+                &mut required_overrides,
+                Value::Object(overriden_value.into_owned().into_inner()),
+            ),
         }
     }
 
-    Ok(required_overrides)
+    match required_overrides {
+        Value::Object(map) => map,
+        _ => Map::new(),
+    }
 }
 
-fn merge_overrides_on_default_config(
-    default_config: &mut Map<String, Value>,
+fn apply_overrides_on_default_config(
+    mut default_config: ExtendedMap,
     overrides: Map<String, Value>,
-    merge_strategy: &MergeStrategy,
-) {
+    merge_strategy: MergeStrategy,
+) -> ExtendedMap {
     overrides.into_iter().for_each(|(key, val)| {
         if let Some(og_val) = default_config.get_mut(&key) {
             match merge_strategy {
                 MergeStrategy::REPLACE => {
-                    let _ = default_config.insert(key.clone(), val.clone());
+                    default_config.insert(key, val);
                 }
-                MergeStrategy::MERGE => merge(og_val, &val),
+                MergeStrategy::MERGE => merge(og_val, val),
             }
         } else {
-            log::error!("CAC: found non-default_config key: {key} in overrides");
+            log::error!("Config: found non-default_config key: {key} in overrides");
         }
-    })
+    });
+    default_config
 }
 
+/// To be used when you have full ownership of the `Config` struct and
+/// want to evaluate it with a given set of dimensions.
 pub fn eval_cac(
-    config: &Config,
-    query_data: &Map<String, Value>,
+    config: Config,
+    query_data: Map<String, Value>,
     merge_strategy: MergeStrategy,
-) -> Result<Map<String, Value>, String> {
-    let mut default_config = (*config.default_configs).clone();
-    let on_override_select: Option<&mut dyn FnMut(Context)> = None;
-    let modified_query_data = evaluate_local_cohorts(&config.dimensions, query_data);
-    let overrides: Map<String, Value> = get_overrides(
-        &modified_query_data,
-        &config.contexts,
-        &config.overrides,
-        &merge_strategy,
-        on_override_select,
-    )
-    .and_then(serde_json::from_value)
-    .map_err_to_string()?;
-    merge_overrides_on_default_config(&mut default_config, overrides, &merge_strategy);
-    let overriden_config = default_config;
-    Ok(overriden_config)
-}
-
-pub fn eval_cac_with_reasoning(
-    config: &Config,
-    query_data: &Map<String, Value>,
-    merge_strategy: MergeStrategy,
-) -> Result<Map<String, Value>, String> {
-    let mut default_config = (*config.default_configs).clone();
-    let mut reasoning: Vec<Value> = vec![];
-
+) -> Map<String, Value> {
     let modified_query_data = evaluate_local_cohorts(&config.dimensions, query_data);
 
-    let applied_overrides: Map<String, Value> = get_overrides(
+    let overrides_map: Map<String, Value> = get_overrides(
         &modified_query_data,
-        &config.contexts,
-        &config.overrides,
-        &merge_strategy,
-        Some(&mut |context| {
-            reasoning.push(json!({
-                "context": context.condition,
-                "override": context.override_with_keys
-            }))
-        }),
-    )
-    .and_then(serde_json::from_value)
-    .map_err_to_string()?;
-
-    merge_overrides_on_default_config(
-        &mut default_config,
-        applied_overrides,
+        config.contexts.iter().collect(),
+        Cow::Owned(config.overrides),
         &merge_strategy,
     );
-    let mut overriden_config = default_config;
-    overriden_config.insert("metadata".into(), json!(reasoning));
-    Ok(overriden_config)
+
+    // Apply overrides to default config
+    let result = apply_overrides_on_default_config(
+        config.default_configs,
+        overrides_map,
+        merge_strategy,
+    );
+
+    result.into_inner()
+}
+
+/// To be used when the ownership of the `Config` struct is `not available`
+/// and you want to evaluate it with a given set of dimensions.
+pub fn eval(
+    default_configs: ExtendedMap,
+    contexts: &[Context],
+    overrides: &HashMap<String, Overrides>,
+    dimensions: &HashMap<String, DimensionInfo>,
+    query_data: Map<String, Value>,
+    merge_strategy: MergeStrategy,
+) -> Map<String, Value> {
+    let modified_query_data = evaluate_local_cohorts(dimensions, query_data);
+
+    let overrides_map = get_overrides(
+        &modified_query_data,
+        contexts.iter().collect(),
+        Cow::Borrowed(overrides),
+        &merge_strategy,
+    );
+
+    // Apply overrides to default config
+    let result =
+        apply_overrides_on_default_config(default_configs, overrides_map, merge_strategy);
+
+    result.into_inner()
 }

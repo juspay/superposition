@@ -39,8 +39,8 @@ use serde_json::{Map, Value};
 use superposition_derives::{JsonFromSql, JsonToSql};
 
 pub use config::{
-    Condition, Config, Context, DefaultConfigInfo, DefaultConfigsWithSchema,
-    DetailedConfig, DimensionInfo, OverrideWithKeys, Overrides,
+    Condition, Config, ConfigFilter, Context, DefaultConfigInfo,
+    DefaultConfigsWithSchema, DetailedConfig, DimensionInfo, OverrideWithKeys, Overrides,
 };
 pub use contextual::Contextual;
 pub use logic::{apply, partial_apply};
@@ -158,7 +158,7 @@ impl<T> Cac<T> {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Copy, Serialize, Deref)]
+#[derive(Clone, Debug, PartialEq, Copy, Serialize, Deref, DerefMut)]
 pub struct Exp<T>(T);
 impl<T> Exp<T> {
     pub fn into_inner(self) -> T {
@@ -381,6 +381,12 @@ impl From<&ExtendedMap> for Value {
 impl From<Map<String, Value>> for ExtendedMap {
     fn from(value: Map<String, Value>) -> Self {
         Self(value)
+    }
+}
+
+impl FromIterator<(String, Value)> for ExtendedMap {
+    fn from_iter<T: IntoIterator<Item = (String, Value)>>(iter: T) -> Self {
+        Self(Map::from_iter(iter))
     }
 }
 

@@ -1,6 +1,8 @@
 #![deny(unused_crate_dependencies)]
 #[cfg(test)]
 use criterion as _;
+#[cfg(test)]
+use jsonlogic as _;
 
 uniffi::setup_scaffolding!("superposition_client");
 pub mod config;
@@ -11,7 +13,7 @@ pub mod format;
 pub mod helpers;
 pub mod validations;
 // Re-export main config functions
-pub use config::{eval_config, eval_config_with_reasoning, merge, MergeStrategy};
+pub use config::{eval, eval_config, merge, MergeStrategy};
 
 // Re-export experiment functions
 pub use experiment::{
@@ -20,8 +22,8 @@ pub use experiment::{
 
 // Re-export legacy FFI functions
 pub use ffi_legacy::{
-    core_free_string, core_get_resolved_config, core_get_resolved_config_with_reasoning,
-    core_parse_json_config, core_parse_toml_config,
+    core_free_string, core_get_resolved_config, core_parse_json_config,
+    core_parse_toml_config,
 };
 
 // Re-export format module and types

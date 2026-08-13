@@ -605,53 +605,49 @@ async fn list_handler(
         let exclude_prefix_list = PrefixList::from(filter_params.exclude_prefix);
 
         if !prefix_list.is_empty() || !exclude_prefix_list.is_empty() {
-            all_contexts = all_contexts
-                .into_iter()
-                .filter_map(|mut context| {
-                    Context::filter_keys_by_prefix(
-                        &context,
-                        &prefix_list,
-                        &exclude_prefix_list,
-                    )
-                    .map(|filtered_overrides_map| {
-                        context.override_ = filtered_overrides_map.into_inner();
-                        context
-                    })
-                    .ok()
-                })
-                .collect()
+            all_contexts.retain_mut(|context| {
+                Context::filter_keys_by_prefix(
+                    context,
+                    &prefix_list,
+                    &exclude_prefix_list,
+                )
+                .is_ok()
+            })
         }
         let eval_filter_contexts = if dimension_params.is_empty() {
             all_contexts
         } else {
-            let dimensions_info =
-                fetch_dimensions_info_map(&mut conn, &workspace_context.schema_name)?;
-
-            let original_req_keys = dimension_params.keys().collect::<Vec<_>>();
-            let evaluated_params = evaluate_local_cohorts_skip_unresolved(
-                &dimensions_info,
-                &dimension_params,
-            );
-
             let strategy = filter_params.dimension_match_strategy.unwrap_or_default();
-
-            let eval_filtered = match strategy {
+            match strategy {
                 DimensionMatchStrategy::Exact => {
-                    Context::filter_exact_match(all_contexts, &evaluated_params)
+                    Context::filter_exact_match(all_contexts, &dimension_params)
                 }
                 DimensionMatchStrategy::Subset
                 | DimensionMatchStrategy::NonConflicting => {
-                    Context::filter_by_eval(all_contexts, &evaluated_params)
-                }
-            };
+                    let dimensions_info = fetch_dimensions_info_map(
+                        &mut conn,
+                        &workspace_context.schema_name,
+                    )?;
+                    let original_req_keys =
+                        dimension_params.keys().cloned().collect::<Vec<_>>();
 
-            match strategy {
-                DimensionMatchStrategy::NonConflicting => eval_filtered,
-                _ => Context::filter_by_dimension(
-                    eval_filtered,
-                    &original_req_keys,
-                    &dimensions_info,
-                ),
+                    let evaluated_params = evaluate_local_cohorts_skip_unresolved(
+                        &dimensions_info,
+                        dimension_params.into_inner(),
+                    );
+                    let eval_filtered =
+                        Context::filter_by_eval(all_contexts, &evaluated_params);
+
+                    if matches!(strategy, DimensionMatchStrategy::Subset) {
+                        Context::filter_by_dimension(
+                            eval_filtered,
+                            &original_req_keys.iter().collect::<Vec<_>>(),
+                            &dimensions_info,
+                        )
+                    } else {
+                        eval_filtered
+                    }
+                }
             }
         };
 

@@ -464,9 +464,9 @@ pub fn update_override_of_existing_ctx(
         .select(dsl::override_)
         .schema_name(schema_name)
         .first(conn)?;
-    cac_client::merge(
+    superposition_core::merge(
         &mut new_override,
-        &Value::Object(ctx.override_.clone().into()),
+        Value::Object(ctx.override_.into_inner()),
     );
     let new_override_id = hash(&new_override);
     let new_ctx = Context {

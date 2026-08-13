@@ -5,57 +5,51 @@ use serde_json::{Map, Value};
 use crate::config::Condition;
 use crate::{logic, DimensionInfo};
 
-pub trait Contextual: Clone {
+pub trait Contextual: Sized {
     fn get_condition(&self) -> &Condition;
 
     fn filter_by_eval(
-        contexts: Vec<Self>,
+        mut contexts: Vec<Self>,
         dimension_data: &Map<String, Value>,
     ) -> Vec<Self> {
+        contexts.retain(|context| {
+            logic::partial_apply(context.get_condition(), dimension_data)
+        });
         contexts
-            .into_iter()
-            .filter(|context| {
-                logic::partial_apply(context.get_condition(), dimension_data)
-            })
-            .collect()
     }
 
     fn filter_exact_match(
-        contexts: Vec<Self>,
+        mut contexts: Vec<Self>,
         dimension_data: &Map<String, Value>,
     ) -> Vec<Self> {
+        contexts.retain(|context| {
+            let condition = context.get_condition();
+            logic::apply(condition, dimension_data)
+                && condition.len() == dimension_data.len()
+        });
         contexts
-            .into_iter()
-            .filter(|context| {
-                let condition = context.get_condition();
-                logic::apply(condition, dimension_data)
-                    && condition.len() == dimension_data.len()
-            })
-            .collect()
     }
 
     fn filter_by_dimension(
-        contexts: Vec<Self>,
+        mut contexts: Vec<Self>,
         original_dimension_keys: &[&String],
         dimensions_info: &HashMap<String, DimensionInfo>,
     ) -> Vec<Self> {
-        contexts
-            .into_iter()
-            .filter(|context| {
-                let variables = context.get_condition();
-                original_dimension_keys.iter().all(|dimension| {
-                    variables.contains_key(*dimension)
-                        || dimensions_info
-                            .get(*dimension)
-                            .map(|info| {
-                                info.dependency_graph
-                                    .keys()
-                                    .any(|k| variables.contains_key(k))
-                            })
-                            .unwrap_or_default()
-                })
+        contexts.retain(|context| {
+            let variables = context.get_condition();
+            original_dimension_keys.iter().all(|dimension| {
+                variables.contains_key(*dimension)
+                    || dimensions_info
+                        .get(*dimension)
+                        .map(|info| {
+                            info.dependency_graph
+                                .keys()
+                                .any(|k| variables.contains_key(k))
+                        })
+                        .unwrap_or_default()
             })
-            .collect()
+        });
+        contexts
     }
 }
 

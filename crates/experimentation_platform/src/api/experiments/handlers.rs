@@ -915,7 +915,7 @@ pub async fn discard(
 }
 
 pub async fn get_applicable_variants_helper(
-    context: &Map<String, Value>,
+    context: Map<String, Value>,
     dimensions_info: &HashMap<String, DimensionInfo>,
     identifier: String,
     prefix_filter: Option<Vec<String>>,
@@ -1037,7 +1037,7 @@ async fn get_applicable_variants_handler(
         fetch_dimensions_info_map(conn, &workspace_context.schema_name)
     })?;
     let (applicable_variants, exps) = get_applicable_variants_helper(
-        &context,
+        context.into_inner(),
         &di,
         identifier,
         query_data.prefix.map(|p| p.0),
@@ -1232,36 +1232,18 @@ fn list_experiments_db(
         let exclude_prefix_list = PrefixList::from(filters.exclude_prefix);
 
         if !prefix_list.is_empty() || !exclude_prefix_list.is_empty() {
-            all_experiments = all_experiments
-                .into_iter()
-                .filter_map(|experiment| {
-                    let variants: Vec<_> = experiment
-                        .variants
-                        .into_iter()
-                        .filter_map(|mut variant| {
-                            Variant::filter_keys_by_prefix(
-                                &variant,
-                                &prefix_list,
-                                &exclude_prefix_list,
-                            )
-                            .map(|filtered_overrides_map| {
-                                variant.overrides = filtered_overrides_map;
-                                variant
-                            })
-                            .ok()
-                        })
-                        .collect();
+            all_experiments.retain_mut(|experiment| {
+                experiment.variants.retain_mut(|variant| {
+                    Variant::filter_keys_by_prefix(
+                        variant,
+                        &prefix_list,
+                        &exclude_prefix_list,
+                    )
+                    .is_ok()
+                });
 
-                    if !variants.is_empty() {
-                        Some(Experiment {
-                            variants: Variants::new(variants),
-                            ..experiment
-                        })
-                    } else {
-                        None // Skip this experiment
-                    }
-                })
-                .collect()
+                !experiment.variants.is_empty()
+            });
         }
 
         let filtered_experiments = if filters.global_experiments_only.unwrap_or_default()
@@ -1273,33 +1255,35 @@ fn list_experiments_db(
         } else if dimension_params.is_empty() {
             all_experiments
         } else {
-            let dimensions_info =
-                fetch_dimensions_info_map(conn, &workspace_context.schema_name)?;
-            let original_req_keys = dimension_params.keys().collect::<Vec<_>>();
-            let dimension_params = evaluate_local_cohorts_skip_unresolved(
-                &dimensions_info,
-                &dimension_params,
-            );
-
             let strategy = filters.dimension_match_strategy.unwrap_or_default();
-
-            let dimension_filtered_experiments = match strategy {
+            match strategy {
                 DimensionMatchStrategy::Exact => {
                     Experiment::filter_exact_match(all_experiments, &dimension_params)
                 }
                 DimensionMatchStrategy::Subset
                 | DimensionMatchStrategy::NonConflicting => {
-                    Experiment::filter_by_eval(all_experiments, &dimension_params)
-                }
-            };
+                    let dimensions_info =
+                        fetch_dimensions_info_map(conn, &workspace_context.schema_name)?;
+                    let original_req_keys =
+                        dimension_params.keys().cloned().collect::<Vec<_>>();
 
-            match strategy {
-                DimensionMatchStrategy::NonConflicting => dimension_filtered_experiments,
-                _ => Experiment::filter_by_dimension(
-                    dimension_filtered_experiments,
-                    &original_req_keys,
-                    &dimensions_info,
-                ),
+                    let evaluated_params = evaluate_local_cohorts_skip_unresolved(
+                        &dimensions_info,
+                        dimension_params.into_inner(),
+                    );
+                    let dimension_filtered_experiments =
+                        Experiment::filter_by_eval(all_experiments, &evaluated_params);
+
+                    if matches!(strategy, DimensionMatchStrategy::Subset) {
+                        Experiment::filter_by_dimension(
+                            dimension_filtered_experiments,
+                            &original_req_keys.iter().collect::<Vec<_>>(),
+                            &dimensions_info,
+                        )
+                    } else {
+                        dimension_filtered_experiments
+                    }
+                }
             }
         };
 

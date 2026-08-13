@@ -294,17 +294,8 @@ fn test_json_resolution_with_local_cohorts() {
     let mut dims = Map::new();
     dims.insert("os".to_string(), Value::String("linux".to_string()));
 
-    let result = crate::eval_config(
-        (*config.default_configs).clone(),
-        &config.contexts,
-        &config.overrides,
-        &config.dimensions,
-        &dims,
-        crate::MergeStrategy::MERGE,
-        None,
-        None,
-    )
-    .unwrap();
+    let result =
+        crate::eval_config(config, dims, crate::MergeStrategy::MERGE, None, None);
 
     assert_eq!(
         result.get("max_count"),

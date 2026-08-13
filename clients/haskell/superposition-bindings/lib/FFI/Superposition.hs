@@ -244,7 +244,7 @@ getResolvedConfig params = do
         exp
         ebuf
   err <- peekCAString ebuf
-  traverse_ freeNonNull [dc, ctx, ovrs, di, qry, mergeS, pfltr, exp, ebuf]
+  traverse_ freeNonNull [dc, ctx, ovrs, di, qry, mergeS, pfltr, exclPfltr, exp, ebuf]
   pure $ case (res, err) of
     (Just cfg, []) -> Right cfg
     (Nothing, [])  -> Left "null pointer returned"

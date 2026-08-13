@@ -1,7 +1,7 @@
 use serde_json::{Map, Value};
 use superposition_core::{ConfigFormat, TomlFormat};
 use superposition_types::{
-    Config, DefaultConfigInfo, DefaultConfigsWithSchema, DetailedConfig,
+    Config, ConfigFilter, DefaultConfigInfo, DefaultConfigsWithSchema, DetailedConfig,
 };
 
 /// Helper function to convert Config to DetailedConfig by inferring schema from value.
@@ -79,7 +79,7 @@ timeout = 90
 
     // Simulate what API does - filter by empty dimension data
     let empty_dimensions: Map<String, serde_json::Value> = Map::new();
-    let filtered_config = config.filter_by_dimensions(&empty_dimensions);
+    let filtered_config = config.filter_by_dimensions(empty_dimensions);
 
     println!("\n=== After filter (empty dimensions) ===");
     println!("Contexts count: {}", filtered_config.contexts.len());

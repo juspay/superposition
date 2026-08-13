@@ -21,7 +21,7 @@ use serde_json::Value;
 #[cfg(feature = "diesel_derives")]
 use superposition_derives::{JsonFromSql, JsonToSql, TextFromSql, TextToSql};
 
-use crate::{Cac, Condition, Contextual, ExtendedMap, Overridden, Overrides};
+use crate::{Condition, Contextual, ExtendedMap, Overridden, Overrides};
 
 #[cfg(feature = "diesel_derives")]
 use super::super::schema::{
@@ -58,9 +58,9 @@ impl Contextual for Context {
     }
 }
 
-impl Overridden<Cac<Overrides>> for Context {
-    fn get_overrides(&self) -> Overrides {
-        self.override_.clone()
+impl Overridden for Context {
+    fn get_overrides_mut(&mut self) -> &mut Overrides {
+        &mut self.override_
     }
 }
 

@@ -1,10 +1,11 @@
-// src/ffi.rs
-use std::collections::HashMap;
-use std::ffi::{c_char, CStr, CString};
-use std::ptr;
+use std::{
+    collections::HashMap,
+    ffi::{c_char, CStr, CString},
+    ptr,
+};
 
 use serde_json::{Map, Value};
-use superposition_types::{Context, DimensionInfo, Overrides};
+use superposition_types::{Context, DimensionInfo, ExtendedMap, Overrides};
 
 use crate::config::{self, MergeStrategy};
 use crate::experiment::{ExperimentConfig, ExperimentGroups, ExperimentationArgs};
@@ -226,7 +227,7 @@ pub unsafe extern "C" fn core_provider_cache_eval_config(
                 &data.config.dimensions,
                 experiment_config.experiments.clone(),
                 &experiment_config.experiment_groups,
-                &query_data,
+                query_data.clone(),
                 tkey.as_deref().unwrap_or(""),
                 filter_prefixes.clone(),
                 filter_exclude_prefixes.clone(),
@@ -235,25 +236,21 @@ pub unsafe extern "C" fn core_provider_cache_eval_config(
         }
     }
 
-    match config::eval_config(
-        data.config.default_configs.inner().clone(),
-        &data.config.contexts,
-        &data.config.overrides,
-        &data.config.dimensions,
-        &query_data,
+    let config = data.config.clone();
+    let result = config::eval(
+        config.default_configs,
+        &config.contexts,
+        &config.overrides,
+        &config.dimensions,
+        query_data,
         merge_strategy,
         filter_prefixes,
         filter_exclude_prefixes,
-    ) {
-        Ok(result) => match serde_json::to_string(&result) {
-            Ok(json_str) => string_to_c_str(json_str),
-            Err(e) => {
-                copy_string(ebuf, format!("Failed to serialize result: {}", e));
-                ptr::null_mut()
-            }
-        },
+    );
+    match serde_json::to_string(&result) {
+        Ok(json_str) => string_to_c_str(json_str),
         Err(e) => {
-            copy_string(ebuf, e);
+            copy_string(ebuf, format!("Failed to serialize result: {}", e));
             ptr::null_mut()
         }
     }
@@ -320,7 +317,7 @@ pub unsafe extern "C" fn core_get_resolved_config(
 
     // Parse all parameters
     let default_config = match parse_json::<Map<String, Value>>(default_config_json) {
-        Ok(config) => config,
+        Ok(config) => ExtendedMap::from(config),
         Err(e) => {
             copy_string(ebuf, format!("Failed to parse default_config: {}", e));
             return ptr::null_mut();
@@ -417,7 +414,7 @@ pub unsafe extern "C" fn core_get_resolved_config(
             &dimensions,
             e_args.experiments,
             &e_args.experiment_groups,
-            &query_data,
+            query_data.clone(),
             &identifier,
             filter_prefixes.clone(),
             filter_exclude_prefixes.clone(),
@@ -427,188 +424,20 @@ pub unsafe extern "C" fn core_get_resolved_config(
     }
 
     // Call pure config resolution logic
-    match config::eval_config(
+    let result = config::eval(
         default_config,
         &contexts,
         &overrides,
         &dimensions,
-        &query_data,
+        query_data,
         merge_strategy,
         filter_prefixes,
         filter_exclude_prefixes,
-    ) {
-        Ok(result) => match serde_json::to_string(&result) {
-            Ok(json_str) => string_to_c_str(json_str),
-            Err(e) => {
-                copy_string(ebuf, format!("Failed to serialize result: {}", e));
-                ptr::null_mut()
-            }
-        },
+    );
+    match serde_json::to_string(&result) {
+        Ok(json_str) => string_to_c_str(json_str),
         Err(e) => {
-            copy_string(ebuf, e);
-            ptr::null_mut()
-        }
-    }
-}
-
-/// # Safety
-///
-/// Caller ensures that `ebuf` is a sufficiently long buffer to store the
-/// error message.
-#[no_mangle]
-pub unsafe extern "C" fn core_get_resolved_config_with_reasoning(
-    default_config_json: *const c_char,
-    contexts_json: *const c_char,
-    overrides_json: *const c_char,
-    dimensions: *const c_char,
-    query_data_json: *const c_char,
-    merge_strategy_str: *const c_char,
-    filter_prefixes_json: *const c_char,
-    filter_exclude_prefixes_json: *const c_char,
-    experimentation_json: *const c_char,
-    ebuf: *mut c_char,
-) -> *mut c_char {
-    // Same parameter validation as above...
-    if default_config_json.is_null()
-        || contexts_json.is_null()
-        || overrides_json.is_null()
-        || dimensions.is_null()
-        || query_data_json.is_null()
-        || merge_strategy_str.is_null()
-    {
-        copy_string(ebuf, "Null pointer provided");
-        return ptr::null_mut();
-    }
-
-    // Parse parameters (same logic as above)
-    let default_config = match parse_json::<Map<String, Value>>(default_config_json) {
-        Ok(config) => config,
-        Err(e) => {
-            copy_string(ebuf, format!("Failed to parse default_config: {}", e));
-            return ptr::null_mut();
-        }
-    };
-
-    let contexts = match parse_json::<Vec<Context>>(contexts_json) {
-        Ok(contexts) => contexts,
-        Err(e) => {
-            copy_string(ebuf, format!("Failed to parse contexts: {}", e));
-            return ptr::null_mut();
-        }
-    };
-
-    let overrides = match parse_json::<HashMap<String, Overrides>>(overrides_json) {
-        Ok(overrides) => overrides,
-        Err(e) => {
-            copy_string(ebuf, format!("Failed to parse overrides: {}", e));
-            return ptr::null_mut();
-        }
-    };
-
-    let mut query_data = match parse_json::<Map<String, Value>>(query_data_json) {
-        Ok(data) => data,
-        Err(e) => {
-            copy_string(ebuf, format!("Failed to parse query_data: {}", e));
-            return ptr::null_mut();
-        }
-    };
-
-    let merge_strategy = match c_str_to_string(merge_strategy_str) {
-        Ok(strategy) => match strategy.to_lowercase().as_str() {
-            "merge" => MergeStrategy::MERGE,
-            "replace" => MergeStrategy::REPLACE,
-            _ => MergeStrategy::default(),
-        },
-        Err(e) => {
-            copy_string(ebuf, format!("Failed to parse merge_strategy: {}", e));
-            return ptr::null_mut();
-        }
-    };
-
-    let filter_prefixes: Option<Vec<String>> = if filter_prefixes_json.is_null() {
-        None
-    } else {
-        match parse_json::<Vec<String>>(filter_prefixes_json) {
-            Ok(prefixes) => Some(prefixes),
-            Err(e) => {
-                copy_string(ebuf, format!("Failed to parse filter_prefixes: {}", e));
-                return ptr::null_mut();
-            }
-        }
-    };
-
-    let filter_exclude_prefixes: Option<Vec<String>> =
-        if filter_exclude_prefixes_json.is_null() {
-            None
-        } else {
-            match parse_json::<Vec<String>>(filter_exclude_prefixes_json) {
-                Ok(v) => Some(v),
-                Err(e) => {
-                    copy_string(
-                        ebuf,
-                        format!("Failed to parse filter_exclude_prefixes: {}", e),
-                    );
-                    return ptr::null_mut();
-                }
-            }
-        };
-
-    let experimentation: Option<ExperimentationArgs> = if experimentation_json.is_null() {
-        None
-    } else {
-        match parse_json::<ExperimentationArgs>(experimentation_json) {
-            Ok(exp_args) => Some(exp_args),
-            Err(e) => {
-                copy_string(ebuf, format!("Failed to parse experimentation: {}", e));
-                return ptr::null_mut();
-            }
-        }
-    };
-
-    let dimensions = match parse_json::<HashMap<String, DimensionInfo>>(dimensions) {
-        Ok(dimensions) => dimensions,
-        Err(e) => {
-            copy_string(ebuf, format!("Failed to parse dimensions: {}", e));
-            return ptr::null_mut();
-        }
-    };
-
-    if let Some(e_args) = experimentation {
-        let identifier = e_args.targeting_key;
-
-        let variants = get_applicable_variants(
-            &dimensions,
-            e_args.experiments,
-            &e_args.experiment_groups,
-            &query_data,
-            &identifier,
-            filter_prefixes.clone(),
-            filter_exclude_prefixes.clone(),
-        );
-
-        query_data.insert("variantIds".to_string(), variants.into());
-    }
-
-    // Call config resolution with reasoning
-    match config::eval_config_with_reasoning(
-        default_config,
-        &contexts,
-        &overrides,
-        &dimensions,
-        &query_data,
-        merge_strategy,
-        filter_prefixes,
-        filter_exclude_prefixes,
-    ) {
-        Ok(result) => match serde_json::to_string(&result) {
-            Ok(json_str) => string_to_c_str(json_str),
-            Err(e) => {
-                copy_string(ebuf, format!("Failed to serialize result: {}", e));
-                ptr::null_mut()
-            }
-        },
-        Err(e) => {
-            copy_string(ebuf, e);
+            copy_string(ebuf, format!("Failed to serialize result: {}", e));
             ptr::null_mut()
         }
     }
@@ -727,7 +556,7 @@ pub unsafe extern "C" fn core_get_applicable_variants(
         &dimensions,
         experiments,
         &experiment_groups,
-        &query_data,
+        query_data,
         &identifier,
         filter_prefixes,
         filter_exclude_prefixes,
