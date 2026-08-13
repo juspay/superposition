@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.57.0 - 2026-08-13
+#### Features
+- added retry functionality in frontend (#1121) - (9650063) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.115.5 [skip ci] - (3cffb2b) - Superposition Bot
+
+- - -
+
 ## frontend-v0.56.2 - 2026-07-17
 #### Bug Fixes
 - fmt (#1092) - (b71e629) - Ankit Kumar Mahato

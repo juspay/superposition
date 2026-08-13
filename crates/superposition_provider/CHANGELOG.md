@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_provider-v0.10.1 - 2026-08-13
+#### Bug Fixes
+- **(openfeature)** Rust provider improvements (#1094) - (03e582c) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.116.0 [skip ci] - (4bad497) - Superposition Bot
+#### Refactoring
+- remove unnecessary clone from eval logic (#857) - (41c7a5d) - Ayush Jain
+
+- - -
+
 ## superposition_provider-v0.10.0 - 2026-08-03
 #### Features
 - add ignore-prefix filter for resolve api (#1115) - (889de8d) - sauraww
