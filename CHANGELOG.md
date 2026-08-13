@@ -2,6 +2,20 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.117.0 - 2026-08-13
+### Package updates
+- frontend bumped to frontend-v0.57.0
+- superposition_provider bumped to superposition_provider-v0.10.1
+- haskell_client bumped to haskell_client-v0.24.1
+### Global changes
+#### Miscellaneous Chores
+- **(version)** v0.116.0 [skip ci] - (4bad497) - Superposition Bot
+- display docs correctly (#1123) - (ccda04b) - Datron
+#### Refactoring
+- remove unnecessary clone from eval logic (#857) - (41c7a5d) - Ayush Jain
+
+- - -
+
 ## v0.116.0 - 2026-08-03
 ### Package updates
 - haskell_client bumped to haskell_client-v0.24.0
