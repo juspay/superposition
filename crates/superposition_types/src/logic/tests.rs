@@ -1,9 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    logic::{
-        dimensions_to_start_from, evaluate_local_cohort_dimension, evaluate_local_cohorts,
-    },
+    logic::{dimensions_to_start_from, evaluate_local_cohorts, local_cohort},
     DimensionInfo,
 };
 use serde_json::{json, Map};
@@ -323,14 +321,14 @@ fn test_evaluate_local_cohort_dimension_function() {
     .clone();
 
     let result =
-        evaluate_local_cohort_dimension("test_value".to_string(), json!(42), &schema);
+        local_cohort::evaluate_dimension("test_value".to_string(), json!(42), &schema);
     assert_eq!(result, "exactly_42");
 
     let result =
-        evaluate_local_cohort_dimension("test_value".to_string(), json!(100), &schema);
+        local_cohort::evaluate_dimension("test_value".to_string(), json!(100), &schema);
     assert_eq!(result, "otherwise");
 
-    let result = evaluate_local_cohort_dimension(
+    let result = local_cohort::evaluate_dimension(
         "test_value".to_string(),
         json!("string"),
         &schema,
@@ -932,7 +930,7 @@ fn test_dimensions_to_start_from_with_multiple_regular_roots() {
 fn test_evaluate_local_cohort_dimension_edge_cases() {
     // Test with empty schema
     let empty_schema = Map::new();
-    let result = evaluate_local_cohort_dimension(
+    let result = local_cohort::evaluate_dimension(
         "test".to_string(),
         json!("value"),
         &empty_schema,
@@ -951,7 +949,7 @@ fn test_evaluate_local_cohort_dimension_edge_cases() {
     .unwrap()
     .clone();
 
-    let result = evaluate_local_cohort_dimension(
+    let result = local_cohort::evaluate_dimension(
         "test".to_string(),
         json!("value"),
         &schema_no_enum,
@@ -966,7 +964,7 @@ fn test_evaluate_local_cohort_dimension_edge_cases() {
     .unwrap()
     .clone();
 
-    let result = evaluate_local_cohort_dimension(
+    let result = local_cohort::evaluate_dimension(
         "test".to_string(),
         json!("value"),
         &schema_no_definitions,
@@ -986,7 +984,7 @@ fn test_evaluate_local_cohort_dimension_edge_cases() {
     .unwrap()
     .clone();
 
-    let result = evaluate_local_cohort_dimension(
+    let result = local_cohort::evaluate_dimension(
         "test".to_string(),
         json!("value"),
         &schema_bad_enum,
