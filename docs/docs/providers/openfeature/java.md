@@ -3,401 +3,201 @@ sidebar_position: 5
 title: Java / Kotlin
 ---
 
-# Java / Kotlin — Superposition OpenFeature Provider
+# Java / Kotlin - Superposition OpenFeature Provider
 
-The Java provider is an OpenFeature-compatible provider for Superposition that works with both Java and Kotlin. It offers two provider variants:
+The Java package currently documents one OpenFeature provider:
+`SuperpositionOpenFeatureProvider`.
 
-- **`LocalResolutionProvider`** — Fetches config from a data source (HTTP server), caches it locally, and evaluates flags in-process. Supports polling and on-demand refresh strategies. This is the **recommended provider** for most use cases.
-- **`SuperpositionAPIProvider`** — A stateless remote provider that makes an HTTP API call to the Superposition server on every evaluation. No local caching — useful for serverless or low-traffic scenarios.
+It is configured with `SuperpositionProviderOptions`, fetches data from the
+Superposition HTTP API, and integrates with the OpenFeature Java SDK.
 
-The provider includes an Android-compatible HTTP transport.
+The Java provider documentation in this repository supports:
 
-**Maven Central:** [`io.juspay.superposition:openfeature-provider`](https://central.sonatype.com/artifact/io.juspay.superposition/openfeature-provider)
+- OpenFeature evaluation for boolean, string, number, and object values
+- Full resolved config lookup through `evaluateConfig`
+- Applicable experiment variant lookup through `applicableVariants`
+- Polling refresh strategies for configuration and experimentation
+- Optional experimentation configuration
+
+The current Java package in this checkout does not include the newer
+`LocalResolutionProvider`, `SuperpositionAPIProvider`, `HttpDataSource`, or
+`FileDataSource` provider API shown by some other language implementations.
 
 ## Installation
 
-### Gradle (Kotlin DSL)
+The current provider README uses the Juspay sandbox Maven repository:
 
 ```kotlin
-implementation("dev.openfeature:sdk:<openfeature-version>")
-implementation("io.juspay.superposition:openfeature-provider:<superposition-version>")
-```
+repositories {
+    mavenCentral()
+    maven(url = "https://sandbox.assets.juspay.in/m2")
+}
 
-### Gradle (Groovy)
-
-```groovy
-implementation "dev.openfeature:sdk:<openfeature-version>"
-implementation "io.juspay.superposition:openfeature-provider:<superposition-version>"
-```
-
-### Maven
-
-```xml
-<dependency>
-    <groupId>dev.openfeature</groupId>
-    <artifactId>sdk</artifactId>
-    <version>${openfeature.version}</version>
-</dependency>
-<dependency>
-    <groupId>io.juspay.superposition</groupId>
-    <artifactId>openfeature-provider</artifactId>
-    <version>${superposition.version}</version>
-</dependency>
+dependencies {
+    implementation("io.juspay.superposition.openfeature:superposition-provider:0.0.1-dev")
+    implementation("dev.openfeature:sdk:1.15.1")
+}
 ```
 
 :::note
 You need a running Superposition server. See [Quick Start](../../quick_start) for setup instructions.
 :::
 
-## Quick Start (Java)
-
-This is the most common usage — the provider connects to a Superposition server via HTTP, polls for config updates, and evaluates flags locally.
+## Quick Start
 
 ```java
 import dev.openfeature.sdk.*;
 import io.juspay.superposition.openfeature.*;
-import io.juspay.superposition.openfeature.options.*;
+import io.juspay.superposition.openfeature.options.RefreshStrategy;
 
 import java.util.List;
 import java.util.Map;
 
 public class Example {
     public static void main(String[] args) {
-        // 1. Create an HTTP data source pointing to your Superposition server
-        HttpDataSource httpSource = new HttpDataSource(SuperpositionOptions.builder()
-            .endpoint("http://localhost:8080")
-            .token("your-api-token")
-            .orgId("localorg")
-            .workspaceId("test")
-            .build());
+        SuperpositionProviderOptions.ExperimentationOptions expOptions =
+            SuperpositionProviderOptions.ExperimentationOptions.builder()
+                .refreshStrategy(RefreshStrategy.Polling.of(5000, 2000))
+                .build();
 
-        // 2. Configure experimentation options
-        ExperimentationOptions expOptions = ExperimentationOptions.builder()
-            .refreshStrategy(RefreshStrategy.Polling.of(5000, 2000))
-            .build();
+        SuperpositionProviderOptions options =
+            SuperpositionProviderOptions.builder()
+                .orgId("your-org-id")
+                .workspaceId("your-workspace-id")
+                .endpoint("http://localhost:8080")
+                .token("your-api-token")
+                .refreshStrategy(RefreshStrategy.Polling.of(10000, 5000))
+                .experimentationOptions(expOptions)
+                .build();
 
-        // 3. Create the provider with a polling refresh strategy
-        LocalResolutionProvider provider = LocalResolutionProvider.builder()
-            .dataSource(httpSource)
-            .refreshStrategy(RefreshStrategy.Polling.of(10000, 5000))
-            .experimentationOptions(expOptions)
-            .build();
+        SuperpositionOpenFeatureProvider provider =
+            new SuperpositionOpenFeatureProvider(options);
 
-        // 4. Initialize and register with OpenFeature
         EvaluationContext initCtx =
             new ImmutableContext(Map.of("city", new Value("Berlin")));
+
         provider.initialize(initCtx);
 
-        OpenFeatureAPI api = OpenFeatureAPI.getInstance();
-        api.setProvider(provider);
-        Client client = api.getClient();
+        OpenFeatureAPI.getInstance().setProvider(provider);
+        Client client = OpenFeatureAPI.getInstance().getClient();
 
-        // 5. Define evaluation context
-        EvaluationContext ctx = new ImmutableContext(
-            "user-42",
-            Map.of(
-                "city", new Value("Berlin"),
-                "os", new Value("android")
-            )
-        );
-
-        // 6. Evaluate feature flags
-        String currency = client.getStringValue("currency", "USD", ctx);
-        System.out.println("currency = " + currency);
-
-        Integer price = client.getIntegerValue("price", 0, ctx);
-        System.out.println("price = " + price);
+        EvaluationContext ctx =
+            new ImmutableContext(
+                "user-42",
+                Map.of(
+                    "city", new Value("Berlin"),
+                    "os", new Value("android")
+                )
+            );
 
         boolean darkMode = client.getBooleanValue("dark_mode", false, ctx);
         System.out.println("dark_mode = " + darkMode);
 
-        // 7. Get full resolved config (provider-specific)
-        Map<String, Object> fullConfig = provider.evaluateConfig(ctx);
-        System.out.println("Full config: " + fullConfig);
+        String currency = client.getStringValue("currency", "USD", ctx);
+        System.out.println("currency = " + currency);
 
-        // 8. Get applicable experiment variants (provider-specific)
-        List<String> variants = provider.getApplicableVariants(ctx);
-        System.out.println("Applicable variants: " + variants);
+        System.out.println("Full config: " + provider.evaluateConfig(ctx));
+
+        List<String> variants = provider.applicableVariants(ctx);
+        System.out.println("Variants: " + variants);
     }
 }
 ```
 
-## Quick Start (Kotlin)
+## Provider Options
 
-```kotlin
-import dev.openfeature.sdk.*
-import io.juspay.superposition.openfeature.*
-import io.juspay.superposition.openfeature.options.*
+Create a provider with `SuperpositionProviderOptions.builder()`.
 
-fun main() {
-    // 1. Create an HTTP data source
-    val httpSource = HttpDataSource(SuperpositionOptions.builder()
+| Field | Required | Description |
+| ----- | -------- | ----------- |
+| `orgId` | Yes | Organisation ID |
+| `workspaceId` | Yes | Workspace ID |
+| `endpoint` | Yes | Superposition server URL |
+| `token` | Yes | Authentication token |
+| `refreshStrategy` | Yes | Configuration refresh strategy |
+| `experimentationOptions` | No | Enables experiment refresh and variant resolution |
+
+```java
+SuperpositionProviderOptions options =
+    SuperpositionProviderOptions.builder()
+        .orgId("your-org-id")
+        .workspaceId("your-workspace-id")
         .endpoint("http://localhost:8080")
         .token("your-api-token")
-        .orgId("localorg")
-        .workspaceId("test")
-        .build())
+        .refreshStrategy(RefreshStrategy.Polling.of(10000, 5000))
+        .build();
+```
 
-    // 2. Configure experimentation
-    val expOptions = ExperimentationOptions.builder()
+## Experimentation
+
+Enable experimentation by adding nested experimentation options:
+
+```java
+SuperpositionProviderOptions.ExperimentationOptions expOptions =
+    SuperpositionProviderOptions.ExperimentationOptions.builder()
         .refreshStrategy(RefreshStrategy.Polling.of(5000, 2000))
-        .build()
+        .build();
 
-    // 3. Create the provider
-    val provider = LocalResolutionProvider.builder()
-        .dataSource(httpSource)
+SuperpositionProviderOptions options =
+    SuperpositionProviderOptions.builder()
+        .orgId("your-org-id")
+        .workspaceId("your-workspace-id")
+        .endpoint("http://localhost:8080")
+        .token("your-api-token")
         .refreshStrategy(RefreshStrategy.Polling.of(10000, 5000))
         .experimentationOptions(expOptions)
-        .build()
+        .build();
+```
 
-    // 4. Initialize and register
-    val initCtx = ImmutableContext(mapOf("city" to Value("Berlin")))
-    provider.initialize(initCtx)
+Use an OpenFeature targeting key when evaluating experiment-backed config:
 
-    OpenFeatureAPI.getInstance().setProvider(provider)
-    val client = OpenFeatureAPI.getInstance().client
-
-    // 5. Evaluate feature flags
-    val ctx = ImmutableContext(
+```java
+EvaluationContext experimentCtx =
+    new ImmutableContext(
         "user-42",
-        mapOf("city" to Value("Berlin"), "os" to Value("android"))
-    )
+        Map.of("city", new Value("Berlin"))
+    );
 
-    val currency = client.getStringValue("currency", "USD", ctx)
-    println("currency = $currency")
-
-    val darkMode = client.getBooleanValue("dark_mode", false, ctx)
-    println("dark_mode = $darkMode")
-
-    val price = client.getIntegerValue("price", 0, ctx)
-    println("price = $price")
-
-    // 6. Get full config
-    val fullConfig = provider.evaluateConfig(ctx)
-    println("Full config: $fullConfig")
-}
+List<String> variants = provider.applicableVariants(experimentCtx);
 ```
-
-## Configuration Options
-
-### `SuperpositionOptions`
-
-Connection options shared by `HttpDataSource` and `SuperpositionAPIProvider`. Uses Lombok `@Builder`.
-
-| Field         | Type     | Required | Annotation | Description                   |
-| ------------- | -------- | -------- | ---------- | ----------------------------- |
-| `endpoint`    | `String` | Yes      | `@NonNull` | Superposition server URL      |
-| `token`       | `String` | Yes      | `@NonNull` | Authentication token (bearer) |
-| `orgId`       | `String` | Yes      | `@NonNull` | Organisation ID               |
-| `workspaceId` | `String` | Yes      | `@NonNull` | Workspace ID                  |
-
-```java
-SuperpositionOptions options = SuperpositionOptions.builder()
-    .endpoint("http://localhost:8080")
-    .token("your-api-token")
-    .orgId("localorg")
-    .workspaceId("test")
-    .build();
-```
-
-### Refresh Strategies
-
-The `RefreshStrategy` interface has two implementations:
-
-```java
-// Polling — periodic background refresh
-RefreshStrategy.Polling.of(
-    10000,  // interval in milliseconds
-    5000    // timeout in milliseconds
-)
-
-// OnDemand — fetch on access, cache with TTL
-RefreshStrategy.OnDemand.of(
-    300000, // TTL in milliseconds
-    5000    // timeout in milliseconds
-)
-```
-
-### `ExperimentationOptions`
-
-Uses Lombok `@Builder`:
-
-| Field                    | Type                     | Required | Description                        |
-| ------------------------ | ------------------------ | -------- | ---------------------------------- |
-| `refreshStrategy`        | `RefreshStrategy`        | Yes      | How experiment data is refreshed   |
-| `evaluationCacheOptions` | `EvaluationCacheOptions` | No       | Cache for experiment evaluations   |
-| `defaultToss`            | `Integer`                | No       | Default toss value for experiments |
-
-```java
-ExperimentationOptions expOptions = ExperimentationOptions.builder()
-    .refreshStrategy(RefreshStrategy.Polling.of(5000, 2000))
-    .evaluationCacheOptions(EvaluationCacheOptions.builder()
-        .ttl(300)
-        .size(1000)
-        .build())
-    .defaultToss(50)
-    .build();
-```
-
-### `EvaluationCacheOptions`
-
-| Field  | Type  | Default | Description                     |
-| ------ | ----- | ------- | ------------------------------- |
-| `ttl`  | `int` | `60`    | Cache time-to-live in seconds   |
-| `size` | `int` | `500`   | Maximum number of cache entries |
-
-## Provider Variants
-
-### 1. `LocalResolutionProvider` (Recommended)
-
-Fetches config from a pluggable data source (HTTP), caches locally, and evaluates flags in-process. Accepts an optional fallback data source.
-
-```java
-HttpDataSource httpSource = new HttpDataSource(SuperpositionOptions.builder()
-    .endpoint("http://localhost:8080")
-    .token("token")
-    .orgId("localorg")
-    .workspaceId("dev")
-    .build());
-
-LocalResolutionProvider provider = LocalResolutionProvider.builder()
-    .dataSource(httpSource)
-    .refreshStrategy(RefreshStrategy.Polling.of(30000, 10000))
-    .build();
-
-// Initialize
-provider.initialize(new ImmutableContext(Map.of("city", new Value("Berlin"))));
-
-// Resolve all config
-EvaluationContext ctx = new ImmutableContext(
-    "user-1234",
-    Map.of("city", new Value("Berlin")));
-Map<String, Object> allConfig = provider.evaluateConfig(ctx);
-
-// Get applicable experiment variants
-List<String> variants = provider.getApplicableVariants(ctx);
-```
-
-**Key capabilities:**
-
-- **Pluggable data sources** — use `HttpDataSource` for server-backed resolution
-- **Optional fallback** — provide a `SuperpositionConfig` that is used when the primary source fails
-- **Full config resolution** — resolve all features at once via `evaluateConfig()`
-- **Experiment metadata** — get applicable variants via `getApplicableVariants()`
-
-### 2. `SuperpositionAPIProvider` (Remote / Stateless)
-
-A stateless provider that calls the Superposition server on every evaluation. No local caching — each flag evaluation makes an HTTP request. Best for serverless, low-traffic, or scenarios where you always want the latest config.
-
-```java
-SuperpositionAPIProvider provider = new SuperpositionAPIProvider(
-    SuperpositionOptions.builder()
-        .endpoint("http://localhost:8080")
-        .token("token")
-        .orgId("localorg")
-        .workspaceId("dev")
-        .build()
-);
-
-OpenFeatureAPI api = OpenFeatureAPI.getInstance();
-api.setProvider(provider);
-Client client = api.getClient();
-
-EvaluationContext ctx = new ImmutableContext(
-    "user-42",
-    Map.of("city", new Value("Berlin")));
-
-String currency = client.getStringValue("currency", "USD", ctx);
-System.out.println("currency = " + currency);
-```
-
-### Fallback Configuration
-
-Provides default configuration when the server is unreachable:
-
-```java
-SuperpositionConfig fallback = SuperpositionConfig.builder()
-    .contexts(contexts)
-    .defaultConfigs(defaults)
-    .overrides(overrides)
-    .build();
-
-LocalResolutionProvider provider = LocalResolutionProvider.builder()
-    .dataSource(httpSource)
-    .fallbackConfig(fallback)
-    .refreshStrategy(RefreshStrategy.Polling.of(10000, 5000))
-    .build();
-```
-
-:::tip
-The fallback is only consulted during initialization or when the primary source fails. Once the primary source succeeds, the provider uses its data exclusively.
-:::
 
 ## Evaluation Context
 
-```java
-// Java — with targeting key for experiments
-EvaluationContext ctx = new ImmutableContext(
-    "user-42",                              // targeting key
-    Map.of(
-        "city", new Value("Berlin"),
-        "os", new Value("android"),
-        "customers", new Value("platinum")
-    )
-);
-```
-
-```kotlin
-// Kotlin — equivalent
-val ctx = ImmutableContext(
-    "user-42",
-    mapOf("city" to Value("Berlin"), "os" to Value("android"))
-)
-```
-
-- **`targeting_key`** — Used for experiment variant bucketing. Typically a user ID or session ID.
-- All other keys map to your Superposition dimensions.
-
-## Supported Value Types
-
-| Method             | Return Type | Description             |
-| ------------------ | ----------- | ----------------------- |
-| `getBooleanValue`  | `Boolean`   | Boolean flag evaluation |
-| `getStringValue`   | `String`    | String flag evaluation  |
-| `getIntegerValue`  | `Integer`   | Integer flag evaluation |
-| `getDoubleValue`   | `Double`    | Double flag evaluation  |
-| `getObjectValue`   | `Value`     | Object/JSON evaluation  |
-
-The `LocalResolutionProvider` also supports provider-specific methods:
+Custom fields on the OpenFeature evaluation context map to Superposition
+dimensions.
 
 ```java
-// Resolve all features
-Map<String, Object> fullConfig = provider.evaluateConfig(ctx);
+EvaluationContext ctx =
+    new ImmutableContext(
+        "user-42",
+        Map.of(
+            "city", new Value("Berlin"),
+            "os", new Value("android")
+        )
+    );
 
-// Get applicable experiment variant IDs
-List<String> variants = provider.getApplicableVariants(ctx);
+String currency = client.getStringValue("currency", "USD", ctx);
 ```
 
-## Android Support
+## Provider-Specific Methods
 
-The Java provider includes `URLConnectionTransport`, an Android-compatible HTTP transport that uses `java.net.HttpURLConnection` instead of the default transport:
+The Java provider README documents these provider-specific methods:
 
-```java
-import io.juspay.superposition.openfeature.transport.URLConnectionTransport;
+| Method | Description |
+| ------ | ----------- |
+| `evaluateConfig(ctx)` | Resolve and return the full configuration for a context |
+| `applicableVariants(ctx)` | Return applicable experiment variant IDs for a context |
 
-// The transport is used internally — no explicit configuration needed
-// It's automatically compatible with Android's networking restrictions
-```
+## Current Limitations
 
-## Dependencies
+The following provider features are not present in the checked-in Java provider
+documentation or source layout today:
 
-The Java provider depends on:
-
-- [`dev.openfeature:sdk`](https://central.sonatype.com/artifact/dev.openfeature/sdk) — OpenFeature Java SDK
-- Smithy-generated Java SDK for Superposition API
-- Native bindings via JNI for local config resolution
-- Lombok for builder pattern generation
-
-## Full Example
-
-See the integration test: [`clients/java/provider-sdk-tests/src/main/kotlin/io/juspay/superposition/providertests/Main.kt`](https://github.com/juspay/superposition/blob/main/clients/java/provider-sdk-tests/src/main/kotlin/io/juspay/superposition/providertests/Main.kt)
+- `LocalResolutionProvider`
+- `SuperpositionAPIProvider`
+- `HttpDataSource` and `FileDataSource`
+- Local SuperTOML or JSON file resolution
+- Pluggable data sources
+- Fallback data sources
+- Watch refresh
+- Manual refresh

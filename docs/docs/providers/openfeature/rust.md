@@ -271,7 +271,7 @@ use superposition_provider::{
 async fn main() {
     env_logger::init();
 
-    let file_source = FileDataSource::new(PathBuf::from("config.toml"));
+    let file_source = FileDataSource::new(PathBuf::from("config.toml")).unwrap();
 
     let provider = LocalResolutionProvider::new(
         Box::new(file_source),
@@ -326,7 +326,7 @@ async fn main() {
     ));
 
     // Fallback: local TOML config file
-    let file_source = FileDataSource::new(PathBuf::from("config.toml"));
+    let file_source = FileDataSource::new(PathBuf::from("config.toml")).unwrap();
 
     let provider = LocalResolutionProvider::new(
         Box::new(http_source),

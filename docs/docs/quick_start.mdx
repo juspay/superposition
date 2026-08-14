@@ -46,13 +46,13 @@ Install the provider for your language of choice. The provider will allow you to
   <TabItem value="java" label="Java" default>
       <CodeBlock language="java" title="app/build.gradle">
         {`implementation "dev.openfeature:sdk:${VERSIONS.openfeature}"
-implementation "io.juspay.superposition:openfeature-provider:${VERSIONS.superposition}"`}
+implementation "io.juspay.superposition.openfeature:superposition-provider:0.0.1-dev"`}
       </CodeBlock>
   </TabItem>
   <TabItem value="kotlin" label="Kotlin" default>
       <CodeBlock language="kotlin" title="app/build.gradle.kts">
         {`implementation("dev.openfeature:sdk:${VERSIONS.openfeature}")
-implementation("io.juspay.superposition:openfeature-provider:${VERSIONS.superposition}")`}
+implementation("io.juspay.superposition.openfeature:superposition-provider:0.0.1-dev")`}
       </CodeBlock>
   </TabItem>
   <TabItem value="python" label="Python">
@@ -145,32 +145,25 @@ superposition_provider = "${VERSIONS.superposition}"`}
   <TabItem value="python" label="Python">
       ```python title="configuration.py"
       from openfeature import api
-      from superposition_provider.provider import SuperpositionProvider
-      from superposition_provider.types import ExperimentationOptions, SuperpositionProviderOptions, PollingStrategy
+      from openfeature.evaluation_context import EvaluationContext
+      from superposition_provider import LocalResolutionProvider, HttpDataSource
+      from superposition_provider.types import SuperpositionOptions, PollingStrategy
 
-      config_options = SuperpositionProviderOptions(
-        endpoint="http://localhost:8080",
-        token="api-token",
-        org_id="localorg",
-        workspace_id="test",
-        refresh_strategy=PollingStrategy(
-            interval=5,  # Poll every 5 seconds
-            timeout=3    # Timeout after 3 seconds
-        ),
-        fallback_config=None,
-        evaluation_cache_options=None,
-        experimentation_options=ExperimentationOptions(
-            refresh_strategy=PollingStrategy(
-                interval=5,  # Poll every 5 seconds
-                timeout=3    # Timeout after 3 seconds
-            )
-        )
-    )
+      options = SuperpositionOptions(
+          endpoint="http://localhost:8080",
+          token="api-token",
+          org_id="localorg",
+          workspace_id="test",
+      )
 
-    provider = SuperpositionProvider(provider_options=config_options)
-    # Initialize provider
-    await provider.initialize(context=ctx)
-    api.set_provider(provider)
+      provider = LocalResolutionProvider(
+          primary_source=HttpDataSource(options),
+          refresh_strategy=PollingStrategy(interval=5, timeout=3),
+      )
+
+      ctx = EvaluationContext(attributes={})
+      await provider.initialize(ctx)
+      api.set_provider(provider)
     ```
   </TabItem>
   <TabItem value="javascript" label="JavaScript">
@@ -282,7 +275,7 @@ Once the provider is initialized, you can evaluate feature flags and configurati
           evaluation_context=ctx
       )
       # Note: If you want the whole config, you can directly use the provider itself
-      resp = provider.resolve_all_config_details({}, ctx)
+      resp = provider.resolve_all_features(ctx)
       print(f"Response for all config: {resp}")
 
       print("Successfully resolved boolean flag details:", bool_val)
@@ -352,9 +345,9 @@ If you want to do more than just read configs, Superposition provides SDKs for v
       ```
   </TabItem>
   <TabItem value="rust" label="Rust">
-      ```toml title="Cargo.toml"
-      [dependencies]
-      superposition_sdk = "0.85.0"
-      ```
+      <CodeBlock language="toml" title="Cargo.toml">
+      {`[dependencies]
+superposition_sdk = "${VERSIONS.superposition}"`}
+      </CodeBlock>
   </TabItem>
 </Tabs>

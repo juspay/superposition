@@ -163,7 +163,7 @@ The `position` parameter determines the weight of a dimension in priority calcul
 
 - Weight = 2^position
 - Higher positions contribute more to context priority
-- Position 0 is reserved for `variantIds` (experimentation)
+- Position 0 is conventionally left for `variantIds` in experimentation flows; the parser enforces uniqueness but does not reject position 0
 - Positions must be unique across dimensions
 
 :::info
@@ -444,9 +444,10 @@ The same configuration in JSON format:
 
 1. Every dimension must have `position` and `schema`
 2. Positions must be unique
-3. Position 0 is reserved for `variantIds`
+3. Avoid position 0 for user-defined dimensions when the same config will be used with experimentation/`variantIds`
 4. Cohort dimensions must reference existing dimensions
 5. Cohort dimensions must have position ≤ their referenced dimension
+6. `LOCAL_COHORT` schemas must include `otherwise` in `enum`, must not define `otherwise` under `definitions`, and must define every other enum option
 
 ### Overrides Validation
 

@@ -164,7 +164,7 @@ When designing your dimensions, assign higher positions to more significant dime
 ```toml
 [dimensions]
 # Lower positions = less significant
-variant = { position = 0, ... }      # Experimentation (reserved)
+variant = { position = 0, ... }      # Conventionally used by experimentation
 tier = { position = 1, ... }         # User tier
 vehicle_type = { position = 2, ... } # Vehicle category
 hour_of_day = { position = 3, ... }  # Time-based
@@ -183,7 +183,7 @@ With this hierarchy:
 
 ### When Contexts Have Equal Priority
 
-If two matching contexts have the same priority, **file order determines the winner**. The later override wins:
+With unique dimension positions, different dimension sets have different weights. Equal priority mainly happens when two matching overrides use the same dimension set. In that case, **file order determines the winner** and the later override wins:
 
 ```toml
 [[overrides]]
@@ -191,12 +191,12 @@ _context_ = { city = "Bangalore" }
 per_km_rate = 21.0
 
 [[overrides]]
-_context_ = { vehicle_type = "cab" }  # Same priority if positions are equal
+_context_ = { city = "Bangalore" }  # Same dimension set
 per_km_rate = 25.0  # This wins (appears later)
 ```
 
 :::caution
-Avoid equal-priority conflicts by designing distinct positions for your dimensions.
+Avoid duplicate same-context overrides unless the later override is intentionally replacing an earlier one.
 :::
 
 ### When Multiple Overrides Affect the Same Key
@@ -368,7 +368,7 @@ If context A is a subset of context B, then B's priority is at least as high as 
 
 ## Position Assignment Guidelines
 
-1. **Reserve position 0** for `variantIds` (experimentation)
+1. Leave position 0 for `variantIds` when using experimentation flows
 2. **Use gaps** between positions to allow future dimensions:
     ```toml
     [dimensions]

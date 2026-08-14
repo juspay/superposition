@@ -6,7 +6,7 @@ description: Group experiments to prevent overlap and ensure isolated traffic al
 
 ## Introduction
 
-When running multiple experiments, they can overlap with each other due to the cascading nature of [Context-Aware Configs](/docs/basic-concepts/how-all-this-works.mdx). This overlap makes it difficult to predict the final configuration a user receives, as multiple experiments may simultaneously modify the same config keys.
+When running multiple experiments, they can overlap with each other due to the cascading nature of [Context-Aware Configs](../context-aware-config/how-all-this-works.mdx). This overlap makes it difficult to predict the final configuration a user receives, as multiple experiments may simultaneously modify the same config keys.
 
 **Experiment Groups** solve this by ensuring experiments within a group never overlap with each other. Each user is assigned to exactly one experiment (or none) within the group, providing predictable and isolated traffic allocation.
 
@@ -124,4 +124,4 @@ Group B: context = [environment IS "production"]
 ## Related Concepts
 
 - [Experiments](/docs/basic-concepts/experimentation/experiments) - Understanding individual experiments
-- [Context-Aware Configs](/docs/basic-concepts/context-aware-configs) - The foundation for experimentation
+- [Context-Aware Configs](../context-aware-config/how-all-this-works.mdx) - The foundation for experimentation

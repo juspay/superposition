@@ -53,8 +53,7 @@ rate = { value = 1.5, schema = { type = "number", minimum = 0 } }
 # Boolean
 enabled = { value = true, schema = { type = "boolean" } }
 
-# Null
-optional_value = { value = "null", schema = { type = "null" } }
+# TOML has no null literal. Use JSON format if a config value must be null.
 ```
 
 ### String Constraints
@@ -336,32 +335,7 @@ address = {
 
 ## Type Templates
 
-Superposition supports reusable type templates that can be referenced across configurations:
-
-```toml
-# Type templates are defined at the workspace level
-# and can be reused across multiple configs
-
-[default-configs]
-user_email = {
-    value = "user@example.com",
-    schema = { "$ref" = "Email" }  # References a type template
-}
-
-admin_email = {
-    value = "admin@example.com",
-    schema = { "$ref" = "Email" }  # Same template, different config
-}
-```
-
-### Built-in Type Templates
-
-| Template  | Schema                  |
-| --------- | ----------------------- |
-| `Number`  | `{ "type": "integer" }` |
-| `Decimal` | `{ "type": "number" }`  |
-| `Boolean` | `{ "type": "boolean" }` |
-| `String`  | `{ "type": "string" }`  |
+Superposition workspaces have type-template APIs and UI support for reusable schemas. Standalone SuperTOML parsing validates the JSON Schema embedded in each `schema` field; it does not look up workspace type-template names while parsing a file. To reuse schema fragments inside a SuperTOML file, use standard JSON Schema references within the same schema object, such as `"$ref" = "#/definitions/zipCode"`.
 
 ## Validation in Action
 
@@ -476,16 +450,25 @@ api_timeout = {
 }
 ```
 
-### 4. Use Type Templates for Consistency
+### 4. Reuse Local Schema Definitions for Consistency
 
-Define common types once and reuse:
+Use standard JSON Schema `definitions` and `"$ref"` when a schema fragment is reused inside the same schema:
 
 ```toml
-# Define once
 [default-configs]
-primary_email = { value = "primary@example.com", schema = { "$ref": "Email" } }
-secondary_email = { value = "secondary@example.com", schema = { "$ref": "Email" } }
-support_email = { value = "support@example.com", schema = { "$ref": "Email" } }
+user_profile = {
+    value = { email = "primary@example.com" },
+    schema = {
+        type = "object",
+        properties = {
+            email = { "$ref" = "#/definitions/email" }
+        },
+        required = ["email"],
+        definitions = {
+            email = { type = "string", format = "email" }
+        }
+    }
+}
 ```
 
 ### 5. Validate Object Structures Strictly
