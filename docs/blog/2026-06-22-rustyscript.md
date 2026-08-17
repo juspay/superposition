@@ -289,4 +289,4 @@ runtime
 
 Rustyscript can do a lot more than what we've shared here - I recommend taking a look at the [documentation](https://rscarson.github.io/rustyscript-book/index.html) if you've never used it before. For Superposition, Rustyscript's ability to run isolated JavaScript seamlessly from within Rust has unlocked richer correctness guarantees — we now support both validation and value-compute functions with full syntax checking and captured logs, without spawning a subprocess.
 
-If you like the idea of Superposition, do take a look at our [docs](https://juspay.io/superposition/docs) to learn more. Have questions? Join our [Slack](https://superpositionjp.slack.com) to interact with the team.
+If you like the idea of Superposition, do take a look at our [docs](https://superposition.juspay.io/docs/) to learn more. Have questions? Join our [Slack](https://superpositionjp.slack.com) to interact with the team.

@@ -1,6 +1,6 @@
 # Superposition SDK
 
-Superposition SDK is a rust client for the Superposition platform, designed to facilitate the integration of Superposition's capabilities into rust applications. Read the complete documentation at [Superposition SDK Documentation](https://juspay.io/superposition/docs) or [docs.rs](https://docs.rs/superposition_sdk/latest/superposition_sdk/)
+Superposition SDK is a rust client for the Superposition platform, designed to facilitate the integration of Superposition's capabilities into rust applications. Read the complete documentation at [Superposition SDK Documentation](https://superposition.juspay.io/docs/) or [docs.rs](https://docs.rs/superposition_sdk/latest/superposition_sdk/)
 
 ## Installation
 

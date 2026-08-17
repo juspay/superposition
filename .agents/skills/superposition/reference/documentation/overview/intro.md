@@ -8,7 +8,7 @@ Superposition is a configuration and experimentation management platform that al
 * supporting strong typing of configuration values (via [json-schema](https://json-schema.org/))
 * custom validation functions (written in Javascript) that can validate configuration values using state-less logic or validate them against external data-sources
 * supporting staggering configuration changes via experiments.
-* allows configurations to cascade from least specific to most specific contexts [much like CSS](https://juspay.io/superposition/docs/basic-concepts/context-aware-config#analogy-with-css)
+* allows configurations to cascade from least specific to most specific contexts [much like CSS](https://superposition.juspay.io/docs/basic-concepts/context-aware-config/how-all-this-works/#analogy-with-css)
 
 This comprehensive setup gives applications a robust platform to roll-out changes safely.
 
@@ -25,7 +25,7 @@ Once you run this command, you can access the Superposition admin interface at `
 
 ### Integrating Superposition in your application
 
-Once you have played with the Superposition admin interface, you may want to consume the configuration in your application.  Superposition is [OpenFeature](https://openfeature.dev/docs/reference/concepts/provider) compatible.  OpenFeature allows your application code to remain agnostic of the underlying configuration/feature-flag platform (like [open telemetry](https://opentelemetry.io/) for telemetry).  The [quick start guide](https://juspay.io/superposition/docs/quick_start) has details on how to integrate and consume configurations (setup in Superposition) in your application using the Superposition Open Feature provider.
+Once you have played with the Superposition admin interface, you may want to consume the configuration in your application.  Superposition is [OpenFeature](https://openfeature.dev/docs/reference/concepts/provider) compatible.  OpenFeature allows your application code to remain agnostic of the underlying configuration/feature-flag platform (like [open telemetry](https://opentelemetry.io/) for telemetry).  The [quick start guide](https://superposition.juspay.io/docs/quick_start/) has details on how to integrate and consume configurations (setup in Superposition) in your application using the Superposition Open Feature provider.
 
 ## Superposition Clients
 
@@ -49,9 +49,9 @@ The following matrix contains the languages in which the above client libraries 
 
 For a deeper dive into the under-pinnings of Superposition, development setup, API docs - you can go over the following links.
 1. Conceptual docs on two foundational services of Superposition:
-    * [Context-Aware-Configuration](https://juspay.io/superposition/docs/basic-concepts/context-aware-config)
-    * [Experimentation](https://juspay.io/superposition/docs/basic-concepts/experimentation)
-3. [Development setup](https://juspay.io/superposition/docs/setup)
+    * [Context-Aware-Configuration](https://superposition.juspay.io/docs/category/context-aware-config/)
+    * [Experimentation](https://superposition.juspay.io/docs/category/experimentation/)
+3. [Development setup](https://superposition.juspay.io/docs/setup)
 4. API Ref (TODO:)
 
 ## Applications using Superposition
@@ -69,4 +69,3 @@ Superposition comes as a shot in the arm for any application that needs safe and
 
 ## Email us
 * [superposition@juspay.in](mailto:superposition@juspay.in)
-

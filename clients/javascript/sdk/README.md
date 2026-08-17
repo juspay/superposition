@@ -1,6 +1,6 @@
 # Superposition SDK
 
-Superposition SDK is a JavaScript client for the Superposition platform, designed to facilitate programmatic integration of all Superposition's API capabilities in JavaScript applications. Read the complete documentation at [Superposition SDK Documentation](https://juspay.io/superposition/docs).
+Superposition SDK is a JavaScript client for the Superposition platform, designed to facilitate programmatic integration of all Superposition's API capabilities in JavaScript applications. Read the complete documentation at [Superposition SDK Documentation](https://superposition.juspay.io/docs/).
 
 ## Installation
 
