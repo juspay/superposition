@@ -22,11 +22,11 @@
 </p>
 
 <p align="center">
-<a href="https://juspay.io/superposition/docs/quick_start"><b>Quick start</b></a>
+<a href="https://superposition.juspay.io/docs/quick_start/"><b>Quick start</b></a>
 ·
-<a href="https://juspay.io/superposition/docs/category/context-aware-config"><b>Concepts</b></a>
+<a href="https://superposition.juspay.io/docs/category/context-aware-config/"><b>Concepts</b></a>
 ·
-<a href="https://juspay.io/superposition/docs/setup"><b>Self-hosting & setup</b></a>
+<a href="https://superposition.juspay.io/docs/setup/"><b>Self-hosting & setup</b></a>
 ·
 <a href="https://deepwiki.com/juspay/superposition"><b>Architecture guide</b></a>
 </p>
@@ -69,7 +69,7 @@ make run
 
 If you are not using Nix, follow the dependency installation steps in the setup guide before running `make setup`.
 
-Need the guided path? Start with the [quick start guide](https://juspay.io/superposition/docs/quick_start) or read the [setup docs](https://juspay.io/superposition/docs/setup).
+Need the guided path? Start with the [quick start guide](https://superposition.juspay.io/docs/quick_start/) or read the [setup docs](https://superposition.juspay.io/docs/setup/).
 
 ## Why should you use Superposition
 
@@ -79,7 +79,7 @@ Need the guided path? Start with the [quick start guide](https://juspay.io/super
 - **Auditability**: see who changed what, when it changed, why it changed, and the description attached to the change.
 - **Integrations**: connect through OpenFeature-compatible providers, SDKs, APIs, webhooks, and client libraries.
 
-Superposition treats configuration like product logic, not scattered environment variables, one-off switch statements, or oversized feature flag trees. Read more about [context-aware configuration](https://juspay.io/superposition/docs/category/context-aware-config) and [experimentation](https://juspay.io/superposition/docs/category/experimentation).
+Superposition treats configuration like product logic, not scattered environment variables, one-off switch statements, or oversized feature flag trees. Read more about [context-aware configuration](https://superposition.juspay.io/docs/category/context-aware-config/) and [experimentation](https://superposition.juspay.io/docs/category/experimentation).
 
 ## What you can build with it
 
@@ -129,7 +129,7 @@ Superposition ships two integration surfaces:
 | Haskell    | [![Haskell SDK](https://img.shields.io/badge/source-SuperpositionSDK-green)](https://github.com/juspay/superposition/tree/main/clients/haskell/sdk) | [![Haskell Provider](https://img.shields.io/badge/source-superposition--open--feature--provider-green)](https://github.com/juspay/superposition/tree/main/clients/haskell/open-feature-provider) |
 | Go         | TBD | TBD |
 
-Ready to integrate? Use the [quick start guide](https://juspay.io/superposition/docs/quick_start) and choose the SDK or provider that matches your application.
+Ready to integrate? Use the [quick start guide](https://superposition.juspay.io/docs/quick_start/) and choose the SDK or provider that matches your application.
 
 ## Key capabilities
 
@@ -144,10 +144,10 @@ Want a broader systems view? Open the [DeepWiki architecture guide](https://deep
 
 ## Learn more
 
-- [Quick start](https://juspay.io/superposition/docs/quick_start)
-- [Development setup](https://juspay.io/superposition/docs/setup)
-- [Context-aware configuration concepts](https://juspay.io/superposition/docs/category/context-aware-config)
-- [Experimentation concepts](https://juspay.io/superposition/docs/category/experimentation)
+- [Quick start](https://superposition.juspay.io/docs/quick_start/)
+- [Development setup](https://superposition.juspay.io/docs/setup/)
+- [Context-aware configuration concepts](https://superposition.juspay.io/docs/category/context-aware-config/)
+- [Experimentation concepts](https://superposition.juspay.io/docs/category/experimentation/)
 - [Context7 LLM-friendly docs](https://context7.com/juspay/superposition)
 - [DeepWiki repository guide](https://deepwiki.com/juspay/superposition)
 
@@ -163,7 +163,7 @@ curl http://localhost:9091/metrics
 
 We welcome contributions across the platform, clients, docs, and examples.
 
-Start with the [development setup docs](https://juspay.io/superposition/docs/setup). If you'd like help getting started, join the [Discord community](https://discord.gg/jNeUJR9Bwr) or email [superposition@juspay.in](mailto:superposition@juspay.in).
+Start with the [development setup docs](https://superposition.juspay.io/docs/setup/). If you'd like help getting started, join the [Discord community](https://discord.gg/jNeUJR9Bwr) or email [superposition@juspay.in](mailto:superposition@juspay.in).
 
 ## License
 

@@ -1150,7 +1150,7 @@
           },
           {
             "language": "text",
-            "code": "* [Context-Aware-Configuration](https://juspay.io/superposition/docs/basic-concepts/context-aware-config)\n* [Experimentation](https://juspay.io/superposition/docs/basic-concepts/experimentation)"
+            "code": "* [Context-Aware-Configuration](https://superposition.juspay.io/docs/category/context-aware-config/)\n* [Experimentation](https://superposition.juspay.io/docs/category/experimentation/)"
           }
         ],
         "tables": 1,
