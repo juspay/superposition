@@ -1,24 +1,16 @@
-DO $$ BEGIN
-    CREATE TYPE public.background_job_type AS ENUM (
-        'WEBHOOK',
-        'PRIORITY_RECOMPUTE',
-        'REDUCE'
-    );
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+CREATE TYPE public.background_job_type AS ENUM (
+    'WEBHOOK',
+    'PRIORITY_RECOMPUTE',
+    'REDUCE'
+);
 
-DO $$ BEGIN
-    CREATE TYPE public.background_job_status AS ENUM (
-        'CREATED',
-        'SCHEDULED',
-        'INPROGRESS',
-        'FAILED',
-        'COMPLETED'
-    );
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+CREATE TYPE public.background_job_status AS ENUM (
+    'CREATED',
+    'SCHEDULED',
+    'INPROGRESS',
+    'FAILED',
+    'COMPLETED'
+);
 
 CREATE TABLE IF NOT EXISTS superposition.job_manager (
     id BIGINT PRIMARY KEY,

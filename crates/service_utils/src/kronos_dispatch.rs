@@ -511,7 +511,7 @@ pub fn append_job_logs(
     let final_log_lines = match logs.get(&timed_key) {
         Some(serde_json::Value::String(log_lines)) => {
             let mut updated_lines = log_lines.clone();
-            updated_lines.push_str("\n");
+            updated_lines.push('\n');
             updated_lines.push_str(log_line);
             serde_json::Value::String(updated_lines)
         }

@@ -7,14 +7,6 @@ DROP INDEX IF EXISTS superposition.idx_job_manager_kronos_job_id;
 DROP INDEX IF EXISTS superposition.idx_job_manager_status_job_type;
 DROP INDEX IF EXISTS superposition.idx_job_manager_created_at;
 
-DO $$ BEGIN
-    DROP TYPE public.background_job_type;
-EXCEPTION
-    WHEN undefined_object THEN null;
-END $$;
+DROP TYPE public.background_job_type;
 
-DO $$ BEGIN
-    DROP TYPE public.background_job_status;
-EXCEPTION
-    WHEN undefined_object THEN null;
-END $$;
+DROP TYPE public.background_job_status;
