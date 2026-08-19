@@ -9,6 +9,7 @@ use fred::{
     interfaces::ClientLike,
     types::{ConnectionConfig, PerformanceConfig, ReconnectPolicy, RedisConfig},
 };
+use kronos_common::tenant::SchemaProvider;
 use kronos_worker::{
     KronosClient, KronosHttpClient, KronosLibraryClient, WorkerConfig, WorkerHandle,
 };
@@ -139,6 +140,30 @@ pub async fn get(
         .await
         .expect("Failed to create KronosLibraryClient");
         let schema_provider = SuperpositionSchemaProvider::new(client.pool().clone());
+
+        if matches!(app_env, AppEnv::DEV | AppEnv::TEST) {
+            match schema_provider.get_active_schemas().await {
+                Ok(schemas) => {
+                    log::info!(
+                        "Kronos library mode: bootstrapping {} workspace(s)",
+                        schemas.len()
+                    );
+                    for schema in schemas {
+                        setup_dispatcher(
+                            &client,
+                            &schema,
+                            &superposition_host,
+                            &kronos_dispatch_token,
+                        )
+                        .await;
+                    }
+                }
+                Err(e) => log::warn!(
+                    "Kronos bootstrap: could not list workspaces, skipping: {e}"
+                ),
+            }
+        }
+
         let worker_config = WorkerConfig::default();
         let shutdown_timeout_sec = worker_config.shutdown_timeout_sec;
         let handle = client.start_worker(schema_provider, worker_config);

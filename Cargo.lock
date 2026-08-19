@@ -8989,6 +8989,7 @@ dependencies = [
  "inventory",
  "json-subscriber",
  "juspay_diesel",
+ "kronos-common",
  "kronos-worker",
  "leptos",
  "leptos_actix",
