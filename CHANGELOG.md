@@ -2,6 +2,20 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.117.1 - 2026-08-20
+### Package updates
+- superposition_sdk bumped to superposition_sdk-v0.23.1
+### Global changes
+#### Bug Fixes
+- fix all links in our documentation (#1130) - (fb850e1) - Datron
+- kronos dev mode (#1133) - (e817f4f) - Ankit Kumar Mahato
+- resolve the demo image failures (#1132) - (42e86cf) - Datron
+#### Miscellaneous Chores
+- **(blog)** Blog on rustyscript implementation in superposition (#1064) - (1a6522c) - Datron
+- **(version)** v0.117.0 [skip ci] - (ff782ff) - Superposition Bot
+
+- - -
+
 ## v0.117.0 - 2026-08-13
 ### Package updates
 - frontend bumped to frontend-v0.57.0

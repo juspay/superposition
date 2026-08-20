@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_sdk-v0.23.1 - 2026-08-20
+#### Bug Fixes
+- fix all links in our documentation (#1130) - (fb850e1) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.116.0 [skip ci] - (4bad497) - Superposition Bot
+
+- - -
+
 ## superposition_sdk-v0.23.0 - 2026-08-03
 #### Features
 - extend workspace lock to CAC write entities (#1069) - (dc5c98f) - sauraww
