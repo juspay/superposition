@@ -39,6 +39,7 @@ superposition_types = { workspace = true, features = [
     "server",
 ] }
 actix-http = { workspace = true }
+kronos-common = { workspace = true }
 kronos-worker = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
