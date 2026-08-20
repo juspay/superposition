@@ -1012,3 +1012,17 @@ SELECT
 WHERE NOT EXISTS (
     SELECT 1 FROM {replaceme}.config_versions
 );
+
+CREATE OR REPLACE VIEW {replaceme}.job_manager AS
+SELECT
+    id,
+    kronos_job_id,
+    description,
+    job_type,
+    status,
+    name,
+    progress,
+    created_at,
+    logs
+FROM superposition.job_manager
+WHERE workspace_schema = '{replaceme}';
