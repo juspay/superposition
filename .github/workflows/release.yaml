@@ -520,7 +520,7 @@ jobs:
 
             - name: Publish Python packages to PyPI
               run: |
-                  twine upload python-wheels/*.whl
+                  twine upload --verbose python-wheels/*.whl
 
     generate-js-packages:
         needs: [tag-release, generate-rust-binary]
