@@ -506,19 +506,15 @@ def _uniffi_check_api_checksums(lib):
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_superposition_core_checksum_func_ffi_parse_config_file_with_filters() != 52671:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    if lib.uniffi_superposition_core_checksum_func_ffi_parse_json_config() != 30321:
-        raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    if lib.uniffi_superposition_core_checksum_func_ffi_parse_toml_config() != 1558:
-        raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_superposition_core_checksum_method_providercache_eval_config() != 35291:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_superposition_core_checksum_method_providercache_filter_config() != 49737:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    if lib.uniffi_superposition_core_checksum_method_providercache_filter_experiment() != 24945:
+    if lib.uniffi_superposition_core_checksum_method_providercache_filter_experiment_config() != 333:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    if lib.uniffi_superposition_core_checksum_method_providercache_get_applicable_variants() != 3792:
+    if lib.uniffi_superposition_core_checksum_method_providercache_get_applicable_variants() != 39861:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    if lib.uniffi_superposition_core_checksum_method_providercache_init_config() != 28151:
+    if lib.uniffi_superposition_core_checksum_method_providercache_init_config() != 46782:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_superposition_core_checksum_method_providercache_init_experiments() != 55579:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
@@ -662,7 +658,7 @@ _UniffiLib.uniffi_superposition_core_fn_method_providercache_filter_config.argty
     ctypes.POINTER(_UniffiRustCallStatus),
 )
 _UniffiLib.uniffi_superposition_core_fn_method_providercache_filter_config.restype = _UniffiRustBufferConfig
-_UniffiLib.uniffi_superposition_core_fn_method_providercache_filter_experiment.argtypes = (
+_UniffiLib.uniffi_superposition_core_fn_method_providercache_filter_experiment_config.argtypes = (
     ctypes.c_void_p,
     _UniffiRustBuffer,
     _UniffiRustBuffer,
@@ -670,7 +666,7 @@ _UniffiLib.uniffi_superposition_core_fn_method_providercache_filter_experiment.a
     ctypes.c_int8,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
-_UniffiLib.uniffi_superposition_core_fn_method_providercache_filter_experiment.restype = _UniffiRustBuffer
+_UniffiLib.uniffi_superposition_core_fn_method_providercache_filter_experiment_config.restype = _UniffiRustBuffer
 _UniffiLib.uniffi_superposition_core_fn_method_providercache_get_applicable_variants.argtypes = (
     ctypes.c_void_p,
     _UniffiRustBuffer,
@@ -682,7 +678,7 @@ _UniffiLib.uniffi_superposition_core_fn_method_providercache_get_applicable_vari
 _UniffiLib.uniffi_superposition_core_fn_method_providercache_get_applicable_variants.restype = _UniffiRustBuffer
 _UniffiLib.uniffi_superposition_core_fn_method_providercache_init_config.argtypes = (
     ctypes.c_void_p,
-    _UniffiRustBuffer,
+    _UniffiRustBufferExtendedMap,
     _UniffiRustBuffer,
     _UniffiRustBuffer,
     _UniffiRustBuffer,
@@ -737,16 +733,6 @@ _UniffiLib.uniffi_superposition_core_fn_func_ffi_parse_config_file_with_filters.
     ctypes.POINTER(_UniffiRustCallStatus),
 )
 _UniffiLib.uniffi_superposition_core_fn_func_ffi_parse_config_file_with_filters.restype = _UniffiRustBufferConfig
-_UniffiLib.uniffi_superposition_core_fn_func_ffi_parse_json_config.argtypes = (
-    _UniffiRustBuffer,
-    ctypes.POINTER(_UniffiRustCallStatus),
-)
-_UniffiLib.uniffi_superposition_core_fn_func_ffi_parse_json_config.restype = _UniffiRustBufferConfig
-_UniffiLib.uniffi_superposition_core_fn_func_ffi_parse_toml_config.argtypes = (
-    _UniffiRustBuffer,
-    ctypes.POINTER(_UniffiRustCallStatus),
-)
-_UniffiLib.uniffi_superposition_core_fn_func_ffi_parse_toml_config.restype = _UniffiRustBufferConfig
 _UniffiLib.ffi_superposition_core_rustbuffer_alloc.argtypes = (
     ctypes.c_uint64,
     ctypes.POINTER(_UniffiRustCallStatus),
@@ -1027,21 +1013,15 @@ _UniffiLib.uniffi_superposition_core_checksum_func_ffi_get_applicable_variants.r
 _UniffiLib.uniffi_superposition_core_checksum_func_ffi_parse_config_file_with_filters.argtypes = (
 )
 _UniffiLib.uniffi_superposition_core_checksum_func_ffi_parse_config_file_with_filters.restype = ctypes.c_uint16
-_UniffiLib.uniffi_superposition_core_checksum_func_ffi_parse_json_config.argtypes = (
-)
-_UniffiLib.uniffi_superposition_core_checksum_func_ffi_parse_json_config.restype = ctypes.c_uint16
-_UniffiLib.uniffi_superposition_core_checksum_func_ffi_parse_toml_config.argtypes = (
-)
-_UniffiLib.uniffi_superposition_core_checksum_func_ffi_parse_toml_config.restype = ctypes.c_uint16
 _UniffiLib.uniffi_superposition_core_checksum_method_providercache_eval_config.argtypes = (
 )
 _UniffiLib.uniffi_superposition_core_checksum_method_providercache_eval_config.restype = ctypes.c_uint16
 _UniffiLib.uniffi_superposition_core_checksum_method_providercache_filter_config.argtypes = (
 )
 _UniffiLib.uniffi_superposition_core_checksum_method_providercache_filter_config.restype = ctypes.c_uint16
-_UniffiLib.uniffi_superposition_core_checksum_method_providercache_filter_experiment.argtypes = (
+_UniffiLib.uniffi_superposition_core_checksum_method_providercache_filter_experiment_config.argtypes = (
 )
-_UniffiLib.uniffi_superposition_core_checksum_method_providercache_filter_experiment.restype = ctypes.c_uint16
+_UniffiLib.uniffi_superposition_core_checksum_method_providercache_filter_experiment_config.restype = ctypes.c_uint16
 _UniffiLib.uniffi_superposition_core_checksum_method_providercache_get_applicable_variants.argtypes = (
 )
 _UniffiLib.uniffi_superposition_core_checksum_method_providercache_get_applicable_variants.restype = ctypes.c_uint16
@@ -1777,11 +1757,11 @@ class ProviderCacheProtocol(typing.Protocol):
         raise NotImplementedError
     def filter_config(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]",exclude_prefix: "typing.Optional[typing.List[str]]"):
         raise NotImplementedError
-    def filter_experiment(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]",exclude_prefix: "typing.Optional[typing.List[str]]",partial_apply: "bool"):
+    def filter_experiment_config(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]",exclude_prefix: "typing.Optional[typing.List[str]]",partial_apply: "bool"):
         raise NotImplementedError
-    def get_applicable_variants(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]",exclude_prefix: "typing.Optional[typing.List[str]]",targeting_key: "str"):
+    def get_applicable_variants(self, dimension_data: "dict[str, str]",prefix: "typing.Optional[typing.List[str]]",exclude_prefix: "typing.Optional[typing.List[str]]",targeting_key: "str"):
         raise NotImplementedError
-    def init_config(self, default_config: "dict[str, str]",contexts: "typing.List[Context]",overrides: "dict[str, Overrides]",dimensions: "dict[str, DimensionInfo]"):
+    def init_config(self, default_configs: "ExtendedMap",contexts: "typing.List[Context]",overrides: "dict[str, Overrides]",dimensions: "dict[str, DimensionInfo]"):
         raise NotImplementedError
     def init_experiments(self, experiments: "typing.List[FfiExperiment]",experiment_groups: "typing.List[FfiExperimentGroup]"):
         raise NotImplementedError
@@ -1852,7 +1832,7 @@ class ProviderCache():
 
 
 
-    def filter_experiment(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]",exclude_prefix: "typing.Optional[typing.List[str]]",partial_apply: "bool") -> "ExperimentConfig":
+    def filter_experiment_config(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]",exclude_prefix: "typing.Optional[typing.List[str]]",partial_apply: "bool") -> "ExperimentConfig":
         _UniffiConverterOptionalMapStringString.check_lower(dimension_data)
         
         _UniffiConverterOptionalSequenceString.check_lower(prefix)
@@ -1862,7 +1842,7 @@ class ProviderCache():
         _UniffiConverterBool.check_lower(partial_apply)
         
         return _UniffiConverterTypeExperimentConfig.lift(
-            _uniffi_rust_call_with_error(_UniffiConverterTypeOperationError,_UniffiLib.uniffi_superposition_core_fn_method_providercache_filter_experiment,self._uniffi_clone_pointer(),
+            _uniffi_rust_call_with_error(_UniffiConverterTypeOperationError,_UniffiLib.uniffi_superposition_core_fn_method_providercache_filter_experiment_config,self._uniffi_clone_pointer(),
         _UniffiConverterOptionalMapStringString.lower(dimension_data),
         _UniffiConverterOptionalSequenceString.lower(prefix),
         _UniffiConverterOptionalSequenceString.lower(exclude_prefix),
@@ -1873,8 +1853,8 @@ class ProviderCache():
 
 
 
-    def get_applicable_variants(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]",exclude_prefix: "typing.Optional[typing.List[str]]",targeting_key: "str") -> "typing.List[str]":
-        _UniffiConverterOptionalMapStringString.check_lower(dimension_data)
+    def get_applicable_variants(self, dimension_data: "dict[str, str]",prefix: "typing.Optional[typing.List[str]]",exclude_prefix: "typing.Optional[typing.List[str]]",targeting_key: "str") -> "typing.List[str]":
+        _UniffiConverterMapStringString.check_lower(dimension_data)
         
         _UniffiConverterOptionalSequenceString.check_lower(prefix)
         
@@ -1884,7 +1864,7 @@ class ProviderCache():
         
         return _UniffiConverterSequenceString.lift(
             _uniffi_rust_call_with_error(_UniffiConverterTypeOperationError,_UniffiLib.uniffi_superposition_core_fn_method_providercache_get_applicable_variants,self._uniffi_clone_pointer(),
-        _UniffiConverterOptionalMapStringString.lower(dimension_data),
+        _UniffiConverterMapStringString.lower(dimension_data),
         _UniffiConverterOptionalSequenceString.lower(prefix),
         _UniffiConverterOptionalSequenceString.lower(exclude_prefix),
         _UniffiConverterString.lower(targeting_key))
@@ -1894,8 +1874,8 @@ class ProviderCache():
 
 
 
-    def init_config(self, default_config: "dict[str, str]",contexts: "typing.List[Context]",overrides: "dict[str, Overrides]",dimensions: "dict[str, DimensionInfo]") -> None:
-        _UniffiConverterMapStringString.check_lower(default_config)
+    def init_config(self, default_configs: "ExtendedMap",contexts: "typing.List[Context]",overrides: "dict[str, Overrides]",dimensions: "dict[str, DimensionInfo]") -> None:
+        _UniffiConverterTypeExtendedMap.check_lower(default_configs)
         
         _UniffiConverterSequenceTypeContext.check_lower(contexts)
         
@@ -1904,7 +1884,7 @@ class ProviderCache():
         _UniffiConverterMapStringTypeDimensionInfo.check_lower(dimensions)
         
         _uniffi_rust_call_with_error(_UniffiConverterTypeOperationError,_UniffiLib.uniffi_superposition_core_fn_method_providercache_init_config,self._uniffi_clone_pointer(),
-        _UniffiConverterMapStringString.lower(default_config),
+        _UniffiConverterTypeExtendedMap.lower(default_configs),
         _UniffiConverterSequenceTypeContext.lower(contexts),
         _UniffiConverterMapStringTypeOverrides.lower(overrides),
         _UniffiConverterMapStringTypeDimensionInfo.lower(dimensions))
@@ -2076,73 +2056,6 @@ def ffi_parse_config_file_with_filters(file_content: "str",format: "str",dimensi
         _UniffiConverterOptionalSequenceString.lower(exclude_prefix)))
 
 
-def ffi_parse_json_config(json_content: "str") -> "Config":
-    """
-    Parse JSON configuration string
-
-    # Arguments
-    * `json_content` - JSON string with configuration
-
-    # Returns
-    * `Ok(Config)` - Parsed configuration with all components
-    * `Err(OperationError)` - Detailed error message
-
-    # Example JSON
-    ```json
-    {
-    "default-configs": {
-    "timeout": { "value": 30, "schema": { "type": "integer" } }
-    },
-    "dimensions": {
-    "os": { "position": 1, "schema": { "type": "string" } }
-    },
-    "overrides": [
-    {
-    "_context_": { "os": "linux" },
-    "timeout": 60
-    }
-    ]
-    }
-    ```
-    """
-
-    _UniffiConverterString.check_lower(json_content)
-    
-    return _UniffiConverterTypeConfig.lift(_uniffi_rust_call_with_error(_UniffiConverterTypeOperationError,_UniffiLib.uniffi_superposition_core_fn_func_ffi_parse_json_config,
-        _UniffiConverterString.lower(json_content)))
-
-
-def ffi_parse_toml_config(toml_content: "str") -> "Config":
-    """
-    Parse TOML configuration string
-
-    # Arguments
-    * `toml_content` - TOML string with configuration
-
-    # Returns
-    * `Ok(Config)` - Parsed configuration with all components
-    * `Err(OperationError)` - Detailed error message
-
-    # Example TOML
-    ```toml
-    [default-configs]
-    timeout = { value = 30, schema = { type = "integer" } }
-
-    [dimensions]
-    os = { position = 1, schema = { type = "string" } }
-
-    [[overrides]]
-    _context_ = { os = "linux" }
-    timeout = 60
-    ```
-    """
-
-    _UniffiConverterString.check_lower(toml_content)
-    
-    return _UniffiConverterTypeConfig.lift(_uniffi_rust_call_with_error(_UniffiConverterTypeOperationError,_UniffiLib.uniffi_superposition_core_fn_func_ffi_parse_toml_config,
-        _UniffiConverterString.lower(toml_content)))
-
-
 __all__ = [
     "InternalError",
     "OperationError",
@@ -2154,8 +2067,6 @@ __all__ = [
     "ffi_eval_config",
     "ffi_get_applicable_variants",
     "ffi_parse_config_file_with_filters",
-    "ffi_parse_json_config",
-    "ffi_parse_toml_config",
     "ProviderCache",
 ]
 
