@@ -158,7 +158,7 @@ getResolvedConfigWithStrategy client context mbKeys mbExcludePrefix mergeStrat =
     cExcludePrefix <- case mbExcludePrefix of
         Just excludePrefix -> newCString (intercalate "," excludePrefix)
         Nothing            -> return nullPtr
-    overrides   <- withForeignPtr client $ \clientPtr -> c_cac_get_resolved_config clientPtr cContext cStrKeys cMergeStrat cExcludePrefix
+    overrides   <- withForeignPtr client $ \clientPtr -> c_cac_get_resolved_config clientPtr cContext cStrKeys cExcludePrefix cMergeStrat
     _           <- cleanup [cContext, cStrKeys, cMergeStrat, cExcludePrefix]
     if overrides == nullPtr
         then Left <$> getError
