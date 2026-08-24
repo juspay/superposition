@@ -161,7 +161,9 @@ describe("ConfigManager", () => {
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalled();
-      expect(screen.getByRole("heading", { name: "Configs" })).toBeDefined();
+      expect(
+        screen.getByRole("heading", { name: "Configuration values" }),
+      ).toBeDefined();
     });
   });
 

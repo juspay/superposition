@@ -263,7 +263,7 @@ function ConfigManagerContent({
   const hasRows = rows.length > 0;
 
   return (
-    <div style={{ display: "grid", gap: 20 }}>
+    <div style={{ display: "grid", gap: "var(--sp-space-lg)" }}>
       <div
         style={{
           display: "flex",
@@ -282,7 +282,7 @@ function ConfigManagerContent({
             color: "var(--sp-page-title-text)",
           }}
         >
-          Configs
+          {getMessage(config, "config.title", "Configuration values")}
         </h2>
         {canCreate && (
           <button style={buttonPrimary} onClick={() => setShowCreate(true)}>

@@ -596,6 +596,7 @@ Per-feature globals now require `superposition-browser-core.global.external.js` 
 ## Demo hosts
 
 - React host demo: `npm run demo` then open `demo/index.html`
+- Svelte custom-element host demo: `npm run demo:svelte`
 - Custom element host demo: `npm run demo` then open `demo/custom-elements.html`
 - Shared core + feature global demo: `npm run demo:shared-core`
 

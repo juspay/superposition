@@ -43,7 +43,7 @@ describe("browser wrappers", () => {
     });
 
     await waitFor(() => {
-      expect(element.shadowRoot?.textContent).toContain("Configs");
+      expect(element.shadowRoot?.textContent).toContain("Configuration values");
       expect(element.shadowRoot?.textContent).not.toContain("Create config");
     });
 
@@ -73,7 +73,7 @@ describe("browser wrappers", () => {
     });
 
     await waitFor(() => {
-      expect(element.shadowRoot?.textContent).toContain("Configs");
+      expect(element.shadowRoot?.textContent).toContain("Configuration values");
     });
   });
 
@@ -102,7 +102,7 @@ describe("browser wrappers", () => {
     });
 
     await waitFor(() => {
-      expect(element.shadowRoot?.textContent).toContain("Configs");
+      expect(element.shadowRoot?.textContent).toContain("Configuration values");
       expect(element.shadowRoot?.textContent).not.toContain("Create config");
     });
 
