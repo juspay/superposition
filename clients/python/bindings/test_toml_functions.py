@@ -3,7 +3,7 @@
 Test script for TOML parsing functions in superposition_bindings
 
 This script demonstrates the usage of:
-- ffi_parse_toml_config: Parse TOML configuration into structured format
+- ffi_parse_config_file_with_filters: Parse TOML configuration into structured format
 """
 
 import json
@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 # Import the generated bindings
-from superposition_bindings.superposition_client import ffi_parse_toml_config
+from superposition_bindings.superposition_client import ffi_parse_config_file_with_filters
 
 # Sample TOML configuration - ride-sharing pricing example
 EXAMPLE_TOML = """
@@ -58,7 +58,7 @@ def test_parse_toml_config():
     print_section_header("TEST 1: Parse TOML Configuration")
 
     try:
-        result = ffi_parse_toml_config(EXAMPLE_TOML)
+        result = ffi_parse_config_file_with_filters(EXAMPLE_TOML, "toml", None, None, None)
 
         print("\n✓ Successfully parsed TOML configuration!\n")
 
@@ -119,7 +119,7 @@ def test_with_external_file():
 
     try:
         toml_content = example_file.read_text()
-        result = ffi_parse_toml_config(toml_content)
+        result = ffi_parse_config_file_with_filters(toml_content, "toml", None, None, None)
 
         print(f"\n✓ Successfully parsed external TOML file!")
         print(f"\nParsed configuration summary:")
@@ -159,7 +159,7 @@ def test_error_handling():
         print("-" * 50)
 
         try:
-            result = ffi_parse_toml_config(case["toml"])
+            result = ffi_parse_config_file_with_filters(case["toml"], "toml", None, None, None)
             print(f"✗ Expected error but parsing succeeded!")
         except Exception as e:
             print(f"✓ Correctly caught error: {type(e).__name__}")

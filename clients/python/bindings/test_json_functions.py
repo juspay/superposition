@@ -3,7 +3,7 @@
 Test script for JSON parsing functions in superposition_bindings
 
 This script demonstrates the usage of:
-- ffi_parse_json_config: Parse JSON configuration into structured format
+- ffi_parse_config_file_with_filters: Parse JSON configuration into structured format
 """
 
 import json
@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 # Import the generated bindings
-from superposition_bindings.superposition_client import ffi_parse_json_config, ffi_parse_toml_config
+from superposition_bindings.superposition_client import ffi_parse_config_file_with_filters
 
 # Sample JSON configuration - ride-sharing pricing example
 EXAMPLE_JSON = """
@@ -48,7 +48,7 @@ def test_parse_json_config():
     print_section_header("TEST 1: Parse JSON Configuration")
 
     try:
-        result = ffi_parse_json_config(EXAMPLE_JSON)
+        result = ffi_parse_config_file_with_filters(EXAMPLE_JSON, "JSON", None, None, None)
 
         print("\n✓ Successfully parsed JSON configuration!\n")
 
@@ -114,7 +114,7 @@ def test_with_external_file():
 
     try:
         json_content = example_file.read_text()
-        result = ffi_parse_json_config(json_content)
+        result = ffi_parse_config_file_with_filters(json_content, "JSON", None, None, None)
 
         print(f"\n✓ Successfully parsed external JSON file!")
         print(f"\nParsed configuration summary:")
@@ -154,7 +154,7 @@ def test_error_handling():
         print("-" * 50)
 
         try:
-            result = ffi_parse_json_config(case["json"])
+            result = ffi_parse_config_file_with_filters(case["json"], "JSON", None, None, None)
             print(f"✗ Expected error but parsing succeeded!")
         except Exception as e:
             print(f"✓ Correctly caught error: {type(e).__name__}")
@@ -201,8 +201,8 @@ per_km_rate = 15.0
 """
 
     try:
-        toml_result = ffi_parse_toml_config(toml_config)
-        json_result = ffi_parse_json_config(json_config)
+        toml_result = ffi_parse_config_file_with_filters(toml_config, "TOML", None, None, None)
+        json_result = ffi_parse_config_file_with_filters(json_config, "JSON", None, None, None)
 
         assert len(toml_result.default_configs) == len(json_result.default_configs), \
             f"default_configs mismatch: {len(toml_result.default_configs)} vs {len(json_result.default_configs)}"

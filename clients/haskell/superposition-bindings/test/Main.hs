@@ -2,8 +2,8 @@
 
 module Main (main) where
 
-import FFI.Superposition qualified as FFI
-import Test.HUnit qualified as HUnit
+import qualified FFI.Superposition as FFI
+import qualified Test.HUnit        as HUnit
 
 main :: IO HUnit.Counts
 main = do
@@ -41,7 +41,7 @@ invalidCall = do
   result <- FFI.getResolvedConfig FFI.defaultResolveParams
   case result of
     Right _ -> HUnit.assertFailure $ "Expected error, recieved: " ++ show result
-    Left e -> HUnit.assertBool "Error should not be empty." (not $ null e)
+    Left e  -> HUnit.assertBool "Error should not be empty." (not $ null e)
 
 -- TOML parsing tests
 exampleToml :: String
@@ -78,15 +78,15 @@ exampleToml = unlines
 
 parseTomlValid :: IO ()
 parseTomlValid = do
-  result <- FFI.parseTomlConfig exampleToml
+  result <- FFI.parseConfigFileWithFilters exampleToml "toml" Nothing Nothing Nothing
   case result of
     Right _val -> HUnit.assertBool "Valid TOML should parse successfully" True
-    Left e -> HUnit.assertFailure $ "Failed to parse valid TOML: " ++ e
+    Left e     -> HUnit.assertFailure $ "Failed to parse valid TOML: " ++ e
 
 parseTomlInvalidSyntax :: IO ()
 parseTomlInvalidSyntax = do
   let invalidToml = "[invalid toml content ][["
-  result <- FFI.parseTomlConfig invalidToml
+  result <- FFI.parseConfigFileWithFilters invalidToml "toml" Nothing Nothing Nothing
   case result of
     Right _ -> HUnit.assertFailure "Expected error for invalid TOML syntax"
     Left e -> do
@@ -96,7 +96,7 @@ parseTomlInvalidSyntax = do
 parseTomlMissingSection :: IO ()
 parseTomlMissingSection = do
   let invalidToml = "[dimensions]\ncity = { position = 1, schema = { \"type\" = \"string\" } }"
-  result <- FFI.parseTomlConfig invalidToml
+  result <- FFI.parseConfigFileWithFilters invalidToml "toml" Nothing Nothing Nothing
   case result of
     Right _ -> HUnit.assertFailure "Expected error for missing default-config section"
     Left e -> HUnit.assertBool "Error should not be empty" (not $ null e)
@@ -110,10 +110,10 @@ parseTomlMissingPosition = do
         , "[dimensions]"
         , "city = { schema = { \"type\" = \"string\" } }"
         ]
-  result <- FFI.parseTomlConfig invalidToml
+  result <- FFI.parseConfigFileWithFilters invalidToml "toml" Nothing Nothing Nothing
   case result of
     Right _ -> HUnit.assertFailure "Expected error for missing position field"
-    Left e -> HUnit.assertBool "Error should not be empty" (not $ null e)
+    Left e  -> HUnit.assertBool "Error should not be empty" (not $ null e)
 
 -- JSON parsing tests
 exampleJson :: String
@@ -136,18 +136,18 @@ exampleJson = unlines
 
 parseJsonValid :: IO ()
 parseJsonValid = do
-  result <- FFI.parseJsonConfig exampleJson
+  result <- FFI.parseConfigFileWithFilters exampleJson "json" Nothing Nothing Nothing
   case result of
     Right _val -> HUnit.assertBool "Valid JSON should parse successfully" True
-    Left e -> HUnit.assertFailure $ "Failed to parse valid JSON: " ++ e
+    Left e     -> HUnit.assertFailure $ "Failed to parse valid JSON: " ++ e
 
 parseJsonInvalidSyntax :: IO ()
 parseJsonInvalidSyntax = do
   let invalidJson = "{invalid json content}"
-  result <- FFI.parseJsonConfig invalidJson
+  result <- FFI.parseConfigFileWithFilters invalidJson "json" Nothing Nothing Nothing
   case result of
     Right _ -> HUnit.assertFailure "Expected error for invalid JSON syntax"
-    Left e -> HUnit.assertBool "Error should not be empty" (not $ null e)
+    Left e  -> HUnit.assertBool "Error should not be empty" (not $ null e)
 
 parseJsonMissingSection :: IO ()
 parseJsonMissingSection = do
@@ -158,7 +158,7 @@ parseJsonMissingSection = do
         , "  }"
         , "}"
         ]
-  result <- FFI.parseJsonConfig invalidJson
+  result <- FFI.parseConfigFileWithFilters invalidJson "json" Nothing Nothing Nothing
   case result of
     Right _ -> HUnit.assertFailure "Expected error for missing default-configs section"
     Left e -> HUnit.assertBool "Error should not be empty" (not $ null e)
