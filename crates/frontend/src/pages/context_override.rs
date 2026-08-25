@@ -25,7 +25,10 @@ use superposition_types::{
         experimentation::ExperimentType,
     },
 };
-use utils::{create_context, try_update_context_payload, update_context};
+use utils::{
+    create_context, filter_overrides_by_plaintext, try_update_context_payload,
+    update_context,
+};
 use wasm_bindgen::JsCast;
 use web_sys::{Element, Event};
 
@@ -626,6 +629,7 @@ pub fn ContextOverride() -> impl IntoView {
                         match page_resource.get().map(|v| v.contexts) {
                             Some(contexts) => {
                                 let is_empty = contexts.data.is_empty();
+                                let plaintext = context_filters_rws.with(|f| f.plaintext.clone());
                                 view! {
                                     <div class="flex flex-col gap-6">
                                         <Show when=move || is_empty>
@@ -644,10 +648,14 @@ pub fn ContextOverride() -> impl IntoView {
                                                 .into_iter()
                                                 .map(|context| {
                                                     let detail_href = context.id.clone();
+                                                    let overrides = filter_overrides_by_plaintext(
+                                                        context.override_.clone().into(),
+                                                        plaintext.as_ref(),
+                                                    );
                                                     view! {
                                                         <ContextCard
-                                                            context=context.clone()
-                                                            overrides=context.override_.into()
+                                                            context=context
+                                                            overrides=overrides
                                                             href=detail_href
                                                             handle_create_experiment=handle_create_experiment
                                                             handle_edit=on_context_edit
