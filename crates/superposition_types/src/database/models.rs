@@ -3,7 +3,7 @@ pub mod cac;
 pub mod experimentation;
 pub mod others;
 
-use std::str::FromStr;
+use std::{collections::HashSet, str::FromStr};
 
 use chrono::{DateTime, Utc};
 use derive_more::{Deref, DerefMut};
@@ -288,7 +288,7 @@ pub struct Workspace {
     pub workspace_lock_expires_at: Option<DateTime<Utc>>,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, PartialEq, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum MetricSource {
     Grafana {
@@ -319,14 +319,52 @@ impl Default for MetricSource {
 pub struct Metrics {
     pub enabled: bool,
     pub source: Option<MetricSource>,
+    pub list: Option<Vec<MetricDefinition>>,
+}
+
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    Serialize,
+    Deserialize,
+    strum_macros::Display,
+)]
+#[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
+pub enum MetricDirection {
+    #[default]
+    Maximize,
+    Minimize,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct MetricDefinition {
+    pub name: String,
+    pub direction: MetricDirection,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(AsExpression, FromSqlRow, JsonFromSql, JsonToSql)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(sql_type = Json))]
+pub struct MetricSelection {
+    pub primary: MetricDefinition,
+    pub secondary: Option<MetricDefinition>,
+    pub guardrail: MetricDefinition,
 }
 
 // TODO: Add validation for the source - that the given URL is valid and the
 // dashboard UID and slug are present in the URL - possible once API_KEY is added
 
 impl Metrics {
-    pub fn source(&self) -> Option<MetricSource> {
-        self.enabled.then(|| self.source.clone()).flatten()
+    pub fn source(&self) -> Option<&MetricSource> {
+        self.enabled.then_some(self.source.as_ref()).flatten()
     }
 }
 
@@ -339,16 +377,52 @@ impl<'de> Deserialize<'de> for Metrics {
         struct MetricsHelper {
             enabled: bool,
             source: Option<MetricSource>,
+            list: Option<Vec<MetricDefinition>>,
         }
         let helper = MetricsHelper::deserialize(deserializer)?;
-        if helper.enabled && helper.source.is_none() {
-            return Err(serde::de::Error::custom(
-                "`source` must be provided when enabled is true",
-            ));
+        // Treat a Grafana source with blank required fields as absent.
+        // Keeps the "source is Some ⇔ source is usable" invariant so callers
+        // don't need per-variant emptiness checks, and silently repairs any
+        // legacy rows that were persisted with an empty default source.
+        let source = helper.source.filter(|s| match s {
+            MetricSource::Grafana {
+                base_url,
+                dashboard_uid,
+                ..
+            } => !base_url.trim().is_empty() && !dashboard_uid.trim().is_empty(),
+        });
+        if helper.enabled {
+            let has_source = source.is_some();
+            let has_list = helper.list.as_ref().is_some_and(|list| !list.is_empty());
+            if !has_source && !has_list {
+                return Err(serde::de::Error::custom(
+                    "at least one of `source` or a non-empty `list` must be \
+                     provided when enabled is true",
+                ));
+            }
+            if let Some(list) = helper.list.as_ref().filter(|list| !list.is_empty()) {
+                if list.iter().any(|metric| metric.name.trim().is_empty()) {
+                    return Err(serde::de::Error::custom(
+                        "metric names in `list` must be non-empty",
+                    ));
+                }
+                if list
+                    .iter()
+                    .map(|metric| &metric.name)
+                    .collect::<HashSet<_>>()
+                    .len()
+                    != list.len()
+                {
+                    return Err(serde::de::Error::custom(
+                        "metric names in `list` must be unique",
+                    ));
+                }
+            }
         }
         Ok(Metrics {
             enabled: helper.enabled,
-            source: helper.source.clone(),
+            source,
+            list: helper.list,
         })
     }
 }
@@ -433,5 +507,108 @@ pub mod i64_formatter {
         let s = String::deserialize(deserializer)?;
         s.parse::<i64>()
             .map_err(|e| serde::de::Error::custom(format!("Failed to parse i64: {}", e)))
+    }
+}
+
+#[cfg(test)]
+mod metrics_tests {
+    use serde_json::json;
+
+    use super::{MetricSelection, Metrics};
+
+    fn enabled_metrics(list: serde_json::Value) -> serde_json::Value {
+        json!({
+            "enabled": true,
+            "source": {
+                "grafana": {
+                    "base_url": "https://grafana.example.com",
+                    "dashboard_uid": "experiment-metrics",
+                    "dashboard_slug": "experiments"
+                }
+            },
+            "list": list
+        })
+    }
+
+    #[test]
+    fn enabled_metrics_require_source_or_list() {
+        // Neither source nor list: error
+        assert!(serde_json::from_value::<Metrics>(json!({
+            "enabled": true
+        }))
+        .is_err());
+        // Source only: ok
+        assert!(serde_json::from_value::<Metrics>(json!({
+            "enabled": true,
+            "source": {
+                "grafana": {
+                    "base_url": "https://grafana.example.com",
+                    "dashboard_uid": "experiment-metrics",
+                    "dashboard_slug": "experiments"
+                }
+            }
+        }))
+        .is_ok());
+        // List only: ok
+        assert!(serde_json::from_value::<Metrics>(json!({
+            "enabled": true,
+            "list": [{"name": "conversion", "direction": "maximize"}]
+        }))
+        .is_ok());
+        // Both: ok
+        assert!(serde_json::from_value::<Metrics>(enabled_metrics(json!([
+            {"name": "conversion", "direction": "maximize"}
+        ])))
+        .is_ok());
+    }
+
+    #[test]
+    fn enabled_metrics_reject_blank_or_duplicate_names() {
+        assert!(serde_json::from_value::<Metrics>(enabled_metrics(json!([
+            {"name": "conversion", "direction": "maximize"},
+            {"name": " ", "direction": "minimize"}
+        ])))
+        .is_err());
+        assert!(serde_json::from_value::<Metrics>(enabled_metrics(json!([
+            {"name": "conversion", "direction": "maximize"},
+            {"name": "conversion", "direction": "minimize"}
+        ])))
+        .is_err());
+    }
+
+    #[test]
+    fn blank_grafana_source_is_normalized_to_none() {
+        // Enabled + blank source + no list: error (blank source counts as absent).
+        assert!(serde_json::from_value::<Metrics>(json!({
+            "enabled": true,
+            "source": {"grafana": {"base_url": "", "dashboard_uid": "", "dashboard_slug": ""}}
+        }))
+        .is_err());
+        // Enabled + blank source + list: ok, source is dropped.
+        let metrics = serde_json::from_value::<Metrics>(json!({
+            "enabled": true,
+            "source": {"grafana": {"base_url": "  ", "dashboard_uid": "", "dashboard_slug": ""}},
+            "list": [{"name": "conversion", "direction": "maximize"}]
+        }))
+        .unwrap();
+        assert!(metrics.source.is_none());
+        assert!(metrics.list.is_some());
+    }
+
+    #[test]
+    fn metric_selection_requires_primary_and_guardrail() {
+        assert!(serde_json::from_value::<MetricSelection>(json!({
+            "primary": {"name": "conversion", "direction": "maximize"}
+        }))
+        .is_err());
+        assert!(serde_json::from_value::<MetricSelection>(json!({
+            "guardrail": {"name": "latency", "direction": "minimize"}
+        }))
+        .is_err());
+        assert!(serde_json::from_value::<MetricSelection>(json!({
+            "primary": {"name": "conversion", "direction": "maximize"},
+            "guardrail": {"name": "latency", "direction": "minimize"}
+        }))
+        .is_ok());
     }
 }

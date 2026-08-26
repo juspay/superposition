@@ -152,6 +152,7 @@ structure ExperimentResponse for Experiments {
 
     $metrics_url
 
+    @documentation("Optional metrics for this experiment, snapshotted from workspace definitions. May carry a selection (primary and guardrail required, secondary optional) and/or a per-experiment source override; both are optional independently, and omitting both means metrics are disabled.")
     $metrics
 
     $experiment_group_id
@@ -175,6 +176,7 @@ structure CreateExperimentRequest for Experiments with [WorkspaceMixin] {
     @required
     $change_reason
 
+    @documentation("Optional metrics for the experiment. May carry a selection drawn from the workspace's metric list (primary and guardrail required, secondary optional) and/or a per-experiment source override; both are optional independently. A per-experiment source is only accepted when the workspace has a source configured.")
     $metrics
 
     $experiment_group_id
@@ -215,6 +217,7 @@ structure UpdateOverrideRequest for Experiments with [WorkspaceMixin] {
     @required
     $change_reason
 
+    @documentation("Metric selection update using workspace metric definitions containing name and direction. Omit to preserve the current selection, pass null to clear it, or pass a selection object to replace it. Updates are allowed only while the experiment is in CREATED state.")
     $metrics
 
     @documentation("To unset experiment group, pass \"null\" string.")
