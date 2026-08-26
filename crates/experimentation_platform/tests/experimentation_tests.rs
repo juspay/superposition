@@ -5,10 +5,10 @@ use service_utils::service::types::ExperimentationFlags;
 use superposition_types::{
     Condition, Exp, Overrides,
     database::models::{
-        ChangeReason, Description, Metrics,
+        ChangeReason, Description,
         experimentation::{
-            Experiment, ExperimentStatusType, ExperimentType, TrafficPercentage, Variant,
-            Variants,
+            Experiment, ExperimentMetrics, ExperimentStatusType, ExperimentType,
+            TrafficPercentage, Variant, Variants,
         },
     },
     result as superposition,
@@ -62,7 +62,7 @@ fn experiment_gen(
         chosen_variant: None,
         description: Description::try_from(String::from("test")).unwrap(),
         change_reason: ChangeReason::try_from(String::from("test")).unwrap(),
-        metrics: Metrics::default(),
+        metrics: ExperimentMetrics::default(),
         experiment_group_id: None,
         idempotency_key: None,
     }

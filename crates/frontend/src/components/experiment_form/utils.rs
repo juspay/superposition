@@ -3,14 +3,14 @@ use superposition_types::{
     Condition, Exp,
     api::{
         experiments::{
-            ExperimentCreateRequest, ExperimentResponse, OverrideKeysUpdateRequest,
-            VariantUpdateRequest,
+            ExperimentCreateRequest, ExperimentResponse, MetricSelectionUpdate,
+            OverrideKeysUpdateRequest, VariantUpdateRequest,
         },
         option_i64_from_value,
     },
     database::models::{
-        ChangeReason, Description, Metrics,
-        experimentation::{ExperimentType, Variant},
+        ChangeReason, Description,
+        experimentation::{ExperimentMetrics, ExperimentType, Variant},
     },
 };
 
@@ -31,7 +31,7 @@ pub fn validate_experiment(experiment: &ExperimentCreateRequest) -> Result<(), S
 pub async fn create_experiment(
     conditions: Conditions,
     variants: Vec<VariantFormT>,
-    metrics: Option<Metrics>,
+    metrics: ExperimentMetrics,
     name: String,
     experiment_type: ExperimentType,
     description: String,
@@ -45,7 +45,7 @@ pub async fn create_experiment(
         experiment_type,
         variants: Result::<Vec<Variant>, String>::from_iter(variants)?,
         context: Exp::<Condition>::try_from(Map::from(conditions))?,
-        metrics,
+        metrics: metrics.is_enabled().then_some(metrics),
         description: Description::try_from(description)?,
         change_reason: ChangeReason::try_from(change_reason)?,
         experiment_group_id: option_i64_from_value(experiment_group_id)
@@ -69,7 +69,7 @@ pub async fn create_experiment(
 
 pub fn try_update_payload(
     variants: Vec<VariantFormT>,
-    metrics: Option<Metrics>,
+    metrics: Option<MetricSelectionUpdate>,
     description: String,
     change_reason: String,
     experiment_group_id: Value,

@@ -15,7 +15,8 @@ use crate::{
     api::{default_configs, delete_context, dimensions, get_context},
     components::{
         alert::AlertType,
-        button::Button,
+        button::{Button, ButtonAnchor},
+        context_override_form::{ContextOverrideForm, OverrideDetailView},
         skeleton::{Skeleton, SkeletonVariant},
     },
     logic::Conditions,
@@ -103,7 +104,7 @@ pub fn OverridePage() -> impl IntoView {
                     .into_iter()
                     .collect();
                 let description = context.description.clone();
-                let change_reason = context.change_reason.deref().to_string();
+                let change_reason = context.change_reason.clone();
                 let created_by = context.created_by.clone();
                 let created_at = context.created_at;
                 let last_modified_by = context.last_modified_by.clone();
@@ -115,7 +116,7 @@ pub fn OverridePage() -> impl IntoView {
                         <div class="flex justify-between items-center">
                             <h1 class="text-2xl font-extrabold">"Override"</h1>
                             <div class="w-full max-w-fit flex flex-row join">
-                                <crate::components::button::ButtonAnchor
+                                <ButtonAnchor
                                     force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg rounded-lg"
                                     href="edit"
                                     icon_class="ri-edit-line"
@@ -132,16 +133,16 @@ pub fn OverridePage() -> impl IntoView {
                             </div>
                         </div>
 
-                        <crate::components::context_override_form::OverrideDetailView
+                        <OverrideDetailView
                             context=conditions
-                            overrides=overrides
-                            description=description
-                            override_id=override_id
-                            change_reason=change_reason.clone()
-                            created_by=created_by
-                            created_at=created_at
-                            last_modified_by=last_modified_by
-                            last_modified_at=last_modified_at
+                            overrides
+                            description
+                            override_id
+                            change_reason
+                            created_by
+                            created_at
+                            last_modified_by
+                            last_modified_at
                         />
                     </div>
 
@@ -221,7 +222,6 @@ pub fn EditOverride() -> impl IntoView {
                     .into_iter()
                     .collect();
                 let description = context.description.deref().to_string();
-                let change_reason = context.change_reason.deref().to_string();
                 let FormPageResource { dimensions, default_config } = page_resource
                     .get()
                     .unwrap_or_default();
@@ -233,7 +233,7 @@ pub fn EditOverride() -> impl IntoView {
                 );
 
                 view! {
-                    <crate::components::context_override_form::ContextOverrideForm
+                    <ContextOverrideForm
                         edit=true
                         context_id=ctx_id
                         context=conditions
@@ -241,12 +241,10 @@ pub fn EditOverride() -> impl IntoView {
                         dimensions=dimensions
                         default_config=default_config
                         description=description
-                        change_reason=change_reason
                         redirect_url_cancel=redirect_url.clone()
                         redirect_url_success=redirect_url
                     />
                 }
-                    .into_view()
             }}
         </Suspense>
     }
@@ -317,7 +315,7 @@ pub fn CreateOverride() -> impl IntoView {
                 };
 
                 view! {
-                    <crate::components::context_override_form::ContextOverrideForm
+                    <ContextOverrideForm
                         edit=false
                         context=context
                         overrides=overrides
@@ -327,7 +325,6 @@ pub fn CreateOverride() -> impl IntoView {
                         redirect_url_success=redirect_url.get_value()
                     />
                 }
-                    .into_view()
             }}
         </Suspense>
     }

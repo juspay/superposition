@@ -54,7 +54,8 @@ use superposition_types::{
             ApplicableVariantsQuery, ApplicableVariantsRequest,
             ConcludeExperimentRequest, ExperimentCreateRequest, ExperimentListFilters,
             ExperimentListRequest, ExperimentResponse, ExperimentSortOn,
-            ExperimentStateChangeRequest, OverrideKeysUpdateRequest, RampRequest,
+            ExperimentStateChangeRequest, MetricSelectionUpdate,
+            OverrideKeysUpdateRequest, RampRequest,
         },
         webhook::Action,
     },
@@ -66,8 +67,8 @@ use superposition_types::{
         models::{
             ChangeReason,
             experimentation::{
-                Experiment, ExperimentGroup, ExperimentStatusType, ExperimentType,
-                TrafficPercentage, Variant, VariantType, Variants,
+                Experiment, ExperimentGroup, ExperimentMetrics, ExperimentStatusType,
+                ExperimentType, TrafficPercentage, Variant, VariantType, Variants,
             },
             others::WebhookEvent,
         },
@@ -91,7 +92,7 @@ use crate::api::{
         helpers::{
             get_control_overrides_from_exp_id, put_experiments_in_redis,
             validate_change_reason_with_function, validate_control_overrides,
-            validate_delete_experiment_variants,
+            validate_delete_experiment_variants, validate_metric_selection,
         },
         types::StartedByChangeSet,
     },
@@ -178,6 +179,26 @@ async fn create_handler(
     let mut variants = req.variants;
     let description = req.description.clone();
     let change_reason = req.change_reason.clone();
+
+    let workspace_source = workspace_context.settings.metrics.source();
+    let req_metrics = req.metrics.map(ExperimentMetrics::into_parts);
+    let (req_selection, req_source) = match req_metrics {
+        Some((selection, source)) => {
+            // A per-experiment source override is only allowed when the
+            // workspace itself has a metrics source configured.
+            if source.is_some() && workspace_source.is_none() {
+                return Err(bad_argument!(
+                    "A per-experiment metrics source can only be set when the workspace has a metrics source configured"
+                ));
+            }
+            (selection, source)
+        }
+        None => (None, None),
+    };
+
+    if let Some(selection) = req_selection.as_ref() {
+        validate_metric_selection(selection, &workspace_context.settings.metrics)?;
+    }
 
     validate_change_reason_with_function(
         &workspace_context,
@@ -375,16 +396,17 @@ async fn create_handler(
         status: ExperimentStatusType::CREATED,
         started_by: None,
         started_at: None,
-        context: req.context.clone().into_inner(),
+        context: req.context.into_inner(),
         variants: Variants::new(variants),
         last_modified_by: user.get_email(),
         chosen_variant: None,
         description,
         change_reason,
-        metrics: req
-            .metrics
-            .clone()
-            .unwrap_or(workspace_context.settings.metrics.clone()),
+        metrics: ExperimentMetrics::new(
+            req_selection,
+            req_source.or_else(|| workspace_source.cloned()),
+        )
+        .map_err(|e| bad_argument!(e))?,
         experiment_group_id: req.experiment_group_id,
         idempotency_key: custom_headers.idempotency_key.clone(),
     };
@@ -1596,6 +1618,7 @@ async fn update_handler(
     .await?;
 
     let payload = req.into_inner();
+    let metrics_update = payload.metrics;
     let variants = payload.variants;
 
     let first_variant = variants.first().ok_or(bad_argument!(
@@ -1616,6 +1639,23 @@ async fn update_handler(
         return Err(bad_argument!(
             "Only experiments in CREATED state can be updated"
         ));
+    }
+
+    if let Some(MetricSelectionUpdate::Set { selection, source }) =
+        metrics_update.as_ref()
+    {
+        if let Some(selection) = selection {
+            validate_metric_selection(selection, &workspace_context.settings.metrics)?;
+        }
+        // A per-experiment source override is only allowed when the workspace
+        // itself has a metrics source configured.
+        if matches!(source, Some(Some(_)))
+            && workspace_context.settings.metrics.source().is_none()
+        {
+            return Err(bad_argument!(
+                "A per-experiment metrics source can only be set when the workspace has a metrics source configured"
+            ));
+        }
     }
 
     let id_to_existing_variant: HashMap<String, &Variant> = HashMap::from_iter(
@@ -1847,8 +1887,25 @@ async fn update_handler(
     }
 
     /*************************** Updating experiment in DB **************************/
-    let existing_metrics = &experiment.metrics.clone();
-    let updated_metrics = payload.metrics.as_ref().unwrap_or(existing_metrics);
+    let updated_metrics = match metrics_update {
+        None => experiment.metrics.clone(),
+        Some(MetricSelectionUpdate::Remove) => ExperimentMetrics::default(),
+        Some(MetricSelectionUpdate::Set { selection, source }) => {
+            let updated_source = match source {
+                // `source` key omitted: keep the experiment's existing source.
+                None => experiment.metrics.source().cloned(),
+                // `source: null`: clear the source.
+                Some(None) => None,
+                // `source: {...}`: set the new source.
+                Some(Some(new_source)) => Some(new_source),
+            };
+            // Selection keys omitted: keep the experiment's existing selection.
+            let updated_selection =
+                selection.or_else(|| experiment.metrics.selection().cloned());
+            ExperimentMetrics::new(updated_selection, updated_source)
+                .map_err(|e| bad_argument!(e))?
+        }
+    };
 
     let updated_experiment =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {

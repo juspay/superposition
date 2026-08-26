@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use leptos::*;
 use serde_json::{Map, Value};
 use superposition_types::api::experiments::ExperimentResponse;
+use superposition_types::database::models::MetricDirection;
 use superposition_types::database::models::experimentation::{
     ExperimentStatusType, Variant, VariantType,
 };
@@ -22,6 +23,13 @@ fn badge_class(status_type: ExperimentStatusType) -> &'static str {
         ExperimentStatusType::CONCLUDED => "badge-success",
         ExperimentStatusType::DISCARDED => "badge-neutral",
         ExperimentStatusType::PAUSED => "badge-error",
+    }
+}
+
+fn metric_direction_label(direction: MetricDirection) -> &'static str {
+    match direction {
+        MetricDirection::Maximize => "maximize",
+        MetricDirection::Minimize => "minimize",
     }
 }
 
@@ -383,14 +391,50 @@ where
             <Show when=move || {
                 experiment
                     .with_value(|v| {
-                        v.metrics.enabled || v.status == ExperimentStatusType::CREATED
+                        v.metrics.is_enabled() || v.status == ExperimentStatusType::CREATED
                     })
             }>
                 <div class="card bg-base-100 max-w-screen shadow">
                     <div class="card-body collapse collapse-arrow">
                         <input type="checkbox" checked=true />
                         <h2 class="card-title collapse-title h-fit !p-0">Metrics</h2>
-                        <div class="collapse-content !p-0">
+                        <div class="collapse-content !p-0 flex flex-col gap-4">
+                            {experiment
+                                .with_value(|value| value.metrics.selection().cloned())
+                                .map(|metrics| {
+                                    let secondary = metrics
+                                        .secondary
+                                        .map(|metric| {
+                                            format!(
+                                                "{} ({})",
+                                                metric.name,
+                                                metric_direction_label(metric.direction),
+                                            )
+                                        })
+                                        .unwrap_or_else(|| "—".to_string());
+                                    view! {
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <div>
+                                                <div class="stat-title">Primary</div>
+                                                <div class="font-medium">{metrics.primary.name}</div>
+                                                <div class="text-xs opacity-70">
+                                                    {metric_direction_label(metrics.primary.direction)}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div class="stat-title">Secondary</div>
+                                                <div class="font-medium">{secondary}</div>
+                                            </div>
+                                            <div>
+                                                <div class="stat-title">Guardrail</div>
+                                                <div class="font-medium">{metrics.guardrail.name}</div>
+                                                <div class="text-xs opacity-70">
+                                                    {metric_direction_label(metrics.guardrail.direction)}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                })}
                             {move || {
                                 view! {
                                     {match experiment.with_value(|v| v.metrics_url.clone()) {
@@ -413,7 +457,7 @@ where
                                         _ => {
                                             let message = if experiment
                                                 .with_value(|e| {
-                                                    !e.metrics.enabled
+                                                    !e.metrics.is_enabled()
                                                         && e.status == ExperimentStatusType::CREATED
                                                 })
                                             {

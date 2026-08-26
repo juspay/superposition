@@ -35,7 +35,7 @@ use superposition_types::{
     custom_query::{DimensionQuery, QueryParam},
     database::{
         models::{
-            ChangeReason,
+            ChangeReason, MetricSelection, Metrics,
             experimentation::{
                 Experiment, ExperimentStatusType, GroupType, Variant, VariantType,
                 Variants,
@@ -91,6 +91,42 @@ pub fn validate_override_keys(override_keys: &Vec<String>) -> superposition::Res
             return Err(bad_argument!(
                 "override_keys are not unique. Remove duplicate entries in override_keys"
             ));
+        }
+    }
+
+    Ok(())
+}
+
+pub fn validate_metric_selection(
+    selection: &MetricSelection,
+    workspace_metrics: &Metrics,
+) -> superposition::Result<()> {
+    if !workspace_metrics.enabled {
+        return Err(bad_argument!("Metrics are not enabled for this workspace"));
+    }
+    // Selections must draw from the workspace's list; when the workspace has
+    // no list configured, per-experiment selection is not accepted.
+    let Some(metric_names) = workspace_metrics.list.as_ref() else {
+        return Err(bad_argument!(
+            "A per-experiment metric selection can only be set when the workspace has a metric list configured"
+        ));
+    };
+
+    let selected = [
+        ("primary", Some(&selection.primary)),
+        ("secondary", selection.secondary.as_ref()),
+        ("guardrail", Some(&selection.guardrail)),
+    ];
+    for (category, metric) in selected {
+        let Some(metric) = metric else {
+            continue;
+        };
+        if !metric_names.iter().any(|defined| defined == metric) {
+            let message = format!(
+                "The {category} metric '{}' and its direction are not defined in the workspace",
+                metric.name
+            );
+            return Err(bad_argument!(message));
         }
     }
 
@@ -925,4 +961,90 @@ pub fn get_control_overrides_from_exp_id(
         })?;
 
     Ok(control_overrides.overrides)
+}
+
+#[cfg(test)]
+mod metric_selection_tests {
+    use super::validate_metric_selection;
+    use superposition_types::database::models::{
+        MetricDefinition, MetricDirection, MetricSelection, MetricSource, Metrics,
+    };
+
+    fn metric(name: &str, direction: MetricDirection) -> MetricDefinition {
+        MetricDefinition {
+            name: name.to_string(),
+            direction,
+        }
+    }
+
+    fn workspace_metrics(enabled: bool) -> Metrics {
+        Metrics {
+            enabled,
+            source: enabled.then(|| MetricSource::Grafana {
+                base_url: "https://grafana.example.com".to_string(),
+                dashboard_uid: "experiment-metrics".to_string(),
+                dashboard_slug: "experiments".to_string(),
+                variant_id_alias: None,
+            }),
+            list: enabled.then(|| {
+                vec![
+                    metric("conversion", MetricDirection::Maximize),
+                    metric("latency", MetricDirection::Minimize),
+                    metric("errors", MetricDirection::Minimize),
+                ]
+            }),
+        }
+    }
+
+    fn selection() -> MetricSelection {
+        MetricSelection {
+            primary: metric("conversion", MetricDirection::Maximize),
+            secondary: None,
+            guardrail: metric("latency", MetricDirection::Minimize),
+        }
+    }
+
+    #[test]
+    fn rejects_selection_when_workspace_metrics_are_disabled() {
+        assert!(
+            validate_metric_selection(&selection(), &workspace_metrics(false)).is_err()
+        );
+    }
+
+    #[test]
+    fn rejects_blank_or_unknown_metric_names() {
+        let mut blank = selection();
+        blank.primary.name = " ".to_string();
+        assert!(validate_metric_selection(&blank, &workspace_metrics(true)).is_err());
+
+        let mut unknown = selection();
+        unknown.guardrail.name = "unknown".to_string();
+        assert!(validate_metric_selection(&unknown, &workspace_metrics(true)).is_err());
+
+        let mut wrong_direction = selection();
+        wrong_direction.guardrail.direction = MetricDirection::Maximize;
+        assert!(
+            validate_metric_selection(&wrong_direction, &workspace_metrics(true))
+                .is_err()
+        );
+    }
+
+    #[test]
+    fn accepts_optional_secondary_and_cross_category_duplicates() {
+        assert!(
+            validate_metric_selection(&selection(), &workspace_metrics(true)).is_ok()
+        );
+
+        let mut duplicate = selection();
+        duplicate.guardrail = duplicate.primary.clone();
+        duplicate.secondary = Some(duplicate.primary.clone());
+        assert!(validate_metric_selection(&duplicate, &workspace_metrics(true)).is_ok());
+    }
+
+    #[test]
+    fn rejects_selection_when_workspace_has_no_list() {
+        let mut ws = workspace_metrics(true);
+        ws.list = None;
+        assert!(validate_metric_selection(&selection(), &ws).is_err());
+    }
 }
