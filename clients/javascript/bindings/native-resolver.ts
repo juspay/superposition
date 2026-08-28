@@ -115,20 +115,6 @@ export class NativeResolver {
             ? JSON.stringify(experimentation)
             : null;
 
-        console.log("🔧 Calling FFI with parameters:");
-        console.log("  defaultConfigs:", defaultConfigs);
-        console.log("  contexts length:", contextsJson.length);
-        console.log("  overrides length:", overridesJson.length);
-        console.log("  dimensions length:", dimensionsJson.length);
-        console.log("  queryData :", queryDataJson);
-        console.log("  mergeStrategy:", mergeStrategy);
-        console.log("  filterPrefixes:", filterPrefixes);
-        console.log("  experiment:", experimentation?.experiments?.length);
-        console.log(
-            "  experiment groups:",
-            experimentation?.experiment_groups?.length,
-        );
-        console.log("  targetingKey:", experimentation?.targetingKey);
 
         if (
             !defaultConfigsJson ||
