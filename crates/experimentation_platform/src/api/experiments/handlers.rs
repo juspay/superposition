@@ -316,9 +316,11 @@ async fn create_handler(
         )
     })?;
 
+    // Variant overrides are the variant definition; reducing them empties the control.
     let extra_headers = vec![
         ("x-user", Some(user_str)),
         ("x-config-tags", custom_headers.config_tags),
+        ("x-auto-reduce", Some("false".to_string())),
     ]
     .into_iter()
     .filter_map(|(key, val)| val.map(|v| (key, v)))
@@ -357,8 +359,8 @@ async fn create_handler(
 
     for i in 0..created_contexts.len() {
         let created_context = &created_contexts[i];
-        variants[i].context_id = Some(created_context.id.clone());
-        variants[i].override_id = Some(created_context.override_id.clone());
+        variants[i].context_id = Some(created_context.context.id.clone());
+        variants[i].override_id = Some(created_context.context.override_id.clone());
     }
 
     let now = Utc::now();
@@ -686,10 +688,15 @@ pub async fn conclude(
             err
         )
     })?;
-    let extra_headers = vec![("x-user", Some(user_str)), ("x-config-tags", config_tags)]
-        .into_iter()
-        .filter_map(|(key, val)| val.map(|v| (key, v)))
-        .collect::<Vec<_>>();
+    // Variant overrides are the variant definition; reducing them empties the control.
+    let extra_headers = vec![
+        ("x-user", Some(user_str)),
+        ("x-config-tags", config_tags),
+        ("x-auto-reduce", Some("false".to_string())),
+    ]
+    .into_iter()
+    .filter_map(|(key, val)| val.map(|v| (key, v)))
+    .collect::<Vec<_>>();
 
     let headers_map = construct_header_map(workspace_context, extra_headers)?;
 
@@ -860,10 +867,15 @@ pub async fn discard(
         )
     })?;
 
-    let extra_headers = vec![("x-user", Some(user_str)), ("x-config-tags", config_tags)]
-        .into_iter()
-        .filter_map(|(key, val)| val.map(|v| (key, v)))
-        .collect::<Vec<_>>();
+    // Variant overrides are the variant definition; reducing them empties the control.
+    let extra_headers = vec![
+        ("x-user", Some(user_str)),
+        ("x-config-tags", config_tags),
+        ("x-auto-reduce", Some("false".to_string())),
+    ]
+    .into_iter()
+    .filter_map(|(key, val)| val.map(|v| (key, v)))
+    .collect::<Vec<_>>();
 
     let headers_map = construct_header_map(workspace_context, extra_headers)?;
 
@@ -1789,9 +1801,11 @@ async fn update_handler(
             err
         )
     })?;
+    // Variant overrides are the variant definition; reducing them empties the control.
     let extra_headers = vec![
         ("x-user", Some(user_str)),
         ("x-config-tags", custom_headers.config_tags),
+        ("x-auto-reduce", Some("false".to_string())),
     ]
     .into_iter()
     .filter_map(|(key, val)| val.map(|v| (key, v)))
