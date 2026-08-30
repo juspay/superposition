@@ -127,6 +127,7 @@ export class SuperpositionProvider implements Provider {
         defaultValue: T,
         context: EvaluationContext,
         type: ValueType,
+        logger?: Logger,
     ): Promise<T> {
         let processedContext = this.processedContextCache.get(context);
 
@@ -140,6 +141,7 @@ export class SuperpositionProvider implements Provider {
             undefined,
             undefined,
             context.targetingKey,
+            logger,
         );
         const value = getNestedValue(config, flagKey);
         const converter = TYPE_CONVERTERS[type] as ConverterFunction<T>;
@@ -193,6 +195,7 @@ export class SuperpositionProvider implements Provider {
             flagKey: string,
             defaultValue: T,
             context: EvaluationContext,
+            logger?: Logger,
         ): Promise<ResolutionDetails<T>> => {
             if (
                 this.status !== ProviderStatus.READY &&
@@ -215,6 +218,7 @@ export class SuperpositionProvider implements Provider {
                     defaultValue,
                     context,
                     type,
+                    logger,
                 );
 
                 return {
@@ -244,11 +248,13 @@ export class SuperpositionProvider implements Provider {
         flagKey: string,
         defaultValue: boolean,
         context: EvaluationContext,
+        logger?: Logger,
     ): Promise<ResolutionDetails<boolean>> {
         return this.createResolver<boolean>("boolean")(
             flagKey,
             defaultValue,
             context,
+            logger,
         );
     }
 
@@ -256,11 +262,13 @@ export class SuperpositionProvider implements Provider {
         flagKey: string,
         defaultValue: string,
         context: EvaluationContext,
+        logger?: Logger,
     ): Promise<ResolutionDetails<string>> {
         return this.createResolver<string>("string")(
             flagKey,
             defaultValue,
             context,
+            logger,
         );
     }
 
@@ -268,11 +276,13 @@ export class SuperpositionProvider implements Provider {
         flagKey: string,
         defaultValue: number,
         context: EvaluationContext,
+        logger?: Logger,
     ): Promise<ResolutionDetails<number>> {
         return this.createResolver<number>("number")(
             flagKey,
             defaultValue,
             context,
+            logger,
         );
     }
 
@@ -282,12 +292,18 @@ export class SuperpositionProvider implements Provider {
         context: EvaluationContext,
         logger?: Logger,
     ): Promise<ResolutionDetails<T>> {
-        return this.createResolver<T>("object")(flagKey, defaultValue, context);
+        return this.createResolver<T>("object")(
+            flagKey,
+            defaultValue,
+            context,
+            logger,
+        );
     }
 
     async resolveAllConfigDetails(
         defaultValue: Record<string, any>,
         context: EvaluationContext,
+        logger?: Logger,
     ): Promise<Record<string, any>> {
         if (
             this.status !== ProviderStatus.READY &&
@@ -310,6 +326,7 @@ export class SuperpositionProvider implements Provider {
                 defaultValue,
                 processedContext,
                 targetingKey,
+                logger,
             );
         } catch (error) {
             console.error("Error resolving all config details:", error);

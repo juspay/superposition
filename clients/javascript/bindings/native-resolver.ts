@@ -7,6 +7,10 @@ import { Buffer } from "buffer";
 
 const ERROR_BUFFER_SIZE = 2048;
 
+export interface ResolverLogger {
+    debug(...args: unknown[]): void;
+}
+
 export class NativeResolver {
     private lib: any;
     private isAvailable: boolean = false;
@@ -74,6 +78,7 @@ export class NativeResolver {
         filterPrefixes?: string[],
         filterExcludePrefixes?: string[],
         experimentation?: any,
+        logger?: ResolverLogger,
     ): Record<string, any> {
         if (!this.isAvailable) {
             throw new Error(
@@ -115,6 +120,19 @@ export class NativeResolver {
             ? JSON.stringify(experimentation)
             : null;
 
+        logger?.debug("Calling FFI with parameters", {
+            defaultConfigs,
+            contextsLength: contextsJson.length,
+            overridesLength: overridesJson.length,
+            dimensionsLength: dimensionsJson.length,
+            queryData: queryDataJson,
+            mergeStrategy,
+            filterPrefixes,
+            experimentCount: experimentation?.experiments?.length,
+            experimentGroupCount:
+                experimentation?.experiment_groups?.length,
+            targetingKey: experimentation?.targetingKey,
+        });
 
         if (
             !defaultConfigsJson ||
