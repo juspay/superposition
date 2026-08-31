@@ -1,6 +1,7 @@
-use crate::helpers::get_from_env_unsafe;
 use aws_sdk_kms::{Client, primitives::Blob};
 use base64::{Engine, engine::general_purpose};
+
+use crate::helpers::get_from_env_unsafe;
 
 async fn decrypt_helper(aws_kms_cli: Client, key: &str, key_value_env: String) -> String {
     let key_value_enc = general_purpose::STANDARD
@@ -14,7 +15,7 @@ async fn decrypt_helper(aws_kms_cli: Client, key: &str, key_value_env: String) -
         .await;
     let key_value: String = String::from_utf8(
         key_value_bytes_result
-            .unwrap_or_else(|_| panic!("Failed to decrypt {key}"))
+            .unwrap_or_else(|e| panic!("Failed to decrypt {key}: {e:?}"))
             .plaintext()
             .unwrap_or_else(|| panic!("Failed to get plaintext value for {key}"))
             .as_ref()

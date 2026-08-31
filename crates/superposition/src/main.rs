@@ -24,8 +24,8 @@ use json_subscriber::fmt;
 use leptos::*;
 use leptos_actix::{LeptosRoutes, generate_route_list};
 use service_utils::{
-    aws::kms,
     helpers::{get_from_env_or_default, get_from_env_unsafe},
+    kms,
     middlewares::{
         auth_n::AuthNHandler,
         auth_z::{AuthZHandler, AuthZManager, is_auth_z_enabled},
@@ -71,6 +71,11 @@ async fn favicon(
 
 #[actix_web::main]
 async fn main() -> Result<()> {
+    // Two rustls crypto backends are linked in (ring via tonic, aws-lc-rs elsewhere); pick one.
+    rustls::crypto::aws_lc_rs::default_provider()
+        .install_default()
+        .expect("Failed to install default rustls CryptoProvider");
+
     dotenv::dotenv().ok();
     // Initialize tracing subscriber with custom JSON formatter and reloadable env filter
     let env_filter = EnvFilter::from_default_env();

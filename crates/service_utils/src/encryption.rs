@@ -169,7 +169,7 @@ pub fn decrypt_workspace_key(
 }
 
 pub async fn get_master_encryption_keys(
-    kms_client: &Option<aws_sdk_kms::Client>,
+    kms_client: &Option<crate::kms::KmsProvider>,
     app_env: &AppEnv,
 ) -> Result<Option<EncryptionKey>, EncryptionError> {
     match app_env {
@@ -194,7 +194,7 @@ pub async fn get_master_encryption_keys(
         _ => {
             let kms_client = kms_client.clone().unwrap();
             let decrypted_master_key =
-                crate::aws::kms::decrypt_opt(kms_client.clone(), "MASTER_ENCRYPTION_KEY")
+                crate::kms::decrypt_opt(kms_client.clone(), "MASTER_ENCRYPTION_KEY")
                     .await
                     .map(SecretString::from);
             let Some(current_key) = decrypted_master_key else {
@@ -204,12 +204,10 @@ pub async fn get_master_encryption_keys(
                 return Ok(None);
             };
 
-            let previous_key = crate::aws::kms::decrypt_opt(
-                kms_client,
-                "PREVIOUS_MASTER_ENCRYPTION_KEY",
-            )
-            .await
-            .map(SecretString::from);
+            let previous_key =
+                crate::kms::decrypt_opt(kms_client, "PREVIOUS_MASTER_ENCRYPTION_KEY")
+                    .await
+                    .map(SecretString::from);
 
             Ok(Some(EncryptionKey {
                 current_key,

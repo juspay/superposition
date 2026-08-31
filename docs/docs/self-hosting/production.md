@@ -27,8 +27,10 @@ long as replicas share the same PostgreSQL database and Redis cache.
 - Use Casbin if you need workspace and organisation-level authorization rules.
 - Set `MASTER_ENCRYPTION_KEY` before creating workspaces if you plan to use
   encrypted secrets.
-- Store production secret material in AWS KMS for `APP_ENV=PROD`, or in your
-  platform secret manager if you are running a plain-env self-hosted mode.
+- Store production secret material in AWS KMS, Google Cloud KMS (via
+  `KMS_PROVIDER=GCP`), or OpenBao / HashiCorp Vault (via `KMS_PROVIDER=OPENBAO`)
+  for `APP_ENV=PROD`, or in your platform secret manager if you are running a
+  plain-env self-hosted mode.
 
 ## Database And Networking
 

@@ -2,7 +2,6 @@ mod handlers;
 
 use std::collections::{HashMap, HashSet};
 
-use aws_sdk_kms::Client;
 use casbin::{CoreApi, DefaultModel, Enforcer, MgmtApi};
 use chrono::{DateTime, Utc};
 use diesel_adapter::DieselAdapter;
@@ -16,6 +15,7 @@ use tokio::sync::RwLock;
 use crate::{
     db::utils::get_database_url,
     helpers::{get_from_env_or_default, get_from_env_unsafe},
+    kms::KmsProvider,
     middlewares::auth_z::AuthZDomain,
     service::types::{AppEnv, SchemaName},
 };
@@ -375,7 +375,7 @@ const MODEL_CONF: &str = include_str!("casbin/model.conf");
 
 impl CasbinPolicyEngine {
     pub async fn new(
-        kms_client: &Option<Client>,
+        kms_client: &Option<KmsProvider>,
         app_env: &AppEnv,
         db_pool_size: Option<u32>,
     ) -> Result<Self, String> {
@@ -443,7 +443,7 @@ impl CasbinPolicyEngine {
     }
 
     pub async fn management(
-        kms_client: &Option<Client>,
+        kms_client: &Option<KmsProvider>,
         app_env: &AppEnv,
     ) -> Result<Self, String> {
         Self::new(kms_client, app_env, Some(1)).await

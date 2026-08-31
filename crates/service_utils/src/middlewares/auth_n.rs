@@ -20,7 +20,6 @@ use actix_web::{
     web::{self, Data, Path},
 };
 use authentication::{Authenticator, BasicAuthGrant, Login, SwitchOrgParams};
-use aws_sdk_kms::Client;
 use base64::{Engine, engine::general_purpose};
 use futures_util::future::LocalBoxFuture;
 use no_auth::DisabledAuthenticator;
@@ -33,6 +32,7 @@ use crate::{
     },
     extensions::HttpRequestExt,
     helpers::get_from_env_unsafe,
+    kms::KmsProvider,
     kronos_dispatch::DISPATCHER_USERNAME,
     service::types::{AppEnv, AppState},
 };
@@ -253,7 +253,7 @@ impl AuthNHandler {
     }
 
     pub async fn init(
-        kms_client: &Option<Client>,
+        kms_client: &Option<KmsProvider>,
         app_env: &AppEnv,
         path_prefix: String,
     ) -> Self {

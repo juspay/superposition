@@ -101,7 +101,7 @@ Health is good :D
 | Redis | No | Enables shared caching. If `REDIS_URL` is unset, the app reads from PostgreSQL directly. |
 | OIDC provider | Recommended | Required when using `AUTH_PROVIDER=OIDC` or `AUTH_PROVIDER=OIDC_SAAS`. |
 | Casbin policy DB | Optional | Required only when `AUTH_Z_PROVIDER=CASBIN`; it can use the same PostgreSQL instance. |
-| AWS KMS | Required for `APP_ENV=PROD` | In production mode, secret values such as database passwords are read through KMS. |
+| AWS KMS, Google Cloud KMS, or OpenBao/Vault | Required for `APP_ENV=PROD` | In production mode, secret values such as database passwords are resolved through this backend. AWS KMS is used by default; set `KMS_PROVIDER=GCP` for Cloud KMS or `KMS_PROVIDER=OPENBAO` for OpenBao/HashiCorp Vault instead. |
 
 The app is mostly stateless. Multiple replicas can run behind a load balancer as
 long as they share the same PostgreSQL database and, if enabled, the same Redis

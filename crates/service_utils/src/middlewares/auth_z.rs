@@ -13,7 +13,6 @@ use actix_web::{
     dev::{Payload, Service, ServiceRequest, ServiceResponse, Transform, forward_ready},
 };
 use authorization::Authorizer;
-use aws_sdk_kms::Client;
 use casbin::CasbinPolicyEngine;
 use derive_more::Deref;
 use futures_util::future::LocalBoxFuture;
@@ -23,7 +22,7 @@ use superposition_types::{
     DispatchUser, InternalUser, Resource, User, result as superposition,
 };
 
-use crate::{helpers::get_from_env_unsafe, service::types::AppEnv};
+use crate::{helpers::get_from_env_unsafe, kms::KmsProvider, service::types::AppEnv};
 
 pub trait Action: Send + Sync + 'static {
     fn get() -> String;
@@ -181,7 +180,7 @@ pub fn is_auth_z_enabled() -> bool {
 }
 
 impl AuthZHandler {
-    pub async fn init(kms_client: &Option<Client>, app_env: &AppEnv) -> Self {
+    pub async fn init(kms_client: &Option<KmsProvider>, app_env: &AppEnv) -> Self {
         let ap: Arc<dyn Authorizer> = match get_auth_z_provider().as_str() {
             "CASBIN" => Arc::new(
                 CasbinPolicyEngine::new(kms_client, app_env, None)
@@ -271,7 +270,7 @@ pub enum AuthZManager {
 }
 
 impl AuthZManager {
-    pub async fn init(kms_client: &Option<Client>, app_env: &AppEnv) -> Self {
+    pub async fn init(kms_client: &Option<KmsProvider>, app_env: &AppEnv) -> Self {
         match get_auth_z_provider().as_str() {
             "CASBIN" => Self::Casbin(Arc::new(
                 CasbinPolicyEngine::management(kms_client, app_env)
