@@ -85,6 +85,11 @@ operation CreateContext with [GetOperation, WebhookOperation, WorkspaceWriteOper
         @notProperty
         config_tags: String
 
+        @documentation("How an override lands on a context that already exists: MERGE (default) deep-merges into its overrides, REPLACE swaps them wholesale. Ignored when the context is new.")
+        @httpHeader("x-merge-strategy")
+        @notProperty
+        merge_strategy: MergeStrategy
+
         @httpPayload
         @notProperty
         @required
@@ -358,6 +363,11 @@ operation BulkOperation with [GetOperation, WebhookOperation, WorkspaceWriteOper
         @httpHeader("x-config-tags")
         @notProperty
         config_tags: String
+
+        @documentation("Applies to every PUT in the batch: MERGE (default) deep-merges into an existing context's overrides, REPLACE swaps them wholesale.")
+        @httpHeader("x-merge-strategy")
+        @notProperty
+        merge_strategy: MergeStrategy
 
         @required
         @notProperty

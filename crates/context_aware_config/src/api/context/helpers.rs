@@ -436,16 +436,38 @@ fn db_update_override(
     Ok(update_resp)
 }
 
+/// Replaces each incoming key wholesale, leaving keys it does not mention alone.
+/// Mirrors how resolve applies `MergeStrategy::REPLACE`, unlike
+/// [`update_override_of_existing_ctx`], which deep-merges.
 pub fn replace_override_of_existing_ctx(
     conn: &mut DBConnection,
     ctx: Context,
     user: &User,
     schema_name: &SchemaName,
 ) -> superposition::Result<Context> {
-    let new_override = ctx.override_;
-    let new_override_id = hash(&Value::Object(new_override.clone().into()));
+    use contexts::dsl;
+    let stored: Value = dsl::contexts
+        .filter(dsl::id.eq(ctx.id.clone()))
+        .select(dsl::override_)
+        .schema_name(schema_name)
+        .first(conn)?;
+
+    let mut new_override = match stored {
+        Value::Object(map) => map,
+        _ => Map::new(),
+    };
+    for (key, value) in ctx.override_.clone().into_inner() {
+        new_override.insert(key, value);
+    }
+
+    let new_override_id = hash(&Value::Object(new_override.clone()));
     let new_ctx = Context {
-        override_: new_override,
+        override_: Cac::<Overrides>::validate_db_data(new_override)
+            .map_err(|err| {
+                log::error!("replace_override_of_existing_ctx: bad override {err}");
+                unexpected_error!(err)
+            })?
+            .into_inner(),
         override_id: new_override_id,
         ..ctx
     };

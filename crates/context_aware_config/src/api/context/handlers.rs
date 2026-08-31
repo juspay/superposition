@@ -2,7 +2,7 @@ use std::{cmp::min, collections::HashMap};
 
 use actix_web::{
     Either, HttpResponse, Scope, delete, get, post, put, routes,
-    web::{Data, Json, Path},
+    web::{Data, Header, Json, Path},
 };
 use bigdecimal::BigDecimal;
 use chrono::Utc;
@@ -31,6 +31,7 @@ use superposition_types::{
     Overridden, Overrides, PaginatedResponse, PrefixList, Resource, SortBy, User,
     api::{
         DimensionMatchStrategy,
+        config::MergeStrategy,
         context::{
             BulkOperation, BulkOperationResponse, ContextAction, ContextBulkResponse,
             ContextListFilters, ContextValidationRequest, Identifier, MoveRequest,
@@ -98,6 +99,7 @@ async fn create_handler(
     workspace_context: WorkspaceContext,
     state: Data<AppState>,
     custom_headers: CustomHeaders,
+    merge_strategy: Header<MergeStrategy>,
     req: Json<PutRequest>,
     mut write_permit: WorkspaceWritePermit,
     user: User,
@@ -105,6 +107,10 @@ async fn create_handler(
 ) -> superposition::Result<HttpResponse> {
     let req = req.into_inner();
     create_authorized(&_auth_z, &req.r#override).await?;
+
+    // Only decides how an override lands on an *existing* context: MERGE deep-merges
+    // into it, REPLACE swaps it wholesale. Defaults to MERGE.
+    let replace_existing = matches!(merge_strategy.into_inner(), MergeStrategy::REPLACE);
 
     let conn = write_permit.connection();
     let tags = parse_config_tags(custom_headers.config_tags)?;
@@ -156,7 +162,7 @@ async fn create_handler(
                 true,
                 &user,
                 &workspace_context,
-                false,
+                replace_existing,
                 new_ctx,
             )
             .map_err(|err: superposition::AppError| {
@@ -842,12 +848,17 @@ async fn bulk_operations_handler(
     workspace_context: WorkspaceContext,
     state: Data<AppState>,
     custom_headers: CustomHeaders,
+    merge_strategy: Header<MergeStrategy>,
     req: Either<Json<Vec<ContextAction>>, Json<BulkOperation>>,
     mut write_permit: WorkspaceWritePermit,
     user: User,
     internal_user: InternalUserContext,
 ) -> superposition::Result<HttpResponse> {
     use contexts::dsl::contexts;
+
+    // Batch-level: applies to every PUT in the batch. REPLACE ops are already
+    // wholesale, and DELETE/MOVE carry no overrides, so it does not touch them.
+    let replace_existing = matches!(merge_strategy.into_inner(), MergeStrategy::REPLACE);
 
     let conn = write_permit.connection();
     let is_v2 = matches!(req, Either::Right(_));
@@ -992,7 +1003,7 @@ async fn bulk_operations_handler(
                             true,
                             &user,
                             &workspace_context,
-                            false,
+                            replace_existing,
                             new_ctx,
                         )
                         .map_err(|err| {
