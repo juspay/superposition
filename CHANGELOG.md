@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.117.2 - 2026-08-31
+### Package updates
+- haskell_client bumped to haskell_client-v0.24.2
+### Global changes
+#### Bug Fixes
+- remove noisy javascript provider logs (#1138) - (4124328) - XyneSpaces
+- free Rust-owned FFI strings to stop native memory leak (#1141) - (240a732) - Yash Gupta
+#### Miscellaneous Chores
+- **(version)** v0.117.1 [skip ci] - (6785947) - Superposition Bot
+- debug why pypi push fails (#1134) - (3824be2) - Datron
+
+- - -
+
 ## v0.117.1 - 2026-08-20
 ### Package updates
 - superposition_sdk bumped to superposition_sdk-v0.23.1
