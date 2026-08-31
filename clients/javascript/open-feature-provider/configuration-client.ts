@@ -5,7 +5,7 @@ import {
     PollingStrategy,
     ExperimentationArgs,
 } from "./types";
-import { NativeResolver } from "superposition-bindings";
+import { NativeResolver, type ResolverLogger } from "superposition-bindings";
 import {
     SuperpositionClient,
     GetConfigCommand,
@@ -129,18 +129,21 @@ export class ConfigurationClient {
         filterPrefixes?: string[],
         filterExcludePrefixes?: string[],
         targetingKey?: string,
+        logger?: ResolverLogger,
     ): Promise<any>;
     async eval<T>(
         queryData: Record<string, any>,
         filterPrefixes?: string[],
         filterExcludePrefixes?: string[],
         targetingKey?: string,
+        logger?: ResolverLogger,
     ): Promise<T>;
     async eval(
         queryData: Record<string, any>,
         filterPrefixes?: string[],
         filterExcludePrefixes?: string[],
         targetingKey?: string,
+        logger?: ResolverLogger,
     ): Promise<any> {
         try {
             if (!this.currentConfigData) {
@@ -182,6 +185,8 @@ export class ConfigurationClient {
                     "merge",
                     filterPrefixes,
                     filterExcludePrefixes,
+                    undefined,
+                    logger,
                 );
             }
             throw error;
@@ -226,6 +231,7 @@ export class ConfigurationClient {
         defaultValue: Record<string, any>,
         context: Record<string, any>,
         targetingKey?: string,
+        logger?: ResolverLogger,
     ): Promise<Record<string, any>> {
         try {
             if (!this.currentConfigData) {
@@ -264,6 +270,10 @@ export class ConfigurationClient {
                     this.defaults.dimensions || {},
                     context,
                     "merge",
+                    undefined,
+                    undefined,
+                    undefined,
+                    logger,
                 );
             }
             throw error;

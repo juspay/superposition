@@ -7,6 +7,10 @@ import { Buffer } from "buffer";
 
 const ERROR_BUFFER_SIZE = 2048;
 
+export interface ResolverLogger {
+    debug(...args: unknown[]): void;
+}
+
 export class NativeResolver {
     private lib: any;
     private isAvailable: boolean = false;
@@ -74,6 +78,7 @@ export class NativeResolver {
         filterPrefixes?: string[],
         filterExcludePrefixes?: string[],
         experimentation?: any,
+        logger?: ResolverLogger,
     ): Record<string, any> {
         if (!this.isAvailable) {
             throw new Error(
@@ -115,20 +120,19 @@ export class NativeResolver {
             ? JSON.stringify(experimentation)
             : null;
 
-        console.log("🔧 Calling FFI with parameters:");
-        console.log("  defaultConfigs:", defaultConfigs);
-        console.log("  contexts length:", contextsJson.length);
-        console.log("  overrides length:", overridesJson.length);
-        console.log("  dimensions length:", dimensionsJson.length);
-        console.log("  queryData :", queryDataJson);
-        console.log("  mergeStrategy:", mergeStrategy);
-        console.log("  filterPrefixes:", filterPrefixes);
-        console.log("  experiment:", experimentation?.experiments?.length);
-        console.log(
-            "  experiment groups:",
-            experimentation?.experiment_groups?.length,
-        );
-        console.log("  targetingKey:", experimentation?.targetingKey);
+        logger?.debug("Calling FFI with parameters", {
+            defaultConfigs,
+            contextsLength: contextsJson.length,
+            overridesLength: overridesJson.length,
+            dimensionsLength: dimensionsJson.length,
+            queryData: queryDataJson,
+            mergeStrategy,
+            filterPrefixes,
+            experimentCount: experimentation?.experiments?.length,
+            experimentGroupCount:
+                experimentation?.experiment_groups?.length,
+            targetingKey: experimentation?.targetingKey,
+        });
 
         if (
             !defaultConfigsJson ||
