@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## haskell_client-v0.24.2 - 2026-08-31
+#### Bug Fixes
+- pass correct args to FFI function in haskell (#1135) - (cba23b6) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.117.0 [skip ci] - (ff782ff) - Superposition Bot
+
+- - -
+
 ## haskell_client-v0.24.1 - 2026-08-13
 #### Bug Fixes
 - **(openfeature)** Rust provider improvements (#1094) - (03e582c) - Ayush Jain
