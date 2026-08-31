@@ -60,8 +60,5 @@ uuid = {workspace = true}
 tracing-actix-web = { workspace = true }
 
 
-[dev-dependencies]
-rustls = { workspace = true }
-
 [lints]
 workspace = true

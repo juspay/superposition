@@ -65,36 +65,3 @@ pub async fn decrypt_opt(client: Client, key: &str) -> Option<String> {
     let ciphertext_b64: String = get_from_env_unsafe(key).ok()?;
     Some(decrypt_helper(client, key, ciphertext_b64).await)
 }
-
-/// Not run by default (no CI job carries real GCP credentials): exercises
-/// `new_client()`/`decrypt()` against a live Cloud KMS key, since none of the
-/// pure logic in this module can be unit-tested (unlike the AWS/OpenBao
-/// backends, everything here is a thin wrapper around the SDK's own gRPC
-/// client). Run manually against any symmetric encrypt/decrypt key you have
-/// access to via Application Default Credentials:
-///
-/// ```sh
-/// KEY="projects/<project>/locations/<location>/keyRings/<ring>/cryptoKeys/<key>"
-/// echo -n "some-plaintext" > /tmp/pt.txt
-/// gcloud kms encrypt --key="$KEY" --plaintext-file=/tmp/pt.txt --ciphertext-file=/tmp/ct.bin
-/// export GCP_KMS_KEY_NAME="$KEY"
-/// export TEST_GCP_SECRET="$(base64 -i /tmp/ct.bin | tr -d '\n')"
-/// cargo test -p service_utils --lib -- --ignored decrypts_real_ciphertext_against_live_gcp_kms --nocapture
-/// ```
-///
-/// Then update the `assert_eq!` below to match whatever plaintext you used.
-#[cfg(test)]
-mod live_tests {
-    use super::*;
-
-    #[tokio::test]
-    #[ignore]
-    async fn decrypts_real_ciphertext_against_live_gcp_kms() {
-        // Mirrors the install_default() call in crates/superposition/src/main.rs,
-        // which this lib-level test doesn't go through.
-        let _ = rustls::crypto::aws_lc_rs::default_provider().install_default();
-        let client = new_client().await;
-        let plaintext = decrypt(client, "TEST_GCP_SECRET").await;
-        assert_eq!(plaintext, "superposition-gcp-kms-live-test-v2");
-    }
-}
