@@ -10,6 +10,7 @@ const ERROR_BUFFER_SIZE = 2048;
 export interface ResolverLogger {
     debug(...args: unknown[]): void;
 }
+let ownedStrTypeRegistered = false;
 
 export class NativeResolver {
     private lib: any;
@@ -19,24 +20,29 @@ export class NativeResolver {
         try {
             this.lib = koffi.load(libPath || this.getDefaultLibPath());
 
-            // Define the core resolution functions with CORRECT 8 parameters each
-            this.lib.core_get_resolved_config = this.lib.func(
-                "char* core_get_resolved_config(const char*, const char*, const char*, const char*, const char*, const char*, const char*, const char*, const char*, const char*)",
-            );
             this.lib.core_free_string = this.lib.func(
                 "void core_free_string(char*)",
             );
+
+            if (!ownedStrTypeRegistered) {
+                koffi.disposable("OwnedStr", "str", this.lib.core_free_string);
+                ownedStrTypeRegistered = true;
+            }
+
+            this.lib.core_get_resolved_config = this.lib.func(
+                "OwnedStr core_get_resolved_config(const char*, const char*, const char*, const char*, const char*, const char*, const char*, const char*, const char*, const char*)",
+            );
             this.lib.core_get_applicable_variants = this.lib.func(
-                "char* core_get_applicable_variants(const char*, const char*, const char*, const char*, const char*, const char*, const char*, char*)",
+                "OwnedStr core_get_applicable_variants(const char*, const char*, const char*, const char*, const char*, const char*, const char*, char*)",
             );
             this.lib.core_test_connection = this.lib.func(
                 "int core_test_connection()",
             );
             this.lib.core_parse_toml_config = this.lib.func(
-                "char* core_parse_toml_config(const char*, char*)",
+                "OwnedStr core_parse_toml_config(const char*, char*)",
             );
             this.lib.core_parse_json_config = this.lib.func(
-                "char* core_parse_json_config(const char*, char*)",
+                "OwnedStr core_parse_json_config(const char*, char*)",
             );
             this.lib.core_provider_cache_new = this.lib.func(
                 "void* core_provider_cache_new()",
@@ -51,7 +57,7 @@ export class NativeResolver {
                 "void core_provider_cache_init_experiments(void*, const char*, const char*, char*)",
             );
             this.lib.core_provider_cache_eval_config = this.lib.func(
-                "char* core_provider_cache_eval_config(void*, const char*, const char*, const char*, const char*, const char*, char*)",
+                "OwnedStr core_provider_cache_eval_config(void*, const char*, const char*, const char*, const char*, const char*, char*)",
             );
 
             this.isAvailable = true;
@@ -191,14 +197,7 @@ export class NativeResolver {
             this.throwFFIError(err);
         }
 
-        const configStr =
-            typeof result === "string"
-                ? result
-                : this.lib.decode(result, "string");
-
-        if (typeof result !== "string") {
-            this.lib.core_free_string(result);
-        }
+        const configStr = result;
 
         try {
             return JSON.parse(configStr);
@@ -274,14 +273,7 @@ export class NativeResolver {
             this.throwFFIError(err);
         }
 
-        const resultStr =
-            typeof result === "string"
-                ? result
-                : this.lib.decode(result, "string");
-
-        if (typeof result !== "string") {
-            this.lib.core_free_string(result);
-        }
+        const resultStr = result;
 
         try {
             return JSON.parse(resultStr);
@@ -338,16 +330,7 @@ export class NativeResolver {
             throw new Error(`TOML parsing failed: ${errorMsg}`);
         }
 
-        // Decode the result to a JS string if it's not already a string
-        const configStr =
-            typeof resultJson === "string"
-                ? resultJson
-                : this.lib.decode(resultJson, "string");
-
-        // Free the native string if it wasn't already a string
-        if (typeof resultJson !== "string") {
-            this.lib.core_free_string(resultJson);
-        }
+        const configStr = resultJson;
 
         // Parse the JSON result
         try {
@@ -404,16 +387,7 @@ export class NativeResolver {
             throw new Error(`JSON parsing failed: ${errorMsg}`);
         }
 
-        // Decode the result to a JS string if it's not already a string
-        const configStr =
-            typeof resultJson === "string"
-                ? resultJson
-                : this.lib.decode(resultJson, "string");
-
-        // Free the native string if it wasn't already a string
-        if (typeof resultJson !== "string") {
-            this.lib.core_free_string(resultJson);
-        }
+        const configStr = resultJson;
 
         // Parse the JSON result
         try {
@@ -611,12 +585,7 @@ export class NativeResolver {
                 );
                 const err = ebuf.toString("utf8").split("\0")[0];
                 if (err.length !== 0) throw new Error("ffi: " + err);
-                const configStr =
-                    typeof result === "string"
-                        ? result
-                        : lib.decode(result, "string");
-                if (typeof result !== "string") lib.core_free_string(result);
-                return JSON.parse(configStr);
+                return JSON.parse(result);
             },
             free(): void {
                 lib.core_provider_cache_free(handle);
