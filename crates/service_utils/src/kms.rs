@@ -20,35 +20,20 @@ fn parse_provider_kind(raw: &str) -> ProviderKind {
     }
 }
 
-#[derive(Clone)]
-pub enum KmsProvider {
-    Aws(aws_sdk_kms::Client),
-    Gcp(gcp::Client),
-    OpenBao(openbao::Client),
+#[async_trait::async_trait]
+pub trait KmsClient: Send + Sync {
+    async fn decrypt(&self, key: &str) -> String;
+    async fn decrypt_opt(&self, key: &str) -> Option<String>;
 }
+
+pub type KmsProvider = Box<dyn KmsClient>;
 
 pub async fn new_client() -> KmsProvider {
     let raw: String = get_from_env_or_default("KMS_PROVIDER", String::new());
     match parse_provider_kind(&raw) {
-        ProviderKind::Gcp => KmsProvider::Gcp(gcp::new_client().await),
-        ProviderKind::OpenBao => KmsProvider::OpenBao(openbao::new_client().await),
-        ProviderKind::Aws => KmsProvider::Aws(aws::new_client().await),
-    }
-}
-
-pub async fn decrypt(provider: KmsProvider, key: &str) -> String {
-    match provider {
-        KmsProvider::Aws(client) => aws::decrypt(client, key).await,
-        KmsProvider::Gcp(client) => gcp::decrypt(client, key).await,
-        KmsProvider::OpenBao(client) => openbao::decrypt(client, key).await,
-    }
-}
-
-pub async fn decrypt_opt(provider: KmsProvider, key: &str) -> Option<String> {
-    match provider {
-        KmsProvider::Aws(client) => aws::decrypt_opt(client, key).await,
-        KmsProvider::Gcp(client) => gcp::decrypt_opt(client, key).await,
-        KmsProvider::OpenBao(client) => openbao::decrypt_opt(client, key).await,
+        ProviderKind::Gcp => Box::new(gcp::new_client().await),
+        ProviderKind::OpenBao => Box::new(openbao::new_client().await),
+        ProviderKind::Aws => Box::new(aws::new_client().await),
     }
 }
 

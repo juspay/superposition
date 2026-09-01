@@ -2,18 +2,18 @@
 //! secret by location (`mount:path[:key]`), rather than decrypting a
 //! ciphertext like the AWS/GCP backends.
 
-use std::{collections::HashMap, sync::Arc};
+use std::collections::HashMap;
 
+use async_trait::async_trait;
 use vaultrs::{
     client::{VaultClient, VaultClientSettingsBuilder},
     kv2,
 };
 
-use crate::helpers::get_from_env_unsafe;
+use crate::{helpers::get_from_env_unsafe, kms::KmsClient};
 
-#[derive(Clone)]
 pub struct Client {
-    inner: Arc<VaultClient>,
+    inner: VaultClient,
 }
 
 pub async fn new_client() -> Client {
@@ -31,12 +31,10 @@ pub async fn new_client() -> Client {
     let inner = VaultClient::new(settings)
         .unwrap_or_else(|e| panic!("Failed to create OpenBao client: {e}"));
 
-    Client {
-        inner: Arc::new(inner),
-    }
+    Client { inner }
 }
 
-async fn fetch_helper(client: Client, key: &str, location: String) -> String {
+async fn fetch_helper(client: &Client, key: &str, location: String) -> String {
     let mut parts = location.split(':');
     let mount = parts.next().unwrap_or_default();
     let path = parts.next().unwrap_or_else(|| {
@@ -44,7 +42,7 @@ async fn fetch_helper(client: Client, key: &str, location: String) -> String {
     });
     let field = parts.next().unwrap_or("value");
 
-    let mut secret: HashMap<String, String> = kv2::read(&*client.inner, mount, path)
+    let mut secret: HashMap<String, String> = kv2::read(&client.inner, mount, path)
         .await
         .unwrap_or_else(|e| panic!("Failed to fetch {key} from OpenBao: {e}"));
 
@@ -53,13 +51,16 @@ async fn fetch_helper(client: Client, key: &str, location: String) -> String {
     })
 }
 
-pub async fn decrypt(client: Client, key: &str) -> String {
-    let location: String =
-        get_from_env_unsafe(key).unwrap_or_else(|_| panic!("{key} not present in env"));
-    fetch_helper(client, key, location).await
-}
+#[async_trait]
+impl KmsClient for Client {
+    async fn decrypt(&self, key: &str) -> String {
+        let location: String = get_from_env_unsafe(key)
+            .unwrap_or_else(|_| panic!("{key} not present in env"));
+        fetch_helper(self, key, location).await
+    }
 
-pub async fn decrypt_opt(client: Client, key: &str) -> Option<String> {
-    let location: String = get_from_env_unsafe(key).ok()?;
-    Some(fetch_helper(client, key, location).await)
+    async fn decrypt_opt(&self, key: &str) -> Option<String> {
+        let location: String = get_from_env_unsafe(key).ok()?;
+        Some(fetch_helper(self, key, location).await)
+    }
 }

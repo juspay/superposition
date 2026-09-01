@@ -5,7 +5,7 @@ use diesel::{
 use urlencoding::encode;
 
 use crate::helpers::{get_from_env_or_default, get_from_env_unsafe};
-use crate::kms::{self, KmsProvider};
+use crate::kms::KmsProvider;
 use crate::service::types::AppEnv;
 
 pub async fn get_superposition_token(
@@ -16,7 +16,13 @@ pub async fn get_superposition_token(
         AppEnv::DEV | AppEnv::TEST | AppEnv::SANDBOX => {
             get_from_env_or_default("SUPERPOSITION_TOKEN", "123456".into())
         }
-        _ => kms::decrypt(kms_client.clone().unwrap(), "SUPERPOSITION_TOKEN").await,
+        _ => {
+            kms_client
+                .as_ref()
+                .unwrap()
+                .decrypt("SUPERPOSITION_TOKEN")
+                .await
+        }
     }
 }
 
@@ -28,7 +34,13 @@ pub async fn get_kronos_dispatch_token(
         AppEnv::DEV | AppEnv::TEST => {
             get_from_env_or_default("KRONOS_DISPATCH_TOKEN", "dispatch-123456".into())
         }
-        _ => kms::decrypt(kms_client.clone().unwrap(), "KRONOS_DISPATCH_TOKEN").await,
+        _ => {
+            kms_client
+                .as_ref()
+                .unwrap()
+                .decrypt("KRONOS_DISPATCH_TOKEN")
+                .await
+        }
     }
 }
 
@@ -40,7 +52,13 @@ pub async fn get_oidc_client_secret(
         AppEnv::DEV | AppEnv::TEST | AppEnv::SANDBOX => {
             get_from_env_or_default("OIDC_CLIENT_SECRET", "123456".into())
         }
-        _ => kms::decrypt(kms_client.clone().unwrap(), "OIDC_CLIENT_SECRET").await,
+        _ => {
+            kms_client
+                .as_ref()
+                .unwrap()
+                .decrypt("OIDC_CLIENT_SECRET")
+                .await
+        }
     }
 }
 
@@ -61,11 +79,11 @@ pub async fn get_introspection_auth_header(
             std::env::var("OIDC_INTROSPECTION_AUTH_HEADER").ok()
         }
         _ => Some(
-            kms::decrypt(
-                kms_client.clone().unwrap(),
-                "OIDC_INTROSPECTION_AUTH_HEADER",
-            )
-            .await,
+            kms_client
+                .as_ref()
+                .unwrap()
+                .decrypt("OIDC_INTROSPECTION_AUTH_HEADER")
+                .await,
         ),
     }
 }
@@ -86,7 +104,11 @@ pub async fn get_static_api_tokens(
             std::env::var("OIDC_API_STATIC_TOKENS").ok()
         }
         _ => Some(
-            kms::decrypt(kms_client.clone().unwrap(), "OIDC_API_STATIC_TOKENS").await,
+            kms_client
+                .as_ref()
+                .unwrap()
+                .decrypt("OIDC_API_STATIC_TOKENS")
+                .await,
         ),
     }
 }
@@ -99,7 +121,7 @@ pub async fn get_kronos_api_key(
         AppEnv::DEV | AppEnv::TEST => {
             get_from_env_or_default("KRONOS_API_KEY", "dev-api-key".into())
         }
-        _ => kms::decrypt(kms_client.clone().unwrap(), "KRONOS_API_KEY").await,
+        _ => kms_client.as_ref().unwrap().decrypt("KRONOS_API_KEY").await,
     }
 }
 
@@ -119,9 +141,11 @@ pub async fn get_database_url(
             get_from_env_or_default(&format!("{env_prefix}DB_PASSWORD"), "docker".into())
         }
         _ => {
-            let kms_client = kms_client.clone().unwrap();
-            let db_password_raw =
-                kms::decrypt(kms_client, &format!("{env_prefix}DB_PASSWORD")).await;
+            let db_password_raw = kms_client
+                .as_ref()
+                .unwrap()
+                .decrypt(&format!("{env_prefix}DB_PASSWORD"))
+                .await;
             encode(db_password_raw.as_str()).to_string()
         }
     };

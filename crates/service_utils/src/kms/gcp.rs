@@ -1,15 +1,15 @@
 //! Decrypts a ciphertext via Google Cloud KMS, using the official
 //! `google-cloud-kms` client (gRPC, Application Default Credentials).
 
+use async_trait::async_trait;
 use base64::{Engine, engine::general_purpose};
 use google_cloud_kms::{
     client::{Client as GcpKmsClient, ClientConfig},
     grpc::kms::v1::DecryptRequest,
 };
 
-use crate::helpers::get_from_env_unsafe;
+use crate::{helpers::get_from_env_unsafe, kms::KmsClient};
 
-#[derive(Clone)]
 pub struct Client {
     inner: GcpKmsClient,
     key_name: String,
@@ -30,7 +30,7 @@ pub async fn new_client() -> Client {
     Client { inner, key_name }
 }
 
-async fn decrypt_helper(client: Client, key: &str, ciphertext_b64: String) -> String {
+async fn decrypt_helper(client: &Client, key: &str, ciphertext_b64: String) -> String {
     let ciphertext = general_purpose::STANDARD
         .decode(ciphertext_b64)
         .unwrap_or_else(|e| {
@@ -55,13 +55,16 @@ async fn decrypt_helper(client: Client, key: &str, ciphertext_b64: String) -> St
         .unwrap_or_else(|e| panic!("Could not convert decrypted {key} to UTF-8: {e}"))
 }
 
-pub async fn decrypt(client: Client, key: &str) -> String {
-    let ciphertext_b64: String =
-        get_from_env_unsafe(key).unwrap_or_else(|_| panic!("{key} not present in env"));
-    decrypt_helper(client, key, ciphertext_b64).await
-}
+#[async_trait]
+impl KmsClient for Client {
+    async fn decrypt(&self, key: &str) -> String {
+        let ciphertext_b64: String = get_from_env_unsafe(key)
+            .unwrap_or_else(|_| panic!("{key} not present in env"));
+        decrypt_helper(self, key, ciphertext_b64).await
+    }
 
-pub async fn decrypt_opt(client: Client, key: &str) -> Option<String> {
-    let ciphertext_b64: String = get_from_env_unsafe(key).ok()?;
-    Some(decrypt_helper(client, key, ciphertext_b64).await)
+    async fn decrypt_opt(&self, key: &str) -> Option<String> {
+        let ciphertext_b64: String = get_from_env_unsafe(key).ok()?;
+        Some(decrypt_helper(self, key, ciphertext_b64).await)
+    }
 }

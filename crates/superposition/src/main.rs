@@ -273,7 +273,7 @@ async fn main() -> Result<()> {
                                 },
                                 _ => {
                                     let client = kms::new_client().await;
-                                    let api_key = kms::decrypt(client, "INTERNAL_OPS_API_KEY").await;
+                                    let api_key = client.decrypt("INTERNAL_OPS_API_KEY").await;
                                     urlencoding::encode(api_key.as_str()).to_string()
                                 }
                             };
