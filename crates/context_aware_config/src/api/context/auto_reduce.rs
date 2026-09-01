@@ -41,7 +41,8 @@ impl AutoReducer {
         })
     }
 
-    /// Drops keys `condition` already resolves to. `context_id` is excluded, else it would match itself.
+    /// Drops keys `condition` already resolves to under MERGE, the strategy
+    /// resolution uses. `context_id` is excluded, else it would match itself.
     pub fn reduce(
         &self,
         context_id: &str,
@@ -58,30 +59,22 @@ impl AutoReducer {
             .cloned()
             .collect();
 
-        let resolve = |strategy: MergeStrategy| {
-            eval(
-                self.config.default_configs.clone(),
-                &contexts,
-                &self.config.overrides,
-                &self.config.dimensions,
-                query_data.clone(),
-                strategy,
-                None,
-                None,
-            )
-        };
-
-        // Both strategies must agree: callers pick one at resolve time.
-        let merged = resolve(MergeStrategy::MERGE);
-        let replaced = resolve(MergeStrategy::REPLACE);
+        let resolved = eval(
+            self.config.default_configs.clone(),
+            &contexts,
+            &self.config.overrides,
+            &self.config.dimensions,
+            query_data,
+            MergeStrategy::MERGE,
+            None,
+            None,
+        );
 
         let mut kept = Map::new();
         let mut dropped = Vec::new();
 
         for (key, value) in overrides.clone().into_inner() {
-            let redundant =
-                merged.get(&key) == Some(&value) && replaced.get(&key) == Some(&value);
-            if redundant {
+            if resolved.get(&key) == Some(&value) {
                 dropped.push(key);
             } else {
                 kept.insert(key, value);

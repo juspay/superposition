@@ -191,8 +191,8 @@ fn a_context_is_excluded_from_the_resolution_that_judges_it() {
 }
 
 #[test]
-fn keeps_a_key_that_is_redundant_under_only_one_merge_strategy() {
-    // REPLACE resolves to {"b":2} (redundant), MERGE to {"a":1,"b":2} (not).
+fn keeps_a_key_whose_object_value_merges_into_a_broader_one() {
+    // MERGE resolves flags to {"a":1,"b":2}, so an incoming {"b":2} is not redundant.
     let reducer = reducer(
         vec![
             context("low", vec![("os", json!("android"))], "o1"),
