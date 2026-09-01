@@ -124,6 +124,7 @@ impl SuperpositionDataSource for FileDataSource {
         Ok(FetchResponse::Data(ConfigData {
             data: config,
             fetched_at: now,
+            merge_strategy: None,
         }))
     }
 

@@ -27,6 +27,8 @@ internal class EvaluationArgs {
     // Values in the 2nd Map are serialized json values.
     val overrides: Map<String, Map<String, String>>
     val dimensions: Map<String, DimensionInfo>
+    // The workspace's strategy, when the source reported one.
+    var mergeStrategy: MergeStrategy = MergeStrategy.MERGE
 
     @Throws(OperationException::class)
     fun evaluate(queryContext: EvaluationContext, eargs: ExperimentationArgs?): MutableMap<String, String> {
@@ -37,7 +39,7 @@ internal class EvaluationArgs {
             overrides,
             dimensions,
             query,
-            MergeStrategy.MERGE,
+            mergeStrategy,
             null,
             null,
             eargs
@@ -55,6 +57,14 @@ internal class EvaluationArgs {
         contexts = output.contexts().map { toFfiContext(it) }
         overrides = output.overrides().mapValues { serializeDocumentValues(it.value) }
         dimensions = output.dimensions().mapValues { toFfiDimensionInfo(it.value) }
+        output.mergeStrategy()?.let {
+            // The SDK model enum and the FFI enum are distinct types; map by name.
+            mergeStrategy = if (it.value().equals("REPLACE", ignoreCase = true)) {
+                MergeStrategy.REPLACE
+            } else {
+                MergeStrategy.MERGE
+            }
+        }
     }
 
     constructor(config: SuperpositionConfig) {

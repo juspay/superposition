@@ -26,6 +26,7 @@ pub struct CacConfig {
     options: ConfigurationOptions,
     fallback_config: Option<Map<String, Value>>,
     cached_config: Arc<RwLock<Option<Config>>>,
+    cached_merge_strategy: Arc<RwLock<MergeStrategy>>,
     last_updated: Arc<RwLock<Option<chrono::DateTime<chrono::Utc>>>>,
     polling_task_cancellation_token: Arc<RwLock<Option<CancellationToken>>>,
 }
@@ -40,6 +41,7 @@ impl CacConfig {
             fallback_config: options.fallback_config.clone(),
             options,
             cached_config: Arc::new(RwLock::new(None)),
+            cached_merge_strategy: Arc::new(RwLock::new(MergeStrategy::default())),
             last_updated: Arc::new(RwLock::new(None)),
             polling_task_cancellation_token: Arc::new(RwLock::new(None)),
         }
@@ -109,6 +111,7 @@ impl CacConfig {
     async fn start_polling(&self, interval_ms: u64) -> CancellationToken {
         let superposition_options = self.superposition_options.clone();
         let cached_config = self.cached_config.clone();
+        let cached_merge_strategy = self.cached_merge_strategy.clone();
         let last_updated = self.last_updated.clone();
         let cancellation_token = CancellationToken::new();
         let cancellation_token_clone = cancellation_token.clone();
@@ -121,9 +124,10 @@ impl CacConfig {
                 _ = async {
                     loop {
                         match Self::get_config_static(&superposition_options).await {
-                            Ok(config) => {
+                            Ok((config, merge_strategy)) => {
                                 let mut cached = cached_config.write().await;
                                 *cached = Some(config);
+                                *cached_merge_strategy.write().await = merge_strategy;
                                 let mut updated = last_updated.write().await;
                                 *updated = Some(chrono::Utc::now());
                                 debug!("CAC config updated via polling");
@@ -184,10 +188,14 @@ impl CacConfig {
     }
 
     async fn get_config(&self, options: &SuperpositionOptions) -> Result<Config> {
-        Self::get_config_static(options).await
+        let (config, merge_strategy) = Self::get_config_static(options).await?;
+        *self.cached_merge_strategy.write().await = merge_strategy;
+        Ok(config)
     }
 
-    async fn get_config_static(options: &SuperpositionOptions) -> Result<Config> {
+    async fn get_config_static(
+        options: &SuperpositionOptions,
+    ) -> Result<(Config, MergeStrategy)> {
         use superposition_sdk::{Client, Config as SdkConfig};
 
         info!("Fetching config from Superposition service using SDK");
@@ -207,13 +215,19 @@ impl CacConfig {
                 SuperpositionError::NetworkError(error)
             })?;
 
+        // The workspace's strategy travels on the response, so no extra call.
+        let merge_strategy = response
+            .merge_strategy()
+            .map(ConversionUtils::convert_merge_strategy)
+            .unwrap_or_default();
+
         // Use ConversionUtils to convert to proper Config type
         let config = ConversionUtils::convert_get_config_response(response)?;
 
         info!("Successfully fetched and converted config with {} contexts, {} overrides, {} default configs",
               config.contexts.len(), config.overrides.len(), config.default_configs.len());
 
-        Ok(config)
+        Ok((config, merge_strategy))
     }
 
     pub async fn get_cached_config(&self) -> Option<Config> {
@@ -252,7 +266,7 @@ impl CacConfig {
                     &cached_config.overrides,
                     &cached_config.dimensions,
                     query_data,
-                    MergeStrategy::MERGE,
+                    *self.cached_merge_strategy.read().await,
                     prefix_filter.map(|p| p.to_vec()),
                     exclude_prefix_filter.map(|p| p.to_vec()),
                 ))

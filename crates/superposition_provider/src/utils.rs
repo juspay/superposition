@@ -9,6 +9,7 @@ use superposition_core::{Experiments, FfiExperiment};
 use superposition_sdk::types::{
     ExperimentStatusType as SDKExperimentStatusType, GroupType as SdkGroupType,
 };
+use superposition_types::api::config::MergeStrategy;
 use superposition_types::database::models::cac::{DependencyGraph, DimensionType};
 use superposition_types::database::models::experimentation::{
     Bucket, Buckets, ExperimentStatusType, GroupType, Variant, VariantType, Variants,
@@ -23,6 +24,15 @@ use crate::{conversions, types::*};
 pub struct ConversionUtils;
 
 impl ConversionUtils {
+    pub fn convert_merge_strategy(
+        strategy: &superposition_sdk::types::MergeStrategy,
+    ) -> MergeStrategy {
+        match strategy {
+            superposition_sdk::types::MergeStrategy::Replace => MergeStrategy::REPLACE,
+            _ => MergeStrategy::MERGE,
+        }
+    }
+
     pub fn convert_get_config_response(
         response: superposition_sdk::operation::get_config::GetConfigOutput,
     ) -> Result<Config> {

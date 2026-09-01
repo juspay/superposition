@@ -16,7 +16,7 @@ from superposition_sdk.config import Config as SdkConfig
 from superposition_sdk.auth_helpers import bearer_auth_config
 from superposition_sdk.models import GetConfigInput, DimensionMatchStrategy, \
     GetExperimentConfigInput, UnknownApiError
-from .conversions import experiments_to_ffi_experiments, exp_grps_to_ffi_exp_grps, config_response_to_ffi_config
+from .conversions import experiments_to_ffi_experiments, exp_grps_to_ffi_exp_grps, config_response_to_ffi_config, to_merge_strategy
 
 from .types import SuperpositionOptions
 from .data_source import (
@@ -92,9 +92,12 @@ class HttpDataSource(SuperpositionDataSource):
                     if_modified_since=if_modified_since,
                 )
             )
+            raw_strategy = getattr(response, "merge_strategy", None)
+            reported = to_merge_strategy(raw_strategy) if raw_strategy else None
             return FetchResponse.data(ConfigData(
                 fetched_at=response.last_modified,
                 data=config_response_to_ffi_config(response),
+                merge_strategy=reported,
             ))
         except UnknownApiError as e:
             # this is a hack for now, need to fix it properly by checking the content of UnkownApiError

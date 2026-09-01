@@ -4,6 +4,7 @@ import {
     ConfigData,
     PollingStrategy,
     ExperimentationArgs,
+    MergeStrategy,
 } from "./types";
 import { NativeResolver } from "superposition-bindings";
 import {
@@ -22,6 +23,8 @@ export class ConfigurationClient {
     private config: SuperpositionOptions;
     private resolver: NativeResolver;
     private options: ConfigOptions;
+    /** Learned from the config response; defaults to merge until one arrives. */
+    private mergeStrategy: MergeStrategy = "merge";
     private currentConfigData: ConfigData | null = null;
     private experimentationClient?: ExperimentationClient;
     private experimentationOptions?: ExperimentationOptions;
@@ -165,7 +168,7 @@ export class ConfigurationClient {
 
             return this.providerCache!.evalConfig(
                 queryData,
-                "merge",
+                this.mergeStrategy,
                 filterPrefixes,
                 filterExcludePrefixes,
                 targetingKey,
@@ -179,7 +182,7 @@ export class ConfigurationClient {
                     this.defaults.overrides || {},
                     this.defaults.dimensions || {},
                     queryData,
-                    "merge",
+                    this.mergeStrategy,
                     filterPrefixes,
                     filterExcludePrefixes,
                 );
@@ -202,6 +205,13 @@ export class ConfigurationClient {
 
         try {
             const response = await this.smithyClient.send(command);
+            // The workspace's strategy rides on this response, so no extra call.
+            if (response.merge_strategy) {
+                this.mergeStrategy =
+                    String(response.merge_strategy).toLowerCase() === "replace"
+                        ? "replace"
+                        : "merge";
+            }
             this.currentConfigData = {
                 default_configs: response.default_configs || {},
                 contexts: response.contexts || [],
@@ -250,7 +260,7 @@ export class ConfigurationClient {
 
             return this.providerCache!.evalConfig(
                 context,
-                "merge",
+                this.mergeStrategy,
                 undefined,
                 undefined,
                 targetingKey,
@@ -263,7 +273,7 @@ export class ConfigurationClient {
                     this.defaults.overrides || {},
                     this.defaults.dimensions || {},
                     context,
-                    "merge",
+                    this.mergeStrategy,
                 );
             }
             throw error;

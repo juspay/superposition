@@ -145,10 +145,13 @@ impl SuperpositionDataSource for HttpDataSource {
             Ok(res) => {
                 let modified_at =
                     Utc.timestamp_nanos(res.last_modified.as_nanos() as i64);
+                let merge_strategy =
+                    res.merge_strategy().map(ConversionUtils::convert_merge_strategy);
                 ConversionUtils::convert_get_config_response(res)
                     .map(|d| ConfigData {
                         data: d,
                         fetched_at: modified_at,
+                        merge_strategy,
                     })
                     .map(FetchResponse::Data)
             }

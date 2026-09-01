@@ -264,6 +264,37 @@ pub fn WorkspaceForm(
                     />
                 </div>
 
+                <div class="form-control">
+                    <Label
+                        title="Merge Strategy"
+                        extra_info="How overrides from matching contexts are combined when resolving config, and how a write lands on a context that already exists. MERGE combines nested objects; REPLACE swaps a key's value whole."
+                    />
+                    <select
+                        name="workspace-merge-strategy"
+                        on:change=move |ev| {
+                            merge_strategy_ws
+                                .set(MergeStrategy::from(event_target_value(&ev)));
+                        }
+                        class="select select-bordered w-full max-w-xs text-sm rounded-lg h-10 px-4 appearance-none leading-tight focus:outline-none focus:shadow-outline"
+                    >
+                        {[MergeStrategy::MERGE, MergeStrategy::REPLACE]
+                            .into_iter()
+                            .map(|strategy| {
+                                let label = strategy.to_string().to_uppercase();
+                                view! {
+                                    <option
+                                        value=label.clone()
+                                        selected=merge_strategy_rs.get_untracked().to_string()
+                                            == strategy.to_string()
+                                    >
+                                        {label}
+                                    </option>
+                                }
+                            })
+                            .collect_view()}
+                    </select>
+                </div>
+
                 <MetricsForm
                     metrics=metrics_rws.get_untracked()
                     on_change=Callback::new(move |metrics| metrics_rws.set(metrics))

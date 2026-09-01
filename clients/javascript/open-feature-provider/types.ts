@@ -1,3 +1,5 @@
+export type MergeStrategy = "merge" | "replace";
+
 export interface SuperpositionOptions {
     endpoint: string;
     token: string;

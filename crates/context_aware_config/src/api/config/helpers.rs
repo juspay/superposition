@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use actix_web::{
     HttpRequest,
-    web::{Data, Header, Json},
+    web::{Data, Json},
 };
 use cac_client::eval_cac;
 use chrono::{DateTime, Utc};

@@ -3,8 +3,9 @@ import logging
 import weakref
 from decimal import Decimal
 from typing import Any, Dict, Optional, TypeVar
+from superposition_bindings.superposition_types import MergeStrategy
 
-from .conversions import to_dimension_type, document_to_python_value
+from .conversions import to_dimension_type, document_to_python_value, to_merge_strategy
 from .types import OnDemandStrategy, PollingStrategy, SuperpositionOptions, ConfigurationOptions
 from superposition_sdk.client import Superposition, GetConfigInput
 from superposition_sdk.config import Config
@@ -83,6 +84,7 @@ class CacConfig:
             self.fallback_config = convert_fallback_config(options.fallback_config)
 
         self.cached_config = None
+        self.merge_strategy = MergeStrategy.MERGE
         self.last_updated = None
         self.evaluation_cache: Dict[str, Dict[str, Any]] = {}
         self._polling_task = None
@@ -105,6 +107,7 @@ class CacConfig:
                         if self_ref.on_config_change:
                             self_ref.on_config_change()
                     elif latest_config is not None:
+                        self_ref.merge_strategy = latest_config.get('merge_strategy', self_ref.merge_strategy)
                         # Only trigger callback if config actually changed
                         if self_ref.cached_config != latest_config:
                             self_ref.cached_config = latest_config
@@ -134,6 +137,7 @@ class CacConfig:
                 self.on_config_change()
         elif latest_config is not None:
             self.cached_config = latest_config
+            self.merge_strategy = latest_config.get('merge_strategy', self.merge_strategy)
             self.last_updated = datetime.utcnow()
             logger.info("Config fetched successfully.")
             if self.on_config_change:
@@ -189,6 +193,11 @@ class CacConfig:
 
             # Convert the response to a dictionary format
             config_data = {}
+
+            # The workspace's strategy rides on the response, so no extra call.
+            raw_strategy = getattr(response, "merge_strategy", None)
+            if raw_strategy is not None:
+                config_data['merge_strategy'] = to_merge_strategy(raw_strategy)
 
             # Add default configs
             if response.default_configs:

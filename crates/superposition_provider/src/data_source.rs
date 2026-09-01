@@ -7,7 +7,7 @@ use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use serde_json::{Map, Value};
 use superposition_core::experiment::ExperimentConfig;
-use superposition_types::Config;
+use superposition_types::{Config, api::config::MergeStrategy};
 
 use crate::types::Result;
 
@@ -57,6 +57,9 @@ impl<T: Display> Display for FetchResponse<T> {
 pub struct ConfigData {
     pub data: Config,
     pub fetched_at: DateTime<Utc>,
+    /// The workspace's merge strategy, when the source can report one.
+    /// A file source cannot, so it stays `None` and the configured default applies.
+    pub merge_strategy: Option<MergeStrategy>,
 }
 
 impl Display for ConfigData {

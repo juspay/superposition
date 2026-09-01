@@ -138,6 +138,11 @@ operation GetConfig {
         @httpHeader("last-modified")
         @required
         $last_modified
+
+        @documentation("The workspace's merge strategy. Returned so a client can resolve with the same strategy the server uses, without a separate workspace lookup.")
+        @httpHeader("x-merge-strategy")
+        @notProperty
+        merge_strategy: MergeStrategy
     }
 }
 

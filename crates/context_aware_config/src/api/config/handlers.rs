@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use actix_web::{
     HttpRequest, HttpResponse, Scope, get, put, routes,
-    web::{Data, Header, Json, Path, Query},
+    web::{Data, Json, Path, Query},
 };
 use chrono::{DateTime, Utc};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
@@ -28,7 +28,7 @@ use superposition_types::{
     api::{
         config::{
             ConfigQuery, ContextPayload, ExplainKeyQuery, ExplainResolveQuery,
-            MergeStrategy, ResolveConfigQuery,
+            ResolveConfigQuery,
         },
         context::PutRequest,
     },

@@ -64,6 +64,7 @@ import qualified Io.Superposition.Command.ListExperimentGroups          as ExpGr
 import           Io.Superposition.Model.ExperimentStatusType            (ExperimentStatusType (CREATED, INPROGRESS))
 import qualified Io.Superposition.Model.GetConfigInput                  as SDK
 import qualified Io.Superposition.Model.GetConfigOutput                 as SDK
+import qualified Io.Superposition.Model.MergeStrategy                  as SDKMS
 import qualified Io.Superposition.Model.ListExperimentGroupsInput       as ExpGrp
 import qualified Io.Superposition.Model.ListExperimentGroupsOutput      as ExpGrp
 import qualified Io.Superposition.Model.ListExperimentInput             as Exp
@@ -91,6 +92,8 @@ data SuperpositionProvider = SuperpositionProvider
     _anchor           :: IORef (),
     _cacheFreed       :: IORef Bool,
     runLogger         :: Logger,
+    -- The workspace's strategy, learned from the config response.
+    mergeStrategyVar  :: TVar FFI.MergeStrategy,
     -- TODO
     fallbackConfig    :: ()
   }
@@ -98,12 +101,17 @@ data SuperpositionProvider = SuperpositionProvider
 toStr :: (ToJSON a) => a -> String
 toStr = LT.unpack . LTE.decodeUtf8 . encode
 
-reinitCache :: FFI.ProviderCacheHandle -> Logger -> IORef (Maybe UTCTime) -> TVar (Maybe SDK.GetConfigOutput) -> IO ()
-reinitCache cache logger lastModifiedRef configVar = do
+reinitCache :: FFI.ProviderCacheHandle -> Logger -> IORef (Maybe UTCTime) -> TVar (Maybe SDK.GetConfigOutput) -> TVar FFI.MergeStrategy -> IO ()
+reinitCache cache logger lastModifiedRef configVar msVar = do
   cfg <- readTVarIO configVar
   case cfg of
     Nothing -> pure ()
     Just config -> do
+      atomically $
+        writeTVar msVar $
+          case SDK.merge_strategy config of
+            Just SDKMS.REPLACE -> FFI.Replace
+            _                  -> FFI.Merge
       prev <- readIORef lastModifiedRef
       let cur = SDK.last_modified config
       if prev == Just cur
@@ -153,7 +161,8 @@ getResolvedKey SuperpositionProvider {..} key ec = do
   runLogger $
     when (isJust expRefreshTask && isNothing (targetingKey ec)) $
       Log.logWarn "Targeting key missing, experimentation will not have any effect."
-  rcfg <- FFI.evalConfig providerCache queryJson FFI.Merge Nothing Nothing tkey
+  ms <- readTVarIO mergeStrategyVar
+  rcfg <- FFI.evalConfig providerCache queryJson ms Nothing Nothing tkey
   let parser = withObject "ResolvedConfig" (.:? (fromString $ T.unpack key))
       result =
         rcfg
@@ -175,7 +184,8 @@ resolveAllConfig (SuperpositionProvider {..}) ec = do
   let ec' = fromMaybe ec $ mergeEvaluationContext <$> defEc <*> Just ec
       queryJson = toStr $ customFields ec'
       tkey = T.unpack <$> targetingKey ec'
-  FFI.evalConfig providerCache queryJson FFI.Merge Nothing Nothing tkey
+  ms <- readTVarIO mergeStrategyVar
+  FFI.evalConfig providerCache queryJson ms Nothing Nothing tkey
 
 resolveValue ::
   (FromJSON a) =>
@@ -328,7 +338,8 @@ newSuperpositionProvider options@(SuperpositionProviderOptions {..}) = do
       configLastModified <- newIORef Nothing
       expLastModified <- newIORef Nothing
 
-      let onConfigRefresh = reinitCache cache logger configLastModified configChan
+      msVar <- newTVarIO FFI.Merge
+      let onConfigRefresh = reinitCache cache logger configLastModified configChan msVar
           onExpRefresh = reinitExperimentsCache cache logger expLastModified expChan expGrpChan
 
       -- Config refresh: fetch, store in TVar, then reinit native cache
@@ -370,6 +381,7 @@ newSuperpositionProvider options@(SuperpositionProviderOptions {..}) = do
               anchor
               cacheFreed
               logger
+              msVar
               fallbackConfig
       -- Register finalizer to free cache when anchor IORef is GC'd (idempotent)
       addFinalizer anchor $ do

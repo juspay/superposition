@@ -45,6 +45,7 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
         primary_source: SuperpositionDataSource,
         fallback_source: Optional[SuperpositionDataSource] = None,
         refresh_strategy: RefreshStrategy = default_on_demand_strategy(),
+        merge_strategy: MergeStrategy = MergeStrategy.MERGE,
     ):
         """Initialize local resolution provider.
 
@@ -56,6 +57,8 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
         self.primary_source = primary_source
         self.fallback_source = fallback_source
         self.refresh_strategy = refresh_strategy
+        # Used only when the data source cannot report one (a file source).
+        self.default_merge_strategy = merge_strategy
 
         self.metadata = Metadata(name="LocalResolutionProvider")
         self.status = ProviderStatus.NOT_READY
@@ -172,7 +175,7 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
             # Use FFI for local evaluation
             result = self.ffi_cache.eval_config(
                 query_data,
-                MergeStrategy.MERGE,
+                self._effective_merge_strategy(),
                 prefix_filter,
                 exclude_prefix_filter,
                 targeting_key,
@@ -183,6 +186,10 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
         except Exception as e:
             logger.error(f"Error resolving features: {e}")
             raise
+
+    def _effective_merge_strategy(self) -> MergeStrategy:
+        reported = getattr(self.cached_config, "merge_strategy", None)
+        return reported if reported is not None else self.default_merge_strategy
 
     async def resolve_all_features_with_filter_async(
         self,
@@ -212,7 +219,7 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
             # Use FFI for local evaluation
             result = self.ffi_cache.eval_config(
                 query_data,
-                MergeStrategy.MERGE,
+                self._effective_merge_strategy(),
                 prefix_filter,
                 exclude_prefix_filter,
                 targeting_key,

@@ -1,6 +1,6 @@
 use actix_web::{
     HttpRequest, HttpResponse, Scope, routes,
-    web::{Data, Header, Json},
+    web::{Data, Json},
 };
 use chrono::{DateTime, Utc};
 use context_aware_config::api::config::helpers::{
@@ -17,7 +17,7 @@ use superposition_derives::{authorized, declare_resource};
 use superposition_macros::unexpected_error;
 use superposition_types::{
     Config,
-    api::config::{ContextPayload, MergeStrategy, ResolveConfigQuery},
+    api::config::{ContextPayload, ResolveConfigQuery},
     custom_query::{self as superposition_query, CustomQuery, DimensionQuery, QueryMap},
     result as superposition,
 };

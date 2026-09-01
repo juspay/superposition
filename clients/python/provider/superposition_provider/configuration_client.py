@@ -146,7 +146,7 @@ class ConfigurationClient:
             # Use instance method
             result = self.cache.eval_config(
                 query_data,
-                MergeStrategy.MERGE,
+                self.cac_config.merge_strategy,
                 None, 
                 None,
                 targeting_key

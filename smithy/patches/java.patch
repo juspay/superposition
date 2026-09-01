@@ -235,11 +235,11 @@ index 58d004f4..bf37b2b4 100644
  
      private static final List<Schema>$COLLECTION_OPERATIONS = List.of(CreateWebhook.$SCHEMA);
      private static final List<Schema> $OPERATIONS = List.of(CreateWebhook.$SCHEMA);
+
 diff --git a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Workspace.java b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Workspace.java
-index a1dfbada..589784f9 100644
 --- a/clients/java/sdk/src/main/java/io/juspay/superposition/model/Workspace.java
 +++ b/clients/java/sdk/src/main/java/io/juspay/superposition/model/Workspace.java
-@@ -15,21 +15,22 @@ public final class Workspace implements ApiResource {
+@@ -15,24 +15,25 @@
      private static final Workspace $INSTANCE = new Workspace();
      private static final Map<String, Schema> $IDENTIFIERS = Map.of("org_id", PreludeSchemas.STRING,
          "workspace_name", PreludeSchemas.STRING);
@@ -257,6 +257,7 @@ index a1dfbada..589784f9 100644
 -        "last_modified_at", SharedSchemas.DATE_TIME,
 -        "organisation_id", PreludeSchemas.STRING,
 -        "allow_experiment_self_approval", PreludeSchemas.BOOLEAN,
+-        "merge_strategy", MergeStrategy.$SCHEMA,
 -        "workspace_schema_name", PreludeSchemas.STRING,
 -        "metrics", PreludeSchemas.DOCUMENT,
 -        "workspace_lock", WorkspaceLock.$SCHEMA);
@@ -275,10 +276,10 @@ index a1dfbada..589784f9 100644
 +        Map.entry("last_modified_at", SharedSchemas.DATE_TIME),
 +        Map.entry("organisation_id", PreludeSchemas.STRING),
 +        Map.entry("allow_experiment_self_approval", PreludeSchemas.BOOLEAN),
++        Map.entry("merge_strategy", MergeStrategy.$SCHEMA),
 +        Map.entry("workspace_schema_name", PreludeSchemas.STRING),
 +        Map.entry("metrics", PreludeSchemas.DOCUMENT),
 +        Map.entry("workspace_lock", WorkspaceLock.$SCHEMA));
  
      private static final List<Schema> $OPERATIONS = List.of(CreateWorkspace.$SCHEMA,
          MigrateWorkspaceSchema.$SCHEMA,
-         RotateWorkspaceEncryptionKey.$SCHEMA);

@@ -10,6 +10,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Dict, List, Optional, Any, TypeVar, Generic, AsyncGenerator
+from superposition_bindings.superposition_types import MergeStrategy
 
 from superposition_bindings.superposition_types import Config
 from superposition_bindings.superposition_client import ExperimentConfig
@@ -48,6 +49,9 @@ class ConfigData:
     """Configuration data with fetch metadata."""
     data: Config
     fetched_at: datetime
+    # The workspace's merge strategy, when the source can report one. A file
+    # source cannot, so it stays None and the configured default applies.
+    merge_strategy: Optional[MergeStrategy] = None
 
     def __str__(self):
         return (f"ConfigData(fetched_at: {self.fetched_at}, "

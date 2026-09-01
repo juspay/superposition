@@ -96,9 +96,11 @@ impl AppHeader {
         merge_strategy: MergeStrategy,
         resp_builder: &mut HttpResponseBuilder,
     ) {
+        // Uppercase to match the smithy enum values (MERGE / REPLACE); the
+        // Display impl is snake_case, which SDK clients will not parse.
         resp_builder.insert_header((
             Self::XMergeStrategy.to_string(),
-            merge_strategy.to_string(),
+            merge_strategy.to_string().to_uppercase(),
         ));
     }
 }

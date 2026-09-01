@@ -197,3 +197,17 @@ def to_experiment_status_type(sdk_status_type: str) -> ExperimentStatusType:
             return ExperimentStatusType.PAUSED
         case _:
             return ExperimentStatusType.DISCARDED
+
+
+def to_merge_strategy(value) -> "MergeStrategy":
+    """The SDK reports the header as a plain string; the FFI wants the enum."""
+    from superposition_bindings.superposition_types import MergeStrategy
+    if value is None:
+        return MergeStrategy.MERGE
+    if isinstance(value, MergeStrategy):
+        return value
+    return (
+        MergeStrategy.REPLACE
+        if str(value).strip().upper() == "REPLACE"
+        else MergeStrategy.MERGE
+    )
